@@ -53,7 +53,7 @@ import { ensureCountryEdge } from './countryplan.js';
 import { warmCountryMaps } from './countrymap.js';
 import { Input, lockVerlorenOpentMenu } from './input.js';
 import { initGamepad } from './gamepad.js';
-import { initPadKeyboard } from './padkeyboard.js';
+import { initOnscreenKeyboard } from './onscreenkeyboard.js';
 import { initTextFields } from './textfield.js';
 import { initInputDevice } from './inputdevice.js';
 import { skipFrame, frameWorkMs } from './framecap.js';
@@ -946,7 +946,7 @@ async function boot() {
   // tik in plaats van ingedrukt houden (holdlatch.js): een tikstand blijft alleen te voet en zonder menu of pauze staan
   input.latchOk = () => !menuOpen() && !world.uiPaused && !world.paused && !(hoofdspeler(world) && hoofdspeler(world).inVehicle);
   initInputDevice();
-  initPadKeyboard();
+  initOnscreenKeyboard(); // het schermtoetsenbord voor elk tekstveld met data-osk (#1011)
   initTextFields(); // alle toetsen, plakken en een rechtermuismenu in tekstvelden (#95)
   initGamepad(input, world, { menuOpen: () => menuOpen() || isPlayAheadOpen() || isHelpOfferOpen() || isRecapOpen(), phoneOpen: isPhoneOpen, pauseOpen: isPauseMenuOpen, mapOpen: () => isMapOpen() });
   initTouch(input, world, { menuOpen: () => menuOpen() || isPlayAheadOpen() || isHelpOfferOpen() || isRecapOpen() });

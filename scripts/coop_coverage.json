@@ -1535,6 +1535,14 @@
    "reden": "Designsysteem: stijl, geen spelstaat."
   },
   {
+   "glob": "osk*",
+   "reden": "Schermtoetsenbord (#1011): lokale invoer in het eigen veld, geen spelstaat en geen netwerk; elke speler vult zijn eigen veld op zijn eigen scherm."
+  },
+  {
+   "glob": "onscreenkeyboard",
+   "reden": "Schermtoetsenbord (#1011): lokale invoer in het eigen veld, geen spelstaat en geen netwerk."
+  },
+  {
    "glob": "ds*",
    "reden": "Designsysteem."
   },

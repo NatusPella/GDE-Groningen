@@ -138,8 +138,13 @@ function hengelHint() {
   return !!(typeof document !== 'undefined' && document.querySelector && document.querySelector(HENGEL_HINT));
 }
 
+// Menu-achtig: de menu-indeling en het schermtoetsenbord (onscreenkeyboard.js) lopen met pijlen, herhaling en de stick als pijlen.
+const menuLike = (c = ctx) => c === 'menu' || c === 'osk';
+
 // Which PAD_MAPS table applies right now.
 function context() {
+  // het schermtoetsenbord staat open: zijn eigen indeling (A typt, B wist), ook boven het menu of het wachtscherm
+  if (document.documentElement.classList.contains('osk-open')) return 'osk';
   if (!started() || (hooks.menuOpen && hooks.menuOpen())) return 'menu';
   const w = world;
   if (!w) return 'foot';
@@ -194,9 +199,9 @@ function press(slot) {
   if (a === '@gas' || a === '@brake') return; // analog, in sticks()
   if (slot === 'ls' && a === 'shift' && map.stick === 'move') { sprintLatch = !sprintLatch; delete heldAction[slot]; return; }
   const ev = sendKey('keydown', a, 'pad');
-  if (ctx === 'menu') {
-    repeatAt[slot] = a.startsWith('arrow') || a === '[' || a === ']' ? performance.now() + REPEAT_DELAY : Infinity;
-    menuFallback(a, ev);
+  if (menuLike()) {
+    repeatAt[slot] = a.startsWith('arrow') || a === '[' || a === ']' || (ctx === 'osk' && (a === 'backspace' || a === 'pageup' || a === 'pagedown')) ? performance.now() + REPEAT_DELAY : Infinity;
+    if (ctx === 'menu') menuFallback(a, ev);
   }
 }
 
@@ -253,7 +258,7 @@ const dz = (x, y) => radialDeadzone(x, y, DEAD);
 function holdStick(k, on) {
   if (on === stickKeys.has(k)) return;
   if (on) stickKeys.add(k); else stickKeys.delete(k);
-  if (ctx === 'menu') {
+  if (menuLike()) {
     if (on) { sendKey('keydown', k, 'pad'); repeatAt['stick-' + k] = performance.now() + REPEAT_DELAY; } else { sendKey('keyup', k, 'pad'); delete repeatAt['stick-' + k]; }
     return;
   }
@@ -294,7 +299,7 @@ function sticks(pad, dt) {
     holdStick('arrowup', !horiz && past(-ly, 'arrowup')); holdStick('arrowdown', !horiz && past(ly, 'arrowdown'));
   }
   input.padAxis = axis;
-  if (ctx === 'menu') {
+  if (menuLike()) {
     // right stick scrolls whatever list has the focus
     if (ry) {
       let el = document.activeElement;
@@ -363,7 +368,7 @@ function playQueued(name, k) {
 
 function watchFeel(dt) {
   const w = world;
-  if (!w || ctx === 'menu' || !active) { feelState.hp = null; feelState.speed = null; feelState.money = null; return; }
+  if (!w || menuLike() || !active) { feelState.hp = null; feelState.speed = null; feelState.money = null; return; }
   const scale = hapticScale({ ...getSettings(), reduceMotion: reducedMotion() });
   const sn = feelSnap, me = hoofdspeler(w), v = me && me.inVehicle;
   sn.hp = (w.health || 0) + (w.armor || 0);

@@ -263,6 +263,8 @@ export const PAD_MAPS = {
   // de vliegschool (#397): het lesmenu bij de balie; A kiest, B gaat terug, de pijlen (en de stick) bladeren. In de lucht
   // kiest gamepad.js de gewone vliegindeling zodra je in het lesvliegtuig zit.
   vliegschool: { a: 'enter', b: 'backspace', x: null, y: null, lb: null, rb: null, lt: null, rt: null, ls: null, rs: null, up: 'arrowup', down: 'arrowdown', left: 'arrowleft', right: 'arrowright', view: 'm', start: 'escape', stick: 'arrows' },
+  // het schermtoetsenbord (onscreenkeyboard.js, #1011): A typt de toets, B wist, X is spatie, Y wisselt hoofdletter, LB en RB zetten de cursor, LT en RT wisselen van laag, Start is Klaar, Overzicht annuleert. De pijlen en de stick lopen over de toetsen.
+  osk: { a: 'enter', b: 'backspace', x: ' ', y: 'shift', lb: 'pageup', rb: 'pagedown', lt: '[', rt: ']', ls: null, rs: null, up: 'arrowup', down: 'arrowdown', left: 'arrowleft', right: 'arrowright', view: 'escape', start: 'f10', stick: 'nav' },
   menu: { a: 'enter', b: 'escape', x: 'delete', y: ' ', lb: 'q', rb: 'e', lt: '[', rt: ']', ls: 'tab', rs: null, up: 'arrowup', down: 'arrowdown', left: 'arrowleft', right: 'arrowright', view: 'm', start: 'escape', stick: 'nav' },
 };
 
@@ -320,7 +322,7 @@ export function padSlotFor(token, ctx = 'foot') {
   if (t === 'RMB') return find(map, '@aim');
   if (t === 'WHEEL') return find(map, '@wheel+');
   const k = tokenKey(token);
-  if (ctx !== 'menu' && (map.stick === 'steer') && (k === 'a' || k === 'd')) return 'lstick';
+  if (ctx !== 'menu' && ctx !== 'osk' && (map.stick === 'steer') && (k === 'a' || k === 'd')) return 'lstick';
   if (map.stick === 'steer' && k === 'w') return find(map, '@gas');
   if (map.stick === 'steer' && k === 's') return find(map, '@brake');
   if (map.stick === 'move' && 'wasd'.includes(k) && k.length === 1) return find(map, k) || 'lstick';

@@ -6,7 +6,7 @@
 // binnen een paar tellen geen paste-gebeurtenis, dan plakken we met de hand (zo nooit dubbel).
 export const isTextField = (t) => !!(t && (t.tagName === 'TEXTAREA' || (t.tagName === 'INPUT' && !['range', 'checkbox', 'radio', 'button', 'submit', 'reset', 'file', 'color'].includes(t.type)) || t.isContentEditable));
 
-async function readClip() {
+export async function readClip() {
   try { const d = typeof window !== 'undefined' && window.gdeDesktop && window.gdeDesktop.clipboard; if (d) return String(await d.readText()); } catch (e) { /* de browser dan */ }
   try { return String(await navigator.clipboard.readText()); } catch (e) { return ''; }
 }

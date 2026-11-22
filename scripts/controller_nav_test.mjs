@@ -56,7 +56,7 @@ ok(/spatialNext\(rects, i, a\.slice\(5\)\)/.test(pad), 'de pijlen kiezen de buur
 ok(/el\.scrollBy\(0, ry/.test(pad), 'de rechterstick scrolt de lijst met focus');
 ok(/slot === 'b' && open\) return 'backspace'/.test(pad), 'B is Backspace in de telefoon');
 ok(/(lt|rt)' \|\| slot === 'rt'\) && hooks\.mapOpen/.test(pad.replace(/\s+/g, ' ')) || /hooks\.mapOpen/.test(pad), 'de triggers zoomen de kaart');
-ok(/padkeyboard/.test(read('game/js/main.js')), 'het schermtoetsenbord is aangesloten');
+ok(/onscreenkeyboard/.test(read('game/js/main.js')), 'het schermtoetsenbord is aangesloten');
 
 // ---------- 4b. de kaart: pijlen panen, L3 gaat naar de knoppen op de kaart en de D-pad loopt er doorheen (#985) ----------
 ok(M.ls === 'tab', 'menu: L3 is Tab (op de kaart: naar de kaartknoppen)');

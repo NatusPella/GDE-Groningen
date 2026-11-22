@@ -668,8 +668,6 @@
     "game/js/padelmatch.js",
     "game/js/padelrules.js",
     "game/js/padelstatus.js",
-    "game/js/padkeyboard.js",
-    "game/js/padkeyslogic.js",
     "game/js/padlogic.js",
     "game/js/padmapnav.js",
     "game/js/padscreens.js",

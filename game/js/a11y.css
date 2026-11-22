@@ -147,18 +147,6 @@ html.vormen-extra #hud .hud-minimap-wrap.wanted.chase { outline-style: solid; }
 /* the Oefenen button in Hulp reads as a button */
 #pause-menu .pm-help .m-bt { margin-top: 8px; padding: 8px 20px; border-radius: 8px; background: color-mix(in srgb, var(--ds-c-licht-groen) 18%, transparent); box-shadow: inset 0 0 0 1.5px var(--g); color: var(--g); cursor: pointer; }
 
-/* schermtoetsenbord voor de controller (padkeyboard.js, #151) */
-#padkeyboard { position: fixed; inset: auto 0 0 0; z-index: 99998; display: flex; justify-content: center; padding: 12px; pointer-events: none; }
-#padkeyboard .pk-box { pointer-events: auto; width: min(760px, 96vw); padding: 12px; border-radius: 14px; background: var(--ds-c-glas-2); border: 1px solid var(--ds-c-glas-3); color: var(--ds-c-creme); font: 16px var(--ds-font-tekst); box-shadow: 0 8px 32px color-mix(in srgb, var(--ds-c-ink-inkt) 50%, transparent); }
-#padkeyboard .pk-val { min-height: 1.6em; margin-bottom: 8px; padding: 6px 10px; border-radius: 8px; background: var(--ds-c-glas); font-size: 20px; word-break: break-all; }
-#padkeyboard .pk-row { display: flex; gap: 6px; margin-bottom: 6px; justify-content: center; }
-#padkeyboard button { flex: 1 1 0; min-width: 0; min-height: 44px; padding: 0 4px; border-radius: 8px; border: 1px solid var(--ds-c-glas-3); background: var(--ds-c-glas-3); color: inherit; font: inherit; cursor: pointer; }
-#padkeyboard button.act { flex: 1.6 1 0; }
-#padkeyboard button.space { flex: 4 1 0; }
-#padkeyboard button.on { outline: 3px solid var(--ds-c-ink-geel); background: var(--ds-c-glas-3); }
-#padkeyboard button.shift-on { background: var(--ds-c-ink-geel); color: var(--ds-c-glas-2); }
-#padkeyboard .pk-help { margin: 6px 0 0; font-size: 13px; opacity: .7; text-align: center; }
-
 /* geluidsondertitels (soundcaptions.js, #200) */
 #sound-captions { position: fixed; left: 50%; bottom: 22%; transform: translateX(-50%); z-index: 60; pointer-events: none; display: flex; flex-direction: column; align-items: center; gap: 4px; font: 400 calc(18px * var(--sub-scale, 1)) var(--ds-font-zeef-tekst); color: var(--ds-c-ink-inkt); text-shadow: none; }
 #sound-captions div { padding: 2px 12px; border-radius: 6px; background: var(--ds-c-ink-papier); border: 2px solid var(--ds-c-ink-inkt); box-shadow: var(--ds-schaduw-hard-klein); font-style: italic; }
