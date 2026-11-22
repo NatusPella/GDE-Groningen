@@ -47,12 +47,11 @@ export function cyclePick(beat, pick, dir) {
   return ids[(i + (dir < 0 ? -1 : 1) + ids.length) % ids.length];
 }
 
-// Toetsenbord, gelijk aan het pad (#97): pijlen en W/S verplaatsen de markering, 1/2/3 kiezen meteen, Enter bevestigt de markering,
-// Escape sluit (de standaardkeuze). Geeft { markeer: id }, { kies: id }, { sluit: true } of null (de toets is niet van het paneel).
-export function keyAction(beat, pick, key) {
+// Toetsenbord, gelijk aan het pad (#97): Tab (met Shift terug) verplaatst de markering, 1/2/3 kiezen meteen, Enter of spatie bevestigt de markering,
+// Escape sluit (de standaardkeuze). Bewust geen pijlen of WASD: het paneel hangt in het spel en die toetsen sturen te voet en in een voertuig. Geeft { markeer: id }, { kies: id }, { sluit: true } of null (de toets is niet van het paneel).
+export function keyAction(beat, pick, key, shift = false) {
   const k = String(key);
-  if (['ArrowUp', 'w', 'W'].includes(k)) return { markeer: cyclePick(beat, pick, -1) };
-  if (['ArrowDown', 's', 'S'].includes(k)) return { markeer: cyclePick(beat, pick, 1) };
+  if (k === 'Tab') return { markeer: cyclePick(beat, pick, shift ? -1 : 1) };
   const direct = pickFromKey(beat, k);
   if (direct) return { kies: direct };
   if (k === 'Enter' || k === ' ') return { kies: pick };

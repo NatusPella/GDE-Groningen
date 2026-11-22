@@ -49,7 +49,7 @@ export function askTravel(beat) {
     const onKey = (e) => {
       if (e.repeat) return;
       if (e.metaKey || e.ctrlKey || e.altKey) return;
-      const a = keyAction(beat, pick, e.key);
+      const a = keyAction(beat, pick, e.key, e.shiftKey);
       if (!a) return;
       e.preventDefault(); e.stopPropagation();
       if (a.markeer) { pick = a.markeer; p.set(panelState(beat, pick, loadSeen())); }

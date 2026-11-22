@@ -19,8 +19,9 @@ ok(V.hudLine(0) === '' && V.hudLine(1500) === '1,5 km · ± 1 min', 'hud line', 
 ok(V.shouldPrompt(8000) && !V.shouldPrompt(2000), 'prompt only on a jump');
 ok(V.arrivalMessage(beat).kind === 'reis' && B.KINDS.reis.p === B.P1, 'reis is a P1 story kind');
 ok(V.cyclePick(beat, 'meerijden', 1) === 'zelf' && V.cyclePick(beat, 'meerijden', -1) !== 'meerijden', 'gamepad cycles the pick');
-// toetsenbord gelijk aan het pad: pijlen en W/S verplaatsen de markering, cijfers kiezen, Enter bevestigt de markering
-ok(V.keyAction(beat, 'meerijden', 'ArrowDown').markeer === 'zelf' && V.keyAction(beat, 'meerijden', 'w').markeer === 'overslaan', 'keys move the pick');
+// toetsenbord gelijk aan het pad: Tab verplaatst de markering, cijfers kiezen, Enter bevestigt de markering
+ok(V.keyAction(beat, 'meerijden', 'Tab').markeer === 'zelf' && V.keyAction(beat, 'meerijden', 'Tab', true).markeer === 'overslaan', 'Tab moves the pick');
+ok(['ArrowUp', 'ArrowDown', 'w', 's', 'a', 'd'].every((k) => V.keyAction(beat, 'zelf', k) === null), 'movement and steering keys stay with the game');
 ok(V.keyAction(beat, 'zelf', 'Enter').kies === 'zelf' && V.keyAction(beat, 'zelf', '3').kies === 'overslaan', 'enter confirms the pick, digits choose');
 ok(V.keyAction(beat, 'zelf', 'Escape').sluit === true && V.keyAction(beat, 'zelf', 'x') === null && V.keyAction({ ...beat, lines: null }, 'zelf', '3') === null, 'escape closes, rest is not ours');
 console.log(`${n - fails}/${n} reisview`);
