@@ -112,6 +112,13 @@ export function bevestigRegel(it) {
   return `${it.label}. Druk nog een keer om te kiezen`;
 }
 
+// Een tweede druk telt pas als bevestiging na een korte pauze: een dubbelklik of een dubbele Enter op een duur ding kocht het
+// anders in één beweging, terwijl de bevestiging juist een tweede, bewuste druk vraagt. Geeft true als de druk de aankoop mag doen.
+export const DUBBELKLIK_MS = 350;
+export function bevestigGeldig(armed, id, nu = Date.now()) {
+  return !!armed && armed.id === id && Number.isFinite(armed.until) && nu < armed.until && !(Number.isFinite(armed.at) && nu - armed.at < DUBBELKLIK_MS);
+}
+
 // Esc, Backspace en Q: staat er een bevestiging open (op een duur ding gedrukt), dan trekt de eerste druk die in en blijft de winkel
 // open; anders gaat de winkel dicht. Zo sluit een slordige Esc niet het hele scherm halverwege een aankoop.
 export function escActie(armed, nu = Date.now()) {

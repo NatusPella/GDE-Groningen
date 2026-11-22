@@ -99,6 +99,26 @@ t('regressie: opnieuw tekenen houdt de gekozen tegel (stond: altijd terug naar d
   assert.match(p.lijst.innerHTML, /data-spul="e:kroket"[^>]*aria-current="true"/, 'en na een gewone hertekening');
 });
 
+t('een leeg wapen toont in het detail dat er niets meer is, en eten klinkt', () => {
+  const w = wereld({ ammo: { pistol: 0 }, health: 40, player: { character: 'tammo', x: 3, y: 4 } });
+  const p = paneel();
+  S.renderSpullen(p, w);
+  S.spullenFocus(p, { closest: () => ({ dataset: { spul: 'w:pistol' } }) });
+  assert.match(p.detail.innerHTML, /geen patronen meer/);
+  E.voegEtenToe(w, 'kroket', 1);
+  E.voegEtenToe(w, 'ehbo', 1);
+  w.audioEvents = [];
+  S.renderSpullen(p, w);
+  S.spullenEnter(p, 'e:kroket', { rerender: () => S.renderSpullen(p, w) });
+  S.spullenEnter(p, 'e:ehbo', { rerender: () => S.renderSpullen(p, w) });
+  const namen = w.audioEvents.map((e) => e.name);
+  assert.deepEqual(namen, ['snack_wrap', 'shop_bag_rustle'], 'een snack en een EHBO-doos klinken verschillend');
+  w.health = 100; E.voegEtenToe(w, 'kroket', 1); w.audioEvents = [];
+  S.renderSpullen(p, w);
+  S.spullenEnter(p, 'e:kroket', { rerender: () => S.renderSpullen(p, w) });
+  assert.deepEqual(w.audioEvents, [], 'zit je vol, dan blijft het eten liggen en blijft het stil');
+});
+
 t('HUD: een leeg wapen zegt leeg; een volle teller en melee blijven zoals ze waren', () => {
   const geen = new Set(['knuppel']);
   assert.equal(HM.weaponAmmoText('pistol', 0, geen), 'leeg');

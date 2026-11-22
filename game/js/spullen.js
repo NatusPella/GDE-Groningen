@@ -285,7 +285,7 @@ function collect(w) {
         : etenWerkwoord(e.id) === 'Gebruiken' ? `Meegenomen van de ${e.how.toLowerCase()}. Gebruiken kan overal, ook hier in het menu.`
           : `Meegenomen van de ${e.how.toLowerCase()}. Opeten kan overal, ook hier in het menu.`,
       rows: [['Per stuk', `+${e.hp} gezondheid`], ['Jij nu', `${Math.round(w.health)} van 100`]],
-      act: { label: etenWerkwoord(e.id), run: () => eet(w, e.id) } });
+      act: { label: etenWerkwoord(e.id), run: () => { const voor = Number(w.eten && w.eten[e.id]) || 0; const r = eet(w, e.id); if ((Number(w.eten && w.eten[e.id]) || 0) < voor) sfxEvent(w, e.id === 'ehbo' ? 'shop_bag_rustle' : 'snack_wrap'); return r; } } });
   }
 
   const nogStempels = Math.max(0, shop.stampCard - shop.stamps);
@@ -510,6 +510,7 @@ function detailHtml() {
     ...(it.rows || []),
   ].filter(Boolean);
   if (it.aantal > 0) facts.unshift(['Bij je', `${it.aantal} ${it.eenheid || (it.aantal === 1 ? 'stuk' : 'stuks')}`]);
+  else if (it.leeg) facts.unshift(['Bij je', `geen ${it.eenheid || 'patronen'} meer`]);
   const factHtml = facts.length
     ? `<div class="sp-facts">${facts.map(([k, v]) => `<div class="sp-fact"><span>${esc(k)}</span><span>${esc(v)}</span></div>`).join('')}</div>`
     : '';

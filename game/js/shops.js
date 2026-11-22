@@ -1093,7 +1093,7 @@ export function pandSections(world, shop) {
     if (!Number.isFinite(world.ammo[w.key]) || (w.melee && n <= 0)) continue;
     const income = Math.round(w.melee ? w.gun * 0.4 : w.gun * 0.3 + n * 0.4);
     sell.push({
-      id: 's-' + w.key, preview: { kind: 'weapon', weapon: w.key }, label: `${w.label.split(' ')[0]} verkopen`, desc: w.melee ? 'Nauwelijks gebruikt, zegt de verkoper' : `Met ${n} ${w.unit || 'patronen'}, geen vragen`, price: 0, income,
+      id: 's-' + w.key, preview: { kind: 'weapon', weapon: w.key }, label: `${w.label.split(' ')[0]} verkopen`, desc: (w.melee ? 'Nauwelijks gebruikt, zegt de verkoper' : `Met ${n} ${w.unit || 'patronen'}, geen vragen`) + (world.weapon === w.key ? ' · nu in je hand' : ''), price: 0, income,
       // verkopen kan niet terug (kopen kost meer): het wapen in je hand of een grote voorraad vraagt om een tweede druk
       confirmText: world.weapon === w.key || (!w.melee && n >= 100) ? `${w.label.split(' ')[0]}${w.melee ? '' : ` met ${n} ${w.unit || 'patronen'}`} verkopen? Druk nog een keer, dit krijg je niet terug` : undefined,
       buy() {

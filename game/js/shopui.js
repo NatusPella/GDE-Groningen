@@ -13,7 +13,7 @@ import { deviceText } from './touchui.js';
 import { bonRegels, probleemVan, risicoVan } from './shopbon.js';
 import {
   itemIcon, itemStatus, refusalMessage, needsConfirm as needsConfirmFor, buyLabel as buyLabelFor, shopTabs, tabSections, stepTab, keepTab,
-  flatItems, keepItem, shortPerk, bevestigRegel, escActie,
+  flatItems, keepItem, shortPerk, bevestigRegel, escActie, bevestigGeldig,
 } from './shoplist.js';
 
 let root = null;
@@ -378,8 +378,9 @@ function activate(id) {
     else setStatus(refusalMessage(it, world.money), 'no');
     return;
   }
-  if (needsConfirm(it) && !(armed && armed.id === id && Date.now() < armed.until)) {
-    armed = { id, until: Date.now() + ARM_TIME };
+  if (needsConfirm(it) && armed && armed.id === id && Date.now() < armed.until && !bevestigGeldig(armed, id)) return; // een dubbelklik telt niet als bevestiging
+  if (needsConfirm(it) && !bevestigGeldig(armed, id)) {
+    armed = { id, at: Date.now(), until: Date.now() + ARM_TIME };
     const vraag = bevestigRegel(it);
     setStatus(vraag, it.confirmText ? 'no' : 'win');
     renderDetail();
