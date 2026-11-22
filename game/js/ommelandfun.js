@@ -3,7 +3,7 @@ import { updateEdgeGuard } from './edgeguard.js';
 import { ensureWorldEnds, updateWorldEnds, worldEndSolids, getWorldEndSpots, worldEndDebug, worldEndCount } from './worldends.js';
 import { setExtraEggs } from './furniture.js';
 import { initVillages, updateVillages, villageSolids, getVillageEggs, villagePrompt, villageSecondary, tryVillageInteract, getVillageSpots, ensureVillages, prepareVillages, villageDebug, villageUse } from './dorpsuitjes.js';
-import { getKoeSites, koeCowTo, prepareKoeSites } from './pg_koe.js';
+import { getKoeSites, koeCowTo, koeNear, prepareKoeSites } from './pg_koe.js';
 import { updateTalk } from './ommelandtalk.js';
 import { prepareCountryStations } from './stationtravel.js';
 import { prepareShopDoors } from './shops.js';
@@ -18,14 +18,15 @@ import { updateStadsleven, townSolids, townDebug } from './stadsleven.js';
 // challenge (pg_koe.js). Debug: window.__ommeland.
 
 let world = null;
+let koeTick = 0;
 const solids = [];
 
 // The villages' uitjes and eierballen and the sites of De Koe are picked on the
 // tiles round them: in the background after the start, one place at a time,
 // each with its tiles loaded for that moment (tileplace.js withTiles).
-async function prepareOmmeland(w = world) {
+async function prepareOmmeland(w = world, { koe = false } = {}) {
   if (!w || !w.map.store) return;
-  await prepareKoeSites(w.map);
+  if (koe) await prepareKoeSites(w.map); // anders pas bij nabijheid (koeNear in updateOmmelandFun)
   await prepareCountryStations(w.map);
   await prepareShopDoors(w.map);
   await prepareVillages(w);
@@ -39,7 +40,7 @@ export function initOmmelandFun(w) {
   initVillages(w);
   if (typeof window !== 'undefined') {
     window.__ommeland = {
-      prepare: () => prepareOmmeland(world),
+      prepare: () => prepareOmmeland(world, { koe: true }),
       ends: () => worldEndDebug(), endsFound: () => worldEndCount(),
       towns: () => townDebug(), villages: () => villageDebug(), use: (name, role) => villageUse(name, role),
       koe: () => { const s = getKoeSites(world.map); return s ? { farm: [Math.round(s.farm.x), Math.round(s.farm.y)], hide: [Math.round(s.hide.x), Math.round(s.hide.y)], dist: Math.round(s.dist) } : null; },
@@ -66,6 +67,7 @@ export function updateOmmelandFun(dt, w) {
   world = w;
   if (!w.map.store) return;
   ensureWorldEnds();
+  if (((koeTick += dt) > 2) && w.player) { koeTick = 0; koeNear(w.map, w.player.x, w.player.y); }
   updateWorldEnds(dt, w);
   updateVillages(dt, w);
   updateTalk(w);

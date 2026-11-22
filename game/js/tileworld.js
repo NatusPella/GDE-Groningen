@@ -22,7 +22,7 @@ import { SECTION, decodeBlob, tileKey, tileOrigin, TILE_M } from './gdt.js';
 import { trimTileGreenery, trimHedgeRow } from './tilegreenery.js';
 import * as propfilter from './propfilter.js';
 import { TileStore, FrameQueue, HttpRangeSource, inflateRaw, makeWorkerDecoder, decodeCompressed } from './tilestore.js';
-import { BACKGROUND_PRIORITY, addPriority, backgroundHeld, whenReady, JUMP_BUDGET_MS, JUMP_RING_M } from './tilestream.js';
+import { BACKGROUND_PRIORITY, BG_FOLLOW_MS, BG_GEO_M, BG_JUNCTION_FLUSH_MS, BG_PROMOTE_M, addPriority, backgroundHeld, whenReady, JUMP_BUDGET_MS, JUMP_RING_M } from './tilestream.js';
 import { thinPath } from './lodstable.js';
 import { TerrainField } from './terrainraster.js';
 import { extendElevation, shrinkElevation } from './elevation.js';
@@ -326,24 +326,85 @@ export class TileWorld extends GameMap {
     const tk = residentKey(tile.i, tile.j, key);
     const old = this._tileJobs && this._tileJobs.get(tk);
     if (old) old.cancelled = true;
-    const job = { cancelled: false };
-    (this._tileJobs || (this._tileJobs = new Map())).set(tk, job);
-    const steps = this.addTileSteps(tile, key);
     // #1052: dichtbij eerst. De rijen van een tegel gaan met de urgentie waarmee hij is aangevraagd
     // (een afstand, of de achtergrondwaarde van een plaatsingsvenster) door de wachtrij, niet allemaal als eerste in de rij.
     const sp = this.store && this.store.priorityOf ? this.store.priorityOf(key) : 0;
     const prio = addPriority(sp);
     // a tile only a background window asked for waits in a queue of its own: the frame budget of the
     // stream (follow) and a held window (a film, the benchmark) do not have to work it
-    const queue = sp >= BACKGROUND_PRIORITY && this.bgQueue ? this.bgQueue : this.tileQueue;
+    const bg = sp >= BACKGROUND_PRIORITY && !!this.bgQueue;
+    const job = { cancelled: false, queue: bg ? this.bgQueue : this.tileQueue, prio };
+    (this._tileJobs || (this._tileJobs = new Map())).set(tk, job);
+    const bgTiles = this._bgTiles || (this._bgTiles = new Set());
+    if (bg) bgTiles.add(tk); else bgTiles.delete(tk);
+    const steps = this.addTileSteps(tile, key);
     const step = () => {
       if (job.cancelled) { this._tileJobs.delete(tk); return; }
       const r = steps.next();
       if (r.done) { this._tileJobs.delete(tk); return; }
-      queue.add(step, prio, `add:${tk}`); // volgende stuk, volgende frame
+      job.queue.add(step, job.prio, `add:${tk}`); // volgende stuk, volgende frame
     };
-    queue.add(step, prio, `add:${tk}`);
+    job.queue.add(step, prio, `add:${tk}`);
     return tk;
+  }
+
+  // Een achtergrondtegel (alleen een plaatsingsvenster vroeg hem) waar de speler of de camera binnen BG_PROMOTE_M heen komt, hoort bij de
+  // gewone stroom: zijn rijen gaan naar de wachtrij van follow() met de afstand als prioriteit, anders kroop hij als druppel binnen terwijl
+  // de speler er al staat. Zo vaak als follow() het vraagt; goedkoop als er geen achtergrondtegels zijn.
+  promoteBgTiles(x, y) {
+    const bgq = this.bgQueue;
+    if (!bgq || !bgq.items.length || !this._bgTiles || !this._bgTiles.size) return 0;
+    let n = 0;
+    for (const [tk, job] of this._tileJobs || []) {
+      if (job.queue !== bgq || job.cancelled) continue;
+      const [i, j] = tk.split(',').map(Number);
+      if (!Number.isFinite(i) || !Number.isFinite(j)) continue;
+      const [ox, oy] = tileOrigin(i, j);
+      const d = Math.hypot(ox + TILE_M / 2 - x, oy + TILE_M / 2 - y);
+      if (d > BG_PROMOTE_M + TILE_M / 2) continue;
+      job.queue = this.tileQueue; job.prio = addPriority(d);
+      const label = `add:${tk}`;
+      const keep = [];
+      for (const it of bgq.items) { if (it.label === label) { it.priority = job.prio; this.tileQueue.items.push(it); } else keep.push(it); }
+      bgq.items = keep;
+      this._bgTiles.delete(tk);
+      n++;
+    }
+    return n;
+  }
+
+  // Is dit een achtergrondtegel (alleen een plaatsingsvenster vroeg hem) ver van de speler en de camera (meer dan BG_GEO_M)? Elke tegel
+  // verhoogt geoVer en daarmee verversen farlod, het straatmeubilair, de bomenlijst en de wegsync hun caches; voor een tegel waar geen van
+  // die caches kijkt kostte dat alleen werk (het straatmeubilair per tegel herbouwde elke twee seconden: nearestOnRoadList 1 s per 17 s rit).
+  // Zonder focus (de titel, een test) is niets ver.
+  _farBgTile(tk) {
+    if (!this._bgTiles || !this._bgTiles.has(tk) || !this.focusAt) return false;
+    const [i, j] = tk.split(',').map(Number);
+    if (!Number.isFinite(i) || !Number.isFinite(j)) return false;
+    const [ox, oy] = tileOrigin(i, j);
+    return Math.hypot(ox + TILE_M / 2 - this.focusAt.x, oy + TILE_M / 2 - this.focusAt.y) > BG_GEO_M;
+  }
+
+  // De kruispuntversie (junctionVer, signalVer) telt op bij elke tegel met kruispunten: het kruispuntmodel, de signaalgrid en de lichtenlijst
+  // lopen dan opnieuw over de rijen van ALLE geladen tegels. Een achtergrondtegel (plaatsingsvenster) bundelt zijn bump: hoogstens eens per
+  // BG_JUNCTION_FLUSH_MS (follow), anders herbouwde elke tegel van de druppel het hele model (junctionModel + tileJunctionNodes ca. 800 ms per 30 s).
+  _bumpJunctions(bg, signals) {
+    if (!bg) {
+      this.junctionVer = (this.junctionVer || 0) + 1;
+      if (signals) this.signalVer = (this.signalVer || 0) + 1;
+      return;
+    }
+    this._junctionPending = true;
+    if (signals) this._signalPending = true;
+  }
+
+  flushJunctions(now = performance.now(), force = false) {
+    if (!this._junctionPending && !this._signalPending) return false;
+    if (!force && now - (this._junctionFlushAt || -Infinity) < BG_JUNCTION_FLUSH_MS) return false;
+    this._junctionFlushAt = now;
+    if (this._junctionPending) { this.junctionVer = (this.junctionVer || 0) + 1; this._junctionPending = false; }
+    if (this._signalPending) { this.signalVer = (this.signalVer || 0) + 1; this._signalPending = false; }
+    return true;
   }
 
   // Is the tile (i, j) in the grids with ALL its rows (not only handed to the world: resident is set when the first rows go in)?
@@ -380,6 +441,8 @@ export class TileWorld extends GameMap {
     let rows = 0; // rijen sinds de vorige yield (#650)
     let chunkT = performance.now();
     const chunkDue = () => { if (++rows >= ROW_CHUNK || ((rows & 7) === 0 && performance.now() - chunkT >= ROW_CHUNK_MS)) { rows = 0; return true; } return false; };
+    // een stap die per item duur is (een weg die markDryRoad toetst, een gebouw dat misplacedBuilding toetst): de klok elk item, niet elke achtste (8 x 5 ms was een stuk van 40 ms)
+    const slowDue = () => { if (performance.now() - chunkT >= ROW_CHUNK_MS) { rows = 0; return true; } return false; };
     // (#4) alleen een tegel die echt groen toevoegt hoeft de groschunks te
     // verversen: de graschunks hangen aan greenVer, niet aan elke geoVer-bump
     let greenAdded = false;
@@ -396,12 +459,10 @@ export class TileWorld extends GameMap {
       if (s.type === SECTION.JUNCTIONS) {
         const jrows = s.rows || [];
         (this.junctionRows || (this.junctionRows = new Map())).set(tk, jrows);
-        this.junctionVer = (this.junctionVer || 0) + 1;
         // een tegel met een beveiligde kruising vraagt de verkeerslichten om een herbouw (#314 C2b)
-        if (hasSignalArm(jrows)) {
-          this.signalVer = (this.signalVer || 0) + 1;
-          (this._signalTiles || (this._signalTiles = new Set())).add(tk);
-        }
+        const signal = hasSignalArm(jrows);
+        this._bumpJunctions(!!(this._bgTiles && this._bgTiles.has(tk)), signal);
+        if (signal) (this._signalTiles || (this._signalTiles = new Set())).add(tk);
         continue;
       }
       const kind = KIND_OF.get(s.type);
@@ -449,7 +510,7 @@ export class TileWorld extends GameMap {
       if (newRoads.length && tile.sections.some((s) => s.type === SECTION.HEIGHTS)) this.elevAdded = (this.elevAdded || 0) + extendElevation(this, newRoads);
     }
     // a road over water without a bridge tag is a culvert or a dry deck (mapdata.js markDryRoad)
-    for (const r of newRoads) { markDryRoad(this, r); if (chunkDue()) { yield; chunkT = performance.now(); } }
+    for (const r of newRoads) { markDryRoad(this, r); if (slowDue()) { yield; chunkT = performance.now(); } }
     for (const w of newWater) {
       if (chunkDue()) { yield; chunkT = performance.now(); }
       if (!w.bounds) continue;
@@ -470,7 +531,7 @@ export class TileWorld extends GameMap {
       }
     }
     for (const b of candidates) {
-      if (chunkDue()) { yield; chunkT = performance.now(); }
+      if (slowDue()) { yield; chunkT = performance.now(); }
       if (b.dropped || !propfilter.misplacedBuilding(this, b)) continue;
       b.dropped = true;
       if (this.buildingGrid) this.buildingGrid.remove(b, b.bounds || boundsOfObj('buildings', b));
@@ -489,8 +550,11 @@ export class TileWorld extends GameMap {
     // #314 C2 (stap 4): één geo-versie voor de caches die uit de rasters/arrays bouwen
     // (farlod, scene3d, grass, routing, ...): per add/drop opgehoogd, zodat een cache zich
     // kan verversen. De pin houdt de stad nog vast; dit is de haak voor de volgende ronde.
-    if (greenAdded) this.greenVer = (this.greenVer || 0) + 1;
-    this.geoVer = (this.geoVer || 0) + 1;
+    // een achtergrondtegel ver weg (plaatsingsvenster) raakt geen cache bij de speler en ververst er dus geen (_farBgTile)
+    if (!this._farBgTile(tk)) {
+      if (greenAdded) this.greenVer = (this.greenVer || 0) + 1;
+      this.geoVer = (this.geoVer || 0) + 1;
+    }
     return true;
   }
 
@@ -555,14 +619,15 @@ export class TileWorld extends GameMap {
     const job = this._tileJobs && this._tileJobs.get(tk);
     if (job) { job.cancelled = true; this._tileJobs.delete(tk); }
     if (!this.resident.delete(tk)) return false;
+    const farBg = this._farBgTile(tk);
     for (const fn of this._tileListeners || []) fn('drop', null, tk);
     if (this.terrain) this.terrain.drop(tk);
     // de kruispunten van deze tegel gaan mee uit het model (#469)
     if (this.junctionRows && this.junctionRows.delete(tk)) {
-      this.junctionVer = (this.junctionVer || 0) + 1;
       // alleen als deze tegel een beveiligde kruising had, moeten de lichten opnieuw (#314 C2b)
-      if (this._signalTiles && this._signalTiles.delete(tk)) this.signalVer = (this.signalVer || 0) + 1;
+      this._bumpJunctions(!!(this._bgTiles && this._bgTiles.has(tk)), !!(this._signalTiles && this._signalTiles.delete(tk)));
     }
+    if (this._bgTiles) this._bgTiles.delete(tk);
     const goneRoads = [];
     let greenGone = false;
     const release = (kind, gid, e) => {
@@ -601,8 +666,10 @@ export class TileWorld extends GameMap {
       for (const kind of Object.keys(this._res)) for (const [gid, e] of this._res[kind]) release(kind, gid, e);
     }
     if (goneRoads.length) shrinkElevation(this, goneRoads);
-    if (greenGone) this.greenVer = (this.greenVer || 0) + 1;
-    this.geoVer = (this.geoVer || 0) + 1; // caches verversen (#314 C2, stap 4)
+    if (!farBg) {
+      if (greenGone) this.greenVer = (this.greenVer || 0) + 1;
+      this.geoVer = (this.geoVer || 0) + 1; // caches verversen (#314 C2, stap 4)
+    }
     return true;
   }
 
@@ -611,9 +678,11 @@ export class TileWorld extends GameMap {
   follow(x, y, opts, budgetMs = 2) {
     this.focusAt = { x, y }; // where the player (or the camera) is: tileplace.js withTiles decides from it how urgent a window is (placementurgency.js)
     if (this.store) this.store.prefetch(x, y, opts);
+    this.flushJunctions();
+    if (this.bgQueue && this.bgQueue.items.length && ((this._promoteAt = (this._promoteAt || 0) + 1) % 20 === 0)) this.promoteBgTiles(x, y);
     const n = this.tileQueue.run(budgetMs);
-    // what a background window asked for goes on at half the budget, unless a film or the benchmark holds it
-    if (this.bgQueue && this.bgQueue.items.length && !backgroundHeld()) return n + this.bgQueue.run(budgetMs / 2);
+    // what a background window asked for goes on as a trickle (BG_FOLLOW_MS), unless a film or the benchmark holds it
+    if (this.bgQueue && this.bgQueue.items.length && !backgroundHeld()) return n + this.bgQueue.run(Math.min(budgetMs / 2, BG_FOLLOW_MS));
     return n;
   }
 
