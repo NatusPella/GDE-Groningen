@@ -84,6 +84,15 @@ function makeActor(spec) {
   return m;
 }
 
+const MATS = {};
+const mat = (c, o = {}) => (MATS[c + JSON.stringify(o)] ||= new THREE.MeshStandardMaterial({ color: c, roughness: 0.8, ...o }));
+const box = (w, h, d, c, y = h / 2, x = 0, z = 0) => {
+  const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat(c));
+  m.position.set(x, y, z);
+  m.castShadow = true;
+  return m;
+};
+
 // Vehicles and animals are the world's own (cutscenemodels.js lists which); only loose objects are built here.
 // Props have their origin on the ground, +x is "forward".
 let propVehicleN = 0;

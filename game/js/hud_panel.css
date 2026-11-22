@@ -826,7 +826,7 @@ body.pigeon-mode #banter-sub, body.pigeon-mode #radio-sub { bottom: calc(198px *
 #hud .hud-minimap-wrap.wanted.chase { box-shadow: 4px 4px 0 var(--ds-c-rood-glas); }
 
 /* #990: een nieuwe streek ontdekt: de rand gloeit zomers geel op en zakt weg (met Beweging beperken blijft de gele rand even staan, zonder animatie) */
-#hud .hud-minimap-wrap.ontdek:not(.wanted) { box-shadow: 0 0 0 3px var(--ds-c-geel), 4px 4px 0 var(--ds-c-geel-druk); animation: hud-ontdek 2.2s ease-out both; }
+#hud .hud-minimap-wrap.ontdek:not(.wanted) { box-shadow: 0 0 0 3px var(--ds-c-geel), 4px 4px 0 var(--ds-c-geel-druk); animation: hud-ontdek 2.2s ease-out both; } /* ds3-dwell: een ontdekking mag even blijven (2,2 s), onder Beweging beperken staat hij stil */
 @keyframes hud-ontdek { 0% { box-shadow: 0 0 0 9px var(--ds-c-geel), 4px 4px 0 var(--ds-c-geel-druk); } 100% { box-shadow: 0 0 0 3px var(--ds-c-geel), 4px 4px 0 var(--ds-c-geel-druk); } }
 @media (prefers-reduced-motion: reduce) { #hud .hud-minimap-wrap.ontdek { animation: none; } }
 
@@ -935,7 +935,7 @@ body.cine-hide-hud #story-skip { display: none; }
 #hud .rpm-zone { stroke: color-mix(in srgb, var(--ds-c-rood-glas) 55%, transparent); }
 #hud .hud-speedo.no-rpm .sp-main { grid-template-columns: auto 1fr; }
 /* #988: de zender van het voertuig, een klein icoon met naam onder de toeren; hij licht kort op bij een wissel (hooguit 250 ms) */
-#hud .sp-zender { grid-column: 1 / -1; display: flex; align-items: center; justify-content: flex-end; gap: 5px; font-size: max(13px, var(--hud-min, 13px)); line-height: 1.1; opacity: 0.7; transition: opacity var(--ds-m-max) var(--ds-m-uit), transform var(--ds-m-max) var(--ds-m-uit); }
+#hud .sp-zender { grid-column: 1 / -1; display: flex; align-items: center; justify-content: flex-end; gap: 5px; font-size: max(13px, var(--hud-min, 13px)); line-height: 1.1; opacity: 0.7; transition: opacity var(--ds-m-midden) var(--ds-m-uit), transform var(--ds-m-midden) var(--ds-m-uit); }
 #hud .sp-zender[hidden] { display: none; }
 #hud .sp-zender svg { width: 14px; height: 14px; flex: none; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; }
 #hud .sp-zender b { font-weight: normal; white-space: nowrap; max-width: 14ch; overflow: hidden; text-overflow: ellipsis; }

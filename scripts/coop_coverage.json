@@ -1602,6 +1602,22 @@
   {
    "glob": "legacysave*",
    "reden": "De keuze bij een spel uit een oude versie (doorgaan of opnieuw) op dit apparaat; eigen opslag van de speler, niet gedeeld."
+  },
+  {
+   "glob": "actionradial*",
+   "reden": "Het acties-wiel voor controller en toetsenbord op dit apparaat; invoer en beeld, geen spelstaat."
+  },
+  {
+   "glob": "focusbehoud",
+   "reden": "Bewaart de toetsenbordfocus in een menu op dit apparaat; lokaal."
+  },
+  {
+   "glob": "notifygate",
+   "reden": "Poort voor meldingen op dit apparaat; lokaal beeld."
+  },
+  {
+   "glob": "paneuv",
+   "reden": "Berekening voor de weergave van een paneel; lokaal beeld."
   }
  ],
  "opslag": {

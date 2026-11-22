@@ -49,6 +49,7 @@ Daarnaast: de kaartenwachtrij (`enqueueCard`, `hudcards.js`) en de zonelayout (`
 | voetbaltv | voetbaltvlayer.js | beslist zelf | n.v.t. | - | nee: de tv-laag van de voetbalwedstrijd (voetbal.js): ondertitel van het commentaar, veldradar, herhalinglabel en de kaarten van de uitzending (opstelling, rust, einde); alleen tijdens de wedstrijd, geen melding en geen klik |  |
 | voetbalcarriere | voetbalcarriereui.js | beslist zelf | n.v.t. | - | nee: het kindscherm Voetbal onder Loopbanen in het pauzemenu: de speler opent het zelf, geen melding en geen HUD-kaart |  |
 | snellezinnen | multiplayerphrasesradial.js | beslist zelf | n.v.t. | - | nee: het wiel met snelle zinnen bij Samen spelen (#1159): de speler opent het zelf met een toets, houdt een korte keuze en het sluit weer; geen melding en geen HUD-kaart |  |
+| actieswiel | actionradialui.js | beslist zelf | n.v.t. | - | nee: het acties-wiel: de speler opent het zelf met een toets of de controller, kiest en het sluit weer; geen melding en geen HUD-kaart |  |
 | binnenset | stagesets.js | beslist zelf | n.v.t. | - | nee: de korte fade en de binnenset (kantoor/serverkamer) die een missie zelf opent en weer opruimt (#955/#956) |  |
 | duikscene | wrakduikenlive.js | beslist zelf | P3 | G | nee: de korte duikscène die de speler zelf start bij een wrak (E) en die vanzelf weer weggaat |  |
 | toetsen | prompts.js, hudtext.js | 33 modules, 33 aanroepen | P2 | H | nee: de toetstips tellen mee in decideHud (keys); gameBusy houdt ze weg | Blijft. Veel modules leveren een toetstip aan; geen planner nodig, de ruimte is vast (twee regels). |
@@ -92,6 +93,7 @@ Daarnaast: de kaartenwachtrij (`enqueueCard`, `hudcards.js`) en de zonelayout (`
 - **voetbalcarriere**: 
 - **snellezinnen**: 
 - **oudespaarkaart**: 
+- **actieswiel**: 
 - **binnenset**: 
 - **duikscene**: 
 - **toetsen**: De toetstips onderaan rechts (zone H, maximaal twee): wat E, Spatie en de rest hier doen.

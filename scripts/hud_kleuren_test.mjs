@@ -222,6 +222,7 @@ BUITEN.add('voetbalcarriereui.js'); // een paneel in het pauzemenu (Loopbanen), 
 BUITEN.add('voetbaltvlayer.js'); // de tv-laag van de voetbalwedstrijd (beeld in de wedstrijd, geen HUD-chroom)
 BUITEN.add('multiplayerphrasesradial.js'); // het wiel met snelle zinnen (eigen ds-wielstijl, geen HUD-chroom)
 BUITEN.add('legacysavecardui.js'); // de kaart voor een oud spel (eigen os-kaartstijl met ds-tokens, geen HUD-chroom)
+BUITEN.add('actionradialui.js'); // het acties-wiel (eigen ds-wielstijl, geen HUD-chroom)
 for (const [naam, s] of Object.entries(SURFACES)) {
   for (const f of s.files || []) ok(HUD_AUDIT.has(f) || BUITEN.has(f), `surface ${naam}: ${f} is niet geauditeerd en niet als beeld gemarkeerd`);
 }
