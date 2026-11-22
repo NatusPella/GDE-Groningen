@@ -9,13 +9,16 @@
 // Rikus, all recordings the game already has. The talk goes through the
 // speech channel's 'radio' class, so any other voice (a "Bel Rikus" call,
 // banter, a card line) cuts it off. `window.__radio` debug.
-import { setRadioOn, setRadioProgramme, setRadioChannel, radioTrackList, onRadioBreak, radioInBreak, playLineVoice, playRadioJingle, playTextMumble } from './audio.js';
+import { setRadioOn, setRadioProgramme, setRadioChannel, radioTrackList, radioNowTrack, onRadioBreak, radioInBreak, playLineVoice, playRadioJingle, playTextMumble } from './audio.js';
 import { lineVoiceFor, NARRATOR } from './linevoice.js';
 import { smsVoiceFor, SMS_SAY } from './smsvoice.js';
 import { NACHTSTREEK, KROLBRUG_FAULTS, COW_FEED, PLANTSOEN_NEWS, EVENT_DAYS } from './flavourlines.js';
 import { RADIO_HOST, RADIO_GRUNN, KERMIS_NEWS } from './funlines.js';
 import { STATION_NAME, normalizeRadio } from './musicpick.js';
 import { channelById, channelStatus, listChannels, openChannels, nextChannel, validChannel, programmeFor, isUnlocked, DEFAULT_CHANNEL } from './radiochannels.js';
+import { outsideState, enterVehicle, exitVehicle, rememberChoice, cleanRemembered, radioNotice, hudName } from './radiovehicle.js';
+import { hoofdspeler } from './spelersregister.js';
+import { getSettings, setSetting } from './settings.js';
 import { talkActive } from './storytalk.js';
 import { playerBusy } from './busy.js';
 import { radioMayTalk } from './speech.js';
@@ -110,22 +113,74 @@ function announceChannel(z) {
 }
 
 // Pick a channel (menu, Shift+N). Only an open channel; a hidden or 'soon' channel does nothing. Picking a channel turns the radio on:
-// whoever picks a channel wants to hear it.
-export function selectChannel(id, { announce: show = true } = {}) {
+// whoever picks a channel wants to hear it. In a vehicle the choice is remembered for that kind of vehicle (radiovehicle.js, #988) and
+// is not the world choice; `auto` is the radio switching by itself on getting in or out: nothing is remembered or saved then, and the
+// radio stays off if it was off.
+export function selectChannel(id, { announce: show = true, auto = false } = {}) {
   if (!openChannelIds().includes(id)) return false;
   const z = channelById(id);
   const was = channelId;
   channelId = id;
-  wanted = id;
-  saveChannel();
-  if (!on) setRadio(true, { announce: false });
+  if (!auto) {
+    if (vehState.kind) rememberVehicle(id);
+    else { wanted = id; saveChannel(); }
+  }
+  if (!on && !auto) setRadio(true, { announce: false });
   if (was !== id) {
     R.done = null; R.queue = []; hideSub();
     setRadioChannel(id);
+    hudRadio.at = world ? world.time : 0;
     if (world) { prog = programmeFor(z, world.clock); setRadioProgramme(prog); }
-    if (show) { if (world) announce(world); announceChannel(z); }
+    if (show) { if (world) channelNotice(world, z, true); announceChannel(z); }
   }
   return true;
+}
+
+// --- the radio in a vehicle (radiovehicle.js, #988) ---------------------------------------------------------------------
+// Getting in switches to the channel that fits the vehicle (or the one the player picked for that kind); getting out brings the world
+// radio back (`wanted`, the last choice in the world). Samen spelen: the radio is local; in a shared vehicle the driver's channel is the
+// vehicle's and a passenger follows (radiochannels.js channelForPlayer with the vehicle start); the message to the passengers is not built.
+let vehState = outsideState();
+let vehSeen = null;
+// what the HUD chip beside the speedometer shows (hud_panel.js): the short channel name and when it last changed
+const hudRadio = { name: '', at: 0 };
+const remembered = () => cleanRemembered(getSettings().radioVehicle);
+function rememberVehicle(id) {
+  const cur = remembered();
+  const next = rememberChoice(cur, vehState, id, openChannelIds());
+  if (next !== cur) setSetting('radioVehicle', next);
+}
+// The notice: 'channel · DJ' with the playing title and artist under it when known (a channel that just started has no title yet:
+// the record that follows replaces this card and keeps the channel line, audio/radio.js).
+function channelNotice(w, z, fresh) {
+  if (!on || !z) return;
+  w.nowPlaying = { ...radioNotice(z, fresh ? null : radioNowTrack()), at: w.time };
+}
+export function updateRadioVehicle(w) {
+  const p = hoofdspeler(w);
+  const v = (p && p.inVehicle) || null;
+  w.radioHud = vehState.kind || v ? hudRadio : null;
+  const name = on && vehState.kind ? hudName(channelById(channelId)) : '';
+  if (hudRadio.name !== name) hudRadio.name = name;
+  if (v === vehSeen) return;
+  const open = openChannelIds();
+  if (!open.length) return; // the records are not loaded yet: try again next frame
+  if (vehSeen && vehState.kind) {
+    const r = exitVehicle(vehState, wanted, open);
+    vehState = r.state;
+    const switched = r.channel !== channelId;
+    if (switched) selectChannel(r.channel, { announce: false, auto: true });
+    channelNotice(w, channelById(channelId), switched);
+  }
+  if (v) {
+    const r = enterVehicle(vehState, v, open, remembered());
+    vehState = r.state;
+    const switched = !!r.channel && r.channel !== channelId;
+    if (switched) selectChannel(r.channel, { announce: false, auto: true });
+    hudRadio.at = w.time;
+    channelNotice(w, channelById(channelId), switched);
+  }
+  vehSeen = v;
 }
 export function stepChannel(dir = 1) {
   return selectChannel(nextChannel(channelId, openChannelIds(), dir));
@@ -145,7 +200,7 @@ function checkNewChannels(w) {
     saveChannel();
     for (const id of added) w.addMessage(`Nieuwe zender: ${channelById(id).name}. Kies hem in Instellingen > Geluid of met {SHIFT}+{N}.`, 6);
   }
-  const target = channelId === DEFAULT_CHANNEL && wanted !== DEFAULT_CHANNEL && open.includes(wanted) ? wanted : validChannel(channelId, open);
+  const target = !vehState.kind && channelId === DEFAULT_CHANNEL && wanted !== DEFAULT_CHANNEL && open.includes(wanted) ? wanted : validChannel(channelId, open);
   if (target !== channelId) {
     channelId = target;
     setRadioChannel(channelId);

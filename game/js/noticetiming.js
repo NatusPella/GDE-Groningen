@@ -116,6 +116,7 @@ export const NOTICE_TYPES = Object.freeze([
   { id: 'kaart', bestand: 'hudcards.js', balk: true, klas: 'tekst', zone: 'A', pauze: 'ja' },
   { id: 'prestatie', bestand: 'achievements.js', balk: true, klas: 'tekst', zone: 'E', pauze: 'ja' },
   { id: 'telefoonmelding', bestand: 'phonefeed.js', balk: true, klas: 'tekst', zone: 'A', pauze: 'ja' },
+  { id: 'radiokaart', bestand: 'hud_panel.js', balk: true, klas: 'tekst', zone: 'E', pauze: 'ja' },
   { id: 'naamkaart', bestand: 'namecard.js', balk: true, klas: 'kort', zone: '-', pauze: 'ja' },
   { id: 'menumelding', bestand: 'menumelding.js', balk: true, klas: 'kort', zone: 'menu', pauze: 'nvt' },
   { id: 'fout', bestand: 'fouttoast.js', balk: false, reden: 'kritiek: blijft staan tot de speler Sluiten kiest' },
