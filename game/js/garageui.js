@@ -227,7 +227,7 @@ function detailsHtml(e, msg) {
   // uitvoering) en pas daarna de actie: de knop hoort bij het besluit dat de
   // feiten boven hem onderbouwen, niet andersom.
   const toestand = garageToestand(e, { entry: getOwnedEntries().find((o) => o.key === e.key) });
-  const kaartToon = e.locked ? ' ds-z-kaart--uit' : e.status === 'lost' ? ' ds-z-kaart--probleem' : e.status === 'driving' ? ' ds-z-kaart--selectie' : '';
+  const kaartToon = e.locked ? ' ds-z-kaart--uit' : e.status === 'lost' ? '' : e.status === 'driving' ? ' ds-z-kaart--selectie' : '';
   const stoon = statusToon(e);
   const vraagHtml = vraag
     ? `<div class="gar-msg gar-vraag ds-z-kaart ds-z-kaart--probleem ds-z-kaart--recht" role="status"><div class="ds-z-kaart__tekst gar-vraag-kop">${TOESTAND_ICOON.warn}<b>Even checken</b></div><div class="ds-z-kaart__tekst">${esc(msg)}</div></div>`
@@ -462,9 +462,9 @@ function tabsHtml(list) {
   const sort = (SORTS.find(([id]) => id === view.sort) || SORTS[0])[1];
   const filt = (FILTERS.find(([id]) => id === view.filter) || FILTERS[0])[1];
   return '<nav class="m-tablist" role="tablist" aria-label="Soort voertuig">' +
-    garageTabCounts(list).map((t) => `<button type="button" role="tab" class="m-tab" data-garage-cat="${t.id}" aria-selected="${view.cat === t.id}">${esc(t.label)}<small>${t.owned}</small></button>`).join('') + '</nav><span class="m-grow"></span>' +
-    `<button type="button" class="m-bt" data-garage-filter>Toon: ${filt}</button>` +
-    `<button type="button" class="m-bt" data-garage-sort>${sort}</button>`;
+    garageTabCounts(list).map((t) => `<button type="button" role="tab" class="m-tab" data-garage-cat="${t.id}" aria-selected="${view.cat === t.id}"${t.owned ? '' : ` aria-label="${esc(t.label)}, ${t.total} te koop of op slot"`}>${esc(t.label)}${t.owned ? `<small>${t.owned}</small>` : ''}</button>`).join('') + '</nav><span class="m-grow"></span>' +
+    `<button type="button" class="ds-z-chip ds-z-chip--selectie gar-chip" data-garage-filter>Toon: ${filt}</button>` +
+    `<button type="button" class="ds-z-chip ds-z-chip--selectie gar-chip" data-garage-sort>${sort}</button>`;
 }
 
 function listHtml(list) {

@@ -33,7 +33,7 @@ t('een boot en een helikopter hebben geen banden', () => {
 });
 
 t('een afgeschreven wrak is één chip en geen bandenstatus', () => {
-  assert.deepEqual(garageToestand(auto({ status: 'lost' })), [{ id: 'schade', tone: 'no', label: 'Afgeschreven' }]);
+  assert.deepEqual(garageToestand(auto({ status: 'lost' })), [], 'afgeschreven staat al als status naast de titel, niet nog eens als chip (#1239)');
 });
 
 t('zonder voertuig in de wereld telt de bewaarde regel; zonder beide staat hij heel', () => {
