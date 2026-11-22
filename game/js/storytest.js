@@ -572,6 +572,8 @@ async function newArcRuntimeChecks(world, check, capture) {
   if (pf) {
     await loadSettled(world);
     await quietDown(world);
+    // gate 0.65: the harness skips missions in seconds, which piles up a backlog of notices that never expire (regelkaart tips, found-egg achievements) that a player would see over hours; the app text would wait behind it
+    noticeQueue.reset();
     // #425: the world first goes to a quiet moment (no chase, no race, no fight in the last 5 s, no skipped
     // mission's left-over wanted level, nothing holding the cards back); the check below says so when it cannot.
     // 60 s: a voiced card that cannot play its audio (this run is silent) holds the screen until the feed's own
