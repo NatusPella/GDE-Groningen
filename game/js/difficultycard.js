@@ -11,7 +11,7 @@ export const CARD_TEXT = Object.freeze({
   aanbevolen: 'Aanbevolen',
   aanpassen: 'Aanpassen',
   aanpassenUitleg: 'Kies zelf per onderdeel',
-  hulp: ['{ARROWS} kiezen', '{ENTER} starten', '{ESC} standaard'],
+  hulp: ['{ARROWS} kiezen', '{ENTER} bevestigen', '{ESC} Standaard kiezen'], // #1227: Esc kiest Standaard, dat zegt de regel nu
   aria: 'Kies hoe pittig het spel is',
   optiesTitel: 'Zelf aanpassen',
   optiesUitleg: 'Elke optie begint op het niveau. Wijzig wat je wilt.',
