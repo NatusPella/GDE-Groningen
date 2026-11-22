@@ -23,10 +23,11 @@ const P = await import(JS + 'models3d_people.js');
 const C = await import(JS + 'clothing.js');
 const D = await import(JS + 'clothingdata.js');
 const H = await import(JS + 'clothinghair.js');
+const K = await import(JS + 'clothingkit.js');
 
 P.personProbe.layers = true;
 export const { HEAD_Y, SHOULDER_Y, CHEST_Y, UPPER_ARM } = P.PERSON_RIG;
-export { P, C, D, H, THREE };
+export { P, C, D, H, K, THREE };
 
 export const BODIES = H.BODY_IDS;
 export const HAIRS = H.HAIR_STYLE_IDS;
@@ -60,13 +61,13 @@ export function buildCase(spec) {
   if (sub.kind === 'cop') {
     group = P.buildPersonMesh(0x1c3fae, 0xd9b08c, { seed: spec.seed ?? 3 });
   } else if (sub.kind === 'char') {
-    const o = C.outfitToLook(worn, sub.app);
+    const o = C.outfitToLook(worn, sub.app, spec.extras || null);
     group = P.buildPersonMesh(o.shirt ?? sub.app.shirt, sub.app.skin, { ...sub.app, ...o });
   } else {
-    const o = C.outfitToLook(worn, {});
+    const o = C.outfitToLook(worn, {}, spec.extras || null);
     const look = sub.age ? { ...o.look, age: sub.age } : o.look;
     group = P.buildPersonMesh(o.shirt, 0xd9b08c, {
-      seed: sub.seed, variant: sub.variant, look,
+      seed: sub.seed, variant: sub.variant, look, shirtBands: o.shirtBands,
       ...(o.pants != null ? { pants: o.pants } : {}), ...(o.shoes != null ? { shoes: o.shoes } : {}), ...(o.cap != null ? { cap: o.cap } : {}),
       ...(o.body ? { body: o.body } : {}), ...(o.hairStyle ? { hairStyle: o.hairStyle } : {}), ...(o.hair != null ? { hair: o.hair } : {}),
     });
@@ -107,7 +108,15 @@ function extract(group) {
     const side = m.parent === group.userData.chest ? 'chest' : m.parent === group.userData.elbowL ? 'L' : 'R';
     acc.push({ kind: m.userData.kind, side, tris: out });
   }
-  return { layers, acc, geo, shZ: group.userData.shZ, female: !!group.userData.female };
+  // de shirtlagen van de voetbalkleding (patroon en rugnummer, sponsorpaneel): losse meshes aan de borstbot, naar modelruimte
+  const kit = [];
+  for (const m of group.userData.chest.children) {
+    if (!m.userData.kit) continue;
+    const g = m.geometry.index ? m.geometry.toNonIndexed() : m.geometry, p = g.attributes.position.array, out = new Float64Array(p.length), v = new THREE.Vector3();
+    for (let i = 0; i < p.length; i += 3) { v.set(p[i], p[i + 1], p[i + 2]).applyMatrix4(m.matrixWorld); out[i] = v.x; out[i + 1] = v.y; out[i + 2] = v.z; }
+    kit.push({ name: m.name, tris: out });
+  }
+  return { layers, acc, kit, geo, shZ: group.userData.shZ, female: !!group.userData.female };
 }
 
 // De romp en de losse stukken (sieraden, horloge, handschoenen) als een geometrie voor de softwarerenderer (scripts/lib/kleding_clip_png.mjs).
@@ -425,6 +434,81 @@ function measureBody(c, add) {
     }
     add('schoen-in-been', deepest, 'shoe', at);
   }
+
+  // ---- voetbalkleding (22-11) ----
+  const hipZ2 = c.female ? 0.084 : 0.088;
+  // kousen: steekt het been (de huid onder het broekje) door de kous?
+  if (L.sock && L.leg) {
+    let best = 0, at = null;
+    for (const s of [1, -1]) {
+      const sock = sideOf(L.sock, s);
+      for (const v of vertsOf(sideOf(L.leg, s))) {
+        if (v[1] < 0.12 || v[1] > 0.48) continue;
+        const q = perp(sock, [0, 0, s * hipZ2], [0, 1, 0], v);
+        if (q && q.R != null && q.r - q.R > best) { best = q.r - q.R; at = v; }
+      }
+    }
+    add('kous-door-been', best, 'sock', at);
+  }
+  // scheenbeschermers: liggen op de kous (of het been): niet erin, niet erboven
+  if (L.guard && (L.sock || L.leg)) {
+    let float = 0, buried = 0, atF = null, atB = null;
+    for (const s of [1, -1]) {
+      const base = sideOf(L.sock || L.leg, s);
+      for (const piece of piecesOf(sideOf(L.guard, s))) {
+        let mn = Infinity, mx = -Infinity, at = null;
+        for (const v of vertsOf(piece)) {
+          const q = perp(base, [0, 0, s * hipZ2], [0, 1, 0], v);
+          if (!q || q.R == null) continue;
+          const gap = q.r - q.R;
+          if (gap < mn) mn = gap;
+          if (gap > mx) { mx = gap; at = v; }
+        }
+        if (mn !== Infinity && mn - 0.01 > float) { float = mn - 0.01; atF = at; }
+        if (mx !== -Infinity && -mx > buried) { buried = -mx; atB = at; }
+      }
+    }
+    add('scheenbeschermer-zweeft', float, 'guard', atF);
+    add('scheenbeschermer-begraven', buried, 'guard', atB);
+  }
+  // aanvoerdersband: om de mouw van de linkerbovenarm
+  if (L.captainband && L.sleeve) {
+    const ax = armAxis(c.shZ, 1), arm = sideOf(L.sleeve, 1);
+    let float = 0, buried = 0, atF = null, atB = null;
+    for (const v of vertsOf(L.captainband)) {
+      const q = perp(arm, ax.a, ax.d, v);
+      if (!q || q.R == null) continue;
+      const gap = q.r - q.R;
+      if (-gap > buried) { buried = -gap; atB = v; }
+      if (gap - 0.02 > float) { float = gap - 0.02; atF = v; }
+    }
+    add('aanvoerdersband-in-mouw', buried, 'captainband', atB);
+    add('aanvoerdersband-zweeft', float, 'captainband', atF);
+  }
+  // rugnummer, naamstrook en sponsorpaneel: dunne dozen op de romp (de doorsnede-dozen van het patroon lopen door de hele romp en tellen niet mee)
+  for (const kk of c.kit || []) {
+    let float = 0, buried = 0, atF = null, atB = null;
+    for (const piece of piecesOf(kk.tris)) {
+      let xmin = Infinity, xmax = -Infinity, mn = Infinity, mx = -Infinity, at = null;
+      const vs = vertsOf(piece);
+      for (const v of vs) { xmin = Math.min(xmin, v[0]); xmax = Math.max(xmax, v[0]); }
+      if (xmin < -0.02 && xmax > 0.02) continue;
+      for (const v of vs) {
+        const r = Math.hypot(v[0], v[2]);
+        if (r < 1e-4) continue;
+        const h = rayRange(L.top, 0, v[1], 0, v[0] / r, 0, v[2] / r);
+        if (!h) continue;
+        const gap = r - h.tmax;
+        if (gap < mn) mn = gap;
+        if (gap > mx) { mx = gap; at = v; }
+      }
+      if (mn !== Infinity && mn - 0.01 > float) { float = mn - 0.01; atF = at; }
+      if (mx !== -Infinity && -mx > buried) { buried = -mx; atB = at; }
+    }
+    const label = kk.name === 'shirtSponsor' ? 'sponsorpaneel' : 'rugnummer';
+    add(`${label}-zweeft`, float, 'kit', atF);
+    add(`${label}-begraven`, buried, 'kit', atB);
+  }
 }
 
 export const maxBy = (list, check) => list.filter((f) => f.check === check).reduce((m, f) => Math.max(m, f.depth), 0);
@@ -438,7 +522,7 @@ export const THRESH = {
   default: 0.002,
   'pearls-in-kleding': 0.01, 'beads-in-kleding': 0.01, 'pendant-in-kleding': 0.01, 'chain-in-kleding': 0.006,
   'watch-in-arm': 0.003, 'band-in-arm': 0.003, 'bracelet-in-arm': 0.003, 'glove-in-arm': 0.004, 'work-in-arm': 0.004, 'garden-in-arm': 0.004,
-  'sjaal-in-kleding': 0.006, 'schoen-in-been': 0.003, 'sjaal-zweeft': 0.002,
+  'sjaal-in-kleding': 0.006, 'schoen-in-been': 0.003, 'sjaal-zweeft': 0.002, 'keeperglove-in-arm': 0.004,
 };
 export const limitFor = (check) => THRESH[check] ?? THRESH.default;
 
@@ -506,9 +590,36 @@ export function combos(setIds = null, stride = 1) {
       push('tas', `${bag} + ${top}${outer ? ' + ' + outer : ''}`, 'back', { who, body, worn: { ...NEUTRAL, top: px(top), ...(outer ? { outer: px(outer) } : {}), back: px(bag) } });
     }
   }
+  if (want('sport')) {
+    // voetbalkleding (22-11): elk niveau, elk patroon dat het niveau toestaat, thuis, uit, derde, keeper, training en trainingspak, op elk personage en elke lichaamsvorm
+    const COL = { groen: 'oranje', zwart: 'geel' };
+    for (const level of K.LEVEL_IDS) {
+      const L = K.KIT_LEVELS[level];
+      const kits = [];
+      for (const pattern of L.patterns) for (const variant of ['thuis', 'uit', 'derde']) kits.push({ pattern, variant, role: 'veld', mode: 'wedstrijd', color: pattern === 'effen' ? 'groen' : 'zwart', long: pattern === 'helften' });
+      kits.push({ pattern: 'effen', variant: 'thuis', role: 'keeper', mode: 'wedstrijd', color: 'groen' }, { pattern: 'effen', variant: 'thuis', role: 'veld', mode: 'training', color: 'marine' }, { pattern: 'effen', variant: 'thuis', role: 'veld', mode: 'intro', color: 'rood' });
+      for (const spec of kits) {
+        const k = K.kitWorn({ ...spec, level, captain: true, number: 10 + (kits.indexOf(spec) % 80), name: true, sponsors: ['Wiebelwerk'], clubId: 'test', keeperColor: COL[spec.color] || 'geel' });
+        for (const who of ['tammo', 'tessa', 'npcM', 'npcF', 'npcOud']) for (const body of BODIES) {
+          push('sport', `${k.worn.top.split('.')[0]} + ${level} + ${spec.variant}${spec.role === 'keeper' ? ' + keeper' : ''}${spec.mode !== 'wedstrijd' ? ' + ' + spec.mode : ''}`, 'top', { who, body, worn: k.worn, extras: k.extras });
+        }
+      }
+    }
+    // de vier voetbalschoenen onder een lange broek en onder het broekje, met en zonder kousen en scheenbeschermers
+    for (const shoe of ['noppen_basis', 'noppen_semi', 'noppen_pro', 'noppen_top']) for (const bottom of ['jeans', 'voetbalbroekje', 'trainingsbroek', 'korte_broek']) for (const legs of [false, true]) for (const body of BODIES) for (const who of ['tammo', 'tessa']) {
+      push('sport', `${shoe} + ${bottom}${legs ? ' + kousen + scheenbeschermers' : ''}`, 'shoes', { who, body, worn: { top: px('tshirt'), bottom: px(bottom), shoes: px(shoe), ...(legs ? { legs: px('voetbalsokken'), guard: px('scheenbeschermers') } : {}) } });
+    }
+    // het hesje en het trainingspak over verschillende mouwen, en de keepershandschoenen met de aanvoerdersband
+    for (const outer of ['opwarmhesje', 'trainingsjack']) for (const top of ['voetbalshirt_effen', 'voetbalshirt_lang_effen', 'tshirt']) for (const body of BODIES) for (const who of ['tammo', 'tessa', 'npcOud']) {
+      push('sport', `${outer} + ${top}`, 'outer', { who, body, worn: { ...NEUTRAL, outer: px(outer), top: px(top) } });
+    }
+    for (const body of BODIES) for (const who of ['tammo', 'tessa']) for (const top of ['keepersshirt', 'voetbalshirt_effen']) {
+      push('sport', `keepershandschoenen + aanvoerdersband + ${top}`, 'hands', { who, body, worn: { ...NEUTRAL, top: px(top), hands: px('keepershandschoenen'), wrist: px('aanvoerdersband') } });
+    }
+  }
   return out;
 }
-export const SET_IDS = ['stuk', 'hoofd', 'jas', 'schoen', 'hand', 'sjaal', 'tas'];
+export const SET_IDS = ['stuk', 'hoofd', 'jas', 'schoen', 'hand', 'sjaal', 'tas', 'sport'];
 
 // Voert een combinatie uit: { ...combo, found: [{ check, depth, layer, at }] met alleen wat over de drempel gaat }
 export function run(combo) {

@@ -15,6 +15,7 @@ import {
   DEFAULT_WORN, ROLE_POOLS, NPC_MOODS, ROLE_MOODS, MOOD_WEIGHT, MOOD_ACCENT, SHOP_ITEMS, SHOP_STOCK, SHOP_RARE_CHANCE, SALE_DISCOUNT, PRESET_COUNT, PRESET_NAME_MAX, PROFILES,
   parsePiece, pieceLabel, colorHex, colorName, setsFor, setKeyFor,
 } from './clothingdata.js';
+import { kitShirtSpec, patternGeometry, npcFootballer } from './clothingkit.js';
 import { HAIR_STYLE_IDS, HAIR_COLORS, HAIR_COLOR_BY_ID, HAIR_STYLES, DEFAULT_HAIR, NPC_HAIR, NPC_HAIR_COLORS, parseHair, BODY_IDS, BODY_TYPES, NPC_BODY } from './clothinghair.js';
 
 export const CHARS = ['tammo', 'anita'];
@@ -43,7 +44,9 @@ export function rng(seed) {
 
 // ---------------------------------------------------------------- de staat
 const emptyWardrobe = () => ({ owned: new Set(), worn: {}, hair: null, body: 'gemiddeld', presets: Array.from({ length: PRESET_COUNT }, () => null), seen: new Set(), undo: null });
-const store = { tammo: emptyWardrobe(), anita: emptyWardrobe(), forced: null, forcedKey: null, bought: 0 };
+// kit: het tijdelijke clubtenue (voetbalkleding, 22-11) per personage: { worn, extras, key }. Het komt over wat je aanhebt zoals het verhaaloutfit, maar staat NIET in de save
+// en laat w.worn met rust: bij een crash of afsluiten midden in een wedstrijd is je eigen outfit dus nooit aangeraakt en komt hij exact terug.
+const store = { tammo: emptyWardrobe(), anita: emptyWardrobe(), forced: null, forcedKey: null, bought: 0, kit: null };
 
 export function resetClothing() {
   for (const c of CHARS) {
@@ -53,7 +56,7 @@ export function resetClothing() {
     w.hair = DEFAULT_HAIR[c];
     store[c] = w;
   }
-  store.forced = null; store.forcedKey = null; store.bought = 0;
+  store.forced = null; store.forcedKey = null; store.bought = 0; store.kit = null;
 }
 resetClothing();
 
@@ -68,9 +71,45 @@ export const boughtCount = () => store.bought;
 // Wat je nu echt aan hebt voor het beeld: het verhaaloutfit (tijdelijk) of je eigen kleding.
 export function effectiveWorn(ch) {
   const c = isChar(ch) ? ch : 'tammo';
+  // het clubtenue (wedstrijd, training, penalty's) gaat voor het verhaaloutfit: hair en body blijven die van het personage
+  if (store.kit && store.kit[c]) return { hair: W(c).hair, body: W(c).body, ...store.kit[c].worn };
   // hair: the kapsel is part of the outfit (a forced story look may carry its own, otherwise your own stays)
   if (store.forced && store.forced[c]) return { hair: W(c).hair, body: W(c).body, ...store.forced[c] };
   return { ...W(c).worn, hair: W(c).hair, body: W(c).body };
+}
+
+// ---------------------------------------------------------------- het clubtenue (clothingkit.js, footballkit.js)
+// setKit(ch, kit): kit = { worn, extras } van kitWorn(); null haalt het weg. Geeft true als er iets veranderde. De eigen outfit (W(ch).worn) blijft onaangeraakt.
+export function setKit(ch, kit) {
+  const c = isChar(ch) ? ch : 'tammo';
+  if (kit == null) {
+    if (!store.kit || !store.kit[c]) return false;
+    delete store.kit[c];
+    if (!Object.keys(store.kit).length) store.kit = null;
+    emitKit();
+    return true;
+  }
+  const worn = cleanWornKit(kit.worn);
+  if (!Object.keys(worn).length) return false;
+  const key = JSON.stringify([worn, kit.extras || null]);
+  if (store.kit && store.kit[c] && store.kit[c].key === key) return false;
+  store.kit = { ...(store.kit || {}), [c]: { worn, extras: kit.extras || null, key } };
+  emitKit();
+  return true;
+}
+const kitListeners = new Set();
+// wie meeluistert naar een wissel van het clubtenue (shops.js past dan de looks toe)
+export function onKitChange(fn) { kitListeners.add(fn); return () => kitListeners.delete(fn); }
+const emitKit = () => { for (const fn of [...kitListeners]) { try { fn(); } catch (e) { /* een luisteraar mag het tenue niet breken */ } } };
+export const kitActive = (ch) => !!(store.kit && store.kit[isChar(ch) ? ch : 'tammo']);
+export const kitExtrasOf = (ch) => (kitActive(ch) ? store.kit[isChar(ch) ? ch : 'tammo'].extras : null);
+export const kitWornOf = (ch) => (kitActive(ch) ? { ...store.kit[isChar(ch) ? ch : 'tammo'].worn } : null);
+// de eigen outfit, ook als een tenue erover ligt (voor het bewaren en voor de kast)
+export const ownWorn = (ch) => ({ ...W(ch).worn, hair: W(ch).hair, body: W(ch).body });
+function cleanWornKit(w) {
+  const out = {};
+  if (w && typeof w === 'object') for (const slot of SLOT_IDS) if (typeof w[slot] === 'string' && validPiece(w[slot]) && pieceSlot(w[slot]) === slot) out[slot] = w[slot];
+  return out;
 }
 
 // ---------------------------------------------------------------- haar (clothinghair.js)
@@ -317,8 +356,11 @@ export function cyclePreset(ch, dir = 1) {
 // base: de kleuren van het personage ({ shirt, pants, shoes, cap }); worn: slot -> stuk. Het resultaat gaat in de appearance
 // (models3d_people.js, TAMMO_APPEARANCE/ANITA_APPEARANCE) of in de opties van buildPersonMesh: { shirt, pants, shoes, cap?, look }.
 const DEFAULT_TOP_COLOR = 0xe3ddd0;
-export function outfitToLook(worn, base = {}) {
-  const out = { ...(base.cap != null ? { cap: base.cap } : {}) };
+// de mouwvorm van het shirt onder een hesje (tee of lange mouw)
+const KIT_LOOK_TOP = (top) => ({ ...(KIND_LOOK[top.item.kind] || { top: 'tee' }) });
+// extras (alleen het eigen clubtenue): { number, numberStyle, nameBar, sponsor } voor de laag op het shirt
+export function outfitToLook(worn, base = {}, extras = null) {
+  const out = { ...(base.cap != null ? { cap: base.cap } : {}), shirtBands: null };
   const look = {};
   const px = (slot) => (worn[slot] ? parsePiece(worn[slot]) : null);
   const outer = px('outer'), top = px('top'), bottom = px('bottom'), shoes = px('shoes');
@@ -353,10 +395,24 @@ export function outfitToLook(worn, base = {}) {
   if (neck) { look.scarf = true; look.scarfColor = neck.hex; } else look.scarf = false;
   const back = px('back');
   if (back) { Object.assign(look, KIND_LOOK[back.item.kind] || {}); look.bagColor = back.hex; } else look.bag = null;
+  // voetbalkleding (22-11): kousen, scheenbeschermers, aanvoerdersband, hesje en het shirtpatroon met rugnummer en sponsorpaneel
+  const socks = px('legs'), guard = px('guard'), wrist = px('wrist');
+  if (socks) look.socks = socks.hex;
+  if (guard) look.guard = guard.hex;
+  if (wrist && wrist.item.kind === 'captain') look.captain = wrist.hex;
+  if (outer && outer.item.kind === 'bib') { look.bib = true; look.under = top ? top.hex : DEFAULT_TOP_COLOR; if (top) Object.assign(look, KIT_LOOK_TOP(top)); else look.top = 'tee'; }
+  const spec = kitShirtSpec(top && !outer ? top : null);
+  if (spec || (extras && (extras.number || extras.sponsor) && top && !outer)) {
+    const geo = spec ? patternGeometry(spec.pattern) : null;
+    const sh = { bands: (geo && geo.bands) || [], cells: (geo && geo.cells) || [], color: spec ? spec.hex2 : 0xffffff };
+    if (extras && extras.number) { sh.number = extras.number; sh.numberStyle = extras.numberStyle || 'rug'; sh.numberColor = spec ? spec.hex2 : 0xffffff; sh.nameBar = !!extras.nameBar; }
+    if (extras && extras.sponsor) sh.sponsor = { color: extras.sponsor.color, size: extras.sponsor.size || 'normaal' };
+    if (sh.bands.length || sh.cells.length || sh.number || sh.sponsor) out.shirtBands = sh;
+  }
   const acc = {};
   for (const [slot, key] of [['jewel', 'j'], ['wrist', 'w'], ['hands', 'h']]) {
     const a = px(slot);
-    if (a) acc[key] = [a.item.kind, a.hex];
+    if (a && a.item.kind !== 'captain') acc[key] = [a.item.kind, a.hex];
   }
   if (Object.keys(acc).length) look.acc = acc; else look.acc = null;
   const hair = worn.hair && parseHair(worn.hair);
@@ -448,6 +504,13 @@ function npcBody(seed, role) {
   return pickWeighted(NPC_BODY.map(([id, w]) => [id, w * (adj[id] || 1)]), rng(`${seed}|lijf|${role}`));
 }
 export function npcOutfit(seed, role = 'voetganger', ctx = {}) {
+  if (role === 'voetballer') {
+    const k = npcFootballer(seed, ctx, rng(`${seed}|voetballer`));
+    const worn = { ...k.worn };
+    if (ctx.hair) { const hr = rng(`${seed}|haar|${role}`); worn.hair = `${pickWeighted(NPC_HAIR.all, hr)}.${pickWeighted(NPC_HAIR_COLORS, hr)}`; }
+    if (ctx.body) worn.body = npcBody(seed, 'sporter');
+    return worn;
+  }
   const pool = ROLE_POOLS[role] || ROLE_POOLS.voetganger;
   const r = rng(`${seed}|${role}|${ctx.area || ''}`);
   const mood = NPC_MOODS[pickWeighted(Object.entries(ROLE_MOODS[role] || ROLE_MOODS.standaard), rng(`${seed}|stemming|${role}`))];

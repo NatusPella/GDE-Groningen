@@ -265,8 +265,8 @@ function polygonX(poly, z0, back = false) {
 
 // Een strook op het oppervlak van de romp (aan de voorkant): rows = [{ y, z, hw }] (midden en halve breedte per hoogte), lift meter erboven. Het overhemd
 // in een open jas, de revers en de rits liggen zo op de romp in plaats van als vlakke plank ervoor (die zweefde tot 4 cm voor de borst).
-function surfaceStrip(B, rings, rows, color, lift = 0.004, cols = 2, back = false) {
-  const pt = (y, z) => [polygonX(loftPolygon(rings, y), z, back) + (back ? -lift : lift), y, z];
+function surfaceStrip(B, rings, rows, color, lift = 0.004, cols = 2, back = false, sides = 10, oz = 0) {
+  const pt = (y, z) => [polygonX(loftPolygon(rings, y, sides), z, back) + (back ? -lift : lift), y, z + oz];
   for (let i = 0; i < rows.length - 1; i++) {
     const a = rows[i], b = rows[i + 1];
     for (let j = 0; j < cols; j++) {
@@ -984,6 +984,22 @@ function buildLegs(B, L, skin) {
       B.geo(loftUp(slice(legRings, 0.1, hemY), 7), M, skin);
       B.geo(loftGeometry(slice(legRings, hemY - 0.005, hemY + 0.03, 1.12), 7, Math.PI / 7), M, shade(L.pants, 0.85));
     }
+    // voetbalkousen tot de knie en scheenbeschermers (voetbalkleding 22-11): over de huid, onder het broekje; 6 procent ruimer dan het been
+    if ((L.socks != null || L.guard != null) && hemY >= 0.55) {
+      const sockTop = 0.5, sockRings = slice(legRings, 0.1, sockTop, 1.06);
+      if (L.socks != null) {
+        tag(B, 'sock');
+        B.geo(loftUp(sockRings, 7), M, L.socks);
+        B.geo(loftGeometry(slice(legRings, sockTop - 0.045, sockTop, 1.1), 7, Math.PI / 7), M, shade(L.socks, 0.8)); // de boord bovenaan
+      }
+      if (L.guard != null) {
+        tag(B, 'guard');
+        const gr = slice(legRings, 0.1, sockTop, L.socks != null ? 1.06 : 1);
+        surfaceStrip(B, gr, [0.4, 0.34, 0.26, 0.19].map((y, i) => ({ y, z: 0, hw: 0.03 - i * 0.002 })), L.guard, 0.005, 3, false, 7, s * hipZ);
+        if (L.socks == null) surfaceStrip(B, gr, [0.4, 0.19].map((y) => ({ y, z: 0, hw: 0.042 })), shade(L.guard, 0.7), 0.003, 1, false, 7, s * hipZ); // de band om het been
+      }
+      tag(B, 'leg'); // wat hierna komt (de heupbol) hoort weer bij het been
+    }
     B.bone = BONE.pelvis;
     const top = upper[upper.length - 1];
     B.geo(new THREE.SphereGeometry(Math.max(top.d, top.w) * 0.85, 8, 6), composeMatrix(0, HIP_Y, s * hipZ), legColor);
@@ -1000,6 +1016,7 @@ function buildFoot(B, M, skin) {
 }
 
 function buildShoe(B, L, M, skin) {
+  if (L.shoeType === 'cleat') { buildCleat(B, L, M); return; }
   const sole = L.shoeType === 'sneaker' ? (L.shoes > 0xa00000 ? 0xa8a49c : 0xe0dcd2) : 0x1a1512;
   const c = L.shoes;
   const m = (x, y, z, rx = 0, ry = 0, rz = 0, sx = 1, sy = 1, sz = 1) => M.clone().multiply(composeMatrix(x, y, z, rx, ry, rz, sx, sy, sz));
@@ -1008,6 +1025,27 @@ function buildShoe(B, L, M, skin) {
   B.geo(new THREE.BoxGeometry(0.15, bootH - 0.028, 0.088), m(-0.005, 0.028 + (bootH - 0.028) / 2, 0), c);
   B.geo(new THREE.SphereGeometry(1, 6, 2, 0, Math.PI * 2, 0, Math.PI / 2), m(0.1, 0.028, 0, 0, 0, 0, 0.09, 0.058, 0.046), c);
   if (L.shoeType === 'sneaker') B.geo(new THREE.BoxGeometry(0.06, 0.012, 0.05), m(0.09, 0.075, 0, 0, 0, -0.45), shade(c, c > 0xa00000 ? 0.8 : 1.5));
+}
+
+// Voetbalschoen met noppen (voetbalkleding 22-11): vier uitvoeringen, van dorpsveld (effen, zes noppen) tot topklasse (hielkap, tong, opvallende kleur).
+// De noppen staan op de grond (y = 0), de zool erboven; de schacht is dezelfde doos als bij andere schoenen en blijft onder 0,13 (de enkel).
+function buildCleat(B, L, M) {
+  const c = L.shoes, tier = L.cleat || 1;
+  const m = (x, y, z, rx = 0, ry = 0, rz = 0, sx = 1, sy = 1, sz = 1) => M.clone().multiply(composeMatrix(x, y, z, rx, ry, rz, sx, sy, sz));
+  const sole = tier >= 4 ? shade(c, 0.55) : 0x1a1512;
+  B.geo(new THREE.BoxGeometry(0.27, 0.02, 0.098), m(0.055, 0.018, 0), sole);
+  const studs = tier >= 3 ? [[0.17, 0.03], [0.17, -0.03], [0.11, 0.032], [0.11, -0.032], [-0.04, 0.026], [-0.04, -0.026]] : [[0.16, 0.026], [0.16, -0.026], [0.1, 0.0], [-0.04, 0.024], [-0.04, -0.024], [0.13, 0.0]];
+  for (const [x, z] of studs) B.geo(new THREE.BoxGeometry(tier >= 3 ? 0.012 : 0.018, 0.009, tier >= 3 ? 0.026 : 0.018), m(x, 0.0045, z), 0xb8b4ac);
+  const h = tier >= 3 ? 0.115 : 0.1;
+  B.geo(new THREE.BoxGeometry(0.15, h - 0.028, 0.088), m(-0.005, 0.028 + (h - 0.028) / 2, 0), c);
+  B.geo(new THREE.SphereGeometry(1, 6, 2, 0, Math.PI * 2, 0, Math.PI / 2), m(0.1, 0.028, 0, 0, 0, 0, 0.09, 0.058, 0.046), c);
+  const accent = tier === 2 ? 0xe8e6e0 : shade(c, tier >= 4 ? 1.5 : 1.35);
+  if (tier >= 2) for (const sz of [1, -1]) B.geo(new THREE.BoxGeometry(0.11, 0.022, 0.004), m(0.0, 0.058, sz * 0.0455, 0, 0, -0.18), accent); // de streep op de zijkant
+  if (tier >= 3) B.geo(new THREE.BoxGeometry(0.15, 0.02, 0.092), m(-0.005, h + 0.0, 0), shade(c, 0.7)); // de manchet om de enkel
+  if (tier >= 4) {
+    B.geo(new THREE.BoxGeometry(0.03, 0.05, 0.092), m(-0.07, 0.066, 0), accent);                         // de hielkap
+    B.geo(new THREE.BoxGeometry(0.045, 0.012, 0.045), m(0.075, 0.098, 0, 0, 0, -0.4), accent);        // de tong
+  }
 }
 
 function buildArms(B, L, skin, shZ) {
@@ -1020,7 +1058,7 @@ function buildArms(B, L, skin, shZ) {
     { y: -0.325, d: 0.04 * g, w: 0.039 * g },
     { y: -0.53, d: 0.031, w: 0.028 },
   ];
-  const sleeveColor = L.top === 'raincoat' ? L.raincoatColor : L.topColor;
+  const sleeveColor = L.top === 'raincoat' ? L.raincoatColor : L.bib && L.under != null ? L.under : L.topColor;
   let sleeveEnd;
   if (L.top === 'swim') sleeveEnd = -0.04;
   else if (L.top === 'tee' || L.top === 'dress') sleeveEnd = -0.14;
@@ -1045,6 +1083,7 @@ function buildArms(B, L, skin, shZ) {
     tag(B, 'cuff');
     if (L.top !== 'swim') B.geo(loftGeometry(slice(armRings, sleeveEnd - 0.03, sleeveEnd + 0.005, cuffK), 6), M, shade(sleeveColor, 0.82));
     if (L.cop) B.geo(loftGeometry(slice(armRings, -0.14, -0.1, 1.09), 6), M, REFLECT_YELLOW);
+    if (L.captain != null && k === 0 && sleeveEnd < -0.12) { tag(B, 'captainband'); B.geo(loftGeometry(slice(armRings, -0.115, -0.075, 1.08), 6), M, L.captain); } // aanvoerdersband om de linkerbovenarm
 
     B.bone = BONE.elbow[k];
     tag(B, 'hand');
@@ -1069,10 +1108,10 @@ export const personCacheStats = () => ({ ...personCache, size: personGeometries.
 export function resetPersonCacheStats() { personCache.hits = 0; personCache.misses = 0; personCache.evictions = 0; personCache.builds = 0; }
 function geometryKey(shirt, skin, L) {
   // Alle velden die buildTorso/buildHead/buildLegs/buildArms echt in de geometrie bakken.
-  return JSON.stringify([shirt, skin, L.coatOpen, L.character, L.cop, L.female, L.age, L.build, L.top, L.topColor,
+  return JSON.stringify([personProbe.layers ? 'lagen' : '', shirt, skin, L.coatOpen, L.character, L.cop, L.female, L.age, L.build, L.top, L.topColor,
     L.bottom, L.pants, L.skirtColor, L.hairStyle, L.hair, L.hat, L.hatColor, L.hijabColor, L.hood, L.hoodUp,
     L.scarf, L.scarfColor, L.bag, L.bagColor, L.glasses, L.facial, L.swim, L.raincoatColor, L.shoes, L.shoeType,
-    L.under, L.rolled, L.tights, L.forceOpen, L.shortCoat, L.capColor, L.shades]);
+    L.under, L.rolled, L.tights, L.forceOpen, L.shortCoat, L.capColor, L.shades, L.socks, L.guard, L.cleat, L.captain, L.bib]);
 }
 
 function autoKnee(z) {
@@ -1226,8 +1265,11 @@ export function buildPersonMesh(shirt, skin, opts = {}) {
     buildArms(B, L, skin, shZ);
     geometry = markShared(B.build());
     if (B.layers) { B.layers.push([B.groups[0].p.length / 9, 'end']); geometry.userData.layers = B.layers; }
-    personGeometries.set(key, geometry);
     personCache.builds++;
+    // een meetbouw (personProbe.layers: de kledingaudit en het kledingvoorbeeld, clothingpreview.js) blijft uit de cache van de wereld;
+    // hij is gemerkt als afgedankt, dus de laatste release geeft hem vrij
+    if (personProbe.layers) geometry.userData.personRetired = true;
+    else personGeometries.set(key, geometry);
     if (personGeometries.size > PERSON_TEMPLATE_CACHE_MAX) {
       // oudste eruit; niet disposen: een levende voetganger kan hem nog tekenen (userData.shared)
       const oud = personGeometries.keys().next().value;
@@ -1278,7 +1320,8 @@ export function buildPersonMesh(shirt, skin, opts = {}) {
   if (L.umbrella !== null && L.umbrella !== undefined) attachUmbrella(ud, L.umbrella);
   if (L.acc && L.acc.j) { ud.neckPath = neckPath(L); ud.neckKey = `${L.build}|${L.female ? 1 : 0}|${L.age === 'old' ? 1 : 0}`; }
   if (L.acc) attachAccessories(group, L.acc);
-  if (opts.shirtBands && opts.shirtBands.bands.length) attachShirtBands(rig.chest, torsoRings(L), opts.shirtBands);
+  const sb = opts.shirtBands;
+  if (sb && ((sb.bands && sb.bands.length) || (sb.cells && sb.cells.length) || sb.number || sb.sponsor)) attachShirtBands(rig.chest, torsoRings(L), sb);
 
   group.scale.set(L.buildScale, L.heightScale, L.buildScale);
   if (opts.seed !== undefined) ud.lookSeed = opts.seed;
@@ -1290,18 +1333,21 @@ export function buildPersonMesh(shirt, skin, opts = {}) {
 // Elke doos volgt de doorsnede van de romp op zijn hoogte, hooguit enkele millimeters erboven; geen logo, geen wapen.
 const SHIRT_BAND_Y = [0.97, 1.1, 1.22, 1.34, 1.46];
 const shirtBandGeos = new Map(), shirtBandMats = new Map();
-function shirtBandGeometry(rings, bands) {
-  const key = JSON.stringify([rings.map((r) => [r.y, r.d, r.w, r.front ?? 1]), bands]);
+function shirtBandGeometry(rings, spec, part = 'main') {
+  const bands = spec.bands || [];
+  const key = JSON.stringify([rings.map((r) => [r.y, r.d, r.w, r.front ?? 1]), bands, spec.cells || null, spec.number || 0, spec.numberStyle || '', !!spec.nameBar, spec.sponsor ? spec.sponsor.size : '', part]);
   let g = shirtBandGeos.get(key);
   if (g) return g;
   const proto = new THREE.BoxGeometry(1, 1, 1);
   const pa = proto.attributes.position, na = proto.attributes.normal, ia = proto.index;
   const pos = [], nor = [], idx = [];
   let k = 0;
-  for (let i = 0; i < SHIRT_BAND_Y.length - 1; i++) {
+  for (let i = 0; part === 'main' && i < SHIRT_BAND_Y.length - 1; i++) {
     const y0 = SHIRT_BAND_Y[i], y1 = SHIRT_BAND_Y[i + 1], rg = ringAt(rings, (y0 + y1) / 2);
     const w = rg.w * 1.0, d = rg.d * (rg.front ?? 1) * 1.045 + 0.004;
-    for (const [t0, t1] of bands) {
+    const cells = [...bands.map((b) => [i, b[0], b[1]]), ...(spec.cells || []).filter((c) => c[0] === i)];
+    for (const [ci, t0, t1] of cells) {
+      if (ci !== i) continue;
       const z0 = -w + 2 * w * Math.min(t0, t1), z1 = -w + 2 * w * Math.max(t0, t1), zc = (z0 + z1) / 2;
       const dx = d * Math.pow(Math.max(0, 1 - Math.pow(Math.abs(zc) / w, 2.4)), 1 / 2.4);   // de doorsnede is bijna een rechthoek met ronde hoeken
       if (dx < 0.01) continue;
@@ -1312,6 +1358,33 @@ function shirtBandGeometry(rings, bands) {
       for (let j = 0; j < ia.count; j++) idx.push(ia.getX(j) + k * pa.count);
       k++;
     }
+  }
+  // rugnummer, naamstrook en sponsorpaneel (voetbalkleding 22-11): dunne dozen op het oppervlak van de romp (een zijde, geen doorsnede); het oppervlak is
+  // dezelfde tienhoek als de romp (polygonX), 3,5 mm erboven. Een brede strook wordt in kolommen van 3 cm gelegd zodat hij de bocht volgt.
+  const surfX = (y, z, back) => polygonX(loftPolygon(rings, y), z, back) + (back ? -0.0035 : 0.0035);
+  const flat = (cy, cz, sy, sz, back) => {
+    const cx = surfX(cy, cz, back) + (back ? -0.002 : 0.002);
+    for (let v = 0; v < pa.count; v++) { pos.push(cx + pa.getX(v) * 0.004, cy - CHEST_Y + pa.getY(v) * sy, cz + pa.getZ(v) * sz); nor.push(na.getX(v), na.getY(v), na.getZ(v)); }
+    for (let j = 0; j < ia.count; j++) idx.push(ia.getX(j) + k * pa.count);
+    k++;
+  };
+  const strip = (cy, hw, hh, back) => { const n = Math.max(1, Math.round(hw * 2 / 0.03)), cw = hw * 2 / n; for (let c = 0; c < n; c++) flat(cy, -hw + cw * (c + 0.5), hh * 2, cw, back); };
+  if (part === 'main' && spec.number) {
+    const digits = String(spec.number).split('').map(Number), n = digits.length;
+    const big = spec.numberStyle === 'speciaal' ? 1.2 : spec.numberStyle === 'hand' ? 0.9 : 1, dh = 0.17 * big, dw = 0.06 * big, th = 0.017 * (spec.numberStyle === 'hand' ? 0.8 : 1);
+    const SEG = [[1, 1, 1, 0, 1, 1, 1], [0, 0, 1, 0, 0, 1, 0], [1, 0, 1, 1, 1, 0, 1], [1, 0, 1, 1, 0, 1, 1], [0, 1, 1, 1, 0, 1, 0], [1, 1, 0, 1, 0, 1, 1], [1, 1, 0, 1, 1, 1, 1], [1, 0, 1, 0, 0, 1, 0], [1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 0, 1, 1]];
+    const yc = spec.nameBar ? 1.22 : 1.24;
+    digits.forEach((dg, di) => {
+      const zc = (di - (n - 1) / 2) * (dw + 0.02), s7 = SEG[dg];
+      const parts = [[0, 0, dh / 2 - th / 2, dw, th], [1, -dw / 2 + th / 2, dh / 4, th, dh / 2 - th], [2, dw / 2 - th / 2, dh / 4, th, dh / 2 - th], [3, 0, 0, dw, th], [4, -dw / 2 + th / 2, -dh / 4, th, dh / 2 - th], [5, dw / 2 - th / 2, -dh / 4, th, dh / 2 - th], [6, 0, -dh / 2 + th / 2, dw, th]];
+      for (const [si, dz, dy, sw, sh2] of parts) if (s7[si]) flat(yc + dy, zc + dz, sh2, sw, true);
+    });
+    if (spec.nameBar) strip(1.37, 0.06, 0.008, true);
+  }
+  if (part === 'sponsor' && spec.sponsor) {
+    const big = spec.sponsor.size === 'groot' ? 1.3 : spec.sponsor.size === 'klein' ? 0.8 : 1;
+    strip(1.2, 0.07 * big, 0.026 * big, false);
+    strip(1.2 - 0.05 * big, 0.045 * big, 0.007, false);
   }
   proto.dispose();
   g = new THREE.BufferGeometry();
@@ -1324,13 +1397,17 @@ function shirtBandGeometry(rings, bands) {
   return g;
 }
 function attachShirtBands(chest, rings, spec) {
-  const g = shirtBandGeometry(rings, spec.bands);
-  let m = shirtBandMats.get(spec.color);
-  if (!m) { m = new THREE.MeshLambertMaterial({ color: spec.color }); m.userData.shared = true; shirtBandMats.set(spec.color, m); }
-  const mesh = new THREE.Mesh(g, m);
-  mesh.name = 'shirtBands';
-  chest.add(mesh);
-  return mesh;
+  const mat = (color) => {
+    let m = shirtBandMats.get(color);
+    if (!m) { m = new THREE.MeshLambertMaterial({ color }); m.userData.shared = true; shirtBandMats.set(color, m); }
+    return m;
+  };
+  let first = null;
+  // de laag in de tweede kleur (patroon, rugnummer, naamstrook) en het sponsorpaneel in de kleur van de sponsor: elk een mesh, hoogstens twee per speler
+  const main = (spec.bands && spec.bands.length) || (spec.cells && spec.cells.length) || spec.number;
+  if (main) { const mesh = new THREE.Mesh(shirtBandGeometry(rings, spec, 'main'), mat(spec.color)); mesh.name = 'shirtBands'; mesh.userData.kit = true; chest.add(mesh); first = mesh; }
+  if (spec.sponsor) { const mesh = new THREE.Mesh(shirtBandGeometry(rings, spec, 'sponsor'), mat(spec.sponsor.color)); mesh.name = 'shirtSponsor'; mesh.userData.kit = true; chest.add(mesh); first = first || mesh; }
+  return first;
 }
 
 // #658/#788: elke mesh die een gedeelde rompgeometrie tekent geeft hem bij het weggaan terug.

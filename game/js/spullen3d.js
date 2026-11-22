@@ -19,8 +19,22 @@ export const moneySpec = (bedrag) => spul('geld', { niveau: moneyTier(bedrag) })
 // Wapens: alle sleutels van WEAPONS hebben een model in models3d_people.js. Vuisten zijn geen spul (je hebt ze niet): daar is geen model voor.
 export const wapenSpec = (key) => (key && key !== 'fists' ? { kind: 'weapon', weapon: key } : null);
 
-// Kleding: het personage in de kleur van de set; `look` is het uiterlijk van de speler met de kleuren van de set erover.
+// Kleding (22-11, eigenaar: "per kledingstuk een preview van dat kledingstuk, niet van Tammo"): een los stuk toont ALLEEN dat stuk, een set de
+// stukken als nette compositie; clothingpreview.js bouwt ze (zonder personage). `kledingSpec` (het personage in een outfit) blijft voor wie een
+// samenstelling toont (outfit-opslag, pashokje, postuur).
+export const stukSpec = (piece) => (typeof piece === 'string' && /^[a-z_]+\.[a-z]+$/.test(piece) ? { kind: 'piece', piece } : null);
+export const setSpec = (pieces) => { const l = Array.isArray(pieces) ? pieces.filter((p) => typeof p === 'string') : []; return l.length ? { kind: 'pieceset', pieces: l } : null; };
+// Een kapsel ('short.zwart' uit de kapper): op een neutrale kop. hex = de haarkleur (null: de eigen kleur van het personage), char: 'tammo' of 'anita'.
+export const haarSpec = (style, char = 'tammo', hex = null) => (typeof style === 'string' && style ? { kind: 'piece', hair: { style: style.split('.')[0], hex: hex == null ? null : hex, char: char === 'anita' ? 'anita' : 'tammo' } } : null);
 export const kledingSpec = (look) => (look && typeof look === 'object' ? { kind: 'person', look: { ...look } } : null);
+
+// De kleur van het stuk als zachte tint achter het plaatje (CSS): donkere stukken krijgen een lichte tint, lichte een donkere, de rest hun eigen
+// kleur. Zo steekt het stuk er altijd van af. Puur.
+export function tintVoor(hex) {
+  const n = Number(hex) || 0, r = (n >> 16) & 255, g = (n >> 8) & 255, b = n & 255;
+  const l = (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255;
+  return l < 0.28 ? 'rgba(226,230,238,.34)' : l > 0.72 ? 'rgba(20,26,36,.5)' : `rgba(${r},${g},${b},.42)`;
+}
 
 // Eten: elk snackje van de toonbank heeft een productmodel met dezelfde naam als het id; een vis komt uit de vis-generator.
 export const ETEN_PRODUCT = new Set(['krentenbol', 'koffie', 'drop', 'energie', 'ehbo', 'kroket', 'frikandel', 'eierbal', 'oorlog', 'kapsalon', 'koek', 'kauwgom', 'ballen', 'hotdog']);

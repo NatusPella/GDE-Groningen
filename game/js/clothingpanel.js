@@ -4,7 +4,7 @@
 // De kledingwinkel: een wisselend aanbod per winkel en dag, een uitverkoop op vrijdag, sets en losse stukken, passen in de preview
 // (elk stuk laat zich op je eigen personage zien voor je het koopt; slepen draait). De kast: alles wat je hebt per slot, aan of uit,
 // vijf outfits, en de sets die compleet zijn.
-import { SLOTS, SLOT_IDS, PROFILES, RARITY, SETS, LOOKS, setsFor, parsePiece, pieceLabel, pieceSlot, colorHex, colorName } from './clothingdata.js';
+import { SLOTS, SLOT_IDS, SPORT_IDS, PROFILES, RARITY, SETS, LOOKS, setsFor, parsePiece, pieceLabel, pieceSlot, colorHex, colorName } from './clothingdata.js';
 import { soundForSlot } from './clothingsfx.js';
 import {
   ownsPiece, ownedPieces, givePiece, effectiveWorn, wornPieces, wearPiece, takeOffSlot, takeOffBlock, wearSet, setPriceFor, missingOf, setBonus,
@@ -19,10 +19,17 @@ const GROUPS = [
   { title: 'Boven', slots: ['top', 'outer'] },
   { title: 'Onder en voeten', slots: ['bottom', 'shoes'] },
   { title: 'Tassen en sieraden', slots: ['back', 'jewel', 'wrist', 'hands'] },
+  { title: 'Sport', slots: SLOT_IDS, sport: true }, // voetbalkleding (22-11): alle sportstukken bij elkaar, ook shirt, broek en schoenen
 ];
+// Sportstukken staan onder Sport en niet nog eens onder hun slot (de andere groepen laten ze weg)
+const inGroup = (g, piece) => SPORT_IDS.has(parsePiece(piece).item.id) === !!g.sport;
 const slotLabel = (id) => (SLOTS.find((s) => s.id === id) || {}).label || id;
 const lower = (s) => String(s || '').toLowerCase();
 
+// Wat een lijst toont: het stuk zelf (of de set als compositie), niet het personage. Alleen het pashokje (ctx.fitting) en de samenstellingen
+// (outfits, postuur, codes) tonen het personage: daar is "hoe staat het mij" of "hoe ziet de hele look eruit" de vraag.
+const viewPiece = (ctx, piece, worn) => (!ctx.fitting && ctx.pieceOf ? ctx.pieceOf(piece) : ctx.previewOf(worn));
+const viewSet = (ctx, s, worn) => (!ctx.fitting && ctx.setOf ? ctx.setOf(s.pieces) : ctx.previewOf(worn));
 const withPiece = (worn, piece) => { const x = parsePiece(piece); return x ? { ...worn, [x.item.slot]: piece } : worn; };
 const withoutSlot = (worn, slot) => { const o = { ...worn }; delete o[slot]; return o; };
 
@@ -49,7 +56,7 @@ const swatchOf = (piece, hexCss) => { const x = parsePiece(piece); return x && x
 // De kledingcategorie-iconen (shopicons.js, kl_*): een pictogram per slot, zodat de lijst op één blik leest.
 export const SLOT_ICON = {
   hat: 'kl_hoed', glasses: 'kl_bril', face: 'kl_gezicht', neck: 'kl_hals', top: 'kl_shirt', outer: 'kl_jas', bottom: 'kl_broek', shoes: 'schoen',
-  back: 'kl_tas', jewel: 'kl_sieraad', wrist: 'kl_horloge', hands: 'kl_hand',
+  back: 'kl_tas', jewel: 'kl_sieraad', wrist: 'kl_horloge', hands: 'kl_hand', legs: 'kl_sok', guard: 'kl_scheen',
 };
 const iconOf = (piece) => SLOT_ICON[(parsePiece(piece) || { item: {} }).item.slot] || 'kleding';
 
@@ -75,7 +82,7 @@ function wardrobeItem(ctx, piece) {
     verb: on ? 'Uitdoen' : 'Aantrekken',
     tag: on ? 'Aan' : '',
     swatch: swatchOf(piece, ctx.hexCss),
-    preview: ctx.previewOf(on ? effectiveWorn(ch) : withPiece(effectiveWorn(ch), piece)),
+    preview: viewPiece(ctx, piece, on ? effectiveWorn(ch) : withPiece(effectiveWorn(ch), piece)),
     disabled: on && block ? block : '',
     buy() {
       if (on) {
@@ -108,7 +115,7 @@ function setWardrobeItem(ctx, s) {
     tag: on ? 'Aan' : '',
     effect: bonus,
     swatch: s.pieces.map((p) => parsePiece(p)).filter(Boolean).slice(0, 4).map((x) => ctx.hexCss(x.hex)),
-    preview: ctx.previewOf(wornAfterSet(ch, s)),
+    preview: viewSet(ctx, s, wornAfterSet(ch, s)),
     disabled: on ? 'Heb je al aan' : '',
     buy() {
       const r = wearSet(ch, s);
@@ -184,7 +191,7 @@ export function wardrobeSections(ctx) {
   for (const g of GROUPS) {
     const items = [];
     for (const slot of g.slots) {
-      for (const piece of ownedPieces(ch).filter((p) => parsePiece(p).item.slot === slot).sort()) items.push(wardrobeItem(ctx, piece));
+      for (const piece of ownedPieces(ch).filter((p) => parsePiece(p).item.slot === slot && inGroup(g, p)).sort()) items.push(wardrobeItem(ctx, piece));
     }
     if (items.length) sections.push({ title: g.title, note: `${items.filter((it) => it.tag === 'Aan').length} aan`, items });
   }
@@ -220,7 +227,7 @@ function shopItem(ctx, piece, shopKey) {
     verb: owned && !on ? 'Aantrekken' : undefined,
     tag: on ? 'Aan' : owned ? 'In je kast' : inSale ? 'Uitverkoop' : '',
     swatch: swatchOf(piece, ctx.hexCss),
-    preview: ctx.previewOf(withPiece(effectiveWorn(ch), piece)),
+    preview: viewPiece(ctx, piece, withPiece(effectiveWorn(ch), piece)),
     disabled: on ? 'Heb je al aan' : owned ? '' : ctx.broke(price),
     buy() {
       if (!owned) {
@@ -258,7 +265,7 @@ function shopSetItem(ctx, s) {
     tag: on ? 'Aan' : !miss.length ? 'In je kast' : '',
     effect: bonus,
     swatch: s.pieces.map((p) => parsePiece(p)).filter(Boolean).slice(0, 4).map((x) => ctx.hexCss(x.hex)),
-    preview: ctx.previewOf(wornAfterSet(ch, { pieces: s.pieces })),
+    preview: viewSet(ctx, s, wornAfterSet(ch, { pieces: s.pieces })),
     disabled: on ? 'Heb je al aan' : miss.length ? ctx.broke(price) : '',
     buy() {
       if (miss.length) {
@@ -285,12 +292,12 @@ export function shopSections(ctx) {
   // sets: de oude vaste sets van dit personage, altijd te koop (een stuk daaruit kan dagelijks wisselen, een set blijft)
   out.push({ title: `Sets voor ${ctx.name}`, note: 'Alle stukken in één keer. Heb je er al een paar, dan betaal je alleen de rest', items: setsFor(ch).map((s) => shopSetItem(ctx, s)) });
   const note = (slots) => {
-    const lbl = slots.map(slotLabel).join(', ').toLowerCase();
+    const lbl = slots.length ? slots.map(slotLabel).join(', ').toLowerCase() : 'voetbal- en trainingskleding';
     return `${lbl}. Deze winkel: ${profs.map((p) => PROFILES[p]).join(' en ')}${sale && profs.includes(sale.profile) ? `. Vandaag uitverkoop op ${PROFILES[sale.profile].toLowerCase()} (${Math.round(sale.discount * 100)} procent)` : ''}`;
   };
   for (const g of GROUPS) {
-    const items = stock.filter((p) => g.slots.includes(parsePiece(p).item.slot)).map((p) => shopItem(ctx, p, ctx.shopKey));
-    if (items.length) out.push({ title: g.title, note: note(g.slots), items });
+    const items = stock.filter((p) => g.slots.includes(parsePiece(p).item.slot) && inGroup(g, p)).map((p) => shopItem(ctx, p, ctx.shopKey));
+    if (items.length) out.push({ title: g.title, note: note(g.sport ? [] : g.slots), items });
   }
   return out;
 }
@@ -300,7 +307,8 @@ export function shopSections(ctx) {
 // stuk over je eigen outfit, slepen draait), je trekt aan wat je al hebt, je bewaart de look in een van de vijf outfits en je kunt de code
 // ervan lezen om te delen (outfit-code versie 3: stukken, kapsel en postuur). Kopen kan hier ook: de kassa is een stap verderop, de
 // pasbon is dezelfde. Ids van winkelstukken krijgen 'p-' voorop, zodat ze niet botsen met dezelfde stukken uit de kast.
-export function fittingSections(ctx) {
+export function fittingSections(base) {
+  const ctx = { ...base, fitting: true }; // in het pashokje past je het stuk over je eigen outfit: de lijst toont jou, niet het losse stuk
   const ch = ctx.ch;
   const out = [];
   const wardrobe = wardrobeSections(ctx);

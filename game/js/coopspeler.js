@@ -52,7 +52,7 @@ export function avatarLook(avatar) {
   const worn = a.outfit ? decodeOutfit(a.outfit) : null;
   if (worn) {
     const o = outfitToLook(worn, {});
-    return { karakter: null, shirt: o.shirt, skin: a.huid, opts: { seed: a.seed, variant: a.variant, look: o.look, ...(o.pants != null ? { pants: o.pants } : {}), ...(o.shoes != null ? { shoes: o.shoes } : {}), ...(o.cap != null ? { cap: o.cap } : {}), ...(o.body ? { body: o.body } : {}), ...(o.hairStyle ? { hairStyle: o.hairStyle } : {}), ...(o.hair != null ? { hair: o.hair } : {}) } };
+    return { karakter: null, shirt: o.shirt, skin: a.huid, opts: { seed: a.seed, variant: a.variant, look: o.look, ...(o.shirtBands ? { shirtBands: o.shirtBands } : {}), ...(o.pants != null ? { pants: o.pants } : {}), ...(o.shoes != null ? { shoes: o.shoes } : {}), ...(o.cap != null ? { cap: o.cap } : {}), ...(o.body ? { body: o.body } : {}), ...(o.hairStyle ? { hairStyle: o.hairStyle } : {}), ...(o.hair != null ? { hair: o.hair } : {}) } };
   }
   return { karakter: null, shirt: hexInt(a.kleur), skin: a.huid, opts: { seed: a.seed, variant: a.variant } };
 }

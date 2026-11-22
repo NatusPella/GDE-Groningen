@@ -43,9 +43,10 @@ import { winkelMagVoorGast, MELDING_WINKEL } from './coopgast.js';
 import { hoofdspeler } from './spelersregister.js';
 import {
   effectiveWorn, outfitToLook, getClothingSave, applyClothingSave, forceStoryLook, storyLookKey, ownsAll, ownedPieces, givePiece, setBonus,
-  completeSetIds, wornSet, cooldownBusy, wearPiece, takeOffSlot, setLocalCharProvider, emitLocalOutfitChange, cyclePreset, getHair, setHair, wornPieces,
+  completeSetIds, wornSet, cooldownBusy, wearPiece, takeOffSlot, setLocalCharProvider, emitLocalOutfitChange, cyclePreset, getHair, setHair, wornPieces, onKitChange, kitActive, kitExtrasOf,
 } from './clothing.js';
 import { HAIR_COLORS, HAIR_STYLES, hairPrice, parseHair, hairReaction } from './clothinghair.js';
+import { stukSpec, setSpec, haarSpec } from './spullen3d.js';
 import { hairGroups, cutLine, colorBlock } from './kapperkeuze.js'; // de kapper aan de stoel: groepen en een regel bij het knippen (epic Autotuning ronde 4)
 import { playHair } from './tuningsfx.js';
 import { SETS, setKeyFor, parsePiece } from './clothingdata.js';
@@ -402,6 +403,8 @@ export function initShops(world) {
   worldRef = world;
   world.cycleOutfit = (dir) => cycleOutfit(world, dir); // the 6 key (player.js)
   setLocalCharProvider(() => currentChar(world)); // coopnet.js stuurt de kleding van dit personage mee bij het meedoen
+  if (offKit) offKit();
+  offKit = onKitChange(() => applyLooks()); // het clubtenue (footballkit.js) komt over je outfit en gaat net zo naar de figuren en naar de anderen
   initShopUi(world);
   baseLook = { tammo: snapshot(TAMMO_APPEARANCE), anita: snapshot(ANITA_APPEARANCE) };
   const map = world.map;
@@ -814,12 +817,6 @@ export function pimpEntryItem(world, v, site) {
 export function vehiclePreviewOf(v, color) {
   const model = color && v.isPolice ? { ...v.model, resprayed: true } : v.model;
   return { kind: vehicleKind(v), model, color: color || (v.model && v.model.color), nameIdx: v.id % 6, flags: v.isHeroCar ? { isHeroCar: true } : v.isPolice ? { isPolice: true } : v.isTaxi ? { isTaxi: true } : null };
-}
-
-// The current character with outfit/hair overrides, for the clothing previews.
-function lookWith(world, over, look = null) {
-  const app = hoofdspeler(world).character === 'anita' ? ANITA_APPEARANCE : TAMMO_APPEARANCE;
-  return { kind: 'person', look: { ...app, ...over, look: look ? { ...(app.look || {}), ...look } : app.look }, frame: look ? 'head' : null };
 }
 
 function shopMenu(world, s, werf = false) {
@@ -1289,6 +1286,9 @@ function clothingCtx(world, shopKey = null) {
     copy: (text) => { try { if (typeof navigator !== 'undefined' && navigator.clipboard) navigator.clipboard.writeText(text); } catch (e) { /* een kopie is een extraatje */ } },
     // a worn outfit on the player's own figure, for the shop preview and the fitting room (drag turns it)
     previewOf: (worn) => ({ kind: 'person', look: { ...app(), ...outfitToLook(worn, baseLook ? baseLook[ch] : app()) } }),
+    // een los stuk of een set zonder personage (clothingpreview.js): wat een lijst toont is het stuk zelf, niet Tammo (eigenaar 22-11)
+    pieceOf: (piece) => stukSpec(piece),
+    setOf: (pieces) => setSpec(pieces),
     apply: (stars) => {
       if (!syncHeistOutfit()) applyLooks();
       clothesRustle(world);
@@ -1319,6 +1319,7 @@ export function clothingLook(ch, worn) {
 }
 // The quick-change key (6, player.js): on to the next saved outfit, on foot, anywhere. The story's outfit wins while it lasts.
 let lastCycleAt = -Infinity;
+let offKit = null;
 // Toets 6 is ook een cijfer in menu's en minigames (winkelmenu, bakronde): dan wisselt hij niets.
 export function outfitKeyBusy(world) {
   try { if (isShopOpen() || bakeBezig() || isCinematicActive()) return true; } catch (e) { /* zonder DOM */ }
@@ -1330,6 +1331,7 @@ function cycleOutfit(world, dir = 1) {
   if (cooldownBusy(now, lastCycleAt, 0.6)) return false;
   lastCycleAt = now;
   if (storyLookKey()) { world.addMessage('Het verhaal bepaalt nu wat je aanhebt', 3); return false; }
+  if (kitActive(currentChar(world))) { world.addMessage('Je draagt het clubtenue; na de wedstrijd krijg je je eigen kleren terug', 3); return false; }
   const ch = currentChar(world);
   const r = cyclePreset(ch, dir);
   if (!r.ok) { world.addMessage(r.reason, 3.5); return false; }
@@ -1412,11 +1414,6 @@ function hairSections(world) {
   const ch = currentChar(world);
   const cur = parseHair(getHair(ch));
   const naturel = baseLook[ch].hair;
-  // the new hair as the mirror shows it: your own outfit and hat off, so the hair is seen
-  const mirror = (style, color) => {
-    const h = parseHair(`${style}.${color}`);
-    return lookWith(world, { hairStyle: style, hair: h.hex != null ? h.hex : naturel }, ch === 'tammo' ? { hat: null } : null);
-  };
   const reaction = (style, color) => hairReaction(ch, style, color);
   const change = (style, color, price, text) => {
     if (!pay(world, price)) return null;
@@ -1429,14 +1426,14 @@ function hairSections(world) {
   const colors = HAIR_COLORS.map((c) => ({
     id: 'h-' + c.id, label: c.label, desc: c.id === 'naturel' ? 'Terug naar je eigen kleur' : 'Verven, föhnen, klaar',
     price: c.price, tag: cur.color === c.id ? 'Nu' : '', swatch: [hexCss(c.hair ?? naturel)],
-    preview: mirror(cur.style, c.id),
+    preview: haarSpec(cur.style, ch, c.hair ?? naturel), // het kapsel op een neutrale kop: de kleur zie je, niet het gezicht van Tammo
     disabled: cur.color === c.id ? 'Heb je al' : colorBlock(cur.style) || broke(world, c.price),
     buy: () => change(cur.style, c.id, c.price, `Haar ${c.label.toLowerCase()}.`),
   }));
   const styleItem = ([id, label]) => ({
     id: 'hs-' + id, label, desc: ch === 'tammo' ? 'Onder de pet, maar jij weet het' : 'Knippen en stylen',
     price: hairPrice(id), tag: cur.style === id ? 'Nu' : '',
-    preview: mirror(id, cur.color),
+    preview: haarSpec(id, ch, parseHair(`${id}.${cur.color}`).hex ?? naturel),
     disabled: cur.style === id ? 'Heb je al' : broke(world, hairPrice(id)),
     buy: () => change(id, cur.color, hairPrice(id), `${label}: de kapper is tevreden.`),
   });
@@ -1702,7 +1699,7 @@ function applyLooks() {
     const app = ch === 'tammo' ? TAMMO_APPEARANCE : ANITA_APPEARANCE;
     // the worn pieces (or the story's outfit) over the character's own colours; look carries what the model needs (top, shoes, hat ...)
     // and the hair (a part of the outfit, clothinghair.js: style and colour, or the character's own colour)
-    Object.assign(app, baseLook[ch], outfitToLook(effectiveWorn(ch), baseLook[ch]));
+    Object.assign(app, baseLook[ch], outfitToLook(effectiveWorn(ch), baseLook[ch], kitExtrasOf(ch)));
   }
   refreshCharacterMeshes();
   for (const o of state.vehicles) if (o.v) setRider(o.v);

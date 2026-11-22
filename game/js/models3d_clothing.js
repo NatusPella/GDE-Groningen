@@ -97,6 +97,13 @@ function glovesGeometry(kind, hex) {
     B.geo(new THREE.BoxGeometry(0.074, 0.12, 0.034), hand(0, -0.312), hex);
     B.geo(new THREE.CylinderGeometry(0.037, 0.04, 0.03, 6), composeMatrix(0.003, -0.248, 0), shade(hex, 0.85));
     B.geo(new THREE.BoxGeometry(0.02, 0.044, 0.022), composeMatrix(0.044, -0.29, 0, 0, 0, 0.35), shade(hex, 0.95));
+  } else if (kind === 'keeperglove') {
+    // keepershandschoen (voetbalkleding 22-11): de hele hand gevoerd, een brede manchet met klittenband en een lichte rugpaneel
+    B.geo(new THREE.BoxGeometry(0.084, 0.13, 0.046), hand(0, -0.312), hex);
+    B.geo(new THREE.CylinderGeometry(0.043, 0.047, 0.05, 6), composeMatrix(0.003, -0.235, 0), shade(hex, 0.7));
+    B.box(0.012, -0.345, 0, 0.086, 0.026, 0.048, shade(hex, 1.25), 0, 0, 0, 0.12);
+    B.box(0.0505, -0.3, 0, 0.004, 0.07, 0.05, 0xe8e6e0, 0, 0, 0, 0.12);   // het paneel op de rug van de hand
+    B.geo(new THREE.BoxGeometry(0.024, 0.048, 0.026), composeMatrix(0.046, -0.29, 0, 0, 0, 0.35), shade(hex, 0.92));
   } else return null;
   return { parent: 'elbow2', geometry: markShared(B.build()) };
 }

@@ -187,11 +187,11 @@ kost niets. De banen komen uit `game/vliegplekken.json`.
 
 ## Kleding (epic Kleding)
 
-**Doel.** Kleding is een eigen systeem: losse stukken in twaalf slots die je koopt, past en combineert, met een kast per personage en dezelfde stukken voor NPC's. Zie docs/KLEDING-21-11.md.
+**Doel.** Kleding is een eigen systeem: losse stukken in veertien slots (twaalf, plus kousen en scheenbeschermers voor de voetbalkleding) die je koopt, past en combineert, met een kast per personage en dezelfde stukken voor NPC's. Zie docs/KLEDING-21-11.md.
 
-**Regels.** Elk stuk is los te kiezen (sets zijn een snelkoppeling); alleen de pasvorm hangt van de lichaamsvorm af. De kapper hoort bij de outfit. Samen spelen: medespelers zien elkaars kleding en haar als optioneel veld. NPC's kleden zich uit rolpools per buurt en uur, zonder extra drawcalls per stuk. Kleding en haar mogen niet door elkaar of door het lichaam steken (hoofddeksel, haar, bril, sjaal, ketting, handschoen, tas, revers: meer dan 2 mm is een fout); `scripts/kleding_clipping_audit.mjs` meet dat voor elke combinatie van personage, lichaamsvorm, kapsel en stuk, en bij een nieuw stuk, kapsel of lichaamsvorm hoort een regel in `scripts/lib/kleding_clipping.mjs` (combinaties) en een draai van die audit.
+**Regels.** Elk stuk is los te kiezen (sets zijn een snelkoppeling); alleen de pasvorm hangt van de lichaamsvorm af. De kapper hoort bij de outfit. Samen spelen: medespelers zien elkaars kleding en haar als optioneel veld. NPC's kleden zich uit rolpools per buurt en uur, zonder extra drawcalls per stuk. Kleding en haar mogen niet door elkaar of door het lichaam steken (hoofddeksel, haar, bril, sjaal, ketting, handschoen, tas, revers: meer dan 2 mm is een fout); `scripts/kleding_clipping_audit.mjs` meet dat voor elke combinatie van personage, lichaamsvorm, kapsel en stuk, en bij een nieuw stuk, kapsel of lichaamsvorm hoort een regel in `scripts/lib/kleding_clipping.mjs` (combinaties) en een draai van die audit. Voetbalkleding (22-11, docs/VOETBALKLEDING-22-11.md): het clubtenue is een tijdelijke override van `effectiveWorn` (`clothing.setKit`), nooit in de save; het niveau (amateur tot topniveau) staat in een tabel (`KIT_LEVELS` in `clothingkit.js`) en volgt de klasse van de club; het tenue reist als gewone outfit-code mee, zonder nieuw protocol.
 
-**Bestanden.** `clothing.js`, `clothingdata.js`, `clothinghair.js`, `clothingpanel.js`, `kapperkeuze.js`, `models3d_clothing.js`, `models3d_hair.js`. **Tests.** `clothing_test`, `kleding_clipping_test` (zie docs/KLEDING-CLIPPING-22-11.md).
+**Bestanden.** `clothing.js`, `clothingdata.js`, `clothinghair.js`, `clothingpanel.js`, `kapperkeuze.js`, `models3d_clothing.js`, `models3d_hair.js`, `clothingkit.js`, `footballkit.js`, `footballkitlive.js`. **Tests.** `clothing_test`, `kleding_clipping_test` (zie docs/KLEDING-CLIPPING-22-11.md), `voetbalkleding_test` (zie docs/VOETBALKLEDING-22-11.md).
 
 ## Autotuning (epic #1155)
 

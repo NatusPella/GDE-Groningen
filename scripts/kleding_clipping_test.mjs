@@ -76,13 +76,13 @@ for (const id of SET_IDS) {
   });
 }
 
-t('dekking: de audit kent alle 67 stukken, alle 5 lichaamsvormen, alle 17 kapsels en meer dan 6.000 combinaties', () => {
+t('dekking: de audit kent alle 92 stukken, alle 5 lichaamsvormen, alle 17 kapsels en meer dan 6.000 combinaties', () => {
   const alle = combos(null, 1);
   assert.ok(alle.length > 6000, 'combinaties: ' + alle.length);
   const stukken = new Set(alle.filter((c) => c.set === 'stuk').map((c) => c.key));
   assert.equal(stukken.size, D.ITEMS.length, 'elk stuk komt voor');
-  assert.equal(D.ITEMS.filter((i) => !i.npc).length, 63);
-  assert.equal(new Set(D.ITEMS.map((i) => i.slot)).size, 12, 'twaalf slots');
+  assert.equal(D.ITEMS.filter((i) => !i.npc).length, 88, '63 winkelstukken en 25 stukken voetbalkleding');
+  assert.equal(new Set(D.ITEMS.map((i) => i.slot)).size, 14, 'twaalf slots en de sportslots kousen en scheenbeschermers');
   assert.deepEqual(new Set(alle.filter((c) => c.set === 'stuk').map((c) => c.spec.body)), new Set(BODIES));
   assert.deepEqual(new Set(alle.filter((c) => c.set === 'stuk').map((c) => c.spec.who)), new Set(SUBJECT_IDS));
   assert.deepEqual(new Set(alle.filter((c) => c.set === 'hoofd' && c.spec.hair).map((c) => c.spec.hair)), new Set(HAIRS));

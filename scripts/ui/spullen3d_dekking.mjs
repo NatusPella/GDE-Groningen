@@ -13,6 +13,8 @@ const [S, V, E, P, SP, M3, FURN, W] = await Promise.all([
   import('../../game/js/spullen3d.js'), import('../../game/js/models3d_spullen.js'), import('../../game/js/furniture.js'), import('../../game/js/weapons.js'),
 ]);
 const { buildProductMesh } = await import('../../game/js/shopmodels3d.js');
+const D = await import('../../game/js/clothingdata.js');
+const CP = await import('../../game/js/clothingpreview.js');
 const F = await import('../../game/js/pg_foodtruck.js');
 
 // meubel-ids uit de bron (de lijst zelf wordt niet geëxporteerd); het totaal moet kloppen
@@ -25,10 +27,9 @@ export function alleItems() {
   const put = (key, cat, viewer) => items.push({ key, cat, viewer });
   put('geld', 'geld', SP.moneySpec(120));
   for (const k of Object.keys(W.WEAPONS).filter((x) => x !== 'fists')) put('w:' + k, ['throw', 'rocket'].includes(W.WEAPONS[k].kind) ? 'werp' : 'wapens', SP.wapenSpec(k));
-  for (const ch of ['tammo', 'anita']) {
-    const app = ch === 'anita' ? P.ANITA_APPEARANCE : P.TAMMO_APPEARANCE;
-    for (const o of S.OUTFITS[ch]) put(`o:${ch}:${o.id}`, 'kleding', SP.kledingSpec({ ...app, shirt: o.shirt, pants: o.pants, shoes: o.shoes, ...(o.cap != null ? { cap: o.cap } : {}) }));
-  }
+  // kleding (22-11): elk stuk in zijn eerste kleur als los voorbeeld, elke set (de vaste sets en de looks) als compositie; geen personage
+  for (const it of D.ITEMS) put(`k:${it.id}.${it.colors[0]}`, 'kleding', SP.stukSpec(`${it.id}.${it.colors[0]}`));
+  for (const s of [...D.SETS, ...D.LOOKS]) put('s:' + (s.id), 'kleding', SP.setSpec(s.pieces));
   for (const id of MEUBEL_IDS) put('f:' + id, 'thuis', SP.meubelSpec(id));
   for (const [id] of E.TOONBANK) put('e:' + id, 'eten', SP.etenSpec(id));
   for (const s of V.SOORTEN) put('e:vis:' + s.id, 'eten', SP.etenSpec('vis:' + s.id));
@@ -46,6 +47,7 @@ export function bouwModel(spec) {
   if (spec.kind === 'product') return buildProductMesh(spec.product);
   if (spec.kind === 'spul') return M3.buildSpulMesh(spec.spul);
   if (spec.kind === 'person') return P.buildPersonMesh(spec.look.shirt, spec.look.skin, spec.look);
+  if (spec.kind === 'piece' || spec.kind === 'pieceset') { const o = CP.buildClothingPreview(spec); return o ? o.mesh : null; }
   return null;
 }
 
