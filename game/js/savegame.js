@@ -43,6 +43,7 @@ import { areaNameAt } from './regions.js';
 import { saveFailText, newSlotName, takenNames, readSlot, writeSlotRaw, writeThumb, activeSlot, setActive, createSlot, deleteSlot, nameOf, pickActive, pickLatest, repairSlot, writeBackupOnce, isFresh, clearFresh, newerVersionOf, markLegacyCardSeen as markSlotLegacyCardSeen } from './saveslots.js';
 import { isLegacyStorySave, legacyCardNeeded } from './legacysave.js'; // 22-11: de kaart "Nieuw verhaal" bij een oude save
 import { logError } from './errorlog.js';
+import { maakVeilig } from './saveveilig.js';
 import { maakCheckpoint } from './coopcheckpoint.js';
 import { registerSaveGame, registerSaveTimers, registerGastVerhaal, registerGastBoek } from './savehook.js';
 import { karakterVoorSave, clearActivity } from './karakterbonus.js';
@@ -256,6 +257,13 @@ export function currentSlot() {
   return saveTarget();
 }
 
+// 22-11: een module waarvan de save-functie struikelt blokkeert niet meer de hele save (saveveilig.js): dat veld valt terug op
+// de laatste goede waarde of het veld uit de vorige save op deze plek; de fout komt één keer per veld in het Foutrapport.
+const veilig = maakVeilig({
+  log: (t) => logError('error', t),
+  terugval: (naam) => { const r = readSlot(null, saveTarget()); return r.data ? r.data[naam] : undefined; },
+});
+
 function serialize(w) {
   const p = hoofdspeler(w);
   const ammo = {};
@@ -279,7 +287,7 @@ function serialize(w) {
     weapon: w.weapon,
     ammo,
     // eten (#502): gekochte snacks en zelf gevangen vis, net als ammo een gewoon veld
-    eten: etenSave(w),
+    eten: veilig('eten', () => etenSave(w)),
     stats: { ...w.stats },
     character: karakterVoorSave(w),   // het eigen personage, ook midden in een activiteit als Tessa (karakterbonus.js)
     pos,
@@ -287,28 +295,28 @@ function serialize(w) {
     // 'busy' (a mission, bijbaan or challenge running): loading keeps pos;
     // otherwise the game continues at home (home.js)
     ctx: homeSaveContext(w),
-    missions: getMissionProgress(),
-    story: getStorySave(),
+    missions: veilig('missions', () => getMissionProgress()),
+    story: veilig('story', () => getStorySave()),
     visitedLandmarks: [...(w.visitedLandmarks instanceof Set ? w.visitedLandmarks : [])],
     // the wijk cards this save already showed (#726): per save, so a new game does not reset them
-    wijken: getWijkenSeen(),
-    shops: getShopSave(),
-    prestaties: getAchievementSaveData(),
-    duif: getPigeonSaveData(),
-    bijbaan: getSideJobSave(),
-    postgame: getPostgameSave(),
-    meubels: getFurnitureSave(),
-    financien: getFinanceSave(),
-    thuis: getHomeSave(),
-    doel: getGoalSave(),
+    wijken: veilig('wijken', () => getWijkenSeen()),
+    shops: veilig('shops', () => getShopSave()),
+    prestaties: veilig('prestaties', () => getAchievementSaveData()),
+    duif: veilig('duif', () => getPigeonSaveData()),
+    bijbaan: veilig('bijbaan', () => getSideJobSave()),
+    postgame: veilig('postgame', () => getPostgameSave()),
+    meubels: veilig('meubels', () => getFurnitureSave()),
+    financien: veilig('financien', () => getFinanceSave()),
+    thuis: veilig('thuis', () => getHomeSave()),
+    doel: veilig('doel', () => getGoalSave()),
     // the radio, 'on' or 'off'; a save without it starts with the radio on
-    radio: getRadioSave(),
+    radio: veilig('radio', () => getRadioSave()),
     // the streken: unlocked, switched on, used once (cheats.js)
-    streken: getCheatSave(),
+    streken: veilig('streken', () => getCheatSave()),
     // the day of the summer and the special days already announced (calendarday.js)
-    kalender: getCalendarSave(w),
+    kalender: veilig('kalender', () => getCalendarSave(w)),
     // de moeilijkheid van dit spel (#1169): het niveau en de opties die ervan afwijken; een save zonder veld is Standaard
-    moeilijkheid: getDifficultyProfile(),
+    moeilijkheid: veilig('moeilijkheid', () => getDifficultyProfile()),
     ...(coopIds.length ? { coopGebeurtenissen: coopIds } : {}),
     ...(legacyCardSeen ? { legacyCardSeen: true } : {}),
   };
