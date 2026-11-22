@@ -467,6 +467,8 @@ const HINTS = {
   prestaties: [[['↑', '↓'], 'kiezen'], [['Enter'], 'openen'], [['Q', 'E'], 'weergave'], [['Esc'], BACK, 'back']],
   loopbaan: [[['↑', '↓'], 'kiezen'], [['T'], 'tour of vakken'], [['→'], 'naar de actie'], [['Q', 'E'], 'onderdeel'], [['Esc'], BACK, 'back']],
   visboek: [[['↑', '↓'], 'kiezen'], [['Q', 'E'], 'onderdeel'], [['Esc'], BACK, 'back']],
+  // Veroverd had geen eigen regel en leende die van het Overzicht: Esc stond er als "doorgaan" terwijl hij een stap terug gaat
+  veroverd: [[['↑', '↓'], 'kiezen'], [['Enter'], 'naar de kaart'], [['Esc'], BACK, 'back']],
   boerderij: [[['↑', '↓'], 'kiezen'], [['Enter'], 'doen'], [['Q', 'E'], 'onderdeel'], [['Esc'], BACK, 'back']],
   voetbal: [[['↑', '↓'], 'kiezen'], [['Enter'], 'doen'], [['Esc'], BACK, 'back']],
   fotos: [[['F8'], 'fotomodus'], [['Q', 'E'], 'onderdeel'], [['Esc'], BACK, 'back']],

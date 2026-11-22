@@ -136,6 +136,11 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 - Geluid in een pand: kassa, scanner, koffie en kappersschaar klinken bij het kopen en knippen (via de geluidskaart, zodra die in dit spel zit)
 - Samen spelen: het interieur blijft lokaal per speler; wie er op dat uur zijn (en wat ze doen) volgt uit het pandzaad en de spelklok, dus iedereen met dezelfde klok ziet dezelfde mensen. Een andere speler zie je binnen of door het raam, zoals alles in de wereld. Niets nieuws over het net
 
+### Pauzemenu
+
+- Pauzemenu (#1010, #980): alle tabbladen zijn nagelopen op overgangen (hooguit 250 ms; de kaartnaam, de voortgangsbalk en de personagefoto waren trager), tekst onder 13 px, lege staten, toetsen en controller. Veroverd kreeg een eigen voetregel (Esc zei ten onrechte "doorgaan" in plaats van terug) en de teksten onder Land en bedrijf zijn korter. De Garage-lijst past nu ook bij een grote interface (ui-schaal 1,5): het paneel naast de lijst werd 60 px breed.
+- Samen spelen: lokaal menu: iedereen heeft een eigen pauzemenu, er is geen snapshot of netwerkbericht en geen beloning of voortgang die per speler verschilt.
+
 ### Moeilijkheid
 
 - **Moeilijkheid per spel (#1169):** elk opgeslagen spel heeft een eigen niveau: Ontspannen, Standaard of Uitdagend, met opties eronder die je los kunt zetten: politie kwijtraken en politiemacht, verkeersdrukte, schade aan jezelf en aan je voertuig, rij-assist, het tempo van tegenstanders in races, quicktime-events, tijd en medailles, het voetbal, de beloning van missies, hints en een Verhaalmodus zonder tijdsdruk. Standaard speelt precies zoals het spel tot nu toe speelde; je bestaande opgeslagen spellen blijven dus zoals ze waren.
