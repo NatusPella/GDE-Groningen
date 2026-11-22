@@ -14,7 +14,7 @@ import { initGpuHerstelInfo } from './gpuherstelinfo.js';
 import { DEV, STORY_TEST, FLAGS, perfOff } from './devflags.js';
 import { bindCoop } from './coopglue.js';
 import { startSoloHost, stopSoloHost } from './coopsolo.js';
-import { tickCoopNet, setCoopTreinen, coopWereldDoorloop, zetSamenKanHaak } from './coopnet.js';
+import { tickCoopNet, setCoopTreinen, coopWereldDoorloop, zetSamenKanHaak, groepZender, deelZender } from './coopnet.js';
 import { zetTreinBron } from './cooptrein.js'; // de gast zoekt de trein van de gastheer op (#492)
 import { meldSamenKan } from './samenplan.js'; // (#684) de positieve "samen kan"-kaart
 import { zetBestuurHaken } from './coopbestuur.js';
@@ -196,7 +196,7 @@ import { updateCashVan } from './cashvan.js';
 import { initHeliRun, updateHeliRun, tryHeliSpotInteract, updateHeliSpot } from './helirun.js';
 import { initPadel, updatePadel, tryPadelInteract, updatePadelWorld, padelCamera } from './padel.js';
 import { initActivities, isActivityActive, updateActivityGame, tryActivityInteract, updateActivitiesWorld, tickActivitiesGast, activityCamera } from './activities.js';
-import { initRadio, updateRadio, setRadioFound } from './radio.js';
+import { initRadio, updateRadio, setRadioFound, setRadioGroup } from './radio.js';
 import { getSaveSet } from './achievements.js';
 import { updatePoleVaults } from './fierljep.js';
 import { initPostgame, updatePostgame, tryPostgameInteract } from './postgame.js';
@@ -914,6 +914,7 @@ async function boot() {
   initPadel(world);
   initActivityKinds(world, 'main');
   setRadioFound(() => getSaveSet('geheimen'));
+  setRadioGroup({ bron: (open) => groepZender(world, open), deel: (id) => deelZender(world, id) }); // de zender in een gedeeld voertuig (Samen spelen, radiogroep.js)
   initRadio(world);
   initActivityKinds(world, 'late');
   setBootStep('systemen', 0.5);
