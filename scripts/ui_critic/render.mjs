@@ -1,6 +1,6 @@
 // UI-kritiekharnas: rendert elk scherm uit de catalogus headless (eigen Chrome/Edge) op 1280x720, 1920x1080 en
 // ui-schaal 1,5 naar JPEG (kwaliteit 80), draait de tripwires en schrijft index.json.
-// Gebruik: node scripts/ui_critic/render.mjs [--out=<map>] [--only=id,id] [--cat=menu|kaarten|hud|winkels]
+// Gebruik: node scripts/ui_critic/render.mjs [--out=<map>] [--only=id,id] [--cat=menu|kaarten|hud|winkels] [--match=regex] [--skip=regex]
 import { createServer } from 'node:http';
 import { readFileSync, writeFileSync, mkdirSync, existsSync, statSync } from 'node:fs';
 import { extname, join, normalize, resolve, dirname } from 'node:path';
@@ -17,6 +17,8 @@ const arg = (n, d) => { const a = process.argv.find((x) => x.startsWith('--' + n
 const outDir = resolve(arg('out', 'C:\\Users\\abuis\\gde-ui-critic-22-11'));
 const only = arg('only', '') ? arg('only').split(',') : null;
 const cat = arg('cat', '');
+const match = arg('match', '') ? new RegExp(arg('match')) : null;
+const skip = arg('skip', '') ? new RegExp(arg('skip')) : null;
 const MIME = { '.js': 'text/javascript', '.mjs': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.svg': 'image/svg+xml', '.png': 'image/png', '.jpg': 'image/jpeg', '.ttf': 'font/ttf', '.woff2': 'font/woff2', '.html': 'text/html', '.webp': 'image/webp', '.ico': 'image/x-icon' };
 
 function startServer() {
@@ -47,7 +49,7 @@ async function main() {
   const index = { gemaakt: new Date().toISOString(), uitMap: outDir, resoluties: RESOLUTIONS, schermen: [] };
   try {
     for (const s of SCREENS) {
-      if ((only && !only.includes(s.id)) || (cat && s.categorie !== cat)) continue;
+      if ((only && !only.includes(s.id)) || (cat && s.categorie !== cat) || (match && !match.test(s.id)) || (skip && skip.test(s.id))) continue;
       const rec = { scherm: s.id, titel: s.titel, module: s.module, categorie: s.categorie, bestanden: [], tripwires: {} };
       writeFileSync(join(outDir, 'pages', s.id + '.html'), pageHtml(s, { gameDir, prelude: PRELUDE }).replace('<head>', `<head><base href="http://127.0.0.1:${port}/">`));
       for (const r of RESOLUTIONS) {
@@ -73,6 +75,16 @@ async function main() {
       index.schermen.push(rec);
     }
   } finally { await browser.close(); server.close(); }
+  // een deelrun (--only, --match, --cat) vervangt alleen zijn eigen schermen in een bestaande index.json
+  const bestaand = join(outDir, 'index.json');
+  if (existsSync(bestaand)) {
+    try {
+      const oud = JSON.parse(readFileSync(bestaand, 'utf8'));
+      const nieuw = new Set(index.schermen.map((r) => r.scherm));
+      const ids = SCREENS.map((s) => s.id);
+      index.schermen = [...oud.schermen.filter((r) => !nieuw.has(r.scherm) && ids.includes(r.scherm)), ...index.schermen].sort((a, b) => ids.indexOf(a.scherm) - ids.indexOf(b.scherm));
+    } catch (e) { /* kapotte index: opnieuw beginnen */ }
+  }
   const tot = Object.fromEntries(SOORTEN.map((k) => [k, 0]));
   for (const r of index.schermen) for (const t of Object.values(r.tripwires)) for (const k of SOORTEN) tot[k] += t.soorten[k].aantal;
   index.totalen = { gerenderd: index.schermen.filter((r) => r.status !== 'mislukt').length, mislukt: index.schermen.filter((r) => r.status === 'mislukt').length, tripwires: tot };
