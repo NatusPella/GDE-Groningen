@@ -43,7 +43,7 @@ const BY_TYPE = {
   farm: 'woning', villa: 'woning', chalet: 'woning', hangar: 'garage', riding_hall: 'garage', data_center: 'kantoor',
   religious: 'kerk', monastery: 'kerk', mosque: 'kerk', synagogue: 'kerk', temple: 'kerk',
 };
-const GEBEDSHUIS = new Set(['religious', 'monastery', 'mosque', 'synagogue', 'temple']);
+const PRAYER_HOUSES = new Set(['religious', 'monastery', 'mosque', 'synagogue', 'temple']);
 const PUBLIEK_BY_TYPE = { civic: 'gemeente', public: 'gemeente', government: 'gemeente', hospital: 'ziekenhuis', school: 'school', university: 'school', college: 'school', kindergarten: 'school', hotel: 'hotel', sports_centre: 'sportschool', sports_hall: 'sportschool', fitness_centre: 'sportschool', museum: 'museum', cinema: 'bioscoop' };
 // types that never get an interior (the building is no room: sheds, roofs, ruins, farms' barns, towers)
 export const NOT_ENTERABLE = new Set(['shed', 'roof', 'carport', 'ruins', 'construction', 'greenhouse', 'barn', 'farm_auxiliary', 'cowshed', 'stable', 'silo', 'water_tower', 'guardhouse', 'static_caravan', 'houseboat', 'tent', 'toilets', 'hut', 'cabin', 'kiosk',
@@ -83,7 +83,7 @@ export function kindOfBuilding(b, spot = null) {
   if (sf && sf.type && sf.type !== 'kermiskraam' && WINKEL[sf.type]) return { kind: 'winkel', sub: sf.type };
   if (spot) return spot;
   const k = BY_TYPE[t];
-  if (k) return { kind: k, sub: k === 'publiek' ? PUBLIEK_BY_TYPE[t] || 'gemeente' : t === 'chapel' ? 'kapel' : GEBEDSHUIS.has(t) ? 'gebedshuis' : (t === 'industrial' || t === 'warehouse' || t === 'factory' || t === 'hangar' || t === 'riding_hall') ? 'magazijn' : t === 'dormitory' ? 'studentenkamer' : null };
+  if (k) return { kind: k, sub: k === 'publiek' ? PUBLIEK_BY_TYPE[t] || 'gemeente' : t === 'chapel' ? 'kapel' : PRAYER_HOUSES.has(t) ? 'gebedshuis' : (t === 'industrial' || t === 'warehouse' || t === 'factory' || t === 'hangar' || t === 'riding_hall') ? 'magazijn' : t === 'dormitory' ? 'studentenkamer' : null };
   if (t === 'yes') return (b.h || 0) >= 5 ? { kind: 'kantoor', sub: null } : { kind: 'woning', sub: null };
   return null;
 }

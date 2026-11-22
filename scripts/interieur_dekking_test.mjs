@@ -54,6 +54,13 @@ ok(JSON.stringify(recipeTable()) === JSON.stringify(rec), 'de recepttabel is det
   ok(good >= 90 && thinned === 0, 'een klein huis (3,4 x 4,2 m pand, deur niet in een hoek) krijgt een indeling zonder uitdunnen', good + '/100, uitgedund ' + thinned);
 }
 
+// een pand zonder OSM-type (yes) is vaak een schuurtje: daar blijft de oude minimale hal (3,4 x 4,5 m) van kracht
+{
+  const rnd2 = mulberry32(7);
+  const mk = (type, w, d) => { const r = building('woning', null, w, d, rnd2); return planInterior({ ...r.b, type }, { spot: null, upper: false }); };
+  ok(mk('house', 3.6, 4.4).ok && !mk('yes', 3.6, 4.4).ok && mk('yes', 4.6, 5.6).ok, 'een klein huis met type is betreedbaar, een klein pand zonder type niet, een gewoon pand zonder type wel');
+}
+
 // --- aggregeren op synthetische metingen ---
 const totals = { house: { all: 1000, poi: 0 }, retail: { all: 100, poi: 100 }, shed: { all: 50, poi: 0 }, church: { all: 10, poi: 10 } };
 const recs = [];
