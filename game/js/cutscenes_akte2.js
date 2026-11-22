@@ -123,7 +123,6 @@ export const SPECS_AKTE2 = {};
       brij: { kind: 'pan', at: [1.6, 0.5, 0.85] },
       // het prikbord waar de vijf namen aan komen (Tessa: "Vijf namen aan ons prikbord"); hangt naast de foto van 1953
       prikbord: { kind: 'prikbord', at: [4.8, 1.7, 0], face: 180 },
-      brij: { kind: 'doos', at: [1.6, 0.5, 0.85] },
     },
     // #741: Oma's naamkaart hoort bij haar eerste zichtbare scène (haar kamer, M08.3); de regie van de
   // telefoonscène (M08.1) noemde hem al, maar daar is ze alleen aan de lijn.

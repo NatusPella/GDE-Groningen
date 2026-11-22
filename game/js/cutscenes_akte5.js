@@ -89,14 +89,14 @@ S.F3 = {
     { on: 'Wat zegt ze', actor: 'trijntje', anim: 'shrug' },
     { on: 'Oma Trijntje, Beppe', actor: 'tammo', anim: 'point' },
     { on: 'Hij is Gronings', actor: 'tessa', anim: 'point' },
-    { on: 'Ik ben het compromis', actor: 'tammo', anim: 'shrug' },
+    { on: 'Ik ben het niemandsland', actor: 'tammo', anim: 'shrug' },
     { on: 'Mogen wij ook soep', actor: 'douwe', anim: 'shrug' },
     { on: 'Dan eet je in de gang', actor: 'mem', anim: 'point' },
     { on: 'It smakket', actor: 'beppe', anim: 'nod' },
     { on: 'Moi. Het is soep', actor: 'trijntje', anim: 'nod' },
     { on: 'Dat is het menu', actor: 'tessa', anim: 'laugh' },
   ],
-  shots: [CLOSE('Ik ben het compromis', 'tammo', { dist: 1.2 }), CLOSE('It smakket', 'beppe', { dist: 1.3 })],
+  shots: [CLOSE('Ik ben het niemandsland', 'tammo', { dist: 1.2 }), CLOSE('It smakket', 'beppe', { dist: 1.3 })],
   wide: WIDE([-3.8, 2.4, 2.6], [-2.2, 1.6, 2.1], 'mid:beppe,trijntje@1.2'),
 };
 
@@ -128,7 +128,7 @@ S.F4 = {
     { on: 'Mems mosterd', dt: 0.3, prop: 'pot', show: true },
     { on: 'Ik zei niet mogen', actor: 'mem', anim: 'hips' },
     { on: 'Een euro vijftig', actor: 'tessa', anim: 'point' },
-    { on: '...Dat is de eerste prijs', actor: 'jelle', anim: 'shrug' },
+    { on: '...Een prijs zonder bijlage', actor: 'jelle', anim: 'shrug' },
   ],
   shots: [CLOSE('Ik heb ook geen vergunning', 'tammo', { dist: 1.3 }), CLOSE('Ik zei niet mogen', 'mem', { dist: 1.3 }), CLOSE('Een euro vijftig', 'tessa', { dist: 1.25 })],
   crowd: { shape: 'line', pts: [[12, -8], [12, 10]], count: 12, side: 3, spread: 2.5, seed: 2130, key: 'cut:slot4' },
@@ -158,14 +158,13 @@ S.F5 = {
     { on: 'Zijn we nu een stel', actor: 'tessa', anim: 'look' },
     { on: 'Berend telde elf seconden', actor: 'tammo', anim: 'laugh' },
     { on: 'Hier. Met jou erbij', actor: 'tammo', anim: 'nod' },
-    { on: 'Dat waren er vier', actor: 'tessa', anim: 'laugh' },
+    { on: 'Vier woorden', actor: 'tessa', anim: 'laugh' },
   ],
   shots: [
     { on: 'Zijn we nu een stel', dt: 0.1, shot: 'dolly', from: [-0.6, 2.2, 1.4], to: [0.6, 1.6, 1.3], look: 'mid:tammo,tessa@0.95', fov: 34 },
     // ze zitten (kop op ca. 1,1 m): een gewone close mikt te hoog, dus eigen standpunten met een kijkhoogte
     { on: 'Hier. Met jou erbij', dt: 0.2, shot: 'cut', at: [1.6, -0.2, 1.2], look: 'mid:tammo,tessa@1.1', fov: 38 },
-    { on: 'Drie. Kon meer', dt: 0.1, shot: 'cut', at: [1.9, 1.0, 1.15], look: 'tessa@1.1', fov: 30 },
-    { on: 'Dat waren er vier', dt: 0.2, shot: 'cut', at: [1.9, 1.0, 1.15], look: 'tessa@1.1', fov: 30 },
+    { on: 'Vier woorden', dt: 0.1, shot: 'cut', at: [1.9, 1.0, 1.15], look: 'tessa@1.1', fov: 30 },
   ],
   wide: WIDE([-0.6, 2.8, 1.9], [0.4, 2.2, 1.6], 'mid:tammo,tessa@0.9'),
 };
@@ -183,7 +182,7 @@ S.F6 = {
   open: [{ actor: 'tessa', face: 'prop:kaart' }, { actor: 'tammo', face: 'prop:kaart' }],
   beats: [
     { on: 'Eenenveertig tegen één', actor: 'tessa', anim: 'point' },
-    { on: 'Dat is een goede verhouding', actor: 'tammo', anim: 'shrug' },
+    { on: 'Eén stip. Maar wel de onze', actor: 'tammo', anim: 'shrug' },
     { on: 'Wij hebben een wagen', actor: 'tessa', anim: 'point' },
     { on: 'En een Escapade met karakter', actor: 'tammo', face: 'prop:escapade' },
     { on: 'Mevrouw Tessa', dt: 0.3, actor: 'tessa', anim: 'phone' },
@@ -195,6 +194,6 @@ S.F6 = {
     { on: 'Dan rijden we', dt: 0.4, actor: 'tessa', walk: [[-1.9, -3.6]], speed: 1.4 },
     { on: 'Eerst de Hereweg', dt: 0.6, actor: 'tammo', face: 'prop:escapade' },
   ],
-  shots: [CLOSE('Eenenveertig tegen één', 'tessa', { dist: 1.25 }), CLOSE('Dat is een goede verhouding', 'tammo', { dist: 1.2 })],
+  shots: [CLOSE('Eenenveertig tegen één', 'tessa', { dist: 1.25 }), CLOSE('Eén stip. Maar wel de onze', 'tammo', { dist: 1.2 })],
   wide: WIDE([0.2, 1.2, 2.6], [1.2, 0.2, 2.2], 'mid:tessa,tammo@1.2'),
 };
