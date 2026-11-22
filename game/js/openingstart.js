@@ -34,8 +34,23 @@ export function openingBlockers(s) {
 
 // De poort van de knop "Opening opnieuw bekijken": `vooraf` (het menu sluiten) draait pas als niets de opening tegenhoudt, anders
 // blijft het menu open en staat de reden erbij (review 20-11 #5). Geeft de reden terug, of '' als `vooraf` gedraaid heeft.
+// De reden in gewoon Nederlands voor de speler; onbekende redenen blijven zoals ze zijn.
+export const OPENING_REDEN = {
+  'spel nog niet gestart': 'het spel is nog niet begonnen',
+  meespeler: 'je bent meespeler in het spel van een ander',
+  'Samen spelen': 'je speelt samen',
+  'de opening komt nog': 'je krijgt de opening nog vanzelf',
+  'missie actief': 'er loopt een missie',
+  'film bezig': 'er loopt een film',
+  'vertelling bezig': 'er wordt nog verteld',
+  duifstand: 'je bent een duif',
+  'terugzetten loopt': 'je wordt net teruggezet',
+  'in een voertuig': 'je zit in een voertuig',
+  'verhaaldata nog niet geladen': 'het verhaal laadt nog',
+  'geen speler': 'er is geen speler',
+};
 export function openingReplayGate(blockers, vooraf) {
-  if (blockers && blockers.length) return 'De opening kan nu niet: ' + blockers[0] + '.';
+  if (blockers && blockers.length) return 'De opening kan nu niet: ' + (OPENING_REDEN[blockers[0]] || blockers[0]) + '.';
   if (typeof vooraf === 'function') vooraf();
   return '';
 }
