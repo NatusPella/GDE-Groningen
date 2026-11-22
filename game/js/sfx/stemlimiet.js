@@ -24,9 +24,9 @@ export const CAT_CAPS = {
 };
 // prioriteit 2 (moet klinken) mag 50 procent boven de categoriegrens; prioriteit 0 (omgeving, foley) krijgt 70 procent
 export function capVoor(cat, prio = 1) {
-  const c = CAT_CAPS[cat];
+  const c = Object.prototype.hasOwnProperty.call(CAT_CAPS, cat) ? CAT_CAPS[cat] : 0;
   if (!c) return Infinity;
-  const f = prio >= 2 ? 1.5 : prio <= 0 ? 0.7 : 1;
+  const f = prio >= 2 ? 1.5 : prio <= 0 ? 0.7 : 1;   // een onbruikbare prio (NaN) telt als gewoon
   return Math.max(1, Math.round(c * f));
 }
 

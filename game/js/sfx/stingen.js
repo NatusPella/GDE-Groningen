@@ -48,7 +48,7 @@ export const STING_REGEL = {
 export const MAX_STINGS = 2;
 // de toonspreiding per aanroep: +-1 procent (de UI-taal gebruikt 3), zodat een sting in toon blijft met de muziek
 export const STING_SPREIDING = 0.01;
-export const spreiding = (r) => 1 + (r * 2 - 1) * STING_SPREIDING;
+export const spreiding = (r) => 1 + ((Number.isFinite(r) ? r : 0.5) * 2 - 1) * STING_SPREIDING;
 
 // de duur van een sting in seconden: de langste variant van zijn basisnaam in de bank
 export function stingDuur(naam) {

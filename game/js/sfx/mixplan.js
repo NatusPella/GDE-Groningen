@@ -30,32 +30,35 @@ export const CATEGORIES = {
   sting: { level: 0.8, speech: 0.6 },
 };
 
+const heeft = (o, k) => Object.prototype.hasOwnProperty.call(o, k);
+const getal = (x, d) => (Number.isFinite(x) ? x : d);
+
 export function categoryLevel(cat) {
-  const c = CATEGORIES[cat];
+  const c = heeft(CATEGORIES, cat) ? CATEGORIES[cat] : null;
   return c ? c.level : 0.7;
 }
 
 // the gain factor a category keeps while a spoken line plays (speaking: 0..1)
 export function speechDuckFactor(cat, speaking = 1) {
-  const c = CATEGORIES[cat];
+  const c = heeft(CATEGORIES, cat) ? CATEGORIES[cat] : null;
   const keep = c ? c.speech : 0.7;
-  return 1 - (1 - keep) * Math.max(0, Math.min(1, speaking));
+  return 1 - (1 - keep) * Math.max(0, Math.min(1, getal(speaking, 0)));
 }
 
 // inverse-distance gain, the same curve audio.js uses for its panners
 export function distanceGain(d, ref = 8, rolloff = 0.8) {
-  return ref / (ref + rolloff * (Math.max(d, ref) - ref));
+  return ref / (ref + rolloff * (Math.max(getal(d, ref), ref) - ref));
 }
 
 // air takes the highs first: ~20 kHz up close, darker with every 100 m
 export function airLowpassHz(d) {
-  return Math.max(900, 20000 / (1 + Math.max(0, d - 8) / 40));
+  return Math.max(900, 20000 / (1 + Math.max(0, getal(d, 0) - 8) / 40));
 }
 
 // seconds until the sound arrives (a far bang is heard late), capped so a
 // shot at the edge of the map still lands inside the scene it belongs to
 export function arrivalDelay(d, cap = 1.6) {
-  return Math.min(cap, Math.max(0, d) / SPEED_OF_SOUND);
+  return Math.min(cap, Math.max(0, getal(d, 0)) / SPEED_OF_SOUND);
 }
 
 // a small deterministic spread per event: rate, gain and pan from a seed
@@ -74,8 +77,9 @@ export function variation(seed, spread = 0.08) {
 // gain itself is the panner's job (distanceGain is for sounds without one).
 export function plan(info, d, seed = 0) {
   const v = variation(seed);
+  d = getal(d, 0);
   return {
-    gain: categoryLevel(info.cat) * v.gain,
+    gain: categoryLevel(info && info.cat) * v.gain,
     rate: v.rate,
     delay: arrivalDelay(d),
     lp: d > 25 ? airLowpassHz(d) : 0,

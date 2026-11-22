@@ -21,7 +21,10 @@ export const VOLUME_KEYS = ['masterVolume', 'musicVolume', 'sfxVolume', 'voiceVo
 export function volumeValue(v, fallback = 1) {
   const def = volumeValueOf(fallback);
   if (typeof v === 'string') {
-    const t = v.trim();
+    let t = v.trim();
+    // "50%" uit een instellingenbestand of het adres telt als 0,5
+    const pct = /^(-?\d+(?:[.,]\d+)?)\s*%$/.exec(t);
+    if (pct) t = String(Number(pct[1].replace(',', '.')) / 100);
     if (t === '') return def;
     v = Number(t);
   }
