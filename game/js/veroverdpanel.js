@@ -18,6 +18,7 @@ let cssAan = false;
 let sluitMenu = null;
 let laatsteTaken = [];
 let tab = 'gebieden'; // het open tabblad: 'gebieden' of 'beleid'
+let gekozenGebied = null; // het gebied waarvan de uitleg rechts staat; een nieuwe tekening zet het paneel terug, dus ook dit
 
 // De tabbladen wisselen zonder het paneel opnieuw te tekenen: de focus en de scrolstand van het andere blijven staan.
 function zetTab(el, id) {
@@ -102,6 +103,11 @@ export function renderVeroverdPanel(el, sluit = null, world = null) {
   beleidWereld = world;
   zetCss();
   const teken = () => {
+    // een koop in de Beleidswinkel tekent alles opnieuw: de scrolstand van beide tabbladen blijft staan en de gekozen
+    // gebiedskaart wordt weer gelezen als "niets gekozen", anders deed een klik op hetzelfde gebied daarna niets (verfijnronde 22-11)
+    const scrol = {};
+    for (const b of el.querySelectorAll('[data-vo-body]')) scrol[b.dataset.voBody] = b.scrollTop;
+    gekozenGebied = null;
     const g = gebiedenHtml();
     const s = g.stats || { klaar: 0, totaal: 0, pct: 0, kaartGedaan: 0, kaartTotaal: 0, kaartPct: 0 };
     const taken = volgendeTaken(3);
@@ -145,14 +151,14 @@ export function renderVeroverdPanel(el, sluit = null, world = null) {
       `<div class="vo-beleidtab" data-vo-body="beleid"${tab === 'beleid' ? '' : ' hidden'}>${beleidHtml()}</div>`;
     fillBars(el, bars);
     restore();
+    for (const b of el.querySelectorAll('[data-vo-body]')) if (scrol[b.dataset.voBody]) b.scrollTop = scrol[b.dataset.voBody];
   };
   teken();
   if (el.dataset.bound) return;
   el.dataset.bound = '1';
-  let gebied = null;
   const kies = (id) => {
-    if (!id || id === gebied) return;
-    gebied = id;
+    if (!id || id === gekozenGebied) return;
+    gekozenGebied = id;
     for (const b of el.querySelectorAll('[data-gebied]')) { const aan = b.dataset.gebied === id; b.classList.toggle('sel', aan); b.toggleAttribute('aria-current', aan); }
     el.querySelector('.lb-pane').innerHTML = kiesGebied(id);
     queueMicrotask(() => fillBars(el, bars));
@@ -175,6 +181,8 @@ export function renderVeroverdPanel(el, sluit = null, world = null) {
       const t = laatsteTaken.find((x) => x.id === d.dataset.doel);
       if (t && Number.isFinite(t.x) && Number.isFinite(t.y)) {
         setUserWaypoint(t.x, t.y, t.naam);
+        d.textContent = 'Doel staat op de kaart'; // de knop zegt zelf dat het gelukt is, naast de melding
+        d.setAttribute('aria-disabled', 'true');
         if (world && world.addMessage) world.addMessage(`Route naar ${t.naam} staat op de kaart.`, 3);
       }
       return;

@@ -418,7 +418,7 @@ export function volgendeStap(profiel, vak, ind = null) {
   if (info.eenheid === 'km' && KM_XP[vak]) opties.push(`${Math.max(1, Math.ceil(d.nodig / KM_XP[vak]))} km`);
   else if (rondes > 0) opties.push(tel(rondes, info.eenheid));
   const hoe = opties.length > 1 ? opties.join(' of ') : opties[0] || 'een volgende klus';
-  const tekst = `Nog ${Math.round(d.nodig)} punten tot niveau ${d.volgendNiveau} (${d.volgend}): ${hoe}.`;
+  const tekst = `Nog ${Math.round(d.nodig)} ${Math.round(d.nodig) === 1 ? 'punt' : 'punten'} tot niveau ${d.volgendNiveau} (${d.volgend}): ${hoe}.`;
   return { vak, niveau: d.niveau, volgendNiveau: d.volgendNiveau, titel: d.volgend, nodig: Math.round(d.nodig), plekken, rondes, tekst, waar: baan, banen, plek, eenheid: info.eenheid };
 }
 
@@ -431,8 +431,10 @@ export function tel(profiel, vak, { n = 0, xp = 0, uniek = null } = {}) {
   if (!v) return { xp: 0, omhoog: null };
   const voor = niveauVan(v.xp);
   let punten = Number.isFinite(xp) && xp > 0 ? xp : 0;
-  if (typeof uniek === 'string' && uniek && uniek.length <= 60 && !v.uniek.includes(uniek)) {
-    if (v.uniek.length < MAX_UNIEK) v.uniek.push(uniek);
+  // een nieuwe plek geeft één keer punten; is de lijst vol, dan kan hij niet onthouden worden en geeft hij dus ook geen punten
+  // (anders gaf dezelfde plek elke keer opnieuw punten)
+  if (typeof uniek === 'string' && uniek && uniek.length <= 60 && !v.uniek.includes(uniek) && v.uniek.length < MAX_UNIEK) {
+    v.uniek.push(uniek);
     punten += UNIEK_XP;
   }
   punten = Math.round(punten);
@@ -455,7 +457,7 @@ export function tellerTekst(profiel, vak) {
   const info = BY_ID.get(vak);
   if (!v || !info) return '';
   const n = info.eenheid === 'km' ? Math.round(v.n) : Math.floor(v.n);
-  const eenh = n === 1 ? ({ ritten: 'rit', potjes: 'potje', rondes: 'ronde', races: 'race', diensten: 'dienst', optredens: 'optreden', vluchten: 'vlucht', klussen: 'klus', activiteiten: 'activiteit', vangsten: 'vangst' }[info.eenheid] || info.eenheid) : info.eenheid;
+  const eenh = n === 1 ? (ENKEL[info.eenheid] || info.eenheid) : info.eenheid; // één lijst voor het enkelvoud (ENKEL): "1 oogst", niet "1 oogsten"
   return `${n.toLocaleString('nl-NL')} ${eenh}`;
 }
 

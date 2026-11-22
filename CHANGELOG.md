@@ -59,6 +59,11 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 - Kaart: de pijl springt niet meer heen en weer tussen twee doelen van de groep die even ver weg liggen. Enter of spatie vasthouden op de minikaart opent hem maar één keer.
 - Stabiliteit: weer, busdeuren, camerabeeld en de "Zit je vast?"-hint raken niet meer verstoord door een enkele ongeldige waarde of een korte hapering.
 ### Prestaties
+- Prestaties: bovenaan staat een zoekveld. Typ een woord en je ziet alleen de prestaties waar het in voorkomt; geheime prestaties blijven geheim. Esc wist je zoekopdracht.
+- Prestaties, Loopbaan en Veroverd: een percentage staat niet meer op 100% zolang er nog iets ontbreekt (99,6% werd afgerond tot 100%). Een prestatie van meer dan een jaar geleden toont het jaartal.
+- Loopbaan: "Nog 1 punt" in plaats van "1 punten", en "1 klus", "1 oogst" en "1 activiteit" in de teller. Een plek die je al deed telt ook bij een volle lijst niet nog eens mee.
+- Veroverd: na een aankoop in de Beleidswinkel blijven je plek in het scherm en het gekozen gebied kloppen. De knop "Zet als doel" meldt zelf dat het gelukt is.
+- Foto's: een foto weghalen kun je ongedaan maken, een korte flits laat zien dat de foto genomen is (niet bij Beweging beperken), en als de fotomodus niet start zegt het spel waarom. Een nieuwe foto krijgt geen bestandsnaam meer van een eerdere foto.
 - Prestaties (#1074, #1067): als het spelvenster verborgen of op de achtergrond is, doen de vaste controles van de overlays, het Samen-paneel en het aanraakscherm niets meer; de kartmotor wordt bij het verlaten van de baan echt stopgezet. Samen spelen: lokaal per speler, geen netwerkwijziging; testsessies met `?stil` blijven gewoon tikken. Voor de metingen staan er twee A-schakelaars (`?perfoff=boomfade`, `?perfoff=gevelfade`).
 ### Controller en bediening
 - Controllerreview van kaarten en popups (#1011, #495): de uitleg-uitklapper op de toestemmings- en naamkaart en tekstvakken zijn nu met de D-pad te bereiken, en na het sluiten van die kaarten gaat de focus terug naar de knop waar je vandaan kwam.

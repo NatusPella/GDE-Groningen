@@ -4,6 +4,7 @@
 import { icoon } from './icons.js';
 import * as G from './gebieden.js';
 import { getOverzicht } from './gebiedenlive.js';
+import { eerlijkPct } from './menumodels.js';
 import { reisNaarHuis } from './safehuizen.js';
 
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -96,7 +97,7 @@ function detail(o, id) {
     : `<p class="gb-regel mut">Doe alles wat er te doen is in ${esc(g.naam)} en de ${esc(niv.enkel)} is van jou. Titel: ${esc(b.titel)}, met €${b.geld} erbij en een vlag op de kaart.</p>`;
   // #906: de stand van dit gebied als drie feiten naast elkaar, zodat de balk niet het enige is dat telt.
   const kpi = `<div class="gb-kpis"><div class="gb-kpi"><span>Gedaan</span><b>${v.klaar}<small> / ${v.totaal}</small></b></div>` +
-    `<div class="gb-kpi"><span>Stand</span><b>${Math.round(v.deel * 100)}%</b></div>` +
+    `<div class="gb-kpi"><span>Stand</span><b>${eerlijkPct(v.deel, v.totaal > 0 && v.klaar >= v.totaal)}%</b></div>` +
     `<div class="gb-kpi"><span>Nog</span><b>${Math.max(0, v.totaal - v.klaar)}</b></div></div>`;
   const blokken = G.SOORTEN.map((s) => {
     const ids = g.taken.filter((t) => o.ind.taak.get(t).soort === s.id);
@@ -136,7 +137,7 @@ export function gebiedenHtml(kies = gekozen) {
     lijst, pane: detail(o, gekozen), totaal: veroverdKop(sam),
     stats: {
       klaar: Number(sam.voltooid) || 0, totaal: Number(sam.totaal) || 0,
-      pct: sam.totaal ? Math.round((sam.voltooid / sam.totaal) * 100) : 0,
+      pct: sam.totaal ? eerlijkPct(sam.voltooid / sam.totaal, sam.voltooid >= sam.totaal) : 0,
       kaartGedaan: o.kaart.gedaan, kaartTotaal: o.kaart.totaal, kaartPct: o.kaart.pct,
     },
   };
