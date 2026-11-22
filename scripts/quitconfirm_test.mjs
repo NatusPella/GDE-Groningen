@@ -10,11 +10,12 @@ const knoppen = ['nee', 'ja'].map((qc) => ({ dataset: { qc }, focus() { doc.acti
 const klikken = [];
 let verwijderd = false;
 const el = { id: '', className: '', set innerHTML(v) { this.html = v; }, querySelectorAll: () => knoppen, querySelector: (s) => knoppen.find((k) => s.includes(`"${k.dataset.qc}"`)), addEventListener: (t, f) => klikken.push(f), remove() { verwijderd = true; } };
-const doc = { body: { appendChild() {} }, createElement: () => el, activeElement: null };
+const doc = { body: { appendChild() {}, classList: { toggle() {}, add() {}, remove() {}, contains: () => false } }, documentElement: { style: { setProperty() {} }, classList: { toggle() {}, add() {}, remove() {} } }, createElement: () => el, activeElement: null, addEventListener() {}, querySelector: () => null, querySelectorAll: () => [] };
 globalThis.document = doc;
 globalThis.window = { addEventListener: (t, f) => listeners.push(f), removeEventListener: (t, f) => { const i = listeners.indexOf(f); if (i >= 0) listeners.splice(i, 1); } };
 
 const { askQuitConfirm, isQuitConfirmOpen, QUIT_TEXT } = await import('../game/js/quitconfirmui.js');
+const basis = listeners.length;
 const key = (k, extra = {}) => { const e = { key: k, preventDefault() {}, stopPropagation() {}, ...extra }; [...listeners].forEach((f) => f(e)); };
 
 ok(/voortgang/.test(QUIT_TEXT.uitleg) && /Weet je het zeker/.test(QUIT_TEXT.titel), 'de vraag meldt de voortgang');
@@ -23,7 +24,7 @@ ok(askQuitConfirm({ onYes: () => ja++, onNo: () => nee++ }) === true && isQuitCo
 ok(!askQuitConfirm(), 'één vraag tegelijk');
 ok(doc.activeElement === knoppen[0], 'Annuleren heeft de voorselectie');
 key('Enter');
-ok(nee === 1 && ja === 0 && !isQuitConfirmOpen() && verwijderd && listeners.length === 0, 'Enter op de voorselectie sluit niets af');
+ok(nee === 1 && ja === 0 && !isQuitConfirmOpen() && verwijderd && listeners.length === basis, 'Enter op de voorselectie sluit niets af');
 askQuitConfirm({ onYes: () => ja++, onNo: () => nee++ });
 key('ArrowRight'); key('Enter');
 ok(ja === 1, 'pijl en Enter kiest Ja');
@@ -31,8 +32,20 @@ askQuitConfirm({ onYes: () => ja++, onNo: () => nee++ });
 key('Escape');
 ok(nee === 2 && ja === 1, 'Escape annuleert');
 askQuitConfirm({ onYes: () => ja++, onNo: () => nee++ });
-klikken[0]({ target: knoppen[1] });
+klikken[klikken.length - 1]({ target: knoppen[1] });
 ok(ja === 2, 'klik op Ja sluit af');
+
+// de toets in de knop (DS3): Esc in Annuleren, J in Ja, en J kiest Ja
+{
+  let html = '';
+  Object.defineProperty(el, 'innerHTML', { set(v) { html = v; }, get() { return html; }, configurable: true });
+  const j0 = ja;
+  askQuitConfirm({ onYes: () => ja++, onNo: () => nee++ });
+  ok(/data-qc="nee"[^>]*>[^<]*<span class="sk-toets-in">/.test(html) && /data-qc="ja"[^>]*>[^<]*<span class="sk-toets-in">/.test(html), 'beide knoppen dragen hun toets');
+  ok(/aria-keyshortcuts="Escape"/.test(html) && /aria-keyshortcuts="J"/.test(html), 'de toetsen staan ook voor hulpsoftware in de knop');
+  key('j');
+  ok(ja === j0 + 1 && !isQuitConfirmOpen(), 'J kiest Ja');
+}
 
 const ss = fs.readFileSync(new URL('../game/js/startscreen.js', import.meta.url), 'utf8');
 ok(/askQuitConfirm\(\{ onYes: \(\) => window\.gdeDesktop\.quit\(\)/.test(ss), 'het startscherm vraagt eerst');

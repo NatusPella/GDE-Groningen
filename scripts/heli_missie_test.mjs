@@ -13,7 +13,7 @@ let fails = 0, n = 0;
 const ok = (c, name, info = '') => { n++; if (!c) { fails++; console.log(`FAIL ${name}${info !== '' ? ` (${info})` : ''}`); } };
 
 // --- scene3d voor helirun.js: een lege scène (de echte heeft WebGL nodig) --------------------------
-const SCENE_STUB = 'data:text/javascript,' + encodeURIComponent('export const getScene = () => globalThis.__stubScene; export const prewarmStreamAt = () => {};');
+const SCENE_STUB = 'data:text/javascript,' + encodeURIComponent('export const getScene = () => globalThis.__stubScene; export const prewarmStreamAt = () => {}; export const disposeObject = (o) => { (globalThis.__disposed = globalThis.__disposed || []).push(o); };');
 globalThis.__stubScene = { add() {}, remove() {} };
 registerHooks({
   resolve(spec, ctx, next) {
@@ -205,6 +205,18 @@ for (const variant of ['ballonjacht', 'traumaduif', 'rooster']) {
   console.error = stil;
   ok(fin === 1 && res && res.aborted === true, 'een worp in de tweede helft van cleanup: onFinish komt toch (precies een keer)', JSON.stringify({ fin, res }));
   ok(!R.isHeliRunActive() && w.heliRun === false, 'en de run staat uit');
+}
+
+// --- 4c. de lichtzuil en de lier worden per run vrijgegeven, de gedeelde ringen niet (#1065) ---------
+{
+  globalThis.__disposed = [];
+  const w = newWorld({ companion: false });
+  R.initHeliRun(w);
+  Object.assign(w.player, { x: UMCG.x + 3, y: UMCG.y + 8, angle: 1.1 });
+  R.startHeliRun({ variant: 'ballonjacht', onFinish: () => {} });
+  R.abortHeliRun();
+  const namen = globalThis.__disposed.map((o) => o && o.name).sort();
+  ok(namen.length === 2 && namen[0] === 'helirun-beacon' && namen[1] === 'helirun-lier', 'cleanup geeft beacon en lier vrij, niet de ringen', JSON.stringify(namen));
 }
 
 // --- 5. een tweede run direct na de eerste, en met een metgezel ------------------------------------

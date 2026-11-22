@@ -22,4 +22,7 @@ assert.deepEqual(h(['keuze', 'wijkkaart']), ['wijkkaart']);
 assert.deepEqual(h(['duelbalk', 'wijkkaart']), ['wijkkaart']);
 assert.deepEqual(h(['wijkkaart', 'naamkaart']), ['naamkaart'], 'wijkkaart en naamkaart staan op dezelfde plek: één tegelijk');
 assert.deepEqual(h(['wijkkaart', 'prestatie']), [], 'een prestatie staat elders (zone E)');
+// een schermvullend scherm (pauzemenu, kaart, werkplaats): plaatsstempel, naamkaart en plaatsnaam wachten; een prestatie niet (review 22-11)
+assert.deepEqual(h(['scherm', 'wijkkaart', 'naamkaart', 'locatie', 'prestatie']), ['locatie', 'naamkaart', 'wijkkaart']);
+assert.ok(!mayStartOverlay('wijkkaart', ['scherm']) && mayStartOverlay('prestatie', ['scherm']));
 console.log('overlayrules_test ok');

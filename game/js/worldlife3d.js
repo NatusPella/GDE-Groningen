@@ -59,10 +59,17 @@ function placed(m, i, x, y, z, heading, sx, sy, sz, hex) {
   m.setColorAt(i, color.setHex(hex));
 }
 
+// De dag voor het rooster: een gast simuleert de kalender niet maar krijgt de dag van de host (world.coopDag, 'klok'-gebeurtenis);
+// zijn eigen calendar.day is die van zijn eigen save. Zo zien host en gast dezelfde markt en kermis (review 22-11).
+export function lifeDay(world) {
+  if (world.coopRole === 'client' && Number.isInteger(world.coopDag)) return world.coopDag;
+  return world.calendar && Number.isFinite(world.calendar.day) ? world.calendar.day : 1;
+}
+
 // Called once per frame (weather.js applyWeatherToScene3D). Returns the draw calls this frame adds (0 or 3).
 export function updateWorldLife(scene, world, px, py, dt) {
   if (!group) build(scene);
-  const day = world.calendar && Number.isFinite(world.calendar.day) ? world.calendar.day : 1;
+  const day = lifeDay(world);
   const hour = typeof world.clock === 'number' ? world.clock : 12;
   tSec += dt;
   sinceBuild += dt;
@@ -98,7 +105,8 @@ export function updateWorldLife(scene, world, px, py, dt) {
 }
 
 function clearBubbles(world) {
-  if (world.extraSpeakers) world.extraSpeakers = world.extraSpeakers.filter((e) => e.mgTag !== BUBBLE_TAG);
+  // alleen opruimen als er iets van ons staat: geen nieuwe array per beeld bij een leeg rooster (review 22-11)
+  if (world.extraSpeakers && world.extraSpeakers.some((e) => e.mgTag === BUBBLE_TAG)) world.extraSpeakers = world.extraSpeakers.filter((e) => e.mgTag !== BUBBLE_TAG);
 }
 
 function syncBubbles(world) {

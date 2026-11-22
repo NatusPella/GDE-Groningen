@@ -2760,9 +2760,9 @@ function showTab(name, how) {
     b.setAttribute('aria-current', String(b.dataset.goto === (CHILD[name] || name)));
     b.hidden = !ids.includes(b.dataset.goto);
   }
-  // de boerderij is een eigen item: zonder begonnen akker heet het "Begin je boerderij" (21-11)
+  // het item heet Land en bedrijf (de kop van het scherm); zonder begonnen akker heet het "Begin je boerderij" (21-11, review 22-11)
   const bdLabel = root.querySelector('.pm-game [data-goto="boerderij"] .ra-t');
-  if (bdLabel) { let begonnen = true; try { begonnen = boerderijBegonnen(getBoerderij()); } catch (e) { /* boerderij niet klaar */ } bdLabel.textContent = begonnen ? 'Boerderij' : 'Begin je boerderij'; }
+  if (bdLabel) { let begonnen = true; try { begonnen = boerderijBegonnen(getBoerderij()); } catch (e) { /* boerderij niet klaar */ } bdLabel.textContent = begonnen ? 'Land en bedrijf' : 'Begin je boerderij'; }
   // #911: de kop van een groep telt wat er in de rail staat; een lege groep (het hoofdmenu
   // toont alleen Spel, Instellingen en Besturing) verdwijnt met zijn kop.
   for (const g of root.querySelectorAll('.pm-rail-group')) {

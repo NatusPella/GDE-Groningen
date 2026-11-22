@@ -9,7 +9,7 @@ import { COMMENTATOREN, KINDS, COMMENTAAR, MIN_PER_KIND, MIN_TOTAAL, MAX_WORDS }
 import { makeCommentaar, commentaarVoor, tikCommentaar, allLines, countLines, vulSjabloon, stemSleutel, derbyVan } from '../game/js/voetbalcommentaar.js';
 import { hasForbiddenWord } from './voetbal_verboden.mjs';
 import { CAMERA_MODI, SHOTS, cleanModus, nextMode, makeRegie, regieTik, cameraVoor, makeOpname, opnameTik, opnameClip, clipFrame, pasFrameToe, herstelStaat, planHerhaling, herhalingShot } from '../game/js/voetbalregie.js';
-import { scoreboardRow, clubLogo, cardIcon, hex, opstellingHtml, rustHtml, eindHtml, eindModel, radarModel, radarHtml, guestEvents, leesTvVoorkeur } from '../game/js/voetbalpresentatie.js';
+import { scoreboardRow, clubLogo, cardIcon, hex, opstellingHtml, rustHtml, eindHtml, eindModel, radarModel, radarHtml, guestEvents, leesTvVoorkeur, subtitleHtml } from '../game/js/voetbalpresentatie.js';
 import { CLUBS } from '../game/js/voetbalclubs.js';
 
 let n = 0;
@@ -369,6 +369,11 @@ t('de nieuwe regels veranderen de bestaande aanpak niet: met alles uit is de wed
   tot(a, 'klaar', 700); tot(b, 'klaar', 700);
   assert.deepEqual(a.score, b.score); assert.deepEqual(a.stat.overtredingen, b.stat.overtredingen);
   assert.deepEqual([a.stat.geel, a.stat.rood, a.wissels], [[0, 0], [0, 0], [0, 0]]);
+});
+
+t('ondertitel: zonder tekst geen balk (review 22-11)', () => {
+  assert.equal(subtitleHtml(null), ''); assert.equal(subtitleHtml({ naam: 'Jelle', tekst: '' }), ''); assert.equal(subtitleHtml({ naam: 'Jelle', tekst: '  ' }), '');
+  assert.match(subtitleHtml({ naam: 'Jelle', tekst: 'Goal!' }), /<span>Goal!<\/span>/);
 });
 
 console.log(`voetbal_uitzending_test ok (${n} groepen)`);

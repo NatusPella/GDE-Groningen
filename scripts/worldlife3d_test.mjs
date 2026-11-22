@@ -33,5 +33,17 @@ ok(world.extraSpeakers.every((e) => e.mgTag !== 'wereldleven' || (e.speechUntil 
 // ver weg: niets tekenen, geen bubbels, geen draw calls
 const ver = W3.updateWorldLife(scene, world, 5e5, 5e5, 0.1);
 ok(ver === 0 && group.visible === false && !world.extraSpeakers.some((e) => e.mgTag === 'wereldleven'), 'ver weg: onzichtbaar, 0 draw calls, geen bubbels');
+// Samen spelen (review 22-11): een gast gebruikt de dag van de host, niet de kalender van zijn eigen save
+ok(W3.lifeDay({ calendar: { day: 5 } }) === 5, 'alleen spelen: de eigen kalender');
+ok(W3.lifeDay({ coopRole: 'client', coopDag: 9, calendar: { day: 5 } }) === 9, 'gast: de dag van de host');
+ok(W3.lifeDay({ coopRole: 'client', calendar: { day: 5 } }) === 5, 'gast zonder hostdag (nog niet binnen): eigen kalender');
+ok(W3.lifeDay({ coopRole: 'host', coopDag: 9, calendar: { day: 5 } }) === 5, 'host: eigen kalender');
+// geen nieuwe array per beeld zonder eigen bubbels
+{
+  const arr = [{ mgTag: 'iets-anders', speechUntil: 1e9 }];
+  const w2 = { calendar: { day: 1 }, clock: 11, time: 0, extraSpeakers: arr };
+  W3.updateWorldLife(scene, w2, 5e5, 5e5, 0.1);
+  ok(w2.extraSpeakers === arr, 'leeg rooster: dezelfde array, geen allocatie per beeld');
+}
 console.log(`${n - fails}/${n} checks ok`);
 process.exit(fails ? 1 : 0);

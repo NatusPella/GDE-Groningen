@@ -1,6 +1,6 @@
 import { hoofdspeler } from './players.js';
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
-import { getScene, prewarmStreamAt } from './scene3d.js';
+import { getScene, prewarmStreamAt, disposeObject } from './scene3d.js';
 import { basketRiderPose } from './basketrider.js';
 import { buildPersonMesh, animatePersonWalk, TAMMO_APPEARANCE } from './models3d_people.js';
 import { helipadInfo, scriptHeli, landHeliOnPad } from './skyprops.js';
@@ -627,6 +627,8 @@ function cleanup(aborted) {
   // still: main.js only runs updateHeliRun while world.heliRun is set), so the flags below always get their turn.
   try {
     for (const o of [r.rings, r.beacon, r.hanger]) if (o) scene.remove(o);
+    // de lichtzuil, de landingsring en de lier (touw en Tammo) zijn per run gebouwd; de ringen delen RING_GEO en RING_MATS en blijven (#1065)
+    for (const o of [r.beacon, r.hanger]) if (o) { try { disposeObject(o); } catch (e) { /* een kapot object houdt de opruiming niet tegen */ } }
     const bi = w.balloons.indexOf(r.b);
     if (bi >= 0) {
       if (r.result && r.result.success) { r.b.scripted = false; r.b.phase = 'float'; r.b.targetZ = r.b.z; r.b.drift = P.BALLOON_SPEED; }

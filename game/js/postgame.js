@@ -3,7 +3,7 @@ import { euro } from './geldtekst.js';
 import { paintSpeaker } from './speakers.js';
 import { noteSpoken } from './characters.js';
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
-import { getScene } from './scene3d.js';
+import { getScene, disposeObject } from './scene3d.js';
 import { buildPersonMesh, animatePersonWalk } from './models3d_people.js';
 import { JELLE_LOOK } from './storycast.js';
 import { getStorySave } from './storyquery.js';
@@ -194,6 +194,8 @@ function removeSpots() {
   for (const s of spots) {
     s.marker.removeFromParent();
     if (s.jelle) s.jelle.removeFromParent();
+    // eigen geometrie, materialen en labeltextuur per plek, en Jelle is een persoonsmesh (#1065)
+    try { disposeObject(s.marker); if (s.jelle) disposeObject(s.jelle); } catch (e) { /* opruimen mag nooit falen */ }
   }
   spots = null;
 }
@@ -742,7 +744,7 @@ export function queueFjordReveal(w = world) {
   // the sheet comes off just before Tessa speaks
   const liftAt = lines[1].at - 1.4;
   const done = () => {
-    if (sheet) { sheet.removeFromParent(); sheet = null; }
+    if (sheet) { sheet.removeFromParent(); try { disposeObject(sheet); } catch (e) { /* opruimen mag nooit falen */ } sheet = null; }
     state.revealed = true;
     guideSkip = new Set();
     guideT = 0;

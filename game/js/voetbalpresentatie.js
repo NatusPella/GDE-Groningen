@@ -112,7 +112,8 @@ export function radarHtml(sim, eigenId = -1, hoog = 84, breed = 52) {
 }
 
 // De ondertitel van het commentaar: wie spreekt en wat (de stem is een extraatje: de tekst staat er altijd).
-export const subtitleHtml = (regel) => (regel ? `<b>${esc(regel.naam)}</b><span>${esc(regel.tekst)}</span>` : '');
+// Zonder tekst geen balk: een regel met alleen een naam leest als een kapotte lege kaart (review 22-11).
+export const subtitleHtml = (regel) => (regel && String(regel.tekst || '').trim() ? `<b>${esc(regel.naam)}</b><span>${esc(regel.tekst)}</span>` : '');
 
 // ---------------------------------------------------------------- gebeurtenissen voor een gast (uit het verschil tussen twee momentopnamen)
 

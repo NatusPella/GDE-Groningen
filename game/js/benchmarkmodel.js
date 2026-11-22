@@ -64,7 +64,8 @@ export function choiceKey(key, { index = -1, count = 0, shift = false, repeat = 
   const back = key === 'ArrowLeft' || key === 'ArrowUp';
   if (forward || back) {
     if (count < 1) return { focus: null };
-    const dir = forward && !shift ? 1 : -1;
+    // Shift keert alleen Tab om (Shift+Tab); Shift+pijl rechts of omlaag blijft vooruit (review 22-11)
+    const dir = key === 'Tab' ? (shift ? -1 : 1) : (forward ? 1 : -1);
     if (index < 0) return { focus: dir > 0 ? 0 : count - 1 };
     return { focus: (index + dir + count) % count };
   }

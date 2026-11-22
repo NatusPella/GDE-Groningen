@@ -75,6 +75,8 @@ export function maskeer(tekst) {
     .replace(/\bGDE2-\S+/gi, '[koppelcode]')
     .replace(/\b(?:\d{1,3}\.){3}\d{1,3}(?::\d{1,5})?\b/g, '[ip-adres]')
     .replace(/\b(?:[0-9a-f]{1,4}:){3,7}[0-9a-f]{1,4}\b/gi, '[ip-adres]')
+    // samengeperste adressen (met "::", bv. 2001:db8::1 of fe80::a1b2:c3d4) die de regel hierboven mist (review 22-11)
+    .replace(/(?<![0-9a-z:])(?:[0-9a-f]{0,4}:){2,7}[0-9a-f]{0,4}(?![0-9a-z:])/gi, (m) => (m.includes('::') ? '[ip-adres]' : m))
     .replace(/\b[A-Z0-9]{4,6}-[A-Z0-9]{4,12}\b/g, '[kamercode]');
 }
 

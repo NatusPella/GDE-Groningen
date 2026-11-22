@@ -105,6 +105,6 @@ export const MUG_TEXT = {
   gone: (lost) => `Hij is ontsnapt. Die ${euro(lost)} ben je kwijt. Volgende keer minder bij je dragen.`,
   guestSnatch: (lost) => `Iemand botst tegen je op en is met je portemonnee weg: ${euro(lost)} kwijt. Hij liet hem verderop vallen: ga naar de markering!`,
   guestBack: (lost) => `Gevonden! Je portemonnee is terug: ${euro(lost)}.`,
-  guestGone: (lost) => `Iemand anders was je voor: die ${euro(lost)} ben je kwijt. Volgende keer minder bij je dragen.`,
+  guestGone: (lost) => `Te laat: je portemonnee is weg. Die ${euro(lost)} ben je kwijt. Volgende keer minder bij je dragen.`,
   thiefBark: ['Sorry, sorry!', 'Niks aan de hand!', 'Dat was een vergissing!'],
 };

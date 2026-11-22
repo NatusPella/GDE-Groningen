@@ -41,7 +41,7 @@ ok('leeg of gemaskeerd is onbekend, klasse hoog', gpuKind('') === 'onbekend' && 
 // waarschuwing
 ok('geen waarschuwing voor een losse kaart', gpuWarning(RX9070) === null);
 const w = gpuWarning('ANGLE (AMD, AMD Radeon(TM) Graphics Direct3D11, D3D11)');
-ok('ingebouwde kaart: waarschuwing met uitleg', w && w.kind === 'integrated' && w.help && /Graphics/.test(w.text), JSON.stringify(w));
+ok('ingebouwde kaart: waarschuwing met uitleg', w && w.kind === 'integrated' && w.help && /grafische instellingen/.test(w.text) && !/Windows/.test(w.text), JSON.stringify(w));
 ok('ingebouwde kaart buiten Windows: geen waarschuwing', gpuWarning('ANGLE (Intel, Intel(R) UHD Graphics 620)', { windows: false }) === null);
 ok('Apple-chip: geen waarschuwing', gpuWarning('ANGLE (Apple, ANGLE Metal Renderer: Apple M2, Unspecified Version)') === null);
 const sw = gpuWarning('ANGLE (Google, Vulkan 1.3 (SwiftShader Device))');

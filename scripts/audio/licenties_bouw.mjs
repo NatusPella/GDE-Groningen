@@ -65,7 +65,7 @@ ${rijen.join('\n')}
 `;
 }
 
-const MERK_IN_TITEL = /hyundai|kona|nissan|volvo|chrysler|maxima|rover|aston|martin/i;
+const MERK_IN_TITEL = /hyundai|kona|nissan|volvo|chrysler|maxima|rover|aston|martin|zoom|h4n|tascam|sennheiser/i;
 export function omschrijving(gebruik) {
   const t = String(gebruik || 'geluid').split(/[:(]/)[0].trim();
   return t.charAt(0).toUpperCase() + t.slice(1);
