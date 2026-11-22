@@ -28,7 +28,7 @@ import { reportCrime } from './crime.js';
 import { npcBudget, bystanderReaction } from './wantedlevels.js';
 import { hash2 } from './rng.js';
 import { seatedOf, clearSeated, reactSeated, exitOrder } from './occupants.js';
-import { hornSources, drivenVehicles, hornPedDodge, skimsPast, HORN_PED_SPEED, HORN_PED_SAY, HORN_PED_COOLDOWN, SKIM_LOOK } from './hornreact.js';
+import { hornSources, drivenVehicles, hornPedDodge, skimsPast, HORN_PED_SPEED, HORN_PED_COOLDOWN, SKIM_LOOK } from './hornreact.js';
 import { dayState } from './daynight.js';
 import { FLAGS } from './devflags.js';
 import { voetgangerOpties, stapSlaOver, AbstractPool } from './simlagen.js';
@@ -1510,7 +1510,7 @@ export function updatePedestrians(dt, world) {
         moving = true;
         if (t > (ped._bumpCd || 0)) {
           ped._bumpCd = t + HORN_PED_COOLDOWN;
-          if (Math.random() < HORN_PED_SAY) say(ped, world, pick(CAR_BUMP_LINES));
+          // no spoken line here: pedhorn.js (grumbleAtHorn) already lets the pedestrian in front of the honking car answer
         }
         break;
       }
