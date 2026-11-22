@@ -70,6 +70,7 @@ const src = (f) => fs.readFileSync(new URL('../game/js/' + f, import.meta.url), 
 }
 
 // 3. het laadbudget achter het laadscherm
+ok(/loading: !!world\.cineJumpLoading \|\| loadHeld\(world\)/.test(src('main.js')), 'main.js geeft de stroomplanner het laadbudget achter het laadscherm');
 
 console.log(fails ? `loadhold_test: ${fails} fout(en)` : 'loadhold_test: alles goed');
 process.exit(fails ? 1 : 0);
