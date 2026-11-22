@@ -75,6 +75,8 @@ export const cheatsOpen = () => open;
 // Nothing is available before the master unlock (a dev or test run opens it by itself: pausemenu.js).
 export const isAvailable = (id) => open && (unlocked.has(id) || hasUnique('streken', id));
 export const isCheatOn = (id) => on.has(id);
+// is er nu een cheat aan? Dan blijft het onderdeel Cheats in het menu staan, ook zonder de keuze in Spelregels (settingsrules.js cheatsVisible)
+export const anyCheatOn = () => on.size > 0;
 
 // A gameplay streek is on (paused or not).
 export function achievementsBlocked() {
