@@ -25,17 +25,16 @@ export const PROP_SOURCES = {
   ...Object.fromEntries(DIEREN.filter((d) => d.cutscene).map((d) => [d.cutscene, { animal: d.kind, dier: d.id }])),
 };
 
-export const DECOR_KINDS = ['doos', 'tas', 'radio', 'bord', 'koffer', 'bal', 'matras', 'automaat', 'duiventil', 'zuil', 'klembord', 'briefje', 'botsauto',
-  // #1121 (storyprops.js): voorwerpen die een scène noemt en die eerst als doos of bord stonden
-  'klomp', 'stempel', 'pinpas', 'map', 'bierviltje', 'fotolijst', 'statief', 'krat', 'pan', 'vuurwerk', 'koelbox', 'jas', 'aktetas', 'hesjes', 'container', 'scherm', 'prikbord'];
 
 // Wat een personage laag draagt (tas, doos): op heuphoogte in de hand, niet op borsthoogte (cutscript.js en cutscenehost.js)
 export const CARRY_LOW = ['tas', 'koffer', 'doos', 'bal', 'krat', 'pan', 'vuurwerk', 'koelbox', 'jas', 'aktetas', 'hesjes', 'klomp'];
-export const DECOR_KINDS = ['doos', 'tas', 'radio', 'bord', 'koffer', 'bal', 'matras', 'automaat', 'duiventil', 'zuil', 'klembord', 'briefje', 'botsauto', 'prikbord', 'broodtrommel'];
-export const DECOR_KINDS = ['doos', 'tas', 'radio', 'bord', 'koffer', 'bal', 'matras', 'automaat', 'duiventil', 'zuil', 'klembord', 'briefje', 'botsauto', 'kantoorwagen'];
-export const DECOR_KINDS = ['doos', 'tas', 'radio', 'bord', 'koffer', 'bal', 'matras', 'automaat', 'duiventil', 'zuil', 'klembord', 'briefje', 'botsauto',
-  // het slot (akte 5, F1-F6): de aanhanger van het bierviltje, de eerste bak, de soep, de mosterd van 1953, de kaart op het luik
-  'frituuraanhanger', 'friteuse', 'bierviltje', 'deken', 'soepketel', 'mosterdpot', 'kaart', 'hek'];
+export const DECOR_KINDS = [
+  'doos', 'tas', 'radio', 'bord', 'koffer', 'bal', 'matras', 'automaat',
+  'duiventil', 'zuil', 'klembord', 'briefje', 'botsauto', 'klomp', 'stempel', 'pinpas',
+  'map', 'bierviltje', 'fotolijst', 'statief', 'krat', 'pan', 'vuurwerk', 'koelbox',
+  'jas', 'aktetas', 'hesjes', 'container', 'scherm', 'prikbord', 'broodtrommel', 'kantoorwagen',
+  'frituuraanhanger', 'friteuse', 'deken', 'soepketel', 'mosterdpot', 'kaart', 'hek',
+];
 
 // geen spelobject: er is geen register voor, dus niet in een cutscene
 export const PLACEHOLDER_KINDS = ['aanhanger'];
@@ -45,8 +44,9 @@ export const PLACEHOLDER_KINDS = ['aanhanger'];
 // van de auto en zette Tessa met wijd uitgespreide armen naast de tafel.
 export const TABLE_SIT = { recline: 0.02, footX: 0.42, footY: -0.44, arms: 'lap' };
 
-export const VEHICLE_MODEL_NAMES = ['escort', 'van', 'tractor', 'police', 'bike', 'foodtruck', 'truck', 'trekkerlimo'];
-export const VEHICLE_MODEL_NAMES = ['escort', 'van', 'tractor', 'police', 'bike', 'foodtruck'];
+export const VEHICLE_MODEL_NAMES = [
+  'escort', 'van', 'tractor', 'police', 'bike', 'foodtruck', 'truck', 'trekkerlimo',
+];
 export const ANIMAL_KINDS = DIEREN.filter((d) => d.cutscene).map((d) => d.kind);
 
 // De grondafmetingen van een voertuig-prop [lengte, breedte, hoogte] in m, met +x naar voren: een camera blijft eruit (cutscript.js,

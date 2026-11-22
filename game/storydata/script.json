@@ -5995,7 +5995,7 @@
     {
      "speaker": "Terrasgast",
      "key": "terras",
-     "text": "Ik bedoelde de rekening.",
+     "text": "Ik bedoelde de rekening. Samen of apart?",
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": true,
@@ -6357,7 +6357,7 @@
     {
      "speaker": "Tammo",
      "key": "T",
-     "text": "Dat wordt een mooie regel.",
+     "text": "Daar kan ik geen bezwaar tegen maken.",
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": true,
@@ -9104,7 +9104,7 @@
     {
      "speaker": "Geesje",
      "key": "geesje",
-     "text": "Dat hoeft ook niet.",
+     "text": "Nee. Hij hangt er al veertig jaar. Hij wacht wel.",
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": true,
@@ -9188,7 +9188,7 @@
     {
      "speaker": "Tammo",
      "key": "T",
-     "text": "Dat je je koffie met melk drinkt.",
+     "text": "Hoeveel melk je in je koffie doet. Twee scheuten.",
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": true,
@@ -9214,7 +9214,7 @@
     {
      "speaker": "Tessa",
      "key": "A",
-     "text": "Hij is lauw.",
+     "text": "Hij is lauw. Dat is alles wat hier gebeurd is.",
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": true,
@@ -9817,7 +9817,7 @@
     {
      "speaker": "Tammo",
      "key": "T",
-     "text": "Wij hebben nog geen bezwaar.",
+     "text": "Dan maken wij eerst bezwaar tegen zijn bezwaar.",
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": true,
@@ -12929,7 +12929,7 @@
     {
      "speaker": "Anneke",
      "key": "anneke",
-     "text": "Dat dacht ik al.",
+     "text": "Dat was niet de zin waar je mee begon.",
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": true,
@@ -13019,7 +13019,7 @@
     {
      "speaker": "Sjabbe",
      "key": "sjabbe",
-     "text": "Dat is mijn zin.",
+     "text": "Dat is mijn zin. Hij ligt hier al sinds 1974.",
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": true,
@@ -13790,7 +13790,7 @@
     {
      "speaker": "Femke",
      "key": "femke",
-     "text": "Dat zegt hij ook.",
+     "text": "Jullie zijn al een koor. Dat is een begin.",
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": true,
@@ -14517,7 +14517,7 @@
     {
      "speaker": "Tammo",
      "key": "T",
-     "text": "Ik kijk naar de beer.",
+     "text": "Ik kijk naar de beer. Hij kijkt terug.",
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": true,
@@ -14544,12 +14544,11 @@
     {
      "speaker": "Tessa",
      "key": "A",
-     "text": "Het eet je sok.",
+     "text": "Het schaap heeft nu een sok en een mening.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": false,
+     "textOnly": true,
      "humor": "HN-18",
-     "rec": "lines",
      "voice": "Anita"
     },
     {
@@ -14643,12 +14642,11 @@
     {
      "speaker": "Tessa",
      "key": "A",
-     "text": "Brief vier. Ik heb ze allemaal gelezen.",
+     "text": "Brief vier, alinea twee. Het staat er gewoon.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": false,
+     "textOnly": true,
      "humor": "HJ-06",
-     "rec": "lines",
      "voice": "Anita"
     },
     {
@@ -14689,12 +14687,11 @@
     {
      "speaker": "Tessa",
      "key": "A",
-     "text": "Het is een eierbal.",
+     "text": "Het is een eierbal. Hij heeft nog geen vergunning om zo te ruiken.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": false,
+     "textOnly": true,
      "humor": "HJ-07",
-     "rec": "lines",
      "voice": "Anita"
     },
     {
@@ -15173,12 +15170,11 @@
     {
      "speaker": "Tessa",
      "key": "A",
-     "text": "Overig.",
+     "text": "Overig. Dat was het enige vakje dat nog open was.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": false,
+     "textOnly": true,
      "humor": "HJ-08",
-     "rec": "lines",
      "voice": "Anita"
     },
     {
@@ -15233,7 +15229,7 @@
     {
      "speaker": "Tammo",
      "key": "T",
-     "text": "Het is goede soep.",
+     "text": "Een man mag naar soep lachen.",
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": true,
@@ -21356,7 +21352,7 @@
     {
      "speaker": "Tammo",
      "key": "T",
-     "text": "Naar de motor.",
+     "text": "Naar de motor. Die ik er in gedachten al in heb gezet.",
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": true,
@@ -21617,7 +21613,7 @@
     {
      "speaker": "Tammo",
      "key": "T",
-     "text": "Ik ben het compromis.",
+     "text": "Ik ben het niemandsland. Met soep.",
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": true,
@@ -21751,10 +21747,11 @@
     {
      "speaker": "Tammo",
      "key": "T",
-     "text": "Ik heb erover nagedacht.",
+     "text": "Ik heb ook geen vergunning.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true
+     "textOnly": true,
+     "humor": "HE-04"
     },
     {
      "speaker": "Jelle Terpstra",
@@ -21771,8 +21768,7 @@
      "text": "Ik heb ook geen vergunning.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true,
-     "humor": "HE-04"
+     "textOnly": true
     },
     {
      "speaker": "Jelle Terpstra",
@@ -21805,12 +21801,11 @@
     {
      "speaker": "Jelle Terpstra",
      "key": "jelle",
-     "text": "...Dat is de eerste prijs die ik niet kon onderhandelen.",
+     "text": "...Een prijs zonder bijlage. Wie doet dat?",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": false,
-     "humor": "HE-05",
-     "rec": "lines"
+     "textOnly": true,
+     "humor": "HE-05"
     }
    ]
   },
@@ -21913,7 +21908,7 @@
     {
      "speaker": "Tammo",
      "key": "T",
-     "text": "Berend telde elf seconden. Dat is officieel.",
+     "text": "Berend telde elf seconden en een duif telde mee. Dat is officieel.",
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": true,
@@ -21940,11 +21935,20 @@
     {
      "speaker": "Tessa",
      "key": "A",
-     "text": "Dat waren er vier. Eén te weinig.",
+     "text": "Drie. Kon meer.",
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": true,
      "humor": "HE-06",
+     "voice": "Anita"
+    },
+    {
+     "speaker": "Tessa",
+     "key": "A",
+     "text": "Dat waren er vier. Kon meer.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true,
      "voice": "Anita"
     }
    ]
@@ -23636,7 +23640,7 @@
     {
      "speaker": "Tammo",
      "key": "T",
-     "text": "Dat is een goede verhouding. Voor Jelle.",
+     "text": "Eén stip. Maar wel de onze.",
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": true,

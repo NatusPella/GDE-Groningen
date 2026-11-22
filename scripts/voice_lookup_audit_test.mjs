@@ -31,7 +31,7 @@ const keyOf = (l) => (l.voice || l.speaker) + '|' + l.text;
 
 t('#924 data: elke opgenomen verhaalregel resolvet in zijn eigen manifest', () => {
   const recorded = data.scenes.flatMap((s) => s.lines).filter((l) => l.channel !== 'app-stil' && !l.textOnly);
-  assert.equal(recorded.length, 1581); // 21-11 epic Verhaal: veel regels herschreven, die wachten nu op een nieuwe opname; eerder 1390. 4 regels minder sinds de verhaalcanon van 21-11 (vierentwintig, vijf jaar): wachten op een nieuwe opname
+  assert.equal(recorded.length, 1568); // 21-11 epic Verhaal: veel regels herschreven, die wachten nu op een nieuwe opname; eerder 1390. 4 regels minder sinds de verhaalcanon van 21-11 (vierentwintig, vijf jaar): wachten op een nieuwe opname
   for (const l of recorded) {
     assert.ok(['story', 'lines', 'banter'].includes(l.rec), `${l.text.slice(0, 40)}: rec`);
     assert.ok(manifests[l.rec][keyOf(l)], `${l.text.slice(0, 40)}: opname in ${l.rec}`);

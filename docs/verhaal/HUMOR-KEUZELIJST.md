@@ -19,7 +19,7 @@ Eerlijk over de proef: 106 beats. De beoordelaars lazen de stijlgids en de beats
 - **HE-02** (F2, TAMMO): gekozen "Is dat een knop of een gebed?"; paneelsplit 1-1-1, zekerheid laag. Voorgevoel is droog, gebed blijft staan.
 - **HE-03** (F3, TAMMO): gekozen "Ik ben het niemandsland. Met soep."; paneelsplit 1-1-1, zekerheid laag. Niemandsland met soep: een grens met een pan.
 - **HE-04** (F4, TAMMO): gekozen "Ik heb ook geen vergunning."; paneelsplit 1-1-1, zekerheid laag. De herhaling draagt het, kaal of met daar.
-- **HE-06** (F5, TESSA): gekozen "Vier woorden. Op de Grote Markt waren het er vijf."; paneelsplit 1-1-1, zekerheid laag. Vijf naar vier is een daling: Tessa telt precies.
+- **HE-06** (F5, TESSA): gekozen "Drie. Kon meer."; paneelsplit 1-1-1, zekerheid laag. Vijf naar vier is een daling: Tessa telt precies.
 - **HE-07** (F5, TAMMO): gekozen "Berend telde elf seconden en een duif telde mee. Dat is officieel."; paneelsplit 1-1-1, zekerheid laag. De duif telt mee: past bij zijn volgers.
 - **HE-08** (F6, TAMMO): gekozen "Eén stip. Maar wel de onze."; paneelsplit 1-1-1, zekerheid laag. Eén stip, wel de onze: trots.
 - **HI-04** (B1.2, TAMMO): gekozen "Het was het enige."; paneelsplit 1-1-1, zekerheid laag. Korte zelfspot, pointe laatste.
@@ -43,7 +43,7 @@ Eerlijk over de proef: 106 beats. De beoordelaars lazen de stijlgids en de beats
 - **HN-05** (N8, TESSA): gekozen "Een punaise. We hebben hem al een beetje lief."; paneelsplit 1-1-1, zekerheid laag. Ongezegde liefde verstopt in een punaise.
 - **HN-06** (N6, TESSA): gekozen "Ik heb het water niet gekozen."; paneelsplit 1-1-1, zekerheid laag. Kort, zeeziek, geen verdere uitleg nodig.
 - **HN-08** (N1, SJABBE): gekozen "Dertig. Met de trap erbij. De trap is vandaag ook zwaarder."; paneelsplit 1-1-1, zekerheid laag. Meest onverwachte pointe die bij het personage past.
-- **HN-13** (N5, TESSA): gekozen "Je vroeg ook niet naar de kippen. Er zijn er zeventien. Ze hebben namen."; paneelsplit 1-1-1, zekerheid laag. Meest onverwachte pointe die bij het personage past.
+- **HN-13** (N5, TESSA): gekozen "Je vroeg nooit naar mijn jeugd. Alleen of er internet was."; paneelsplit 1-1-1, zekerheid laag. Herzien 22-11 (verhaal-perfect akte 2): variant 1 herhaalde de kippengrap van M09.1 (H2-03); variant 0 is een nieuwe grap en geeft Tammo een eigen reactie.
 - **HN-16** (N10, TERRASGAST): gekozen "Ik bedoelde de rekening. Samen of apart?"; paneelsplit 1-1-1, zekerheid laag. Samen of apart? sluit op Ah. Ja. Samen.
 - **HN-17** (N12, TAMMO): gekozen "Daar kan ik geen bezwaar tegen maken."; paneelsplit 1-1-1, zekerheid laag. Geen bezwaar: bureaucratisch tederheid.
 - **HN-18** (N9, TESSA): gekozen "Het schaap heeft nu een sok en een mening."; paneelsplit 1-1-1, zekerheid laag. Het schaap met een mening.
@@ -113,7 +113,7 @@ Eerlijk over de proef: 106 beats. De beoordelaars lazen de stijlgids en de beats
 | HE-03 | F3 | TAMMO | Ik ben het niemandsland. Met soep. | variant 2, variant 3, variant 4 | laag | Niemandsland met soep: een grens met een pan. |
 | HE-04 | F4 | TAMMO | Ik heb ook geen vergunning. | variant 1, variant 3, variant 4 | laag | De herhaling draagt het, kaal of met daar. |
 | HE-05 | F4 | JELLE | ...Een prijs zonder bijlage. Wie doet dat? | variant 3, variant 3, variant 4 | hoog | Bureaucratisch verbaasd, zonder uitleg. |
-| HE-06 | F5 | TESSA | Vier woorden. Op de Grote Markt waren het er vijf. | variant 2, variant 3, variant 4 | laag | Vijf naar vier is een daling: Tessa telt precies. |
+| HE-06 | F5 | TESSA | Drie. Kon meer. | variant 2, variant 3, variant 4 | laag | Vijf naar vier is een daling: Tessa telt precies. |
 | HE-07 | F5 | TAMMO | Berend telde elf seconden en een duif telde mee. Dat is officieel. | variant 2, variant 3, variant 4 | laag | De duif telt mee: past bij zijn volgers. |
 | HE-08 | F6 | TAMMO | Eén stip. Maar wel de onze. | variant 1, variant 3, variant 4 | laag | Eén stip, wel de onze: trots. |
 | HI-01 | M06.0 | VELDKAMP | Mijn duiven doen dat bij niemand. Hij wil naar Tammo. | variant 1, variant 1, variant 2 | midden | Pointe landt op Tammo, droog en zonder uitleg. |
@@ -166,8 +166,8 @@ Eerlijk over de proef: 106 beats. De beoordelaars lazen de stijlgids en de beats
 | HN-10 | N2 | TAMMO | Nee. Maar de duif heeft mijn adres. | variant 2, variant 2, neutraal | midden | De duif heeft mijn adres: absurd en droog. |
 | HN-11 | N2 | VELDKAMP | Ik eet liever alleen. Maar de duiven hebben al ja gezegd. | variant 2, variant 2, variant 2 | hoog | Norse ja via de duiven; zacht zonder zoetigheid. |
 | HN-12 | N3 | TESSA | Ik weet het. Hij zegt niets met zijn hele gezicht. | neutraal, variant 2, variant 2 | midden | Meest onverwachte pointe die bij het personage past. |
-| HN-13 | N5 | TESSA | Je vroeg ook niet naar de kippen. Er zijn er zeventien. Ze hebben namen. | variant 1, variant 2, variant 3 | laag | Meest onverwachte pointe die bij het personage past. |
-| HN-14 | N5 | TAMMO | De koe kijkt. Naar mij. Ze kent mijn duiven. | variant 1, variant 2, variant 2 | midden | Meest onverwachte pointe die bij het personage past. |
+| HN-13 | N5 | TESSA | Je vroeg nooit naar mijn jeugd. Alleen of er internet was. | variant 1, variant 2, variant 3 | laag | Herzien 22-11 (verhaal-perfect akte 2): variant 1 herhaalde de kippengrap van M09.1 (H2-03); variant 0 is een nieuwe grap en geeft Tammo een eigen reactie. |
+| HN-14 | N5 | TAMMO | De koe kijkt weer. Ze kent mijn duiven. | variant 1, variant 2, variant 2 | midden | Herzien 22-11: de koe die kijkt komt al voor in M09.3; "weer" maakt er een terugkomer van met een nieuwe pointe. |
 | HN-15 | N7 | TAMMO | Een bus met principes. | variant 2, variant 2, variant 3 | midden | Bus met principes: serieus oordeel, absurd. |
 | HN-16 | N10 | TERRASGAST | Ik bedoelde de rekening. Samen of apart? | variant 2, variant 3, variant 4 | laag | Samen of apart? sluit op Ah. Ja. Samen. |
 | HN-17 | N12 | TAMMO | Daar kan ik geen bezwaar tegen maken. | variant 2, variant 3, variant 4 | laag | Geen bezwaar: bureaucratisch tederheid. |
@@ -458,10 +458,9 @@ Eerlijk over de proef: 106 beats. De beoordelaars lazen de stijlgids en de beats
 - neutraal: ...Goed. Eén euro vijftig.
 
 **HE-06** (F5): De kade aan de Noorderhaven. Tammo zegt dat hij het hier het liefst wil, met haar erbij. Tessa telt de woorden, een knipoog naar de vijf woorden van de Grote Markt.
-- variant 1: Dat waren er vier. Kon meer.
-- variant 2 (gekozen): Vier woorden. Op de Grote Markt waren het er vijf.
-- variant 3: Vier. Rikus zou trots zijn.
-- variant 4: Vier woorden. Ik neem ze alle vier.
+- variant 1: Dat waren er vier. Eén te weinig.
+- variant 2 (gekozen): Drie. Kon meer.
+- variant 3: Drie woorden. Dat is een stijging.
 - neutraal: Dat was mooi.
 
 **HE-07** (F5): De kade, na Tessa's vraag of ze nu een stel zijn. Tammo verwijst naar Berends tellen van de kus op de Grote Markt als bewijs.
@@ -792,14 +791,14 @@ Eerlijk over de proef: 106 beats. De beoordelaars lazen de stijlgids en de beats
 - neutraal: Dat heb ik ook al gezien.
 
 **HN-13** (N5): Het erf van Tessa's oom bij Warffum, woensdagochtend. Tessa leerde hier melken. Tammo: "Dat wist ik niet." Tessa antwoordt droog-lief; hij heeft vijf jaar nooit naar haar jeugd op het land gevraagd.
-- variant 1: Je vroeg nooit naar mijn jeugd. Alleen of er internet was.
-- variant 2 (gekozen): Je vroeg ook niet naar de kippen. Er zijn er zeventien. Ze hebben namen.
+- variant 1 (gekozen): Je vroeg nooit naar mijn jeugd. Alleen of er internet was.
+- variant 2: Je vroeg ook niet naar de kippen. Er zijn er zeventien. Ze hebben namen.
 - variant 3: Je vroeg niet naar koeien. Je vroeg wel altijd naar mij.
 - neutraal: Je vroeg niet naar de koeien.
 
 **HN-14** (N5): Zelfde erf. Een koe die niet weg wil staat bij het hek en kijkt naar Tammo (bang voor grote dieren, maar de dieren mogen hem altijd). Tessa gaat zo zijn hand naar de koeneus leiden.
 - variant 1: De koe kijkt naar mij. Ze weet iets.
-- variant 2 (gekozen): De koe kijkt. Naar mij. Ze kent mijn duiven.
+- variant 2 (gekozen): De koe kijkt weer. Ze kent mijn duiven.
 - variant 3: De koe kijkt naar mij. Ze vindt me aardig.
 - neutraal: De koe kijkt. Naar mij.
 
