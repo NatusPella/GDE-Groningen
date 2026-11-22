@@ -13,8 +13,11 @@ export const LOKET = {
   h: 3.0,
   counterU: 3.6,   // front of the counter
   counterH: 1.08,
-  clerkU: 4.35,    // the clerks stand behind it
+  clerkU: 4.8,     // the clerks stand behind it (and behind the desk and the glass)
   doorU: -5.55,
+  glassU: 3.95,    // the glass, the posts and the signs: halfway the desk, so the clerk's half still has room for a screen
+  screenU: 1.0,    // the number screen hangs under the ceiling above the front of the queue, clear of the A/B/C signs
+  screenH: 2.72,
 };
 
 const canvasTex = (w, h, draw) => sharedCanvasTex(w, h, draw, { anisotropy: 4 });
@@ -106,7 +109,7 @@ export function buildLoket(x, y, z) {
 
   // the room, seen from the inside: the walls, the terrazzo floor and a soft ceiling
   const wall = keep(new THREE.MeshBasicMaterial({ map: keep(wallTex()), side: THREE.BackSide, color: 0xf3ecdd }));
-  const ceil = keep(new THREE.MeshBasicMaterial({ color: 0x2b302c, side: THREE.BackSide }));
+  const ceil = keep(new THREE.MeshBasicMaterial({ color: 0xcfcabc, side: THREE.BackSide })); // a pale ceiling: the dark one made the hall a cave
   const floorMat = keep(new THREE.MeshStandardMaterial({ map: keep(floorTex()), roughness: 0.9, side: THREE.BackSide }));
   const room = new THREE.Mesh(keep(new THREE.BoxGeometry(W, H, D)), [wall, wall, ceil, floorMat, wall, wall]);
   room.position.y = H / 2;
@@ -117,33 +120,41 @@ export function buildLoket(x, y, z) {
   const frame = std(0x3d4b42, { roughness: 0.45, metalness: 0.25 });
   box(1.1, 0.06, 5.4, top, LOKET.counterU + 0.25, LOKET.counterH, 0);
   box(0.9, 1.0, 5.4, desk, LOKET.counterU + 0.25, 0.5, 0);
-  for (const v of [-2.7, 2.7]) box(0.16, 2.4, 0.16, frame, LOKET.counterU + 0.72, 1.2, v);
-  for (const v of [-1.8, 0, 1.8]) box(0.04, 2.2, 0.06, frame, LOKET.counterU + 0.72, 1.2, v);
-  // glass above the counter, window by window
+  // the posts stand BETWEEN the windows (the windows are centred on v = -1.8, 0 and 1.8; a post in the middle of a window
+  // stood in front of the clerk)
+  for (const v of [-2.7, -0.9, 0.9, 2.7]) box(0.12, 2.4, 0.12, frame, LOKET.glassU, 1.2, v);
+  // glass above the counter, window by window: in the plane of the counter (v-h), facing the queue
   const glass = keep(new THREE.MeshBasicMaterial({ color: 0xbfd8d6, transparent: true, opacity: 0.22, side: THREE.DoubleSide }));
-  for (const v of [-1.8, 0, 1.8]) add(keep(new THREE.PlaneGeometry(1.62, 1.45)), glass, LOKET.counterU + 0.72, LOKET.counterH + 0.78, v);
+  for (const v of [-1.8, 0, 1.8]) {
+    const g = add(keep(new THREE.PlaneGeometry(1.68, 1.4)), glass, LOKET.glassU, LOKET.counterH + 0.76, v);
+    g.rotation.y = Math.PI / 2;
+  }
   // the three signs above the windows: A, B and C
   for (const [i, v] of [-1.8, 0, 1.8].entries()) {
-    const plate = add(keep(new THREE.PlaneGeometry(1.35, 0.52)), keep(new THREE.MeshBasicMaterial({ map: keep(signTex(String.fromCharCode(65 + i))) })), LOKET.counterU + 0.7, 2.62, v);
+    const plate = add(keep(new THREE.PlaneGeometry(1.5, 0.66)), keep(new THREE.MeshBasicMaterial({ map: keep(signTex(String.fromCharCode(65 + i), 'LOKET')) })), LOKET.glassU, 2.6, v);
     plate.rotation.y = -Math.PI / 2;
   }
-  // the number screen on the back wall, above the counters. The hall counts up
+  // the number screen hangs under the ceiling in front of the counters, facing the queue (it used to float above the counter
+  // with a third of its width through the side wall; at the counter it would hide the B sign from the queue). The hall counts up
   // while the queue moves (M03: 4093, 4101, 4109, then 4117).
   const screenMaps = ['4093', '4101', '4109', '4117'].map((n) => keep(numberTex(n)));
-  const screen = add(keep(new THREE.PlaneGeometry(3.2, 1.2)), keep(new THREE.MeshBasicMaterial({ map: screenMaps[0] })), LOKET.counterU + 0.68, 2.25, 2.9);
+  const screen = add(keep(new THREE.PlaneGeometry(1.4, 0.525)), keep(new THREE.MeshBasicMaterial({ map: screenMaps[0] })), LOKET.screenU, LOKET.screenH, 0);
   screen.rotation.y = -Math.PI / 2;
+  box(0.06, 0.56, 1.48, std(0x171b1e, { roughness: 0.5 }), LOKET.screenU + 0.04, LOKET.screenH, 0); // the case behind the plane
   let screenStep = 0;
   // a small screen on the desk and a stamp + forms at every window
   for (const v of [-1.8, 0, 1.8]) {
-    box(0.06, 0.45, 0.62, std(0x171b1e, { roughness: 0.5 }), LOKET.clerkU + 0.06, LOKET.counterH + 0.3, v);
-    box(0.05, 0.03, 0.32, std(0x0d0f12), LOKET.clerkU + 0.04, LOKET.counterH + 0.05, v);
+    // on the clerk's side, to one side of the clerk (who stands in the middle of the window), on a small foot
+    box(0.06, 0.45, 0.62, std(0x171b1e, { roughness: 0.5 }), LOKET.counterU + 0.78, LOKET.counterH + 0.3, v + 0.6);
+    box(0.16, 0.04, 0.3, std(0x2a2f33), LOKET.counterU + 0.78, LOKET.counterH + 0.05, v + 0.6);
+    box(0.05, 0.03, 0.32, std(0x0d0f12), LOKET.counterU + 0.55, LOKET.counterH + 0.05, v + 0.6);
     box(0.14, 0.06, 0.14, std(0x7a1f1f, { roughness: 0.6 }), LOKET.counterU - 0.15, LOKET.counterH + 0.06, v + 0.7);
     box(0.24, 0.015, 0.32, std(0xf4efe2), LOKET.counterU - 0.25, LOKET.counterH + 0.04, v - 0.5);
   }
   // the queue: posts and a red rope, a number machine, and a plant
   const brass = std(0xb08a4a, { roughness: 0.35, metalness: 0.55 });
   for (const [u, v] of [[-1.7, -1.9], [-1.7, 1.9], [1.0, -1.9], [1.0, 1.9]]) box(0.08, 1.0, 0.08, brass, u, 0.5, v);
-  for (const v of [-1.9, 1.9]) box(2.7, 0.05, 0.05, std(0x8a1f1f, { roughness: 0.7 }), -0.35, 0.93, v);
+  for (const v of [-1.9, 1.9]) box(2.7, 0.07, 0.07, std(0xc02a2a, { roughness: 0.7 }), -0.35, 0.93, v);
   box(0.5, 1.45, 0.42, std(0xd9d4c6, { roughness: 0.55 }), -3.4, 0.73, 2.7);
   box(0.28, 0.3, 0.05, std(0x121816), -3.4, 1.2, 2.48);
   box(0.1, 0.1, 0.02, std(0x63e08a, { emissive: 0x63e08a, emissiveIntensity: 0.6 }), -3.4, 1.2, 2.45);

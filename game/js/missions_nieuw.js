@@ -66,8 +66,8 @@ export function buildNieuwDefs({ map, walk, drive, models = {} }) {
       outro: 'Ingeschreven voor de Noordelijke Snackprijs. Jelle wil de Gouden Eierbal: pak hem eerst. Nieuw doel: naar Bert op het Stationsplein.',
       // #664: geen ruime fail-timer meer; binnen een minuut is de medaille-eis (tag 'snel').
       timeLimit: null,
-      medalTime: 60,
-      tagRows: { snel: ['Medaille', 'Binnen 1:00: het Loket op tijd'] },
+      medalTime: 180, // de klok loopt ook tijdens de gesprekken (ca. twee minuten); 1:00 haalde niemand
+      tagRows: { snel: ['Medaille', 'Binnen 3:00: het Loket op tijd'] },
       tagAdjust: { snel: 40 },
       costRow: ['Inschrijfgeld', '-€150, contant betaald'],
       reward: 0,
@@ -85,7 +85,7 @@ export function buildNieuwDefs({ map, walk, drive, models = {} }) {
           // AAA akte 1: de vier delen van het loket in één regel, en dat het wachten vanzelf gaat
           kaart: {
             doel: 'Schrijf in voor de Noordelijke Snackprijs',
-            druk: 'binnen een minuut geeft een medaille',
+            druk: 'binnen drie minuten geeft een medaille',
             regels: [
               { type: 'stappen', inv: { label: 'Het loket', klaar: 0, stappen: [{ icoon: 'klok', label: 'Wacht in de rij' }, { icoon: 'pakje', label: 'Formulier 7B' }, { icoon: 'hand', label: 'Stempel' }, { icoon: 'pakje', label: 'Inschrijven' }] }, na: 3, duur: 8 },
             ],
@@ -93,7 +93,7 @@ export function buildNieuwDefs({ map, walk, drive, models = {} }) {
         },
         {
           kind: 'scene', label: 'Jelle', kicker: 'Het Loket', script: { ids: ['M03.2'] }, clock: 3,
-          cast: [{ key: 'jelle', pose: 'hold', at: [2.6, 0.8] }, { key: 'bewaarder', pose: 'hips', at: [3.6, -1.2] }],
+          cast: [{ key: 'jelle', pose: 'hold', at: [2.6, 0.8] }, { key: 'bewaarder', pose: 'hips', at: [2.4, -1.5] }],
         },
         {
           // #962: de twee loketbezoeken zijn korte keuzes aan de balie, geen puzzel
@@ -295,7 +295,7 @@ export function applyNieuw(list) {
     duif.aaa = true;
     duif.stages[0].kaart = {
       doel: 'Fotografeer alles wat het museum bewaakt',
-      druk: 'binnen een minuut geeft een medaille',
+      druk: 'binnen drie minuten geeft een medaille',
       regels: [
         { type: 'stappen', inv: { label: 'Zo fotografeer je', klaar: 0, stappen: [{ icoon: 'pijl', label: 'Vlieg erheen' }, { icoon: 'klok', label: 'Zweef even stil' }, { icoon: 'hart', label: 'Klik, op de foto' }] }, na: 10, duur: 8 },
         { type: 'stappen', inv: { label: 'Voortgang', klaar: 1, stappen: [{ icoon: 'hart', label: 'Vliegles' }, { icoon: 'hart', label: 'Camera\'s en bewakers' }, { icoon: 'hart', label: 'Stroomkast' }] }, tekst: 'Meer dan de helft staat op de foto. Nog drie.', bij: 'foto4', duur: 6 },
