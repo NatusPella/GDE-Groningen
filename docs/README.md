@@ -125,6 +125,7 @@ De werkafspraken en de constitutie staan in [../AGENTS.md](../AGENTS.md); die wi
 | [KLEDING-21-11.md](<KLEDING-21-11.md>) | Kleding als eigen systeem: stukken, kast per personage, winkel, NPC-outfits, Samen spelen (epic Kleding). |
 | [KLEDING-TEKSTEN-21-11.md](<KLEDING-TEKSTEN-21-11.md>) | Teksten die kleding noemen: wat is aangepast en wat blijft. |
 | [KLEDING-VERIFICATIE-21-11.md](<KLEDING-VERIFICATIE-21-11.md>) | Wat van de kleding nog in beeld bekeken moet worden. |
+| [KLEDING-CLIPPING-22-11.md](<KLEDING-CLIPPING-22-11.md>) | Kleding en clipping: waarom de pet van Tammo door zijn hoofd stak, de audit van 6.100 combinaties, de reparaties en de test. |
 | [MINIMAP-PIJLEN-21-11.md](<MINIMAP-PIJLEN-21-11.md>) | Pijlen op de minikaart naar het doel. |
 | [KAART-HEADING-21-11.md](<KAART-HEADING-21-11.md>) | Wie ben jij op de kaart: plek en kijkrichting per besturingsmodus (#1141). |
 | [VOETBAL-SIM-21-11.md](<VOETBAL-SIM-21-11.md>) | Voetbal Sim Light in de Euroborg (#981). |
