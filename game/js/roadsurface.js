@@ -17,6 +17,7 @@ import { laneLayout } from './lanes.js';
 import { taperLines, taperLength, taperOffset } from './lanetaper.js';
 import { isMarktFietsRoad, marktFietsSpans, MARKT } from './roadaccess.js';
 import { verfBovenWater } from './waterlevels.js';
+import { geoJobExpired } from './roadbudget.js'; // #1007
 
 // Street surfaces: procedural asphalt / klinkers / stoeptegels / gravel in the
 // shared wet-ground shader, mitred ribbons carrying road-space coordinates,
@@ -1643,15 +1644,25 @@ export const roadGeoRoom = () => roadGeoOpen < ROAD_GEO_OPEN;
 export function roadGeometryReady(r, near = 0) {
   if (r._geoRoad && r._geoMarkQ === qualityVersion) return true;
   if (r._geoMain || !roadWorkerReady()) return true;
-  if (r._geoPending === qualityVersion) return false;
+  if (r._geoPending === qualityVersion) {
+    // #1007: een taak die nooit antwoordt: plek vrij, de hoofdthread bouwt de weg zelf
+    const job = r._geoJob;
+    if (!job || !geoJobExpired(job.at, performance.now())) return false;
+    job.expired = true;
+    roadGeoOpen = Math.max(0, roadGeoOpen - 1);
+    r._geoPending = null;
+    r._geoMain = true;
+    return true;
+  }
   if (roadGeoOpen >= ROAD_GEO_OPEN) return false;
   const q = r._geoPending = qualityVersion;
+  const job = r._geoJob = { at: performance.now(), expired: false };
   roadGeoOpen++;
   const struct = (r.z ? r._geoStruct : r._geoOverDeck) === undefined;
   // near (0..1): a road at the player's feet and in the heading goes out before
   // one at the edge of the view (geojobs.js queue, #247)
   runGeo('roadGeo', { key: roadKey(r), detail, struct }, (res) => {
-    roadGeoOpen--;
+    if (!job.expired) roadGeoOpen--; // een verlopen taak gaf zijn plek al terug
     if (r._geoPending === q) r._geoPending = null;
     if (!res) { r._geoMain = true; return; }
     // the civil works are kept for good; a mismatch builds them here

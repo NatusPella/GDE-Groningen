@@ -104,3 +104,14 @@ Beelden: `917-near-helikopter-70m.png` (de stad op 76 m, niets weggeknipt) en `9
 Bewust niet gebouwd: het gesplitste dieptebereik (de verre laag in een eigen pass). De meting vraagt er niet om: op de plekken die we bekeken, op de grond tot 500 m, verandert geen pixel met near. Pas als de playtest op `normaal` of verder alsnog flikkering op de grond laat zien (de nudge van 4 tot 8 mm tegenover een stap van 7,5 mm op 250 m), is dat de volgende stap; dan met een hoger near op de verre laag, niet met een grotere nudge.
 
 Samen spelen: de camera is lokaal per speler; er gaat niets over het net en een gast regelt zijn eigen near.
+
+
+## Wereldkwaliteit 22-11: alleen met eigen ogen te controleren (#917, #919, #1007, #1009, #1036)
+
+De code-oorzaken die uit de bron te vinden waren, zijn gerepareerd of stonden al op main (zie de issues); wat een test niet kan zien:
+
+- **#917 (z-fighting):** kit tegen kit en gevel tegen gevel op kadastrale grenzen. `zfight_audit` met de provinciale kits vraagt `data/cache/province`; beeldronde op school (-114,-43), Prinsenhof (287,-154) en hoofdstation (-87,966).
+- **#919 (bruggen):** geometrie is bewezen voor alle 411 bruggen op straatniveau; een beweegbare brug dicht, open en tijdens het bewegen is alleen in beeld te beoordelen.
+- **#1007 (grond rond de auto):** hangende wegtaken worden nu na 8 s overgenomen door de hoofdthread (`geoJobExpired`); met een rijdende auto op 0.64.0+ bevestigen dat weg en fietspad meekomen.
+- **#1009 (kaartkleuren):** minikaart, ommelandmap, dag en nacht in beeld; de herkleuring van de oude piramide kan alleen visueel worden beoordeeld.
+- **#1036 (routelijn):** de waakhond herstelt en telt; welke oorzaak de eigenaar zag is niet in beeld bevestigd. De teller staat in de technische info (Routestrook).

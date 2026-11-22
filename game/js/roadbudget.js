@@ -53,3 +53,11 @@ export function createHeavyRoadGate() {
     get waited() { return waited; },
   };
 }
+
+// #1007: een wegtaak bij de geometriewerker die nooit antwoordt (werker hangt, bericht kwijt, geen fout) hield zijn
+// plek in de rij van ROAD_GEO_OPEN en de weg bleef eeuwig "niet klaar": de detailring bleef op 24 m en alleen de verre LOD
+// tekende rond de speler. Na ROAD_GEO_MAX_WAIT_MS geldt de taak als verloren: de plek komt vrij en de hoofdthread bouwt de weg.
+export const ROAD_GEO_MAX_WAIT_MS = 8000;
+export function geoJobExpired(sentAt, now, maxMs = ROAD_GEO_MAX_WAIT_MS) {
+  return Number.isFinite(sentAt) && now - sentAt >= maxMs;
+}

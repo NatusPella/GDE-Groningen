@@ -77,6 +77,13 @@ ok(/roadHeavyGate\.allowed\(built, streamStat\.r, performance\.now\(\)\)/.test(s
   for (let i = 0; i < 20; i++) g6.endFrame(true);
   ok(g6.allowed(0, 0, 5100 + HEAVY_ROAD_MAX_WAIT_MS + 50), 'poort: na de maximale totale wachttijd gaat de rust niet meer voor');
 }
+{
+  const { geoJobExpired, ROAD_GEO_MAX_WAIT_MS } = await import('../game/js/roadbudget.js');
+  ok(!geoJobExpired(1000, 1000 + ROAD_GEO_MAX_WAIT_MS - 1) && geoJobExpired(1000, 1000 + ROAD_GEO_MAX_WAIT_MS), 'geotaak: verloren na de maximale wachttijd (#1007)');
+  ok(!geoJobExpired(undefined, 1e9) && !geoJobExpired(NaN, 1e9), 'geotaak: zonder verzendtijd nooit verlopen');
+  const rs = fs.readFileSync(new URL('../game/js/roadsurface.js', import.meta.url), 'utf8');
+  ok(/geoJobExpired\(job\.at/.test(rs) && /if \(!job\.expired\) roadGeoOpen--/.test(rs), 'roadsurface: een verlopen taak geeft zijn plek terug en valt terug op de hoofdthread');
+}
 ok(/roadSyncStats/.test(src) && /maxPerFrame/.test(src), 'de teller staat klaar');
 console.log(`${n - fails}/${n} roadbudget`);
 process.exit(fails ? 1 : 0);

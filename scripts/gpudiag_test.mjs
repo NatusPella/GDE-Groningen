@@ -128,5 +128,13 @@ ok('de kaart zet en haalt tr-result-open weg', /classList\.add\('tr-result-open'
   ok('gpudiag leest performance.memory niet meer elk beeld', /heapTracker\.due\(now\)/.test(src) && !/if \(performance && performance\.memory\) \{ heap/.test(src));
 }
 
+// #1036: de routestrook-waakhond staat in de technische info
+{
+  const W = await import('../game/js/pathribbonwatch.js');
+  ok('ribbonstats: nul herstel is een rustige regel', W.formatRibbonStats({ repairs: 0, byFault: {} }) === 'geen herstel nodig' && W.formatRibbonStats(null) === 'geen herstel nodig');
+  ok('ribbonstats: telt per reden', /3x hersteld \(verborgen 2, leeg 1\), laatste: leeg/.test(W.formatRibbonStats({ repairs: 3, byFault: { verborgen: 2, leeg: 1 }, last: 'leeg' })));
+  const { formatReport } = await import('../game/js/gpudiag.js');
+  ok('formatReport toont de routestrook', /Routestrook \(waakhond\): geen herstel nodig/.test(formatReport({ routeStrook: 'geen herstel nodig' })));
+}
 console.log(fail ? `${fail} FAILED` : 'all ok');
 process.exit(fail ? 1 : 0);
