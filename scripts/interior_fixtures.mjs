@@ -4,7 +4,7 @@ import { SHOP_KINDS } from '../game/js/winkelkit.js';
 
 export const OSM = { woning: 'house', kantoor: 'office', kerk: 'church', station: 'train_station', bibliotheek: 'library', garage: 'garage', publiek: 'civic', winkel: 'retail', horeca: 'yes' };
 
-export const subsFor = (kind) => (kind === 'winkel' ? SHOP_KINDS.filter((s) => s !== 'kermiskraam') : kind === 'horeca' ? ['cafe', 'kroeg', 'restaurant'] : kind === 'publiek' ? ['gemeente', 'politie', 'apotheek', 'ziekenhuis', 'school', 'hotel', 'sportschool', 'museum', 'bioscoop'] : kind === 'kerk' ? [null, 'kapel', 'gebedshuis'] : kind === 'garage' ? ['werkplaats', 'magazijn'] : kind === 'woning' ? [null, 'studentenkamer'] : [null]);
+export const subsFor = (kind) => (kind === 'winkel' ? SHOP_KINDS.filter((s) => s !== 'kermiskraam') : kind === 'horeca' ? ['cafe', 'kroeg', 'restaurant'] : kind === 'publiek' ? ['gemeente', 'politie', 'apotheek', 'ziekenhuis', 'school', 'hotel', 'sportschool', 'museum', 'bioscoop'] : kind === 'kerk' ? [null, 'kapel', 'gebedshuis'] : kind === 'garage' ? ['werkplaats', 'magazijn', 'schuur', 'box', 'stal', 'kas'] : kind === 'woning' ? [null, 'studentenkamer', 'appartement'] : [null]);
 
 // b + de spot (kindOfFacility-uitkomst) voor planInterior
 export function building(kind, sub, w, d, rnd) {
@@ -18,6 +18,6 @@ export function building(kind, sub, w, d, rnd) {
   };
   const b = { pts, bounds: [0, 0, w, d], type: sub === 'studentenkamer' ? 'dormitory' : sub === 'kapel' ? 'chapel' : sub === 'gebedshuis' ? 'religious' : OSM[kind], entrance: en, sd: [w / 2 + Math.floor(rnd() * 1000), d / 2] };
   if (kind === 'winkel') b.shopFront = { type: sub };
-  const spot = kind === 'horeca' || kind === 'publiek' || kind === 'garage' ? { kind, sub } : null;
+  const spot = kind === 'horeca' || kind === 'publiek' || kind === 'garage' || sub === 'appartement' ? { kind, sub } : null;
   return { b, spot };
 }

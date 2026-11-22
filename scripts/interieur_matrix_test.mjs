@@ -5,7 +5,7 @@
 import './node3d.mjs';
 import { variantMatrix, renderMatrix } from './interieur_dekking_audit.mjs';
 import { building, subsFor } from './interior_fixtures.mjs';
-import { KINDS, KIND_IDS } from '../game/js/interiorkinds.js';
+import { KINDS, KIND_IDS, hallMinOf } from '../game/js/interiorkinds.js';
 import { planInterior } from '../game/js/interiorrules.js';
 import { MAX_ACTORS } from '../game/js/interioractivity.js';
 import { DESK_SUBS, productFor } from '../game/js/interiorbuy.js';
@@ -18,16 +18,18 @@ const ok = (c, m, info = '') => { n++; if (!c) { bad++; console.error('FAIL', m 
 // --- de matrix ---
 const rows = variantMatrix();
 const key = (r) => r.kind + (r.sub ? '/' + r.sub : '');
-ok(rows.length >= 33, 'minstens 33 varianten in de matrix', String(rows.length));
+ok(rows.length >= 39, 'minstens 39 varianten in de matrix', String(rows.length));
 ok(rows.every((r) => r.ok === r.tries), 'elk recept slaagt op elke proefhal', rows.filter((r) => r.ok !== r.tries).map(key).join());
 ok(rows.every((r) => r.items >= 15), 'elke variant heeft meer dan 15 items gemiddeld', rows.filter((r) => r.items < 15).map(key).join());
-ok(rows.every((r) => r.rollen.length >= 1), 'elke variant heeft mensen', rows.filter((r) => !r.rollen.length).map(key).join());
+// r7: een schuur, een garagebox en een kas zijn leeg (niemand staat in een schuurtje); de stal heeft een boer, het appartement een bewoner
+const LEEG = new Set(['garage/schuur', 'garage/box', 'garage/kas']);
+ok(rows.filter((r) => !LEEG.has(key(r))).every((r) => r.rollen.length >= 1), 'elke variant heeft mensen (behalve schuur, box en kas)', rows.filter((r) => !r.rollen.length && !LEEG.has(key(r))).map(key).join());
 ok(rows.every((r) => !r.zonderSchema.length), 'elke rol heeft een eigen schema', rows.map((r) => r.zonderSchema.join()).join(''));
 ok(rows.every((r) => !r.zonderKleding.length), 'elke rol heeft een kledingpool', rows.map((r) => r.zonderKleding.join()).join(''));
 ok(rows.every((r) => r.eigenDrukte), 'elke variant heeft een eigen drukte per uur', rows.filter((r) => !r.eigenDrukte).map(key).join());
 ok(rows.filter((r) => r.use.includes('balie')).every((r) => r.eigenBalieregels), 'elke balie heeft regels die bij de variant passen', rows.filter((r) => r.use.includes('balie') && !r.eigenBalieregels).map(key).join());
 // wat er aan een balie te koop is: de desk-varianten verkopen iets; wie niets verkoopt staat bewust in deze lijst
-const NIETS_TE_KOOP = new Set(['kantoor', 'woning', 'woning/studentenkamer', 'kerk', 'kerk/kapel', 'kerk/gebedshuis', 'station', 'bibliotheek', 'publiek/gemeente', 'publiek/politie', 'publiek/ziekenhuis', 'publiek/school']);
+const NIETS_TE_KOOP = new Set(['kantoor', 'woning', 'woning/studentenkamer', 'kerk', 'kerk/kapel', 'kerk/gebedshuis', 'station', 'bibliotheek', 'publiek/gemeente', 'publiek/politie', 'publiek/ziekenhuis', 'publiek/school', 'woning/appartement', 'garage/schuur', 'garage/box', 'garage/stal', 'garage/kas']);
 for (const r of rows) {
   const k = key(r);
   if (NIETS_TE_KOOP.has(k)) ok(!r.koop, k + ': bewust niets te koop');
@@ -46,7 +48,8 @@ for (const r of rows) {
   const K = KINDS[r.kind];
   const tris = [];
   for (const [fw, fd] of [[0, 0], [5, 6], [11, 13]]) {
-    const w = K.minW + 1.2 + fw * (r.kind === 'kerk' || r.kind === 'station' ? 1.5 : 1), d = K.minD + 1.5 + fd * (r.kind === 'kerk' ? 1.8 : 1);
+    const mn = hallMinOf(r.kind, r.sub);
+    const w = mn.w + 1.2 + fw * (r.kind === 'kerk' || r.kind === 'station' ? 1.5 : 1), d = mn.d + 1.5 + fd * (r.kind === 'kerk' ? 1.8 : 1);
     const x = building(r.kind, r.sub, w, d, rnd);
     const t0 = performance.now();
     const plan = planInterior(x.b, { spot: x.spot, upper: false });

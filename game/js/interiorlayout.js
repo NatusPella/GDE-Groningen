@@ -317,8 +317,26 @@ function officeRecipe(p) {
   p.palette = { wall: 0xe2e5e9, floor: 0x5a6068, floorPattern: 1, accent: 0x3a6ad8, ceil: 0xf4f5f7 };
 }
 
+// The communal entrance of an apartment building (r7): a portico with letterboxes, bikes and a plant, a partition with a door to the ground-floor flat behind it.
+// The stair to the other floors is not walkable (the flats above are not modelled): the flat behind the door is the one that can be entered.
+function apartmentRecipe(p) {
+  const H = p.hall, W = p.W;
+  const lobbyEnd = H.v0 + 2.6;
+  p.run(H, 'left', 'locker', 0.45, 0.35, H.v0 + 1.7, lobbyEnd - 0.15, { h: 1.1, color: 0x9a9ea4 });
+  p.add('bike', H.u1 - 0.4, H.v0 + 2.0, 1.5, 0.5, FACE.W, { h: 1.0, color: 0x3a3c3e });
+  p.add('plant', H.u1 - 0.4, lobbyEnd - 0.45, 0.5, 0.5, FACE.W, { h: 1.1 });
+  p.partition('u', lobbyEnd, H.u0, H.u1, H.u0 + Math.max(1.3, Math.min(W * 0.4, W - 1.3)), 1.0);
+  p.rooms.push({ id: 'portiek', role: 'portiek', u0: H.u0, u1: H.u1, v0: H.v0, v1: lobbyEnd - PART_T / 2 });
+  const full = p.hall;
+  p.hall = { ...full, v0: lobbyEnd + PART_T / 2 };
+  const palette = (() => { homeRecipe(p); return p.palette; })();
+  p.hall = full;
+  p.palette = palette;
+}
+
 function homeRecipe(p, sub) {
   if (sub === 'studentenkamer') return studentRecipe(p);
+  if (sub === 'appartement') return apartmentRecipe(p);
   const H = p.hall, W = p.W, D = p.D;
   const look = p.look || {};
   const living = { ...H, v1: H.v0 + Math.max(3.2, D * 0.55) };
@@ -454,7 +472,71 @@ function warehouseRecipe(p) {
   void W; void D;
 }
 
+// --- r7 (22-11): bijgebouwen en de portiek van een appartementencomplex ------------------------------------------------------------------
+// De hal van een bijgebouw is klein (een schuur vanaf 2,0 x 2,2 m): alleen wandschappen, een paar losse dingen en niets in de weg van de deur. Zonder mensen.
+function shedRecipe(p) {
+  const H = p.hall, W = p.W, D = p.D;
+  const wood = [0x8a6a44, 0x7a5a38, 0x9a7a50][Math.floor(p.rnd() * 3)];
+  p.run(H, 'back', 'shelf', 0.9, 0.35, H.u0 + 0.1, H.u1 - 0.1, { h: 1.9, color: wood }, 0.04, 0.1);
+  if (D >= 3.2) p.run(H, 'left', 'toolwall', 1.2, 0.2, H.v0 + 1.7, H.v1 - 0.4, { h: 1.0, solid: false, y0: 1.0 });
+  if (W >= 2.8 && D >= 3.2) p.add('bike', H.u1 - 0.4, H.v0 + D * 0.55, 1.6, 0.5, FACE.W, { h: 1.0, color: [0x2f6fb8, 0x3a3c3e, 0x9a2a2a][Math.floor(p.rnd() * 3)] });
+  p.add('bucket', H.u0 + 0.35, H.v1 - 0.5, 0.35, 0.35, FACE.DOOR, { h: 0.35, color: 0x2f6a8a });
+  if (W >= 2.6) p.add('crate', H.u1 - 0.4, H.v1 - 0.45, 0.5, 0.4, FACE.DOOR, { h: 0.45, color: 0xb8956a });
+  if (p.chance(0.5) && W >= 3) p.add('barrel', H.u0 + 0.45, H.v0 + 2.2, 0.55, 0.55, FACE.DOOR, { h: 0.9, color: 0x2f6a8a });
+  p.useAt('rondkijken', H.u0 + W / 2, H.v0 + 1.2, 1.2, { face: FACE.BACK });
+  p.palette = { wall: 0xb8a078, floor: 0x7a6a56, floorPattern: 0, accent: 0x6a4a2a, ceil: 0xa8946c };
+}
+
+// A garage box: long and narrow, a car in the middle on a pit-free floor is too much; shelves with spares, a workbench at the back, tyres and cans.
+function garageBoxRecipe(p) {
+  const H = p.hall, W = p.W, D = p.D;
+  p.run(H, 'back', 'shelf', 0.9, 0.4, H.u0 + 0.1, H.u1 - 0.1, { h: 1.9, color: 0x5a6a7a }, 0.04, 0.1);
+  if (D >= 3.6) p.run(H, 'left', 'shelf', 0.9, 0.4, H.v0 + 1.8, H.v1 - 0.5, { h: 1.9, color: 0x5a6a7a }, 0.04, 0.1);
+  if (D >= 4.4) p.add('workbench', H.u1 - 0.4, H.v1 - 1.3, 1.6, 0.6, FACE.W, { h: 0.95 });
+  p.add('tyres', H.u1 - 0.5, H.v0 + 2.3, 0.8, 0.8, FACE.W, { h: 0.9 });
+  p.add('barrel', H.u0 + 0.5, H.v1 - 0.5, 0.5, 0.5, FACE.DOOR, { h: 0.9, color: [0xc2423a, 0x2f6a8a][Math.floor(p.rnd() * 2)] });
+  if (W >= 2.8) p.add('crate', H.u1 - 0.45, H.v0 + 3.3, 0.5, 0.4, FACE.W, { h: 0.45, color: 0xa0825a });
+  p.useAt('rondkijken', H.u0 + W / 2, H.v0 + 1.6, 1.3, { face: FACE.BACK });
+  p.palette = { wall: 0xbfc2c4, floor: 0x6a6c6e, floorPattern: 0, accent: 0xc98a16, ceil: 0xb0b4b8 };
+}
+
+// A barn or a stable: bales of hay (crates in straw yellow), a feeding trough along the wall, buckets, a workbench, and a farmer who feeds and tidies.
+function barnRecipe(p) {
+  const H = p.hall, W = p.W, D = p.D;
+  const hay = [0xd8b858, 0xc8a848, 0xe0c068];
+  for (let i = 0; i < Math.min(8, Math.floor(W * D / 14)); i++) p.add('crate', H.u1 - 0.7 - (i % 2) * 0.9, H.v1 - 0.6 - Math.floor(i / 2) * 0.6, 0.8, 0.5, FACE.W, { h: 0.5, color: hay[i % 3] });
+  p.run(H, 'left', 'bench', 1.6, 0.45, H.v0 + 2.2, H.v1 - 1.0, { h: 0.55, color: 0x6a4a2a }, 0.3); // the trough along the wall
+  p.run(H, 'back', 'shelf', 1.2, 0.5, H.u0 + 0.3, H.u1 - 2.4, { h: 1.9, color: 0x7a5a38 }, 0.2, 0.3);
+  p.add('bucket', H.u0 + 1.4, H.v0 + 2.4, 0.35, 0.35, FACE.DOOR, { h: 0.35, color: 0x7a7a80 });
+  p.add('barrel', H.u1 - 0.5, H.v0 + 2.2, 0.6, 0.6, FACE.W, { h: 0.9, color: 0x4a6a3a });
+  p.add('workbench', H.u0 + 0.5, H.v1 - 0.9, 0.8, 1.6, FACE.E, { h: 0.95 });
+  if (p.chance(0.7)) p.npcAt('boer', H.u0 + W * 0.55, H.v0 + D * 0.5, FACE.BACK, 'stand');
+  p.useAt('rondkijken', H.u0 + W / 2, H.v0 + 2.2, 1.4, { face: FACE.BACK });
+  p.palette = { wall: 0x9a7a54, floor: 0x8a7a5a, floorPattern: 0, accent: 0x5a3a1a, ceil: 0x7a5a38 };
+}
+
+// A greenhouse: tables with plants in rows, crates, a watering point; warm light.
+function greenhouseRecipe(p) {
+  const H = p.hall, W = p.W, D = p.D;
+  const mid = H.u0 + W / 2, aisle = 0.9;
+  for (let v = H.v0 + 1.9; v < H.v1 - 0.4; v += 1.3) for (const side of [-1, 1]) {
+    const bw = Math.min(1.4, (W - aisle) / 2 - 0.1);
+    if (bw < 0.5) continue;
+    p.add('table', mid + side * (aisle / 2 + bw / 2), v, bw, 0.7, FACE.DOOR, { h: 0.8, color: 0xdad6cc });
+    p.add('plant', mid + side * (aisle / 2 + bw / 2), v, bw * 0.8, 0.5, FACE.DOOR, { h: 1.0 + p.rnd() * 0.4 });
+  }
+  p.add('sink', H.u0 + 0.35, H.v1 - 0.45, 0.6, 0.5, FACE.DOOR, { h: 0.9 });
+  p.add('crate', H.u1 - 0.4, H.v1 - 0.45, 0.5, 0.4, FACE.DOOR, { h: 0.45, color: 0xb8956a });
+  p.useAt('rondkijken', mid, H.v0 + 1.2, 1.2, { face: FACE.BACK });
+  p.palette = { wall: 0xcfe0d2, floor: 0x8a8a7a, floorPattern: 0, accent: 0x2f7a3a, ceil: 0xe8f0e8 };
+  void D;
+}
+
 function garageRecipe(p, sub) {
+  if (sub === 'schuur') return shedRecipe(p);
+  if (sub === 'box') return garageBoxRecipe(p);
+  if (sub === 'stal') return barnRecipe(p);
+  if (sub === 'kas') return greenhouseRecipe(p);
   if (sub === 'magazijn') return warehouseRecipe(p);
   const H = p.hall, W = p.W, D = p.D;
   const lu = H.u0 + W * 0.5;

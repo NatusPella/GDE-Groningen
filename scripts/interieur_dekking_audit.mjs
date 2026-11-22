@@ -14,7 +14,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
-import { KINDS, KIND_IDS, NOT_ENTERABLE, HOME_OPEN_SHARE, kindOfBuilding } from '../game/js/interiorkinds.js';
+import { KINDS, KIND_IDS, NOT_ENTERABLE, NOT_ENTERABLE_WHY, BIJGEBOUW_SUBS, HOME_OPEN_SHARE, kindOfBuilding } from '../game/js/interiorkinds.js';
 import { planInterior } from '../game/js/interiorrules.js';
 import { SHOP_KINDS } from '../game/js/winkelkit.js';
 import { mulberry32 } from '../game/js/rng.js';
@@ -37,6 +37,7 @@ export const KNOWN_TYPES = [
   'garage', 'garages', 'service', 'industrial', 'warehouse', 'factory', 'workshop',
   'civic', 'public', 'government', 'hospital', 'school', 'hotel', 'university', 'college', 'kindergarten', 'sports_centre', 'sports_hall', 'fitness_centre', 'museum', 'cinema',
   'farm', 'villa', 'chalet', 'hangar', 'riding_hall', 'data_center', 'religious', 'monastery', 'mosque', 'synagogue', 'temple',
+  'shed', 'outbuilding', 'hut', 'cabin', 'boathouse', 'barn', 'farm_auxiliary', 'cowshed', 'stable', 'livestock', 'sty', 'agricultural', 'greenhouse', // r7: bijgebouwen met een kamer
   'yes', ...NOT_ENTERABLE,
 ];
 
@@ -109,7 +110,7 @@ export function typeTable() {
   for (const type of KNOWN_TYPES) {
     for (const h of type === 'yes' ? [3, 8] : [0]) {
       const k = kindOfBuilding({ type, pts: [], h });
-      rows.push({ type: type === 'yes' ? 'yes (' + h + ' m)' : type, kind: k ? k.kind : null, sub: k ? k.sub : null, betreedbaar: !!k, reden: k ? '' : NOT_ENTERABLE.has(type) ? 'bewust niet: geen kamer' : 'geen soort' });
+      rows.push({ type: type === 'yes' ? 'yes (' + h + ' m)' : type, kind: k ? k.kind : null, sub: k ? k.sub : null, betreedbaar: !!k, reden: k ? '' : NOT_ENTERABLE.has(type) ? 'bewust niet: ' + (NOT_ENTERABLE_WHY[type] || 'geen kamer') : 'geen soort' });
     }
   }
   return rows;
@@ -154,6 +155,7 @@ export function phases(records, agg, recipes = recipeTable()) {
     fase1: { naam: 'Winkels en voorzieningen', betreedbaar: sum((r) => r.ok && r.kind !== 'woning'), poiBetreedbaar: records.filter((r) => r.poi && r.ok).length, poiNiet: records.filter((r) => r.poi && !r.ok).length, perSoort: Object.fromEntries(Object.entries(kinds).map(([k, v]) => [k, Math.round(v)])) },
     fase2: { naam: 'Variatie per soort', varianten: recipes.filter((r) => r.sub).length, metRecept: subsWithRecipe.size, gezien: subsSeen.size, zonderRecept: recipes.filter((r) => r.ok === 0).map((r) => r.kind + '/' + r.sub) },
     fase3: { naam: 'Woningen', betreedbaar: homes, openHuis: Math.round(homes * HOME_OPEN_SHARE), metEtage: sum((r) => r.ok && r.kind === 'woning' && r.levels === 2) },
+    fase5: { naam: 'Bijgebouwen en portieken (r7)', bijgebouwen: sum((r) => r.ok && r.kind === 'garage' && BIJGEBOUW_SUBS.includes(r.sub)), perSoort: Object.fromEntries(BIJGEBOUW_SUBS.map((s) => [s, sum((r) => r.ok && r.kind === 'garage' && r.sub === s)])), portieken: sum((r) => r.ok && r.kind === 'woning' && r.sub === 'appartement') },
     fase4: { naam: 'Dorpen en de Ommelanden', stadBetreedbaar: cityOk, buitenBetreedbaar: ruralOk, stadPanden: cityAll, buitenPanden: ruralAll, buitenAandeel: ruralAll ? Math.round(ruralOk / ruralAll * 1000) / 10 : 0 },
   };
 }
@@ -172,6 +174,7 @@ export function render(agg, ph, recipes) {
     out.push('Fase 1 ' + f.naam + ': ' + f.betreedbaar + ' betreedbaar; panden met een plek: ' + f.poiBetreedbaar + ' betreedbaar, ' + f.poiNiet + ' niet; ' + lst(f.perSoort));
     out.push('Fase 2 ' + g.naam + ': ' + g.metRecept + ' van ' + g.varianten + ' varianten hebben een recept; ' + g.gezien + ' in de data gezien' + (g.zonderRecept.length ? '; zonder recept: ' + g.zonderRecept.join(', ') : ''));
     out.push('Fase 3 ' + h.naam + ': ' + h.betreedbaar + ' betreedbaar, ca. ' + h.openHuis + ' open huis (' + Math.round(HOME_OPEN_SHARE * 100) + '%), ' + h.metEtage + ' met tweede verdieping');
+    if (ph.fase5) out.push('Fase 5 ' + ph.fase5.naam + ': ' + ph.fase5.bijgebouwen + ' bijgebouwen (' + lst(ph.fase5.perSoort) + '), ' + ph.fase5.portieken + ' appartementencomplexen met een portiek');
     out.push('Fase 4 ' + i.naam + ': stad ' + i.stadBetreedbaar + ' van ' + i.stadPanden + ', buiten de stad ' + i.buitenBetreedbaar + ' van ' + i.buitenPanden + ' (' + i.buitenAandeel + '%)');
   }
   if (recipes) {
