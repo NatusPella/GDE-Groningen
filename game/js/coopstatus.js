@@ -69,6 +69,8 @@ const BIJBAAN = {
   rondvaart: WERKT, veerdienst: WERKT, rechtbank: WERKT,
   // #683: de vijf banen uit het groeipad, elk met een eigen E-hulp (mede-optreder, tweede balie, handhaver, bemanning, helper).
   cabaret: WERKT, loket: WERKT, snackoverlast: WERKT, tjalke: WERKT, bietenoogst: WERKT,
+  // het bijbanenpakket van 22-11: drie banen te voet met een E-hulp; de vismarktkoerier (fiets) doet ieder in het eigen spel
+  studentenfeest: WERKT, marktkraam: WERKT, toeristengids: WERKT, vismarktkoerier: NEE,
   boerderij: NEE, // de trekker
   rondvaarttour: WERKT, // #819: de ontspannen tour is een passagiersrol; de fooi wordt gedeeld
   boa: NEE, fietsdepot: NEE, lijn: NEE, verhuizing: NEE,
@@ -159,6 +161,7 @@ const SAMEN_KAN = [
   ['bijbaan', 'rondvaart', 'de rondvaart'], ['bijbaan', 'rondvaarttour', 'de ontspannen rondvaart'], ['bijbaan', 'veerdienst', 'de veerdienst'], ['bijbaan', 'rechtbank', 'de rechtbank'],
   ['bijbaan', 'cabaret', 'het cabaret'], ['bijbaan', 'loket', 'het loket'], ['bijbaan', 'snackoverlast', 'de snackoverlast'],
   ['bijbaan', 'tjalke', 'de tjalke'], ['bijbaan', 'bietenoogst', 'de bietenoogst'],
+  ['bijbaan', 'studentenfeest', 'het studentenfeest'], ['bijbaan', 'marktkraam', 'de boerenmarktkraam'], ['bijbaan', 'toeristengids', 'de toeristengids'],
   ['activiteit', 'hengelen', 'hengelen'], ['activiteit', 'pannenkoek', 'pannenkoeken bakken'],
   ['activiteit', 'carillon', 'de beiaard'], ['activiteit', 'boeren', 'boeren'],
   ['minigame', 'padel', 'padel'], ['activiteit', 'kartbaan', 'karten'], ['activiteit', 'pitchputt', 'golf'],

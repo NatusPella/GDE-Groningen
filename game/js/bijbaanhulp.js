@@ -25,7 +25,7 @@ export function hulpStap(help) {
 
 // De extra fooi per hulpje, bovenop de gewone rondebeloning. De gast krijgt die via de gedeelde beloning;
 // de host ziet hem in zijn eigen loon terug omdat de basis met dezelfde tip omhoog gaat (sidejobs.js).
-const HULP_TIP = { kabaret: 0, balie: 10, handhaver: 15, bemanning: 10, oogst: 12 };
+const HULP_TIP = { kabaret: 0, balie: 10, handhaver: 15, bemanning: 10, oogst: 12, bar: 8, kraam: 8, gids: 10 }; // bar, kraam en gids: het bijbanenpakket van 22-11 (sidejob_pack.js)
 
 export function hulpTip(soort, help) {
   const n = Math.min(HULP_MAX, Math.max(0, help | 0));

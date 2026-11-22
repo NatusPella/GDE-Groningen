@@ -145,7 +145,8 @@ const bronIds = () => {
   const uit = (f, re) => { const s = fs.readFileSync(JS + f, 'utf8'); for (const m of s.matchAll(re)) ids.add(m[1]); };
   for (const f of fs.readdirSync(JS).filter((x) => /^sidejob_(?!keuze|bijbaan|paneel|stad|kit|voice)[a-z]+\.js$/.test(x))) uit(f, /^\s*id: '([a-z]+)',/gm);
   uit('keuzewerk.js', /^\s*id: '([a-z]+)',/gm);
-  uit('bijbaanregels.js', /^\s*id: '([a-z]+)', naam:/gm);
+  uit('sidejobpack_rules.js', /^\s*id: '([a-z]+)', name:/gm); // het bijbanenpakket van 22-11 (sidejob_pack.js)
+  uit('bijbaanregels.js',/^\s*id: '([a-z]+)', naam:/gm);
   uit('sidejob_stad.js', /^\s{2}(museumbus|suikerbieten|herstelploeg|oogtv|telefoonrave|vandermeden|schouwburg|bernardrit)\b/gm);
   uit('zeeschipvaart.js', /^\s*id: '([a-z]+)',/gm); // de zeeschip-bijbanen (#438): hun id staat bij de haven
   return ids;

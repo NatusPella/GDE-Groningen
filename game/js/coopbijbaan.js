@@ -44,6 +44,10 @@ export const BIJBAAN_REGELS = {
   loket: { rol: 'tweede balie', hulp: 'Help met {E} aan de tweede balie: elke klant die je overneemt is extra fooi voor jullie beiden.', positie: true, actie: true },
   snackoverlast: { rol: 'handhaver', hulp: 'Loop mee en help met {E}: je fluit de groep tot bedaren en dat levert een extra fooi op.', positie: true, actie: true },
   tjalke: { rol: 'bemanning', hulp: 'Zit naast de chauffeur en help met {E} met de kaart en de route; elke hulp maakt de rit meer waard.', positie: false, actie: true },
+  // het bijbanenpakket van 22-11: drie banen te voet met een E-hulp (extra fooi, bijbaanhulp.js); de vismarktkoerier blijft in het eigen spel
+  studentenfeest: { rol: 'tweede barkeeper', hulp: 'Loop mee naar de bar en help met {E}: je schenkt mee en dat levert een extra fooi op voor jullie beiden.', positie: true, actie: true },
+  marktkraam: { rol: 'kraamhulp', hulp: 'Loop mee naar de kraam en help met {E}: je pakt de zakjes aan en dat levert een extra fooi op voor jullie beiden.', positie: true, actie: true },
+  toeristengids: { rol: 'mede-gids', hulp: 'Loop mee met de groep en help met {E}: je vult het verhaal aan en dat levert een extra fooi op voor jullie beiden.', positie: true, actie: true },
   bietenoogst: { rol: 'helper', hulp: 'Help met {E} op de akker: je trekt bieten los en laadt mee; elke hulp geeft extra loon.', positie: true, actie: true },
 };
 export const bijbaanMetCoop = (id) => Object.prototype.hasOwnProperty.call(BIJBAAN_REGELS, id);

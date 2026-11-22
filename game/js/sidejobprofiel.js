@@ -17,6 +17,7 @@ export const KANTOORKLUS = new Set([
   'loket', 'studiestaat', 'vigilantia', 'promotie', 'kamerkoning', 'wolkenhal', 'helix', 'niemeyer', 'bernard', 'energielabel',
   'strandpost', 'kermisdraai', 'brugdienst',
   'rechtbank', 'cabaret', 'boa', 'snackoverlast',
+  'studentenfeest', 'marktkraam', 'toeristengids', // het bijbanenpakket van 22-11 (sidejob_pack.js); de vismarktkoerier is een dienst
 ]);
 
 export const familieVan = (id) => (KANTOORKLUS.has(id) ? 'kantoorklus' : 'dienst');
