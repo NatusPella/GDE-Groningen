@@ -9,6 +9,7 @@ import { busMagWeg, stepRunner, pointAt as linePointAt } from '../busroutes.js';
 import { trafficSignalsNear, trafficLightPhaseMove } from '../trafficlights.js';
 import { roadPriority, junctionArm } from '../junctions.js';
 import { sirenYield, zebraSpeedLimit } from '../trafficyield.js';
+import { hornYield, hornAsideSpeed, HORN_ASIDE_HOLD, HORN_BACK_DELAY, HORN_BACK_LEN, HORN_BACK_COOLDOWN } from '../hornreact.js';
 import { bridgeSpeedLimit } from '../movablebridges.js';
 import { vehicleHooks } from '../vehiclehooks.js';
 import { hoofdspeler } from '../players.js';
@@ -1013,7 +1014,11 @@ export function updateTrafficAI(v, dt, map, world, rng = Math.random, opts = nul
   const small0 = v.isBike || v.isScooter;
   // make way for lights and sirens: hug the kerb, slow down, stop when close
   const yielding = !chase && !v.sirenOn && sirenYield(v, world);
-  if (yielding) { v.laneMode = 'yield'; v.laneModeUntil = world.time + 1.2; v.yieldHard = yielding === 'stop'; }
+  // a human driver honks right behind us: most make way along the kerb, some honk back (hornreact.js)
+  const honked = !yielding && !chase && !v.sirenOn ? hornYield(v, world) : null;
+  if (honked === 'aside') { v.laneMode = 'yield'; v.laneModeUntil = world.time + HORN_ASIDE_HOLD; v.yieldHard = false; v.yieldSoft = true; }
+  else if (honked === 'honk' && world.time > (v.hornBackAt || -99) + HORN_BACK_COOLDOWN) v.hornBackAt = world.time + HORN_BACK_DELAY;
+  if (yielding) { v.laneMode = 'yield'; v.laneModeUntil = world.time + 1.2; v.yieldHard = yielding === 'stop'; v.yieldSoft = false; }
   else if (!small0 && !chase && (!v.laneMode || v.laneMode === 'left')) v.laneMode = wantsTurnLane(v) ? 'left' : null;
   if (goal && world.time - (v.planAt || 0) > 1.5) {
     v.planAt = world.time;
@@ -1068,7 +1073,7 @@ export function updateTrafficAI(v, dt, map, world, rng = Math.random, opts = nul
   }
   if (creeping) vTarget = Math.min(vTarget, 2.5);
   if (v.laneMode === 'pass') vTarget = Math.min(vTarget, 4);
-  if (v.laneMode === 'yield') vTarget = Math.min(vTarget, v.yieldHard ? 0 : small0 ? 2 : 3.5);
+  if (v.laneMode === 'yield') vTarget = Math.min(vTarget, v.yieldHard ? 0 : v.yieldSoft ? hornAsideSpeed(cruise) : small0 ? 2 : 3.5);
 
   // Gridlock (junction standoff, head-on in a narrow street, an abandoned
   // car in the lane): after a while stop yielding to cross/oncoming traffic
@@ -1083,7 +1088,7 @@ export function updateTrafficAI(v, dt, map, world, rng = Math.random, opts = nul
   }
   const blockedByPlayer = (walkerV < 0.5 || (!!o && o.driver === 'player' && follow.vmax < 0.5)) && Math.abs(v.speed) < 0.5;
   v.hornFor = blockedByPlayer ? (v.hornFor || 0) + dt : 0;
-  v.horn = v.hornFor > 1.5 && v.hornFor < 2.2;
+  v.horn = (v.hornFor > 1.5 && v.hornFor < 2.2) || (v.hornBackAt != null && world.time >= v.hornBackAt && world.time < v.hornBackAt + HORN_BACK_LEN);
   v.stuckFor = Math.abs(v.speed) < 0.6 && vTarget > 2 ? (v.stuckFor || 0) + dt : 0;
   // what holds a car that wants to stand still (the junction sim test reads it)
   v._why = vTarget >= 0.5 ? null : follow.vmax < 0.5 ? 'queue' : lightV < 0.5 ? 'light' : walkerV < 0.5 ? 'walker' : yieldV < 0.5 ? 'yield' : 'other';
