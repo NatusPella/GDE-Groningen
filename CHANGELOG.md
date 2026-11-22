@@ -13,6 +13,7 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ### Beleving en sfeer (sprint 22-11)
 
+- Ren je rakelings langs een passant (zonder aan te raken), dan roept die je geschrokken na ("Hé, kijk uit!"), met afkoeltijd per persoon en niet als je gezocht wordt. Samen spelen: lokaal.
 - Een beschadigde motor sputtert: onder de 40% gezondheid hoest hij af en toe als je gas geeft, vaker naarmate het erger wordt, met een ondertitel ("motor sputtert"). Samen spelen: lokaal geluid van het voertuig dat jij bestuurt.
 - Toeter je naar iemand die voor je auto loopt, dan draait die zich om en moppert terug ("Ja, ja, ik loop al!"), met afkoeltijd per persoon zodat het geen geklets wordt. Samen spelen: lokaal, passanten zijn per spel.
 - Passanten groeten je nu ook als je rustig te voet langs loopt: soms een zwaai, soms een "Moi!". Nooit als je rent, rijdt, een wapen op hebt of gezocht wordt, en nooit een heel koor tegelijk. Samen spelen: lokaal per speler, een gast ziet de zwaai al via de bestaande groetvlag.

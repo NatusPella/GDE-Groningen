@@ -1,5 +1,5 @@
 // Passanten groeten de speler te voet (game/js/pedgreet.js, 22-11).
-import { makeGreetState, canGreet, greetOutcome, markGreeted, GREET_LINES, GREET_PED_COOLDOWN_S, GREET_GLOBAL_GAP_S, GREET_MAX_PLAYER_SPEED } from '../game/js/pedgreet.js';
+import { sprintPassStartles, SPRINT_PASS_LINES, SPRINT_PASS_COOLDOWN_S, makeGreetState, canGreet, greetOutcome, markGreeted, GREET_LINES, GREET_PED_COOLDOWN_S, GREET_GLOBAL_GAP_S, GREET_MAX_PLAYER_SPEED } from '../game/js/pedgreet.js';
 let n = 0, fails = 0;
 const ok = (c, name, info = '') => { n++; if (!c) { fails++; console.log(`FAIL ${name} ${info}`); } };
 const player = { x: 0, y: 0, speed: 1.5, inVehicle: null };
@@ -30,5 +30,19 @@ ok(!canGreet(g, 10, ped({ speechUntil: 12 }), player, { roll: 0 }), 'niet midden
   for (let i = 0; i < 40; i++) { const o = greetOutcome(0, 0, i / 40); ok(GREET_LINES.includes(o.line), 'regel is bekend'); }
 }
 ok(GREET_LINES.every((l) => !/de Grunn|sneeuw|winter/i.test(l)), 'regels volgen de constitution');
+// rakelings voorbij gerend
+{
+  const run = { x: 0, y: 0, speed: 7.5, inVehicle: null };
+  ok(sprintPassStartles(10, ped(), run, { gap: 0.6, roll: 0 }), 'sprint op 0,6 m langs: schrikt');
+  ok(!sprintPassStartles(10, ped(), { ...run, speed: 2.5 }, { gap: 0.6, roll: 0 }), 'wandelen schrikt niemand');
+  ok(!sprintPassStartles(10, ped(), run, { gap: 0, roll: 0 }), 'aanraking is voor checkBump');
+  ok(!sprintPassStartles(10, ped(), run, { gap: 2, roll: 0 }), 'te ver voor een schrik');
+  ok(!sprintPassStartles(10, ped(), run, { gap: 0.6, roll: 0, wanted: 2 }), 'bij wanted is rennen logisch');
+  ok(!sprintPassStartles(10, ped(), run, { gap: 0.6, roll: 0.9 }), 'toeval');
+  ok(!sprintPassStartles(10, ped({ _sprintPassAt: 5 }), run, { gap: 0.6, roll: 0 }), 'afkoeltijd per passant');
+  ok(sprintPassStartles(10 + SPRINT_PASS_COOLDOWN_S, ped({ _sprintPassAt: 10 }), run, { gap: 0.6, roll: 0 }), 'daarna weer');
+  ok(!sprintPassStartles(10, ped({ isCop: true }), run, { gap: 0.6, roll: 0 }), 'agent niet');
+  ok(SPRINT_PASS_LINES.length >= 3 && SPRINT_PASS_LINES.every((l) => !/de Grunn|sneeuw|winter/i.test(l)), 'regels');
+}
 console.log(fails ? `${fails} van ${n} gefaald` : `OK: ${n} controles`);
 process.exit(fails ? 1 : 0);

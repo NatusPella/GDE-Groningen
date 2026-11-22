@@ -35,3 +35,21 @@ export function greetOutcome(now, r1 = 0, r2 = 0) {
 }
 
 export function markGreeted(g, p, now) { g.lastGreetAt = now; p._greetedAt = now; }
+
+// --- rakelings voorbij gerend (22-11) -------------------------------------------------------------------
+// Wie op een paar decimeter langs een passant sprint (zonder aan te raken: dat is checkBump) krijgt een geschrokken "Hé!" na.
+export const SPRINT_PASS_MIN_SPEED = 5.5;   // m/s: wandelen is 2-3, rennen ruim erboven
+export const SPRINT_PASS_MAX_GAP = 1.1;     // m tussen de randen van de twee lichamen
+export const SPRINT_PASS_COOLDOWN_S = 14;
+export const SPRINT_PASS_LINES = ['Hé, kijk uit!', 'Rustig aan, joh!', 'Waar ren jij naartoe?', 'Hé! Niet zo snel!'];
+
+// gap = afstand tussen de middens min beide stralen; geen aanraking (gap > 0) en geen wanted (dan is rennen logisch).
+export function sprintPassStartles(now, p, player, { gap, wanted = 0, roll = 1 }) {
+  if (!player || player.inVehicle || wanted > 0) return false;
+  if (Math.abs(player.speed || 0) < SPRINT_PASS_MIN_SPEED) return false;
+  if (!(gap > 0 && gap <= SPRINT_PASS_MAX_GAP)) return false;
+  if (p.isCop || p.scene || p.ragdoll || p.pose || p.carry || p.state !== 'wander') return false;
+  if (p.speechUntil > now) return false;
+  if (now - (p._sprintPassAt ?? -99) < SPRINT_PASS_COOLDOWN_S) return false;
+  return roll < 0.6;
+}

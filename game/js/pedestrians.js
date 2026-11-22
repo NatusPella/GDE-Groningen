@@ -41,7 +41,7 @@ import { noteWantedWhy, noteWitnessHint, witnessCallStands } from './wantedwhy.j
 import { isMissieVoertuig } from './missievoertuig.js';
 import { takeRiderOff } from './bikerider.js'; // een fietser van de fiets slaan (#944)
 import { makeHornState, hornTarget, hornLine, markHorned, HORN_SCAN_S, HORN_ANGRY_S } from './pedhorn.js'; // passanten mopperen terug op de claxon (22-11)
-import { makeGreetState, canGreet, greetOutcome, markGreeted, GREET_SCAN_S } from './pedgreet.js'; // passanten groeten de speler te voet (22-11)
+import { makeGreetState, canGreet, greetOutcome, markGreeted, GREET_SCAN_S, sprintPassStartles, SPRINT_PASS_LINES } from './pedgreet.js'; // passanten groeten de speler te voet (22-11)
 
 const WANDER_SPEED = 1.3;
 const FLEE_SPEED = 3.6;
@@ -1159,9 +1159,15 @@ function checkVehicleImpact(ped, world) {
 
 const pendingEvents = [];
 
+const SPRINT_GAP_PRECHECK = 1.2; // cheap gate before the pass rules run for every walker
 function checkBump(ped, world) {
   const p = hoofdspeler(world);
   if (p.inVehicle || ped.isCop) return;
+  const gap0 = Math.abs(ped.x - p.x) > 2.6 || Math.abs(ped.y - p.y) > 2.6 ? Infinity : dist(ped.x, ped.y, p.x, p.y) - ped.radius - (p.radius || 0.35);
+  if (gap0 < SPRINT_GAP_PRECHECK && sprintPassStartles(world.time, ped, { speed: Math.hypot(p.vx || 0, p.vy || 0), inVehicle: p.inVehicle }, { gap: gap0, wanted: world.wanted, roll: Math.random() })) {
+    ped._sprintPassAt = world.time;
+    say(ped, world, pick(SPRINT_PASS_LINES), 2, null);
+  }
   const min = ped.radius + (p.radius || 0.35) + 0.15;
   if (Math.abs(ped.x - p.x) > min || Math.abs(ped.y - p.y) > min) return;
   if (dist(ped.x, ped.y, p.x, p.y) > min || world.time < (ped._bumpCd || 0)) return;
