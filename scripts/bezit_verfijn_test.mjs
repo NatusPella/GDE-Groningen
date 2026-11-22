@@ -9,8 +9,8 @@ import * as BL from '../game/js/boerderijlive.js';
 import * as GT from '../game/js/bezitgate.js';
 import * as SL from '../game/js/snacklive.js';
 import * as SU from '../game/js/snackui.js';
-import * as R from '../game/js/bezitrapport.js';
-import { oogstklaarLine } from '../game/js/oogstmelding.js';
+import * as R from '../game/js/holdingreport.js';
+import { harvestReadyLine } from '../game/js/harvestnotice.js';
 import { offerCardHtml } from '../game/js/forsalecard.js';
 
 let n = 0, fails = 0;
@@ -49,13 +49,28 @@ t('dagrapport: de melding krijgt een vaste sleutel (vervangt gisteren), het laat
   assert.ok(!U.summaryHtml(ctx(world)).includes('data-rapport'));
 });
 
+t('dagrapport: het personeel werkte staat in de regel; een dag zonder geld maar met werk wordt wel gemeld', () => {
+  assert.match(R.dayReportLine({ days: 1, net: 120, parcels: 120, worked: [{ id: 'a' }, { id: 'b' }] }), /Personeel werkte op 2 percelen.$/);
+  assert.equal(R.dayReportLine({ days: 1, net: 0, worked: [{ id: 'a' }] }), 'Dagrapport: +€0. Personeel werkte op 1 perceel.');
+  assert.equal(R.dayReportLine({ days: 1, net: 0, worked: [null, 3] }), null);
+});
+t('meldingen onder het tabblad verlopen na twintig seconden en hangen niet eeuwig', () => {
+  reset(); const world = w();
+  U.ui.msg = 'Gekocht.'; U.ui.msgAt = 0;
+  assert.equal(U.msgNow(), 'Gekocht.');
+  U.ui.msgAt = Date.now() - 1000; assert.equal(U.msgNow(), 'Gekocht.');
+  U.ui.msgAt = Date.now() - U.MSG_TTL_MS - 5; assert.equal(U.msgNow(), '');
+  assert.ok(!U.forSaleHtml({ money: 1, offers: [] }).includes('Gekocht.'));
+  U.ui.msg = ''; U.ui.msgAt = 0;
+});
+
 // ---- oogstmelding ----
 t('oogstmelding: een veld, een paar velden en veel velden tegelijk; rommel geeft null', () => {
-  assert.equal(oogstklaarLine([{ gewas: 'Aardappelen', plek: 'Noord' }]), 'Aardappelen op Noord is oogstklaar. Zoek de lichtkolom en oogst met de maaidorser.');
-  assert.equal(oogstklaarLine([{ gewas: 'Mais', plek: 'A' }, { gewas: '', plek: 'B' }]), 'Oogstklaar: Mais op A, Je gewas op B.');
-  const veel = oogstklaarLine(Array.from({ length: 7 }, () => ({ gewas: 'Mais', plek: 'X' })));
+  assert.equal(harvestReadyLine([{ gewas: 'Aardappelen', plek: 'Noord' }]), 'Aardappelen op Noord is oogstklaar. Zoek de lichtkolom en oogst met de maaidorser.');
+  assert.equal(harvestReadyLine([{ gewas: 'Mais', plek: 'A' }, { gewas: '', plek: 'B' }]), 'Oogstklaar: Mais op A, Je gewas op B.');
+  const veel = harvestReadyLine(Array.from({ length: 7 }, () => ({ gewas: 'Mais', plek: 'X' })));
   assert.match(veel, /^7 velden zijn oogstklaar\. Kies in Land en bedrijf de knop Oogst alles/);
-  for (const bad of [null, undefined, [], 'x', [null, 3]]) assert.equal(oogstklaarLine(bad), null);
+  for (const bad of [null, undefined, [], 'x', [null, 3]]) assert.equal(harvestReadyLine(bad), null);
 });
 
 // ---- verkoop van een perceel met kudde ----

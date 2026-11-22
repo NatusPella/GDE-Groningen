@@ -47,8 +47,8 @@ function ownHtml(v) {
   // Eerste winstlus: een wagen die thuis staat verdient niets. Zeg wat de volgende stap is en wat die minstens kost (verfijnronde bezit).
   const frees = v.spots.filter((s) => s.status === 'vrij' && Number.isFinite(s.price)).map((s) => s.price);
   const homeHint = !spot ? `<p class="mut" data-hint="thuis">Je wagen staat nog thuis en verdient niets. Koop hieronder een vergunning voor een standplaats${frees.length ? ` (vanaf ${euro(Math.min(...frees))})` : ''} en zet je wagen erheen.</p>` : '';
-  const menuHint = !o.menu.length ? '<p class="bz-zwak" data-hint="menu">Je menu is leeg: zonder product verkoop je niets. Zet hieronder iets op het menu.</p>' : '';
-  const knobs = homeHint + menuHint + `<div class="bz-bulk" role="group" aria-label="Openingstijd en prijs">` +
+  const noProductsWarning = !o.menu.length ? '<p class="bz-zwak" data-hint="menu">Je menu is leeg: zonder product verkoop je niets. Zet hieronder iets op het menu.</p>' : '';
+  const knobs = homeHint + noProductsWarning + `<div class="bz-bulk" role="group" aria-label="Openingstijd en prijs">` +
     `<span class="mut">Open vanaf ${hh(o.from)}</span> ${btn('open', '-1 uur', ` data-patch="from:${(o.from + 23) % 24}"`)} ${btn('open', '+1 uur', ` data-patch="from:${(o.from + 1) % 24}"`)} ` +
     `<span class="mut">${o.hours} uur open</span> ${btn('open', 'Korter', ` data-patch="hours:${o.hours - 1}"`, o.hours <= 4)} ${btn('open', 'Langer', ` data-patch="hours:${o.hours + 1}"`, o.hours >= 14)} ` +
     `<span class="mut">Prijs ${Math.round(o.pr * 100)}%</span> ${btn('open', 'Lager', ` data-patch="pr:${Math.round((o.pr - 0.05) * 100) / 100}"`, o.pr <= 0.7)} ${btn('open', 'Hoger', ` data-patch="pr:${Math.round((o.pr + 0.05) * 100) / 100}"`, o.pr >= 1.4)}</div>`;

@@ -11,6 +11,13 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 (De coördinator voegt deze regels bij 0.65.0.)
 
+### Bezit en economie
+- Dagrapport: elke speldag zie je in één korte melding wat er binnenkwam en uitging (percelen, bedrijven, snackwagen, ketens, verzekering) en of je personeel heeft gewerkt; het laatste rapport blijft in Overzicht staan. Is je geld op, dan zegt de melding dat. Lokaal per speler.
+- Een perceel met vee verkopen betaalt de kudde nu uit (net als Vee verkopen); voorheen ging die gratis mee. De kaart noemt het bedrag.
+- Vee kopen, een schakel uitbreiden en een pand of wagen renoveren vragen nu een tweede druk, met wat je overhoudt; de renovatieknop toont de prijs. Mieren bestrijden, wespen weghalen en alles zaaien in één keer vragen ook een tweede druk met een schatting.
+- Grijze koopknoppen zeggen waarom ("Je mist nog ..."), een mislukte koop geeft een eigen reden, en de lijst Te koop onderscheidt "nog aan het laden" van "niets in de buurt".
+- Meer velden tegelijk oogstklaar? Eén melding in plaats van een stoet. In Overzicht staat het loon per dag naast de opbrengst.
+- Snackwagen: een wagen die nog thuis staat krijgt uitleg over de eerste vergunning, en een leeg menu een waarschuwing.
 ### Prestaties
 - Prestaties (#1074, #1067): als het spelvenster verborgen of op de achtergrond is, doen de vaste controles van de overlays, het Samen-paneel en het aanraakscherm niets meer; de kartmotor wordt bij het verlaten van de baan echt stopgezet. Samen spelen: lokaal per speler, geen netwerkwijziging; testsessies met `?stil` blijven gewoon tikken. Voor de metingen staan er twee A-schakelaars (`?perfoff=boomfade`, `?perfoff=gevelfade`).
 ### Kaart en HUD

@@ -14,11 +14,13 @@ export function dayReportLine(rep, moneyAfter = null) {
   const parts = PARTS.map(([k, label]) => [label, fin(rep[k])]).filter(([, v]) => v !== 0).map(([label, v]) => `${label} ${signed(v)}`);
   const premium = fin(rep.premium);
   if (premium > 0) parts.push(`verzekering ${signed(-premium)}`);
-  if (net === 0 && !parts.length) return null;
+  const worked = Array.isArray(rep.worked) ? rep.worked.filter((j) => j && typeof j === 'object').length : 0;   // het personeel was zichtbaar aan het werk (farmworkers.js), nu ook in woorden
+  if (net === 0 && !parts.length && !worked) return null;
   const days = Math.max(1, fin(rep.days) || 1);
   const head = days > 1 ? `Dagrapport, ${days} dagen: ${signed(net)}` : `Dagrapport: ${signed(net)}`;
   const empty = net < 0 && Number.isFinite(moneyAfter) && moneyAfter <= 0 ? ' Je geld is op: de kosten lopen door.' : '';
-  return `${head}${parts.length ? ` (${parts.join(', ')})` : ''}.${empty}`;
+  const staff = worked ? ` Personeel werkte op ${worked} ${worked === 1 ? 'perceel' : 'percelen'}.` : '';
+  return `${head}${parts.length ? ` (${parts.join(', ')})` : ''}.${staff}${empty}`;
 }
 
 // Het laatste rapport blijft leesbaar in het overzicht van Land en bedrijf (per sessie, nooit bewaard).

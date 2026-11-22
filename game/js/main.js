@@ -221,7 +221,7 @@ import { setBezitDifficultyProvider } from './bezitdifficulty.js';
 // Bezit leest zijn moeilijkheid via difficulty.js: alleen de omzet (incomeFactor, per speler, 0,75 tot 1,25); aankoopprijs en kosten blijven op 1: er is geen prijsoptie (besluit moeilijkheid #1169).
 setBezitDifficultyProvider((kind) => (kind === 'income' ? incomeFactor() : 1));
 import { onDayReport as bezitOnDayReport, deliverLine as bezitDeliverLine } from './bezitworldhooks.js';
-import { deliverDayReport as bezitDeliverRapport } from './bezitrapport.js';
+import { deliverDayReport as bezitDeliverRapport } from './holdingreport.js';
 import { updateFarmWorkers } from './farmworkers3d.js';
 import { updateSnackVans } from './snackvans3d.js';
 import { updateChainTrucks } from './chaintrucks3d.js';

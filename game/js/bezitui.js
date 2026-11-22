@@ -16,7 +16,7 @@ import { noteMoney } from './finance.js';
 import { hoofdspeler } from './players.js';
 import { districtName } from './bezitnews.js';
 import { MOBILE_SPOTS, renovationCost } from './business.js';
-import { lastReportLine } from './bezitrapport.js';
+import { lastReportLine } from './holdingreport.js';
 import { renderSnackPanel } from './snackui.js';
 import { renderClubPanel } from './clubui.js';   // het tabblad Club: clubaandelen en sponsors van de voetbalcarrière (#1113)
 import { SPECIES, herdOffers, herdSellValue, herdsOf } from './livestock.js';
@@ -26,7 +26,10 @@ const ha = (n) => String(Math.round(n * 10) / 10).replace('.', ',');
 export const SORT_NAME = { ripe: 'Rijp eerst', name: 'Naam', ha: 'Grootte', income: 'Opbrengst', region: 'Streek' };
 const MAX_ROWS = 40;
 
-export const ui = { sort: 'ripe', filter: { region: '', soort: '', level: '' }, sel: H.newSelection(), confirm: null, msg: '', more: false, product: 'aardappelen' };
+export const ui = { sort: 'ripe', filter: { region: '', soort: '', level: '' }, sel: H.newSelection(), confirm: null, msg: '', msgAt: 0, more: false, product: 'aardappelen' };
+// Een melding onder aan een tabblad blijft niet eeuwig staan (en niet op een ander tabblad hangen): na MSG_TTL_MS is hij weg. msgAt 0 = geen klok (tests).
+export const MSG_TTL_MS = 20000;
+export const msgNow = () => (ui.msg && (!ui.msgAt || Date.now() - ui.msgAt < MSG_TTL_MS) ? ui.msg : '');
 const nl = (n) => String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
 const ROLE_NAME = { source: 'grondstof', processor: 'verwerking', outlet: 'verkooppunt' };
 
@@ -50,7 +53,7 @@ function bulkBtn(act, text, extra = '', uit = false) {
   return `<span class="bd-zeker">${cost > 0 ? `Ongeveer ${euro(cost)}. Zeker?` : 'Dit kost zaaigoed en loonwerk. Zeker?'} ${btn(act, 'Ja', ' data-ok="1"')} ${btn('annuleer', 'Nee')}</span>`;
 }
 
-// Het laatste dagrapport (bezitrapport.js) blijft in het overzicht staan: de melding verdwijnt na een paar seconden.
+// Het laatste dagrapport (holdingreport.js) blijft in het overzicht staan: de melding verdwijnt na een paar seconden.
 function rapportHtml() {
   const t = lastReportLine();
   return t ? `<p class="mut" data-rapport="1">${esc(t)}</p>` : '';
@@ -89,7 +92,7 @@ export function summaryHtml({ bezit, farm, money = 0, day = 0, news = null, chai
   return `<div class="pm-pane-top"><span class="m-eb">Land en bedrijf</span><h2 class="m-h2 td-h2">Overzicht</h2></div><div class="bz-tegels">${tiles}</div>${attention}${rapportHtml()}${newsHtml(news)}${empty}` +
     `<div class="bz-filters" role="group" aria-label="Sorteren en filteren"><label class="bz-sel">Sorteren<select data-bz-sort>${H.SORTS.map((s) => `<option value="${s}"${ui.sort === s ? ' selected' : ''}>${SORT_NAME[s]}</option>`).join('')}</select></label>` +
     `${sel('region', 'Streek', opt.regions || [])}${sel('soort', 'Soort', opt.soorten || [])}${sel('level', 'Beheer', H.LEVELS)}</div>` + bulk + `<div class="bz-rijen">${body}</div>` +
-    (shown.length > MAX_ROWS && !ui.more ? `<p>${btn('meer', `Toon alle ${shown.length}`)}</p>` : '') + staffHtml + veeHtml(bezit, rows, money) + chainsHtml(chains, money) + marketHtml(board, products) + `<p class="bd-melding" aria-live="polite">${esc(ui.msg)}</p>`;
+    (shown.length > MAX_ROWS && !ui.more ? `<p>${btn('meer', `Toon alle ${shown.length}`)}</p>` : '') + staffHtml + veeHtml(bezit, rows, money) + chainsHtml(chains, money) + marketHtml(board, products) + `<p class="bd-melding" aria-live="polite">${esc(msgNow())}</p>`;
 }
 
 // ---- Vee (#1101): kuddes op je weilanden, een kudde kopen (past op de grootte van het perceel) of verkopen; per speler (#429) ----
@@ -162,7 +165,7 @@ export function businessesHtml({ money = 0, mine = [], near = [], day = 0, mobil
   const nearHtml = near.length ? near.map((o) => `<div class="bd-rij" data-osm="${o.osm}"><span class="bd-naam"><b>${esc(o.kind.type)} bij ${esc(o.town.name)}</b><span class="bd-feiten"><span>${Math.round(o.row.m2)} m2</span><span>${o.dist} m</span>${o.forSale ? `<span>${euro(o.price)}</span>` : `<span>${esc(o.reason)}</span>`}</span></span>` +
     `<span class="bd-acties">${o.mine ? '' : o.forSale ? buyAsk('koop-pand', o.osm, `Koop ${euro(o.price)}`, o.price, money) : ''}</span></div>`).join('') : '<p class="mut">Er staan geen koopbare bedrijfspanden binnen 250 meter van je.</p>';
   return `<div class="pm-pane-top"><span class="m-eb">Land en bedrijf</span><h2 class="m-h2 td-h2">Bedrijven</h2></div><p class="mut">Monumenten, ziekenhuizen, politie en verhaalgebouwen blijven van de wereld.</p>` +
-    `<h3 class="m-h3">Jouw bedrijven</h3>${mineHtml}${mobileHtml(mobile, mobileOffers, money, day)}<h3 class="m-h3">In de buurt</h3>${nearHtml}${homesHtml(homes, money)}<p class="bd-melding" aria-live="polite">${esc(ui.msg)}</p>`;
+    `<h3 class="m-h3">Jouw bedrijven</h3>${mineHtml}${mobileHtml(mobile, mobileOffers, money, day)}<h3 class="m-h3">In de buurt</h3>${nearHtml}${homesHtml(homes, money)}<p class="bd-melding" aria-live="polite">${esc(msgNow())}</p>`;
 }
 
 // ---- de snackwagen (id frietwagen; business.js, mobiel bedrijf): kopen, standplaats kiezen, verkopen ----
@@ -186,7 +189,7 @@ export function forSaleHtml({ money = 0, offers = [], loading = false } = {}) {
   if (!branchOpen('land')) return locked('land');
   const rows = offers.length ? offers.map((o) => `<div class="bd-rij" data-id="${esc(o.id)}"><span class="bd-naam"><b>${esc(o.name)}</b><span class="bd-feiten"><span>${esc(o.kindName)}</span><span>${ha(o.ha)} ha</span><span>bodem ${esc(o.soilWord)}</span><span>${o.dist} m</span><span>${euro(o.price)}</span></span></span>` +
     `<span class="bd-acties">${btn('doel-perceel', 'Doel', ` data-id="${esc(o.id)}"`)} ${buyAsk('koop-perceel', o.id, `Koop ${euro(o.price)}`, o.price, money)}</span></div>`).join('') : (loading ? '<p class="mut" data-leeg="laden">De percelen worden nog geladen. Kom zo terug.</p>' : '<p class="mut" data-leeg="niets">Niets te koop binnen drie kilometer. Reis verder of kijk op de kaart met de laag Te koop.</p>');
-  return `<div class="pm-pane-top"><span class="m-eb">Land en bedrijf</span><h2 class="m-h2 td-h2">Te koop</h2></div><p class="mut">De dichtstbijzijnde percelen. Op de kaart zie je ze allemaal met de laag Te koop. Wie veel land heeft, betaalt meer voor het volgende perceel.</p>${rows}<p class="bd-melding" aria-live="polite">${esc(ui.msg)}</p>`;
+  return `<div class="pm-pane-top"><span class="m-eb">Land en bedrijf</span><h2 class="m-h2 td-h2">Te koop</h2></div><p class="mut">De dichtstbijzijnde percelen. Op de kaart zie je ze allemaal met de laag Te koop. Wie veel land heeft, betaalt meer voor het volgende perceel.</p>${rows}<p class="bd-melding" aria-live="polite">${esc(msgNow())}</p>`;
 }
 
 // ---- de koppeling met de wereld ----
@@ -279,6 +282,7 @@ function act(world, d, els) {
     if (r && Number.isFinite(r.net) && r.net !== 0) { noteMoney(r.net > 0 ? 'Verkoop' : 'Winkels'); world.money = Math.max(0, (world.money || 0) + r.net); }
     L.markeer();
   }
+  ui.msgAt = ui.msg ? Date.now() : 0;
   if (els && els.rerender) els.rerender();
 }
 export function bulkText(a, r) {

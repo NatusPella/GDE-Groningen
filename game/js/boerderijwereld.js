@@ -18,7 +18,7 @@ import { RIJEN, RIJ_LEN } from './werkgang.js';
 import { DAY_LENGTH_S } from './daynight.js';
 import { isInWater } from './util.js';
 import { euro } from './geldtekst.js';
-import { oogstklaarLine } from './oogstmelding.js';
+import { harvestReadyLine } from './harvestnotice.js';
 import * as B from './boerderij.js';
 import * as PC from './percelen.js';
 import * as M from './machines.js';
@@ -817,7 +817,7 @@ function meldOogstklaar(w, b) {
     }
   }
   if (!nieuw.length) return;
-  bericht(w, oogstklaarLine(nieuw), 6);              // meer velden tegelijk: één samenvatting en één geluid
+  bericht(w, harvestReadyLine(nieuw), 6);              // meer velden tegelijk: één samenvatting en één geluid
   try { sfxLinks.uiFx('ui_verzameld'); } catch (e) { /* geen geluid is geen ramp */ }
 }
 
