@@ -727,6 +727,10 @@
 "src": "anita/dat_waren_er_drie_kon_meer_b92d25c7.mp3",
 "dur": 2.15
 },
+"Anita|Dat waren er vier. Kon meer.": {
+"src": "anita/dat_waren_er_vier_kon_meer_8c0f449e.mp3",
+"dur": 2.62
+},
 "Anita|Dat was aardig. Zet maar iets aan.": {
 "src": "anita/dat_was_aardig_zet_maar_iets_aan_696edcd0.mp3",
 "dur": 2.51
@@ -1042,6 +1046,10 @@
 "Anita|Drie tenten. Daarna vertellen ze alles, en daarna weten ze het zelf niet meer.": {
 "src": "anita/drie_tenten_daarna_vertellen_ze__790f963b.mp3",
 "dur": 4.03
+},
+"Anita|Drie. Kon meer.": {
+"src": "anita/drie_kon_meer_7939164b.mp3",
+"dur": 2.49
 },
 "Anita|Duiven luisteren naar niemand. Behalve naar hem.": {
 "src": "anita/duiven_luisteren_naar_niemand_be_a6a81a2c.mp3",
@@ -1791,6 +1799,10 @@
 "src": "anita/hij_houdt_de_koffer_weer_boven_w_c6f47e0d.mp3",
 "dur": 1.97
 },
+"Anita|Hij is Gronings, ik ben Fries. Wij zijn de verzoening.": {
+"src": "anita/hij_is_gronings_ik_ben_fries_wij_5ae0b0f3.mp3",
+"dur": 3.66
+},
 "Anita|Hij is de bisschop die Grunn in 1672 niet innam.": {
 "src": "anita/hij_is_de_bisschop_die_grunn_in__734ed0de.mp3",
 "dur": 5.44
@@ -2074,6 +2086,10 @@
 "Anita|Ik weet het. Hij zegt niets met zijn hele gezicht.": {
 "src": "anita/ik_weet_het_hij_zegt_niets_met_z_c709cf67.mp3",
 "dur": 2.79
+},
+"Anita|Ik weet niet wat ik moet zeggen.": {
+"src": "anita/ik_weet_niet_wat_ik_moet_zeggen_c2047779.mp3",
+"dur": 1.84
 },
 "Anita|Ik wist niet waar de bal lag. Mem hield iets voor Jelle verborgen.": {
 "src": "anita/ik_wist_niet_waar_de_bal_lag_mem_24249717.mp3",
@@ -3487,6 +3503,10 @@
 "src": "anita/zeven_brieven_allemaal_van_de_ge_faa80619.mp3",
 "dur": 4.77
 },
+"Anita|Zeven mensen die niet weglopen.": {
+"src": "anita/zeven_mensen_die_niet_weglopen_ebef4e4a.mp3",
+"dur": 2.75
+},
 "Anita|Zevenennegentig meter.": {
 "src": "anita/zevenennegentig_meter_2de3d87b.mp3",
 "dur": 2.32
@@ -3658,6 +3678,10 @@
 "Beppe|Is Tessa der ek? Dan meitsje ik sop.": {
 "src": "beppe/is_tessa_der_ek_dan_meitsje_ik_s_1315e504.mp3",
 "dur": 2.84
+},
+"Beppe|It smakket.": {
+"src": "beppe/it_smakket_6c1fff32.mp3",
+"dur": 0.97
 },
 "Beppe|Jonge, hast al iten?": {
 "src": "beppe/jonge_hast_al_iten_5410cd93.mp3",
@@ -4823,9 +4847,17 @@
 "src": "henk/volg_de_roze_lijn_op_je_kaart_da_550fcbc1.mp3",
 "dur": 4.62
 },
+"Hilbrand|Aan de top is de lucht dun en het gras nat.": {
+"src": "hilbrand/aan_de_top_is_de_lucht_dun_en_he_551cc04d.mp3",
+"dur": 2.8
+},
 "Hilbrand|Alle ogen op de stip. Eén speler, één keeper, één kans.": {
 "src": "hilbrand/alle_ogen_op_de_stip_ee_n_speler_fa384da8.mp3",
 "dur": 3.59
+},
+"Hilbrand|Bekervoetbal is eerlijk: er blijft er maar één staan.": {
+"src": "hilbrand/bekervoetbal_is_eerlijk_er_blijf_e657b723.mp3",
+"dur": 3.37
 },
 "Hilbrand|Bijna, bijna! De tribunes zuchten.": {
 "src": "hilbrand/bijna_bijna_de_tribunes_zuchten_2da616ac.mp3",
@@ -4887,9 +4919,17 @@
 "src": "hilbrand/dat_was_te_fel_vrije_bal_voor_de_436758be.mp3",
 "dur": 1.97
 },
+"Hilbrand|De Dijkbeker: wie verliest, gaat naar huis. Zo simpel is het.": {
+"src": "hilbrand/de_dijkbeker_wie_verliest_gaat_n_ea6708f2.mp3",
+"dur": 3.82
+},
 "Hilbrand|De Stadjers houden de bal lekker lang.": {
 "src": "hilbrand/de_stadjers_houden_de_bal_lekker_943a19c1.mp3",
 "dur": 1.91
+},
+"Hilbrand|De Waddenbeker! Clubs van over de grens in het Groninger gras.": {
+"src": "hilbrand/de_waddenbeker_clubs_van_over_de_de3d2b37.mp3",
+"dur": 3.96
 },
 "Hilbrand|De bal gaat de hoek in. Kan dit gevaarlijk worden?": {
 "src": "hilbrand/de_bal_gaat_de_hoek_in_kan_dit_g_f0a6be08.mp3",
@@ -4927,9 +4967,17 @@
 "src": "hilbrand/de_bal_verlaat_het_veld_d84fd3ea.mp3",
 "dur": 1.37
 },
+"Hilbrand|De beker heeft zijn eigen wetten: de kleine club mag altijd dromen.": {
+"src": "hilbrand/de_beker_heeft_zijn_eigen_wetten_fd82b769.mp3",
+"dur": 3.72
+},
 "Hilbrand|De bezoekers houden de bal vast.": {
 "src": "hilbrand/de_bezoekers_houden_de_bal_vast_6dec03ef.mp3",
 "dur": 1.95
+},
+"Hilbrand|De borden langs het veld zijn weer prachtig, dank aan onze sponsor.": {
+"src": "hilbrand/de_borden_langs_het_veld_zijn_we_e95e5c33.mp3",
+"dur": 3.04
 },
 "Hilbrand|De comeback is compleet! Wie had dat gedacht?": {
 "src": "hilbrand/de_comeback_is_compleet_wie_had__a892bbeb.mp3",
@@ -4955,9 +5003,17 @@
 "src": "hilbrand/de_laatste_minuten_alles_of_niet_7fad1783.mp3",
 "dur": 2.05
 },
+"Hilbrand|De laatste ronde van het seizoen! Na vandaag is alles beslist.": {
+"src": "hilbrand/de_laatste_ronde_van_het_seizoen_e4287e77.mp3",
+"dur": 3.99
+},
 "Hilbrand|De middenvelders voeren de strijd.": {
 "src": "hilbrand/de_middenvelders_voeren_de_strij_d200943e.mp3",
 "dur": 2.02
+},
+"Hilbrand|De onderste plekken zijn gevaarlijk. Elk punt is hier een cadeau.": {
+"src": "hilbrand/de_onderste_plekken_zijn_gevaarl_016e360e.mp3",
+"dur": 3.68
 },
 "Hilbrand|De paal redt! Het doelpunt blijft uit.": {
 "src": "hilbrand/de_paal_redt_het_doelpunt_blijft_d45fd784.mp3",
@@ -4987,6 +5043,10 @@
 "src": "hilbrand/de_spelers_staan_weer_klaar_alle_d34a8cbc.mp3",
 "dur": 2.44
 },
+"Hilbrand|De ster van de ploeg doet wat een ster moet doen: scoren! Dit spreekt zich rond in de regio.": {
+"src": "hilbrand/de_ster_van_de_ploeg_doet_wat_ee_7b65b0d6.mp3",
+"dur": 6.13
+},
 "Hilbrand|De tegenstander heeft de bal veel. Het wordt hard werken voor de Stadjers.": {
 "src": "hilbrand/de_tegenstander_heeft_de_bal_vee_b3e5ba43.mp3",
 "dur": 3.65
@@ -5007,6 +5067,14 @@
 "src": "hilbrand/dit_blijft_tot_het_einde_spannen_b4b8d75f.mp3",
 "dur": 1.67
 },
+"Hilbrand|Dit is de slotdag. Wie nu wint, kan feestvieren.": {
+"src": "hilbrand/dit_is_de_slotdag_wie_nu_wint_ka_d0bebc15.mp3",
+"dur": 3.72
+},
+"Hilbrand|Dit is het moment. De laatste fluit zegt het allemaal.": {
+"src": "hilbrand/dit_is_het_moment_de_laatste_flu_21f2a104.mp3",
+"dur": 3.54
+},
 "Hilbrand|Dit is wat we noemen een Groninger derby: niemand wil verliezen, iedereen kent elkaar.": {
 "src": "hilbrand/dit_is_wat_we_noemen_een_groning_0a8155b5.mp3",
 "dur": 5.04
@@ -5019,9 +5087,17 @@
 "src": "hilbrand/doelschop_rustig_opbouwen_is_het_593e8635.mp3",
 "dur": 2.6
 },
+"Hilbrand|Een bekerwedstrijd! Geen tweede kans en geen punten voor de stand.": {
+"src": "hilbrand/een_bekerwedstrijd_geen_tweede_k_1a176c54.mp3",
+"dur": 3.75
+},
 "Hilbrand|Een blessure. We hopen dat het meevalt.": {
 "src": "hilbrand/een_blessure_we_hopen_dat_het_me_bdf064d1.mp3",
 "dur": 2.38
+},
+"Hilbrand|Een buitenlandse tegenstander: de tribunes zingen een tikje harder.": {
+"src": "hilbrand/een_buitenlandse_tegenstander_de_8f6a1086.mp3",
+"dur": 3.3
 },
 "Hilbrand|Een corner, en dat levert altijd drukte op.": {
 "src": "hilbrand/een_corner_en_dat_levert_altijd__cf752f0b.mp3",
@@ -5034,6 +5110,10 @@
 "Hilbrand|Een echte derby vandaag! Dat is zweet, gras en een bakkie koffie na afloop.": {
 "src": "hilbrand/een_echte_derby_vandaag_dat_is_z_ee2d29de.mp3",
 "dur": 5.68
+},
+"Hilbrand|Een eerste wedstrijd, en een heel seizoen te gaan.": {
+"src": "hilbrand/een_eerste_wedstrijd_en_een_heel_545a1e12.mp3",
+"dur": 2.63
 },
 "Hilbrand|Een eigen doelpunt! Dat gaat in de boeken als pech.": {
 "src": "hilbrand/een_eigen_doelpunt_dat_gaat_in_d_2f5750c8.mp3",
@@ -5055,6 +5135,10 @@
 "src": "hilbrand/een_hoekschop_alle_lange_spelers_25ca58c1.mp3",
 "dur": 2.89
 },
+"Hilbrand|Een internationale avond in Grunn, en de zon schijnt gewoon mee.": {
+"src": "hilbrand/een_internationale_avond_in_grun_1faaef3e.mp3",
+"dur": 3.94
+},
 "Hilbrand|Een inworp aan de zijlijn.": {
 "src": "hilbrand/een_inworp_aan_de_zijlijn_4895da6a.mp3",
 "dur": 1.59
@@ -5062,6 +5146,10 @@
 "Hilbrand|Een kogel! Wat doet de keeper?": {
 "src": "hilbrand/een_kogel_wat_doet_de_keeper_35942b0a.mp3",
 "dur": 2.01
+},
+"Hilbrand|Een nieuwe ronde in de competitie. De punten liggen op het gras.": {
+"src": "hilbrand/een_nieuwe_ronde_in_de_competiti_31ae4c35.mp3",
+"dur": 3.56
 },
 "Hilbrand|Een overtreding. Het spel ligt even stil.": {
 "src": "hilbrand/een_overtreding_het_spel_ligt_ev_451d5c38.mp3",
@@ -5086,6 +5174,10 @@
 "Hilbrand|Een waarschuwing met een kaartje erbij.": {
 "src": "hilbrand/een_waarschuwing_met_een_kaartje_7a89b86b.mp3",
 "dur": 2.03
+},
+"Hilbrand|Een warme groet voor onze sponsor, die elk seizoen in de club gelooft.": {
+"src": "hilbrand/een_warme_groet_voor_onze_sponso_474d35b1.mp3",
+"dur": 3.45
 },
 "Hilbrand|Een wissel, daar zit een idee achter.": {
 "src": "hilbrand/een_wissel_daar_zit_een_idee_ach_a9e38e7d.mp3",
@@ -5171,6 +5263,10 @@
 "src": "hilbrand/het_fluitsignaal_klinkt_het_is_r_01c6e1e4.mp3",
 "dur": 3.13
 },
+"Hilbrand|Het hele seizoen komt hier samen, op één middag.": {
+"src": "hilbrand/het_hele_seizoen_komt_hier_samen_0a0de010.mp3",
+"dur": 2.84
+},
 "Hilbrand|Het is een derby. De tribunes zijn kleurrijker dan anders, en luider.": {
 "src": "hilbrand/het_is_een_derby_de_tribunes_zij_2ca05dc6.mp3",
 "dur": 4.52
@@ -5187,9 +5283,17 @@
 "src": "hilbrand/het_loopt_naar_het_einde_wat_kun_3ac0876e.mp3",
 "dur": 2.54
 },
+"Hilbrand|Het seizoen is kort en de zomer is lang. Dat kan niet verkeerd gaan.": {
+"src": "hilbrand/het_seizoen_is_kort_en_de_zomer__e441f5ae.mp3",
+"dur": 3.5
+},
 "Hilbrand|Het spel verplaatst zich naar de andere kant.": {
 "src": "hilbrand/het_spel_verplaatst_zich_naar_de_69ba6ba5.mp3",
 "dur": 1.69
+},
+"Hilbrand|Hier wordt het gras nog zenuwachtiger dan de spelers.": {
+"src": "hilbrand/hier_wordt_het_gras_nog_zenuwach_05b466eb.mp3",
+"dur": 2.51
 },
 "Hilbrand|Hier zijn we dan: elf tegen elf, één bal en een heleboel Grunnegers die het beter weten.": {
 "src": "hilbrand/hier_zijn_we_dan_elf_tegen_elf_e_79bcc99f.mp3",
@@ -5231,6 +5335,10 @@
 "src": "hilbrand/hoekschop_het_wordt_druk_voor_he_7d4c2dcc.mp3",
 "dur": 1.89
 },
+"Hilbrand|Hoog in de stand, en dat zie je aan de tribune.": {
+"src": "hilbrand/hoog_in_de_stand_en_dat_zie_je_a_434042b8.mp3",
+"dur": 2.14
+},
 "Hilbrand|Hout! Het doel staat nog.": {
 "src": "hilbrand/hout_het_doel_staat_nog_81121743.mp3",
 "dur": 1.71
@@ -5263,6 +5371,10 @@
 "src": "hilbrand/oei_die_gaat_in_zijn_eigen_doel__93e298c1.mp3",
 "dur": 3.7
 },
+"Hilbrand|Onderin de stand, maar het gras is nog net zo groen.": {
+"src": "hilbrand/onderin_de_stand_maar_het_gras_i_c7914404.mp3",
+"dur": 2.82
+},
 "Hilbrand|Op de lat! De hele tribune hield de adem in.": {
 "src": "hilbrand/op_de_lat_de_hele_tribune_hield__8fb649fd.mp3",
 "dur": 2.45
@@ -5282,6 +5394,10 @@
 "Hilbrand|Ping! Dat klonk als een klok. Net niet, net niet.": {
 "src": "hilbrand/ping_dat_klonk_als_een_klok_net__80c8ee6b.mp3",
 "dur": 3.5
+},
+"Hilbrand|Ronde zeven, de laatste. De stand ligt klaar op de tribune.": {
+"src": "hilbrand/ronde_zeven_de_laatste_de_stand__d2c9115a.mp3",
+"dur": 3.28
 },
 "Hilbrand|Rood! De scheidsrechter stuurt hem naar de kant.": {
 "src": "hilbrand/rood_de_scheidsrechter_stuurt_he_d8ed534f.mp3",
@@ -5359,6 +5475,10 @@
 "src": "hilbrand/vrije_bal_wie_gaat_hem_nemen_cde15e7b.mp3",
 "dur": 2.34
 },
+"Hilbrand|Waddenbeker, een toernooi met zout en een zeewindje.": {
+"src": "hilbrand/waddenbeker_een_toernooi_met_zou_2d645f92.mp3",
+"dur": 4.23
+},
 "Hilbrand|Wat een kans! Hij kon alles doen, maar hij deed net iets anders.": {
 "src": "hilbrand/wat_een_kans_hij_kon_alles_doen__bc27a4d2.mp3",
 "dur": 4.21
@@ -5387,13 +5507,33 @@
 "src": "hilbrand/weggeslagen_wat_een_reflex_1e36b4e0.mp3",
 "dur": 2.48
 },
+"Hilbrand|Welkom bij de Waddenbeker. Iedereen is hier even een toerist.": {
+"src": "hilbrand/welkom_bij_de_waddenbeker_iedere_ae3ce22d.mp3",
+"dur": 3.99
+},
 "Hilbrand|Welkom in de Euroborg! De zon schijnt, het gras is groen en Oma Trijntje heeft haar thermosfles al open.": {
 "src": "hilbrand/welkom_in_de_euroborg_de_zon_sch_84ac7958.mp3",
 "dur": 5.52
 },
+"Hilbrand|Wie bovenaan staat, heeft alleen hoogte om vanaf te vallen.": {
+"src": "hilbrand/wie_bovenaan_staat_heeft_alleen__6294fbd0.mp3",
+"dur": 3.19
+},
+"Hilbrand|Wie onderaan staat, moet iets laten zien. Liefst een doelpunt.": {
+"src": "hilbrand/wie_onderaan_staat_moet_iets_lat_7fda20ad.mp3",
+"dur": 3.52
+},
 "Hilbrand|Ze zoeken een opening, en die is er nog niet.": {
 "src": "hilbrand/ze_zoeken_een_opening_en_die_is__ff0cf0d5.mp3",
 "dur": 2.11
+},
+"Hilbrand|Zeven rondes in een seizoen: wie nu punten laat liggen, ziet ze niet meer terug.": {
+"src": "hilbrand/zeven_rondes_in_een_seizoen_wie__6b41b2ce.mp3",
+"dur": 4.32
+},
+"Hilbrand|Zonder sponsor geen netten, en zonder netten geen doelpunten.": {
+"src": "hilbrand/zonder_sponsor_geen_netten_en_zo_3bd0e742.mp3",
+"dur": 3.12
 },
 "Hilly|De ain zat te zingen. Fries, docht ik. Dat heur je hier nait vaak.": {
 "src": "hilly/de_ain_zat_te_zingen_fries_docht_c0097dcc.mp3",
@@ -5406,6 +5546,10 @@
 "Jelle Terpstra|...Dat is de eerste prijs die ik niet kon onderhandelen.": {
 "src": "jelle_terpstra/dat_is_de_eerste_prijs_die_ik_ni_ae2787d4.mp3",
 "dur": 3.56
+},
+"Jelle Terpstra|...Een prijs zonder bijlage. Wie doet dat?": {
+"src": "jelle_terpstra/een_prijs_zonder_bijlage_wie_doe_33f41f1b.mp3",
+"dur": 3.33
 },
 "Jelle Terpstra|...Ze houdt hem altijd warm.": {
 "src": "jelle_terpstra/ze_houdt_hem_altijd_warm_df6e79f3.mp3",
@@ -6463,6 +6607,10 @@
 "src": "lammert/ik_ben_havenmeester_voor_een_kad_8946c8fc.mp3",
 "dur": 4.34
 },
+"Lammert|Ik heb de sleutel van de sluis. Vrij genomen.": {
+"src": "lammert/ik_heb_de_sleutel_van_de_sluis_v_bd97f447.mp3",
+"dur": 2.73
+},
 "Lammert|Ik zit achterin bij Wubbo in de bus. Dit is de mooiste optocht van de provincie.": {
 "src": "lammert/ik_zit_achterin_bij_wubbo_in_de__499a8727.mp3",
 "dur": 4.79
@@ -6731,6 +6879,10 @@
 "src": "mem_terpstra/zie_je_ik_had_het_niet_nodig_maa_0ab7f1db.mp3",
 "dur": 3.33
 },
+"Meneer Veldkamp|De duiven vragen of jullie blijven.": {
+"src": "meneer_veldkamp/de_duiven_vragen_of_jullie_blijv_f304455f.mp3",
+"dur": 2.13
+},
 "Meneer Veldkamp|Die zat hier al. Hij wacht op jou.": {
 "src": "meneer_veldkamp/die_zat_hier_al_hij_wacht_op_jou_04b6466c.mp3",
 "dur": 1.9
@@ -6871,6 +7023,10 @@
 "src": "oma_trijntje/dijkstra_komt_jullie_halen_jong__047ed9e1.mp3",
 "dur": 5.19
 },
+"Oma Trijntje|Dit is mijn keuken.": {
+"src": "oma_trijntje/dit_is_mijn_keuken_a14041f2.mp3",
+"dur": 1.41
+},
 "Oma Trijntje|Een eierbal. Dat is anders.": {
 "src": "oma_trijntje/een_eierbal_dat_is_anders_a6050491.mp3",
 "dur": 2.58
@@ -6979,6 +7135,10 @@
 "src": "oma_trijntje/met_liefde_jong_anders_wordt_het_628ce502.mp3",
 "dur": 2.76
 },
+"Oma Trijntje|Moi. Het is soep met een eierbal. Daar kan niemand wat van zeggen.": {
+"src": "oma_trijntje/moi_het_is_soep_met_een_eierbal__18e1d161.mp3",
+"dur": 5.14
+},
 "Oma Trijntje|Mosterd van Wubbo, eieren van Geesje, zout van Klaas, meel van Roelfien en vet van Lammert. Alles grof, zoals vroeger.": {
 "src": "oma_trijntje/mosterd_van_wubbo_eieren_van_gee_73c37131.mp3",
 "dur": 10.11
@@ -7006,6 +7166,10 @@
 "Oma Trijntje|Tweede werd Gerda Terpstra. Haar eierbal was beter.": {
 "src": "oma_trijntje/tweede_werd_gerda_terpstra_haar__b53366dd.mp3",
 "dur": 4.21
+},
+"Oma Trijntje|Wat zegt ze?": {
+"src": "oma_trijntje/wat_zegt_ze_e874b107.mp3",
+"dur": 1.0
 },
 "Oma Trijntje|Wij waren jullie voor.": {
 "src": "oma_trijntje/wij_waren_jullie_voor_686e2175.mp3",
@@ -7410,6 +7574,10 @@
 "Rikus|Het hart van Grunn. Klopt het hardst na middernacht.": {
 "src": "verteller/het_hart_van_grunn_klopt_het_har_061c6f2e.mp3",
 "dur": 3.17
+},
+"Rikus|Het is half tien. Het luik is open, de kaart ligt klaar. Ik zeg niks. Ik reken wel.": {
+"src": "rikus/het_is_half_tien_het_luik_is_ope_8c3333b8.mp3",
+"dur": 4.59
 },
 "Rikus|Het is hier stil. Dat verandert zo.": {
 "src": "verteller/het_is_hier_stil_dat_verandert_z_b0915f40.mp3",
@@ -7839,6 +8007,10 @@
 "src": "roelfien/ik_vlieg_boven_jullie_mijn_vergu_37896071.mp3",
 "dur": 4.52
 },
+"Roelfien|Ik vlieg boven. Zes zakken meel. Eén keer wit. Daarna sta ik stil.": {
+"src": "roelfien/ik_vlieg_boven_zes_zakken_meel_e_83773f70.mp3",
+"dur": 4.51
+},
 "Roelfien|Mijn vliegtuigje sleept al twintig jaar een spandoek voor de kermis. Vandaag sleept hij onze boodschap.": {
 "src": "roelfien/mijn_vliegtuigje_sleept_al_twint_b87f0ccd.mp3",
 "dur": 6.27
@@ -7859,9 +8031,21 @@
 "src": "roelfien/vlieg_laag_houd_de_molen_rechts__eafdb11e.mp3",
 "dur": 5.05
 },
+"Roelie|Alle kleine clubs dromen hier van een grote.": {
+"src": "roelie/alle_kleine_clubs_dromen_hier_va_decc3350.mp3",
+"dur": 3.23
+},
 "Roelie|Als dat niet binnen gaat, eet ik mijn sjaal op.": {
 "src": "roelie/als_dat_niet_binnen_gaat_eet_ik__27d74a40.mp3",
 "dur": 2.48
+},
+"Roelie|Als het tegenzit, zit het tegen. Maar dan wel met zijn allen.": {
+"src": "roelie/als_het_tegenzit_zit_het_tegen_m_6384400b.mp3",
+"dur": 4.07
+},
+"Roelie|Als je bovenaan staat, is iedereen ineens je vriend. Tot de eerste tackle.": {
+"src": "roelie/als_je_bovenaan_staat_is_iederee_f34f46dd.mp3",
+"dur": 3.61
 },
 "Roelie|Als je de bal hebt, kan de tegenstander niet scoren. Dat is geen filosofie, dat is rekenen.": {
 "src": "roelie/als_je_de_bal_hebt_kan_de_tegens_a897e94c.mp3",
@@ -7878,6 +8062,10 @@
 "Roelie|Balbezit is mooi, maar het moet wel ergens heen.": {
 "src": "roelie/balbezit_is_mooi_maar_het_moet_w_b2c6b08a.mp3",
 "dur": 3.91
+},
+"Roelie|Bekervoetbal: negentig minuten en dan strafschoppen. Als je pech hebt.": {
+"src": "roelie/bekervoetbal_negentig_minuten_en_d5fdc9a2.mp3",
+"dur": 4.03
 },
 "Roelie|Beterschap alvast.": {
 "src": "roelie/beterschap_alvast_a4994777.mp3",
@@ -7899,9 +8087,25 @@
 "src": "roelie/bij_een_vrije_trap_telt_de_muur__b85aa25d.mp3",
 "dur": 3.6
 },
+"Roelie|Bij het dorpsteam was een seizoen ook kort. Vooral als je moest invallen.": {
+"src": "roelie/bij_het_dorpsteam_was_een_seizoe_87b152f0.mp3",
+"dur": 3.8
+},
 "Roelie|Bij ons in het dorp heette zo iemand Meneer Muur.": {
 "src": "roelie/bij_ons_in_het_dorp_heette_zo_ie_83665b12.mp3",
 "dur": 2.97
+},
+"Roelie|Bij strafschoppen helpt geen beleid, alleen een goede keeper.": {
+"src": "roelie/bij_strafschoppen_helpt_geen_bel_ee8a0648.mp3",
+"dur": 3.51
+},
+"Roelie|Bovenaan staan is makkelijk. Er blijven staan is de kunst.": {
+"src": "roelie/bovenaan_staan_is_makkelijk_er_b_ff82ebab.mp3",
+"dur": 4.22
+},
+"Roelie|Buitenlandse clubs: ik begrijp ze niet, maar hun voeten begrijp ik wel.": {
+"src": "roelie/buitenlandse_clubs_ik_begrijp_ze_3390254c.mp3",
+"dur": 4.08
 },
 "Roelie|Daar had de verdediging bij moeten staan. Niet erbij moeten kijken.": {
 "src": "roelie/daar_had_de_verdediging_bij_moet_1451e43e.mp3",
@@ -7926,6 +8130,10 @@
 "Roelie|Dat doet pijn, Hilbrand. Maar het spel is nog lang niet uit.": {
 "src": "roelie/dat_doet_pijn_hilbrand_maar_het__871253a0.mp3",
 "dur": 2.99
+},
+"Roelie|Dat had ik zelf niet beter gedaan. Ik heb het ook nooit geprobeerd.": {
+"src": "roelie/dat_had_ik_zelf_niet_beter_gedaa_2c1d3760.mp3",
+"dur": 3.43
 },
 "Roelie|Dat hadden we kunnen zien aankomen.": {
 "src": "roelie/dat_hadden_we_kunnen_zien_aankom_98406990.mp3",
@@ -7975,6 +8183,14 @@
 "src": "roelie/dat_wordt_een_lange_middag_met_t_a2f5d081.mp3",
 "dur": 2.16
 },
+"Roelie|Dat wordt een mooi verhaal in de krant. Als iemand de foto heeft.": {
+"src": "roelie/dat_wordt_een_mooi_verhaal_in_de_736cae1a.mp3",
+"dur": 3.15
+},
+"Roelie|De eerste wedstrijd is de zwaarste. Daarna wordt het gewoon werk.": {
+"src": "roelie/de_eerste_wedstrijd_is_de_zwaars_8596fdbb.mp3",
+"dur": 3.45
+},
 "Roelie|De keeper had geen schijn van kans. Hij had het wel geprobeerd.": {
 "src": "roelie/de_keeper_had_geen_schijn_van_ka_64b2dac0.mp3",
 "dur": 3.23
@@ -7987,6 +8203,14 @@
 "src": "roelie/de_laatste_minuten_zijn_voor_hel_523d24bd.mp3",
 "dur": 4.44
 },
+"Roelie|De laatste ronde: alles of niks. Zoals bij het dorpsteam op het laatste biertje.": {
+"src": "roelie/de_laatste_ronde_alles_of_niks_z_62c408f1.mp3",
+"dur": 4.73
+},
+"Roelie|De nagelbijters zitten vandaag vooraan.": {
+"src": "roelie/de_nagelbijters_zitten_vandaag_v_d9adede8.mp3",
+"dur": 2.25
+},
 "Roelie|De paal is de beste verdediger van het veld.": {
 "src": "roelie/de_paal_is_de_beste_verdediger_v_ee6e4612.mp3",
 "dur": 2.31
@@ -7994,6 +8218,10 @@
 "Roelie|De spits dacht dat hij hem had. De keeper dacht van niet.": {
 "src": "roelie/de_spits_dacht_dat_hij_hem_had_d_3e0afd0b.mp3",
 "dur": 3.42
+},
+"Roelie|De top is gezellig, maar je moet je plek verdienen.": {
+"src": "roelie/de_top_is_gezellig_maar_je_moet__a5a4c502.mp3",
+"dur": 3.37
 },
 "Roelie|De trainer heeft vijftien minuten voor een speech van twee zinnen.": {
 "src": "roelie/de_trainer_heeft_vijftien_minute_b6d2f2d0.mp3",
@@ -8014,6 +8242,14 @@
 "Roelie|De wind draait een beetje. Dat merk je aan de lange ballen.": {
 "src": "roelie/de_wind_draait_een_beetje_dat_me_5d5c3c8f.mp3",
 "dur": 3.39
+},
+"Roelie|Debuteren is moeilijk. Vooral als iedereen kijkt, en dat doen ze.": {
+"src": "roelie/debuteren_is_moeilijk_vooral_als_2af833e4.mp3",
+"dur": 3.65
+},
+"Roelie|Degradatie is geen ramp. Het is alleen een andere kantine.": {
+"src": "roelie/degradatie_is_geen_ramp_het_is_a_08e07c63.mp3",
+"dur": 3.59
 },
 "Roelie|Die moet er in, Hilbrand. Zelfs mijn oma had die gescoord.": {
 "src": "roelie/die_moet_er_in_hilbrand_zelfs_mi_f4831b83.mp3",
@@ -8047,6 +8283,10 @@
 "src": "roelie/dit_is_waarom_we_naar_voetbal_ki_ff62b103.mp3",
 "dur": 2.51
 },
+"Roelie|Dit is waarvoor je op zaterdag je kantine verlaat.": {
+"src": "roelie/dit_is_waarvoor_je_op_zaterdag_j_1d5e901f.mp3",
+"dur": 2.87
+},
 "Roelie|Dit kan een goede kans worden, als de voorzet goed is.": {
 "src": "roelie/dit_kan_een_goede_kans_worden_al_0df00bfe.mp3",
 "dur": 2.83
@@ -8059,6 +8299,10 @@
 "src": "roelie/dit_verandert_alles_het_hele_pla_00a4ade4.mp3",
 "dur": 2.48
 },
+"Roelie|Dit zijn de doelpunten waar je koffie voor koud laat worden.": {
+"src": "roelie/dit_zijn_de_doelpunten_waar_je_k_869721ca.mp3",
+"dur": 2.65
+},
 "Roelie|Dit zijn de momenten waar je voor traint.": {
 "src": "roelie/dit_zijn_de_momenten_waar_je_voo_c77680d8.mp3",
 "dur": 2.01
@@ -8066,6 +8310,14 @@
 "Roelie|Een balletje over de lijn is nooit weg. Het is alleen even weg.": {
 "src": "roelie/een_balletje_over_de_lijn_is_noo_4e853e86.mp3",
 "dur": 3.32
+},
+"Roelie|Een bedankje aan de borden. Die kijken tenminste de hele wedstrijd mee.": {
+"src": "roelie/een_bedankje_aan_de_borden_die_k_ab4b86e5.mp3",
+"dur": 3.37
+},
+"Roelie|Een beker is gemaakt om te verliezen. Maar je wilt hem winnen.": {
+"src": "roelie/een_beker_is_gemaakt_om_te_verli_11944412.mp3",
+"dur": 3.45
 },
 "Roelie|Een doelschop is een tweede kans voor wie hem nodig heeft.": {
 "src": "roelie/een_doelschop_is_een_tweede_kans_a31bc218.mp3",
@@ -8099,6 +8351,10 @@
 "src": "roelie/een_ingooi_is_de_enige_keer_dat__f1f3182d.mp3",
 "dur": 3.57
 },
+"Roelie|Een internationale avond. Ik heb mijn mooie sjaal aan.": {
+"src": "roelie/een_internationale_avond_ik_heb__18c56a6f.mp3",
+"dur": 3.24
+},
 "Roelie|Een keeper is een eenzaam beroep. Maar hij heeft vanmiddag veel bezoek.": {
 "src": "roelie/een_keeper_is_een_eenzaam_beroep_2c912e4a.mp3",
 "dur": 3.51
@@ -8115,9 +8371,17 @@
 "src": "roelie/een_prima_prestatie_die_niet_zom_b083e308.mp3",
 "dur": 3.18
 },
+"Roelie|Een sponsor is als een goede keeper: je merkt hem pas als hij er niet is.": {
+"src": "roelie/een_sponsor_is_als_een_goede_kee_63ca9a57.mp3",
+"dur": 4.42
+},
 "Roelie|Een stap te ver, en het hele plan valt weg.": {
 "src": "roelie/een_stap_te_ver_en_het_hele_plan_6ca3e209.mp3",
 "dur": 2.87
+},
+"Roelie|Een ster is geboren. Of hij was het al. Dat is moeilijk te zien.": {
+"src": "roelie/een_ster_is_geboren_of_hij_was_h_5b7bb191.mp3",
+"dur": 4.37
 },
 "Roelie|Een tackle van achteren is nooit een goed plan.": {
 "src": "roelie/een_tackle_van_achteren_is_nooit_218b97d2.mp3",
@@ -8135,6 +8399,10 @@
 "src": "roelie/eerst_de_bal_terugwinnen_dan_pas_70c82e2d.mp3",
 "dur": 2.46
 },
+"Roelie|Elke ronde is een kwartfinale, zeg ik altijd. Dat klopt nooit, maar het voelt goed.": {
+"src": "roelie/elke_ronde_is_een_kwartfinale_ze_02622f23.mp3",
+"dur": 5.31
+},
 "Roelie|Er is nu ruimte, en die ruimte moet je gebruiken.": {
 "src": "roelie/er_is_nu_ruimte_en_die_ruimte_mo_c2983bf1.mp3",
 "dur": 2.78
@@ -8142,6 +8410,10 @@
 "Roelie|Even doorademen en opnieuw beginnen.": {
 "src": "roelie/even_doorademen_en_opnieuw_begin_994e4806.mp3",
 "dur": 2.53
+},
+"Roelie|Fijn, zo'n bedrijf dat in ons gelooft. Dat gebeurt niet vaak.": {
+"src": "roelie/fijn_zo_n_bedrijf_dat_in_ons_gel_d3e887df.mp3",
+"dur": 3.91
 },
 "Roelie|Geel is een vriendelijk verzoek in kleur.": {
 "src": "roelie/geel_is_een_vriendelijk_verzoek__b133dc39.mp3",
@@ -8171,6 +8443,14 @@
 "src": "roelie/het_is_te_warm_dat_zeg_ik_elke_z_a089919b.mp3",
 "dur": 2.18
 },
+"Roelie|Het talent zit in de voeten, de rest zit in de papieren.": {
+"src": "roelie/het_talent_zit_in_de_voeten_de_r_3e8a0338.mp3",
+"dur": 3.08
+},
+"Roelie|Het zijn dezelfde regels, hoor. Alleen de bijnamen zijn langer.": {
+"src": "roelie/het_zijn_dezelfde_regels_hoor_al_0c567e51.mp3",
+"dur": 4.09
+},
 "Roelie|Hij keek te veel naar de keeper en te weinig naar de bal.": {
 "src": "roelie/hij_keek_te_veel_naar_de_keeper__5a10e0bc.mp3",
 "dur": 2.96
@@ -8191,9 +8471,17 @@
 "src": "roelie/hij_stond_precies_goed_dat_is_ge_e1316304.mp3",
 "dur": 3.21
 },
+"Roelie|Hoge ogen gooien, joh. Dat doen ze hier graag.": {
+"src": "roelie/hoge_ogen_gooien_joh_dat_doen_ze_6cc9fcc8.mp3",
+"dur": 3.06
+},
 "Roelie|Ik ben benieuwd wie er nog benen heeft.": {
 "src": "roelie/ik_ben_benieuwd_wie_er_nog_benen_76b020bf.mp3",
 "dur": 1.75
+},
+"Roelie|Ik ben ooit door in de beker gegaan op een eigen doelpunt. Mooi was het niet. Wel door.": {
+"src": "roelie/ik_ben_ooit_door_in_de_beker_geg_91d49502.mp3",
+"dur": 5.02
 },
 "Roelie|Ik durf er niets over te zeggen. En dat zegt wat.": {
 "src": "roelie/ik_durf_er_niets_over_te_zeggen__379ad5e7.mp3",
@@ -8207,6 +8495,10 @@
 "src": "roelie/ik_had_hem_ook_gekozen_ik_zeg_he_c64a3631.mp3",
 "dur": 2.74
 },
+"Roelie|Ik heb de stand gezien. Ik zeg niks, maar ik kijk bezorgd.": {
+"src": "roelie/ik_heb_de_stand_gezien_ik_zeg_ni_1a5f95bd.mp3",
+"dur": 4.44
+},
 "Roelie|Ik heb er eens een gemist op een dorpsfeest. Mijn oma weet het nog.": {
 "src": "roelie/ik_heb_er_eens_een_gemist_op_een_47f641b8.mp3",
 "dur": 3.73
@@ -8218,6 +8510,14 @@
 "Roelie|Ik heb in mijn tijd drie derby's gespeeld. Ik heb nog steeds ruzie met een buurman.": {
 "src": "roelie/ik_heb_in_mijn_tijd_drie_derby_s_20309283.mp3",
 "dur": 4.03
+},
+"Roelie|Ik heb ooit onderaan gestaan. De koffie smaakte beter dan bovenaan.": {
+"src": "roelie/ik_heb_ooit_onderaan_gestaan_de__dc690827.mp3",
+"dur": 4.0
+},
+"Roelie|Ik heb ooit twee weken bovenaan gestaan. Daarna kwam een ruzie met de keeper.": {
+"src": "roelie/ik_heb_ooit_twee_weken_bovenaan__956a7293.mp3",
+"dur": 4.47
 },
 "Roelie|Ik hoor het nog galmen.": {
 "src": "roelie/ik_hoor_het_nog_galmen_23fc4832.mp3",
@@ -8231,6 +8531,10 @@
 "src": "roelie/ik_zeg_de_eerste_tien_minuten_zi_a6046190.mp3",
 "dur": 6.56
 },
+"Roelie|Ik zie talent. Of een goede jas. Het is lastig te zeggen.": {
+"src": "roelie/ik_zie_talent_of_een_goede_jas_h_59e7951c.mp3",
+"dur": 3.91
+},
 "Roelie|Ik zou zeggen: dikke goal.": {
 "src": "roelie/ik_zou_zeggen_dikke_goal_d4be43b5.mp3",
 "dur": 1.7
@@ -8239,9 +8543,17 @@
 "src": "roelie/ik_zou_zeggen_een_helft_vol_bijn_9d8edc92.mp3",
 "dur": 4.51
 },
+"Roelie|In de beker bestaat geen morgen. Alleen de koffie erna.": {
+"src": "roelie/in_de_beker_bestaat_geen_morgen__47e7a78b.mp3",
+"dur": 3.07
+},
 "Roelie|In de rust wordt het gewonnen, zeggen ze. Of verloren. Het ligt eraan.": {
 "src": "roelie/in_de_rust_wordt_het_gewonnen_ze_880341c5.mp3",
 "dur": 4.46
+},
+"Roelie|In een kort seizoen mag je één keer slecht zijn. En liever niet vandaag.": {
+"src": "roelie/in_een_kort_seizoen_mag_je_e_e_n_8a9049cb.mp3",
+"dur": 4.17
 },
 "Roelie|In het dorp zeiden we: eerst de bal, dan de man. Of andersom.": {
 "src": "roelie/in_het_dorp_zeiden_we_eerst_de_b_2c2a52fc.mp3",
@@ -8259,6 +8571,10 @@
 "src": "roelie/je_mag_best_hard_spelen_maar_nie_022b65b6.mp3",
 "dur": 4.24
 },
+"Roelie|Je moet ergens beginnen. Liefst niet onderaan, maar het kan.": {
+"src": "roelie/je_moet_ergens_beginnen_liefst_n_fc3c5d2d.mp3",
+"dur": 4.5
+},
 "Roelie|Je moet het toegeven: dat was mooi, alleen niet voor ons.": {
 "src": "roelie/je_moet_het_toegeven_dat_was_moo_abe96ea3.mp3",
 "dur": 4.25
@@ -8275,6 +8591,14 @@
 "src": "roelie/met_e_e_n_doelpunt_verschil_is_h_6c34a328.mp3",
 "dur": 2.89
 },
+"Roelie|Mijn debuut was een eigen doelpunt. Je kan alleen maar beter worden.": {
+"src": "roelie/mijn_debuut_was_een_eigen_doelpu_842ba6a0.mp3",
+"dur": 4.32
+},
+"Roelie|Mooi dat ze meekijken. Maar ze mogen ook best juichen.": {
+"src": "roelie/mooi_dat_ze_meekijken_maar_ze_mo_90f8287f.mp3",
+"dur": 3.38
+},
 "Roelie|Mooi gedaan. Hij verdient een pepermunt.": {
 "src": "roelie/mooi_gedaan_hij_verdient_een_pep_c4324016.mp3",
 "dur": 2.59
@@ -8290,6 +8614,10 @@
 "Roelie|Mooie middag voor een pakje friet. Nu even niet.": {
 "src": "roelie/mooie_middag_voor_een_pakje_frie_1807ad9f.mp3",
 "dur": 2.6
+},
+"Roelie|Na afloop weten we alles. Of niks. Het hangt van de rekensom af.": {
+"src": "roelie/na_afloop_weten_we_alles_of_niks_62294a1f.mp3",
+"dur": 4.04
 },
 "Roelie|Net als bij het dorpsteam: eerst bijna, dan koffie.": {
 "src": "roelie/net_als_bij_het_dorpsteam_eerst__9500524f.mp3",
@@ -8327,6 +8655,14 @@
 "src": "roelie/oma_trijntje_zit_op_haar_vaste_p_a925caf7.mp3",
 "dur": 3.89
 },
+"Roelie|Onderaan leer je het meest, zeggen ze. Ik leer liever bovenaan.": {
+"src": "roelie/onderaan_leer_je_het_meest_zegge_251e535b.mp3",
+"dur": 3.68
+},
+"Roelie|Onderin heb je niks te verliezen, behalve de wedstrijd.": {
+"src": "roelie/onderin_heb_je_niks_te_verliezen_c80dd276.mp3",
+"dur": 3.21
+},
 "Roelie|Op een warme dag is het tempo vanzelf lager.": {
 "src": "roelie/op_een_warme_dag_is_het_tempo_va_49a2a3bb.mp3",
 "dur": 2.77
@@ -8338,6 +8674,10 @@
 "Roelie|Pech. En een beetje onhandig.": {
 "src": "roelie/pech_en_een_beetje_onhandig_21990078.mp3",
 "dur": 2.32
+},
+"Roelie|Punten tellen. Mooi voetbal telt ook, maar niet op het bord.": {
+"src": "roelie/punten_tellen_mooi_voetbal_telt__eaa15ddc.mp3",
+"dur": 3.46
 },
 "Roelie|Rood. Hij had beter kunnen kiezen.": {
 "src": "roelie/rood_hij_had_beter_kunnen_kiezen_ba89dfaf.mp3",
@@ -8351,9 +8691,25 @@
 "src": "roelie/rustig_aan_jongen_eerst_richten__093d992a.mp3",
 "dur": 3.42
 },
+"Roelie|Slotdag. Alle rekensommen op de tribune kloppen niet.": {
+"src": "roelie/slotdag_alle_rekensommen_op_de_t_c7af6d9c.mp3",
+"dur": 3.13
+},
+"Roelie|Spannend, joh. Het wordt een lange avond.": {
+"src": "roelie/spannend_joh_het_wordt_een_lange_69d46c59.mp3",
+"dur": 2.34
+},
+"Roelie|Sponsors maken het mogelijk, en ik mag het zeggen.": {
+"src": "roelie/sponsors_maken_het_mogelijk_en_i_a14a8894.mp3",
+"dur": 2.68
+},
 "Roelie|Van achteren? Dat doe je niet.": {
 "src": "roelie/van_achteren_dat_doe_je_niet_cdd7cced.mp3",
 "dur": 1.67
+},
+"Roelie|Ver van huis spelen is moeilijk. Dichtbij huis is het alleen moeilijker.": {
+"src": "roelie/ver_van_huis_spelen_is_moeilijk__de73d887.mp3",
+"dur": 3.47
 },
 "Roelie|Verdiend, Hilbrand. Heel verdiend. Ik heb geen kwaad woord over.": {
 "src": "roelie/verdiend_hilbrand_heel_verdiend__f044f1a1.mp3",
@@ -8371,9 +8727,25 @@
 "src": "roelie/we_leren_ervan_ik_zeg_dat_elke_k_c26ea2db.mp3",
 "dur": 2.31
 },
+"Roelie|Wie bovenaan staat, krijgt altijd de zon in de ogen.": {
+"src": "roelie/wie_bovenaan_staat_krijgt_altijd_0fd0b9ca.mp3",
+"dur": 2.78
+},
+"Roelie|Wie een debuut overleeft, overleeft alles.": {
+"src": "roelie/wie_een_debuut_overleeft_overlee_748d09fd.mp3",
+"dur": 2.52
+},
+"Roelie|Zeven rondes is niks. Een koffiepauze met een scheidsrechter.": {
+"src": "roelie/zeven_rondes_is_niks_een_koffiep_26e35c9e.mp3",
+"dur": 3.58
+},
 "Roelie|Zie je wel: nooit opgeven. Dat is het Groninger motto.": {
 "src": "roelie/zie_je_wel_nooit_opgeven_dat_is__64441190.mp3",
 "dur": 3.39
+},
+"Roelie|Zie je? Daar zit werk achter. En een goede vriend aan de zijlijn.": {
+"src": "roelie/zie_je_daar_zit_werk_achter_en_e_8d23757d.mp3",
+"dur": 3.26
 },
 "Roelie|Zo dicht bij. Het hout was zijn vriend niet.": {
 "src": "roelie/zo_dicht_bij_het_hout_was_zijn_v_a46a8431.mp3",
@@ -8390,6 +8762,18 @@
 "Roelie|Zo wil je voetbal zien: iedereen zit op het puntje van de stoel.": {
 "src": "roelie/zo_wil_je_voetbal_zien_iedereen__d1a575f3.mp3",
 "dur": 3.56
+},
+"Roelie|Zo'n laatste dag duurt altijd langer dan negentig minuten.": {
+"src": "roelie/zo_n_laatste_dag_duurt_altijd_la_99327e0c.mp3",
+"dur": 3.38
+},
+"Roelie|Zonder sponsor betalen we de nootjes zelf. Dat wil niemand.": {
+"src": "roelie/zonder_sponsor_betalen_we_de_noo_6cef6245.mp3",
+"dur": 3.64
+},
+"Roelie|Zout in de lucht en een bal aan de voet. Dat is het wad.": {
+"src": "roelie/zout_in_de_lucht_en_een_bal_aan__79848e83.mp3",
+"dur": 3.34
 },
 "Roelie|Zoveel gras, zo weinig schaduw.": {
 "src": "roelie/zoveel_gras_zo_weinig_schaduw_44d6ffe8.mp3",
@@ -8791,6 +9175,10 @@
 "src": "tammo/allemaal_elke_eierbal_van_grunn__38c6a0fe.mp3",
 "dur": 3.8
 },
+"Tammo|Alles blijft open. De boerderij, de panden, het voetbal.": {
+"src": "tammo/alles_blijft_open_de_boerderij_d_a71a51f5.mp3",
+"dur": 3.95
+},
 "Tammo|Alles past in een lift. Als je hem schuin houdt.": {
 "src": "tammo/alles_past_in_een_lift_als_je_he_0563b6c4.mp3",
 "dur": 2.23
@@ -8883,6 +9271,10 @@
 "src": "tammo/daarom_ff18d48b.mp3",
 "dur": 0.55
 },
+"Tammo|Dan beginnen we overal.": {
+"src": "tammo/dan_beginnen_we_overal_5766cc7a.mp3",
+"dur": 1.46
+},
 "Tammo|Dan de kade.": {
 "src": "tammo/dan_de_kade_7aff1578.mp3",
 "dur": 1.07
@@ -8922,6 +9314,10 @@
 "Tammo|Dan rijd ik hem. Tot je het weet.": {
 "src": "tammo/dan_rijd_ik_hem_tot_je_het_weet_768701fb.mp3",
 "dur": 1.98
+},
+"Tammo|Dan rijden we.": {
+"src": "tammo/dan_rijden_we_a72f86ca.mp3",
+"dur": 0.87
 },
 "Tammo|Dan rijdt hij nauwelijks voor jou. Een snackwagen die nauwelijks rijdt. Dat is een concept.": {
 "src": "tammo/dan_rijdt_hij_nauwelijks_voor_jo_6d30f2bd.mp3",
@@ -9098,6 +9494,10 @@
 "Tammo|Dat was mijn laatste schone.": {
 "src": "tammo/dat_was_mijn_laatste_schone_10a84225.mp3",
 "dur": 1.63
+},
+"Tammo|Dat was mijn plan al.": {
+"src": "tammo/dat_was_mijn_plan_al_ded2f476.mp3",
+"dur": 1.08
 },
 "Tammo|Dat weet niemand. Behalve Friezen.": {
 "src": "tammo/dat_weet_niemand_behalve_friezen_d8106c89.mp3",
@@ -9483,6 +9883,10 @@
 "src": "tammo/eerst_afmaken_waar_we_mee_bezig__40c11152.mp3",
 "dur": 2.09
 },
+"Tammo|Eerst de Hereweg.": {
+"src": "tammo/eerst_de_hereweg_77dadf67.mp3",
+"dur": 1.47
+},
 "Tammo|Eerst eten. Dan praten.": {
 "src": "tammo/eerst_eten_dan_praten_eb62f702.mp3",
 "dur": 1.98
@@ -9546,6 +9950,10 @@
 "Tammo|En de camera's?": {
 "src": "tammo/en_de_camera_s_fa8f8a92.mp3",
 "dur": 1.5
+},
+"Tammo|En de kat?": {
+"src": "tammo/en_de_kat_12d06093.mp3",
+"dur": 0.71
 },
 "Tammo|En de mensen dan?": {
 "src": "tammo/en_de_mensen_dan_8fdafdaf.mp3",
@@ -9642,6 +10050,10 @@
 "Tammo|Er zit nog een vel in.": {
 "src": "tammo/er_zit_nog_een_vel_in_141d2580.mp3",
 "dur": 1.31
+},
+"Tammo|Eten. Wandelen. En eentje doorgestreept.": {
+"src": "tammo/eten_wandelen_en_eentje_doorgest_ab61152d.mp3",
+"dur": 3.16
 },
 "Tammo|Eén container tussen alle windmolenbladen en kabelrollen?": {
 "src": "tammo/ee_n_container_tussen_alle_windm_8c652039.mp3",
@@ -9755,6 +10167,10 @@
 "src": "tammo/het_is_een_eerlijk_antwoord_9f34899b.mp3",
 "dur": 2.16
 },
+"Tammo|Het is een gelegenheid.": {
+"src": "tammo/het_is_een_gelegenheid_7ed74ad8.mp3",
+"dur": 1.29
+},
 "Tammo|Het is een hele goede koelkast.": {
 "src": "tammo/het_is_een_hele_goede_koelkast_2dd411ff.mp3",
 "dur": 1.93
@@ -9830,6 +10246,14 @@
 "Tammo|Hier zat ik vroeger. Als het thuis te druk was.": {
 "src": "tammo/hier_zat_ik_vroeger_als_het_thui_08798569.mp3",
 "dur": 2.51
+},
+"Tammo|Hier. Dat is goed.": {
+"src": "tammo/hier_dat_is_goed_c564677e.mp3",
+"dur": 1.34
+},
+"Tammo|Hier. Met jou erbij.": {
+"src": "tammo/hier_met_jou_erbij_e0d450ab.mp3",
+"dur": 1.36
 },
 "Tammo|Hij bedankt ons.": {
 "src": "tammo/hij_bedankt_ons_eefa80b4.mp3",
@@ -10114,6 +10538,10 @@
 "Tammo|Ik heb nooit ergens anders gewoond.": {
 "src": "tammo/ik_heb_nooit_ergens_anders_gewoo_baac3006.mp3",
 "dur": 2.16
+},
+"Tammo|Ik heb ook geen vergunning.": {
+"src": "tammo/ik_heb_ook_geen_vergunning_11157e3e.mp3",
+"dur": 1.34
 },
 "Tammo|Ik heb ze niet gevraagd.": {
 "src": "tammo/ik_heb_ze_niet_gevraagd_3f1a4d71.mp3",
@@ -10643,6 +11071,10 @@
 "src": "tammo/niks_is_een_goed_plan_073a6a22.mp3",
 "dur": 1.49
 },
+"Tammo|Niks. Ik zeg het uit gewoonte.": {
+"src": "tammo/niks_ik_zeg_het_uit_gewoonte_7e8fbb47.mp3",
+"dur": 1.94
+},
 "Tammo|Nog eentje dan?": {
 "src": "tammo/nog_eentje_dan_9301fd43.mp3",
 "dur": 0.99
@@ -10674,6 +11106,10 @@
 "Tammo|Oma Trijntje won in 1953.": {
 "src": "tammo/oma_trijntje_won_in_1953_816fb695.mp3",
 "dur": 3.4
+},
+"Tammo|Oma Trijntje, Beppe. Beppe, Oma Trijntje.": {
+"src": "tammo/oma_trijntje_beppe_beppe_oma_tri_f5d378b6.mp3",
+"dur": 3.18
 },
 "Tammo|Oma… hoe zei opa het eigenlijk? Tegen jou.": {
 "src": "tammo/oma_hoe_zei_opa_het_eigenlijk_te_54c22775.mp3",
@@ -10811,6 +11247,10 @@
 "src": "tammo/rozen_buxus_en_een_zonnewijzer_d_e2f30b4a.mp3",
 "dur": 4.39
 },
+"Tammo|Sinds de Escapade.": {
+"src": "tammo/sinds_de_escapade_cd5e5aa5.mp3",
+"dur": 1.42
+},
 "Tammo|Sinds nu.": {
 "src": "tammo/sinds_nu_76c51547.mp3",
 "dur": 0.78
@@ -10947,6 +11387,10 @@
 "src": "tammo/waar_is_de_echte_jelle_c44ca678.mp3",
 "dur": 1.26
 },
+"Tammo|Waar jij wilt.": {
+"src": "tammo/waar_jij_wilt_a0d451de.mp3",
+"dur": 1.0
+},
 "Tammo|Waar zie je dat aan?": {
 "src": "tammo/waar_zie_je_dat_aan_dc2be555.mp3",
 "dur": 1.01
@@ -11034,6 +11478,10 @@
 "Tammo|Wat wil hij?": {
 "src": "tammo/wat_wil_hij_b7780f76.mp3",
 "dur": 0.85
+},
+"Tammo|Wat wilde hij nou?": {
+"src": "tammo/wat_wilde_hij_nou_ad2edf35.mp3",
+"dur": 1.12
 },
 "Tammo|Wat zei hij?": {
 "src": "tammo/wat_zei_hij_434c1260.mp3",
@@ -11231,6 +11679,10 @@
 "src": "tammo/ze_zijn_bijna_allemaal_rood_42c24a9c.mp3",
 "dur": 1.98
 },
+"Tammo|Zeggen dat ik je leuk vind. Dat is al gebeurd. Met publiek.": {
+"src": "tammo/zeggen_dat_ik_je_leuk_vind_dat_i_7ff1057e.mp3",
+"dur": 3.69
+},
 "Tammo|Zelf gebouwd? Met de hand?": {
 "src": "tammo/zelf_gebouwd_met_de_hand_c6be5d05.mp3",
 "dur": 2.09
@@ -11358,6 +11810,10 @@
 "Tinus|De modder pakt eerst je auto. Je plannen komen daarna.": {
 "src": "tinus/de_modder_pakt_eerst_je_auto_je__6de62f0b.mp3",
 "dur": 3.63
+},
+"Tinus|De trekker heeft een toren. Zonder motor ging het niet. Met motor wel.": {
+"src": "tinus/de_trekker_heeft_een_toren_zonde_7a459dd3.mp3",
+"dur": 4.13
 },
 "Tinus|Gelkingestraat dicht. Trekker dwars. Wie er langs wil, moet eerst met mij praten.": {
 "src": "tinus/gelkingestraat_dicht_trekker_dwa_173e668d.mp3",
@@ -11523,13 +11979,25 @@
 "src": "willemien/dat_zeggen_ze_ik_zeg_het_ook_dan_499e7079.mp3",
 "dur": 3.23
 },
+"Willemien|Dat zegt Trijntje van alles. Breekbaar in de krant. Boeken in kleine dozen, anders til je ze niet.": {
+"src": "willemien/dat_zegt_trijntje_van_alles_bree_0d19ad1c.mp3",
+"dur": 6.72
+},
 "Willemien|Dat zei Trijntje al. Ze zei: dat is het enige wat hij altijd doet.": {
 "src": "willemien/dat_zei_trijntje_al_ze_zei_dat_i_1776c781.mp3",
 "dur": 4.4
 },
+"Willemien|De aannemer zet het huis op nieuwe poten. De ploeg is aardig.": {
+"src": "willemien/de_aannemer_zet_het_huis_op_nieu_56a8d40d.mp3",
+"dur": 3.46
+},
 "Willemien|De kat was eerder terug dan ik. Hij liep gewoon. Twee kilometer.": {
 "src": "willemien/de_kat_was_eerder_terug_dan_ik_h_710a9676.mp3",
 "dur": 4.5
+},
+"Willemien|De kat weet het al.": {
+"src": "willemien/de_kat_weet_het_al_f59128a0.mp3",
+"dur": 1.31
 },
 "Willemien|Die wist het al die tijd.": {
 "src": "willemien/die_wist_het_al_die_tijd_aaf05a7e.mp3",
@@ -11547,6 +12015,10 @@
 "src": "willemien/ee_n_keer_is_genoeg_dan_is_het_w_ecc1f505.mp3",
 "dur": 2.18
 },
+"Willemien|Het duurt alleen langer dan een kopje koffie.": {
+"src": "willemien/het_duurt_alleen_langer_dan_een__12fe1cb5.mp3",
+"dur": 2.12
+},
 "Willemien|Het is een huis. Het moet alleen even blijven staan.": {
 "src": "willemien/het_is_een_huis_het_moet_alleen__03c22a84.mp3",
 "dur": 3
@@ -11563,9 +12035,17 @@
 "src": "willemien/hij_wil_nergens_in_hij_woont_hie_52578380.mp3",
 "dur": 4.12
 },
+"Willemien|Hij zit sinds gisteren onder de bank.": {
+"src": "willemien/hij_zit_sinds_gisteren_onder_de__b04213c6.mp3",
+"dur": 1.91
+},
 "Willemien|Ik geloof het als ik het zie. Dat is niet boos. Dat is Gronings.": {
 "src": "willemien/ik_geloof_het_als_ik_het_zie_dat_45c93e64.mp3",
 "dur": 4.83
+},
+"Willemien|Ik ken jullie van het luik. Woensdag, de derde in de rij. Eén eierbal, extra mosterd.": {
+"src": "willemien/ik_ken_jullie_van_het_luik_woens_b30c641f.mp3",
+"dur": 6.27
 },
 "Willemien|In de gang. Waar je hem ziet als je weggaat. En als je terugkomt.": {
 "src": "willemien/in_de_gang_waar_je_hem_ziet_als__e5bfd462.mp3",
@@ -11598,6 +12078,10 @@
 "Willemien|Tegen de wind in. Dat stond er niet bij, maar zo was het.": {
 "src": "willemien/tegen_de_wind_in_dat_stond_er_ni_be4fce76.mp3",
 "dur": 3.54
+},
+"Willemien|Trijntjes recept. Het is een bal.": {
+"src": "willemien/trijntjes_recept_het_is_een_bal_44740714.mp3",
+"dur": 2.41
 },
 "Willemien|Zeg tegen Trijntje: ik ben thuis.": {
 "src": "willemien/zeg_tegen_trijntje_ik_ben_thuis_05c70697.mp3",
@@ -11650,6 +12134,10 @@
 "Wubbo|Het schip zit vast. De mosterd is van jullie. Grove mosterd, niet dat zoete spul.": {
 "src": "wubbo/het_schip_zit_vast_de_mosterd_is_dd2c6a77.mp3",
 "dur": 5.69
+},
+"Wubbo|Ik doe de lier van de brug. Open of dicht. Vandaag een tel te vroeg.": {
+"src": "wubbo/ik_doe_de_lier_van_de_brug_open__965e635d.mp3",
+"dur": 4.96
 },
 "Wubbo|Ik fluit. Eén keer fluiten is open. Twee keer is dicht.": {
 "src": "wubbo/ik_fluit_ee_n_keer_fluiten_is_op_7ea6136c.mp3",
@@ -11831,6 +12319,10 @@
 "src": "bubbles/f/dat_is_de_apenrots_daar_zitten_z_1327d17a.mp3",
 "dur": 4.14
 },
+"~f|Dat is een eend. Geloof ik.": {
+"src": "bubbles/f/dat_is_een_eend_geloof_ik_340059ab.mp3",
+"dur": 2.32
+},
 "~f|Dat is goud spul, mien wicht!": {
 "src": "bubbles/f/dat_is_goud_spul_mien_wicht_25cb508a.mp3",
 "dur": 1.83
@@ -11879,9 +12371,17 @@
 "src": "bubbles/f/dit_heb_ik_niet_besteld_317f1913.mp3",
 "dur": 1.77
 },
+"~f|Dit is geen feest, dit is netwerken.": {
+"src": "bubbles/f/dit_is_geen_feest_dit_is_netwerk_484748e6.mp3",
+"dur": 2.49
+},
 "~f|Dit is leuker dan de grachten thuis. Zeg het niet door.": {
 "src": "bubbles/f/dit_is_leuker_dan_de_grachten_th_79978680.mp3",
 "dur": 3.37
+},
+"~f|Dit zet ik op mijn vakantiefilmpje.": {
+"src": "bubbles/f/dit_zet_ik_op_mijn_vakantiefilmp_003f7896.mp3",
+"dur": 2.06
 },
 "~f|Doar kinnen ze in Stad nog wat van leren.": {
 "src": "bubbles/f/doar_kinnen_ze_in_stad_nog_wat_v_878ace68.mp3",
@@ -11903,6 +12403,10 @@
 "src": "bubbles/f/doe_stoist_te_soezen_jong_4eee2b3d.mp3",
 "dur": 1.75
 },
+"~f|Drie haring voor de prijs van twee, joh!": {
+"src": "bubbles/f/drie_haring_voor_de_prijs_van_tw_091561df.mp3",
+"dur": 2.25
+},
 "~f|Duiven luisteren naar Tammo. Naar mij luistert alleen Tammo.": {
 "src": "bubbles/f/duiven_luisteren_naar_tammo_naar_dd79195d.mp3",
 "dur": 4.11
@@ -11910,6 +12414,10 @@
 "~f|Duurde lang. Stond de brug open?": {
 "src": "bubbles/f/duurde_lang_stond_de_brug_open_beb427bd.mp3",
 "dur": 2.47
+},
+"~f|Een euro in de hoed, dat is ook een compliment.": {
+"src": "bubbles/f/een_euro_in_de_hoed_dat_is_ook_e_82ca1c5d.mp3",
+"dur": 3.74
 },
 "~f|Eerst de botsauto, dan de colleges.": {
 "src": "bubbles/f/eerst_de_botsauto_dan_de_college_23fa0790.mp3",
@@ -11979,6 +12487,10 @@
 "src": "bubbles/f/hai_de_poffertjes_ruiken_weer_na_f454fbcc.mp3",
 "dur": 2.83
 },
+"~f|Hai, wie wil der nog een tompouce van de vismarkt?": {
+"src": "bubbles/f/hai_wie_wil_der_nog_een_tompouce_1ec0fc60.mp3",
+"dur": 2.78
+},
 "~f|Hallo, 112? Hier wordt schoten!": {
 "src": "bubbles/f/hallo_112_hier_wordt_schoten_9c75cdf8.mp3",
 "dur": 3.27
@@ -12022,6 +12534,14 @@
 "~f|Hij is wel een beetje slap geworden, hè.": {
 "src": "bubbles/f/hij_is_wel_een_beetje_slap_gewor_fdb6e8a0.mp3",
 "dur": 1.94
+},
+"~f|Hij speelt vals, maar met overtuiging.": {
+"src": "bubbles/f/hij_speelt_vals_maar_met_overtui_e9c29024.mp3",
+"dur": 3.07
+},
+"~f|Hoe ver nog? Zeg maar niks.": {
+"src": "bubbles/f/hoe_ver_nog_zeg_maar_niks_40a8dce0.mp3",
+"dur": 2.13
 },
 "~f|Hoi hoi!": {
 "src": "bubbles/f/hoi_hoi_d65f83a6.mp3",
@@ -12111,6 +12631,10 @@
 "src": "bubbles/f/he_rustig_an_1e738514.mp3",
 "dur": 1.53
 },
+"~f|Iemand nog een oplader? Voor mijn stem, bedoel ik.": {
+"src": "bubbles/f/iemand_nog_een_oplader_voor_mijn_9dcd0570.mp3",
+"dur": 2.63
+},
 "~f|Ik ben geen duivenkoning. Ik ben de baas van de duivenkoning.": {
 "src": "bubbles/f/ik_ben_geen_duivenkoning_ik_ben__232745e5.mp3",
 "dur": 4.55
@@ -12127,6 +12651,10 @@
 "src": "bubbles/f/ik_goa_wel_noar_hoes_stoet_eten_97669d52.mp3",
 "dur": 2.51
 },
+"~f|Ik heb morgen tentamen. Dat is morgen.": {
+"src": "bubbles/f/ik_heb_morgen_tentamen_dat_is_mo_b317ffb0.mp3",
+"dur": 2.43
+},
 "~f|Ik hou van jullie allemaal!": {
 "src": "bubbles/f/ik_hou_van_jullie_allemaal_44054b6d.mp3",
 "dur": 2.1
@@ -12142,6 +12670,10 @@
 "~f|Ik kwam voor de markt, ik ga met een oerwoud.": {
 "src": "bubbles/f/ik_kwam_voor_de_markt_ik_ga_met__4efaf482.mp3",
 "dur": 2.84
+},
+"~f|Ik loop niet hard, ik loop vaak.": {
+"src": "bubbles/f/ik_loop_niet_hard_ik_loop_vaak_5d8ac1cc.mp3",
+"dur": 2.21
 },
 "~f|Ik speul al padel doe nog in de luier lagst.": {
 "src": "bubbles/f/ik_speul_al_padel_doe_nog_in_de__ed7e6380.mp3",
@@ -12163,9 +12695,21 @@
 "src": "bubbles/f/is_dit_die_van_tessa_09bfbab7.mp3",
 "dur": 1.16
 },
+"~f|Is dit een echte haring of een kunstwerk?": {
+"src": "bubbles/f/is_dit_een_echte_haring_of_een_k_2a935761.mp3",
+"dur": 2.8
+},
+"~f|Is dit kunst? Ik denk van wel.": {
+"src": "bubbles/f/is_dit_kunst_ik_denk_van_wel_def0d366.mp3",
+"dur": 2.29
+},
 "~f|Is dit nog steeds hetzelfde water?": {
 "src": "bubbles/f/is_dit_nog_steeds_hetzelfde_wate_e70e2195.mp3",
 "dur": 2.08
+},
+"~f|Is dit nou Grunn? Het is prachtig.": {
+"src": "bubbles/f/is_dit_nou_grunn_het_is_prachtig_bb12c0aa.mp3",
+"dur": 2.32
 },
 "~f|Is dit nou de Grote Markt of het Plantsoen?": {
 "src": "bubbles/f/is_dit_nou_de_grote_markt_of_het_9434b9c8.mp3",
@@ -12206,6 +12750,10 @@
 "~f|Kiek, dat was nait slecht. Veur n Stadjer.": {
 "src": "bubbles/f/kiek_dat_was_nait_slecht_veur_n__36169285.mp3",
 "dur": 3.48
+},
+"~f|Kiek, de zon komt er al aan. Of is dat de lamp?": {
+"src": "bubbles/f/kiek_de_zon_komt_er_al_aan_of_is_ec9b284b.mp3",
+"dur": 3.39
 },
 "~f|Kiek, doar is n bootje!": {
 "src": "bubbles/f/kiek_doar_is_n_bootje_471eb062.mp3",
@@ -12263,6 +12811,10 @@
 "src": "bubbles/f/kreng_van_n_duuf_06b134cf.mp3",
 "dur": 1.58
 },
+"~f|Kun je me met de toren erop zetten?": {
+"src": "bubbles/f/kun_je_me_met_de_toren_erop_zett_07b496b1.mp3",
+"dur": 1.68
+},
 "~f|Laat maar, ik ga naar de Vismarkt.": {
 "src": "bubbles/f/laat_maar_ik_ga_naar_de_vismarkt_00eb7b71.mp3",
 "dur": 2.21
@@ -12287,13 +12839,25 @@
 "src": "bubbles/f/maaaaat_knuffel_5c5ea076.mp3",
 "dur": 2.57
 },
+"~f|Mag ik die proeven? Ik bedoel: eten.": {
+"src": "bubbles/f/mag_ik_die_proeven_ik_bedoel_ete_0a8c5098.mp3",
+"dur": 3.59
+},
 "~f|Mien auto! Rot op, joh!": {
 "src": "bubbles/f/mien_auto_rot_op_joh_6b9b9902.mp3",
 "dur": 2.55
 },
+"~f|Mien horloge zegt dat ik rust moet nemen.": {
+"src": "bubbles/f/mien_horloge_zegt_dat_ik_rust_mo_91c64e7d.mp3",
+"dur": 2.73
+},
 "~f|Mien jong! Hier! Taxi!": {
 "src": "bubbles/f/mien_jong_hier_taxi_be9b15cc.mp3",
 "dur": 1.72
+},
+"~f|Mien suikerspin is groter dan joen suikerspin.": {
+"src": "bubbles/f/mien_suikerspin_is_groter_dan_jo_bc54baf9.mp3",
+"dur": 3.24
 },
 "~f|Mijn koffie!": {
 "src": "bubbles/f/mijn_koffie_9e3549a7.mp3",
@@ -12323,9 +12887,21 @@
 "src": "bubbles/f/moi_ik_heb_honger_1ded9926.mp3",
 "dur": 1.69
 },
+"~f|Moi! Kom moar kieken, t kost niks.": {
+"src": "bubbles/f/moi_kom_moar_kieken_t_kost_niks_5821037c.mp3",
+"dur": 2.4
+},
 "~f|Moi! Moi! Taxiiii!": {
 "src": "bubbles/f/moi_moi_taxiiii_a1d08d2f.mp3",
 "dur": 1.63
+},
+"~f|Moi! Mooi weertje voor een wandeling, hè.": {
+"src": "bubbles/f/moi_mooi_weertje_voor_een_wandel_ca264f4d.mp3",
+"dur": 2.28
+},
+"~f|Moi! Niet kieken, ik hou t vol.": {
+"src": "bubbles/f/moi_niet_kieken_ik_hou_t_vol_e635b952.mp3",
+"dur": 2.29
 },
 "~f|Moi! Nieuwe kamer, vier hoog, geen lift. Mijn moeder denkt dat het een penthouse is.": {
 "src": "bubbles/f/moi_nieuwe_kamer_vier_hoog_geen__836b908d.mp3",
@@ -12362,6 +12938,10 @@
 "~f|Mooi weer, hè!": {
 "src": "bubbles/f/mooi_weer_he_28b4dcc7.mp3",
 "dur": 1.2
+},
+"~f|Mooi, joh! Doe t nog ais.": {
+"src": "bubbles/f/mooi_joh_doe_t_nog_ais_f7899710.mp3",
+"dur": 2.07
 },
 "~f|Münster? Oh. Entschuldigung.": {
 "src": "bubbles/f/mu_nster_oh_entschuldigung_e178bc17.mp3",
@@ -12403,13 +12983,37 @@
 "src": "bubbles/f/noar_hoes_joe_baaident_oefenen_5bb75623.mp3",
 "dur": 2.18
 },
+"~f|Nog twee kilometer, zegt de gids.": {
+"src": "bubbles/f/nog_twee_kilometer_zegt_de_gids_1c7e12f3.mp3",
+"dur": 2.27
+},
 "~f|Nog warm? In Grunn is dat een wonder.": {
 "src": "bubbles/f/nog_warm_in_grunn_is_dat_een_won_792d2318.mp3",
 "dur": 2.42
 },
+"~f|Nog één foto, met de toren erbij!": {
+"src": "bubbles/f/nog_e_e_n_foto_met_de_toren_erbi_a5f5dd3b.mp3",
+"dur": 2.46
+},
+"~f|Nog één nummer, dan stopt hij echt.": {
+"src": "bubbles/f/nog_e_e_n_nummer_dan_stopt_hij_e_d42412f6.mp3",
+"dur": 2.69
+},
 "~f|Nog één plantje. Echt de laatste.": {
 "src": "bubbles/f/nog_e_e_n_plantje_echt_de_laatst_13327ac3.mp3",
 "dur": 2.56
+},
+"~f|Nog één ritje, dan stoppen we echt.": {
+"src": "bubbles/f/nog_e_e_n_ritje_dan_stoppen_we_e_234674ed.mp3",
+"dur": 2.62
+},
+"~f|Nog één rondje, dan ga ik naar huis.": {
+"src": "bubbles/f/nog_e_e_n_rondje_dan_ga_ik_naar__cf98f202.mp3",
+"dur": 2.4
+},
+"~f|Nog één rondje. Dat zei ik net ook.": {
+"src": "bubbles/f/nog_e_e_n_rondje_dat_zei_ik_net__48671c99.mp3",
+"dur": 2.52
 },
 "~f|Nog ééntje dan!": {
 "src": "bubbles/f/nog_e_e_ntje_dan_3da6b172.mp3",
@@ -12438,6 +13042,10 @@
 "~f|Opzij, ik moet naar de wc!": {
 "src": "bubbles/f/opzij_ik_moet_naar_de_wc_667593a8.mp3",
 "dur": 2.4
+},
+"~f|Pas op, de kist staat nog open.": {
+"src": "bubbles/f/pas_op_de_kist_staat_nog_open_4bdd2928.mp3",
+"dur": 2.28
 },
 "~f|Pas op, jong!": {
 "src": "bubbles/f/pas_op_jong_a4548150.mp3",
@@ -12535,6 +13143,10 @@
 "src": "bubbles/f/vanaf_d_olle_grieze_zie_je_heel__b3dfdd99.mp3",
 "dur": 2.77
 },
+"~f|Vandoag vers: de vis, de kaas en mien praatjes.": {
+"src": "bubbles/f/vandoag_vers_de_vis_de_kaas_en_m_e31d732f.mp3",
+"dur": 4.11
+},
 "~f|Verse haring, moi!": {
 "src": "bubbles/f/verse_haring_moi_57448847.mp3",
 "dur": 2.02
@@ -12559,6 +13171,10 @@
 "src": "bubbles/f/wacht_nou_ais_even_op_t_gas_bf40a3f4.mp3",
 "dur": 1.43
 },
+"~f|Wacht, mijn duim zat ervoor.": {
+"src": "bubbles/f/wacht_mijn_duim_zat_ervoor_b02e9c2a.mp3",
+"dur": 1.71
+},
 "~f|Wat ruikt dat lekker!": {
 "src": "bubbles/f/wat_ruikt_dat_lekker_11c6a2f7.mp3",
 "dur": 2.33
@@ -12575,9 +13191,21 @@
 "src": "bubbles/f/wie_gooit_dat_o_een_duif_159a7a56.mp3",
 "dur": 2.33
 },
+"~f|Wie heeft de zweefmolen vastgezet?": {
+"src": "bubbles/f/wie_heeft_de_zweefmolen_vastgeze_610e0681.mp3",
+"dur": 1.95
+},
 "~f|Wie heeft die speaker meegenomen?": {
 "src": "bubbles/f/wie_heeft_die_speaker_meegenomen_860a6101.mp3",
 "dur": 2.48
+},
+"~f|Wie heeft er koffie in de thermos?": {
+"src": "bubbles/f/wie_heeft_er_koffie_in_de_thermo_5f3c9861.mp3",
+"dur": 1.79
+},
+"~f|Wie heeft er nog iets koels? Voor de cola, hè.": {
+"src": "bubbles/f/wie_heeft_er_nog_iets_koels_voor_94da44a9.mp3",
+"dur": 2.64
 },
 "~f|Wie heeft mijn pet?": {
 "src": "bubbles/f/wie_heeft_mijn_pet_66ea8305.mp3",
@@ -12607,9 +13235,17 @@
 "src": "bubbles/f/ze_komen_der_aan_742c69a2.mp3",
 "dur": 1.4
 },
+"~f|Ze zeggen moi tegen iedereen. Ik zeg het ook maar.": {
+"src": "bubbles/f/ze_zeggen_moi_tegen_iedereen_ik__608e9175.mp3",
+"dur": 2.86
+},
 "~f|Zolang d’Olle Grieze staat, is t goed.": {
 "src": "bubbles/f/zolang_d_olle_grieze_staat_is_t__2b50ea2d.mp3",
 "dur": 2.56
+},
+"~f|Zullen we bij de volgende bank stoppen?": {
+"src": "bubbles/f/zullen_we_bij_de_volgende_bank_s_e70c5a30.mp3",
+"dur": 1.88
 },
 "~f|d’Olle Grieze in zicht. Bijna thuis.": {
 "src": "bubbles/f/d_olle_grieze_in_zicht_bijna_thu_64373031.mp3",
@@ -12751,6 +13387,10 @@
 "src": "bubbles/m/dat_is_de_apenrots_daar_zitten_z_03775e32.mp3",
 "dur": 4.25
 },
+"~m|Dat is een eend. Geloof ik.": {
+"src": "bubbles/m/dat_is_een_eend_geloof_ik_7f88168d.mp3",
+"dur": 1.63
+},
 "~m|Dat is goud spul, mien wicht!": {
 "src": "bubbles/m/dat_is_goud_spul_mien_wicht_f989b26a.mp3",
 "dur": 2.15
@@ -12803,6 +13443,14 @@
 "src": "bubbles/m/dit_heb_ik_niet_besteld_56b56b1b.mp3",
 "dur": 1.44
 },
+"~m|Dit is geen feest, dit is netwerken.": {
+"src": "bubbles/m/dit_is_geen_feest_dit_is_netwerk_ae015399.mp3",
+"dur": 2.72
+},
+"~m|Dit zet ik op mijn vakantiefilmpje.": {
+"src": "bubbles/m/dit_zet_ik_op_mijn_vakantiefilmp_aa361b55.mp3",
+"dur": 1.96
+},
 "~m|Doe maar wat, snel graag!": {
 "src": "bubbles/m/doe_maar_wat_snel_graag_79caaa7b.mp3",
 "dur": 1.59
@@ -12819,6 +13467,10 @@
 "src": "bubbles/m/douwe_de_duif_rijdt_achter_ons_4e0abe96.mp3",
 "dur": 2.71
 },
+"~m|Drie haring voor de prijs van twee, joh!": {
+"src": "bubbles/m/drie_haring_voor_de_prijs_van_tw_9b448020.mp3",
+"dur": 2.1
+},
 "~m|Durk, de bal. De bal, Durk.": {
 "src": "bubbles/m/durk_de_bal_de_bal_durk_8102b114.mp3",
 "dur": 2.75
@@ -12830,6 +13482,10 @@
 "~m|Duurde lang. Stond de brug open?": {
 "src": "bubbles/m/duurde_lang_stond_de_brug_open_67138ba3.mp3",
 "dur": 2.13
+},
+"~m|Een euro in de hoed, dat is ook een compliment.": {
+"src": "bubbles/m/een_euro_in_de_hoed_dat_is_ook_e_119be65a.mp3",
+"dur": 2.54
 },
 "~m|Eerst de botsauto, dan de colleges.": {
 "src": "bubbles/m/eerst_de_botsauto_dan_de_college_18d10ba5.mp3",
@@ -12903,6 +13559,10 @@
 "src": "bubbles/m/hai_de_poffertjes_ruiken_weer_na_b2d7cfe7.mp3",
 "dur": 2.8
 },
+"~m|Hai, wie wil der nog een tompouce van de vismarkt?": {
+"src": "bubbles/m/hai_wie_wil_der_nog_een_tompouce_219a6a87.mp3",
+"dur": 2.62
+},
 "~m|Hallo, 112? Hier wordt schoten!": {
 "src": "bubbles/m/hallo_112_hier_wordt_schoten_00c91e59.mp3",
 "dur": 2.3
@@ -12954,6 +13614,14 @@
 "~m|Hij is wel een beetje slap geworden, hè.": {
 "src": "bubbles/m/hij_is_wel_een_beetje_slap_gewor_2aee5dd1.mp3",
 "dur": 1.92
+},
+"~m|Hij speelt vals, maar met overtuiging.": {
+"src": "bubbles/m/hij_speelt_vals_maar_met_overtui_b8e8cb78.mp3",
+"dur": 2.56
+},
+"~m|Hoe ver nog? Zeg maar niks.": {
+"src": "bubbles/m/hoe_ver_nog_zeg_maar_niks_250cab55.mp3",
+"dur": 2.11
 },
 "~m|Hoi hoi!": {
 "src": "bubbles/m/hoi_hoi_32dfb916.mp3",
@@ -13055,6 +13723,10 @@
 "src": "bubbles/m/he_rustig_an_6f377722.mp3",
 "dur": 1.17
 },
+"~m|Iemand nog een oplader? Voor mijn stem, bedoel ik.": {
+"src": "bubbles/m/iemand_nog_een_oplader_voor_mijn_8a25c596.mp3",
+"dur": 2.56
+},
 "~m|Ik ben niet dronken, ik ben Gronings!": {
 "src": "bubbles/m/ik_ben_niet_dronken_ik_ben_groni_544e10f9.mp3",
 "dur": 4.12
@@ -13070,6 +13742,10 @@
 "~m|Ik goa wel noar hoes. Stoet eten.": {
 "src": "bubbles/m/ik_goa_wel_noar_hoes_stoet_eten_5ce60082.mp3",
 "dur": 2.84
+},
+"~m|Ik heb morgen tentamen. Dat is morgen.": {
+"src": "bubbles/m/ik_heb_morgen_tentamen_dat_is_mo_1c9a740c.mp3",
+"dur": 2.73
 },
 "~m|Ik hou van jullie allemaal!": {
 "src": "bubbles/m/ik_hou_van_jullie_allemaal_4e4873c7.mp3",
@@ -13087,9 +13763,17 @@
 "src": "bubbles/m/ik_kwam_voor_de_markt_ik_ga_met__aa4dc985.mp3",
 "dur": 3.01
 },
+"~m|Ik loop niet hard, ik loop vaak.": {
+"src": "bubbles/m/ik_loop_niet_hard_ik_loop_vaak_93873120.mp3",
+"dur": 2.04
+},
 "~m|Ik sta hier al tien minuten. Grapje.": {
 "src": "bubbles/m/ik_sta_hier_al_tien_minuten_grap_e51367a2.mp3",
 "dur": 4.06
+},
+"~m|Ik win die knuffel. Dat zeg ik elk jaar.": {
+"src": "bubbles/m/ik_win_die_knuffel_dat_zeg_ik_el_65580280.mp3",
+"dur": 2.77
 },
 "~m|Ik zag hem wel. Ik was alleen te laat.": {
 "src": "bubbles/m/ik_zag_hem_wel_ik_was_alleen_te__ecb56d52.mp3",
@@ -13106,6 +13790,18 @@
 "~m|Is dit die van Tessa?": {
 "src": "bubbles/m/is_dit_die_van_tessa_a5deff07.mp3",
 "dur": 1.64
+},
+"~m|Is dit een echte haring of een kunstwerk?": {
+"src": "bubbles/m/is_dit_een_echte_haring_of_een_k_c27d9b94.mp3",
+"dur": 2.12
+},
+"~m|Is dit kunst? Ik denk van wel.": {
+"src": "bubbles/m/is_dit_kunst_ik_denk_van_wel_edf33b33.mp3",
+"dur": 2.26
+},
+"~m|Is dit nou Grunn? Het is prachtig.": {
+"src": "bubbles/m/is_dit_nou_grunn_het_is_prachtig_002420ad.mp3",
+"dur": 3.06
 },
 "~m|Is dit nou de Grote Markt of het Plantsoen?": {
 "src": "bubbles/m/is_dit_nou_de_grote_markt_of_het_a77cb524.mp3",
@@ -13158,6 +13854,10 @@
 "~m|Kiek, dat was nait slecht. Veur n Stadjer.": {
 "src": "bubbles/m/kiek_dat_was_nait_slecht_veur_n__d259ffb8.mp3",
 "dur": 3.45
+},
+"~m|Kiek, de zon komt er al aan. Of is dat de lamp?": {
+"src": "bubbles/m/kiek_de_zon_komt_er_al_aan_of_is_48c04aab.mp3",
+"dur": 2.66
 },
 "~m|Kiek, doar is n bootje!": {
 "src": "bubbles/m/kiek_doar_is_n_bootje_d7a8a299.mp3",
@@ -13227,6 +13927,10 @@
 "src": "bubbles/m/kreng_van_n_duuf_2aa35f91.mp3",
 "dur": 1.43
 },
+"~m|Kun je me met de toren erop zetten?": {
+"src": "bubbles/m/kun_je_me_met_de_toren_erop_zett_61edcf3e.mp3",
+"dur": 1.8
+},
 "~m|Laat maar, ik ga naar de Vismarkt.": {
 "src": "bubbles/m/laat_maar_ik_ga_naar_de_vismarkt_c019f0ba.mp3",
 "dur": 2.38
@@ -13259,6 +13963,10 @@
 "src": "bubbles/m/maaaaat_knuffel_dbdf91c4.mp3",
 "dur": 2.23
 },
+"~m|Mag ik die proeven? Ik bedoel: eten.": {
+"src": "bubbles/m/mag_ik_die_proeven_ik_bedoel_ete_a0e05061.mp3",
+"dur": 2.63
+},
 "~m|Mazzel. Dat was puur mazzel.": {
 "src": "bubbles/m/mazzel_dat_was_puur_mazzel_711eeaf8.mp3",
 "dur": 2.71
@@ -13271,6 +13979,10 @@
 "src": "bubbles/m/mien_auto_rot_op_joh_52176a4d.mp3",
 "dur": 2
 },
+"~m|Mien horloge zegt dat ik rust moet nemen.": {
+"src": "bubbles/m/mien_horloge_zegt_dat_ik_rust_mo_22b16f0a.mp3",
+"dur": 2.36
+},
 "~m|Mien jong! Hier! Taxi!": {
 "src": "bubbles/m/mien_jong_hier_taxi_7158cd7f.mp3",
 "dur": 1.41
@@ -13278,6 +13990,10 @@
 "~m|Mien pet! Mien nieuwe pet!": {
 "src": "bubbles/m/mien_pet_mien_nieuwe_pet_5829878e.mp3",
 "dur": 2.2
+},
+"~m|Mien suikerspin is groter dan joen suikerspin.": {
+"src": "bubbles/m/mien_suikerspin_is_groter_dan_jo_06b21385.mp3",
+"dur": 3.74
 },
 "~m|Mijn koffie!": {
 "src": "bubbles/m/mijn_koffie_a8ffc80d.mp3",
@@ -13315,9 +14031,21 @@
 "src": "bubbles/m/moi_ik_heb_honger_590e129a.mp3",
 "dur": 1.57
 },
+"~m|Moi! Kom moar kieken, t kost niks.": {
+"src": "bubbles/m/moi_kom_moar_kieken_t_kost_niks_0f2b6c2e.mp3",
+"dur": 2.47
+},
 "~m|Moi! Moi! Taxiiii!": {
 "src": "bubbles/m/moi_moi_taxiiii_cc429612.mp3",
 "dur": 1.78
+},
+"~m|Moi! Mooi weertje voor een wandeling, hè.": {
+"src": "bubbles/m/moi_mooi_weertje_voor_een_wandel_d4632dd1.mp3",
+"dur": 2.33
+},
+"~m|Moi! Niet kieken, ik hou t vol.": {
+"src": "bubbles/m/moi_niet_kieken_ik_hou_t_vol_34a9b92e.mp3",
+"dur": 2.19
 },
 "~m|Moi! Nieuwe kamer, vier hoog, geen lift. Mijn moeder denkt dat het een penthouse is.": {
 "src": "bubbles/m/moi_nieuwe_kamer_vier_hoog_geen__85c82f34.mp3",
@@ -13359,6 +14087,10 @@
 "src": "bubbles/m/mooi_weer_he_04930839.mp3",
 "dur": 0.93
 },
+"~m|Mooi, joh! Doe t nog ais.": {
+"src": "bubbles/m/mooi_joh_doe_t_nog_ais_dd277d3f.mp3",
+"dur": 1.75
+},
 "~m|Nait soezen, moar deurbroezen! Hij mout waarm aankomen.": {
 "src": "bubbles/m/nait_soezen_moar_deurbroezen_hij_684da7cd.mp3",
 "dur": 3.66
@@ -13391,17 +14123,41 @@
 "src": "bubbles/m/niet_tegen_de_baas_zeggen_08ac3ffd.mp3",
 "dur": 2.53
 },
+"~m|Nog twee kilometer, zegt de gids.": {
+"src": "bubbles/m/nog_twee_kilometer_zegt_de_gids_8a9b28ca.mp3",
+"dur": 2.03
+},
 "~m|Nog warm? In Grunn is dat een wonder.": {
 "src": "bubbles/m/nog_warm_in_grunn_is_dat_een_won_39b9a598.mp3",
 "dur": 2.32
+},
+"~m|Nog één foto, met de toren erbij!": {
+"src": "bubbles/m/nog_e_e_n_foto_met_de_toren_erbi_7ab5878e.mp3",
+"dur": 1.99
+},
+"~m|Nog één nummer, dan stopt hij echt.": {
+"src": "bubbles/m/nog_e_e_n_nummer_dan_stopt_hij_e_8fb6a4bb.mp3",
+"dur": 2.54
 },
 "~m|Nog één plantje. Echt de laatste.": {
 "src": "bubbles/m/nog_e_e_n_plantje_echt_de_laatst_896f23bd.mp3",
 "dur": 2.46
 },
+"~m|Nog één ritje, dan stoppen we echt.": {
+"src": "bubbles/m/nog_e_e_n_ritje_dan_stoppen_we_e_0a45ae88.mp3",
+"dur": 2.05
+},
 "~m|Nog één rondje! Wie dut mit?": {
 "src": "bubbles/m/nog_e_e_n_rondje_wie_dut_mit_1ee5dd76.mp3",
 "dur": 2.53
+},
+"~m|Nog één rondje, dan ga ik naar huis.": {
+"src": "bubbles/m/nog_e_e_n_rondje_dan_ga_ik_naar__a44c3f39.mp3",
+"dur": 2.37
+},
+"~m|Nog één rondje. Dat zei ik net ook.": {
+"src": "bubbles/m/nog_e_e_n_rondje_dat_zei_ik_net__79030717.mp3",
+"dur": 2.88
 },
 "~m|Nog ééntje dan!": {
 "src": "bubbles/m/nog_e_e_ntje_dan_2e333a28.mp3",
@@ -13434,6 +14190,10 @@
 "~m|Padel. Dat is tennis in een aquarium.": {
 "src": "bubbles/m/padel_dat_is_tennis_in_een_aquar_85ee6ca7.mp3",
 "dur": 4.53
+},
+"~m|Pas op, de kist staat nog open.": {
+"src": "bubbles/m/pas_op_de_kist_staat_nog_open_949f461e.mp3",
+"dur": 2.07
 },
 "~m|Pas op, jong!": {
 "src": "bubbles/m/pas_op_jong_18bb5bf4.mp3",
@@ -13559,6 +14319,10 @@
 "src": "bubbles/m/vanaf_d_olle_grieze_zie_je_heel__1940c48e.mp3",
 "dur": 2.67
 },
+"~m|Vandoag vers: de vis, de kaas en mien praatjes.": {
+"src": "bubbles/m/vandoag_vers_de_vis_de_kaas_en_m_67704879.mp3",
+"dur": 3.66
+},
 "~m|Verse haring, moi!": {
 "src": "bubbles/m/verse_haring_moi_650eba77.mp3",
 "dur": 1.7
@@ -13582,6 +14346,10 @@
 "~m|Waar moet ik dan parkeren? In het Diep?": {
 "src": "bubbles/m/waar_moet_ik_dan_parkeren_in_het_723900cb.mp3",
 "dur": 2.68
+},
+"~m|Wacht, mijn duim zat ervoor.": {
+"src": "bubbles/m/wacht_mijn_duim_zat_ervoor_fe9e5512.mp3",
+"dur": 1.52
 },
 "~m|Wat n knaal!": {
 "src": "bubbles/m/wat_n_knaal_51905b52.mp3",
@@ -13611,9 +14379,21 @@
 "src": "bubbles/m/wie_gooit_dat_o_een_duif_9937bde5.mp3",
 "dur": 2.44
 },
+"~m|Wie heeft de zweefmolen vastgezet?": {
+"src": "bubbles/m/wie_heeft_de_zweefmolen_vastgeze_ce25380b.mp3",
+"dur": 1.71
+},
 "~m|Wie heeft die speaker meegenomen?": {
 "src": "bubbles/m/wie_heeft_die_speaker_meegenomen_e894480d.mp3",
 "dur": 2.35
+},
+"~m|Wie heeft er koffie in de thermos?": {
+"src": "bubbles/m/wie_heeft_er_koffie_in_de_thermo_f2828207.mp3",
+"dur": 1.71
+},
+"~m|Wie heeft er nog iets koels? Voor de cola, hè.": {
+"src": "bubbles/m/wie_heeft_er_nog_iets_koels_voor_5ad60b47.mp3",
+"dur": 2.26
 },
 "~m|Wie heeft mijn pet?": {
 "src": "bubbles/m/wie_heeft_mijn_pet_773c62f5.mp3",
@@ -13643,9 +14423,17 @@
 "src": "bubbles/m/ze_komen_der_aan_c60bdac0.mp3",
 "dur": 1.03
 },
+"~m|Ze zeggen moi tegen iedereen. Ik zeg het ook maar.": {
+"src": "bubbles/m/ze_zeggen_moi_tegen_iedereen_ik__f28904cb.mp3",
+"dur": 2.89
+},
 "~m|Zolang d’Olle Grieze staat, is t goed.": {
 "src": "bubbles/m/zolang_d_olle_grieze_staat_is_t__ede0adee.mp3",
 "dur": 2.53
+},
+"~m|Zullen we bij de volgende bank stoppen?": {
+"src": "bubbles/m/zullen_we_bij_de_volgende_bank_s_81c6b1e5.mp3",
+"dur": 1.82
 },
 "~m|d’Olle Grieze in zicht. Bijna thuis.": {
 "src": "bubbles/m/d_olle_grieze_in_zicht_bijna_thu_5b9e154b.mp3",
