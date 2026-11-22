@@ -11,6 +11,8 @@ pre-releases. Wat nog te doen staat, staat als issue:
 [LICENTIES.md](LICENTIES.md). Nieuwe posts en uploads gaan alleen met akkoord
 van de eigenaar.
 
+Stand 22-11 (0.65.0): zie [PUBLICATIECHECKLIST.md](PUBLICATIECHECKLIST.md) §12. De speleruitleg voor spelers staat in [SPELERSGIDS.md](SPELERSGIDS.md).
+
 De actuele volgorde, de per-issue checklists en de comment-teksten voor #37, #83, #72, #60, #64,
 #65, #62, #63, #57, #59 en #116 staan in [1.0-TRACK.md](1.0-TRACK.md).
 
