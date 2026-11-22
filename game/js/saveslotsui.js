@@ -17,6 +17,7 @@ import * as S from './saveslots.js';
 import { oskKnop } from './oskview.js';
 import { MAX_SLOTS } from './storagekeys.js';
 import { saveGame, loadSlot, readSave, bindSlot, onThumbKept, coopSessieLoopt, currentSlot, GAST_BEWAARD_TEKST, markLegacyCardSeen } from './savegame.js';
+import { forkScope } from './savescope.js';
 import { LEGACY_CARD } from './legacysave.js'; // 22-11: de kaart "Nieuw verhaal" bij een oude save
 import { keyLabelHtml } from './keycap.js';
 const CONFIRM_KEY = 'Enter'; // de toets in de knop Doorgaan (zoals bij de moeilijkheidskaart: een label voor keyLabelHtml, geen spelertekst)
@@ -340,6 +341,7 @@ export function openSaveSlots(opts = {}) {
       if (gastInSessie()) { say(GAST_LEGE_PLEK_TEKST); return; }
       const was = S.activeSlot();
       const m = S.freeSlot() ? S.createSlot(null, S.newSlotName(S.takenNames(null)), want) : 0;
+      if (m) forkScope(localStorage, m); // 22-11: het lopende spel gaat verder als de nieuwe save: die erft de voortgang
       if (!m) { say('Alle plekken zijn in gebruik.'); return; }
       bindSlot();
       if (!saveGame(world, { toast: false, manual: true })) {

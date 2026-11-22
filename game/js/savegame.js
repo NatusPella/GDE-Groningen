@@ -40,7 +40,8 @@ import { getRenderer, afterNextFrame } from './scene3d.js';
 import { plekNaam } from './saveplek.js';
 import { ommelandArea } from './ommelandplace.js';
 import { areaNameAt } from './regions.js';
-import { saveFailText, newSlotName, takenNames, readSlot, writeSlotRaw, writeThumb, activeSlot, setActive, createSlot, deleteSlot, nameOf, pickActive, pickLatest, repairSlot, writeBackupOnce, isFresh, clearFresh, newerVersionOf, markLegacyCardSeen as markSlotLegacyCardSeen } from './saveslots.js';
+import { saveFailText, newSlotName, takenNames, readSlot, writeSlotRaw, writeThumb, activeSlot, setActive, createSlot, deleteSlot, nameOf, pickActive, pickLatest, repairSlot, writeBackupOnce, isFresh, clearFresh, newerVersionOf, markLegacyCardSeen as markSlotLegacyCardSeen, markStay } from './saveslots.js';
+import { readOwner as readScopeOwner } from './savescope.js'; // 22-11: voortgang per save
 import { isLegacyStorySave, legacyCardNeeded } from './legacysave.js'; // 22-11: de kaart "Nieuw verhaal" bij een oude save
 import { logError } from './errorlog.js';
 import { makeSafe, healthForSave } from './saveveilig.js';
@@ -232,11 +233,28 @@ function afterLoad(w, info) {
 }
 
 // Switches to another slot and loads it. false (and the old slot stays active) when the slot cannot be loaded.
+function scopeSwitchNeeded(n) {
+  try {
+    if (typeof localStorage === 'undefined' || typeof location === 'undefined' || typeof location.reload !== 'function') return false;
+    const owner = readScopeOwner(localStorage);
+    return owner != null && owner !== n;
+  } catch (e) { return false; }
+}
+
 export function loadSlot(w, n) {
   if (coopSessieLoopt(w)) return false;
   const info = readSaveInfo(n);
   if (!info.data || !w) return false;
   const was = activeSlot();
+  // 22-11: de voortgang per save (prestaties, kaart, gebieden, garage, enz.) wisselt bij de boot: een andere save in een
+  // lopend spel opent dus na een herlaad (de plek die je kiest blijft gekozen, saveslots.js markStay)
+  if (scopeSwitchNeeded(n)) {
+    try { if (document.body.classList.contains('game-started')) saveGame(w, { toast: false }); } catch (e) { /* de herlaad gaat door */ }
+    markStay(null, n);
+    preventCloseSave();
+    location.reload();
+    return true;
+  }
   setActive(null, n);
   if (!applySave(w, info.data)) { setActive(null, was); return false; }
   afterLoad(w, info);

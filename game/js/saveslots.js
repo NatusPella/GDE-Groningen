@@ -13,6 +13,7 @@ import { migrateSave, savedArc, SAVE_VERSION } from './savemigrate.js';
 import { ARC_ID } from './storyarc.js';
 import { cleanProfile, difficultySummary } from './difficulty.js'; // #1169: het niveau van een save als klein label
 import { isLegacyStorySave, legacyCardNeeded, textWithCardSeen } from './legacysave.js'; // 22-11: de kaart "Nieuw verhaal" bij een oude save
+import { dropScope } from './savescope.js'; // 22-11: de voortgang per save gaat mee met het wissen van een plek
 
 export const NAME_MAX = 28;
 export const FILE_KIND = 'GDE-save';
@@ -86,6 +87,7 @@ export function readIndex(ls) {
       if (Number.isInteger(d.active) && d.active >= 1 && d.active <= MAX_SLOTS) idx.active = d.active;
       if (isObj(d.names)) for (const [k, v] of Object.entries(d.names)) { const n = Number(k); if (Number.isInteger(n) && n >= 1 && n <= MAX_SLOTS && typeof v === 'string') idx.names[n] = cleanName(v); }
       if (d.fresh === true) idx.fresh = true;
+      if (d.stay === true) idx.stay = true;
     }
   } catch (e) { /* no list yet: slot 1 is the active one */ }
   return idx;
@@ -272,8 +274,22 @@ export function pickActive(ls) {
 // At boot: the slot that was saved last, whatever slot was active (the owner wants "last saved",
 // not "last active"). With no save at all the active slot stays, so a new game can use it.
 // #562: een bewust gestart nieuw spel op een lege plek gaat voor; die plek is dan "het spel".
+// 22-11: 'stay' = de speler koos in een lopend spel een andere save; het spel herlaadt (de voortgang per save wisselt
+// alleen bij de boot) en opent dan die save, niet de laatst bewaarde.
+export function markStay(ls, n) {
+  if (!validSlot(n)) return false;
+  const idx = readIndex(ls);
+  idx.active = n;
+  idx.stay = true;
+  return writeIndex(ls, idx);
+}
 export function pickLatest(ls) {
   const idx = readIndex(ls);
+  if (idx.stay) {
+    delete idx.stay;
+    writeIndex(ls, idx);
+    if (readSlot(ls, idx.active).state !== 'leeg') return idx.active;
+  }
   if (idx.fresh) {
     if (readSlot(ls, idx.active).state === 'leeg') return idx.active;
     clearFresh(ls); // er staat inmiddels een save in: vanaf nu telt gewoon de laatste save
@@ -383,6 +399,8 @@ export function createSlot(ls, name, want = 0, fresh = false) {
   if (nm && nm !== defaultName(n)) idx.names[n] = nm; else delete idx.names[n];
   idx.active = n;
   if (fresh) idx.fresh = true; else delete idx.fresh;
+  delete idx.stay;
+  dropScope(ls0(ls), n); // een plek die eerder gewist is, laat geen voortgang achter voor het nieuwe spel
   return writeIndex(ls, idx) ? n : 0;
 }
 
@@ -393,6 +411,7 @@ export function deleteSlot(ls, n) {
   const s = ls0(ls);
   try { s.removeItem(slotKey(n)); s.removeItem(slotRecoveryKey(n)); s.removeItem(slotThumbKey(n)); } catch (e) { return false; }
   dropSlotCache(n);
+  dropScope(s, n);
   const idx = readIndex(ls);
   delete idx.names[n];
   if (idx.active === n) {

@@ -1,5 +1,6 @@
 // first: copies the pre-0.29 'gte-*' storage keys before any module reads them
 import './storagekeys.js';
+import './savescopeactivate.js'; // 22-11: de voortgang van de save die opent (prestaties, kaart, gebieden, garage, enz.) komt in de werksleutels, vóór elke andere module
 import { hoofdspeler } from './players.js';
 import { beginVehicleFrame } from './vehicleindex.js';
 import './oudmigratie.js';
