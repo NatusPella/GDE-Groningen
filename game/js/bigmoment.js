@@ -23,7 +23,8 @@ export const RIJDEN_MS = 3;       // vanaf deze snelheid (m/s) of in een voertui
 export const STANDAARD = {
   geslaagd: { vorm: 'band', schermvullend: true, klein: 'Missie geslaagd', kop: 'Mooi, dat gaait!', regelNl: 'Dat is gelukt. Netjes gedaan.', ms: 4200 },
   mislukt: { vorm: 'band', schermvullend: true, klein: 'Missie mislukt', kop: 'Nou, nait best.', regelNl: 'Dat ging mis. Probeer het nog eens.', ms: 4200 },
-  opgepakt: { vorm: 'stempel', schermvullend: true, klein: 'Boete', kop: 'Opgepakt', regelNl: 'Je bent staande gehouden en er is een boete.', ms: 4200 },
+  // #1208, #1218: het woord boete staat een keer (het label bij het bedrag); chip en zin zeggen iets anders
+  opgepakt: { vorm: 'stempel', schermvullend: true, klein: 'Staande gehouden', kop: 'Opgepakt', regelNl: 'De agent schrijft een bon uit.', ms: 4200 },
   gebied: { vorm: 'plaats', schermvullend: false, klein: 'Moi!', kop: 'Grunn', regelNl: 'Je bent hier voor het eerst.', ms: 3600 },
   wanted: { vorm: 'rand', schermvullend: false, klein: 'Gezocht', kop: 'Pas op!', regelNl: 'De politie let op je.', ms: 1800 },
 };

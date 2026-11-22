@@ -24,12 +24,21 @@
 .bm-geslaagd, .bm-mislukt, .bm-opgepakt { inset: 0; display: grid; place-items: center; overflow: hidden; }
 .bm-dim { position: absolute; inset: 0; background: color-mix(in srgb, var(--ds-c-ink-inkt) 50%, transparent); }
 .bm-band { left: -6vw; right: -6vw; padding: 3vh 14vw 3.4vh; box-sizing: border-box; display: flex; flex-direction: column; gap: 1.2vh; background: var(--ds-c-ink-geel); border-top: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); border-bottom: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); box-shadow: 0 var(--ds-lijn-zeef) 0 var(--ds-c-ink-roze), var(--ds-schaduw-hard); transform: rotate(var(--ds-schuin)); }
+/* De glans (endcardimpact.css) ligt ONDER de tekst: ervoor werd de donkere titel door de lichte baan dof, een olijfkleur op het geel. Het label krijgt lucht onder zich, zodat het de grote titel niet raakt. */
+.bm-band > :not(.bm-glans) { position: relative; z-index: 1; }
+.bm-band > .bm-glans { z-index: 0; }
+.bm-band > .bm-klein { margin-bottom: var(--ds-s-2); }
 .bm-mislukt .bm-band { background-image: var(--ds-raster); background-size: var(--ds-raster-maat); background-blend-mode: multiply; }
 .bm-mislukt .bm-klein { background: var(--ds-c-ink-inkt); }
 
 /* opgepakt: a stamp on a fine slip, no violence */
 .bm-slip { position: relative; box-sizing: border-box; width: min(760px, 86vw); display: flex; flex-direction: column; gap: 14px; padding: 36px 40px 120px; background: var(--ds-c-ink-papier); border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); box-shadow: var(--ds-schaduw-hard); transform: rotate(var(--ds-schuin)); }
-.bm-stempel { position: absolute; right: 28px; bottom: 22px; padding: 4px 22px; font: 800 clamp(44px, 6vw, 90px)/1 var(--ds-font-zeef-kop); letter-spacing: 0.06em; text-transform: uppercase; color: var(--ds-c-ink-inkt); border: 5px solid var(--ds-c-ink-inkt); outline: 3px solid var(--ds-c-ink-inkt); outline-offset: 4px; box-shadow: var(--ds-schaduw-hard-roze); background: var(--ds-c-ink-papier); transform: rotate(calc(var(--ds-schuin) * -3)); }
+.bm-stempel { position: absolute; right: 28px; bottom: 22px; max-width: calc(100% - 56px); box-sizing: border-box; padding: 4px 22px; font: 800 clamp(36px, 5vw, 72px)/1 var(--ds-font-zeef-kop); letter-spacing: 0.06em; text-transform: uppercase; color: var(--ds-c-ink-inkt); border: 5px solid var(--ds-c-ink-inkt); outline: 3px solid var(--ds-c-ink-inkt); outline-offset: 4px; box-shadow: var(--ds-schaduw-hard-roze); background: var(--ds-c-ink-papier); transform: rotate(calc(var(--ds-schuin) * -3)); }
+
+/* het bedrag van de bon is het belangrijkste getal van de kaart: groot, het label klein erboven */
+.bm-slip .bm-meta { flex-direction: column; gap: 2px; }
+.bm-slip .bm-i-beloning .bm-teller { display: block; font: 800 clamp(48px, 6vw, 96px)/1 var(--ds-font-zeef-kop); color: var(--ds-c-ink-inkt); }
+.bm-slip .bm-i-beloning b { display: block; margin: 0; font-size: clamp(16px, 1.4vw, 24px); }
 
 /* a new area: a place-name stamp like a postcard, lower third, no dimming */
 .bm-gebied { left: 50%; top: 24vh; transform: translateX(-50%); } /* #985: in de vrije middenzone D, niet over de doelkaart en de minikaart onderin */
