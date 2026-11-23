@@ -19,8 +19,8 @@ export const TAB_KEYS = {
 // Own screens: the difficulty is part of the save (#1169), the binds have their own reset on Besturing, the online identity and the consent for
 // Samen spelen are never reset (#528), and the Samen spelen tab draws its own panel.
 export const OWN_SCREEN = ['difficulty', 'keyBinds', 'padBinds', 'onlineNaam', 'onlineKleur', 'onlineMeedoen', 'samenZinnen', 'multiplayerConsentRemembered'];
-// Settings that are set elsewhere than as a row of Instellingen (a key in the game, the start card, an old file).
-export const NO_ROW = ['ritCamera', 'startKeuze', 'attractSeen', 'radioVehicle', 'samenRol'];
+// Settings that are set elsewhere than as a row of Instellingen (a key in the game, the start card, an old file, the measurement at the first start).
+export const NO_ROW = ['ritCamera', 'startKeuze', 'attractSeen', 'radioVehicle', 'samenRol', 'gfxAuto'];
 
 export const tabOfKey = (key) => Object.keys(TAB_KEYS).find((t) => TAB_KEYS[t].includes(key)) || null;
 
