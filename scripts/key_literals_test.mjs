@@ -35,7 +35,8 @@ for (const f of readdirSync(JS).filter((x) => x.endsWith('.js'))) {
     const ln = lines[s.line - 1] || '';
     if (/^\s*(\/\/|\*)/.test(ln) || ln.includes('keywords-ok')) continue;
     // wat de renderer al als toetsplaatje toont, telt niet mee
-    const rest = text.replace(new RegExp(TEXT_KEY_RE.source, 'g'), ' ');
+    // aria-keyshortcuts="Enter" is voor de schermlezer, geen spelertekst (toestemmingskaart, wensen-s 23-11)
+    const rest = text.replace(/aria-keyshortcuts="[^"]*"/g, ' ').replace(new RegExp(TEXT_KEY_RE.source, 'g'), ' ');
     const m = rest.match(KEY_WORD_RE);
     if (!m) continue;
     // een losse toetsnaam of een combinatie ('CTRL+LMB') is een token voor key()/cap()/glyphHtml, geen zin
