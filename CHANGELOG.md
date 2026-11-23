@@ -82,6 +82,7 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 - Winkels: de toetsbalk onderin gebruikt dezelfde toetsplaatjes als het pauzemenu (gevulde pijlen, een Enter-plaatje in plaats van het woord), en de toetshint in de gele koopknop is groter. Samen spelen: lokaal in je eigen scherm.
 - Laadscherm: de statusregel onder de balk is op een groot scherm groter en iets vetter, zodat hij naast het logo en het bord te lezen is. Samen spelen: ongewijzigd; een gast ziet dezelfde regel bij Wachten op de gastheer.
 - Samen spelen, kaart Je naam: het akkoord is een schakelaar zoals in de menu's in plaats van een standaard vinkje, Doorgaan en Terug tonen hun toets (Enter, Esc) in de knop en Meer info is beter leesbaar. Samen spelen: de kaart is van wie Samen spelen kiest; er verandert niets aan wat er gedeeld wordt.
+- Samen spelen: raakt je kogel als gast iemand of een voertuig, dan zie je nu ook de vier streepjes van de raakbevestiging. De gastheer stuurt alleen jou een klein bericht met de plek; de andere spelers zien niets extra.
 
 ## [0.65.0] - 2026-11-22
 

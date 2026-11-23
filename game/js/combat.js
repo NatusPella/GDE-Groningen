@@ -387,7 +387,8 @@ export function updateBullets(dt, world) {
 // Hit confirmation (combatfeel.js): only for a bullet of the player behind this screen (no dader = not a guest's
 // bullet); aimassist.js draws the ticks over the spot. One reused object on the world, nothing over the net.
 function hitConfirm(world, b, x, y, kind) {
-  if (b.owner !== 'player' || b.dader) return;
+  if (b.owner !== 'player') return;
+  if (b.dader) { if (world.coopRaak) world.coopRaak(b.dader, x, y, b.z === undefined ? 1.25 : b.z, kind); return; } // #1290: the guest who fired sees it on his own screen
   markHit(world.hitMark || (world.hitMark = makeHitMark()), world.time, x, y, b.z === undefined ? 1.25 : b.z, kind);
 }
 
