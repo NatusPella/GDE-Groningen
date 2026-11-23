@@ -4,7 +4,8 @@
 //
 // Wat hij garandeert:
 //   - een wegwerpprofiel en een TEMP-map alleen in de opgegeven uitvoermap (nooit de systeem-temp: daar faalt Electron hier soms);
-//   - ELECTRON_RUN_AS_NODE weg uit de omgeving (anders start electron.exe als kale Node);
+//   - ELECTRON_RUN_AS_NODE weg uit de omgeving (anders start electron.exe als kale Node) en standaard --no-sandbox (zonder die vlag
+//     crasht Electron in de agentomgeving al bij het starten met exitcode 3; een vroege exit 3 krijgt een logregel 'sandbox: ...');
 //   - nooit een dialoogvenster: guardMainProcess() vangt uncaughtException/unhandledRejection (loggen en stoppen) en zet
 //     dialog.showErrorBox om naar het logboek;
 //   - een logboek met een hartslag elke minuut (zo is een vastgelopen run te herkennen aan een stil logboek);
@@ -75,6 +76,17 @@ function electronEnv({ base = process.env, profile, tmp, gameDir, extra = {} } =
   if (gameDir) env.GDE_GAME_DIR = gameDir;
   return Object.assign(env, extra);
 }
+
+/**
+ * De argumenten voor Electron met --no-sandbox erbij (standaard): in de agentomgeving crasht Electron zonder die vlag al bij het
+ * starten met exitcode 3 (zelfs `electron.exe --version`). noSandbox: false laat de vlag weg.
+ */
+function electronArgs(args = [], { noSandbox = true } = {}) {
+  const a = [...args];
+  if (noSandbox && !a.includes('--no-sandbox')) a.push('--no-sandbox');
+  return a;
+}
+const EARLY_EXIT_S = 30;
 
 /** Zoekt electron.exe: ELECTRON_EXE, de worktree, of de hoofdmap (een worktree onder .claude/worktrees heeft vaak geen node_modules). */
 function findElectron(root) {
@@ -295,8 +307,9 @@ function killTree(child) {
  * Geeft { code, signal, timedOut, minutes, slot, perfScript, quiet }. Gooit RunnerFout bij geen slot, geen start of een onrustige machine
  * (alleen met quiet.required); het slot is dan al vrijgegeven.
  */
-async function runElectron({ electron, args = [], cwd, env = process.env, out, log = null, slot = { label: 'beeld' }, quiet = false, timeoutMin = 60, onLine = null, status = null, below = true, heartbeatMs = HEARTBEAT_MS } = {}) {
+async function runElectron({ electron, args = [], cwd, env = process.env, out, log = null, slot = { label: 'beeld' }, quiet = false, timeoutMin = 60, onLine = null, status = null, below = true, heartbeatMs = HEARTBEAT_MS, noSandbox = true } = {}) {
   if (!out) throw new RunnerFout('UIT', 'runElectron zonder uitvoermap');
+  args = electronArgs(args, { noSandbox });
   fs.mkdirSync(out, { recursive: true });
   log = log || makeLog(out);
   const runEnv = { ...env };
@@ -339,7 +352,9 @@ async function runElectron({ electron, args = [], cwd, env = process.env, out, l
     elog.end();
     const minutes = +((Date.now() - t0) / 60000).toFixed(2);
     log(`klaar: exit ${res.code}${res.signal ? ' ' + res.signal : ''}${res.timedOut ? ' (tijdslimiet)' : ''} na ${minutes} min`);
-    return { ...res, minutes, slot: handle ? handle.name : null, perfScript, quiet: q };
+    const sandbox = res.code === 3 && minutes * 60 < EARLY_EXIT_S;
+    if (sandbox) log(`sandbox: Electron stopte binnen ${EARLY_EXIT_S} s met exitcode 3; start met --no-sandbox${args.includes('--no-sandbox') ? ' (stond er al bij: kijk in electron.log)' : ' (noSandbox: false stond aan)'}`);
+    return { ...res, sandbox, minutes, slot: handle ? handle.name : null, perfScript, quiet: q };
   } finally {
     clearTimeout(timer);
     if (stopBeat) stopBeat();
@@ -353,7 +368,7 @@ function removeProfile(dir) { if (dir) { try { fs.rmSync(dir, { recursive: true,
 
 module.exports = {
   RunnerFout, SLOT_NAMES, OWNER_FILE, HEARTBEAT_MS, locksDir, staleHours,
-  isInside, assertNotSystemTemp, prepareRunDir, electronEnv, findElectron, removeProfile,
+  isInside, assertNotSystemTemp, prepareRunDir, electronEnv, electronArgs, findElectron, removeProfile,
   makeLog, startHeartbeat,
   pidAlive, readSlot, slotVerdict, inspectSlots, cleanStale, tryTakeSlot, takeSlot,
   sampleMachine, quietVerdict, waitQuiet,

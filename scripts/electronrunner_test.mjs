@@ -92,18 +92,22 @@ try {
   ok(rd.profile === path.join(werk, 'uit', 'profiel-42') && fs.existsSync(rd.profile) && fs.existsSync(rd.tmp), 'profiel en TEMP liggen in de uitvoermap');
   const env = R.electronEnv({ base: { ELECTRON_RUN_AS_NODE: '1', PATH: 'x' }, profile: rd.profile, tmp: rd.tmp });
   ok(!('ELECTRON_RUN_AS_NODE' in env) && env.TEMP === rd.tmp && env.TMP === rd.tmp && env.GDE_TEST_PROFILE === rd.profile && env.PATH === 'x', 'electronEnv: ELECTRON_RUN_AS_NODE weg, TEMP en profiel in de uitvoermap');
+  ok(R.electronArgs(['.']).join(' ') === '. --no-sandbox' && R.electronArgs(['.', '--no-sandbox']).length === 2 && R.electronArgs(['.'], { noSandbox: false }).length === 1, 'electronArgs: --no-sandbox standaard, nooit dubbel, uit te zetten');
   ok(R.isInside(path.join(werk, 'a', 'b'), werk) && !R.isInside(werk + '-anders', werk), 'isInside');
 
   // ---------- runElectron: foutpaden met node als kind ----------
+  // (node krijgt '--' als laatste argument, zodat het --no-sandbox dat de runner toevoegt een scriptargument is)
   const runLocks = path.join(werk, 'runlocks');
   const prev = process.env.ELECTRON_RUN_AS_NODE;
   process.env.ELECTRON_RUN_AS_NODE = '1';
-  const r1 = await R.runElectron({ electron: process.execPath, args: ['-e', 'console.log("env:" + (process.env.ELECTRON_RUN_AS_NODE || "weg")); console.log("[perf-script] {\\"a\\":1}"); process.exit(3)'], out: path.join(werk, 'r1'), log: stil, slot: { dir: runLocks, label: 'r1' }, timeoutMin: 1 });
+  const r1 = await R.runElectron({ electron: process.execPath, args: ['-e', 'console.log("env:" + (process.env.ELECTRON_RUN_AS_NODE || "weg") + " argv:" + process.argv.slice(1).join(" ")); console.log("[perf-script] {\\"a\\":1}"); process.exit(3)', '--'], out: path.join(werk, 'r1'), log: stil, slot: { dir: runLocks, label: 'r1' }, timeoutMin: 1 });
   ok(r1.code === 3 && !r1.timedOut, 'exitcode van het kind komt terug', r1);
+  ok(r1.sandbox === true, 'een vroege exit 3 wordt als sandboxprobleem gemeld', r1);
+  ok(/--no-sandbox/.test(fs.readFileSync(path.join(werk, 'r1', 'electron.log'), 'utf8')), 'het kind krijgt standaard --no-sandbox mee');
   ok(r1.perfScript === '{"a":1}', 'de [perf-script]-regel wordt opgevangen', r1.perfScript);
   ok(/env:weg/.test(fs.readFileSync(path.join(werk, 'r1', 'electron.log'), 'utf8')), 'het kind ziet geen ELECTRON_RUN_AS_NODE');
   ok(!fs.existsSync(path.join(runLocks, 'electron-1')), 'na een gewone run is het slot vrij');
-  const r2 = await R.runElectron({ electron: process.execPath, args: ['-e', 'setTimeout(() => {}, 60000)'], out: path.join(werk, 'r2'), log: stil, slot: { dir: runLocks, label: 'r2' }, timeoutMin: 0.02 });
+  const r2 = await R.runElectron({ electron: process.execPath, args: ['-e', 'setTimeout(() => {}, 60000)', '--'], out: path.join(werk, 'r2'), log: stil, slot: { dir: runLocks, label: 'r2' }, timeoutMin: 0.02 });
   ok(r2.timedOut, 'tijdslimiet stopt het kind', r2);
   ok(!fs.existsSync(path.join(runLocks, 'electron-1')), 'na de tijdslimiet is het slot vrij');
   fout = null;
@@ -111,10 +115,10 @@ try {
   ok(fout && fout.code === 'START', 'een ontbrekend programma geeft START', fout && fout.message);
   ok(!fs.existsSync(path.join(runLocks, 'electron-1')), 'na een startfout is het slot vrij');
   fout = null;
-  try { await R.runElectron({ electron: process.execPath, args: ['-e', '0'], out: path.join(werk, 'r4'), log: stil, slot: false, quiet: { required: true, waitMin: 0.0003, pauseMs: 1, sample: async () => ({ cpu: 1, freeGB: 1 }) } }); } catch (e) { fout = e; }
+  try { await R.runElectron({ electron: process.execPath, args: ['-e', '0', '--'], out: path.join(werk, 'r4'), log: stil, slot: false, quiet: { required: true, waitMin: 0.0003, pauseMs: 1, sample: async () => ({ cpu: 1, freeGB: 1 }) } }); } catch (e) { fout = e; }
   ok(fout && fout.code === 'ONRUSTIG', 'een verplichte stille machine die niet stil wordt, stopt de run', fout && fout.message);
   const beats = [];
-  await R.runElectron({ electron: process.execPath, args: ['-e', 'setTimeout(() => {}, 300)'], out: path.join(werk, 'r5'), log: (t) => beats.push(t), slot: false, heartbeatMs: 50, timeoutMin: 1 });
+  await R.runElectron({ electron: process.execPath, args: ['-e', 'setTimeout(() => {}, 300)', '--'], out: path.join(werk, 'r5'), log: (t) => beats.push(t), slot: false, heartbeatMs: 50, timeoutMin: 1 });
   ok(beats.some((t) => /^hartslag/.test(t)), 'de hartslag schrijft naar het logboek', beats);
   if (prev === undefined) delete process.env.ELECTRON_RUN_AS_NODE; else process.env.ELECTRON_RUN_AS_NODE = prev;
 
