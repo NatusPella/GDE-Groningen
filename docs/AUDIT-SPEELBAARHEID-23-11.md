@@ -24,7 +24,21 @@ Niet gedaan en niet gezien: geen enkele missie, bijbaan of minigame is gespeeld;
 
 Samen spelen voor de twee eerste fixes: de verhaalstap is van wie het spel opende; een gast heeft geen eigen verhaalstap, dus geen doel in zijn balk en geen herinnering (de gastkaart krijgt doelen via het EXTRA-bericht). Er hangt geen beloning of voortgang aan en er gaat niets over het net.
 
-## Gerangschikt: open punten
+## Vervolg 23-11: open punten afgewerkt
+
+Op verzoek van de coördinator zijn punten 1 tot en met 5 van de tabel hieronder opgepakt. Punt 6 (ontgrendelen per akte) is een besluit van de eigenaar en is niet aangepast.
+
+| # | Wat | Gedaan | Test |
+|---|---|---|---|
+| 1 | Warps en gasten | `game/js/groepwarp.js` `warpGasten`: elke verplaatsing van de speler door het spel zet de gasten van de sessie op een vrije plek naast de bestemming (de M11-warp, `placeParty` voor reisscènes en opnieuw proberen, afmeren in `handBack`, de finale op de Grote Markt), met het patroon van onJoin in coopnet.js (de figuur bij de gastheer verplaatsen, geen nieuw bericht). Een gast die stuurt wordt eerst losgemaakt, wie meerijdt in het voertuig dat zelf meereist blijft zitten. Regel in `docs/COOP-GAST.md`. | `scripts/groepwarp_test.mjs` (puur, met bronchecks op elke aanroep) |
+| 2 | `[V?]`- en `[L]`-stappen | Alle nagelopen in de code. Echte gaten: de vluchtboot van M06 (de gast bleef op de kade; nu `gastenMeeAanBoord` met `zetInBoot`) en de landing na de fierljepsprong van M20 (de gast bleef aan de andere kant van de gracht; nu `warpGasten`). Geen gat: scènes (één lichaam alleen voor de camera), keuze en timing (de druk van elke gast telt, #525), konvooi, heli en treinrit (lezen de groep), M15 (een gast mag het vliegtuig vliegen, `vehicleregister.js`; de enige leesvraag aan één lichaam is de terugval voor de eigen E van de gastheer). Bewust van de gastheer: de duifstappen (M04, M24) en het plan van M06. `coopmissie_audit` kent nu de code `Vg` en gaat van ongeveer 45 `[V?]` naar 3. | `groepwarp_test`, `coopmissie_audit_test`, `coopmissie_test` |
+| 3 | Lange stukken | De doelbalk van het verhaal zegt vanaf 300 m hoe ver het nog is ("Volg de gele route · 43 km"). De OV- en taxihint van de metgezel (één korte zin, geen keuzescherm) keek alleen naar het eigen doel van de speler, dus een missiestart op 40 km kreeg nooit een hint: `hintDoel` neemt nu ook de start van de volgende verhaalmissie mee (een reis-stap heeft zijn eigen reiskeuze), en boven 20 km komt de hint altijd één keer per doel. Geen autopraat of radio toegevoegd: dat zou nieuwe tekst en opnames vragen. | `ovhint_test`, `stepdoel_test` (bedrading) |
+| 4 | Balans | M06 €400 naar €550, M22 €300 naar €500, M12 €1.500 naar €1.200 (stap en definitie gelijk). Geld krijgt een bestemming zonder nieuwe economie: Te doen toont zodra de boerderij open is een spaardoel, het goedkoopste stuk uit de bestaande machinecatalogus dat je nog niet hebt en nog niet kunt betalen (`game/js/spaardoel.js`); kopen gaat via de bestaande boerderijwinkel. Samen spelen: per speler, een gast spaart in zijn eigen spel. | `scripts/spaardoel_test.mjs`: het spaardoel en de economie-invarianten (één verhaalkost, het slechtste geval en 50 procent overslaan nooit onder nul, elke missie betaalt, geen missie onder een derde van de vorige behalve na de finale, definitie = stap) |
+| 5 | Ontgrendeling per akte | Niet aangepast (besluit eigenaar). | — |
+
+Niet gespeeld, niet gezien: geen van deze wijzigingen is in Electron of met twee vensters bekeken. Of een gast na een warp goed in beeld komt (camera, tegels geladen, geen sprong in water) is nog niet bekeken; de vrije plek komt uit `world.coopVrij` zoals bij het aansluiten.
+
+## Gerangschikt: open punten (stand van de eerste ronde)
 
 Status: **geverifieerd** (in de code teruggevonden), **niet geverifieerd** (alleen door een agent genoemd of uit een auditrapport afgeleid).
 
