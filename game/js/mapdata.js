@@ -21,6 +21,7 @@ export { SpatialGrid };
 // has real heights, see elevation.js.) A road whose height profile stays at ground level over
 // the water (-1 to 1.5 m: a ramp whose far end is flat, the Thesingerweg) is no aqueduct or
 // viaduct either: that is a missing bridge, so it counts as a crossing too (#917 bruggaten).
+const _segPolys = [];
 const DRY_CATS = new Set(['major', 'normal', 'minor', 'service']);
 export function markDryRoad(map, r) {
   // roads with a height profile pass over/under the water for real (unless it stays at ground level there)
@@ -34,10 +35,20 @@ export function markDryRoad(map, r) {
   if (!polys.length) return false;
   for (let i = 0; i < pts.length - 1; i++) {
     const [ax, ay] = pts[i], [bx, by] = pts[i + 1];
+    // 24-11 (profiel rit en vlucht: markDryRoad 2,5 tot 2,8%): alleen het water waarvan de box dit stuk raakt; een stuk zonder water
+    // (de meeste stukken van een lange weg langs een kanaal) slaat zijn monsters om de 2 m helemaal over
+    const sx0 = Math.min(ax, bx), sx1 = Math.max(ax, bx), sy0 = Math.min(ay, by), sy1 = Math.max(ay, by);
+    _segPolys.length = 0;
+    for (const w of polys) {
+      const b = w.bounds || (w.bounds = polygonBounds(w.pts));
+      if (sx1 < b[0] || sx0 > b[2] || sy1 < b[1] || sy0 > b[3]) continue;
+      _segPolys.push(w);
+    }
+    if (!_segPolys.length) continue;
     const steps = Math.max(1, Math.ceil(Math.hypot(bx - ax, by - ay) / 2));
     for (let k = 0; k <= steps; k++) {
       const x = ax + ((bx - ax) * k) / steps, y = ay + ((by - ay) * k) / steps;
-      if (waterPolyIn(polys, x, y)) {
+      if (waterPolyIn(_segPolys, x, y)) {
         if (r.z) { // the height here, between this segment's two profile points
           const za = r.z[i] || 0, zb = r.z[i + 1] || 0, zh = za + (zb - za) * (k / steps);
           if (zh < -1 || zh > 1.5) continue;
