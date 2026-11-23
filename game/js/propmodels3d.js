@@ -162,17 +162,75 @@ function dashboard() {
   return B.build().translate(0, 0.34, 0); // oorsprong onder de middenconsole (de bovenkant zit dan op 0,46 m)
 }
 
-const MAKERS = { bank, afvalbak, fietsenrek: () => fietsenrek(4), bushokje, paaltje, autostoel, dashboard };
+// Een stalen vat van 200 liter frituurvet (vettruck 23-11, M07): blauw gelakt, twee rolringen, een felsnaad boven en onder,
+// een deksel met een grote en een kleine stop en een wit etiket. Het vet van M07 staat zo als echte verpakking in de scènes.
+function vetvat(niveau = 0) {
+  const B = new GeoBuilder(1);
+  const blauw = 0x1f4f8f, rand = 0x173d70, staal = 0x9aa1a6;
+  if (niveau > 0) {
+    // LOD 1: romp, één rolring en het etiket; LOD 2: alleen de romp met zes zijden
+    B.geo(new THREE.CylinderGeometry(0.28, 0.28, 0.9, niveau === 1 ? 10 : 6), composeMatrix(0, 0.45, 0), blauw);
+    if (niveau === 1) {
+      B.geo(new THREE.CylinderGeometry(0.295, 0.295, 0.04, 10, 1, true), composeMatrix(0, 0.45, 0), rand);
+      B.box(0.275, 0.62, 0, 0.02, 0.2, 0.22, 0xeeebe2);
+    }
+    return B.build();
+  }
+  B.geo(new THREE.CylinderGeometry(0.28, 0.28, 0.84, 14), composeMatrix(0, 0.44, 0), blauw);
+  for (const y of [0.3, 0.6]) B.geo(new THREE.CylinderGeometry(0.292, 0.292, 0.035, 14, 1, true), composeMatrix(0, y, 0), rand); // rolringen
+  for (const y of [0.025, 0.875]) B.geo(new THREE.CylinderGeometry(0.29, 0.29, 0.05, 14, 1, true), composeMatrix(0, y, 0), rand); // felsnaad
+  B.geo(new THREE.CylinderGeometry(0.255, 0.255, 0.012, 14), composeMatrix(0, 0.866, 0), rand);                    // verzonken deksel
+  B.geo(new THREE.CylinderGeometry(0.04, 0.04, 0.025, 8), composeMatrix(0.15, 0.88, 0.05), staal);                  // grote stop
+  B.geo(new THREE.CylinderGeometry(0.022, 0.022, 0.025, 8), composeMatrix(-0.16, 0.88, -0.06), staal);              // kleine stop
+  B.box(0.272, 0.46, 0, 0.02, 0.2, 0.22, 0xeeebe2);                                                                // etiket
+  B.box(0.283, 0.5, 0, 0.004, 0.05, 0.16, 0x1d4f9c);
+  B.box(0.283, 0.42, 0, 0.004, 0.02, 0.16, 0xc8102e);
+  return B.build();
+}
+
+// Een jerrycan frituurvet van 20 liter: crèmekleurige kunststof waar het gele vet doorheen schemert, verdiepte zijpanelen,
+// een greep met drie gaten op twee pootjes, een schroefdop op de hoek en een etiket. De bus waarmee de snackbarhouders hun vet halen.
+function jerrycan(niveau = 0) {
+  const B = new GeoBuilder(1);
+  const romp = 0xe9e1c4, vet = 0xd9b45a, donker = 0x3a3d40;
+  if (niveau > 0) {
+    // LOD 1: romp, het vet erin en de greep; LOD 2: één blok
+    B.box(0, 0.23, 0, 0.17, 0.46, 0.33, romp);
+    if (niveau === 1) { B.box(0, 0.13, 0, 0.176, 0.22, 0.3, vet); B.box(0, 0.49, 0.015, 0.045, 0.025, 0.24, romp); }
+    return B.build();
+  }
+  B.box(0, 0.21, 0, 0.17, 0.4, 0.33, romp);
+  B.box(0, 0.13, 0, 0.174, 0.22, 0.3, vet);                                                                        // het vet schemert door
+  for (const s of [1, -1]) B.box(s * 0.091, 0.24, 0, 0.004, 0.26, 0.24, shade(romp));                             // verdiept paneel
+  B.box(0, 0.42, 0.03, 0.15, 0.04, 0.27, romp);                                                                    // schouder
+  for (const z of [-0.07, 0.1]) B.box(0, 0.46, z, 0.04, 0.05, 0.03, romp);                                         // pootjes van de greep
+  B.box(0, 0.49, 0.015, 0.045, 0.025, 0.24, romp);                                                                 // greep
+  B.geo(new THREE.CylinderGeometry(0.03, 0.03, 0.05, 8), composeMatrix(0, 0.465, -0.13), 0x2f5d9e);                // schroefdop
+  B.box(0.096, 0.2, 0, 0.004, 0.1, 0.14, 0xf4f2ec);                                                                // etiket
+  B.box(0, 0.005, 0, 0.16, 0.01, 0.31, donker);                                                                    // voetrand
+  return B.build();
+}
+function shade(hex, f = 0.88) {
+  const r = ((hex >> 16) & 255) * f, g = ((hex >> 8) & 255) * f, b = (hex & 255) * f;
+  return (Math.round(r) << 16) | (Math.round(g) << 8) | Math.round(b);
+}
+
+const MAKERS = { bank, afvalbak, fietsenrek: () => fietsenrek(4), bushokje, paaltje, autostoel, dashboard, vetvat, jerrycan };
+// de props met lichtere LOD-niveaus (de opgave staat in propregister.js PROP_REGISTER[id].lod)
+const LOD_MAKERS = new Set(['vetvat', 'jerrycan']);
 const cache = new Map();
 
 // De gedeelde geometrie van een geregistreerde prop (een kopie per aanroep is niet nodig: de geometrie is gemarkeerd als gedeeld).
-export function propGeometry(id) {
-  let g = cache.get(id);
+// niveau: het LOD-niveau (0 is het volle model); een prop zonder lichtere niveaus geeft altijd niveau 0.
+export function propGeometry(id, niveau = 0) {
+  const n = LOD_MAKERS.has(id) ? niveau : 0;
+  const key = n ? id + '|' + n : id;
+  let g = cache.get(key);
   if (!g) {
     const make = MAKERS[id];
     if (!make) throw new Error('onbekende prop: ' + id);
-    g = markShared(make());
-    cache.set(id, g);
+    g = markShared(n ? make(n) : make());
+    cache.set(key, g);
   }
   return g;
 }

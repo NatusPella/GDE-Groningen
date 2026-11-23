@@ -40,7 +40,7 @@ export const PROP_KINDS = [
   'tankwagen', 'limo', 'klomp', 'stempel', 'pinpas', 'map', 'bierviltje', 'fotolijst',
   'statief', 'krat', 'pan', 'vuurwerk', 'koelbox', 'jas', 'aktetas', 'hesjes',
   'container', 'scherm', 'prikbord', 'broodtrommel', 'kantoorwagen', 'frituuraanhanger', 'friteuse', 'deken',
-  'soepketel', 'mosterdpot', 'kaart', 'hek', 'pinautomaat', 'jerrycan', 'goudbal', 'polsstok',
+  'soepketel', 'mosterdpot', 'kaart', 'hek', 'pinautomaat', 'goudbal', 'polsstok',
   'bierglas', 'jeneverglas', 'wijnglas', 'kiosk', 'sticker',
   ...CUTSCENE_PROPS, // de gedeelde props van het register (propregister.js)
 ];

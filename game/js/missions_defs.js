@@ -178,7 +178,7 @@ export function buildDefsNaMuseum({ walk, drive }) {
           // parked at the groothandel until you come close (`parked` m) or hit it; then it flees.
           // Jumping in (`hijack`) takes it there and then, and the run goes on to the Oosterpoort.
           kind: 'chase', label: 'Kaap de tankwagen of schiet zijn banden plat', say: 'Naar de groothandel aan de Bornholmstraat. Daar laden Durk en Douwe de tankwagen vol.',
-          vehicle: { name: 'truck', tank: true, livery: 'usmemvet', len: 8.5, wid: 2.5, maxSpeed: 24, accel: 4.5, brake: 14, turnRate: 1.5, color: '#e6c21a' },
+          vehicle: { name: 'truck', tank: true, livery: 'usmemvet', len: 8.5, wid: 2.5, maxSpeed: 24, accel: 4.5, brake: 14, turnRate: 1.5, color: '#1d4f9c' },
           name: 'Tankwagen Us Mem Vet', from: [1905.18, 335.21], lead: 6, hits: 70, flee: [-2596.64, 646.07], cruise: 15.5, escape: 380, time: 180,
           parked: 60, parkedLabel: 'Naar de groothandel aan de Bornholmstraat', go: 'Daar gaat hij! Erin springen, of de banden plat. Schieten mag, rammen mag.',
           stopped: 'Pang! Banden plat. Durk en Douwe springen eruit en fietsen weg, allebei op één fatbike.',

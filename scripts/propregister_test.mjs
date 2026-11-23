@@ -55,7 +55,8 @@ for (const id of VOERTUIG_IDS) {
   const e = VOERTUIG_REGISTER[id], n = e.norm;
   const mesh = buildVehicleMesh({ id: 'reg-' + id, model: { ...e.model }, health: 100, isTaxi: !!e.isTaxi, isPolice: !!e.isPolice });
   let tris = 0;
-  mesh.traverse((o) => { if (o.isMesh && !o.name.startsWith('lod')) tris += (o.geometry.index ? o.geometry.index.count : o.geometry.attributes.position.count) / 3; }); // niveau 0, zonder de LOD-niveaus
+  // niveau 0 telt (de voertuig-LOD's van objecten-aaa heten lod*; een lichter LOD-niveau, userData.lodNiveau > 0, staat er nooit naast; lodlevels_test.mjs keurt die)
+  mesh.traverse((o) => { if (o.isMesh && !o.name.startsWith('lod') && !(o.userData.lodNiveau > 0)) tris += (o.geometry.index ? o.geometry.index.count : o.geometry.attributes.position.count) / 3; });
   const col = (mesh.userData.body || mesh).geometry.attributes.color, kleuren = new Set();
   for (let i = 0; i < col.count; i++) kleuren.add(col.getX(i) + ',' + col.getY(i) + ',' + col.getZ(i));
   ok('voertuig ' + id + ': driehoeken binnen de norm', tris >= n.tris[0] && tris <= n.tris[1], tris + ' niet in ' + n.tris);

@@ -24,7 +24,8 @@ const ANDERE = [
   ['bestelbus', { model: { name: 'van', len: 5, wid: 2, color: '#d9d9d9' } }],
   ['wagon', { model: { name: 'wagon', len: 4.5, wid: 1.8, color: '#6e937c' } }],
 ];
-const lijst = [...Object.entries(VOERTUIG_REGISTER).map(([id, e]) => [id, { model: { ...e.model }, isTaxi: !!e.isTaxi, isPolice: !!e.isPolice }]), ...ANDERE];
+// een voertuig met een eigen LOD-opgave (de tankwagen, vettruck 23-11: e.lod, eigen DitherLOD) toetst lodlevels_test.mjs
+const lijst = [...Object.entries(VOERTUIG_REGISTER).filter(([, e]) => !e.lod).map(([id, e]) => [id, { model: { ...e.model }, isTaxi: !!e.isTaxi, isPolice: !!e.isPolice }]), ...ANDERE];
 for (const [id, spec] of lijst) {
   const mesh = buildVehicleMesh({ id: 'lod-' + id, health: 100, ...spec });
   const l = mesh.userData.lods;

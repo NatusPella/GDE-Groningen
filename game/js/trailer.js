@@ -38,6 +38,7 @@ import { buildPigeonBird, posePigeonBird } from './pigeonmode.js';
 import { hidePigeonSpots } from './pigeonspots.js';
 import { setPoliceHeliRender } from './police.js';
 import { roofAt } from './camerapath.js';
+import { buildFatTrail, addTrailPuddle, commitTrail, clearTrail } from './fattrail3d.js';
 import { kickTheme, setThemeDuck } from './theme.js';
 import { probe } from './hitchprobe.js';
 import { flashScreen } from './postfx3d.js';
@@ -546,40 +547,6 @@ function buildBumperCar() {
   g.add(ring);
   box(0.05, 3.2, 0.05, propMat(0x9aa0a6, { metalness: 0.7 }), -0.62, 2.0, 0);
   return g;
-}
-
-// The vet of Grunn: drops sloshing out of the tanker's hatch.
-const DROPS = 420;
-function buildDrops() {
-  const m = new THREE.InstancedMesh(new THREE.SphereGeometry(0.2, 8, 6), new THREE.MeshStandardMaterial({ color: 0xe8b830, roughness: 0.15, metalness: 0.1, emissive: 0x3a2a00, emissiveIntensity: 0.4 }), DROPS);
-  m.frustumCulled = false;
-  m.count = 0;
-  m.userData.p = Array.from({ length: DROPS }, () => ({ x: 0, y: 0, z: -10, vx: 0, vy: 0, vz: 0, s: 1 }));
-  m.userData.next = 0;
-  return m;
-}
-const _dm = new THREE.Matrix4(), _dq = new THREE.Quaternion(), _ds = new THREE.Vector3(), _dv = new THREE.Vector3();
-function emitDrops(m, n, x, y, z, vx, vy) {
-  const P0 = m.userData.p;
-  for (let i = 0; i < n; i++) {
-    const d = P0[m.userData.next++ % DROPS];
-    Object.assign(d, { x: x + (Math.random() - 0.5) * 0.8, y: y + (Math.random() - 0.5) * 0.8, z, vx: vx + (Math.random() - 0.5) * 3, vy: vy + (Math.random() - 0.5) * 3, vz: 2.5 + Math.random() * 3.5, s: 0.9 + Math.random() * 1.3 });
-  }
-  m.count = Math.min(DROPS, m.userData.next);
-}
-function updateDrops(m, dt, floor) {
-  const P0 = m.userData.p;
-  for (let i = 0; i < m.count; i++) {
-    const d = P0[i];
-    if (d.z > floor) {
-      d.vz -= 9.8 * dt;
-      d.x += d.vx * dt; d.y += d.vy * dt; d.z += d.vz * dt;
-      if (d.z <= floor) { d.z = floor + 0.01; d.vx *= 0.2; d.vy *= 0.2; d.s *= 1.8; }
-    }
-    _ds.set(d.s, d.z <= floor + 0.02 ? 0.12 * d.s : d.s, d.s);
-    m.setMatrixAt(i, _dm.compose(_dv.set(d.x, d.z, d.y), _dq, _ds));
-  }
-  m.instanceMatrix.needsUpdate = true;
 }
 
 // A milk churn on a trestle with carbid: the lid goes off with a bang.
@@ -1113,12 +1080,13 @@ function buildShots(w) {
     },
   };
 
-  // the Us Mem Vet tanker on the Europaweg, sliding, the fat sloshing out
+  // the Us Mem Vet tanker on the Europaweg, sliding; the open drain valve at the back leaves a trail of fat on the road
+  // (vettruck 23-11: replaces the yellow balls that sprayed up over the tank and hung there in the benchmark)
   const euro = polyline([[1121.51, 408.67], [1126.63, 414.62], [1130.73, 420.59], [1138.93, 431.53], [1146.1, 440.47], [1149.17, 444.45], [1152.25, 448.42], [1180.84, 480.16], [1207.36, 507.91], [1234.87, 534.63], [1288.89, 588.09], [1319.46, 617.78]]);
-  const TANKER = { name: 'truck', tank: true, len: 8.5, wid: 2.5, maxSpeed: 24, accel: 4.5, brake: 14, turnRate: 1.5, color: '#e6c21a' };
+  const TANKER = { name: 'truck', tank: true, livery: 'usmemvet', len: 8.5, wid: 2.5, maxSpeed: 24, accel: 4.5, brake: 14, turnRate: 1.5, color: '#1d4f9c' };
   const tanker = {
     label: 'Tankwagen op de Europaweg', cuts: ['vol'], dur: 4.0, clock: 17.6, weather: 'helder', focus: lane(euro, 130, 0),
-    caps: [[0.9, 2.8, 'Al het vet van Grunn.']],
+    caps: [[0.9, 2.8, 'Dertienduizend liter frituurvet.', 'Europaweg']],
     slow: (t) => (t < 0.8 ? 1 : 0.4),
     enter(r, s) {
       clearRoad(r, euro, 10);
@@ -1126,8 +1094,9 @@ function buildShots(w) {
       const q = lane(euro, s.d, 1.5);
       s.truck = tempCar(r, q.x, q.y, q.a, { model: TANKER });
       for (let d = 95; d <= 185; d += 15) clearAround(r, lane(euro, d, 0), 26, s.truck);
-      s.drops = r.prop('drops', buildDrops);
-      s.drops.count = 0; s.drops.userData.next = 0;
+      s.spoor = r.prop('vetspoor', buildFatTrail);
+      clearTrail(s.spoor);
+      s.lekD = null;
     },
     tick(r, s, t, dt) {
       const v = 19;
@@ -1136,10 +1105,13 @@ function buildShots(w) {
       const q = lane(euro, s.d, 1.5 + yaw * 3);
       const a = q.a + yaw;
       Object.assign(s.truck, { x: q.x, y: q.y, angle: a, speed: v });
-      const z = gz(q.x, q.y);
-      // the fat sloshes out of the hatches over the outside of the slide
-      if (t > 0.5) for (const off of [-1.8, 0.2]) emitDrops(s.drops, 2, q.x + Math.cos(a) * off + Math.sin(a) * 0.9, q.y + Math.sin(a) * off - Math.cos(a) * 0.9, z + 2.7, Math.cos(q.a) * v * 0.85 + Math.sin(a) * 3.5, Math.sin(q.a) * v * 0.85 - Math.cos(a) * 3.5);
-      updateDrops(s.drops, dt, z + 0.02);
+      // a puddle every half metre behind the drain valve (model: 4.22 m behind the centre), flat on the road
+      if (t > 0.5 && (s.lekD === null || s.d - s.lekD > 0.5)) {
+        s.lekD = s.d;
+        const px = q.x - Math.cos(a) * 4.22, py = q.y - Math.sin(a) * 4.22;
+        addTrailPuddle(s.spoor, px, py, gz(px, py), 0.28 + Math.random() * 0.3 + Math.min(0.3, (t - 0.5) * 0.12), 1.5, a);
+        commitTrail(s.spoor);
+      }
       s.q = q; s.a = a;
     },
     cam(u, t, s) {

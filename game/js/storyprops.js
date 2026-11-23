@@ -7,7 +7,9 @@
 // als "doos" of "bord" werden getekend (klomp, stempel, statief, krat, ...), #1121.
 import * as THREE from 'three';
 import { propGeometry } from './propmodels3d.js';
-import { PROP_REGISTER, CUTSCENE_PROPS } from './propregister.js';
+import { PROP_REGISTER, CUTSCENE_PROPS, propLodSpec } from './propregister.js';
+import { DitherLOD } from './lod3d.js';
+import { lodLevelCount } from './lodlevels.js';
 
 const MATS = {};
 const mat = (c, o = {}) => (MATS[c + JSON.stringify(o)] ||= new THREE.MeshStandardMaterial({ color: c, roughness: 0.8, ...o }));
@@ -20,7 +22,25 @@ const tilt = (m, rx = 0, ry = 0, rz = 0) => { m.rotation.set(rx, ry, rz); return
 
 // De gedeelde props uit het register (propregister.js): dezelfde geometrie als op straat in de wereld, één mesh met vertexkleuren.
 const VERTEXKLEUR = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.8, metalness: 0.1 });
-const registerProp = (id) => () => { const m = new THREE.Mesh(propGeometry(id), VERTEXKLEUR); m.castShadow = true; return grp(m); };
+// Een prop met een LOD-opgave (vetvat, jerrycan) krijgt per niveau een mesh met een eigen kopie van het materiaal (de dither-
+// uniform hoort bij het exemplaar; het programma is gedeeld) en een DitherLOD die de overgang regelt (lod3d.js).
+const registerProp = (id) => () => {
+  const lod = propLodSpec(id);
+  if (!lod) { const m = new THREE.Mesh(propGeometry(id), VERTEXKLEUR); m.castShadow = true; return grp(m); }
+  const g = new THREE.Group(), niveaus = [];
+  for (let n = 0; n < lodLevelCount(lod); n++) {
+    const mat = VERTEXKLEUR.clone();
+    const m = new THREE.Mesh(propGeometry(id, n), mat);
+    m.castShadow = true;
+    m.userData.lodNiveau = n;
+    g.add(m);
+    niveaus.push([mat]);
+  }
+  const d = new DitherLOD(lod, niveaus);
+  g.add(d);
+  g.userData.lod = d;
+  return g;
+};
 
 export const DECOR_MAKERS = {
   ...Object.fromEntries(CUTSCENE_PROPS.map((id) => [id, registerProp(id)])),
@@ -192,8 +212,6 @@ export const DECOR_MAKERS = {
     box(0.4, 0.28, 0.02, 0x1e9e56, 1.62, 0, 0.31, { emissive: 0x0c4a28 }),
     box(0.3, 0.14, 0.03, 0x2a2a2b, 1.36, 0, 0.31), box(0.12, 0.02, 0.03, 0x111111, 1.5, 0.16, 0.31),
   ),
-  // de jerrycan op de fatbike van Durk en Douwe: romp, greep en dop
-  jerrycan: () => grp(box(0.22, 0.3, 0.14, 0xd8b01a, 0.15), box(0.12, 0.03, 0.04, 0xb08f12, 0.32, -0.03), cyl(0.022, 0.05, 0x222222, 0.32, 0.07)),
   // de gouden bal (M10): metaal met een naad
   goudbal: () => grp(
     put(new THREE.Mesh(new THREE.IcosahedronGeometry(0.12, 2), mat(0xf2c14e, { metalness: 0.9, roughness: 0.28, emissive: 0x3a2804 })), 0, 0.12, 0),
@@ -284,7 +302,7 @@ export function measureModel(root) {
   const box3 = new THREE.Box3();
   root.updateMatrixWorld(true);
   root.traverse((o) => {
-    if (!o.isMesh) return;
+    if (!o.isMesh || o.userData.lodNiveau > 0) return; // een lichter LOD-niveau telt niet mee: het staat er nooit naast niveau 0
     const g = o.geometry, pos = g.attributes.position;
     tris += (g.index ? g.index.count : pos.count) / 3;
     for (let i = 0; i < pos.array.length; i++) if (!Number.isFinite(pos.array[i])) nan = true;
@@ -300,5 +318,8 @@ export function measureModel(root) {
 
 // Ruimt de eigen geometrie van een gebouwd model op (materialen zijn gedeeld en blijven staan).
 export function disposeModel(root) {
-  root.traverse((o) => { if (o.isMesh && o.geometry) o.geometry.dispose(); });
+  root.traverse((o) => {
+    if (o.isMesh && o.geometry) o.geometry.dispose();
+    if (o.isMesh && o.userData.lodNiveau != null && o.material) o.material.dispose(); // de eigen kopie van een LOD-niveau
+  });
 }

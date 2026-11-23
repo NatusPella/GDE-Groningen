@@ -19,7 +19,7 @@ export const PROP_SOURCES = {
   fiets: { vehicle: 'bike' },
   // #1121: de snackwagen, de vettankwagen en de trekker-limo zijn echte wereldmodellen, geen bestelbus of trekker als stand-in
   snackwagen: { vehicle: 'foodtruck', model: { name: 'foodtruck', len: 5.4, wid: 2.1, color: 0x2f6fb0 } },
-  tankwagen: { vehicle: 'truck', model: { name: 'truck', tank: true, livery: 'usmemvet', len: 8.5, wid: 2.5, color: 0xe6c21a } },
+  tankwagen: { vehicle: 'truck', model: { name: 'truck', tank: true, livery: 'usmemvet', len: 8.5, wid: 2.5, color: 0x1d4f9c } },
   limo: { vehicle: 'trekkerlimo', model: { name: 'trekkerlimo', len: 5.6, wid: 2.0, color: 0x141414 } },
   // dieren komen uit het dierenregister (#193): elk dier met een cutscene-soort
   ...Object.fromEntries(DIEREN.filter((d) => d.cutscene).map((d) => [d.cutscene, { animal: d.kind, dier: d.id }])),
@@ -35,7 +35,7 @@ export const DECOR_KINDS = [
   'jas', 'aktetas', 'hesjes', 'container', 'scherm', 'prikbord', 'broodtrommel', 'kantoorwagen',
   'frituuraanhanger', 'friteuse', 'deken', 'soepketel', 'mosterdpot', 'kaart', 'hek',
   ...CUTSCENE_PROPS, // het register van de gedeelde props (propregister.js): bank, afvalbak, fietsenrek, bushokje, paaltje
-  'pinautomaat', 'jerrycan', 'goudbal', 'polsstok', 'bierglas', 'jeneverglas', 'wijnglas', 'kiosk', 'sticker',
+  'pinautomaat', 'goudbal', 'polsstok', 'bierglas', 'jeneverglas', 'wijnglas', 'kiosk', 'sticker',
 ];
 
 // De kwaliteitsnorm voor elk voorwerp in een cutscene (eigenaar, 23-11): nieuwe voorwerpen mogen, maar alleen in de gedeelde bibliotheek

@@ -7,6 +7,8 @@
 //   norm    tris [min, max] driehoeken, kleuren (minimaal aantal verschillende vertexkleuren), maat [b, h, d] in m (+- 25 %),
 //           en `eisen`: wat er aan detail aan moet zitten, zodat een kale doos of cilinder de test niet haalt
 //   gebruik waar hij staat: 'stad' (cityprops.js), 'buiten' (streetfurniture3d.js), 'cutscene' (storyprops.js DECOR_MAKERS)
+//   lod     (vettruck 23-11, eis eigenaar: elk model 2-3 LOD-niveaus) { grenzen: [m, ...], band, weg }: lodlevels.js legt de
+//           vorm uit; propGeometry(id, niveau) bouwt de lichtere niveaus, lod3d.js DitherLOD dithert de overgang
 // Kwaliteitsnorm voor iedere prop: zichtbaar materiaalverschil (hout tegen staal, glas tegen kader), echte onderdelen
 // (voet, rand, bevestiging) in plaats van één primitief, en een driehoekenbudget dat per cel samen te voegen of te instancen blijft.
 
@@ -41,9 +43,19 @@ export const PROP_REGISTER = {
     nl: 'Paaltje', bouwer: 'paaltje', gebruik: ['buiten', 'cutscene'],
     norm: { tris: [100, 260], kleuren: 4, maat: [0.23, 0.92, 0.23], eisen: ['rode romp met twee witte reflectiebanden', 'bolle kop', 'voetkraag'] },
   },
+  // vettruck 23-11: het frituurvet van M07 als echte verpakking in plaats van losse gele bollen
+  vetvat: {
+    nl: 'Vat frituurvet (200 l)', bouwer: 'vetvat', gebruik: ['cutscene'], lod: { grenzen: [18, 50], band: 4, weg: 140 },
+    norm: { tris: [180, 480], kleuren: 6, maat: [0.6, 0.9, 0.6], eisen: ['romp met twee rolringen', 'felsnaad boven en onder', 'verzonken deksel met een grote en een kleine stop', 'etiket'] },
+  },
+  jerrycan: {
+    nl: 'Jerrycan frituurvet (20 l)', bouwer: 'jerrycan', gebruik: ['cutscene'], lod: { grenzen: [12, 35], band: 3, weg: 90 },
+    norm: { tris: [80, 260], kleuren: 5, maat: [0.18, 0.51, 0.33], eisen: ['kunststof romp waar het vet doorheen schemert', 'verdiepte zijpanelen', 'greep op twee pootjes', 'schroefdop en etiket'] },
+  },
 };
 
 export const PROP_IDS = Object.keys(PROP_REGISTER);
+export const propLodSpec = (id) => (PROP_REGISTER[id] && PROP_REGISTER[id].lod) || null;
 export const propNorm = (id) => (PROP_REGISTER[id] ? PROP_REGISTER[id].norm : null);
 export const isRegisteredProp = (id) => Object.prototype.hasOwnProperty.call(PROP_REGISTER, id);
 // De soorten die een cutscene als decor mag noemen en uit dit register komen (cutscenemodels.js DECOR_KINDS neemt ze over).
@@ -80,6 +92,14 @@ export const VOERTUIG_REGISTER = {
   hybrideSport2: { nl: 'Sportauto 2 (hybride)', model: { name: 'sport', len: 4.1, wid: 1.85, color: 0xe8e6e0, qcar: 'sport2' }, hybride: 'sport2', schaal: { len: 4.25, wid: 1.82, hoog: 1.42 }, norm: HYB_NORM },
   hybrideTaxi: { nl: 'Taxi (hybride)', model: { name: 'taxi', len: 4.6, wid: 1.8, color: 0xe8c93a }, isTaxi: true, hybride: 'taxi', schaal: { len: 4.5, wid: 1.8, hoog: 1.45 }, norm: HYB_NORM },
   hybridePolitie: { nl: 'Politieauto (hybride)', model: { name: 'police', len: 4.3, wid: 1.8, color: 0x1c1c1c }, isPolice: true, hybride: 'police', schaal: { len: 4.3, wid: 1.8, hoog: 1.45 }, norm: HYB_NORM },
+  // vettruck 23-11: de tankwagen van Us Mem Vet (M07, de cutscenes, de trailer en de winkel), opnieuw gebouwd in plaats van drie
+  // gestapelde dozen op de bakwagen. Rijgedrag: vehicle/heavyload.js.
+  tankwagen: {
+    nl: 'Tankwagen Us Mem Vet', model: { name: 'truck', tank: true, livery: 'usmemvet', len: 8.5, wid: 2.5, color: 0x1d4f9c },
+    // niveau 0 vol detail (ook in de trailershot, die op 50 m begint), 1 tank en cabine met belettering, 2 silhouet met wielblokken
+    lod: { grenzen: [60, 160], band: 8 },
+    norm: { tris: [3500, 8000], kleuren: 24, eisen: ['elliptische rvs-tank met gebolde koppen en spanbanden', 'loopbrug met dekselputten, ontluchting en neergeklapte leuning', 'ladder achter, aftapkraan met handwiel, lichtbalk en onderrijbeveiliging', 'kantelcabine met wielkast, grille, zonneklep, dakspoiler, spiegels en opstap', 'dubbellucht achter, pompkast, dieseltank, slangkokers en zijbeveiliging', 'gebogen belettering van het verzonnen merk, deurnaden'] },
+  },
 };
 // De botsmaat volgt de getekende maat (23-11): een gewone personenauto die als hybride getekend wordt (hybridKey in
 // models3d_vehicles.js: geen roest, elektrisch, tokkie, belettering of model.hybride === false), botst met de lengte en breedte uit het

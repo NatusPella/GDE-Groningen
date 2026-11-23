@@ -10,7 +10,8 @@ import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const MAP = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'docs', 'beeld-23-11', 'objecten');
+// GDE_SHOTS_MAP: een andere map onder docs/beeld-23-11 met een eigen sheet.html (bijvoorbeeld vettruck)
+const MAP = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'docs', 'beeld-23-11', process.env.GDE_SHOTS_MAP || 'objecten');
 const [fase = 'voor', lijst = 'auto', chromeArg] = process.argv.slice(2);
 const CHROME = chromeArg || ['C:/Program Files/Google/Chrome/Application/chrome.exe', 'C:/Program Files (x86)/Google/Chrome/Application/chrome.exe', 'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe'].find((p) => fs.existsSync(p));
 if (!CHROME) { console.log('geen Chrome of Edge gevonden: geef het pad mee'); process.exit(1); }

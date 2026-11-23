@@ -2,6 +2,7 @@
 // Geen THREE, geen DOM: de volgcam, de prop- en boomray en de ellipsoïde-toets rekenen alleen met getallen,
 // zodat een test ze los kan natrekken (scripts/cammath_test.mjs) en scene3d.js alleen de glue houdt.
 import { vehicleHeight } from './vaultkit.js';
+import { heavyLoad } from './vehicle/heavyload.js';
 
 // (#463) De volgcam van de bestuurder hoort buiten de eigen carrosserie te blijven. Trekt een muur of prop
 // hem naar binnen - en in de pauze blijft dat beeld staan - dan wijkt hij boven het dak uit in plaats van in
@@ -71,9 +72,10 @@ const CAR_ROOF_REF = 1.45; // m: de daklijn waarvoor de gewone volgcam is afgest
 export function vehicleCamRig(v) {
   if (!v) return { scale: 1, eye: 1.3, ahead: 0 };
   const m = v.model || {};
-  const scale = v.isHeli ? 4.4 : v._mount === 'horse' ? 1.7
+  const heavy = heavyLoad(m); // vettruck 23-11: achter de volle tankwagen staat de camera iets verder (vehicle/heavyload.js)
+  const scale = (v.isHeli ? 4.4 : v._mount === 'horse' ? 1.7
     : v.isBus ? (m.trailer ? 5.2 : Math.min(4.4, Math.max(3.2, m.len / 2.5)))
-      : Math.min(3.2, Math.max(1.35, m.len / 2.4));
+      : Math.min(3.2, Math.max(1.35, m.len / 2.4))) * (heavy ? heavy.camera : 1);
   const eye = v._mount === 'horse' ? 2.2 : 1.3 + (scale - 1) * 0.55;
   const ground = !v.isHeli && !v.isBoat && !v.isPlane && !v.isBike && !v.isScooter && v._mount !== 'horse';
   const roof = ground ? vehicleHeight(v) : 0;

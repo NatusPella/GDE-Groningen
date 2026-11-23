@@ -108,8 +108,9 @@ export function pickLod(dist, current = 0, levels = 3) {
 // the outgoing mesh (it keeps the complement of the incoming pattern, so together they always cover each pixel once).
 const FADE = { value: new THREE.Vector2(0, 0) };
 export function makeDitherable(material) {
-  if (material.userData.lodDither) return material;
-  material.userData.lodDither = true;
+  // eigen vlag: lod3d.js (patchLodDither) bewaart in userData.lodDither zijn uniform; een gedeeld materiaal draagt beide
+  if (material.userData.meshLodFade) return material;
+  material.userData.meshLodFade = true;
   const prev = material.onBeforeCompile;
   material.onBeforeCompile = (shader, r) => {
     if (prev) prev(shader, r);
@@ -118,7 +119,7 @@ export function makeDitherable(material) {
       .replace('void main() {', 'uniform vec2 lodFade;\nfloat lodBayer(vec2 p) { vec2 q = mod(floor(p), 4.0); float b = q.y < 1.0 ? (q.x < 1.0 ? 0.0 : q.x < 2.0 ? 8.0 : q.x < 3.0 ? 2.0 : 10.0) : q.y < 2.0 ? (q.x < 1.0 ? 12.0 : q.x < 2.0 ? 4.0 : q.x < 3.0 ? 14.0 : 6.0) : q.y < 3.0 ? (q.x < 1.0 ? 3.0 : q.x < 2.0 ? 11.0 : q.x < 3.0 ? 1.0 : 9.0) : (q.x < 1.0 ? 15.0 : q.x < 2.0 ? 7.0 : q.x < 3.0 ? 13.0 : 5.0); return (b + 0.5) / 16.0; }\nvoid main() {\n  if (lodFade.x > 0.0) { float lodN = lodBayer(gl_FragCoord.xy); if (lodFade.y > 0.5 ? lodN < lodFade.x : lodN >= lodFade.x) discard; }');
   };
   const key = material.customProgramCacheKey ? material.customProgramCacheKey.bind(material) : () => '';
-  material.customProgramCacheKey = () => key() + '|lodDither';
+  material.customProgramCacheKey = () => key() + '|meshLodFade';
   return material;
 }
 // Only a fading mesh (and the first draw after one, to put the uniform back to solid) forces a uniform upload; a material

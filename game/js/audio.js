@@ -2061,6 +2061,8 @@ function engineKind(v) {
   if (name === 'van') return 6;
   // farm vehicles: the tractor a slow diesel like the bus, the quad a small single
   if (name === 'tractor') return 2;
+  // vettruck 23-11: a lorry (the Us Mem Vet tanker, the bakwagen) is a low diesel too, not the petrol four of a hatchback
+  if (name === 'truck') return 2;
   if (name === 'quad') return 3;
   return 0;
 }

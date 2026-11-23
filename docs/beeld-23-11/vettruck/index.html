@@ -1,0 +1,83 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Vettruck 23-11: voor en na</title>
+<style>
+  body { margin: 0; padding: 24px 32px 48px; background: #f4f2ec; color: #1c1d20; font: 15px/1.5 system-ui, sans-serif; }
+  h1 { margin: 0 0 4px; font-size: 26px; }
+  h2 { margin: 36px 0 8px; font-size: 19px; border-bottom: 2px solid #1d4f9c; padding-bottom: 4px; }
+  p, li { max-width: 980px; }
+  .paar { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 10px 0 4px; }
+  .een { margin: 10px 0 4px; max-width: 1000px; }
+  figure { margin: 0; }
+  img { width: 100%; display: block; border: 1px solid #c9c4b6; background: #bfe3f2; }
+  figcaption { font-size: 13px; color: #4a4d50; margin-top: 3px; }
+  table { border-collapse: collapse; margin: 8px 0; }
+  td, th { border: 1px solid #c9c4b6; padding: 4px 10px; text-align: left; }
+  th { background: #e8e4d8; }
+  code { background: #e8e4d8; padding: 0 4px; }
+  .let { background: #fff4d6; border-left: 4px solid #d9b92e; padding: 8px 12px; max-width: 960px; }
+</style>
+<h1>Vettruck 23-11: voor en na</h1>
+<p>De klacht van de eigenaar: "Ik vind het vet niks". De tekst <em>Al het vet van Grunn.</em> in trailer en benchmark, het model van de tankwagen (gele cabine, witte bak), de handling die niet zwaar voelt, en de gele bollen vet. Branch <code>vettruck-23-11</code> (bovenop <code>objecten-aaa-23-11</code>: het propregister en de kwaliteitsnorm).
+Alle beelden komen uit <code>sheet.html</code> in deze map, headless gerenderd met <code>GDE_SHOTS_MAP=vettruck node scripts/objecten_shots.mjs &lt;voor|na&gt; &lt;weergaven&gt;</code>: het echte model uit <code>buildVehicleMesh</code>, geen spel en geen Electron.</p>
+
+<h2>Wat het is in het verhaal</h2>
+<p>M07 <em>Al het vet van Grunn</em>: Jelle Terpstra (Us Mem Snacks, verzonnen) koopt al het frituurvet van Stad op, "voor één klomp". De tankwagen van zijn merk <strong>Us Mem Vet</strong> staat bij de groothandel aan de Bornholmstraat; Tammo en Tessa kapen hem en brengen het vet naar de snackbarhouders in de Oosterpoort. Het is dus een levensmiddelentank met frituurvet, geen snackwagen. Daarna staat hij in de winkel als <em>Us Mem Vet Tankwagen</em>. De gele bollen waren de "druppels" vet die de trailershot uit de tank liet spatten (420 bollen van 0,2 tot 0,44 m, opgeschoten tot 2,7 m hoog en in slowmotion als een tros boven de wagen).</p>
+
+<h2>Het model</h2>
+<div class="paar">
+  <figure><img src="voor-truck.png"><figcaption>Voor: bakwagen-cabine in geel, drie gestapelde dozen als tank, een plat bord als belettering.</figcaption></figure>
+  <figure><img src="na-truck.png"><figcaption>Na: kantelcabine in Fries blauw met wielkast, grille, zonneklep, dakspoiler, spiegels, opstap en bies; rvs-tank met gebolde koppen en spanbanden; pompkast, dieseltank en zijbeveiliging.</figcaption></figure>
+</div>
+<div class="paar">
+  <figure><img src="voor-truck-achter.png"><figcaption>Voor, achterkant.</figcaption></figure>
+  <figure><img src="na-truck-achter.png"><figcaption>Na: ladder op de bolle kop, aftapkraan met rood handwiel, lichtbalk, reflectiestrook, onderrijbeveiliging, dubbellucht met spatlappen, slangkokers. De belettering ligt gebogen op de tank: koe Us Mem in een cirkel, <em>Frituurvet. Foar mem.</em> en UITSLUITEND LEVENSMIDDELEN.</figcaption></figure>
+</div>
+<div class="paar">
+  <figure><img src="voor-truck-zij.png"><figcaption>Voor, zijkant.</figcaption></figure>
+  <figure><img src="na-truck-zij.png"><figcaption>Na, zijkant (linkerflank).</figcaption></figure>
+</div>
+<div class="paar">
+  <figure><img src="voor-truck-nacht.png"><figcaption>Voor, nacht.</figcaption></figure>
+  <figure><img src="na-truck-nacht.png"><figcaption>Na, nacht.</figcaption></figure>
+</div>
+<p>Norm in het centrale register (<code>propregister.js VOERTUIG_REGISTER.tankwagen</code>): 3.500 tot 8.000 driehoeken, minstens 24 kleuren, zes eisen. Gemeten: 5.350 driehoeken (romp en wielen, niveau 0), 26 kleuren. Geen coplanaire vlakken (<code>vehicle_zfight_test</code>).</p>
+
+<h2>Detailniveaus (LOD)</h2>
+<div class="een"><figure><img src="na-lod.png"><figcaption>Niveau 0 (achter, tot 60 m), 1 (midden, tot 160 m) en 2 (voor, daarna), hier vastgezet naast elkaar. Romp: 3.910, 552 en 184 driehoeken; op niveau 2 staan de losse wielen uit (wielblokken in de romp). Rond elke grens 8 m overgang met een schermdeur-dither (aanvullende patronen, geen toestand).</figcaption></figure></div>
+<div class="een"><figure><img src="na-vaten.png"><figcaption>Vat (324 / 72 / 24 driehoeken; 18 en 50 m, weg na 140 m) en jerrycan (152 / 36 / 12; 12 en 35 m, weg na 90 m), niveau 0, 1 en 2 van links naar rechts.</figcaption></figure></div>
+<p>De opgave staat per model in het register (<code>lod: { grenzen, band, weg }</code>); de regels zijn puur in <code>lodlevels.js</code>, de three-kant in <code>lod3d.js</code> (<code>DitherLOD</code>, een <code>THREE.LOD</code> die de renderer zelf bijwerkt). Bedoeld als centrale vorm voor het LOD-systeem van <code>perf-ultra-23-11</code>, dat er nog niet was.</p>
+
+<h2>De bollen vet: trailer en benchmark</h2>
+<div class="paar">
+  <figure><img src="voor-spoor.png"><figcaption>Voor (nagebouwd met de code van trailer.js): de gele bollen boven de tank.</figcaption></figure>
+  <figure><img src="na-spoor.png"><figcaption>Na, zelfde lage camera: geen bollen; een spoor frituurvet uit de aftapkraan op het asfalt.</figcaption></figure>
+</div>
+<div class="een"><figure><img src="na-spoor-hoog.png"><figcaption>Na, van boven: het spoor (plat op de weg, één drawcall, nooit zwevend).</figcaption></figure></div>
+<p>Tekst: <em>Al het vet van Grunn.</em> wordt <strong><em>Dertienduizend liter frituurvet.</em></strong> met de plek <em>Europaweg</em> eronder, in de vorm van de andere kaarten (<em>Zomer? Ja.</em> / <em>Onweer boven de Kiekdeuse</em>).</p>
+
+<h2>De scènes van M07</h2>
+<div class="paar">
+  <figure><img src="voor-scene.png"><figcaption>Voor: het decor van M07.intro rond de tankwagen (de pannen staan buiten beeld).</figcaption></figure>
+  <figure><img src="na-scene.png"><figcaption>Na: drie vaten frituurvet naast de tankwagen bij de groothandel. De jerrycans van de rij staan bij de pannen (buiten dit beeld); in M07.outro staan twee jerrycans en een vat bij de tankwagen in de Oosterpoort.</figcaption></figure>
+</div>
+
+<h2>Rijgedrag</h2>
+<table>
+  <tr><th></th><th>Bakwagen (zelfde maat)</th><th>Tankwagen</th></tr>
+  <tr><td>0 tot 50 km/u</td><td>7,2 s</td><td>13,0 s</td></tr>
+  <tr><td>Remweg uit 80 km/u</td><td>17,6 m</td><td>39,2 m</td></tr>
+  <tr><td>Zijgrip speler</td><td>23 m/s²</td><td>9,7 m/s² (bocht op 72 km/u: straal 41 m)</td></tr>
+  <tr><td>Vering</td><td>1 (auto)</td><td>1,9 (bus 1,7), overhellen tot 0,136 rad</td></tr>
+  <tr><td>Camera</td><td>3,20</td><td>3,68 (x 1,15)</td></tr>
+  <tr><td>Motor</td><td>benzine-vier</td><td>lage diesel (bestaande lus <code>motor_diesel_stationair</code>), voor elke vrachtwagen</td></tr>
+</table>
+<p>Eén plek met de factoren: <code>game/js/vehicle/heavyload.js</code>; pure test <code>scripts/heavyload_test.mjs</code>. Optrekken, remmen, grip en sturen gelden alleen voor de speler: de AI-tankwagen die in M07 vlucht, rijdt zoals eerst.</p>
+
+<h2>Nog niet bekeken</h2>
+<div class="let"><ul>
+  <li>Niets hiervan is in het spel of in Electron gezien: geen rit met de tankwagen, geen cutscene van M07, geen trailer- of benchmarkrun. Alleen headless contactbladen van het model en pure tests.</li>
+  <li>De dither-overgang is niet bewegend bekeken (alleen de drie niveaus vastgezet); de eerste keer dat een tankwagen verschijnt wordt een extra shadervariant gemaakt.</li>
+  <li>Het rijgevoel is niet gespeeld: de getallen komen uit de afstelling, niet uit een rit.</li>
+  <li>Bij Samen spelen ziet een gast de tank zonder belettering (de belettering reist niet mee in het voertuigbericht; dat was al zo).</li>
+</ul></div>
