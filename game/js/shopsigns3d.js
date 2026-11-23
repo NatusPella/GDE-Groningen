@@ -5,7 +5,7 @@ import { hoofdspeler } from './players.js';
 // de lijm met de scene. Meldt zich in main.js als kind. Alleen verzonnen namen komen in beeld.
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { getScene } from './scene3d.js';
-import { signLayout, signText, signColors } from './shopsign.js';
+import { signFor, signColors, SIGN_PX } from './shopsign.js';
 import { signSpecFor } from './bezitinterior.js'; // een sponsorpand van het voetbal draagt de naam van zijn sponsor, ook zonder winkelpui
 
 const REACH = 42;         // m: borden van panden verder weg zijn niet nodig
@@ -17,24 +17,26 @@ const signs = new Map();  // pand -> { mesh, key }
 let acc = 0;
 let geo = null;
 
-function texFor(text, hex) {
-  const key = text + '|' + hex;
+// cw: canvasbreedte in px, in de verhouding van het bord (signCanvasW), zodat de letters niet uitrekken of samenpersen
+function texFor(text, hex, cw = 512) {
+  const key = text + '|' + hex + '|' + cw;
   let t = textures.get(key);
   if (t) { textures.delete(key); textures.set(key, t); return t; }
   const col = signColors(hex);
   const c = document.createElement('canvas');
-  c.width = 512; c.height = 80;
+  const ch = SIGN_PX;
+  c.width = cw; c.height = ch;
   const g = c.getContext('2d');
   g.fillStyle = col.bg;
-  g.fillRect(0, 0, 512, 80);
+  g.fillRect(0, 0, cw, ch);
   g.strokeStyle = col.accent;
   g.lineWidth = 3;
-  g.strokeRect(4, 4, 504, 72);
+  g.strokeRect(4, 4, cw - 8, ch - 8);
   g.fillStyle = col.fg;
   g.textAlign = 'center';
   g.textBaseline = 'middle';
   g.font = "bold 50px 'Bebas Neue','Arial Narrow',Arial,sans-serif";
-  g.fillText(text.toUpperCase(), 256, 43, 480);
+  g.fillText(text.toUpperCase(), cw / 2, 43, cw - 32);
   t = new THREE.CanvasTexture(c);
   t.colorSpace = THREE.SRGBColorSpace;
   t.anisotropy = 4;
@@ -45,11 +47,10 @@ function texFor(text, hex) {
 
 function build(spec) {
   const f = spec.front;
-  const L = signLayout(f);
+  const { layout: L, cw, text } = signFor(f, spec.name);
   if (!geo) geo = new THREE.PlaneGeometry(1, 1);
   const name = spec.name;
-  const text = signText(name);
-  const mesh = new THREE.Mesh(geo, new THREE.MeshBasicMaterial({ map: texFor(text, spec.hex), polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -8 }));
+  const mesh = new THREE.Mesh(geo, new THREE.MeshBasicMaterial({ map: texFor(text, spec.hex, cw), polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -8 }));
   mesh.scale.set(L.w, L.h, 1);
   mesh.position.set(L.x, L.y, L.z);
   mesh.rotation.y = L.rotY;

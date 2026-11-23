@@ -18,6 +18,7 @@ import { hash2 } from './rng.js';
 import { paneKey } from './interiorlook.js';
 import { poiLayerPlace } from './facilities.js';
 import { woonbootY, WOONBOOT_DIEPTE } from './waterlevels.js';
+import { streetFrontEdge, towardStreetEdge } from './facadefront.js';
 
 // Procedural Groningen buildings. Geometry bakes absolute world coordinates
 // (x, height, map-y) and is cached per building on b._geo3dParts: the wall
@@ -536,10 +537,12 @@ function addWindow(B, e, c, w, y0, y1, S, seed) {
 function addDoor(B, e, c, w, S, opts = {}) {
   const h = opts.h ?? 2.2;
   const f = 0.08;
-  wallBox(B, e, c - w / 2 - f, c + w / 2 + f, 0.12, h + 0.5 + f, 0, 0.05, S.frame, G_DETAIL, FACE_FRONT | FACE_SIDES | FACE_TOP);
+  // het bovenlicht alleen als het onder de verdieping past (een lage schuur krijgt een deur van mensenmaat zonder bovenlicht)
+  const transom = opts.transom !== false;
+  wallBox(B, e, c - w / 2 - f, c + w / 2 + f, 0.12, h + (transom ? 0.5 : 0) + f, 0, 0.05, S.frame, G_DETAIL, FACE_FRONT | FACE_SIDES | FACE_TOP);
   wallQuad(B, e, c - w / 2, c + w / 2, 0.15, h, 0.065, S.door);
   if (w > 1.3) wallQuad(B, e, c - 0.025, c + 0.025, 0.15, h, 0.08, shade(S.door, 0.7));
-  wallQuad(B, e, c - w / 2, c + w / 2, h + 0.08, h + 0.5, 0.065, GLASS_TONES[1], G_GLASS);
+  if (transom) wallQuad(B, e, c - w / 2, c + w / 2, h + 0.08, h + 0.5, 0.065, GLASS_TONES[1], G_GLASS);
   wallBox(B, e, c - w / 2 - 0.2, c + w / 2 + 0.2, 0, 0.15, 0, 0.4, STONE, G_DETAIL, FACE_FRONT | FACE_TOP | FACE_SIDES);
   if (opts.canopy) wallBox(B, e, c - w / 2 - 0.35, c + w / 2 + 0.35, h + 0.62, h + 0.74, 0, 0.9, TRIM_DARK);
 }
@@ -619,8 +622,8 @@ function addShopfront(B, e, s0, s1, top, S, seed, poiType = null) {
     const a = s0 + i * bw + 0.07, b = s0 + (i + 1) * bw - 0.07;
     if (i === doorBay && bw > 1.1) {
       const dc = (a + b) / 2;
-      shopUV(dc - 0.5, dc + 0.5, 0.05, top - 0.55, i);
-      shopUV(dc - 0.5, dc + 0.5, top - 0.48, top - 0.07, i);
+      shopUV(dc - 0.5, dc + 0.5, 0.05, shopDoorH(top), i);
+      shopUV(dc - 0.5, dc + 0.5, shopDoorH(top) + 0.07, top - 0.07, i);
       shopUV(a, dc - 0.57, 0.47, top - 0.07, i + 3);
       shopUV(dc + 0.57, b, 0.47, top - 0.07, i + 5);
     } else {
@@ -630,9 +633,9 @@ function addShopfront(B, e, s0, s1, top, S, seed, poiType = null) {
   wallBox(B, e, s0, s1, top, top + 0.5, 0, 0.12, look.sign);
   if (look.type === 'kermiskraam') { const dc = s0 + (doorBay + 0.5) * bw, k0 = Math.max(s0, dc - 3), k1 = Math.min(s1, dc + 3); addKraam(B, e, k0, k1, top, seed); return { kraam: [k0, k1] }; } // (een kraam is zes meter, niet de hele gevel)
   addShopProps(B, e, s0, s1, bw, doorBay, look.buiten, seed);
-  const shopDoor = bw > 1.1 ? { c: s0 + (doorBay + 0.5) * bw, w: 1.1, h: Math.min(2.3, top - 0.45) } : null;
+  const shopDoor = bw > 1.1 ? { c: s0 + (doorBay + 0.5) * bw, w: 1.1, h: shopDoorH(top) } : null;
   if (look.awning) {
-    const a0 = s0 + 0.15, a1 = s1 - 0.15, ya = top - 0.05, yb = top - 0.6, da = 0.12, db = 1.25;
+    const a0 = s0 + 0.15, a1 = s1 - 0.15, ya = top - 0.05, yb = awningEdge(top), da = 0.12, db = 1.25;
     const strips = Math.max(1, Math.round((a1 - a0) / 0.45));
     const sw = (a1 - a0) / strips;
     const up = [e.nx * 0.45, 1, e.ny * 0.45];
@@ -641,11 +644,19 @@ function addShopfront(B, e, s0, s1, top, S, seed, poiType = null) {
       const p0 = a0 + i * sw, p1 = p0 + sw;
       B.quadOut(wp(e, p0, ya, da), wp(e, p1, ya, da), wp(e, p1, yb, db), wp(e, p0, yb, db), up, c);
       B.quadOut(wp(e, p0, ya - 0.03, da), wp(e, p1, ya - 0.03, da), wp(e, p1, yb - 0.03, db), wp(e, p0, yb - 0.03, db), [-up[0], -1, -up[2]], shade(c, 0.6));
-      wallQuad(B, e, p0, p1, yb - 0.22, yb, db, c);
+      wallQuad(B, e, p0, p1, yb - AWNING_VALANCE, yb, db, c);
     }
   }
-  return { door: shopDoor, panes };
+  return { door: shopDoor, panes, awningLow: look.awning ? awningEdge(top) - AWNING_VALANCE : null };
 }
+
+// Mensenmaat aan de pui (AI-tells 23-11): een mens is 1,6 tot 1,8 m. De winkeldeur is minstens 2,05 m (top - 0,55 gaf 1,7 m bij een lage
+// pui) en de onderkant van de markies hangt minstens 2,1 m boven de stoep (top - 0,82 gaf 1,4 m: je liep er met je hoofd tegenaan).
+export const DOOR_MIN_H = 2.05;
+export const AWNING_MIN_H = 2.1;
+const AWNING_VALANCE = 0.22;
+export const shopDoorH = (top) => Math.min(2.3, Math.max(top - 0.55, Math.min(DOOR_MIN_H, top - 0.3)));
+export const awningEdge = (top) => Math.max(top - 0.6, Math.min(top - 0.2, AWNING_MIN_H + AWNING_VALANCE));
 
 // --- roofs --------------------------------------------------------------------------
 
@@ -1099,10 +1110,14 @@ function buildDetailGeometry(b, box, archetype, depth, fine, fine2, wallHex, roo
     awning: !(hist && hist.noAwnings) && r(6) < 0.55 ? AWNING_COLORS[Math.floor(r(7) * AWNING_COLORS.length)] : null,
   };
 
-  const floorCount = houseboat ? 1 : Math.min(14, Math.max(1, Math.round(depth / 3)));
+  // nooit een verdieping lager dan 2,6 m (AI-tells 23-11: round(depth / 3) gaf bij 4,5 tot 5,2 m twee verdiepingen van 2,3 m, met
+  // een voordeur van 1,65 m, kleiner dan een mens)
+  let floorCount = houseboat ? 1 : Math.min(14, Math.max(1, Math.round(depth / 3)));
+  if (!houseboat && floorCount > 1 && depth / floorCount < 2.6) floorCount = Math.max(1, Math.floor(depth / 2.6));
   const floorH = depth / floorCount;
   const open = edges.filter((e) => !e.party && e.len >= 1.6);
-  const mainEdge = (open.length ? open : edges).slice().sort((p, q) => q.len - p.len)[r(8) < 0.75 || open.length < 2 ? 0 : 1];
+  // de voordeur en de winkelpui aan de straatkant (AI-tells 23-11, facadefront.js); zonder straat in zicht de oude keuze
+  const mainEdge = streetFrontEdge(mapRef(), b, open) || towardStreetEdge(mapRef(), b, open) || (open.length ? open : edges).slice().sort((p, q) => q.len - p.len)[r(8) < 0.75 || open.length < 2 ? 0 : 1];
 
   const tallHistoric = centre && r(9) < 0.5;
   let style;
@@ -1121,7 +1136,8 @@ function buildDetailGeometry(b, box, archetype, depth, fine, fine2, wallHex, roo
     if (poiType || archetype === 'retail' || (centre && r(12) < 0.55)) shopEdge = mainEdge;
     if (hist && hist.noShopSigns) shopEdge = null; // geen etalage en reclame in een monumentgebied
   }
-  const shopTop = Math.min(floorH - 0.35, 3.2);
+  // de pui reikt tot vlak onder de ramen van de eerste verdieping als dat nodig is voor een deur van mensenmaat (AI-tells 23-11)
+  const shopTop = Math.min(3.2, Math.max(floorH - 0.35, Math.min(2.6, floorH - 0.05)));
 
   if (!industrial) {
     const plinthH = houseboat ? HOUSEBOAT_HULL_H : 0.4;
@@ -1166,8 +1182,8 @@ function buildDetailGeometry(b, box, archetype, depth, fine, fine2, wallHex, roo
         if (f === 0 && doorHere && i === doorBay) {
           const dw = doorWide ? Math.min(1.7, bw - 0.4) : Math.min(1.0, bw - 0.4);
           if (dw > 0.7) {
-            const dh = Math.min(2.25, floorH - 0.65);
-            addDoor(B, e, c, dw, S, { h: dh, canopy: archetype === 'apartments' });
+            const dh = Math.min(2.25, Math.max(DOOR_MIN_H, floorH - 0.65));
+            addDoor(B, e, c, dw, S, { h: dh, canopy: archetype === 'apartments' && dh + 0.74 < floorH, transom: dh + 0.6 <= floorH });
             entrance = { e, c, w: dw, h: dh, shop: false };
           }
           continue;
@@ -1191,8 +1207,8 @@ function buildDetailGeometry(b, box, archetype, depth, fine, fine2, wallHex, roo
       wallQuad(B, e, c - dw / 2, c + dw / 2, 0, dh, 0.055, 0x8a8c8e);
       for (let k = 1; k < 6; k++) wallQuad(B, e, c - dw / 2, c + dw / 2, (dh * k) / 6 - 0.02, (dh * k) / 6 + 0.02, 0.07, 0x6a6c6e);
     } else if (industrial && e === mainEdge) {
-      const dw = Math.min(1, e.len - 0.6), dh = Math.min(2.1, depth - 0.3);
-      addDoor(B, e, e.len / 2, dw, S, { h: dh });
+      const dw = Math.min(1, e.len - 0.6), dh = Math.max(Math.min(DOOR_MIN_H, depth - 0.2), Math.min(2.1, depth - 0.3));
+      addDoor(B, e, e.len / 2, dw, S, { h: dh, transom: dh + 0.6 <= depth });
       if (dw > 0.7) entrance = { e, c: e.len / 2, w: dw, h: dh, shop: false };
     }
   }
@@ -1210,13 +1226,17 @@ function buildDetailGeometry(b, box, archetype, depth, fine, fine2, wallHex, roo
   // (shopsigns3d.js hangs the name of the shop on it)
   b.shopFront = shopEdge ? {
     ax: shopEdge.ax, ay: shopEdge.ay, bx: shopEdge.bx, by: shopEdge.by, nx: shopEdge.nx, ny: shopEdge.ny, tx: shopEdge.tx, ty: shopEdge.ty,
-    s0: 0.15, s1: shopEdge.len - 0.15, top: shopTop, poi: poiType, name: poiName, sign: poiType ? facadeLook(rankForType(poiType, seed)).sign : 0x232323,
+    s0: 0.15, s1: shopEdge.len - 0.15, top: shopTop, awningLow: front && front.awningLow != null ? front.awningLow : null, poi: poiType, name: poiName, sign: poiType ? facadeLook(rankForType(poiType, seed)).sign : 0x232323,
     type: facadeLook(poiType ? rankForType(poiType, seed) : hash2(seed, 5.5)).type, kraam: front && front.kraam ? front.kraam : null, // (QA: de zes meter van de kermiskraam langs de gevel)
   } : null;
 
   if (!industrial && archetype !== 'house' && floorCount >= 3 && r(15) < 0.45) {
     for (let f = 1; f < floorCount; f++) {
-      for (const e of open) wallBox(B, e, 0, e.len, f * floorH - 0.08, f * floorH + 0.06, 0, 0.04, shade(wallHex, brick ? 1.35 : 0.88), G_DETAIL, FACE_FRONT | FACE_TOP | FACE_BOTTOM);
+      for (const e of open) {
+        // boven een hoge winkelpui ligt de reclameband al op die hoogte: geen lijst in het vlak van de pui (z-fighting)
+        if (f === 1 && e === shopEdge && shopTop > floorH - 0.12) continue;
+        wallBox(B, e, 0, e.len, f * floorH - 0.08, f * floorH + 0.06, 0, 0.04, shade(wallHex, brick ? 1.35 : 0.88), G_DETAIL, FACE_FRONT | FACE_TOP | FACE_BOTTOM);
+      }
     }
   }
 
@@ -1600,6 +1620,14 @@ export function buildingNudge(b) {
   const g = hash2(p[0] * -0.23 + 4.1, p[1] * 0.19 + 13.7);
   const k = hash2(p[0] * 0.61 - 2.9, p[1] * -0.53 + 8.3);
   return { x: (f - 0.5) * 0.008, y: (k - 0.5) * 0.008, z: (g - 0.5) * 0.008 };
+}
+
+// Het uiterlijk van een gewoon pand in één sleutel (muur, dak, hoogte, soort), voor de herhalingsaudit (scripts/world/beeld_tells_audit.mjs).
+export function buildingLookKey(b) {
+  if (!b || !b.pts || !b.bounds || b.landmark) return null;
+  const box = bboxOf(b), archetype = archetypeOf(b);
+  const { wallHex, roofHex } = pickColors(b, box, archetype, hash2(box.sx, box.sy));
+  return `${wallHex}|${roofHex}|${Math.round(Math.max(2.4, (b.h || 1) * LEVEL_HEIGHT) * 2) / 2}|${archetype}`;
 }
 
 export function buildBuildingMesh(b) {

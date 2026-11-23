@@ -11,7 +11,32 @@ export function signText(name, max = 26) {
   if (t.length <= max) return t;
   const cut = t.slice(0, max);
   const sp = cut.lastIndexOf(' ');
-  return (sp > 8 ? cut.slice(0, sp) : cut).trim();
+  if (sp > Math.min(8, max / 2)) return cut.slice(0, sp).trim();
+  // een smal bord: nooit een half woord ("SLAGE"), dan liever alleen de eerste woorden of een leeg bord
+  if (max < 26) return sp > 0 ? cut.slice(0, sp).trim() : '';
+  return cut.trim();
+}
+
+// Het canvas van het bord heeft dezelfde verhouding als het bord zelf (AI-tells 23-11): een vast canvas van 512 x 80 op een bord
+// van 0,8 tot 5,5 m breed rekte de letters tot 2x uit of perste ze 3x samen, onleesbare tekst die je in één oogopslag ziet.
+export const SIGN_PX = 80;        // canvashoogte in px
+export const SIGN_CHAR_PX = 24;   // breedte van een hoofdletter in px (Bebas Neue, 50 px)
+export function signCanvasW(w) {
+  return Math.max(128, Math.min(1024, Math.round((SIGN_PX * w) / SIGN_H)));
+}
+// Hoeveel letters er op een bord van w meter passen zonder dat fillText ze samenperst.
+export function signMaxChars(w) {
+  return Math.max(3, Math.floor((signCanvasW(w) - 32) / SIGN_CHAR_PX));
+}
+// Hoeveel de letters uitgerekt (> 1) of samengeperst (< 1) zijn: canvasverhouding gedeeld door bordverhouding.
+export function signStretch(cw, ch, w, h) {
+  return (w / h) / (cw / ch);
+}
+
+// Alles wat het bord van een pui nodig heeft: plaats en maat, canvasbreedte en de tekst die erop past (shopsigns3d.js, de audit).
+export function signFor(front, name) {
+  const layout = signLayout(front);
+  return { layout, cw: signCanvasW(layout.w), text: signText(name, Math.min(26, signMaxChars(layout.w))) };
 }
 
 // Lichte of donkere letters op de kleur van de band (hex 0xRRGGBB).

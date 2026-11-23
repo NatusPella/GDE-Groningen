@@ -99,7 +99,8 @@ export function treeDims(t) {
   const hA = hash2(x, y), hB = hash2(y, x);
   const sp = t.length > 2 && t[2] >= 0 ? t[2] : SPECIES_INDEX.linde;
   const s = SPECIES[sp] || SPECIES[0];
-  const H = t.length > 3 && t[3] > 0 ? t[3] / 10 : s.h[0] + (s.h[1] - s.h[0]) * hA;
+  // een gemapte hoogte krijgt een paar procent speling (AI-tells 23-11): een laan van precies even hoge bomen leest als gekopieerd
+  const H = t.length > 3 && t[3] > 0 ? (t[3] / 10) * (0.94 + 0.12 * hA) : s.h[0] + (s.h[1] - s.h[0]) * hA;
   const u = Math.max(0, Math.min(1, (H - s.h[0]) / Math.max(1, s.h[1] - s.h[0])));
   const d = _d;
   d.sp = sp; d.h = H; d.h2 = hB; d.crown = s.crown; d.cone = s.crown === 'conical'; d.rot = hB * Math.PI * 2;
