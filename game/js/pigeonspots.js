@@ -162,7 +162,8 @@ function placeSpot(map, def, scene) {
     const p = freeAround(map, spot.x, spot.y, 1.2 + Math.random() * 0.9, a);
     if (!p) continue;
     const mesh = buildPigeonBird('pigeon', TINTS[(i + spot.id.length) % TINTS.length]);
-    mesh.position.set(p[0], 0, p[1]);
+    // on the ground height there (pavement, square), not on 0: a pigeon stood half in the cobbles (#1195)
+    mesh.position.set(p[0], (map.groundHeightAt && map.groundHeightAt(p[0], p[1], 0)) || 0, p[1]);
     const yaw = Math.random() * Math.PI * 2;
     mesh.rotation.set(0, -yaw, 0);
     // ~30 parts a bird: only the body casts a shadow
