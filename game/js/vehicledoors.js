@@ -412,7 +412,8 @@ export function reconcileDoors(v, defs, wereld = { n: 0 }) {
 
 // Een bus (of tram) staat bij een halte met deuren open als hij stilstaat.
 // Bedient de bestuurder de deuren zelf (v.busBediend, busbestuur.js, #444), dan gaan ze niet vanzelf open.
-export const stilstandDeurOpen = (v) => !!v && (v.isBus || v.isTram || v.isTrain) && Math.abs(v.speed || 0) < 0.3 && !v.wrecked && !v.busBediend;
+// deurenDicht: een lijnbus in het verkeer opent alleen bij de halte (vehicle/halteai.js), niet voor een rood licht
+export const stilstandDeurOpen = (v) => !!v && (v.isBus || v.isTram || v.isTrain) && Math.abs(v.speed || 0) < 0.3 && !v.wrecked && !v.busBediend && !(v.deurenDicht && v.driver !== 'player');
 
 // De deur van een rol zwaait open: de bestuurdersdeur als de bestuurder uit zijn auto
 // stapt of wordt getrokken (#49, pedestrians.js ejectDriver), de passagiersdeur als

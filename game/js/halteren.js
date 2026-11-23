@@ -90,7 +90,7 @@ export function stapHalte(st, inp) {
   if (st.fase === 'invoegen') {
     st.t -= dt;
     st.vmax = Infinity; st.stoep = false; st.knipper = 'left'; st.deurOpen = false;
-    if (st.t <= 0 || sp > HALTE.INVOEG_V) { st.fase = 'rijden'; st.knipper = null; }
+    if (st.t <= 0 || sp > HALTE.INVOEG_V) { st.fase = 'rijden'; st.knipper = null; st.stop = null; }
     return st;
   }
   st.vmax = Infinity; st.stoep = false; st.knipper = null; st.deurOpen = false;
