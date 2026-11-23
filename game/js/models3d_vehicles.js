@@ -13,6 +13,8 @@ import { hash2, hash3 } from './rng.js';
 import { zoneTotals, losseOnderdelen, fietsStaat } from './vehicledamage.js';
 import { staatSleutel } from './studentenfiets.js';
 import { naadStroken } from './vehicledoorcuts.js';
+import { DEUR_DEFS as DEUR_DEFS_REF } from './vehicledoors.js';
+import { QCAR } from './models/qcar_sedan.js';
 
 // Low-poly vehicles. Group origin = vehicle centre at ground level (y=0),
 // facing local +X, right-hand side on +Z; sized off v.model.len/wid.
@@ -726,8 +728,111 @@ function buildCarMesh(v) {
   const police = !!v.isPolice && !v._commandeered && !v.model.resprayed;
   const paint = police ? 0xeceae4 : toHex(v.model.color, HABBO_PALETTE.metalGrey);
   const type = carType(v);
+  if (v.model.hybride && (type === 'sedan' || type === 'wagon')) return buildHybridCar(v, paint); // proef 23-11, zie hieronder
   const wheelR = type === 'van' ? 0.34 : type === 'suv' ? 0.38 : WHEEL_R;
   return assembleCar(type, v.model.len, v.model.wid, paint, { police, wrecked: v.wrecked, wheelR, variant: carVariant(v) });
+}
+
+// --- proef: hybride auto (23-11) ---------------------------------------------------
+// De carrosserie van de Quaternius-sedan (CC0, game/js/models/qcar_sedan.js, omgezet door scripts/convert_quaternius_car.mjs)
+// met onze eigen functies erop: vertexkleuren en onze drie materialen (lak in de kleur van het voertuig, glas, lampen), onze
+// wielen op hun plekken (draaien en sturen), deurnaden die op hun gebogen flank liggen, de deur-rig op die flank (userData.deurZ),
+// schade (de romp is een gewone GeoBuilder-geometrie met parts) en lichten (koplampen en achterlichten in de lampgroep).
+// Alleen als v.model.hybride is gezet (contactblad en proef); het verkeer gebruikt het nog niet.
+const HYB_Y = 1.17; // hun auto is laag (1,18 m); iets hoger, zodat een inzittende onder het dak past
+function hybridDecode() {
+  const raw = typeof atob === 'function' ? Uint8Array.from(atob(QCAR.posities), (c) => c.charCodeAt(0)) : new Uint8Array(Buffer.from(QCAR.posities, 'base64'));
+  const pos = new Int16Array(raw.buffer, raw.byteOffset, raw.byteLength / 2);
+  const rol = typeof atob === 'function' ? Uint8Array.from(atob(QCAR.rol), (c) => c.charCodeAt(0)) : new Uint8Array(Buffer.from(QCAR.rol, 'base64'));
+  return { pos, rol };
+}
+function hybridScale(L, W) { const sx = L / QCAR.maat.len; return { sx, sy: sx * HYB_Y, sz: W / QCAR.maat.wid }; }
+// De flank: waar een straal van buiten naar binnen (langs z) de romp raakt, op hoogte y en lengte x.
+function hybridSurface(tris, x, y, side) {
+  let best = null;
+  for (const t of tris) {
+    const [a, b, c] = t;
+    // zwaartepuntcoördinaten in het xy-vlak
+    const d = (b[1] - c[1]) * (a[0] - c[0]) + (c[0] - b[0]) * (a[1] - c[1]);
+    if (Math.abs(d) < 1e-9) continue;
+    const l1 = ((b[1] - c[1]) * (x - c[0]) + (c[0] - b[0]) * (y - c[1])) / d;
+    const l2 = ((c[1] - a[1]) * (x - c[0]) + (a[0] - c[0]) * (y - c[1])) / d;
+    const l3 = 1 - l1 - l2;
+    if (l1 < 0 || l2 < 0 || l3 < 0) continue;
+    const z = l1 * a[2] + l2 * b[2] + l3 * c[2];
+    if (z * side > 0 && (best === null || z * side > best * side)) best = z;
+  }
+  return best;
+}
+function hybridBody(L, W, paint, doorName) {
+  return cached(`hybride|${L}|${W}|${paint}|${doorName}`, () => {
+    const { pos, rol } = hybridDecode();
+    const { sx, sy, sz } = hybridScale(L, W);
+    const kleur = [paint, GLASS, HEADLAMP, TAIL, 0x1b1b1b, 0x707070, shadeHex(paint, 0.72)];
+    const groep = [G_BODY, G_GLASS, G_LAMP, G_LAMP, G_BODY, G_BODY, G_BODY];
+    const B = new GeoBuilder(3);
+    const tris = [];
+    for (let i = 0, t = 0; i < pos.length; i += 9, t++) {
+      const v = [0, 1, 2].map((k) => [pos[i + k * 3] / 1000 * sx, pos[i + k * 3 + 1] / 1000 * sy, pos[i + k * 3 + 2] / 1000 * sz]);
+      const r = rol[t * 3];
+      B.tri(v[0], v[1], v[2], kleur[r], groep[r]);
+      if (r === 0) tris.push(v);
+    }
+    // deurnaden op de gebogen flank: elke strook in stukjes van 12 cm die de flank volgen
+    const deurZ = {};
+    for (const d of (DEUR_DEFS_REF[doorName] || [])) {
+      if (d.soort !== 'scharnier' && d.soort !== 'achterscharnier') continue;
+      const z = hybridSurface(tris, d.x * L, d.y0 + d.h / 2, d.side);
+      if (z !== null) deurZ[d.id] = Math.abs(z);
+    }
+    // de naden als dunne vlakjes (2 driehoeken) in stukjes van ongeveer 30 cm die de flank volgen; het handvat een klein blokje
+    for (const s of naadStroken(doorName, L, W / 2)) {
+      const side = Math.sign(s.z), langs = s.sx > s.sy ? 'x' : 'y';
+      if (s.soort === 'handvat') {
+        const z = hybridSurface(tris, s.x, s.y, side);
+        if (z !== null) B.box(s.x, s.y, z + side * 0.008, s.sx, s.sy, 0.016, CHROME);
+        continue;
+      }
+      const lengte = langs === 'x' ? s.sx : s.sy, n = Math.max(1, Math.round(lengte / 0.3)), half = (langs === 'x' ? s.sy : s.sx) / 2;
+      for (let k = 0; k < n; k++) {
+        const f0 = k / n - 0.5, f1 = (k + 1) / n - 0.5;
+        const p0 = langs === 'x' ? [s.x + f0 * s.sx, s.y] : [s.x, s.y + f0 * s.sy];
+        const p1 = langs === 'x' ? [s.x + f1 * s.sx, s.y] : [s.x, s.y + f1 * s.sy];
+        const z0 = hybridSurface(tris, p0[0], p0[1], side), z1 = hybridSurface(tris, p1[0], p1[1], side);
+        if (z0 === null || z1 === null) continue;
+        const o = side * 0.005, e = langs === 'x' ? [0, half] : [half, 0];
+        B.quadOut([p0[0] - e[0], p0[1] - e[1], z0 + o], [p1[0] - e[0], p1[1] - e[1], z1 + o], [p1[0] + e[0], p1[1] + e[1], z1 + o], [p0[0] + e[0], p0[1] + e[1], z0 + o], [0, 0, side], shadeHex(paint, 0.32));
+      }
+    }
+    const geo = B.build();
+    geo.userData.parts = { hl: L / 2, hw: W / 2, hood: 0.8, bumperColor: paint, front: { start: 0, end: 0, y: 0.38, x: L / 2 }, rear: { start: 0, end: 0, y: 0.4, x: -L / 2 } };
+    geo.userData.deurZ = deurZ;
+    return geo;
+  });
+}
+function buildHybridCar(v, paint) {
+  const L = v.model.len, W = v.model.wid;
+  const doorName = v.isPolice ? 'police' : v.isTaxi ? 'taxi' : 'sedan';
+  const geo = hybridBody(L, W, v.wrecked ? WRECKED_COLOR : paint, doorName);
+  const mats = vehicleMaterials(v.wrecked);
+  const group = new THREE.Group();
+  const body = new THREE.Mesh(geo, mats);
+  group.add(body);
+  group.userData.body = body;
+  group.userData.deurZ = geo.userData.deurZ;
+  const { sx, sy, sz } = hybridScale(L, W);
+  const r = QCAR.wielen[0].r * sy;
+  const wgeo = carWheelGeometry(+r.toFixed(3), WHEEL_W);
+  const wheels = [], front = [];
+  for (const w of QCAR.wielen) {
+    const m = addWheel(group, wgeo, mats[0], w.x * sx, r, w.z * sz * 0.97, wheels);
+    if (w.voor) front.push(m);
+  }
+  group.userData.wheels = wheels;
+  group.userData.frontWheels = front;
+  group.userData.wheelRadius = r;
+  group.userData.hybride = true;
+  return group;
 }
 
 // Bakwagen: cab-over front with a box body.

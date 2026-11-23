@@ -132,7 +132,9 @@ function buildRig(mesh, v, defs) {
   const paint = paintOf(v);
   for (const d of defs) {
     const cx = d.x * len;
-    const hwD = d.zij ? d.zij * v.model.wid : hw; // smalle cabine of limousine: de deur zit op zijn eigen zijkant (d.zij)
+    // smalle cabine of limousine: de deur zit op zijn eigen zijkant (d.zij); bij een romp met een gebogen flank (de hybride proef-auto)
+    // geeft het model zelf de flank per deur (userData.deurZ)
+    const hwD = (mesh.userData.deurZ && mesh.userData.deurZ[d.id]) || (d.zij ? d.zij * v.model.wid : hw);
     const pivot = new THREE.Group();
     let panel, hole, baseX, baseZ = 0;
     if (d.soort === 'kap' || d.soort === 'klep') {

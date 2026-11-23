@@ -136,6 +136,29 @@ Escapade +2,9 %; drawcalls en meshes gelijk. Vergelijkingspagina (zelfde hoek, 1
 bouwer nodig (`git show 11b252310:game/js/models3d_vehicles.js` naar `game/js/_oud_voertuigen_tmp.js`), die niet in git staat.
 Niet in het spel bekeken.
 
+### Proef: hybride auto (hun romp, onze functies)
+
+Het pakket stond later wel klaar (`C:\Users\abuis\gde-assets\quaternius\cars\pack`, 7 glb, CC0, door de eigenaar gedownload). De
+coördinator vond het bijschaven van onze bouwer nog steeds een kleine stap en vroeg een proef met hun carrosserie als basis.
+- `scripts/convert_quaternius_car.mjs` zet `Car.glb` om naar `game/js/models/qcar_sedan.js` (36 kB): alleen de carrosserie,
+  in onze assen, op een millimeter, met per hoekpunt een rol (lak, glas, koplamp, achterlicht, zwart, grijs, onderkant); de
+  wielplekken en -straal. Licentie en herkomst: `docs/MODEL-LICENTIES.md`.
+- `buildHybridCar` (models3d_vehicles.js), alleen met `model.hybride` op een sedan of stationwagen: hun romp in onze drie
+  materialen (lak in de voertuigkleur), 17 % hoger dan hun lage auto zodat een inzittende past, onze wielen op hun plekken,
+  deurnaden die de gebogen flank volgen en per deur de flank voor de deur-rig (`userData.deurZ`, gelezen door vehicledoors3d.js).
+- Wat werkt en wat breekt: zie de tabel in `docs/beeld-23-11/objecten/vergelijking-hybride.html` en `scripts/hybridecar_test.mjs`.
+  Werkt: wielen draaien en sturen, kleurvarianten, lampen, deurnaden, deuren open met interieur, deuken zonder NaN.
+  Breekt of ontbreekt: politie-, taxi- en ambulance-uitvoeringen, roest/tokkie/EV, tuning (die hangen aan het profiel van onze
+  bouwer), losse delen bij schade (grille, spiegels, wieldoppen), het deurblad heeft nog onze vlakke vorm; de cabine van cabin3d.js
+  volgt het profiel van onze sedan en is in de hybride niet bekeken.
+- Kosten: hybride 2.098 driehoeken en 5 meshes, onze sedan 1.908 en 12, hun origineel 2.954 en 12.
+- Register: `VOERTUIG_REGISTER.hybrideSedan` met norm in `propregister.js`.
+
+Advies: de hybride haalt in één stap het niveau dat bijschaven niet haalt, voor een gewone verkeersauto. Zet hem in voor de
+gewone personenauto's (hun Car, Car2, SUV en sportauto's, telkens één omzetting), en houd onze bouwer voor de bijzondere uitvoeringen
+(politie, taxi, ambulance, Escapade, tuning) tot die per uitvoering zijn overgezet. Eerst nog in het spel bekijken: de cabine (dashboard
+en stoelen onder het lagere dak) en de koplampkegels van nightlights3d.js.
+
 ## Niet in beeld gezien
 
 - Geen enkel model is in het echte spel bekeken (geen Electron-run; de perf-agent had het slot). Alleen het contactblad is gezien.

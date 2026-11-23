@@ -51,5 +51,10 @@ export const VOERTUIG_REGISTER = {
     nl: 'Bakwagen', model: { name: 'truck', len: 8.5, wid: 2.5, color: '#e8e6e0' },
     norm: { tris: [1500, 4000], kleuren: 10, eisen: ['laadbak met ribbels, aluminium randen en hoekstijlen', 'achterdeuren met scharnieren, sluitstangen en hendels', 'onderrijbeveiliging achter en opzij', 'cabinedeuren met naad'] },
   },
+  // proef 23-11: de Quaternius-romp (CC0) met onze functies; alleen met model.hybride, nog niet in het verkeer
+  hybrideSedan: {
+    nl: 'Hybride sedan (proef)', model: { name: 'sedan', len: 4.3, wid: 1.8, color: '#90b0d1', hybride: true },
+    norm: { tris: [1500, 2100], kleuren: 8, eisen: ['carrosserie uit het CC0-pakket, in lakkleur van het voertuig', 'onze wielen die draaien en sturen', 'deurnaden die de gebogen flank volgen, deuren op die flank', 'koplampen en achterlichten in de lampgroep', 'schade zonder NaN'] },
+  },
 };
 export const VOERTUIG_IDS = Object.keys(VOERTUIG_REGISTER);
