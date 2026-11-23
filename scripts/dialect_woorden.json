@@ -4155,12 +4155,6 @@
       "n": 1,
       "opm": "Woordwaark (S.J.H. Reker, K. ter Laan): rustig; bescheiden ⋅ rustig ⋅ schijnheilig; doodgemoedereerd ⋅ rustig ⋅ vrijmoedig"
     },
-    "host": {
-      "nl": "bijna",
-      "status": "bron",
-      "n": 1,
-      "opm": "Woordwaark (Westerkwartier, S.J.H. Reker, K. ter Laan, H. Molema): bijna ⋅ haast ⋅ zowat; bijna; haast; aan ⋅ bijna ⋅ tot ⋅ voortdurend; bijna ⋅ helemaal; bijna ⋅ haast (bijna); bijna ⋅ wankel; bepaald ⋅ bijna; bijna ⋅ louter ⋅ netjes"
-    },
     "guster": {
       "nl": "gisteren",
       "status": "bron",
@@ -4184,6 +4178,12 @@
       "status": "bron",
       "n": 2,
       "opm": "Woordwaark (S.J.H. Reker, K. ter Laan): alleen; alleen ⋅ slechts"
+    },
+    "hoast": {
+      "nl": "bijna",
+      "status": "bron",
+      "n": 1,
+      "opm": "Woordwaark (S.J.H. Reker, K. ter Laan, H. Molema): bijna ⋅ haast (bijna); haast; aan ⋅ bijna ⋅ tot ⋅ voortdurend; bijna; bijna ⋅ helemaal; bijna ⋅ wankel; bepaald ⋅ bijna; bijna ⋅ louter ⋅ netjes"
     }
   },
   "fries": {

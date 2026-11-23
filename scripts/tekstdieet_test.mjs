@@ -70,7 +70,7 @@ ok(C.CARD_TEXT.optiesUitleg.length <= 60, 'moeilijkheid: inleiding van de opties
 // 5. laadscherm: precies één statusregel, geen "Stap n van m", geen tipregel, korte zinnen
 {
   const ls = read('loadscreen.js') + read('loadscene.js');
-  ok((ls.match(/class="ls-step"/g) || []).length === 1 && !/ls-tip/.test(ls), 'laadscherm: één statusregel, geen tipregel');
+  ok((ls.match(/class="ls-step[" ]/g) || []).length === 1 && !/ls-tip/.test(ls), 'laadscherm: één statusregel, geen tipregel');
   ok(!/Stap \$\{|Stap \d|van \$\{/.test(ls + read('loadlogic.js') + read('startscreen.js')), 'laadscherm: geen "Stap n van m"');
   for (const s of ['laadt', 'hangt', 'wacht-host', 'klaar']) {
     const t = G.statusLine(s, 'Gebouwen en straten komen binnen', 'Tammo');
