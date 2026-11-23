@@ -606,6 +606,10 @@ export function removeOwnedEntry(world, key) {
 // Interiors (interiors.js, #1150): a shop whose building has an interior with a counter is bought at in there, not at the marker outside.
 let interiorCheck = null;
 export function setShopInteriorCheck(fn) { interiorCheck = typeof fn === 'function' ? fn : null; }
+// the counter of a walk-in shop (interiors.js shopCounterAt): where the story guide points once you are at the door
+let counterSource = null;
+export function setShopCounterSource(fn) { counterSource = typeof fn === 'function' ? fn : null; }
+export function shopCounterOf(s) { try { return counterSource && s ? counterSource(s) : null; } catch (e) { return null; } }
 
 export function nearestShop(world) {
   const h = hoofdspeler(world);

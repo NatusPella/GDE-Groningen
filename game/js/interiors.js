@@ -32,7 +32,7 @@ import { buildPersonMesh, animatePersonWalk, registerPoseSource, unregisterPoseS
 import { FAC } from './facilities.js';
 import { PROMPT, LOCKED_HOME, clerkLine, HOME_LOOK, FITTING, HAIRCUT, CHURCH_CANDLE, TICKET_LINES, LEZEN, BOUGHT, TOO_POOR, NOT_FOR_SALE } from './interiortexts.js';
 import { productFor, buyProduct, DESK_SUBS } from './interiorbuy.js';
-import { getShopsForRender, openShopFromInterior, setShopInteriorCheck, openFittingRoom, openClothingCounter } from './shops.js';
+import { getShopsForRender, openShopFromInterior, setShopInteriorCheck, setShopCounterSource, openFittingRoom, openClothingCounter } from './shops.js';
 import { setHorecaInteriorCheck } from './horeca.js';
 import { distToRing } from './shopbind.js';
 import { noteMoney } from './finance.js';
@@ -123,6 +123,17 @@ function buildingOfMarker(m) {
 }
 const hasCounter = (plan) => plan.layout.use.some((u) => ['kopen', 'bestellen', 'balie', 'kappen'].includes(u.id));
 // true when the marker's building has an interior with a counter: the buying happens there, not at the marker on the street
+// The counter of a walk-in shop in world coordinates (the story guide points there once you are at the door: outside the marker the shop
+// prompt is off, inside only the counter sells; spelbot 23-11, M05 Trap & Toeter). null when the shop has no interior (yet).
+export function shopCounterAt(m) {
+  const b = buildingOfMarker(m);
+  const rec = b && planReady(b) ? planOf(b) : null;
+  if (!rec || !rec.ok || !hasCounter(rec.plan)) return null;
+  const s = rec.plan.layout.use.find((u) => ['kopen', 'bestellen', 'balie', 'kappen'].includes(u.id));
+  const [x, y] = toWorld(rec.plan.frame, s.u, s.v);
+  return { x, y, inside: !!(S.inside && S.inside.b === b) };
+}
+
 export function markerHasInterior(m) {
   const b = buildingOfMarker(m);
   if (!b) return false;
@@ -518,6 +529,7 @@ export function tryInteriorInteract(w) {
 export function initInteriors(w) {
   S.world = w;
   setShopInteriorCheck(markerHasInterior);
+  setShopCounterSource(shopCounterAt);
   setHorecaInteriorCheck(markerHasInterior);
   for (const ls of [...S.live.values()]) drop(w, ls);
   S.inside = null;
