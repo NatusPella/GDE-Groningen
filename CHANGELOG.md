@@ -9,6 +9,10 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ## [Unreleased]
 
+- Game feel: een landing na een sprong voelt nu als een landing. Je voeten stuiven op (bruin stof op gras, grijs op straat), het beeld zakt even mee en de controller geeft een klein tikje. Opstijgen, aanzetten tot rennen en rennen over gras laten ook een lichte stofsliert achter.
+- Game feel: een auto die hard landt na een sprong werpt een ring van stof op, geeft op verharding vonken van de bodem en een dreun in beeld en op de controller; je ziet ook de landing van auto's in de buurt. Bij Beweging beperken blijft het beeld stil.
+- Game feel: bij hoge snelheid krijgt de rand van het beeld een lichte streep naar het midden (alleen op Middel, Hoog en Ultra), zodat snelheid voelt zonder dat de weg onscherp wordt. Gaat uit met Beweging beperken en met Snelheidsgevoel uit.
+
 ## [0.65.0] - 2026-11-22
 
 Samen spelen met vier echte vensters getest, een ronde zeefdruk-menu's (Spullen, Loopbanen, Boerderij, zoeken), echte voetstappen en weergeluid, AAA-aankleding van de missies van akte 1 tot en met 4 en een snellere start. Pre-release voor de speeltest.
