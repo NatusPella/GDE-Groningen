@@ -31,6 +31,7 @@ import { toggleFirstPerson, setFirstPerson } from './firstperson.js';
 import { playerBusy } from './busy.js';
 import { hoofdspeler, isGast } from './players.js';
 import { districtAt } from './districtat.js';
+import { keyTextHtml } from './keycap.js';
 import { setEindkaartGeluid, showBigMoment, momentVanBanner, momentVanWanted, momentVanOpgepakt, momentVanGebied, rijdendVan } from './bigmoment.js';
 import { gebiedIn, puntInGebied } from './grenzen.js';
 import { cinematicHang, poseIsFinite } from './cinelimit.js';
@@ -1448,13 +1449,13 @@ function esc(s) {
 // #996: the result is a big moment (bigmoment.js). eigen / gezamenlijk / deelnemer say whose result it is
 // for a guest (Samen spelen): a guest's own activity is eigen (the default), a result of a joint mission
 // is gezamenlijk and shows only to a guest who joined (deelnemer).
-export function showBanner({ kind = 'pass', title, reason = '', reward = 0, stats = [], eigen = true, gezamenlijk = false, deelnemer = false }) {
+export function showBanner({ kind = 'pass', title, reason = '', reward = 0, stats = [], eigen = true, gezamenlijk = false, deelnemer = false, opnieuw = false }) {
   if (!els) return;
   const b = els.banner;
   // the same result already up (scene start, then a fallback): once is enough
   if (banner && !b.hidden && b.dataset.kind === kind && els.bTitle.textContent === title) return;
   hapticEvent(kind === 'pass' ? 'pass' : 'fail');
-  const moment = showBigMoment({ ...momentVanBanner({ kind, title, reason, reward }), gast: isGast(world), eigen: eigen && !gezamenlijk, gezamenlijk, deelnemer });
+  const moment = showBigMoment({ ...momentVanBanner({ kind, title, reason, reward }), gast: isGast(world), eigen: eigen && !gezamenlijk, gezamenlijk, deelnemer, opnieuwToets: opnieuw && kind === 'fail' ? keyTextHtml('{ENTER}') : '' });
   b.classList.toggle('bm-vervangen', !!moment);
   b.classList.toggle('bm-geen-cijfers', !!moment && !(stats && stats.length));
   b.dataset.kind = kind;

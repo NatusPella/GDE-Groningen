@@ -16,6 +16,8 @@ const vorm = (s) => bouwMoment({ soort: s }).vorm;
 ok(vorm('geslaagd') === 'band' && vorm('mislukt') === 'band', 'passed and failed are the full-screen band');
 ok(vorm('opgepakt') === 'stempel' && vorm('gebied') === 'plaats' && vorm('wanted') === 'rand', 'busted is a stamp, area a place stamp, wanted an edge tag');
 ok(bouwMoment({ soort: 'geslaagd' }).schermvullend && bouwMoment({ soort: 'opgepakt' }).schermvullend, 'band and stamp are full screen');
+ok(bouwMoment({ soort: 'mislukt', opnieuwToets: '<kbd>Enter</kbd>' }).opnieuw === '<kbd>Enter</kbd>' && !bouwMoment({ soort: 'geslaagd', opnieuwToets: 'x' }).opnieuw && /Opnieuw proberen/.test(bouwMoment({ soort: 'mislukt', opnieuwToets: 'x' }).aria), 'UX-audit 23-11: alleen een mislukte missie noemt Opnieuw proberen');
+ok(/bm-i-opnieuw/.test(fs.readFileSync('game/js/bigmoment.js', 'utf8')) && /opnieuw: true/.test(fs.readFileSync('game/js/missionstory.js', 'utf8')), 'de mislukkaart van het verhaal toont de toets voor opnieuw');
 ok(!bouwMoment({ soort: 'wanted' }).schermvullend && !bouwMoment({ soort: 'gebied' }).schermvullend, 'wanted and area are not full screen');
 ok(bouwMoment({ soort: 'onzin' }).soort === 'geslaagd', 'an unknown kind falls back');
 ok(bouwMoment().kop.length > 0 && bouwMoment().regelNl.length > 0, 'no options still gives words');

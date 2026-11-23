@@ -1550,7 +1550,7 @@ export function playStoryFail(w, i, { reason = '', stats = [] } = {}) {
   const eerder = failTally.get(i) || 0;
   failTally.set(i, eerder + 1);
   // sikkom: Gronings for "almost, but not quite" (the dialect word, not the news site)
-  const banner = { kind: 'fail', title: 'Sikkom.', reason, stats };
+  const banner = { kind: 'fail', title: 'Sikkom.', reason, stats, opnieuw: true }; // UX-audit 23-11: de kaart noemt Opnieuw proberen (Enter, vanaf het checkpoint)
   if (!s || run || failSceneMode(eerder) === 'banner') { showBanner(banner); return false; }
   const v = hoofdspeler(w).inVehicle;
   let r;
