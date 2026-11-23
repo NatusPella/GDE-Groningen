@@ -62,6 +62,8 @@ import { metGroepsbonus, bonusDelen, GROEPSBONUS_UITLEG } from './groepsbonus.js
 import { maakMissielus, zetGroep, actieveGroepen, tik as tikMissielus } from './missielus.js'; // #492: de missielus per groep
 import { openGroepKeten, sluitGroepKeten, groepKeten, groepKetens, isGroepSleutel, groepIdVanSleutel } from './missiegroepen.js'; // #492: de keten van een gastgroep
 import { startStunt, updateStunt, stopStunt, stuntStatus } from './stuntavond.js';
+import { armStuntHud } from './stunthud.js';
+import { startHierarchie } from './missiestart.js'; // 23-11: de visuele hiërarchie bij elke missiestart (klok en panelen pas na het instappen)
 import { storyLines, talkLines, storyDataReady, readingTime } from './storytext.js';
 import { playTalk, stopTalk } from './storytalk.js';
 import { buildNieuwDefs, applyNieuw } from './missions_nieuw.js';
@@ -837,6 +839,14 @@ function vehicleToBoard(world, def) {
 // bij het pub-object zelf en niet bij dit bestand: een nieuw spel of een boot-load maakt een nieuwe
 // pub (en een gastgroep zijn eigen pub) en moet de statische velden meteen krijgen, ook als index,
 // fase en waypointstand toevallig gelijk zijn aan de vorige wereld. Een WeakMap houdt de sleutel
+// missiestart.js: de hiërarchie van de actieve missie op dit moment (eerst instappen: nog geen klok en geen panelen)
+function hierNu(world) {
+  const st = chainState();
+  const v = st.vehicle || null;
+  if (v && !st.ingestapt && groepsActeurs(world).some((a) => a.inVehicle === v)) st.ingestapt = true;
+  return startHierarchie({ voertuig: !!v, ingestapt: !!st.ingestapt, cinematic: isCinematicActive() });
+}
+
 // buiten de pub, zodat hij niet in snapshots of HUD-data belandt.
 const pubStaticSigs = new WeakMap();
 function syncPub(world) {
@@ -846,7 +856,7 @@ function syncPub(world) {
   pub.type = def.type;
   pub.label = def.label;
   pub.phase = st.phase;
-  pub.timeLeft = st.phase === 'active' && Number.isFinite(st.timeLeft) ? st.timeLeft : null;
+  pub.timeLeft = st.phase === 'active' && Number.isFinite(st.timeLeft) && (!st.vehicle || st.ingestapt) ? st.timeLeft : null; // missiestart.js: de klok pas in beeld na het instappen
   { const sg = st.phase === 'active' && def.stages ? def.stages[st.stageIndex] : null; pub.lateInstap = lateInstapVoor({ type: def.type, stageKind: sg && sg.kind, timer: pub.timeLeft != null, race: !!st.race }); } // mag een laatkomer nog meedoen? (samen spelen, #452)
   pub.code = missionCode(st.index);
   pub.index = st.index;
@@ -1473,6 +1483,7 @@ function startMission(world, def) {
   waarschuwVoorStart(world, 'missie', def.id, missieStatus(def)); // samen spelen: een melding als dit nog niet (helemaal) samen werkt; de start gaat door
   chainState().afoot = false;
   chainState().phase = 'active';
+  chainState().ingestapt = false; // missiestart.js: de klok wacht tot iemand van de groep in het missievoertuig zit
   chainState().timeLeft = storyModeOn() ? Infinity : (scaleTimeLimit(assistTime(def.timeLimit), cleanDifficulty(getSettings().difficulty)) ?? Infinity); // #800; #1169: verhaalmodus kent geen tijdslimiet
   chainState().wpIndex = 0;
   chainState().stopIndex = 0;
@@ -1947,7 +1958,9 @@ function updateMissionKern(dt, world) {
 
   trackRun(dt, world);
   // the clock starts at the race's GO, not while the grid waits
-  if ((!chainState().race || chainState().race.phase === 'race') && !isCinematicActive()) chainState().timeLeft -= dt * (chainState().clockRate || 1);
+  const hier = hierNu(world);
+  armStuntHud(hier.paneel); // het stuntpaneel en de introkaart pas als de stunt kan beginnen
+  if ((!chainState().race || chainState().race.phase === 'race') && hier.klokLoopt) chainState().timeLeft -= dt * (chainState().clockRate || 1);
   if (chainState().timeLeft <= 0) {
     fail(world, def, def.timeUp ? def.timeUp : def.type === 'boat' ? 'tijd op. De toeristen missen hun trein naar Zwolle' : def.type === 'stunt' || chainState().stuntPhase ?'tijd op. Chat is al naar een kattenfilmpje' : 'tijd op. Zelfs de bus was sneller');
     syncPub(world);

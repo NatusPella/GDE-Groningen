@@ -7,6 +7,7 @@
 // #987: onder de score staat de puntenlegenda als regelwidget (parasol, kliko, reclamebord met hun punten),
 // zodat zonder zin duidelijk is wat punten oplevert.
 import { maakWidget } from './regelwidget.js';
+import { INTRO_MAX_S } from './missiestart.js';
 
 const CSS = `
 #hud .stunt-hud { position: absolute; top: calc(var(--hud-tr-bottom) + 8px); right: var(--hud-edge, 46px); width: 232px; box-sizing: border-box;
@@ -35,7 +36,8 @@ const CSS = `
 #hud .stunt-pop.combo { font-size: 24px; color: var(--ds-c-licht-groen); }
 #hud .stunt-pop.bad b, #hud .stunt-pop.bad { color: var(--ds-c-rood-glas); }
 @keyframes sh-rise { 0% { transform: translateY(20px) scale(0.85); opacity: 0; } 12% { transform: translateY(0) scale(1.05); opacity: 1; } 70% { opacity: 1; } 100% { transform: translateY(-46px); opacity: 0; } }
-#hud .stunt-brief { position: absolute; left: 50%; top: 22%; transform: translateX(-50%); width: min(340px, 86vw); box-sizing: border-box;
+/* missiestart.js: de introkaart onder de doelbalk, niet midden over de actie */
+#hud .stunt-brief { position: absolute; left: 50%; top: calc(var(--hud-goal-bottom, 104px) + 10px); transform: translateX(-50%); width: min(340px, 86vw); box-sizing: border-box;
   padding: 14px 18px 12px; border-radius: 12px; background: color-mix(in srgb, var(--ds-c-glas) 88%, transparent); border: 1px solid color-mix(in srgb, var(--ds-c-licht-groen) 30%, transparent);
   border-top: 3px solid var(--ds-c-licht-groen); color: var(--ds-c-creme); text-shadow: var(--hud-shadow); animation: hud-rise var(--dur-slow, 320ms) var(--ease-out, ease-out); }
 #hud .stunt-brief.out { opacity: 0; transition: opacity 0.4s; }
@@ -70,7 +72,7 @@ const CSS = `
 #hud .stunt-brief li.bad span:last-child { color: var(--ds-c-rood-tx); }
 `;
 
-const BRIEF_TIME = 6;
+const BRIEF_TIME = INTRO_MAX_S;
 const MAX_POPS = 5;
 
 let els = null;
@@ -116,13 +118,21 @@ export function showStuntHud(target, rules, opts) {
   if (!e) return;
   const lg = opts && Array.isArray(opts.legenda) ? opts.legenda : null;
   if (e.legenda && lg) { e.legenda.inv.stappen = lg; e.legenda.ververs(); }
-  state = { target, shown: -1, briefT: BRIEF_TIME, briefUp: false };
+  state = { target, shown: -1, briefT: BRIEF_TIME, briefUp: false, armed: false };
   e.target.textContent = String(target);
   e.brief.classList.remove('out');
   e.brief.innerHTML = `<h3>Stuntavond: ${target} punten</h3>` +
     `<p>Rij over de Grote Markt en sloop spullen voor de tijd om is.</p>` +
     '<div class="sb-foot">Alles wat je omver rijdt telt. Mensen springen opzij en kosten niets.</div>';
-  e.panel.hidden = false;
+  e.panel.hidden = true; // pas zichtbaar als de stunt kan beginnen (armStuntHud, missiestart.js)
+}
+
+// missiestart.js: het paneel en de introkaart horen bij de actie. Tot de speler in het voertuig zit (on = false) blijven ze weg.
+export function armStuntHud(on) {
+  if (!state || !els) return;
+  state.armed = !!on;
+  els.panel.hidden = !state.armed;
+  if (!state.armed) els.brief.hidden = true;
 }
 
 export function hideStuntHud() {
@@ -138,6 +148,7 @@ export function updateStuntHud(dt, s, paused) {
   if (!state || !els) return;
   const e = els;
   // the brief waits for the intro cutscene to end, then stays a while
+  if (!state.armed) return;
   if (!paused) {
     if (!state.briefUp && state.briefT > 0) { state.briefUp = true; e.brief.hidden = false; }
     if (state.briefUp && state.briefT > 0) {

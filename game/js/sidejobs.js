@@ -74,6 +74,7 @@ const BY_ID = new Map(SIDE_JOBS.map((j) => [j.id, j]));
 
 import { markerColors } from './a11y.js';
 import { phosphorInBox, PH_JOB } from './mapglyphs.js';
+import { bijbaanPromptToegestaan } from './missiestart.js';
 import { loonSchatting } from './bijbaanregels.js';
 // #631: de klus-marker volgt de kleurenblindmodus (dezelfde bron als de kaartmarkers), geen eigen oranje.
 export const JOB_TARGET_COLOR = markerColors().job;
@@ -826,6 +827,8 @@ export function sideJobPrompt(w) {
     }
     return pr;
   }
+  // missiestart.js: tijdens een actieve missie geen bijbaanprompt in de wereld (het bord stond midden op de stuntplek van M01)
+  if (!bijbaanPromptToegestaan(w.mission)) return null;
   const s = nearestSpot(w);
   if (!s) return null;
   const why = blockReason(w);
