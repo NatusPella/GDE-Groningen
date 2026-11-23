@@ -1910,6 +1910,10 @@
    "reden": "Alleen beeld: elke client bouwt zijn eigen decor."
   },
   {
+   "glob": "propregister",
+   "reden": "Alleen beeld (objecten 23-11): het register van propmodellen voor wereld en cutscenes; elke client bouwt zijn eigen props."
+  },
+  {
    "glob": "landfeel",
    "reden": "Game feel (juice 23-11): stof, camerazakking en haptiek bij landingen, lokaal in ieders eigen spel; niets over het net."
   },
