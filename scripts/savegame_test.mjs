@@ -434,6 +434,11 @@ ok(() => {
   moeilijkheid = { level: 'standaard' };
   assert.notEqual(a, b);
 }, 'een andere moeilijkheid verandert de signatuur');
+ok(() => {
+  const a = stateSignature(wereld(100, { walletInFlight: 40 }));
+  const b = stateSignature(wereld(100, { walletInFlight: 0 }));
+  assert.notEqual(a, b);
+}, '#1296: een dief die ontsnapt (portemonnee niet meer onderweg) maakt de autosave vuil');
 
 console.log(`savegame_test: ${n - fails}/${n}`);
 process.exit(fails ? 1 : 0);

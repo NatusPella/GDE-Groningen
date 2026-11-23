@@ -33,8 +33,15 @@ ok(() => assert.equal(m(50, { moneyPenalty: 120 }), 0), 'boete groter dan je gel
 ok(() => assert.equal(m(500, null), 500), 'geen respawn onderweg: geld blijft');
 ok(() => assert.equal(m(500, { busted: false }), 500), 'respawn zonder boete: geld blijft');
 ok(() => assert.equal(m(NaN, { moneyPenalty: 5 }), 0), 'geen getal: 0');
-ok(() => assert.match(src, /money: Math\.max\(0, Math\.floor\(moneyForSave\(num\(w\.money, num\(w\._goodMoney, 0\)\), w\.pendingRespawn\)\)\)/), 'serialize trekt de boete af als er een respawn onderweg is');
+ok(() => assert.match(src, /money: Math\.max\(0, Math\.floor\(moneyForSave\(.*, w\.pendingRespawn\)\)\)/), 'serialize trekt de boete af als er een respawn onderweg is');
 ok(() => assert.match(src, /moneyBackup: Math\.max\(0, Math\.floor\(moneyForSave\(/), 'ook de reservekopie van het geld');
+// #1296: sluiten tijdens de achtervolging van een zakkenroller kost de portemonnee niet: de save houdt het geld dat nog onderweg is
+ok(() => assert.match(src, /moneyForSave\(num\(w\.money, num\(w\._goodMoney, 0\)\) \+ Math\.max\(0, num\(w\.walletInFlight, 0\)\), w\.pendingRespawn\)/), 'serialize telt de gestolen portemonnee die nog onderweg is mee');
+{
+  const mug = fs.readFileSync(path.join(ROOT, 'game/js/muggings.js'), 'utf8');
+  ok(() => assert.equal((mug.match(/w\.walletInFlight = lost;/g) || []).length, 2), 'muggings.js zet het bedrag bij de roof (opener en gast)');
+  ok(() => assert.equal((mug.match(/w\.muggerChase = null;(?! w\.walletInFlight = 0;)/g) || []).length, 0), 'elk einde van de achtervolging wist het bedrag');
+}
 
 console.log(`opslag_dood_test: ${n - fails}/${n} geslaagd`);
 process.exit(fails ? 1 : 0);

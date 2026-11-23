@@ -298,8 +298,9 @@ function serialize(w) {
     arc: ARC_ID,
     savedAt: Date.now(),
     speeltijd: Math.round(playSeconds),
-    money: Math.max(0, Math.floor(moneyForSave(num(w.money, num(w._goodMoney, 0)), w.pendingRespawn))),
-    moneyBackup: Math.max(0, Math.floor(moneyForSave(num(w._goodMoney, num(w.money, 0)), w.pendingRespawn))),
+    // walletInFlight: a thief still running with your wallet (muggings.js); the save keeps it, closing the game is no escape (#1296)
+    money: Math.max(0, Math.floor(moneyForSave(num(w.money, num(w._goodMoney, 0)) + Math.max(0, num(w.walletInFlight, 0)), w.pendingRespawn))),
+    moneyBackup: Math.max(0, Math.floor(moneyForSave(num(w._goodMoney, num(w.money, 0)) + Math.max(0, num(w.walletInFlight, 0)), w.pendingRespawn))),
     health: healthForSave(w.health, !!w.pendingRespawn),
     armor: clamp(num(w.armor, 0), 0, 100),
     armorBag: clamp(Math.min(num(w.armorBag, 0), num(w.armor, 0)), 0, 100), // blue-bag armour, not bought back by the pawn shop (#1296)
@@ -559,7 +560,7 @@ function stateSignature(w) {
     const vehicles = (sh.vehicles || []).map((o) => [o.key, o.color, o.upgrades, !!o.lost]);
     return JSON.stringify([sh.outfit, sh.ownedOutfits, sh.hair, sh.heroColor, sh.heroUpgrades, vehicles,
       getMissionProgress(), getStorySave(), getAchievementSaveData(), getPigeonSaveData(), getSideJobSave(), getPostgameSave(), getFurnitureSave(), getGoalSave(), getHomeSave(), getCheatSave(), getRadioSave(),
-      w.money, getFinanceSave(),
+      w.money, w.walletInFlight || 0, getFinanceSave(), // walletInFlight: the money in a save changes when a thief gets away (#1296)
       // eten (#502): een gevangen vis of een opgegeten snack is een echte wijziging; zonder dit
       // bleef de autosave stil tot de volgende aankoop of missie
       etenSave(w),
