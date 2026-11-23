@@ -2,7 +2,7 @@
 // en Tessa (home3d.js buildFlat3D), headless in Chrome met three.js uit de vendor-cache. Geen Electron, geen wereld: de set staat
 // alleen, met het licht van de wereld nagebootst (hemel- en zonlicht zoals scene3d.js, ACES-tonemapping). Per camerastandpunt
 // één JPEG in de uitvoermap, met het label ervoor (voor of na).
-//   node scripts/akte1/sets_render.mjs --tag=voor|na [--out=docs/beeld-23-11/akte1] [--chrome=<pad>]
+//   node scripts/akte1/sets_render.mjs --tag=voor|na [--out=docs/beeld-23-11/akte1] [--bron=<map met game/js>] [--chrome=<pad>]
 // De pagina met voor- en na-beelden naast elkaar: node scripts/akte1/sets_pagina.mjs
 import fs from 'node:fs';
 import path from 'node:path';
@@ -14,6 +14,8 @@ import { vindVendorCache } from '../lib/vendorcache.mjs';
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const arg = (k, d = null) => { const a = process.argv.find((x) => x.startsWith(`--${k}=`)); return a ? a.slice(k.length + 3) : d; };
 const TAG = arg('tag', 'na');
+// --bron=<map>: de spelcode uit een andere map (de voor-beelden: git archive van de oude stand), standaard deze worktree
+const SRC = path.resolve(ROOT, arg('bron', '.'));
 const OUT = path.resolve(ROOT, arg('out', 'docs/beeld-23-11/akte1'));
 const VENDOR = vindVendorCache(ROOT).dirs[0];
 const NPM = VENDOR ? path.join(VENDOR, 'npm/three@0.160.0') : null;
@@ -53,7 +55,9 @@ const shot = async (scene, name, from, at, fov = 50) => {
 // 0. het meubelblad: elk meubel uit het interieurregister met een paal van 1,8 m en een pijl naar de voorkant (+x); lod 0 en lod 1
 if (${JSON.stringify(process.argv.includes('--blad'))}) {
   const { INTERIEUR_IDS } = await import('/game/js/propregister.js');
-  const { interiorPropGeometry, INTERIOR_PROP_MATERIALS, interiorPropSize } = await import('/game/js/interiorprops3d.js');
+  const { interiorPropGeometry, INTERIOR_PROP_MATERIALS, interiorPropSize, interiorProp } = await import('/game/js/interiorprops3d.js');
+  // lod 1 komt uit het centrale LOD-systeem (lodkit3d.js): het eerste lichtere niveau van een geplaatst exemplaar
+  const geoVan = (id, lod) => { if (!lod) return interiorPropGeometry(id, 0); const e = interiorProp(id).userData.lod.entries[0]; return (e[1] || e[0]).geometry; };
   const T = 240, cols = 6;
   const rows = Math.ceil(INTERIEUR_IDS.length / cols);
   for (const lod of [0, 1]) {
@@ -65,7 +69,8 @@ if (${JSON.stringify(process.argv.includes('--blad'))}) {
       const scene = new THREE.Scene(); scene.background = new THREE.Color(0xe8e4da);
       scene.add(new THREE.HemisphereLight(0xb4cdea, 0x6f6454, 0.9));
       const sun = new THREE.DirectionalLight(0xffd29a, 3.0); sun.position.set(20, 25, 12); scene.add(sun);
-      const m = new THREE.Mesh(interiorPropGeometry(id, lod), INTERIOR_PROP_MATERIALS); scene.add(m);
+      const gg = geoVan(id, lod);
+      const m = new THREE.Mesh(gg, gg.groups.length > 1 ? INTERIOR_PROP_MATERIALS : INTERIOR_PROP_MATERIALS[gg.groups.length ? gg.groups[0].materialIndex : 0]); scene.add(m);
       const s = interiorPropSize(id), r = Math.max(...s, 1.8);
       const pole = new THREE.Mesh(new THREE.BoxGeometry(0.04, 1.8, 0.04), new THREE.MeshBasicMaterial({ color: 0x2a6fdb })); pole.position.set(0, 0.9, -s[2] / 2 - 0.25); scene.add(pole);
       const arrow = new THREE.ArrowHelper(new THREE.Vector3(1, 0, 0), new THREE.Vector3(s[0] / 2, 0.02, 0), 0.6, 0xd03030); scene.add(arrow);
@@ -75,7 +80,7 @@ if (${JSON.stringify(process.argv.includes('--blad'))}) {
       const x = (i % cols) * T, y = Math.floor(i / cols) * T;
       g2.drawImage(renderer.domElement, x, y);
       g2.fillStyle = 'rgba(0,0,0,0.6)'; g2.fillRect(x, y, T, 18); g2.fillStyle = '#fff'; g2.font = '12px sans-serif';
-      g2.fillText(id + ' ' + s.map((v) => v.toFixed(2)).join('x') + ' ' + (interiorPropGeometry(id, lod).attributes.position.count / 3) + 't', x + 4, y + 13);
+      g2.fillText(id + ' ' + s.map((v) => v.toFixed(2)).join('x') + ' ' + (geoVan(id, lod).attributes.position.count / 3) + 't', x + 4, y + 13);
     }
     await post('/jpg?name=meubelblad-lod' + lod + '&calls=0&tris=0', sheet.toDataURL('image/jpeg', 0.86).split(',')[1]);
   }
@@ -158,7 +163,7 @@ const srv = http.createServer((req, res) => {
     return;
   }
   if (u.pathname === '/') { res.setHeader('content-type', 'text/html'); res.end(PAGE); return; }
-  const file = u.pathname.startsWith('/__three/') ? path.join(NPM, u.pathname.slice(9)) : path.join(ROOT, decodeURIComponent(u.pathname));
+  const file = u.pathname.startsWith('/__three/') ? path.join(NPM, u.pathname.slice(9)) : path.join(SRC, decodeURIComponent(u.pathname));
   if (!fs.existsSync(file) || fs.statSync(file).isDirectory()) { res.statusCode = 404; res.end('404'); return; }
   res.setHeader('content-type', file.endsWith('.json') ? 'application/json' : 'text/javascript');
   res.end(fs.readFileSync(file));
