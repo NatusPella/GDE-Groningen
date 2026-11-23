@@ -23,7 +23,9 @@ import { registerPoseSource, unregisterPoseSource, prunePoseSources } from './mo
 import { knockDown, isKnockedDown } from './ragdoll.js';
 import { splatterPed, bleedPed, GIB_SPEED } from './gore3d.js';
 import { knockFx } from './knockfx3d.js';
-import { walkRoute, processPedPlanQueue, buildPedAvoidGrid, separatePeds, makeCompanion } from './pedroutes.js';
+import { walkRoute, processPedPlanQueue, buildPedAvoidGrid, separatePeds, makeCompanion, setRhythmClock } from './pedroutes.js';
+import { NIGHTLIFE_SPOTS, readClock, nightlifeScale } from './dailyrhythm.js';
+import { carStartle, STARTLE, STARTLE_LINES } from './trafficreact.js';
 import { reportCrime } from './crime.js';
 import { npcBudget, bystanderReaction } from './wantedlevels.js';
 import { hash2 } from './rng.js';
@@ -70,11 +72,7 @@ const CALL_MIN = 7;
 const CALL_MAX = 11;
 
 export const CITY_CENTRE = { x: 191.86, y: 138.11, r: 380 };
-const NIGHT_HOTSPOTS = [
-  { x: 391.97, y: 116.7, r: 90 },
-  { x: 398.36, y: 200.15, r: 80 },
-  { x: 161.05, y: 93.31, r: 90 },
-];
+const NIGHT_HOTSPOTS = NIGHTLIFE_SPOTS; // de uitgaanskernen staan bij de dagritmes (dailyrhythm.js)
 
 const GRONINGS_PHRASES = [
   'Moi!', 'Hoi, alles goud?', 't Is mooi weer vandoag, nait?',
@@ -971,6 +969,7 @@ const POP_DAY = 36;
 const POP_NIGHT_OUT = 20;
 const POP_NIGHT_CENTRE = 30;
 const NIGHTLIFE_EXTRA = 18;
+const rclock = { hour: 14, weekday: 3, wet: 0 };
 let popTimer = 0;
 
 function hotspotNear(x, y) {
@@ -1076,7 +1075,8 @@ function managePopulation(world, focus = null, n = 1) {
   }
 
   if (focus) return; // de rest (nachtleven, evenementen, het verhaal) blijft rond de gastheer
-  if (hot && nightlife < NIGHTLIFE_EXTRA) spawnNightGroup(world);
+  // uitgaanspubliek: donderdag tot en met zaterdag vol, de rest van de week minder (dailyrhythm.js nightlifeScale)
+  if (hot && nightlife < Math.round(NIGHTLIFE_EXTRA * Math.max(0.3, nightlifeScale(rclock.hour, rclock.weekday)))) spawnNightGroup(world);
   if (world.eventsNow && world.eventsNow.length) {
     let inEvent = 0;
     for (const p of world.pedestrians) if (p.eventCrowd && p.state !== 'dead') inEvent++;
@@ -1238,6 +1238,8 @@ export function updatePedestrians(dt, world) {
   const peds = world.pedestrians;
   const aiming = isRangedWeapon(world.weapon) && world.input.mouse.down;
 
+  readClock(world, rclock);
+  setRhythmClock(rclock.hour, rclock.weekday, rclock.wet);   // de dagritmes van pedroutes.js (#1314)
   const events = gatherEvents(world);
   if (pendingEvents.length) events.push(...pendingEvents.splice(0));
   if (events.length) processEvents(world, events);
@@ -1278,6 +1280,9 @@ export function updatePedestrians(dt, world) {
   let filming = 0;
   const pv = player.inVehicle;
   const dodgeVehicle = pv && !pv.isBoat && pv.speed > -0.5 ? pv : null;
+  // een auto van de speler over de stoep of het plein (niet op een rijbaan): voetgangers en terrasgasten schrikken (trafficreact.js, #1315)
+  const walkCar = dodgeVehicle && !dodgeVehicle.isBike && !dodgeVehicle.isScooter && dodgeVehicle.speed > STARTLE.minSpeed &&
+    !isOnRoad(map, dodgeVehicle.x, dodgeVehicle.y, 0, CAR_ROAD_CATS) ? dodgeVehicle : null;
   // horns and near misses of every human driver, host and guests alike (hornreact.js)
   const honkers = hornSources(world), drivers = drivenVehicles(world);
   const frameDt = dt;
@@ -1497,6 +1502,21 @@ export function updatePedestrians(dt, world) {
       ped.angle = dodge;
       ped.speed = Math.max(ped.speed || 0, 3.2);
       moving = true;
+    }
+    if (walkCar && !ped.isCop && (ped.state === 'wander' || ped.state === 'idle' || ped.state === 'gawk') && !(ped.scene && ped.scene.kind !== 'terrace')) {
+      const s = carStartle(ped, walkCar, true, t, Math.random());
+      if (s) {
+        ped._startleAt = t;
+        if (s === 'schrik') {
+          startFlee(ped, world, walkCar.x, walkCar.y);
+          ped.stateUntil = t + STARTLE.flee;
+          if (Math.random() < STARTLE.screamChance) say(ped, world, pick(STARTLE_LINES), 2, 'shout', 0.8);
+        } else if (!ped.scene) {
+          setState(ped, 'gawk', t + 1.6, 'angry');
+          ped.fleeFrom = walkCar;
+        }
+        moving = ped.state === 'flee';
+      }
     }
     if (dodge === null && !ped.isCop && !ped.scene && (ped.state === 'wander' || ped.state === 'gawk' || ped.state === 'angry')) {
       // a horn or bell coming up behind: off the carriageway, sometimes with a remark
