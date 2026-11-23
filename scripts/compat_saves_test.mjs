@@ -11,7 +11,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { registerHooks } from 'node:module';
-import { skipAlsThreeOntbreekt } from './lib/threeskip.mjs';
+import { skipIfThreeMissing } from './lib/threeskip.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const DIR = path.join(ROOT, 'scripts/fixtures/saves');
@@ -29,7 +29,7 @@ let SG, SS, SM, ST, WORLD, KEYS, CS, HOME, SJ;
 try {
   SG = await import('../game/js/savegame.js');
 } catch (e) {
-  skipAlsThreeOntbreekt('compat_saves_test.mjs', e); // #1298: alleen een ontbrekende three.js buiten CI is een SKIP
+  skipIfThreeMissing('compat_saves_test.mjs', e); // #1298: alleen een ontbrekende three.js buiten CI is een SKIP
 }
 SS = await import('../game/js/saveslots.js');
 SM = await import('../game/js/savemigrate.js');
