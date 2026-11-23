@@ -290,7 +290,7 @@ S['M16.outro'] = {
     { on: 'Maandag. Veendam', actor: 'tessa', anim: 'nod' },
     { on: 'Over twee dagen', actor: 'tammo', anim: 'nod' },
     { on: 'Je kunt dus nog rekenen', actor: 'tessa', anim: 'nod' },
-    { on: 'Goed.', actor: 'tammo', anim: 'nod' },
+    { on: 'Tot drie tenten', actor: 'tammo', anim: 'nod' },
   ],
   fx: [
     { on: 'Eruit! Hier wordt', dt: 0.1, fx: 'sfx', kind: 'shout' },

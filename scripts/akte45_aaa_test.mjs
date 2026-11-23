@@ -72,7 +72,7 @@ t('de canon van M17 tot M26 is ongewijzigd: stapsoorten en beloning', () => {
   assert.equal(def(NAMEN.M20).stages.filter((s) => s.kind === 'hold').length, 6, 'de zes houd-stappen');
   assert.equal(def(NAMEN.M20).reward, 1200);
   assert.deepEqual(def(NAMEN.M21).stages.map((s) => s.kind), ['goto', 'timing', 'choice', 'scene', 'scene', 'goto', 'scene']);
-  assert.equal(def(NAMEN.M22).reward, 300);
+  assert.equal(def(NAMEN.M22).reward, 500); // 23-11 audit speelbaarheid (balans): eerder 300
   assert.equal(def(NAMEN.M23).stages.filter((s) => s.kind === 'convoy').length, 3);
   assert.equal(def(NAMEN.M23).reward, 500);
   assert.deepEqual(def(NAMEN.M24).stages.map((s) => s.kind), ['pigeon', 'scene']);
