@@ -4184,6 +4184,12 @@
       "status": "bron",
       "n": 1,
       "opm": "Woordwaark (S.J.H. Reker, K. ter Laan, H. Molema): bijna ⋅ haast (bijna); haast; aan ⋅ bijna ⋅ tot ⋅ voortdurend; bijna; bijna ⋅ helemaal; bijna ⋅ wankel; bepaald ⋅ bijna; bijna ⋅ louter ⋅ netjes"
+    },
+    "fietse": {
+      "nl": "fiets",
+      "status": "bron",
+      "n": 1,
+      "opm": "Woordwaark (S.J.H. Reker): fiets"
     }
   },
   "fries": {
@@ -4938,6 +4944,11 @@
     "lokaal",
     "speler",
     "gast",
-    "groetvlag"
+    "groetvlag",
+    "klompenoord",
+    "opening",
+    "keukendeur",
+    "verlichte",
+    "losse"
   ]
 }
