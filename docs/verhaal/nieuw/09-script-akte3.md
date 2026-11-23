@@ -15,7 +15,7 @@
 > | M16 | weten waar Jelle heen gaat | drie tenten, een dronken menigte | de kus; daarna het antwoord: maandag Veendam |
 
 ## [R3.0] Nachtstreek, vrijdagochtend – Stad – radio
-RIKUS (radio): Vrijdag 21 augustus. Een beller meldt dat hij vanmiddag opstijgt. Ik zeg niks. [NIEUW]
+RIKUS (radio): Vrijdag 21 augustus. Een beller meldt dat hij vanmiddag opstijgt. Ik kijk alvast omhoog. [NIEUW]
 JELLE (radio): Jelle Terpstra. Vanmiddag vlieg ik in mijn ballon over de Dollard, met mijn koopboek. Alles wat ik koop, staat erin. [NIEUW]
 RIKUS (radio): Het luchtruim is van niemand, meneer Terpstra. [NIEUW]
 JELLE (radio): Was. Mijn juristen hebben het contract nagelezen. [NIEUW]
@@ -201,7 +201,7 @@ RIKUS (radio): Kiekdoar meldt dat Oldenhuis Bakt in Delfzijl een bestaande snack
 
 ## [R3.4] Nachtstreek, vrijdagnacht: een plaat – Stad – radio
 RIKUS (radio): Mijn verzoekplaat van de week: "Elfde Verdieping", van De Fietstunnels. Een nummer over een lift die werkt. [NIEUW]
-RIKUS (radio): Voor twee Stadjers die elk een kant van het refrein zingen. Ik zeg niks. [NIEUW]
+RIKUS (radio): Voor twee Stadjers die elk een kant van het refrein zingen. Ik noem geen namen. [NIEUW]
 
 ## [J2] Een envelop in Appingedam – Eemsdelta, Appingedam, de brug over het Damsterdiep – te voet
 (regie: zaterdagmiddag. Op de brug over het Damsterdiep, onder de hangende balkons. Lammert staat bij zijn auto met een dikke envelop. Durk staat stijf naast hem, Douwe iets verder, met een tas. Op Tammo's schouder zit een duif.)
@@ -328,7 +328,7 @@ DOUWE: …draait. [BEHOUDEN]
 TAMMO: Moi, jongens. Lekker gebotst? [BEHOUDEN]
 DURK: Baas zegt: jij bent de duif. Maar eerst bier. [BEHOUDEN]
 (regie: Durks telefoon rinkelt: JELLE. Hij houdt hem op een armlengte van zijn oor.)
-JELLE (telefoon): Durk. Mijn juristen willen een rapport. Waar zijn jullie? [NIEUW]
+JELLE (telefoon): Durk. Ik wil een rapport. Waar zijn jullie? [NIEUW]
 DURK: Op een kermis, baas. [NIEUW]
 JELLE (telefoon): Ik hoor botsauto's. Ik betaal jullie niet voor botsauto's. [NIEUW]
 DURK: Nee, baas. Douwe, hang op. [NIEUW]
@@ -354,7 +354,7 @@ TESSA: Au. [NIEUW]
 ## [M16.5] Nog eentje dan: het antwoord – Oldambt, Winschoten, de kermis – botsautootje
 (regie: achter de botsauto's, op een bankje. Durk zit, Douwe staat naast hem. Tessa en Tammo staan een meter te ver uit elkaar. De muziek is ver weg. De camera blijft op Durk: dit is het moment waarop de akte omslaat.)
 TESSA: Niemand won, want iedereen werd eruit gezet. [NIEUW]
-DURK: Gelijkspel is ook een antwoord. Vraag maar, famke. [NIEUW]
+DURK: Gelijkspel telt ook. Vraag maar, famke. [NIEUW]
 TESSA: Waar gaat Jelle maandag heen? [NIEUW]
 DURK: Baas rijdt maandag naar Veendam, voor de mosterd. [NIEUW]
 DOUWE: Durk. Dat was geheim. …Hè. [BEHOUDEN]
@@ -364,7 +364,7 @@ TESSA: Maandag. Veendam. [NIEUW]
 TAMMO: Over twee dagen. [NIEUW]
 (regie: ze kijken elkaar aan en kijken meteen weer weg.)
 TESSA: Goed. Maandag dan. [NIEUW]
-TAMMO: Goed. [NIEUW]
+TAMMO: Tot drie tenten. Daarna wordt het gokken. [NIEUW]
 DURK: Net fertelle, hè? [NIEUW]
 
 ## [M16.6] Nog eentje dan: de dijk – Oldambt, dijk van het Oldambtmeer bij Blauwestad – te voet

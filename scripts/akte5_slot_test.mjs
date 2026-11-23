@@ -161,7 +161,7 @@ ok(wordsOf('Ik wil bij jou blijven') === 5 && /Ik wil bij jou blijven\./.test(te
 }
 ok(/Gerda Terpstra/.test(textOf('M26.13')) && /Mem/.test(textOf('F4')) && /1953/.test(textOf('F4')), 'Jelle: de doorslag is zijn oma Mem (M26.13, F4), nooit geweld');
 ok(!slot.some((id) => /\b(slaan|slaat|sloeg|bloed)\b/i.test(textOf(id))), 'satire zonder leed: geen geweld in het slot');
-ok(/Hij is Gronings, ik ben Fries/.test(textOf('F3')) && /It smakket/.test(textOf('F3')), 'F3: Groningers en Friezen verzoend (Beppe, Oma Trijntje, Mem)');
+ok(/Hij is Gronings, ik ben een beetje Fries/.test(textOf('F3')) && /It smakket/.test(textOf('F3')), 'F3: Groningers en Friezen verzoend (Beppe, Oma Trijntje, Mem)');
 ok(textOf('F6').includes('Alles blijft open') && /Hereweg/.test(textOf('F6')), 'F6: niets stopt, de overgang naar het eindspel');
 ok(/eenenveertig/i.test(textOf('E2')) && /Eenenveertig tegen één/.test(textOf('F6')), 'de 41 snackbars kloppen tussen F6 en E2');
 

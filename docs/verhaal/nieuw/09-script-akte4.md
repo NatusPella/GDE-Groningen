@@ -16,7 +16,7 @@
 
 ## [R4.0] Nachtstreek, maandagochtend – Stad – radio
 (regie: maandag 24 augustus, ochtend. Rikus in de studio; Jelle belt in met zijn offerte.)
-RIKUS (radio): Maandag 24 augustus. In de chat zeggen ze dat twee Stadjers het museum leegroofden. Ik zeg niks. [NIEUW]
+RIKUS (radio): Maandag 24 augustus. In de chat zeggen ze dat twee Stadjers het museum leegroofden. Ik lees het alleen voor. [NIEUW]
 JELLE (radio): Jelle Terpstra. Ik bied een klomp voor de mosterd van Grunn. Per pot. [NIEUW]
 RIKUS (radio): Dat is een erfstuk, meneer Terpstra. [NIEUW]
 JELLE (radio): Dan bied ik twee klompen. Foar mem. [NIEUW]
@@ -62,7 +62,7 @@ WUBBO (telefoon): Nu pas. [NIEUW]
 (regie: aan de overkant van brug elf staat de limo. De brug is dicht. Op de achterbank staat een gouden koffer.)
 TAMMO: De limo. Met de koffer. [NIEUW]
 WUBBO: Die brug draait niet voor een limo. [NIEUW]
-JELLE (telefoon): Mevrouw Tessa. Mijn schip staat vast voor een brug. Mijn juristen noemen dat een overtreding. [NIEUW]
+JELLE (telefoon): Mevrouw Tessa. Mijn schip staat vast voor een brug. Dat is een overtreding, mevrouw. Van de brug. [NIEUW]
 WUBBO: Open of dicht. Nooit allebei. Vandaag dicht. [NIEUW]
 WUBBO: Het schip zit vast. De mosterd is van jullie. Grove mosterd, niet dat zoete spul. [NIEUW]
 TESSA: De mosterd is gered. Voor Oma. [NIEUW]
@@ -90,7 +90,7 @@ TESSA: Femke is mijn keeper. Ze weet bijna alles van mij. [NIEUW]
 FEMKE: Wat leuk, een dubbele date. [NIEUW]
 TAMMO: Het is geen date. [NIEUW]
 FEMKE: Een kaars, een terras, twee stellen. [NIEUW]
-RIKUS: Ik zeg niks. [NIEUW]
+RIKUS: Ik zit hier alleen voor de kaars. [NIEUW]
 (regie: onder de kaars ligt een bonnetje: "Tafel voldaan. Met vriendelijke groet, Us Mem Snacks.")
 TAMMO: Hij betaalde onze tafel. En de kaars. [NIEUW]
 TESSA: Een voorschot. Daar komt een rekening achteraan. [NIEUW]
@@ -98,7 +98,7 @@ TESSA: Een voorschot. Daar komt een rekening achteraan. [NIEUW]
 FEMKE: Neem je een kasboekje mee naar een date? [NIEUW]
 TESSA: Het is geen date. [NIEUW]
 FEMKE: Dat zegt hij ook. [NIEUW]
-RIKUS: Ik zeg niks. Dat is ook een antwoord. [NIEUW]
+RIKUS: Mijn mond zit vol brood. [NIEUW]
 
 ## [M18.1] Wie draaide de camera's uit?: intro – De Stad, Hoornse Meer, Wiebelwerk – te voet
 (regie: maandag 24 augustus, middag. Een kantoorpand bij een rotonde. Een bord: Wiebelwerk, websites met karakter. Een e-step staat voor de deur. Gameplay: een kantoor als speelveld; de juiste antwoorden kiezen, de serverkamer in en het logboek van 12 augustus bekijken.)
@@ -147,7 +147,7 @@ TESSA: En kijk: zijdeur, drie minuten over twaalf, met de toegangspas van bewake
 TESSA: Een melding van bewaker twee, 16 augustus: duif op het dak, twee Stadjers kijken mee. [NIEUW]
 TAMMO: De bewaker met het koekje. En twee reuzen. [NIEUW]
 TAMMO: De toegangspas van mevrouw Hoving. Die was die dag geblokkeerd. [NIEUW]
-TESSA: Zodat zij niets merkte. Dat is vier dagen vóór onze kraak. Hij had hem toen al. [NIEUW]
+TESSA: Zodat zij niets merkte. Dat is vijf dagen vóór onze kraak. Hij had hem toen al. [NIEUW]
 TAMMO: Dus wij kraakten een leeg museum. [NIEUW]
 TESSA: Ik print dit. Dit is een bewijs. [NIEUW]
 TAMMO: Voor wie? [NIEUW]
@@ -182,7 +182,7 @@ RIKUS (telefoon): Bewaar het. Ik heb dit niet gezegd. [NIEUW]
 
 ## [N9] Nacht op een dijk – Oldambt, de dijk bij de Dollard – Rikus' busje
 (regie: maandagnacht, na de dag van de camera's in Veendam. De politie zoekt twee Stadjers in het zwart, dus Rikus leende hun zijn oude busje en wees een dijk aan waar niemand komt. De achterdeuren staan open naar het wad. Geen lichtje in de verte, alleen sterren. Tessa ligt achterin op een matras, Tammo naast haar met zijn handen onder zijn hoofd. De radio staat zacht.)
-RIKUS (radio): Moi, Nachtstreek. Voor wie vannacht niet thuis slaapt: de sterren zijn gratis. Ik zeg niks. [NIEUW]
+RIKUS (radio): Moi, Nachtstreek. Voor wie vannacht niet thuis slaapt: de sterren zijn gratis. [NIEUW]
 TESSA: Dat daar is de Grote Beer. [NIEUW]
 TAMMO: Dat is een vliegtuig. [NIEUW]
 TESSA: Dan is dat de Grote Beer. [NIEUW]

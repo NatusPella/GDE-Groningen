@@ -47,7 +47,7 @@
     "lèste": {
       "nl": "laatste",
       "status": "afgeleid",
-      "n": 24
+      "n": 25
     },
     "kin": {
       "nl": "kan",
@@ -516,7 +516,7 @@
     "thoes": {
       "nl": "thuis",
       "status": "bron",
-      "n": 20,
+      "n": 21,
       "opm": "Woordwaark (S.J.H. Reker, K. ter Laan, A.A. Ganderheyden, H. Molema): thuis; tehuis"
     },
     "buten": {
@@ -1392,7 +1392,7 @@
     "rieden": {
       "nl": "rijden",
       "status": "bron",
-      "n": 30,
+      "n": 31,
       "opm": "Woordwaark (S.J.H. Reker, K. ter Laan, H. Molema): rijden; rijden ⋅ varen"
     },
     "sluut": {
@@ -1485,7 +1485,7 @@
     "duven": {
       "nl": "duiven",
       "status": "twijfel",
-      "n": 32,
+      "n": 33,
       "opm": "Woordwaark (Nederlands -> Gronings, trefwoord \"duif\"): doef, doeve; \"duuv-/duven\" komt niet voor, ook doevemelker voor duivenmelker",
       "voorstel": "doeve/doef",
       "handmatig": true
@@ -3184,7 +3184,7 @@
     "peerden": {
       "nl": "paarden",
       "status": "afgeleid",
-      "n": 1
+      "n": 2
     },
     "test": {
       "nl": "getest",
@@ -4116,7 +4116,7 @@
     "drei": {
       "nl": "drie",
       "status": "bron",
-      "n": 1,
+      "n": 2,
       "opm": "Woordwaark (K. ter Laan, P. Boeles): drie"
     },
     "bedoulde": {
@@ -4172,6 +4172,18 @@
       "status": "bron",
       "n": 1,
       "opm": "Woordwaark (H. Molema): vooraan"
+    },
+    "sloapen": {
+      "nl": "slapen",
+      "status": "bron",
+      "n": 1,
+      "opm": "Woordwaark (S.J.H. Reker, K. ter Laan, H. Molema): slapen; slaap"
+    },
+    "allain": {
+      "nl": "alleen",
+      "status": "bron",
+      "n": 2,
+      "opm": "Woordwaark (S.J.H. Reker, K. ter Laan): alleen; alleen ⋅ slechts"
     }
   },
   "fries": {
