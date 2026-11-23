@@ -95,7 +95,7 @@ export const VOERTUIG_REGISTER = {
   // vettruck 23-11: de tankwagen van Us Mem Vet (M07, de cutscenes, de trailer en de winkel), opnieuw gebouwd in plaats van drie
   // gestapelde dozen op de bakwagen. Rijgedrag: vehicle/heavyload.js.
   tankwagen: {
-    nl: 'Tankwagen Us Mem Vet', model: { name: 'truck', tank: true, livery: 'usmemvet', len: 8.5, wid: 2.5, color: 0x1d4f9c },
+    nl: 'Tankwagen Us Mem Vet', model: { name: 'truck', tank: true, livery: 'usmemvet', len: 8.5, wid: 2.5, color: 0x2f4fa8 },
     // niveau 0 vol detail (ook in de trailershot, die op 50 m begint), 1 tank en cabine met belettering, 2 silhouet met wielblokken
     lod: { grenzen: [60, 160], band: 8 },
     norm: { tris: [3500, 8000], kleuren: 24, eisen: ['elliptische rvs-tank met gebolde koppen en spanbanden', 'loopbrug met dekselputten, ontluchting en neergeklapte leuning', 'ladder achter, aftapkraan met handwiel, lichtbalk en onderrijbeveiliging', 'kantelcabine met wielkast, grille, zonneklep, dakspoiler, spiegels en opstap', 'dubbellucht achter, pompkast, dieseltank, slangkokers en zijbeveiliging', 'gebogen belettering van het verzonnen merk, deurnaden'] },

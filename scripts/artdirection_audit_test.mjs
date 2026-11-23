@@ -6,19 +6,19 @@
 import { strict as assert } from 'assert';
 import { auditArtDirection, checkKleur, PALETTEN } from './artdirection_audit.mjs';
 
-// Baseline: huidige stand (23-11, na verwijdering winter-blauw categorie)
+// Baseline: huidige stand (23-11, na fixes)
 // Deze getallen mogen alleen dalen bij fixes, nooit omhoog
-// Winter-blauw verwijderd: blauwe deuren, luifels en glas zijn normaal in Groningen (constitution 3 gaat over sneeuw/ijs, niet over kleur)
+// Fixes: neon geel/rood/blauw/oranje gedempter, koud wit warmer
 const BASELINE = {
-  totaalUitschieters: 12, // 23-11: 6 buildings + 1 propregister + 2 worldpalette + 3 voertuigen (koud wit)
+  totaalUitschieters: 2, // 23-11: alleen worldpalette (papier/lucht, legitieme DS-inkten)
   perBestand: {
-    'game/js/models3d_buildings.js': 6, // was 15, nu alleen echte neon (geen winter-blauw)
+    'game/js/models3d_buildings.js': 0, // gefixeerd: neon → gedempter
     'game/js/greenery.js': 0,
-    'game/js/propregister.js': 1,
+    'game/js/propregister.js': 0, // gefixeerd: neon blauw → gedempter
     'game/js/pixelart3d.js': 0,
-    'game/js/worldpalette.js': 2, // papier en luchtkleur (legitieme DS-inkten)
+    'game/js/worldpalette.js': 2, // papier en luchtkleur (legitieme DS-inkten, geen fix nodig)
     'game/js/dierenregister.js': 0,
-    'game/js/models3d_vehicles.js': 3, // 3× koud wit (witte auto's)
+    'game/js/models3d_vehicles.js': 0, // gefixeerd: koud wit → warmer wit
   },
 };
 

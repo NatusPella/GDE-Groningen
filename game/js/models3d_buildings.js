@@ -550,14 +550,14 @@ function addDoor(B, e, c, w, S, opts = {}) {
 // What stands outside the door of each shop type (winkelkit.js, STIJL.buiten): small blocks
 // on the pavement beside the door, so the shops differ from the street as well.
 const PROP_LAYOUT = {
-  emmers: (put, x, h) => { put(x - 0.22, x + 0.22, 0, 0.45, 0.35, 0.8, 0x6f7a80); put(x - 0.18, x + 0.18, 0.45, 0.7, 0.4, 0.75, [0xd8508a, 0xf0c030, 0xf2f2f2, 0xd03030][Math.floor(h * 4)]); },
+  emmers: (put, x, h) => { put(x - 0.22, x + 0.22, 0, 0.45, 0.35, 0.8, 0x6f7a80); put(x - 0.18, x + 0.18, 0.45, 0.7, 0.4, 0.75, [0xd8508a, 0xcfb46c, 0xf2f2f2, 0x8f4634][Math.floor(h * 4)]); },
   karretjes: (put, x) => { put(x - 0.3, x + 0.3, 0.1, 0.9, 0.3, 1.1, 0x9aa1a5); put(x - 0.3, x + 0.3, 0.9, 0.95, 0.3, 1.1, 0xd8423a); },
   bord: (put, x) => { put(x - 0.25, x + 0.25, 0, 0.8, 0.35, 0.5, 0x2a2b2d); put(x - 0.2, x + 0.2, 0.25, 0.7, 0.5, 0.52, 0xf2ead2); },
   menubord: (put, x) => { put(x - 0.3, x + 0.3, 0, 0.95, 0.35, 0.5, 0x1d1a1a); put(x - 0.24, x + 0.24, 0.35, 0.85, 0.5, 0.52, 0xf2c24a); },
   poppen: (put, x, h) => { put(x - 0.12, x + 0.12, 0, 1.55, 0.4, 0.6, 0xe8e2da); put(x - 0.2, x + 0.2, 0.7, 1.3, 0.38, 0.62, [0x7a4fb0, 0xd8423a, 0x2f6fb8][Math.floor(h * 3)]); },
   fietsrek: (put, x) => { put(x - 0.7, x + 0.7, 0, 0.4, 0.3, 0.38, 0x4a4d50); put(x - 0.65, x - 0.55, 0.4, 0.95, 0.3, 0.9, 0x2f6fb8); put(x + 0.55, x + 0.65, 0.4, 0.95, 0.3, 0.9, 0x2f6fb8); },
-  kapperspaal: (put, x) => { for (let i = 0; i < 6; i++) put(x - 0.1, x + 0.1, 0.9 + i * 0.12, 1.02 + i * 0.12, 0.3, 0.5, i % 2 ? 0xf2f2f2 : [0xd03030, 0x2f4fa8][(i >> 1) % 2]); put(x - 0.12, x + 0.12, 0.84, 0.9, 0.28, 0.52, 0x2a2b2d); },
-  vlag: (put, x) => { put(x - 0.03, x + 0.03, 0, 2.6, 0.4, 0.46, 0x3a3c3e); put(x + 0.03, x + 0.55, 1.5, 2.6, 0.4, 0.43, 0x2f6ad8); },
+  kapperspaal: (put, x) => { for (let i = 0; i < 6; i++) put(x - 0.1, x + 0.1, 0.9 + i * 0.12, 1.02 + i * 0.12, 0.3, 0.5, i % 2 ? 0xf2f2f2 : [0x8f4634, 0x2f4fa8][(i >> 1) % 2]); put(x - 0.12, x + 0.12, 0.84, 0.9, 0.28, 0.52, 0x2a2b2d); },
+  vlag: (put, x) => { put(x - 0.03, x + 0.03, 0, 2.6, 0.4, 0.46, 0x3a3c3e); put(x + 0.03, x + 0.55, 1.5, 2.6, 0.4, 0.43, 0x2f4fa8); },
   meubels: (put, x) => { put(x - 0.3, x + 0.3, 0, 0.45, 0.35, 0.85, 0x7a5a3c); put(x - 0.3, x + 0.3, 0.45, 0.95, 0.35, 0.4, 0x7a5a3c); put(x - 0.7, x - 0.35, 0, 0.3, 0.4, 0.8, 0x9a8a6a); },
   draaistandaard: (put, x, h) => { put(x - 0.2, x + 0.2, 0, 1.5, 0.4, 0.8, 0xc2423a); put(x - 0.17, x + 0.17, 0.5, 1.35, 0.42, 0.82, [0xf2d24a, 0x4a8ad8, 0xf2f2f2][Math.floor(h * 3)]); },
   krantenrek: (put, x) => { put(x - 0.3, x + 0.3, 0, 1.3, 0.35, 0.55, 0x4a4d50); put(x - 0.27, x + 0.27, 0.5, 1.2, 0.55, 0.58, 0xe8e2da); put(x - 0.3, x + 0.3, 1.3, 1.5, 0.35, 0.55, 0xc23f78); },
@@ -579,7 +579,7 @@ function addShopProps(B, e, s0, s1, bw, doorBay, kind, seed) {
 // een houten toonbank met een rood-wit geblokt schort, een diep gestreept zeildoek met schulprand,
 // twee palen en een slinger gloeilampjes langs de rand. Steekt 1,7 m de stoep op, hoogstens 6 m breed (bij de deur).
 function addKraam(B, e, s0, s1, top, seed) {
-  const RED = 0xd04a3a, CREAM = 0xf2ead2, WOOD = 0x7a5436, BULB = 0xfff0a0;
+  const RED = 0xd04a3a, CREAM = 0xf2ead2, WOOD = 0x7a5436, BULB = 0xf2d24a;
   const a0 = s0 + 0.1, a1 = s1 - 0.1;
   if (a1 - a0 < 1.2) return;
   const D = 1.7, ya = top - 0.12, yb = Math.min(2.45, top - 0.6);
@@ -886,7 +886,7 @@ function addFlatRoofDetail(B, b, edges, open, depth, floorCount, archetype, wall
 
   if (site) {
     // containers (some stacked), heaps of sand and gravel, a few lamps: a site seen from above is busy
-    const COLORS = [0x2f5d8a, 0xb5451b, 0xd9d3c3, 0x3f7a4f, 0xc9a227, 0x6b6e72];
+    const COLORS = [0x2f5d8a, 0xa9623f, 0xd9d3c3, 0x3f7a4f, 0xcfb46c, 0x6b6e72];
     const nBox = Math.min(90, Math.floor(A / 350));
     for (let i = 0; i < nBox; i++) {
       const s = spot(3, 1.2, 1.5, 0.8, placed, 12);
