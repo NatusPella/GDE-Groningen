@@ -64,9 +64,9 @@ Telling: 102 scènes, 155 props, 49 soorten in gebruik, 27 aankledingsplannen, 5
 | fiets | voertuig (wereld) |  |  |  | 1.9 x 0.7 x 1.15 | 12 |
 | kat | dier (wereld) |  |  |  |  | 4 |
 | koe | dier (wereld) |  |  |  |  | 0 |
-| limo | voertuig (wereld) | 5792 |  |  | 5.84 x 2.667 x 2.24 | 6 |
+| limo | voertuig (wereld) | 5970 |  |  | 5.84 x 2.667 x 2.24 | 6 |
 | politie | voertuig (wereld) |  |  |  | 4.8 x 1.95 x 1.75 | 1 |
-| snackwagen | voertuig (wereld) | 2314 |  |  | 5.681 x 2.964 x 3.073 | 5 |
+| snackwagen | voertuig (wereld) | 2410 |  |  | 5.681 x 2.964 x 3.073 | 5 |
 | tankwagen | voertuig (wereld) | 1148 |  |  | 8.611 x 3.61 x 3 | 2 |
 | trekker | voertuig (wereld) |  |  |  | 4.5 x 2.4 x 3 | 4 |
 
