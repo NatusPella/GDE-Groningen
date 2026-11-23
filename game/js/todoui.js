@@ -320,10 +320,11 @@ function tilesHtml(world, extra) {
     tile(ICON.coin, 'Geld', `€${Math.floor(world.money || 0).toLocaleString('nl-NL')}`, null, 'spullen') +
     tile(ICON.clock, 'Speeltijd', play, null, '') +
     // #1259: "0/0 Missies klaar" zegt niets: de tegel komt er pas als er missies zijn
-    (ms.length ? tile(ICON.flag, 'Missies klaar', `${mDone}/${ms.length}`, Math.round((mDone / ms.length) * 100), 'todo') : '') +
+    // #1259 (hertest 24-11): geen "0/31" in een nieuw spel: zolang er niets af is, zegt de tegel hoeveel er te doen is
+    (ms.length ? (mDone ? tile(ICON.flag, 'Missies klaar', `${mDone}/${ms.length}`, Math.round((mDone / ms.length) * 100), 'todo') : tile(ICON.flag, 'Missies te doen', String(ms.length), null, 'todo')) : '') +
     // #1259: staat Prestaties al in het voortgangsblok (pausemenu.js), dan geen tweede cijfer in een tegel
     ((extra.skipTiles || []).includes('prestaties') ? '' : tile(ICON.cup, 'Prestaties', `${ach.done}/${ach.total}`, ach.pct, 'prestaties')) +
-    tile(ICON.pin, 'Gevonden', `${found}/${all}`, all ? Math.round((found / all) * 100) : 0, 'todo') + '</div>';
+    (found ? tile(ICON.pin, 'Gevonden', `${found}/${all}`, all ? Math.round((found / all) * 100) : 0, 'todo') : tile(ICON.pin, 'Te vinden', String(all), null, 'todo')) + '</div>';
 }
 
 // help: [[action, icon svg, label]] for the contextual buttons (pausemenu.js decides which)
