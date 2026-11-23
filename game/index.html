@@ -63,7 +63,10 @@
   }
   #loading::before { content: ''; position: absolute; inset: 0; background: var(--ds-c-ink-papier); -webkit-mask-image: radial-gradient(ellipse at center, rgba(29,27,23,1) 38%, transparent 95%); mask-image: radial-gradient(ellipse at center, rgba(29,27,23,1) 38%, transparent 95%); pointer-events: none; }
   #loading.ls-over .bt-load { opacity: 0; transition: opacity 0.2s; }
-  #loading.done { opacity: 0; pointer-events: none; }
+  /* video-QA 23-11: het laadscherm gaat eerst naar zwart (inkt) en pas dan open, zodat het eerste beeld van het spel uit zwart komt
+     en niet als een cremewitte en daarna vaal grijsgroene flits door het papier heen */
+  #loading.done { opacity: 0; pointer-events: none; background-color: var(--ds-c-inkt); background-image: none; transition: background-color 0.25s ease, opacity 0.45s ease 0.3s; } /* klaar binnen de 800 ms van dismissLoading (startscreen.js) */
+  #loading.done > *, #loading.done::before { opacity: 0; transition: opacity 0.2s ease; }
   #loading .bt { position: absolute; left: 0; top: 0; width: calc(100vw / var(--ui, 1)); height: calc(100vh / var(--ui, 1)); zoom: var(--ui, 1); }
   #loading .bt-logo { position: absolute; left: 0; right: 0; top: 17%; display: flex; flex-direction: column; align-items: center; transform: rotate(var(--ds-schuin)); }
   #loading .gde-logo { font-size: clamp(100px, calc(100vh / var(--ui, 1) * 0.24), 216px); font-family: var(--ds-font-zeef-kop); font-weight: 800; color: var(--ds-c-ink-inkt); }

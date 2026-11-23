@@ -25,7 +25,7 @@ function setupClips({ ipcMain, win, dir, ffmpeg, fps = 60 }) {
       if (cur) throw new Error('er loopt al een clip');
       const name = String(arg.name || 'clip').replace(/[^\w.-]/g, '_');
       const out = path.join(dir, name + '.mp4');
-      cur = { name, out, frames: 0, w: 0, h: 0, proc: null, done: null, t0: Date.now(), crf: arg.crf ?? 10 };
+      cur = { name, out, frames: 0, w: 0, h: 0, proc: null, done: null, t0: Date.now(), crf: arg.crf ?? 10, fps: arg.fps || fps, frag: !!arg.frag };
       return { out };
     }
     if (cmd === 'frame') {
@@ -34,9 +34,9 @@ function setupClips({ ipcMain, win, dir, ffmpeg, fps = 60 }) {
       const { width, height } = img.getSize();
       if (!cur.proc) {
         cur.w = width; cur.h = height;
-        const a = ['-hide_banner', '-loglevel', 'error', '-y', '-f', 'rawvideo', '-pix_fmt', 'bgra', '-video_size', `${width}x${height}`, '-framerate', String(fps), '-i', 'pipe:0',
+        const a = ['-hide_banner', '-loglevel', 'error', '-y', '-f', 'rawvideo', '-pix_fmt', 'bgra', '-video_size', `${width}x${height}`, '-framerate', String(cur.fps), '-i', 'pipe:0',
           '-vf', 'scale=out_color_matrix=bt709:out_range=tv,format=yuv420p', '-c:v', 'libx264', '-preset', 'veryfast', '-crf', String(cur.crf),
-          '-colorspace', 'bt709', '-color_primaries', 'bt709', '-color_trc', 'bt709', '-r', String(fps), '-movflags', '+faststart', cur.out];
+          '-colorspace', 'bt709', '-color_primaries', 'bt709', '-color_trc', 'bt709', '-r', String(cur.fps), '-movflags', cur.frag ? '+frag_keyframe+empty_moov+default_base_moof' : '+faststart', cur.out];
         cur.proc = spawn(ffmpeg, a, { stdio: ['pipe', 'inherit', 'inherit'] });
         cur.done = new Promise((res) => cur.proc.on('close', res));
         cur.proc.stdin.on('error', (err) => log('ffmpeg-pijp:', err.message));

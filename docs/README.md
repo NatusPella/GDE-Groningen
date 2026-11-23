@@ -226,6 +226,8 @@ De werkafspraken en de constitutie staan in [../AGENTS.md](../AGENTS.md); die wi
 | [QA-START-VAN-MENU-AF.md](<QA-START-VAN-MENU-AF.md>) | Het oude startscherm (`runMenuScreen`, `#start-screen`) is alleen nog de |
 | [RELEASE-CHECKLIST-VANMIDDAG.md](<RELEASE-CHECKLIST-VANMIDDAG.md>) | Naslag. Releasechecklist van 20-11 voor de speeltest met vier: de commando's in volgorde (releasegate, release.sh, Actions-builds, installatie- en Samen-spelen-rooktest) met de valkuilen uit eerdere releases. |
 | [RELEASEGATE.md](<RELEASEGATE.md>) | Het releasegate-rapport en draaiboek: elke release bewijsbaar zonder regressie (ADR 0034). |
+| [KWALITEITSMACHINE.md](<KWALITEITSMACHINE.md>) | De kwaliteitsmachine: één Electron-runnerbibliotheek (slot, hartslag, stille machine), beeldregressie op vaste camerapunten, video-QA als één hervatbaar commando en een eindrapport. |
+| [VIDEO-QA-23-11.md](<VIDEO-QA-23-11.md>) | Video-QA van 23-11: de eerste minuten van een nieuw spel opgenomen met de Spelbot, met bevindingen en een beeldenpagina. |
 | [QA-SAVES-20-11.md](<QA-SAVES-20-11.md>) | QA van opslaan en laden voor de release van 20-11 (#983, #429): oude en beschadigde saves, opslag per speler, ritten en instellingen; de compat-suite. |
 | [REVIEW-20-11.md](<REVIEW-20-11.md>) | AI-codereview van de wijzigingen van 20-11 voor de releasegate (ADR 0034): bevindingen op ernst en testgaten. |
 | [RELEASEN.md](<RELEASEN.md>) | Naslag. De regels staan in de canonieke spec [`.specs-fire/standards/publicatie.md`](../.specs-fire/standar… |

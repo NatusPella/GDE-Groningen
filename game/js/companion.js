@@ -5,6 +5,7 @@ import { resolveElevWalls } from './elevation.js';
 import { resolveBuildingCollisions, findExitSpot, stopVehicle, EXIT_RIGHT_FIRST, swimDepth, findClimbSpot, SWIM_SPEED, CLIMB_TIME, GRAVITY } from './player.js';
 import { findProps } from './breakables.js';
 import { pushCircleOutOfVehicle } from './vehicle.js';
+import { doorsFor, deurVoorRol, DEUR_STAP, DEUR_BEREIK } from './vehicledoors.js';
 import { resolveRailings } from './bridgerails.js';
 import { waterClearance } from './waterindex.js';
 import { passagesOf } from './collision.js';
@@ -24,6 +25,17 @@ const FOLLOW_DIST = 3.2;
 const ARRIVE_SLACK = 1.1;
 const CATCH_UP_SPEED = 7.0;
 const BOARD_DIST = 3;
+const BOARD_WAIT = 1.5; // s naast de auto zonder de deur te halen: dan toch instappen
+
+// Het instappunt van de bijrijder in wereldcoördinaten (net buiten de deur), of null zonder logische deur.
+export function passengerDoorPoint(v) {
+  if (!v || !v.model) return null;
+  const d = deurVoorRol(doorsFor(v), 'bijrijder', v.doors || null, 1);
+  if (!d || !d.side) return null;
+  const px = d.x * v.model.len, pz = d.side * (v.model.wid / 2 + DEUR_STAP);
+  const c = Math.cos(v.angle || 0), s = Math.sin(v.angle || 0);
+  return { x: v.x + c * px - s * pz, y: v.y + s * px + c * pz };
+}
 const VEHICLE_HIT_SPEED = 4;
 const DEAD_DURATION = 5;
 const RADIUS = 0.35;
@@ -802,14 +814,26 @@ function stepCompanion(dt, world) {
     const airAway = (v.isHeli || v.isPlane) && (!v.onGround || Math.abs((v.z || 0) - (c.gz || 0)) > 2.5);
     if (airAway) { c.vx = 0; c.vy = 0; return; }
     const canRide = !v.sinking && !v.riderOff;
-    if (canRide && !v.passenger && dist(c.x, c.y, v.x, v.y) < (v.isBoat ? BOARD_DIST + 2.5 : BOARD_DIST)) {
+    // een auto met deuren: naar de bijrijdersdeur lopen, niet naar het midden (video-QA 23-11: de metgezel liep
+    // dwars door de carrosserie); de carrosserie duwt hem onderweg opzij. Haalt hij de deur niet, dan stapt hij
+    // na BOARD_WAIT s naast de auto toch in, zoals vroeger.
+    const deur = v.isBoat ? null : passengerDoorPoint(v);
+    const near = dist(c.x, c.y, v.x, v.y) < (v.isBoat ? BOARD_DIST + 2.5 : BOARD_DIST);
+    c.boardWait = near ? (c.boardWait || 0) + dt : 0;
+    const atDoor = deur ? dist(c.x, c.y, deur.x, deur.y) < DEUR_BEREIK || c.boardWait > BOARD_WAIT : near;
+    if (canRide && !v.passenger && atDoor) {
       c.inVehicle = v;
       v.passenger = 'companion';
       c.vx = 0;
       c.vy = 0;
+      c.boardWait = 0;
       return;
     }
-    seekTowards(c, v.x, v.y, CATCH_UP_SPEED, dt, world.map);
+    seekTowards(c, deur ? deur.x : v.x, deur ? deur.y : v.y, CATCH_UP_SPEED, dt, world.map);
+    if (deur) {
+      const push = pushCircleOutOfVehicle(c.x, c.y, c.radius || RADIUS, v);
+      if (push) [c.x, c.y] = resolveBuildingCollisions(push.x, push.y, c.radius || RADIUS, world.map);
+    }
     return;
   }
 

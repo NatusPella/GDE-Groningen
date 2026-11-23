@@ -1,0 +1,23 @@
+{
+  "schema": 1,
+  "beschrijving": "Vaste camerapunten voor de beeldregressie van de kwaliteitsmachine (docs/KWALITEITSMACHINE.md). Eén Electron-run op 1920x1080 (--clip-size, zonder vensterrand), vaste seed (--autoplay, Math.random met seed), vaste klok en weer, de wereld met een vaste tijdstap (scripts/trailer/lib/clip.page.js) en pas een beeld als het streamen rond de camera klaar is. cam en kijk zijn [dx, dy, hoogte boven de grond] ten opzichte van het doel (een landmark uit de wereld, 'thuis' of de terugvalcoördinaat); camAbs/kijkAbs zijn absolute [x, y, hoogte]. drempel overschrijft de standaard (minSsim, maxSlecht, blokSsim, blokKleur; zie scripts/kwaliteit/perceptdiff.mjs). maskers zijn rechthoeken in fracties die niet meetellen; regio vergelijkt alleen dat deel (regioVanPagina: de pagina meet de regio van een element, bijvoorbeeld de minikaart).",
+  "formaat": "1920x1080",
+  "seed": 7,
+  "klok": 13,
+  "weer": "helder",
+  "preset": "quality:hoog,shadows:true,drawDistance:heelver,resolution:1,autoResolution:false",
+  "standaardDrempel": { "minSsim": 0.9, "maxSlecht": 0.02 },
+  "punten": [
+    { "id": "filmpje-opening-a", "soort": "filmpje", "titel": "Openingsfilmpje, 2 s", "t": 2.0, "drempel": { "minSsim": 0.85, "maxSlecht": 0.05 } },
+    { "id": "filmpje-opening-b", "soort": "filmpje", "titel": "Openingsfilmpje, 7 s", "t": 7.0, "drempel": { "minSsim": 0.85, "maxSlecht": 0.05 } },
+    { "id": "stad", "soort": "wereld", "titel": "De stad van boven", "camAbs": [40, 115, 45], "kijkAbs": [196, -6, 30], "drempel": { "minSsim": 0.88, "maxSlecht": 0.03 } },
+    { "id": "grote-markt", "soort": "wereld", "titel": "Grote Markt", "doel": "Grote Markt", "terug": [205, 40], "cam": [-80, 70, 35], "kijk": [0, 0, 4] },
+    { "id": "martinitoren", "soort": "wereld", "titel": "Martinitoren", "doel": "Martinitoren", "terug": [213.81, 9.9], "cam": [-130, 95, 25], "kijk": [0, 0, 45] },
+    { "id": "appartement", "soort": "wereld", "titel": "Appartement van Tammo en Tessa (House of Groningen, Paddepoel)", "doel": "thuis", "cam": [-70, -55, 22], "kijk": [0, 0, 28] },
+    { "id": "garage", "soort": "menu", "titel": "Garage (pauzemenu)", "tab": "garage", "plek": "thuis" },
+    { "id": "kaart", "soort": "kaart", "titel": "Kaart, zoom 3 rond de Martinitoren", "doel": "Martinitoren", "terug": [213.81, 9.9], "zoom": 3 },
+    { "id": "hud-rijden", "soort": "rijden", "titel": "HUD tijdens het rijden (Escapade, stilstaand)", "spawn": [101, 77], "drempel": { "minSsim": 0.88, "maxSlecht": 0.04 } },
+    { "id": "minimap", "soort": "rijden", "titel": "Minikaart (uitsnede van de HUD)", "spawn": [101, 77], "regioVanPagina": ".hud-minimap-wrap, #minimap, .minimap", "drempel": { "minSsim": 0.92, "maxSlecht": 0.03 } },
+    { "id": "laadscherm", "soort": "laadscherm", "titel": "Laadscherm (reizen naar de Martinitoren)", "doel": "Martinitoren", "terug": [213.81, 9.9] }
+  ]
+}

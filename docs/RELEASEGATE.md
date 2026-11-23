@@ -200,6 +200,11 @@ afwijking meenemen zonder issue.
 4. **Fixlus** tot de triage groen is (stap 4 hierboven).
 5. **Gate-verificatie.** `node scripts/release_gate.mjs --verify` moet groen zijn op HEAD.
    `desktop/release.sh` doet deze controle zelf; zonder groen rapport stopt hij.
+5b. **Beeldregressie bekeken.** `node scripts/kwaliteit/beeldregressie.mjs --run --out=<map>` (camerapunten op 1920x1080, referenties buiten git),
+   eventueel met de video-QA samen in het eindrapport (`node scripts/kwaliteit/eindrapport.mjs`); na het bekijken
+   `release/beeldregressie-bekeken.json` schrijven (`datum`, `status` akkoord / afwijkingen verwerkt / referentie ververst,
+   `afwijkend`, `rapport`). `--verify` toont de regel `beeldregressie_bekeken` en geeft een `let op` als het bewijs ontbreekt
+   of ouder is dan 14 dagen; deze stap blokkeert (nog) niet. Zie [KWALITEITSMACHINE.md](KWALITEITSMACHINE.md).
 6. **Eigenaar-review: 20 screenshots (laatste stap vóór `desktop/release.sh`).** Zie hieronder.
 7. **Release.** `cd desktop && npm run release -- minor|patch --world` (zoals altijd; de
    eigenaar publiceert, agents niet).
@@ -305,6 +310,7 @@ design system, regels en review, die daarvoor niet structureel werden gecontrole
 | Bestand | Rol |
 |---|---|
 | `scripts/release_gate.mjs` | de orchestrator: plan, fasen, rapport, `--verify` |
+| `scripts/release/beeldregressiebekeken.mjs` | de stap "beeldregressie bekeken": eisen aan `release/beeldregressie-bekeken.json` (waarschuwt, blokkeert niet; zie KWALITEITSMACHINE.md) |
 | `scripts/release/ownerreview.mjs` | de eigenaar-review: eisen aan `release/owner-review.json` (20 screenshots, feedback verwerkt) |
 | `scripts/release/stages.mjs` | pure plan- en verdictlogica (getest zonder Electron) |
 | `scripts/release/perf_gate.mjs` | norm- en baselinevergelijking voor perf |
@@ -336,6 +342,9 @@ perf meten) is hier niet te testen: dat bewijst de eerste echte releasegate-run 
 van de eigenaar. Tot die tijd heet dat deel "niet getest".
 
 ## Beeldregressie per scherm (#994)
+
+Voor de wereld zelf (stad, Grote Markt, Martinitoren, appartement, garage, kaart, HUD, minikaart, laadscherm, filmpjesbeelden) is er de beeldregressie op vaste camerapunten van de kwaliteitsmachine, met perceptuele diff en referenties buiten git: zie [KWALITEITSMACHINE.md](KWALITEITSMACHINE.md).
+
 
 `node scripts/ui/beeldregressie.mjs` vergelijkt per scherm een nieuw beeld met een goedgekeurde referentie in `docs/beeldreferentie/` (`<formaat>-<scherm>.png`), in drie formaten (1280x800, 1920x1080 en 4K, 3840x2160; andere maten met `--sizes`) en twee standen (vol en Rustig drukwerk, `<formaat>-<scherm>--rustig.png`). Het script heeft geen afhankelijkheden (eigen PNG-lezer, `scripts/lib/pngdiff.mjs`).
 

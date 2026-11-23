@@ -59,6 +59,7 @@ const KISS_DIST = 1.8;
 const KISS_COOLDOWN = 3;
 const SECONDARY_INTERVAL = 0.15;
 const MAX_SECONDARY = 1;
+const HERO_LABEL_NEAR = 4; // m: binnen deze afstand van de eigen auto geen "Loop erheen"-label meer
 const MAX_ROWS = 2;
 // key hints come up one by one: a moment after spawning or a cutscene, then one more per stagger
 const ROWS_DELAY = 2.5;
@@ -490,7 +491,8 @@ function findSecondary(world, primary) {
   if (!inV && learning('enter') && !primary) {
     for (const v of world.vehicles) {
       // a new player's first ride wins over the place labels around it
-      if (v.isHeroCar && !v.wrecked && !v.driver) add({ id: 'hero' + v.id, x: v.x, y: v.y, h: 1.6, label: 'Jouw ouwe Escapade', sub: 'Loop erheen, dan {E}', kind: 'place', boost: 0.2 }, 40);
+      // wie al naast de auto staat, krijgt de deurhint en niet meer "Loop erheen" (video-QA 23-11)
+      if (v.isHeroCar && !v.wrecked && !v.driver && Math.hypot(v.x - p.x, v.y - p.y) > HERO_LABEL_NEAR) add({ id: 'hero' + v.id, x: v.x, y: v.y, h: 1.6, label: 'Jouw ouwe Escapade', sub: 'Loop erheen, dan {E}', kind: 'place', boost: 0.2 }, 40);
     }
   }
   out.sort((a, b) => a.score - b.score);
