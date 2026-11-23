@@ -145,10 +145,15 @@ export function renderVeroverdPanel(el, sluit = null, world = null) {
     // #980 fase 3: Gebieden en de Beleidswinkel zijn twee tabbladen (Q en E wisselen ze, net als elders in het menu).
     const aangenomen = getBeleid().gekocht.length;
     const tabKnop = (id, label, extra = '') => `<button type="button" role="tab" class="ds-z-tab" data-vo-tab="${id}" aria-selected="${tab === id}">${label}${extra}</button>`;
+    // #1269: zonder geladen gebieden geen leeg kaartvlak (een lege lijst met een scheidingslijn en nog eens "wordt nog
+    // ingeladen"): de regel bij de eerstvolgende taken zegt al wat er komt
+    const kaartVlak = g.lijst
+      ? `<div class="m-main"><div class="m-list pa-list lb-list">${g.lijst}</div><aside class="m-pane pa-pane lb-pane gb-pane" aria-live="polite">${g.pane}</aside></div>`
+      : '';
     const restore = keepFocus(el); // een maatregel kopen tekent het paneel opnieuw: de focus blijft op dezelfde knop (22-11)
     el.innerHTML = `<div class="vo-tabs ds-z-tabs ds-zeef" role="tablist" aria-label="Veroverd">${tabKnop('gebieden', 'Gebieden')}${tabKnop('beleid', 'Beleidswinkel', aangenomen ? ` <small>${aangenomen} aangenomen</small>` : '')}</div>` +
       `<div class="vo-gebieden" data-vo-body="gebieden"${tab === 'gebieden' ? '' : ' hidden'}><div class="vo-top">${hero}${stats}${volgende}${regel}</div>` +
-      `<div class="m-main"><div class="m-list pa-list lb-list">${g.lijst}</div><aside class="m-pane pa-pane lb-pane gb-pane" aria-live="polite">${g.pane}</aside></div></div>` +
+      `${kaartVlak}</div>` +
       `<div class="vo-beleidtab" data-vo-body="beleid"${tab === 'beleid' ? '' : ' hidden'}>${beleidHtml()}</div>`;
     fillBars(el, bars);
     restore();
