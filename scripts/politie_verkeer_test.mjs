@@ -57,7 +57,9 @@ for (const z of [0, 3]) {
   // de kogelhoogte hoort bij de auto, anders vliegt hij op een brug onder de auto door
   ok(s.shot.z > z + 0.9 && s.shot.z < z + 1.55, `z=${z}: de kogel vliegt op raamhoogte van de auto`, `z ${s.shot.z.toFixed(2)}`);
   // de baan eindigt op de auto (binnen de carrosserie), niet erachter
-  ok(Math.abs(s.last.x) <= s.car.halfLen + 0.2, `z=${z}: de kogelbaan eindigt op de auto`, `laatste x ${s.last.x.toFixed(2)}`);
+  // de laatst gemeten plek ligt hooguit één stap (1/60 s) voor de inslag; de stap verschilt per automaat (hybride hatch 4,33 m, objecten 23-11)
+  const stap = Math.hypot(s.shot.vx, s.shot.vy) / 60;
+  ok(Math.abs(s.last.x) <= s.car.halfLen + Math.max(0.2, stap), `z=${z}: de kogelbaan eindigt op de auto`, `laatste x ${s.last.x.toFixed(2)}`);
   ok(s.car.health < 100, `z=${z}: de auto vangt de kogel`, `autoschade ${(100 - s.car.health).toFixed(1)}`);
   ok(s.world.health === 100, `z=${z}: de inzittende blijft ongedeerd achter de carrosserie`, `speler ${s.world.health}`);
   ok(s.world.bullets.length === 0, `z=${z}: de kogel is opgebruikt`, `nog ${s.world.bullets.length}`);
