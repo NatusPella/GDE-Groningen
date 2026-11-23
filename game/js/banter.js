@@ -9,7 +9,7 @@
 import { setDualText } from './subtitles.js';
 import { createSubtitle } from './subtitleui.js';
 import { paintSpeaker } from './speakers.js';
-import { REACTIONS, SPEAKERS } from './banterlines.js';
+import { REACTIONS, SPEAKERS, BANTER } from './banterlines.js';
 import { STEPS, missionIndexOf } from './storyarc.js';
 import { currentStep, getStorySave } from './storyquery.js';
 import { isMissionActive, isMissionCompleted } from './missionquery.js';
@@ -65,6 +65,11 @@ function indexPool(pool) {
   WIJK_NAMES = new Set(pool.filter((ex) => ex.trigger.startsWith('wijk:')).map((ex) => ex.trigger.slice(5)));
 }
 // The story talks from the script (storytext.js banterExchanges); the pool is indexed once the script data has loaded.
+// 23-11 (akte 1 op eindniveau, de eerste rit): de verhaalloze praat over plekken, wijken en het weer uit banterlines.js (158 van 160
+// regels opgenomen) hoort er weer bij. Sinds het nieuwe verhaal (625e6d4cd) stond hij buiten de pool, en reed je de eerste rit van
+// Paddepoel naar het Martinikerkhof in stilte: het script heeft pas na M04 een autogesprek. Alleen plek, wijk en situatie: de oude
+// verhaalregels (after, story) en het oude kletspraatje (idle) blijven eruit.
+export const PLEK_PRAAT = BANTER.filter((ex) => /^(place|wijk|situation):/.test(ex.trigger));
 let poolReady = false;
 indexPool([]);
 
@@ -94,7 +99,7 @@ function saveHeard() {
 // --- story progress (read-only) --------------------------------------------------
 
 function refreshProgress() {
-  if (!poolReady && storyDataReady()) { poolReady = true; st.places = null; indexPool(banterExchanges()); }
+  if (!poolReady && storyDataReady()) { poolReady = true; st.places = null; indexPool([...banterExchanges(), ...PLEK_PRAAT]); }
   let save = null;
   try { save = getStorySave(); } catch (e) { save = null; }
   const done = new Set([...(save ? save.done : []), ...(save ? save.skipped : [])]);

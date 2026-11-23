@@ -9,6 +9,8 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ## [Unreleased]
 
+- Autorijden: Tammo en Tessa praten onderweg weer over de plekken, wijken en het weer waar je langs rijdt; de eerste rit naar Berend is niet meer stil.
+- Tammo en Tessa worden niet meer aangereden door het verkeer van de stad terwijl ze naast je lopen.
 - Akte 1: de zolderkeuken van de opening en de flat van Tammo en Tessa zijn echt ingericht (keukenkastjes, fornuis, koelkast, houten stoelen, een bank tegenover de tv, boekenkast, bureau met laptop, verhuisdozen, een droogrek met was), met warm licht per kamer. Achter de keukendeur ligt nu een verlichte gang in plaats van een zwart gat.
 - Missiestart: zolang je nog naar het missievoertuig loopt, staat alleen je doel in beeld; de klok, het puntenpaneel en de korte introkaart komen pas als je instapt, en de introkaart staat onder de doelbalk in plaats van midden over de actie. Tijdens een missie staan er geen bijbaantjes meer in beeld.
 - Beeld bij de eerste start: het spel meet een paar seconden op Ultra en kiest zelf de mooiste stand die op jouw pc 60 fps haalt (Laag, Midden, Hoog of Ultra, met marge). In Instellingen › Beeld staat dan "Gekozen op basis van je pc", met een knop Opnieuw meten. Wie al eigen instellingen had, houdt die. Samen spelen: de meting en de keuze zijn alleen van je eigen spel; niets wordt gedeeld.
