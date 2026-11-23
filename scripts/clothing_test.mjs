@@ -694,7 +694,7 @@ t('pashokje (ronde 4): passen, kast, outfit bewaren met postuur en kapsel, code 
   M.wardrobeSections(ctx).find((s) => s.title === 'Bewaar').items[0].buy();
   const secties = M.fittingSections(ctx);
   const titels = secties.map((s) => s.title);
-  assert.ok(titels.indexOf('Outfits') < titels.findIndex((t2) => t2.startsWith('Passen:')) && titels.some((t2) => t2 === 'Boven') && titels.includes('Deel je look'), titels.join('|'));
+  assert.ok(titels.indexOf('Outfits') < titels.findIndex((t2) => t2.startsWith('Winkel:')) && titels.some((t2) => t2 === 'Boven') && titels.includes('Deel je look'), titels.join('|'));
   const alle = secties.flatMap((s) => s.items);
   assert.equal(new Set(alle.map((i) => i.id)).size, alle.length, 'ids botsen niet');
   for (const it of alle) assert.ok(it.preview && typeof it.buy === 'function' && LS.itemIcon(it) in SI.SHOP_ICONS, it.id);
