@@ -31,7 +31,8 @@ export function sluitHtml() {
 
 // de reiskeuze: een rij per vervoerswijze met icoon, een zin, de kosten, de duur, 'aanbevolen', de reden als het niet kan en de cijfertoets in de rij zelf.
 // Zelf gaan is geen rij meer: dat is Zet routepunt (21-11).
-export function reisHtml(rijen, gekozen, kleur = {}) {
+export const REIS_UITLEG_KAART = 'Kies hoe je reist. Liever zelf gaan? Zet dan een routepunt.';
+export function reisHtml(rijen, gekozen, kleur = {}, uitleg = REIS_UITLEG_KAART) {
   const rij = (r) => {
     const sel = r.id === gekozen && !r.geenRoute;
     const st = kleur[r.id] ? ` style="border-left-color:${esc(kleur[r.id])}"` : '';
@@ -42,7 +43,7 @@ export function reisHtml(rijen, gekozen, kleur = {}) {
       `<span class="mv-kt"><span class="mv-kk"><span class="mv-kl">${esc(r.label)}</span> ${r.aanbevolen ? '<i class="mv-aanb">aanbevolen</i>' : ''}</span> ` +
       `${r.uitleg ? `<span class="mv-ku">${esc(r.uitleg)}</span> ` : ''}<span class="mv-kd">${feiten}</span></span>${knopToets(r.toets, { rechts: true })}</button>`;
   };
-  return `<div class="mv-reiskeuze" role="group" aria-label="Hoe wil je reizen?"><p class="mv-uit">Kies hoe je reist. Liever zelf gaan? Zet dan een routepunt.</p>${rijen.map(rij).join('')}</div>`;
+  return `<div class="mv-reiskeuze" role="group" aria-label="Hoe wil je reizen?">${uitleg ? `<p class="mv-uit">${esc(uitleg)}</p>` : ''}${rijen.map(rij).join('')}</div>`;
 }
 
 export function infoHtml(regels) {
@@ -68,16 +69,22 @@ export function uitlegHtml({ gast = false } = {}) {
 // De reiskeuze als eigen popup (21-11): de plekkaart blijft compact, 'Reis erheen' opent dit venster. Een rij per vervoerswijze (trein, bus,
 // taxi, boot) met kosten, duur en de reden als het niet kan (gast, te weinig geld, geen verbinding); onderaan Reis nu (Enter, A) en Terug (Esc, B)
 // met de toets IN de knop, en elke rij draagt zijn cijfertoets. Zelf gaan is er niet: dat is Zet routepunt op de plekkaart.
-// model: { naam, afstand, rijen, gekozen, kleur, gast, melding, reis: { label, uitgeschakeld, reden } | null }
-export function reisPopupHtml(m) {
-  const rijen = m.rijen && m.rijen.length ? reisHtml(m.rijen, m.gekozen, m.kleur || {}) : '';
+// #1216 (hertest 24-11): dit is DE reiskaart. De reisvraag bij een verhaalstap (reispanel.js) tekent dezelfde kaart met dezelfde kop, rijen en
+// knoppen; alleen de inhoud verschilt (Snel reizen, Zelf gaan, Overslaan). Eerst waren het twee componenten voor dezelfde keuze.
+// model: { titel, kicker, naam, afstand, uitleg, rijen, gekozen, kleur, melding, reis: { label, uitgeschakeld } | null, terug: label | null, hud }
+export function reisKaartHtml(m) {
+  const rijen = m.rijen && m.rijen.length ? reisHtml(m.rijen, m.gekozen, m.kleur || {}, m.uitleg === undefined ? REIS_UITLEG_KAART : m.uitleg) : '';
   const reden = m.melding ? `<p class="ds-z-kaart__tekst mv-reispop-reden" role="status">${esc(m.melding)}</p>` : '';
   const reis = m.reis ? dsButtonKey({ label: m.reis.label, toets: KNOP_TOETSEN.bevestig, klasse: 'ds-z-knop mv-reispop-ok', attrs: 'data-card="rij"', uit: !!m.reis.uitgeschakeld }) : '';
-  const terug = dsButtonKey({ label: 'Terug', toets: KNOP_TOETSEN.terug, klasse: 'ds-z-knop ds-z-knop--secundair mv-reispop-terug', attrs: 'data-card="reis-sluit"' });
-  return '<div class="mv-reispop" role="dialog" aria-modal="true" aria-labelledby="mv-reispop-t">' +
-    '<div class="ds-zeef ds-z-kaart ds-z-kaart--recht mv-reispop-box"><div class="ds-z-kaart__kop"><h2 id="mv-reispop-t" class="ds-z-kaart__titel">Reis erheen</h2></div>' +
-    `<p class="ds-z-kaart__tekst mv-reispop-plek"><b>${esc(m.naam || 'Plek op de kaart')}</b>${m.afstand ? ` · ${esc(m.afstand)}` : ''}</p>` +
-    rijen + reden + `<div class="mv-help-foot">${reis}${terug}</div></div></div>`;
+  const terug = m.terug === null ? '' : dsButtonKey({ label: m.terug || 'Terug', toets: KNOP_TOETSEN.terug, klasse: 'ds-z-knop ds-z-knop--secundair mv-reispop-terug', attrs: 'data-card="reis-sluit"' });
+  const plek = m.naam || m.afstand ? `<p class="ds-z-kaart__tekst mv-reispop-plek">${m.naam ? `<b>${esc(m.naam)}</b>` : ''}${m.naam && m.afstand ? ' · ' : ''}${m.afstand ? esc(m.afstand) : ''}</p>` : '';
+  return `<div class="mv-reispop${m.hud ? ' mv-reispop--hud' : ''}" role="dialog"${m.hud ? '' : ' aria-modal="true"'} aria-labelledby="mv-reispop-t">` +
+    `<div class="ds-zeef ds-z-kaart ds-z-kaart--recht mv-reispop-box"><div class="ds-z-kaart__kop">${m.kicker ? `<span class="mv-reispop-eb">${esc(m.kicker)}</span>` : ''}<h2 id="mv-reispop-t" class="ds-z-kaart__titel">${esc(m.titel || 'Reis erheen')}</h2></div>` +
+    plek + rijen + reden + `<div class="mv-help-foot">${reis}${terug}</div></div></div>`;
+}
+// de kaartpopup: Reis erheen naar een plek (mapview.js)
+export function reisPopupHtml(m) {
+  return reisKaartHtml({ ...m, titel: 'Reis erheen', naam: m.naam || 'Plek op de kaart' });
 }
 
 // De legenda bovenaan het luik Lagen (#445): wat een klik doet en, voor een
@@ -122,36 +129,40 @@ export const KAART_ACTIE_CSS = `
 .mapview-card .mv-hier b { display: block; font: normal 26px/1.1 var(--ds-font-kop); letter-spacing: 0.04em; }
 .mapview-card .mv-hier .mv-hier-plek { margin: 2px 0 4px; font: 20px/1.35 var(--ds-font-tekst); color: var(--ink, #f0ede4); }
 /* de uitleg en de reispopup (21-11): een compacte papieren kaart op een rustig gedimde kaart, zonder vervaging; tekst op 15 px of meer */
-.mapview-overlay :is(.mv-help, .mv-reispop) { position: absolute; inset: 0; z-index: 12; pointer-events: auto; display: grid; place-items: center; padding: var(--ds-s-5); background: color-mix(in srgb, var(--ds-c-ink-inkt, #1b1a17) 45%, transparent); animation: mv-help-in var(--ds-m, 200ms) var(--ds-ease, ease-out) both; }
-.mapview-overlay :is(.mv-help-box, .mv-reispop-box) { width: min(460px, 100%); max-height: 100%; overflow-y: auto; box-sizing: border-box; gap: var(--ds-s-3); font-size: max(15px, var(--menu-min, 15px)); animation: mv-help-kaart var(--ds-m, 200ms) var(--ds-ease, ease-out) both; }
-.mapview-overlay .mv-reispop-box { width: min(520px, 100%); }
-.mapview-overlay .mv-help-head .ds-z-kaart__titel, .mapview-overlay .mv-reispop-box .ds-z-kaart__titel { margin: 0; }
+:is(.mapview-overlay, .reis-hud) :is(.mv-help, .mv-reispop) { position: absolute; inset: 0; z-index: 12; pointer-events: auto; display: grid; place-items: center; padding: var(--ds-s-5); background: color-mix(in srgb, var(--ds-c-ink-inkt, #1b1a17) 45%, transparent); animation: mv-help-in var(--ds-m, 200ms) var(--ds-ease, ease-out) both; }
+:is(.mapview-overlay, .reis-hud) :is(.mv-help-box, .mv-reispop-box) { width: min(460px, 100%); max-height: 100%; overflow-y: auto; box-sizing: border-box; gap: var(--ds-s-3); font-size: max(15px, var(--menu-min, 15px)); animation: mv-help-kaart var(--ds-m, 200ms) var(--ds-ease, ease-out) both; }
+:is(.mapview-overlay, .reis-hud) .mv-reispop-box { width: min(520px, 100%); }
+:is(.mapview-overlay, .reis-hud) .mv-help-head .ds-z-kaart__titel, :is(.mapview-overlay, .reis-hud) .mv-reispop-box .ds-z-kaart__titel { margin: 0; }
 .mapview-overlay .mv-help-regels { margin: var(--ds-s-2) 0 0 var(--ds-s-5); padding: 0; font-size: max(15px, var(--menu-min, 15px)); }
 .mapview-overlay .mv-help-regels li { margin: var(--ds-s-1) 0; }
-.mapview-overlay .mv-help-foot { display: flex; align-items: center; flex-wrap: wrap; gap: var(--ds-s-2) var(--ds-s-3); }
+:is(.mapview-overlay, .reis-hud) .mv-help-foot { display: flex; align-items: center; flex-wrap: wrap; gap: var(--ds-s-2) var(--ds-s-3); }
 .mapview-overlay .mv-help-gast { margin: 0; color: var(--ds-tx-zacht); font-size: max(15px, var(--menu-min, 15px)); line-height: 1.4; }
 .mapview-card .mv-sluit { min-height: var(--ds-doel-aanraken); padding: var(--ds-s-1) var(--ds-s-4); font-size: var(--ds-t-label); box-shadow: none; }
 .mapview-card .mv-sluit:focus-visible { outline: var(--ds-focus-dikte) solid var(--ds-focus); outline-offset: var(--ds-focus-afstand); }
-.mapview-overlay :is(.mv-help-ok, .mv-reispop-ok, .mv-reispop-terug) { min-height: var(--ds-doel-aanraken); font-size: var(--ds-t-label); }
-.mapview-overlay :is(.mv-help-ok, .mv-reispop-ok, .mv-reispop-terug):focus-visible { outline: var(--ds-focus-dikte) solid var(--ds-focus); outline-offset: var(--ds-focus-afstand); }
-.mapview-overlay .mv-reispop-plek { margin: 0; font-size: max(15px, var(--menu-min, 15px)); }
-.mapview-overlay .mv-reispop-reden { margin: 0; padding: var(--ds-s-2) var(--ds-s-3); border: var(--ds-lijn-dik) dashed var(--ds-c-ink-inkt); border-radius: var(--ds-r); font-size: max(15px, var(--menu-min, 15px)); }
-.mapview-overlay .mv-reispop .mv-reiskeuze { margin: 0; }
-.mapview-overlay .mv-reispop .mv-keuze { min-height: var(--ds-doel-aanraken); font-size: max(15px, var(--menu-min, 15px)); color: var(--ds-zeef-tx); border-left-color: var(--ds-c-ink-inkt); }
-.mapview-overlay .mv-reispop .mv-keuze.uit { opacity: 1; }
-.mapview-overlay .mv-reispop .mv-keuze.uit :is(.mv-kl, .mv-ki) { opacity: 0.6; }
-.mapview-overlay .mv-reispop .mv-keuze.sel { background: var(--ds-c-sel-vlak); box-shadow: inset 0 0 0 var(--ds-lijn-dik) var(--ds-c-ink-bord); }
-.mapview-overlay .mv-reispop .mv-keuze:focus-visible { outline: var(--ds-focus-dikte) solid var(--ds-focus); outline-offset: var(--ds-focus-afstand); }
-.mapview-overlay .mv-reispop .mv-kk .mv-kl { font-size: max(20px, var(--menu-min, 20px)); }
-.mapview-overlay .mv-reispop .mv-uit, .mapview-overlay .mv-reispop .mv-ku, .mapview-overlay .mv-reispop .mv-kd { color: var(--ds-tx-zacht); font-size: max(15px, var(--menu-min, 15px)); font-family: var(--ds-font-zeef-tekst); }
-.mapview-overlay .mv-reispop .mv-aanb { font-size: max(13px, var(--menu-min, 13px)); }
+:is(.mapview-overlay, .reis-hud) :is(.mv-help-ok, .mv-reispop-ok, .mv-reispop-terug) { min-height: var(--ds-doel-aanraken); font-size: var(--ds-t-label); }
+:is(.mapview-overlay, .reis-hud) :is(.mv-help-ok, .mv-reispop-ok, .mv-reispop-terug):focus-visible { outline: var(--ds-focus-dikte) solid var(--ds-focus); outline-offset: var(--ds-focus-afstand); }
+:is(.mapview-overlay, .reis-hud) .mv-reispop-plek { margin: 0; font-size: max(15px, var(--menu-min, 15px)); }
+:is(.mapview-overlay, .reis-hud) .mv-reispop-reden { margin: 0; padding: var(--ds-s-2) var(--ds-s-3); border: var(--ds-lijn-dik) dashed var(--ds-c-ink-inkt); border-radius: var(--ds-r); font-size: max(15px, var(--menu-min, 15px)); }
+:is(.mapview-overlay, .reis-hud) .mv-reispop .mv-reiskeuze { margin: 0; }
+:is(.mapview-overlay, .reis-hud) .mv-reispop .mv-keuze { min-height: var(--ds-doel-aanraken); font-size: max(15px, var(--menu-min, 15px)); color: var(--ds-zeef-tx); border-left-color: var(--ds-c-ink-inkt); }
+:is(.mapview-overlay, .reis-hud) .mv-reispop .mv-keuze.uit { opacity: 1; }
+:is(.mapview-overlay, .reis-hud) .mv-reispop .mv-keuze.uit :is(.mv-kl, .mv-ki) { opacity: 0.6; }
+:is(.mapview-overlay, .reis-hud) .mv-reispop .mv-keuze.sel { background: var(--ds-c-sel-vlak); box-shadow: inset 0 0 0 var(--ds-lijn-dik) var(--ds-c-ink-bord); }
+:is(.mapview-overlay, .reis-hud) .mv-reispop .mv-keuze:focus-visible { outline: var(--ds-focus-dikte) solid var(--ds-focus); outline-offset: var(--ds-focus-afstand); }
+:is(.mapview-overlay, .reis-hud) .mv-reispop .mv-kk .mv-kl { font-size: max(20px, var(--menu-min, 20px)); }
+:is(.mapview-overlay, .reis-hud) .mv-reispop .mv-uit, :is(.mapview-overlay, .reis-hud) .mv-reispop .mv-ku, :is(.mapview-overlay, .reis-hud) .mv-reispop .mv-kd { color: var(--ds-tx-zacht); font-size: max(15px, var(--menu-min, 15px)); font-family: var(--ds-font-zeef-tekst); }
+:is(.mapview-overlay, .reis-hud) .mv-reispop .mv-aanb { font-size: max(13px, var(--menu-min, 13px)); }
 .mapview-overlay .mv-zoektip { position: absolute; left: 0; right: 0; top: calc(100% + var(--ds-s-2)); z-index: 12; margin: 0; padding: var(--ds-s-2) var(--ds-s-3); font-family: var(--ds-font-zeef-tekst); font-size: var(--ds-t-hulp); line-height: var(--ds-lh-tekst); pointer-events: none; }
 @keyframes mv-help-in { from { opacity: 0; } to { opacity: 1; } }
 @keyframes mv-help-kaart { from { opacity: 0; translate: 0 var(--ds-s-2); } to { opacity: 1; translate: 0 0; } }
-@media (prefers-reduced-motion: reduce) { .mapview-overlay :is(.mv-help, .mv-reispop, .mv-help-box, .mv-reispop-box) { animation: none; } }
-html.reduce-motion .mapview-overlay :is(.mv-help, .mv-reispop, .mv-help-box, .mv-reispop-box), html.rustig-drukwerk .mapview-overlay :is(.mv-help, .mv-reispop, .mv-help-box, .mv-reispop-box) { animation: none; }
+@media (prefers-reduced-motion: reduce) { :is(.mapview-overlay, .reis-hud) :is(.mv-help, .mv-reispop, .mv-help-box, .mv-reispop-box) { animation: none; } }
+html.reduce-motion :is(.mapview-overlay, .reis-hud) :is(.mv-help, .mv-reispop, .mv-help-box, .mv-reispop-box), html.rustig-drukwerk :is(.mapview-overlay, .reis-hud) :is(.mv-help, .mv-reispop, .mv-help-box, .mv-reispop-box) { animation: none; }
 @media (max-height: 760px) { .mapview-overlay :is(.mv-help-box, .mv-reispop-box) { gap: var(--ds-s-2); } .mapview-overlay :is(.mv-help, .mv-reispop) { padding: var(--ds-s-3); } }
 .mapview-overlay .mv-uitleg small { display: block; margin-top: 8px; font-size: 18px; color: var(--mut, rgba(240,237,228,0.65)); }
+/* #1216: de reisvraag van een verhaalstap is dezelfde kaart, bovenin het spel zonder de kaart erachter te dimmen */
+.reis-hud .mv-reispop.mv-reispop--hud { position: fixed; inset: var(--ds-s-6, 72px) 0 auto 0; z-index: 40; place-items: start center; background: none; pointer-events: none; }
+.reis-hud .mv-reispop--hud .mv-reispop-box { pointer-events: auto; }
+:is(.mapview-overlay, .reis-hud) .mv-reispop-eb { display: block; margin: 0 0 var(--ds-s-1); font-family: var(--ds-font-kop); font-size: max(13px, var(--ds-t-label, 13px)); letter-spacing: 0.14em; text-transform: uppercase; color: var(--ds-tx-accent, var(--ds-c-groen, #0c5a2c)); }
 .mapview-legend .mv-leg-hint { margin: 0 2px 8px; }
 .mapview-legend .mv-leg-hint .hint { margin: 0 0 2px; }
 .mapview-legend .mv-leg-hint .hint:last-child { margin-bottom: 0; }
