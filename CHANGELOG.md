@@ -80,6 +80,7 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 - Instellingen › Geluid: Geluid in één keer uit is één schakelaar, met de toets U in de uitleg in plaats van een losse luidspreker en letter ernaast. Het ondertitelvoorbeeld staat op een plaatje van de Vismarkt in plaats van op een groene vlek. Samen spelen: lokaal in je eigen menu.
 - Kaartlaag Te koop: de perceelkaart toont bovenaan de vorm van het perceel zelf (noorden boven) en zet oppervlakte, bodem en verwachte opbrengst voorop. Zonder bekende omtrek komt er geen plaatje. Samen spelen: lokaal; een perceel van een medespeler toont dezelfde vorm.
 - Winkels: de toetsbalk onderin gebruikt dezelfde toetsplaatjes als het pauzemenu (gevulde pijlen, een Enter-plaatje in plaats van het woord), en de toetshint in de gele koopknop is groter. Samen spelen: lokaal in je eigen scherm.
+- Laadscherm: de statusregel onder de balk is op een groot scherm groter en iets vetter, zodat hij naast het logo en het bord te lezen is. Samen spelen: ongewijzigd; een gast ziet dezelfde regel bij Wachten op de gastheer.
 
 ## [0.65.0] - 2026-11-22
 
