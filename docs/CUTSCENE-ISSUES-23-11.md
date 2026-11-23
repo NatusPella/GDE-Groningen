@@ -32,7 +32,8 @@ Ernst: **ernstig** = de scène leest als kapot (figuur in een voertuig of op het
 | 10 | intro's op een boot | De camera begint ruim 16 m hoog (de volgcamera) en zakt in zes seconden naar het paar: de eerste seconden zien de speler niet wie praat. Nog niet uitgezocht of dit voor alle intro's geldt (`playStaged`/`cinematics.js`). | middel | **open**, gezien |
 | 11 | 41 meldingen "spreker kijkt weg" (o.a. `F4` Jelle 19,8 s van Mem af, `M10.intro` Jelle 24,6 s van Durk af, `M15.outro` Roelfien 20 s van Jelle af, `M03.2`, `M26.6`, `F3`) | Het lichaam van de spreker staat meer dan 100 graden van de dichtstbijzijnde figuur af terwijl hij praat. Veel zijn waarschijnlijk figuranten of een blik naar een prop (de audit kent geen "praat tegen het publiek"), dus eerst beoordelen. | laag | **open**, niet in beeld gezien |
 | 12 | `intromontage.js`, `missionstory.js`, `cutscenehost.js` | 14 losse primitieven in scènecode (de automaat met scherm en aanhanger, het blik, de paal, het glas, de voetbal, twee schaduwcirkels, een kiosk met sticker). Tegen de nieuwe regel (zie onder). | middel | **open** (de baseline houdt het vast) |
-| 13 | `story-opening-keuken` en de 19 terugkeervignetten | Spelen nog in de keukenkit en niet in de flat (zie [CUTSCENE-INTERIEURS-22-11.md](CUTSCENE-INTERIEURS-22-11.md), "De keuken en de flat"). | laag | **open**, bewust |
+| 13 | `M30.outro` (het slot van het spel) | Na de brede opening ziet de speler de snackwagen "Tam & Tes" en de gasten niet meer: de close-ups kijken van de wagen af naar het Stadhuis, en Tammo en Tessa staan met idle armen in de lens. Het eindbeeld van de held van het verhaal verdwijnt uit beeld. Gezien op beeld, nog niet aangepast. | middel | **open**, gezien |
+| 14 | `story-opening-keuken` en de 19 terugkeervignetten | Spelen nog in de keukenkit en niet in de flat (zie [CUTSCENE-INTERIEURS-22-11.md](CUTSCENE-INTERIEURS-22-11.md), "De keuken en de flat"). | laag | **open**, bewust |
 
 ## Wat er is veranderd (en waarom zo)
 
@@ -80,4 +81,4 @@ voortgang of beloning. De bank en de zitplaatsen zijn pure plaatsing (`boatdeck.
 ## Niet in beeld gezien
 
 Alles in de tabel zonder "gezien": de zitplaatsen op kleine boten, M30.outro, M01.intro/outro, M15.outro en carriere-bezit-start (alleen de data is gemeten: de audit meldt geen
-overlap meer). Niet gedraaid: de volledige suite, `province_test` en de Electron-verhaaltest (coördinator). De rest van de 117 scènes is niet op beeld bekeken.
+overlap meer). Niet gedraaid: de volledige suite, `province_test` en de Electron-verhaaltest (coördinator). De rest van de 117 scènes is niet op beeld bekeken. Bus- en treinscènes (`reisrit3d.js`, `stationtravel.js`, `fjordtrain.js`) zijn niet onderzocht: de scènetaal kent geen bus of trein als prop (alleen de snackwagen), dus de nieuwe audit dekt ze niet; de plaatsing van figuren in die voertuigen is een vervolg.
