@@ -72,6 +72,22 @@ const finite = (m) => { let bad = 0; m.traverse((o) => { for (const k of ['x', '
   for (let i = 0; i < 60 * 12; i++) animatePersonWalk(m, 0, 1 / 60);
   ok(!ud.stillT, 'een gebukte mens heeft geen stilstaanteller');
 }
+// knipperen (#personages-aaa): de oogleden zijn open (schaal 0), sluiten kort en blijven eindig; een dode mens houdt ze dicht
+{
+  ok(G.blinkAmount(0.5, 3) >= 0 && G.blinkAmount(0.5, 3) <= 1 && G.blinkAmount(NaN, 1) === 0, 'blinkAmount blijft in 0..1');
+  const m = mk(9), ud = m.userData; let max = 0, open = 0, n2 = 0;
+  ok(!!ud.lids && ud.lids.scale.y === 0, 'de oogleden beginnen open');
+  for (let i = 0; i < 60 * 20; i++) { animatePersonWalk(m, 0, 1 / 60); const v = ud.lids.scale.y; max = Math.max(max, v); if (v === 0) open++; n2++; }
+  ok(max > 0.95 && open / n2 > 0.85, `in 20 s knippert hij en is open ${(open / n2 * 100).toFixed(0)}% van de tijd (max ${max.toFixed(2)})`);
+  const d = mk(10); d.rotation.z = Math.PI / 2; animatePersonWalk(d, 0, 1 / 60);
+  ok(d.userData.lids.scale.y === 1, 'een dode mens heeft de ogen dicht');
+}
+// variatie: twee zaden in hetzelfde shirt hebben niet dezelfde kleuren (subtiele kleurvariatie per mens)
+{
+  const col = (seed) => { const g = buildPersonMesh(0x3f6ea8, 0xf1c9a5, { seed }).userData.body.geometry.attributes.color; return [g.getX(0), g.getY(0), g.getZ(0), g.count]; };
+  const set = new Set(); for (let i = 1; i <= 12; i++) set.add(col(i * 31).slice(0, 3).map((v) => v.toFixed(3)).join());
+  ok(set.size >= 6, `12 zaden geven ${set.size} verschillende huid- en kleurstanden`);
+}
 ok(G.FIDGET_CLIPS.length >= 3, 'er zijn minstens drie wachtclips');
 
 console.log(fails ? `${fails} van ${n} mislukt` : `gait_anim_test: ${n} controles ok`);

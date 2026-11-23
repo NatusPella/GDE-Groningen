@@ -32,6 +32,7 @@
 // Gebruik per frame OF animatePersonWalk OF deze laag voor dezelfde mesh.
 
 import { zwemStand, klimStand, sprongStand } from './bewegingrules.js';
+import { blinkAmount } from './gait.js';
 
 const TAU = Math.PI * 2;
 // (#463) De heupzwaai van een lopende acteur blijft binnen een stap; de volle
@@ -154,6 +155,7 @@ export function applyPose(ud, p) {
   limb(ud.armR, ud.elbowR, p.armR);
   if (ud.legL) { ud.legL.rotation.set(0, 0, p.legL.z); if (ud.kneeL) ud.kneeL.rotation.z = p.legL.k; }
   if (ud.legR) { ud.legR.rotation.set(0, 0, p.legR.z); if (ud.kneeR) ud.kneeR.rotation.z = p.legR.k; }
+  if (ud.lids) { const v = blinkAmount(Date.now() / 1000, ud.animOffset || 0); if (ud.lids.scale.y !== v) ud.lids.scale.y = v; } // ogen knipperen ook in een cutscene
   return true;
 }
 

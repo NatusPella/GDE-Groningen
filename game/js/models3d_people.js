@@ -2,7 +2,7 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
 import { HABBO_PALETTE, SkinBuilder, loftGeometry, composeMatrix, vcMaterial, markShared, tubeGeometry } from './pixelart3d.js';
 import { hash2 } from './rng.js';
 import { weaponLayers } from './models3d_weapons.js';
-import { footContact, turnLean, approachTo, wrapPi, fidgetAt } from './gait.js';
+import { footContact, turnLean, approachTo, wrapPi, fidgetAt, blinkAmount } from './gait.js';
 import { idlePose } from './idleclips.js';
 import { attachAccessories } from './models3d_clothing.js';
 import { buildHairStyle } from './models3d_hair.js';
@@ -31,7 +31,8 @@ const NECK_Y = 1.49;
 const HEAD_Y = 1.655;
 const DEFAULT_CAP = 0xc8621e;
 
-const BONE = { pelvis: 0, chest: 1, head: 2, thigh: [3, 5], knee: [4, 6], arm: [7, 9], elbow: [8, 10] };
+const BONE = { pelvis: 0, chest: 1, head: 2, thigh: [3, 5], knee: [4, 6], arm: [7, 9], elbow: [8, 10], lids: 11 };
+const LID_Y = HEAD_Y + 0.01; // hoogte van de ogen: de ooglidbot schaalt om deze lijn (schaal 0 = open, 1 = dicht)
 
 // Meetspoor voor scripts/kleding_clipping_audit.mjs: met personProbe.layers aan onthoudt de bouwer welk stuk elke driehoek is (laag, vanaf driehoek n).
 // Uit is het niets: tag() kijkt alleen of B.layers bestaat.
@@ -44,6 +45,7 @@ export const TAMMO_APPEARANCE = { shirt: 0x3f6ea8, skin: HABBO_PALETTE.woodLight
 export const ANITA_APPEARANCE = { shirt: 0x9e3027, skin: HABBO_PALETTE.woodMid, hair: 0x1b1716, variant: 'female', character: 'anita', pants: 0x26262a, shoes: 0x2a1d14, hairStyle: 'long', seed: 23 };
 
 const HAIR_COLORS = [0x2a1d14, 0x3b2a1e, 0x5a3d26, 0x7a5636, 0xb08f5c, 0xcdb485, 0x93462a, 0x1b1b1d, 0x2a1d14];
+const DYED_HAIR = [0x2f6f8a, 0x8a2f6f, 0x4f8a4a, 0xc9694a];
 const GREY_HAIR = [0x8a8580, 0xb4afa6, 0xd2cec6, 0x6e6a66];
 const PANTS_COLORS = [0x2f3b52, 0x232326, 0x3a3b3f, 0x7f7258, 0x4a3a2a, 0x5b5f63, 0x3b4a3a, 0x6b6250];
 const JEANS_COLORS = [0x3a4d6e, 0x2f3f5a, 0x4a5f82, 0x28303f, 0x55657a];
@@ -89,6 +91,11 @@ function shade(hex, f) {
 function mix(a, b, t) {
   const ch = (s) => Math.round(((a >> s) & 0xff) * (1 - t) + ((b >> s) & 0xff) * t);
   return (ch(16) << 16) | (ch(8) << 8) | ch(0);
+}
+
+// Een kleur een paar procent lichter of donkerder en een tikje warm of koel (a, b in 0..1).
+function jitterColor(c, a, b) {
+  return mix(shade(c, 0.93 + a * 0.14), b < 0.5 ? 0xc9a27a : 0x7c8fa8, 0.03 + Math.abs(b - 0.5) * 0.08);
 }
 
 function pick(arr, t) {
@@ -155,7 +162,9 @@ function resolveLook(shirt, skin, opts) {
     ? [['none', 0.35], ['moustache', 0.3], ['beard', 0.25], ['stubble', 0.1]]
     : [['none', 0.46], ['stubble', 0.2], ['beard', 0.14], ['moustache', 0.08], ['goatee', 0.12]]);
 
-  const hair = opts.hair ?? (age === 'old' ? pick(GREY_HAIR, r(5)) : pick(HAIR_COLORS, r(5)));
+  // zelden een geverfd kapsel (alleen jong, geen personage): kleur uit een kleine tabel, zodat een menigte niet uit alleen natuurlijke tinten bestaat
+  const dyed = !character && !cop && age === 'young' && r(42) < 0.04;
+  const hair = opts.hair ?? (dyed ? pick(DYED_HAIR, r(41)) : age === 'old' ? pick(GREY_HAIR, r(5)) : pick(HAIR_COLORS, r(5)));
   const pants = opts.pants ?? (cop ? COP_TROUSERS : bottom === 'jeans' ? pick(JEANS_COLORS, r(7)) : bottom === 'skirt' ? pick(SKIRT_COLORS, r(7)) : pick(PANTS_COLORS, r(7)));
   const shoeType = cop ? 'boot' : choose(r(18), [['sneaker', 0.45], ['leather', 0.35], ['boot', 0.2]]);
   const heightBase = female ? 0.94 : 1;
@@ -178,8 +187,10 @@ function resolveLook(shirt, skin, opts) {
     raincoatColor: pick(RAINCOAT_COLORS, r(25)),
     hijabColor: pick(HIJAB_COLORS, r(26)),
     umbrella: rainy && !hoodUp && r(27) < 0.4 ? pick(UMBRELLA_COLORS, r(28)) : null,
-    heightScale: character ? (female ? 0.97 : 1.02) : heightBase * (age === 'old' ? 0.95 : 1) * (0.95 + r(13.5) * 0.1),
-    buildScale: character ? 1 : (build === 'slim' ? 0.93 : build === 'heavy' ? 1.08 : 1) * (0.97 + r(14.5) * 0.06),
+    heightScale: character ? (female ? 0.97 : 1.02) : heightBase * (age === 'old' ? 0.95 : 1) * (0.93 + r(13.5) * 0.14), // breder bereik: een lange en een kleine buurman vallen op
+    buildScale: character ? 1 : (build === 'slim' ? 0.93 : build === 'heavy' ? 1.08 : 1) * (0.96 + r(14.5) * 0.08),
+    // gezichtsuitdrukking in rust (alleen vorm, geen extra bewegende delen): 0 neutraal, 1 vriendelijk, 2 nors
+    mood: character || cop ? 0 : choose(r(43), age === 'old' ? [[0, 0.4], [1, 0.25], [2, 0.35]] : [[0, 0.5], [1, 0.35], [2, 0.15]]),
   };
 }
 
@@ -414,10 +425,23 @@ function buildHead(B, L, skin) {
     B.box(faceX(0.034, ez) - 0.006, HEAD_Y + 0.034, ez, 0.014, 0.014, 0.036, shade(skin, 0.95), 0, 0, -s * 0.4, 0);
     plate(B, faceX(0.01, ez) + 0.0015, HEAD_Y + 0.01, ez, 0.0085, 0.013, -s * 0.4, EYE_WHITE);
     plate(B, faceX(0.01, ez) + 0.003, HEAD_Y + 0.009, s * 0.032, 0.0075, 0.0065, -s * 0.4, EYE_DARK);
-    plate(B, faceX(0.04, ez) + 0.004, HEAD_Y + 0.04, ez, 0.0045, 0.016, -s * 0.4, shade(L.hair, 0.8), s * 0.12);
+    plate(B, faceX(0.04, ez) + 0.004, HEAD_Y + 0.04, ez, 0.0045, 0.016, -s * 0.4, shade(L.hair, 0.8), s * (L.mood === 2 ? 0.2 : L.mood === 1 ? 0.06 : 0.12));
     B.box(-0.004, HEAD_Y + 0.002, s * 0.084, 0.03, 0.044, 0.016, shade(skin, 0.92));
+    // blosjes (alleen een tint op de wang) en bij ouderen een lachlijn naast de mond
+    plate(B, faceX(-0.016, s * 0.056) + 0.001, HEAD_Y - 0.016, s * 0.056, 0.012, 0.013, -s * 0.4, mix(skin, 0xd8766a, L.age === 'old' ? 0.26 : 0.18));
+    if (L.age === 'old') plate(B, faceX(-0.036, s * 0.03) + 0.0012, HEAD_Y - 0.036, s * 0.03, 0.011, 0.0022, -s * 0.2, shade(skin, 0.8), -s * 0.35);
   }
-  plate(B, faceX(-0.052, 0) + 0.0015, HEAD_Y - 0.052, 0, 0.005, 0.017, 0, mix(shade(skin, 0.78), 0x8a3a30, 0.3));
+  const lipColor = mix(shade(skin, 0.78), 0x8a3a30, 0.3);
+  plate(B, faceX(-0.052, 0) + 0.0015, HEAD_Y - 0.052, 0, 0.005, L.mood === 1 ? 0.02 : L.mood === 2 ? 0.014 : 0.017, 0, lipColor);
+  // mondhoeken: omhoog bij een vriendelijk gezicht, omlaag bij een nors gezicht (vormen, geen botten: de uitdrukking staat in rust vast)
+  if (L.mood) for (const s of [1, -1]) plate(B, faceX(-0.052, s * 0.019) + 0.0016, HEAD_Y - 0.052 + (L.mood === 1 ? 0.002 : -0.002), s * 0.019, 0.0042, 0.0075, 0, lipColor, (L.mood === 1 ? -s : s) * 0.55);
+  // oogleden: huidkleurige plaatjes op een eigen bot (11), die om de ooglijn schaalt; open = schaal 0, dus onzichtbaar (blinkLids)
+  {
+    const prev = B.bone;
+    B.bone = BONE.lids;
+    for (const s of [1, -1]) plate(B, faceX(0.01, s * 0.033) + 0.0045, LID_Y - 0.001, s * 0.033, 0.0145, 0.0155, -s * 0.4, shade(skin, 0.97));
+    B.bone = prev;
+  }
 
   if (L.glasses) {
     tag(B, 'glasses');
@@ -1090,6 +1114,8 @@ function buildArms(B, L, skin, shZ) {
     const hy = -0.575;
     B.geo(new THREE.BoxGeometry(0.068, 0.11, 0.028), m(0.008, hy - 0.015, 0, 0, 0, 0.12), skin);
     B.geo(new THREE.BoxGeometry(0.02, 0.045, 0.02), m(0.04, hy - 0.012, -s * 0.012, 0, 0, 0.35), shade(skin, 0.95));
+    // losjes gekromde vingers aan de palm: de hand leest als hand in plaats van als blok
+    B.geo(new THREE.BoxGeometry(0.03, 0.05, 0.026), m(0.026, hy - 0.083, 0, 0, 0, 0.5), shade(skin, 0.97));
   }
 }
 
@@ -1162,6 +1188,7 @@ function buildRig(L, shZ) {
   const pelvis = bone(0, HIP_Y, 0);
   const chest = bone(0, CHEST_Y - HIP_Y, 0, pelvis);
   const head = bone(0, NECK_Y - CHEST_Y, 0, chest);
+  const lids = bone(0.0, LID_Y - NECK_Y, 0, head);
   const bones = [pelvis, chest, head];
   const hipZ = L.female ? 0.084 : 0.088;
   const limbs = {};
@@ -1177,7 +1204,8 @@ function buildRig(L, shZ) {
     bones[BONE.elbow[k]] = elbow;
     limbs[k] = { thigh, knee, arm, elbow };
   }
-  return { bones, pelvis, chest, head, limbs };
+  bones[BONE.lids] = lids;
+  return { bones, pelvis, chest, head, lids, limbs };
 }
 
 // Main colours of the look buildPersonMesh(shirt, skin, { seed }) produces.
@@ -1244,6 +1272,15 @@ export function buildPersonMesh(shirt, skin, opts = {}) {
     if (L.hairStyle === 'hijab') L.hairStyle = 'bun';
   }
 
+  // subtiele kleurvariatie per mens (alleen gewone voorbijgangers): tint en helderheid van bovenstuk, broek en huid schuiven een paar procent,
+  // zodat twee mensen in hetzelfde rode shirt niet exact dezelfde kleuren hebben. Afgeleid van het zaad, dus geen extra geometrie in de cache.
+  if (!L.character && !L.cop && !opts.look && !opts.swim && (!opts.role || opts.role === 'voetganger')) {
+    L.topColor = jitterColor(L.topColor, L.r(44), L.r(45));
+    L.pants = jitterColor(L.pants, L.r(46), L.r(47));
+    L.skirtColor = L.pants;
+    skin = shade(skin, 0.96 + L.r(48) * 0.08);
+  }
+
   // lichaamsvorm (clothinghair.js BODY_TYPES): postuur en maat bovenop wat het personage al heeft; kleding is niet aan een geslacht gebonden
   const bt = bodyId && BODY_TYPES[bodyId];
   if (bt) { L.build = bt.build; L.buildScale *= bt.bs; L.heightScale *= bt.hs; }
@@ -1290,6 +1327,7 @@ export function buildPersonMesh(shirt, skin, opts = {}) {
   group.add(mesh);
   group.updateMatrixWorld(true);
   mesh.bind(new THREE.Skeleton(rig.bones));
+  rig.lids.scale.y = 0; // pas na het binden: de inverse van een bot met schaal 0 bestaat niet
 
   if (headScale !== 1) rig.head.scale.setScalar(headScale);
   trackHead(rig.head);
@@ -1297,6 +1335,7 @@ export function buildPersonMesh(shirt, skin, opts = {}) {
   ud.pelvis = rig.pelvis;
   ud.chest = rig.chest;
   ud.head = rig.head;
+  ud.lids = rig.lids;
   ud.legL = rig.limbs[0].thigh;
   ud.legR = rig.limbs[1].thigh;
   ud.kneeL = rig.limbs[0].knee;
@@ -2295,9 +2334,18 @@ export function animatePersonWalk(mesh, speed, dt) {
     if (ud.stillT > 5 && fidgetAt(ud.stillT, ud.animOffset * 0.01, _fid)) fidgetOverlay(ud);
   } else ud.stillT = 0;
   if (crouch > 0) applyCrouch(ud, crouch, phase, w, s, cadence);
+  blinkLids(ud, t, dead ? 1 : 0);
   const air = ud.airBlend = approach(ud.airBlend || 0, Math.max(0, Math.min(1, ud.air || 0)), step / 0.08);
   if (air > 0) applyAirPose(ud, air);
   updatePose(mesh);
+}
+
+// Knipperen (gait.js blinkAmount): ud.lids schaalt om de ooglijn, alleen schrijven als de stand verandert. closed = 1 houdt de ogen dicht (dood).
+export function blinkLids(ud, t, closed = 0) {
+  const lid = ud && ud.lids;
+  if (!lid) return;
+  const v = closed ? 1 : blinkAmount(t, ud.animOffset || 0);
+  if (lid.scale.y !== v) lid.scale.y = v;
 }
 
 const _fid = { clip: '', tl: 0, dur: 1 };
