@@ -113,14 +113,19 @@ export function startLoadScreen(world, opts = {}) {
   const finish = () => {
     if (ended) return;
     ended = true;
-    setLoadHold(world, 'laadscherm', false);
-    world.uiPaused = wasPaused;
-    zachtePauze(world, 'laden', false);
     const ms = fadeMs(reduced());
     el.style.transitionDuration = ms + 'ms';
     el.classList.remove('on');
     el.classList.add('out');
-    setTimeout(() => { el.remove(); }, ms);
+    // #1292: de pauze gaat er pas af als de fade klaar is; anders reed de speler al terwijl het beeld nog bedekt was.
+    // Opent er tijdens de fade al een nieuw laadscherm, dan houdt dat de pauze vast en laat dit scherm hem staan.
+    const release = () => {
+      if (active) return;
+      setLoadHold(world, 'laadscherm', false);
+      world.uiPaused = wasPaused;
+      zachtePauze(world, 'laden', false);
+    };
+    setTimeout(() => { el.remove(); release(); }, ms);
     active = null;
     // een savegame laden: wat er tijdens het laden als 'nieuw' voorbijkwam is niet nieuw; alleen echte ontdekkingen na het laden tellen
     if (kind === 'save') noticeQueue.drop(['discovery', 'area', 'reveal', 'hint']);

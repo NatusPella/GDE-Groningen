@@ -112,6 +112,7 @@ function buildMarker(x, y) {
   badge.position.y = 2.3;
   badge.onBeforeRender = () => { badge.position.y = 2.3 + Math.sin(performance.now() / 650 + phase) * 0.06; };
   group.add(badge);
+  group.userData.badge = badge;
   return group;
 }
 
@@ -278,6 +279,13 @@ export function hidePigeonSpots(on) {
   for (const s of spots) { s.marker.visible = !on && !s.used; s.flock.visible = !on; }
 }
 
+// #1189: in a vehicle the spot cannot be used (no prompt, nearestSpot), and the blue badge at cab height hung big
+// in the middle of the screen when you stopped on the spot (tractor, van). Near the spot it hides while you drive.
+const BADGE_HIDE_NEAR_M = 8;
+function badgeShown(p, s) {
+  return !(p && p.inVehicle && Math.hypot(s.x - p.x, s.y - p.y) < BADGE_HIDE_NEAR_M);
+}
+
 export function updatePigeonSpots(dt, w) {
   const p = hoofdspeler(w);
   const t = w.time;
@@ -288,6 +296,8 @@ export function updatePigeonSpots(dt, w) {
       s.marker.visible = true;
       s.used = null;
     }
+    const badge = s.marker.userData.badge;
+    if (badge) badge.visible = badgeShown(p, s);
     // a bird is a few pixels beyond this, but some 30 draw calls
     s.flock.visible = Math.hypot(s.x - p.x, s.y - p.y) < FLOCK_DRAW;
     if (!s.flock.visible) continue;

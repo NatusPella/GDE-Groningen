@@ -18,6 +18,19 @@ ok(/inSignKeepOut\(x, y\)\) return true/.test(src('game/js/nightlights3d.js')) &
 // #1194: het duivenspot is een ring, geen halfdoorzichtige schijf die als een plas leest
 const ps = src('game/js/pigeonspots.js');
 ok(/const padGeo = new THREE\.RingGeometry/.test(ps) && !/padMat = new THREE\.MeshLambertMaterial\([^)]*transparent/.test(ps), 'duivenspot: ring, geen doorzichtige schijf');
+// #1189: het blauwe duivenplaatje hangt niet meer in de cabine als je met een voertuig op de spot staat
+{
+  const m = ps.match(/function badgeShown\(p, s\) \{\n\s*return ([^\n]+);\n\}/);
+  ok(!!m && /const BADGE_HIDE_NEAR_M = 8;/.test(ps), 'duivenspot: badgeShown en zijn grens bestaan');
+  if (m) {
+    const badgeShown = new Function('p', 's', 'BADGE_HIDE_NEAR_M', `return ${m[1]};`);
+    const s = { x: 0, y: 0 };
+    ok(badgeShown({ x: 2, y: 0, inVehicle: {} }, s, 8) === false, 'duivenspot: in een voertuig vlak bij de spot geen plaatje');
+    ok(badgeShown({ x: 2, y: 0, inVehicle: null }, s, 8) === true, 'duivenspot: te voet blijft het plaatje');
+    ok(badgeShown({ x: 30, y: 0, inVehicle: {} }, s, 8) === true, 'duivenspot: verder weg blijft het plaatje ook in een voertuig');
+  }
+  ok(/group\.userData\.badge = badge;/.test(ps) && /if \(badge\) badge\.visible = badgeShown\(p, s\);/.test(ps), 'duivenspot: de update-lus zet het plaatje per spot');
+}
 
 // #1192: de onderkant van dek en viaduct heeft eigen licht en is dus geen zwart vlak
 const rs = src('game/js/roadstructures3d.js');

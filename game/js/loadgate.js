@@ -12,6 +12,9 @@
 
 export const HANG_S = 8; // vanaf hier zegt de statusregel dat het langer duurt (het scherm kapt zelf af bij MAX_S, loadlogic.js)
 export const FADE_MS = 400; // de korte fade van het scherm naar het spel
+// #1292: een gast zonder eerste wereldstand wacht op de gastheer, ook als het eigen laden klaar is of de noodrem
+// (MAX_S, loadlogic.js) al is bereikt; pas na deze ruimere grens gaat het scherm toch door.
+export const HOST_MAX_S = 45;
 
 export const createGate = () => ({ state: 'laadt', started: false, stap: '', wachtOp: '' });
 
@@ -25,7 +28,8 @@ export function gateTick(g, input) {
   g.stap = stap;
   g.wachtOp = wachtOp || '';
   if (g.started) return view(g, 'klaar', 'niets');
-  if (done) { g.state = 'klaar'; g.started = true; return view(g, 'klaar', 'door'); }
+  const wachtHost = !!g.wachtOp && Number.isFinite(elapsedS) && elapsedS < HOST_MAX_S; // een kapotte tijd telt als verlopen
+  if (done && !wachtHost) { g.state = 'klaar'; g.started = true; return view(g, 'klaar', 'door'); }
   if (g.wachtOp) g.state = 'wacht-host';
   else if (Number.isFinite(elapsedS) && elapsedS >= HANG_S) g.state = 'hangt';
   else g.state = 'laadt';
