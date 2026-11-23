@@ -1612,7 +1612,7 @@ export function handleEvent(world, body, van = 0) {
       if (Number.isFinite(gbasis) && gbasis > 0) {
         const hostDeel = Math.min(Math.max(gbasis, geld), MAX_REWARD);
         const eigen = Math.max(0, betaald / Math.max(1, hostDeel) - 1);
-        const uitleg = !world.groepsbonusUitleg ? (world.groepsbonusUitleg = true, ' — ' + GROEPSBONUS_UITLEG) : '';
+        const uitleg = !world.groepsbonusUitleg ? (world.groepsbonusUitleg = true, '. ' + GROEPSBONUS_UITLEG) : '';
         bericht = `Beloning: ${bonusDelen(gbasis, gn, betaald, eigen).tekst}${uitleg}`;
       }
       if (world.addMessage) world.addMessage(bericht, 4);

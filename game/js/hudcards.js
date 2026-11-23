@@ -75,7 +75,7 @@ const DROP = [
   /^(DOOD|OPGEPAKT)$/,
   / geklaard! \+€/,
   /^Missie mislukt: /,
-  /^(?!Opslaan ).+ mislukt( — .*)?$/,
+  /^(?!Opslaan ).+ mislukt((?: —|:) .*)?$/,
   /^Je begint bij /,
   /^Geluid (uit|aan)$/,
   /^Route naar /,

@@ -216,7 +216,7 @@ export function startkaartRegels(id, { record = null, difficulty = null } = {}) 
   if (s) {
     const woord = s === 'werkt' ? 'ja, met de groep' : s === 'deels' ? 'deels' : 'nog niet samen';
     const tol = toelichtingVan('activiteit', id);
-    regels.push(`Samen: ${woord}${tol ? ` — ${tol}` : ''}`);
+    regels.push(`Samen: ${woord}${tol ? `. ${tol}` : ''}`);
     if (s === 'werkt') regels.push(GROEPSBONUS_KORT); // (#811) 1+1=3 ook op de startkaart
   }
   if (record) regels.push(`Record: ${record}`);
