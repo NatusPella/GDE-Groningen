@@ -122,7 +122,67 @@ function paaltje() {
   return B.build();
 }
 
-const MAKERS = { bank, afvalbak, fietsenrek: () => fietsenrek(4), bushokje, paaltje };
+// --- huisraad voor de ruimtes van akte 1 (23-11): wat de CC0-packs niet hebben ------------------------------------------------
+// De tv in de flat: een plat scherm met een smalle rand, een spiegelend vlak met een lichtere schuine streep, een voet met een hals,
+// een aan-lampje en twee luidsprekerroosters onderin. Voorkant +x, breedte langs z.
+function tv() {
+  const B = new GeoBuilder(1);
+  const W = 1.42, H = 0.82, Y = 0.12;
+  const bezel = 0x16181b, glass = 0x1d2733, glassHi = 0x34465a, foot = 0x2a2d31;
+  B.box(0, Y + H / 2, 0, 0.05, H, W, bezel);                                                    // romp
+  B.box(-0.03, Y + H / 2, 0, 0.03, H * 0.7, W * 0.6, 0x202326);                                // achterkant: dikker midden
+  B.box(0.027, Y + H / 2 + 0.015, 0, 0.006, H - 0.07, W - 0.05, glass);                        // scherm
+  for (let i = 0; i < 3; i++) B.box(0.031, Y + 0.25 + i * 0.12, -0.25 + i * 0.12, 0.004, 0.36, 0.05, glassHi, 0, 0.5, 0, 0); // weerspiegeling
+  B.box(0.03, Y + 0.025, 0.5, 0.004, 0.012, 0.012, 0xd84a3a);                                  // aan-lampje
+  for (const z of [-0.45, 0.45]) B.box(0.028, Y + 0.022, z, 0.004, 0.018, 0.24, 0x2c3036);     // luidsprekerroosters
+  B.box(-0.01, Y / 2 + 0.01, 0, 0.06, Y, 0.08, foot);                                          // hals
+  B.box(0, 0.008, 0, 0.26, 0.016, 0.42, foot);                                                 // voet
+  B.box(0.0, 0.018, 0, 0.22, 0.006, 0.38, 0x3a3e43);                                           // rand van de voet
+  return B.build();
+}
+
+// De frituurpan van Tammo en Tessa: rvs-bak met afgeronde hoeken (geschuinde randen), olie, twee manden met een zwarte greep,
+// een deksel met een venster dat schuin openstaat, een draaiknop en een rood lampje. Voorkant +x.
+function frituurpan() {
+  const B = new GeoBuilder(1);
+  const rvs = 0xb9bec4, rvsD = 0x8d9399, zwart = 0x1c1d20, olie = 0xd9a53a, olieD = 0xb8862a;
+  B.box(0, 0.13, 0, 0.36, 0.24, 0.42, rvs);                                                    // bak
+  for (const s of [-1, 1]) { B.box(s * 0.18, 0.13, 0, 0.02, 0.22, 0.4, rvsD); B.box(0, 0.13, s * 0.21, 0.34, 0.22, 0.02, rvsD); } // randen
+  B.box(0, 0.012, 0, 0.38, 0.024, 0.44, zwart);                                                // voetrand
+  B.box(0, 0.252, 0, 0.3, 0.006, 0.36, olie);                                                  // olie
+  for (const z of [-0.085, 0.085]) {
+    B.box(0, 0.245, z, 0.24, 0.02, 0.15, 0x9ea4aa);                                            // mand (rand boven de olie)
+    for (let i = 0; i < 4; i++) B.box(-0.09 + i * 0.06, 0.256, z, 0.006, 0.004, 0.14, olieD);  // gaas
+    B.box(0.2, 0.25, z, 0.1, 0.022, 0.03, zwart);                                              // greep naar voren
+  }
+  B.box(-0.17, 0.33, 0, 0.03, 0.16, 0.4, rvs, 0, 0, 0, 0.35);                                  // deksel schuin open
+  B.box(-0.15, 0.34, 0, 0.012, 0.09, 0.22, 0x3b4a55, 0, 0, 0, 0.35);                           // venster in het deksel
+  B.box(0.181, 0.1, 0.12, 0.012, 0.05, 0.05, zwart);                                           // draaiknop
+  B.box(0.185, 0.1, 0.12, 0.006, 0.012, 0.035, 0xe0e0e0);                                      // streep op de knop
+  B.box(0.182, 0.1, -0.12, 0.008, 0.018, 0.018, 0xd8402a);                                     // lampje
+  B.box(0.181, 0.18, 0, 0.006, 0.02, 0.3, rvsD);                                               // naad onder de rand
+  return B.build();
+}
+
+// Een oude buisradio op de vensterbank: houten kast met een gewelfd dak, een stoffen luidsprekerfront met lijsten, een groen
+// afstemvenster, twee knoppen, een messing bies en een antenne. Voorkant +x.
+function buisradio() {
+  const B = new GeoBuilder(1);
+  const hout = 0x6b4526, houtD = 0x4f321b, stof = 0xd8c7a0, stofD = 0xb8a57c, messing = 0xc9a24a;
+  B.box(0, 0.085, 0, 0.16, 0.15, 0.3, hout);                                                   // kast
+  B.geo(new THREE.CylinderGeometry(0.08, 0.08, 0.3, 10, 1, false, 0, Math.PI).rotateX(Math.PI / 2).rotateZ(-Math.PI / 2), composeMatrix(0, 0.16, 0), hout); // gewelfd dak
+  B.box(0, 0.006, 0, 0.17, 0.012, 0.31, houtD);                                                // plint
+  B.box(0.081, 0.09, -0.06, 0.004, 0.12, 0.15, stof);                                          // luidsprekerstof
+  for (let i = 0; i < 6; i++) B.box(0.084, 0.04 + i * 0.02, -0.06, 0.003, 0.004, 0.15, stofD); // lijsten
+  B.box(0.082, 0.14, -0.06, 0.004, 0.006, 0.17, messing);                                      // bies
+  B.box(0.082, 0.12, 0.08, 0.004, 0.04, 0.1, 0x3fc97a);                                        // afstemvenster
+  B.box(0.083, 0.12, 0.08, 0.003, 0.03, 0.003, 0xc83a2a);                                      // naald
+  for (const z of [0.05, 0.11]) B.geo(new THREE.CylinderGeometry(0.016, 0.016, 0.02, 8).rotateZ(Math.PI / 2), composeMatrix(0.09, 0.055, z), houtD); // knoppen
+  B.geo(tubeGeometry([-0.04, 0.2, -0.1], [-0.08, 0.36, -0.14], 0.004), null, 0x9aa0a6);       // antenne
+  return B.build();
+}
+
+const MAKERS = { bank, afvalbak, fietsenrek: () => fietsenrek(4), bushokje, paaltje, tv, frituurpan, buisradio };
 const cache = new Map();
 
 // De gedeelde geometrie van een geregistreerde prop (een kopie per aanroep is niet nodig: de geometrie is gemarkeerd als gedeeld).

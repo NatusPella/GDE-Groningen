@@ -1,7 +1,7 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { adoptSetLight } from './setlights.js';
 import { canvasTex as sharedCanvasTex } from './canvastex.js';
-import { interiorProp } from './interiorprops3d.js';
+import { interiorProp, registeredProp } from './interiorprops3d.js';
 import { KITCHEN_DRESSING, KITCHEN_ROOM, KITCHEN_HALL } from './akte1sets.js';
 
 // Tessa's kitchen in the Oosterparkwijk at dawn, for the opening of a new
@@ -105,21 +105,6 @@ function windowTex() {
       g.fillRect(x + rw * 0.7, top - 4, 7, 20);
       x += rw - 4;
     }
-  });
-}
-
-function radioTex() {
-  return canvasTex(256, 160, (g, w, h) => {
-    g.fillStyle = '#6b4526'; g.fillRect(0, 0, w, h);
-    g.fillStyle = '#d8c7a0'; g.fillRect(14, 14, 130, 132);
-    g.strokeStyle = '#6b5a3c'; g.lineWidth = 3;
-    for (let y = 22; y < 140; y += 9) { g.beginPath(); g.moveTo(18, y); g.lineTo(140, y); g.stroke(); }
-    g.fillStyle = '#20180f'; g.fillRect(156, 22, 86, 40);
-    g.fillStyle = '#3fc97a'; g.fillRect(160, 26, 78, 32);
-    g.fillStyle = '#0d2a18'; g.font = 'bold 15px Arial, sans-serif'; g.fillText('NACHT-', 168, 40); g.fillText('STREEK', 168, 55);
-    g.fillStyle = '#2a1c10';
-    g.beginPath(); g.arc(176, 110, 18, 0, Math.PI * 2); g.fill();
-    g.beginPath(); g.arc(222, 110, 18, 0, Math.PI * 2); g.fill();
   });
 }
 
@@ -232,12 +217,8 @@ export function buildKitchen(x, y, z) {
   const radio = new THREE.Group();
   radio.position.set(KITCHEN.radio.u, KITCHEN.radio.h, KITCHEN.radio.v);
   group.add(radio);
-  const rt = keep(radioTex());
-  const wood = std(0x6b4526);
-  const front = keep(new THREE.MeshStandardMaterial({ map: rt, roughness: 0.7, emissive: 0x112211, emissiveMap: rt, emissiveIntensity: 0.6 }));
-  // +x face (towards the room) carries the front
-  add(geoBox(0.16, 0.18, 0.3), [front, wood, wood, wood, wood, wood], 0, 0, 0, radio);
-  box(0.01, 0.12, 0.01, std(0x222222), -0.02, 0.15, -0.1, radio).rotation.x = 0.4;
+  // the registered tube radio (propregister.js 'buisradio'), its front (+x) towards the room, standing on the sill
+  radio.add(registeredProp('buisradio', { y: -0.09 }));
 
   // the door frame (the leaf is the registered door in the hinge, see KITCHEN_DRESSING), standing open into the room
   const dframe = std(0xe9e3d6);

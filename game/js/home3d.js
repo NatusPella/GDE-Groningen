@@ -3,7 +3,7 @@ import { canvasTex } from './canvastex.js';
 import { buildBuildingMesh } from './models3d_buildings.js';
 import { GeoBuilder } from './pixelart3d.js';
 import { LANDMARK_MATERIALS } from './landmarks3d.js';
-import { interiorProp } from './interiorprops3d.js';
+import { interiorProp, registeredProp } from './interiorprops3d.js';
 import { FLAT_DRESSING } from './akte1sets.js';
 import { adoptSetLight } from './setlights.js';
 
@@ -438,18 +438,9 @@ export function buildFlat3D(flat, skip = new Set()) {
     if (e.vervangt && skip.has(e.vervangt)) continue;
     g.add(interiorProp(e.id, { x: e.u, y: e.h, z: e.v, rot: e.rot, fit: e.fit, scale: e.scale, kleuren: e.kleuren }));
   }
-  // the tv on the drawer cabinet (the packs have no tv) and the snack fryer on the cooker: story props, kept as they were
-  if (!skip.has('tv')) {
-    box(g, M.black, s.tv.x, 0.77, s.tv.z, 0.36, 0.05, 0.22);
-    box(g, M.black, s.tv.x, 1.2, s.tv.z, 1.5, 0.85, 0.06);
-    box(g, M.tvScreen, s.tv.x, 1.2, s.tv.z + 0.035, 1.38, 0.74, 0.01);
-  }
-  if (!skip.has('frituur')) {
-    const fy = 0.876;
-    box(g, M.steel, s.fryer.x, fy + 0.15, s.fryer.z, 0.42, 0.3, 0.36);
-    box(g, M.oil, s.fryer.x, fy + 0.305, s.fryer.z, 0.34, 0.01, 0.28);
-    box(g, M.steel, s.fryer.x, fy + 0.37, s.fryer.z - 0.1, 0.3, 0.02, 0.14);
-  }
+  // the tv on the drawer cabinet and the snack fryer on the cooker: registered props (propregister.js 'tv', 'frituurpan'), front to the room
+  if (!skip.has('tv')) g.add(registeredProp('tv', { x: s.tv.x, y: 0.74, z: s.tv.z, rot: -Math.PI / 2 }));
+  if (!skip.has('frituur')) g.add(registeredProp('frituurpan', { x: s.fryer.x, y: 0.876, z: s.fryer.z, rot: -Math.PI / 2 }));
   // light per room: warm lamps borrowed from the night rig (setlights.js), no fixtures floating over the cutaway walls
   for (const [x, y, z, i] of [[3.4, 2.3, 2.6, 2.6], [8.9, 2.3, 2.2, 2.4], [7.2, 2.3, 7.3, 2.6]]) {
     const l = adoptSetLight(new THREE.PointLight(0xffdcb0, i, 7.5, 1.5));

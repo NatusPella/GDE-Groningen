@@ -31,6 +31,19 @@ export const PROP_REGISTER = {
     nl: 'Paaltje', bouwer: 'paaltje', gebruik: ['buiten', 'cutscene'],
     norm: { tris: [100, 260], kleuren: 4, maat: [0.23, 0.92, 0.23], eisen: ['rode romp met twee witte reflectiebanden', 'bolle kop', 'voetkraag'] },
   },
+  // huisraad van akte 1 dat de CC0-packs niet hebben (23-11): de tv in de flat, de frituurpan op het fornuis, de radio in de keuken
+  tv: {
+    nl: 'Platte tv', bouwer: 'tv', gebruik: ['interieur'],
+    norm: { tris: [100, 260], kleuren: 6, maat: [0.26, 0.94, 1.42], eisen: ['smalle rand om een donker scherm', 'lichtere schuine weerspiegeling', 'voet met hals', 'aan-lampje en luidsprekerroosters'] },
+  },
+  frituurpan: {
+    nl: 'Frituurpan', bouwer: 'frituurpan', gebruik: ['interieur'],
+    norm: { tris: [220, 520], kleuren: 7, maat: [0.42, 0.42, 0.44], eisen: ['rvs-bak met donkere randen en voetrand', 'olie met twee manden en gaas', 'grepen naar voren', 'schuin open deksel met venster', 'draaiknop en lampje'] },
+  },
+  buisradio: {
+    nl: 'Buisradio', bouwer: 'buisradio', gebruik: ['interieur'],
+    norm: { tris: [160, 420], kleuren: 7, maat: [0.17, 0.38, 0.31], eisen: ['houten kast met gewelfd dak en plint', 'luidsprekerstof met lijsten en messing bies', 'groen afstemvenster met naald', 'twee knoppen', 'antenne'] },
+  },
 };
 
 export const PROP_IDS = Object.keys(PROP_REGISTER);

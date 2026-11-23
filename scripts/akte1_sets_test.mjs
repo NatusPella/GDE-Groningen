@@ -7,7 +7,7 @@
 //   node scripts/akte1_sets_test.mjs
 import fs from 'node:fs';
 import { KITCHEN_DRESSING, KITCHEN_ROOM, KITCHEN_HALL, KITCHEN_FREE, FLAT_DRESSING, FLAT_ROOMS_MIN, footprint } from '../game/js/akte1sets.js';
-import { INTERIEUR_REGISTER, INTERIEUR_IDS, isInterieurProp } from '../game/js/propregister.js';
+import { INTERIEUR_REGISTER, INTERIEUR_IDS, isInterieurProp, PROP_REGISTER } from '../game/js/propregister.js';
 import { INTERIOR_PROP_DATA } from '../game/js/interiorprops_data.js';
 import { makeFlatPlan } from '../game/js/flatplan.js';
 
@@ -105,7 +105,7 @@ const bron = (f) => fs.readFileSync(new URL('../game/js/' + f, import.meta.url),
 const keukenBron = bron('introkitchen3d.js');
 const body = keukenBron.slice(keukenBron.indexOf('export function buildKitchen'), keukenBron.indexOf('export function buildAtmTrailer'));
 const dozen = (body.match(/\bbox\(/g) || []).length;
-ok('keuken: alleen bouw en verhaalrekwisieten als doos (hoogstens 10: plinten, vensterbank, deurkozijn, pen, radioantenne)', dozen <= 10, dozen);
+ok('keuken: alleen bouw en verhaalrekwisieten als doos (hoogstens 8: plinten, vensterbank, deurkozijn, pen)', dozen <= 8, dozen);
 ok('keuken: geen kegel- of cilinderlamp meer', !/ConeGeometry/.test(body));
 ok('keuken: meubels uit het register', /KITCHEN_DRESSING/.test(body) && /interiorProp\(/.test(body));
 ok('keuken: geen gestreepte muur meer', !/fillRect\(x, 0, 12, h\)/.test(keukenBron));
@@ -115,6 +115,10 @@ ok('flat: meubels uit het register', /FLAT_DRESSING/.test(flatBody) && /interior
 ok('flat: geen bank, bed, kast of tafel meer als doos', !/M\.sofa|M\.duvet|M\.fridge|wardrobe/.test(flatBody));
 ok('flat: geen zwevende lampvlakken boven de kamers', !/M\.lamp/.test(flatBody));
 ok('flat: licht per kamer (geleend van de nachtrig)', (flatBody.match(/adoptSetLight/g) || []).length >= 1);
+// tv, frituurpan en radio: echte props uit het propregister (de packs hebben ze niet), geen dozen meer
+ok('flat: tv en frituurpan uit het propregister', /registeredProp\('tv'/.test(flatBody) && /registeredProp\('frituurpan'/.test(flatBody) && !/M\.tvScreen|M\.oil/.test(flatBody));
+ok('keuken: de radio uit het propregister, zonder canvasfront', /registeredProp\('buisradio'/.test(body) && !/radioTex/.test(keukenBron));
+for (const id of ['tv', 'frituurpan', 'buisradio']) ok(`propregister: ${id} staat erin met gebruik interieur`, !!PROP_REGISTER[id] && PROP_REGISTER[id].gebruik.includes('interieur'));
 
 console.log(bad ? `akte1_sets_test: ${bad} van ${n} fout` : `akte1_sets_test: ${n} controles ok`);
 process.exit(bad ? 1 : 0);

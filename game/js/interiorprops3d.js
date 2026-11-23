@@ -9,6 +9,7 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
 import { INTERIOR_PROP_DATA } from './interiorprops_data.js';
 import { isInterieurProp } from './propregister.js';
 import { makeLodObject } from './lodkit3d.js';
+import { propGeometry } from './propmodels3d.js';
 
 const cache = new Map();
 
@@ -94,6 +95,13 @@ export function fitScale(id, fit) {
   return f.map((v) => (v == null ? avg : v));
 }
 
+// Het model zelf (lod 0) houdt zijn gewone materiaal, zonder de dither die het voorbij de eerste grens wegfadet: wordt het object niet
+// (meer) geschakeld (updateLodObjects draait pas als scene3d.js hem aanroept, en een set die buiten de scène gebouwd is valt uit de lijst),
+// dan blijft het volle model staan in plaats van te verdwijnen. Wordt hij wel geschakeld, dan wisselt lod 0 hard en dooft lod 1 in.
+function keepFull(mesh) {
+  mesh.material = mesh.userData.lodBase || mesh.material;
+}
+
 // Een meubel op zijn plek. rot draait om de verticaal (rad, three-zin); de voorkant is +x voor rot = 0. De groep krijgt zijn LOD-niveaus van
 // makeLodObject (een kleurvariant heeft een eigen naam: anders deelt hij de lichtere niveaus met de gewone kleur).
 export function interiorProp(id, { x = 0, y = 0, z = 0, rot = 0, fit = null, scale = null, kleuren = null, shadows = false } = {}) {
@@ -104,6 +112,7 @@ export function interiorProp(id, { x = 0, y = 0, z = 0, rot = 0, fit = null, sca
   // één materiaalsoort: één materiaal (de lichtere niveaus van lodkit3d.js hebben dan geen groepen, en een materiaallijst zonder groepen
   // tekent niets)
   const m = new THREE.Mesh(geo, geo.groups.length === 1 ? INTERIOR_PROP_MATERIALS[geo.groups[0].materialIndex] : INTERIOR_PROP_MATERIALS);
+  m.userData.lodBase = m.material;
   m.castShadow = shadows; m.receiveShadow = shadows;
   g.add(m);
   g.position.set(x, y, z);
@@ -112,5 +121,23 @@ export function interiorProp(id, { x = 0, y = 0, z = 0, rot = 0, fit = null, sca
   g.scale.set(s[0], s[1], s[2]);
   g.userData.meubel = id;
   makeLodObject('interior', kleuren ? id + '~' + Object.values(kleuren).join('.') : id, g);
+  keepFull(m);
+  return g;
+}
+
+// Huisraad uit het propregister (propregister.js PROP_REGISTER, gebruik 'interieur': tv, frituurpan, buisradio; gebouwd door
+// propmodels3d.js), op dezelfde manier geplaatst: één vertexkleurmesh met LOD-niveaus van het centrale systeem.
+export function registeredProp(id, { x = 0, y = 0, z = 0, rot = 0, scale = 1 } = {}) {
+  const g = new THREE.Group();
+  g.name = 'prop:' + id;
+  const pm = new THREE.Mesh(propGeometry(id), INTERIOR_PROP_MATERIALS[0]);
+  pm.userData.lodBase = pm.material;
+  g.add(pm);
+  g.position.set(x, y, z);
+  g.rotation.y = rot;
+  g.scale.setScalar(scale);
+  g.userData.prop = id;
+  makeLodObject('interior', 'prop-' + id, g);
+  keepFull(g.children[0]);
   return g;
 }

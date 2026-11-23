@@ -106,6 +106,12 @@ const auditFouten = auditLod(meubelModellen);
 ok('LOD-audit van de meubels zonder fouten', auditFouten.length === 0, JSON.stringify(auditFouten.slice(0, 3)));
 const variant = interiorProp('keukenstoel', { kleuren: { Cushing: 0x335577 } });
 ok('een kleurvariant krijgt eigen lichtere niveaus', variant.children[1].geometry !== lod.children[1].geometry);
+ok('lod 0 houdt het gewone materiaal (verdwijnt niet als niemand de niveaus schakelt)', INTERIOR_PROP_MATERIALS.includes(lod.children[0].material) || lod.children[0].material === INTERIOR_PROP_MATERIALS);
+const { registeredProp } = await import('../game/js/interiorprops3d.js');
+for (const id of ['tv', 'frituurpan', 'buisradio']) {
+  const p = registeredProp(id);
+  ok(`${id}: propregister-prop met centrale LOD-niveaus`, p.userData.lod && p.userData.lod.kind === 'interior' && p.children.length >= 2 && p.children[0].material === INTERIOR_PROP_MATERIALS[0]);
+}
 void THREE;
 const s = fitScale('keukentafel', { b: 1.28, h: 0.75, d: 0.86 });
 ok('fitScale schaalt per as naar de doos', Math.abs(s[0] * INTERIOR_PROP_DATA.keukentafel.box[3] - 1.28) < 1e-6 && Math.abs(s[2] * INTERIOR_PROP_DATA.keukentafel.box[5] - 0.86) < 1e-6);
