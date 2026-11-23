@@ -25,4 +25,15 @@ assert.deepEqual(h(['wijkkaart', 'prestatie']), [], 'een prestatie staat elders 
 // een schermvullend scherm (pauzemenu, kaart, werkplaats): plaatsstempel, naamkaart en plaatsnaam wachten; een prestatie niet (review 22-11)
 assert.deepEqual(h(['scherm', 'wijkkaart', 'naamkaart', 'locatie', 'prestatie']), ['locatie', 'naamkaart', 'wijkkaart']);
 assert.ok(!mayStartOverlay('wijkkaart', ['scherm']) && mayStartOverlay('prestatie', ['scherm']));
+// #1182: de plaatsstempel van bigmoment.js (vorm plaats, MOI! Ommelanden, Binnenstad) vervangt de wijkkaart. De DOM-kant
+// herkent hem als wijkkaart en verbergt hem ook als hij al in beeld stond toen de kaart, het pauzemenu of de werkplaats opende.
+{
+  const fs = await import('node:fs');
+  const oh = fs.readFileSync(new URL('../game/js/overlayhold.js', import.meta.url), 'utf8');
+  const bm = fs.readFileSync(new URL('../game/js/bigmoment.js', import.meta.url), 'utf8');
+  assert.ok(/el\.className = `bm bm-v-\$\{m\.vorm\}/.test(bm), 'bigmoment.js zet de vorm als klasse bm-v-<vorm>');
+  assert.match(oh, /wijkkaart: '#wijk-card\.on, \.bm\.bm-v-plaats'/, 'de stempel telt als wijkkaart');
+  assert.match(oh, /wijkkaart: '#wijk-card, \.bm\.bm-v-plaats'/, 'de stempel wordt verborgen als de wijkkaart moet wachten');
+  assert.match(oh, /for \(const el of document\.querySelectorAll\(sel\)\) el\.classList\.toggle\('ov-hold', held\.has\(name\)\)/, 'alle elementen per overlay wijken, niet alleen het eerste');
+}
 console.log('overlayrules_test ok');

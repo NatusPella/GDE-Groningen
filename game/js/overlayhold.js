@@ -13,12 +13,13 @@ const SELECTORS = {
   keuze: '#hud .cw-panel:not([hidden])',
   duelbalk: '#hud .mg-board:not([hidden])',
   naamkaart: '#name-card.on',
-  wijkkaart: '#wijk-card.on',
+  // #1182: de plaatsstempel (bigmoment.js, vorm plaats) vervangt de wijkkaart en telt als dezelfde overlay
+  wijkkaart: '#wijk-card.on, .bm.bm-v-plaats',
   prestatie: '#hud .ach-toast.on',
   locatie: '#hud .hud-place.on',
 };
 // wat we kunnen verbergen
-const HIDE = { naamkaart: '#name-card', wijkkaart: '#wijk-card', duelbalk: '#hud .mg-board', prestatie: '#hud .ach-toast', locatie: '#hud .hud-place' };
+const HIDE = { naamkaart: '#name-card', wijkkaart: '#wijk-card, .bm.bm-v-plaats', duelbalk: '#hud .mg-board', prestatie: '#hud .ach-toast', locatie: '#hud .hud-place' };
 
 // een schermvullend scherm is open: het pauzemenu, de kaart of de tuningwerkplaats
 const SCHERM_SELECTOR = '#tune-menu.visible';
@@ -67,8 +68,7 @@ function startOverlayHold() {
   const tick = setVisibleInterval(() => {
     const held = heldOverlays(activeOverlays());
     for (const [name, sel] of Object.entries(HIDE)) {
-      const el = document.querySelector(sel);
-      if (el) el.classList.toggle('ov-hold', held.has(name));
+      for (const el of document.querySelectorAll(sel)) el.classList.toggle('ov-hold', held.has(name)); // #1182: een stempel die er al stond, wijkt als de kaart of de werkplaats opent
     }
     tickSubtitles();
   }, 150);
