@@ -55,22 +55,22 @@ export const hybrideSchaal = (key) => { for (const e of Object.values(VOERTUIG_R
 
 export const VOERTUIG_REGISTER = {
   trekkerlimo: {
-    nl: 'Trekker-limo van Jelle', model: { name: 'trekkerlimo', len: 5.6, wid: 2.0, color: '#141414' },
+    nl: 'Trekker-limo van Jelle', model: { name: 'trekkerlimo', len: 5.6, wid: 2.0, color: 0x141414 },
     norm: { tris: [4000, 9000], kleuren: 20, eisen: ['trekkerkop met grille, ronde koplampen en noppenbanden', 'limousine met wielkasten, C-stijl, schuine achterruit en afgerond dak met schuifdak', 'kofferdeksel in lak met chromen strip, geel kenteken zonder tekens', 'conferentie-interieur met barkastje', 'deurnaden, sturende voorwielen, hoogglanslak'] },
   },
   truck: {
-    nl: 'Bakwagen', model: { name: 'truck', len: 8.5, wid: 2.5, color: '#e8e6e0' },
+    nl: 'Bakwagen', model: { name: 'truck', len: 8.5, wid: 2.5, color: 0xe8e6e0 },
     norm: { tris: [1500, 4000], kleuren: 10, eisen: ['laadbak met ribbels, aluminium randen en hoekstijlen', 'achterdeuren met scharnieren, sluitstangen en hendels', 'onderrijbeveiliging achter en opzij', 'cabinedeuren met naad'] },
   },
   // De hybride auto's (23-11): de Quaternius-romp (CC0) met onze functies. `schaal` is de getekende maat in meter (lengte, breedte,
   // hoogte van de romp zonder daklicht of taxibord); de romp wordt daarop geschaald (zie VOERTUIG_NORM en voertuigschaal_test.mjs).
-  hybrideSedan: { nl: 'Sedan (hybride)', model: { name: 'sedan', len: 4.3, wid: 1.8, color: '#90b0d1' }, hybride: 'sedan', schaal: { len: 4.5, wid: 1.8, hoog: 1.45 }, norm: HYB_NORM },
-  hybrideHatch: { nl: 'Hatchback (hybride)', model: { name: 'hatch', len: 3.8, wid: 1.7, color: '#5a7392' }, hybride: 'hatch', schaal: { len: 4.33, wid: 1.78, hoog: 1.45 }, norm: HYB_NORM },
-  hybrideSuv: { nl: 'SUV (hybride)', model: { name: 'suv', len: 4.7, wid: 1.95, color: '#23262a' }, hybride: 'suv', schaal: { len: 4.55, wid: 1.85, hoog: 1.7 }, norm: HYB_NORM },
-  hybrideSport: { nl: 'Sportauto (hybride)', model: { name: 'sport', len: 4.1, wid: 1.85, color: '#b93a32', qcar: 'sport' }, hybride: 'sport', schaal: { len: 4.25, wid: 1.82, hoog: 1.42 }, norm: HYB_NORM },
-  hybrideSport2: { nl: 'Sportauto 2 (hybride)', model: { name: 'sport', len: 4.1, wid: 1.85, color: '#e8e6e0', qcar: 'sport2' }, hybride: 'sport2', schaal: { len: 4.25, wid: 1.82, hoog: 1.42 }, norm: HYB_NORM },
-  hybrideTaxi: { nl: 'Taxi (hybride)', model: { name: 'taxi', len: 4.6, wid: 1.8, color: '#e8c93a' }, isTaxi: true, hybride: 'taxi', schaal: { len: 4.5, wid: 1.8, hoog: 1.45 }, norm: HYB_NORM },
-  hybridePolitie: { nl: 'Politieauto (hybride)', model: { name: 'police', len: 4.3, wid: 1.8, color: '#1c1c1c' }, isPolice: true, hybride: 'police', schaal: { len: 4.3, wid: 1.8, hoog: 1.45 }, norm: HYB_NORM },
+  hybrideSedan: { nl: 'Sedan (hybride)', model: { name: 'sedan', len: 4.3, wid: 1.8, color: 0x90b0d1 }, hybride: 'sedan', schaal: { len: 4.5, wid: 1.8, hoog: 1.45 }, norm: HYB_NORM },
+  hybrideHatch: { nl: 'Hatchback (hybride)', model: { name: 'hatch', len: 3.8, wid: 1.7, color: 0x5a7392 }, hybride: 'hatch', schaal: { len: 4.33, wid: 1.78, hoog: 1.45 }, norm: HYB_NORM },
+  hybrideSuv: { nl: 'SUV (hybride)', model: { name: 'suv', len: 4.7, wid: 1.95, color: 0x23262a }, hybride: 'suv', schaal: { len: 4.55, wid: 1.85, hoog: 1.7 }, norm: HYB_NORM },
+  hybrideSport: { nl: 'Sportauto (hybride)', model: { name: 'sport', len: 4.1, wid: 1.85, color: 0xb93a32, qcar: 'sport' }, hybride: 'sport', schaal: { len: 4.25, wid: 1.82, hoog: 1.42 }, norm: HYB_NORM },
+  hybrideSport2: { nl: 'Sportauto 2 (hybride)', model: { name: 'sport', len: 4.1, wid: 1.85, color: 0xe8e6e0, qcar: 'sport2' }, hybride: 'sport2', schaal: { len: 4.25, wid: 1.82, hoog: 1.42 }, norm: HYB_NORM },
+  hybrideTaxi: { nl: 'Taxi (hybride)', model: { name: 'taxi', len: 4.6, wid: 1.8, color: 0xe8c93a }, isTaxi: true, hybride: 'taxi', schaal: { len: 4.5, wid: 1.8, hoog: 1.45 }, norm: HYB_NORM },
+  hybridePolitie: { nl: 'Politieauto (hybride)', model: { name: 'police', len: 4.3, wid: 1.8, color: 0x1c1c1c }, isPolice: true, hybride: 'police', schaal: { len: 4.3, wid: 1.8, hoog: 1.45 }, norm: HYB_NORM },
 };
 // De botsmaat volgt de getekende maat (23-11): een gewone personenauto die als hybride getekend wordt (hybridKey in
 // models3d_vehicles.js: geen roest, elektrisch, tokkie, belettering of model.hybride === false), botst met de lengte en breedte uit het

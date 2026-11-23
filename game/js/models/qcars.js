@@ -1,5 +1,5 @@
 // GEGENEREERD door scripts/convert_quaternius_car.mjs uit de Cars Bundle van Quaternius (CC0 1.0; handle: Quaternius).
-// Bron: https://poly.pizza/bundle/Cars-Bundle-FE5IWe6OMk / https://quaternius.com/packs/cars.html (zie docs/MODEL-LICENTIES.md).
+// Bron: de Cars Bundle op poly.pizza en het Cars Pack op quaternius.com (adressen en licentie: docs/MODEL-LICENTIES.md).
 // Per auto alleen de carrosserie, in onze assen (+x voor, +z rechts, y omhoog), op een millimeter: gedeelde hoekpunten (int16),
 // een index per hoek (uint16) en een rol per driehoek (QROLLEN);
 // de wielen bouwt het spel zelf. Niet met de hand bewerken.
