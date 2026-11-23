@@ -157,5 +157,12 @@ is(bevestigGeldig({ id: 'a', until: 5000 }, 'a', 1001), true, 'zonder tijdstip (
   ok(src.includes("escActie(armed) === 'annuleer'"), 'Esc trekt eerst de bevestiging in');
 }
 
+// #1237 (hertest 24-11): een set (kl_outfit) heeft een eigen vorm, niet die van het shirt; en geen twee kledingpictogrammen delen hun vorm
+ok(SHOP_ICONS.kl_outfit.d !== SHOP_ICONS.kl_shirt.d && SHOP_ICONS.kl_outfit.d !== SHOP_ICONS.kleding.d, 'de set is geen shirt');
+{
+  const kl = Object.entries(SHOP_ICONS).filter(([id]) => id.startsWith('kl_') || id === 'kleding');
+  ok(new Set(kl.map(([, ic]) => ic.d)).size === kl.length, 'elk kledingpictogram heeft een eigen vorm');
+}
+
 console.log(`${n - fails}/${n} ok`);
 process.exit(fails ? 1 : 0);
