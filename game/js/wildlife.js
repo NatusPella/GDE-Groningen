@@ -807,7 +807,7 @@ function provinceCtx(world) {
     },
     message: (t) => { if (world.addMessage) world.addMessage(t, 3); },
     // only this device's player takes the bite here; a guest takes it in its own game (coopextra3d.js)
-    bite: (body, damage) => { if (body === hoofdspeler(world) || body === world.player) queueAnimalHit(world, damage); },
+    bite: (body, damage) => { if (body === hoofdspeler(world)) queueAnimalHit(world, damage); }, // hoofdspeler valt zelf terug op world.player
   };
   return _pctx;
 }
