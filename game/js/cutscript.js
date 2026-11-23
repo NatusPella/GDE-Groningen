@@ -263,6 +263,16 @@ export function compileScene(def, opts = {}) {
     for (const [id, a] of Object.entries(actors)) if (id === name || [].concat(a.speaker || []).includes(name)) return id;
     return null;
   };
+  // wie de spreker aanspreekt (23-11): de vorige andere spreker, anders de volgende. Een spreker met gaze 'speaker' kijkt naar
+  // hem (de luisteraars kijken al naar de spreker); zo praat niemand met zijn hoofd van zijn gesprekspartner af.
+  const lineActors = lines.map((l) => actorOfSpeaker(l.speaker));
+  const addressee = (t, me) => {
+    let li = -1;
+    for (let i = 0; i < lines.length; i++) if (lines[i].at <= t) li = i;
+    for (let i = li - 1; i >= 0; i--) if (lineActors[i] && lineActors[i] !== me) return lineActors[i];
+    for (let i = li + 1; i < lines.length; i++) if (lineActors[i] && lineActors[i] !== me) return lineActors[i];
+    return null;
+  };
 
   function actorPos(id, t) {
     const k = track[id];
@@ -281,7 +291,14 @@ export function compileScene(def, opts = {}) {
     const m = actorPos(id, t).moving;
     if (m) return m.a;
     const keys = [{ t: 0, v: k.face0 }, ...k.faces];
-    for (const s of k.segs) { const q = along(s.pts, s.len); keys.push({ t: s.t1, v: { heading: q.a } }); }
+    for (const s of k.segs) {
+      const q = along(s.pts, s.len);
+      keys.push({ t: s.t1, v: { heading: q.a } });
+      // a face cue given while walking ("draai je naar Mem" on the line he walks in on) holds once he arrives: without this the
+      // walk's own end heading won and he talked with his back half turned to the one he addressed (M25.outro, 23-11)
+      const during = k.faces.filter((f) => f.t >= s.t0 && f.t < s.t1);
+      if (during.length) keys.push({ t: s.t1 + 1e-6, v: during[during.length - 1].v });
+    }
     keys.sort((x, y) => x.t - y.t);
     let i = 0;
     while (i + 1 < keys.length && keys[i + 1].t <= t + 1e-9) i++;
@@ -637,7 +654,7 @@ export function compileScene(def, opts = {}) {
       // gaze: body-relative head yaw, clamped
       let gaze = 0;
       const g = last(k.gazes, t).v;
-      const gt = g === 'speaker' ? (speakId && speakId !== id ? speakId : null) : g;
+      const gt = g === 'speaker' ? (speakId && speakId !== id ? speakId : speakId === id ? addressee(t, id) : null) : g;
       if (gt && gt !== 'camera') {
         const o = pointOf(gt, t);
         gaze = Math.max(-1.0, Math.min(1.0, angDiff(actorFacing(id, t), Math.atan2(o.s - p.s, o.f - p.f))));

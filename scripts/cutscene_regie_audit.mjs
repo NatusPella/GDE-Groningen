@@ -19,7 +19,13 @@ const filter = args.find((a) => !a.startsWith('--')) || '';
 const STEP = 0.2;
 const angDiff = (a, b) => { let d = (b - a) % (Math.PI * 2); if (d > Math.PI) d -= Math.PI * 2; if (d < -Math.PI) d += Math.PI * 2; return d; };
 // bewuste uitzonderingen: 'scene|soort|sleutel' met de reden
-export const ALLOW = {};
+export const ALLOW = {
+  // beoordeeld 23-11: bewust weg van de vorige spreker
+  'M08.intro|spreker-wegkijkend': 'Tammo praat door de telefoon met oma Trijntje; zij staat niet in de scène',
+  'M01.5|spreker-wegkijkend': 'Jelmer leest de chat van zijn stream voor van zijn telefoon',
+  'M10.intro|spreker-wegkijkend': 'Tessa roept Tammo toe terwijl ze wegrent naar de quad ("Op de quad, Tammo. Nu.")',
+  'M15.outro|spreker-wegkijkend': 'de jurylid zegt "Ik stap eruit" terwijl hij wegloopt',
+};
 
 // ligt (x, y) in de voetafdruk van een prop (lengte, breedte, +x naar voren, om het midden)?
 function insideFoot(pr, x, y, margin = 0) {
@@ -40,6 +46,16 @@ for (const e of cat) {
   const speakFacing = {};
   const ids = Object.keys(sc.sample(0, ANCHOR).actors);
   const sit = {}; // een acteur die ooit zit of rijdt hoort in een voertuig
+  // wie spreekt wie aan: de acteur van een sprekernaam, en per regel de vorige (of volgende) andere spreker
+  const actorOf = (name) => Object.entries((e.def && e.def.actors) || {}).find(([, d]) => [].concat(d.speaker || []).includes(name))?.[0] || null;
+  const lineActors = e.lines.map((l) => actorOf(l.speaker));
+  const addresseeAt = (t, me) => {
+    let li = -1;
+    e.lines.forEach((l, i) => { if (l.at <= t) li = i; });
+    for (let i = li - 1; i >= 0; i--) if (lineActors[i] && lineActors[i] !== me) return lineActors[i];
+    for (let i = li + 1; i < e.lines.length; i++) if (lineActors[i] && lineActors[i] !== me) return lineActors[i];
+    return null;
+  };
   for (let t = 0; t < e.duration; t += STEP) {
     const s = sc.sample(t, ANCHOR);
     const vis = ids.map((id) => [id, s.actors[id]]).filter(([, a]) => a && a.visible !== false);
@@ -57,12 +73,19 @@ for (const e of cat) {
         const key = `invehicle:${id}@${pid}`;
         (seen[key] ??= { n: 0, t0: t, kind: pr.kind }).n++;
       }
-      // de spreker kijkt van zijn gesprekspartner weg (de dichtstbijzijnde andere figuur binnen 7 m)
-      if (a.speaking && nearest && nearest[2] < 7 && nearest[2] > 0.5) {
-        const want = Math.atan2(nearest[1].y - a.y, nearest[1].x - a.x);
-        const off = Math.abs(angDiff(a.a, want)) - Math.abs(a.gaze || 0) * 0.5;
-        const k = speakFacing[id] ??= { n: 0, away: 0, sum: 0, to: nearest[0], t0: t };
-        k.n++; if (off > 1.75) { k.away++; k.sum += off; }
+      // de spreker kijkt van zijn gesprekspartner weg: het hoofd (lijf plus blik) staat meer dan 75 graden van wie hij aanspreekt
+      // (de vorige andere spreker, anders de volgende, anders de dichtstbijzijnde figuur)
+      if (a.speaking) {
+        const to = addresseeAt(t, id);
+        const b = to && s.actors[to] && s.actors[to].visible !== false ? s.actors[to] : nearest && nearest[1];
+        const toId = to && s.actors[to] && s.actors[to].visible !== false ? to : nearest && nearest[0];
+        const d = b ? Math.hypot(b.x - a.x, b.y - a.y) : 0;
+        if (b && d > 0.5 && d < 9) {
+          const want = Math.atan2(b.y - a.y, b.x - a.x);
+          const off = Math.abs(angDiff(a.a + (a.gaze || 0), want));
+          const k = speakFacing[id] ??= { n: 0, away: 0, to: toId, t0: null };
+          k.n++; if (off > 1.3) { k.away++; if (k.t0 == null) k.t0 = t; k.to = toId; }
+        }
       }
     }
     // de camera in een figuur
@@ -88,7 +111,7 @@ for (const e of cat) {
   }
   for (const [id, k] of Object.entries(speakFacing)) {
     const share = k.away / Math.max(1, k.n);
-    if (k.away * STEP >= 1.2 && share > 0.45) add(e.id, 'spreker-wegkijkend', 1, `${id} praat ${(k.away * STEP).toFixed(1)} s van ${k.to} af (${Math.round(share * 100)}% van zijn spreektijd)`);
+    if (k.away * STEP >= 1.2 && share > 0.45) add(e.id, 'spreker-wegkijkend', share > 0.8 ? 2 : 1, `${id} praat ${(k.away * STEP).toFixed(1)} s van ${k.to} af (vanaf ${k.t0.toFixed(1)} s, ${Math.round(share * 100)}% van zijn spreektijd)`);
   }
 }
 
