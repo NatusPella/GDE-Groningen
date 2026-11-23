@@ -8,7 +8,7 @@ Antwoord op de vraag van de eigenaar (21-11): *"Kun je mij ook een synopsis geve
 
 ## 1. De elevator pitch en de rode draad
 
-**Slogan:** *Ontdek jezelf in Grunn.* (Besluit 21-11: zonder "met vette snacks"; trailer, Steam, perskit, social en de test gebruiken dit.)
+**Slogan:** *Een zomer in Grunn. Kon minder.* Ondertitel op de titelkaart: *Tammo en Tessa zijn net afgestudeerd en hebben samen geld voor één patatje.* (Besluit 23-11, coördinator namens de eigenaar, zie docs/SLOGAN-23-11.md; vervangt "Ontdek jezelf in Grunn." van 21-11. Nog steeds zonder snackwagen; trailer, Steam, perskit, social en de test gebruiken dit.)
 
 **Pitch in drie zinnen.** Tammo en Tessa (allebei 24) zijn net afgestudeerd, werkloos en al vijf jaar vrienden, sinds hun eerste Kiezelweek. Tessa ontdekt dat ze een frietwagen wil, Tammo wil vooral rijden en bij haar blijven, en de enige vrije standplaats van Grunn gaat naar de winnaar van de Noordelijke Snackprijs. Jelle Terpstra, een Friese snackbaron met een bureaucratisch imperium, koopt de hele markt op om dat te voorkomen, en de grappen, de romance en de open wereld volgen uit die race.
 

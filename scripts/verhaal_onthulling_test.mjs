@@ -82,7 +82,7 @@ ok(/const OPENING_CUT = \[\];/.test(cut), 'de opening heeft geen stille, geschra
 // de haak staat in beeld: de slotkaart van de trailer zegt wat er aan de hand is
 const montage = fs.readFileSync(new URL('../game/js/intromontage.js', import.meta.url), 'utf8');
 const opening = fs.readFileSync(new URL('../game/js/openingfilm.js', import.meta.url), 'utf8');
-ok(/class="im-tagline">\$\{TITLE\.tagline\}<\/div><div class="im-kicker">\$\{TITLE\.sub\}/.test(montage) && /tagline: 'Ontdek jezelf in Grunn\.'/.test(opening) && /sub: 'Twee afgestudeerden\. Eén zomer\. Nog geen plan\.'/.test(opening), 'de slotkaart van de trailer noemt de haak: twee afgestudeerden, één zomer, nog geen plan');
+ok(/class="im-tagline">\$\{TITLE\.tagline\}<\/div><div class="im-kicker">\$\{TITLE\.sub\}/.test(montage) && /tagline: 'Een zomer in Grunn\. Kon minder\.'/.test(opening) && /sub: 'Tammo en Tessa zijn net afgestudeerd en hebben samen geld voor één patatje\.'/.test(opening), 'de slotkaart noemt de haak: net afgestudeerd, samen geld voor één patatje (docs/SLOGAN-23-11.md)');
 
 console.log(`${n - fails}/${n} verhaal_onthulling`);
 process.exit(fails ? 1 : 0);

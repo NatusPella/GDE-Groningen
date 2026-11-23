@@ -124,7 +124,7 @@ const woorden = (t) => String(t || '').trim().split(/\s+/).filter(Boolean).lengt
 // --- 6. de opening (film) ----------------------------------------------------------------------------------------------------------
 {
   ok(validateOpening().length === 0, 'de openingfilm voldoet aan de regie-regels', validateOpening().join('; '));
-  ok(TITLE.tagline === 'Ontdek jezelf in Grunn.' && !/snackwagen|frietwagen|Tam & Tes/i.test(`${TITLE.title} ${TITLE.tagline} ${TITLE.sub}`), 'de titelkaart belooft de snackwagen niet');
+  ok(TITLE.tagline === 'Een zomer in Grunn. Kon minder.' && !/snackwagen|frietwagen|Tam & Tes/i.test(`${TITLE.title} ${TITLE.tagline} ${TITLE.sub}`), 'de titelkaart belooft de snackwagen niet');
   ok(LINES.every((l) => !/\bde Grunn\b/i.test(l.text)), 'de openingsregels zeggen Grunn, nooit "de Grunn"');
   ok(LINES.every((l) => woorden(l.text) <= 25), 'geen openingsregel langer dan 25 woorden');
   const namen = SEQUENCE.filter((s) => s.tag).map((s) => s.tag.who);

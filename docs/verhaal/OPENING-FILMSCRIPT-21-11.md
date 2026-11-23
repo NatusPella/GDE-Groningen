@@ -16,7 +16,7 @@ De lead heeft de opening herschikt (openingstempo 170,8 s, testmarges 175 en 115
 | C00.1 | de lead heeft drie radioregels over de trailerparodie; deze film opent met Rikus' bestaande regel "Augustus. In Grunn heet dat zomer." (opname uit de trailer), "Er gaat niets boven Grunn. Behalve de Martinitoren." [BEHOUDEN] en "Vandaag in Grunn: weinig nieuws. Dat komt nog." [NIEUW]. Zijn eerste regel ("Tweehonderdduizend mensen…") vervalt; de parodie (fietsers, meeuw) blijft, de werkboot en de naamkaarten uit de oude trailer vervallen ten gunste van Tammo's duiven. |
 | C00.2 | alle regels van de lead blijven, in dezelfde volgorde, behalve Rikus' openingsregel "Moi, Nachtstreek…" (de film opent al met zijn stem in C00.1). De Jelle-hint van Rikus ("Een luisteraar meldt een Fries in een blauw colbert…") komt na het huurcontract, met beeld erbij, in plaats van aan het begin. "Kom. Werk." sluit de keuken af. |
 | C00.3 | alle regels van de lead blijven; de titelkaart komt vóór de landing. |
-| Titelkaart | uit `TITLE` (slogan "Ontdek jezelf in Grunn."), in beide bronnen gelijk. In het merge-conflict op `intromontage.js` (de lead veranderde één regel met de kicker) wint `TITLE`. |
+| Titelkaart | uit `TITLE` (slogan "Een zomer in Grunn. Kon minder.", sinds 23-11), in beide bronnen gelijk. In het merge-conflict op `intromontage.js` (de lead veranderde één regel met de kicker) wint `TITLE`. |
 | Opnames en nieuwe regels | geen regel is gewijzigd: elke tekst staat letterlijk in `09-script-akte1.md` of is de Rikus-regel uit de trailer, dus er komen geen nieuwe opnames bij. Wijzigt de lead een regel, dan wijzigt `openingfilm.js` mee (de test vergelijkt de tekst met het script). |
 
 ## Wat de opening moet doen (introductieprotocol)
@@ -128,7 +128,7 @@ TESSA: Een streamer betaalt honderdvijftig euro voor stunts. Alleen heeft de Esc
 TESSA: Dus we lenen een bakkie. Rijden, niet praten. [NIEUW]
 
 (regie: **c3-titel, 4,4 s.** Zwart. Het logo, de titel en de slogan.)
-TITELKAART: **GDE GRONINGEN** · Zomer vol misdaad · *Ontdek jezelf in Grunn.* · Twee afgestudeerden. Eén zomer. Nog geen plan.
+TITELKAART: **GDE GRONINGEN** · Zomer vol misdaad · *Een zomer in Grunn. Kon minder.* · Tammo en Tessa zijn net afgestudeerd en hebben samen geld voor één patatje.
 MUZIEK: titel-sting op de beat, een klokje.
 
 (regie: **c3-zweef, 4,6 s, kraan 3,6 m.** De zweefvlucht naar de plek waar de speler begint (de bestaande `flyShot`); "Welkom in Grunn". De camera landt bij de lokale hoofdpersoon.)

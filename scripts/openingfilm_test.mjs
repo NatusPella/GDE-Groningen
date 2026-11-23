@@ -30,7 +30,7 @@ assert.deepEqual(SEQUENCE.slice(-2).map((s) => s.id), ['c3-titel', 'c3-zweef'], 
 // 2. tekst: de regels van de linter (merken, winter, “de Grunn”, leessnelheid, beurtlengte)
 const unit = { id: 'C00', kind: 'opening', lines: LINES.map((l) => ({ speaker: l.speaker, key: l.who, text: l.text, channel: l.channel || '', voiceDur: l.voice === 'behouden' ? Math.max(1.6, l.text.length / 14) : null, hasVoice: l.voice === 'behouden', textOnly: l.voice === 'nieuw' })) };
 assert.deepEqual(checkText(unit, {}).filter((f) => f.ernst === 'blokkerend').map((f) => JSON.stringify(f)), [], 'blokkerende tekstvondsten');
-assert.equal(TITLE.tagline, 'Ontdek jezelf in Grunn.');
+assert.equal(TITLE.tagline, 'Een zomer in Grunn. Kon minder.');
 assert.ok(!/frietwagen|snack|eierbal/i.test(JSON.stringify(TITLE)), 'de titelkaart belooft geen snackwagen');
 assert.ok(!/de grunn/i.test(JSON.stringify([LINES, TITLE])));
 assert.ok(!/Fjord Frituur/.test(JSON.stringify([LINES, TITLE, SEQUENCE])), 'de naam Fjord Frituur is weg (eigenaar 21-11)');

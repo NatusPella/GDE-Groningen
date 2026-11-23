@@ -84,10 +84,9 @@ Ook rechtgezet, buiten de telling: de NL-korte beschrijving op de winkelpagina w
   parodie op schreeuwreclame; de korte droge zinnen van Tammo, Dijkstra en Jelle zijn hun stem (zie de dossiers).
 - **Eigennamen in hoofdletters** (Café De Lallende Koe, Eigen Maaksel als automerk) zijn geen Title Case.
 - **Scènetitels "Missie: deel"** in het verhaalscript (bron: de 09-scripts) zijn een gewone draaiboekvorm, geen tell.
-- **De slogan "Ontdek jezelf in Grunn."** en de ondertitel "Twee afgestudeerden. Eén zomer. Nog geen plan." zijn een
-  besluit van de eigenaar (21-11, VERHAAL-SYNOPSIS). Ze tellen in de scan wel mee (ai-woord, staccato-drietal): het zijn
-  de twee herkenbaarste modelformules van het hele spel, en ze staan op de titelkaart, in de trailer en bovenaan de
-  winkelpagina. Voorgelegd aan de eigenaar, niet zelf veranderd.
+- **De slogan en de ondertitel** ("Ontdek jezelf in Grunn.", "Twee afgestudeerden. Eén zomer. Nog geen plan.") waren
+  de twee herkenbaarste modelformules van het spel. Op 23-11 vervangen door "Een zomer in Grunn. Kon minder." en "Tammo en
+  Tessa zijn net afgestudeerd en hebben samen geld voor één patatje.", zie [SLOGAN-23-11.md](SLOGAN-23-11.md).
 
 ## Bronnen
 

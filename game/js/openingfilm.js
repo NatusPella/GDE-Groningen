@@ -16,7 +16,7 @@
 
 export const OPENING_ID = 'C00';
 export const OPENING_RANGE = [60, 240]; // s: owner decision 21-11, "langer mag" (was 60-120 s, and the old opening was 170 s): up to 4 minutes
-export const TITLE = { kicker: 'GDE Groningen', title: 'Zomer vol misdaad', tagline: 'Ontdek jezelf in Grunn.', sub: 'Twee afgestudeerden. Eén zomer. Nog geen plan.' };
+export const TITLE = { kicker: 'GDE Groningen', title: 'Zomer vol misdaad', tagline: 'Een zomer in Grunn. Kon minder.', sub: 'Tammo en Tessa zijn net afgestudeerd en hebben samen geld voor één patatje.' };
 
 // Samen spelen (AGENTS.md, multiplayer bij ontwerp): the opening is LOCAL and the same for everybody: a voiced two-hander in which both of them
 // are on screen, so it needs no 'who is the protagonist' fork. Every player sees it in his own game (a guest who joins a running session sees it

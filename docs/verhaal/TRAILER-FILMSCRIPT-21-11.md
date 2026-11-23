@@ -1,4 +1,4 @@
-# Verhaaltrailer: filmscript "Ontdek jezelf in Grunn" (21-11)
+# Verhaaltrailer: filmscript "Een zomer in Grunn" (21-11, slogan 23-11)
 
 De filmcut `ontdek` van 75 s (data: `PLAN.ontdek` in [game/js/trailerplan.js](../../game/js/trailerplan.js); test: `scripts/trailerplan_test.mjs` en `scripts/trailerfilm_test.mjs`). Hij verkoopt het **nieuwe verhaal zonder spoilers**: twee net afgestudeerde vrienden zonder plan, een stad in de zomer, een Fries in een blauw colbert, een man met duiven. **De snackwagen komt er niet in voor** (canon 21-11: hij is een late verhaaltwist en geen marketingbelofte; de validator verbiedt de woorden frietwagen, snackwagen en standplaats in beeldtekst). Slogan: **Ontdek jezelf in Grunn.** (zonder "met vette snacks"). Oudere cuts (`teaser`, `hoofd`) dragen nu dezelfde slogan en dezelfde tekstkaart.
 
@@ -45,7 +45,7 @@ Elke shot is een bestaand, vergrendeld cameraspoor in `game/js/trailer.js` (`bui
 | 21 | `bijna` | 1,3 | een pion op de weg, bijna | 12:54, helder | twee tikken |
 | 22 | `berend` | 3,6 | Berends bakkie | 09:24, helder | BEREND: "…Kon minder." [BEHOUDEN] (de stilte voor de zin is bedoeld) |
 | 23 | `plantsoen` | 5,7 | Noorderplantsoen | 15:24, helder | kaart "Zoek je plek. Samen."; muziek zakt naar de bas |
-| 24 | `logo` | 5,0 | de toren, gedimd | 19:06 tot 19:21, helder | titelkaart GDE Groningen, Zomer vol misdaad, **Ontdek jezelf in Grunn.**, Gratis voor pc en Mac; stoot |
+| 24 | `logo` | 5,0 | de toren, gedimd | 19:06 tot 19:21, helder | titelkaart GDE Groningen, Zomer vol misdaad, **Een zomer in Grunn. Kon minder.**, Gratis voor pc en Mac; stoot |
 
 Spoilerregels: geen vitrine, geen briefje, geen kus, geen finale, geen uitslag (`FORBIDDEN` in de validator); geen voltooide wagen; Jelle blijft een silhouet en een kleur (blauw colbert), zonder naam in beeld.
 

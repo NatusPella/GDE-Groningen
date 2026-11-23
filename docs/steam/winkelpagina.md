@@ -32,9 +32,9 @@ tekens heeft: "GDE Groningen - Zomer vol misdaad" met een gewoon streepje.
 
 ## Korte beschrijving (max. 300 tekens)
 
-**NL** (296 tekens):
+**NL** (285 tekens):
 
-> Ontdek jezelf in Grunn. Twee afgestudeerden zonder werk of plan zoeken hun plek en belanden in de diefstal van de Gouden Eierbal. Een gratis misdaadparodie in een open wereld, in de echte straten van Groningen: auto's jatten, de ring rond, kermis, kroegen en een Fries met een plan. Woist ja wel.
+> Een zomer in Grunn. Kon minder. Twee afgestudeerden zonder werk of plan belanden in de diefstal van de Gouden Eierbal. Een gratis misdaadparodie in een open wereld, in de echte straten van Groningen: auto's jatten, de ring rond, kermis, kroegen en een Fries met een plan. Woist ja wel.
 
 **EN** (280 tekens):
 

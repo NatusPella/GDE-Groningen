@@ -7,7 +7,7 @@ import { checkText } from './lib/cutscene_lint.mjs';
 
 const doc = fs.readFileSync(new URL('../docs/verhaal/TRAILER-FILMSCRIPT-21-11.md', import.meta.url), 'utf8');
 const beats = PLAN.ontdek.beats;
-assert.equal(SLOGAN, 'Ontdek jezelf in Grunn.');
+assert.equal(SLOGAN, 'Een zomer in Grunn. Kon minder.');
 assert.ok(Math.abs(planDuration('ontdek') - 75) < 0.6);
 for (const b of beats) assert.ok(doc.includes(`\`${b.shot}\``), `de shotlijst mist ${b.shot}`);
 assert.ok(beats.at(-1).caps.some((c) => c.kind === 'eind' && c.tagline === SLOGAN && !/snack/i.test(c.tagline)));

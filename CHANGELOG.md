@@ -9,6 +9,7 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ## [Unreleased]
 
+- Titelkaart en trailers: de slogan is nu "Een zomer in Grunn. Kon minder.", met eronder "Tammo en Tessa zijn net afgestudeerd en hebben samen geld voor één patatje."
 - Tekst: minder zinnen die als machinetaal lezen. Liedtitels op de radio krijgen alleen een hoofdletter waar het hoort ("Rood licht is een mening"), de Politieboot is één woord, twee Engelse prestatienamen zijn Nederlands (Even lachen, Opgepimpt), drie puntjes zijn overal één teken, meldingen hebben geen gedachtestreepjes meer en een paar winkel- en personageteksten zeggen iets concreets ("Weegt meer dan jij en gaat langer mee").
 
 ## [0.65.0] - 2026-11-22
