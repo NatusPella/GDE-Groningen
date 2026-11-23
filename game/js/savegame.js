@@ -302,6 +302,7 @@ function serialize(w) {
     moneyBackup: Math.max(0, Math.floor(num(w._goodMoney, num(w.money, 0)))),
     health: healthForSave(w.health, !!w.pendingRespawn),
     armor: clamp(num(w.armor, 0), 0, 100),
+    armorBag: clamp(Math.min(num(w.armorBag, 0), num(w.armor, 0)), 0, 100), // blue-bag armour, not bought back by the pawn shop (#1296)
     weapon: w.weapon,
     ammo,
     // eten (#502): gekochte snacks en zelf gevangen vis, net als ammo een gewoon veld
@@ -684,6 +685,7 @@ function applySaveRaw(w, d) {
     w._goodMoney = w.money;
     w.health = clamp(num(d.health, 100), 1, 100);
     w.armor = clamp(num(d.armor, 0), 0, 100);
+    w.armorBag = Math.min(w.armor, clamp(num(d.armorBag, 0), 0, 100));
     const ammo = {};
     for (const [k, v] of Object.entries(d.ammo || {})) {
       if (!WEAPONS[k]) continue;
