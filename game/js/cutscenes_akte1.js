@@ -92,9 +92,13 @@ Object.assign(SPECS, SPECS_AKTE2);
       { t: 'L12', shot: 'dolly', from: [3.87, -0.08, 1.5], to: [2.6, -0.27, 1.55], look: 'speaker', fov: 34 },
       { t: 'L13', shot: 'cut', at: [1.85, -1.42, 1.55], look: 'speaker', fov: 38 },
       { t: 'L17', shot: 'cut', at: [4.33, 2.42, 2], look: 'mid:tammo,tessa@1.3', fov: 40 },
-      { t: 'L17+4.05', shot: 'cut', at: [3.79, 3.42, 1.6], look: 'mid:tammo,tessa@1.3', fov: 40 },
-      { t: 'L18', shot: 'cut', at: [3.81, 2.06, 1.7], look: 'mid:tammo,tessa@1.3', fov: 40 },
-      { t: 'L21', shot: 'cut', at: [3.81, 2.06, 1.7], look: 'mid:tammo,tessa@1.3', fov: 40 },
+      // akte 1 op eindniveau (23-11, cutscene-lint CS-C06): Berends antwoord aan Tessa blijft aan haar kant van de as, en de terrasgast
+      // (Jelmer) wordt gefilmd van dezelfde kant als Tammo en Tessa (de oude L18/L21 vielen na het nieuwe script buiten de regels)
+      { t: 'L9', shot: 'ots', from: 'tessa', target: 'berend', dist: 1.7, side: 0.5, fov: 34 },
+      { t: 'L15', shot: 'cut', at: [4.4, 2.3, 1.7], look: 'mid:tammo,tessa@1.3', fov: 40 },
+      { t: 'L15+4.05', shot: 'cut', at: [3.6, 2.9, 1.9], look: 'mid:tammo,tessa@1.3', fov: 40 },
+      { t: 'L16', shot: 'cut', at: [4.6, 1.6, 1.7], look: 'mid:tammo,tessa@1.3', fov: 40 },
+      { t: 'L19', shot: 'cut', at: [3.6, 2.9, 1.7], look: 'mid:tammo,tessa@1.3', fov: 40 },
     ],
     // R-13: Berend krijgt een naamkaart bij zijn eerste verschijning (#1124, #1138)
     fx: [{ t: 1.0, fx: 'naam', text: 'Berend Bos, Bommen Berend', dur: 2.8 }],
@@ -345,7 +349,8 @@ Object.assign(SPECS, SPECS_AKTE2);
       { on: 'Tammo. Bert', actor: 'tessa', face: 'actor:tammo' },
     ],
     shots: [],
-    wide: { from: [-3.4, 3.0, 2.9], to: [-1.8, 2.4, 2.4], look: 'mid:loketbediende,tessa@1.3', fov: 50, until: 1 },
+    // akte 1 op eindniveau (23-11, cutscene-lint CS-R03): het slotbeeld komt nog tijdens Tessa's lange regel; het kijkt op haar
+    wide: { from: [-3.4, 3.0, 2.9], to: [-1.8, 2.4, 2.4], look: 'mid:loketbediende,tessa@1.3', endLook: 'tessa@1.4', fov: 50, until: 1 },
   };
 }
 
@@ -589,7 +594,8 @@ Object.assign(SPECS, SPECS_AKTE2);
       { on: 'Het museum', actor: 'bewaarder', anim: 'hips' },
     ],
     shots: [{ on: 'Foar mem', shot: 'follow', target: 'jelle', dist: 2.6, side: 0.8, h: 1.6, fov: 38 }],
-    wide: { from: [-3.2, 3.0, 3.0], to: [-1.2, 2.4, 2.5], look: 'mid:jelle,bewaarder@1.2', fov: 52, until: 1 },
+    // akte 1 op eindniveau (23-11, cutscene-lint CS-R03): het slotbeeld komt nog tijdens haar lange regel over het museum; het kijkt op haar
+    wide: { from: [-3.2, 3.0, 3.0], to: [-1.2, 2.4, 2.5], look: 'mid:jelle,bewaarder@1.2', endLook: 'bewaarder@1.4', fov: 52, until: 1 },
   };
 }
 
