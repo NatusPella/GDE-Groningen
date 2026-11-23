@@ -324,6 +324,12 @@ S['M24.intro'] = {
 
 // --- M25 Het bod: Oma's kitchen table, the four ingredients ---
 S['M25.intro'] = {
+  // as-sprongen hersteld (180-gradenregel): deze shots vervangen de gegenereerde (missionScene, spec.shotFix)
+  shotFix: [
+    { t: 'L8', shot: 'cut', at: [0.71, 0.45, 2], look: 'mid:tammo,tessa@1.3', fov: 40 },
+    { t: 'L12', shot: 'cut', at: [5.19, 1.5, 2.8], look: 'speaker', fov: 44 },
+    { t: 'L13+3.38', shot: 'dolly', from: [0.97, -3.5, 2.5], to: [1.75, -1.98, 3.4], look: 'mid:trijntje,mem@1', fov: 50 },
+  ],
   set: 'omakeuken',
   cast: {
     trijntje: { key: 'trijntje', at: [2.4, 0.7], face: 180, anim: 'idle', gest: ['talk', 'point', 'hips'] },
@@ -381,6 +387,12 @@ S['M25.outro'] = {
 
 // --- M26 Ontzet: the stage at the Vismarkt; the finale outro is the pair alone with the crowd ---
 S['M26.intro'] = {
+  // as-sprongen hersteld (180-gradenregel): deze shots vervangen de gegenereerde (missionScene, spec.shotFix)
+  shotFix: [
+    { t: 'L3', shot: 'cut', at: [4.41, -0.44, 1.55], look: 'speaker', fov: 38 },
+    { t: 'L10', shot: 'cut', at: [1.24, 0.79, 1.55], look: 'speaker', fov: 38 },
+    { t: 'L21', shot: 'cut', at: [4.33, 0.26, 1.55], look: 'speaker', fov: 38 },
+  ],
   cast: {
     rikus: { key: 'rikus', at: [4, 2.6], face: 190, anim: 'idle', bg: true, gest: ['talk', 'point'] },
     berend: { key: 'berend', at: [3.6, -1], face: 180, anim: 'idle', gest: ['point', 'hips', 'talk', 'point'] },
@@ -413,6 +425,11 @@ S['M26.intro'] = {
   wide: WIDE([-5.5, 4.5, 3.4], [-3.5, 3.2, 2.5], 'mid:berend,tessa@1'),
 };
 S['M26.outro'] = {
+  // as-sprongen hersteld (180-gradenregel): deze shots vervangen de gegenereerde (missionScene, spec.shotFix)
+  shotFix: [
+    { t: 'L10+1.3', shot: 'dolly', from: [3, 1.9, 1.4], to: [2, 0.9, 1.5], look: 'mid:tammo,tessa@1.45', fov: 38 },
+    { t: 'L17', shot: 'cut', at: [2.6, 3.19, 2], look: 'mid:tammo,tessa@1.3', fov: 40 },
+  ],
   cast: {
     rikus: { key: 'rikus', at: [4.4, 2], face: 190, anim: 'idle', bg: true, gest: ['talk', 'point'] },
     // WP6: Berend telt de kus hardop in de menigte

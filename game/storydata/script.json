@@ -609,11 +609,29 @@
     {
      "speaker": "Berend Bos",
      "key": "berend",
-     "text": "Niet zo hard. Veertig jaar speel ik hem. Elk jaar val ik de stad aan, en elk jaar verlies ik. Dat doet wat met een mens.",
-     "tag": "BEHOUDEN",
+     "text": "Niet zo hard. Veertig jaar speel ik hem.",
+     "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": false,
-     "rec": "lines"
+     "textOnly": true
+    },
+    {
+     "speaker": "Tammo",
+     "key": "T",
+     "text": "Veertig jaar?",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true,
+     "form": {
+      "ov": 0.3
+     }
+    },
+    {
+     "speaker": "Berend Bos",
+     "key": "berend",
+     "text": "Elk jaar val ik de stad aan, en elk jaar verlies ik. Dat doet wat met een mens.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
     },
     {
      "speaker": "Tessa",
@@ -4449,11 +4467,10 @@
     {
      "speaker": "Rikus",
      "key": "rikus",
-     "text": "Er is iets gestolen dat niemand ooit zag, maar dat iedereen mist. 't Het nog nooit zo donker west, of 't wer altied wel weer licht.",
+     "text": "Er is iets gestolen dat niemand zag, maar dat iedereen mist. 't Het nog nooit zo donker west, of 't wer altied wel weer licht.",
      "tag": "NIEUW",
      "channel": "radio",
-     "textOnly": false,
-     "rec": "lines"
+     "textOnly": true
     },
     {
      "speaker": "Rikus",
@@ -17830,11 +17847,29 @@
     {
      "speaker": "Tinus",
      "key": "tinus",
-     "text": "Met een luik is de zijkant zwakker, en een friteuse weegt vierhonderd kilo. Houdt de achteras het niet, dan breekt hij op de Grote Markt. Rij hem dus de modder in.",
+     "text": "Met een luik is de zijkant zwakker, en een friteuse weegt vierhonderd kilo.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": false,
-     "rec": "lines"
+     "textOnly": true
+    },
+    {
+     "speaker": "Tammo",
+     "key": "T",
+     "text": "Vierhonderd kilo?",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true,
+     "form": {
+      "ov": 0.3
+     }
+    },
+    {
+     "speaker": "Tinus",
+     "key": "tinus",
+     "text": "Houdt de achteras het niet, dan breekt hij op de Grote Markt. Rij hem dus de modder in.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
     },
     {
      "speaker": "Tessa",
@@ -19284,11 +19319,38 @@
     {
      "speaker": "Sjabbe",
      "key": "sjabbe",
-     "text": "De notaris zit in de Oude Boteringestraat. Morgen om drie uur laat Jelle zich daar inschrijven als nieuwe bewaarder, met de bal. Dan tekent hij zelf de uitslag. Een notaris is ook maar een loket, met een stempel.",
+     "text": "De notaris zit in de Oude Boteringestraat.",
      "tag": "NIEUW",
      "channel": "telefoon",
-     "textOnly": false,
-     "rec": "lines"
+     "textOnly": true
+    },
+    {
+     "speaker": "Tessa",
+     "key": "A",
+     "text": "En wat doet Jelle daar?",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true,
+     "form": {
+      "ov": 0.3
+     },
+     "voice": "Anita"
+    },
+    {
+     "speaker": "Sjabbe",
+     "key": "sjabbe",
+     "text": "Morgen om drie uur laat Jelle zich daar inschrijven als nieuwe bewaarder, met de bal. Dan tekent hij zelf de uitslag.",
+     "tag": "NIEUW",
+     "channel": "telefoon",
+     "textOnly": true
+    },
+    {
+     "speaker": "Sjabbe",
+     "key": "sjabbe",
+     "text": "Een notaris is ook maar een loket, met een stempel.",
+     "tag": "NIEUW",
+     "channel": "telefoon",
+     "textOnly": true
     },
     {
      "speaker": "Tessa",

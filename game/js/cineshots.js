@@ -68,6 +68,22 @@ export function placeTemplate(name, params, t) {
   return expandTemplate(name, params).map(({ dt, ...rest }) => ({ t: shiftTime(t, dt), ...rest }));
 }
 
+// Een spec die als geheel een as-sprong (180-gradenregel) moest herstellen, zet de herstelde shots in `shotFix`: per shot dezelfde `t`
+// als de gegenereerde shot, die daarmee vervangen wordt (de eerste nog niet vervangen shot met die `t`). Zo blijft de rest van de
+// gegenereerde dekking staan en verschuift er geen shot. Geeft het aantal vervangen shots terug.
+export function applyShotFix(shots, fix) {
+  const done = new Set();
+  let n = 0;
+  for (const f of fix || []) {
+    const i = shots.findIndex((q, k) => !done.has(k) && q.t === f.t);
+    if (i < 0) continue;
+    shots[i] = { ...f };
+    done.add(i);
+    n++;
+  }
+  return n;
+}
+
 // ---- Pan-budget (eigenaar 20-11: te veel pannende shots) --------------------------------------------------------------------
 // Een "pan" is een shot dat de camera zichtbaar door de ruimte schuift of draait: een dolly of crane van meer dan PAN_MIN_TRAVEL m,
 // of een orbit van meer dan PAN_MIN_SWEEP graden. Budget per scène: hooguit PAN_BUDGET pan (de langste blijft, ingekort tot
