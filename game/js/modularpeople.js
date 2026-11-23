@@ -92,7 +92,26 @@ function buildSkeleton(rig) {
 }
 
 const hashf = (seed, k) => { const x = Math.sin(seed * 12.9898 + k * 78.233) * 43758.5453; return x - Math.floor(x); };
-const HAIR = [0x2a1d14, 0x3b2a1e, 0x5a3d26, 0x7a5636, 0xb08f5c, 0xcdb485, 0x93462a, 0x1b1b1d, 0x8a8580, 0xb4afa6];
+// Natuurlijke haarkleuren (donker- tot lichtblond, rossig, zwart), grijs en wit voor ouderen, een geverfde kleur zelden.
+const HAIR = [0x2a1d14, 0x3b2a1e, 0x5a3d26, 0x7a5636, 0x9c7a4c, 0xb08f5c, 0xcdb485, 0x93462a, 0x1b1b1d];
+const HAIR_OLD = [0x8a8580, 0xb4afa6, 0xd2cec6, 0x6e6a66];
+const HAIR_DYED = [0x2f6f8a, 0x8a2f6f, 0xc9694a];
+// Hoe vaak een deel voorkomt op een Groningse straat (correctie coördinator 23-11): gewone kapsels en kleding het meest, opvallende
+// stijlen (hanenkam, cowboyhoed, punkleer, tuinbroek) zeldzaam (1 tot 3%). Sleutel = deel-id; wat niet genoemd is telt 1.
+export const PART_WEIGHT = {
+  Punk_Head: 0.03, Farmer_Head: 0.03, Worker_Head: 0.12, Beach_Head: 0.5, Adventurer_Head: 0.6,
+  Punk_Body: 0.04, Farmer_Body: 0.05, Worker_Body: 0.08, Adventurer_Body: 0.12, Beach_Body: 0.45, Suit_Body: 0.45, Formal_Body: 0.6,
+  Punk_Legs: 0.08, Farmer_Pants: 0.05, Worker_Legs: 0.2, Adventurer_Legs: 0.15, Suit_Legs: 0.55, Beach_Legs: 0.5, Formal_Legs: 0.5,
+  Punk_Feet: 0.3, Farmer_Feet: 0.08, Worker_Feet: 0.4,
+};
+const weightOf = (p) => PART_WEIGHT[p.id] ?? 1;
+function pickWeighted(list, u) {
+  let total = 0;
+  for (const p of list) total += weightOf(p);
+  let x = u * total;
+  for (const p of list) { x -= weightOf(p); if (x < 0) return p; }
+  return list[list.length - 1];
+}
 const PANTS = [0x2f3b52, 0x232326, 0x3a3b3f, 0x7f7258, 0x4a3a2a, 0x3a4d6e, 0x2f3f5a, 0x55657a];
 const _c = new THREE.Color(), _base = new THREE.Color();
 
@@ -122,13 +141,17 @@ export function modularLook(seed, opts = {}) {
   const rig = rigs.get(rigName);
   if (!rig) return null;
   const parts = {};
-  MODULAR_SLOTS.forEach((s, k) => { const list = rig.slots[s]; parts[s] = list[Math.floor(hashf(seed, 10 + k) * list.length)].id; });
+  MODULAR_SLOTS.forEach((s, k) => { parts[s] = pickWeighted(rig.slots[s], hashf(seed, 10 + k)).id; });
+  // leeftijd: ongeveer een op de vijf is ouder (grijs of wit haar, iets kleiner, rustiger tempo); geverfd haar zelden (2%)
+  const old = opts.old !== undefined ? !!opts.old : hashf(seed, 23) < 0.2;
+  const dyed = !old && hashf(seed, 24) < 0.02;
   return {
     seed, rig: rigName, parts,
     skin: opts.skin ?? 0xd9a47a, shirt: opts.shirt ?? null,
-    hair: HAIR[Math.floor(hashf(seed, 20) * HAIR.length)], pants: PANTS[Math.floor(hashf(seed, 21) * PANTS.length)],
+    old,
+    hair: old ? HAIR_OLD[Math.floor(hashf(seed, 20) * HAIR_OLD.length)] : dyed ? HAIR_DYED[Math.floor(hashf(seed, 20) * HAIR_DYED.length)] : HAIR[Math.floor(hashf(seed, 20) * HAIR.length)], pants: PANTS[Math.floor(hashf(seed, 21) * PANTS.length)],
     // importschaal per pack (quaternius_import.mjs RIGS) met een kleine variatie per zaad: man 1,75-1,85 m, vrouw 1,65-1,72 m
-    scale: (rig.man.schaal || 1) * (1 + (rig.man.variatie ?? 0.02) * (2 * hashf(seed, 22) - 1)),
+    scale: (rig.man.schaal || 1) * (1 + (rig.man.variatie ?? 0.02) * (2 * hashf(seed, 22) - 1)) * (old ? 0.985 : 1),
   };
 }
 

@@ -36,7 +36,7 @@ export const KEEP = ['Root', 'Body', 'Hips', 'Abdomen', 'Torso', 'Chest', 'Neck'
 export const CLIPS = ['Idle', 'Idle_Neutral', 'Walk', 'Run', 'Wave', 'Interact'];
 const FPS = 30;
 // m: LOD 1 en LOD 2 per vak (LOD 0 = het gelaste origineel); het hoofd fijner, anders verdwijnen haar en gezicht als eerste
-export const LOD_CELLS = { hoofd: [0.016, 0.036], romp: [0.046, 0.1], benen: [0.046, 0.1], voeten: [0.038, 0.085] };
+export const LOD_CELLS = { hoofd: [0.017, 0.036], romp: [0.05, 0.1], benen: [0.05, 0.1], voeten: [0.04, 0.085] };
 const POS_Q = 1 / 8192;          // m per eenheid (Int16: +-4 m)
 const SLOT = (name) => /_head$/i.test(name) || /_Head$/.test(name) ? 'hoofd' : /_Body$/i.test(name) ? 'romp' : /_(Legs|Pants)$/i.test(name) ? 'benen' : /_Feet$/i.test(name) ? 'voeten' : null;
 

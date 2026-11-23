@@ -54,6 +54,23 @@ for (const female of [false, true]) {
   ok(fem.size === 2 && parts.size >= 8, `man en vrouw, en ${parts.size} verschillende hoofden in 200 zaden`);
 }
 
+// een Groningse straat: opvallende stijlen zeldzaam, ouderen en natuurlijk haar
+{
+  const N2 = 3000, count = {};
+  let old = 0, natural = 0;
+  for (let i = 0; i < N2; i++) {
+    const l = M.modularLook(i * 1.37 + 0.5, {});
+    for (const s of ['hoofd', 'romp']) count[l.parts[s]] = (count[l.parts[s]] || 0) + 1;
+    if (l.old) old++;
+    if (![0x2f6f8a, 0x8a2f6f, 0xc9694a].includes(l.hair)) natural++;   // de geverfde kleuren van modularpeople.js
+  }
+  const share = (id) => (count[id] || 0) / N2;
+  ok(share('Punk_Head') < 0.03 && share('Farmer_Head') < 0.03, `hanenkam ${(share('Punk_Head') * 100).toFixed(1)}% en cowboyhoed ${(share('Farmer_Head') * 100).toFixed(1)}% zijn zeldzaam`);
+  ok(share('Punk_Body') < 0.03 && share('Farmer_Body') < 0.03, 'punkleer en tuinbroek zijn zeldzaam');
+  ok(old / N2 > 0.15 && old / N2 < 0.25, `ongeveer een op de vijf is ouder (${(100 * old / N2).toFixed(0)}%)`);
+  ok(natural / N2 > 0.97, `haar is bijna altijd natuurlijk (${(100 * natural / N2).toFixed(1)}%)`);
+}
+
 // verwijzingen: LOD-wissels tellen de gedeelde geometrie op en af
 {
   const m = M.buildModularPerson(5, { female: false });
@@ -91,7 +108,7 @@ for (const female of [false, true]) {
     const rig = female ? 'vrouw' : 'man';
     let lo = 9, hi = 0, eyeMin = 9, eyeMax = 0, knee = 0, sh = 0, bad = 0;
     for (let i = 0; i < 40; i++) {
-      const m = M.buildModularPerson(i * 13.7 + 2, { female });
+      const m = M.buildModularPerson(i * 13.7 + 2, { female, old: false });
       const r = measure(m);
       lo = Math.min(lo, r.lengte); hi = Math.max(hi, r.lengte);
       if (Number.isFinite(r.oog)) { eyeMin = Math.min(eyeMin, r.oog); eyeMax = Math.max(eyeMax, r.oog); }
