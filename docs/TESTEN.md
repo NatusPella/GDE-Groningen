@@ -189,6 +189,7 @@ Tests die in een worktree zonder wereld overgeslagen worden (needs-world, gemete
 | `tileplace_test.mjs` | no game/world with the province layer |
 | `tilewater_test.mjs` | no game/world with the province layer |
 | `tileworld_test.mjs` | Error: ENOENT: no such file or directory, open 'data/cache/province/province.json.gz' |
+| `busstop_world_test.mjs` | geen game/world |
 | `trafficpath_test.mjs` | geen game/world |
 | `train_contact_test.mjs` | geen data/cache/province (stad.json mist water, groen, bomen en gebouwen uit OSM) |
 | `train_ride_test.mjs` | geen data/cache/province (stad.json mist water, groen, bomen en gebouwen uit OSM) |

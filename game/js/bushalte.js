@@ -18,6 +18,7 @@ import { busShiftBlock, startBusDienstBijHalte } from './sidejobs.js';
 import { isCinematicActive } from './cinematics.js';
 import { haltesNabij, dichtsteHalte, halteOpties, haltePrompt, HALTE_ZIEN_R } from './ovmissie.js';
 import { accentVan } from './sidejobprofiel.js';
+import { zetHalteBron } from './boarding.js';
 
 const POOL = 48;            // palen tegelijk in beeld
 const KERB = 4.2;           // m van het hart van de weg naar de paal, rechts van de rijrichting
@@ -126,6 +127,10 @@ function tik(dt, world) {
   laatst = { x: p.x, y: p.y, t: 0 };
   ververs(world, p);
 }
+
+// De haltes rond de speler (de pool van de palen) en de plek van hun paal: boarding3d.js zet er wachtenden bij
+// (via boarding.js, zodat de tekenkant dit bestand niet hoeft te laden).
+zetHalteBron(() => nu, (h) => plaats(h));
 
 // De haltes voor de kaart: de dichtstbijzijnde rond de speler, niet de hele provincie. Eén keer per 150 m berekend.
 const KAART_R = 2500, KAART_MAX = 70;

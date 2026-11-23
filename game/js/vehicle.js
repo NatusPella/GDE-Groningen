@@ -665,7 +665,7 @@ function lanePoint(map, road, i, dir, v, out = null) {
       : road.oneway ? Math.min(lane, half - laneW - v.halfWid - 0.2) : clamp(half - laneW - v.halfWid - 0.3, 0.3, half);
   }
   const leftLane = v.laneMode === 'left' && !small ? modelLane(road, dir, 'left') : null;
-  if (v.laneMode === 'yield' && !small) lane = Math.max(lane, half - v.halfWid - 0.05);
+  if ((v.laneMode === 'yield' || v.laneMode === 'halte') && !small) lane = Math.max(lane, half - v.halfWid - 0.05); // 'halte': een lijnbus aan de stoeprand bij de halte (busstop.js)
   else if (leftLane !== null) lane = clamp(leftLane, -(half - v.halfWid - 0.2), half);
   else if (v.laneMode === 'left' && !small && half >= 4.5) lane = road.oneway ? -Math.max(0.3, Math.min(1.8, half - v.halfWid - 1.4)) : Math.min(lane, Math.max(v.halfWid + 0.25, half * 0.28));
   else if (v.laneMode === 'squeeze' && !road.oneway) lane = Math.max(lane, half - v.halfWid + 0.4);

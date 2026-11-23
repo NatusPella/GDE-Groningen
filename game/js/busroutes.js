@@ -229,7 +229,9 @@ export { nextStop };
 
 // Per beeld: waar is de bus nu (x, y), hoeveel tijd is er om (dt). Geeft
 // { goal, hold, atStop } terug: goal voor de AI, hold = seconden wachten bij de halte.
-export function stepRunner(r, x, y, dt) {
+// zacht (de lijnbussen in het verkeer, busstop.js): geen eigen haltetijd hier; de rit geeft alleen de volgende
+// halte terug (stop) en de AI remt, haltert en meldt de halte zelf als gehaald (halteGehaald).
+export function stepRunner(r, x, y, dt, zacht = false) {
   const L = r.line;
   if (r.dwell > 0) {
     r.dwell = Math.max(0, r.dwell - dt);
@@ -247,6 +249,7 @@ export function stepRunner(r, x, y, dt) {
   } else if (r.dir > 0 && r.s > L.length - 6) { r.s = 0; r.trips++; r.served = null; }
   else if (r.dir < 0 && r.s < 6) { r.s = L.length; r.trips++; r.served = null; }
   const st = nextStop(r);
+  if (zacht) { _zacht.goal = aheadGoal(r); _zacht.stop = st && st !== r.served ? st : null; return _zacht; }
   if (st && st !== r.served && Math.hypot(st.x - x, st.y - y) < STOP_RADIUS) {
     r.served = st;
     r.dwell = DWELL;
@@ -254,6 +257,10 @@ export function stepRunner(r, x, y, dt) {
   }
   return { goal: aheadGoal(r), hold: 0, atStop: false };
 }
+
+const _zacht = { goal: null, hold: 0, atStop: false, stop: null };
+// De AI heeft bij deze halte gehalteerd (of hem overgeslagen): niet nog eens.
+export function halteGehaald(r, st) { if (st) r.served = st; }
 
 // doel LOOKAHEAD m verder op de lijn, over het eind heen (lus) of tot het eind
 function aheadGoal(r) {

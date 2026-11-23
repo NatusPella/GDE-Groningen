@@ -64,6 +64,7 @@ export const SLOW = new Set([
   'coop_licht_test.mjs', // start alle coop-tests als eigen Node-processen (samen ±1 min)
   // vragen de stadsbouw-cache (os.tmpdir()/gde-stad-cache, sleutel op bestandstijden): op een schone checkout of na een wijziging bouwt de eerste ca. 280 s, daarna 14 s
   'akte1_doelen_test.mjs', 'akte2_doelen_test.mjs', 'akte3_test.mjs', 'boat_waypoint_test.mjs',
+  'busstop_world_test.mjs', // rijdt lijnbussen over de echte lijnen van game/world (ca. 30 s)
 
 ]);
 // Waar een test op stukloopt als de wereld ontbreekt.

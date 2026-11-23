@@ -57,6 +57,8 @@ function tickAiIndicator(v, dt) {
   const last = v.indAngle ?? v.angle;
   v.indAngle = v.angle;
   if (v.indicator === 'hazard') return;
+  // een lijnbus bij de halte (vehicle/busstopai.js): rechts erheen, links weer invoegen
+  if (v.indForce) { v.indicator = v.indForce; v.indHold = AI_HOLD_S * 0.5; return; }
   const rate = dt > 0 ? norm(v.angle - last) / dt : 0;
   if (Math.abs(v.speed || 0) > AI_MIN_SPEED && Math.abs(rate) > AI_RATE) {
     v.indicator = rate > 0 ? 'right' : 'left';
