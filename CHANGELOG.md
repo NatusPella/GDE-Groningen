@@ -15,6 +15,13 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 - Game feel: bij hoge snelheid krijgt de rand van het beeld een lichte streep naar het midden (alleen op Middel, Hoog en Ultra), zodat snelheid voelt zonder dat de weg onscherp wordt. Gaat uit met Beweging beperken en met Snelheidsgevoel uit.
 - Dieren: koe, schaap, paard, kat en hond hebben nu oren die bewegen (vliegen wegschudden, naar voren bij iets nieuws, plat op de vlucht), een stap waarin de poot van de grond komt, een galop als ze schrikken, ademhaling, een zwiepende staart, af en toe een schuddende kop, en ze kijken je na als je dichtbij komt. De koe heeft een oormerk, het paard een bles, neusgaten en manen die meezwaaien, eenden en de reiger hebben een gevouwen vleugel, de reiger een kuif, en elke koe, elk schaap en elke kat heeft een iets andere maat. Ver weg blijft het bij stappen en grazen. Samen spelen: lokaal in ieders eigen spel, niets nieuws over het net.
 - Hemel: echte, zachte wolken in plaats van witte blokjes. Ze krijgen licht en schaduw van de zon, zilveren randen, een warme gloed bij zonsondergang, een donker dek bij onweer, en trekken langzaam met de wind mee. Het water spiegelt de wolken mee.
+- Geld en politie: de grote blauwe tas telt nog steeds als pantser, maar het pandjeshuis koopt hem niet meer als vest terug (tien tassen voor een tientje leverden zestig euro op). Een geldwagen die vanzelf in het verkeer verongelukt geeft je geen ster meer, na DOOD of OPGEPAKT begin je zonder opgebouwde warmte van kleine overtredingen, en sluit je het spel terwijl een zakkenroller met je portemonnee wegrent, dan ben je dat geld niet kwijt. Samen spelen: per speler.
+- Opslaan: wie het spel sluit op het DOOD- of OPGEPAKT-scherm betaalt de boete toch; een wapen met oneindige munitie blijft na het laden in je hand; een nieuwe kalenderdag of een andere moeilijkheid wordt meteen bewaard; de duifrecords van de ene saveplek lekken niet meer naar een andere.
+- Missies: na hervatten bij een hervatpunt loopt de medailletijd door (bewust mislukken maakte 'snel' makkelijker), en Opnieuw beginnen verplaatst je niet meer als er tijdens het overvloeien een bijbaan, activiteit of filmpje begon.
+- Slapen: een middagdutje tot de volgende ochtend schuift nu ook de datum op.
+- De tuningwerkplaats houdt de wereld stil zolang hij open is (de pauze duurde één beeld).
+- Spraakbubbels staan boven het hoofd van de spreker, ook op een dijk of in een kuil; duiven bij een voerplek staan op de stoep in plaats van half in de stenen.
+- HUD: de toetsregel in de doelkaart schuift niet meer in de doelregel. Instellingen: de kop Hulp heeft lucht, de uitleg onder een rij is beter leesbaar en de focusrand om een tab is dunner.
 
 ## [0.65.0] - 2026-11-22
 
