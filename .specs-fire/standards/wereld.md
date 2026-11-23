@@ -4,6 +4,7 @@
 > `worldbuilder.js`); deze spec bundelt de regels. Detail: `docs/PROVINCIE-PLAN.md`
 > (projectie, formaat, LOD), `docs/GEBIEDEN.md` (gebieden) en
 > `docs/ARCHITECTUUR-STAD-NAAR-TEGELS.md` (migratie, deels historisch).
+> **Visuele stijl** (kleuren, licht, materialen): `docs/ART-DIRECTION.md`.
 
 ## Doel
 

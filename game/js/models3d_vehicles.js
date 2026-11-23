@@ -583,7 +583,7 @@ function buildCarGeometry(type, L, W, paint, opts) {
     B.box(rx, P.roof + 0.36, 0, 0.05, 0.72, 0.05, 0x2a2b2d);
     B.box(rx + 0.12, P.roof + 0.78, 0, 0.42, 0.22, 0.26, 0x2a2b2d);
     B.box(rx + 0.36, P.roof + 0.78, 0, 0.1, 0.14, 0.14, 0x9fb4d8, G_GLASS);
-    B.geo(new THREE.CylinderGeometry(0.26, 0.04, 0.1, 10), composeMatrix(rx - 0.45, P.roof + 0.14, 0, 0, 0, 0.5), 0xdfe3e6);
+    B.geo(new THREE.CylinderGeometry(0.26, 0.04, 0.1, 10), composeMatrix(rx - 0.45, P.roof + 0.14, 0, 0, 0, 0.5), 0xd6d6d1);
     B.box(rx - 0.45, P.roof + 0.07, 0, 0.05, 0.1, 0.05, 0x2a2b2d);
     B.box(rx + 0.42, P.roof + 0.78, 0, 0.02, 0.05, 0.05, ORANGE, G_LAMP);
   } else if (variant === 'pakket') {
@@ -1528,7 +1528,7 @@ function buildTankerMesh(v) {
   const geo = cached(`tankwagen|${L}|${W}|${paint}`, () => {
     const B = new GeoBuilder(3);
     const K = (c) => (wrecked ? WRECKED_COLOR : c); // een wrak is overal zwartgeblakerd
-    const STEEL = K(0xc9ced3), STEEL_HI = K(0xe2e6e9), STEEL_LO = K(0x9ba2a8), FRAME = K(0x26282b), DARK = K(0x3a3d40), ALU = K(0xa7adb3);
+    const STEEL = K(0xc9ced3), STEEL_HI = K(0xe6e6e1), STEEL_LO = K(0x9ba2a8), FRAME = K(0x26282b), DARK = K(0x3a3d40), ALU = K(0xa7adb3);
     const RUBBER = K(0x161718), RAIL = K(0xd9b92e), WIT = K(0xf4f2ec), ROOD = K(0xc8102e);
     const cabL = T.cabL, cx0 = hl - cabL, cx = hl - cabL / 2;
     const ellipse = (len, seg = 22) => new THREE.CylinderGeometry(1, 1, len, seg, 1, true).rotateZ(Math.PI / 2);
@@ -3212,7 +3212,7 @@ export function updatePoliceLamps(mesh, time, chasing, id = 0) {
 // the group at water level). Flags are the Groningen city flag (green, white,
 // green); nav lights sit in the lamp group so nightlights3d can make them glow.
 
-const NAV_RED = 0xff2a1a, NAV_GREEN = 0x26ff5a, NAV_WHITE = 0xfff4dc;
+const NAV_RED = 0xff2a1a, NAV_GREEN = 0x26ff5a, NAV_WHITE = 0xf2ead2;
 const GRN_FLAG = 0x1f8a3c, WHITE_FLAG = 0xf2f0ea;
 const WOOD = 0x9a7048, DECK = 0xb08658, KEEL = 0x5a2a22;
 
