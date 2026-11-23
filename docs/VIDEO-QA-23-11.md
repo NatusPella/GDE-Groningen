@@ -51,15 +51,18 @@ Gecontroleerd en **geen** bevinding: de eerste regel van de tip-kaart "Tessa: De
 
 Positief: de keukenscène leest als intentioneel (kleur, schaduw, ondertitels per spreker kloppen met de beelden, Nederlands, "Grunn"); geen enkele flikkering of zwarte flits in 90 s; de HUD (minikaart, wijkkaart, snelheid, routekaart) staat zonder overlap.
 
+## Opgelost op deze branch (nog niet in beeld nagekeken)
+
+- **1** (`game/js/companion.js`, `game/js/prompts.js`): de metgezel loopt naar het instappunt van de bijrijdersdeur (`vehicledoors.js`) in plaats van naar het midden van de auto, de carrosserie duwt hem onderweg opzij, en na 1,5 s naast de auto stapt hij toch in (geen vastloper). Het label "Jouw ouwe Escapade, Loop erheen, dan E" verdwijnt binnen 4 m van de auto. Test: `scripts/companion_instap_test.mjs`. Samen spelen: alleen de computermetgezel van wie het spel opende; een gast is een eigen figuur (#502).
+- **6** (`game/index.html`): het laadscherm kleurt eerst in 0,25 s naar inkt en vervaagt dan, binnen de 800 ms van `dismissLoading`. Het eerste beeld komt dus uit zwart.
+- **8** (`game/js/hud_panel.css`): de middenpositie van de overslaanhint (scènes met HUD) geldt alleen zolang `#cine` actief is; aan het eind springt de uitfadende hint niet meer in de ondertitel. De ondertitel zelf is niet aangeraakt (branch `ondertitels-ds3-23-11`).
+
 ## Issue-voorstellen (niet aangemaakt)
 
-Geen van de bevindingen was een duidelijke éénregelfix; er is daarom geen game-code gewijzigd.
-
-1. `bug`, impact-midden, kosten-M: metgezellen botsen met het voertuig bij het instappen (1) en het hint-label verdwijnt niet als de speler al bij de auto staat.
-2. `bug`, impact-midden, kosten-S: kaderkeuze keukenshot (2): minimale afstand of hoofdruimte-regel in `cineshots.js`.
-3. `bug`, impact-laag, kosten-S: de deur van de zolderkeuken laat zwart zien (4): licht of een gang achter de deur, of de deur later openen.
-4. `bug`, impact-laag, kosten-M: haarmodel Tessa (5) en handpose Tammo (7).
-5. `wens`, impact-midden, kosten-L: stream-ahead bij hoge snelheid (3): meet met de meetvlag `?hitch` op een schone machine.
+1. `bug`, impact-midden, kosten-S: kaderkeuze keukenshot (2): minimale afstand of hoofdruimte-regel in `cineshots.js` (cutscene-agent).
+2. `bug`, impact-laag, kosten-S: de deur van de zolderkeuken laat zwart zien (4): licht of een gang achter de deur, of de deur later openen (cutscene-agent).
+3. `bug`, impact-laag, kosten-M: haarmodel Tessa (5) en handpose Tammo (7) (personages-agent).
+4. `wens`, impact-midden, kosten-L: streamen bij hoge snelheid (3). In de code is geen duidelijke fout gevonden: bijna alle wachtbeelden hadden één tussenbeeld nodig, dus de bouwbudgetten van `streamplanner.js` werken de achterstand per beeld weg zoals bedoeld. De opname telt elke achterstand als wachten, en de boost `streamBoostUntil` in `scene3d.js` loopt op echte tijd (`performance.now()`) terwijl de opname op een virtuele klok loopt, wat de meting vertekent. Meet opnieuw met `?hitch` op een stille machine voordat iemand het tegelbudget aanpast (perf-agent, `main.js`).
 
 ## Opnieuw draaien (voor de coördinator)
 
