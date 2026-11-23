@@ -22,7 +22,7 @@ for (const b of d.buildings) {
   n++;
   const model = L.hasLandmarkModel(b);
   console.log([b.name || '-', b.landmark || '', b.type, b.h, b.pts.length, Math.round(cx), Math.round(cy), model ? 'MODEL' : '-'].join(' | '));
-  if (model || b.name === 'Synagoge') dump.push({ name: b.name, landmark: b.landmark, landmarkKind: b.landmarkKind, type: b.type, h: b.h, pts: b.pts, parts: b.parts, pitch: b.pitch });
+  if (model || ['Synagoge', 'Stadsschouwburg', 'Pepergasthuis'].includes(b.name)) dump.push({ name: b.name, landmark: b.landmark, landmarkKind: b.landmarkKind, type: b.type, h: b.h, pts: b.pts, parts: b.parts, pitch: b.pitch });
 }
 console.log(`${n} gebouwen`);
 if (dumpArg) { fs.writeFileSync(dumpArg.slice(7), JSON.stringify(dump)); console.log('voetafdrukken:', dump.length); }

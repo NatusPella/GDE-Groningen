@@ -1,0 +1,240 @@
+{
+ "Goudkantoor": [
+  {
+   "tris": 1796,
+   "draws": 6
+  },
+  {
+   "tris": 892,
+   "draws": 6
+  },
+  {
+   "tris": 300,
+   "draws": 5
+  }
+ ],
+ "Martinikerk": [
+  {
+   "tris": 4975,
+   "draws": 6
+  },
+  {
+   "tris": 1045,
+   "draws": 6
+  },
+  {
+   "tris": 625,
+   "draws": 4
+  }
+ ],
+ "Der Aa-kerk": [
+  {
+   "tris": 5222,
+   "draws": 6
+  },
+  {
+   "tris": 1538,
+   "draws": 6
+  },
+  {
+   "tris": 930,
+   "draws": 4
+  }
+ ],
+ "Hoofdstation Groningen": [
+  {
+   "tris": 13022,
+   "draws": 6
+  },
+  {
+   "tris": 2434,
+   "draws": 6
+  },
+  {
+   "tris": 1936,
+   "draws": 5
+  }
+ ],
+ "Forum Groningen": [
+  {
+   "tris": 937,
+   "draws": 3
+  },
+  {
+   "tris": 937,
+   "draws": 3
+  },
+  {
+   "tris": 937,
+   "draws": 3
+  }
+ ],
+ "Winkelcentrum Paddepoel": [
+  {
+   "tris": 1151,
+   "draws": 4
+  },
+  {
+   "tris": 1151,
+   "draws": 4
+  },
+  {
+   "tris": 1151,
+   "draws": 4
+  }
+ ],
+ "Academiegebouw": [
+  {
+   "tris": 19456,
+   "draws": 6
+  },
+  {
+   "tris": 1660,
+   "draws": 6
+  },
+  {
+   "tris": 918,
+   "draws": 5
+  }
+ ],
+ "Groninger Museum": [
+  {
+   "tris": 5996,
+   "draws": 5
+  },
+  {
+   "tris": 1376,
+   "draws": 5
+  },
+  {
+   "tris": 1376,
+   "draws": 5
+  }
+ ],
+ "Euroborg": [
+  {
+   "tris": 680,
+   "draws": 3
+  },
+  {
+   "tris": 680,
+   "draws": 3
+  },
+  {
+   "tris": 680,
+   "draws": 3
+  }
+ ],
+ "Prinsenhof": [
+  {
+   "tris": 6672,
+   "draws": 6
+  },
+  {
+   "tris": 480,
+   "draws": 6
+  },
+  {
+   "tris": 240,
+   "draws": 4
+  }
+ ],
+ "Stadhuis": [
+  {
+   "tris": 4163,
+   "draws": 5
+  },
+  {
+   "tris": 1559,
+   "draws": 5
+  },
+  {
+   "tris": 529,
+   "draws": 3
+  }
+ ],
+ "Synagoge": [
+  {
+   "tris": 5756,
+   "draws": 6
+  },
+  {
+   "tris": 466,
+   "draws": 6
+  },
+  {
+   "tris": 286,
+   "draws": 6
+  }
+ ],
+ "Stadsschouwburg": [
+  {
+   "tris": 7020,
+   "draws": 5
+  },
+  {
+   "tris": 610,
+   "draws": 5
+  },
+  {
+   "tris": 286,
+   "draws": 3
+  }
+ ],
+ "Rijkskantoor Kempkensberg": [
+  {
+   "tris": 3730,
+   "draws": 3
+  },
+  {
+   "tris": 3730,
+   "draws": 3
+  },
+  {
+   "tris": 3730,
+   "draws": 3
+  }
+ ],
+ "Sint-Jozefkathedraal": [
+  {
+   "tris": 5473,
+   "draws": 6
+  },
+  {
+   "tris": 1639,
+   "draws": 6
+  },
+  {
+   "tris": 877,
+   "draws": 4
+  }
+ ],
+ "Pepergasthuis": [
+  {
+   "tris": 5204,
+   "draws": 5
+  },
+  {
+   "tris": 412,
+   "draws": 5
+  },
+  {
+   "tris": 230,
+   "draws": 3
+  }
+ ],
+ "EIKEA": [
+  {
+   "tris": 403,
+   "draws": 2
+  },
+  {
+   "tris": 403,
+   "draws": 2
+  },
+  {
+   "tris": 403,
+   "draws": 2
+  }
+ ]
+}

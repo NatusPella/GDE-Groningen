@@ -13,7 +13,7 @@ await import('../game/js/models3d_buildings.js');
 const L = await import('../game/js/landmarks3d.js');
 const stad = JSON.parse(fs.readFileSync(new URL('../game/stad.json', import.meta.url), 'utf8'));
 const NAMES = ['Martinikerk', 'Der Aa-kerk', 'Groninger Museum', 'Forum Groningen', 'Hoofdstation Groningen', 'Academiegebouw',
-  'Goudkantoor', 'Stadhuis', 'Prinsenhof', 'Synagoge', 'Apenrots', 'Rijkskantoor Kempkensberg'];
+  'Goudkantoor', 'Stadhuis', 'Prinsenhof', 'Synagoge', 'Sint-Jozefkathedraal', 'Stadsschouwburg', 'Pepergasthuis', 'Apenrots', 'Rijkskantoor Kempkensberg'];
 const MAX_TRIS = 60000; // volle niveau, per gebouw
 const HEAVY = 2000;
 const fails = [];
@@ -24,7 +24,7 @@ for (const name of NAMES) {
   else {
     const cx = 230, cy = 80;
     const ring = [[-40, -14], [40, -14], [40, 14], [-40, 14]].map(([x, y]) => [cx + x, cy + y]);
-    b = { name, landmark: name, type: { Stadhuis: 'civic', Synagoge: 'synagogue' }[name] || 'yes', pts: ring, h: 3, parts: [] };
+    b = { name, landmark: name, type: { Stadhuis: 'civic', Synagoge: 'synagogue', 'Sint-Jozefkathedraal': 'cathedral' }[name] || 'yes', pts: ring, h: 3, parts: [] };
   }
   const ring = b.pts;
   if (!L.hasLandmarkModel(b)) { fails.push(`${name}: geen model`); continue; }
@@ -65,6 +65,17 @@ for (const name of NAMES) {
   parts.landmarkLods.dispose();
 }
 if (!n) fails.push('geen enkel landmarkmodel gebouwd');
+// de verre laag (farlod.js) krijgt van een benoemd stadsmodel het silhouetniveau, van een landmark (eigen LOD) niets
+{
+  const ring = [[-12, -30], [12, -30], [12, 30], [-12, 30]];
+  const kathedraal = L.namedSilhouette({ name: 'Sint-Jozefkathedraal', type: 'cathedral', pts: ring, h: 5 }, ring);
+  const kerk = L.namedSilhouette({ name: 'Martinikerk', landmark: 'Martinikerk', type: 'church', pts: ring, h: 3 }, ring);
+  let top = 0;
+  if (kathedraal) for (let i = 1; i < kathedraal.attributes.position.array.length; i += 3) top = Math.max(top, kathedraal.attributes.position.array[i]);
+  if (!kathedraal || top < 50) fails.push(`kathedraal: geen silhouet met toren voor de verre laag (top ${top.toFixed(1)} m)`);
+  if (kerk) fails.push('Martinikerk (eigen LOD) kreeg ook een verre silhouet');
+  console.log(`verre silhouet kathedraal: ${kathedraal ? kathedraal.attributes.position.count / 3 : 0} driehoeken, top ${top.toFixed(1)} m`);
+}
 for (const f of fails) console.log('FAIL', f);
 console.log(`${n} landmarks, ${fails.length} fouten`);
 process.exit(fails.length ? 1 : 0);

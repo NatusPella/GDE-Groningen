@@ -16,10 +16,10 @@ fs.mkdirSync(out, { recursive: true });
 const items = JSON.parse(fs.readFileSync(dumpFile, 'utf8'));
 // one picture per model: the Paddepoel blocks and the Euroborg stands are many buildings, the first is enough
 const seen = new Set();
-const NAMED = ['Stadhuis', 'Prinsenhof', 'Synagoge', 'Apenrots', 'Rijkskantoor Kempkensberg'];
+const NAMED = ['Stadhuis', 'Prinsenhof', 'Synagoge', 'Sint-Jozefkathedraal', 'Stadsschouwburg', 'Pepergasthuis', 'Apenrots', 'Rijkskantoor Kempkensberg'];
 const VIEW = {
   Martinikerk: { yaw: 200 }, 'Der Aa-kerk': { yaw: 150 }, Goudkantoor: { yaw: 70, pitch: 16 }, 'Hoofdstation Groningen': { yaw: 20 },
-  'Forum Groningen': { yaw: 160 }, Academiegebouw: { yaw: 200 }, Stadhuis: { yaw: 80, pitch: 18 }, Prinsenhof: { yaw: 210 }, Synagoge: { yaw: 270, pitch: 14 },
+  'Forum Groningen': { yaw: 160 }, Academiegebouw: { yaw: 200 }, Stadhuis: { yaw: 80, pitch: 18 }, Prinsenhof: { yaw: 210 }, Synagoge: { yaw: 270, pitch: 14 }, 'Sint-Jozefkathedraal': { yaw: 90, pitch: 18 }, Stadsschouwburg: { yaw: 270, pitch: 16 }, Pepergasthuis: { yaw: 0, pitch: 18 },
 };
 const glow = { 2: [0.06, 0.045, 0.03], 5: [1.0, 0.7, 0.38] };
 const stats = {};

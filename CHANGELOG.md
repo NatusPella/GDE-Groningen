@@ -9,6 +9,9 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ## [Unreleased]
 
+- Herkenbare gebouwen in de stad: de Martinikerk heeft nu een hoog koor met veelhoekige koorsluiting, een dwarsschip met kruisgevels, traceerramen tussen steunberen, een leien dak in banen met nokken, goten en dakkapellen, en een koperen dakruiter. De Der Aa-kerk volgt dezelfde opzet. Nieuw met een eigen model: de Sint-Jozefkathedraal (hoge spitse toren, roosvensters), de Synagoge in de Folkingestraat (twee koepeltorens), de Stadsschouwburg (middenrisaliet en toneeltoren) en het Pepergasthuis (rij kleine woningen met poortgebouw en trapgevel). Het Hoofdstation heeft ramen op alle gevels en het dak van het Prinsenhof is opgeschoond.
+- 's Avonds branden in deze gebouwen een deel van de ramen. Op afstand worden ze eenvoudiger getekend (en de Martinitoren met 6 in plaats van 70 tekenopdrachten), zodat de stad vloeiend blijft; de kathedraal houdt ook van ver zijn torenspits. Samen spelen: de gebouwen zijn bij iedereen hetzelfde, lokaal getekend.
+
 ## [0.65.0] - 2026-11-22
 
 Samen spelen met vier echte vensters getest, een ronde zeefdruk-menu's (Spullen, Loopbanen, Boerderij, zoeken), echte voetstappen en weergeluid, AAA-aankleding van de missies van akte 1 tot en met 4 en een snellere start. Pre-release voor de speeltest.
