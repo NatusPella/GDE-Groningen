@@ -13,7 +13,7 @@ const KIND_NAME = { 'naam': 'naam', code: 'code', tekst: 'tekst', wachtwoord: 'w
 /** De knop 'Toetsenbord' naast een veld (klein naast het veld, ds-osk.css; NIET osk-open: dat is de staatsklasse op <html> zolang het toetsenbord openstaat). */
 export function oskKnop(label = '') {
   const l = label ? `Toetsenbord voor ${label}` : 'Toetsenbord';
-  return `<button type="button" class="osk-knop ds-z-knop ds-z-knop--ghost" data-osk-open aria-label="${esc(l)}" title="${esc(l)}"><span class="ds-z-knop__label">Toetsenbord</span></button>`;
+  return `<button type="button" class="osk-knop ds-z-knop ds-z-knop--secundair" data-osk-open aria-label="${esc(l)}" title="${esc(l)}"><span class="ds-z-knop__label">Toetsenbord</span></button>`;
 }
 
 function toetsLabel(k) {
