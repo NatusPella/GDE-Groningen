@@ -15,6 +15,7 @@ import { lookFromAppearance } from './modularlooks.js';
 import { BODY_TYPES } from './clothinghair.js';
 import { setModularActorHook } from './actoranim.js';
 import { lodLevel, lodScaleFor, registerLodModel } from './lodregistry.js';
+import { buildWear, basis as wearBasis } from './modularwear.js';
 
 const rigs = new Map();               // 'man' | 'vrouw' -> gedecodeerde rig
 const loading = new Map();
@@ -264,18 +265,64 @@ function capGeometry(face, kind, P, C, SI, SW, I, v0, i0, col, headBone) {
   return { v: v0, i: i0 };
 }
 
+// Een kledingdeel (modularwear.js) voor deze look: botten in rust, het kader van de kruin, en het profiel van het lijf uit de delen van
+// de look (LOD 0), zodat een band om de arm of de heup precies op de stof ligt. Per rig, deel en combinatie van delen bewaard.
+function wearFor(rig, look, face, id) {
+  const ck = id + '|' + look.parts.hoofd + '|' + look.parts.romp + '|' + look.parts.benen;
+  rig.wearCache = rig.wearCache || new Map();
+  if (rig.wearCache.has(ck)) return rig.wearCache.get(ck);
+  const bones = rig.man.bones;
+  const bone = (n) => { const i = bones.findIndex((b) => b.name === n); return { i, p: new THREE.Vector3().setFromMatrixPosition(new THREE.Matrix4().fromArray(bones[i].inv).invert()).toArray() }; };
+  const vertsOf = (slots) => slots.map((sl) => rig.man.parts.find((q) => q.id === look.parts[sl])).filter(Boolean);
+  // alleen vertices die vooral aan een van de botten `only` hangen (een band om de arm telt de romp niet mee, het koppel de handen niet)
+  const domBone = (k) => { let b = rig.si[k * 4], w = rig.sw[k * 4]; for (let j = 1; j < 4; j++) if (rig.sw[k * 4 + j] > w) { w = rig.sw[k * 4 + j]; b = rig.si[k * 4 + j]; } return b; };
+  const profile = (c, axis, n, slots, only = null) => {
+    const keep = only ? new Set(only.map((nm) => bones.findIndex((b) => b.name === nm))) : null;
+    const a = new THREE.Vector3(...axis).normalize(), [u, v] = wearBasis(axis);
+    const r = new Array(n).fill(0);
+    for (const p of vertsOf(slots)) for (let k = p.vStart; k < p.vStart + p.vCount; k++) {
+      const dx = rig.pos[k * 3] - c[0], dy = rig.pos[k * 3 + 1] - c[1], dz = rig.pos[k * 3 + 2] - c[2];
+      if (Math.abs(dx * a.x + dy * a.y + dz * a.z) > 0.018 || (keep && !keep.has(domBone(k)))) continue;
+      const x = dx * u[0] + dy * u[1] + dz * u[2], y = dx * v[0] + dy * v[1] + dz * v[2], d = Math.hypot(x, y);
+      if (d > 0.3) continue;   // een ander lid of de andere arm
+      const s = Math.round(((Math.atan2(y, x) / (Math.PI * 2)) * n + n) % n) % n;
+      if (d > r[s]) r[s] = d;
+    }
+    const known = r.filter((x) => x > 0), avg = known.length ? known.reduce((x, y) => x + y, 0) / known.length : 0.05;
+    return r.map((x) => x || avg);
+  };
+  const surface = (pt, dir, slots) => {
+    const d = new THREE.Vector3(...dir).normalize();
+    let best = 0;
+    for (const p of vertsOf(slots)) for (let k = p.vStart; k < p.vStart + p.vCount; k++) {
+      const dx = rig.pos[k * 3] - pt[0], dy = rig.pos[k * 3 + 1] - pt[1], dz = rig.pos[k * 3 + 2] - pt[2];
+      const along = dx * d.x + dy * d.y + dz * d.z;
+      if (along <= best) continue;
+      const px = dx - d.x * along, py = dy - d.y * along, pz = dz - d.z * along;
+      if (px * px + py * py + pz * pz < 0.04 * 0.04) best = along;
+    }
+    return [pt[0] + d.x * best, pt[1] + d.y * best, pt[2] + d.z * best];
+  };
+  const w = buildWear(id, { cap: capFrame(face, 'police'), bone, profile, surface });
+  rig.wearCache.set(ck, w);
+  return w;
+}
+
 const GEO_CACHE_MAX = 120;
 function geometryFor(rig, look, lod = 0, grip = false) {
   grip = !!(grip && lod === 0 && rig.grip);   // de LOD's houden een open hand (vanaf 25 m zie je geen vingers)
-  const key = `${lod}${grip ? 'g' : ''}|${look.cap || ''}|${look.capColor || ''}|${look.parts.hoofd}|${look.parts.romp}|${look.parts.benen}|${look.parts.voeten}|${look.skin}|${look.shirt}|${look.hair}|${look.pants}|${Math.floor(hashf(look.seed, 3) * 8)}`;
+  const wearIds = look.wear && look.wear.length && lod < 2 ? look.wear : null;   // kledingdelen (modularwear.js); op LOD 2 niet
+  const key = `${lod}${grip ? 'g' : ''}|${wearIds ? wearIds.join('+') : ''}|${look.cap || ''}|${look.capColor || ''}|${look.parts.hoofd}|${look.parts.romp}|${look.parts.benen}|${look.parts.voeten}|${look.skin}|${look.shirt}|${look.hair}|${look.pants}|${Math.floor(hashf(look.seed, 3) * 8)}`;
   let g = rig.geoCache.get(key);
   if (g) { rig.geoCache.delete(key); rig.geoCache.set(key, g); return g; }
   // per deel het bereik van dit LOD-niveau (0 = het origineel, 1 en 2 uit de importpijplijn, LOD_CELLS)
   const parts = MODULAR_SLOTS.map((s) => { const p = rig.man.parts.find((q) => q.id === look.parts[s]); return lod > 0 && p.lods && p.lods[lod - 1] ? { ...p.lods[lod - 1], id: p.id, slot: p.slot, main: p.main } : p; });
   // gezicht (cutscene-fase): een mondopening en twee oogleden als plaatjes op twee extra botten (dicht = schaal 0, dus onzichtbaar)
   const face = rig.man.parts.find((q) => q.id === look.parts.hoofd).face;
-  const capOn = !!(face && look.cap);
-  const FV = (face ? 12 : 0) + (capOn ? CAP_V : 0), FI = (face ? 18 : 0) + (capOn ? CAP_I : 0);
+  // de eenvoudige pet alleen als er geen kledingdeel voor het hoofd is (de politiepet komt uit modularwear.js)
+  const wear = wearIds && face ? wearIds.map((id) => wearFor(rig, look, face, id)).filter(Boolean) : [];
+  const capOn = !!(face && look.cap) && !wear.some((w) => w.id === 'politiepet');
+  const FV = (face ? 12 : 0) + (capOn ? CAP_V : 0) + wear.reduce((a, w) => a + w.pos.length / 3, 0), FI = (face ? 18 : 0) + (capOn ? CAP_I : 0) + wear.reduce((a, w) => a + w.idx.length, 0);
   const nV = parts.reduce((s, p) => s + p.vCount, 0) + FV, nI = parts.reduce((s, p) => s + p.iCount, 0) + FI;
   const P = new Float32Array(nV * 3), C = new Float32Array(nV * 3), SI = new Uint8Array(nV * 4), SW = new Uint8Array(nV * 4);
   const I = nV < 65536 ? new Uint16Array(nI) : new Uint32Array(nI);
@@ -322,6 +369,17 @@ function geometryFor(rig, look, lod = 0, grip = false) {
       _base.setHex(look.capColor ?? 0x2b2f36);
       const res = capGeometry(face, look.cap, P, C, SI, SW, I, v0, i0, [_base.r, _base.g, _base.b], rig.man.bones.findIndex((b) => b.name === 'Head'));
       v0 = res.v; i0 = res.i;
+    }
+    // kledingdelen uit het register (modularwear.js): elk deel aan zijn eigen bot
+    for (const w of wear) {
+      const base = v0, n = w.pos.length / 3;
+      for (let k = 0; k < n; k++) {
+        P[v0 * 3] = w.pos[k * 3]; P[v0 * 3 + 1] = w.pos[k * 3 + 1]; P[v0 * 3 + 2] = w.pos[k * 3 + 2];
+        _base.setHex(w.col[k]); C[v0 * 3] = _base.r; C[v0 * 3 + 1] = _base.g; C[v0 * 3 + 2] = _base.b;
+        SI[v0 * 4] = w.bone[k]; SW[v0 * 4] = 255;
+        v0++;
+      }
+      for (const ix of w.idx) I[i0++] = base + ix;
     }
   }
   g = new THREE.BufferGeometry();

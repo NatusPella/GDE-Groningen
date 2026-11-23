@@ -13,7 +13,7 @@ export const PART_MAP = {
     hoofd: { short: MAN_SHORT, buzz: ['Suit_Head', 'Casual2_Head'], bald: ['Suit_Head'], quiff: MAN_SHORT, undercut: MAN_SHORT, fringe: MAN_SHORT,
       curly: MAN_CURLY, afro: MAN_CURLY, wavy: MAN_CURLY, long: MAN_LONG, ponytail: MAN_LONG, braid: MAN_LONG, bun: MAN_LONG, pigtails: MAN_LONG,
       bob: MAN_LONG, pixie: MAN_SHORT, mohawk: ['Punk_Head'], default: ['Casual2_Head'] },
-    romp: { blazer: ['Suit_Body'], suit: ['Suit_Body'], coat: ['Suit_Body'], raincoat: ['Suit_Body'], jacket: ['Casual_Body'], hoodie: ['Casual_Body'],
+    romp: { police: ['Suit_Body'], blazer: ['Suit_Body'], suit: ['Suit_Body'], coat: ['Suit_Body'], raincoat: ['Suit_Body'], jacket: ['Casual_Body'], hoodie: ['Casual_Body'],
       sweater: ['Casual_Body'], longsleeve: ['Casual_Body'], cardigan: ['Casual2_Body'], tee: ['Casual2_Body'], tshirt: ['Casual2_Body'], shirt: ['Casual2_Body'],
       dress: ['Casual2_Body'], swim: ['Beach_Body'], default: ['Casual2_Body'] },
     // Casual_Legs (de hoodie-figuur) is een korte broek; een spijkerbroek is Casual2_Legs
@@ -25,7 +25,7 @@ export const PART_MAP = {
       bun: ['Adventurer_Head'], short: VR_SHORT, bob: VR_SHORT, pixie: VR_SHORT, fringe: VR_SHORT, quiff: VR_SHORT, undercut: VR_SHORT, buzz: VR_SHORT, bald: VR_SHORT,
       mohawk: ['Punk_Head'], default: ['Casual_Head'] },
     // Formal_Body en Casual_Body zijn topjes zonder mouwen; een jas, vest, trui of colbert is Suit_Body (in de kleur van de look)
-    romp: { blazer: ['Suit_Body'], suit: ['Suit_Body'], coat: ['Suit_Body'], raincoat: ['Suit_Body'], jacket: ['Suit_Body'], hoodie: ['Suit_Body'], sweater: ['Suit_Body'],
+    romp: { police: ['Suit_Body'], blazer: ['Suit_Body'], suit: ['Suit_Body'], coat: ['Suit_Body'], raincoat: ['Suit_Body'], jacket: ['Suit_Body'], hoodie: ['Suit_Body'], sweater: ['Suit_Body'],
       longsleeve: ['Suit_Body'], cardigan: ['Suit_Body'], tee: ['Casual_Body'], tshirt: ['Casual_Body'], top: ['Formal_Body'], dress: ['Formal_Body'], default: ['Casual_Body'] },
     benen: { jeans: ['Casual_Legs'], trousers: ['Suit_Legs', 'Formal_Legs'], skirt: ['Formal_Legs'], dress: ['Formal_Legs'], shorts: ['Casual_Legs'], default: ['Casual_Legs'] },
     voeten: { sneaker: ['Casual_Feet'], cleat: ['Casual_Feet'], leather: ['Suit_Feet', 'Formal_Feet'], boot: ['Adventurer_Feet', 'Worker_Feet'], default: ['Casual_Feet'] },
@@ -33,6 +33,8 @@ export const PART_MAP = {
 };
 // Hoeden die als pet op het hoofd komen (modularpeople.js bouwt een lage koepel met klep op het hoofdbot).
 const CAPS = new Set(['cap', 'tammo', 'beanie', 'flatcap', 'police']);
+// het blauw van het uniform (zelfde tint als models3d_people.js COP_NAVY)
+export const COP_NAVY = 0x1d2433;
 
 const pick = (rigParts, list) => { for (const id of list) if (rigParts.has(id)) return id; return null; };
 
@@ -46,18 +48,22 @@ export function lookFromAppearance(a, partIds) {
   const M = PART_MAP[rig];
   const ids = partIds && partIds[rig];
   if (!ids) return null;
-  let top = L.top || (a.character === 'tammo' ? 'jacket' : a.character === 'anita' ? 'coat' : null);
-  let bottom = L.bottom || (a.character ? 'jeans' : null);
-  let shoe = L.shoeType || (a.character === 'tammo' ? 'sneaker' : a.character === 'anita' ? 'boot' : null);
-  const hairStyle = a.hairStyle || L.hairStyle || null;
+  // politie: uniformjas, pantalon en nette schoenen in het blauw van het korps, de politiepet en de uniformdetails (modularwear.js)
+  // (het eigen model herkent een agent aan het shirt in het korpsblauw, models3d_people.js COP_BLUE en COP_CAR_BLUE)
+  const cop = !a.character && !!(a.cop || L.top === 'police' || a.shirt === 0x1c3fae || a.shirt === 0x1f3f8f);
+  let top = cop ? 'police' : L.top || (a.character === 'tammo' ? 'jacket' : a.character === 'anita' ? 'coat' : null);
+  let bottom = cop ? 'trousers' : L.bottom || (a.character ? 'jeans' : null);
+  let shoe = cop ? 'leather' : L.shoeType || (a.character === 'tammo' ? 'sneaker' : a.character === 'anita' ? 'boot' : null);
+  const hairStyle = a.hairStyle || L.hairStyle || (cop && !female ? 'buzz' : null);
   if (L.bottom === 'dress') top = 'dress';
   const choose = (slot, kind) => pick(ids, [...((kind && M[slot][kind]) || []), ...M[slot].default]) || [...ids].find((id) => id.endsWith(slot === 'benen' ? '_Legs' : slot === 'voeten' ? '_Feet' : slot === 'hoofd' ? '_Head' : '_Body'));
   const parts = { hoofd: choose('hoofd', hairStyle), romp: choose('romp', top), benen: choose('benen', bottom), voeten: choose('voeten', shoe) };
   if (!parts.hoofd || !parts.romp || !parts.benen || !parts.voeten) return null;
-  const hat = a.character === 'tammo' ? 'tammo' : L.hat;
+  const hat = a.character === 'tammo' ? 'tammo' : cop ? 'police' : L.hat;
   return {
     seed: a.seed ?? 1, rig, parts,
-    skin: a.skin ?? 0xd9a47a, shirt: L.topColor ?? a.shirt ?? null, hair: a.hair ?? 0x3b2a1e, pants: a.pants ?? 0x2f3b52,
+    skin: a.skin ?? 0xd9a47a, shirt: cop ? COP_NAVY : L.topColor ?? a.shirt ?? null, hair: a.hair ?? 0x3b2a1e, pants: cop ? COP_NAVY : a.pants ?? 0x2f3b52,
+    wear: cop ? ['politiepet', 'politieuniform'] : null,
     cap: CAPS.has(hat) ? hat : null, capColor: a.character === 'tammo' ? (a.cap ?? 0xc8621e) : (L.hatColor ?? L.capColor ?? 0x2b2f36),
     old: L.age === 'old', scale: null, body: a.body || null,
   };

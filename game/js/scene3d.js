@@ -2404,9 +2404,13 @@ function buildPedActor(p, world) {
   if (p._lookSeed === undefined) p._lookSeed = Math.random() * 1000;
   const outfit = pedOutfitOpts(p, world);
   // fase 1 (ADR 0050, ?mensen=q): een gewone voorbijganger wordt een modulaire mens zodra de rigs geladen zijn; agenten,
-  // verhaalfiguren met een eigen look en wie een vaste houding heeft blijven procedureel; dragen en wapens kan het nieuwe model ook
-  if (mensenFase(FLAGS.mensen) >= 1 && modularReady() && !p.isCop && !p.look && !p.pose) {
-    const q = buildModularPerson(p._lookSeed, { skin: p.skin ? colorFromHex(p.skin) : 0xe0b48a, shirt: p.clothing ? colorFromHex(p.clothing) : null });
+  // politie in uniform (modularlooks.js, modularwear.js) en verhaalfiguren met een eigen look ook; een kind en wie een vaste houding heeft
+  // blijven procedureel (de rigs zijn volwassen; de houdingen zitten nog alleen op het eigen rig)
+  if (mensenFase(FLAGS.mensen) >= 1 && modularReady() && !p.pose && !(p.look && p.look.age === 'child')) {
+    const sd = Math.floor(p._lookSeed * 7), skin = p.skin ? colorFromHex(p.skin) : 0xe0b48a;
+    const q = p.isCop ? buildModularFromAppearance({ cop: true, skin, seed: sd, variant: sd % 5 === 0 ? 'female' : 'male' })
+      : p.look ? buildModularFromAppearance({ shirt: p.clothing ? colorFromHex(p.clothing) : 0x6a6a6a, skin, seed: sd, variant: p.look.variant || p.variant || (sd & 1 ? 'female' : 'male'), hairStyle: p.look.hairStyle, look: p.look })
+      : buildModularPerson(p._lookSeed, { skin, shirt: p.clothing ? colorFromHex(p.clothing) : null });
     if (q) { addBlobShadow(q, 0.85, 0.85); if (p.carry) attachCarry(q, p.carry); return enableShadows(q, false); }   // dragen en wapens: modularpeople.js modularHoldPose, modularHandSocket
   }
   const mesh = buildPersonActor(p.clothing ? colorFromHex(p.clothing) : 0xcaa46a, p.skin ? colorFromHex(p.skin) : 0xe0b48a, p.look ? { seed: p._lookSeed, look: p.look } : outfit ? { seed: p._lookSeed, ...outfit } : { seed: p._lookSeed });

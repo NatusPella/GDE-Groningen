@@ -1,0 +1,63 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Mensen: politie in uniform (modulair) naast het eigen model</title>
+<script type="importmap">{ "imports": { "https://cdn.jsdelivr.net/npm/": "/cdn/", "three": "/cdn/three@0.160.0/build/three.module.js" } }</script>
+<style>html,body{margin:0;background:#222;color:#eee;font:13px system-ui,sans-serif}canvas{display:block}#info{position:absolute;left:8px;top:4px;white-space:pre;text-shadow:0 1px 2px #000}</style>
+<canvas id="c" width="1600" height="1100"></canvas>
+<div id="info">laden...</div>
+<script>window.addEventListener('error', (e) => fetch('/__klaar', { method: 'POST', body: JSON.stringify({ fout: e.message }) }));
+window.addEventListener('unhandledrejection', (e) => fetch('/__klaar', { method: 'POST', body: JSON.stringify({ fout: String(e.reason && e.reason.stack || e.reason) }) }));</script>
+<script type="module">
+// Politie op het nieuwe model (modularlooks.js, modularwear.js): bovenaan het eigen model (agent en agente), daarnaast de modulaire
+// agent en agente van voren, opzij en van achteren; onderaan de pet van dichtbij (voor en opzij) en een agent die richt met een pistool.
+import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
+const P = await import('/game/js/models3d_people.js');
+const M = await import('/game/js/modularpeople.js');
+await M.loadModularPeople('/game/models/mensen/');
+const canvas = document.getElementById('c');
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, preserveDrawingBuffer: true });
+renderer.setPixelRatio(1); renderer.setScissorTest(true);
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0xa9c7de);
+scene.add(new THREE.HemisphereLight(0xdfeaff, 0x7a6f5c, 1.5));
+const sun = new THREE.DirectionalLight(0xfff0d8, 2.2); sun.position.set(2, 4, 3); scene.add(sun);
+const ground = new THREE.Mesh(new THREE.PlaneGeometry(80, 80), new THREE.MeshStandardMaterial({ color: 0x8a8f86, roughness: 1 }));
+ground.rotation.x = -Math.PI / 2; scene.add(ground);
+const idle = (m, n = 20) => { for (let f = 0; f < n; f++) P.animatePersonWalk(m, 0, 1 / 60); return m; };
+const cop = (variant) => idle(M.buildModularFromAppearance({ cop: true, skin: variant === 'female' ? 0xc68a5e : 0xe0b48a, seed: variant === 'female' ? 41 : 31, variant }));
+const old = (variant) => idle(P.buildPersonMesh(0x1c3fae, 0xe0b48a, { seed: 31, variant }));
+const row = new THREE.Group();
+const put = (m, x, ry) => { m.position.set(x, 0, 0); m.rotation.y = ry; row.add(m); };
+put(old('male'), -4.4, -1.57); put(old('female'), -3.4, -1.57);
+let x = -2.2;
+for (const v of ['male', 'female']) for (const ry of [-1.57, 0, 1.57]) { put(cop(v), x, ry); x += 1.0; }
+const shoot = (group, x0, y0, w, h, cam) => { scene.add(group); renderer.setViewport(x0, y0, w, h); renderer.setScissor(x0, y0, w, h); renderer.render(scene, cam); scene.remove(group); };
+renderer.setClearColor(0x222222); renderer.setScissor(0, 0, 1600, 1100); renderer.setViewport(0, 0, 1600, 1100); renderer.clear();
+const camRow = new THREE.PerspectiveCamera(24, 1600 / 560, 0.1, 100); camRow.position.set(0, 1.1, 11); camRow.lookAt(0, 0.95, 0);
+shoot(row, 0, 540, 1600, 560, camRow);
+// de pet van dichtbij: voor en opzij, man en vrouw
+const heads = [['male', 0], ['male', 1.2], ['female', 0], ['female', 1.2]];
+heads.forEach(([v, ang], i) => {
+  const g = new THREE.Group(); const m = cop(v); m.rotation.y = -1.57 + ang; g.add(m);
+  const cam = new THREE.PerspectiveCamera(20, 300 / 270, 0.05, 50); cam.position.set(0, 1.72, 1.6); cam.lookAt(0, 1.68, 0);
+  shoot(g, i * 300, 270, 300, 270, cam);
+});
+// richten met een pistool (wapen in de vuist, UAL Pistol_Idle_Loop)
+{
+  const g = new THREE.Group(); const m = cop('male'); P.setHeldWeapon(m, 'pistol');
+  for (let f = 0; f < 10; f++) { P.animatePersonWalk(m, 0, 1 / 60); P.applyAttackPose(m, null, 10 + f / 60, 'pistol'); }
+  m.rotation.y = 0; g.add(m);
+  const cam = new THREE.PerspectiveCamera(28, 400 / 540, 0.05, 50); cam.position.set(0.6, 1.4, 3.2); cam.lookAt(0.2, 1.1, 0);
+  shoot(g, 1200, 0, 400, 540, cam);
+}
+// de achterkant van het koppel en de reflectiebanden van dichtbij
+{
+  const g = new THREE.Group(); const m = cop('female'); m.rotation.y = 0.6; g.add(m);
+  const cam = new THREE.PerspectiveCamera(24, 1200 / 270, 0.05, 50); cam.position.set(0, 1.05, 2.6); cam.lookAt(0, 1.0, 0);
+  shoot(g, 0, 0, 1200, 270, cam);
+}
+renderer.setScissor(0, 0, 1600, 1100); renderer.setViewport(0, 0, 1600, 1100);
+document.getElementById('info').textContent = 'boven: eigen model (agent, agente) | modulair agent en agente voor, opzij, achter. midden: de pet. onder: koppel en banden; rechts: richten';
+window.__klaar = true;
+fetch('/__klaar', { method: 'POST', body: JSON.stringify({ ok: true }) }).catch(() => {});
+</script>

@@ -1963,6 +1963,10 @@
   {
    "glob": "lodlevels",
    "reden": "Alleen beeld: LOD-afstanden per client."
+  },
+  {
+   "glob": "modularwear",
+   "reden": "Alleen beeld: kledingdelen (politiepet, uniformdetails) volgen uit de look; elke client bouwt ze zelf."
   }
  ],
  "opslag": {
