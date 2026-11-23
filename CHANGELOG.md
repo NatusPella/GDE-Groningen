@@ -9,6 +9,11 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ## [Unreleased]
 
+- Gebouwen kijken naar de straat: de voordeur en de winkelpui zitten aan de gevel die naar een straat kijkt, niet meer aan de langste muur. In de stad stonden ruim 7.400 panden met hun deur of etalage aan de tuinkant of in een steeg terwijl de straat aan de andere kant lag. Samen spelen: elke speler bouwt dezelfde gevels uit dezelfde kaart, er gaat niets over het netwerk.
+- Deuren en markiezen op mensenmaat: geen voordeur meer van 1,65 m (een verdieping is nooit lager dan 2,6 m), winkeldeuren zijn minstens 2,05 m en de onderkant van een markies hangt minstens 2,1 m boven de stoep, zodat je er niet meer met je hoofd tegenaan loopt.
+- Winkelborden: de letters worden niet meer uitgerekt of samengeperst; het bord krijgt een canvas in zijn eigen verhouding en een smal bord toont hele woorden in plaats van een afgekapt woord.
+- Bomen in een laan met een gemapte hoogte verschillen een paar procent in hoogte, zodat een rij niet meer als gekopieerd oogt.
+
 ## [0.65.0] - 2026-11-22
 
 Samen spelen met vier echte vensters getest, een ronde zeefdruk-menu's (Spullen, Loopbanen, Boerderij, zoeken), echte voetstappen en weergeluid, AAA-aankleding van de missies van akte 1 tot en met 4 en een snellere start. Pre-release voor de speeltest.

@@ -76,4 +76,84 @@ Een publisher lachte om "AI-issues die een mens binnen 1 seconde ziet". Dit docu
 
 ## Metingen in GDE Groningen
 
-(volgt)
+Gemeten op 23-11 met de stad zoals het spel hem bouwt (`loadCityData`, `GameMap`, `models3d_buildings.js`) en de gebouwde
+provincietegels (`game/world`, alleen gelezen). Nieuw gereedschap: `node scripts/world/beeld_tells_audit.mjs [--strict] [--list]
+[--r=1500] [--all]` (±3 min met een warme stadscache; `GDE_STAD_CACHE_DIR` zet de cache buiten de systeemmap) en de snelle
+proefstraat `node scripts/beeld_tells_test.mjs` (geen wereld nodig). De drempels in `CAPS` kunnen alleen dalen.
+
+### Bestaande audits (geen wijziging nodig)
+
+| Audit | Uitkomst |
+|---|---|
+| `scripts/world/prop_conflict_audit.mjs --strict` | groen: 0 palen, draad, heggen, vee of wandelaars op spoor, weg, water of gebouw |
+| `scripts/world/world_audit.mjs --strict` | groen: alle tellers op of onder de drempel van 21-11 (bomen, meubels, streek- en waterplekken, stations) |
+| `scripts/world/placement_audit.mjs --strict` | groen: 0 gebouwen in water, 0 geplaatste hekken of heggen over weg of water |
+| `scripts/world/height_audit.mjs --strict` | groen: geen uitschieters na de cap |
+| `scripts/seat_audit.mjs` | groen: alle stoelen in alle voertuigen |
+| `scripts/ring_probe.mjs` | groen: 0 vaste obstakels op de ring |
+| `scripts/zfight_audit.mjs --vehicles` | 0 vlakke (flush, < 2 mm) paren; 59 dichte paren (3 tot 8 mm) in de kleding van de berijder van fiets en scooter (`models3d_people.js`), alleen van heel dichtbij te zien |
+
+### Nieuwe checks: voor en na (stad, straal 1.500 m rond de Grote Markt; 25.210 panden, 24.300 met een voordeur, 3.872 bomen)
+
+| Tell | Check | Voor | Na | Fix |
+|---|---|---:|---:|---|
+| Gebouw met de rug naar de straat (10) | `rugNaarStraat`: deur of pui op een gevel zonder straat ervoor, terwijl een andere open gevel wel naar een straat kijkt | 7.452 | 0 | `facadefront.js`: de voorgevel is de open gevel met vrij zicht op de dichtstbijzijnde straat (≤ 32 m), niet meer de langste muur (75%) of de op een na langste (25%) |
+| idem, strenger | `deurAfgewend`: de deur wijst van de dichtstbijzijnde straat af | 12.550 | 2.069 | idem, met een tweede keuze (de gevel die het meest naar de straat binnen 90 m draait) |
+| Deuren te klein (5) | `deurTeLaag`: voordeur lager dan 2,0 m | 7.035 | 0 | een verdieping is nooit lager dan 2,6 m (`round(depth / 3)` gaf bij 4,5 tot 5,2 m twee verdiepingen van 2,3 m en een deur van 1,65 m); deur minstens 2,05 m, zonder bovenlicht als dat niet past |
+| idem, winkel | `winkeldeurTeLaag` | 535 | 0 | `shopDoorH`: minstens 2,05 m; de pui reikt bij een lage verdieping tot vlak onder de ramen erboven |
+| Schaal: hoofd tegen de markies (4) | `luifelTeLaag`: onderkant markies lager dan 2,1 m | 968 | 0 | `awningEdge`: de markies hangt minstens 2,1 m boven de stoep |
+| Nep- of vervormde tekst op borden (13) | `bordVervormd`: letters > 20% uitgerekt of samengeperst | 0 in de stad* | 0 | canvas in de verhouding van het bord (`signCanvasW`) en alleen zoveel letters als passen (`signMaxChars`); de oude vaste 512 x 80 rekte op een bord van 5,5 m 2,15x uit en perste op 0,8 m 3,2x samen |
+| idem | `bordHalfWoord`: afgekapt woord op een bord | 0* | 0 | een smal bord toont hele woorden of niets |
+| Zinkende of zwevende objecten (1, 2) | `boomZinkt` / `boomZweeft`: grond onder de stam > 10 cm hoger of lager dan y = 0 | 1 / 0 | 1 / 0 | geen fix: één boom op een talud bij -592,-1210 (1,04 m); straatmeubels lezen hun hoogte al uit `groundHeightAt` |
+| Boom door een brugdek | `boomDoorDek` | 0 | 0 | - |
+| Zelfde asset in rijen (6) | `boomKloon`: buurboom binnen 6 m met dezelfde soort, hoogte (±25 cm) en kroon (±10 cm) | 337 | 288 | `greenery.js treeDims`: een gemapte hoogte krijgt ±6% speling per boom |
+| idem, gevels | `gevelKloon`: twee aangrenzende panden met dezelfde muur, dak, hoogte en soort (info) | (niet meetbaar in de oude code) | 2.184 | geen fix: Groningse rijtjes lijken echt op elkaar; deur, kozijn, raamritme en markies verschillen al per pand |
+| Groen vlak midden op straat | `groenOpRijbaan`: grasvlak, park of plantvak dat voor de helft of meer op een rijbaan ligt | 8 | 8 | geen fix nodig in beeld: `grass.js` laat driehoeken op verharding weg (`pavedTester`) en tekent het gras onder de weg; de teller bewaakt de data (kleine grasvakjes van 1 tot 7 m op een secundaire weg, twee bosranden bij 1051,-862) |
+| Schaal mens, auto, bus, deur (4) | mens 1,62 m; hatchback 1,47 m; sedan 4,58 m lang; midibus 3,31 m; laagste deur 2,05 m | ok | ok | - |
+
+\* De stadspanden hebben geen gemapte winkelnaam op de pui (`shopFront.name` leeg); borden verschijnen via `signSpecFor`
+(sponsorpanden van het voetbal) en waar een POI een naam heeft. De fix geldt voor elk bord; `shopsign_test.mjs` bewijst hem
+voor elke breedte van 0,8 tot 5,5 m.
+
+### Het losse groene vierkant op de Grote Markt (m10-intro, melding van de coördinator)
+
+In de cutscenebeelden (m10-intro, ook M01 en M30) ligt linksonder een plat groen vierkant op de straat bij de vaste testplek van
+het harnas (Grote Markt, 200,8 / 45,4). De cutscene-agent mat een vierhoek van 4 hoekpunten in de wortel van de scène op
+198,9 / 46,1, 0,1 m boven de straat, die er met en zonder scène ligt.
+
+Wat ik heb uitgesloten (statisch):
+- Geen groenvlak in de kaart: `map.green` heeft binnen 12 m van dat punt niets (alleen het water bij het Forum en de vijf
+  voetgangerswegen van de Grote Markt). Een grasvlak is bovendien geen losse vierhoek: `grass.js` voegt de vlakken per cel samen.
+- Niet de bekende platte vlakken die een losse vierhoek in de scène hangen: penaltyveld (Euroborg), pitch-and-putt-ring (geel,
+  bij de baan), waterbed (`tilewatermask.js`, donker), kanaalbodem (`scene3d.js`, donker), doelmarkering (ring en schijf),
+  evenementen (blokken), picknickkleden (instanced, wit).
+- Groen op de rijbaan in de hele stad: 8 kleine vlakken in de data (zie de tabel), geen bij de Grote Markt.
+
+Niet gevonden: de bron. Electron start in deze sessie niet (`electron.exe --version` stopt meteen met code 3, ook met een vrij slot),
+dus ik kon niet in het draaiende spel kijken. Daarvoor staat nu `scripts/qa/vlakke_meshes.page.js` klaar: die volgt
+`Object3D.add` met een stack, laat de speler 900 m weg en terug gaan zodat de wereld rond de plek opnieuw wordt opgebouwd, en
+noemt per platte, lage mesh binnen 10 m de maat, de kleur, de ouderketen en de aanroeper:
+`node scripts/qa/cutscene_shots.mjs --page=vlakke_meshes.page.js --spot=200.8,45.4 --out=<map>` (regels `[vlak]` in run.log).
+Staat de aanroeper er niet bij, dan is de mesh vóór het volgen gemaakt (bij het laden) en geeft de ouderketen en de kleur het spoor.
+
+### Samen spelen
+
+Alles hierboven is deterministisch uit de kaart: elke speler bouwt lokaal dezelfde gevels, deuren, borden en bomen. Er gaat
+niets over het netwerk en er is geen nieuwe regel nodig in docs/COOP-GAST.md.
+
+### Niet gedaan of niet in beeld gezien
+
+- Niets hiervan is in Electron of op een screenshot bekeken (geen beeldrun in deze sessie): de nieuwe voorgevels, de hogere
+  winkelpuien en de markiezen staan als "nog niet bekeken". Een beeldrun op de vaste plekken (Folkingestraat, Oude Ebbingestraat,
+  Paddepoel, Hoogkerk) is de volgende stap.
+- `zfight_audit.mjs` (stad, standaardstraal) voor en na: vlakke paren (< 2 mm) gelijk, 348,7 m2. De hogere winkelpui gaf eerst
+  3,5 m2 nieuwe vlakke paren met de verdiepingslijst (51 paren in 17 panden); die lijst slaat nu de pui over. Dichte paren (2 tot
+  12 mm) 1.026,6 tot 1.054,0 m2 (+2,7%) en bleed 10,3 tot 11,8 m2: dezelfde soorten paren, verschoven doordat deuren en puien
+  op een andere gevel staan (o.a. ramen van een pand tegen de kit van een school bij -108,-46). Niet verder uitgezocht.
+- `interiorframe.js synthEntrance` (de deur voor panden zonder getekende deur, vooral landmarks) kiest nog de langste muur:
+  niet aangeraakt, want landmarks zijn van de agent `landmarks-aaa-23-11`.
+- De provincie buiten de straal van 1.500 m is niet geteld (`--all` kan, maar duurt lang); de regels gelden er wel, want het is
+  dezelfde bouwer.
+- Tells die geen statische check hebben gekregen: T-poses, mensen die in elkaar lopen, raar rijdend verkeer, licht zonder bron,
+  schaduwen en overlappende UI. Die vragen een draaiend spel (proefspeler, `test_all --fase=electron`).
+- Kleur en stijl (11, 12) en iconen (14) zijn niet gemeten: daar zijn DESIGN_SYSTEM.md, `ds_tokens` en de designregels de bron.
