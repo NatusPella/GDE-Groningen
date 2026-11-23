@@ -68,6 +68,8 @@
     "coopmissie",
     "coopverhaal",
     "coopgroep",
+    "groepwarp",
+    "stepdoel",
     "samenposten",
     "careerbeats*",
     "careertour*",
@@ -1330,6 +1332,7 @@
    "modules": [
     "spullen*",
     "todo*",
+    "spaardoel",
     "pausemenu",
     "pausesearch",
     "menu*",
