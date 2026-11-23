@@ -143,5 +143,16 @@ ok(areaMoodLook({ wad: 1, lauwers: 1, veen: 1 }, 3, {}).haze === MOOD_HAZE_MAX, 
 }
 ok(Object.keys(MOOD_AREAS).join() === MOOD_IDS.join() && Object.keys(MOOD_LOOK).join() === MOOD_IDS.join(), 'elke zone heeft een look');
 
+// #1291 (hertest 24-11): de luchtkleur zelf (het zenit) verschilt per streek, niet alleen de nevel en de horizon
+{
+  const src = fs.readFileSync(path.join(ROOT, 'game/js/weather.js'), 'utf8');
+  ok(/u\.uZenith\.value\.copy\(base\.zenith\)\.multiply\(_moodZenith\)/.test(src), 'het zenit krijgt de streektint');
+  const k = Number((src.match(/MOOD_ZENITH_K = ([\d.]+)/) || [])[1]);
+  ok(k > 0 && k < 1, 'zachter dan de horizon', String(k));
+  const wad = areaMoodLook({ wad: 1 }, 2), veen = areaMoodLook({ veen: 1 }, 2);
+  const zen = (l) => l.tint.map((t) => 1 + (t - 1) * k);
+  ok(Math.abs(zen(wad)[2] - zen(veen)[2]) > 0.05, 'de avondlucht aan de Waddenkust is blauwer dan in de Veenkoloniën', JSON.stringify([zen(wad), zen(veen)]));
+}
+
 console.log(`areamood_test: ${n - fails}/${n} ok`);
 process.exit(fails ? 1 : 0);
