@@ -1,0 +1,138 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Vettruck: contactblad van de tankwagen van Us Mem Vet (headless Chrome, geen Electron)</title>
+<style>html,body{margin:0;background:#17301f}canvas{display:block}</style>
+<script>
+  const root = location.href.replace(/docs\/beeld-23-11\/vettruck\/sheet\.html.*$/, '');
+  document.write('<script type="importmap">' + JSON.stringify({ imports: { 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js': root + 'desktop/vendor-cache/npm/three@0.160.0/build/three.module.js', three: root + 'desktop/vendor-cache/npm/three@0.160.0/build/three.module.js', 'three/addons/': root + 'desktop/vendor-cache/npm/three@0.160.0/examples/jsm/', 'https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/': root + 'desktop/vendor-cache/npm/three@0.160.0/examples/jsm/' } }) + '<\/script>');
+</script>
+<body>
+<script>
+  const toon = (t) => { const d = document.createElement('pre'); d.style.cssText = 'position:fixed;top:0;left:0;color:#fff;background:#900;margin:0;padding:8px;font:14px monospace;white-space:pre-wrap;z-index:9'; d.textContent = t; document.body.appendChild(d); };
+  window.addEventListener('error', (e) => toon('FOUT: ' + e.message));
+  window.addEventListener('unhandledrejection', (e) => toon('FOUT: ' + (e.reason && e.reason.stack || e.reason)));
+</script>
+<script type="module">
+  // Hash: #truck | #truck-achter | #truck-zij | #truck-nacht | #spoor (de trailershot op de Europaweg) | #scene (het decor van M07)
+  // Het model komt uit dezelfde bouwer en dezelfde definitie als de cutscene (cutscenemodels.js PROP_SOURCES.tankwagen).
+  const root = location.href.replace(/docs\/beeld-23-11\/vettruck\/sheet\.html.*$/, '');
+  const THREE = await import('https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js');
+  const mode = (location.hash || '#truck').slice(1);
+  // -oud: de bouwer van vóór deze ronde (een tijdelijke kopie game/js/_oud_voertuigen_tmp.js uit git, niet ingecheckt) en de gele cabine
+  const oud = mode.includes('oud');
+  const { buildVehicleMesh } = await import(root + (oud ? 'game/js/_oud_voertuigen_tmp.js' : 'game/js/models3d_vehicles.js'));
+  const { PROP_SOURCES } = await import(root + 'game/js/cutscenemodels.js');
+  const set = mode.split('-')[0];
+  const night = mode.includes('nacht');
+  const W = 1400, H = 800;
+  const renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
+  renderer.setSize(W, H);
+  document.body.appendChild(renderer.domElement);
+  const scene = new THREE.Scene();
+  scene.background = new THREE.Color(night ? 0x0b1420 : 0xbfe3f2);
+  scene.add(new THREE.HemisphereLight(night ? 0x405070 : 0xf4f2ec, 0x2a3a2e, night ? 0.9 : 1.7));
+  const sun = new THREE.DirectionalLight(night ? 0x8090c0 : 0xffffff, night ? 0.8 : 2.4); sun.position.set(4, 8, 5); scene.add(sun);
+  const ground = new THREE.Mesh(new THREE.PlaneGeometry(120, 80), new THREE.MeshLambertMaterial({ color: set === 'spoor' ? 0x4a4d50 : night ? 0x1c2420 : 0x6b7a66 }));
+  ground.rotation.x = -Math.PI / 2; scene.add(ground);
+  const src = PROP_SOURCES.tankwagen;
+  const v = { id: 901, health: 100, model: { ...src.model, ...(oud ? { color: 0xe6c21a } : {}) } };
+  const truck = buildVehicleMesh(v);
+  scene.add(truck);
+  const cam = new THREE.PerspectiveCamera(36, W / H, 0.1, 400);
+  let extra = '';
+  if (set === 'truck') {
+    // voorkant naar de kijker (+x van het model wijst bij rotatie pi naar links voor de camera), -achter draait hem om
+    truck.rotation.y = mode.includes('zij') ? Math.PI + 0.05 : 0.62 + (mode.includes('achter') ? 0 : Math.PI);
+    cam.position.set(0, 5.2, 14.5); cam.lookAt(0, 1.6, 0);
+  } else if (set === 'spoor') {
+    // de shot van de trailer: de tankwagen glijdt, de kamera laag op de weg ervoor
+    truck.rotation.y = -0.45;
+    let spoor = null;
+    try { spoor = oud ? null : await import(root + 'game/js/vetspoor3d.js'); } catch { spoor = null; }
+    if (spoor) {
+      // na: een plas en een spoor frituurvet op het asfalt achter de aftapkraan, plat op de weg
+      const s = spoor.buildVetSpoor();
+      scene.add(s);
+      // achter de aftapkraan, over de buitenkant van de slip (zoals trailer.js het per frame neerlegt)
+      const th = truck.rotation.y;
+      let rnd = 11; const R = () => { rnd = (rnd * 16807) % 2147483647; return rnd / 2147483647; };
+      for (let i = 0; i <= 40; i++) {
+        const d = 4.3 + i * 0.5, side = -0.35 + i * i * 0.004;
+        spoor.spoorPunt(s, -Math.cos(th) * d + Math.sin(th) * side, Math.sin(th) * d + Math.cos(th) * side, 0, 0.25 + R() * 0.3 + Math.min(0.35, i * 0.015), 1.4, -th);
+      }
+      spoor.spoorKlaar(s);
+      extra = ' spoor=' + s.userData.n;
+    } else {
+      // voor: de gele bollen van trailer.js (buildDrops/emitDrops), 0,9 s gesimuleerd zoals in de shot
+      const DROPS = 420;
+      const m = new THREE.InstancedMesh(new THREE.SphereGeometry(0.2, 8, 6), new THREE.MeshStandardMaterial({ color: 0xe8b830, roughness: 0.15, metalness: 0.1, emissive: 0x3a2a00, emissiveIntensity: 0.4 }), DROPS);
+      let rnd = 7; const R = () => { rnd = (rnd * 16807) % 2147483647; return rnd / 2147483647; };
+      const P = []; const a = truck.rotation.y;
+      for (let k = 0; k < 40; k++) for (const off of [-1.8, 0.2]) for (let j = 0; j < 2; j++) P.push({ x: Math.cos(-a) * off + (R() - 0.5) * 0.8, y: 2.7, z: -Math.sin(-a) * off + 0.9, vx: 19 * 0.85 * 0 + (R() - 0.5) * 3, vy: 2.5 + R() * 3.5, vz: 3.5 + (R() - 0.5) * 3, t: k / 40 * 0.9, s: 0.9 + R() * 1.3 });
+      const mm = new THREE.Matrix4(), q = new THREE.Quaternion(), sc = new THREE.Vector3(), pv = new THREE.Vector3();
+      P.slice(0, DROPS).forEach((d, i) => {
+        const t = 0.9 * 0.4 - d.t * 0.4; let y = d.y + d.vy * t - 4.9 * t * t; let s = d.s;
+        if (y < 0.02) { y = 0.02; s *= 1.8; }
+        m.setMatrixAt(i, mm.compose(pv.set(d.x + d.vx * t, y, d.z + d.vz * t), q, sc.set(s, y <= 0.03 ? 0.12 * s : s, s)));
+      });
+      m.count = Math.min(DROPS, P.length);
+      scene.add(m);
+      extra = ' bollen=' + m.count;
+    }
+    // -hoog: van boven, zodat het spoor op het asfalt leesbaar is (de trailer kijkt laag, zoals de standaardweergave)
+    if (mode.includes('hoog')) { cam.position.set(12, 9, 10); cam.lookAt(-4, 0.5, 0); } else { cam.position.set(9, 0.9, 7); cam.lookAt(-1, 1.6, 0); }
+  } else if (set === 'scene') {
+    // het decor van M07.intro: de tankwagen, de pannen van de snackbarhouders en wat er bij de groothandel staat
+    truck.position.set(0, 0, 0);
+    const { DECOR_MAKERS } = await import(root + 'game/js/storyprops.js');
+    const { SPECS_AKTE2 } = await import(root + 'game/js/cutscenes_akte2.js');
+    const spec = SPECS_AKTE2['M07.intro'];
+    const tank = spec.props.tank.at;
+    for (const [id, p] of Object.entries(spec.props)) {
+      if (p.kind === 'tankwagen' || p.kind === 'auto') continue;
+      const make = DECOR_MAKERS[p.kind];
+      if (!make) continue;
+      const o = make();
+      // cutscene: f vooruit, s links; hier relatief aan de tankwagen
+      o.position.set(p.at[0] - tank[0], p.at[2] || 0, -(p.at[1] - tank[1]));
+      o.rotation.y = ((p.face || 0) * Math.PI) / 180;
+      scene.add(o);
+      extra += ' ' + p.kind;
+    }
+    truck.rotation.y = 0;
+    cam.position.set(-6, 4.2, 11); cam.lookAt(-1.5, 1.0, 0);
+  }
+  if (set === 'lod') {
+    // de drie LOD-niveaus naast elkaar, van dichtbij (niveau vastgezet: de renderer kiest anders zelf op afstand)
+    truck.visible = false;
+    for (let n = 0; n < 3; n++) {
+      const t = buildVehicleMesh({ id: 910 + n, health: 100, model: { ...src.model } });
+      const l = t.userData.lod;
+      l.autoUpdate = false;
+      l.update(null, [5, 80, 400][n]);
+      t.position.set(0, 0, (n - 1) * 4.2);
+      t.rotation.y = Math.PI + 0.35;
+      scene.add(t);
+    }
+    cam.position.set(-13, 7, 12); cam.lookAt(0, 1.2, 0);
+    extra = ' niveaus 0, 1, 2 (van achter naar voor)';
+  } else if (set === 'vaten') {
+    // het vat en de jerrycan: niveau 0, 1 en 2 van links naar rechts
+    truck.visible = false;
+    const { DECOR_MAKERS } = await import(root + 'game/js/storyprops.js');
+    ['vetvat', 'jerrycan'].forEach((id, r) => {
+      for (let n = 0; n < 3; n++) {
+        const o = DECOR_MAKERS[id]();
+        o.userData.lod.autoUpdate = false;
+        o.userData.lod.update(null, [1, id === 'vetvat' ? 30 : 20, id === 'vetvat' ? 80 : 60][n]);
+        o.position.set((n - 1) * 1.1, 0, r * 1.1 - 0.5);
+        o.rotation.y = -0.5;
+        scene.add(o);
+      }
+    });
+    cam.position.set(0, 1.9, 3.6); cam.lookAt(0, 0.35, 0);
+    extra = ' vetvat en jerrycan, niveau 0, 1, 2';
+  }
+  renderer.render(scene, cam);
+  document.title = 'klaar:' + mode + ' draws=' + renderer.info.render.calls + ' tris=' + renderer.info.render.triangles + extra;
+</script>
