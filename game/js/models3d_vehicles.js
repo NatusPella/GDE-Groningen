@@ -13,6 +13,8 @@ import { hash2, hash3 } from './rng.js';
 import { zoneTotals, losseOnderdelen, fietsStaat } from './vehicledamage.js';
 import { staatSleutel } from './studentenfiets.js';
 import { naadStroken } from './vehicledoorcuts.js';
+import { DitherLOD } from './lod3d.js';
+import { VOERTUIG_REGISTER } from './propregister.js';
 
 // Low-poly vehicles. Group origin = vehicle centre at ground level (y=0),
 // facing local +X, right-hand side on +Z; sized off v.model.len/wid.
@@ -711,24 +713,17 @@ function buildCarMesh(v) {
 
 // Bakwagen: cab-over front with a box body.
 function buildTruckMesh(v) {
+  // de tankwagen (model.tank: Us Mem Vet, de stuntavond) heeft een eigen opbouw en cabine, zie buildTankwagenMesh
+  if (v.model.tank) return buildTankwagenMesh(v);
   const L = v.model.len, W = v.model.wid, hl = L / 2, hw = W / 2;
   const paint = v.wrecked ? WRECKED_COLOR : toHex(v.model.color, 0xe8e6e0);
   const r = 0.52;
-  const tank = !!v.model.tank;
-  const geo = cached(`truck2|${L}|${W}|${paint}|${tank}`, () => {
+  const geo = cached(`truck2|${L}|${W}|${paint}`, () => {
     const B = new GeoBuilder(3);
     const cabL = 2.0, boxX0 = -hl, boxX1 = hl - cabL - 0.1;
     B.box(0, 0.74, 0, L - 0.2, 0.22, W - 0.3, 0x2a2b2d);
     const bx = (boxX0 + boxX1) / 2, bl = boxX1 - boxX0;
-    if (tank) {
-      // a rounded tank from three stacked slabs, a walkway on top and a red band
-      const tc = paint === WRECKED_COLOR ? paint : 0xd9dcdf;
-      B.box(bx, 2.2, 0, bl, 1.43, W, tc);
-      B.box(bx, 2.2, 0, bl, 2.31, W - 0.55, tc);
-      B.box(bx, 2.2, 0, bl - 0.2, 2.7, W - 1.1, tc);
-      B.box(bx, 3.58, 0, bl * 0.8, 0.06, 0.5, TRIM);
-      B.box(bx, 1.88, 0, bl + 0.02, 0.3, W + 0.02, paint === WRECKED_COLOR ? paint : 0xb8322a);
-    } else {
+    {
       // de laadbak: panelen met verticale ribbels, aluminium randen boven en onder, hoekstijlen, twee achterdeuren met
       // scharnieren en sluitstangen, en een onderrijbeveiliging achter en opzij
       const bc = paint === WRECKED_COLOR ? paint : 0xeeeee8, alu = paint === WRECKED_COLOR ? paint : 0xa7adb3;
@@ -772,7 +767,7 @@ function buildTruckMesh(v) {
       B.box(hl + 0.02, 0.95, s * (hw - 0.3), 0.03, 0.14, 0.32, HEADLAMP, G_LAMP);
       B.box(-hl - 0.01, 0.95, s * (hw - 0.2), 0.02, 0.2, 0.18, TAIL, G_LAMP);
       B.box(hl - 0.1, 2.35, s * (hw + 0.2), 0.06, 0.3, 0.1, TRIM);
-      if (!tank) B.box((boxX0 + boxX1) / 2, 2.4, s * (hw + 0.006), (boxX1 - boxX0) * 0.7, 0.55, 0.012, paint);
+      B.box((boxX0 + boxX1) / 2, 2.4, s * (hw + 0.006), (boxX1 - boxX0) * 0.7, 0.55, 0.012, paint);
     }
     B.box(hl + 0.03, 0.64, 0, 0.1, 0.24, W - 0.1, 0x2a2b2d);
     B.box(hl + 0.085, 0.64, 0, 0.012, 0.1, 0.48, PLATE);
@@ -790,66 +785,356 @@ function buildTruckMesh(v) {
   for (const x of [hl - 1.25, -hl + 1.7]) for (const s of [1, -1]) addWheel(group, wgeo, mats[0], x, r, s * (hw - 0.2), wheels);
   group.userData.wheels = wheels;
   group.userData.wheelRadius = r;
-  if (tank && v.model.livery === 'usmemvet' && !v.wrecked) {
-    // H8: the lettering on both flanks of the tank, on the body so it pitches,
-    // rolls and bounces with the suspension
-    const bl = L - 2.1;
-    const geoL = cached('usmemvet-panel', () => new THREE.PlaneGeometry(4.1, 0.76));
-    const mat = new THREE.MeshLambertMaterial({ map: usMemVetTexture() });
-    for (const s of [1, -1]) {
-      const panel = new THREE.Mesh(geoL, mat);
-      panel.position.set(-hl + bl / 2, 2.46, s * (hw + 0.012));
-      if (s < 0) panel.rotation.y = Math.PI;
-      body.add(panel);
-    }
-  }
   return group;
 }
 
-// "Us Mem Vet": Jelle's frying-fat brand, after the Frisian flag (blue-white
-// bends, red pompeblêden) and Us Mem, the cow statue in Leeuwarden.
+// De tankwagen (vettruck 23-11): een bakwagen-chassis met een levensmiddelentank voor frituurvet, gebouwd als één gecachete romp met
+// vertexkleuren zoals de bakwagen. Kantelcabine met wielkast, grille, bumper met lampen, zonneklep en een windscherm op het dak; een
+// elliptische rvs-tank met gebolde koppen, spanbanden, loopbrug met dekselputten en neergeklapte leuning, een ladder achter, een
+// aftapkraan, slangkokers, een pompkast, de dieseltank, dubbellucht achter en een onderrijbeveiliging. De belettering van Us Mem Vet
+// (Jelle's frituurvet, verzonnen merk) ligt als gebogen strook op de tankwand. Alle maten volgen len en wid: dezelfde bouwer dient de
+// missiewagen (8,5 m), de winkelversie (7,2 m) en de stuntavond (6,2 m). Kwaliteitsnorm: propregister.js VOERTUIG_REGISTER.tankwagen.
+function tankwagenMaat(L, W) {
+  const hl = L / 2, hw = W / 2, cabL = 2.0, kop = 0.3;
+  // band en strook: hoe ver de spanbanden en de belettering buiten de tankwand liggen (minstens 2 cm uit elkaar: geen z-fighting)
+  return { cabL, kop, x0: -hl + 0.1 + kop, x1: hl - cabL - 0.2 - kop, y: 2.08, ry: 0.9, rz: hw - 0.04, band: 0.025, strook: 0.05 };
+}
+
+function buildTankwagenMesh(v) {
+  const L = v.model.len, W = v.model.wid, hl = L / 2, hw = W / 2;
+  const wrecked = !!v.wrecked;
+  const paint = wrecked ? WRECKED_COLOR : toHex(v.model.color, 0x1d4f9c);
+  const r = 0.52;
+  const fx = hl - 1.25, rx = -hl + 1.7; // voor- en achteras (dezelfde plek als de bakwagen)
+  const T = tankwagenMaat(L, W);
+  const top = T.y + T.ry;
+  const geo = cached(`tankwagen|${L}|${W}|${paint}`, () => {
+    const B = new GeoBuilder(3);
+    const K = (c) => (wrecked ? WRECKED_COLOR : c); // een wrak is overal zwartgeblakerd
+    const STEEL = K(0xc9ced3), STEEL_HI = K(0xe2e6e9), STEEL_LO = K(0x9ba2a8), FRAME = K(0x26282b), DARK = K(0x3a3d40), ALU = K(0xa7adb3);
+    const RUBBER = K(0x161718), RAIL = K(0xd9b92e), WIT = K(0xf4f2ec), ROOD = K(0xc8102e);
+    const cabL = T.cabL, cx0 = hl - cabL, cx = hl - cabL / 2;
+    const ellipse = (len, seg = 22) => new THREE.CylinderGeometry(1, 1, len, seg, 1, true).rotateZ(Math.PI / 2);
+
+    // --- chassis: twee langsliggers met dwarsbalken
+    for (const s of [1, -1]) B.box(0.1, 0.8, s * 0.44, L - 0.5, 0.24, 0.1, FRAME);
+    for (const x of [hl - 0.6, fx - 0.9, 0.3, rx + 0.9, -hl + 0.5]) B.box(x, 0.8, 0, 0.12, 0.16, 0.8, FRAME);
+
+    // --- de tank: rvs, boven lichter en onder donkerder (geslepen staal leest zo ook zonder omgevingskaart)
+    const tl = T.x1 - T.x0, tc = (T.x0 + T.x1) / 2;
+    const wand = (x, y) => (y > T.y + T.ry * 0.55 ? STEEL_HI : y < T.y - T.ry * 0.45 ? STEEL_LO : STEEL);
+    B.geo(ellipse(tl), composeMatrix(tc, T.y, 0, 0, 0, 0, 1, T.ry, T.rz), wand);
+    for (const s of [1, -1]) {
+      // gebolde koppen voor en achter
+      const kop = new THREE.SphereGeometry(1, 22, 5, 0, Math.PI * 2, 0, Math.PI / 2).rotateZ(-s * Math.PI / 2);
+      B.geo(kop, composeMatrix(s > 0 ? T.x1 : T.x0, T.y, 0, 0, 0, 0, T.kop, T.ry, T.rz), wand);
+    }
+    const nBand = Math.max(2, Math.round(tl / 1.7));
+    for (let i = 0; i <= nBand; i++) B.geo(ellipse(0.07), composeMatrix(T.x0 + (tl * i) / nBand, T.y, 0, 0, 0, 0, 1, T.ry + T.band, T.rz + T.band), STEEL_LO); // spanbanden
+    for (const x of [T.x1 - 0.25, tc, T.x0 + 0.35]) B.box(x, 1.02, 0, 0.16, 0.36, W * 0.62, FRAME);   // zadels op het chassis
+
+    // loopbrug met rooster, alu randen, neergeklapte gele leuning en dekselputten
+    B.box(tc, top + 0.03, 0, tl * 0.86, 0.04, 0.56, DARK);
+    for (let i = 0; i < Math.floor(tl * 0.86 / 0.3); i++) B.box(tc - tl * 0.43 + 0.15 + i * 0.3, top + 0.055, 0, 0.03, 0.012, 0.54, K(0x5a5e62));
+    const nPost = Math.max(2, Math.round(tl / 1.4));
+    for (const s of [1, -1]) {
+      B.box(tc, top + 0.06, s * 0.29, tl * 0.86, 0.03, 0.03, ALU);
+      B.box(tc, top + 0.1, s * 0.43, tl * 0.82, 0.035, 0.035, RAIL);
+      for (let i = 0; i <= nPost; i++) B.box(tc - tl * 0.41 + (tl * 0.82 * i) / nPost, top + 0.06, s * 0.43, 0.05, 0.09, 0.05, DARK);
+    }
+    const nPut = L >= 8 ? 3 : 2;
+    for (let i = 0; i < nPut; i++) {
+      const x = T.x0 + (tl * (i + 0.5)) / nPut;
+      B.geo(new THREE.CylinderGeometry(0.27, 0.29, 0.14, 14), composeMatrix(x, top + 0.07, 0), STEEL_HI);      // kraag
+      B.geo(new THREE.CylinderGeometry(0.25, 0.26, 0.05, 14), composeMatrix(x, top + 0.165, 0), ALU);          // deksel
+      B.geo(new THREE.CylinderGeometry(0.025, 0.025, 0.22, 8).rotateX(Math.PI / 2), composeMatrix(x - 0.27, top + 0.19, 0), DARK); // scharnier
+      for (const k of [-1, 1]) B.box(x + 0.2, top + 0.17, k * 0.14, 0.07, 0.05, 0.04, DARK);                  // knevels
+      B.geo(new THREE.CylinderGeometry(0.035, 0.035, 0.12, 8), composeMatrix(x + 0.06, top + 0.24, 0.12), ALU); // ontluchting
+    }
+
+    // achter: ladder op de bolle kop, aftapkraan met rood handwiel, lichtbalk en onderrijbeveiliging
+    const lz = T.rz * 0.42, ly0 = 0.95, ly1 = top + 0.25;
+    for (const dz of [-0.17, 0.17]) B.box(-hl + 0.04, (ly0 + ly1) / 2, lz + dz, 0.04, ly1 - ly0, 0.04, ALU);
+    for (let y = ly0 + 0.15; y < ly1 - 0.1; y += 0.3) B.box(-hl + 0.04, y, lz, 0.04, 0.03, 0.34, ALU);
+    for (const y of [1.55, top - 0.25]) B.box(-hl + 0.1, y, lz, 0.14, 0.04, 0.3, DARK);
+    const az = -0.35;
+    B.geo(new THREE.CylinderGeometry(0.07, 0.07, 1.0, 10).rotateZ(Math.PI / 2), composeMatrix(-hl + 0.55, 1.02, az), STEEL);
+    B.geo(new THREE.CylinderGeometry(0.06, 0.06, 0.3, 10), composeMatrix(-hl + 1.02, 1.15, az), STEEL);                // stijgbuis naar de tank
+    B.box(-hl + 0.3, 1.02, az, 0.16, 0.2, 0.2, DARK);                                                                   // klephuis
+    B.geo(new THREE.CylinderGeometry(0.015, 0.015, 0.14, 6), composeMatrix(-hl + 0.3, 1.18, az), DARK);
+    B.geo(new THREE.TorusGeometry(0.1, 0.018, 4, 12).rotateX(Math.PI / 2), composeMatrix(-hl + 0.3, 1.25, az), ROOD);    // handwiel
+    B.geo(new THREE.CylinderGeometry(0.1, 0.1, 0.07, 10).rotateZ(Math.PI / 2), composeMatrix(-hl + 0.03, 1.02, az), DARK); // dop
+    B.box(-hl + 0.12, 0.5, 0, 0.12, 0.14, W - 0.2, DARK);
+    for (let i = 0; i < 6; i++) B.box(-hl + 0.055, 0.5, -hw + 0.3 + (i * (W - 0.6)) / 5, 0.006, 0.09, 0.2, i % 2 ? WIT : ROOD); // reflectiestrook
+    for (const s of [1, -1]) B.box(-hl + 0.3, 0.62, s * 0.55, 0.42, 0.06, 0.06, DARK);
+    B.box(-hl + 0.12, 0.8, 0, 0.1, 0.16, W - 0.1, FRAME);
+    for (const s of [1, -1]) {
+      B.box(-hl + 0.065, 0.8, s * (hw - 0.2), 0.02, 0.12, 0.24, TAIL, G_LAMP);
+      B.box(-hl + 0.065, 0.8, s * (hw - 0.43), 0.02, 0.12, 0.14, INDICATOR, G_LAMP);
+      B.box(-hl + 0.065, 0.8, s * (hw - 0.58), 0.02, 0.12, 0.1, HEADLAMP, G_LAMP);   // achteruitrijlicht
+      B.box(T.x0 - T.kop * 0.33, 2.0, s * (T.rz - 0.1), 0.05, 0.1, 0.1, TAIL, G_LAMP); // contourlamp op de rand van de kop
+    }
+    B.box(-hl + 0.06, 0.8, 0.0, 0.012, 0.11, 0.5, PLATE);
+
+    // dubbellucht achter: spatbord en spatlap
+    for (const s of [1, -1]) {
+      const z = s * (hw - 0.36);
+      B.box(rx, 1.1, z, 1.3, 0.04, 0.72, FRAME);
+      B.box(rx - 0.68, 0.64, z, 0.03, 0.6, 0.66, RUBBER);
+    }
+
+    // tussen de assen: links de dieseltank en de pompkast, rechts de accubak en twee slangkokers; zijbeveiliging ervoor
+    const m0 = rx + 0.75, m1 = fx - 0.75, span = m1 - m0;
+    const dl = Math.min(1.1, span * 0.32), dX = m1 - dl / 2;
+    B.geo(new THREE.CylinderGeometry(0.25, 0.25, dl, 12).rotateZ(Math.PI / 2), composeMatrix(dX, 0.72, -(hw - 0.42)), ALU);
+    B.geo(new THREE.CylinderGeometry(0.05, 0.05, 0.05, 8), composeMatrix(dX + dl * 0.3, 0.98, -(hw - 0.42)), DARK); // tankdop
+    for (const x of [dX - dl * 0.3, dX + dl * 0.3]) B.box(x, 0.72, -(hw - 0.42), 0.04, 0.54, 0.54, DARK);      // spanbanden
+    const p0 = m0 + 0.05, p1 = m1 - dl - 0.1, pc = (p0 + p1) / 2, pl = p1 - p0, pz = -(hw - 0.35);
+    if (pl > 0.4) {
+      B.box(pc, 0.8, pz, pl, 0.56, 0.5, ALU);                                                                    // pompkast
+      const fz = pz - 0.25 - 0.004;
+      for (const y of [0.54, 1.06]) B.box(pc, y, fz, pl - 0.04, 0.012, 0.01, DARK);
+      for (const x of [p0 + 0.02, pc, p1 - 0.02]) B.box(x, 0.8, fz, 0.012, 0.52, 0.01, DARK);
+      for (const x of [pc - 0.1, pc + 0.1]) B.box(x, 0.86, fz - 0.01, 0.04, 0.1, 0.02, CHROME);                 // grepen
+    }
+    B.box(m1 - 0.35, 0.72, hw - 0.4, 0.5, 0.42, 0.5, FRAME);                                                      // accubak
+    B.box(m1 - 0.35, 0.95, hw - 0.4, 0.52, 0.04, 0.52, DARK);
+    const h0 = m0 + 0.05, h1 = m1 - 0.7;
+    for (const y of [1.06, 1.3]) {
+      B.geo(new THREE.CylinderGeometry(0.1, 0.1, h1 - h0, 12).rotateZ(Math.PI / 2), composeMatrix((h0 + h1) / 2, y, hw - 0.24), K(0x30343a)); // slangkoker
+      B.geo(new THREE.CylinderGeometry(0.125, 0.125, 0.04, 12).rotateZ(Math.PI / 2), composeMatrix(h0 - 0.01, y, hw - 0.24), ALU);
+    }
+    const z0 = rx + r + 0.12, z1 = fx - r - 0.14; // zijbeveiliging tussen de wielen
+    for (const s of [1, -1]) for (const y of [0.5, 0.72]) B.box((z0 + z1) / 2, y, s * (hw - 0.06), z1 - z0, 0.07, 0.04, DARK);
+    for (const s of [1, -1]) for (const x of [z0 + 0.05, z1 - 0.1]) B.box(x, 0.66, s * (hw - 0.2), 0.05, 0.05, 0.3, DARK); // steunen
+
+    // --- cabine: dicht tot de raamlijn met een uitgespaarde wielkast, glas rondom erboven, dan het dak
+    const wf0 = fx - 0.62, wf1 = fx + 0.62;
+    B.box(cx, 1.47, 0, cabL, 0.76, W - 0.05, paint);
+    B.box((wf1 + hl) / 2, 0.86, 0, hl - wf1, 0.46, W - 0.05, paint);
+    B.box((cx0 + wf0) / 2, 0.86, 0, wf0 - cx0, 0.46, W - 0.05, paint);
+    B.box(fx, 0.97, 0, 1.24, 0.24, W - 0.9, FRAME);                                                              // binnenkant wielkast
+    for (const s of [1, -1]) B.geo(new THREE.TorusGeometry(0.62, 0.05, 4, 10, Math.PI), composeMatrix(fx, r, s * (hw - 0.03)), FRAME);
+    B.box(cx, 2.72, 0, cabL, 0.24, W - 0.05, paint);
+    B.box(cx - 0.02, 2.225, 0, cabL - 0.1, 0.75, W - 0.12, GLASS, G_GLASS);
+    B.box(cx0 + 0.04, 2.225, 0, 0.08, 0.75, W - 0.05, paint);
+    for (const s of [1, -1]) {
+      B.box(hl - 0.05, 2.225, s * (hw - 0.07), 0.1, 0.75, 0.1, paint);           // A-stijl
+      B.box(hl - 1.02, 2.225, s * (hw - 0.04), 0.07, 0.75, 0.06, paint);         // B-stijl
+      B.box(cx, 1.66, s * (hw - 0.0235), cabL - 0.04, 0.1, 0.003, WIT);          // bies wit en rood onder de ramen
+      B.box(cx, 1.58, s * (hw - 0.0235), cabL - 0.04, 0.035, 0.003, ROOD);
+      for (const y of [0.46, 0.8]) B.box((cx0 + wf0) / 2 - 0.02, y, s * (hw - 0.1), 0.3, 0.04, 0.24, DARK); // opstap
+      B.box(hl - 0.12, 2.36, s * (hw + 0.1), 0.05, 0.04, 0.24, TRIM);            // spiegelarmen
+      B.box(hl - 0.12, 1.96, s * (hw + 0.1), 0.05, 0.04, 0.24, TRIM);
+      B.box(hl - 0.14, 2.16, s * (hw + 0.23), 0.08, 0.44, 0.15, TRIM);           // spiegel
+      B.box(hl - 0.185, 2.16, s * (hw + 0.23), 0.012, 0.38, 0.11, K(0x8fa6b8));
+      B.box(hl - 0.14, 1.74, s * (hw + 0.2), 0.08, 0.18, 0.13, TRIM);            // groothoekspiegel
+      B.box(hl + 0.0, 1.0, s * (hw - 0.02), 0.05, 0.06, 0.1, INDICATOR, G_LAMP); // zijknipperlicht op de hoek
+    }
+    B.box(hl + 0.005, 1.87, 0, 0.04, 0.06, W - 0.1, TRIM);
+    B.box(hl + 0.005, 2.585, 0, 0.04, 0.05, W - 0.1, TRIM);
+    for (const z of [-0.45, 0.4]) B.box(hl + 0.03, 1.99, z, 0.02, 0.03, 0.62, TRIM, 0, 0.35, 0, 0); // ruitenwissers
+    B.box(hl + 0.07, 2.64, 0, 0.18, 0.04, W - 0.16, TRIM, 0, 0, 0, -0.18);                           // zonneklep
+    for (let i = -2; i <= 2; i++) B.box(hl - 0.02, 2.86, i * 0.25, 0.06, 0.04, 0.1, INDICATOR, G_LAMP); // daklampjes
+    // windscherm op het dak, met zijschotten, tot de hoogte van de loopbrug
+    const dTop = top + 0.12, dLen = cabL * 0.75, dH = dTop - 2.84, dX0 = cx - 0.15;
+    if (dH > 0.05) {
+      B.box(dX0, 2.84 + dH / 2, 0, Math.hypot(dLen, dH), 0.05, W - 0.46, paint, 0, 0, 0, -Math.atan2(dH, dLen));
+      B.box(dX0 - dLen / 2 + 0.07, 2.84 + (dH - 0.06) / 2, 0, 0.04, dH - 0.06, W - 0.5, shadeHex(paint, 0.8));
+      for (const s of [1, -1]) B.triOut([dX0 + dLen / 2, 2.84, s * (hw - 0.2)], [dX0 - dLen / 2, 2.84, s * (hw - 0.2)], [dX0 - dLen / 2, dTop, s * (hw - 0.2)], [0, 0, s], shadeHex(paint, 0.9));
+    }
+    // de voorkant: grille met lamellen en embleem, bumper met koplampen, mistlampen en richtingaanwijzers
+    B.box(hl + 0.012, 1.38, 0, 0.03, 0.5, W * 0.6, FRAME);
+    for (let i = 0; i < 4; i++) B.box(hl + 0.03, 1.2 + i * 0.12, 0, 0.02, 0.035, W * 0.58, K(0x8e9399));
+    B.box(hl + 0.03, 1.74, 0, 0.02, 0.12, 0.44, WIT);
+    B.box(hl + 0.04, 1.74, 0, 0.02, 0.07, 0.36, K(0x1d4f9c));
+    B.box(hl + 0.07, 0.64, 0, 0.16, 0.34, W, K(0x2e3134));
+    for (const s of [1, -1]) {
+      B.box(hl + 0.15, 0.7, s * (hw - 0.33), 0.02, 0.15, 0.36, HEADLAMP, G_LAMP);
+      B.box(hl + 0.15, 0.7, s * (hw - 0.09), 0.02, 0.15, 0.08, INDICATOR, G_LAMP);
+      B.box(hl + 0.15, 0.53, s * (hw - 0.45), 0.02, 0.08, 0.14, HEADLAMP, G_LAMP);
+    }
+    B.box(hl + 0.155, 0.55, 0, 0.012, 0.11, 0.5, PLATE);
+    // uitlaat achter de cabine, met hitteschild
+    B.geo(new THREE.CylinderGeometry(0.075, 0.075, top + 0.25 - 1.0, 10), composeMatrix(cx0 - 0.09, (1.0 + top + 0.25) / 2, hw - 0.3), K(0xb9bcbf));
+    B.box(cx0 - 0.09, 1.9, hw - 0.21, 0.18, 0.7, 0.02, DARK);
+    // de deurnaden van de cabine (vehicledoors.js DEUR_DEFS.truck), afgekapt boven de wielkast
+    const naad = shadeHex(paint, 0.32), kapY = 1.1;
+    for (const st of naadStroken('truck', L, hw)) {
+      let y = st.y, sy = st.sy;
+      if (y - sy / 2 < kapY) {
+        if (sy < 0.05) y = kapY + 0.01;
+        else { const y1 = y + sy / 2; y = (kapY + y1) / 2; sy = y1 - kapY; }
+      }
+      B.box(st.x, y, st.z, st.sx, sy, st.sz, st.soort === 'handvat' ? CHROME : naad);
+    }
+    return B.build();
+  });
+  const mats = vehicleMaterials(wrecked);
+  const group = new THREE.Group();
+  const body = new THREE.Mesh(geo, mats);
+  group.add(body);
+  group.userData.body = body;
+  // de wielen krijgen een eigen materiaal: ze staan in LOD-niveau 0 en 1, de romp alleen in 0
+  const wheelMat = vehicleMaterials(wrecked)[0];
+  const wgeo = carWheelGeometry(r, 0.3);
+  const wheels = [];
+  for (const x of [fx, rx]) for (const s of [1, -1]) addWheel(group, wgeo, wheelMat, x, r, s * (hw - 0.2), wheels);
+  // dubbellucht: de binnenste band draait mee als kind van de buitenste
+  for (const w of wheels) if (w.position.x < 0) {
+    const twin = new THREE.Mesh(wgeo, wheelMat);
+    twin.position.z = -Math.sign(w.position.z) * 0.36;
+    w.add(twin);
+  }
+  group.userData.wheels = wheels;
+  group.userData.wheelRadius = r;
+  // de aftapkraan achter: daar lekt het vet uit (trailer.js, vetspoor3d.js)
+  group.userData.aftap = { x: -hl + 0.03, y: 1.02, z: -0.35 };
+  const lod0 = [...mats, wheelMat], lod1 = [wheelMat];
+  if (v.model.livery === 'usmemvet' && !wrecked) {
+    // de belettering als gebogen strook op beide flanken, op de romp zodat hij meeveert en meehelt
+    const mat = new THREE.MeshLambertMaterial({ map: usMemVetTexture(), transparent: true, alphaTest: 0.1 });
+    for (const s of [1, -1]) {
+      const strip = new THREE.Mesh(usMemVetStrip(T, s), mat);
+      strip.userData.noBatch = true;
+      body.add(strip);
+    }
+    lod0.push(mat); lod1.push(mat);
+  }
+  // LOD (eis eigenaar 23-11, opgave in propregister.js VOERTUIG_REGISTER.tankwagen.lod): niveau 1 en 2 hangen onder de romp,
+  // zodat ze meeveren; DitherLOD zet per niveau de materialen aan en dithert de overgang
+  const m1 = vehicleMaterials(wrecked), m2 = vehicleMaterials(wrecked);
+  for (const [n, mm] of [[1, m1], [2, m2]]) {
+    const lm = new THREE.Mesh(tankwagenLodGeometry(L, W, paint, n), mm);
+    lm.userData.lodNiveau = n;
+    body.add(lm);
+  }
+  const lod = new DitherLOD(VOERTUIG_REGISTER.tankwagen.lod, [lod0, [...m1, ...lod1], m2]);
+  lod.name = 'lod';
+  body.add(lod);
+  group.userData.lod = lod;
+  return group;
+}
+
+// De lichtere niveaus van de tankwagen: 1 (tot de tweede grens: tank, cabine, lampen en belettering, geen kleine onderdelen)
+// en 2 (silhouet: tank, cabine, ruiten, lampen en vier wielblokken; de echte wielen staan dan uit). Zelfde maten als niveau 0.
+function tankwagenLodGeometry(L, W, paint, n) {
+  return cached(`tankwagen-lod${n}|${L}|${W}|${paint}`, () => {
+    const hl = L / 2, hw = W / 2, wrecked = paint === WRECKED_COLOR;
+    const K = (c) => (wrecked ? WRECKED_COLOR : c);
+    const T = tankwagenMaat(L, W), top = T.y + T.ry, tl = T.x1 - T.x0, tc = (T.x0 + T.x1) / 2;
+    const fx = hl - 1.25, rx = -hl + 1.7, cx = hl - T.cabL / 2, cx0 = hl - T.cabL;
+    const STEEL = K(0xc9ced3), FRAME = K(0x26282b), DARK = K(0x3a3d40);
+    const B = new GeoBuilder(3);
+    const seg = n === 1 ? 12 : 8;
+    B.box(0.1, 0.8, 0, L - 0.5, 0.24, 0.98, FRAME);
+    // een plat vlak boven (rotateY halve sector): bij acht zijden anders een nok als een tentdak
+    B.geo(new THREE.CylinderGeometry(1, 1, tl, seg, 1, n === 2).rotateY(Math.PI / seg).rotateZ(Math.PI / 2), composeMatrix(tc, T.y, 0, 0, 0, 0, 1, T.ry, T.rz), STEEL);
+    if (n === 1) {
+      for (const s of [1, -1]) B.geo(new THREE.SphereGeometry(1, seg, 3, 0, Math.PI * 2, 0, Math.PI / 2).rotateZ(-s * Math.PI / 2), composeMatrix(s > 0 ? T.x1 : T.x0, T.y, 0, 0, 0, 0, T.kop, T.ry, T.rz), STEEL);
+      for (const x of [T.x0, T.x1]) B.geo(new THREE.CylinderGeometry(1, 1, 0.07, seg, 1, true).rotateZ(Math.PI / 2), composeMatrix(x, T.y, 0, 0, 0, 0, 1, T.ry + T.band, T.rz + T.band), K(0x9ba2a8));
+      B.box(tc, top + 0.03, 0, tl * 0.86, 0.04, 0.56, DARK);
+      for (const s of [1, -1]) B.box(tc, top + 0.1, s * 0.43, tl * 0.82, 0.035, 0.035, K(0xd9b92e));
+      B.box(-hl + 0.12, 0.8, 0, 0.1, 0.16, W - 0.1, FRAME);
+      B.box(-hl + 0.12, 0.5, 0, 0.12, 0.14, W - 0.2, DARK);
+      for (const s of [1, -1]) {
+        B.box(rx, 1.1, s * (hw - 0.36), 1.3, 0.04, 0.72, FRAME);
+        B.box(-hl + 0.04, (0.95 + top + 0.25) / 2, T.rz * 0.42 + s * 0.17, 0.04, top + 0.25 - 0.95, 0.04, K(0xa7adb3));
+        B.box((rx + fx) / 2, 0.61, s * (hw - 0.06), fx - rx - 1.3, 0.28, 0.04, DARK);
+      }
+    } else {
+      for (const s of [1, -1]) for (const x of [fx, rx]) B.box(x, 0.52, s * (hw - (x < 0 ? 0.38 : 0.2)), 1.0, 1.0, x < 0 ? 0.7 : 0.3, TIRE);
+    }
+    // cabine (beide niveaus): dicht, ruiten, dak, bumper, grille en lampen
+    B.box(cx, 1.3, 0, T.cabL, 1.1, W - 0.05, paint);
+    B.box(cx - 0.02, 2.225, 0, T.cabL - 0.1, 0.75, W - 0.12, GLASS, G_GLASS);
+    B.box(cx, 2.72, 0, T.cabL, 0.24, W - 0.05, paint);
+    B.box(hl + 0.07, 0.64, 0, 0.16, 0.34, W, K(0x2e3134));
+    B.box(hl + 0.012, 1.38, 0, 0.03, 0.5, W * 0.6, FRAME);
+    for (const s of [1, -1]) {
+      B.box(hl + 0.15, 0.7, s * (hw - 0.33), 0.02, 0.15, 0.36, HEADLAMP, G_LAMP);
+      B.box(-hl + 0.065, 0.8, s * (hw - 0.2), 0.02, 0.12, 0.24, TAIL, G_LAMP);
+      B.box(hl - 0.14, 2.16, s * (hw + 0.23), 0.08, 0.44, 0.15, TRIM); // spiegels: ook op afstand de breedte van de cabine
+      if (n === 1) B.box(cx, 1.66, s * (hw - 0.0235), T.cabL - 0.04, 0.1, 0.003, K(0xf4f2ec));
+    }
+    if (n === 1) {
+      const dTop = top + 0.12, dLen = T.cabL * 0.75, dH = dTop - 2.84;
+      if (dH > 0.05) B.box(cx - 0.15, 2.84 + dH / 2, 0, Math.hypot(dLen, dH), 0.05, W - 0.46, paint, 0, 0, 0, -Math.atan2(dH, dLen));
+      B.geo(new THREE.CylinderGeometry(0.075, 0.075, top + 0.25 - 1.0, 6), composeMatrix(cx0 - 0.09, (1.0 + top + 0.25) / 2, hw - 0.3), K(0xb9bcbf));
+    }
+    return B.build();
+  });
+}
+
+// De belettering volgt de tankwand: een raster over de ellips (hoek th0..th1 rond de flank) en 86 % van de tanklengte, iets
+// buiten de spanbanden. u loopt voor de kijker van links naar rechts (op de linkerflank dus van voor naar achter).
+function usMemVetStrip(T, s) {
+  return cached(`usmemvet-strip|${T.x0}|${T.x1}|${T.rz}|${s}`, () => {
+    const nx = 14, ny = 6, th0 = -0.42, th1 = 0.5, ry = T.ry + T.strook, rz = T.rz + T.strook;
+    const len = (T.x1 - T.x0) * 0.86, xc = (T.x0 + T.x1) / 2;
+    const pos = [], uv = [], idx = [];
+    for (let i = 0; i <= nx; i++) for (let j = 0; j <= ny; j++) {
+      const th = th0 + ((th1 - th0) * j) / ny;
+      pos.push(xc - (s * len) / 2 + (s * len * i) / nx, T.y + ry * Math.sin(th), s * rz * Math.cos(th));
+      uv.push(i / nx, j / ny);
+    }
+    for (let i = 0; i < nx; i++) for (let j = 0; j < ny; j++) {
+      const a = i * (ny + 1) + j, b = (i + 1) * (ny + 1) + j;
+      idx.push(a, b, b + 1, a, b + 1, a + 1);
+    }
+    const g = new THREE.BufferGeometry();
+    g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+    g.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2));
+    g.setIndex(idx);
+    g.computeVertexNormals();
+    return g;
+  });
+}
+
+// "Us Mem Vet": Jelle's frituurvet (verzonnen merk). Een blauw veld in de kleur van de Friese vlag met de koe Us Mem (het beeld in
+// Ljouwert) in een witte cirkel, de woordnaam, rode pompeblêden en de regel die op een levensmiddelentank hoort.
 let usMemVetTex = null;
 function usMemVetTexture() {
   if (usMemVetTex) return usMemVetTex;
   const c = document.createElement('canvas');
-  c.width = 1024; c.height = 190;
+  c.width = 1024; c.height = 192;
   const g = c.getContext('2d');
-  g.fillStyle = '#f4f2ec';
-  g.fillRect(0, 0, 1024, 190);
-  // the flag's bends on the left third
-  g.save();
-  g.beginPath(); g.rect(0, 0, 260, 190); g.clip();
-  g.rotate(0.5);
+  g.clearRect(0, 0, 1024, 192);
+  const rond = (x, y, w, h, rr) => { g.beginPath(); g.moveTo(x + rr, y); g.arcTo(x + w, y, x + w, y + h, rr); g.arcTo(x + w, y + h, x, y + h, rr); g.arcTo(x, y + h, x, y, rr); g.arcTo(x, y, x + w, y, rr); g.closePath(); };
   g.fillStyle = '#1d4f9c';
-  for (let i = -6; i < 10; i += 2) g.fillRect(-400, i * 32, 1400, 32);
-  g.restore();
+  rond(0, 10, 1024, 172, 26); g.fill();
+  g.strokeStyle = '#f4f2ec'; g.lineWidth = 4;
+  rond(10, 20, 1004, 152, 20); g.stroke();
+  // het embleem: de koe in profiel in een witte cirkel
+  g.fillStyle = '#f4f2ec';
+  g.beginPath(); g.arc(104, 96, 66, 0, Math.PI * 2); g.fill();
+  g.fillStyle = '#1c1d20';
+  g.beginPath(); g.ellipse(96, 100, 38, 22, 0, 0, Math.PI * 2); g.fill();
+  g.beginPath(); g.ellipse(138, 84, 14, 11, -0.4, 0, Math.PI * 2); g.fill();
+  for (const x of [70, 84, 104, 118]) g.fillRect(x, 112, 7, 30);
+  g.fillStyle = '#f4f2ec';
+  g.beginPath(); g.ellipse(84, 94, 13, 9, 0.3, 0, Math.PI * 2); g.fill();
+  g.beginPath(); g.ellipse(110, 106, 10, 7, -0.2, 0, Math.PI * 2); g.fill();
+  // de woordnaam en de regels eronder
+  g.textAlign = 'left'; g.textBaseline = 'alphabetic';
+  g.fillStyle = '#f4f2ec';
+  g.font = 'bold 92px "Arial Black", Arial, sans-serif';
+  g.fillText('Us Mem Vet', 196, 110, 600);
+  g.font = 'italic bold 32px Georgia, serif';
+  g.fillText('Frituurvet. Foar mem.', 200, 152, 420);
+  g.textAlign = 'right';
+  g.font = 'bold 22px Arial, sans-serif';
+  g.fillText('UITSLUITEND LEVENSMIDDELEN', 996, 152, 360);
+  // drie rode pompeblêden rechtsboven
   g.fillStyle = '#d42a24';
-  const leaf = (x, y, k) => {
+  const blad = (x, y, k) => {
     g.beginPath();
     g.moveTo(x, y + 14 * k);
     g.bezierCurveTo(x - 20 * k, y, x - 12 * k, y - 18 * k, x, y - 7 * k);
     g.bezierCurveTo(x + 12 * k, y - 18 * k, x + 20 * k, y, x, y + 14 * k);
     g.fill();
   };
-  for (const [x, y] of [[45, 50], [130, 34], [205, 92], [85, 130], [180, 160]]) leaf(x, y, 1.1);
-  // the cow: Us Mem in profile, black and white
-  g.fillStyle = '#1c1d20';
-  g.beginPath(); g.ellipse(335, 100, 58, 34, 0, 0, Math.PI * 2); g.fill();
-  g.beginPath(); g.ellipse(395, 78, 21, 16, -0.4, 0, Math.PI * 2); g.fill();
-  for (const x of [298, 320, 350, 372]) g.fillRect(x, 118, 10, 46);
-  g.fillStyle = '#f4f2ec';
-  g.beginPath(); g.ellipse(318, 92, 21, 14, 0.3, 0, Math.PI * 2); g.fill();
-  g.beginPath(); g.ellipse(360, 110, 15, 10, -0.2, 0, Math.PI * 2); g.fill();
-  // the lettering
-  g.textAlign = 'left'; g.textBaseline = 'alphabetic';
-  g.fillStyle = '#1d4f9c';
-  g.font = 'bold 104px "Arial Black", Arial, sans-serif';
-  g.fillText('US MEM VET', 440, 112, 560);
-  g.fillStyle = '#d42a24';
-  g.font = 'italic bold 34px Georgia, serif';
-  g.fillText('Frituurvet. Foar mem.', 446, 160, 540);
-  g.fillStyle = '#1d4f9c';
-  g.fillRect(0, 0, 1024, 8); g.fillRect(0, 182, 1024, 8);
+  for (const x of [880, 930, 980]) blad(x, 66, 1.2);
   usMemVetTex = new THREE.CanvasTexture(c);
   usMemVetTex.colorSpace = THREE.SRGBColorSpace;
   usMemVetTex.anisotropy = 4;
