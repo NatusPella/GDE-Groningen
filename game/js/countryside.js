@@ -7,7 +7,7 @@ import {
   chash, countryWeight, countryRect, edgeDistance, countryFiction, parcelAt, parcelUse, blockToWorld, edgeRoad, villageOf,
 } from './countryfield.js';
 import { SkinBuilder, vcMaterial, tubeGeometry, loftGeometry, markShared, composeMatrix } from './pixelart3d.js';
-import { buildCowMesh3D, buildSheepMesh3D, sheepVariantOf, buildDuckMesh3D, animateWildlifeMesh3D, runOverAnimal, poseDeadAnimal } from './wildlife.js';
+import { buildCowMesh3D, buildSheepMesh3D, sheepVariantOf, buildDuckMesh3D, animateWildlifeMesh3D, runOverAnimal, poseDeadAnimal, zetBlik } from './wildlife.js';
 import { distToVehicleBody } from './vehicle.js';
 import * as M3 from './countrymodels.js';
 import {
@@ -80,6 +80,9 @@ const HORSE_SPEC = [
   ['legFR', 'body', 0.55, 1.2, -0.17],
   ['legBL', 'body', -0.6, 1.2, 0.17],
   ['legBR', 'body', -0.6, 1.2, -0.17],
+  ['earL', 'head', 0.92, 2.17, 0.07],
+  ['earR', 'head', 0.92, 2.17, -0.07],
+  ['mane', 'head', 0.7, 1.95, 0],
 ];
 const HORSE_COATS = [
   { coat: 0x6b3f22, mane: 0x1f1a17, sock: 0x1f1a17 },
@@ -120,10 +123,18 @@ function horseGeometry(v) {
   B.geo(tubeGeometry([0.9, 2.05, 0], [1.34, 1.72, 0], 0.13, 0.085, 7), null, C.coat);
   B.box(1.35, 1.71, 0, 0.08, 0.14, 0.15, 0x3a2e28);
   for (const s of [1, -1]) {
+    B.bone = I[s > 0 ? 'earL' : 'earR'];
     B.geo(new THREE.ConeGeometry(0.035, 0.14, 4), composeMatrix(0.92, 2.2, s * 0.07, s * -0.3, 0, 0), C.coat);
+    B.bone = I.head;
     B.box(1.08, 1.98, s * 0.1, 0.04, 0.04, 0.02, 0x111111);
+    B.box(1.34, 1.74, s * 0.055, 0.03, 0.035, 0.02, 0x2a1a1a);   // neusgat
   }
+  if (v === 1 || v === 0) B.box(1.1, 1.96, 0, 0.3, 0.03, 0.07, 0xf0ece2, 0, 0, 0, -0.64);   // bles op de neus (de bruine en de vos)
   B.box(0.98, 2.1, 0, 0.12, 0.08, 0.1, C.mane);
+  B.bone = I.mane;
+  // de manen: een rij plukken langs de hals, die in de wind en bij de stap een beetje meezwaaien
+  for (let i = 0; i < 6; i++) B.box(0.62 + (0.38 * i) / 5 - 0.12, 1.5 + (0.52 * i) / 5 + 0.06, 0, 0.07, 0.16, 0.05, C.mane, 0, 0, 0, 0.87);
+  B.bone = I.head;
   B.bone = I.tail;
   B.geo(tubeGeometry([-0.84, 1.55, 0], [-1.02, 0.75, 0], 0.075, 0.04, 5), null, C.mane);
   return B.build();
@@ -155,7 +166,7 @@ export function buildHorseMesh(v) {
   mesh.bind(new THREE.Skeleton(bones));
   for (const b of bones) b.userData.rest = b.position.clone();
   Object.assign(group.userData, {
-    bones: byName, head: byName.head, headBaseRotZ: 0, legs: [byName.legFL, byName.legFR, byName.legBL, byName.legBR], tail: byName.tail, grazeDip: 0.95,
+    bones: byName, head: byName.head, headBaseRotZ: 0, legs: [byName.legFL, byName.legFR, byName.legBL, byName.legBR], tail: byName.tail, mane: byName.mane, grazeDip: 0.95, earMode: 'op',
   });
   return group;
 }
@@ -968,6 +979,7 @@ function simAnimal(a, dt, th, time, world) {
     S.animalDirty = true;
     return;
   }
+  if (a.kind !== 'duck' && a.kind !== 'goose') zetBlik(a, th.v ? null : th, 12);   // de kop volgt wie er aankomt
   const scareR = th.rel ? K.scare * th.r : th.r * (a.kind === 'cow' ? 0.8 : 1);
   if (d < scareR && a.flee <= 0.5) {
     a.flee = 2.5 + Math.random() * 2;
@@ -1078,6 +1090,7 @@ function updateAnimals(dt, world, time, simulate) {
     mesh.position.set(a.x, 0, a.y);
     mesh.rotation.y = -a.angle;
     mesh.rotation.x = 0;
+    mesh.userData.ver = a._d2 > 45 * 45;   // ver weg alleen stap en grazen (animateGrazer)
     if (a.dead) poseDeadAnimal(mesh, a);
     else if (a.kind === 'goose') animateGoose(mesh, a, time);
     else if (a.kind === 'duck') {

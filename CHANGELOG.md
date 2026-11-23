@@ -13,6 +13,7 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 - Game feel: een landing na een sprong voelt nu als een landing. Je voeten stuiven op (bruin stof op gras, grijs op straat), het beeld zakt even mee en de controller geeft een klein tikje. Opstijgen, aanzetten tot rennen en rennen over gras laten ook een lichte stofsliert achter.
 - Game feel: een auto die hard landt na een sprong werpt een ring van stof op, geeft op verharding vonken van de bodem en een dreun in beeld en op de controller; je ziet ook de landing van auto's in de buurt. Bij Beweging beperken blijft het beeld stil.
 - Game feel: bij hoge snelheid krijgt de rand van het beeld een lichte streep naar het midden (alleen op Middel, Hoog en Ultra), zodat snelheid voelt zonder dat de weg onscherp wordt. Gaat uit met Beweging beperken en met Snelheidsgevoel uit.
+- Dieren: koe, schaap, paard, kat en hond hebben nu oren die bewegen (vliegen wegschudden, naar voren bij iets nieuws, plat op de vlucht), een stap waarin de poot van de grond komt, een galop als ze schrikken, ademhaling, een zwiepende staart, af en toe een schuddende kop, en ze kijken je na als je dichtbij komt. De koe heeft een oormerk, het paard een bles, neusgaten en manen die meezwaaien, eenden en de reiger hebben een gevouwen vleugel, de reiger een kuif, en elke koe, elk schaap en elke kat heeft een iets andere maat. Ver weg blijft het bij stappen en grazen. Samen spelen: lokaal in ieders eigen spel, niets nieuws over het net.
 
 ## [0.65.0] - 2026-11-22
 
