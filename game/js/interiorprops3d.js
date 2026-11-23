@@ -35,12 +35,14 @@ export function interiorPropRaw(id, lod = 0) {
 }
 
 // Niet-geïndexeerd (vlakke normalen), met een groep per materiaalsoort (0 vast, 1 gloeit, 2 glas) zodat het meubel één mesh blijft.
-export function interiorPropGeometry(id, lod = 0) {
-  const key = id + '#' + lod;
+// kleuren: een andere kleur voor een materiaal van de glb ({ Couch_Blue: 0xd8c7a4 }): een eigen, ook gedeelde variant.
+export function interiorPropGeometry(id, lod = 0, kleuren = null) {
+  const key = id + '#' + lod + (kleuren ? JSON.stringify(kleuren) : '');
   let g = cache.get(key);
   if (g) return g;
   const r = interiorPropRaw(id, lod);
-  const kleur = r.palet.map((h) => new THREE.Color().setHex(h));
+  const namen = INTERIOR_PROP_DATA[id].namen || [];
+  const kleur = r.palet.map((h, i) => new THREE.Color().setHex(kleuren && kleuren[namen[i]] != null ? kleuren[namen[i]] : h));
   const perSoort = [[], [], []];
   for (let k = 0; k < r.idx.length; k += 3) perSoort[r.soort[r.col[r.idx[k]]] || 0].push(k);
   const n = r.idx.length;
@@ -91,12 +93,12 @@ export function fitScale(id, fit) {
 }
 
 // Een meubel op zijn plek, als LOD. rot draait om de verticaal (rad, three-zin); de voorkant is +x voor rot = 0.
-export function interiorProp(id, { x = 0, y = 0, z = 0, rot = 0, fit = null, scale = null, shadows = false } = {}) {
+export function interiorProp(id, { x = 0, y = 0, z = 0, rot = 0, fit = null, scale = null, kleuren = null, shadows = false } = {}) {
   if (!isInterieurProp(id)) throw new Error('meubel niet in het register: ' + id);
   const lod = new THREE.LOD();
   lod.name = 'meubel:' + id;
   for (let l = 0; l < 2; l++) {
-    const m = new THREE.Mesh(interiorPropGeometry(id, l), INTERIOR_PROP_MATERIALS);
+    const m = new THREE.Mesh(interiorPropGeometry(id, l, kleuren), INTERIOR_PROP_MATERIALS);
     m.castShadow = shadows; m.receiveShadow = shadows;
     lod.addLevel(m, l === 0 ? 0 : MEUBEL_LOD_R[0]);
   }

@@ -91,7 +91,7 @@ if (!${JSON.stringify(process.argv.includes('--alleen-blad'))}) {
   const kit = buildKitchen(0, 0, 0);
   scene.add(kit.group);
   for (const c of kit.tableCups) c.visible = true;
-  await shot(scene, 'keuken-breed', [1.75, 1.62, 1.35], [-1.2, 1.05, -0.6], 62);
+  await shot(scene, 'keuken-breed', [0.75, 1.62, 1.5], [-1.2, 1.0, -0.9], 64);
   await shot(scene, 'keuken-schouder', [1.55, 1.3, 0.55], [-0.82, 1.05, -0.05], 45);
   await shot(scene, 'keuken-aanrecht', [-0.4, 1.55, 1.5], [0.4, 0.95, -1.6], 58);
   await shot(scene, 'keuken-deur', [-1.7, 1.55, -0.9], [1.3, 1.1, 1.75], 55);
