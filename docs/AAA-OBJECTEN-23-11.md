@@ -92,6 +92,10 @@ geval circa 150.000 driehoeken, alleen binnen 90 tot 140 m en alleen als ze alle
   vier sluitstangen met hendels en nokken, onderrijbeveiliging achter (met reflectiestroken) en opzij.
 - **Register:** `VOERTUIG_REGISTER` in `propregister.js` legt de norm voor de trekker-limo en de bakwagen vast (driehoeken, kleuren,
   eisen); `propregister_test.mjs` bouwt ze en houdt ze eraan. Gemeten: trekker-limo 5.970 driehoeken en 27 kleuren, bakwagen 1.936 en 17.
+- Openingen op afstand: de deurcode heeft geen eigen LOD; één rig en één opening per deur, dichtbij en ver weg. Het zwarte
+  vlak in de eerdere `na-deur-zij-open.png` kwam uit een opname van vóór de wijziging van de stencil-opening (die toen nog één
+  zwarte kleur tekende). Opnieuw gemaakt: ook in de brede opname tonen de rode, groene en gele auto donkergrijs interieur. Het LOD
+  van cabin3d.js bepaalt alleen of de echte cabine er dichtbij overheen tekent; daarbuiten blijft het interieurvlak staan.
 - Nieuwe beelden: `na-limo.png`, `na-limo-achter.png`, `na-limo-zij-open.png`, `na-deur1-zij-open.png`, `na-deur-zij-open.png`, `na-bak.png`.
 
 ## Niet in beeld gezien
