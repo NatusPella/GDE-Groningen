@@ -26,7 +26,7 @@ export const ACTIES = [
   { id: 'quiz', soort: 'bord', kracht: 2, label: 'Hang een bord op: "Gratis bitterbal bij elke vraag over de Martinitoren"', note: 'Een bord met een quiz',
     reactie: 'Hoeveel treden heeft die toren eigenlijk?', slot: 'Te moeilijk. Wij gaan het opzoeken.' },
   { id: 'klassiek', soort: 'geluid', kracht: 3, label: 'Zet de klassieke zender hard aan: een sierlijke wals uit de speaker', note: 'Een geluid (alleen tekst, geen opname)',
-    reactie: 'Is dit... mooi? Dit is veel te mooi voor ons.', slot: 'Zo mooi dat het pijn doet. Wij gaan, hoor.' },
+    reactie: 'Is dit… mooi? Dit is veel te mooi voor ons.', slot: 'Zo mooi dat het pijn doet. Wij gaan, hoor.' },
   { id: 'dweil', soort: 'actie', kracht: 2, label: 'Begin met een dweil de stoep te boenen, precies rond hun fietsen', note: 'Een grappige actie',
     reactie: 'Hé, dat is nat! Mijn banden worden nat.', slot: 'Mijn sokken ook. Wij verhuizen.' },
   { id: 'toeter', soort: 'geluid', kracht: 0, label: 'Blaas drie keer op een toeter', note: 'Een geluid',

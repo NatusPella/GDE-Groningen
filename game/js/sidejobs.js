@@ -285,7 +285,7 @@ function blockReason(w, owner = 0) {
   // gast tegen (de baan zou meteen weer stoppen, #492). Alleen de eigen missie van de host telt hier.
   if (owner === 0 && playerBusy(w, ['mission', 'activeRace']).busy) return 'Niet nu: maak eerst je missie af';
   if (owner > 0 && (isMissionActive() || getActiveRace())) return 'Niet nu: er loopt een opdracht of race';
-  if (w.time < cooldownVan(owner)) return 'Even op adem komen...';
+  if (w.time < cooldownVan(owner)) return 'Even op adem komen…';
   return null;
 }
 

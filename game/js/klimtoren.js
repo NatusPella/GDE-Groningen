@@ -295,7 +295,7 @@ function updateHud(w) {
   const stand = online.length ? standTabel(['#', 'Klimmer', 'Tijd', 'Stand'], online.map((r) => ({ naam: r.naam, weg: r.weg, cellen: [r.banen === 1 ? fmtTime(r.slagen / 10) : '-', r.banen === 1 ? 'boven' : r.banen === 2 ? 'niet boven' : 'bezig'] }))) : '';
   const row = `<span>Tijd <b>${fmtTime(s.time)}</b></span><span>Hoogte <b>${height.toFixed(1).replace('.', ',')} m</b></span><span>Pogingen <b>${Math.max(0, WALL.tries - s.falls)}</b></span>`;
   const meter = { v: s.arms, text: 'arm', color: s.arms < 0.25 ? 'var(--mk-danger, #d93f3f)' : ACCENT }; // #620: geen tweede rood
-  const flash = g.flash ? g.flash.text : g.phase === 'wacht' ? (s.phase === 'top' ? 'Boven! Wachten op de anderen' : 'Klaar: wachten op de anderen') : g.phase === 'intro' ? 'Pak de eerste grepen...' : s.ground && g.phase === 'run' && !g.rwAan ? 'Houd {A} en {D} allebei vast: je klimt omhoog' : '';
+  const flash = g.flash ? g.flash.text : g.phase === 'wacht' ? (s.phase === 'top' ? 'Boven! Wachten op de anderen' : 'Klaar: wachten op de anderen') : g.phase === 'intro' ? 'Pak de eerste grepen…' : s.ground && g.phase === 'run' && !g.rwAan ? 'Houd {A} en {D} allebei vast: je klimt omhoog' : '';
   // #987: de eerste keer toont het bord de handeling als toets met een lus (Houd A en D) en staat de zin er niet meer naast;
   // na de eerste echte klim (4 s van de grond) is de widget klaar en staat de bekende regel er weer
   const uitleg = !!rwKlim && widgetUitlegNodig(KLIM_UITLEG) && (g.phase === 'intro' || g.phase === 'run');

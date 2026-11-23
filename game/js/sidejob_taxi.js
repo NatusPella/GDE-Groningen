@@ -182,7 +182,7 @@ export default {
       }
       const ped = d.ped && pedAlive(world, d.ped) ? d.ped : null;
       if (d.ped && !ped) {
-        if (d.ped.state === 'dead') { c.skip('Je klant is... niet meer in staat om te betalen. Geen rit, geen reeks: de centrale zoekt een nieuwe.'); return; }
+        if (d.ped.state === 'dead') { c.skip('Je klant is… niet meer in staat om te betalen. Geen rit, geen reeks: de centrale zoekt een nieuwe.'); return; }
         d.ped = null;
         d.walking = false;
       }

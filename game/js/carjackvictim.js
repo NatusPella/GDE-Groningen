@@ -30,7 +30,7 @@ export const VICTIM_LINES = {
   knock: ['Doe open!', 'Dit is echt niet leuk!'],
   call: ['112? Mijn auto is zojuist gestolen!', 'Politie? Iemand rijdt weg met mijn auto!'],
   point: ['Agent! Die daar! Mijn auto!'],
-  away: ['Wat een dag...', 'En ik moest nog naar de bakker.'],
+  away: ['Wat een dag…', 'En ik moest nog naar de bakker.'],
   back: ['Daar staat hij! Mijn auto!', 'Eindelijk, mijn auto.'],
 };
 

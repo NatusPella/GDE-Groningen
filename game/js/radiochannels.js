@@ -125,13 +125,13 @@ export const CHANNELS = [
   },
   {
     id: 'ruis', name: 'Ruisradio 108,7', dj: 'Meneer Ruis', frequency: '108,7', sub: 'Een zender die er niet hoort te zijn',
-    ident: 'Krrr... dit is geen zender. Toch luister je.',
+    ident: 'Krrr… dit is geen zender. Toch luister je.',
     pool: { styles: ['spook'] }, minPool: MIN_POOL, minMinutes: 20,
     programme: { id: 'ruis', every: 2, jingles: false, talk: ['dj', 'dj', 'clip'], music: 'nachtstreek' },
     // pas te vinden na het geheimpje van de lichtjes boven Stad (geheimen.js, 'ufo')
     unlock: { secret: 'ufo', hint: 'Soms zoemt er iets in de ruis, als de lucht boven Stad vreemd is.' },
     lines: [
-      'Krrr... u luistert naar niemand in het bijzonder. Blijf vooral hangen.',
+      'Krrr… u luistert naar niemand in het bijzonder. Blijf vooral hangen.',
       'Dit is Meneer Ruis. Ik ben er niet. De volgende plaat ook niet.',
       'Een groet aan wie dit hoort. Geen zorgen: niemand heeft het over u gehad.',
       'De frequentie schuift. Ik schuif mee. Het is nog steeds zomer.',

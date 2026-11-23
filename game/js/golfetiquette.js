@@ -45,7 +45,7 @@ export const ETQ_LINES = {
     gelijk: ['Ook een {n}. De eer blijft waar ze was.', 'Gelijk, met een {n}. Hoogst toevallig.'],
     birdie: ['Beginnersgeluk. Bij mij heet het ervaring.', 'Onder par? Hoogst opmerkelijk, voor iemand zonder eigen kluppen.'],
     bogey: ['Een zeer eerzaam resultaat.', 'Ieder moet ergens beginnen, ik zei het al.'],
-    eenSlag: ['In één slag. Dat... dat telt vandaag, neem ik aan.'],
+    eenSlag: ['In één slag. Dat… dat telt vandaag, neem ik aan.'],
     endGood: ['Voor een beginner verrassend verdienstelijk.', 'Netjes. Ik had niets anders verwacht, vanzelfsprekend.'],
     endPoor: ['Het is maar een spel. Dat zegt men mij ook wel eens.', 'Volgende keer huurt u gewoon.'],
   },

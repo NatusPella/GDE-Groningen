@@ -104,7 +104,7 @@ function updateHud() {
   });
   const row = `<span>Score <b>${s.score}</b></span><span>Reeks <b>${s.combo}</b></span><span>Gemist <b>${s.miss}</b></span>`;
   const left = next ? Math.max(0, next.t - s.t) : 0;
-  board.set({ row, cells, meter: { v: next ? 1 - Math.min(1, left / 2) : 1, mark: null, color: ACCENT }, flash: g.flash ? g.flash.text : s.t < 1.8 ? 'Luister naar de toren...' : '', bad: !!(g.flash && g.flash.bad), help: `${key('A')}${key('S')}${key('D')}${key('F')}${key('J')}${key('K')}${key('L')}${key(';')} klokken · ${key('BACKSPACE')} stoppen` });
+  board.set({ row, cells, meter: { v: next ? 1 - Math.min(1, left / 2) : 1, mark: null, color: ACCENT }, flash: g.flash ? g.flash.text : s.t < 1.8 ? 'Luister naar de toren…' : '', bad: !!(g.flash && g.flash.bad), help: `${key('A')}${key('S')}${key('D')}${key('F')}${key('J')}${key('K')}${key('L')}${key(';')} klokken · ${key('BACKSPACE')} stoppen` });
 }
 
 function glyph(ctx) {

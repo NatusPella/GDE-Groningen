@@ -156,7 +156,7 @@ function buildRoom() {
   const screen = canvasTex(128, 96, (c, w, h) => {
     c.fillStyle = '#0b1a10'; c.fillRect(0, 0, w, h);
     c.fillStyle = '#5dff7a'; c.font = 'bold 26px monospace'; c.textAlign = 'center'; c.fillText('GDE', w / 2, 40);
-    c.font = '13px monospace'; c.fillText('build 0.19 ok', w / 2, 66); c.fillText('> _', w / 2 - 30, 84);
+    c.font = '13px monospace'; c.fillText('versie 0.19 klaar', w / 2, 66); c.fillText('> _', w / 2 - 30, 84);
   });
   add(g, new THREE.BoxGeometry(0.45, 0.4, 0.5), basic({ color: 0xd8d0c0 }), 1.85, 1.02, -1.2);
   const sc = add(g, new THREE.PlaneGeometry(0.36, 0.28), basic({ map: screen }), 1.62, 1.04, -1.2);

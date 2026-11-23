@@ -397,7 +397,7 @@ function policeSees() {
 function raiseWanted(p) {
   const what = p.kind === 'flitspaal' ? 'flitspaal' : 'verkeerslicht';
   if (!policeSees()) {
-    if (p.kind === 'flitspaal') world.addMessage('Flitspaal gesloopt. Niemand heeft het gezien...', 3);
+    if (p.kind === 'flitspaal') world.addMessage('Flitspaal gesloopt. Niemand heeft het gezien…', 3);
     return;
   }
   world.wanted = Math.min(5, (world.wanted || 0) + 1);
