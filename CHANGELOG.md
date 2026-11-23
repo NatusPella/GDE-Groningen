@@ -9,6 +9,8 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ## [Unreleased]
 
+- Menu's opgeruimd na een UX-audit (docs/AUDIT-UXUI-23-11.md): de knop Toetsenbord naast een invulveld heeft een rand en leest niet meer als kop; Land en bedrijf toont zonder bezit alleen de volgende stap; de tour bij Loopbanen toont de dichte stops als één regel; in het pashokje heten de winkeltabbladen Winkel; Q en E heten overal tabblad en staan ook in de toetsregel van het Overzicht.
+
 ## [0.65.0] - 2026-11-22
 
 Samen spelen met vier echte vensters getest, een ronde zeefdruk-menu's (Spullen, Loopbanen, Boerderij, zoeken), echte voetstappen en weergeluid, AAA-aankleding van de missies van akte 1 tot en met 4 en een snellere start. Pre-release voor de speeltest.
