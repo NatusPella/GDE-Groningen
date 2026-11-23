@@ -37,13 +37,16 @@ function activityActive() { try { return !!(activityProbe && activityProbe()); }
 // De kleinste afstand van de speler tot de punten van een venster (Infinity als de speler of de punten onbekend zijn).
 export function nearestPointDist(points, focus) {
   if (!focus || !Number.isFinite(focus.x) || !Number.isFinite(focus.y) || !points || !points.length) return Infinity;
+  // gekwadrateerd vergelijken en één wortel op het eind: geen hypot per punt (een venster kan honderden punten hebben)
   let best = Infinity;
-  for (const p of points) {
-    if (!p || !Number.isFinite(p[0]) || !Number.isFinite(p[1])) continue;
-    const d = Math.hypot(p[0] - focus.x, p[1] - focus.y);
-    if (d < best) best = d;
+  for (let i = 0; i < points.length; i++) {
+    const p = points[i];
+    if (!p) continue;
+    const dx = p[0] - focus.x, dy = p[1] - focus.y;
+    const d2 = dx * dx + dy * dy;
+    if (d2 < best) best = d2;   // NaN en Infinity vallen vanzelf af (NaN < x is onwaar; een oneindige afstand blijft Infinity)
   }
-  return best;
+  return Math.sqrt(best);
 }
 
 // De stand van een venster. urgent: de speler koos het zelf (sync); near: afstand tot het dichtstbijzijnde punt (m);
@@ -60,5 +63,9 @@ export function urgencyMode({ urgent = false, near = Infinity, activity = false,
 
 // Kortweg voor tileplace.js: de stand uit de punten, de focus en de vlaggen.
 export function urgencyModeFor(points, focus, { urgent = false, slice = 0, restoring = false } = {}) {
-  return urgencyMode({ urgent, near: nearestPointDist(points, focus), activity: activityActive(), restoring: restoring || restoreActive(), slice });
+  if (urgent) return urgencyMode({ urgent, slice });   // een teleport beslist alleen op zichzelf: geen afstand en geen activiteitsvraag nodig
+  const near = nearestPointDist(points, focus);
+  const restoringNow = restoring || restoreActive();
+  // de activiteitsvraag (playerBusy loopt over de wereld) niet tijdens een herstel (dan staat de uitkomst al vast)
+  return urgencyMode({ near, activity: restoringNow ? false : activityActive(), restoring: restoringNow, slice });
 }

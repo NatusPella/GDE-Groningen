@@ -116,7 +116,6 @@ html.touch-device #pause-menu .pm-inner.pm-game { scrollbar-width: thin; scrollb
    ondertitel; de radio speelt door en nowplaying noemt de zender. Het doel houdt
    één regel over, zodat het niet tegen de linkerkolom aan schuift. */
 @media (orientation: portrait) {
-  body.plane-flying #banter-sub, body.plane-flying #radio-sub { display: none; }
   html.touch-device body.plane-flying #hud .hud-mission :is(.hud-mission-progress, .hud-obj-keys, .hud-obj-dist) { display: none; }
   html.touch-device body.plane-flying #hud .hud-mission .hud-mission-label { -webkit-line-clamp: 1; line-clamp: 1; }
 }

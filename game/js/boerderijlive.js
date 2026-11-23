@@ -276,17 +276,16 @@ export function huurTik(w) {
   // de huur van machines en werktuigen (per speldag) en de rente van de bank lopen mee
   const mh = M.verwerkMachineHuur(b.bedrijf, b.uren, geld - r.uitgave);
   if (mh.uitgave > 0) { noteMoney('Overige uitgaven'); w.money -= mh.uitgave; B.uitgaven(b, mh.uitgave, 'machines'); }
-  r.uitgave += mh.uitgave;
-  r.events.push(...mh.events);
+  const events = mh.events.length ? r.events.concat(mh.events) : r.events;
   B.renteTik(b);
   if (B.syncVeld(b)) vuil = true;                      // een perceel dat terug naar de verhuurder ging neemt zijn gewas mee
-  if (r.events.length) vuil = true;
-  if (w && typeof w.addMessage === 'function') for (const e of r.events) {
+  if (events.length) vuil = true;
+  if (w && typeof w.addMessage === 'function') for (const e of events) {
     if (e.type === 'betaald') continue;
     if (e.uid) w.addMessage(e.type === 'terug' ? `${e.naam} is terug naar de verhuurder: de huur was te laat.` : `Je loopt achter met de huur van ${e.naam}. Betaal snel, anders gaat hij terug.`, 5);
     else w.addMessage(HUUR_TEKST[e.type](e), 5);
   }
-  return r;
+  return mh.uitgave ? { uitgave: r.uitgave + mh.uitgave, events } : r;
 }
 
 function bedrijfActie(r) {

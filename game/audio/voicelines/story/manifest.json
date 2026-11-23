@@ -430,5 +430,9 @@
 "Schipper Wiebe (megafoon)|Rennen kan je niet op het water, Klaas!": {
 "src": "m7/wiebe_119.mp3",
 "dur": 2.3
+},
+"Schipper Wiebe (megafoon)|Ik ken elke brug in de Stad. Jullie niet!": {
+"src": "schipper_wiebe_megafoon/ik_ken_elke_brug_in_de_stad_jull_9e78d549.mp3",
+"dur": 2.94
 }
 }

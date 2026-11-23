@@ -528,22 +528,34 @@ export function unlockNotes(told, open) {
   for (const k of Object.keys(UNLOCK_NOTES)) if (open(k) && !told.includes(k)) out.push(k);
   return out;
 }
+const NO_FRESH = Object.freeze([]);
+// Alles al verteld? Dan is er niets te melden en vragen we de poort niet (dayTick loopt elk beeld; de poort rekent per vraag de verhaalstand uit).
+const allTold = (told) => { if (!Array.isArray(told)) return false; for (const k in UNLOCK_NOTES) if (!told.includes(k)) return false; return true; };
 export function announceUnlocks(w) {
   const b = getBezit();
+  if (allTold(b.x.told)) return NO_FRESH;
   const told = Array.isArray(b.x.told) ? b.x.told.filter((k) => typeof k === 'string').slice(0, 8) : [];
   const fresh = unlockNotes(told, branchOpen);
-  if (!fresh.length) return [];
+  if (!fresh.length) return NO_FRESH;
   b.x.told = told.concat(fresh);
   if (w && typeof w.addMessage === 'function') for (const k of fresh) w.addMessage(UNLOCK_NOTES[k], 6, { kind: 'tip', key: `bz-open-${k}` });
   markeer();
   return fresh;
 }
+// Heeft de speler iets dat meetelt (percelen, panden, een wagen)? Zonder tijdelijke arrays: dayTick vraagt het elk beeld.
+function hasHoldings(b) {
+  if (b.buildings.size) return true;
+  let n = 0;
+  for (const id in b.parcels) { if (!b.parcels[id].lg) return true; if (++n > 1) return true; }
+  if (b.mobile) for (const id in b.mobile) return true;
+  return SN.isActive(snackState());
+}
 export function dayTick(w) {
   const b = getBezit(), farm = getBoerderij();
   announceUnlocks(w);
   const day = Math.floor(farm.uren / 24);
-  clock = { cal: calDayOf(w), farm: day };
-  if (!(Z.ownedCount(b) > 0 || Object.keys(b.parcels).length > 1 || b.buildings.size || Object.keys(b.mobile || {}).length || SN.isActive(snackState()))) { b.x.lastDay = day; return null; }
+  clock.cal = calDayOf(w); clock.farm = day;
+  if (!hasHoldings(b)) { b.x.lastDay = day; return null; }
   if (!Number.isFinite(b.x.lastDay)) { b.x.lastDay = day; return null; }                       // een bezit zonder vastgelegde dag begint vandaag te tellen
   const from = b.x.lastDay;
   if (day <= from) return null;

@@ -918,6 +918,8 @@
     "namecard",
     "soundcaptions",
     "subtitles",
+    "subtitlegate",
+    "subtitleui",
     "fouttoast",
     "contexthints",
     "hintkit",
@@ -1903,6 +1905,10 @@
   {
    "glob": "monumentdecor",
    "reden": "Alleen beeld: elke client bouwt zijn eigen decor."
+  },
+  {
+   "glob": "landfeel",
+   "reden": "Game feel (juice 23-11): stof, camerazakking en haptiek bij landingen, lokaal in ieders eigen spel; niets over het net."
   },
   {
    "glob": "onboardinglogic",

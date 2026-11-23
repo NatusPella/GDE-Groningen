@@ -128,7 +128,7 @@ const near = (a, b, m = 0.01) => Math.abs(a - b) <= m;
   ok(/root\.style\.top = '170px'/.test(mg), '#877: compact bord staat net onder zone C');
   ok(/\.mg-board \.mg-flash \{ font-size: max\(18px, calc\(22px \* var\(--ui, 1\)\)\)/.test(mg), '#868: lesbord-flash houdt 12 px op een telefoon');
   const touch = (read('touch.js').match(/const CSS = `([\s\S]*?)`;/) || [])[1] || '';
-  ok(/body\.plane-flying #banter-sub, body\.plane-flying #radio-sub \{ display: none; \}/.test(touch), '#877: ondertitel wijkt tijdens het vliegen in portret');
+  ok(/body\.plane-flying \.ds-sub:not\(#cine \.ds-sub\) \{ display: none; \}/.test(read('subtitle.css')), '#877: ondertitel wijkt tijdens het vliegen (kort scherm en portret)');
   ok(/body\.plane-flying\.mg-on #hud \.hud-mission \{ display: none; \}/.test(touch), '#877: doel wijkt als het lesbord er staat');
   ok(/html\.touch-device #hud \.hud-instr/.test(touch) && /\.hud-instr \.hi-lamp/.test(touch), '#877: paneel en labels volgen de aanraakregels');
 }
@@ -137,7 +137,7 @@ const near = (a, b, m = 0.01) => Math.abs(a - b) <= m;
 {
   const touch = (read('touch.js').match(/const CSS = `([\s\S]*?)`;/) || [])[1] || '';
   ok(/html\.touch-device\.touch-portrait #hud \.hud-instr \{ right: var\(--hud-edge\); left: auto; transform: none; bottom: calc\(var\(--hud-f-top, 430px\) \+ 12px\); \}/.test(touch), '#881: paneel zakt in portret boven de linkerkolom');
-  ok(/@media \(orientation: portrait\) \{[\s\S]*?body\.plane-flying #banter-sub, body\.plane-flying #radio-sub \{ display: none; \}/.test(touch), '#881: geen ondertitel over het paneel in portret');
+  ok(/@media \(max-height: 640px\), \(orientation: portrait\) \{ body\.plane-flying \.ds-sub:not\(#cine \.ds-sub\) \{ display: none; \}/.test(read('subtitle.css')), '#881: geen ondertitel over het paneel in portret');
   ok(/'--hud-f-top'/.test(read('hud_panel.js')), '#881: hud_panel.js meet de bovenkant van de linkerkolom');
   ok(/watchFlightColumn\(root, fcol\)/.test(read('hud_panel.js')), '#881: de meting hangt aan de linkerkolom');
 }

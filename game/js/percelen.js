@@ -274,20 +274,24 @@ export function verkoop(bd, soort, id) {
 
 // De huur loopt in speltijd. Per verlopen periode: genoeg geld (met een eventuele schuld) betaalt alles, anders komt er een periode
 // achterstand bij; bij MAX_ACHTERSTAND is het perceel (of erf) terug bij de verhuurder. Geeft wat er van het geld af moet en wat er gebeurde.
+// Niets verschuldigd (elk beeld de gewone stand): één gedeeld, bevroren antwoord, zodat de aanroep geen objecten of arrays maakt.
+const GEEN_HUUR = Object.freeze({ uitgave: 0, events: Object.freeze([]) });
+const HUUR_SOORTEN = ['perceel', 'erf'];
 export function verwerkHuur(bd, nu, geld = Infinity) {
-  const events = [];
+  let events = null;
   let uitgave = 0;
   let over = geld;
-  for (const soort of ['perceel', 'erf']) {
+  for (const soort of HUUR_SOORTEN) {
     const m = bezit(bd, soort);
-    for (const id of Object.keys(m)) {
+    for (const id in m) {
       let x = m[id];
-      if (x.status !== 'gehuurd') continue;
+      if (x.status !== 'gehuurd' || nu < x.volgende) continue;
       const d = def(soort, id);
       let n = 0;
       while (x && nu >= x.volgende && n++ < MAX_BETALINGEN) {
         const bedrag = huurBedrag(d, x.betaling);
         const totaal = x.schuld + bedrag;
+        if (!events) events = [];
         if (over >= totaal) {
           over -= totaal; uitgave += totaal; bd.totaal.huur += totaal;
           events.push({ type: 'betaald', soort, id, bedrag: totaal });
@@ -307,7 +311,7 @@ export function verwerkHuur(bd, nu, geld = Infinity) {
       }
     }
   }
-  return { uitgave, events };
+  return events ? { uitgave, events } : GEEN_HUUR;
 }
 
 // Een openstaande schuld nu zelf betalen (houdt het perceel).

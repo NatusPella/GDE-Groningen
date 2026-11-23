@@ -39,6 +39,8 @@ De werkafspraken en de constitutie staan in [../AGENTS.md](../AGENTS.md); die wi
 |---|---|
 | [1.0-TRACK.md](<1.0-TRACK.md>) | Deze pagina bundelt wat er voor de publicatie en 1.0 lokaal is gedaan en wat alleen de eigenaar |
 | [3d-model-prompts.md](<3d-model-prompts.md>) | Naslag. De regels staan in de canonieke spec [`.specs-fire/standards/ui-taal.md`](../.specs-fire/standards/… |
+| [AAA-JUICE-23-11.md](<AAA-JUICE-23-11.md>) | Game feel 23-11: wat er al was en wat er bij kwam (landingen met stof, camerazakking en haptiek, voertuigdreun, snelheidsstrepen). |
+| [AAA-WERELD-23-11.md](<AAA-WERELD-23-11.md>) | AAA-oppimp van de wereld 23-11: bevindingen en stand, met de wolken in de hemelshader en de weerspiegeling in het water. |
 | [ANDROID.md](<ANDROID.md>) | Lokaal bouwbare debug-APK van het spel (Capacitor-WebView rond de webversie). Alleen voor testen: niets upl… |
 | [ARCHITECTUUR-STAD-NAAR-TEGELS.md](<ARCHITECTUUR-STAD-NAAR-TEGELS.md>) | *Migratieplan voor issue #90, 17 oktober 2026 (stand 0.34 + Unreleased). Historisch: de migratie is |
 | [BAG-LOD22.md](<BAG-LOD22.md>) | Besluit van de eigenaar: de 3D BAG-modellen (LoD 2.2: echte daken met dakkapellen, overstekken en schoorste… |

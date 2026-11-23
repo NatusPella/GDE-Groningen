@@ -15,7 +15,7 @@ const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..')
 const CHROME = ['C:/Program Files/Google/Chrome/Application/chrome.exe', 'C:/Program Files (x86)/Google/Chrome/Application/chrome.exe', '/usr/bin/google-chrome', '/usr/bin/chromium', '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'].find((p) => fs.existsSync(p));
 export const KEYS = ['SPACE', 'ENTER', 'SHIFT', 'TAB', 'ESC', 'W'];
 export const TOL_PX = 1;
-const CSS = ['fonts/fonts.css', 'js/menu.css', 'js/ds-tokens.css', 'js/ds-components.css', 'js/ds-keycap.css', 'js/a11y.css', 'js/hud_panel.css', 'js/prompts.css', 'js/hudcards.css', 'js/pausemenu.css', 'js/heist.css', 'js/onlineconsent.css', 'js/loadscreen.css'];
+const CSS = ['fonts/fonts.css', 'js/menu.css', 'js/ds-tokens.css', 'js/ds-components.css', 'js/ds-keycap.css', 'js/a11y.css', 'js/hud_panel.css', 'js/subtitle.css', 'js/prompts.css', 'js/hudcards.css', 'js/pausemenu.css', 'js/heist.css', 'js/onlineconsent.css', 'js/loadscreen.css'];
 
 export async function bouwMock(base = path.join(ROOT, 'game'), opts = {}) {
   const js = pathToFileURL(path.join(base, 'js')).href;
@@ -36,13 +36,13 @@ export async function bouwMock(base = path.join(ROOT, 'game'), opts = {}) {
     add('knop met glyph', k, `<button type="button" class="ds-z-knop">Begrepen ${g}</button>`, 'papier');
     add('launchchoice-pil (sk-hulp)', k, `<p class="sk-hulp" style="margin:0">${[`${tok(k)} starten`, `${tok('ESC')} alleen spelen`].map((h) => `<span>${keyTextHtml(h)}</span>`).join('')}</p>`, 'papier');
     add('menu-voetbalk (m-hint)', k, `<div class="m-foot" style="position:relative;right:auto;bottom:auto;height:auto"><span class="m-hint"><span class="m-kc is-kbg">${keyLabelGlyph({ SPACE: 'Spatie', ENTER: 'Enter', SHIFT: 'Shift', TAB: 'Tab', ESC: 'Esc', W: 'W' }[k]) || ''}</span>Terug</span></div>`, 'donker');
-    add('ondertitel (cine-sub)', k, `<div id="cine" style="position:relative;inset:auto;height:60px;background:#2a2218"><div class="cine-sub" style="position:relative;opacity:1;left:auto;bottom:auto;transform:none;top:8px"><span class="cine-line">${keyTextHtml(`Houd ${tok(k)} ingedrukt om te rennen`)}</span></div></div>`);
+    add('ondertitel (cine-sub)', k, `<div id="cine" style="position:relative;inset:auto;height:60px;background:#2a2218"><div class="ds-sub ds-sub--film cine-sub" style="position:relative;opacity:1;left:auto;bottom:auto;transform:none;top:8px"><span class="ds-sub-line cine-line">${keyTextHtml(`Houd ${tok(k)} ingedrukt om te rennen`)}</span></div></div>`);
   }
   if (opts.opening) {
     // de echte overslaan-hint van de openings-/montagefilm: de markup van cinematics.js (de toets als tekst 'SPATIE', door glyphs.js een glyph),
     // in de echte #cine met letterbox (balken 11vh, zwart) en --ui; zonder en met ondertitel (dan staat de hint boven de balk).
     V.length = 0;
-    const cineHtml = (extra) => `<div id="cine" class="letterbox show-skip active ${extra}"><div class="cine-bar top"></div><div class="cine-bar bottom"></div><div class="cine-sub"><span class="cine-speaker"></span><span class="cine-line">Een ondertitel</span></div><div class="cine-skip">${ring}<span>Houd</span> <span class="hud-key">SPATIE</span> <span>ingedrukt om over te slaan</span></div></div>`;
+    const cineHtml = (extra) => `<div id="cine" class="letterbox show-skip active ${extra}"><div class="cine-bar top"></div><div class="cine-bar bottom"></div><div class="ds-sub ds-sub--film cine-sub"><span class="ds-sub-speaker cine-speaker"></span><span class="ds-sub-line cine-line">Een ondertitel</span></div><div class="cine-skip">${ring}<span>Houd</span> <span class="hud-key">SPATIE</span> <span>ingedrukt om over te slaan</span></div></div>`;
     add('opening/montage (balk)', 'SPACE', cineHtml(''), 'opening');
     add('opening/montage (met ondertitel)', 'SPACE', cineHtml('has-sub'), 'opening');
   }

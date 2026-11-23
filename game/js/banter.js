@@ -7,6 +7,7 @@
 // Story progress is only read (story.js, missions.js), never written.
 
 import { setDualText } from './subtitles.js';
+import { createSubtitle } from './subtitleui.js';
 import { paintSpeaker } from './speakers.js';
 import { REACTIONS, SPEAKERS } from './banterlines.js';
 import { STEPS, missionIndexOf } from './storyarc.js';
@@ -351,17 +352,7 @@ function tryStart() {
 let subEl = null;
 function subtitleEl() {
   if (subEl) return subEl;
-  subEl = document.createElement('div');
-  subEl.id = 'banter-sub';
-  subEl.setAttribute('aria-live', 'polite');
-  Object.assign(subEl.style, {
-    position: 'fixed', left: '50%', bottom: '27vh', transform: 'translateX(-50%)', width: 'min(86vw, 760px)',
-    textAlign: 'center', font: "clamp(15px, 1.5vw, 20px) var(--ds-font-tekst)", color: '#fff',
-    letterSpacing: '0.3px', textShadow: '0 1px 3px rgba(0,0,0,0.95), 0 0 12px rgba(0,0,0,0.6)', pointerEvents: 'none',
-    opacity: '0', transition: 'opacity 0.25s', zIndex: '40',
-  });
-  subEl.innerHTML = '<span class="bt-speaker" style="font-weight:bold;margin-right:6px"></span><span class="bt-line"></span>';
-  document.body.appendChild(subEl);
+  subEl = createSubtitle({ id: 'banter-sub', speaker: 'bt-speaker', line: 'bt-line' }).el; // het gedeelde ondertitelcomponent (subtitleui.js)
   return subEl;
 }
 

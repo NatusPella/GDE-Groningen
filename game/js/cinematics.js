@@ -4,6 +4,7 @@ import { gridItems } from './spatialgrid.js';
 import { isOverlayHeld } from './overlayhold.js';
 import { cutsceneTakesSpace } from './spacegate.js';
 import { setDualText } from './subtitles.js';
+import { subtitleMarkup } from './subtitleui.js';
 import { subtitleIndex } from './cinesub.js';
 import { paintSpeaker } from './speakers.js';
 import { noteSpoken } from './characters.js';
@@ -135,7 +136,7 @@ export function initCinematics(w) {
     '<div class="cine-card"><div class="cine-kicker"></div><div class="cine-title"></div></div>' +
     '<div class="cine-big"></div>' +
     '<div class="cine-name"></div>' +
-    '<div class="cine-sub"><span class="cine-speaker"></span><span class="cine-line"></span></div>' +
+    '<div class="ds-sub ds-sub--film cine-sub">' + subtitleMarkup({ speaker: 'cine-speaker', line: 'cine-line' }) + '</div>' + // het gedeelde ondertitelcomponent (subtitleui.js)
     '<div class="cine-skip"><svg class="cine-skip-ring" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><circle class="fill" cx="12" cy="12" r="10"/></svg>' +
     '<span>Houd</span> <span class="hud-key">SPATIE</span> <span>ingedrukt om over te slaan</span></div>' +
     '<div class="cine-banner" hidden><div class="cb-col"><span class="cb-bar"></span><div class="cb-title"></div>' +

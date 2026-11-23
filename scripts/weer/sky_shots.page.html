@@ -1,0 +1,151 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>sky_shots</title>
+<style>html,body{margin:0;background:#000}canvas{display:block}</style>
+<script type="importmap">
+{
+  "imports": {
+    "https://cdn.jsdelivr.net/npm/three@0.160.0/": "/vendor/npm/three@0.160.0/",
+    "three": "/vendor/npm/three@0.160.0/build/three.module.js",
+    "three/addons/": "/vendor/npm/three@0.160.0/examples/jsm/"
+  }
+}
+</script>
+<canvas id="c" width="1280" height="720"></canvas>
+<script type="module">
+// Zie scripts/weer/sky_shots.mjs. Echte hemel-, wolken- en watercode uit game/js van de meegegeven map (voor of na),
+// met de echte dag-nachtcurve (daynight.js). Geen nabewerking (bloom/grading) en geen stad: een open vlakte met water,
+// een paar grijze blokken als skyline en de hemel erboven. Meet ook de frametijd van de hemel.
+const q = new URLSearchParams(location.search);
+window.__shots = []; window.__info = { perf: {} }; window.__done = false;
+try {
+  const THREE = await import('three');
+  const { computeLighting } = await import('/game/js/daynight.js');
+  const SKY = await import('/game/js/sky3d.js');
+  const CL = await import('/game/js/cloud3d.js');
+  const { sunGlow } = await import('/game/js/weatherlook.js');
+  const { createWaterMaterial } = await import('/game/js/water3d.js');
+  window.__info.na = !!(await import('/game/js/cloudsky.js').catch(() => null));
+
+  const W = 1280, H = 720;
+  const renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('c'), antialias: true, preserveDrawingBuffer: true });
+  renderer.setPixelRatio(1);
+  renderer.setSize(W, H, false);
+  renderer.toneMapping = THREE.ACESFilmicToneMapping;
+  const gl = renderer.getContext();
+  const scene = new THREE.Scene();
+  scene.fog = new THREE.Fog(0xc9d8df, 400, 1700);
+  const cam = new THREE.PerspectiveCamera(62, W / H, 0.5, 1650);
+  const L = {};
+  const u = SKY.createSkyUniforms(new THREE.Vector3(0.5, 0.6, 0.4));
+  const dome = SKY.buildSkyDome(u);
+  scene.add(dome);
+  const layer = CL.buildCloudLayer(u);
+  scene.add(layer);
+
+  // een open vlakte: gras, water en een skyline van blokken op 300 tot 700 m
+  const grass = new THREE.Mesh(new THREE.PlaneGeometry(4000, 4000).rotateX(-Math.PI / 2), new THREE.MeshLambertMaterial({ color: 0x5f7a3a }));
+  grass.position.y = -0.3;
+  scene.add(grass);
+  const wg = new THREE.PlaneGeometry(2400, 2400, 60, 60).rotateX(-Math.PI / 2);
+  const n = wg.attributes.position.count;
+  wg.setAttribute('aEdge', new THREE.BufferAttribute(new Float32Array(n).fill(18), 1));
+  wg.setAttribute('aFlow', new THREE.BufferAttribute(new Float32Array(n * 2).map((_, i) => (i % 2 ? 0.4 : 0.9)), 2));
+  wg.setAttribute('aFacade', new THREE.BufferAttribute(new Float32Array(n), 1));
+  const wmat = createWaterMaterial(u);
+  const water = new THREE.Mesh(wg, wmat);
+  water.position.set(0, -0.05, 0);
+  scene.add(water);
+  const blocks = new THREE.Group();
+  const bm = new THREE.MeshLambertMaterial({ color: 0x8a8480 });
+  for (let i = 0; i < 70; i++) {
+    const a = i * 2.399, r = 500 + (i * 37) % 260, h = 12 + (i * 53) % 38;
+    const b = new THREE.Mesh(new THREE.BoxGeometry(22 + (i * 7) % 18, h, 20 + (i * 11) % 16), bm);
+    b.position.set(Math.cos(a) * r, h / 2 - 0.3, Math.sin(a) * r);
+    blocks.add(b);
+  }
+  scene.add(blocks);
+  const hemi = new THREE.HemisphereLight(0xffffff, 0x6f6454, 1);
+  const sunL = new THREE.DirectionalLight(0xffffff, 2);
+  scene.add(hemi, sunL);
+
+  const SCENES = [
+    { name: 'helder-13', hour: 13, w: { overcast: 0, intensity: 0, mist: 0 } },
+    { name: 'bewolkt-13', hour: 13, w: { overcast: 0.65, intensity: 0, mist: 0 } },
+    { name: 'onweer-15', hour: 15, w: { overcast: 1, intensity: 0.85, mist: 0.1 } },
+    { name: 'goud-19', hour: 19.5, w: { overcast: 0.25, intensity: 0, mist: 0 } },
+    { name: 'ondergang-21', hour: 21.2, w: { overcast: 0.3, intensity: 0, mist: 0 } },
+    { name: 'schemer-22', hour: 22.2, w: { overcast: 0.35, intensity: 0, mist: 0 } },
+    { name: 'nacht-1', hour: 1, w: { overcast: 0.3, intensity: 0, mist: 0 } },
+  ];
+  const ONLY = (q.get('only') || '').split(',').filter(Boolean);
+  const grey = new THREE.Color(0x707a86), greyH = new THREE.Color(0x9aa2a8);
+
+  function setup(sc) {
+    computeLighting(sc.hour, L);
+    const w = sc.w, cloud = Math.min(1, Math.max(w.intensity, w.overcast * 0.9)), mist = w.mist;
+    const day = L.daylight;
+    u.uSunDir.value.copy(L.isMoon ? L.moonDir : L.sunDir);
+    u.uSunColor.value.copy(L.sun);
+    u.uSunStrength.value = L.isMoon ? 0.5 * L.night : 1 - L.night;
+    u.uMoonDir.value.copy(L.moonDir);
+    u.uMoonStrength.value = Math.min(1, L.night * 1.4) * (1 - cloud * 0.85);
+    u.uGlowColor.value.copy(L.glow);
+    u.uGlowDir.value.copy(L.sunDir);
+    u.uGlow.value = L.glowI;
+    u.uZenith.value.copy(L.zenith).lerp(grey.clone().multiplyScalar(0.3 + 0.7 * day), cloud * 0.8);
+    u.uHorizon.value.copy(L.horizon).lerp(greyH.clone().multiplyScalar(0.25 + 0.75 * day), cloud * 0.8);
+    SKY.setStarOpacity(dome, L.night * (1 - Math.min(1, cloud * 1.5)));
+    scene.fog.color.copy(L.fog);
+    renderer.toneMappingExposure = L.exp;
+    hemi.color.copy(L.hemiSky); hemi.groundColor.copy(L.hemiGnd); hemi.intensity = L.hemiI;
+    sunL.color.copy(L.sun); sunL.intensity = L.sunI * (1 - cloud * 0.8); sunL.position.copy(L.lightDir).multiplyScalar(100);
+    wmat.uniforms.uLight.value = 0.35 + 0.65 * day;
+    wmat.uniforms.uNight.value = L.night;
+    wmat.uniforms.uRain.value = w.intensity;
+    wmat.uniforms.fogColor.value.copy(L.fog);
+    // laat de wolken en het weer instellen (zoals de speler ze na een paar seconden ziet)
+    const glow = sunGlow(L.elevation, Math.max(w.overcast, w.intensity));
+    for (let i = 0; i < 60; i++) CL.updateCloudLayer(layer, cam.position, 1650, w, L.daylight, L.night, 0.5, glow, u);
+  }
+  function look(yawOff, pitchDeg) {
+    const az = Math.atan2(L.sunDir.z, L.sunDir.x) + yawOff;
+    cam.position.set(0, 1.7, 0);
+    const p = pitchDeg * Math.PI / 180;
+    cam.lookAt(Math.cos(az) * Math.cos(p), 1.7 + Math.sin(p), Math.sin(az) * Math.cos(p));
+    cam.updateMatrixWorld();
+    dome.position.copy(cam.position);
+    layer.position.copy(cam.position);
+  }
+  function draw(t) {
+    wmat.uniforms.uTime.value = t;
+    renderer.render(scene, cam);
+  }
+  function perf() {
+    for (let i = 0; i < 10; i++) draw(i);
+    const px = new Uint8Array(4);
+    gl.readPixels(0, 0, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, px);
+    const t0 = performance.now();
+    const N = 80;
+    for (let i = 0; i < N; i++) draw(i * 0.016);
+    gl.readPixels(0, 0, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, px);
+    return (performance.now() - t0) / N;
+  }
+  const VIEWS = [['zon', 0.25, 9], ['weg', Math.PI * 0.85, 28]];
+  for (const sc of SCENES) {
+    if (ONLY.length && !ONLY.includes(sc.name)) continue;
+    setup(sc);
+    for (const [vn, yaw, pitch] of VIEWS) {
+      look(yaw, pitch);
+      draw(3.0);
+      window.__shots.push({ name: `${sc.name}-${vn}`, png: renderer.domElement.toDataURL('image/png') });
+      if (vn === 'zon') window.__info.perf[sc.name] = +perf().toFixed(2);
+    }
+  }
+  window.__info.gpu = (() => { const e = gl.getExtension('WEBGL_debug_renderer_info'); return e ? gl.getParameter(e.UNMASKED_RENDERER_WEBGL) : '?'; })();
+} catch (e) {
+  window.__info.error = String(e && e.stack || e);
+  console.log('FOUT ' + window.__info.error);
+}
+window.__done = true;
+</script>

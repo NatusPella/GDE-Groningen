@@ -4,7 +4,7 @@
 // (of na een time-out). Elke stap logt een 'stap-uitslag' met ok en details; daarnaast logt 'meting' om de 5 s het geheugen,
 // de beeldsnelheid, de scene, het berichtvolume en de wereld (zie playtest_sim.mjs voor de beoordeling).
 window.__coopPhases = (c) => {
-  const { CFG, sleep, log, W, until, act, shot, esc, openSamen, closeMenu, imp, net, PHASES, panel, title, buttons } = c;
+  const { CFG, sleep, log, W, until, act, shot, esc, openSamen, closeMenu, imp, net, PHASES, panel, title, buttons, wizard } = c;
   const B = () => window.__bot;
   const haalCache = {};
   const isHost = () => { const n = net(); return !!n && n.role === 'host'; };
@@ -312,7 +312,7 @@ window.__coopPhases = (c) => {
       let terug = false, fout = null;
       try {
         if (code) {
-          await openSamen(); if (buttons().includes('kies-gast')) await act('kies-gast');
+          await openSamen(); if (buttons().includes('kies-gast')) await act('kies-gast'); await wizard('code');
           const input = await until(() => panel().querySelector('.coop-input'), 8000, 'invoerveld'); input.value = code; input.dispatchEvent(new Event('input', { bubbles: true }));
           await act('koppel'); await sleep(2500); await act('akkoord'); await until(() => title() === 'Je speelt samen', 90000, 'opnieuw verbonden'); await sleep(1500); await closeMenu(); terug = true;
         }

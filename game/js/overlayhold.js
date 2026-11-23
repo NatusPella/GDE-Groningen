@@ -5,6 +5,7 @@ import { heldOverlays, mayStartOverlay } from './overlayrules.js';
 import { setVisibleInterval } from './visibletimer.js';
 import { isPauseMenuOpen, isMapOpen } from './pausestate.js';
 import { registerNoticeHold } from './notifyqueue.js';
+import { SUBTITLE_LAYERS, SUBTITLE_SELECTORS, hiddenSubtitles } from './subtitlegate.js';
 
 // hoe elke overlay in de DOM te herkennen is (zichtbaar = aanwezig)
 const SELECTORS = {
@@ -41,6 +42,21 @@ export function isOverlayHeld(name) {
   return !mayStartOverlay(name, others);
 }
 
+// Ondertitels en meldingen: één ondertitel tegelijk, geen ondertitel over een menu, geen kaart of ondertitel over het laadscherm.
+const SUBTITLE_EL = SUBTITLE_SELECTORS; // de lagen van het ene ondertitelcomponent (subtitleui.js)
+const LAAD_HIDE = ['#hud .hud-cards', '#hud .hud-cards-e', '#hud .hud-count', '#menu-meldingen'];
+const toonbaar = (el) => !!el && el.style.opacity !== '0' && el.style.display !== 'none' && (el.id === '' || el.style.opacity === '1');
+function tickSubtitles() {
+  const laadt = !!document.querySelector('#load-screen:not(.out)');
+  const zichtbaar = SUBTITLE_LAYERS.filter((id) => toonbaar(document.querySelector(SUBTITLE_EL[id])));
+  const weg = hiddenSubtitles(zichtbaar, schermOpen(document) || laadt);
+  for (const id of SUBTITLE_LAYERS) {
+    const el = document.querySelector(SUBTITLE_EL[id]);
+    if (el) el.classList.toggle('ov-hold', weg.has(id));
+  }
+  for (const sel of LAAD_HIDE) { const el = document.querySelector(sel); if (el) el.classList.toggle('ov-hold', laadt); }
+}
+
 let started = false;
 function startOverlayHold() {
   if (started || typeof document === 'undefined') return;
@@ -54,6 +70,7 @@ function startOverlayHold() {
       const el = document.querySelector(sel);
       if (el) el.classList.toggle('ov-hold', held.has(name));
     }
+    tickSubtitles();
   }, 150);
   if (tick && tick.unref) tick.unref(); // onder Node (de tests met node3d.mjs) houdt de timer het proces niet open
 }

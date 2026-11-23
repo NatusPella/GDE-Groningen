@@ -71,9 +71,9 @@ export function needsReplan(last, now, version) {
 
 // De versie van wat de markeringen beïnvloedt: aantallen en een som over de id's; goedkoop genoeg voor elk beeld.
 export function bezitVersion(bezit, claims = []) {
-  let h = Object.keys(bezit.parcels).length * 31 + bezit.buildings.size * 17 + claims.length * 7;
-  for (const id of Object.keys(bezit.parcels)) h = (h + id.charCodeAt(id.length - 1) * 3 + id.charCodeAt(1)) | 0;
-  return h;
+  let n = 0, s = 0;
+  for (const id in bezit.parcels) { n++; s = (s + id.charCodeAt(id.length - 1) * 3 + id.charCodeAt(1)) | 0; }
+  return (n * 31 + bezit.buildings.size * 17 + claims.length * 7 + s) | 0;
 }
 
 // ---- de grenslijn van je percelen (#1100): de omtrek van de vorm zelf, als dunne lijn op de grond ----

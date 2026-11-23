@@ -1,0 +1,73 @@
+/* Eén ondertitelcomponent (23-11, DS3, subtitleui.js): film, verhaalgesprek, rondvaart, postgame, autopraat, radio,
+   intro en trailer zijn allemaal een `.ds-sub`. Papieren plaatje met inktrand en harde schaduw (ADR 0040), Atkinson
+   Hyperlegible, onderaan het midden, één tegelijk (subtitlegate.js). Maat, plek en breedte komen uit de tokens
+   hieronder; een context (de film, de trailer, een vlucht) zet alleen het token, nooit een eigen ondertitelstijl.
+   Instellingen (a11y.js): Grootte via --sub-scale, Donker vlak (sub-box, --sub-vlak), Contrast hoog (subc-hoog), uit (sub-uit). */
+:root {
+  --ds-sub-bottom: calc(46px * var(--ui, 1));      /* zone G: onder de snelheidsmeter, tussen de kolommen */
+  --ds-sub-dy: 0px;                                /* de film centreert het vak op de helft van de balk */
+  --ds-sub-max: min(56vw, calc(560px * var(--ui, 1)));
+  --ds-sub-size: clamp(calc(15px * var(--ui, 1)), 1.5vw, calc(20px * var(--ui, 1)));
+  --ds-sub-rand: max(var(--ds-rand-hud), env(safe-area-inset-left, 0px), env(safe-area-inset-right, 0px));
+}
+
+.ds-sub {
+  position: fixed; left: 50%; z-index: 40; pointer-events: none;
+  bottom: max(var(--ds-sub-bottom), calc(env(safe-area-inset-bottom, 0px) + var(--ds-s-4)));
+  transform: translate(-50%, var(--ds-sub-dy));
+  width: max-content; max-width: min(var(--ds-sub-max), calc(100vw - 2 * var(--ds-sub-rand)));
+  box-sizing: border-box; padding: 0.35em 0.8em 0.4em; text-align: center;
+  font-family: var(--ds-font-zeef-tekst); font-size: calc(var(--ds-sub-size) * var(--sub-scale, 1)); line-height: 1.3; letter-spacing: 0;
+  color: var(--ds-c-ink-inkt); background: var(--ds-c-ink-papier);
+  border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); border-radius: var(--ds-r); box-shadow: var(--ds-schaduw-hard);
+  opacity: 0; transition: opacity var(--ds-m-lang) var(--ds-m-uit);
+}
+.ds-sub.on, #cine.has-sub .ds-sub { opacity: 1; }
+.ds-sub-speaker { margin-right: 0.4em; }
+.ds-sub-speaker, .ds-sub b.spk { font-family: var(--ds-font-zeef-kop); font-weight: 800; letter-spacing: 0.03em; text-shadow: none; color: var(--ds-c-ink-bord) !important; } /* leesbaar op papier; de sprekerkleur is inline gezet (speakers.js) */
+.ds-sub-speaker:empty { display: none; }
+.ds-sub .nl-sub, .ds-sub .nl-gloss { color: var(--ds-c-inkt-zacht); opacity: 1; }
+
+/* Een aanwijzing uit een verhaalscène (missionstory.js, class sub-clue op #cine) */
+#cine.sub-clue .ds-sub-line { font-weight: 700; }
+#cine.sub-clue .ds-sub::before {
+  content: 'Aanwijzing'; display: block; margin-bottom: 2px; text-transform: uppercase;
+  font-family: var(--ds-font-zeef-kop); font-weight: 800; font-size: max(13px, calc(13px * var(--ui, 1))); letter-spacing: 0.12em; color: var(--ds-c-ink-bord);
+}
+
+/* De plek per context: alleen tokens. De films hebben balken of een eigen kader. */
+#cine { --ds-sub-bottom: calc(var(--bar) * 0.5); --ds-sub-dy: 50%; --ds-sub-max: min(86vw, calc(820px * var(--ui, 1))); }
+#intro-montage { --ds-sub-bottom: 2.5vh; --ds-sub-max: min(86vw, 860px); --ds-sub-size: clamp(17px, 1.7vw, 23px); }
+#trailer { --ds-sub-bottom: calc(var(--bar) + 3vh); --ds-sub-max: min(86vw, 1500px); --ds-sub-size: clamp(18px, 2.3vw, 60px); }
+
+/* #855/#877/#881: de ondertitel wijkt voor het vliegpaneel (zone H rechtsonder, ~290 HUD-px hoog) */
+body.plane-flying { --ds-sub-bottom: calc(500px * var(--ui, 1)); }
+@media (max-height: 640px), (orientation: portrait) { body.plane-flying .ds-sub:not(#cine .ds-sub) { display: none; } } /* geen strook meer over; de radio speelt door en nowplaying noemt de zender */
+/* #1053: in de duivenmodus staat de toetsbalk onderaan (hudstack.js duivenZones 'ondertitel') */
+body.pigeon-mode { --ds-sub-bottom: calc(198px * var(--ui, 1)); --ds-sub-max: min(760px, calc(100vw / var(--ui, 1) - 606px), 56vw); }
+/* op 1024-1366 zakt hij boven de straatkolom en de minimap (de kolommen zijn samen 46 + 250 px per kant) */
+@media (min-width: 761px) and (max-width: 1366px) and (min-height: 641px) {
+  body { --ds-sub-bottom: calc(222px * var(--ui, 1)); --ds-sub-max: min(56vw, calc(100vw - 2 * (46px + 250px))); }
+}
+/* #985: op een laag venster hangt hij boven de locatiekaart (F-kolom) */
+@media (max-height: 720px) { body { --ds-sub-bottom: 200px; } }
+
+/* Instellingen > Geluid & ondertitels, Toegankelijkheid */
+html.sub-box .ds-sub { background: color-mix(in srgb, var(--ds-c-ink-papier) calc(var(--sub-vlak, 1) * 100%), transparent); }
+html.subc-hoog .ds-sub { font-weight: 700; background: var(--ds-c-ink-papier); }
+html:is(.sub-groot, .sub-extragroot) .ds-sub { --ds-sub-max: min(92vw, calc(980px * var(--sub-scale, 1))); } /* grotere regels hebben de breedte nodig */
+html.sub-uit .ds-sub { display: none !important; }
+/* tijdens de meting en op het resultaat van de benchmark zwijgen de ondertitels: ze lagen over het scherm */
+body.trailer-on .ds-sub:not(#trailer .ds-sub), body.tr-result-open .ds-sub { display: none !important; }
+
+/* Geluidsondertitels ([sirene], soundcaptions.js): dezelfde kaart, in cursief, een strook boven de gesproken ondertitel */
+#sound-captions {
+  position: fixed; left: 50%; z-index: 60; pointer-events: none; display: flex; flex-direction: column; align-items: center; gap: var(--ds-s-1);
+  bottom: calc(var(--ds-sub-bottom) + var(--ds-s-8)); transform: translateX(-50%);
+  font: 400 calc(18px * var(--sub-scale, 1)) var(--ds-font-zeef-tekst); color: var(--ds-c-ink-inkt); text-shadow: none;
+}
+#sound-captions div {
+  padding: 2px var(--ds-s-3); border-radius: var(--ds-r-toets); font-style: italic;
+  background: var(--ds-c-ink-papier); border: var(--ds-lijn-dik) solid var(--ds-c-ink-inkt); box-shadow: var(--ds-schaduw-hard-klein);
+}
+body.trailer-on #sound-captions, body.tr-result-open #sound-captions { display: none !important; }

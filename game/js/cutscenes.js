@@ -3,6 +3,8 @@
 // and are referenced by number (L0 = first line, 'L5+0.4' = 0.4 s after it
 // starts). Coordinates are local to the player: f forward, s left, h up (m).
 
+import { applyShotFix } from './cineshots.js';
+
 const BUURVROUW = { shirt: 0x7a3f8f, skin: 0xc9a27a, variant: 'female', hairStyle: 'curly', seed: 198 };
 const FIETSER_A = { shirt: 0xe07b1f, skin: 0xd9b48f, variant: 'male', seed: 137 };
 const FIETSER_B = { shirt: 0x2e7d4f, skin: 0xc9a27a, variant: 'female', seed: 164 };
@@ -177,28 +179,28 @@ const ACT_KEUKEN = {
     { t: 'L2+0.9', shot: 'cut', at: [-0.3, -1.1, 1.5], look: 'mid:tammo,tessa@1.2', fov: 38 },
     { t: 'L3', shot: 'cut', at: [0.3, 0.5, 1.4], look: 'tessa@1.15', fov: 28 },
     { t: 'L3+2.4', shot: 'cut', at: [0.2, 0.65, 1.4], look: 'tessa@1.2', fov: 34 },
-    { t: 'L4', shot: 'dolly', from: [0.3, -0.9, 1.6], to: [0.05, -0.75, 1.5], look: 'tessa@1.2', fov: 36 },
+    { t: 'L4', shot: 'dolly', from: [0.28, 0.93, 1.6], to: [0.03, 0.77, 1.5], look: 'tessa@1.2', fov: 36 },
     { t: 'L5', shot: 'cut', at: [-0.4, 0.7, 1.4], look: 'tammo@1.2', fov: 28 },
-    { t: 'L6', shot: 'cut', at: [0.6, -0.8, 1.45], look: 'tessa@1.15', fov: 26 },
+    { t: 'L6', shot: 'cut', at: [0.58, 0.83, 1.45], look: 'tessa@1.15', fov: 26 },
     { t: 'L7', shot: 'dolly', from: [-0.5, 0.75, 1.35], to: [-0.1, 0.3, 1.3], look: 'tammo@1.2', fov: 30 },
     { t: 'L8', shot: 'orbit', target: 'mid:tammo,tessa@1.0', radius: 1.7, start: 90, sweep: -50, h0: 1.5, h1: 1.6, fov: 44 },
     { t: 'L9', shot: 'cut', at: [-0.4, 0.75, 1.4], look: 'tammo@1.2', fov: 30 },
-    { t: 'L10', shot: 'dolly', from: [0.35, -0.85, 1.4], to: [0.1, -0.8, 1.25], look: 'tessa@1.0', fov: 34 },
+    { t: 'L10', shot: 'dolly', from: [0.33, 0.88, 1.4], to: [0.08, 0.82, 1.25], look: 'tessa@1.0', fov: 34 },
     { t: 'L10+1.4', shot: 'dolly', from: [-0.5, 0.75, 1.3], to: [-0.3, 0.75, 1.28], look: 'tammo@1.2', fov: 24, offscreen: 'reaction: Tessa is te horen, Tammo is te zien' },
     { t: 'L10+2.8', shot: 'cut', at: [0.5, 0.75, 1.35], look: 'tessa@1.15', fov: 24 },
     { t: 'L10+4.2', shot: 'dolly', from: [0.5, 0.75, 1.38], to: [0.3, 0.75, 1.32], look: 'tessa@1.15', fov: 24 },
     { t: 'L10+6.0', shot: 'dolly', from: [0.5, 0.75, 1.35], to: [0.3, 0.75, 1.3], look: 'tessa@1.15', fov: 22 },
     { t: 'L11', shot: 'cut', at: [-0.4, 0.75, 1.35], look: 'tammo@1.2', fov: 30 },
-    { t: 'L12', shot: 'dolly', from: [0.5, -0.75, 1.38], to: [0.3, -0.75, 1.3], look: 'tessa@1.15', fov: 26 },
+    { t: 'L12', shot: 'dolly', from: [0.48, 0.78, 1.38], to: [0.28, 0.78, 1.3], look: 'tessa@1.15', fov: 26 },
     { t: 'L13', shot: 'cut', at: [-0.4, 0.7, 1.4], look: 'tammo@1.2', fov: 28 },
-    { t: 'L14', shot: 'cut', at: [0.0, -1.45, 1.4], look: 'mid:tammo,tessa@1.1', fov: 46 },
-    { t: 'L15', shot: 'dolly', from: [0.6, -0.75, 1.4], to: [0.35, -0.75, 1.32], look: 'tessa@1.15', fov: 26 },
+    { t: 'L14', shot: 'cut', at: [-0.04, 1.47, 1.4], look: 'mid:tammo,tessa@1.1', fov: 46 },
+    { t: 'L15', shot: 'dolly', from: [0.58, 0.78, 1.4], to: [0.33, 0.78, 1.32], look: 'tessa@1.15', fov: 26 },
     { t: 'L16', shot: 'cut', at: [-0.4, 0.75, 1.35], look: 'tammo@1.2', fov: 30 },
-    { t: 'L17', shot: 'cut', at: [0.5, -0.8, 1.4], look: 'tessa@1.15', fov: 30 },
+    { t: 'L17', shot: 'cut', at: [0.48, 0.83, 1.4], look: 'tessa@1.15', fov: 30 },
     { t: 'L18', shot: 'cut', at: [0.5, 0.75, 1.4], look: 'tessa@1.15', fov: 26 },
     { t: 'L19', shot: 'dolly', from: [-0.5, 0.75, 1.3], to: [-0.2, 0.45, 1.27], look: 'tammo@1.2', fov: 22 },
-    { t: 'L20', shot: 'dolly', from: [0.5, -0.75, 1.4], to: [0.2, -0.75, 1.3], look: 'tessa@1.15', fov: 24 },
-    { t: 'L21', shot: 'cut', at: [1.4, -1.2, 1.7], look: 'mid:tammo,tessa@1.0', fov: 52 },
+    { t: 'L20', shot: 'dolly', from: [0.48, 0.78, 1.4], to: [0.18, 0.77, 1.3], look: 'tessa@1.15', fov: 24 },
+    { t: 'L21', shot: 'cut', at: [1.37, 1.25, 1.7], look: 'mid:tammo,tessa@1.0', fov: 52 },
     { t: 'L21+1.3', shot: 'follow', target: 'tessa', dist: 1.5, side: 0.7, h: 1.6, fov: 44 },
     { t: 'L21+2.6', shot: 'dolly', from: [-1.0, -0.8, 1.4], to: [-1.0, -0.8, 1.6], look: [1.3, 1.7, 1.2], fov: 42 },
   ],
@@ -387,6 +389,12 @@ const FLAT_VARIANTS = {
     spots: { tammo: [[1.4, 1.2], [2.6, -0.4], [0.4, 2.0]], tessa: [[1.0, -1.1], [0.2, -2.2], [1.6, 0.2]] },
     gestures: { tammo: ['carry', 'shrug', 'talk', 'hips'], tessa: ['point', 'talk', 'hips', 'look'] },
     finale: [{ prop: 'matras', show: true }],
+    // as-sprongen hersteld (180-gradenregel): vervangt de gegenereerde shots met dezelfde t
+    shotFix: [
+      { t: 'L5', shot: 'dolly', from: [-1.08, 1.15, 1.5], to: [-0.48, 0.79, 1.5], look: 'speaker', fov: 32 },
+      { t: 'L9', shot: 'dolly', from: [2.8, 0.27, 1.5], to: [2.7, -0.43, 1.5], look: 'speaker', fov: 32 },
+      { t: 'L10', shot: 'cut', at: [0.62, 0.14, 1.55], look: 'speaker', fov: 40 },
+    ],
   },
   // waiting for midnight: pacing, the radio on low, a phone
   wachten: {
@@ -395,6 +403,11 @@ const FLAT_VARIANTS = {
     spots: { tammo: [[1.6, 1.4], [0.2, 2.6], [2.4, 0.4]], tessa: [[0.8, -1.4], [1.8, -2.4], [-0.6, -0.8]] },
     gestures: { tammo: ['hips', 'talk', 'shrug', 'look'], tessa: ['phone', 'talk', 'lean', 'look'] },
     finale: [],
+    // as-sprongen hersteld (180-gradenregel): vervangt de gegenereerde shots met dezelfde t
+    shotFix: [
+      { t: 'L5', shot: 'dolly', from: [0.1, -0.57, 1.5], to: [0.78, -0.4, 1.5], look: 'speaker', fov: 32 },
+      { t: 'L9', shot: 'dolly', from: [-0.58, -1.64, 1.5], to: [-0.07, -1.15, 1.5], look: 'speaker', fov: 32 },
+    ],
   },
   // a quiet evening: the radio, a ball from the freezer, bedtime
   avond: {
@@ -403,6 +416,11 @@ const FLAT_VARIANTS = {
     spots: { tammo: [[1.6, 1.2], [0.4, 2.2], [2.2, 0.2]], tessa: [[1.0, -1.2], [2.0, -2.2], [-0.4, -2.4]] },
     gestures: { tammo: ['talk', 'shrug', 'look', 'hips'], tessa: ['talk', 'laugh', 'lean', 'point'] },
     finale: [],
+    // as-sprongen hersteld (180-gradenregel): vervangt de gegenereerde shots met dezelfde t
+    shotFix: [
+      { t: 'L5', shot: 'dolly', from: [0.32, -0.75, 1.5], to: [0.98, -0.49, 1.5], look: 'speaker', fov: 32 },
+      { t: 'L9', shot: 'dolly', from: [-0.15, -1.66, 1.5], to: [0.32, -1.13, 1.5], look: 'speaker', fov: 32 },
+    ],
   },
 };
 
@@ -468,6 +486,7 @@ export function flatScene(variant, lines) {
       default: shots.push({ t, shot: 'cut', at: [-1.4, 1.8, 1.45], look: 'speaker', fov: 30 });
     }
   });
+  if (V.shotFix) applyShotFix(shots, V.shotFix);
   return { id: 'story-' + variant, actors, props: V.props, cues, shots };
 }
 

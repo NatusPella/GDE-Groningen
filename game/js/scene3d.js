@@ -133,7 +133,8 @@ import { wijkProfileAt } from './trafficfleet.js';
 import { pedRole } from './clothing.js';
 import { monumentAreaKey } from './heritagearea.js';
 import { applyWorldGrade } from './worldgrade3d.js'; // wereldkleur (21-11): saturatie, tinten en mist van de dag
-import { createPostFX } from './postfx3d.js';
+import { createPostFX, setSpeedStreak } from './postfx3d.js';
+import { streakAmount } from './landfeel.js';
 import { noteGfxEvent, watchContext, gpuRamp } from './blackframe.js';
 import { spawnExplosionFx, setFxCamera } from './fx3d.js';
 import { litFraction, moonPhase, STAR_SHARE, foliageGlow } from './nightrules.js';
@@ -2881,6 +2882,7 @@ export function update3D(dt, world) {
           if (mesh.userData.pigeonScale !== want) { mesh.scale.setScalar(want); mesh.userData.pigeonScale = want; }   // Reuzenduif (cheat)
         } else if (!(Math.abs(mesh.scale.x - baseScale) < 1e-4 && Math.abs(mesh.scale.y - baseScale) < 1e-4 && Math.abs(mesh.scale.z - baseScale) < 1e-4)) mesh.scale.setScalar(baseScale);
         mesh.rotation.y = -a.angle - (a.draai || 0);   // a.lift en a.draai: een schaap in de straal van een schotel (#333)
+        { const fx = a.x - focus.x, fy = a.y - focus.y; mesh.userData.ver = fx * fx + fy * fy > 45 * 45; }   // ver weg: de lichte animatie
         animateWildlifeMesh3D(mesh, a, world.time);
       }
     }
@@ -3752,7 +3754,9 @@ function applyCameraOverride(dt, world, lx, ly, lz) {
   cam.lookAt(_camLook);
   if (t <= 0.5) applyDrunkCamera(cam);
   if (fovPunch) { cam.fov -= fovPunch; fovPunch = 0; }
-  const targetFov = valid && o.fov ? o.fov : (baseFov + stepCamFeel(camLean, cam, world && hoofdspeler(world) && hoofdspeler(world).inVehicle, valid, dt, effectsFor({ reduceMotion: reducedMotion() || getSettings().speedFeel === false }))) * (1 - 0.72 * scopeBlend);
+  const feelOpts = effectsFor({ reduceMotion: reducedMotion() || getSettings().speedFeel === false });
+  const targetFov = valid && o.fov ? o.fov : (baseFov + stepCamFeel(camLean, cam, world && hoofdspeler(world) && hoofdspeler(world).inVehicle, valid, dt, feelOpts)) * (1 - 0.72 * scopeBlend);
+  setSpeedStreak(valid ? 0 : streakAmount(camLean.speedFov + camLean.fov, feelOpts)); // landfeel.js: radial smear at the edge when fast
   if (cam.fov !== targetFov) {
     cam.fov = Math.abs(targetFov - cam.fov) < 0.05 || (valid && o.cut) || scopeBlend > 0 ? targetFov : cam.fov + (targetFov - cam.fov) * Math.min(1, dt * 3);
     cam.updateProjectionMatrix();
@@ -3889,7 +3893,7 @@ function updateSunAndSky(player, dt, world) {
   sun.target.position.copy(_shadowCenter);
   sun.position.copy(_shadowCenter).addScaledVector(sunDir, SUN_DIST);
   skyDome.position.copy(cam.position);
-  if (lastLight) updateCloudLayer(cloudLayer, cam.position, cam.far, world.weather, lastLight.daylight, lastLight.night, dt, sunGlow(lastLight.elevation, world.weather ? Math.max(world.weather.overcast || 0, world.weather.intensity || 0) : 0));
+  if (lastLight) updateCloudLayer(cloudLayer, cam.position, cam.far, world.weather, lastLight.daylight, lastLight.night, dt, sunGlow(lastLight.elevation, world.weather ? Math.max(world.weather.overcast || 0, world.weather.intensity || 0) : 0), skyUniforms);
 }
 
 function buildWildlifeActor(a) {

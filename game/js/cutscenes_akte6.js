@@ -124,6 +124,12 @@ S['M29.intro'] = {
   wide: WIDE([-5, 4.2, 3.2], [-3, 3, 2.4], 'mid:willemien,tessa@1'),
 };
 S['M29.2'] = {
+  // as-sprongen hersteld (180-gradenregel): deze shots vervangen de gegenereerde (missionScene, spec.shotFix)
+  shotFix: [
+    { t: 'L5', shot: 'dolly', from: [2.53, 1.97, 1.6], to: [2.01, 1.33, 1.62], look: 'speaker', fov: 25 },
+    { t: 'L11+0.6', shot: 'dolly', from: [3.6, 2.2, 1.5], to: [2.4, 1.2, 1.6], look: 'mid:tammo,tessa@1.4', fov: 38 },
+    { t: 'L11+1.6', shot: 'dolly', from: [2.9, 3.2, 2.8], to: [1.2, 2.88, 3.7], look: 'mid:willemien,tammo@1', fov: 50 },
+  ],
   cast: {
     willemien: { key: 'willemien', at: [3.2, 0.8], face: 185, anim: 'idle', gest: ['talk', 'hips', 'nod'] },
     buurvrouw: { key: 'buurvrouw', at: [4.6, -2.2], face: 170, anim: 'idle', gest: ['talk', 'point', 'shrug'] },
@@ -255,6 +261,12 @@ S['M30.3'] = {
   wide: WIDE([-5, 4.2, 3.2], [-3, 3, 2.4], 'mid:wubbo,berend@1'),
 };
 S['M30.5'] = {
+  // as-sprongen hersteld (180-gradenregel): deze shots vervangen de gegenereerde (missionScene, spec.shotFix)
+  shotFix: [
+    { t: 'L6', shot: 'cut', at: [0.81, -2.65, 1.55], look: 'speaker', fov: 30 },
+    { t: 'L8', shot: 'dolly', from: [2.61, -2.29, 1.5], to: [2.12, -0.87, 1.55], look: 'speaker', fov: 34 },
+    { t: 'L11+1', shot: 'dolly', from: [2.72, -4.53, 2.8], to: [2.94, -2.81, 3.7], look: 'mid:berend,tessa@1', fov: 50 },
+  ],
   cast: {
     berend: { key: 'berend', at: [3.2, 1.0], face: 185, anim: 'idle', gest: ['talk', 'hips', 'shake', 'nod'] },
     jelle: { key: 'jelle', at: [5.6, -3], face: 170, anim: 'idle', bg: true, gest: ['wave', 'shrug'] },

@@ -85,7 +85,7 @@ ok(!afterBenchmarkPlan({ fromGame: true, hasSave: true }).difficultyCard, 'geen 
   const f = sg.slice(sg.indexOf('export function saveGameEchtBewaard'), sg.indexOf('export function saveGame('));
   ok(/bewarenUit \|\| w\.ritBezig \|\| w\.coopRole === 'client'\) return false/.test(f), 'bewaren uit, reisrit of gast: niet echt bewaard');
   const pm = fs.readFileSync(new URL('../game/js/pausemenu.js', import.meta.url), 'utf8');
-  ok(/save: \(\) => saveGameEchtBewaard\(world\)/.test(pm), 'pausemenu start de benchmark alleen na echt bewaren');
+  ok(/a === 'bench-go'\) \{[\s\S]{0,1800}prepareBenchmarkReload\(\{ save: \(\) => saveGameEchtBewaard\(world\)/.test(pm), 'pausemenu start de benchmark (bench-go) alleen na echt bewaren');
   ok(/coopSessieLoopt\(world\)\) \{[^}]*BENCH_COOP_TEXT/.test(pm), 'benchmark geblokkeerd tijdens Samen spelen');
   const T = await import('../game/js/benchmarkreturn.js');
   ok(T.BENCH_SAVE_FIRST_TEXT === 'Bewaar eerst je spel.' && /Samen spelen/.test(T.BENCH_COOP_TEXT), 'meldingen');

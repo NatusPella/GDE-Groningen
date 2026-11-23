@@ -116,6 +116,7 @@ export const CSS = `
 #hud .mg-board[data-sfeer] { padding-left: 86px; }
 #hud .mg-board .mg-vorm { position: absolute; left: 0; top: 0; bottom: 0; width: 74px; background-color: var(--ds-c-ink-bord); background-image: var(--ds-raster); background-size: var(--ds-raster-maat); opacity: 0.22; pointer-events: none; }
 #hud .mg-board .mg-sfeer { min-width: 0; max-width: 42%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+#hud .mg-board[data-mg="station"] .mg-sfeer { max-width: none; overflow: visible; text-overflow: clip; white-space: normal; }
 #hud .mg-board[data-sfeerbord="scorekaart"] .mg-vorm { width: 88px; clip-path: polygon(0 0, 100% 0, 82% 100%, 0 100%); }
 #hud .mg-board[data-sfeerbord="meetlat"] .mg-vorm { width: 56px; clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%); }
 #hud .mg-board[data-sfeerbord="clubschild"] .mg-vorm { clip-path: polygon(0 0, 100% 0, 100% 74%, 50% 100%, 0 74%); }

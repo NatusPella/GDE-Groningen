@@ -108,7 +108,8 @@ const settingsJs = readFileSync(new URL('../game/js/settings.js', import.meta.ur
 const pmSrc = readFileSync(new URL('../game/js/pausemenu.js', import.meta.url), 'utf8');
 ok(/showSubtitles: true/.test(settingsJs), 'de instelling bestaat en staat standaard aan');
 ok(/html\.classList\.toggle\('sub-uit', s\.showSubtitles === false\)/.test(a11yJs), 'uit zet de klasse op <html>');
-ok(/html\.sub-uit :is\(#cine \.cine-sub, #banter-sub, #radio-sub, #rv-sub, #pg-sub, #intro-montage \.im-sub, #trailer \.tr-sub\) \{ display: none !important; \}/.test(a11yCss), 'elke gesproken drager verdwijnt');
+const subtitleCss = readFileSync(new URL('../game/js/subtitle.css', import.meta.url), 'utf8');
+ok(subtitleCss.includes('html.sub-uit .ds-sub { display: none !important; }'), 'elke gesproken drager (het ene ondertitelcomponent .ds-sub) verdwijnt');
 ok(/html\.sub-uit #name-card \{ display: none !important; \}/.test(a11yCss), 'de naamkaart verdwijnt ook');
 ok(/toggle\('showSubtitles', 'Ondertitels aan'/.test(pmSrc), 'de schakelaar staat in de vouw Ondertitels');
 

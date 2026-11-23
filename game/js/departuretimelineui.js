@@ -63,7 +63,7 @@ export const STL_CSS = `
 #hud .stl-plan { font: max(13px, calc(13px / var(--ui, 1))) var(--ds-font-zeef-tekst); color: var(--ds-c-inkt-zacht); font-variant-numeric: tabular-nums; text-decoration: line-through; }
 #hud .stl-strike { text-decoration: line-through; }
 #hud .stl-who { display: flex; flex-direction: column; min-width: 0; }
-#hud .stl-dest { font: 800 var(--ds-t-kaart-titel) var(--ds-font-zeef-kop); letter-spacing: 0.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-shadow: none; }
+#hud .stl-dest { font: 800 var(--ds-t-kaart-titel) var(--ds-font-zeef-kop); letter-spacing: 0.5px; white-space: normal; overflow-wrap: anywhere; text-shadow: none; }
 #hud .stl-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 2px 6px; font: max(13px, calc(13px / var(--ui, 1))) var(--ds-font-zeef-tekst); color: var(--ds-c-inkt-zacht); }
 #hud .stl-chip { font-style: normal; font-weight: 700; padding: 0 6px; border: var(--ds-lijn-dik) solid var(--ds-c-ink-inkt); border-radius: var(--ds-r-pil, 10px); color: var(--ds-zeef-tx); background: var(--ds-zeef-bg); letter-spacing: 0.5px; font-variant-numeric: tabular-nums; }
 #hud .stl-live { background: var(--ds-c-ink-bord); border-color: var(--ds-c-ink-bord); color: var(--ds-c-ink-papier); }
