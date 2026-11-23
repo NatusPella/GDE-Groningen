@@ -8,18 +8,22 @@ Telling: 102 scènes, 155 props, 49 soorten in gebruik, 27 aankledingsplannen, 5
 
 | Soort | Bron | Driehoeken | Budget | Materialen | Afmeting (m) | Gebruik |
 |---|---|---|---|---|---|---|
+| afvalbak | decor | 344 | 420 | 1 | 0.607 x 1.005 x 0.54 | 0 |
 | aktetas | decor | 36 | 400 | 3 | 0.46 x 0.355 x 0.13 | 1 |
 | automaat | decor | 36 | 400 | 3 | 0.8 x 1.5 x 0.62 | 2 |
 | bal | decor | 115 | 400 | 2 | 0.312 x 0.306 x 0.312 | 0 |
+| bank | decor | 380 | 480 | 1 | 0.731 x 0.962 x 1.7 | 0 |
 | bierviltje | decor | 112 | 400 | 2 | 0.097 x 0.009 x 0.1 | 2 |
 | bord | decor | 36 | 400 | 3 | 0.74 x 1.545 x 0.05 | 9 |
 | botsauto | decor | 48 | 300 | 4 | 1.74 x 0.95 x 1.04 | 2 |
 | briefje | decor | 24 | 400 | 2 | 0.21 x 0.016 x 0.15 | 4 |
 | broodtrommel | decor | 36 | 400 | 3 | 0.29 x 0.145 x 0.195 | 1 |
+| bushokje | decor | 514 | 900 | 1 | 4.14 x 2.76 x 1.76 | 0 |
 | container | decor | 204 | 600 | 4 | 3.1 x 2.72 x 2.5 | 5 |
 | deken | decor | 48 | 400 | 2 | 1.3 x 0.032 x 0.9 | 1 |
 | doos | decor | 24 | 400 | 2 | 0.52 x 0.4 x 0.4 | 12 |
 | duiventil | decor | 108 | 400 | 4 | 1.6 x 2.12 x 1 | 2 |
+| fietsenrek | decor | 370 | 560 | 1 | 0.126 x 0.472 x 2.9 | 0 |
 | fotolijst | decor | 72 | 400 | 3 | 0.47 x 1.408 x 0.36 | 1 |
 | friteuse | decor | 60 | 400 | 4 | 0.8 x 1.01 x 0.63 | 1 |
 | frituuraanhanger | decor | 176 | 400 | 8 | 4.1 x 1.68 x 2.325 | 1 |
@@ -36,6 +40,7 @@ Telling: 102 scènes, 155 props, 49 soorten in gebruik, 27 aankledingsplannen, 5
 | map | decor | 48 | 400 | 4 | 0.326 x 0.032 x 0.27 | 2 |
 | matras | decor | 48 | 300 | 4 | 1.94 x 0.3 x 1.04 | 1 |
 | mosterdpot | decor | 92 | 400 | 3 | 0.2 x 0.175 x 0.2 | 1 |
+| paaltje | decor | 160 | 260 | 1 | 0.23 x 0.93 x 0.23 | 0 |
 | pan | decor | 200 | 400 | 3 | 0.41 x 0.315 x 0.5 | 3 |
 | pinpas | decor | 36 | 400 | 3 | 0.12 x 0.008 x 0.075 | 1 |
 | prikbord | decor | 168 | 400 | 6 | 0.072 x 1.385 x 1.04 | 1 |
@@ -59,10 +64,10 @@ Telling: 102 scènes, 155 props, 49 soorten in gebruik, 27 aankledingsplannen, 5
 | fiets | voertuig (wereld) |  |  |  | 1.9 x 0.7 x 1.15 | 12 |
 | kat | dier (wereld) |  |  |  |  | 4 |
 | koe | dier (wereld) |  |  |  |  | 0 |
-| limo | voertuig (wereld) | 1500 |  |  | 5.64 x 2.54 x 2.45 | 6 |
+| limo | voertuig (wereld) | 5792 |  |  | 5.84 x 2.667 x 2.24 | 6 |
 | politie | voertuig (wereld) |  |  |  | 4.8 x 1.95 x 1.75 | 1 |
-| snackwagen | voertuig (wereld) | 2194 |  |  | 5.681 x 2.964 x 3.073 | 5 |
-| tankwagen | voertuig (wereld) | 1028 |  |  | 8.611 x 3.61 x 3 | 2 |
+| snackwagen | voertuig (wereld) | 2314 |  |  | 5.681 x 2.964 x 3.073 | 5 |
+| tankwagen | voertuig (wereld) | 1148 |  |  | 8.611 x 3.61 x 3 | 2 |
 | trekker | voertuig (wereld) |  |  |  | 4.5 x 2.4 x 3 | 4 |
 
 ## Aankleding van missies (missiedecor.js) en wachtstappen (wachtprops.js)
@@ -114,5 +119,5 @@ Cutscene-sets in gebruik: loket (3), kantoor (5), omakeuken (4), serverkamer (1)
 - Het prikbord (N8, de vijf vrienden) bestaat nu als model, maar er is nog geen scène-spec die hem neerzet (N8 is een gesprek zonder cutscene-spec).
 - Niets hiervan is in beeld gezien (geen Electron in deze ronde): vorm, schaal en kleur zijn alleen gemeten, niet gekeken.
 
-Soorten zonder scène-gebruik (model bestaat, geen spec zet ze neer): bal, koe.
+Soorten zonder scène-gebruik (model bestaat, geen spec zet ze neer): bal, bank, afvalbak, fietsenrek, bushokje, paaltje, koe.
 

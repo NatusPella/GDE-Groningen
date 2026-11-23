@@ -29,6 +29,7 @@
 
 export const ACTOR_ANIMS = ['idle', 'walk', 'run', 'talk', 'wave', 'point', 'shrug', 'nod', 'shake', 'laugh', 'carry', 'lean', 'hips', 'phone', 'cheer', 'clap', 'look', 'ride', 'zwem', 'klim', 'sprong'];
 import { propKindIssue, propFoot, CARRY_LOW } from './cutscenemodels.js';
+import { CUTSCENE_PROPS } from './propregister.js';
 import { calmShots } from './cineshots.js';
 import { crowdSpecIssue } from './crowdplan.js';
 import { isClip, isCatClip, clipLayers, clipDuration, CLIP_STOP } from './poseclips.js';
@@ -40,6 +41,7 @@ export const PROP_KINDS = [
   'statief', 'krat', 'pan', 'vuurwerk', 'koelbox', 'jas', 'aktetas', 'hesjes',
   'container', 'scherm', 'prikbord', 'broodtrommel', 'kantoorwagen', 'frituuraanhanger', 'friteuse', 'deken',
   'soepketel', 'mosterdpot', 'kaart', 'hek',
+  ...CUTSCENE_PROPS, // de gedeelde props van het register (propregister.js)
 ];
 const VERBS = ['walk', 'anim', 'face', 'gaze', 'carry', 'drop', 'move', 'path', 'spin', 'bob', 'show', 'hide', 'sit'];
 export const SHOTS = ['cut', 'dolly', 'orbit', 'follow', 'close', 'reaction', 'ots', 'insert', 'tracking', 'crane', 'handheld', 'push'];

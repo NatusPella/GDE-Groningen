@@ -18,8 +18,8 @@ const car2 = (x = 0.08, w = 1.0) => [
 const car4 = (xf = 0.15, xa = -0.14, w = 0.8) => [
   { id: 'vl', side: -1, x: xf, w, y0: 0.32, h: 0.62, soort: 'scharnier', seat: 'bestuurder' },
   { id: 'vr', side: 1, x: xf, w, y0: 0.32, h: 0.62, soort: 'scharnier', seat: 'bijrijder' },
-  { id: 'al', side: -1, x: xa, w, y0: 0.32, h: 0.62, soort: 'achterscharnier', seat: 'achter' },
-  { id: 'ar', side: 1, x: xa, w, y0: 0.32, h: 0.62, soort: 'achterscharnier', seat: 'achter' },
+  { id: 'al', side: -1, x: xa, w, y0: 0.32, h: 0.62, soort: 'scharnier', seat: 'achter' },
+  { id: 'ar', side: 1, x: xa, w, y0: 0.32, h: 0.62, soort: 'scharnier', seat: 'achter' },
 ];
 const cab = (x, w, y0, h) => [
   { id: 'vl', side: -1, x, w, y0, h, soort: 'scharnier', seat: 'bestuurder' },
@@ -59,10 +59,18 @@ export const DEUR_DEFS = {
     ...cab(0.2, 0.75, 0.4, 0.75),
     laadklep(0.45, 1.5),
   ],
-  truck: cab(0.33, 0.8, 0.5, 1.2),
+  truck: cab(0.33, 0.8, 0.5, 1.2).map((d) => ({ ...d, zij: 0.49 })), // de cabine is W - 0,05 breed
   foodtruck: cab(0.33, 0.8, 0.5, 1.2),
-  tractor: [{ id: 'vr', side: 1, x: -0.17, w: 0.9, y0: 1.0, h: 1.65, soort: 'scharnier', seat: 'bijrijder' },
-    { id: 'vl', side: -1, x: -0.17, w: 0.9, y0: 1.0, h: 1.65, soort: 'scharnier', seat: 'bestuurder' }],
+  tractor: [{ id: 'vr', side: 1, x: -0.17, w: 0.9, y0: 1.0, h: 1.65, soort: 'scharnier', seat: 'bijrijder', zij: 0.435 },
+    { id: 'vl', side: -1, x: -0.17, w: 0.9, y0: 1.0, h: 1.65, soort: 'scharnier', seat: 'bestuurder', zij: 0.435 }],
+  // de trekker-limo (len 5,6): twee cabinedeuren (cabine 0,6 tot 1,7 m, zijkant op 0,43 wid) en twee achterdeuren in de limousine
+  // (zijkant op 0,425 wid), scharnier achter, tussen de stijlen van het lange zijraam
+  trekkerlimo: [
+    { id: 'vl', side: -1, x: 0.205, w: 0.9, y0: 1.0, h: 1.3, soort: 'scharnier', seat: 'bestuurder', zij: 0.435 },
+    { id: 'vr', side: 1, x: 0.205, w: 0.9, y0: 1.0, h: 1.3, soort: 'scharnier', seat: 'bijrijder', zij: 0.435 },
+    { id: 'al', side: -1, x: -0.098, w: 0.95, y0: 0.36, h: 0.62, soort: 'scharnier', seat: 'achter', zij: 0.425 },
+    { id: 'ar', side: 1, x: -0.098, w: 0.95, y0: 0.36, h: 0.62, soort: 'scharnier', seat: 'achter', zij: 0.425 },
+  ],
   bus: [...busDeur('d1', 0.406, 11.2), ...busDeur('d2', -0.04, 11.2)],
   midibus: busDeur('d1', 0.375, 8.4),
   tram: [...dubbel('d1', 1, 0.36), ...dubbel('d2', 1, 0.05), ...dubbel('d3', 1, -0.28)],
@@ -70,7 +78,7 @@ export const DEUR_DEFS = {
 };
 
 // Zonder logische deur: eigen opstapanimatie in seating3d.js (zadel, dolboord, paard) of niets.
-export const GEEN_DEUR = ['bike', 'scooter', 'quad', 'boat', 'heli', 'plane', 'kart', 'motorbike', 'horse', 'trekkerlimo'];
+export const GEEN_DEUR = ['bike', 'scooter', 'quad', 'boat', 'heli', 'plane', 'kart', 'motorbike', 'horse'];
 
 export const MAX_LOSSE_DEUREN = 6;     // zoveel losse deuren liggen er tegelijk op straat
 export const DEUR_OPEN_TIJD = 0.22;    // s van dicht naar open (en terug)
@@ -302,7 +310,8 @@ export function deurStand(def, open, dmg = null) {
   if (def.soort === 'schuif') return e * (def.w * 0.95);
   if (def.soort === 'achterdeur') return Math.max(dmg === 'scheef' ? 0.3 : 0, e * 1.6);
   if (def.soort === 'kap' || def.soort === 'klep') return Math.max(dmg === 'scheef' ? 0.22 : 0, e * 1.0); // scheef: staat op een kier
-  const max = def.soort === 'achterscharnier' ? 1.25 : 1.05;
+  // scharnier aan de voorkant van de deuropening, 60 tot 65 graden open (23-11: verder open hing de deur er als een losse plaat bij)
+  const max = def.soort === 'achterscharnier' ? 1.15 : 1.1;
   const scheef = dmg === 'scheef' ? 0.14 : 0; // een scheve deur sluit niet meer helemaal
   return Math.max(scheef, e * max);
 }

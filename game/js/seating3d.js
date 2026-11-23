@@ -61,6 +61,13 @@ const CAR_SEATS = {
   laad: { y: 1.04, pose: { recline: 0.18, footX: 0.36, footY: -0.2, arms: 'lap' } },
 };
 
+// De trekker-limo (models3d_vehicles.js trekkerLimoMaten): achterin twee banken tegenover elkaar, de voorbank kijkt naar achteren
+// (face PI, rug tegen de cabine), de achterbank naar voren. Maten staan daar; hier alleen de zitplaatsen van de passagiers 0 tot 3.
+export function limoStoel(len, i) {
+  const hl = len / 2, tx0 = hl - 2.2, rowA = tx0 + 0.05 - 0.37, rowB = -hl + 0.98;
+  return i < 2 ? { x: rowA, y: 0.5, z: i ? 0.5 : -0.5, face: Math.PI } : { x: rowB, y: 0.5, z: i === 3 ? 0.5 : -0.5, face: 0 };
+}
+
 // the farm tractor's cushion above its cab floor (models3d_vehicles.js tractorCab)
 const TRACTOR_SEAT_UP = 0.55;
 
@@ -190,6 +197,10 @@ export function vehicleSeatAt(v, stoel = 0) {
     // achteren, binnen de romp (x -3,4 .. 3,4) in plaats van de breedte in.
     const k = Math.max(1, n - 1);
     return { ...basis, x: Math.max(-2.6, basis.x - 0.6 * k), z: 0, role: 'achter' };
+  }
+  if (v.model && v.model.name === 'trekkerlimo') { // de conferentie-indeling achterin de limousine (limoStoel hieronder)
+    const i = (n - 2) % 4, s = limoStoel(v.model.len || 5.6, i);
+    return { ...basis, x: s.x, y: s.y, z: s.z, face: s.face, role: 'achter' };
   }
   const hl = (v.model.len || 4) / 2, hw = (v.model.wid || 1.7) / 2, k = carKind(v), m = ACHTERBANK[k] || {};
   const xMin = k === 'trekker' && v.model.name === 'tractor' ? tractorCab(v.model.len).x0 + 0.3 : -hl + (m.achter ?? 1.0);
