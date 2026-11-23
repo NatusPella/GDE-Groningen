@@ -24,12 +24,14 @@ const kaart = (c) => ({ id: tekst(c.id, 60), kicker: tekst(c.kicker), title: tek
 // een andere opname en schoven zijn ondertitels en de scèneduur op. voices is een
 // hulplijst van de gastheer (zelfde volgorde als lines) voor de opnames die de scène
 // zelf afspeelt; die spelen bij de gast via de gewone ondertitelweg.
+// tijden op de milliseconde: 5.460000000000001 kost twaalf tekens per regel in het pakket (M16.outro paste daardoor net niet)
+const ms = (x) => (typeof x === 'number' && Number.isFinite(x) ? Math.round(x * 1000) / 1000 : x);
 export function cutPakket({ def, lines, duration, anchor, cine, rol, voices = null }) {
   return {
     def, duration: num(duration, 0),
     lines: (lines || []).map((l, i) => {
       const v = l.voice ? { voice: tekst(l.voice, 200) } : (voices && voices[i] && voices[i].src ? { voice: tekst(voices[i].src, 200) } : {});
-      return { speaker: l.speaker, text: l.text, at: l.at, dur: l.dur, ...v, ...(l.radio ? { radio: true } : {}), ...(l.own ? { own: true } : {}), ...(l.clue ? { clue: true } : {}), ...(l.card ? { card: tekst(l.card, 80) } : {}) };
+      return { speaker: l.speaker, text: l.text, at: ms(l.at), dur: ms(l.dur), ...v, ...(l.radio ? { radio: true } : {}), ...(l.own ? { own: true } : {}), ...(l.clue ? { clue: true } : {}), ...(l.card ? { card: tekst(l.card, 80) } : {}) };
     }),
     anchor: anchor ? { x: num(anchor.x), y: num(anchor.y), facing: num(anchor.facing), z: num(anchor.z) } : null,
     cine: kaart(cine || {}),

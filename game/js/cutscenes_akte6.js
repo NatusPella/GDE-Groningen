@@ -310,6 +310,6 @@ S['M30.outro'] = {
     { on: 'Kon minder.', actor: 'tammo', anim: 'shrug' },
     { on: 'Kon veel minder', actor: 'tessa', anim: 'cheer' },
   ],
-  shots: [],
+  shots: [{ on: 'De bieten staan', shot: 'follow', target: 'geesje', dist: 3.0, side: 0.8, h: 1.6, fov: 40 }], // Geesje opent: zij in beeld
   wide: WIDE([-5, 4.2, 3.2], [-3, 3, 2.4], 'mid:tammo,tessa@1'),
 };
