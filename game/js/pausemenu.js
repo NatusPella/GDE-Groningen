@@ -12,7 +12,7 @@ import { effectsFor } from './a11ylogic.js';
 import { reducedMotion } from './motion.js';
 import { retryBeschikbaar, herstartMissie, herstartBlokkade } from './missions.js';   // #985 punt 16
 import { changeWithGroup } from './difficultyvote.js'; // moeilijkheid van de wereld is een gezamenlijke keuze
-import { difficultyTabHtml, difficultyPaneText, syncDifficultyTab, stepDifficultyPicker, handleDifficultyClick } from './difficultypanel.js'; // #1169: Instellingen > Moeilijkheid, per save
+import { difficultyTabHtml, difficultyPaneHtml, syncDifficultyTab, stepDifficultyPicker, handleDifficultyClick } from './difficultypanel.js'; // #1169: Instellingen > Moeilijkheid, per save
 import { logoHtml } from './logo.js';
 import { setPauseMenuOpen, setPauseMenuTabState, setPauseMenuControls } from './pausestate.js';
 import { uitlegBlok, zetUitlegGlyph, startUitleg, resetUitlegNietMeer } from './uitleg.js';
@@ -801,7 +801,7 @@ function settingsHtml() {
       <div class="m-gh"><span>Thuis</span></div>
       ${toggle('startBinnen', 'Start binnen (thuis)', 'Laad je een spel dat bij je huis stond, of ga je naar huis, dan sta je binnen in de woning. Uit: je staat voor de deur')}`,
       `${pane('Spelregels', 'Zo speelt het', '<p>Hoe moeilijk het is, hoe het verkeer en het geweld zich gedragen en hoe het rijden aanvoelt. Alles wordt meteen bewaard.</p><p class="mut">Beeld, geluid, besturing en toegankelijkheid staan op de andere tabbladen. Camera-afstand, beeldhoek en eerste persoon staan onder Instellingen &gt; Camera; toetshints en uitleg onder Instellingen &gt; Hints &amp; uitleg.</p>')}`)}
-    ${tab('moeilijkheid', difficultyTabHtml(), pane('Moeilijkheid', 'Hoe pittig', `<p>${difficultyPaneText}</p>`))}
+    ${tab('moeilijkheid', difficultyTabHtml(), pane('Moeilijkheid', 'Hoe pittig', difficultyPaneHtml()))}
     ${tab('besturing', `
       <div class="m-gh"><span>Muis</span></div>
       ${slider('mouseSensitivity', 'Muisgevoeligheid', 0.3, 2.5, 0.05, 'Hoe snel de camera draait als je de muis beweegt', 'keer')}

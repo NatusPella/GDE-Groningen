@@ -203,6 +203,12 @@ const next = () => new Promise((r) => setTimeout(r, 0));
   ok(/data-setting="difficulty"/.test(html) && /data-diff-reset/.test(html), 'het niveau en "Terug naar het niveau" staan erbij');
   ok(/pas in bij de volgende missie/.test(html) && /kies je samen/.test(html) && /Nooit weg uit het verhaal/.test(html), 'uitleg: later ingaan, de Samen-regel en dat het verhaal nooit blokkeert');
   ok(/Gaat in bij de volgende start/.test(html), 'opties die later ingaan zeggen dat');
+  // #1275: geen tekstmuur voor de eerste keuze, één manier om te kiezen, het zijpaneel vergelijkt in plaats van te herhalen
+  ok(html.indexOf('data-setting="difficulty"') < html.indexOf('<p'), 'de kiezer staat boven elke uitlegalinea');
+  ok(!/role="listitem"/.test(html) && /pm-diff-een/.test(html), 'de niveaukaarten zijn geen tweede keuzelijst: alleen het gekozen niveau staat eronder');
+  ok(/<span class="m-chip">Samen spelen<\/span>/.test(html), 'de Samen-regel is een chip');
+  const paneel = M.difficultyPaneHtml();
+  ok(D.DIFFICULTY_MODES.every((m) => paneel.includes(`<b>${D.LEVEL_TEXT[m].naam}</b>`)) && !html.includes(M.DIFFICULTY_TAB_TEXT.intro), 'het zijpaneel vergelijkt de drie niveaus en de intro staat niet nog eens in de lijst');
   ok(/aria-label="Politie kwijtraken: vorige"/.test(html) && /aria-label="Politie kwijtraken: volgende"/.test(html), 'elke kiezer heeft toegankelijke knoppen');
   // een kiezer bedienen zoals het pauzemenu dat doet
   D.setActiveDifficulty({ level: 'standaard' });

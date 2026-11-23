@@ -11,7 +11,7 @@ import {
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
 export const DIFFICULTY_TAB_TEXT = Object.freeze({
-  intro: 'Hoe pittig het is in dit spel. Het niveau stelt alle opties hieronder in; je kunt elke optie daarna zelf afwijkend zetten.',
+  intro: 'Hoe pittig het is in dit spel. Het niveau stelt alle opties in de lijst in; daarna kun je elke optie zelf anders zetten.',
   levelNote: 'Je keuze geldt meteen; records en medailles zijn per niveau gescheiden. Een ander niveau zet de eigen aanpassingen terug.',
   later: 'Sommige wijzigingen gaan pas in bij de volgende missie, race of wedstrijd.',
   samen: 'Samen spelen: de wereld (politie en verkeer) kies je samen: iedereen moet akkoord zijn. Schade, hulp, quicktime-events, geld en wedstrijden zijn van jezelf.',
@@ -43,9 +43,11 @@ export function levelPickerHtml(plain = (t) => t) {
     `<button type="button" data-pick="1" aria-label="${esc(name)}: volgende">${icoon('volgende')}</button></span></div>`;
 }
 
+// #1275: under the picker only the chosen level is explained (the picker is the one way to choose); the comparison of
+// all three levels lives in the side pane (difficultyPaneHtml), not as a second row of cards that look like buttons.
 function levelRows() {
-  const rij = (m) => `<div class="pm-diff-row" data-diff="${m}" role="listitem"><b>${esc(LEVEL_TEXT[m].naam)}</b><span>${esc(LEVEL_TEXT[m].uitleg)}</span></div>`;
-  return `<div class="pm-diff" role="list" data-diff-now aria-label="Wat de drie niveaus doen">${DIFFICULTY_MODES.map(rij).join('')}</div>`;
+  const rij = (m) => `<div class="pm-diff-row" data-diff="${m}"><b>${esc(LEVEL_TEXT[m].naam)}</b><span>${esc(LEVEL_TEXT[m].uitleg)}</span></div>`;
+  return `<div class="pm-diff pm-diff-een" data-diff-now aria-live="polite">${DIFFICULTY_MODES.map(rij).join('')}</div>`;
 }
 
 // De rijen van het tabblad (de aanroeper stopt ze in een tab).
@@ -54,14 +56,21 @@ export function difficultyTabHtml() {
     const defs = OPTION_DEFS.filter((d) => d.groep === id);
     return defs.length ? `<div class="m-gh"><span>${esc(naam)}</span></div>${defs.map(optionRow).join('')}` : '';
   }).join('');
-  return `<p class="pm-diff-intro" data-diff-intro>${esc(DIFFICULTY_TAB_TEXT.intro)}</p>` +
-    levelPickerHtml() + levelRows() +
+  // #1275: no wall of text before the first choice: the intro moved to the side pane, the Samen spelen rule is one chip
+  return levelPickerHtml() + levelRows() +
     `<div class="m-li pm-row"><span class="nm">Eigen aanpassingen<span class="mut" data-diff-state></span></span><button type="button" class="m-bg" data-diff-reset>${esc(DIFFICULTY_TAB_TEXT.reset)}</button></div>` +
-    `<p class="pm-diff-note">${esc(DIFFICULTY_TAB_TEXT.later)} ${esc(DIFFICULTY_TAB_TEXT.samen)} ${esc(DIFFICULTY_TAB_TEXT.story)}</p>` +
+    `<p class="pm-diff-note">${esc(DIFFICULTY_TAB_TEXT.story)} ${esc(DIFFICULTY_TAB_TEXT.later)}</p>` +
+    `<p class="pm-diff-note"><span class="m-chip">Samen spelen</span> ${esc(DIFFICULTY_TAB_TEXT.samen.replace(/^Samen spelen: /, ''))}</p>` +
     groups;
 }
 
-export const difficultyPaneText = 'Een niveau voor dit spel met de opties eronder. Alles wordt meteen bewaard in je spel; een ander opgeslagen spel heeft zijn eigen niveau.';
+const difficultyPaneText = 'Alles wordt meteen bewaard in dit spel; een ander opgeslagen spel heeft zijn eigen niveau.';
+
+// #1275: the side pane compares the three levels (what changes) instead of repeating the intro of the list.
+export function difficultyPaneHtml() {
+  const rij = (m) => `<li><b>${esc(LEVEL_TEXT[m].naam)}</b> <span class="mut">${esc(LEVEL_TEXT[m].uitleg)}</span></li>`;
+  return `<p>${esc(DIFFICULTY_TAB_TEXT.intro)}</p><ul class="pm-diff-vgl" aria-label="Wat de drie niveaus doen">${DIFFICULTY_MODES.map(rij).join('')}</ul><p class="mut">${esc(difficultyPaneText)}</p>`;
+}
 
 // De waarde van een optie in de menukiezer: de stap van het profiel.
 function pickerIndex(pk) {
