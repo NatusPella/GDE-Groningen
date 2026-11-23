@@ -1051,7 +1051,7 @@ zetWedGastHaken('voetbal', {
 export const VOETBAL = {
   id: 'voetbal',
   layer: 'voetbal',
-  legend: { kind: 'act-voetbal', label: 'Voetbal Euroborg', note: 'vijf tegen vijf tegen de computer, alleen of samen: pass, schiet en win' },
+  legend: { kind: 'act-voetbal', label: 'Voetbal Euroborg', note: 'vijf tegen vijf tegen de computer, alleen of samen' },
   init(w) {
     window.__voetbal = {
       spot: () => ({ ...GATE }),

@@ -37,7 +37,7 @@ export const OPTIONS = {
   decal: [
     O('none', 'Geen stickers', 0),
     O('frituur', 'Frituur Zonnedijk', 22, 'De friet van de buurt, op je portier'),
-    O('kwark', 'Kwark Racing', 22, 'Wit, snel en zuivel'),
+    O('kwark', 'Kwark Racing', 22, 'Wit en snel, met een zuivelgeurtje'),
     O('wiebel', 'Wiebelwerk Garage', 22, 'Wiebelt niet, zegt de sticker'),
     O('grunn', 'Grunn Drift Team', 26, 'Sleur door de bocht, thuis in Grunn'),
     O('rally', 'Ommelanden Rally', 26, 'Modder niet meegerekend'),

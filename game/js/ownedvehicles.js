@@ -90,7 +90,7 @@ const NO_PARK_TYPES = new Set(['motorway', 'motorway_link', 'trunk', 'trunk_link
 const HERO_SPEC = { label: 'Fjord Escapade', kind: 'car', color: '#a11f1f', model: { name: 'escort', len: 4.0, wid: 1.65, maxSpeed: 50, accel: 11, brake: 25, turnRate: 3.4 } };
 
 const MEMES = {
-  hero: 'Oud, rood en koppig. Net als Tammo.',
+  hero: 'Oud en rood. Koppig, net als Tammo.',
   omafiets: 'Zwart, loodzwaar en al drie keer uit het Reitdiep gevist. Rijdt nog prima.',
   stadsfiets: 'Rapper dan een student op weg naar een tentamen dat al begonnen is.',
   fatbike: 'Remmen zijn optioneel, volgens de berijder.',

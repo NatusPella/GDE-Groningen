@@ -25,7 +25,7 @@ import { baseSpeaker } from './speakers.js';
 export const CHARACTERS = [
   {
     id: 'tammo', name: 'Tammo', speakers: ['Tammo'], model: 'tammo', always: true,
-    role: 'Stadjer. Groot hart. Kleine portemonnee.',
+    role: 'Stadjer met een Escapade die nauwelijks rijdt.',
     bio: 'Droog, uit het Oosterpark, met een rode Fjord Escapade die nauwelijks rijdt. Kan duiven sturen, en doet daar heel gewoon over. Net afgestudeerd en al sinds de studie verliefd op zijn beste vriendin. Hij zegt het nooit.',
     quote: 'Ik zeg niks. Dat is ook een antwoord.',
     relation: 'De helft van het duo, en sinds de KEI-week haar huisgenoot in Paddepoel. Zegt het belangrijke in vijf woorden.',
@@ -36,7 +36,7 @@ export const CHARACTERS = [
     role: 'Heeft altijd een plan B. Plan A is ook van haar.',
     bio: 'Snel, ad rem en de baas van het duo. Droomt van de snackwagen, een blauwe frietwagen, en regelt alles zelf. Een frietwagen is een auto met een luik, en ze heeft geen auto. Komt van het platteland: ze kan boeren en voetballen en zegt dat feitelijk.',
     quote: 'Rijden, niet praten.',
-    relation: 'De andere helft. Huurde de flat in Paddepoel, met hem als huisgenoot. Leidt, regelt en wint meestal.',
+    relation: 'De andere helft. Huurde de flat in Paddepoel, met hem als huisgenoot. Regelt alles en wint meestal.',
     missions: ['H1', 'H2', 'H6', 'H8', 'H11', 'H13', 'H15', 'H16', 'H18'],
   },
   {
@@ -65,7 +65,7 @@ export const CHARACTERS = [
   },
   {
     id: 'durk', name: 'Durk', speakers: ['Durk'], model: 'durk',
-    role: 'Twee reuzen. Eén brein. Ze delen het.',
+    role: 'Twee reuzen die geen geheim kunnen houden.',
     bio: 'Jelles tweelinghandlanger, blauwe muts en baard. Trok een pinautomaat uit de muur. Verklapt elk geheim zodra hij één biertje op heeft.',
     quote: 'Net fertelle, hè?',
     relation: 'Werkt voor Jelle. Zit Tammo en Tessa steeds in de weg.',

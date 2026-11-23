@@ -39,7 +39,7 @@ export const STORY = [
     origin: "Fryslân, Ljouwert", education: "geen; groeide op in de snackloods", work: "handlanger van Jelle: sjouwen, rijden, bewaken", employer: "Us Mem Snacks",
     hobbies: ["Jelle", "fatbikes (met z'n tweeën op één)", "frituurvet", "synchroon zwemmen", "klompen"],
     traits: ["groot", "traag", "trouw", "ontzettend eerlijk", "kan geen geheim bewaren"],
-    tagline: "Twee reuzen. Eén brein. Ze delen het.",
+    tagline: "Twee reuzen die geen geheim kunnen houden.",
     want: "dat de baas tevreden is", need: "iets zelf beslissen", fear: "trappen, snelheid, nadenken en water; en toch vallen ze erin",
     habits: ["verklapt elk geheim na één biertje", "betaalt contant uit een klomp", "doet alles synchroon met Douwe", "maakt Douwes zin verkeerd af"],
     dialect: "Nederlands met zwaar Fries accent", rhythm: "traag, herhaalt het laatste woord", phrases: ["Net fertelle, hè?", "Baas zegt."],
@@ -54,7 +54,7 @@ export const STORY = [
   }),
   card({
     id: 'douwe', speakerKey: 'douwe', status: 'canon', tier: 'supporting',
-    name: "Douwe Oosting", nick: "Douwe (\"...hè.\")", age: 38, pronoun: 'hij',
+    name: "Douwe Oosting", nick: "Douwe (\"…hè.\")", age: 38, pronoun: 'hij',
     homePlace: "Ljouwert, Fryslân", homeAddress: "dezelfde flat boven de loods van Us Mem Snacks",
     household: "zijn tweelingbroer Durk", homeByAct: { 1: "de flat bij de loods in Ljouwert; in Grunn in Jelles limo of de bestelbus", 2: "onderweg met Jelle", 3: "onderweg met Jelle (Eemshaven, kermis)", 4: "Bourtange, de kruitkelder", 5: "loopt over naar Tammo en Tessa in M23", 6: "bij de snackwagen", E: "terug in Ljouwert" },
     origin: "Fryslân, Ljouwert", education: "geen", work: "handlanger van Jelle", employer: "Us Mem Snacks",
