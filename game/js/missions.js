@@ -163,7 +163,7 @@ function buildDefs(world) {
       intro: ['Middernacht. Via het Verbindingskanaal naar de achterkant van het Groninger Museum. De camera\'s gaan drie minuten uit.', 'Doel: eerst de stroomkast, dan de vitrine met de Gouden Eierbal. En daarna wegwezen, het liefst over het water.'],
       outro: 'De vitrine was leeg: Jelle was jullie voor, en de camera\'s hebben jullie gefilmd. Nieuw doel: Jelle stoppen.',
       timeLimit: null,
-      reward: 400,
+      reward: 550, // audit speelbaarheid 23-11: tien speelbare stappen, was 400
       aaa: true, // AAA akte 1: een voltooide stap klinkt (stings)
       requires: ['heist', 'night'],
       // midnight: three minutes without cameras, from the fuse box until the case is open

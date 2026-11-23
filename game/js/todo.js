@@ -48,6 +48,9 @@ import { drawMapIcon } from './hud_panel.js';
 import { zachtePauze } from './coopgroep.js';
 import { samenWaarschuwing } from './coopstatus.js';
 import { missieMagVanuitMenu, MISSIE_VIA_STARTPUNT } from './coopgast.js';
+import { kiesSpaardoel, eigenTypen } from './spaardoel.js'; // audit speelbaarheid 23-11: iets om voor te sparen
+import { getBoerderij } from './boerderijlive.js';
+import { revealOpen, WORLD } from './featurereveal.js';
 import { beginHierItems, beginHierCount } from './todobegin.js';
 import { onderdelenAlbum, getOnderdeelSpotsForRender } from './onderdelenlive.js'; // #837
 import { duikAlbum, getWrakduikSpotsForRender } from './wrakduikenlive.js'; // #839
@@ -615,6 +618,20 @@ function postgameItems(world) {
   }), ...(open ? [prestigeItem()] : []), ...fjordUpgradeItems(world)];
 }
 
+// Audit speelbaarheid 23-11: een spaardoel zodra de boerderij open is (spaardoel.js): het goedkoopste stuk uit de machinecatalogus
+// dat je nog niet hebt en nog niet kunt betalen. Geen nieuwe economie: kopen gaat via de bestaande boerderijwinkel.
+function spaardoelItems(world) {
+  let bd = null;
+  try { bd = getBoerderij(); } catch (e) { return []; }
+  const d = kiesSpaardoel({ geld: world.money, eigen: eigenTypen(bd), open: revealOpen(WORLD.land) });
+  if (!d) return [];
+  return [{
+    key: 'sp:' + d.id, group: 'loopbanen', icon: 'landmark', title: `Sparen voor: ${d.naam}`, status: '', medal: null,
+    meta: `${euro(d.prijs)} · nog ${euro(d.nog)}`, record: `${d.pct}%`, goal: null,
+    detail: { kicker: 'Spaardoel · boerderij', text: 'Het verhaal betaalt goed. Dit is het volgende dat je voor je land kunt kopen, bij de boerderij onder Land en bedrijf.', rows: [['Prijs', euro(d.prijs)], ['Nog nodig', euro(d.nog)]] },
+  }];
+}
+
 // The current story step when it is an activity (a mission step is in the missions).
 function storyStepItem(world) {
   const g = world.storyGuide;
@@ -635,7 +652,7 @@ export function getTodoItems(world) {
   worldRef = world;
   const p = hoofdspeler(world);
   const acts = activityMapIcons(world);
-  const basis = [...missionItems(world), ...minigameItems(world, acts), ...jobItems(), ...ommelandItems(world), ...collectItems(world), ...postgameItems(world)];
+  const basis = [...missionItems(world), ...minigameItems(world, acts), ...jobItems(), ...ommelandItems(world), ...collectItems(world), ...postgameItems(world), ...spaardoelItems(world)];
   // #985: een onbekende streek lekt niet via Te doen (de kaart verbergt hem ook, #825)
   const items = hideUnknownAreas([...basis, ...loopbaanItems(world, basis, acts)], isAreaHidden);
   const st = storyStepItem(world);

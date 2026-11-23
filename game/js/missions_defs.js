@@ -283,7 +283,7 @@ export function buildDefsNaMuseum({ walk, drive }) {
       intro: ['Rotor Roelf leent zijn demoheli uit, op Eelde. Onderweg belt Dokter Dijkstra met een spoedje.', 'Eerst het UMCG, dan Jelles ballon: Tessa vliegt, Tammo hangt aan het touw.'],
       outro: 'Tammo haalde de Eierbal uit de mand en Tessa zette de heli netjes op de H. Jelle landde in een weiland, tussen de koeien.',
       timeLimit: null,
-      reward: 1500,
+      reward: 1200, // audit speelbaarheid 23-11: één (lange) heli-stap, was 1500
       // one flight in Rotor Roelf's demo heli: off from his pad on Eelde (resolveSpotStarts)
       start: { x: 1767.87, y: 9950.93, road: null },
       startSpot: 'eelde',

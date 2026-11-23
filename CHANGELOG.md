@@ -14,6 +14,7 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 - Samen spelen: als het spel jou verplaatst (de oversteek naar Noordpolderzijl in M11, een reisscène, opnieuw beginnen na een mislukte missie, afmeren, de finale op de Grote Markt), reizen de andere spelers mee naar een vrije plek naast je. Eerder bleef een medespeler in Zoutkamp achter.
 - Samen spelen: de vluchtboot na de museumkraak (M06) neemt je medespelers mee aan boord, en na de fierljepsprong in Bourtange (M20) staan ze mee aan de overkant.
 - Lange ritten: de doelbalk van het verhaal zegt hoe ver de volgende stap is (vanaf 300 m), en de korte OV- of taxihint van je metgezel geldt nu ook voor de start van de volgende verhaalmissie. Ligt die meer dan 20 km weg (tot bijna 60 km), dan hoor je de hint altijd één keer.
+- Balans: Het museum stond er al zo (M06) betaalt nu €550 en Een luik erin (M22) €500, passend bij hun vele stappen; Het staat niet in het rooster (M12) betaalt €1.200. In Te doen staat zodra de boerderij open is een spaardoel: het eerstvolgende stuk uit de machinecatalogus dat je nog niet kunt betalen.
 
 ## [0.65.0] - 2026-11-22
 
