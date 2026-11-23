@@ -993,7 +993,7 @@ while (true) {
   if (mem.guideSeen !== s.story.id + '|' + !!(guide && guide.buy)) { mem.guideSeen = s.story.id + '|' + !!(guide && guide.buy); B.log('gids', { stap: s.story.id, gids: guide && { x: Math.round(guide.x), y: Math.round(guide.y), naam: guide.name, koop: guide.buy, winkel: guide.shopId }, bron: s.target && s.target.source, actief: s.mission.active }); }
   if (!s.mission.active && !s.blocking.shop && guide && (guide.buy || /^Eerst/i.test(guide.name || '')) && Number.isFinite(guide.x) && s.target) {
     const gk = (guide.step || '') + ':' + Math.round(guide.x) + ',' + Math.round(guide.y);
-    if (mem.gateKey !== gk) { mem.gateKey = gk; mem.pressTries = 0; mem.boardTries = 0; B.log('eis', { stap: guide.step, winkel: guide.name || '', x: Math.round(guide.x), y: Math.round(guide.y) }); }
+    if (mem.gateKey !== gk) { mem.gateKey = gk; mem.pressTries = 0; mem.shopPress = 0; mem.boardTries = 0; B.log('eis', { stap: guide.step, winkel: guide.name || '', x: Math.round(guide.x), y: Math.round(guide.y) }); }
     s.target = { x: guide.x, y: guide.y, z: null, name: guide.name || '', source: 'winkel', distance: Math.round(Math.hypot(guide.x - s.player.x, guide.y - s.player.y) * 10) / 10 };
   }
   // three failed tries at the same mission: the bot cannot do this one (the eggs, a chase): a cheat to move on, logged as such, instead of hours of retries

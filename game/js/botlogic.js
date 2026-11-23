@@ -465,6 +465,12 @@ export function decide(s, mem = {}) {
   }
   // on foot at the marker with a prompt on screen (the loket, the pinautomaat, a counter): press the action key a few times
   const prompt = (s.hud && s.hud.prompt) || '';
+  // at the shop the story sent us to: E only once the shop's own prompt shows (the door is 2.6 m, shops.js SHOP_USE_RADIUS); the parked
+  // bikes in front of Trap & Toeter gave 'Fiets jatten' at 3.4 m, the bot spent its four presses on those and never went in (spelbot 23-11, M05)
+  if (!veh && t.source === 'winkel' && t.distance < 8) {
+    if (/Binnenlopen|Bootje huren|Helikopters bekijken/.test(prompt) && (mem.shopPress || 0) < 6) { mem.shopPress = (mem.shopPress || 0) + 1; return { type: 'press', key: 'e', why: 'winkel', interact: true }; }
+    return { type: 'goto', mode: 'walk', close: true };
+  }
   if (!veh && prompt && t.distance <= Math.max(4, ((s.mission && s.mission.triggerRadius) || 0) + 1) && (mem.pressTries || 0) < 4) {
     return { type: 'press', key: 'e', why: 'handeling', interact: true };
   }

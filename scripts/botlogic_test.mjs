@@ -187,6 +187,13 @@ const near = (a, b, e = 1e-6) => Math.abs(a - b) < e;
   { const occ = L.decide({ ...base(), target: { x: 14, y: 0, distance: 14, source: 'missie' }, mission: { active: true, stage: 'board' }, nearby: { vehicles: [{ x: 5, y: 0, distance: 5, free: true, drivable: true, kind: 'auto', occupied: true }, { x: 30, y: 0, distance: 30, free: true, drivable: true, kind: 'auto', occupied: false }] } }, {}); ok(occ.type === 'enter' && occ.vehicle.x === 30, 'een auto met bestuurder laat de bot staan (autodiefstal)'); }
   ok(L.decide({ ...base(), player: { ...base().player, vehicle: { kind: 'auto', speed: 8 } }, hud: { messages: ['Je auto staat in brand! Stap uit (E) voor hij ontploft'] } }, {}).key === 'e', 'brandende auto: uitstappen');
   ok(L.decide({ ...base(), player: { ...base().player, vehicle: { kind: 'fiets', speed: 1 } }, target: { x: 10, y: 0, distance: 10, source: 'winkel' } }, {}).key === 'e', 'bij de winkel van het verhaal: van de fiets af');
+  { // spelbot 23-11 (M05): bij de winkel van het verhaal telt alleen de prompt van de winkel zelf; 'Fiets jatten' van de fietsen voor de deur niet
+    const wT = { x: 3.4, y: 0, distance: 3.4, source: 'winkel' };
+    const jat = L.decide({ ...base(), target: wT, hud: { messages: [], prompt: 'Fiets jattenStaat niet eens op slot' } }, {});
+    ok(jat.type === 'goto' && jat.mode === 'walk', 'winkel: een fietsprompt voor de deur is geen reden om E te drukken, eerst dichterbij');
+    const binnen = L.decide({ ...base(), target: { ...wT, distance: 1.2 }, hud: { messages: [], prompt: 'BinnenlopenTrap & Toeter: fietsenwinkel' } }, {});
+    ok(binnen.type === 'press' && binnen.key === 'e', 'winkel: de eigen prompt van de winkel: E');
+  }
   const mvT = { x: 6, y: 0, distance: 6, source: 'missie', vehicle: true }, mvNear = [{ x: 6, y: 0, distance: 6, free: true, drivable: true, kind: 'auto' }, { x: 2, y: 3, distance: 3.6, free: true, drivable: true, kind: 'auto' }];
   const mvFoot = L.decide({ ...base(), mission: { active: true, stage: 'board' }, target: mvT, nearby: { vehicles: mvNear } }, {});
   ok(mvFoot.type === 'enter' && mvFoot.vehicle.x === 6, 'doel is een voertuig: dat voertuig nemen, niet het dichtstbijzijnde');
