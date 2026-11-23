@@ -590,7 +590,7 @@ function endShift(kind, reason = '', c2 = null) {
     if (kind !== 'dead') {
       const title = kind === 'fail' ? 'KLUS MISLUKT' : kind === 'wanted' ? 'DIENST GESTAAKT' : 'DIENST VOORBIJ';
       const stats = [['Klussen', String(c.round)], ['Verdiend', euro(c.earned)], ['Beste reeks', String(best)]];
-      const slot = eindregel(job.id, { kind, streak: c.streak }); // AAA bijbanen: een slotregel die bij de lijn past
+      const slot = eindregel(job.id, { kind, streak: c.streak, rondes: c.round }); // AAA bijbanen: een slotregel die bij de lijn past
       showBanner({ kind: kind === 'quit' ? 'pass' : 'fail', title, reason: `${job.name}: ${pretty}${slot ? `. ${slot}` : ''}`, reward: 0, stats });
     } else if (reason) {
       world.addMessage(reason, 3);

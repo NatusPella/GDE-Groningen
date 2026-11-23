@@ -74,6 +74,7 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 - Einde van een missie: de kaart heeft de naam van de missie als titel ("Het museum stond er al zo"), met Missie geslaagd of Missie mislukt als label en de reden en de beloning eronder. Een minigame houdt zijn eigen uitroep. Samen spelen: de kaart is van wie de missie speelt; een gast leest de uitslag zoals voorheen in zijn eigen melding met de missienaam.
 - Rijden met een controller: het stuur volgt de stick nu directer (volle uitslag in een tiende seconde in plaats van een vijfde); met het toetsenbord stuurt het wiel zoals voorheen. Samen spelen: lokaal per speler; een gast aan het stuur stuurt zijn stickwaarde mee en de gastheer past dezelfde regel toe, zonder nieuw bericht.
 - Pauzemenu › Cheats: geen lege kop Acties meer, de groep schakelaars heet Aan of uit, de drie tegels die de badge herhaalden zijn weg en de zin bovenaan zegt "Prestaties tellen gewoon mee zolang je geen cheat aanzet." Samen spelen: ongewijzigd; met meer spelers blijven cheats uit.
+- Bijbanen: de slotregel van een dienst kijkt naar het aantal betaalde klussen, niet naar de reeks. Vijf klussen met een aanrijding halverwege is nu een goede dienst in plaats van een magere. Samen spelen: de slotregel is van wie de dienst draait; geen nieuw bericht.
 
 ## [0.65.0] - 2026-11-22
 
