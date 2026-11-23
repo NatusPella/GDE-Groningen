@@ -1,0 +1,87 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Mensen fase 1: eigen model naast Quaternius (zelfde hoek)</title>
+<script type="importmap">{ "imports": { "https://cdn.jsdelivr.net/npm/": "/cdn/" } }</script>
+<style>html,body{margin:0;background:#222;color:#eee;font:13px system-ui,sans-serif}canvas{display:block}#info{position:absolute;left:8px;top:4px;white-space:pre;text-shadow:0 1px 2px #000}</style>
+<canvas id="c" width="1600" height="1400"></canvas>
+<div id="info">laden...</div>
+<script>window.addEventListener('error', (e) => { document.getElementById('info').textContent = 'fout: ' + e.message; fetch('/__klaar', { method: 'POST', body: JSON.stringify({ fout: e.message }) }); });
+window.addEventListener('unhandledrejection', (e) => { fetch('/__klaar', { method: 'POST', body: JSON.stringify({ fout: String(e.reason && e.reason.stack || e.reason) }) }); });</script>
+<script type="module">
+// Vergelijkingspagina fase 1 (ADR 0050): rij 1 onze procedurele mensen, rij 2 modulaire mensen van Quaternius (man en vrouw, gemengde
+// delen, gekleurd per zaad), beide in rust en lopend met dezelfde camera; rij 3 dezelfde Quaternius-mens in LOD 0, 1 en 2 naast elkaar
+// en van dichtbij; rij 4 gezichten. Meet driehoeken en draw calls per mens (renderer.info). Opent zonder internet: three komt via de
+// import map uit /cdn/ (scripts/qa/mensen_fase1_render.mjs dient de vendor-cache daar).
+import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
+const P = await import('/game/js/models3d_people.js');
+const M = await import('/game/js/modularpeople.js');
+await M.loadModularPeople('/game/models/mensen/');
+const canvas = document.getElementById('c');
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, preserveDrawingBuffer: true });
+renderer.setPixelRatio(1);
+renderer.setScissorTest(true);
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0xa9c7de);
+scene.add(new THREE.HemisphereLight(0xdfeaff, 0x7a6f5c, 1.5));
+const sun = new THREE.DirectionalLight(0xfff0d8, 2.2); sun.position.set(2, 4, 3); scene.add(sun);
+const ground = new THREE.Mesh(new THREE.PlaneGeometry(80, 80), new THREE.MeshStandardMaterial({ color: 0x8a8f86, roughness: 1 }));
+ground.rotation.x = -Math.PI / 2; scene.add(ground);
+const SKINS = [0xf1c9a5, 0xd9a47a, 0xa8754f, 0x6e4a33, 0xf6d7bd];
+const SHIRTS = [0x3f6ea8, 0x9e3027, 0x4a7a4a, 0xc9a227, 0x5c3f7a, 0xe3ddd0, 0x2b2f36];
+const N = 8;
+const tri = (m) => { let t = 0; m.traverse((o) => { if (o.isSkinnedMesh || o.isMesh) t += (o.geometry.index ? o.geometry.index.count : o.geometry.attributes.position.count) / 3; }); return t; };
+function row(make, animate) {
+  const g = new THREE.Group();
+  for (let i = 0; i < N; i++) {
+    const m = make(i);
+    m.position.set((i - (N - 1) / 2) * 1.1, 0, 0);
+    m.rotation.y = -1.15;
+    const speed = i % 4 === 1 ? 1.4 : i % 4 === 3 ? 4.5 : 0;
+    for (let f = 0; f < 50 + i * 9; f++) animate(m, speed, 1 / 60);
+    g.add(m);
+  }
+  return g;
+}
+const ons = row((i) => P.buildPersonMesh(SHIRTS[i % 7], SKINS[(i * 3) % 5], { seed: 101 + i * 101 }), P.animatePersonWalk);
+const hun = row((i) => M.buildModularPerson(101 + i * 101, { female: i % 2 === 1, skin: SKINS[(i * 3) % 5], shirt: SHIRTS[i % 7] }), P.animatePersonWalk);
+const lods = new THREE.Group();
+for (let l = 0; l < 3; l++) for (const fem of [false, true]) {
+  const m = M.buildModularPerson(4242, { female: fem, skin: SKINS[1], shirt: SHIRTS[0] });
+  M.setModularLod(m, l);
+  m.position.set((l * 2 + (fem ? 1 : 0) - 2.5) * 1.1, 0, 0); m.rotation.y = -1.25;
+  for (let f = 0; f < 30; f++) P.animatePersonWalk(m, 0, 1 / 60);
+  lods.add(m);
+}
+const info = { ons: tri(ons) / N, hun: tri(hun) / N, lod: lods.children.map((m) => tri(m)) };
+// draw calls per mens: het aantal meshes onder de groep (elk is één draw call met het gedeelde materiaal; schaduwpas niet meegeteld)
+const meshes = (g) => { let n = 0; g.children.forEach((m) => m.traverse((o) => { if (o.isMesh) n++; })); return n / g.children.length; };
+info.callsOns = meshes(ons);
+info.callsHun = meshes(hun);
+function shoot(group, x, y, w, h, cam) {
+  scene.add(group);
+  renderer.setViewport(x, y, w, h); renderer.setScissor(x, y, w, h);
+  renderer.render(scene, cam);
+  scene.remove(group);
+}
+const camRow = new THREE.PerspectiveCamera(24, 1600 / 300, 0.1, 100); camRow.position.set(0, 1.0, 13.5); camRow.lookAt(0, 0.92, 0);
+const camFace = new THREE.PerspectiveCamera(10, 1600 / 250, 0.1, 100); camFace.position.set(0, 1.58, 4.2); camFace.lookAt(0, 1.56, 0);
+const camLod = new THREE.PerspectiveCamera(13, 1600 / 300, 0.1, 100); camLod.position.set(0, 1.0, 14); camLod.lookAt(0, 0.95, 0);
+renderer.setClearColor(0x222222); renderer.setScissor(0, 0, 1600, 1400); renderer.setViewport(0, 0, 1600, 1400); renderer.clear();
+shoot(ons, 0, 1100, 1600, 300, camRow);
+shoot(hun, 0, 800, 1600, 300, camRow);
+shoot(lods, 0, 500, 1600, 300, camLod);
+const kop = row((i) => M.buildModularPerson(101 + i * 101, { female: i % 2 === 1, skin: SKINS[(i * 3) % 5], shirt: SHIRTS[i % 7] }), (m, s, dt) => P.animatePersonWalk(m, 0, dt));
+kop.children.forEach((m, i) => { m.rotation.y = -1.4; m.position.x = (i - 3.5) * 0.55; });
+const kopOns = row((i) => P.buildPersonMesh(SHIRTS[i % 7], SKINS[(i * 3) % 5], { seed: 101 + i * 101 }), (m, s, dt) => P.animatePersonWalk(m, 0, dt));
+kopOns.children.forEach((m, i) => { m.rotation.y = -1.4; m.position.x = (i - 3.5) * 0.55; });
+shoot(kopOns, 0, 250, 1600, 250, camFace);
+shoot(kop, 0, 0, 1600, 250, camFace);
+renderer.setScissor(0, 0, 1600, 1400); renderer.setViewport(0, 0, 1600, 1400);
+document.getElementById('info').textContent = `rij 1: eigen model (gem ${info.ons.toFixed(0)} driehoeken, ${info.callsOns.toFixed(2)} draw calls per mens)
+rij 2: Quaternius modulair, man en vrouw om en om (gem ${info.hun.toFixed(0)} driehoeken, ${info.callsHun.toFixed(2)} draw calls per mens)
+rij 3: LOD 0, 1, 2 (man, vrouw): ${info.lod.join(' / ')} driehoeken
+rij 4 en 5: gezichten, eigen model en Quaternius`;
+window.__info = info;
+window.__klaar = true;
+fetch('/__klaar', { method: 'POST', body: JSON.stringify(info) }).catch(() => {});
+</script>

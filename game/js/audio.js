@@ -114,6 +114,21 @@ let sfxBus = null;
 let worldBus = null;
 let worldIn = null;
 let voiceBus = null;
+let voiceMeter = null, voiceMeterBuf = null, voiceMeterT = -1, voiceMeterV = null;
+// Het niveau (RMS, 0..1) van wat er nu gesproken wordt, of null als er geen stem klinkt of er geen geluid is (gedempt, geen context).
+// Eén meting per audioframe, ook als meerdere acteurs het vragen; geen allocaties. Voor de kaak in cutscenes (actoranim.js setVoiceLevelSource).
+export function voiceLevel() {
+  if (!ctx || muted || !voiceMeter || !voiceMeterBuf) return null;
+  if (!storyVoice && !banterVoice && !contactVoice) return null;
+  const t = ctx.currentTime;
+  if (t === voiceMeterT) return voiceMeterV;
+  voiceMeterT = t;
+  voiceMeter.getFloatTimeDomainData(voiceMeterBuf);
+  let sum = 0;
+  for (let i = 0; i < voiceMeterBuf.length; i++) sum += voiceMeterBuf[i] * voiceMeterBuf[i];
+  voiceMeterV = Math.sqrt(sum / voiceMeterBuf.length);
+  return voiceMeterV;
+}
 let engineBus = null;
 let sirenBus = null;
 let musicBus = null;
@@ -1832,6 +1847,12 @@ function buildGraph() {
   voiceBus = ctx.createGain();
   voiceBus.gain.value = volumeValue(getSettings().voiceVolume);
   voiceBus.connect(master);
+  // lipsync (actorlife.js): een meter op de stemmen, los van de uitgang (een AnalyserNode wordt ook zonder bestemming bijgewerkt)
+  voiceMeter = ctx.createAnalyser();
+  voiceMeter.fftSize = 512;
+  voiceMeter.smoothingTimeConstant = 0;
+  voiceBus.connect(voiceMeter);
+  voiceMeterBuf = new Float32Array(voiceMeter.fftSize);
 
   sfxBus = ctx.createGain();
   sfxBus.gain.value = 0.9;

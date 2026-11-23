@@ -1992,6 +1992,34 @@
   {
    "glob": "fishmodels",
    "reden": "Alleen beeld: het model van een vis (de vangst in de hand, de vissen van het visboek) bouwt elke speler zelf; geen spelstaat en geen netwerk."
+  },
+  {
+   "glob": "actorlife",
+   "reden": "Alleen beeld: procedurele IK, lipsync en blik op de eigen meshes van elke client."
+  },
+  {
+   "glob": "animstate",
+   "reden": "Alleen beeld: de animatietoestand rekent elke client zelf uit uit de spelstaat (snelheid, voertuig, water); de 4-byte-codering is voor later en reist nu niet mee."
+  },
+  {
+   "glob": "modularlooks",
+   "reden": "Alleen beeld: de look volgt deterministisch uit de bestaande kledingkeuze (avatar.outfit), dus een gast ziet dezelfde mens."
+  },
+  {
+   "glob": "modularpeople",
+   "reden": "Alleen beeld: elke client bouwt en animeert zijn eigen modulaire mensen."
+  },
+  {
+   "glob": "lodregistry",
+   "reden": "Alleen beeld: LOD-afstanden per client."
+  },
+  {
+   "glob": "lodlevels",
+   "reden": "Alleen beeld: LOD-afstanden per client."
+  },
+  {
+   "glob": "modularwear",
+   "reden": "Alleen beeld: kledingdelen (politiepet, uniformdetails) volgen uit de look; elke client bouwt ze zelf."
   }
  ],
  "opslag": {

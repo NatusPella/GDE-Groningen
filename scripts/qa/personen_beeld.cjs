@@ -1,5 +1,5 @@
 // Voor/na-beeld van de personages in één pagina (scripts/qa/personen_beeld.html) met een wegwerpprofiel.
-//   node scripts/qa/personen_beeld.cjs --out=<map> [--wait=<minuten>]          (aanbevolen: start Electron zelf via de runner)
+//   node scripts/qa/personen_beeld.cjs --out=<map> [--wait=<minuten>] [--page=personen_vergelijk]          (aanbevolen: start Electron zelf via de runner)
 //   <electron.exe> scripts/qa/personen_beeld.cjs --no-sandbox --out=<map> [--wait=<minuten>]
 // Gebruikt de runnerbibliotheek scripts/lib/electronrunner.cjs (docs/KWALITEITSMACHINE.md): onder gewone Node start hij Electron
 // met dit bestand, --no-sandbox, zonder ELECTRON_RUN_AS_NODE en met een EXCLUSIEF slot (alle sloten vrij: dan stoort dit venster
@@ -16,6 +16,8 @@ const arg = (k, d) => { const a = process.argv.find((x) => x.startsWith(`--${k}=
 const ROOT = path.resolve(__dirname, '..', '..');
 const OUT = path.resolve(arg('out', path.join(ROOT, '.scr', 'personen-beeld')));
 const WAIT_MIN = Number(arg('wait', 20));
+// welke pagina in scripts/qa/ (zonder .html): personen_beeld (voor/na) of personen_vergelijk (eigen model naast Quaternius, ADR 0050)
+const PAGE = /^[a-z_]+$/.test(arg('page', '')) ? arg('page') : 'personen_beeld';
 
 if (!process.versions.electron) {
   // ---- Node-kant: Electron starten via de runner ----
@@ -82,7 +84,7 @@ if (!process.versions.electron) {
       });
       const win = new BrowserWindow({ show: false, width: 1600, height: 1000, webPreferences: { backgroundThrottling: false } });
       win.webContents.on('console-message', (_e, _l, m) => log('[pagina]', String(_e && _e.message !== undefined ? _e.message : m)));
-      await win.loadURL(`http://127.0.0.1:${port}/scripts/qa/personen_beeld.html`);
+      await win.loadURL(`http://127.0.0.1:${port}/scripts/qa/${PAGE}.html`);
       const t0 = Date.now();
       while (Date.now() - t0 < 90000 && !(await win.webContents.executeJavaScript('window.__klaar === true'))) await new Promise((r) => setTimeout(r, 500));
       const info = await win.webContents.executeJavaScript('window.__info');

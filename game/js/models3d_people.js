@@ -3,6 +3,8 @@ import { HABBO_PALETTE, SkinBuilder, loftGeometry, composeMatrix, vcMaterial, ma
 import { hash2 } from './rng.js';
 import { weaponLayers } from './models3d_weapons.js';
 import { footContact, turnLean, approachTo, wrapPi, fidgetAt, blinkAmount } from './gait.js';
+import { twoBoneIK, twoBoneFK, armIK, armFK, footPlant, wheelGrip, mouthShape, STEER_TURN } from './actorlife.js';
+import { animateModular, plantFeetModular, modularSeatContact, buildModularFromAppearance, modularReady, modularHandSocket, MODULAR_GRIP_AT, modularAttackPose, modularHoldPose, setModularGrip } from './modularpeople.js';
 import { idlePose } from './idleclips.js';
 import { attachAccessories } from './models3d_clothing.js';
 import { buildHairStyle } from './models3d_hair.js';
@@ -11,7 +13,7 @@ import { npcLook } from './clothing.js';
 
 // Low-poly humanoid for the on-foot player, every pedestrian, drivers and
 // bike/scooter riders: one SkinnedMesh (one draw call, one shared material)
-// on a 12-bone rig (11 body bones + the eyelid bone that blinks). Origin at ground level between the feet, facing +X.
+// on a 13-bone rig (11 body bones + the eyelid bone that blinks + the mouth bone that opens for lipsync, actorlife.js). Origin at ground level between the feet, facing +X.
 // userData.legL/legR/armL/armR are the hip/shoulder bones (rotated about Z
 // by callers); knees/elbows follow them automatically unless
 // animatePersonWalk or a pose sets them explicitly.
@@ -31,8 +33,9 @@ const NECK_Y = 1.49;
 const HEAD_Y = 1.655;
 const DEFAULT_CAP = 0xc8621e;
 
-const BONE = { pelvis: 0, chest: 1, head: 2, thigh: [3, 5], knee: [4, 6], arm: [7, 9], elbow: [8, 10], lids: 11 };
+const BONE = { pelvis: 0, chest: 1, head: 2, thigh: [3, 5], knee: [4, 6], arm: [7, 9], elbow: [8, 10], lids: 11, mouth: 12 };
 const LID_Y = HEAD_Y + 0.01; // hoogte van de ogen: de ooglidbot schaalt om deze lijn (schaal 0 = open, 1 = dicht)
+const MOUTH_Y = HEAD_Y - 0.049; // bovenlip: het mondbot schaalt van hier omlaag (schaal y 0 = dicht, 1 = open; z = breedte)
 
 // Meetspoor voor scripts/kleding_clipping_audit.mjs: met personProbe.layers aan onthoudt de bouwer welk stuk elke driehoek is (laag, vanaf driehoek n).
 // Uit is het niets: tag() kijkt alleen of B.layers bestaat.
@@ -440,6 +443,9 @@ function buildHead(B, L, skin) {
     const prev = B.bone;
     B.bone = BONE.lids;
     for (const s of [1, -1]) plate(B, faceX(0.01, s * 0.033) + 0.0045, LID_Y - 0.001, s * 0.033, 0.0145, 0.0155, -s * 0.4, shade(skin, 0.97));
+    // mondopening (lipsync, actorlife.js): een donker plaatje onder de bovenlip op een eigen bot (12); dicht = schaal 0, dus onzichtbaar
+    B.bone = BONE.mouth;
+    plate(B, faceX(-0.057, 0) + 0.0022, MOUTH_Y - 0.008, 0, 0.008, 0.0135, 0, 0x2a1512);
     B.bone = prev;
   }
 
@@ -1196,6 +1202,7 @@ function buildRig(L, shZ) {
   const chest = bone(0, CHEST_Y - HIP_Y, 0, pelvis);
   const head = bone(0, NECK_Y - CHEST_Y, 0, chest);
   const lids = bone(0.0, LID_Y - NECK_Y, 0, head);
+  const mouth = bone(0.0, MOUTH_Y - NECK_Y, 0, head);
   const bones = [pelvis, chest, head];
   const hipZ = L.female ? 0.084 : 0.088;
   const limbs = {};
@@ -1212,7 +1219,8 @@ function buildRig(L, shZ) {
     limbs[k] = { thigh, knee, arm, elbow };
   }
   bones[BONE.lids] = lids;
-  return { bones, pelvis, chest, head, lids, limbs };
+  bones[BONE.mouth] = mouth;
+  return { bones, pelvis, chest, head, lids, mouth, limbs };
 }
 
 // Main colours of the look buildPersonMesh(shirt, skin, { seed }) produces.
@@ -1246,7 +1254,15 @@ export function personPalette(shirt, skin, seed) {
   };
 }
 
+// Spelerfase (?mensen=q3, ADR 0052): de speelbare personages (opts.character: tammo, anita) worden een modulaire mens, ook in de
+// kledingkast, het pashokje, het winkelvoorbeeld en bij medespelers. scene3d.js zet dit aan; zonder rigs blijft het procedureel.
+let modularPlayers = false;
+export function setModularPlayerLooks(on) { modularPlayers = !!on; }
 export function buildPersonMesh(shirt, skin, opts = {}) {
+  if (modularPlayers && opts && opts.character && !opts.swim && modularReady()) {
+    const q = buildModularFromAppearance({ ...opts, shirt, skin });
+    if (q) return q;
+  }
   const L = resolveLook(shirt, skin, opts);
   L.topColor = L.cop ? COP_NAVY : shirt;
   L.skirtColor = L.pants;
@@ -1335,6 +1351,7 @@ export function buildPersonMesh(shirt, skin, opts = {}) {
   group.updateMatrixWorld(true);
   mesh.bind(new THREE.Skeleton(rig.bones));
   rig.lids.scale.y = 0; // pas na het binden: de inverse van een bot met schaal 0 bestaat niet
+  rig.mouth.scale.y = 0; // idem: de mond is dicht
 
   if (headScale !== 1) rig.head.scale.setScalar(headScale);
   trackHead(rig.head);
@@ -1343,6 +1360,7 @@ export function buildPersonMesh(shirt, skin, opts = {}) {
   ud.chest = rig.chest;
   ud.head = rig.head;
   ud.lids = rig.lids;
+  ud.mouth = rig.mouth;
   ud.legL = rig.limbs[0].thigh;
   ud.legR = rig.limbs[1].thigh;
   ud.kneeL = rig.limbs[0].knee;
@@ -1516,11 +1534,14 @@ export const SEAT_CONTACT = HIP_Y - 0.09;
 export const SEAT_CAR = { recline: 0.26, footX: 0.74, footY: -0.07, arms: 'lap' };
 
 export function seatedY(mesh, seatTop) {
+  if (mesh.userData && mesh.userData.qRig) return seatTop - modularSeatContact(mesh); // modulaire mens: het zitvlak van de zit-clip
   return seatTop - SEAT_CONTACT * (mesh.scale.y || 1);
 }
 
 export function seatPose(mesh, spec = SEAT_CAR, t = 0) {
   const ud = mesh.userData;
+  // modulaire mens (ADR 0051): de zit-clip uit de state-machine; seatedY zet hem op de zitting
+  if (ud.qRig) { ud.qParams = ud.qSitP || (ud.qSitP = { seated: true }); animateModular(mesh, 0, 1 / 60); return; }
   if (!ud.pelvis) return;
   resetSpine(ud);
   const rec = spec.recline || 0;
@@ -1537,10 +1558,13 @@ export function seatPose(mesh, spec = SEAT_CAR, t = 0) {
   legIK(ud.legR, ud.kneeR, fx2 - 0.03, fy2 + 0.01);
   if (spec.splay) { ud.legL.rotation.x = -spec.splay; ud.legR.rotation.x = spec.splay; }
   const lean = rec;
+  ud.wheelArms = spec.arms === 'wheel';
   switch (spec.arms) {
     case 'wheel':
       setArm(ud.armL, ud.elbowL, 0.95 + lean * 0.8, 0.55, -0.1);
       setArm(ud.armR, ud.elbowR, 0.95 + lean * 0.8, 0.55, 0.1);
+      // handen aan het stuur (actorlife.js): de rusthouding hierboven legt het wiel vast, de stuurhoek draait de grepen erover
+      if (ud.steer) steerHands(mesh, ud.steer);
       break;
     case 'helm':
       setArm(ud.armL, ud.elbowL, 0.62 + lean * 0.6, 0.75, -0.08);
@@ -1599,6 +1623,115 @@ export function seatPose(mesh, spec = SEAT_CAR, t = 0) {
   if (spec.arms !== 'paddle') setPropVisible(ud, 'paddleProp', false);
   setPropVisible(ud, 'supPaddle', false);
   ud.seated = true;
+}
+
+// ---- levendigheid (actorlife.js, epic 'Personages die leven') ----------------------------------------------
+
+const HAND_REACH = FOREARM + 0.07;   // pols tot het midden van de handpalm
+const _arm = { x: 0, z: 0, e: 0, reach: true }, _h = { x: 0, y: 0, z: 0 }, _g = { x: 0, y: 0, z: 0 }, _c = { x: 0, y: 0, z: 0 };
+
+// Hand k (0 of 1) naar een punt in de borstassen (x voor, y op, z opzij; oorsprong = het borstbot). Twee-bot-IK met grenzen.
+function reachChest(ud, k, x, y, z) {
+  const arm = k === 0 ? ud.armL : ud.armR, elbow = k === 0 ? ud.elbowL : ud.elbowR;
+  if (!arm) return false;
+  armIK(x - arm.position.x, y - arm.position.y, z - arm.position.z, UPPER_ARM, HAND_REACH, _arm);
+  setArm(arm, elbow, _arm.z, _arm.e, _arm.x);
+  return _arm.reach;
+}
+
+// Hand k naar een punt in de assen van de mens zelf (de groep van buildPersonMesh, zonder zijn schaal): door het bekken en de
+// borst heen (alleen hun kanteling om z, zoals bij zitten en fietsen). Geeft false als het punt buiten bereik lag (de arm strekt dan).
+export function reachHand(mesh, k, x, y, z) {
+  const ud = mesh && mesh.userData;
+  if (!ud || !ud.pelvis) return false;
+  const pel = ud.pelvis, ch = ud.chest;
+  let px = x - pel.position.x, py = y - pel.position.y, pz = z - pel.position.z;
+  let c = Math.cos(pel.rotation.z), s = Math.sin(pel.rotation.z);
+  let qx = px * c + py * s, qy = -px * s + py * c;
+  px = qx - ch.position.x; py = qy - ch.position.y; pz -= ch.position.z;
+  c = Math.cos(ch.rotation.z); s = Math.sin(ch.rotation.z);
+  qx = px * c + py * s; qy = -px * s + py * c;
+  return reachChest(ud, k, qx, qy, pz);
+}
+
+// Zoals reachHand, maar het punt in de assen van de ouder van de mens (een fiets, een stoel): positie, kanteling om z en schaal eraf.
+export function reachHandFromParent(mesh, k, x, y, z) {
+  const sx = mesh.scale.x || 1, sy = mesh.scale.y || 1, lean = mesh.rotation.z || 0;
+  const dx = x - mesh.position.x, dy = y - mesh.position.y, c = Math.cos(lean), s = Math.sin(lean);
+  return reachHand(mesh, k, (dx * c + dy * s) / sx, (-dx * s + dy * c) / sy, (z - mesh.position.z) / sx);
+}
+
+// Handen aan het stuur bij stuurinvoer steer (-1..1, + = rechtsaf): het wiel ligt waar de rusthouding van 'wheel' de handen legt,
+// de grepen draaien met de stuurhoek mee over de rand (geen overpakken). Alleen de armen; roep na seatPose aan, elk frame dat het stuur beweegt.
+export function steerHands(mesh, steer) {
+  const ud = mesh && mesh.userData;
+  if (!ud || !ud.armL || !ud.chest) return;
+  const rec = ud.chest.rotation.z;
+  const z0 = 0.95 + rec * 0.8;
+  // de rustgrepen (voorwaartse kinematica van de rusthouding) leggen middelpunt en straal van het wiel vast
+  armFK(-0.1, z0, 0.55, UPPER_ARM, HAND_REACH, _h);
+  const ax = ud.armL.position.x, ay = ud.armL.position.y, az = ud.armL.position.z;
+  _c.x = ax + _h.x; _c.y = ay + _h.y; _c.z = az + _h.z;
+  const rad = Math.max(0.12, Math.abs(_c.z));
+  const ang = -Math.max(-1, Math.min(1, Number.isFinite(steer) ? steer : 0)) * STEER_TURN;
+  const tilt = 0.5 - rec;
+  for (const k of [0, 1]) {
+    wheelGrip(_c.x, _c.y, rad, tilt, ang, k === 0 ? 1 : -1, _g);
+    reachChest(ud, k, _g.x, _g.y, _g.z);
+  }
+}
+
+// Mond: open 0..1 (kaak), wide = breedte (1 = rust). Schrijft alleen als de stand verandert (de skeletontextuur blijft dan staan).
+export function setMouth(ud, open, wide = 1) {
+  const m = ud && ud.mouth;
+  if (!m) return;
+  const y = open > 0.01 ? Math.min(1, open) : 0, z = y > 0 ? wide : 1;
+  if (m.scale.y !== y) m.scale.y = y;
+  if (m.scale.z !== z) m.scale.z = z;
+}
+const _mouth = { open: 0, wide: 1 };
+// Kaak 0..1 plus een stemming ('lach', 'schrik', 'boos' of niets) naar de mond (actorlife.js mouthShape).
+export function speakMouth(ud, jaw, mood = null) {
+  mouthShape(jaw, mood, _mouth);
+  setMouth(ud, _mouth.open, _mouth.wide);
+}
+
+// Voeten op de grond (twee-bot-IK met heupcompensatie): ground(x, y) geeft de hoogte van het oppervlak op wereldpunt (x, y)
+// (map.surfaceAt, één hoogtevraag per voet). Na animatePersonWalk; de heup zakt zo ver als de laagste voet onder het middelpunt
+// ligt en elk been reikt naar zijn eigen grond, zodat iemand op een helling of trap niet met één voet zweeft. w = gewicht 0..1.
+// Geeft true als er iets veranderde. Geen allocaties.
+const _plant = { drop: 0, liftL: 0, liftR: 0 }, _ank = [{ x: 0, y: 0 }, { x: 0, y: 0 }], _leg = { a: 0, b: 0, reach: true };
+export function plantFeet(mesh, ground, w = 1) {
+  const ud = mesh && mesh.userData;
+  if (ud && ud.qRig) return plantFeetModular(mesh, ground, w);
+  if (!ud || !ud.pelvis || !ud.legL || !(w > 0) || typeof ground !== 'function') return false;
+  const sx = mesh.scale.x || 1, sy = mesh.scale.y || 1;
+  const h = -mesh.rotation.y, ch = Math.cos(h), sh = Math.sin(h);
+  const pel = ud.pelvis, pc = Math.cos(pel.rotation.z), ps = Math.sin(pel.rotation.z);
+  const base = mesh.position.y;
+  let dL = 0, dR = 0;
+  for (let k = 0; k < 2; k++) {
+    const thigh = k === 0 ? ud.legL : ud.legR, knee = k === 0 ? ud.kneeL : ud.kneeR;
+    const a = _ank[k];
+    twoBoneFK(thigh.rotation.z, knee.rotation.z, THIGH_LEN, SHIN_LEN, a);
+    const lx = (pel.position.x + a.x * pc - a.y * ps) * sx, lz = (pel.position.z + thigh.position.z) * sx;
+    const g = ground(mesh.position.x + ch * lx - sh * lz, mesh.position.z + sh * lx + ch * lz);
+    const d = Number.isFinite(g) ? (g - base) / sy : 0;
+    if (k === 0) dL = d; else dR = d;
+  }
+  if (Math.abs(dL) < 0.008 && Math.abs(dR) < 0.008) return false;
+  footPlant(dL, dR, _plant);
+  pel.position.y -= _plant.drop * w;
+  for (let k = 0; k < 2; k++) {
+    const thigh = k === 0 ? ud.legL : ud.legR, knee = k === 0 ? ud.kneeL : ud.kneeR;
+    const a = _ank[k], lift = k === 0 ? _plant.liftL : _plant.liftR;
+    // de lift is verticaal in de wereld; in de assen van het (gekantelde) bekken
+    twoBoneIK(a.x + lift * ps, a.y + lift * pc, THIGH_LEN, SHIN_LEN, -1, _leg);
+    const k0 = knee.rotation.z, t0 = thigh.rotation.z;
+    thigh.rotation.z = t0 + (_leg.a - t0) * w;
+    knee.rotation.z = k0 + (_leg.b - k0) * w;
+  }
+  return true;
 }
 
 // Legacy entry point: the car pose, hands on the wheel when driving.
@@ -1709,6 +1842,7 @@ export function juichOverlay(mesh, t, links, rechts, spring, k = 1) {
 // Arms forward under a load (side-job boxes).
 export function carryOverlay(mesh) {
   const ud = mesh.userData;
+  if (ud.qRig) { modularHoldPose(mesh, 'front'); return; }
   if (!ud.armL) return;
   setArm(ud.armL, ud.elbowL, 0.75, 1.15, 0.12);
   setArm(ud.armR, ud.elbowR, 0.75, 1.15, -0.12);
@@ -1884,10 +2018,11 @@ export function buildWeaponMesh(key) {
 // Shows the held weapon (null / 'fists' hides it).
 export function setHeldWeapon(mesh, weapon) {
   const ud = mesh && mesh.userData;
-  if (!ud || !ud.elbowR) return;
+  if (!ud || !(ud.elbowR || ud.qRig)) return;
   const key = GUN_SPECS[weapon] ? weapon : null;
   if (ud.gunKey === key) return;
   ud.gunKey = key;
+  if (ud.qRig) setModularGrip(mesh, !!key);   // modulaire mens (ADR 0050): de hand sluit zich om de greep
   if (!ud.guns) ud.guns = {};
   for (const k in ud.guns) ud.guns[k].visible = false;
   ud.muzzle = null;
@@ -1897,13 +2032,13 @@ export function setHeldWeapon(mesh, weapon) {
     g = new THREE.Group();
     const spec = GUN_SPECS[key];
     for (const l of weaponLayers(key)) { const m = new THREE.Mesh(l.geometry, l.material); m.castShadow = true; g.add(m); }
-    // pivot in the palm, so the gun can tilt forward while the arm hangs
-    g.position.set(0.01, HAND_Y, 0);
+    // pivot in the palm, so the gun can tilt forward while the arm hangs (modulair: in de houder aan de pols, modularpeople.js)
+    if (ud.qRig) g.position.fromArray(MODULAR_GRIP_AT); else g.position.set(0.01, HAND_Y, 0);
     const tip = new THREE.Object3D();
     tip.position.set(0.035, -spec.tip, 0);
     g.add(tip);
     g.userData.tip = tip;
-    ud.elbowR.add(g);
+    (ud.qRig ? modularHandSocket(mesh) : ud.elbowR).add(g);
     ud.guns[key] = g;
   }
   g.visible = true;
@@ -1985,6 +2120,7 @@ function swingPose(ud, swing, u, gun) {
 
 export function applyAttackPose(mesh, fx, now, aiming = null) {
   const ud = mesh && mesh.userData;
+  if (ud && ud.qRig) { modularAttack(mesh, ud, fx, now, aiming); return; }
   if (!ud || !ud.armR || !ud.armL) return;
   const spec = ud.gunKey ? GUN_SPECS[ud.gunKey] : null;
   const gun = spec && ud.guns ? ud.guns[ud.gunKey] : null;
@@ -2035,6 +2171,20 @@ export function applyAttackPose(mesh, fx, now, aiming = null) {
     if (ud.chest) ud.chest.rotation.z += chestK * kick * hold;
     if (ud.head) ud.head.rotation.z += chestK * 0.6 * kick * hold;
   }
+}
+
+// Aanvallen op een modulaire mens (modularpeople.js modularAttackPose): dezelfde tijden als hierboven, de bewegingen uit de UAL-clips.
+function modularAttack(mesh, ud, fx, now, aiming) {
+  const spec = ud.gunKey ? GUN_SPECS[ud.gunKey] : null;
+  const gun = spec && ud.guns ? ud.guns[ud.gunKey] : null;
+  const shot = fx && (fx.type === 'muzzle' || fx.type === 'squirt');
+  if (gun) gun.rotation.z = (aiming || (shot && now - fx.start < AIM_HOLD_S)) && !spec.melee ? 0 : spec.rest ?? 0.95;
+  const dt = fx && fx.start !== undefined ? now - fx.start : -1;
+  const swing = fx && dt >= 0 && (fx.type === 'throw' ? 'throw' : fx.type === 'melee' && fx.swing !== 'jab' ? fx.swing : null);
+  if (swing && SWING_S[swing] && dt < SWING_S[swing]) { modularAttackPose(mesh, 'cross', dt / SWING_S[swing]); return; }
+  if (fx && fx.type === 'melee' && dt >= 0 && dt < PUNCH_S) { modularAttackPose(mesh, fx.side > 0 ? 'cross' : 'jab', dt / PUNCH_S); return; }
+  if (shot && dt >= 0 && dt < AIM_HOLD_S) { modularAttackPose(mesh, 'shoot', dt / AIM_HOLD_S, aiming ? 1 : 1 - smoothstep(AIM_HOLD_S - 0.2, AIM_HOLD_S, dt)); return; }
+  if (aiming) modularAttackPose(mesh, 'aim', 0, 1);
 }
 
 // Hit reaction for someone shot but still standing: the torso snaps away
@@ -2238,6 +2388,7 @@ const UMBRELLA_TILT = new THREE.Quaternion().setFromEuler(new THREE.Euler(-0.06,
 // walk/run weights ease in and out so starts and stops blend smoothly.
 export function animatePersonWalk(mesh, speed, dt) {
   const ud = mesh && mesh.userData;
+  if (ud && ud.qRig) { animateModular(mesh, speed, dt); return; } // modulaire mens (modularpeople.js, ADR 0050, fase 1)
   if (!ud || !ud.legL || !ud.legR || !ud.armL || !ud.armR) return;
 
   const s = Number.isFinite(speed) ? Math.max(0, speed) : 0;

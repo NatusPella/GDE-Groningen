@@ -4,6 +4,7 @@
 // game's style; geometry and material are shared.
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { GeoBuilder, vcMaterial, markShared, composeMatrix } from './pixelart3d.js';
+import { modularHoldPose } from './modularpeople.js';
 
 let mat = null;
 const geos = new Map();
@@ -95,6 +96,7 @@ const CARRY = {
 export function carryPose(mesh, kind) {
   const spec = CARRY[kind];
   const ud = mesh.userData;
+  if (spec && spec.arms && ud.qRig) { modularHoldPose(mesh, spec.arms === 'up' ? 'up' : 'front'); return; }   // modulaire mens (ADR 0050)
   if (!spec || !spec.arms || !ud.armL) return;
   if (spec.arms === 'up') {
     ud.armL.rotation.set(-0.15, 0, 2.75);

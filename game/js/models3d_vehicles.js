@@ -3,7 +3,7 @@ import { LRUCache } from './lrucache.js';
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { applyVehicleLook } from './vehiclelook3d.js'; // epic Autotuning (#1155): v.look komt er na het bouwen op
 import { HABBO_PALETTE, habboMaterial, GeoBuilder, vcMaterial, markShared, composeMatrix, tubeGeometry } from './pixelart3d.js';
-import { buildPersonMesh, PERSON_RIG, holdPhoneRiding } from './models3d_people.js';
+import { buildPersonMesh, PERSON_RIG, holdPhoneRiding, reachHandFromParent, steerHands } from './models3d_people.js';
 import { boatKind, boatHasCabin } from './boattypes.js';
 import { CANOPY, RAIL } from './boatdeck.js';
 import { midibusDeurXs } from './businterieur.js';
@@ -2584,6 +2584,10 @@ function buildBikeMesh(v) {
   const hipY = fat ? 0.93 : 1.02;
   rider.position.set(fat ? -0.26 : -0.3, hipY - 0.93 * rider.scale.y, 0);
   poseRider(rider, fat ? 0.55 : 0.33, fat ? 0.95 : 0.85, -0.08);
+  // handen aan het stuur (actorlife.js): de grepen van bikeStuurOnderdelen; dichtbij draaien ze mee met het stuur (voertuigbediening.js)
+  group.userData.riderMesh = rider;
+  group.userData.riderGrip = bikeGrip(fat);
+  bikeHands(rider, group.userData.riderGrip, 0);
   if (!fat && v.isBike && v.driver !== 'player' && !v.wrecked && hash2((v.id || 0) * 1.9, 7.3) < 0.18) holdPhoneRiding(rider);
   group.add(rider);
   group.userData.riderLegs = { legs: [rider.userData.legL, rider.userData.legR], base: fat ? 0.55 : 0.33, amp: 0.2 };
@@ -3890,6 +3894,21 @@ export const buildShipMesh = (v) => { const mesh = buildBoatMesh(v); retainCache
 // Stuurstang, stuurpen en handvatten van een fiets, step en brommer als eigen onderdeel: dichtbij vervangt
 // voertuigbediening.js de carrosseriegeometrie door de variant zonder stuur en tekent dit onderdeel draaiend
 // om de stuurpen. Geometrie wordt gedeeld (cached); px = de x van de stuurpen (het draaipunt).
+// Het midden van een handvat (bikeStuurOnderdelen): x, hoogte en halve breedte in de assen van de fiets; px = de stuuras.
+function bikeGrip(fat) {
+  const H1y = fat ? 0.82 : 0.93;
+  return { x: 0.13, y: H1y + 0.115, z: 0.28, px: 0.38 };
+}
+// Beide handen van de fietser op de handvatten, het stuur gedraaid over hoek a (rad, zoals stuurstang.rotation.y).
+export function bikeHands(rider, grip, a) {
+  if (!rider || !grip) return;
+  const c = Math.cos(a), s = Math.sin(a), dx = grip.x - grip.px;
+  for (const k of [0, 1]) {
+    const z = k === 0 ? grip.z : -grip.z;
+    reachHandFromParent(rider, k, grip.px + dx * c + z * s, grip.y, -dx * s + z * c);
+  }
+}
+
 function bikeStuurOnderdelen(B, fat, px) {
   const H1 = [0.4, fat ? 0.82 : 0.93, 0];
   const stemTop = [H1[0] - 0.02, H1[1] + 0.14, 0];
@@ -3976,6 +3995,12 @@ export function updateVehicleWheelSpin(mesh, speed, dt, steer = 0) {
   const cap = ud.spinStep || SPIN_STEP;
   const shown = Math.max(-cap, Math.min(cap, delta));
   for (const w of wheels) w.rotation.z -= shown * (w.userData.spinK || 1);
+  // de bestuurder draait mee aan het stuur (actorlife.js), alleen als hij te zien is en het stuur echt bewoog
+  const df = ud.driverFigure;
+  if (df && df.visible && df.userData.wheelArms && Math.abs(steer - (df.userData.steer || 0)) > 0.02) {
+    df.userData.steer = steer;
+    steerHands(df, steer);
+  }
   const fw = ud.frontWheels;
   if (fw) {
     const a = -steer * MAX_STEER_ANGLE;

@@ -33,6 +33,17 @@
 
 import { zwemStand, klimStand, sprongStand } from './bewegingrules.js';
 import { blinkAmount } from './gait.js';
+import { gazeSplit, HEAD_YAW_MAX, CHEST_SHARE, pitchTo, jawFromLevel, lipsyncStep, babbleEnvelope, gaitWeights, crossfade, mouthShape } from './actorlife.js';
+
+// Lipsync (actorlife.js): de glue (cutscenehost.js) geeft hier het niveau van de stem die nu klinkt (audio.js voiceLevel, RMS 0..1,
+// of null zonder stem). Zonder bron of zonder stem praat een acteur op een vaste lettergreepcurve (babbleEnvelope).
+let voiceLevelFn = null;
+export function setVoiceLevelSource(fn) { voiceLevelFn = typeof fn === 'function' ? fn : null; }
+const _gz = { chestY: 0, headY: 0, headZ: 0, w: 0 };
+const _gw = { idle: 1, walk: 0, run: 0 };
+const _ms = { open: 0, wide: 1 };
+const EYE_STAND = 1.62, EYE_SIT = 1.2;
+const MOOD_OF = { lach: 'lach', schrik: 'schrik', juich: 'lach' };
 
 const TAU = Math.PI * 2;
 // (#463) De heupzwaai van een lopende acteur blijft binnen een stap; de volle
@@ -138,6 +149,7 @@ export function neutralPose() {
     head: { x: 0, y: 0, z: 0 },
     armL: { x: 0, z: 0.08, e: 0.15 }, armR: { x: 0, z: 0.08, e: 0.15 },
     legL: { z: 0, k: -0.06 }, legR: { z: 0, k: -0.06 },
+    mouth: 0, mouthWide: 1,
   };
 }
 
@@ -156,6 +168,11 @@ export function applyPose(ud, p) {
   if (ud.legL) { ud.legL.rotation.set(0, 0, p.legL.z); if (ud.kneeL) ud.kneeL.rotation.z = p.legL.k; }
   if (ud.legR) { ud.legR.rotation.set(0, 0, p.legR.z); if (ud.kneeR) ud.kneeR.rotation.z = p.legR.k; }
   if (ud.lids) { const v = blinkAmount(Date.now() / 1000, ud.animOffset || 0); if (ud.lids.scale.y !== v) ud.lids.scale.y = v; } // ogen knipperen ook in een cutscene
+  if (ud.mouth) { // lipsync (actorlife.js): alleen schrijven als de stand verandert
+    const my = p.mouth > 0.01 ? Math.min(1, p.mouth) : 0, mz = my > 0 ? finite(p.mouthWide, 1) : 1;
+    if (ud.mouth.scale.y !== my) ud.mouth.scale.y = my;
+    if (ud.mouth.scale.z !== mz) ud.mouth.scale.z = mz;
+  }
   return true;
 }
 
@@ -263,8 +280,8 @@ const GESTURE_FN = {
 
 // ---- acteur ---------------------------------------------------------------------------
 
-const GAZE_HEAD_MAX = 0.95;   // rad, hoek waarbij het hoofd niet verder draait
-const GAZE_CHEST_SHARE = 0.3; // deel van de hoek dat de romp meedraait
+const GAZE_HEAD_MAX = HEAD_YAW_MAX;   // rad, hoek waarbij het hoofd niet verder draait (actorlife.js)
+const GAZE_CHEST_SHARE = CHEST_SHARE; // deel van de hoek dat de romp meedraait (actorlife.js)
 const TURN_RATE = 3.2;        // rad/s lichaamsdraai
 
 function emptyEnv() { return { w: 0, t: 0, dur: 0, kind: null, s: 1 }; }
@@ -292,6 +309,9 @@ function createActor(id, opts = {}) {
     events: [],
     pose: neutralPose(),
     gestureBeat: -1,
+    jaw: 0, gazePitch: 0, runBlend: 0,
+    voiced: true,             // false: de stem van deze acteur klinkt niet (een gast, een omstander): dan de lettergreepcurve
+    lod: 0,                   // 1 of meer: ver van de camera, geen lipsync en geen hoofdknik naar het doel
     resolve: opts.resolve || null,  // (actor) -> doelpunt voor kijk-naar-acteur, door stage gezet
   };
   return a;
@@ -452,6 +472,15 @@ function updateActor(a, dt) {
       rel = wrapAngle(Math.atan2(gp.z - a.z, gp.x - a.x) - a.heading);
     }
   }
+  // kijkhoogte: ogen van de acteur tegen het doel (een andere acteur: zijn ogen; een punt met y: dat punt), met grenzen in actorlife.js
+  let pitch = 0;
+  if (gp && !(a.lod > 0)) {
+    const ownEye = (a.pose ? a.pose.y : a.groundY) + (a.sit > 0.5 ? EYE_SIT : EYE_STAND);
+    const o = a.gaze && a.gaze.actor;
+    const ty = o ? (o.pose ? o.pose.y : finite(o.groundY)) + (o.sit > 0.5 ? EYE_SIT : EYE_STAND) : Number.isFinite(gp.y) ? gp.y : ownEye;
+    pitch = pitchTo(ty - ownEye, Math.hypot(gp.x - a.x, gp.z - a.z));
+  }
+  a.gazePitch = lerp(a.gazePitch, pitch, Math.min(1, step * 6));
   a.gazeBlend = approach(a.gazeBlend, gp ? 1 : 0, step * 4);
   a.gazeRel = lerp(a.gazeRel || 0, clamp(rel, -GAZE_HEAD_MAX / (1 - GAZE_CHEST_SHARE), GAZE_HEAD_MAX / (1 - GAZE_CHEST_SHARE)), Math.min(1, step * 8));
 
@@ -459,7 +488,8 @@ function updateActor(a, dt) {
   const st = a.stance;
   st.k = Math.min(1, st.k + step / 1.2);
   st.next -= step;
-  if (st.next <= 0 && a.mode === 'staan' && !a.talk) {
+  if (a.stanceFree === false && st.to !== 'neutraal' && st.k >= 1) { st.from = st.to; st.to = 'neutraal'; st.k = 0; }
+  if (st.next <= 0 && a.mode === 'staan' && !a.talk && a.stanceFree !== false) {
     st.from = st.to;
     st.to = STANCE_KEYS[Math.floor(a.rng() * STANCE_KEYS.length)];
     st.k = 0; st.next = 6 + a.rng() * 9;
@@ -491,17 +521,22 @@ function updateActor(a, dt) {
 
   // lopen
   const w = a.walkBlend;
+  // lopen en rennen lopen in elkaar over (actorlife.js gaitWeights, een overgang van 0,3 s): een rennende acteur zwaait verder,
+  // buigt zijn ellebogen en helt naar voren, zoals animatePersonWalk in het spel
+  gaitWeights(a.speed, _gw);
+  a.runBlend = crossfade(a.runBlend, w > 0 ? _gw.run / Math.max(0.01, 1 - _gw.idle) : 0, step, 0.3);
   if (w > 0) {
-    const ph = a.walkPhase, sp = a.speed;
-    const amp = Math.min(MAX_HIP_SWING, 0.42 * w + 0.1 * Math.min(1, sp / 3)), c = Math.max(0, Math.cos(ph + 0.5)), c2 = Math.max(0, Math.cos(ph + Math.PI + 0.5));
+    const ph = a.walkPhase, sp = a.speed, rr = a.runBlend;
+    const amp = Math.min(MAX_HIP_SWING + 0.21 * rr, 0.42 * w + 0.1 * Math.min(1, sp / 3) + 0.43 * rr), c = Math.max(0, Math.cos(ph + 0.5)), c2 = Math.max(0, Math.cos(ph + Math.PI + 0.5));
+    const kneeSwing = 0.95 + 0.95 * rr, armAmp = 0.3 + 0.45 * rr, elbow = 0.12 + 1.25 * rr;
     const walkPose = neutralPose();
-    walkPose.legL.z = amp * Math.sin(ph); walkPose.legR.z = -amp * Math.sin(ph);
-    walkPose.legL.k = -(0.08 + 0.95 * Math.pow(c, 1.5)); walkPose.legR.k = -(0.08 + 0.95 * Math.pow(c2, 1.5));
-    walkPose.armL.z = -0.3 * Math.sin(ph); walkPose.armR.z = 0.3 * Math.sin(ph);
-    walkPose.armL.e = 0.12 + 0.35 * Math.max(0, Math.sin(-ph)); walkPose.armR.e = 0.12 + 0.35 * Math.max(0, Math.sin(ph));
+    walkPose.legL.z = 0.1 * rr + amp * Math.sin(ph); walkPose.legR.z = 0.1 * rr - amp * Math.sin(ph);
+    walkPose.legL.k = -(0.08 + 0.25 * rr + kneeSwing * Math.pow(c, 1.5)); walkPose.legR.k = -(0.08 + 0.25 * rr + kneeSwing * Math.pow(c2, 1.5));
+    walkPose.armL.z = -armAmp * Math.sin(ph) + 0.08 * rr; walkPose.armR.z = armAmp * Math.sin(ph) + 0.08 * rr;
+    walkPose.armL.e = elbow + 0.35 * (1 - rr) * Math.max(0, Math.sin(-ph)); walkPose.armR.e = elbow + 0.35 * (1 - rr) * Math.max(0, Math.sin(ph));
     walkPose.chest.y = -0.2 * Math.sin(ph); walkPose.pelvisRY = 0.1 * Math.sin(ph);
-    walkPose.pelvisDrop = -0.018 * Math.cos(2 * ph);
-    walkPose.chest.z = -0.03;
+    walkPose.pelvisDrop = -0.018 * Math.cos(2 * ph) + 0.035 * rr;
+    walkPose.chest.z = -0.03 - 0.2 * rr;
     blendPose(p, walkPose, w);
   }
 
@@ -518,11 +553,10 @@ function updateActor(a, dt) {
   // kijken: hoofd (en deel romp) naar het doel
   if (a.gazeBlend > 0) {
     const gb = smooth(a.gazeBlend);
-    const total = -a.gazeRel;   // rotation.y > 0 draait naar -heading
-    const chestY = total * GAZE_CHEST_SHARE, headY = total - chestY;
-    p.chest.y += chestY * gb * (1 - w);
-    p.head.y += headY * gb;
-    p.head.x += 0.0;
+    gazeSplit(a.gazeRel, a.gazePitch, _gz);   // rotation.y > 0 draait naar -heading; grenzen in actorlife.js
+    p.chest.y += _gz.chestY * gb * (1 - w);
+    p.head.y += _gz.headY * gb;
+    p.head.z += _gz.headZ * gb;
   }
 
   if (a.directGaze !== undefined) p.head.y += -a.directGaze;
@@ -563,6 +597,19 @@ function updateActor(a, dt) {
       REACTIONS[r.kind].fn(p, env * (1 - w * 0.5), k, r.t, r.s);
     }
   }
+
+  // mond: lipsync op de stem (of de lettergreepcurve) tijdens praten, mimiek bij een reactie (actorlife.js)
+  if (!(a.lod > 0)) {
+    let target = 0;
+    if (a.talk) {
+      const lvl = a.voiced && voiceLevelFn ? voiceLevelFn() : null;
+      target = Number.isFinite(lvl) ? jawFromLevel(lvl) : babbleEnvelope(a.talk.t, a.seed % 1);
+    }
+    a.jaw = lipsyncStep(a.jaw, target, step);
+    const mood = a.react.kind ? MOOD_OF[a.react.kind] || null : null;
+    mouthShape(a.jaw, mood, _ms);
+    p.mouth = mood ? _ms.open * smooth(Math.min(1, a.react.t / 0.12)) : _ms.open; p.mouthWide = _ms.wide;
+  } else a.jaw = 0;
 
   // wereldpositie
   p.x = a.x; p.z = a.z; p.heading = a.heading;
@@ -647,8 +694,26 @@ const meshActors = new WeakMap();
 const rolActors = new Map();
 export function beginSceneActors() { rolActors.clear(); }
 
+// Modulaire mensen (ADR 0050/0051): dezelfde aanroep, een andere runtime. De glue (cutscenehost.js) zet de haak naar
+// modularpeople.js animateModularActor; deze laag rekent hier alleen de kaak uit (lipsync op de stem of de lettergreepcurve).
+let modularHook = null;
+export function setModularActorHook(fn) { modularHook = typeof fn === 'function' ? fn : null; }
+
 export function animateActor(mesh, o = {}) {
   const ud = mesh && mesh.userData;
+  if (ud && ud.qRig) {
+    if (o.verberg) { mesh.visible = false; return true; }
+    if (!modularHook) return false;
+    const anim = ANIMS.includes(o.anim) ? o.anim : 'idle';
+    const step = clamp(finite(o.dt), 0, 0.1);
+    const talk = anim === 'talk' || !!o.speaking;
+    ud.qTalkT = talk ? (ud.qTalkT || 0) + step : 0;
+    const lvl = talk && o.voiced !== false && voiceLevelFn ? voiceLevelFn() : null;
+    const target = talk ? (Number.isFinite(lvl) ? jawFromLevel(lvl) : babbleEnvelope(ud.qTalkT, (ud.animOffset || 0) % 1)) : 0;
+    ud.qJaw = lipsyncStep(ud.qJaw || 0, target, step);
+    modularHook(mesh, anim, Math.max(0, finite(o.speed)), clamp(finite(o.gaze), -1, 1), step, ud.qJaw, !!o.seated);
+    return true;
+  }
   if (!ud || !ud.pelvis) return false;
   // (#434) een tweede kopie van dezelfde rol in dezelfde scène: niet tekenen en niet poseren
   if (o.verberg) { mesh.visible = false; return true; }
@@ -656,12 +721,16 @@ export function animateActor(mesh, o = {}) {
   let a = rol ? rolActors.get(rol) : meshActors.get(mesh);
   if (!a) {
     a = createActor('mesh', { seed: finite(ud.lookSeed, Math.random()) });
-    a.stance.next = 1e9;
+    a.stance.next = 5 + a.rng() * 6;
     if (rol) rolActors.set(rol, a); else meshActors.set(mesh, a);
   }
   const anim = ANIMS.includes(o.anim) ? o.anim : 'idle';
   const speed = Math.max(0, finite(o.speed));
   a.drivenSpeed = speed > 0.05 ? speed : 0;
+  // idle-variatie alleen bij stilstaan zonder opdracht; elke andere animatie zet de houding terug naar neutraal
+  a.stanceFree = anim === 'idle';
+  a.lod = Math.max(0, finite(o.lod));
+  a.voiced = o.voiced !== false;
   a.directGaze = clamp(finite(o.gaze), -1, 1);
   a.hold = HOLD[anim] ? anim : null;
   if (anim === 'hips') a.hold = 'hips';

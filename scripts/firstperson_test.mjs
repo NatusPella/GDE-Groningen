@@ -135,7 +135,7 @@ ok(sceneRegels < 4500, 'scene3d.js blijft onder de omvangsgrens van #497 (4500 r
 // De module doet het echte werk: hoofdbot als oog, terugval, muisLOOK, kijkvector, interieur.
 ok(/playerMesh\.userData\.head/.test(fpc) && /head\.matrixWorld\.elements/.test(fpc), 'firstpersoncam.js zet de camera op de hoofdbot van het eigen figuur');
 ok(/firstPersonEye\(player, _altEye\)/.test(fpc), 'firstpersoncam.js heeft de terugval op de spelerstand, zonder allocatie per frame');
-ok(/addLookPitch\(world,/.test(fpc) && /lookVector\(camAngle, clampPitch\(st\.pitch\), _dir\)/.test(fpc),
+ok(/addLookPitch\(world,/.test(fpc) && /lookVector\(camAngle, clampPitch\(st\.pitch\b[^;]*, _dir\)/.test(fpc),
   'firstpersoncam.js heeft muisLOOK en de kijkvector in een tijdelijk object');
 ok(/updateCarInterior\(pvMesh, pv, view \|\| !!interiorCamera\)/.test(fpc), 'firstpersoncam.js toont het gedetailleerde interieur ook in eerste persoon');
 ok(/interiorMesh/.test(fpc) && /visible = false/.test(fpc), 'firstpersoncam.js zet het interieur weer weg als je uitstapt');

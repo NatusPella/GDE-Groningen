@@ -94,6 +94,12 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 - Vrachtwagens klinken als een lage diesel in plaats van als een gewone auto.
 - Trailer en benchmark: de tros gele bollen boven de tankwagen op de Europaweg is weg. Uit de aftapkraan lekt nu een spoor frituurvet op het asfalt. De tekst is *Dertienduizend liter frituurvet.* (Europaweg) in plaats van *Al het vet van Grunn.*
 - M07 Al het vet van Grunn: bij de groothandel staan vaten frituurvet naast de tankwagen en de snackbarhouders hebben jerrycans bij zich; bij de Oosterpoort staan de eerste gevulde jerrycans en een vat op de grond. Vat en jerrycan komen uit het centrale register, met drie detailniveaus.
+- Personages die leven: wie praat beweegt zijn mond mee met de stem (in cutscenes en aan tafel; zonder geluid op een eigen ritme), een lach of schrik is aan de mond te zien, en wie luistert kijkt de spreker ook omhoog of omlaag aan.
+- Personages die leven: voeten staan op de grond op hellingen en trappen (de heup zakt mee naar de lage voet), de handen van een bestuurder draaien mee aan het stuur en een fietser houdt de handvatten vast, ook als het stuur draait.
+- Cutscenes: een acteur die rent zwaait verder met zijn armen en helt naar voren, met een vloeiende overgang van lopen naar rennen; wie stilstaat wisselt af en toe van houding.
+- Samen spelen: voeten, handen, blik en mond rekent elke speler lokaal uit wat hij al ziet (positie, snelheid, grond, stuurstand); er gaat niets extra over het netwerk.
+- Mensen: alle mensen zijn nu de nieuwe, modulaire mensen van Quaternius (CC0): voorbijgangers, in cutscenes en als speler, met hun eigen animaties en die uit de Universal Animation Library: zitten, rijden, zwemmen, springen, hurken, praten en een val zonder bloed. Iedereen behoudt de eigen kleding; ogen knipperen en de mond beweegt met de stem. Aan het stuur en op de fiets sluiten hun handen zich om het stuur. Ze houden wapens in een gesloten hand, richten, schieten en slaan met hun eigen bewegingen en dragen een bank of matras met beide handen; in eerste persoon zie je je eigen onderarmen met mouw en vuist. Verre voorbijgangers (vanaf 75 m) lopen als lichte menigte mee, zodat een drukke straat ver weg niet leeg is en het spel er niet zwaarder van wordt. Met `?mensen=oud` komen de oude mensen terug, als noodschakelaar.
+- Binnencamera in voertuigen: de camera kijkt per soort voertuig iets omlaag, zodat het stuur onderin beeld staat in plaats van eronder te verdwijnen.
 
 ## [0.65.0] - 2026-11-22
 

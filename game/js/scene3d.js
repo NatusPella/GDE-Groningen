@@ -30,7 +30,7 @@ import {
 } from './vehicle.js';
 import { DEAD_DURATION } from './pedconst.js';
 import { attachCarry, carryPose } from './streetlife3d.js';
-import { buildPersonMesh, releasePersonGeometry, animatePersonWalk, applyAttackPose, applyHitReaction, setHeldWeapon, seatPose, seatedY, waveOverlay, juichOverlay, carryOverlay, TAMMO_APPEARANCE, ANITA_APPEARANCE } from './models3d_people.js';
+import { buildPersonMesh, setModularPlayerLooks, releasePersonGeometry, animatePersonWalk, plantFeet, applyAttackPose, applyHitReaction, setHeldWeapon, seatPose, seatedY, waveOverlay, juichOverlay, carryOverlay, TAMMO_APPEARANCE, ANITA_APPEARANCE } from './models3d_people.js';
 import { syncDoorsNear, vraagVoorAnim } from './vehicledoors3d.js';
 import { syncCabins } from './cabin3d.js';
 import { updateRitCabine, syncTreinKader } from './ritcabine3d.js';
@@ -39,7 +39,7 @@ import { syncAutoStuur } from './autointerieur.js';
 import { syncVoertuigBediening } from './voertuigbediening.js';
 import { syncHaltefiguren } from './haltefiguren3d.js';
 import { seatedOf } from './occupants.js';
-import { vehicleSeat, placeSeated, makeSeatTracker, trackSeat, drawTransition, syncBoatCrew } from './seating3d.js';
+import { vehicleSeat, placeSeated, placeSeatedLocal, makeSeatTracker, trackSeat, drawTransition, syncBoatCrew } from './seating3d.js';
 import { vehicleHeight } from './vaultkit.js';
 // #497: de pure camera-meetkunde (volgcam buiten de wagen, prop- en boomray, ellipsoïde) staat in cammath.js.
 import { camClearOfVehicle, rayCylinder, segHitsEllipsoid, vehicleCamRig } from './cammath.js';
@@ -113,6 +113,9 @@ import { streamLead } from './streambudget.js';
 import { fadeBand, loadRadius } from './popinrules.js';
 import { VIEW_DISTANCES, viewDistanceFor, detailDistanceFor, fogRange, DETAIL_BASE } from './viewdist.js';
 import { glanceAt, shareFeet } from './gait.js';
+import { lifeTier } from './actorlife.js';
+import { createFarCrowd, FAR_CROWD_FROM, FAR_CROWD_BACK } from './farcrowd3d.js';
+import { loadModularPeople, buildModularPerson, buildModularFromAppearance, modularReady, setModularLod, lodForDistance, setModularLodPreset, mensenFase } from './modularpeople.js';
 import { NEAR_MIN, cameraNearTarget, stepNear, parseNearFlag, parseFarFlag } from './cameranear.js';
 import { compareOpaque } from './drawpool.js';
 import { buildingBatcher, roadBatcher, facadeBatcher, shoreBatcher, drawHub } from './staticbatch3d.js';
@@ -761,12 +764,12 @@ function ensurePassengerFigure(mesh, v, dist, deadline) {
 function detachPlayerRider(mesh) {
   if (playerRider && mesh && playerRider.parent === mesh) mesh.remove(playerRider);
 }
-function syncPlayerRider(pv, pvMesh, hide) {  const want = pv && (pv.isBike || pv.isScooter) && pv._mount !== 'horse' && pvMesh && !pv.riderOff && !pv.sinking;
+function syncPlayerRider(pv, pvMesh, hide, t = 0) {  const want = pv && (pv.isBike || pv.isScooter) && pv._mount !== 'horse' && pvMesh && !pv.riderOff && !pv.sinking;
   if (!want) {
     if (playerRider && playerRider.parent) playerRider.parent.remove(playerRider);
     return;
   }
-  if (!playerRider || playerRiderChar !== playerCharacter) {
+  if (!playerRider || playerRiderChar !== playerCharacter || !!playerRider.userData.qRig !== (mensenFase(FLAGS.mensen) >= 3 && modularReady())) {
     if (playerRider) {
       if (playerRider.parent) playerRider.parent.remove(playerRider);
       disposeObject(playerRider); // #788: de oude look geeft zijn gedeelde rompgeometrie terug
@@ -777,6 +780,17 @@ function syncPlayerRider(pv, pvMesh, hide) {  const want = pv && (pv.isBike || p
   }
   const ud = playerRider.userData;
   if (playerRider.parent !== pvMesh) pvMesh.add(playerRider);
+  if (ud.qRig) {
+    // spelerfase (?mensen=q3): de modulaire mens zit op het zadel met de rijclip, handen aan het stuur en voeten bij de trappers
+    // (seating3d.js placeSeatedLocal); de ingebouwde procedurele fietser van het model wordt verborgen, zoals hieronder
+    pvMesh.userData.vehicleRef = pv;   // snelheid voor de trappers (seating3d.js wheelCtx)
+    placeSeatedLocal(playerRider, vehicleSeat(pv, true), t);
+    const figQ = pvMesh.userData.riderFig || pvMesh.children.find((c) => c !== playerRider && c.userData && (c.userData.legL || c.userData.qRig));
+    if (figQ && figQ !== playerRider) figQ.visible = false;
+    if (pvMesh.userData.riderMesh && pvMesh.userData.riderMesh !== playerRider) pvMesh.userData.riderMesh.visible = false;
+    playerRider.visible = !hide;
+    return;
+  }
   const seat = pv.isScooter ? riderSeatFor(pv.model) : null;
   if (seat) {
     playerRider.position.set(seat.x, seat.y - 0.93 * playerRider.scale.y, 0);
@@ -840,6 +854,7 @@ function pinShaderPrograms(r) {
 export function init3D(map) {
   liftMap = map;
   preloadLandmarkModels();
+  if (mensenFase(FLAGS.mensen) >= 1) loadModularPeople(); // fase 1 van ADR 0050: voorbijgangers als modulaire mensen (alleen met ?mensen=q)
   setBuildingMap(map);
   canvas3 = document.getElementById('game3d');
   // laptops with two GPUs: the fast one
@@ -1076,6 +1091,7 @@ function applyViewSettings(st, key) {
   wantRatio = renderPixelRatio(st, preset);
   resize3D();
   setNightLightQuality(level);
+  setModularLodPreset(level); // LOD-afstanden van de modulaire mensen schalen met de stand (lodregistry.js)
   starShare = STAR_SHARE[level] ?? 1;
   if (skyDome) setStarShare(skyDome, starShare);
   setCountryFacadeLevel(level);
@@ -2346,6 +2362,10 @@ function syncActors(list, cache, builder, idOf, seen = new Set()) {
 // Peds never pop: they spawn out of sight (pedestrians.js asks world.pedView),
 // fade in/out with a screen-door dither, thin out towards DRAW_DIST, and
 // their meshes (~2 ms each) are built a few per frame instead of in bursts.
+// verre menigte (farcrowd3d.js): gewone voorbijgangers voorbij FAR_CROWD_FROM m als instances met een gebakken pose (alleen modulaire mensen)
+let farCrowd = null;
+const _pedFar = new Set();
+const farCrowdOk = (p) => !p.isCop && !p.look && !p.carry && !p.pose && !p.heldWeapon && !p.ragdoll && !p.hideMesh && !p.gibbed && p.state !== 'dead' && !p.attackFx && !p.hitReact;
 const _wildlifeNear = [], _wildlifeSeen = new Set(), _pedSeen = new Set(), _bubbleSeen = new Set(), _fireSeen = new Set();
 const PED_FADE_TIME = 0.6;
 const PED_EDGE_FADE = 14;
@@ -2404,6 +2424,16 @@ function buildPedActor(p, world) {
   // stable per-ped look, so a ped doesn't change clothes when it streams back in
   if (p._lookSeed === undefined) p._lookSeed = Math.random() * 1000;
   const outfit = pedOutfitOpts(p, world);
+  // fase 1 (ADR 0050, ?mensen=q): een gewone voorbijganger wordt een modulaire mens zodra de rigs geladen zijn; agenten,
+  // politie in uniform (modularlooks.js, modularwear.js) en verhaalfiguren met een eigen look ook; een kind en wie een vaste houding heeft
+  // blijven procedureel (de rigs zijn volwassen; de houdingen zitten nog alleen op het eigen rig)
+  if (mensenFase(FLAGS.mensen) >= 1 && modularReady() && !p.pose && !(p.look && p.look.age === 'child')) {
+    const sd = Math.floor(p._lookSeed * 7), skin = p.skin ? colorFromHex(p.skin) : 0xe0b48a;
+    const q = p.isCop ? buildModularFromAppearance({ cop: true, skin, seed: sd, variant: sd % 5 === 0 ? 'female' : 'male' })
+      : p.look ? buildModularFromAppearance({ shirt: p.clothing ? colorFromHex(p.clothing) : 0x6a6a6a, skin, seed: sd, variant: p.look.variant || p.variant || (sd & 1 ? 'female' : 'male'), hairStyle: p.look.hairStyle, look: p.look })
+      : buildModularPerson(p._lookSeed, { skin, shirt: p.clothing ? colorFromHex(p.clothing) : null });
+    if (q) { addBlobShadow(q, 0.85, 0.85); if (p.carry) attachCarry(q, p.carry); return enableShadows(q, false); }   // dragen en wapens: modularpeople.js modularHoldPose, modularHandSocket
+  }
   const mesh = buildPersonActor(p.clothing ? colorFromHex(p.clothing) : 0xcaa46a, p.skin ? colorFromHex(p.skin) : 0xe0b48a, p.look ? { seed: p._lookSeed, look: p.look } : outfit ? { seed: p._lookSeed, ...outfit } : { seed: p._lookSeed });
   if (p.carry) attachCarry(mesh, p.carry);
   return enableShadows(mesh, false);
@@ -2411,6 +2441,24 @@ function buildPedActor(p, world) {
 
 // how many frames a walker's pose stays: 1 (every frame), 2 or 4. Manhattan distance to the player in metres (a Euclid distance of up to 1.4 less).
 const PED_TIER_2 = 55, PED_TIER_4 = 130;
+// Voeten op de grond (actorlife.js, plantFeet): één hoogtevraag per voet op de laag waar de mens op staat (map.surfaceAt), alleen
+// dichtbij (lifeTier 0) en alleen waar de kaart hoogte heeft. Geen allocaties: de vraag hergebruikt één toestand.
+const _footSt = { z: 0, ribbon: null, kind: 'ground' };
+const Q_KNOCKED = Object.freeze({ knocked: true }); // parameters voor de state-machine van een uitgeschakelde modulaire mens
+let _footMap = null, _footEnt = null;
+function footGround(x, y) {
+  _footSt.z = _footEnt.gz || 0;
+  _footSt.ribbon = _footEnt.surf ? _footEnt.surf.ribbon : null;
+  return _footMap.surfaceAt(x, y, _footSt).z;
+}
+function groundFeet(mesh, ent, world) {
+  const map = world.map;
+  if (!map || !map.surfaceAt || !map.elev || !map.elev.has || perfOff('voetik')) return;
+  _footMap = map; _footEnt = ent;
+  plantFeet(mesh, footGround, 1);
+  _footEnt = null;
+}
+
 function pedTier(manhattan, p, now) {
   if (p.ragdoll || p.pose || p.carry || p.party || p.heldWeapon || p.attackFx || p.hitReact || p.greetUntil > now) return 1;
   if (perfOff('pedtier')) return simLevel() && manhattan > 45 ? 2 : 1;
@@ -2456,8 +2504,19 @@ function syncPedestrianMeshes(world, player, animDt) {
   const pedRange = perfOff('persoonsbereik') ? DRAW_DIST : Math.max(Math.min(DRAW_DIST, PED_RANGE_FAST), DRAW_DIST - Math.max(0, focusSpeed - PED_RANGE_FROM) * PED_RANGE_SLOPE);
   const seen = _pedSeen; seen.clear(); const pt0 = performance.now(), deadline = pt0 + plan.grant('actors', PED_BUILD_BUDGET_MS);
   let built = 0;
+  if (!farCrowd && mensenFase(FLAGS.mensen) >= 1) farCrowd = createFarCrowd(scene);
+  const farOn = !!(farCrowd && modularReady() && !perfOff('verremenigte') && farCrowd.ready);
+  if (farOn) farCrowd.begin();
+  _pedFar.clear();
   for (const p of world.pedestrians) {
-    { const dx = p.x - player.x, dy = p.y - player.y; if (dx * dx + dy * dy >= (pedRange > 0 ? pedRange * pedRange : 0)) continue; } // #985: kwadraten, Math.hypot is ~12x trager
+    const dx = p.x - player.x, dy = p.y - player.y, d2 = dx * dx + dy * dy;
+    if (d2 >= (pedRange > 0 ? pedRange * pedRange : 0)) continue; // #985: kwadraten, Math.hypot is ~12x trager
+    // ver weg: een plek in de verre menigte in plaats van een eigen gehuide mens (met hysterese: wie al een mens heeft, houdt hem tot FAR_CROWD_FROM)
+    if (farOn && d2 > (pedMeshes.has(p) ? FAR_CROWD_FROM * FAR_CROWD_FROM : FAR_CROWD_BACK * FAR_CROWD_BACK) && farCrowdOk(p)) {
+      if (p._lookSeed === undefined) p._lookSeed = Math.random() * 1000;
+      const sd = Math.floor(p._lookSeed * 7);
+      if (farCrowd.add(p.x, p.gz || 0, p.y, p.angle || 0, sd, (sd & 1) === 1)) { _pedFar.add(p); continue; }
+    }
     seen.add(p);
     if (pedMeshes.has(p)) continue;
     const over = built > 0 && performance.now() > deadline;
@@ -2469,10 +2528,11 @@ function syncPedestrianMeshes(world, player, animDt) {
     built++;
   }
   plan.spend('actors', performance.now() - pt0);
+  if (farOn) farCrowd.end(world.time || 0);
   for (const [p, mesh] of pedMeshes) {
     if (seen.has(p)) continue;
     pedMeshes.delete(p);
-    if (instant || !mesh.visible) disposePedMesh(mesh);
+    if (instant || !mesh.visible || _pedFar.has(p)) disposePedMesh(mesh);   // naar de verre menigte: meteen weg, anders staat hij er dubbel
     else pedFadingOut.push(mesh);
   }
 
@@ -2491,6 +2551,14 @@ function syncPedestrianMeshes(world, player, animDt) {
     if (p.gibbed) { mesh.visible = false; continue; }
     if (p.hideMesh) { mesh.visible = false; ud.fadeLevel = -1; continue; } // fierljep.js draws its own actor
     if (driveRagdoll(p, mesh, world, animDt)) continue;
+    if (p.state === 'dead' && ud.qRig) {
+      // een modulaire mens zakt in met de val uit de state-machine (knockdown, zonder bloed; ADR 0051) en blijft liggen
+      mesh.position.set(p.x, p.gz || 0, p.y);
+      mesh.rotation.set(0, -p.angle, 0);
+      ud.qParams = Q_KNOCKED;
+      animatePersonWalk(mesh, 0, animDt);
+      continue;
+    }
     if (p.state === 'dead') {
       // topple backwards over ~0.3s, then lie flat until the ped is removed
       const fall = Math.min(1, (world.time - (p.deadUntil - DEAD_DURATION)) / 0.3);
@@ -2509,6 +2577,7 @@ function syncPedestrianMeshes(world, player, animDt) {
     // skinned mesh whose bones the renderer works out and uploads as a texture at every draw (~20 GL calls a person), and most of the people in the
     // ring are far (?perfoff=pedtier: as before, half rate beyond 45 m only on a CPU-bound machine, simload.js)
     const tier = pedTier(Math.abs(p.x - player.x) + Math.abs(p.y - player.y), p, world.time);
+    if (ud.qRig) setModularLod(mesh, lodForDistance(Math.hypot(p.x - player.x, p.y - player.y), ud.qLod)); // LOD van een modulaire mens (ADR 0050)
     if (tier > 1) {
       ud.animAcc = (ud.animAcc || 0) + animDt;
       ud.animTick = (ud.animTick || 0) + 1;
@@ -2517,7 +2586,11 @@ function syncPedestrianMeshes(world, player, animDt) {
       holdSkeleton(mesh, false); ud.gazeT = NaN;
       animatePersonWalk(mesh, p.speed || 0, ud.animAcc);
       ud.animAcc = 0;
-    } else { holdSkeleton(mesh, false); glanceAt(ud, p, player, world.time); animatePersonWalk(mesh, p.speed || 0, animDt); } // gait.js: a walker near you glances at you now and then
+    } else {
+      holdSkeleton(mesh, false); glanceAt(ud, p, player, world.time); animatePersonWalk(mesh, p.speed || 0, animDt); // gait.js: a walker near you glances at you now and then
+      const fx = p.x - player.x, fy = p.y - player.y;
+      if (!p.pose && !p.ragdoll && lifeTier(fx * fx + fy * fy) === 0) groundFeet(mesh, p, world); // voeten op een helling of trap (actorlife.js)
+    }
     shareFeet(p, ud, world.time); // the heel contact of the drawn walk cycle for sfx/foley.js (out of the frame or far off: its stride counter)
     if (p.carry && !p.pose) carryPose(mesh, p.carry);
     // a road-rager (roadrage.js) holds what he brought and swings it
@@ -3042,12 +3115,17 @@ export function update3D(dt, world) {
   plan.spend('far', performance.now() - flt0);
   probe.mark('3d:farlod');
 
-  if (player.character !== playerCharacter) {
+  // spelerfase (?mensen=q3, ADR 0050): de speler wordt een modulaire mens zodra de rigs geladen zijn
+  const playerQ = mensenFase(FLAGS.mensen) >= 3 && modularReady();
+  if (playerQ) setModularPlayerLooks(true);
+  if (player.character !== playerCharacter || (playerQ && !playerMesh.userData.qRig)) {
     playerCharacter = player.character;
     scene.remove(playerMesh);
     disposeObject(playerMesh); // #788: de oude look geeft zijn gedeelde rompgeometrie terug
     const appearance = playerCharacter === 'anita' ? ANITA_APPEARANCE : TAMMO_APPEARANCE;
-    playerMesh = buildPersonActor(appearance.shirt, appearance.skin, appearance);
+    const q = playerQ ? buildModularFromAppearance(appearance) : null;
+    if (q) addBlobShadow(q, 0.85, 0.85);
+    playerMesh = q ? enableShadows(q, false) : buildPersonActor(appearance.shirt, appearance.skin, appearance);
     scene.add(playerMesh);
   }
 
@@ -3080,6 +3158,7 @@ export function update3D(dt, world) {
     if (seated) {
       playerMeshPlaced = true;
       playerMesh.scale.y = 1;
+      playerMesh.userData.steer = pv.isBike || pv.isScooter ? 0 : pv.steer || 0; // handen aan het stuur (actorlife.js, seatPose 'wheel')
       placeSeated(playerMesh, pvMesh, pv, vehicleSeat(pv, true), world.time);
       playerMesh.userData.shadow.visible = false;
     }
@@ -3094,9 +3173,15 @@ export function update3D(dt, world) {
       playerMesh.rotation.y = -player.angle;
       playerMesh.scale.y = 1;
       playerMesh.userData.crouch = !!player.crouching;
+      if (playerMesh.userData.qRig) { // de parameters van de state-machine (ADR 0051): water, in de lucht, op de bank
+        const qp = playerMesh.userData.qPlayerP || (playerMesh.userData.qPlayerP = {});
+        qp.water = !!player.swimming; qp.grounded = !(player.z > 0.25) && !player.vault; qp.vy = player.vz || 0; qp.jump = player.z > 0.05 && player.vz > 0; qp.seated = player.sofaSeat != null; qp.climbing = player.water === 'climb';
+        playerMesh.userData.qParams = qp;
+      }
       playerMesh.userData.air = player.vault ? player.airPose || 0 : !player.perch && !player.swimming && player.z > 0.25 ? 0.45 : 0;
       playerMesh.userData.shadow.position.y = 0.02 - (player.z || 0) / playerMesh.scale.y;
       animatePersonWalk(playerMesh, Math.hypot(player.vx, player.vy), animDt); shareFeet(player, playerMesh.userData, world.time); // gait.js: the heel contact for sfx/foley.js
+      if (!player.swimming && !player.vault && !player.perch && !(player.z > 0.02) && !player.wade) groundFeet(playerMesh, player, world); // voeten op de grond (actorlife.js)
       if (player.vault && Number.isFinite(player.vaultU)) vaultPose(playerMesh, player.vaultU, !!player.vault.climb, world.time);
       else if (player.swimming && !player.inVehicle) {
         // zwemmen (#207): schoolslag bij beweging, rustig watertrappelen als je stilligt; uit het water

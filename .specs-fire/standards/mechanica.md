@@ -259,7 +259,7 @@ wachten van de zuinige modus telt daarbij niet mee (`capIdleMs` in `game/js/fram
 **Regels.** Zes weertypen: helder, bewolkt, mist, motregen, regenbui en onweer
 (`game/js/weatherstate.js:18`); sneeuw, ijs en vorst bestaan niet. De dag duurt 24 minuten
 (`daynight.js:12`). Sterren en maan volgen `cover = max(storm, bewolkt × 1,5, mist)`
-(`game/js/scene3d.js:3699`). Een gast volgt het weer en de dagstand van de gastheer (#378).
+(`game/js/scene3d.js:3886`). Een gast volgt het weer en de dagstand van de gastheer (#378).
 
 **Bestanden.** `weatherstate.js`, `weerdag.js`, `sunrules.js`, `daynight.js`, `sky3d.js`,
 `scene3d.js`.

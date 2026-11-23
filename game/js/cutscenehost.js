@@ -1,7 +1,8 @@
 import { hoofdspeler } from './players.js';
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { getScene } from './scene3d.js';
-import { buildPersonMesh, seatPose, seatedY, releasePersonGeometry, TAMMO_APPEARANCE, ANITA_APPEARANCE, PERSON_RIG } from './models3d_people.js';
+import { buildPersonMesh, seatPose, seatedY, releasePersonGeometry, speakMouth, TAMMO_APPEARANCE, ANITA_APPEARANCE, PERSON_RIG } from './models3d_people.js';
+import { jawFromLevel, lipsyncStep, babbleEnvelope } from './actorlife.js';
 import { buildKitchen } from './introkitchen3d.js';
 import { buildOffice, OFFICE, buildServerRoom, SERVER } from './office3d.js';
 import { buildLoket, LOKET } from './loket3d.js';
@@ -26,7 +27,13 @@ import { compileScene, fitAnchor, resolveTime, shotPoints, roadPathDef } from '.
 import { jumpsFromScene } from './cutscenewarm.js';
 import { sceneSamples, isRealSet } from './realsets.js';
 import { roofAt } from './camerapath.js';
-import { animateActor, beginSceneActors } from './actoranim.js';
+import { animateActor, beginSceneActors, setVoiceLevelSource } from './actoranim.js';
+import { buildModularFromAppearance, modularReady, mensenFase, modularSeatContact } from './modularpeople.js';
+import { FLAGS } from './devflags.js';
+import { voiceLevel } from './audio.js';
+
+// lipsync (actorlife.js): de kaak van wie spreekt volgt het niveau van de stemclip die nu klinkt
+setVoiceLevelSource(voiceLevel);
 import { applyClipsHuman, applyClipsCat, resetCat } from './poseclips.js';
 import { showNameCard } from './namecard.js';
 import { audioPlan } from './cutaudio.js';
@@ -74,7 +81,9 @@ function handOf(mesh) {
 
 function makeActor(spec) {
   const look = spec === 'tammo' ? TAMMO_APPEARANCE : spec === 'anita' ? ANITA_APPEARANCE : spec;
-  const m = buildPersonMesh(look.shirt, look.skin, look);
+  // cutscene-fase (?mensen=q2): de vaste looks (Tammo, Tessa, Jelle, bijrollen) als modulaire mens, met dezelfde kleding-identiteit
+  const q = mensenFase(FLAGS.mensen) >= 2 && modularReady() ? buildModularFromAppearance(look) : null;
+  const m = q || buildPersonMesh(look.shirt, look.skin, look);
   m.traverse((o) => { if (o.isMesh) o.castShadow = true; });
   const sh = shadowDisc(); // de gedeelde schaduwvlek (storyprops.js)
   sh.position.y = 0.03;
@@ -252,7 +261,7 @@ function buildScriptRun(def, scene, anchor, env = null, w = null, noKit = false)
         m.rotation.set(0, -st.a, 0);
         if (m.userData.shadow) m.userData.shadow.visible = !st.sit;
         if (st.sit) seatedFrame(m, st, t);
-        else animateActor(m, { anim: st.anim, speed: st.speed, gaze: st.gaze, t, dt, rol: rolVan(id) });
+        else animateActor(m, { anim: st.anim, speed: st.speed, gaze: st.gaze, t, dt, rol: rolVan(id), voiced: st.speaking !== false });
         // pose-clips (poseclips.js): a function of the scene time, on top of the base pose; moving, seated or carrying people only use their upper body
         if (st.clips && st.clips.length) applyClipsHuman(m.userData, st.clips, { upper: !!st.sit || st.speed > 0.05 || !!st.carrying });
       }
@@ -305,6 +314,14 @@ let current = null;
 // the opening and the intro montage cannot drift apart.
 function seatedFrame(m, st, t) {
   const ud = m.userData;
+  if (ud.qRig) {
+    // modulaire mens: de zit-clip uit de state-machine, het zitvlak op de zitting, praten met lipsync
+    m.position.y = st.h + st.sit - modularSeatContact(m);
+    const dt = Math.max(0, Math.min(0.1, t - (ud.qSitT ?? t)));
+    ud.qSitT = t;
+    animateActor(m, { anim: st.speaking || st.anim === 'talk' ? 'talk' : 'idle', speaking: !!st.speaking, gaze: st.gaze, t, dt, seated: true });
+    return;
+  }
   if (!ud.pelvis || !ud.head) return;
   seatPose(m, TABLE_SIT);
   m.position.y = st.h + seatedY(m, st.sit);
@@ -321,6 +338,13 @@ function seatedFrame(m, st, t) {
     case 'phone': ud.head.rotation.z += 0.2; ud.chest.rotation.z -= 0.05; break;
     default: break;
   }
+  // lipsync aan tafel (actorlife.js): dezelfde kaak als bij een staande acteur, op de stemclip of de lettergreepcurve
+  const dtl = Math.max(0, Math.min(0.1, t - (ud.lipT ?? t)));
+  ud.lipT = t;
+  const lvl = st.speaking ? voiceLevel() : null;
+  const target = talk ? (Number.isFinite(lvl) ? jawFromLevel(lvl) : babbleEnvelope(t, (ud.animOffset || 0) % 1)) : 0;
+  ud.jawS = lipsyncStep(ud.jawS || 0, target, dtl);
+  speakMouth(ud, ud.jawS, st.anim === 'laugh' ? 'lach' : null);
 }
 
 // camera and people stay inside the kitchen (a room of 4.4 x 3.6 x 2.6 m around the anchor)

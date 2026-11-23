@@ -4,6 +4,21 @@ import { boatSeats, boatCrewCount, boatKind } from './boattypes.js';
 import { busInterieur, midibusInterieur, coopPlek, VLOER } from './businterieur.js';
 import { WATER_Y } from './util.js';
 import { tractorCab } from './models3d_vehicles.js';
+import { seatModular, modularSeatContact } from './modularpeople.js';
+// het zadel ligt zo ver onder het heupgewricht van het eigen model (fietsstoel: seat.y + HIP_Y is de heup, het zadel 0,84 bij 1,02)
+export const SADDLE_BELOW_HIP = 0.17;
+// De stuurpositie van een voertuig (vehicle-assen) voor de handen van een modulaire bestuurder: autointerieur.js zet hier
+// cabin3d.js cabinWheelPose neer (seating3d.js zelf importeert cabin3d niet: dat importeert seating3d al).
+let wheelPoseOf = null;
+export function setWheelPoseProvider(fn) { wheelPoseOf = typeof fn === 'function' ? fn : null; }
+const _wc = new THREE.Vector3();
+function wheelCtx(v, seat, toWorld) {
+  // altijd de omzetting naar de wereld (de zitting in de assen van het voertuig); het stuur alleen als er een is
+  let w = null;
+  if (wheelPoseOf && v && seat && seat.pose && seat.pose.arms === 'wheel') { try { w = wheelPoseOf(v, seat); } catch (e) { w = null; } }
+  // speed: de snelheid van het voertuig (m/s), voor de trappers van een fietser (modularpeople.js)
+  return { wheel: w && Number.isFinite(w.x) ? { c: [w.x, w.y, w.z], r: w.r || 0.19, tilt: w.tilt || 0 } : null, toWorld, speed: v && Number.isFinite(v.speed) ? Math.abs(v.speed) : 0, pedals: !!(v && v.isBike) };
+}
 import { hash2 as hash } from './rng.js';
 import { deurVoorStoel, instapKant, doorsFor, stapAnimatieAan } from './vehicledoors.js';
 import { getSettings } from './settings.js';
@@ -216,8 +231,16 @@ export function vehicleSeatAt(v, stoel = 0) {
 // peddelt (supPose), een roeier roeit en een passagier van de waterfiets trapt mee (t).
 export function placeSeatedLocal(person, seat, t = 0) {
   const sy = person.scale.y || 1;
-  person.position.set(seat.x, seat.stand ? seat.y : seat.y - SEAT_CONTACT * sy, seat.z);
+  const contact = person.userData.qRig ? modularSeatContact(person) : SEAT_CONTACT * sy;
+  // een modulaire fietser zit (rijclip): het zitvlak op het zadel (seat.y is waar het eigen model zijn voeten zet, de heup 0,93 m hoger)
+  const qRider = person.userData.qRig && seat.rider;
+  person.position.set(seat.x, qRider ? seat.y + (PERSON_RIG.HIP_Y - SADDLE_BELOW_HIP) * sy - contact : seat.stand ? seat.y : seat.y - contact, seat.z);
   person.rotation.set(0, seat.face || 0, 0);
+  if (person.userData.qRig) { // modulaire mens: zit- of rijclip (ADR 0051), met het stuur van het voertuig als de ouder het voertuig is
+    const veh = person.parent && person.parent.userData && person.parent.userData.vehicleRef;
+    seatModular(person, seat, t, wheelCtx(veh, seat, (x, y, z, out) => (person.parent ? person.parent.localToWorld(out.set(x, y, z)) : out.set(x, y, z))));
+    return;
+  }
   if (seat.stand && seat.pose && seat.pose.arms === 'sup') supPose(person, t);
   else if (seat.stand) standBehindPose(person);
   else seatPose(person, seat.pose, t);
@@ -300,9 +323,15 @@ function vehicleQuat(vehMesh, v, out) {
 // Puts `person` on `seat` of v and poses it (t drives paddling/pedalling).
 export function placeSeated(person, vehMesh, v, seat, t = 0) {
   const sy = person.scale.y || 1;
-  localToWorld(vehMesh, v, seat.x, seat.stand ? seat.y : seat.y - SEAT_CONTACT * sy, seat.z, person.position);
+  const contact = person.userData.qRig ? modularSeatContact(person) : SEAT_CONTACT * sy;
+  const qRider = person.userData.qRig && seat.rider;
+  localToWorld(vehMesh, v, seat.x, qRider ? seat.y + (PERSON_RIG.HIP_Y - SADDLE_BELOW_HIP) * sy - contact : seat.stand ? seat.y : seat.y - contact, seat.z, person.position);
   vehicleQuat(vehMesh, v, person.quaternion);
   if (seat.face) person.quaternion.multiply(_qy.setFromAxisAngle(_up, seat.face));
+  if (person.userData.qRig) { // modulaire mens: zit- of rijclip (ADR 0051), handen aan het echte stuur
+    seatModular(person, seat, t, wheelCtx(v, seat, (x, y, z, out) => localToWorld(vehMesh, v, x, y, z, out)));
+    return;
+  }
   if (seat.stand && seat.pose && seat.pose.arms === 'sup') supPose(person, t);
   else if (seat.stand) standBehindPose(person);
   else seatPose(person, seat.pose, t);

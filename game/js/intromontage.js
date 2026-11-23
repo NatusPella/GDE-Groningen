@@ -2,6 +2,7 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
 import { getScene, getCamera, disposeObject, releaseWarmupSamples, releaseHeldMaterials, setCinematicBatches } from './scene3d.js';
 import { setHoldGrass } from './grass.js';
 import { buildPersonMesh, animatePersonWalk, seatPose, seatedY, TAMMO_APPEARANCE, ANITA_APPEARANCE } from './models3d_people.js';
+import { modularHoldPose } from './modularpeople.js';
 import { vehicleSeat } from './seating3d.js';
 import { Vehicle, MODELS, makeTwoWheeler, spawnHeroCarNear, spawnVehicleOnRoad, manageTrafficPopulation, manageBikePopulation, updateTrafficAI, resolveVehicleBuildingCollision } from './vehicle.js';
 import { BOAT_KINDS } from './boattypes.js';
@@ -225,12 +226,25 @@ export function makeActor(app) {
 }
 
 function resetArms(ud) {
+  if (ud.qRig) { ud.qParams = null; ud.gazeT = 0; return; }   // modulaire mens (ADR 0050): de state-machine zet de armen zelf
   for (const k of ['armL', 'armR']) { ud[k].rotation.x = 0; ud[k].rotation.y = 0; }
   if (ud.head) ud.head.rotation.y = 0;
 }
 
+// De houdingen van de montage op een modulaire mens: dragen en vasthouden met de hand-IK, kijken met de blik; de rest (kus, leunen,
+// handen in de zij) laat de clip staan.
+function applyPoseModular(m, name) {
+  const ud = m.userData;
+  if (name === 'cups' || name === 'door' || name === 'bag' || name === 'pull') modularHoldPose(m, 'low');
+  else if (name === 'rope') modularHoldPose(m, 'up');
+  else if (name === 'lookL') ud.gazeT = 0.35;
+  else if (name === 'lookR') ud.gazeT = -0.35;
+  else if (name === 'lean') m.rotation.z = 0.13;
+}
+
 function applyPose(m, name, t) {
   const ud = m.userData;
+  if (ud.qRig) { applyPoseModular(m, name); return; }
   const arm = (a, e, z, ez, x = 0) => { a.rotation.set(x, 0, z); if (e) e.rotation.z = ez; };
   switch (name) {
     case 'bag':
