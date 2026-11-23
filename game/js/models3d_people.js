@@ -11,7 +11,7 @@ import { npcLook } from './clothing.js';
 
 // Low-poly humanoid for the on-foot player, every pedestrian, drivers and
 // bike/scooter riders: one SkinnedMesh (one draw call, one shared material)
-// on an 11-bone rig. Origin at ground level between the feet, facing +X.
+// on a 12-bone rig (11 body bones + the eyelid bone that blinks). Origin at ground level between the feet, facing +X.
 // userData.legL/legR/armL/armR are the hip/shoulder bones (rotated about Z
 // by callers); knees/elbows follow them automatically unless
 // animatePersonWalk or a pose sets them explicitly.
