@@ -98,7 +98,9 @@ import { VOLUME_KEYS } from './sfx/volume.js';
 import { makeLean, stepCamFeel } from './camlean.js';
 import { effectsFor, shakeAmount } from './a11ylogic.js';
 import { reducedMotion } from './motion.js';
-import { dynamicScale, cpuLevel } from './gfxprofile.js';
+import { dynamicScale, cpuLevel, currentPreset } from './gfxprofile.js';
+import { setLodPreset, updateLodObjects, lodFadeMaterial, lodScale } from './lodkit3d.js';
+import { registerLodModel, lodLevelsForFade } from './lodregistry.js';
 import { adaptedShadowLevel } from './shadowlevel.js';
 import { treeSyncDue } from './treesync.js';
 import { roadBuildAllowed, createHeavyRoadGate, ROAD_BUILD_MAX_PER_FRAME } from './roadbudget.js';
@@ -1086,6 +1088,7 @@ function applyViewSettings(st, key) {
   shadowBaseLevel = level;
   applyShadowLevel(adaptedShadowLevel(level, dynamicScale(), cpuLevel(), st.drawDistance), levelChanged);
   applyViewDistance(st);
+  setLodPreset(currentPreset(st) || st.quality); // centraal LOD-systeem: de afstanden schalen met de stand (een eigen stand: de kwaliteit)
   cam.fov = baseFov = cameraVerticalFov(st.fov);
   cam.updateProjectionMatrix();
   orbitRadius = ORBIT_RADIUS * st.cameraDistance;
@@ -1471,15 +1474,24 @@ const TREE_TRUNK_GEO = new THREE.CylinderGeometry(0.14, 0.22, 1, 6).translate(0,
 const TREE_CANOPY_GEO = new THREE.IcosahedronGeometry(1, 1);
 // a conifer: a cone of radius 1 from y -1 to 1
 const TREE_CONE_GEO = new THREE.ConeGeometry(1, 2, 7);
-for (const g of [TREE_TRUNK_GEO, TREE_CANOPY_GEO, TREE_CONE_GEO]) SHARED_GEOMETRIES.add(g);
+// centraal LOD-systeem (23-11): de verre kroon wordt voorbij de 'treecrown'-afstand een icosaëder zonder onderverdeling (20 in plaats van 80
+// driehoeken), met een dither-crossfade ertussen; bossen en parken bestaan op afstand vooral uit deze kronen
+const TREE_CANOPY_GEO0 = new THREE.IcosahedronGeometry(1, 0);
+for (const g of [TREE_TRUNK_GEO, TREE_CANOPY_GEO, TREE_CONE_GEO, TREE_CANOPY_GEO0]) SHARED_GEOMETRIES.add(g);
 // a tree filled into a wood or park outline is drawn out to TREE_FAR, as its crown only
 const TREE_FAR = 260;
 const TREE_NEAR_R = loadRadius(TREE_DIST);
 // #1016: bomen doven uit in een band vóór hun tekenstraal en de lijst wordt een herbouwstap verder geladen (popinrules.js)
 for (const m of [TREE_TRUNK_MAT, TREE_CANOPY_MAT]) applyEdgeFade(m, ...fadeBand(TREE_DIST), perfOff('boomfade')); // ?perfoff=boomfade: bomen zonder discard (#1067)
 const TREE_FAR_MAT = edgeFadeClone(TREE_CANOPY_MAT, ...fadeBand(TREE_FAR, 24), perfOff('boomfade'));
+const TREE_FAR_MATS = [lodFadeMaterial(TREE_FAR_MAT, 'treecrown', 0, 2), lodFadeMaterial(TREE_FAR_MAT, 'treecrown', 1, 2)];
+{
+  const tris = (g) => (g.index ? g.index.count : g.getAttribute('position').count) / 3;
+  registerLodModel('tree', 'boom', [tris(TREE_TRUNK_GEO) + 2 * tris(TREE_CANOPY_GEO), tris(TREE_CANOPY_GEO), tris(TREE_CANOPY_GEO0)]);
+  registerLodModel('treecrown', 'kroon', [tris(TREE_CANOPY_GEO), tris(TREE_CANOPY_GEO0)]);
+}
 for (const m of [TREE_TRUNK_MAT, TREE_CANOPY_MAT]) applyInteriorCut(m); // geen stam of kroon in een binnenruimte (interiorisolation.js)
-for (const m of [TREE_TRUNK_MAT, TREE_CANOPY_MAT, TREE_FAR_MAT]) SHARED_MATERIALS.add(m);
+for (const m of [TREE_TRUNK_MAT, TREE_CANOPY_MAT, TREE_FAR_MAT, ...TREE_FAR_MATS]) SHARED_MATERIALS.add(m);
 const _leaf = new THREE.Color(), _bark = new THREE.Color();
 const tumbleMats = new Map();
 function tumbleMat(hex) {
@@ -1573,7 +1585,8 @@ function ensureTreeCapacity(n) {
   make(TREE_TRUNK_GEO, TREE_TRUNK_MAT, treeCapacity);
   make(TREE_CANOPY_GEO, TREE_CANOPY_MAT, treeCapacity * 2);
   make(TREE_CONE_GEO, TREE_CANOPY_MAT, treeCapacity);
-  make(TREE_CANOPY_GEO, TREE_FAR_MAT, treeCapacity, false);
+  make(TREE_CANOPY_GEO, TREE_FAR_MATS[0], treeCapacity, false);
+  make(TREE_CANOPY_GEO0, TREE_FAR_MATS[1], treeCapacity, false);
 }
 
 // --- per-frame sync ------------------------------------------------------
@@ -2267,7 +2280,7 @@ function syncTrees(world, px, py) {
   treeSyncGeoVer = map.geoVer;
   shownHiddenKey = camTreeHiddenKey;
   ensureTreeCapacity(trees.length);
-  const [trunks, crowns, cones, far] = treeInstanced;
+  const [trunks, crowns, cones, far, farthest] = treeInstanced;
   for (const m of treeInstanced) m.count = 0;
   crownShadowOnly.count = 0;
   const [trunk, canopy, lobe] = _treeParts;
@@ -2282,7 +2295,9 @@ function syncTrees(world, px, py) {
     const d = layoutTree(t, trunk, canopy, lobe);
     treeColor(t, _leaf);
     const dd = Math.hypot(t[0] - px, t[1] - py), near = dd <= TREE_NEAR_R;
-    if (!near || (t[4] & TREE_FLAG.fill && dd > TREE_DIST - 20)) put(far, canopy, _leaf); // far crown: no shadow; woods overlap it in the fade band
+    if (!near || (t[4] & TREE_FLAG.fill && dd > TREE_DIST - 20)) { // far crown: no shadow; woods overlap it in the fade band
+      for (const L of lodLevelsForFade('treecrown', dd, { levels: 2, scale: lodScale() })) put(L ? farthest : far, canopy, _leaf);
+    }
     if (!near) continue;
     _bark.setHex(SPECIES[d.sp].trunk);
     put(trunks, trunk, _bark);
@@ -3429,6 +3444,7 @@ export function update3D(dt, world) {
   progSortOn = !perfOff('progsort');
   probe.mark('3d:render:pre');
   cullOffscreenActors();
+  updateLodObjects(cam); // centraal LOD-systeem (lodkit3d.js): losse modellen (treinen, boten) op afstand tot de camera
   skipHiddenMatrixWalk();
   probe.mark('3d:render:cull');
   try { postfx.render(); } finally { restoreCulledActors(); }
@@ -3847,7 +3863,7 @@ function applyTimeOfDay(dt, world) {
   setStarOpacity(skyDome, L.night * (1 - cover));
   setNightFactor(1.5 * L.night, litFraction('wonen', L.hour), litFraction('winkel', L.hour), litFraction('kantoor', L.hour));
   // the leaves' emissive fill fades with the same night as the windows (#463)
-  TREE_FAR_MAT.emissiveIntensity = TREE_CANOPY_MAT.emissiveIntensity = foliageGlow(L.night);
+  TREE_FAR_MAT.emissiveIntensity = TREE_FAR_MATS[0].emissiveIntensity = TREE_FAR_MATS[1].emissiveIntensity = TREE_CANOPY_MAT.emissiveIntensity = foliageGlow(L.night);
   farLod.setNight(1.5 * L.night, litFraction('wonen', L.hour));
   setCountryNight(1.5 * L.night, litFraction('wonen', L.hour));
   scene.fog.near = lightBase.fogNear;
