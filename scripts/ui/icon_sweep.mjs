@@ -56,7 +56,8 @@ const SKIP_STRING = /uniform |varying |float |vec[234]|gl_|@media|\{[^}]*:[^}]*;
 const found = [];
 export function scanText(text) {
   if (SKIP_STRING.test(text)) return [];
-  const rest = text.replace(new RegExp(TEXT_KEY_RE.source, 'g'), ' ').replace(/\{[A-Z0-9_]+\}/g, ' ');
+  // aria-keyshortcuts="Enter" is voor de schermlezer, geen spelertekst
+  const rest = text.replace(/aria-keyshortcuts="[^"]*"/g, ' ').replace(new RegExp(TEXT_KEY_RE.source, 'g'), ' ').replace(/\{[A-Z0-9_]+\}/g, ' ');
   if (/^[A-Za-z0-9+]{1,12}$/.test(rest.trim()) || /^[A-Z] ?\/ ?[A-Z]$/.test(text.trim())) return []; // een los toetsnaam-token voor key()/cap()/K()
   const hits = [];
   for (const [name, re] of PATTERNS) { re.lastIndex = 0; const m = rest.match(re); if (m) hits.push(name + ': ' + [...new Set(m)].join(' | ')); }
