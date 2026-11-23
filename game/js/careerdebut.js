@@ -227,6 +227,16 @@ export function farmSpec() {
       CLOSE('Is dat je hele antwoord', 'tessa', { dist: 1.2 }),
     ],
     wide: WIDE([-3.0, 3.6, 2.4], [-1.2, 2.4, 2.0], 'mid:tammo,tessa@1.2'),
+    // as-sprongen hersteld (180-gradenregel): vervangt de gegenereerde shots met dezelfde t (missionScene, shotFix)
+    shotFix: [
+      { t: 'L5', shot: 'dolly', from: [3.3, 0.84, 1.6], to: [2.6, 0.41, 1.62], look: 'speaker', fov: 25 },
+      { t: 'L10+0.2', shot: 'cut', at: [1.59, 2.25, 1.55], look: 'speaker', fov: 28 },
+      { t: 'L17', shot: 'dolly', from: [3.41, 0.79, 1.6], to: [2.62, 1.04, 1.62], look: 'speaker', fov: 25 },
+      { t: 'L20', shot: 'cut', at: [1.59, 2.25, 1.55], look: 'speaker', fov: 38 },
+      { t: 'L21+0.1', shot: 'dolly', from: [1.01, -1.36, 0.7], to: [-0.06, -1.23, 0.9], look: 'mid:tammo,tessa@1.9', fov: 55 },
+      { t: 'L28', shot: 'cut', at: [2.16, 2.91, 1.55], look: 'speaker', fov: 38 },
+      { t: 'L30', shot: 'dolly', from: [1.89, 3.74, 1.6], to: [1.23, 3.24, 1.62], look: 'speaker', fov: 25 },
+    ],
   };
 }
 

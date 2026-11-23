@@ -1,7 +1,7 @@
 // Logic test for the direction templates (game/js/cineshots.js), the `push` shot of cutscript.js and the
 // `cuts` of a mission scene spec (cutscenes_akte1.js missionScene) (#955 #956):
 //   node scripts/cineshots_test.mjs
-import { SHOT_TEMPLATES, TEMPLATE_NAMES, expandTemplate, placeTemplate, shiftTime } from '../game/js/cineshots.js';
+import { SHOT_TEMPLATES, TEMPLATE_NAMES, expandTemplate, placeTemplate, shiftTime, applyShotFix } from '../game/js/cineshots.js';
 import { compileScene, validateScene } from '../game/js/cutscript.js';
 import { missionScene } from '../game/js/cutscenes_akte1.js';
 
@@ -100,6 +100,15 @@ const dist = (c, who) => { const p = who === 'a' ? { x: 3, y: 0.6 } : { x: 3, y:
   const pushAt = sc.shots.find((s) => s.shot === 'push');
   ok(pushAt && near(pushAt.t, L[2].at + 0.2, 0.01), 'the push starts where it was put');
   ok(!sc.shots.some((s) => s.shot !== 'push' && s.t > pushAt.t - 0.01 && s.t < pushAt.t + 2.5), 'the template owns its range');
+}
+
+// shotFix (as-sprongen hersteld): vervangt de shot met dezelfde t, een tweede met dezelfde t pas bij een tweede fix
+{
+  const shots = [{ t: 0, shot: 'dolly' }, { t: 'L1', shot: 'cut', at: [1, 2, 1.5] }, { t: 'L2', shot: 'cut', at: [3, 4, 1.5] }];
+  const nFix = applyShotFix(shots, [{ t: 'L1', shot: 'cut', at: [1, -2, 1.5] }, { t: 'L9', shot: 'cut', at: [0, 0, 1] }]);
+  ok(nFix === 1, 'applyShotFix telt alleen de gevonden shots');
+  ok(shots[1].at[1] === -2 && shots[2].at[1] === 4 && shots.length === 3, 'applyShotFix vervangt alleen de shot met die t');
+  ok(applyShotFix(shots, null) === 0, 'applyShotFix zonder fix doet niets');
 }
 
 if (fails) { console.log(`cineshots_test: ${fails} of ${n} checks FAILED`); process.exit(1); }

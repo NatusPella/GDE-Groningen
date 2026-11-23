@@ -9,6 +9,11 @@ const stack = (id, at, face = 0) => ({ [id]: { kind: 'container', at: [at[0], at
 
 // --- M12 Het staat niet in het rooster: Dijkstra lands on the platform at Lauwersoog, the case at the Eemshaven ---
 S['M12.intro'] = {
+  // as-sprongen hersteld (180-gradenregel): deze shots vervangen de gegenereerde (missionScene, spec.shotFix)
+  shotFix: [
+    { t: 'L5', shot: 'dolly', from: [2.35, 2.13, 1.6], to: [1.87, 1.46, 1.62], look: 'speaker', fov: 25 },
+    { t: 'L13+1.7', shot: 'dolly', from: [2.5, 3, 2.7], to: [0.8, 2.7, 3.6], look: 'mid:dijkstra,tammo@1', fov: 50 },
+  ],
   // Oma belt eerst (haar stem op de luidspreker), dan landt Dijkstra: hij loopt binnen op zijn eerste regel
   cast: { dijkstra: { key: 'dijkstra', at: [6.4, 2.2], face: 200, anim: 'hips', gest: ['hips', 'point', 'talk', 'shrug', 'point'] } },
   props: { koeltas: { kind: 'koelbox', at: [4.6, -1.2, 0] } },
@@ -165,6 +170,14 @@ S['M15.intro'] = {
 
 // AAA akte 3: tien kermisgangers staan langs de strook om het vliegtuig te zien landen
 S['M15.outro'] = {
+  // as-sprongen hersteld (180-gradenregel): deze shots vervangen de gegenereerde (missionScene, spec.shotFix)
+  shotFix: [
+    { t: 'L9', shot: 'cut', at: [1.11, 1.25, 1.55], look: 'speaker', fov: 38 },
+    { t: 'L14', shot: 'cut', at: [2.06, 1.8, 1.55], look: 'speaker', fov: 38 },
+    { t: 'L22', shot: 'cut', at: [3.46, 1.74, 1.6], look: 'speaker', fov: 30 },
+    { t: 'L25', shot: 'cut', at: [-1.56, -2.34, 2.8], look: 'speaker', fov: 44 },
+    { t: 'L27+1', shot: 'dolly', from: [2.1, 3.2, 2.6], to: [0.4, 2.88, 3.5], look: 'mid:roelfien,tessa@1', fov: 48 },
+  ],
   crowd: { shape: 'line', pts: [[13, -9], [13, 9]], count: 10, side: 3, spread: 2.5, seed: 1505, key: 'cut:M15.outro' },
   cast: {
     roelfien: { key: 'roelfien', at: [3, 0.2], face: 180, anim: 'idle', gest: ['talk', 'shrug', 'point', 'hips'] },
@@ -236,6 +249,14 @@ S['M16.intro'] = {
 };
 
 S['M16.outro'] = {
+  // as-sprongen hersteld (180-gradenregel): deze shots vervangen de gegenereerde (missionScene, spec.shotFix)
+  shotFix: [
+    { t: 'L4', shot: 'cut', at: [2.21, 3.25, 1.6], look: 'mid:tammo,tessa@1.3', fov: 40 },
+    { t: 'L6', shot: 'cut', at: [3.18, 2.29, 1.7], look: 'mid:tammo,tessa@1.3', fov: 40 },
+    { t: 'L24', shot: 'cut', at: [3.35, 2.25, 1.6], look: 'speaker', fov: 30 },
+    { t: 'L34', shot: 'cut', at: [3.58, 2.17, 1.6], look: 'speaker', fov: 30 },
+    { t: 'L41+1', shot: 'dolly', from: [2.7, 3.2, 2.7], to: [1, 2.88, 3.6], look: 'mid:durk,tammo@1', fov: 50 },
+  ],
   // #737: M16.3-M16.5 spelen op de kermis; M16.6 is de dijk bij Blauwestad bij zonsondergang. De knip ligt
   // bij de dijkregel: daarna speelt 'M16.dijk' op een eigen anker (lat/lon) en met een eigen dagdeel.
   split: { at: 'In de botsauto mocht ik niet', key: 'M16.dijk', lat: 53.17, lon: 6.988, facing: 1.2, clock: 20.6 },

@@ -25,7 +25,7 @@
 // looks: the NPC table of missionstory.js ({ name, shirt, skin, ... } per key).
 
 import { SPECS_AKTE2 } from './cutscenes_akte2.js';
-import { placeTemplate, expandTemplate } from './cineshots.js';
+import { placeTemplate, expandTemplate, applyShotFix } from './cineshots.js';
 import { directDialogue } from './cutdirector.js';
 import { autoClip } from './cuegestures.js';
 import { isHoldClip } from './poseclips.js';
@@ -85,6 +85,15 @@ Object.assign(SPECS, SPECS_AKTE2);
 {
   const life = merge(cyclist('fietser', 'harm', [-14, -6.5], [40, -6.5], 0.5), passer('toerist', 'toerist', [6, -7], [-6, -7.5], 2, 1.1, 'phone'));
   SPECS['M01.intro'] = {
+    // as-sprongen hersteld (180-gradenregel): deze shots vervangen de gegenereerde (missionScene, spec.shotFix)
+    shotFix: [
+      { t: 'L6', shot: 'ots', from: 'berend', target: 'tammo', dist: 1.7, side: -0.5, fov: 34 },
+      { t: 'L9', shot: 'cut', at: [0.32, -4.69, 2.8], look: 'speaker', fov: 44 },
+      { t: 'L13', shot: 'cut', at: [-1.5, 0, 1.55], look: 'speaker', fov: 38 },
+      { t: 'L14', shot: 'dolly', look: 'speaker', fov: 44, from: [-5.01, 0.42, 2.8], to: [-4.49, 0.39, 2.72] },
+      { t: 'L17+5.46', shot: 'cut', at: [4.21, -0.14, 2.8], look: 'speaker', fov: 44 },
+      { t: 'L19+2.92', shot: 'dolly', from: [-3, 1.23, 2.9], to: [-1.27, 1.07, 3.8], look: 'mid:berend,bakkie@1', fov: 48 },
+    ],
     // R-13: Berend krijgt een naamkaart bij zijn eerste verschijning (#1124, #1138)
     fx: [{ t: 1.0, fx: 'naam', text: 'Berend Bos, Bommen Berend', dur: 2.8 }],
     cast: {
@@ -784,6 +793,8 @@ export function missionScene(key, lines, { looks = {}, spec: given = null } = {}
     if (d.shots.length) { shots.length = 0; shots.push(...d.shots); }
     humor = d.humor;
   }
+  // as-sprongen hersteld (shotFix, cineshots.js): vervangt de gegenereerde shots met dezelfde t
+  if (spec.shotFix) applyShotFix(shots, spec.shotFix);
   // an effect is placed on a line (`on`, with `dt`) or at a scene time (`t`, e.g. a name card at 1.0 s; before #1138 such an fx was dropped)
   const fx = (spec.fx || []).flatMap((f) => {
     if (f.on === undefined && f.t !== undefined) return [{ ...f }];

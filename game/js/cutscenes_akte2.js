@@ -30,6 +30,10 @@ export const SPECS_AKTE2 = {};
 {
   // behind the wall: the tanker between two guard cars, a queue of the town with empty pans on the street
   SPECS_AKTE2['M07.intro'] = {
+    // as-sprongen hersteld (180-gradenregel): deze shots vervangen de gegenereerde (missionScene, spec.shotFix)
+    shotFix: [
+      { t: 'L6+0.1', shot: 'cut', at: [0.95, 1.89, 1.6], look: 'mid:tessa,tammo@1.3', fov: 42 },
+    ],
     duo: { tammo: { at: [0, 0.8], face: 0, anim: 'idle' }, tessa: { at: [0.2, -0.7], face: 10, anim: 'idle' } },
     cast: {
       pan1: { key: 'snackbar', at: [-3.2, 6.5], face: 270, anim: 'idle', bg: true, gest: ['shrug', 'idle'] },
@@ -274,6 +278,11 @@ export const SPECS_AKTE2 = {};
 // --- M11 Geleend van de Friezen ---------------------------------------------------------------
 {
   SPECS_AKTE2['M11.intro'] = {
+    // as-sprongen hersteld (180-gradenregel): deze shots vervangen de gegenereerde (missionScene, spec.shotFix)
+    shotFix: [
+      { t: 'L8', shot: 'cut', at: [0.77, 1.41, 1.55], look: 'speaker', fov: 38 },
+      { t: 'L13', shot: 'cut', at: [1.03, 2.05, 1.55], look: 'speaker', fov: 38 },
+    ],
     cast: { klaas: { key: 'klaas', at: [2.8, 0.7], face: 185, anim: 'idle', gest: ['talk', 'hips', 'point', 'shrug'] } },
     props: {
       fiets: { kind: 'fiets', at: [4.4, 3.4, 0], face: 250 },

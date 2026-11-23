@@ -16,6 +16,13 @@ const queue = (n, f, s0, step = 0.75, prefix = 'rij') => Object.fromEntries(QUEU
 
 // --- F1 Een wagen langs de weg: de aanhanger met het luik, het bierviltje van twaalf dagen geleden ---
 S.F1 = {
+  // as-sprongen hersteld (180-gradenregel): deze shots vervangen de gegenereerde (missionScene, spec.shotFix)
+  shotFix: [
+    { t: 'L4', shot: 'cut', at: [2.98, 1.77, 1.55], look: 'speaker', fov: 38 },
+    { t: 'L6', shot: 'cut', at: [2.98, 1.77, 1.55], look: 'speaker', fov: 25 },
+    { t: 'L8', shot: 'cut', at: [2.98, 1.77, 1.55], look: 'speaker', fov: 30 },
+    { t: 'L10+0.2', shot: 'cut', at: [2.98, 1.77, 1.55], look: 'speaker', fov: 26 },
+  ],
   duo: { tammo: { at: [-0.4, 1.4], face: 10, anim: 'idle' }, tessa: { at: [3.0, -0.1], face: 0, anim: 'idle' } },
   cast: {},
   props: {
@@ -45,6 +52,12 @@ S.F1 = {
 
 // --- F2 De eerste bak: de wagen op blokken in de loods, Tammo eronder, Tessa bij de friteuse ---
 S.F2 = {
+  // as-sprongen hersteld (180-gradenregel): deze shots vervangen de gegenereerde (missionScene, spec.shotFix)
+  shotFix: [
+    { t: 'L2', shot: 'dolly', from: [4.1, 1.46, 1.5], to: [4.26, 0.19, 1.55], look: 'speaker', fov: 34 },
+    { t: 'L8+0.2', shot: 'dolly', from: [4.8, -2.6, 1.5], to: [3.6, -2, 1.55], look: 'mid:tammo,tessa@1.35', fov: 36 },
+    { t: 'L13+1', shot: 'dolly', from: [3.7, 1.8, 2.3], to: [2, 1.62, 3.2], look: 'mid:tammo,tessa@1.2', fov: 50 },
+  ],
   duo: { tammo: { at: [3.8, 2.3], face: 200, anim: 'idle' }, tessa: { at: [2.3, -1.4], face: 0, anim: 'idle' } },
   cast: {},
   props: {
@@ -137,6 +150,11 @@ S.F4 = {
 
 // --- F5 Een avond voor twee: zoet en komisch, het lijstje in de zak van Tammo, twee kratten aan de kade, de duif draait rondjes ---
 S.F5 = {
+  // as-sprongen hersteld (180-gradenregel): deze shots vervangen de gegenereerde (missionScene, spec.shotFix)
+  shotFix: [
+    { t: 'L4', shot: 'cut', at: [2.2, 2.6, 2.8], look: 'speaker', fov: 44 },
+    { t: 'L10', shot: 'cut', at: [2.2, 2.6, 2.8], look: 'speaker', fov: 44 },
+  ],
   duo: { tammo: { at: [3.4, -0.3], face: 180, anim: 'idle', sit: 0.4 }, tessa: { at: [3.4, 0.6], face: 180, anim: 'idle', sit: 0.4 } },
   cast: {},
   props: {
@@ -171,6 +189,12 @@ S.F5 = {
 
 // --- F6 De kaart op het luik: eenenveertig rode stippen tegen een blauwe; de overgang naar het eindspel ---
 S.F6 = {
+  // as-sprongen hersteld (180-gradenregel): deze shots vervangen de gegenereerde (missionScene, spec.shotFix)
+  shotFix: [
+    { t: 'L5', shot: 'cut', at: [2.8, -2.6, 1.55], look: 'speaker', fov: 38 },
+    { t: 'L12', shot: 'cut', at: [-2.97, -4.35, 1.55], look: 'speaker', fov: 38 },
+    { t: 'L12+1', shot: 'dolly', from: [-6.89, -5.17, 2.5], to: [-7.62, -6.71, 3.4], look: 'mid:tessa,tammo@1.2', fov: 50 },
+  ],
   duo: { tammo: { at: [4.3, -3.4], face: 90, anim: 'idle' }, tessa: { at: [4.3, -1.8], face: 270, anim: 'idle' } },
   cast: {},
   props: {
