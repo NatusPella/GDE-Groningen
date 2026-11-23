@@ -1243,6 +1243,34 @@
    "prio": "-"
   },
   {
+   "id": "levendestad",
+   "naam": "Levende stad: dagritmes, verkeersreacties en straatgebeurtenissen",
+   "groep": "Wereld",
+   "modules": [
+    "dailyrhythm",
+    "terraceseats",
+    "trafficreact",
+    "streetevents",
+    "streeteventlive"
+   ],
+   "eigenaar": "wereld",
+   "gast": "Dezelfde voetgangers, auto's en scènes van de host via de snapshot (plek, toetervlag, tekstballon), de losgebroken hond in de dierenlijst en de kraam, ijscokar of gitaarkoffer als tijdelijke rekwisieten; houdingen (zitten, bellen, praten) en het gebaar achter het stuur tekent alleen de host.",
+   "beloning": "Geen: sfeer, geen geld of voortgang.",
+   "wegval": "Niets te bewaren: een gast die later aansluit ziet de lopende scène; bij een hostwissel begint de nieuwe host met een lege scène op zijn eigen klok.",
+   "test": [
+    "scripts/dailyrhythm_test.mjs",
+    "scripts/trafficreact_test.mjs",
+    "scripts/streetevents_test.mjs",
+    "scripts/levendestad_wereld_test.mjs"
+   ],
+   "regel": {
+    "doc": "docs/COOP-GAST.md",
+    "zoek": "## Levende stad: dagritmes, verkeersreacties en straatgebeurtenissen"
+   },
+   "status": "OK",
+   "prio": "-"
+  },
+  {
    "id": "wapens",
    "naam": "Wapens, PvP en passive mode",
    "groep": "Wereld",

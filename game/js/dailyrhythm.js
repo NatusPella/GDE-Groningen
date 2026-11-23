@@ -133,7 +133,7 @@ export function nightlifeScale(hour, weekday) {
 const ENTER = { werk: 0.85, school: 0.85, winkel: 0.65, horeca: 0.4, huis: 0.8, station: 0.5, halte: 0, park: 0, uitgaan: 0.25 };
 const SIT_BENCH = { nacht: 0.03, vroeg: 0.05, ochtendspits: 0.04, ochtend: 0.25, lunch: 0.45, middag: 0.4, avondspits: 0.15, avond: 0.3, laat: 0.1 };
 const PHONE = { nacht: 0.5, vroeg: 0.35, ochtendspits: 0.55, ochtend: 0.4, lunch: 0.35, middag: 0.35, avondspits: 0.5, avond: 0.3, laat: 0.45 };
-export const BIKE_LOCK_CHANCE = 0.22;
+const BIKE_LOCK_CHANCE = 0.22;
 export function arrivalPlan(hour, weekday, kind, r = [], ctx = {}) {
   const part = dayPartOf(hour);
   const r0 = r[0] ?? 0.5, r1 = r[1] ?? 0.5, r2 = r[2] ?? 0.5;
