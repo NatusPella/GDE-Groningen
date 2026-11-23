@@ -61,7 +61,7 @@
 #shop-menu .sm-buyrow { display: flex; align-items: center; justify-content: space-between; gap: var(--ds-s-5); flex: none; position: sticky; bottom: calc(-1 * var(--ds-s-4)); margin-bottom: calc(-1 * var(--ds-s-4)); padding: var(--ds-s-2) 0 var(--ds-s-4); background: var(--ds-zeef-bg); border-top: var(--ds-lijn-dik) solid var(--ds-c-ink-inkt); }
 /* de naam in een rij breekt af op twee regels in plaats van op puntjes: zonder naam kies je geen auto (#1232) */
 #shop-menu .sm-naam { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; overflow: hidden; overflow-wrap: anywhere; }
-#shop-menu .sm-buy { flex: 1 1 auto; flex-direction: column; }
+#shop-menu .sm-buy { flex: 1 1 auto; flex-direction: row; justify-content: center; gap: var(--ds-s-3); }
 #shop-menu .sm-buy-tekst { display: block; }
 #shop-menu .ds-z-knop__sub { display: inline-flex; align-items: center; gap: var(--ds-s-2); font-family: var(--ds-font-zeef-tekst); font-weight: 400; font-size: var(--ds-t-hulp); letter-spacing: 0; }
 #shop-menu .sm-buy.armed { background: var(--ds-c-rood-vlak); }
