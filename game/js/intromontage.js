@@ -30,7 +30,7 @@ import { logoHtml } from './logo.js';
 import { PARTS, partNumber } from './storyarc.js';
 import { homeSpawnPoint } from './home.js';
 import { DECOR_MAKERS, shadowDisc, disposeModel } from './storyprops.js';
-import { jumpsFromStops } from './cutscenewarm.js';
+import { jumpsFromStops, stopsFromStart } from './cutscenewarm.js';
 import { KEYS } from './storagekeys.js';
 import { TABLE_SIT } from './cutscenemodels.js';
 import { BIRDS, makeBirds, scatterBirds, updateBirds } from './birds.js';
@@ -1783,7 +1783,8 @@ export function playIntroMontage(w, { startAt = 0, flyShot, onDone, maxShots = I
   ui.root.classList.add('on');
   // de plekken wisselen in de film (de Grote Markt, de Oosterparkwijk, Paddepoel): de volgende plek warmt vooruit en een harde sprong
   // wacht onder zwart tot de buurt er staat (cutscenewarm.js, #1016). Tijd t van de cinematic = montagetijd min het beginpunt.
-  const jumps = jumpsFromStops(shots.map((s, i) => (s.focus && Number.isFinite(s.focus.x) && Number.isFinite(s.focus.y) ? { t: starts[i] - r.offset, x: s.focus.x, y: s.focus.y } : null)).filter((q) => q && q.t > 0));
+  // #1171: ook het eerste shot is een sprong (van de speler naar de toren): stopsFromStart zet de speler vooraan, zodat het begin onder zwart wacht tot de plek er staat
+  const jumps = jumpsFromStops(stopsFromStart(shots.map((s, i) => (s.focus && Number.isFinite(s.focus.x) && Number.isFinite(s.focus.y) ? { t: starts[i] - r.offset, x: s.focus.x, y: s.focus.y } : null)), { x: p.x, y: p.y }));
   const ok = playCinematic({
     id: 'intro', priority: 6, jumps, duration: total - r.offset, pause: true, letterbox: true, skippable: true, hideHud: true, realtime: true,
     shot: (u, t) => {
