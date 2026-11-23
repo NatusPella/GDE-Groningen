@@ -21,7 +21,7 @@ const { vehicleSeat } = await import('../game/js/seating3d.js');
 const { buildPersonMesh, seatPose, seatedY, standBehindPose, supPose, PERSON_RIG } = await import('../game/js/models3d_people.js');
 const { TRAFFIC_MODELS, MOPED_MODEL } = await import('../game/js/vehicle.js');
 const { BOAT_KINDS } = await import('../game/js/boattypes.js');
-const VERBOSE = process.argv.includes('--verbose');
+const VERBOSE = process.argv.includes("--verbose");
 const MODULAR = process.argv.includes('--modulair');
 let M = null, placeSeatedLocal = null, SADDLE_BELOW_HIP = 0.17, wheelPoseFor = null;
 if (MODULAR) {
@@ -34,7 +34,7 @@ if (MODULAR) {
   const { interiorKlasse } = await import('../game/js/carinteriorlayout.js');
   const { isCockpitKlasse } = await import('../game/js/cockpitlayout.js');
   const { carBodyFit } = await import('../game/js/models3d_vehicles.js');
-  wheelPoseFor = (v, seat) => { const k = interiorKlasse(v); if (k === 'heli' || k === 'vliegtuig') return null; return cabinWheelPose(seat, v.model.len, v.model.wid, k, isCockpitKlasse(k) ? null : carBodyFit(v), v.model.name || ''); };
+  wheelPoseFor = (v, seat) => { const k = interiorKlasse(v); if (k === 'heli' || k === 'vliegtuig' || v.isBoat) return null; return cabinWheelPose(seat, v.model.len, v.model.wid, k, isCockpitKlasse(k) ? null : carBodyFit(v), v.model.name || ''); };
 }
 let modN = 0;
 
@@ -238,6 +238,8 @@ function check(label, v, driver) {
   }
   if (f.modular && !seat.stand || (f.modular && seat.rider)) {
     // eis 23-11: zitvlak op de zitting (minder dan 5 cm ertussen), rug rechtop (hoofd boven de heup), knieën gebogen bij een stoel
+    // een fietser: de heup boven het zadel (de benen hangen langs het zadel, het zitvlak is daar niet te meten)
+    if (seat.rider) f.butt = f.hip.y - 0.065;
     if (Math.abs(f.butt - f.seatY) > 0.05) issues.push(`zitvlak ${f.butt.toFixed(2)} niet op de zitting ${f.seatY.toFixed(2)} (${((f.butt - f.seatY) * 100).toFixed(0)} cm)`);
     if (!seat.rider && Math.abs(f.hip.x - f.seatX) > 0.15) issues.push(`heup ${((f.hip.x - f.seatX) * 100).toFixed(0)} cm voor de zitting (de stoel en het stuur van dit voertuig passen niet bij elkaar)`);
     if (f.head.y - f.hip.y < 0.5 || Math.abs(f.head.x - f.hip.x) > 0.3) issues.push(`rug niet rechtop (hoofd ${(f.head.y - f.hip.y).toFixed(2)} m boven en ${(f.head.x - f.hip.x).toFixed(2)} m voor de heup)`);

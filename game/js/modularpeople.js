@@ -70,8 +70,26 @@ export function registerModularRig(name, man, buf) {
     bb.parent.getWorldQuaternion(q);
     rig.sideAxis[n] = up.set(0, 0, 1).applyQuaternion(q.invert()).normalize().toArray();
   }
+  // de scheen in rust: van het onderbeen naar de enkel (de voet is geen kind), als as in de assen van het onderbeen en lengte; een clip
+  // laat de voet soms los van de scheen staan, dan rekent de IK met de echte scheen (shinEnd)
+  rig.shin = {};
+  for (const sd of ['L', 'R']) {
+    const lo = tmp.bones[man.bones.findIndex((x) => x.name === 'LowerLeg' + sd)], ft = tmp.bones[man.bones.findIndex((x) => x.name === 'Foot' + sd)];
+    const a = new THREE.Vector3(), b = new THREE.Vector3();
+    lo.getWorldPosition(a); ft.getWorldPosition(b);
+    lo.getWorldQuaternion(q);
+    rig.shin[sd] = { axis: b.clone().sub(a).normalize().applyQuaternion(q.clone().invert()).toArray(), len: a.distanceTo(b) };
+  }
   rigs.set(name, rig);
   return rig;
+}
+const _se = new THREE.Vector3(), _sq = new THREE.Quaternion();
+// het einde van de scheen nu (wereld), uit de as en lengte in rust; s = de schaal van de mens
+function shinEnd(rig, lo, side, s, out) {
+  const sh = rig.shin[side];
+  lo.getWorldPosition(out);
+  lo.getWorldQuaternion(_sq);
+  return out.add(_se.fromArray(sh.axis).applyQuaternion(_sq).multiplyScalar(sh.len * s));
 }
 
 // Laadt beide rigs in de achtergrond (browser). Geeft een belofte die nooit faalt: zonder bestand blijft het procedureel.
@@ -676,11 +694,12 @@ function poseBonesFromClip(ud, rig, clipName, u, names) {
 // Achterop: zijzit, knieën gebogen, voeten hangend. ctx.wheel = { c: [x,y,z], r, tilt } in de assen van het voertuig en
 // ctx.toWorld(x, y, z, out) zet een punt van het voertuig om naar de wereld.
 export const HAND_PALM = 0.075;
-export const SEAT_SLIDE = 0.12;   // m: hooguit zo ver schuift een bestuurder naar voren op de zitting (meer zou van de stoel af zijn; seat_audit meldt de rest)
-export const SEAT_SLIDE_BACK = 0.2;   // m: hooguit zo ver naar achteren als het stuur te dichtbij is
+export const HIP_ABOVE_SEAT = 0.065;   // m: het heupbot boven de zitting (gemeten op de zitclip)
+export const SEAT_SLIDE = 0;   // m: hooguit zo ver schuift een bestuurder naar voren op de zitting (meer zou van de stoel af zijn; seat_audit meldt de rest)
+export const SEAT_SLIDE_BACK = 0;   // m: hooguit zo ver naar achteren als het stuur te dichtbij is
 export const SEAT_TARGETS = {
   car: { back: 0.42, knee: 2.18, elbow: 2.27 },         // passagier: 24 graden, knie 125 graden
-  drive: { back: 0.36, knee: 2.18, elbow: 2.27 },       // bestuurder: 21 graden
+  drive: { back: 0.3, knee: 2.18, elbow: 2.27 },       // bestuurder: 21 graden
   bike: { back: -0.3, knee: 2.7 },                      // 17 graden voorover, knie 155 graden onderaan de slag
   rail: { back: 0.0, knee: 1.6 },                       // achterop: rechtop, knie 90 graden
 };
@@ -699,13 +718,15 @@ function seatIK(mesh, seat, ctx = null) {
   const bn = (n) => B[ud.qIdxBy[n]];
   const astride = !!(pose && pose.splay);
   const railSit = !!(pose && pose.arms === 'rail');
-  const T = rider ? SEAT_TARGETS.bike : railSit ? SEAT_TARGETS.rail : pose && pose.arms === 'wheel' ? SEAT_TARGETS.drive : SEAT_TARGETS.car;
+  const T0 = rider ? SEAT_TARGETS.bike : railSit ? SEAT_TARGETS.rail : pose && pose.arms === 'wheel' ? SEAT_TARGETS.drive : SEAT_TARGETS.car;
+  // een sportstoel ligt verder achterover (pose.recline): de rug gaat mee, zodat de heuphoek open blijft
+  const T = pose && !rider && !railSit && (pose.recline || 0) > 0.35 ? { ...T0, back: Math.min(0.48, T0.back + 0.045) } : T0;
   mesh.updateMatrixWorld(true);
   const s = mesh.scale.y || 1;
   const toW = (x, y, z, out) => { out.set(x, y, z); return mesh.localToWorld(out); };
   const dirW = (x, y, z, out) => out.set(x, y, z).transformDirection(mesh.matrixWorld);
   // 0. het bekken recht (de clip draait en kantelt het; dan staan de heupgewrichten scheef en zijn de benen ongelijk)
-  if (!astride) { B[I.root].quaternion.fromArray(rig.man.bones[I.root].quat); B[I.body].quaternion.fromArray(rig.man.bones[I.body].quat); bn('Hips').quaternion.fromArray(rig.man.bones[ud.qIdxBy.Hips].quat); mesh.updateMatrixWorld(true); }
+  if (!astride) { for (const n of ['ShoulderL', 'ShoulderR', 'Abdomen', 'Torso', 'Chest']) bn(n).quaternion.fromArray(rig.man.bones[ud.qIdxBy[n]].quat); B[I.root].quaternion.fromArray(rig.man.bones[I.root].quat); B[I.body].quaternion.fromArray(rig.man.bones[I.body].quat); bn('Hips').quaternion.fromArray(rig.man.bones[ud.qIdxBy.Hips].quat); mesh.updateMatrixWorld(true); }
   // 0b. de heupen haaks op de rijrichting: de lijn tussen de heupgewrichten langs de zij-as van de mens (de rust van het pack staat
   // iets gedraaid), alleen om de verticaal
   if (!astride) {
@@ -721,8 +742,8 @@ function seatIK(mesh, seat, ctx = null) {
     for (let it = 0; it < 3; it++) aimBone(bn('Abdomen'), bn('Hips'), bn('Neck'), _dir);
     // de schouders haaks (de draai van het bekken zat ook in de rug), dan het hoofd rechtop
     bn('UpperArmL').getWorldPosition(_bv); bn('UpperArmR').getWorldPosition(_bw);
-    _bx.subVectors(_bw, _bv); dirW(0, 1, 0, _dir); _bx.addScaledVector(_dir, -_bx.dot(_dir)).normalize();
-    dirW(0, 0, 1, _ax2); _ax2.addScaledVector(_dir, -_ax2.dot(_dir)).normalize();
+    _bx.subVectors(_bw, _bv).normalize();   // haaks en waterpas: ook de kanteling van de schouders eruit
+    dirW(0, 0, 1, _ax2);
     if (_bx.lengthSq() > 0.5) rotateWorld(bn('Chest'), _bq.setFromUnitVectors(_bx, _ax2));
     dirW(Math.sin(0.08), Math.cos(0.08), 0, _dir);   // hoofd rechtop, een tikje voorover (kijkt door de voorruit)
     aimBone(bn('Neck'), bn('Neck'), bn('Head'), _dir);
@@ -759,10 +780,26 @@ function seatIK(mesh, seat, ctx = null) {
     slide = Math.max(-SEAT_SLIDE_BACK, Math.min(SEAT_SLIDE, slide));   // ook iets naar achteren als het stuur te dichtbij is
     if (slide !== 0) { mesh.position.addScaledVector(mesh.parent ? _dir.transformDirection(mesh.parent.matrixWorld.clone().invert()) : _dir, slide); mesh.updateMatrixWorld(true); }
   }
+  // 1c. de heup op de zitting: het heupbot HIP_ABOVE_SEAT boven de zitting (een fietser: het zadel, SADDLE_BELOW_HIP onder de heup
+  // van het eigen model), via de omzetting van het voertuig als die er is; zo hangt het niet meer van de zitclip af
+  if (seat && !astride && ctx && ctx.toWorld) {
+    mesh.updateMatrixWorld(true);
+    const top = rider ? seat.y + (0.93 - 0.17) * s : seat.y;
+    ctx.toWorld(seat.x, top, seat.z, _c0);
+    bn('Hips').getWorldPosition(_bv);
+    const dy = _c0.y + HIP_ABOVE_SEAT * s - _bv.y;
+    if (Math.abs(dy) > 1e-4) {
+      // de wereldplek van de mens dy omhoog, terug naar de assen van de ouder
+      mesh.getWorldPosition(_bw); _bw.y += dy;
+      if (mesh.parent) mesh.parent.worldToLocal(_bw);
+      mesh.position.copy(_bw);
+      mesh.updateMatrixWorld(true);
+    }
+  }
   // 2. benen. Het heupgewricht (bovenbeen) in de assen van de mens; de voet: op de vloer voor de stoel (pose.footY = enkel ten opzichte
   // van het heupgewricht bij het eigen model) of bij de pedalen; afstand heup-enkel uit de gewenste kniehoek.
   const l1 = B[I.upL].getWorldPosition(_bv).distanceTo(B[I.loL].getWorldPosition(_bw));   // in meters, zoals fx en fy (die worden bij het omzetten door s gedeeld)
-  const l2 = B[I.loL].getWorldPosition(_bv).distanceTo(B[I.footL].getWorldPosition(_bw));
+  const l2 = rig.shin.L.len * s;
   const reachFor = (kneeAng) => Math.sqrt(l1 * l1 + l2 * l2 - 2 * l1 * l2 * Math.cos(kneeAng));
   for (let k = 0; k < 2; k++) {
     const up = B[k ? I.upR : I.upL], lo = B[k ? I.loR : I.loL], foot = B[k ? I.footR : I.footL];
@@ -770,7 +807,7 @@ function seatIK(mesh, seat, ctx = null) {
     up.getWorldPosition(_hp); mesh.worldToLocal(_hp);
     let fx, fy, fz = 0;
     if (astride) { fx = pose.footX ?? 0.3; fy = pose.footY ?? -0.6; fz = side * Math.sin(pose.splay) * Math.abs(fy); }
-    else if (rider) { const d = reachFor(T.knee); fy = -Math.min(d, 0.92 * d); fx = Math.sqrt(Math.max(0, d * d - fy * fy)) + 0.05; }
+    else if (rider) { const d = reachFor(T.knee); fy = -Math.min(d, 0.92 * d); fx = Math.sqrt(Math.max(0, d * d - fy * fy)); }
     else if (railSit) { const d = reachFor(T.knee); fy = -0.82 * d; fx = Math.sqrt(d * d - fy * fy); }
     else {
       // de vloer: 14 cm onder de enkel van het eigen model (pose.footY), en de dij zo schuin (0 tot 25 graden omhoog) dat de knie zo dicht
@@ -784,14 +821,18 @@ function seatIK(mesh, seat, ctx = null) {
         const phi = Math.asin(dy / l2), kneeA = Math.PI - t - phi;
         // de knie dicht bij de gewenste hoek, en liefst een bijna vlakke dij (rond 10 graden) voor een open heuphoek
         // een dij die omlaag loopt telt zwaar (dan liever de knie iets meer open)
-        const err = Math.abs(kneeA - T.knee) + 0.8 * Math.abs(t - 0.12) + (t < 0.05 ? 12 * (0.05 - t) : 0);
+        const err = Math.abs(kneeA - T.knee) + 1.2 * Math.abs(t - 0.04) + (t < 0.05 ? 12 * (0.05 - t) : 0);
+        // alleen een voet op de vloer als de knie dan binnen 10 graden van de gewenste hoek komt met een dij die niet omlaag loopt;
+        // anders hangt de voet (een hoge cabine met een diepe vloer: de voet op een voetsteun)
+        if (t < -0.02 || Math.abs(kneeA - T.knee) > 0.17) continue;
         if (!best || err < best.err) best = { err, fx: kx + l2 * Math.cos(phi), fy: fyFloor };
       }
       if (best) { fx = best.fx; fy = best.fy; }
-      else { const d = reachFor(T.knee); fy = Math.max(-0.97 * d, fyFloor); fx = Math.sqrt(Math.max(0.01, d * d - fy * fy)); }
+      // de vloer is dieper dan het been reikt (hoge cabine): de dij bijna vlak, de knie op de gewenste hoek, de voet hangt boven de vloer (op een voetsteun)
+      else { const t = 0.09, kx = l1 * Math.cos(t), ky = l1 * Math.sin(t), a = Math.PI - T.knee - t; fx = kx + l2 * Math.cos(a); fy = ky - l2 * Math.sin(a); }   // a = hoek van de scheen onder de horizontaal
     }
     toW(_hp.x + fx / s, _hp.y + fy / s, _hp.z + fz / s, _tg);
-    foot.getWorldPosition(_ft);
+    shinEnd(rig, lo, k ? 'R' : 'L', s, _ft);
     ikTo(up, lo, _ft, _tg);
     if (astride) kneeOut(mesh, up, lo, _tg, side);
     else poleTo(mesh, up, lo, _tg, 0, 1, 0);
@@ -838,7 +879,7 @@ function seatIK(mesh, seat, ctx = null) {
     // zonder stuurpositie: het stuur zo voor de schouders dat de ellebogen op de gewenste hoek uitkomen
     const ua = bn('UpperArmL').getWorldPosition(_bv).distanceTo(bn('LowerArmL').getWorldPosition(_bw)) / s;
     const la = bn('LowerArmL').getWorldPosition(_bv).distanceTo(bn('WristL').getWorldPosition(_bw)) / s;
-    const d = Math.sqrt(ua * ua + la * la - 2 * ua * la * Math.cos(T.elbow));
+    const d = Math.sqrt(ua * ua + la * la - 2 * ua * la * Math.cos(T.elbow - 0.12)) + HAND_PALM;   // tot de handpalm (iets meer gebogen: de palm schuift de pols terug)
     bn('UpperArmL').getWorldPosition(_hp); mesh.worldToLocal(_hp);
     const shx = _hp.x, shy = _hp.y;
     const dy = -0.2, dx = Math.sqrt(Math.max(0.01, d * d - dy * dy));

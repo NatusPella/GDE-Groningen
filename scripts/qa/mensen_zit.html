@@ -3,7 +3,7 @@
 <title>Mensen fase 3: zitten en rijden (modulair)</title>
 <script type="importmap">{ "imports": { "https://cdn.jsdelivr.net/npm/": "/cdn/", "three": "/cdn/three@0.160.0/build/three.module.js", "three/addons/": "/cdn/three@0.160.0/examples/jsm/" } }</script>
 <style>html,body{margin:0;background:#222;color:#eee;font:13px system-ui,sans-serif}canvas{display:block}#info{position:absolute;left:8px;top:4px;white-space:pre;text-shadow:0 1px 2px #000}</style>
-<canvas id="c" width="1600" height="1000"></canvas>
+<canvas id="c" width="1600" height="1400"></canvas>
 <div id="info">laden...</div>
 <script>window.addEventListener('error', (e) => fetch('/__klaar', { method: 'POST', body: JSON.stringify({ fout: e.message }) }));
 window.addEventListener('unhandledrejection', (e) => fetch('/__klaar', { method: 'POST', body: JSON.stringify({ fout: String(e.reason && e.reason.stack || e.reason) }) }));</script>
@@ -53,7 +53,7 @@ const bike = TRAFFIC_MODELS().find((m) => m.name === 'bike' && !m.fat);
 const CASES = [['hatch', car('hatch', 3.8, 1.7)], ['van', car('van', 5.0, 2.0)], ['sport', car('sport', 4.1, 1.85)], ['bus', car('bus', 11.2, 2.55, { isBus: true })], ['fiets', { id: 2, x: 0, y: 0, angle: 0, model: { ...bike }, isBike: true }]];
 const W = 1600 / CASES.length, H = 500;
 let n = 0;
-renderer.setClearColor(0x222222); renderer.setScissor(0, 0, 1600, 1000); renderer.setViewport(0, 0, 1600, 1000); renderer.clear();
+renderer.setClearColor(0x222222); renderer.setScissor(0, 0, 1600, 1400); renderer.setViewport(0, 0, 1600, 1400); renderer.clear();
 CASES.forEach(([label, v], i) => {
   for (const driver of [true, false]) {
     const mesh = V.buildVehicleMesh(v);
@@ -72,14 +72,24 @@ CASES.forEach(([label, v], i) => {
     const cam = new THREE.PerspectiveCamera(30, W / H, 0.1, 100);
     const sx = seat.x;
     cam.position.set(sx + 0.4, (seat.y || 0) + 1.3, (seat.z || 0) + (driver ? -1 : 1) * 3.2); cam.lookAt(sx + 0.2, (seat.y || 0) + 0.45, seat.z || 0);
-    const x = i * W, y = driver ? 500 : 0;
+    const x = i * W, y = driver ? 900 : 400;
     renderer.setViewport(x, y, W, H); renderer.setScissor(x, y, W, H);
     renderer.render(scene, cam);
+    // derde rij: de binnencamera van de bestuurder (oog 0,62 m boven de zitting, kijkt vooruit): het stuur onderaan in beeld
+    if (driver && !v.isBike) {
+      p.visible = false;
+      const eye = new THREE.Vector3(seat.x + 0.05, seat.y + 0.62, seat.z);   // het oog van carinteriorlayout.js (de binnencamera)
+      const look = new THREE.Vector3(seat.x + 3, seat.y + 0.45, seat.z);
+      const ic = new THREE.PerspectiveCamera(65, W / 400, 0.05, 100); ic.position.copy(eye); ic.lookAt(look);
+      renderer.setViewport(x, 0, W, 400); renderer.setScissor(x, 0, W, 400);
+      renderer.render(scene, ic);
+      p.visible = true;
+    }
     scene.remove(mesh);
   }
 });
-renderer.setScissor(0, 0, 1600, 1000); renderer.setViewport(0, 0, 1600, 1000);
-document.getElementById('info').textContent = 'boven: bestuurder (stuur half naar rechts); onder: passagier. ' + CASES.map((c) => c[0]).join(', ');
+renderer.setScissor(0, 0, 1600, 1400); renderer.setViewport(0, 0, 1600, 1400);
+document.getElementById('info').textContent = 'boven: bestuurder (stuur half naar rechts); midden: passagier; onder: binnencamera bestuurder. ' + CASES.map((c) => c[0]).join(', ');
 window.__klaar = true;
 fetch('/__klaar', { method: 'POST', body: JSON.stringify({ ok: true }) }).catch(() => {});
 </script>

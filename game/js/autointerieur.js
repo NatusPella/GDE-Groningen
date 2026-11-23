@@ -16,7 +16,7 @@ import { isCockpitKlasse } from './cockpitlayout.js';
 // de handen van een modulaire bestuurder (seating3d.js) zoeken hetzelfde stuur als hier getekend wordt
 setWheelPoseProvider((v, seat) => {
   const klasse = interiorKlasse(v);
-  if (GEEN_STUURWIEL_KLASSE.has(klasse)) return null;
+  if (GEEN_STUURWIEL_KLASSE.has(klasse) || v.isBoat) return null;   // een boot heeft zijn eigen stuur (bootinterieur.js)
   const romp = isCockpitKlasse(klasse) ? null : carBodyFit(v);
   return cabinWheelPose(seat, v.model.len, v.model.wid, klasse, romp, (v.model && v.model.name) || '');
 });

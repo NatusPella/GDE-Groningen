@@ -13,10 +13,10 @@ let wheelPoseOf = null;
 export function setWheelPoseProvider(fn) { wheelPoseOf = typeof fn === 'function' ? fn : null; }
 const _wc = new THREE.Vector3();
 function wheelCtx(v, seat, toWorld) {
-  if (!wheelPoseOf || !v || !seat || !seat.pose || seat.pose.arms !== 'wheel') return null;
+  // altijd de omzetting naar de wereld (de zitting in de assen van het voertuig); het stuur alleen als er een is
   let w = null;
-  try { w = wheelPoseOf(v, seat); } catch (e) { w = null; }
-  return w && Number.isFinite(w.x) ? { wheel: { c: [w.x, w.y, w.z], r: w.r || 0.19, tilt: w.tilt || 0 }, toWorld } : null;
+  if (wheelPoseOf && v && seat && seat.pose && seat.pose.arms === 'wheel') { try { w = wheelPoseOf(v, seat); } catch (e) { w = null; } }
+  return { wheel: w && Number.isFinite(w.x) ? { c: [w.x, w.y, w.z], r: w.r || 0.19, tilt: w.tilt || 0 } : null, toWorld };
 }
 import { hash2 as hash } from './rng.js';
 import { deurVoorStoel, instapKant, doorsFor, stapAnimatieAan } from './vehicledoors.js';
@@ -226,7 +226,7 @@ export function placeSeatedLocal(person, seat, t = 0) {
   person.rotation.set(0, seat.face || 0, 0);
   if (person.userData.qRig) { // modulaire mens: zit- of rijclip (ADR 0051), met het stuur van het voertuig als de ouder het voertuig is
     const veh = person.parent && person.parent.userData && person.parent.userData.vehicleRef;
-    seatModular(person, seat, t, wheelCtx(veh, seat, (x, y, z, out) => person.parent.localToWorld(out.set(x, y, z))));
+    seatModular(person, seat, t, wheelCtx(veh, seat, (x, y, z, out) => (person.parent ? person.parent.localToWorld(out.set(x, y, z)) : out.set(x, y, z))));
     return;
   }
   if (seat.stand && seat.pose && seat.pose.arms === 'sup') supPose(person, t);
