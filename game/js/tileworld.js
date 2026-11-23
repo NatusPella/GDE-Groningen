@@ -19,6 +19,7 @@ import { promoteMainWaterway } from './waterlevels.js';
 import { dropWaterDuplicates } from './waterdupes.js';
 import { addMooredBuilding, dropMooredBuilding } from './waterindex.js';
 import { SECTION, decodeBlob, tileKey, tileOrigin, TILE_M } from './gdt.js';
+export const GEO_LOG_MAX = 256; // zoveel tegelwissels onthoudt geoLog; een cache die verder achterloopt, begint opnieuw
 import { trimTileGreenery, trimHedgeRow } from './tilegreenery.js';
 import { isProceduralEdgeRow } from './edgeclasses.js';
 import * as propfilter from './propfilter.js';
@@ -380,6 +381,15 @@ export class TileWorld extends GameMap {
   // verhoogt geoVer en daarmee verversen farlod, het straatmeubilair, de bomenlijst en de wegsync hun caches; voor een tegel waar geen van
   // die caches kijkt kostte dat alleen werk (het straatmeubilair per tegel herbouwde elke twee seconden: nearestOnRoadList 1 s per 17 s rit).
   // Zonder focus (de titel, een test) is niets ver.
+  // geoVer omhoog en onthoud welke tegel het was (geoLog: [versie, tegelsleutel, ...], hoogstens GEO_LOG_MAX paren), zodat een cache alleen
+  // de stukken rond die tegel opnieuw hoeft te bouwen in plaats van alles (streetfurniture3d.js, 24-11)
+  _bumpGeo(tk) {
+    this.geoVer = (this.geoVer || 0) + 1;
+    const log = this.geoLog || (this.geoLog = []);
+    log.push(this.geoVer, tk);
+    if (log.length > GEO_LOG_MAX * 2) log.splice(0, log.length - GEO_LOG_MAX * 2);
+  }
+
   _farBgTile(tk) {
     if (!this._bgTiles || !this._bgTiles.has(tk) || !this.focusAt) return false;
     const [i, j] = tk.split(',').map(Number);
@@ -559,7 +569,7 @@ export class TileWorld extends GameMap {
     // een achtergrondtegel ver weg (plaatsingsvenster) raakt geen cache bij de speler en ververst er dus geen (_farBgTile)
     if (!this._farBgTile(tk)) {
       if (greenAdded) this.greenVer = (this.greenVer || 0) + 1;
-      this.geoVer = (this.geoVer || 0) + 1;
+      this._bumpGeo(tk);
     }
     return true;
   }
@@ -676,7 +686,7 @@ export class TileWorld extends GameMap {
     if (goneRoads.length) shrinkElevation(this, goneRoads);
     if (!farBg) {
       if (greenGone) this.greenVer = (this.greenVer || 0) + 1;
-      this.geoVer = (this.geoVer || 0) + 1; // caches verversen (#314 C2, stap 4)
+      this._bumpGeo(tk); // caches verversen (#314 C2, stap 4)
     }
     return true;
   }
