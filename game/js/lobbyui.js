@@ -595,6 +595,7 @@ export function mountLobby(root, hooks, opts = {}) {
     };
     const prev = sess.onevent;
     sess.onevent = (b) => {
+      if (rejectedIdentity) return; // #1293: berichten van de kamer van een ander (spelerslijst, hek) overschrijven de waarschuwing niet
       if (b && b.k === 'hek') { // wie het spel opende start het spel (of er was geen wachtkamer): de wachtkamer van de gast sluit
         const was = state.caps.startGate; set({ t: 'gate', aan: !!b.aan });
         if (was && !b.aan && hooks.startSpel) hooks.startSpel();

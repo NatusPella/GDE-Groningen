@@ -11,8 +11,6 @@ import { T, encodeJson } from '../game/js/net/codec.js';
 
 let n = 0;
 const t = (name, f) => { try { f(); n++; } catch (e) { console.error('MISLUKT: ' + name); throw e; } };
-// OPEN (#1293): het herstel van de ontvangtellers bij een welkom met een nieuw token brak coop/lijsthervat_test (de kamer van een andere host wordt niet meer losgelaten) en is uit de spelcode gehaald; dit geval beschrijft het gewenste gedrag en draait niet mee tot dat herstel er veilig in kan.
-const tOpen = () => {};
 const INFO = { game: 'gde', proto: 2, version: 'x', tiles: '-', story: 'oud' };
 
 function room() {
@@ -33,7 +31,7 @@ function room() {
 }
 
 for (const caps of [['snaptijd'], []]) {
-  tOpen('na het hervatvenster terug via een nieuwe verbinding: snapshots en betrouwbare berichten van de nieuwe sessie komen aan (caps: ' + (caps.join(',') || 'geen') + ')', () => {
+  t('na het hervatvenster terug via een nieuwe verbinding: snapshots en betrouwbare berichten van de nieuwe sessie komen aan (caps: ' + (caps.join(',') || 'geen') + ')', () => {
     const r = room();
     r.c.cfg.caps = caps;
     r.step(40);

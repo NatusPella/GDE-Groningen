@@ -339,7 +339,13 @@ export class ClientSession extends Base {
     if (h.type === T.WELCOME) {
       const m = decodeJson(buf); if (!m || !m.body || typeof m.body !== 'object') return; // a welcome without a body (null, a number) is noise, not a crash
       if (!m.body.ok) { this.rejected = m.body.reason; this.remoteVersion = typeof m.body.version === 'string' ? m.body.version.slice(0, 20) : ''; this._setStatus('geweigerd'); return; }
-      if (this.token && m.body.token !== this.token) this.rel.reset(); // een nieuwe sessie (te lang weg geweest): onze eigen stroom naar de host begint ook opnieuw; de stroom van de host volgt vanzelf (tijdperk)
+      if (this.token && m.body.token !== this.token) {
+        // A new session at the host (away longer than the resume window) counts from zero again: our own stream to the host
+        // restarts, and the receive counters go too, otherwise its snapshots look 'old' and its reliable events 'duplicate'
+        // (acked, then dropped by the host) and the world freezes (#1293). Epoch 0 is never sent, so seq 1 of the new stream switches.
+        this.rel.reset();
+        this.rel.recvEpoch = 0; this.rel.expected = 1; this.rel.ahead.clear(); this.lastSnapSeq = null; this.buf.clear();
+      }
       this.welcome = m.body; // inclusief wat de hub meegaf: personage, lijst van spelers
       if (m.body.sessie && typeof m.body.sessie.id === 'string') this.sessie = { id: m.body.sessie.id.slice(0, 16), naam: typeof m.body.sessie.naam === 'string' ? m.body.sessie.naam.slice(0, 24) : '' }; // bij welke sessie je hoort (#450)
       this.lastExtraSeq = null; this.slot = m.body.slot; this.seed = m.body.seed; this.caps = Array.isArray(m.body.caps) ? m.body.caps : []; this.token = m.body.token; this.joined = true;
