@@ -118,7 +118,7 @@ export const FLAG_DOCS = Object.freeze({
   frames: 'Trailer: sla beeld voor beeld op',
   video: 'Trailer: neem video op (alleen desktop)',
   vlakbruggen: 'Provinciebruggen en viaducten vlak op straatniveau, zonder de hoogteprofielen uit de tegels (om te vergelijken)',
-  mensen: 'mensen=q: voorbijgangers als modulaire mensen van Quaternius (ADR 0050, fase 1; modularpeople.js); q2: ook cutscenes en decorsets; q3: ook speler en medespelers; zonder de vlag alles procedureel',
+  mensen: 'mensen=oud: de oude, procedurele mensen (noodschakelaar; standaard zijn alle mensen modulair, ADR 0050, modularpeople.js); q: alleen voorbijgangers modulair; q2: ook cutscenes en decorsets',
   near: 'Zet het near-vlak van de camera vast op zoveel meter (0,1 tot 10), in plaats van 0,5 op de grond en groter in de lucht (#917, cameranear.js); voor z-fight-metingen',
   far: 'Zet het far-vlak van de camera vast op zoveel meter (100 tot 20000), in plaats van het afgeleide uit de zichtafstand (#917); voor z-fight-metingen',
   terrain: 'Het AHN-reliëf (dijken, wierden, heuvels) rijst uit de grond; wegen, gebouwen en bomen liggen erop (#269; props, gras, water en de verre weergave blijven vlak)',

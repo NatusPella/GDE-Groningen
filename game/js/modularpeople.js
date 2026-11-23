@@ -77,7 +77,7 @@ export function registerModularRig(name, man, buf) {
   // laat de voet soms los van de scheen staan, dan rekent de IK met de echte scheen (shinEnd)
   rig.shin = {};
   for (const sd of ['L', 'R']) {
-    const lo = tmp.bones[man.bones.findIndex((x) => x.name === 'LowerLeg' + sd)], ft = tmp.bones[man.bones.findIndex((x) => x.name === 'Foot' + sd)];
+    const lo = tmp.bones[man.bones.findIndex((x) => x.name === 'LowerLeg' + sd)], ft = tmp.bones[man.bones.findIndex((x) => x.name === (sd === 'L' ? 'FootL' : 'FootR'))];
     const a = new THREE.Vector3(), b = new THREE.Vector3();
     lo.getWorldPosition(a); ft.getWorldPosition(b);
     lo.getWorldQuaternion(q);
@@ -109,8 +109,10 @@ export function loadModularPeople(base = new URL('../models/mensen/', import.met
   return Promise.all(all);
 }
 export const modularReady = (rig) => (rig ? rigs.has(rig) : rigs.size === 2);
-// Fasen achter ?mensen= (ADR 0050): q = voorbijgangers, q2 = ook cutscenes en decorsets, q3 = ook de speler en medespelers.
-export function mensenFase(flag) { return flag === 'q3' ? 3 : flag === 'q2' ? 2 : flag === 'q' ? 1 : 0; }
+// Fasen (ADR 0050): de modulaire mensen zijn de STANDAARD (besluit coördinator 23-11, na de in-game controle): voorbijgangers,
+// cutscenes en decorsets, de speler en medespelers (fase 3). ?mensen=oud is de noodschakelaar terug naar de procedurele mensen;
+// ?mensen=q (alleen voorbijgangers) en q2 (ook cutscenes) blijven om een fase los te bekijken.
+export function mensenFase(flag) { return flag === 'oud' ? 0 : flag === 'q' ? 1 : flag === 'q2' ? 2 : 3; }
 // Zitvlak in rust (m boven de voeten, schaal 1) in de zit-clip, gemeten (UAL Sitting_Idle_Loop); de beller zet de mens zo hoog dat
 // het zitvlak op de zitting ligt.
 const SEAT_CONTACT = { man: 0.444, vrouw: 0.476 };
@@ -762,6 +764,7 @@ function poseBonesFromClip(ud, rig, clipName, u, names) {
 // Achterop: zijzit, knieën gebogen, voeten hangend. ctx.wheel = { c: [x,y,z], r, tilt } in de assen van het voertuig en
 // ctx.toWorld(x, y, z, out) zet een punt van het voertuig om naar de wereld.
 export const HAND_PALM = 0.075;
+const PEDAL_R = 0.17;   // m: de crank van een fiets
 export const HIP_ABOVE_SEAT = 0.065;   // m: het heupbot boven de zitting (gemeten op de zitclip)
 export const SEAT_SLIDE = 0;   // m: hooguit zo ver schuift een bestuurder naar voren op de zitting (meer zou van de stoel af zijn; seat_audit meldt de rest)
 export const SEAT_SLIDE_BACK = 0;   // m: hooguit zo ver naar achteren als het stuur te dichtbij is
@@ -875,7 +878,13 @@ function seatIK(mesh, seat, ctx = null) {
     up.getWorldPosition(_hp); mesh.worldToLocal(_hp);
     let fx, fy, fz = 0;
     if (astride) { fx = pose.footX ?? 0.3; fy = pose.footY ?? -0.6; fz = side * Math.sin(pose.splay) * Math.abs(fy); }
-    else if (rider) { const d = reachFor(T.knee); fy = -Math.min(d, 0.92 * d); fx = Math.sqrt(Math.max(0, d * d - fy * fy)); }
+    else if (rider) {
+      // trappers: de voet op een crank van 17 cm rond de trapas; onderaan de slag is het been op de gewenste kniehoek gestrekt, de
+      // twee voeten staan tegenover elkaar en draaien mee met de snelheid (stilstaand blijven ze waar ze waren)
+      const d = reachFor(T.knee), by = -0.95 * d, bx = Math.sqrt(Math.max(0, d * d - by * by));   // de trapas iets voor en onder het zadel
+      const a = ctx && ctx.pedals ? (ud.qPedal || 0) + (k ? Math.PI : 0) : 0;   // een brommer of step: de voeten stil op de plank
+      fx = bx + PEDAL_R * Math.sin(a); fy = by + PEDAL_R * (1 - Math.cos(a));
+    }
     else if (railSit) { const d = reachFor(T.knee); fy = -0.7 * d; fx = Math.sqrt(d * d - fy * fy); }
     else {
       // de vloer: 14 cm onder de enkel van het eigen model (pose.footY), en de dij zo schuin (0 tot 25 graden omhoog) dat de knie zo dicht
@@ -1046,6 +1055,8 @@ export function seatModular(mesh, seat, t, ctx = null) {
   p.vehicle = drive ? (rider ? 'bike' : 'car') : null;
   p.seated = !drive && !(seat && seat.stand);
   ud.qParams = p;
+  // trappers: een omwenteling per ~5,4 m (wiel 0,34 m, verzet 2,5), alleen voor een fietser
+  if (rider) ud.qPedal = ((ud.qPedal || 0) + ((ctx && ctx.speed) || 0) * dt * 1.17) % (Math.PI * 2);
   ud.qInSeat = true;
   animateModular(mesh, 0, dt);
   ud.qInSeat = false;

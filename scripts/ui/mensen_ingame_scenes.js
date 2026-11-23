@@ -57,7 +57,7 @@ await (async () => {
     let pose = null;
     const cam = (x, y, z, lx, ly, lz, fov = 55) => {
       pose = { position: { x, y, z }, lookAt: { x: lx, y: ly, z: lz }, fov, cut: true };
-      if (!cine.isCinematicActive()) cine.playCinematic({ id: 'm-view', duration: 600, priority: 9, letterbox: false, skippable: false, hidePlayers: false, shot: () => pose });
+      if (!cine.isCinematicActive()) cine.playCinematic({ id: 'm-view', duration: 600, priority: 9, letterbox: false, skippable: false, hidePlayers: false, shot: () => (typeof pose === 'function' ? pose() : pose) });
     };
     const camOff = () => { pose = null; if (cine.isCinematicActive()) cine.skipCinematic(); w.cameraOverride = null; };
     const jump = async (x, y, settle = 6000) => {
@@ -80,7 +80,8 @@ await (async () => {
       const script = await (await fetch('/storydata/script.json')).json();
       const src = await (await fetch('/js/missionstory.js')).text();
       const cat = prev.buildCatalog({ script, npcSource: src });
-      const e = cat.find((x) => x.scene && x.def && x.lines && x.lines.length >= 3 && /^M0[1-3]/.test(x.id) && x.lines.some((l) => /tessa/i.test(l.speaker)) && x.lines.some((l) => /tammo/i.test(l.speaker)));
+      // F1: Tammo en Tessa (spreker 'Anita' in het script) samen, zonder bijrollen
+      const e = cat.find((x) => x.id === 'F1' && x.scene && x.def && x.lines && x.lines.length);
       note('dialoog', e ? e.id : 'geen');
       if (e) {
         const anchor0 = { x: p.x, y: p.y, facing: 0.3, z: p.gz || 0 };
@@ -117,10 +118,12 @@ await (async () => {
     if (peds.length) { cx = peds.reduce((s, q) => s + q.x, 0) / peds.length; cy = peds.reduce((s, q) => s + q.y, 0) / peds.length; }
     const gz = gh(cx, cy);
     // cam(x, kaart-y, hoogte, kijk-x, kijk-kaart-y, kijkhoogte): de vorm van cinematics.js (zoals hertest_scenes.js H.cam)
-    for (const [naam, d, h] of [['menigte-10m', 10, 3], ['menigte-40m', 40, 9], ['menigte-80m', 80, 18]]) {
-      p.x = cx - d * 0.7; p.y = cy - d * 0.7;   // het LOD volgt de afstand tot de speler: hij staat bij de camera
+    // dezelfde groep steeds van dezelfde plek (schuin van boven, 14 m hoog); de speler staat op 10, 40, 80 en 110 m: het LOD
+    // en de verre menigte volgen de afstand tot de speler, dus zo is per niveau te zien hoe dezelfde mensen eruitzien
+    for (const [naam, d] of [['menigte-10m', 10], ['menigte-40m', 40], ['menigte-80m', 80], ['menigte-110m', 110]]) {
+      p.x = cx - d * 0.7; p.y = cy - d * 0.7;
       await sleep(1500);
-      cam(cx - d * 0.7, cy - d * 0.7, gz + h, cx, cy, gz + 1, d > 30 ? 40 : 60);
+      cam(cx - 9, cy - 9, gz + 14, cx, cy, gz + 0.8, 50);
       await sleep(1500);
       note(naam, telMensen());
       await shot(naam, 600);
@@ -155,14 +158,20 @@ await (async () => {
     bike.isBike = true; w.vehicles.push(bike);
     p.enterVehicle(bike, w);
     await sleep(2000);
-    key('w', 'KeyW', 'keydown'); await sleep(1500); key('w', 'KeyW', 'keyup');
-    await sleep(300);
+    // trappen: W blijft ingedrukt tot na de beelden (stilstaand zet de berijder een voet aan de grond)
+    key('w', 'KeyW', 'keydown'); await sleep(1500);
     note('fiets', { opFiets: p.inVehicle === bike, snelheid: +(bike.speed || 0).toFixed(1), ...telMensen() });
-    await shot('fiets-achter', 300);
-    const ba = bike.angle + Math.PI / 2;
-    const bz = gh(bike.x, bike.y);
-    cam(bike.x + Math.cos(ba) * -3.5, bike.y + Math.sin(ba) * -3.5, bz + 1.3, bike.x, bike.y, bz + 1.0, 45);
-    await shot('fiets-zijkant', 1000);
+    await shot('fiets-achter', 200);
+    // een meerijdende camera van opzij (de pose wordt elk beeld uit de fiets berekend)
+    pose = null; cam(0, 0, 0, 1, 0, 0, 45);
+    pose = () => { const ba = bike.angle + Math.PI / 2, bz = gh(bike.x, bike.y); return { position: { x: bike.x + Math.cos(ba) * -3.5, y: bike.y + Math.sin(ba) * -3.5, z: bz + 1.3 }, lookAt: { x: bike.x, y: bike.y, z: bz + 1.0 }, fov: 45, cut: true }; };
+    await shot('fiets-zijkant', 900);
+    note('fiets-rijdend', { snelheid: +(bike.speed || 0).toFixed(1) });
+    key('w', 'KeyW', 'keyup');
+    await sleep(2500);
+    pose = () => { const ba = bike.angle + Math.PI / 2, bz = gh(bike.x, bike.y); return { position: { x: bike.x + Math.cos(ba) * -3.5, y: bike.y + Math.sin(ba) * -3.5, z: bz + 1.3 }, lookAt: { x: bike.x, y: bike.y, z: bz + 1.0 }, fov: 45, cut: true }; };
+    note('fiets-stil', { snelheid: +(bike.speed || 0).toFixed(1) });
+    await shot('fiets-stil', 600);
     camOff();
     note('fouten', fout);
   } catch (e) {

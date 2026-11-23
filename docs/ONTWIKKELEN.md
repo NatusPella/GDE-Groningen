@@ -268,7 +268,7 @@ Debug hooks on `window` (`window.__x`, read by scripts/perf, the story test and 
 | `?far` | Zet het far-vlak van de camera vast op zoveel meter (100 tot 20000) (#917) |
 | `?terrain` | Het AHN-reliëf (dijken, wierden, heuvels) rijst uit de grond; wegen, gebouwen en bomen liggen erop (#269; props, gras, water en spoor blijven vlak) |
 | `?vlakbruggen` | Provinciebruggen en viaducten vlak op straatniveau, zonder de hoogteprofielen uit de tegels (om te vergelijken; standaard hebben ze een profiel, #300) |
-| `?mensen` (`q`, `q2`, `q3`) | Modulaire mensen van Quaternius (ADR 0050, `modularpeople.js`) per fase: `q` voorbijgangers (agenten en wie iets draagt blijven procedureel), `q2` ook cutscenes en decorsets (vaste looks via `modularlooks.js`), `q3` ook speler en medespelers. Zonder de vlag is alles procedureel |
+| `?mensen` (`oud`, `q`, `q2`) | Standaard zijn alle mensen modulaire mensen van Quaternius (ADR 0050, `modularpeople.js`): voorbijgangers, cutscenes, decorsets, speler en medespelers. `oud` is de noodschakelaar naar de procedurele mensen; `q` alleen voorbijgangers, `q2` ook cutscenes en decorsets (vaste looks via `modularlooks.js`). Agenten en verhaalfiguren met een eigen look blijven procedureel |
 | `?nobatch` | Zet het samenvoegen van meshes uit (scene3d) |
 | `?shaderdebug` | Laat three.js shaderfouten controleren |
 | `?noworker` | Geometrie op de hoofdthread in plaats van in de worker |

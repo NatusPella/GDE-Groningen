@@ -781,6 +781,7 @@ function syncPlayerRider(pv, pvMesh, hide, t = 0) {  const want = pv && (pv.isBi
   if (ud.qRig) {
     // spelerfase (?mensen=q3): de modulaire mens zit op het zadel met de rijclip, handen aan het stuur en voeten bij de trappers
     // (seating3d.js placeSeatedLocal); de ingebouwde procedurele fietser van het model wordt verborgen, zoals hieronder
+    pvMesh.userData.vehicleRef = pv;   // snelheid voor de trappers (seating3d.js wheelCtx)
     placeSeatedLocal(playerRider, vehicleSeat(pv, true), t);
     const figQ = pvMesh.userData.riderFig || pvMesh.children.find((c) => c !== playerRider && c.userData && (c.userData.legL || c.userData.qRig));
     if (figQ && figQ !== playerRider) figQ.visible = false;

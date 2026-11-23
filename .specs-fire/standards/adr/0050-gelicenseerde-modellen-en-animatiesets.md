@@ -18,6 +18,7 @@ Mensmodellen en animatieclips van derden mogen tijdens de ONTWIKKELING worden op
 - **Naamsvermelding:** bij CC-BY de handle van de maker zoals de bron hem toont, in `docs/ANIMATIE-LICENTIES.md` en in de credits van het spel. Geen echte namen zoeken of toevoegen. Bij CC0 is vermelding niet verplicht; we noemen de maker toch in de credits zodra iets van hem in het spel zit.
 - **Één systeem:** spel en cutscenes gebruiken hetzelfde model en dezelfde lagen. Procedurele IK, kijkrichting, lipsync en overgangen (`actorlife.js`) liggen bovenop elke basis, ook bovenop clips.
 - **Gefaseerd achter een vlag:** een nieuwe basis gaat eerst naar voorbijgangers, dan naar cutscenes, dan naar spelers, elke fase met een vergelijkingspagina; opgeslagen kledingkeuzes worden gemapt en saves gaan niet stuk.
+- **Stand 23-11:** na de in-game controle in Electron (openingsfilm, straat met LOD en verre menigte, binnenview, fiets, wapens; scripts/ui/mensen_ingame_scenes.js) zijn de modulaire mensen de standaard voor iedereen. `?mensen=oud` zet de procedurele mensen terug als noodschakelaar; `q` en `q2` tonen een fase los.
 
 Eerste toepassing: Quaternius (quaternius.com), alle drie CC0. De Universal Animation Library dient als referentie voor timing en houdingen. De Ultimate Modular Men en Ultimate Modular Women worden op besluit van de eigenaar (23-11) de nieuwe basis voor alle mensen, met hun animaties; de import en de koppeling aan het kledingsysteem volgen in fasen.
 

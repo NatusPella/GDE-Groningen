@@ -266,9 +266,12 @@ function check(label, v, driver) {
       }
     }
     if (seat.rider) {
-      noteMargin('fietser romp', -f.backDeg, 8, 50, lbl); noteMargin('fietser knie', f.kneeDeg, 135, 172, lbl);
+      // trappers (modularpeople.js PEDAL_R): het been onderaan de slag 135-172 graden, het andere (bovenaan) niet dichter dan 70
+      const kLo = Math.max(...f.kneeDeg), kHi = Math.min(...f.kneeDeg);
+      noteMargin('fietser romp', -f.backDeg, 8, 50, lbl); noteMargin('fietser knie', kLo, 135, 172, lbl); noteMargin('fietser knie boven', kHi, 70, 172, lbl);
       if (f.backDeg > -8 || f.backDeg < -50) issues.push(`fietser: romp ${(-f.backDeg).toFixed(0)} graden voorover (8-50)`);
-      if (out(f.kneeDeg, 135, 172)) issues.push(`fietser: knie onderaan ${r0(f.kneeDeg)} graden (135-172)`);
+      if (kLo < 135 || kLo > 172) issues.push(`fietser: knie onderaan ${kLo.toFixed(0)} graden (135-172)`);
+      if (kHi < 70) issues.push(`fietser: knie bovenaan ${kHi.toFixed(0)} graden (minstens 70)`);
     }
     if (seat.pose && seat.pose.arms === 'rail' && !seat.stand) noteMargin('achterop knie', f.kneeDeg, 70, 100, lbl);
     if (seat.pose && seat.pose.arms === 'rail' && !seat.stand && out(f.kneeDeg, 70, 100)) issues.push(`achterop: knie ${r0(f.kneeDeg)} graden (70-100)`);
