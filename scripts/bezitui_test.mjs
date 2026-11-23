@@ -36,7 +36,9 @@ t('overzicht: leeg bezit geeft een uitleg, geen fout', () => {
   reset();
   const h = U.summaryHtml(ctx(w()));
   assert.ok(h.includes('Overzicht') && h.includes('Nog niets dringends') === false);
-  assert.ok(h.includes('Je hebt nog geen percelen'), 'de volgende stap staat er');
+  assert.ok(h.includes('Nog geen land') && h.includes('data-leeg="percelen"'), 'de volgende stap staat er');
+  assert.ok(/<button[^>]*data-goto-sub="boerderij:tekoop"[^>]*>Koop je eerste perceel<\/button>/.test(h), 'een echte knop naar Te koop (#1246)');
+  assert.ok(h.includes('<svg') && !h.includes('Open de kaart en kies de laag'), 'icoon in plaats van de lap uitleg');
   assert.ok(!h.includes('Stel beginner aan') && !h.includes('data-bz-cycle=') && !h.includes('bz-tegel'), 'leeg bezit toont geen personeel, filters of nulltegels (progressive disclosure)');
 });
 t('overzicht: na een koop staat het perceel in de lijst met stand en Doel', () => {
@@ -114,6 +116,23 @@ t('personeel: aanstellen kost niets bij het aanstellen, het loon loopt per dag; 
   const h = U.summaryHtml(ctx(world));
   assert.ok(h.includes('1 medewerker') && h.includes('hooguit 80%') && h.includes('data-bz="ontsla"'));
   assert.equal(L.huurArbeider(w(10), 3).ok, false);
+});
+t('#1246: lege secties zijn een icoon met een knop, geen lap uitleg; tegels dragen een icoon', () => {
+  reset();
+  const world = w();
+  const offer = L.parcelOffer('pbbbbbbbbbbb2');
+  if (offer && offer.forSale) L.koopPerceel(world, 'pbbbbbbbbbbb2');
+  const h = U.summaryHtml(ctx(world));
+  assert.ok(/class="bz-tegel"><small><svg[^>]*bz-tegel-ic/.test(h), 'elke tegel heeft een icoon');
+  assert.ok(!/0 medewerkers/.test(h), 'geen regel met nullen bij nul personeel');
+  assert.ok(h.includes('Nog niemand in dienst.') && /data-bz="huur"/.test(h), 'één korte regel en de huurknoppen');
+  const vee = U.veeHtml(L.getBezit(), [], 0);
+  assert.ok(vee.includes('data-leeg="vee"') && vee.includes('data-goto-sub="boerderij:tekoop"') && vee.includes('Koop een weiland'));
+  const leegKeten = { id: 'leeg', name: 'Leeg', margin: 0, sourceKg: 0, sourceCount: 0, picked: 0, closedDays: 0, last: null, weakest: null, sources: [], links: [{ id: 'a', label: 'A', role: 'source', owned: false, ownable: false, fill: 0, stock: 0, cap: 1, perDay: 0, trucks: 0, wage: 0, distance: 0, ref: null, options: [] }] };
+  const k = U.chainsHtml([leegKeten], 0);
+  assert.ok(k.includes('data-leeg="ketens"') && k.includes('data-goto-sub="boerderij:bedrijven"') && !k.includes('bz-schakel'), 'een keten zonder eigen schakel of bron is een lege staat');
+  const e = U.emptyState('koe', 'Kop <x>', 'Zin "y"');
+  assert.ok(e.includes('Kop &lt;x&gt;') && e.includes('Zin &quot;y&quot;') && !e.includes('<button'), 'zonder knop geen knop, alles ontsnapt');
 });
 t('vee (#1101): een weiland toont het aanbod, kopen trekt geld af en toont de kudde, verkopen vraagt een tweede druk', () => {
   reset();
