@@ -9,6 +9,8 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ## [Unreleased]
 
+- Hemel: echte, zachte wolken in plaats van witte blokjes. Ze krijgen licht en schaduw van de zon, zilveren randen, een warme gloed bij zonsondergang, een donker dek bij onweer, en trekken langzaam met de wind mee. Het water spiegelt de wolken mee.
+
 ## [0.65.0] - 2026-11-22
 
 Samen spelen met vier echte vensters getest, een ronde zeefdruk-menu's (Spullen, Loopbanen, Boerderij, zoeken), echte voetstappen en weergeluid, AAA-aankleding van de missies van akte 1 tot en met 4 en een snellere start. Pre-release voor de speeltest.
