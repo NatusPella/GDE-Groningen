@@ -38,7 +38,7 @@
 | 12 | 0:41–0:45 | Achtervolging met drie sterren door de binnenstad, zwaailichten | Snelle cuts tussen dak- en bumpercam | *Lange avonden.* | **ja** |
 | 13 | 0:45–0:49 | De ringrace: vijf auto's naast elkaar, een trekker ertussen | Brede zijwaartse track | *Ring Zuid. Laatste fase.* | **ja** |
 | 14 | 0:49–0:50 | Een pion stuitert over het asfalt | Close-up | *Bijna.* | – |
-| 15 | 0:50–0:54 | Een tankwagen slipt over de Europaweg en het frituurvet klotst | Laag, slowmotion | *Al het vet van Grunn.* | **ja** (deeltjes) |
+| 15 | 0:50–0:54 | Een tankwagen slipt over de Europaweg en laat uit de aftapkraan een spoor frituurvet op het asfalt | Laag, slowmotion | *Dertienduizend liter frituurvet.* (Europaweg) | **ja** (vetspoor) |
 | 16 | 0:54–0:58 | Een zomerstorm: regen en bliksem boven het Forum | Statische groothoek, met de bliksem als cut | *Zomer? Ja.* | **ja** (regen en licht) |
 | 17 | 0:58–1:02 | De rondvaartboot op de Diepenring in het avondlicht; Tammo en Tessa aan de reling | Drone hoog, zakt naar het water | – (de muziek valt even stil) | licht |
 | 18 | 1:02–1:06 | De traumaheli stijgt op van het UMCG, met een ballon aan de horizon | Omhoog kantelen, de zon laag | *Spoedeisende duif.* | licht |

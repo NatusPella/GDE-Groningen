@@ -131,7 +131,7 @@ Alle stemmen zijn bestaande opnames (`audio/voicelines/`), geen nieuwe TTS.
 | 11 | 0:40 | 3,2 | Naamkaart Durk & Douwe (botsauto) | – | **DURK & DOUWE** |
 | 12 | 0:43 | 4,0 | Achtervolging met zwaailichten | – | *Lange avonden.* |
 | 13 | 0:47 | 3,6 | Ringrace | – | *Ring Zuid. Laatste fase.* |
-| 14 | 0:51 | 3,6 | De tankwagen op de Europaweg | – | *Al het vet van Grunn.* |
+| 14 | 0:51 | 3,6 | De tankwagen op de Europaweg, met een vetspoor uit de aftapkraan | – | *Dertienduizend liter frituurvet.* (Europaweg) |
 | 15 | 0:54 | 4,2 | Rondvaartboot, Tammo en Tessa aan de reling | **Tessa:** "Praat straks eens tegen mij." · **Tammo:** "…Straks." | – |
 | 16 | 0:59 | 4,0 | Kermis bij nacht | **Rikus:** "Achtentwintig augustus. Gronings Ontzet. In 1672 hield Stad een bisschop buiten." (radio, loopt door in 17) | *28 augustus.* |
 | 17 | 1:03 | 3,6 | Traumaheli boven het UMCG | (Rikus) | – |
