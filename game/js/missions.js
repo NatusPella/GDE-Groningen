@@ -20,7 +20,7 @@ import { PERFECT_VERDICT } from './flavourlines.js';
 import { spawnVehicleOnRoad, Vehicle, makeTwoWheeler, spawnHeroCarNear, attachToNearestRoad, TRACTOR_MODEL, QUAD_MODEL } from './vehicle.js';
 import { placeOwnedVehicleNear } from './ownedvehicles.js';
 import { setGoal } from './goal.js';
-import { playMissionIntro, playMissionFailed, isCinematicActive, playCinematic, skipCinematic } from './cinematics.js';
+import { playMissionIntro, playMissionFailed, isCinematicActive, playCinematic, skipCinematic, setOpnieuwHaak } from './cinematics.js';
 import { playStoryIntro, playStoryOutro, playStoryFail, playVaultScene, playDuelJump, playCastScene, playEyeContact, playPigeonSwarm, playToast, storySpeakerName } from './missionstory.js';
 import { showTowerFlag, cutFlagRope, dropFlag, updateStoryProps, clearStoryProps, clearSkutsjeSail, hasTowerFlag, flagFocus, flagKnotsFocus } from './storyprops3d.js';
 import { RING_ROUTE, RING_CHECKPOINTS } from './ringroute.js';
@@ -1820,6 +1820,16 @@ export function herstartMissie(world) {
   respawnFade(1, 350);
   return true;
 }
+
+// Enter op de faalkaart (cinematics.js setOpnieuwHaak): de kaart en de scène weg, en dezelfde nieuwe poging als Enter na de kaart.
+setOpnieuwHaak(() => {
+  const st = chainState();
+  // vlak na het falen staat de keten nog op 'cooldown' (de kaart staat dan juist in beeld): ook dan geldt Enter
+  if (!st || !st.retry || !['idle', 'cooldown'].includes(st.phase) || st.retry.missionIndex !== st.index || st.retry.fade != null) return;
+  if (isCinematicActive()) skipCinematic();
+  st.retry.fade = RETRY_FADE_S;
+  respawnFade(1, 350);
+});
 
 function updateRetry(dt, world, def) {
   const r = chainState().retry;
