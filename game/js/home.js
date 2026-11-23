@@ -36,6 +36,7 @@
 //   stocked (savegame.js calls applyHomeOnLoad), unless the save was made
 //   mid-mission: then the saved spot is kept. "Naar huis" in the pause menu.
 
+import { noteSleep } from './calendarday.js';
 import { pointInPolygon, closestPointOnSegment, isInWater } from './util.js';
 import { addStaticCollider } from './breakables.js';
 import { getScene, setBuildingHidden } from './scene3d.js';
@@ -1105,6 +1106,7 @@ function sleepNu(w, wake, wakeMsg) {
     refreshDayNight(w);
     w.health = 100;
     furnitureSlept(w, hour, w.clock);
+    noteSleep(w, hour, w.clock); // a nap until the next morning moves the date too (calendarday.js, #1299)
     clearDrunk(w);
     recordStat(w, 'slept');
     saveGame(w, { toast: true });
