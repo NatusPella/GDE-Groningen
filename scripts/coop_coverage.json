@@ -991,6 +991,7 @@
     "station*",
     "bus*",
     "bushalte",
+    "boarding",
     "dienstregeling",
     "departuretimeline*",
     "livetrains",
