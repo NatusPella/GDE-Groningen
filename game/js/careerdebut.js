@@ -216,7 +216,8 @@ export function farmSpec() {
       { on: 'Een plekje', actor: 'tammo', face: 'actor:tessa' },
       { on: 'Ik ben blij dat we dit', actor: 'tessa', anim: 'lean' },
       { on: 'Klopt', actor: 'tammo', anim: 'nod' },
-      { on: 'Ik ga koffie halen', dt: 2.2, actor: 'aldert', walk: [[10.4, 5.9]], speed: 1.4 },
+      // koffie halen bij de trekker: naast de wagen (10,4 / 5,9 lag in de trekker)
+      { on: 'Ik ga koffie halen', dt: 2.2, actor: 'aldert', walk: [[8.8, 5.0]], speed: 1.4 },
       { on: 'Het is zomer', actor: 'tammo', anim: 'shrug' },
     ],
     shots: [

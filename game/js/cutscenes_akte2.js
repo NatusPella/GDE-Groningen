@@ -233,20 +233,21 @@ export const SPECS_AKTE2 = {};
 // --- M10 Een trekker-limo op de wierde --------------------------------------------------------
 {
   SPECS_AKTE2['M10.intro'] = {
+    // de drie stappen aan de zijkant van de limo uit (de deuren), niet midden uit de romp (de limo ligt op x 5,8 tot 11,4, y 3 tot 5)
     cast: {
-      jelle: { key: 'jelle', at: [7.4, 4.0], face: 200, anim: 'walk', gest: ['talk', 'hips', 'point', 'shrug'], carry: 'koffer' },
-      durk: { key: 'durk', at: [7.4, 4.8], face: 200, anim: 'walk', gest: ['idle', 'shrug'] },
-      douwe: { key: 'douwe', at: [7.4, 3.2], face: 200, anim: 'walk', gest: ['idle', 'shrug'] },
+      jelle: { key: 'jelle', at: [7.4, 5.3], face: 200, anim: 'walk', gest: ['talk', 'hips', 'point', 'shrug'], carry: 'koffer' },
+      durk: { key: 'durk', at: [6.4, 5.5], face: 200, anim: 'walk', gest: ['idle', 'shrug'] },
+      douwe: { key: 'douwe', at: [7.4, 2.7], face: 200, anim: 'walk', gest: ['idle', 'shrug'] },
     },
     props: {
       limo: { kind: 'limo', at: [8.6, 4.0, 0], face: 180 },
-      koffer: { kind: 'koffer', at: [7.4, 4.0, 0.9], face: 0 },
+      koffer: { kind: 'koffer', at: [7.4, 5.3, 0.9], face: 0 },
     },
     // #741: Durk en Douwe zaten in M02 achter de kast; hun eerste zichtbare optreden is hier (M10.1).
     fx: [{ t: 2.2, fx: 'naam', text: 'Durk & Douwe', dur: 2.8 }],
     open: [
       // out of the limo, to the pair
-      { actor: 'jelle', walk: [[3.4, 0.4]], speed: 1.1 },
+      { actor: 'jelle', walk: [[5.2, 5.4], [3.4, 0.4]], speed: 1.1 },
       { actor: 'durk', walk: [[4.8, 1.8]], speed: 1.1 },
       { actor: 'douwe', walk: [[4.9, -1.0]], speed: 1.1 },
       { actor: 'tessa', face: 'actor:jelle' },

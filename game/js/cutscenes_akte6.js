@@ -288,7 +288,8 @@ S['M30.outro'] = {
   props: { bus: { kind: 'snackwagen', at: [4.8, 0, 0], face: 90 } },
   open: [{ actor: 'tessa', face: 'actor:tammo' }, { actor: 'tammo', face: 'actor:tessa' }],
   beats: [
-    { on: 0, dt: 0.4, actor: 'tinus', walk: [[4.6, -1.8]], speed: 0.8 },
+    // hij loopt om de achterkant van de snackwagen heen naar de kant van het paar (4,6 / -1,8 lag midden in de wagen: 34 s binnen de romp)
+    { on: 0, dt: 0.4, actor: 'tinus', walk: [[6.2, -4.5], [3.3, -4.5], [3.3, -1.7]], speed: 0.9 },
     { on: 'De bieten staan', actor: 'geesje', anim: 'point' },
     { on: 'In Veendam zoeken ze', actor: 'berend', anim: 'point' },
     { on: 'Dat pand ken ik', actor: 'jelle', anim: 'shrug' },
