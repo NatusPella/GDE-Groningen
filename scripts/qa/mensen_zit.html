@@ -73,8 +73,8 @@ CASES.forEach(([label, v], i) => {
     const cam = new THREE.PerspectiveCamera(30, W / H, 0.1, 100);
     const sx = seat.x;
     // de fiets helemaal in beeld (wielen tot hoofd): verder weg en lager richten
-    const far = v.isBike ? 4.6 : 3.2, aimY = v.isBike ? -0.25 : 0.45;
-    cam.position.set(sx + 0.4, (seat.y || 0) + 1.3, (seat.z || 0) + (driver ? -1 : 1) * far); cam.lookAt(sx + 0.2, (seat.y || 0) + aimY, seat.z || 0);
+    if (v.isBike) { cam.position.set(sx + 0.2, 1.05, (driver ? -1 : 1) * 4.6); cam.lookAt(sx + 0.1, 0.95, 0); }   // de fiets staat op de grond: wielen tot hoofd
+    else { cam.position.set(sx + 0.4, (seat.y || 0) + 1.3, (seat.z || 0) + (driver ? -1 : 1) * 3.2); cam.lookAt(sx + 0.2, (seat.y || 0) + 0.45, seat.z || 0); }
     const x = i * W, y = driver ? 900 : 400;
     renderer.setViewport(x, y, W, H); renderer.setScissor(x, y, W, H);
     renderer.render(scene, cam);
