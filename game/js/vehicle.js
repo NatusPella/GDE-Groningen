@@ -1636,6 +1636,7 @@ function buildingsAroundBody(v, map) {
 // dead, and an off-centre hit swings the car round. dt is unused but kept
 // for callers.
 const _cp = { x: 0, y: 0 };
+const _bodyHits = [];
 export function resolveVehicleBuildingCollision(v, map, dt) {
   // a helicopter keeps its own height and walls (heliflight.js)
   if (v.isHeli || (v.parked && !v.speed && !v.driftX && !v.driftY && !v.yawVel)) return false;
@@ -1645,7 +1646,20 @@ export function resolveVehicleBuildingCollision(v, map, dt) {
   const count = probeCount(v);
   // up on a viaduct or down in the cutting nothing at street level is in the way
   const offLevel = (v.z || 0) > 4 || (v.z || 0) < -3.5;
-  const near = offLevel ? null : buildingsAroundBody(v, map);
+  const nearAll = offLevel ? null : buildingsAroundBody(v, map);
+  // 24-11 (profiel: 1,8% van de hoofdthread): de lijst rond het lijf is ruim en blijft staan zolang het voertuig weinig beweegt; per hoek
+  // liep elke hoek alle gebouwen langs. Alleen gebouwen waarvan de box het lijf (plus 1 m voor het wegduwen) raakt, kunnen een hoek bevatten.
+  let near = null;
+  if (nearAll && nearAll.length) {
+    const reach = v.halfLen + v.halfWid + 1;
+    _bodyHits.length = 0;
+    for (const b of nearAll) {
+      const bb = b.bounds;
+      if (v.x + reach < bb[0] || v.x - reach > bb[2] || v.y + reach < bb[1] || v.y - reach > bb[3]) continue;
+      _bodyHits.push(b);
+    }
+    near = _bodyHits;
+  }
   // Ommeland solids (barns, real buildings, silos, village furniture, trunks):
   // one circle round the whole body first: the corner tests only run beside one
   let country = false, rails = false;
