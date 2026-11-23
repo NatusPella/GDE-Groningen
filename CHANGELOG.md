@@ -69,8 +69,7 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 - De tuningwerkplaats houdt de wereld stil zolang hij open is (de pauze duurde één beeld).
 - Spraakbubbels staan boven het hoofd van de spreker, ook op een dijk of in een kuil; duiven bij een voerplek staan op de stoep in plaats van half in de stenen.
 - HUD: de toetsregel in de doelkaart schuift niet meer in de doelregel. Instellingen: de kop Hulp heeft lucht, de uitleg onder een rij is beter leesbaar en de focusrand om een tab is dunner.
-- Samen spelen: het verkeer, de bussen en hun haltes zijn van wie het spel opende. Een gast ziet de bus stoppen, knipperen en de deuren openen, en tekent de reizigers zelf zodra een bus van de host een seconde bij een halte stilstaat; treinen ziet iedereen uit de eigen dienstregeling. Wie er instapt is alleen beeld en kan per speler verschillen; de reizigers van je eigen bus- of treindienst tellen zoals altijd.
-- Laadscherm: je rijdt pas weg als het scherm helemaal weg is, niet al tijdens het vervagen. Samen spelen: een gast die nog op de eerste wereldstand van de host wacht, ziet het scherm niet meer na 12 seconden sluiten; het wacht tot de wereld er is (hooguit 45 seconden).
+- Laadscherm: je rijdt pas weg als het scherm helemaal weg is, niet al tijdens het vervagen. Samen spelen: een gast die nog op de eerste wereldstand van wie het spel opende wacht, ziet het scherm niet meer na 12 seconden sluiten; het wacht tot de wereld er is (hooguit 45 seconden).
 
 ## [0.65.0] - 2026-11-22
 
