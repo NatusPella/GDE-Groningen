@@ -8,12 +8,14 @@ export const PART_MAP = {
   man: {
     hoofd: { short: ['Casual2_Head', 'Suit_Head'], buzz: ['Suit_Head', 'Casual2_Head'], long: ['Casual_Head', 'Beach_Head'], curly: ['Beach_Head', 'Casual_Head'], bald: ['Suit_Head'], default: ['Casual2_Head'] },
     romp: { blazer: ['Suit_Body'], suit: ['Suit_Body'], coat: ['Suit_Body'], jacket: ['Casual_Body'], hoodie: ['Casual_Body'], cardigan: ['Casual2_Body'], tshirt: ['Casual2_Body'], shirt: ['Casual2_Body'], swim: ['Beach_Body'], default: ['Casual2_Body'] },
-    benen: { jeans: ['Casual_Legs', 'Casual2_Legs'], trousers: ['Suit_Legs'], shorts: ['Beach_Legs'], skirt: ['Suit_Legs'], swim: ['Beach_Legs'], default: ['Casual2_Legs', 'Casual_Legs'] },
+    // Casual_Legs (de hoodie-figuur) is een korte broek; een spijkerbroek is Casual2_Legs
+    benen: { jeans: ['Casual2_Legs', 'Worker_Legs'], trousers: ['Suit_Legs'], shorts: ['Casual_Legs', 'Beach_Legs'], skirt: ['Suit_Legs'], swim: ['Beach_Legs'], default: ['Casual2_Legs'] },
     voeten: { sneaker: ['Casual2_Feet', 'Casual_Feet'], leather: ['Suit_Feet'], boot: ['Worker_Feet'], sandal: ['Beach_Feet'], default: ['Casual_Feet'] },
   },
   vrouw: {
     hoofd: { long: ['Casual_Head', 'Suit_Head'], bun: ['Adventurer_Head'], short: ['Formad_Head', 'Casual_Head'], curly: ['Formad_Head'], default: ['Casual_Head'] },
-    romp: { blazer: ['Suit_Body'], suit: ['Suit_Body'], coat: ['Formal_Body', 'Suit_Body'], jacket: ['Casual_Body'], hoodie: ['Casual_Body'], cardigan: ['Casual_Body'], tshirt: ['Casual_Body'], default: ['Casual_Body'] },
+    // Formal_Body en Casual_Body zijn topjes zonder mouwen; een jas, vest of colbert is Suit_Body (in de kleur van de look)
+    romp: { blazer: ['Suit_Body'], suit: ['Suit_Body'], coat: ['Suit_Body'], jacket: ['Suit_Body'], hoodie: ['Suit_Body', 'Casual_Body'], cardigan: ['Suit_Body'], tshirt: ['Casual_Body'], top: ['Formal_Body'], default: ['Casual_Body'] },
     benen: { jeans: ['Casual_Legs'], trousers: ['Suit_Legs', 'Formal_Legs'], skirt: ['Formal_Legs'], shorts: ['Casual_Legs'], default: ['Casual_Legs'] },
     voeten: { sneaker: ['Casual_Feet'], leather: ['Suit_Feet', 'Formal_Feet'], boot: ['Adventurer_Feet', 'Worker_Feet'], default: ['Casual_Feet'] },
   },

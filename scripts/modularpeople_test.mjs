@@ -154,6 +154,37 @@ for (const female of [false, true]) {
   }
 }
 
+// cutscene-fase: vaste looks houden hun identiteit, animateActor stuurt een modulaire mens (lipsync, zitten, zwaaien)
+{
+  const A = await import('../game/js/actoranim.js');
+  const C = await import('../game/js/storycast.js');
+  const tammo = M.buildModularFromAppearance(P.TAMMO_APPEARANCE);
+  ok(tammo && tammo.userData.qLook.cap === 'tammo' && tammo.userData.qLook.capColor === 0xc8621e && tammo.userData.qLook.rig === 'man', 'Tammo: man met zijn oranje pet');
+  ok(tammo.userData.qLook.parts.romp === 'Casual_Body' && tammo.userData.qLook.parts.benen.startsWith('Casual') && tammo.userData.qLook.shirt === P.TAMMO_APPEARANCE.shirt, 'Tammo: jack met capuchon, spijkerbroek, zijn blauw');
+  const tessa = M.buildModularFromAppearance(P.ANITA_APPEARANCE);
+  ok(tessa && tessa.userData.qLook.rig === 'vrouw' && tessa.userData.qLook.shirt === P.ANITA_APPEARANCE.shirt && tessa.userData.qLook.parts.voeten !== 'Casual_Feet', 'Tessa: vrouw in haar rode jas met laarzen');
+  const jelle = M.buildModularFromAppearance(C.JELLE_LOOK);
+  ok(jelle && jelle.userData.qLook.parts.romp === 'Suit_Body' && jelle.userData.qLook.shirt === C.JELLE_LOOK.shirt && jelle.userData.qLook.hair === C.JELLE_LOOK.hair && jelle.scale.y > M.modularLook(1, { female: false }).scale * 0.99, 'Jelle: blauw colbert, blond, lang');
+  const durk = M.buildModularFromAppearance(C.DURK_LOOK);
+  ok(durk && durk.userData.qLook.cap === 'beanie', 'Durk: muts');
+  let tris0 = 0; tammo.userData.body.geometry.index && (tris0 = tammo.userData.body.geometry.index.count / 3);
+  const plain = M.buildModularPerson(11, { look: { ...tammo.userData.qLook, cap: null } });
+  ok(tris0 > plain.userData.body.geometry.index.count / 3, 'de pet zit in dezelfde mesh (geen extra draw call)');
+  // praten: de mond gaat open en dicht; stil: dicht
+  let maxJ = 0, minJ = 1;
+  for (let f = 0; f < 300; f++) { A.animateActor(tammo, { anim: "talk", speaking: true, dt: 1 / 60 }); maxJ = Math.max(maxJ, tammo.userData.mouth.scale.y); if (f > 30) minJ = Math.min(minJ, tammo.userData.mouth.scale.y); }
+  ok(maxJ > 0.4 && minJ < 0.2, `lipsync: de kaak beweegt (max ${maxJ.toFixed(2)}, min ${minJ.toFixed(2)})`);
+  for (let f = 0; f < 60; f++) A.animateActor(tammo, { anim: 'idle', dt: 1 / 60 });
+  ok(tammo.userData.mouth.scale.y < 0.02, 'na het praten is de mond dicht');
+  const { stateName } = await import('../game/js/animstate.js');
+  for (let f = 0; f < 90; f++) A.animateActor(tessa, { anim: 'idle', seated: true, dt: 1 / 60 });
+  ok(stateName(tessa.userData.qSM) === 'sit', 'aan tafel: de zit-state');
+  ok(Math.abs(M.modularSeatContact(tessa) - 0.476 * tessa.scale.y) < 1e-9, 'zitvlak volgt de schaal');
+  for (let f = 0; f < 60; f++) A.animateActor(jelle, { anim: 'wave', dt: 1 / 60 });
+  ok(stateName(jelle.userData.qSM) === 'emote', 'zwaaien: emote');
+  ok(A.animateActor(jelle, { verberg: true }) === true && jelle.visible === false, 'een dubbele rol verdwijnt');
+}
+
 // CPU: animatie per mens per beeld
 {
   const crowd = []; for (let i = 0; i < 40; i++) crowd.push(M.buildModularPerson(i * 11, {}));

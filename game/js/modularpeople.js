@@ -12,6 +12,7 @@ import { crossfade, footPlant } from './actorlife.js';
 import { createAnimState, stepAnimState, stateName, STATES, STATE_IDS } from './animstate.js';
 import { blinkAmount } from './gait.js';
 import { lookFromAppearance } from './modularlooks.js';
+import { setModularActorHook } from './actoranim.js';
 
 const rigs = new Map();               // 'man' | 'vrouw' -> gedecodeerde rig
 const loading = new Map();
@@ -79,6 +80,15 @@ export function loadModularPeople(base = new URL('../models/mensen/', import.met
   return Promise.all(all);
 }
 export const modularReady = (rig) => (rig ? rigs.has(rig) : rigs.size === 2);
+// Fasen achter ?mensen= (ADR 0050): q = voorbijgangers, q2 = ook cutscenes en decorsets, q3 = ook de speler en medespelers.
+export function mensenFase(flag) { return flag === 'q3' ? 3 : flag === 'q2' ? 2 : flag === 'q' ? 1 : 0; }
+// Zitvlak in rust (m boven de voeten, schaal 1) in de zit-clip, gemeten (UAL Sitting_Idle_Loop); de beller zet de mens zo hoog dat
+// het zitvlak op de zitting ligt.
+const SEAT_CONTACT = { man: 0.444, vrouw: 0.476 };
+export function modularSeatContact(mesh) {
+  const ud = mesh && mesh.userData;
+  return ud && ud.qRig ? SEAT_CONTACT[ud.qRig.name] * (mesh.scale.y || 1) : 0;
+}
 // De deel-id's per rig (voor modularlooks.js).
 export function modularPartIds() {
   const out = {};
@@ -174,12 +184,26 @@ export function modularLook(seed, opts = {}) {
 
 // Een pet (Tammo, agent, pet of muts): een lage koepel van CAP_SEG x 3 vlakjes op de schedel en, bij een pet, een klep naar voren,
 // op het hoofdbot. Maten uit de gezichtspunten (ogen) van het hoofd; het haar eronder wordt bedekt door een iets ruimere koepel.
+function capFrame(face, kind) {
+  const e0 = face.eyes[0], e1 = face.eyes[1];
+  const eyeY = (e0.c[1] + e1.c[1]) / 2, zc = (e0.c[2] + e1.c[2]) / 2, front = Math.max(e0.x, e1.x);
+  return { cx: front - 0.1, cy: eyeY + 0.035, zc, rx: 0.128, ry: kind === 'beanie' ? 0.15 : 0.13, rz: 0.122 };
+}
+function squashHair(rig, p, P, v0, face, kind) {
+  const f = capFrame(face, kind), pal = rig.man.palette;
+  for (let v = 0; v < p.vCount; v++) {
+    if (!/hair|eyebrow/i.test(pal[rig.col[p.vStart + v]].mat) || /eyebrow/i.test(pal[rig.col[p.vStart + v]].mat)) continue;
+    const o = (v0 + v) * 3;
+    const dx = P[o] - f.cx, dy = P[o + 1] - f.cy, dz = P[o + 2] - f.zc;
+    if (dy < -0.01) continue;
+    const r = Math.hypot(dx / f.rx, Math.max(0, dy) / f.ry, dz / f.rz);
+    if (r > 0.85) { const k = 0.85 / r; P[o] = f.cx + dx * k; P[o + 1] = f.cy + Math.max(0, dy) * k; P[o + 2] = f.zc + dz * k; }
+  }
+}
 const CAP_SEG = 10, CAP_RINGS = 3;
 const CAP_V = CAP_SEG * CAP_RINGS + 1 + 4, CAP_I = (CAP_SEG * (CAP_RINGS - 1) * 2 + CAP_SEG) * 3 + 6 + CAP_SEG * 0;
 function capGeometry(face, kind, P, C, SI, SW, I, v0, i0, col, headBone) {
-  const e0 = face.eyes[0], e1 = face.eyes[1];
-  const eyeY = (e0.c[1] + e1.c[1]) / 2, zc = (e0.c[2] + e1.c[2]) / 2, front = Math.max(e0.x, e1.x);
-  const cx = front - 0.1, cy = eyeY + 0.035, rx = 0.128, ry = kind === 'beanie' ? 0.15 : 0.13, rz = 0.122;
+  const { cx, cy, zc, rx, ry, rz } = capFrame(face, kind);
   const base = v0;
   const put = (x, y, z) => { P[v0 * 3] = x; P[v0 * 3 + 1] = y; P[v0 * 3 + 2] = z; C[v0 * 3] = col[0]; C[v0 * 3 + 1] = col[1]; C[v0 * 3 + 2] = col[2]; SI[v0 * 4] = headBone; SW[v0 * 4] = 255; return v0++; };
   // ringen van de rand (licht schuin: achter lager dan voor) naar boven, dan de top
@@ -225,6 +249,8 @@ function geometryFor(rig, look, lod = 0) {
     P.set(rig.pos.subarray(p.vStart * 3, (p.vStart + p.vCount) * 3), v0 * 3);
     SI.set(rig.si.subarray(p.vStart * 4, (p.vStart + p.vCount) * 4), v0 * 4);
     SW.set(rig.sw.subarray(p.vStart * 4, (p.vStart + p.vCount) * 4), v0 * 4);
+    // onder een pet of muts: het haar boven de rand gaat binnen de koepel (geen plukken door de stof)
+    if (p.slot === 'hoofd' && face && look.cap) squashHair(rig, p, P, v0, face, look.cap);
     for (let v = 0; v < p.vCount; v++) {
       const pi = rig.col[p.vStart + v], ck = p.id + '|' + pi;
       let c = palColor.get(ck);
@@ -575,3 +601,29 @@ export function plantFeetModular(mesh, ground, w = 1) {
   }
   return true;
 }
+
+// ---- cutscenes en decorsets (actoranim.js animateActor, cutscene-fase) ---------------------------------------------------------
+// Een anim uit de regietaal (idle, walk, run, talk, wave, ride, zwem, klim, sprong, ...) wordt parameters voor dezelfde
+// state-machine: geen eigen animatiecode voor cutscenes. jaw = kaak 0..1 (lipsync, actoranim.js), gaze = hoofddraai (+ = rechts).
+const EMOTES = new Set(['wave', 'cheer', 'clap']);
+export function animateModularActor(mesh, anim, speed, gaze, dt, jaw = 0, seated = false) {
+  const ud = mesh && mesh.userData;
+  if (!ud || !ud.qRig) return false;
+  const p = ud.qActorP || (ud.qActorP = { ...SP0, talk: false });
+  p.seated = seated;
+  p.vehicle = anim === 'ride' ? 'bike' : null;
+  p.water = anim === 'zwem';
+  p.climbing = anim === 'klim';
+  p.jump = anim === 'sprong';
+  p.emote = EMOTES.has(anim) ? anim : null;
+  p.talk = anim === 'talk' || anim === 'laugh' || jaw > 0.02;
+  ud.qParams = p;
+  ud.gazeT = gaze;
+  const sp = anim === 'walk' ? Math.max(speed, 1.4) : anim === 'run' ? Math.max(speed, 4.2) : anim === 'zwem' ? speed : 0;
+  animateModular(mesh, sp, dt);
+  if (ud.mouth) { const y = jaw > 0.01 ? Math.min(1, jaw) : 0; if (ud.mouth.scale.y !== y) ud.mouth.scale.y = y; }
+  return true;
+}
+
+// cutscenes, decorsets en menigtes (actoranim.js animateActor) sturen een modulaire mens via deze haak
+setModularActorHook(animateModularActor);

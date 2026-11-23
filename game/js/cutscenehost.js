@@ -28,6 +28,8 @@ import { jumpsFromScene } from './cutscenewarm.js';
 import { sceneSamples, isRealSet } from './realsets.js';
 import { roofAt } from './camerapath.js';
 import { animateActor, beginSceneActors, setVoiceLevelSource } from './actoranim.js';
+import { buildModularFromAppearance, modularReady, mensenFase, modularSeatContact } from './modularpeople.js';
+import { FLAGS } from './devflags.js';
 import { voiceLevel } from './audio.js';
 
 // lipsync (actorlife.js): de kaak van wie spreekt volgt het niveau van de stemclip die nu klinkt
@@ -81,7 +83,9 @@ const SHADOW_MAT = new THREE.MeshBasicMaterial({ color: 0x000000, transparent: t
 
 function makeActor(spec) {
   const look = spec === 'tammo' ? TAMMO_APPEARANCE : spec === 'anita' ? ANITA_APPEARANCE : spec;
-  const m = buildPersonMesh(look.shirt, look.skin, look);
+  // cutscene-fase (?mensen=q2): de vaste looks (Tammo, Tessa, Jelle, bijrollen) als modulaire mens, met dezelfde kleding-identiteit
+  const q = mensenFase(FLAGS.mensen) >= 2 && modularReady() ? buildModularFromAppearance(look) : null;
+  const m = q || buildPersonMesh(look.shirt, look.skin, look);
   m.traverse((o) => { if (o.isMesh) o.castShadow = true; });
   const sh = new THREE.Mesh(SHADOW_GEO, SHADOW_MAT);
   sh.position.y = 0.03;
@@ -312,6 +316,14 @@ let current = null;
 // the opening and the intro montage cannot drift apart.
 function seatedFrame(m, st, t) {
   const ud = m.userData;
+  if (ud.qRig) {
+    // modulaire mens: de zit-clip uit de state-machine, het zitvlak op de zitting, praten met lipsync
+    m.position.y = st.h + st.sit - modularSeatContact(m);
+    const dt = Math.max(0, Math.min(0.1, t - (ud.qSitT ?? t)));
+    ud.qSitT = t;
+    animateActor(m, { anim: st.speaking || st.anim === 'talk' ? 'talk' : 'idle', speaking: !!st.speaking, gaze: st.gaze, t, dt, seated: true });
+    return;
+  }
   if (!ud.pelvis || !ud.head) return;
   seatPose(m, TABLE_SIT);
   m.position.y = st.h + seatedY(m, st.sit);

@@ -113,7 +113,7 @@ import { fadeBand, loadRadius } from './popinrules.js';
 import { VIEW_DISTANCES, viewDistanceFor, detailDistanceFor, DETAIL_BASE } from './viewdist.js';
 import { glanceAt, shareFeet } from './gait.js';
 import { lifeTier } from './actorlife.js';
-import { loadModularPeople, buildModularPerson, modularReady, setModularLod, lodForDistance } from './modularpeople.js';
+import { loadModularPeople, buildModularPerson, modularReady, setModularLod, lodForDistance, mensenFase } from './modularpeople.js';
 import { NEAR_MIN, cameraNearTarget, stepNear, parseNearFlag, parseFarFlag } from './cameranear.js';
 import { compareOpaque } from './drawpool.js';
 import { buildingBatcher, roadBatcher, facadeBatcher, shoreBatcher, drawHub } from './staticbatch3d.js';
@@ -840,7 +840,7 @@ function pinShaderPrograms(r) {
 export function init3D(map) {
   liftMap = map;
   preloadLandmarkModels();
-  if (FLAGS.mensen === 'q') loadModularPeople(); // fase 1 van ADR 0050: voorbijgangers als modulaire mensen (alleen met ?mensen=q)
+  if (mensenFase(FLAGS.mensen) >= 1) loadModularPeople(); // fase 1 van ADR 0050: voorbijgangers als modulaire mensen (alleen met ?mensen=q)
   setBuildingMap(map);
   canvas3 = document.getElementById('game3d');
   // laptops with two GPUs: the fast one
@@ -2388,7 +2388,7 @@ function buildPedActor(p, world) {
   const outfit = pedOutfitOpts(p, world);
   // fase 1 (ADR 0050, ?mensen=q): een gewone voorbijganger wordt een modulaire mens zodra de rigs geladen zijn; agenten,
   // verhaalfiguren en wie iets draagt blijven procedureel (die houdingen zitten nog alleen op het eigen rig)
-  if (FLAGS.mensen === 'q' && modularReady() && !p.isCop && !p.look && !p.carry && !p.pose && !p.heldWeapon) {
+  if (mensenFase(FLAGS.mensen) >= 1 && modularReady() && !p.isCop && !p.look && !p.carry && !p.pose && !p.heldWeapon) {
     const q = buildModularPerson(p._lookSeed, { skin: p.skin ? colorFromHex(p.skin) : 0xe0b48a, shirt: p.clothing ? colorFromHex(p.clothing) : null });
     if (q) { addBlobShadow(q, 0.85, 0.85); return enableShadows(q, false); }
   }

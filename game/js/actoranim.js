@@ -694,8 +694,26 @@ const meshActors = new WeakMap();
 const rolActors = new Map();
 export function beginSceneActors() { rolActors.clear(); }
 
+// Modulaire mensen (ADR 0050/0051): dezelfde aanroep, een andere runtime. De glue (cutscenehost.js) zet de haak naar
+// modularpeople.js animateModularActor; deze laag rekent hier alleen de kaak uit (lipsync op de stem of de lettergreepcurve).
+let modularHook = null;
+export function setModularActorHook(fn) { modularHook = typeof fn === 'function' ? fn : null; }
+
 export function animateActor(mesh, o = {}) {
   const ud = mesh && mesh.userData;
+  if (ud && ud.qRig) {
+    if (o.verberg) { mesh.visible = false; return true; }
+    if (!modularHook) return false;
+    const anim = ANIMS.includes(o.anim) ? o.anim : 'idle';
+    const step = clamp(finite(o.dt), 0, 0.1);
+    const talk = anim === 'talk' || !!o.speaking;
+    ud.qTalkT = talk ? (ud.qTalkT || 0) + step : 0;
+    const lvl = talk && o.voiced !== false && voiceLevelFn ? voiceLevelFn() : null;
+    const target = talk ? (Number.isFinite(lvl) ? jawFromLevel(lvl) : babbleEnvelope(ud.qTalkT, (ud.animOffset || 0) % 1)) : 0;
+    ud.qJaw = lipsyncStep(ud.qJaw || 0, target, step);
+    modularHook(mesh, anim, Math.max(0, finite(o.speed)), clamp(finite(o.gaze), -1, 1), step, ud.qJaw, !!o.seated);
+    return true;
+  }
   if (!ud || !ud.pelvis) return false;
   // (#434) een tweede kopie van dezelfde rol in dezelfde scène: niet tekenen en niet poseren
   if (o.verberg) { mesh.visible = false; return true; }
