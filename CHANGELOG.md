@@ -9,6 +9,10 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ## [Unreleased]
 
+- Bussen in het verkeer stoppen bij hun haltes: ze remmen rustig af, gaan met het knipperlicht rechts naar de stoeprand, staan met open deuren een paar seconden stil en voegen links knipperend weer in. Voor een rood licht blijven de deuren dicht. Een auto achter een staande bus haalt in als dat kan en wacht anders netjes. Een live bus (Instellingen) stopt waar en zo lang de echte bus stilstaat.
+- Bij de haltes en op de perrons in de buurt wachten nu mensen (gewone stadsbewoners met hun eigen kleren). Komt er een bus of trein, dan lopen ze naar de dichtstbijzijnde deur en stappen in; uitstappers komen uit de deur en lopen weg. Na een tijdje loopt de halte weer vol. Op het perron volgt de drukte het vertrekbord; de oude blokpoppetjes op het perron zijn weg. De aantallen blijven bescheiden.
+- Samen spelen: het verkeer, de bussen en hun haltes zijn van wie het spel opende. Een gast ziet de bus stoppen, knipperen en de deuren openen, en tekent de reizigers zelf zodra een bus van de host een seconde bij een halte stilstaat; treinen ziet iedereen uit de eigen dienstregeling. Wie er instapt is alleen beeld en kan per speler verschillen; de reizigers van je eigen bus- of treindienst tellen zoals altijd.
+
 ## [0.65.0] - 2026-11-22
 
 Samen spelen met vier echte vensters getest, een ronde zeefdruk-menu's (Spullen, Loopbanen, Boerderij, zoeken), echte voetstappen en weergeluid, AAA-aankleding van de missies van akte 1 tot en met 4 en een snellere start. Pre-release voor de speeltest.

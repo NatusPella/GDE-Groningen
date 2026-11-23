@@ -14,18 +14,23 @@ let n = 0, fails = 0;
 const ok = (c, name, info = '') => { n++; if (!c) { fails++; console.log('FAIL', name, info); } };
 const src = (f) => fs.readFileSync(new URL('../game/js/' + f, import.meta.url), 'utf8');
 
-// --- gedrag: haltefiguren3d geeft elk weggehaald figuur aan de opruimer van scene3d ---
+// --- gedrag: de reizigers bij halte en perron (haltefiguren3d -> instappen3d, 23-11) komen uit een vaste pool: ---
+// --- ze worden nooit per uitwisseling gebouwd of weggegooid, dus de gedeelde romprefs groeien niet mee ---
 {
-  const scene = { add() {}, remove(m) { scene.removed.push(m); }, removed: [] };
-  const world = { haltefx: [{ v: { x: 100, y: 50, angle: 0, isBus: true, model: { name: 'bus', len: 11.2, wid: 2.5 } }, board: 2, alight: 2 }] };
-  const refs = [], ruimd = [];
-  const ruim = (m) => { ruimd.push(m); disposeObject(m); };
+  const scene = { add() { scene.added++; }, remove() { scene.removed++; }, added: 0, removed: 0 };
+  const bus = { x: 100, y: 50, angle: 0, isBus: true, model: { name: 'bus', len: 11.2, wid: 2.5 } };
+  const world = { player: { x: 100, y: 50 }, players: [{ x: 100, y: 50 }], haltefx: [] };
+  const refs = [];
   const bouw = (shirt, skin) => { const m = P.buildPersonMesh(shirt, skin, { seed: 4242 }); refs.push(m.userData.body.geometry.userData.personRefs); return m; };
-  for (let i = 0; i < 80; i++) { syncHaltefiguren(world, scene, bouw, 0.5, ruim, () => 0.5); if (refs.length && ruimd.length === refs.length) break; }
+  const { instapStats } = await import('../game/js/haltefiguren3d.js');
+  for (let ronde = 0; ronde < 12; ronde++) {
+    world.haltefx.push({ v: bus, board: 2, alight: 2 });
+    for (let i = 0; i < 40; i++) syncHaltefiguren(world, scene, bouw, 0.5, () => 0.5);
+  }
+  const st = instapStats();
   ok(refs.length > 0, 'haltefiguren zijn gebouwd');
-  ok(ruimd.length === refs.length && ruimd.length > 0, 'elk weggehaald figuur gaat door de opruimer', `${ruimd.length}/${refs.length}`);
-  ok(ruimd.every((m) => m.userData.body.userData.personRefsGiven === true), 'de gedeelde rompref is teruggegeven');
-  ok(scene.removed.length === refs.length, 'en de figuren zijn uit de scene gehaald', String(scene.removed.length));
+  ok(refs.length <= 5, 'twaalf uitwisselingen: hoogstens één uitwisseling aan figuren gebouwd (pool)', String(refs.length));
+  ok(scene.removed === 0 && st.vrij === st.gebouwd, 'na afloop alles terug in de pool, niets weggegooid', `${st.vrij}/${st.gebouwd}`);
 }
 
 // --- gedrag: ommelandprops3d.disposeProp geeft de rompref van een prop-figuur terug ---
@@ -49,8 +54,7 @@ const guards = [
   ['heist.js', /releasePersonGeometry\(o\)/, 'heist geeft de rompref van de wachters terug'],
   ['kermis.js', /disposeObject\(c\.mesh\)/, 'kermis-publiek gaat via disposeObject'],
   ['kermis.js', /disposeObject\(car\.rider\)/, 'kermis-botsautorijder gaat via disposeObject'],
-  ['haltefiguren3d.js', /if \(ruim\) ruim\(fg\.mesh\)/, 'haltefiguren gaan door de ruim-callback'],
-  ['scene3d.js', /syncHaltefiguren\([^;]*disposeObject\)/, 'scene3d geeft de opruimer mee aan haltefiguren'],
+  ['instappen3d.js', /function laat\(m\) \{ if \(m\) \{ m\.visible = false; vrij\.push\(m\); \} \}/, 'reizigers bij halte en perron gaan terug in de pool'],
   ['fierljep.js', /releasePersonGeometry\(o\)/, 'fierljep geeft de rompref terug'],
   ['kartbaan.js', /releasePersonGeometry\(o\)/, 'kartbaan geeft de rompref van de rijders terug'],
   ['pg_koe.js', /releasePersonGeometry\(o\)/, 'pg_koe geeft de rompref terug'],

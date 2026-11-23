@@ -38,6 +38,13 @@ export function maakRng(seed) {
   };
 }
 
+// De bushaltes in de buurt van de speler: bushalte.js meldt hier zijn lijst en de plek van de paal ({ x, y, ang }),
+// instappen3d.js leest ze. Zonder bron (een test, een spel zonder haltes): geen haltes.
+let bronLijst = () => [], bronPlek = () => null;
+export function zetHalteBron(lijst, plek) { bronLijst = lijst; bronPlek = plek; }
+export const haltesInBeeld = () => bronLijst() || [];
+export const halteplek = (h) => bronPlek(h);
+
 // --- deuren --------------------------------------------------------------------------------------------
 
 // Deuren van een bus aan de stoepkant (rechts). lokaal: [{ id, x (vooruit), z (rechts) }] uit haltefiguren.js haltedeuren.
