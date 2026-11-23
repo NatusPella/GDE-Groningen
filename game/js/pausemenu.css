@@ -1272,6 +1272,10 @@ html.pad-active #pause-menu.gm :is(.ra, .m-li, .m-tab, .m-bp, .m-bg, .m-bt, .m-c
 #pause-menu .pm-bind > .nm { align-self: center; }
 #pause-menu .pm-bind > .m-kc, #pause-menu .pm-bind > .pm-padcap { flex: none; width: 112px; display: inline-flex; align-items: center; justify-content: flex-end; text-align: right; box-sizing: border-box; }
 #pause-menu .pm-bind > .m-kc { justify-content: center; }
+/* UX-audit 23-11 (S10): Besturing > Controller in kolommen per context: knop, te voet, rijden, menu, glyph. Alleen tokens. */
+#pause-menu .pm-bind-pad { display: grid; grid-template-columns: minmax(8em, 1fr) repeat(3, minmax(0, 1.4fr)) 112px; align-items: center; gap: var(--ds-s-3); text-align: left; }
+#pause-menu .pm-bind-pad > .pm-ctx { font-size: var(--ds-t-hulp); line-height: var(--ds-lh-tekst); overflow-wrap: break-word; }
+#pause-menu .pm-padkop { padding: 0 var(--ds-s-3) var(--ds-s-2); font-family: var(--ds-font-zeef-kop); font-weight: 800; font-size: var(--ds-t-label); letter-spacing: var(--ds-ls-label); text-transform: uppercase; color: var(--ds-zeef-kop); }
 #pause-menu .pm-bind > .pm-padcap .pm-pad-g, #pause-menu .pm-bind > .pm-padcap .pad-g { margin-left: auto; }
 #pause-menu .bd-dag { margin-left: 40px !important; margin-right: 40px !important; }
 #pause-menu .bd-pane { scrollbar-width: thin; scrollbar-color: var(--ds-scroll-duim) var(--ds-scroll-spoor); padding-bottom: 32px; }

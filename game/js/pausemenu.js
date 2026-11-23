@@ -58,7 +58,7 @@ import { radioIsOn, setRadio, channelList, selectChannel, stepChannel } from './
 import { channelPickerHtml } from './radiokeuze.js';
 import { isMuted, toggleMute } from './audio.js';
 import { glyphHtml, resetHintUses } from './prompts.js';
-import { KEY_ACTIONS, KEY_GROUPS, PAD_REMAPPABLE, PAD_SLOT_NAMES, bindKey, bindButton, physicalKey, defaultKey, physicalButton, isBindableKey, keyName, slotUses } from './controls.js';
+import { KEY_ACTIONS, KEY_GROUPS, PAD_REMAPPABLE, PAD_SLOT_NAMES, bindKey, bindButton, physicalKey, defaultKey, physicalButton, isBindableKey, keyName, slotUses, slotUseParts } from './controls.js';
 import { capturePadButton, isPadActive, onPadChange } from './gamepad.js';
 import { mapControlList, stepMapControls, toggleMapControls } from './padmapnav.js';
 import { padGlyphInner } from './glyphs.js';
@@ -1799,10 +1799,14 @@ function bindRowsPad() {
   const rows = PAD_REMAPPABLE.map((slot) => {
     const phys = physicalButton(binds, slot);
     const changed = phys !== slot;
-    return `<button type="button" class="m-li pm-bind${changed ? ' pm-changed' : ''}" data-rebind-pad="${slot}" aria-label="${esc(PAD_SLOT_NAMES[slot])}. Kies om te wijzigen">` +
-      `<span class="nm"><span class="one">${esc(slotUses(slot) || PAD_SLOT_NAMES[slot])}</span><span class="mut">${esc(PAD_SLOT_NAMES[slot])}${changed ? ' · aangepast' : ''}</span></span><span class="pm-padcap">${pg(phys)}</span></button>`;
+    // UX-audit 23-11 (S10): per context een kolom (Te voet, Rijden, Menu) in plaats van drie contexten in één regel met puntjes
+    const u = slotUseParts(slot);
+    const cel = (ctx, t) => `<span class="pm-ctx" data-ctx="${ctx}">${t ? esc(t) : '<span class="mut" aria-hidden="true">–</span>'}</span>`;
+    return `<button type="button" class="m-li pm-bind pm-bind-pad${changed ? ' pm-changed' : ''}" data-rebind-pad="${slot}" aria-label="${esc(PAD_SLOT_NAMES[slot])}: ${esc(slotUses(slot) || PAD_SLOT_NAMES[slot])}. Kies om te wijzigen">` +
+      `<span class="nm"><span class="one">${esc(PAD_SLOT_NAMES[slot])}${changed ? ' · aangepast' : ''}</span></span>${cel('voet', u.voet)}${cel('rijden', u.rijden)}${cel('menu', u.menu)}<span class="pm-padcap">${pg(phys)}</span></button>`;
   }).join('');
-  return `<p class="m-note pm-cempty" hidden>Niks gevonden. Probeer een ander woord of een toets.</p><div class="m-list pm-slist">${rows}</div>${bindPane('pad', 'Kies een rij en druk op de controller de knop die het voortaan moet doen. Ze ruilen van plek. Menu/Start opent altijd het pauzemenu; de sticks liggen vast.')}`;
+  const kop = '<div class="pm-bind-pad pm-padkop" aria-hidden="true"><span class="nm">Knop</span><span class="pm-ctx">Te voet</span><span class="pm-ctx">Rijden</span><span class="pm-ctx">Menu</span><span class="pm-padcap"></span></div>';
+  return `<p class="m-note pm-cempty" hidden>Niks gevonden. Probeer een ander woord of een toets.</p><div class="m-list pm-slist">${kop}${rows}</div>${bindPane('pad', 'Kies een rij en druk op de controller de knop die het voortaan moet doen. Ze ruilen van plek. Menu/Start opent altijd het pauzemenu; de sticks liggen vast.')}`;
 }
 
 function renderBinds() {
