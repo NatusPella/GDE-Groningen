@@ -135,8 +135,8 @@ const STORY = [
     npc: 'sjoerd', outroPose: 'cheer', ask: 0,
     intro: [
       ['N', 'Op de kruispunten is alles tegelijk groen. Niemand heeft voorrang. Maak oogcontact.', { card: 'sjoerd' }],
-      ['A', 'Tammo heeft hier nog gestudeerd. Twee weken.'],
-      ['T', 'Drie. De derde was ik ziek.'],
+      ['A', 'Tammo heeft hier nog gestudeerd. Vijf jaar.'],
+      ['T', 'Zes. Het laatste jaar was ik ziek.'],
       ['A', 'Van het studeren?'],
       ['T', 'Van de mensa.'],
     ],
