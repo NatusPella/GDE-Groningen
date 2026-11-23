@@ -65,16 +65,18 @@ Vaste cast, stem uit `scripts/tts_cast.mjs` en `scripts/tts_lines_list.mjs`
 | Tessa (intern `anita`) | heldin, de snackwagen | Callirrhoe; **standaard Nederlands** (#134) |
 | Rikus | nacht-dj Nachtstreek | Schedar, warm en droog |
 | Jelle Terpstra | tegenstander, Us Mem Snacks | Fenrir, Nederlands met Friese woorden |
-| Mem (Gerda) Terpstra | Jelles oma (91; hij zegt Mem) | Gacrux, Nederlands met Friese woorden |
+| Mem (Gerda) Terpstra | Jelles oma, 91, werd tweede in 1953; Jelle en Tessa noemen haar Mem. Jelles moeder blijft onbenoemd en zonder stem (O6, J5) | Gacrux, Nederlands met Friese woorden |
 | Oma Trijntje | mentor, won in 1953 | Sulafat, Gronings, stellig |
 | Berend Bos | Bommen Berend, jurylid | Charon, nors |
 | Durk en Douwe | Jelles tweeling | Algieba en Algenib, traag |
+| Femke | keeper van Tessa's dorpsteam en vriendin van Tessa; belt Rikus (R4.0b), dubbele date met Rikus (J4), appjes (A4.2) | stem in J4 |
 | Sjabbe, Klaas, Bert, Dijkstra, Sjoerd, Henk, Jelmer, Geert, de torenwachter | bijrollen | zie `docs/personages.md` |
 
 Geesje, Lammert, Roelfien, Wubbo, Tinus, mevrouw Hoving en Willemien zijn nieuw en
 hadden geen stem; Geesje, Rotor Roelf en de tien Tessa-regels zijn op 20-11 ingesproken. Wat buiten `script.json` nog geen stem heeft staat in `docs/verhaal/TTS-ACHTERSTAND-21-11.md`. **Geschrapt** zijn
-Femke, Harm, Hilly, Hilje en Boer Roelf (`docs/verhaal/nieuw/00-OVERZICHT.md:67`;
-`game/js/storyarc_nieuw.js:107-108`); Rotor Roelf blijft alleen een stem.
+Harm, Hilly, Hilje, Boer Roelf en Femke als eierbezorger van H7 (`docs/verhaal/nieuw/00-OVERZICHT.md:71`;
+`game/js/storyarc_nieuw.js:107-108`); Rotor Roelf blijft alleen een stem. Femke zelf
+blijft als keeper en vriendin van Tessa in akte 4 (besluit coördinator 23-11).
 
 - **Tessa spreekt standaard Nederlands** (#134), ook in de opname: geen Gronings
   accent of dialectspelling; een Gronings woord is een grap over haar
@@ -145,7 +147,7 @@ stille appjes; `scripts/calendar_test.mjs` de datums;
 
 - **#472, #474, #475, #489 en #490 zijn op 25-10 gesloten.** `docs/personages.md`
   volgt nu de canon (Geesje, Lammert, Roelfien, Wubbo, Tinus, Hoving en Willemien
-  erbij, Femke en Hilly eruit, Tessa standaard Nederlands); de kop van
+  erbij, Hilly eruit, Femke als keeper (besluit 23-11), Tessa standaard Nederlands); de kop van
   `storyarc_nieuw.js` noemt 30 missies en 5 reisbeats; `DEEL4_STEP_DAYS` en
   `VOORRONDE_STEPS` zijn weg (inclusief hun testblok); de kermis in Winschoten staat
   op één datum (22-23 augustus); de introweek heet overal Kiezelweek; en Tessa's

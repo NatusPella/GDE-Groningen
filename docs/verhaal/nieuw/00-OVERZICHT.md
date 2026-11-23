@@ -29,11 +29,11 @@ Deze versie verwerkt de besluiten na drie reviews door andere taalmodellen (twis
 
 **Motief (één zin):** Tessa heeft nooit langer dan een paar jaar ergens gewoond en wil een thuis met wielen; Tammo wil bij haar blijven maar zegt het niet; ze kunnen de huur niet betalen en de bank zei "uw plan is sympathiek".
 
-**Tegenstander (één zin):** Jelle Terpstra, Friese snackbaron van *Us Mem Snacks*, wil zijn moeder Gerda de Gouden Eierbal geven die zij in 1953 net miste, en koopt daarvoor met de **salamitactiek** (de "Operaasje Aaibal") alles op wat een eierbal nodig heeft: standplaatsen, vet, eieren, zout, haven, bloem, jury, mosterd en tot slot de bewaarder; **hij is eerst kil en zakelijk, en pas langzaam komt "foar mem" boven**. Zijn moeder wil dat helemaal niet.
+**Tegenstander (één zin):** Jelle Terpstra, Friese snackbaron van *Us Mem Snacks*, wil zijn oma Gerda (Mem) de Gouden Eierbal geven die zij in 1953 net miste, en koopt daarvoor met de **salamitactiek** (de "Operaasje Aaibal") alles op wat een eierbal nodig heeft: standplaatsen, vet, eieren, zout, haven, bloem, jury, mosterd en tot slot de bewaarder; **hij is eerst kil en zakelijk, en pas langzaam komt "foar mem" boven**. Zijn moeder wil dat helemaal niet.
 
 ### De twist (nieuwe waarheid)
 
-**JELLE HEEFT DE BAL ECHT GESTOLEN, en niet een bluf.** Hij schrijft overal een bedankje met een J onder (zijn moeder leerde het hem), dus het kaartje in de lege vitrine blijft exact **"Tige tank! – J."** (opgenomen), en het is van hem. Hij nam de bal op 12 augustus, met een omgekochte bewaker (bewaker twee, "met het koekje") en zijn tweeling; zijn radio-claim "de bal is bij mij" is **waar**. Zijn moeder Mem (Gerda) neemt de bal in Bourtange van hem af, met hulp van Oma Trijntje en Berends bakkie, om hem te stoppen. De spelers jagen de hele tijd echt op de bal; in Bourtange houden ze hem vast onder druk van Jelles beleggers en ontsnappen ermee, en in het dieptepunt verliest Tessa hem (ze redt de auto, niet de bal). In de finale is de bal geen derde roof en geen derde vlucht: de wedstrijd wordt beslist door de beste eierbal, en de bal gaat terug naar het museum.
+**JELLE HEEFT DE BAL ECHT GESTOLEN, en niet een bluf.** Hij schrijft overal een bedankje met een J onder (zijn oma leerde het hem), dus het kaartje in de lege vitrine blijft exact **"Tige tank! – J."** (opgenomen), en het is van hem. Hij nam de bal op 12 augustus, met een omgekochte bewaker (bewaker twee, "met het koekje") en zijn tweeling; zijn radio-claim "de bal is bij mij" is **waar**. Zijn moeder Mem (Gerda) neemt de bal in Bourtange van hem af, met hulp van Oma Trijntje en Berends bakkie, om hem te stoppen. De spelers jagen de hele tijd echt op de bal; in Bourtange houden ze hem vast onder druk van Jelles beleggers en ontsnappen ermee, en in het dieptepunt verliest Tessa hem (ze redt de auto, niet de bal). In de finale is de bal geen derde roof en geen derde vlucht: de wedstrijd wordt beslist door de beste eierbal, en de bal gaat terug naar het museum.
 
 **Hoe volg je Jelles plan?** In "Wat weten we?" staat een **plakjesbord** met acht plakjes (AANNAME: nieuw, klein). Jelle vertelt zijn eigen plan op de radio, na afloop van missies (hij is ijdel en belt graag in: dat is "wereld", geen briefing). Tessa noemt het plan in M03 hardop "salamitactiek". Het koopboek (M12) laat de acht plakjes zien.
 
@@ -49,7 +49,7 @@ Bestaand = uit `docs/personages.md` en `storyarc.js`; **nieuw** alleen waar nodi
 | **Tessa** | heldin, de baas van het duo; **Nederlandse** (niet in Stad geboren; zomers in Ljouwert naast Mem; AANNAME: geboren in Zwolle; sinds 21-11 ook: **van het platteland**, zie OPENING-BIJBEL.md) die Friezen kent; Tammo vindt dat gek | van "regelen en niks zeggen" naar toegeven dat ze bang is nergens te blijven; **heeft vaak gelijk, soms wat saai**; ziet Tammo's signalen en plaagt ze, zonder ze als bekentenis te lezen; verzwijgt Mems appjes (haar fout) | snel, ad rem, **standaard Nederlands** (geen Gronings), "Rijden, niet praten." Opgenomen regels met een Groninger kleur blijven staan. | opening |
 | **Rikus** | nacht-dj Nachtstreek, Tammo's jeugdvriend, de radio | blijft vertellen; **radio is alleen wereld en duidt de relatie niet** | warm en droog | opening, radio |
 | **Jelle Terpstra** | tegenstander, ijdel, nooit gemeen; **echte dief en echte bedreiger** | van kil-zakelijk ("Mijn juristen noemen het een overname") naar "foar mem" naar "ja, mem" | Nederlands met Friese woorden; elke zin is reclame of een contract; hij grijpt actief in (zie §4) | chat (M01), in persoon in M03 |
-| **Mem (Gerda) Terpstra** | Jelles moeder; **neemt de bal van hem af**; appt Tessa; tekent haar jongen zijn J | wil dat hij ophoudt; haar eierbal was beter; neemt verantwoordelijkheid ("Dat was verkeerd") | stellig, Fries-getint in appjes en vroege scènes; **in de finale Nederlands** voor de emotionele uitbetaling | appjes vanaf M07 (stil), in persoon in M20 |
+| **Mem (Gerda) Terpstra** | Jelles oma (zijn moeder blijft onbenoemd); **neemt de bal van hem af**; appt Tessa; tekent haar jongen zijn J | wil dat hij ophoudt; haar eierbal was beter; neemt verantwoordelijkheid ("Dat was verkeerd") | stellig, Fries-getint in appjes en vroege scènes; **in de finale Nederlands** voor de emotionele uitbetaling | appjes vanaf M07 (stil), in persoon in M20 |
 | **Oma Trijntje** | mentor, 92, bakte in 1953 de beste (volgens haar) | zegt eindelijk: "Gerda. Jouw eierbal was beter." | warm, stellig | M08 (naamkaart) |
 | **Mevrouw Hoving, de Bewaarder** *(nieuw, klein)* | bewaarder van de Gouden Eierbal en bij traditie voorzitter van de jury (artikel 4); wordt door Jelle met een gratis treinreis aan de kant gezet (M03, M18, M19) | vast; komt niet in de finale (zij zit in de museumtrein, artikel 9: Berend) | beleefd, oud, formeel | M03 (naamkaart) |
 | **Durk en Douwe** | Jelles tweeling, "…Hè." | lopen over in M23 | traag, synchroon | M02 |
@@ -68,7 +68,7 @@ Bestaand = uit `docs/personages.md` en `storyarc.js`; **nieuw** alleen waar nodi
 
 **Tessa is Nederlands, niet Gronings** (besluit van de eigenaar): ze groeide op op zeven plekken en logeerde elke zomer in Ljouwert, in het huis naast Mem. Zo kent ze Friezen, pompeblêden en Mems handschrift. Tammo, die nooit ergens anders woonde dan in Stad, vindt dat gek ("Jij? Fries?"). Al haar nieuwe regels zijn standaard Nederlands.
 
-**Geschrapt of samengevoegd:** Femke (H7), Harm (H9), Hilly, Hilje, Boer Roelf. Rotor Roelf blijft een stem (telefoon) in M12.
+**Geschrapt of samengevoegd:** Femke als eierbezorger van H7, Harm (H9), Hilly, Hilje, Boer Roelf. Femke blijft wel als keeper en vriendin van Tessa (akte 4: R4.0b, J4, A4.2; besluit coördinator 23-11). Rotor Roelf blijft een stem (telefoon) in M12.
 
 ## 3. De vijf akten
 
@@ -334,7 +334,7 @@ Wie het spel al kent, ziet bekende regels en mechaniek op nieuwe plekken in éé
 
 1. **De hele provincie in plaats van de stad:** 7 regio's, 15 van de 26 missies van de vijf akten spelen buiten Stad (met Deel 4 erbij: 20 van de 30). Bekende beats keren terug op andere plekken.
 2. **Een nieuw doel en een plan dat je volgt:** het plakjesbord en het koopboek; Jelle heeft een motief en grijpt actief in.
-3. **Een nieuw mysterie en een keerpunt:** Jelle heeft de bal echt; in M16 verklapt Durk waar; in M20 neemt zijn moeder hem af, en jij houdt hem vast.
+3. **Een nieuw mysterie en een keerpunt:** Jelle heeft de bal echt; in M16 verklapt Durk waar; in M20 neemt zijn oma hem af, en jij houdt hem vast.
 4. **Een dieptepunt van twee missies vlak voor de finale** (M20-M21): de ruzie, de verloren bal en wagen, de vrienden die weglopen.
 5. **Een romantische boog in zes zichtbare stappen** in plaats van één kus.
 6. **12 nieuwe missies** op bestaande mechaniek (Het Loket, de brugrace, de trein, de containerkraan, de colonne) en nieuwe voertuigen (klein vliegtuig, quad, trekker, rubberboot als speedboat).

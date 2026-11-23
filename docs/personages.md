@@ -54,7 +54,7 @@ Regels die voor iedereen gelden:
   - hij noemt elk gebouw bij de bijnaam: de Apenrots, het Cruiseschip, de Kiekdeuse;
   - hij verliest altijd van Tessa als hij gelijk wil hebben;
   - hij is eigenwijs en zit er soms gewoon naast; blijkt hij ongelijk te hebben, dan zegt hij droog: "Dat bedoelde ik ook.";
-  - Tessa appt met "iemand uit Friesland" en Tammo wordt daar stilletjes jaloers van ("Is hij lang? Fierljepper zeker."). Het blijkt Mem Terpstra te zijn: "…Een moeder. Ik was jaloers op een moeder.";
+  - Tessa appt met "iemand uit Friesland" en Tammo wordt daar stilletjes jaloers van ("Is hij lang? Fierljepper zeker."). Het blijkt Mem Terpstra te zijn, Jelles oma: "…Een oma. Ik was jaloers op een oma.";
   - Rikus van Nachtstreek is zijn jeugdvriend uit het Oosterpark (van vóór de studie; Tessa leerde hem via Tammo kennen) en plaagt hem op de radio.
 - **Gave: duivenfluisteraar.** Tammo kan duiven sturen. Hij wordt geen duif: hij fluit of klikt met zijn tong, doet zijn ogen dicht en "springt" met de camera in de duif. Zo werkt de duivenmodus.
   - Bert ontdekt het in H4 ("Kiek. Die duiven luuster'n noar dij, jong."); Tammo doet er droog over ("Duiven luisteren naar niemand."), Tessa plaagt ("mijn vriend de duivenkoning").
@@ -123,7 +123,7 @@ Regels die voor iedereen gelden:
 ## Jelle Terpstra
 **In één zin:** de ijdele, charmante Friese snackbaron van *Us Mem Snacks*, die vindt dat alles wat lekker is eigenlijk Fries is. Hij is de schurk, maar vooral ijdel en nooit echt gemeen.
 
-**Naamkaart:** *Snackkoning. Fries. Heel tevreden met zichzelf.* Eigenlijk is hij een kleinzoon die zijn oma gelijk wil geven. Zijn **Operaasje Aaibal** heeft vier stappen: de wisseltrofee van de Noordelijke Snackprijs stelen, al het frituurvet opkopen zodat geen Stadjer kan bakken, Stad vernederen, en op Gronings Ontzet winnen, zodat de bal volgens artikel 4 van het reglement van Friesland is. "Foar mem." Zijn moeder wil dat helemaal niet. Hij belt graag in bij Nachtstreek ("Gezellig programma.") en flirt met "famke in het rood".
+**Naamkaart:** *Snackkoning. Fries. Heel tevreden met zichzelf.* Eigenlijk is hij een kleinzoon die zijn oma gelijk wil geven. Zijn **Operaasje Aaibal** heeft vier stappen: de wisseltrofee van de Noordelijke Snackprijs stelen, al het frituurvet opkopen zodat geen Stadjer kan bakken, Stad vernederen, en op Gronings Ontzet winnen, zodat de bal volgens artikel 4 van het reglement van Friesland is. "Foar mem." Zijn oma (Mem, Gerda) wil dat helemaal niet; zijn moeder blijft onbenoemd (ze wil vooral omzet, O6 en J5). Hij belt graag in bij Nachtstreek ("Gezellig programma.") en flirt met "famke in het rood".
 
 - **Stem:** Fenrir. Basistag: *ijdele, charmante Friese ondernemer, spreekt Nederlands met Friese woorden*. Emoties: charmant, opschepperig, zelfvoldaan, plechtig, en betrapt als het misgaat.
 - **Zo praat hij:**
@@ -282,7 +282,7 @@ Regels die voor iedereen gelden:
 | **Stien** | 70, al veertig jaar frituurhoudster onder brug elf in Veendam; mentor voor Tessa en later een vriendin van de wagen | nog geen opname; *kortaf, warm* | "Eerst het vet warm, dan de mensen." (M17.5) |
 | **Anneke** | Tessa's moeder, praktisch en direct; haar man (stil, nooit een regel) had kippen; komt onaangekondigd met een mand eieren | nog geen opname; *nuchter, plattelands* | "Jij belt nooit. Dan komen wij." (M25.6) |
 | **Lieke** | 10, Tessa's nichtje, gele regenjas; heeft het al lang door en zegt het hardop (alleen kinderhumor, nooit in gevaar) | nog geen opname; *helder, kinderstem* | "Jullie zijn al samen." (M25.6) |
-| **Femke** | keeper van Tessa's dorpsteam, vriendin van Tessa; alleen appjes en Rikus' radio (het tweede stel, Rikus en Femke, groeit langzaam en laag) | geen stem, alleen tekst | "Hij zegt het wel heel mooi." (A4.2) |
+| **Femke** | keeper van Tessa's dorpsteam en vriendin van Tessa ("Ze weet bijna alles van mij"); belt Rikus' radio voor een plaat (R4.0b), zit met Rikus aan de dubbele date in Veendam (J4) en appt Tessa over hem (A4.2): het tweede stel, Rikus en Femke, groeit langzaam en laag | stem in J4 (drie regels opgenomen, één alleen tekst); appjes stil | "Hij zegt het wel heel mooi." (A4.2) |
 
 Geesje, Lammert, Roelfien, Wubbo, Tinus, mevrouw Hoving en Willemien zijn nieuw in het verhaal (`docs/verhaal/nieuw/00-OVERZICHT.md` §2) en hebben nog geen opgenomen stem; de stemkeuze staat open (`docs/verhaal/nieuw/07-TTS-RAMING.md` §5).
 
