@@ -193,6 +193,7 @@ const near = (a, b, e = 1e-6) => Math.abs(a - b) < e;
     ok(jat.type === 'goto' && jat.mode === 'walk', 'winkel: een fietsprompt voor de deur is geen reden om E te drukken, eerst dichterbij');
     const binnen = L.decide({ ...base(), target: { ...wT, distance: 1.2 }, hud: { messages: [], prompt: 'BinnenlopenTrap & Toeter: fietsenwinkel' } }, {});
     ok(binnen.type === 'press' && binnen.key === 'e', 'winkel: de eigen prompt van de winkel: E');
+    ok(L.decide({ ...base(), target: { ...wT, distance: 0.8 }, hud: { messages: [], prompt: 'KopenBij de kassa' } }, {}).type === 'press', 'inloopwinkel: Kopen bij de kassa: E');
     // M06: een auto of een voorbijganger naast de stroomkast is niet de handeling; de vier drukken blijven over voor 'Houd E ingedrukt'
     const kast = { ...base(), mission: { active: true, stage: 'fuse' }, target: { x: 2, y: 0, distance: 2, source: 'missie' } };
     for (const p of ['InstappenBij de bestuurdersdeur', 'Fiets jattenFiets', 'Slaan om uit te delen']) ok(L.decide({ ...kast, hud: { messages: [], prompt: p } }, {}).type !== 'press', `naast het doel: '${p}' telt niet als handeling`);
