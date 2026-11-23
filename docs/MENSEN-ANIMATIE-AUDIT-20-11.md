@@ -1,7 +1,7 @@
 # Mensen en animatie: audit en verbeteringen, 20-11
 
 Een doorlichting van hoe mensen bewegen in het spel (speler, voetgangers, publiek, andere spelers) en wat er vandaag voor is gebouwd (#985, eigenaarsprioriteit AAA bij "Mensen en animatie").
-Alles is low-poly en procedureel: één rig van twaalf botten (elf lichaamsbotten en het ooglid) (`models3d_people.js`), geen skeletclips, dus geen nieuwe grote assets. Het uitgangspunt van de verbeteringen is rekenkosten van een paar vermenigvuldigingen per mens, geen extra shaderprogramma's of lichten, en niets over het netwerk erbij.
+Alles is low-poly en procedureel: één rig van dertien botten (elf lichaamsbotten, het ooglid en de mond) (`models3d_people.js`), geen skeletclips, dus geen nieuwe grote assets. Het uitgangspunt van de verbeteringen is rekenkosten van een paar vermenigvuldigingen per mens, geen extra shaderprogramma's of lichten, en niets over het netwerk erbij.
 
 Wat **gezien** is (Electron, wegwerpprofiel, zie [Beelden](#beelden)): de speler die loopt en rent in zijn eigen model, de bocht, een voetganger die opkijkt, het stilstaan, het publiek. Wat **niet** gezien is, staat onderaan. Alles wat hier "gemeten" heet, is gemeten op een zwaar belaste machine (ver boven 30 ms per beeld in elke run, zie [Frametijd](#frametijd)); het is dus bewijs dat de code draait en niets breekt, geen perf-uitspraak.
 

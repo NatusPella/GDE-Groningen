@@ -6,7 +6,7 @@
 // THREE (de toestand van ploeg en aftakas) is puur genoeg voor scripts/voertuigbediening_test.mjs.
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { GeoBuilder, markShared } from './pixelart3d.js';
-import { stuurOverlay, boatHullProfile } from './models3d_vehicles.js';
+import { stuurOverlay, boatHullProfile, bikeHands } from './models3d_vehicles.js';
 import { boatKind, boatHasCabin } from './boattypes.js';
 import { heeftBootInterieur } from './bootinterieur.js';
 import { bouwStuurwiel, draaiStuurwiel } from './autointerieur.js';
@@ -220,6 +220,12 @@ export function syncVoertuigBediening(world, meshes, px, py, dt) {
       if (vb.sw.body.geometry !== vb.sw.zonder && vb.sw.body.geometry !== vb.sw.orig) { vb.sw.stuur.visible = false; continue; }
       const fw = ud.frontWheels && ud.frontWheels[0];
       vb.sw.stuur.rotation.y = fw ? fw.rotation.y : -steer * MAX_STUUR;
+      // de handen van de fietser gaan mee met het stuur (actorlife.js); niet wie onderweg op zijn telefoon kijkt
+      const r = ud.riderMesh;
+      if (r && r.visible && ud.riderGrip && !(r.userData.phoneProp && r.userData.phoneProp.visible) && Math.abs(vb.sw.stuur.rotation.y - (vb.handA ?? 0)) > 0.005) {
+        vb.handA = vb.sw.stuur.rotation.y;
+        bikeHands(r, ud.riderGrip, vb.handA);
+      }
     }
     if (vb.tr) {
       if (vb.tr.stuur) draaiStuurwiel(vb.tr.stuur, steer, dt);

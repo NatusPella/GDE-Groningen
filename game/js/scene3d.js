@@ -30,7 +30,7 @@ import {
 } from './vehicle.js';
 import { DEAD_DURATION } from './pedconst.js';
 import { attachCarry, carryPose } from './streetlife3d.js';
-import { buildPersonMesh, releasePersonGeometry, animatePersonWalk, applyAttackPose, applyHitReaction, setHeldWeapon, seatPose, seatedY, waveOverlay, juichOverlay, carryOverlay, TAMMO_APPEARANCE, ANITA_APPEARANCE } from './models3d_people.js';
+import { buildPersonMesh, releasePersonGeometry, animatePersonWalk, plantFeet, applyAttackPose, applyHitReaction, setHeldWeapon, seatPose, seatedY, waveOverlay, juichOverlay, carryOverlay, TAMMO_APPEARANCE, ANITA_APPEARANCE } from './models3d_people.js';
 import { syncDoorsNear, vraagVoorAnim } from './vehicledoors3d.js';
 import { syncCabins } from './cabin3d.js';
 import { updateRitCabine, syncTreinKader } from './ritcabine3d.js';
@@ -112,6 +112,7 @@ import { streamLead } from './streambudget.js';
 import { fadeBand, loadRadius } from './popinrules.js';
 import { VIEW_DISTANCES, viewDistanceFor, detailDistanceFor, DETAIL_BASE } from './viewdist.js';
 import { glanceAt, shareFeet } from './gait.js';
+import { lifeTier } from './actorlife.js';
 import { NEAR_MIN, cameraNearTarget, stepNear, parseNearFlag, parseFarFlag } from './cameranear.js';
 import { compareOpaque } from './drawpool.js';
 import { buildingBatcher, roadBatcher, facadeBatcher, shoreBatcher, drawHub } from './staticbatch3d.js';
@@ -2390,6 +2391,23 @@ function buildPedActor(p, world) {
 
 // how many frames a walker's pose stays: 1 (every frame), 2 or 4. Manhattan distance to the player in metres (a Euclid distance of up to 1.4 less).
 const PED_TIER_2 = 55, PED_TIER_4 = 130;
+// Voeten op de grond (actorlife.js, plantFeet): één hoogtevraag per voet op de laag waar de mens op staat (map.surfaceAt), alleen
+// dichtbij (lifeTier 0) en alleen waar de kaart hoogte heeft. Geen allocaties: de vraag hergebruikt één toestand.
+const _footSt = { z: 0, ribbon: null, kind: 'ground' };
+let _footMap = null, _footEnt = null;
+function footGround(x, y) {
+  _footSt.z = _footEnt.gz || 0;
+  _footSt.ribbon = _footEnt.surf ? _footEnt.surf.ribbon : null;
+  return _footMap.surfaceAt(x, y, _footSt).z;
+}
+function groundFeet(mesh, ent, world) {
+  const map = world.map;
+  if (!map || !map.surfaceAt || !map.elev || !map.elev.has || perfOff('voetik')) return;
+  _footMap = map; _footEnt = ent;
+  plantFeet(mesh, footGround, 1);
+  _footEnt = null;
+}
+
 function pedTier(manhattan, p, now) {
   if (p.ragdoll || p.pose || p.carry || p.party || p.heldWeapon || p.attackFx || p.hitReact || p.greetUntil > now) return 1;
   if (perfOff('pedtier')) return simLevel() && manhattan > 45 ? 2 : 1;
@@ -2496,7 +2514,11 @@ function syncPedestrianMeshes(world, player, animDt) {
       holdSkeleton(mesh, false); ud.gazeT = NaN;
       animatePersonWalk(mesh, p.speed || 0, ud.animAcc);
       ud.animAcc = 0;
-    } else { holdSkeleton(mesh, false); glanceAt(ud, p, player, world.time); animatePersonWalk(mesh, p.speed || 0, animDt); } // gait.js: a walker near you glances at you now and then
+    } else {
+      holdSkeleton(mesh, false); glanceAt(ud, p, player, world.time); animatePersonWalk(mesh, p.speed || 0, animDt); // gait.js: a walker near you glances at you now and then
+      const fx = p.x - player.x, fy = p.y - player.y;
+      if (!p.pose && !p.ragdoll && lifeTier(fx * fx + fy * fy) === 0) groundFeet(mesh, p, world); // voeten op een helling of trap (actorlife.js)
+    }
     shareFeet(p, ud, world.time); // the heel contact of the drawn walk cycle for sfx/foley.js (out of the frame or far off: its stride counter)
     if (p.carry && !p.pose) carryPose(mesh, p.carry);
     // a road-rager (roadrage.js) holds what he brought and swings it
@@ -3057,6 +3079,7 @@ export function update3D(dt, world) {
     if (seated) {
       playerMeshPlaced = true;
       playerMesh.scale.y = 1;
+      playerMesh.userData.steer = pv.isBike || pv.isScooter ? 0 : pv.steer || 0; // handen aan het stuur (actorlife.js, seatPose 'wheel')
       placeSeated(playerMesh, pvMesh, pv, vehicleSeat(pv, true), world.time);
       playerMesh.userData.shadow.visible = false;
     }
@@ -3074,6 +3097,7 @@ export function update3D(dt, world) {
       playerMesh.userData.air = player.vault ? player.airPose || 0 : !player.perch && !player.swimming && player.z > 0.25 ? 0.45 : 0;
       playerMesh.userData.shadow.position.y = 0.02 - (player.z || 0) / playerMesh.scale.y;
       animatePersonWalk(playerMesh, Math.hypot(player.vx, player.vy), animDt); shareFeet(player, playerMesh.userData, world.time); // gait.js: the heel contact for sfx/foley.js
+      if (!player.swimming && !player.vault && !player.perch && !(player.z > 0.02) && !player.wade) groundFeet(playerMesh, player, world); // voeten op de grond (actorlife.js)
       if (player.vault && Number.isFinite(player.vaultU)) vaultPose(playerMesh, player.vaultU, !!player.vault.climb, world.time);
       else if (player.swimming && !player.inVehicle) {
         // zwemmen (#207): schoolslag bij beweging, rustig watertrappelen als je stilligt; uit het water
