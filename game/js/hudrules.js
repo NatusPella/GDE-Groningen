@@ -160,6 +160,17 @@ function bubblePlace0(anchor, size, view, pad = 4) {
   };
 }
 
+// The ground a speech bubble stands on (#1198): the speaker's own ground height (gz of a pedestrian or the player), else
+// the ground at a fixed speaker, else 0. The bubble used p.h (about 2.1 m) above 0, so a speaker on a dike or a terp had it
+// in his chest and one in a dip had it floating far above his head.
+export function bubbleBase(src, map = null) {
+  if (src && Number.isFinite(src.gz)) return src.gz;
+  if (src && map && typeof map.groundHeightAt === 'function') {
+    try { const g = map.groundHeightAt(src.x, src.y, 0); if (Number.isFinite(g)) return g; } catch (e) { /* no ground: 0 */ }
+  }
+  return 0;
+}
+
 // De plaats van een bel als transform (compositorlaag, geen layout): de bel staat op left/top 0 en schuift met translate; de
 // ankermaat (-50%, -100%) zit erin. Dezelfde plek als left/top + translate(-50%, -100%) eerder gaf.
 export function bubbleTransform(x, y) {

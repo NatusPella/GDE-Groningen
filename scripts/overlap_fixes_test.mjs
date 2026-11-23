@@ -112,5 +112,16 @@ ok(nieuw <= oud * 0.4, 'het blok is minstens 60% kleiner qua oppervlak (' + nieu
 ok(/body\.hud-in-vehicle #hud \.hud-ctx \{ bottom: calc\(var\(--hud-edge, 46px\) \+ 92px\)/.test(src('game/js/prompts.css')), 'de toetshintstapel hangt direct boven het blok');
 ok(/no-rpm/.test(hcss) && /no-gears/.test(hcss), 'fiets, scooter en boot tonen alleen wat ze hebben (geen toeren, geen versnelling)');
 
+// #1198: de bel staat boven het hoofd van de spreker, ook op een dijk of in een kuil (niet op p.h boven 0)
+{
+  const { bubbleBase } = await import('../game/js/hudrules.js');
+  ok(bubbleBase({ x: 0, y: 0, gz: 3.5 }) === 3.5, 'voetganger op 3,5 m: de bel begint daar');
+  ok(bubbleBase({ x: 0, y: 0, gz: -1.2 }, { groundHeightAt: () => 9 }) === -1.2, 'eigen grondhoogte gaat voor de kaart');
+  ok(bubbleBase({ x: 1, y: 2 }, { groundHeightAt: (x, y) => x + y }) === 3, 'vaste spreker zonder gz: de grond van de kaart');
+  ok(bubbleBase({ x: 1, y: 2 }, { groundHeightAt: () => NaN }) === 0 && bubbleBase({ x: 1, y: 2 }, { groundHeightAt: () => { throw new Error('x'); } }) === 0 && bubbleBase(null) === 0, 'geen grond of fout: 0');
+  const s3 = fs.readFileSync(path.join(ROOT, 'game/js/scene3d.js'), 'utf8');
+  ok(/projectToScreen\(src\.x, bubbleBase\(src, world\.map\) \+ \(p\.h \?\? 2\.1\), src\.y, vw, vh\)/.test(s3), 'scene3d.js zet de bel op de grond van de spreker plus p.h');
+}
+
 console.log(`overlap_fixes_test: ${n - fails}/${n} ok`);
 process.exit(fails ? 1 : 0);

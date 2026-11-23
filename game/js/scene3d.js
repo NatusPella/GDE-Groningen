@@ -5,7 +5,7 @@ import { FLAGS, perfOff } from './devflags.js';
 import { sfxLinks } from './latehooks.js';
 import { MODS } from './cheatmods.js';
 import { setDualText } from './subtitles.js';
-import { bubblePlace, bubbleTransform } from './hudrules.js';
+import { bubblePlace, bubbleTransform, bubbleBase } from './hudrules.js';
 import { gridItems } from './spatialgrid.js';
 import { terrainHoleRows } from './terraincache.js';
 import { speakerHtml } from './speakers.js';
@@ -2588,7 +2588,7 @@ function syncSpeechBubbles(world) {
       else if (p.female === undefined) p.female = Math.random() < 0.5;
       speakBubble(p.speechText, p.female, { x: src.x, y: src.y });
     }
-    const scr = projectToScreen(src.x, p.h ?? 2.1, src.y, vw, vh);
+    const scr = projectToScreen(src.x, bubbleBase(src, world.map) + (p.h ?? 2.1), src.y, vw, vh); // above the head, not above 0 (#1198)
     if (!scr) { el.style.display = 'none'; continue; }
     if (el._text !== p.speechText) {
       el._text = p.speechText;
