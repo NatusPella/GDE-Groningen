@@ -753,7 +753,20 @@ export function updateWildlife(dt, world) {
     }
     keepOffRoad(a, dt, world);
     groundContacts(a, world);
+    if (WATCH_KINDS.has(a.kind)) zetBlik(a, naasteLichaam(world, a.x, a.y));
   }
+}
+
+// Een dier dat de speler van dichtbij ziet draait zijn kop mee (animatie): a.watch is de hoek van de speler ten opzichte van de neus
+// van het dier, of null als er niemand in de buurt is. Per dier een paar vermenigvuldigingen, geen nieuwe objecten.
+const WATCH_KINDS = new Set(['cow', 'sheep', 'cat', 'dog']);
+export function zetBlik(a, p, straal = 11) {
+  if (!p || a.dead) { a.watch = null; return; }
+  const dx = p.x - a.x, dy = p.y - a.y;
+  if (dx * dx + dy * dy > straal * straal) { a.watch = null; return; }
+  let w = Math.atan2(dy, dx) - a.angle;
+  w -= Math.PI * 2 * Math.round(w / (Math.PI * 2));
+  a.watch = w;
 }
 
 // A ground animal that ends up on a carriageway or a junction anyway (a flock landing, a flight from a car, a shove) leaves:
@@ -1037,6 +1050,10 @@ const COW_RED = 0x7a3520;
 const COW_PINK = 0xd9a7a0;
 const COW_HOOF = 0x2a2622;
 
+// De wereldpositie van een punt in het lokale stelsel van een kop (de matrix H van de geometrie): de draaipunten van de oorbotten.
+const _pv = new THREE.Vector3();
+const earPivot = (H, x, y, z) => { _pv.set(x, y, z).applyMatrix4(H); return [_pv.x, _pv.y, _pv.z]; };
+const COW_H = composeMatrix(0.62, 1.08, 0, 0, 0, -0.45).multiply(composeMatrix(0.1, 0, 0));
 const COW_SPEC = [
   ['body', null, 0, 1.05, 0],
   ['head', 'body', 0.62, 1.08, 0],
@@ -1045,6 +1062,8 @@ const COW_SPEC = [
   ['legFR', 'body', 0.55, 0.95, -0.19],
   ['legBL', 'body', -0.6, 0.95, 0.2],
   ['legBR', 'body', -0.6, 0.95, -0.2],
+  ['earL', 'head', ...earPivot(COW_H, 0.3, 0.1, 0.1)],
+  ['earR', 'head', ...earPivot(COW_H, 0.3, 0.1, -0.1)],
 ];
 
 function holstein(seed, dark = COW_BLACK) {
@@ -1105,7 +1124,11 @@ function cowGeometry(seed, dark = COW_BLACK) {
   const hm = (x, y, z, rx = 0, ry = 0, rz = 0, sx = 1, sy = 1, sz = 1) => H.clone().multiply(composeMatrix(x, y, z, rx, ry, rz, sx, sy, sz));
   B.geo(new THREE.BoxGeometry(0.05, 0.17, 0.2), hm(0.66, -0.02, 0), COW_PINK);
   for (const s of [1, -1]) {
+    B.bone = I[s > 0 ? 'earL' : 'earR'];
     B.geo(new THREE.BoxGeometry(0.1, 0.04, 0.16), hm(0.3, 0.1, s * 0.17, s * 0.4, 0, 0), dark);
+    B.geo(new THREE.BoxGeometry(0.06, 0.012, 0.09), hm(0.3, 0.085, s * 0.19, s * 0.4, 0, 0), COW_PINK);   // de binnenkant van het oor
+    if (s > 0) B.geo(new THREE.BoxGeometry(0.03, 0.012, 0.035), hm(0.3, 0.123, s * 0.2, s * 0.4, 0, 0), 0xe0c030);   // het oormerk van de boer
+    B.bone = I.head;
     B.geo(new THREE.ConeGeometry(0.022, 0.09, 4), hm(0.33, 0.2, s * 0.08, s * -0.7, 0, -0.2), 0xd8d0b8);
     B.geo(new THREE.BoxGeometry(0.03, 0.03, 0.02), hm(0.44, 0.08, s * 0.125), 0x111111);
     B.geo(new THREE.BoxGeometry(0.01, 0.03, 0.03), hm(0.69, -0.03, s * 0.045), 0x2a1a1a);
@@ -1134,6 +1157,7 @@ export function buildCowMesh3D(seed = 0, red = false) {
   group.userData.legs = [b.legFL, b.legFR, b.legBL, b.legBR];
   group.userData.tail = b.tail;
   group.userData.grazeDip = 1.1;
+  group.userData.earMode = 'plat';
   return group;
 }
 
@@ -1161,6 +1185,8 @@ const SHEEP_SPEC = [
   ['legFR', 'body', 0.3, 0.46, -0.13],
   ['legBL', 'body', -0.3, 0.46, 0.13],
   ['legBR', 'body', -0.3, 0.46, -0.13],
+  ['earL', 'head', ...earPivot(composeMatrix(0.36, 0.66, 0, 0, 0, -0.35).multiply(composeMatrix(0.1, 0, 0)), 0.06, 0.05, 0.08)],
+  ['earR', 'head', ...earPivot(composeMatrix(0.36, 0.66, 0, 0, 0, -0.35).multiply(composeMatrix(0.1, 0, 0)), 0.06, 0.05, -0.08)],
 ];
 
 function woolBlob(B, x, y, z, sx, sy, sz, seed, detail = 1, wol = SHEEP_LOOKS[0].wol) {
@@ -1199,7 +1225,9 @@ function sheepGeometry(variant = 0) {
   const hm = (x, y, z, rx = 0, ry = 0, rz = 0) => H.clone().multiply(composeMatrix(x, y, z, rx, ry, rz));
   B.geo(new THREE.IcosahedronGeometry(1, 0).scale(0.08, 0.06, 0.08), hm(0.03, 0.08, 0), wol[0]);
   for (const s of [1, -1]) {
+    B.bone = I[s > 0 ? 'earL' : 'earR'];
     B.geo(new THREE.BoxGeometry(0.08, 0.025, 0.1), hm(0.06, 0.05, s * 0.1, 0, s * 0.3, 0), SHEEP_DARK);
+    B.bone = I.head;
     B.geo(new THREE.BoxGeometry(0.02, 0.018, 0.015), hm(0.15, 0.035, s * 0.07), 0xb89a5a);
   }
   B.bone = I.tail;
@@ -1216,6 +1244,7 @@ export function buildSheepMesh3D(variant = 0) {
   group.userData.headBaseRotZ = 0;
   group.userData.legs = [b.legFL, b.legFR, b.legBL, b.legBR];
   group.userData.tail = b.tail;
+  group.userData.earMode = 'plat';
   group.userData.grazeDip = 1.1;
   return group;
 }
@@ -1431,6 +1460,8 @@ const QUAD_SPEC = [
   ['legFR', 'body', 0, 0, 0],
   ['legBL', 'body', 0, 0, 0],
   ['legBR', 'body', 0, 0, 0],
+  ['earL', 'head', 0, 0, 0],
+  ['earR', 'head', 0, 0, 0],
 ];
 
 function quadSpec(P) {
@@ -1443,6 +1474,8 @@ function quadSpec(P) {
     ['legFR', 'body', hx * 0.7, P.leg + P.hh * 0.4, -P.hw * 0.55],
     ['legBL', 'body', -hx * 0.7, P.leg + P.hh * 0.4, P.hw * 0.55],
     ['legBR', 'body', -hx * 0.7, P.leg + P.hh * 0.4, -P.hw * 0.55],
+    ['earL', 'head', hx * 0.95 + P.head * 0.3, h + P.hh * 0.6 + P.hh * 0.3 + (P.floppy ? P.head * 0.35 : P.head * 0.5), P.head * 0.28],
+    ['earR', 'head', hx * 0.95 + P.head * 0.3, h + P.hh * 0.6 + P.hh * 0.3 + (P.floppy ? P.head * 0.35 : P.head * 0.5), -P.head * 0.28],
   ];
 }
 
@@ -1485,8 +1518,10 @@ function quadGeometry(P, spec) {
   B.geo(new THREE.BoxGeometry(0.02, P.head * 0.14, P.head * 0.2), hm(tipX + 0.005, P.hh * 0.3 - P.head * 0.12, 0), P.nose);
   for (const s of [1, -1]) {
     B.geo(new THREE.BoxGeometry(0.012, P.head * 0.12, P.head * 0.14), hm(P.head * 0.72, P.hh * 0.3 + P.head * 0.14, s * P.head * 0.28, 0, -s * 0.5, 0), P.eye);
+    B.bone = I[s > 0 ? 'earL' : 'earR'];
     if (P.floppy) B.geo(new THREE.BoxGeometry(P.head * 0.35, P.head * 0.6, 0.02), hm(P.head * 0.3, P.hh * 0.3 + P.head * 0.05, s * P.head * 0.5, s * 0.15, 0, 0.1), P.ear);
     else B.geo(new THREE.ConeGeometry(P.head * 0.2, P.head * 0.45, 3), hm(P.head * 0.3, P.hh * 0.3 + P.head * 0.6, s * P.head * 0.28, s * -0.25, 0, 0.1), P.ear);
+    B.bone = I.head;
   }
   if (P.collar) B.geo(loftGeometry([{ y: -0.015, d: P.hh * 0.82, w: P.hw * 0.8 }, { y: 0.015, d: P.hh * 0.8, w: P.hw * 0.78 }], 8), hm(-P.hh * 0.35, -P.hh * 0.1, 0, 0, 0, -1.2), P.collar);
   B.bone = I.tail;
@@ -1543,6 +1578,7 @@ function buildQuad(key, P) {
   group.userData.legs = [b.legFL, b.legFR, b.legBL, b.legBR];
   group.userData.tail = b.tail;
   group.userData.quad = P;
+  group.userData.earMode = P.floppy ? 'slap' : 'op';
   return group;
 }
 
@@ -1611,6 +1647,8 @@ function bouwWildlifeMesh3D(a) {
 export function buildWildlifeMesh3D(a) {
   const group = bouwWildlifeMesh3D(a);
   const max = maxDierSchaal(a.kind) || 1;
+  // elk dier een andere maat (tot 12% kleiner dan de grootste, nooit groter dan zijn eigen bouw)
+  if ((a.kind === 'cow' || a.kind === 'sheep' || a.kind === 'cat') && Number.isFinite(a.bobSeed)) group.scale.setScalar(max * (0.88 + 0.12 * ((Math.abs(a.bobSeed) * 7.31) % 1)));
   const s = group.scale.x;
   const veilig = Number.isFinite(s) && s > 0 ? Math.min(s, max) : max;
   if (group.scale.x !== veilig || group.scale.y !== veilig || group.scale.z !== veilig) group.scale.setScalar(veilig);
@@ -1638,12 +1676,48 @@ function setWings(ud, sign, inner, outer, fold = 0) {
   }
 }
 
-function walkLegs(ud, phase, amp) {
+function walkLegs(ud, phase, amp, lift = 0, gallop = 0) {
   const [fl, fr, bl, br] = ud.legs;
+  // stap: diagonale paren; galop: de voorpoten samen en de achterpoten samen, de achterpoten een slag later
+  const pf = gallop * 0.3, pb = gallop * (Math.PI - 0.6);
   fl.rotation.z = Math.sin(phase) * amp;
-  br.rotation.z = Math.sin(phase + 0.3) * amp;
-  fr.rotation.z = Math.sin(phase + Math.PI) * amp;
-  bl.rotation.z = Math.sin(phase + Math.PI + 0.3) * amp;
+  br.rotation.z = Math.sin(phase + 0.3 + pb) * amp;
+  fr.rotation.z = Math.sin(phase + Math.PI * (1 - gallop) + pf) * amp;
+  bl.rotation.z = Math.sin(phase + Math.PI * (1 - gallop) + 0.3 + pb) * amp;
+  if (lift > 0) {
+    // de poot gaat van de grond als hij naar voren zwaait (de afgeleide van de zwaai is positief)
+    for (let i = 0; i < 4; i++) {
+      const l = ud.legs[i], r = l.userData.rest;
+      l.position.y = r.y + Math.max(0, Math.cos(i === 0 ? phase : i === 1 ? phase + Math.PI * (1 - gallop) + pf : i === 2 ? phase + Math.PI * (1 - gallop) + 0.3 + pb : phase + 0.3 + pb)) * lift;
+    }
+  }
+}
+
+// Het kantelpunt van een snuif of een schrikreactie: een weinig voorkomende puls van 0 tot 1 (per dier verschoven met zijn zaad).
+function puls(time, seed, periode, duur) {
+  const u = (((time + seed * 97) % periode) + periode) % periode;
+  return u < duur ? Math.sin((u / duur) * Math.PI) : 0;
+}
+
+// Oren: een schuddend oor tegen de vliegen, naar voren als het dier iets ziet, plat naar achteren op de vlucht.
+// 'plat' zijn de oren van koe en schaap (zij steken zijwaarts uit), 'op' die van paard, kat en hond (staand), 'slap' die van de labrador en de teckel.
+function animateEars(ud, seed, time, stand, phase = 0, run = 0) {
+  const b = ud.bones;
+  if (!b.earL) return;
+  const mode = ud.earMode || 'plat';
+  const vlieg = puls(time, seed, 7.3, 0.35);
+  const vlieg2 = puls(time + 3.1, seed * 1.7, 9.1, 0.3);
+  for (let i = 0; i < 2; i++) {
+    const s = i === 0 ? 1 : -1, ear = i === 0 ? b.earL : b.earR;
+    const f = (i === 0 ? vlieg : vlieg2) * Math.sin(time * 32 + i);
+    if (mode === 'plat') {
+      ear.rotation.set(s * (-0.12 * f + (stand === 2 ? 0.45 : 0) + Math.sin(phase * 2) * 0.05 * run), s * (stand === 1 ? 0.4 : stand === 2 ? -0.5 : 0), 0);
+    } else if (mode === 'op') {
+      ear.rotation.set(s * (0.15 * f + (stand === 2 ? 0.7 : 0) + (stand === 1 ? 0.12 : 0)), 0, 0.28 * f * s + (stand === 1 ? -0.22 : stand === 2 ? 0.75 : Math.sin(time * 0.7 + seed + i) * 0.06));
+    } else {
+      ear.rotation.set(0, 0, -run * 0.5 + Math.sin(phase * 2 + i) * 0.18 * run + (stand === 1 ? -0.2 : 0) + 0.1 * f);
+    }
+  }
 }
 
 function animateSeagull(mesh, a, time) {
@@ -1749,7 +1823,9 @@ function animateVis(mesh, a, time) {
   const seed = a.bobSeed || 0;
   mesh.visible = true;
   mesh.position.y = CANAL_Y - 0.28 + Math.sin(time * 1.1 + seed) * 0.03;
-  b.tail.rotation.set(0, Math.sin(time * (4 + a.speed * 6) + seed) * 0.5, 0);
+  const slag = time * (4 + a.speed * 6) + seed;
+  b.body.rotation.set(0, Math.sin(slag - 0.8) * 0.12, Math.sin(time * 0.7 + seed) * 0.04);   // het lijf slingert mee met de staart
+  b.tail.rotation.set(0, Math.sin(slag) * 0.5, 0);
 }
 
 function animateDuck(mesh, a, time) {
@@ -1789,8 +1865,14 @@ function animateQuad(mesh, a, time) {
   mesh.position.y = 0;
   b.body.position.copy(b.body.userData.rest);
   b.body.rotation.set(0, 0, 0);
-  for (const l of ud.legs) l.rotation.set(0, 0, 0);
+  for (const l of ud.legs) { l.rotation.set(0, 0, 0); l.position.y = l.userData.rest.y; }
   b.head.rotation.set(0, 0, 0);
+  // ademhaling (een hond snakt na het rennen) en de oren: plat op de vlucht, naar voren bij iets nieuws
+  const ad = Math.sin(time * (a.kind === 'dog' && speed > 1.5 ? 11 : 2.6) + seed * 5) * (a.kind === 'dog' && speed > 1.5 ? 0.02 : 0.012);
+  if (!ud.ver) b.body.scale.set(1 + ad * 0.5, 1, 1 + ad);
+  const w = a.watch;
+  const stand = a.state === 'flee' || a.fleeT > 0 ? 2 : (w !== undefined && w !== null ? 1 : 0);
+  if (!ud.ver) animateEars(ud, seed, time, stand, phase, moving ? Math.min(1, speed / 2) : 0);
   const sitting = a.kind === 'cat' && (a.state === 'sit' || a.state === 'groom');
   if (sitting) {
     b.body.rotation.z = 0.55;
@@ -1813,12 +1895,17 @@ function animateQuad(mesh, a, time) {
     return;
   }
   if (moving) {
-    walkLegs(ud, phase, 0.45 + run * 0.35);
+    const gallop = run > 0.8 ? 1 : 0;   // een rennende hond of kat: voorpoten en achterpoten samen
+    walkLegs(ud, phase, 0.45 + run * 0.35, P.leg * (0.1 + run * 0.12), gallop);
     b.body.position.y += Math.abs(Math.sin(phase)) * 0.015 * (1 + run * 2);
-    b.body.rotation.z = Math.sin(phase * 2) * 0.03 * run;
+    b.body.rotation.z = Math.sin(phase * 2) * 0.03 * run + (gallop ? Math.sin(phase) * 0.1 : 0);
+    b.body.rotation.x = Math.sin(phase) * 0.025;
   }
   const sniff = a.kind === 'dog' && a.sniff > 0 && !moving;
-  b.head.rotation.set(0, moving ? 0 : Math.sin(time * 0.5 + seed) * 0.5, sniff ? -0.7 + Math.sin(time * 9) * 0.05 : moving ? Math.sin(phase * 2) * 0.05 : 0);
+  const doel = !moving && w !== undefined && w !== null ? Math.max(-1, Math.min(1, -w)) : Math.sin(time * 0.5 + seed) * 0.5;
+  ud.kijkY = (ud.kijkY || 0) + (doel - (ud.kijkY || 0)) * Math.min(1, Math.max(0, time - (ud.kijkT ?? time)) * 3);
+  ud.kijkT = time;
+  b.head.rotation.set(0, moving ? 0 : ud.kijkY, sniff ? -0.7 + Math.sin(time * 9) * 0.05 : moving ? Math.sin(phase * 2) * 0.05 : 0);
   if (a.aaiT > 0 && a.kind === 'dog') b.head.rotation.set(0, 0, -0.35 + Math.sin(time * 3) * 0.08);   // kop schuin in de hand
   const wag = a.kind === 'dog' ? Math.sin(time * (a.aaiT > 0 ? 22 : moving ? 12 : 16) + seed) * (a.aaiT > 0 ? 0.9 : 0.6) : Math.sin(time * 1.2 + seed) * 0.3;
   b.tail.rotation.set(wag, 0, a.kind === 'cat' && a.state === 'flee' ? -0.5 : 0);
@@ -1860,17 +1947,50 @@ export function animateWildlifeMesh3D(mesh, a, time) {
     case 'dog': animateQuad(mesh, a, time); updateLeash(mesh, a); return;
   }
   if (!ud.bones) return;
+  animateGrazer(mesh, a, time);
+}
+
+// Koe, schaap en paard: gewicht in de stap (de poot komt van de grond, de romp deint mee), een galop als ze schrikken, ademhaling,
+// grazen met kauwen, een kop die de speler volgt, oren en staart tegen de vliegen en een schuddende kop af en toe.
+// Alles op bestaande botten en zonder nieuwe objecten per beeld; ver weg (ud.ver) alleen de stap en het grazen.
+function animateGrazer(mesh, a, time) {
+  const ud = mesh.userData, b = ud.bones;
   const seed = a.bobSeed || 0;
-  const walking = a.speed > 0.05;
-  const b = ud.bones;
+  const speed = a.speed || 0;
+  const walking = speed > 0.05;
+  const fleeing = a.fleeT > 0 || a.flee > 0;
+  const paard = a.kind === 'horse';
+  const gallop = fleeing && speed > (paard ? 3 : 1.6) ? 1 : 0;
   mesh.position.y = 0;
   const phase = (a.stride || 0) * (a.kind === 'cow' ? 3.2 : 5);
-  if (walking) walkLegs(ud, phase, 0.28);
-  else for (const l of ud.legs) l.rotation.z *= 0.9;
-  b.body.position.y = b.body.userData.rest.y + (walking ? Math.abs(Math.sin(phase)) * 0.02 : 0);
-  const grazeT = walking ? 0 : Math.max(0, Math.sin(time * 0.25 + seed * 3)) ** 0.5;
-  const chew = walking ? 0 : Math.sin(time * 5 + seed) * 0.04 * grazeT;
-  b.body.rotation.z = -0.06 * grazeT;
-  b.head.rotation.set(0, (1 - grazeT) * Math.sin(time * 0.4 + seed) * 0.35, -ud.grazeDip * grazeT + chew + (walking ? Math.sin(phase * 2) * 0.05 : 0));
-  if (ud.tail) b.tail.rotation.set(Math.sin(time * 1.8 + seed) * 0.35 + (Math.sin(time * 0.37 + seed) > 0.8 ? Math.sin(time * 9) * 0.3 : 0), 0, 0);
+  const swing = gallop ? 0.55 : fleeing ? 0.4 : 0.28;
+  if (walking) walkLegs(ud, phase, swing, gallop ? 0.1 : 0.045, gallop);
+  else for (const l of ud.legs) { l.rotation.z *= 0.9; l.position.y = l.userData.rest.y; }
+  const grazeT = walking || fleeing ? 0 : Math.max(0, Math.sin(time * 0.25 + seed * 3)) ** 0.5;
+  const chew = grazeT > 0.5 ? Math.sin(time * 5 + seed) * 0.04 * grazeT : 0;
+  const bounce = walking ? (gallop ? Math.sin(phase) * 0.07 : Math.abs(Math.sin(phase)) * 0.02) : 0;
+  b.body.position.y = b.body.userData.rest.y + bounce * (gallop ? 0.5 : 1);
+  b.body.rotation.set(walking && !gallop ? Math.sin(phase) * 0.02 : 0, 0, -0.06 * grazeT + (gallop ? -Math.sin(phase) * 0.06 : 0));
+  if (ud.ver) {
+    b.head.rotation.set(0, 0, -ud.grazeDip * grazeT + chew);
+    return;
+  }
+  // ademhaling: de flank zet uit, vooral na de galop
+  const ad = Math.sin(time * (gallop ? 5 : 1.7) + seed * 6) * (gallop ? 0.02 : 0.011);
+  b.body.scale.set(1 + ad * 0.5, 1, 1 + ad);
+  // de kop: kijkt naar wat er dichterbij komt, kantelt omhoog bij schrik, schudt af en toe
+  const w = a.watch;
+  const kijk = !walking && !fleeing && w !== undefined && w !== null && grazeT < 0.3;
+  const doel = kijk ? Math.max(-1, Math.min(1, -w)) : 0;
+  ud.kijkY = (ud.kijkY || 0) + (doel - (ud.kijkY || 0)) * Math.min(1, Math.max(0, time - (ud.kijkT ?? time)) * 3);
+  ud.kijkT = time;
+  const schud = puls(time, seed, 23, 0.8) * Math.sin(time * 28) * 0.22;
+  const op = fleeing ? 0.22 : kijk ? 0.1 : 0;
+  b.head.rotation.set(0, (1 - grazeT) * (kijk ? ud.kijkY : Math.sin(time * 0.4 + seed) * 0.35) + schud, -ud.grazeDip * grazeT + chew + op + (walking ? Math.sin(phase * (gallop ? 1 : 2)) * (gallop ? 0.12 : 0.05) : 0));
+  animateEars(ud, seed, time, fleeing ? 2 : kijk ? 1 : 0, phase, walking ? 1 : 0);
+  if (ud.tail) {
+    const vlieg = puls(time, seed * 3, 11, 1.1);
+    b.tail.rotation.set(Math.sin(time * 1.8 + seed) * 0.35 + vlieg * Math.sin(time * 11) * 0.5, gallop ? 0 : Math.sin(time * 0.9 + seed) * 0.12, gallop ? -0.55 : (walking ? -0.12 : 0));
+  }
+  if (b.mane) b.mane.rotation.set(0, 0, walking ? Math.sin(phase * 2) * (gallop ? 0.14 : 0.05) : Math.sin(time * 1.3 + seed) * 0.02);
 }
