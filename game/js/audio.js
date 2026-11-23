@@ -2868,12 +2868,17 @@ function dopplerCents(src, svx, svy) {
   return 1200 * Math.log2((SPEED_OF_SOUND + vl) / (SPEED_OF_SOUND - vs));
 }
 
+const _sirenUnits = [];
 function updateSiren(dt, world) {
   const chaseActive = world.wanted > 0;
   const intensity = clamp(world.wanted / 5, 0, 1);
   // ambulances on a call and a player-switched siren sound without a chase too
-  const units = (world.coopSirenUnits && world.coopSirenUnits.length ? world.vehicles.concat(world.coopSirenUnits) : world.vehicles).filter((v) => !v.wrecked && !v.sinking &&
-    (v.sirenOn || (chaseActive && v.isPolice && !v._mount && !v._commandeered && !v.hijacked && v.driver !== 'player')));
+  // one reused list filled in a plain loop: no filter and no concat over all vehicles every frame (#1287)
+  const units = _sirenUnits;
+  units.length = 0;
+  const sirenUnit = (v) => !v.wrecked && !v.sinking && (v.sirenOn || (chaseActive && v.isPolice && !v._mount && !v._commandeered && !v.hijacked && v.driver !== 'player'));
+  for (const v of world.vehicles) if (sirenUnit(v)) units.push(v);
+  if (world.coopSirenUnits) for (const v of world.coopSirenUnits) if (sirenUnit(v)) units.push(v);
   const targetGain = chaseActive ? 0.18 + intensity * 0.22 : units.length ? 0.22 : 0;
   sirenState.gain += (targetGain - sirenState.gain) * Math.min(1, dt * 2.2);
   sirenBus.gain.value = sirenState.gain;

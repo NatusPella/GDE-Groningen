@@ -31,6 +31,8 @@ function build() {
 }
 
 export function updateSpikeStrips3D(dt, world, scene) {
+  // no strip down and none drawn: no filter and no lookups per frame (#1287)
+  if (!meshes.size && !(world.shards && world.shards.fields && world.shards.fields.length)) return;
   const fields = world.shards && world.shards.fields ? world.shards.fields.filter((f) => f.kind === 'spijkers') : [];
   for (const [f, m] of meshes) {
     if (fields.includes(f) && !f.hit) continue;

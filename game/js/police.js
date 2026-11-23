@@ -1083,7 +1083,7 @@ export function updatePoliceHeliMesh3D(mesh, time) {
   const origin = _spotO.set(1.1, -0.45, 0);
   const target = mesh.worldToLocal(_spotV.set(heli.spotX, 0.06, heli.spotY));
   const r = HELI_SEE_RADIUS * 0.75;
-  const dir = target.clone().sub(origin);
+  const dir = target.sub(origin); // _spotV is scratch: no clone per frame (#1287)
   const len = dir.length();
   cone.position.copy(origin);
   cone.quaternion.setFromUnitVectors(_down, dir.normalize());
