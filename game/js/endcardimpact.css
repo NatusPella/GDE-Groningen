@@ -15,10 +15,12 @@
 @keyframes bm-slag { from { opacity: 0; translate: -110vw 0; } 70% { opacity: 1; translate: 1.2vw 0; } to { opacity: 1; translate: 0 0; } }
 @keyframes bm-puls { from { scale: 1; } 40% { scale: 1.02 1.06; } to { scale: 1; } }
 @keyframes bm-schok { 0% { translate: 0 0; } 25% { translate: 0 6px; } 55% { translate: 0 -4px; } 80% { translate: 0 2px; } 100% { translate: 0 0; } }
-@keyframes bm-binnen { from { opacity: 0; translate: -24px 0; } to { opacity: 1; translate: 0 0; } }
+/* #1081 (hertest 22-11): een regel die infaadde was halfdoorzichtige inkt op geel, dus geel op geel. Nu schuift hij binnen achter een
+   veeg (clip-path): elke zichtbare letter heeft meteen de volle inkt en het volle contrast. */
+@keyframes bm-binnen { from { clip-path: inset(0 100% 0 0); translate: -24px 0; } to { clip-path: inset(0 0 0 0); translate: 0 0; } }
 @keyframes bm-inslag { from { opacity: 0; scale: 1.35; } 60% { opacity: 1; scale: 0.97; } to { opacity: 1; scale: 1; } }
 @keyframes bm-glans { from { opacity: 0.45; translate: -40% 0; } to { opacity: 0; translate: 640% 0; } }
-.bm-i.bm-klaar, .bm-i.bm-klaar .bm-band, .bm-i.bm-klaar .bm-klein, .bm-i.bm-klaar .bm-kop, .bm-i.bm-klaar .bm-regel, .bm-i.bm-klaar .bm-meta-i, .bm-i.bm-klaar .bm-ster { animation: none; opacity: 1; translate: none; scale: none; }
+.bm-i.bm-klaar, .bm-i.bm-klaar .bm-band, .bm-i.bm-klaar .bm-klein, .bm-i.bm-klaar .bm-kop, .bm-i.bm-klaar .bm-regel, .bm-i.bm-klaar .bm-meta-i, .bm-i.bm-klaar .bm-ster { animation: none; opacity: 1; translate: none; scale: none; clip-path: none; }
 .bm-i.bm-klaar { opacity: 1; }
 .bm-i.bm-klaar .bm-glans { animation: none; opacity: 0; }
 html.reduce-motion .bm-i, html.rustig-drukwerk .bm-i { animation: none; }

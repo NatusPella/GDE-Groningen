@@ -30,6 +30,18 @@
 .bm-band > :not(.bm-glans) { position: relative; z-index: 1; }
 .bm-band > .bm-glans { z-index: 0; }
 .bm-band > .bm-klein { margin-bottom: var(--ds-s-2); }
+/* #1081 (hertest 22-11): alle gewicht stond links en rechts lag een groot leeg geel vlak. Nu twee kolommen: links label, titel en regel,
+   rechts de beloning en de tijd als grote cijfers. Op een smal scherm blijft het één kolom. */
+.bm-band { display: grid; grid-template-columns: minmax(0, 1fr) auto; column-gap: var(--ds-s-7); row-gap: 1.2vh; align-content: center; }
+.bm-band > :not(.bm-glans) { grid-column: 1; justify-self: start; }
+.bm-band > .bm-meta { grid-column: 2; grid-row: 1 / span 4; align-self: center; justify-self: end; flex-direction: column; align-items: flex-end; gap: var(--ds-s-3); text-align: right; }
+.bm-band .bm-meta-i:not(.bm-i-opnieuw) { display: flex; flex-direction: column; align-items: flex-end; font-size: clamp(36px, 4.4vw, 80px); line-height: 1; font-weight: 800; }
+.bm-band .bm-meta-i:not(.bm-i-opnieuw) b { margin: 0 0 var(--ds-s-1); font-size: clamp(16px, 1.4vw, 24px); }
+@media (max-width: 900px) {
+  .bm-band { grid-template-columns: minmax(0, 1fr); }
+  .bm-band > .bm-meta { grid-column: 1; grid-row: auto; justify-self: start; flex-direction: row; align-items: baseline; text-align: left; }
+  .bm-band .bm-meta-i:not(.bm-i-opnieuw) { align-items: flex-start; font-size: clamp(18px, 1.8vw, 30px); }
+}
 .bm-mislukt .bm-band { background-image: var(--ds-raster); background-size: var(--ds-raster-maat); background-blend-mode: multiply; }
 .bm-mislukt .bm-klein { background: var(--ds-c-ink-inkt); }
 
