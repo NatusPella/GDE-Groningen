@@ -282,7 +282,9 @@ Eerste doel (22-11, `firststeps.js`, puur): de toetsregel onder het eerste verha
 zodra de speler daar genoeg meters heeft afgelegd (te voet 60 m, voertuig en boot 250 m, lucht 600 m); bij
 een missie, bijbaan of achtervolging blijft hij staan (#824). Wie 200 m van het eerste doel afdwaalt of
 90 s niet opschiet krijgt de kaart "De weg kwijt?", hooguit twee keer per sessie, onder dezelfde
-één-tegelijk-regel. Niets daarvan wordt opgeslagen.
+één-tegelijk-regel. Niets daarvan wordt opgeslagen. Sinds 23-11 geldt die kaart voor elke verhaalstap (één per latere stap, ook als alle
+uitlegkaarten gezien zijn), en toont de doelbalk per stap een korte opdracht uit `game/js/stepdoel.js` (werkwoord, plek, hoogstens 44 tekens; `scripts/stepdoel_test.mjs`)
+in plaats van de titel; zie docs/AUDIT-SPEELBAARHEID-23-11.md.
 
 **Bestanden.** `onboarding.js`, `firststeps.js`, `prompts.js`, `hudcards.js`, `narrative.js`.
 
