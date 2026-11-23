@@ -36,7 +36,8 @@ t('overzicht: leeg bezit geeft een uitleg, geen fout', () => {
   reset();
   const h = U.summaryHtml(ctx(w()));
   assert.ok(h.includes('Overzicht') && h.includes('Nog niets dringends') === false);
-  assert.ok(h.includes('Stel beginner aan'), 'personeel aanstellen');
+  assert.ok(h.includes('Je hebt nog geen percelen'), 'de volgende stap staat er');
+  assert.ok(!h.includes('Stel beginner aan') && !h.includes('data-bz-cycle=') && !h.includes('bz-tegel'), 'leeg bezit toont geen personeel, filters of nulltegels (progressive disclosure)');
 });
 t('overzicht: na een koop staat het perceel in de lijst met stand en Doel', () => {
   reset();
@@ -223,7 +224,10 @@ t('Overzicht: sorteren en filteren zijn chips die doorschakelen, geen native keu
   assert.equal(U.nextOption([['', 'Alles'], ['x', 'X']], ''), 'x');
   const c = U.cycleChip('filter:region', 'Streek', [['', 'Alles'], ['Hogeland', 'Hogeland']], 'Hogeland');
   assert.match(c, /ds-z-chip/); assert.match(c, /Streek: Hogeland/); assert.match(c, /data-bz-cycle="filter:region"/);
-  const h = U.summaryHtml(ctx(w()));
+  reset();
+  const world = w();
+  assert.ok(L.koopPerceel(world, 'paaaaaaaaaaa1').ok);
+  const h = U.summaryHtml(ctx(world));
   assert.ok(!/<select data-bz-(sort|filter)/.test(h), 'geen native select');
   assert.equal((h.match(/data-bz-cycle=/g) || []).length, 4, 'Sorteren, Streek, Soort en Beheer');
 });

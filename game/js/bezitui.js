@@ -101,6 +101,10 @@ export function summaryHtml({ bezit, farm, money = 0, day = 0, news = null, chai
     staff.workers.map((w) => `<div class="bd-rij"><span class="bd-naam"><b>${esc(w.name)}</b><span class="bd-feiten"><span>${SKILL_NAME[w.skill]}</span><span>${euro(wageOf(w))} per dag</span></span></span><span class="bd-acties">${askOr('ontsla', w.id, 'Ontslaan', 'Zeker?')}</span></div>`).join('') +
     `<div class="bz-bulk">${[1, 2, 3].map((k) => btn('huur', `Stel ${SKILL_NAME[k]} aan · ${euro(wageOf({ skill: k }))}`, ` data-skill="${k}"`, money < wageOf({ skill: k }))).join(' ')}</div>`;
   const empty = !own.length && !rows.length ? `<p class="mut">Je hebt nog geen percelen. Open de kaart en kies de laag Te koop, of kijk bij Te koop hier. Een eerste perceel kost ongeveer twee uur werk.</p>` : '';
+  // Nog niets in bezit: één zin met de volgende stap. Nulltegels, filters, personeel, vee, ketens en markt zeggen nu niets (progressive disclosure).
+  if (!rows.length && !own.length && !staff.workers.length && !bezit.buildings.size) {
+    return `<div class="pm-pane-top"><span class="m-eb">Land en bedrijf</span><h2 class="m-h2 td-h2">Overzicht</h2></div>${empty}${rapportHtml()}${newsHtml(news)}<p class="bd-melding" aria-live="polite">${esc(msgNow())}</p>`;
+  }
   return `<div class="pm-pane-top"><span class="m-eb">Land en bedrijf</span><h2 class="m-h2 td-h2">Overzicht</h2></div><div class="bz-tegels">${tiles}</div>${attention}${rapportHtml()}${newsHtml(news)}${empty}` +
     `<div class="bz-filters" role="group" aria-label="Sorteren en filteren">${cycleChip('sort', 'Sorteren', H.SORTS.map((x) => [x, SORT_NAME[x]]), ui.sort)}` +
     `${sel('region', 'Streek', opt.regions || [])}${sel('soort', 'Soort', opt.soorten || [])}${sel('level', 'Beheer', H.LEVELS)}</div>` + bulk + `<div class="bz-rijen">${body}</div>` +
