@@ -1,6 +1,6 @@
 <!doctype html>
 <meta charset="utf-8">
-<title>Auto's: Quaternius (inspiratie) tegen onze huidige en onze nieuwe</title>
+<title>Auto's: Quaternius (inspiratie) tegen onze oude en onze nieuwe</title>
 <style>
   body { margin: 0; padding: 24px; background: #17301f; color: #f0ede4; font: 15px/1.45 system-ui, sans-serif; }
   h1 { margin: 0 0 6px; font-size: 22px; } h2 { font-size: 16px; margin: 0 0 8px; color: #3fc97a; }
@@ -10,26 +10,26 @@
   table { border-collapse: collapse; margin-top: 12px; } td, th { border: 1px solid rgba(240,237,228,0.2); padding: 4px 10px; text-align: right; } th:first-child, td:first-child { text-align: left; }
   .klein { opacity: 0.75; font-size: 13px; }
 </style>
-<h1>Auto's: Quaternius als inspiratie, onze huidige en onze nieuwe (23-11)</h1>
-<p class="klein">Bron: <a style="color:#3fc97a" href="https://quaternius.com/packs/cars.html">quaternius.com/packs/cars.html</a>, licentie CC0 (volgens de pagina). Niets gedownload: het linkerbeeld is een
-schermafdruk van de pagina, lokaal in <code>.tmp-quaternius/</code> (staat in .gitignore, dus alleen zichtbaar op de machine waar hij gemaakt is).
-Onze beelden komen uit <code>sheet.html</code> (headless Chrome, geen spelbelichting).</p>
+<h1>Auto's: Quaternius als inspiratie, onze oude en onze nieuwe (23-11)</h1>
+<p class="klein">Bron: <a style="color:#3fc97a" href="https://quaternius.com/packs/cars.html">quaternius.com/packs/cars.html</a>, licentie CC0 (volgens de pagina en
+<code>C:\Users\abuis\gde-assets\quaternius\INDEX.md</code>). Hun modellen waren op 23-11 niet te downloaden (rate limit van de opslagdienst); het linkerbeeld is een
+schermafdruk van de packpagina, lokaal in <code>.tmp-quaternius/</code> (in .gitignore). Onze beelden: <code>sheet.html#vgl</code>, dezelfde hoek, op 11 m en op 20 m, sedan, hatchback en stationwagen in de nieuwe lakkleuren.</p>
 <div class="rij">
   <div class="kol"><h2>Quaternius (inspiratie)</h2><img src="../../../.tmp-quaternius/quaternius-cars-pagina.png" alt="Quaternius-auto's van de packpagina">
-    <p>Wat het mooier maakt: ronde, ingelopen flanken; bumpers in de lakkleur die om de hoek lopen, met een donkere onderlip; wielkasten met een lijst; een karakterlijn; zachte lakkleuren; donkere ruiten.
-    Wat ze niet hebben en wij wel: openende deuren met interieur, cabine-LOD, sturende wielen, lichten, deurnaden, kleurvarianten en schade.</p></div>
-  <div class="kol"><h2>Onze huidige (vóór)</h2><img src="vgl-auto1-oud.png" alt="sedan en hatchback, vóór"><img src="vgl-auto1-achter-oud.png" alt="achterkant, vóór"><img src="na1-auto.png" alt="alle personenauto's, vóór"></div>
-  <div class="kol"><h2>Onze nieuwe</h2><img src="vgl-auto1.png" alt="sedan en hatchback, na"><img src="vgl-auto1-achter.png" alt="achterkant, na"><img src="na2-auto.png" alt="alle personenauto's, na"><img src="na2-deur1-zij-open.png" alt="deuren open, na"></div>
+    <p>Waar het zit: een zachte totaalvorm (bol dak en bolle kap, ronde neus en kont, van boven ingelopen hoeken), schuine stijlen, ingelopen ramen, grote heldere koplampen, zachte lakkleuren met glans.
+    Wat ze niet hebben en wij wel: openende deuren met interieur, cabine-LOD, sturende wielen, lichten, deurnaden, kleurvarianten, schade.</p></div>
+  <div class="kol"><h2>Onze oude</h2><img src="q-vgl-oud.png" alt="dichtbij, oud"><img src="q-vgl-achter-oud.png" alt="voorkant, oud"><img src="q-vgl-ver-oud.png" alt="op 20 m, oud"></div>
+  <div class="kol"><h2>Onze nieuwe</h2><img src="q-vgl.png" alt="dichtbij, nieuw"><img src="q-vgl-achter.png" alt="voorkant, nieuw"><img src="q-vgl-ver.png" alt="op 20 m, nieuw"></div>
 </div>
-<h2>Prestaties (per voertuig, romp en wielen)</h2>
+<p class="klein">De oude beelden gebruiken de bouwer van vóór de Quaternius-ronde (commit 11b252310) met dezelfde kleuren, zodat alleen de vorm verschilt.</p>
+<h2>Prestaties (per voertuig, romp en wielen; drawcalls gelijk)</h2>
 <table>
-  <tr><th>Model</th><th>Driehoeken vóór</th><th>na</th><th>Meshes vóór</th><th>na</th></tr>
-  <tr><td>hatch</td><td>1.628</td><td>2.148</td><td>12</td><td>12</td></tr>
-  <tr><td>sedan</td><td>1.748</td><td>2.268</td><td>12</td><td>12</td></tr>
-  <tr><td>wagon</td><td>1.832</td><td>2.352</td><td>12</td><td>12</td></tr>
-  <tr><td>sport</td><td>1.664</td><td>2.184</td><td>12</td><td>12</td></tr>
-  <tr><td>suv</td><td>1.808</td><td>2.280</td><td>12</td><td>12</td></tr>
-  <tr><td>bestelbus</td><td>1.780</td><td>2.304</td><td>12</td><td>12</td></tr>
-  <tr><td>Escapade (escort)</td><td>1.628</td><td>2.100</td><td>12</td><td>12</td></tr>
-  <tr><td>contactblad, 9 auto's</td><td>15.778</td><td>20.414</td><td colspan="2">128 drawcalls, gelijk</td></tr>
+  <tr><th>Model</th><th>Driehoeken vóór</th><th>na</th><th>verschil</th><th>Meshes</th></tr>
+  <tr><td>hatch</td><td>1.628</td><td>1.788</td><td>+9,8 %</td><td>12</td></tr>
+  <tr><td>sedan</td><td>1.748</td><td>1.908</td><td>+9,2 %</td><td>12</td></tr>
+  <tr><td>wagon</td><td>1.832</td><td>1.992</td><td>+8,7 %</td><td>12</td></tr>
+  <tr><td>sport</td><td>1.664</td><td>1.822</td><td>+9,5 %</td><td>12</td></tr>
+  <tr><td>suv</td><td>1.808</td><td>1.856</td><td>+2,7 %</td><td>12</td></tr>
+  <tr><td>bestelbus</td><td>1.780</td><td>1.876</td><td>+5,4 %</td><td>12</td></tr>
+  <tr><td>Escapade</td><td>1.628</td><td>1.676</td><td>+2,9 %</td><td>12</td></tr>
 </table>

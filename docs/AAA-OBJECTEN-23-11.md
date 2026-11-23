@@ -113,10 +113,28 @@ Niet overgenomen: hun donkere, ondoorzichtige ruiten (wij laten het interieur zi
 Alle eigen functies blijven: deuren met naden en interieur, cabine-LOD, sturende wielen, lichten, schade (de onderlip hoort bij de
 bumper en valt mee), kleurvarianten.
 
-Kosten: ongeveer 520 driehoeken per auto meer (+30 %, bijvoorbeeld sedan 1.748 naar 2.268), drawcalls gelijk (12 meshes per auto,
-128 voor het contactblad van 9 auto's). Vergelijkingspagina: `docs/beeld-23-11/objecten/vergelijking-quaternius.html`. De
-`-oud`-weergave van `sheet.html` heeft een tijdelijke kopie van de oude bouwer nodig (`git show c46fd93a6:game/js/models3d_vehicles.js`
-naar `game/js/_oud_voertuigen_tmp.js`), die niet in git staat. Niet in het spel bekeken.
+Kosten van die eerste poging: ongeveer 520 driehoeken per auto meer (+30 %) voor een verschil dat nauwelijks te zien was. De
+coördinator keurde dat af; zie de herziening hieronder.
+
+### Herziening: de basisvorm in plaats van details
+
+De modellen van het pakket waren op 23-11 niet te downloaden (rate limit van de opslagdienst, zie
+`C:\Users\abuis\gde-assets\quaternius\INDEX.md`); de profielen hieronder komen dus uit de renders op de packpagina, niet uit hun
+bestanden. Weggehaald: de afronding in twee stappen en de wielkastlijsten (veel driehoeken, weinig zichtbaar). Nieuw, alleen voor de
+moderne personenauto's (de 'boxy' Escapade en de bestelbus houden hun hoekige vorm, de bus krijgt alleen de lichte versmalling):
+- ronde neus (twee extra punten), bolle motorkap (een kruin halverwege), ronde kont (twee extra punten), lampen iets lager;
+- bol dak met afgeronde zijkanten (twee extra punten, bredere afronding);
+- ingelopen ramen: de glaskas 0,90 van de breedte (was 0,94, #463 eist meer dan 0,88), met een richel in lak die de gleuf dicht houdt;
+- van boven gezien ingelopen neus en kont: het hele model schuift in de laatste halve meter tot 13 % van de halve breedte naar
+  binnen, zonder extra driehoeken; lagen op het plaatwerk (naden, strepen, belettering) houden hun afstand;
+- grotere, heldere koplampen; bumpers in lakkleur met donkere onderlip (gebleven);
+- zachter lakpalet in het verkeer (`vehicle.js`): zacht rood, staalblauw, saliegroen, zacht oranje, geen merkkleuren.
+
+Driehoeken t.o.v. vóór de Quaternius-ronde: hatch +9,8 %, sedan +9,2 %, wagon +8,7 %, sport +9,5 %, suv +2,7 %, bestelbus +5,4 %,
+Escapade +2,9 %; drawcalls en meshes gelijk. Vergelijkingspagina (zelfde hoek, 11 m en 20 m):
+`docs/beeld-23-11/objecten/vergelijking-quaternius.html`. De `-oud`-weergave van `sheet.html` heeft een tijdelijke kopie van de oude
+bouwer nodig (`git show 11b252310:game/js/models3d_vehicles.js` naar `game/js/_oud_voertuigen_tmp.js`), die niet in git staat.
+Niet in het spel bekeken.
 
 ## Niet in beeld gezien
 

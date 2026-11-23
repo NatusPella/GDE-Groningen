@@ -49,14 +49,15 @@
     bus: [{ model: { name: 'bus', len: 11.2, wid: 2.55, trailer: 6.8, color: '#132a44', stripe: '#3fc6d4', accent: '#e8e6de' }, isBus: true }, { model: { name: 'midibus', len: 8, wid: 2.4, color: '#0f3a4a', stripe: '#3fc6d4', accent: '#e8e6de' }, isBus: true }],
     boot: ['sloep', 'rondvaart', 'kano', 'waterfiets', 'rubberboot', 'dinghy', 'skiff', 'spits'].map((k) => ({ model: { ...BOAT_KINDS[k] }, isBoat: true })),
     limo: [car('trekkerlimo', 5.6, 2, '#141414')],
+    vgl: [car('sedan', 4.3, 1.8, '#a3473f'), car('hatch', 3.8, 1.7, '#5a7392'), car('wagon', 4.5, 1.8, '#6e937c')],
     auto1: [car('sedan', 4.3, 1.8, '#7a1f1f'), car('hatch', 3.8, 1.7, '#c7c9cc')],
     deur1: [car('sedan', 4.3, 1.8, '#7a1f1f'), car('taxi', 4.3, 1.8, '#e8c93a', { isTaxi: true })],
     deur: [car('sedan', 4.3, 1.8, '#7a1f1f'), car('wagon', 4.5, 1.8, '#2e4a34'), car('van', 5, 2, '#d9d9d9'), car('taxi', 4.3, 1.8, '#e8c93a', { isTaxi: true }), car('tractor', 4.3, 2.3, '#3f7d3a'), car('truck', 8.5, 2.5, '#e8e6e0')],
     heli: [{ model: { name: 'heli', len: 9, wid: 2.4, color: '#c23b2e' }, isHeli: true }],
   };
   const specs = SETS[set];
-  const cols = set === 'bus' || set === 'heli' || set === 'limo' ? 1 : set === 'deur1' || set === 'auto1' ? 2 : 3, vehicles = [];
-  const gap = set === 'boot' ? 12 : 7;
+  const gapV = set === 'vgl' ? 5.6 : 0; const cols = set === 'bus' || set === 'heli' || set === 'limo' ? 1 : set === 'deur1' || set === 'auto1' ? 2 : set === 'vgl' ? 3 : 3, vehicles = [];
+  const gap = set === 'boot' ? 12 : gapV || 7;
   specs.forEach((s, i) => {
     const v = { id: 700 + i, health: 100, ...s };
     const m = buildVehicleMesh(v);
@@ -68,7 +69,7 @@
       for (let k = 0; k < 40; k++) for (const rol of ['bestuurder', 'bijrijder', 'achter']) for (const side of [-1, 1]) syncVehicleDoors(m, v, 0.05, { rol, open: true, side });
     }
   });
-  const dist = set === 'limo' || set === 'deur1' || set === 'auto1' ? 9 : set === 'deur' ? 17 : set === 'limo' ? 16 : set === 'boot' ? 36 : set === 'bus' ? 24 : set === 'bak' ? 24 : set === 'fiets' ? 12 : set === 'heli' ? 18 : 20;
+  const dist = set === 'vgl' ? (mode.includes('ver') ? 20 : 11) : set === 'limo' || set === 'deur1' || set === 'auto1' ? 9 : set === 'deur' ? 17 : set === 'limo' ? 16 : set === 'boot' ? 36 : set === 'bus' ? 24 : set === 'bak' ? 24 : set === 'fiets' ? 12 : set === 'heli' ? 18 : 20;
   const cam = new THREE.PerspectiveCamera(36, W / H, 0.1, 400);
   cam.position.set(0, dist * 0.5, dist); cam.lookAt(0, set === 'fiets' ? 0.5 : 0.8, 0);
   renderer.render(scene, cam);
