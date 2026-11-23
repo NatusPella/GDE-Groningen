@@ -10,6 +10,9 @@ export function markInstancesDirty(attr, count) {
 }
 export const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
 export const lerp = (a, b, t) => a + (b - a) * t;
+// A per-frame damping factor tuned at 60 fps (v *= k each frame) as a factor for dt seconds, so the decay is the
+// same at 30, 60 or 144 fps (#1285). Without a usable dt it falls back to one 60 fps frame.
+export const frameDecay = (k, dt) => Math.pow(k, Number.isFinite(dt) && dt > 0 ? dt * 60 : 1);
 export const dist = (x1, y1, x2, y2) => Math.hypot(x2 - x1, y2 - y1);
 export const dist2 = (x1, y1, x2, y2) => { const dx = x2 - x1, dy = y2 - y1; return dx * dx + dy * dy; };
 

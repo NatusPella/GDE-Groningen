@@ -5,6 +5,7 @@
 import './node3d.mjs';
 import { registerHooks } from 'node:module';
 import { GUEST_RETRY_MS } from '../game/js/guestsave.js';
+import { skipIfThreeMissing } from './lib/threeskip.mjs';
 
 // home.js builds its layout only in the real game; serialize reads home.center (same stand-in as compat_saves_test.mjs)
 registerHooks({
@@ -19,8 +20,7 @@ let SG, SS, KEYS, WORLD;
 try {
   SG = await import('../game/js/savegame.js');
 } catch (e) {
-  console.log('SKIP guestsave_behavior_test.mjs:', String(e.message).split('\n')[0]);
-  process.exit(0);
+  skipIfThreeMissing('guestsave_behavior_test.mjs', e); // #1298: alleen een ontbrekende three.js buiten CI is een SKIP
 }
 SS = await import('../game/js/saveslots.js');
 KEYS = await import('../game/js/storagekeys.js');

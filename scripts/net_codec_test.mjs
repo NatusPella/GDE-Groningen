@@ -74,6 +74,11 @@ t('afwijzen: onmogelijke waarden', () => {
   // de encoder stuurt zo'n speler niet mee; de rest van de snapshot komt aan (#1293)
   const zonder = K.decodeSnapshot(K.encodeSnapshot(1, 1, 1, { ...SNAP, players: [{ ...SNAP.players[0], x: NaN }, SNAP.players[1]] }));
   assert.deepEqual(zonder.players.map((p) => p.slot), [SNAP.players[1].slot]);
+  // the encoder skips a player with an impossible position (#1293); the decoder still rejects such bytes from a broken or hostile sender
+  const raw = (x) => { const b = K.encodeSnapshot(1, 1, 1, SNAP).slice(); new DataView(b.buffer).setFloat32(13, x); return b; }; // 11 header + count + slot
+  assert.equal(K.decodeSnapshot(raw(NaN)), null);
+  assert.equal(K.decodeSnapshot(raw(1e9)), null);
+  assert.equal(K.decodeSnapshot(K.encodeSnapshot(1, 1, 1, { ...SNAP, players: [{ ...SNAP.players[0], x: NaN }] })).players.length, 0, 'de encoder laat de kapotte speler weg');
   const g = K.encodeSnapshot(1, 1, 1, SNAP); g[11] = 200; assert.equal(K.decodeSnapshot(g), null, 'te veel spelers');
 });
 t('fuzz: willekeurige bytes crashen niet', () => {

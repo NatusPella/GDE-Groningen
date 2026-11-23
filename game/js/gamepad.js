@@ -104,7 +104,12 @@ function setActive(on, id) {
   const html = document.documentElement;
   html.classList.toggle('pad-active', on);
   html.dataset.pad = family;
-  if (!on) { releaseAll(); closeRadial(); viewState = 'idle'; }
+  if (!on) {
+    releaseAll(); closeRadial(); viewState = 'idle';
+    // #1297: a button held when the pad drops out (or the keyboard takes over) is released above; forget its last
+    // state too, otherwise the first press of that button after reconnecting looks like 'still held' and is swallowed
+    for (const s of Object.keys(prevSlots)) delete prevSlots[s];
+  }
   emit();
 }
 
@@ -579,6 +584,11 @@ export function initGamepad(inp, w, h = {}) {
   onDeviceChange((d) => { if (d !== 'pad' && active) setActive(false); });
   inp.onRealKey = () => noteDevice('kb');
   window.addEventListener('gamepaddisconnected', () => { if (!currentPad()) setActive(false); });
+  // #1297: input.reset() empties padKeys on focus loss; let go of the stick keys here as well, so a stick still pushed
+  // after Alt-Tab presses its W/A/S/D again on the next poll instead of staying 'held' in stickKeys without a key down
+  const lose = () => { if (active) releaseAll(); };
+  window.addEventListener('blur', lose);
+  if (typeof document.addEventListener === 'function') document.addEventListener('visibilitychange', () => { if (document.hidden) lose(); });
   document.documentElement.dataset.padCtx = ctx;
   setRadialRunner(playWheelItem);
   initActionRadialUi();

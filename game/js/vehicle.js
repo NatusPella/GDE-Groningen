@@ -1,7 +1,7 @@
 import { minAfstand } from './coopfoci.js';
 import { project as projectOnLine, stepRunner, pointAt as linePointAt } from './busroutes.js';
 import { assistDamage } from './assistlive.js';
-import { closestPointOnSegment, normalizeAngle, clamp, lerp, pointInPolygon, inMapWater, WATER_Y, keepBoatOffShore } from './util.js';
+import { closestPointOnSegment, normalizeAngle, clamp, lerp, pointInPolygon, inMapWater, WATER_Y, keepBoatOffShore, frameDecay } from './util.js';
 import { waterClearance } from './waterindex.js';
 import { shallowWater, waterPolyAt, BRIDGE_DRY } from './waterlevels.js';
 import { trafficSignalsNear, trafficLightPhaseMove } from './trafficlights.js';
@@ -2106,7 +2106,7 @@ export function updateVehicleExplosionMesh3D(mesh, dt) {
     chip.position.z += chip.userData.vz * dt;
     chip.userData.vy -= 10 * dt;
     chip.position.y = Math.max(-0.15, chip.position.y + chip.userData.vy * dt);
-    if (chip.position.y <= -0.15) { chip.userData.vx *= 0.8; chip.userData.vz *= 0.8; chip.userData.vy = 0; }
+    if (chip.position.y <= -0.15) { const k = frameDecay(0.8, dt); chip.userData.vx *= k; chip.userData.vz *= k; chip.userData.vy = 0; } // #1285: same slide at any frame rate
     chip.rotation.x += dt * 9; chip.rotation.z += dt * 7;
     chip.material.opacity = 1 - t * t;
   }

@@ -3,14 +3,14 @@
 //   node scripts/pitchputt_run_test.mjs        (GDE_NODE3D=<pad naar node3d.mjs> voor een andere kopie van de lader)
 import assert from 'node:assert/strict';
 import { registerHooks } from 'node:module';
+import { skipIfThreeMissing } from './lib/threeskip.mjs';
 
 let THREE = null;
 try {
   await import(process.env.GDE_NODE3D || './node3d.mjs');
   THREE = await import('https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js');
 } catch (e) {
-  console.log('SKIP pitchputt_run_test.mjs:', String(e.message).split('\n')[0]);
-  process.exit(0);
+  skipIfThreeMissing('pitchputt_run_test.mjs', e); // #1298: in CI is een ontbrekende three.js een fout
 }
 
 // scene3d.js maakt zijn scène pas bij init3D (WebGL): de test zet er een eigen neer

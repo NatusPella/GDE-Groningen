@@ -1,4 +1,4 @@
-import { clamp, closestPointOnSegment, pointInPolygon } from './util.js';
+import { clamp, closestPointOnSegment, pointInPolygon, frameDecay } from './util.js';
 import { makeLosBudget } from './losbudget.js';
 import { makeTick } from './tickbudget.js';
 import { spawnVehicleOnRoad, updateTrafficAI, resolveVehicleBuildingCollision, spawnPoliceBoatOnWater, attachToNearestRoad, maxCurvature } from './vehicle.js';
@@ -863,7 +863,7 @@ function tryRoadblock(world, state) {
   state.nextRoadblockAt = world.time + levelOf(world.wanted).roadblockEvery;
 }
 
-function updateRoadblocks(world) {
+function updateRoadblocks(world, dt) {
   const p = hoofdspeler(world);
   let any = false;
   for (const v of world.vehicles) {
@@ -875,7 +875,7 @@ function updateRoadblocks(world) {
       continue;
     }
     any = true;
-    v.speed *= 0.9;
+    v.speed *= frameDecay(0.9, dt); // #1285: brakes at the same pace whatever the frame rate or the slow-tick rate
   }
   if (!any) world.police.roadblocks = [];
 }
@@ -915,7 +915,8 @@ export function updatePolice(dt, world) {
   let slowDue = false;
   policeSlowDt += dt;
   if (policeSlowTick(performance.now())) { slowDue = true; }
-  if (slowDue) { refreshVehicleSight(world, policeSlowDt); policeSlowDt = 0; }
+  let slowDt = 0;
+  if (slowDue) { slowDt = policeSlowDt; refreshVehicleSight(world, policeSlowDt); policeSlowDt = 0; }
   updateSearch(dt, world, state, escalated && !world.policeTip);
   state.prevWanted = world.wanted;
 
@@ -928,7 +929,7 @@ export function updatePolice(dt, world) {
   trySpawnMotor(world, state);
   trySpawnMounts(world, state);
   tryRoadblock(world, state);
-  if (slowDue) updateRoadblocks(world);
+  if (slowDue) updateRoadblocks(world, slowDt);
   updatePoliceHeli(dt, world);
   updateCrews(dt, world, state);
   updateBust(dt, world);

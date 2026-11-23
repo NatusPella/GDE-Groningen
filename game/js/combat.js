@@ -1,4 +1,4 @@
-import { normalizeAngle, isInWater, WATER_Y, closestPointOnSegment } from './util.js';
+import { normalizeAngle, isInWater, WATER_Y, closestPointOnSegment, frameDecay } from './util.js';
 import { requestRespawn } from './world.js';
 import { damageTakenFactor } from './difficulty.js'; // #1169
 import { surfaceUnder } from './vehicle.js';
@@ -73,7 +73,7 @@ function cycleWeaponByWheel(dt, world, input) {
   wheelCooldown = Math.max(0, wheelCooldown - dt);
   wheelAcc += input.mouse.wheel || 0;
   if (Math.abs(wheelAcc) < WHEEL_STEP || wheelCooldown > 0) {
-    if (!input.mouse.wheel) wheelAcc *= 0.9; // forget a half-finished scroll
+    if (!input.mouse.wheel) wheelAcc *= frameDecay(0.9, dt); // forget a half-finished scroll, at the same pace at any frame rate (#1285)
     return;
   }
   const dir = wheelAcc > 0 ? 1 : -1;

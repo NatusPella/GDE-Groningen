@@ -63,4 +63,17 @@ t('speler met een niet-eindige positie: de rest van de snapshot komt aan (#1293)
   const d = K.decodeSnapshot(K.encodeSnapshot(1, 2, 3, twee));
   assert.deepEqual(d.players.map((p) => p.slot), [0, 1], 'gezonde spelers komen allebei aan');
 });
+t('speler met een niet-eindige positie: de rest van de snapshot en de andere spelers komen aan', () => {
+  const twee = { ...SNAP, players: [...SNAP.players, { slot: 1, x: 5, y: 6, z: 0, angle: 0, alive: true, health: 90, vehicle: 7 }] };
+  for (const patch of [{ x: NaN }, { y: Infinity }, { y: -Infinity }, { x: 2e6 }]) {
+    const kapot = { ...twee, players: [{ ...twee.players[0], ...patch }, twee.players[1]] };
+    const d = K.decodeSnapshot(K.encodeSnapshot(1, 2, 3, kapot));
+    assert.ok(d, `snapshot met een kapotte speler (${Object.keys(patch)[0]}=${Object.values(patch)[0]}) wordt niet afgewezen`);
+    assert.deepEqual(d.players.map((p) => p.slot), [1], 'alleen de kapotte speler ontbreekt');
+    assert.equal(d.players[0].vehicle, 7); assert.equal(d.players[0].health, 90);
+    assert.deepEqual(ids(d), [1, 2, 3]); assert.equal(d.shared.clock, 13.5);
+  }
+  const zNaN = K.decodeSnapshot(K.encodeSnapshot(1, 2, 3, { ...twee, players: [{ ...twee.players[0], z: NaN }, twee.players[1]] }));
+  assert.deepEqual(zNaN.players.map((p) => [p.slot, p.z]), [[0, 0], [1, 0]], 'een NaN-hoogte gaat als 0 mee (p.z || 0)');
+});
 console.log(`net_codec_nan_test: ${n}/${n} ok`);

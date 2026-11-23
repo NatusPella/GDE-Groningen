@@ -7,6 +7,7 @@
 // stand. De gegevens blijven die van samenhub.js; dit bestand voegt geen regel toe aan het netwerk of de opslag.
 import { icoon } from './icons.js';
 import { keepFocus } from './focusbehoud.js';
+import { braceKeysHtml } from './keycap.js';
 import { STAP, STAPPEN, hubView, escapeStap, isStap, volgendeStap, vorigeStap, ACT } from './samenhub.js';
 
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -16,9 +17,8 @@ const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<
 // daarom 'kies-gast' en "Zelf openen" 'kies-host': dezelfde twee knoppen als het oude beginscherm van de lobby.
 const ACT_NAAM = { [ACT.MEEDOEN]: 'kies-gast', [ACT.HOSTEN]: 'kies-host', [ACT.BESLOTEN]: 'besloten', [ACT.ALLEEN]: 'alleen', [ACT.CODE]: 'kies-gast' };
 
-// De vorm naast een keuze is een letter/teken uit de eigen set, geen los icoon van buiten: dezelfde
-// lijn als de rest van het menu en zonder een tweede beeldtaal.
-const KEUZE_TEKEN = { [ACT.MEEDOEN]: '↔', [ACT.HOSTEN]: '＋', [ACT.BESLOTEN]: '·' };
+// #1222: het teken naast een keuze is een icoon uit de ene iconenset (icons.js, ADR 0041), geen los tekstteken.
+const KEUZE_ICOON = { [ACT.MEEDOEN]: 'spelers', [ACT.HOSTEN]: 'plus', [ACT.BESLOTEN]: 'slot' };
 
 // Eén hub tegelijk: dezelfde module-stand als samenkeuze.js, zodat de Escape van het pauzemenu weet of de hub
 // open is zonder het DOM te hoeven vragen.
@@ -45,13 +45,12 @@ export function mountSamenHub(root, opts = {}, stap = STAP.WAAR) {
   const tree = (root.classList && root.classList.contains('pm-samen-inner')) ? root : (root.querySelector && root.querySelector('.pm-samen-inner')) || root;
   let nu = isStap(stap) ? stap : STAP.WAAR;
 
-  const kanChip = '<span class="ds-z-chip ds-z-chip--primair pm-hub-staat">' + icoon('afspelen', { cls: 'ds-z-chip__icoon', maat: 's' }) + 'Kan nu</span>';
   const nietChip = '<span class="ds-z-chip ds-z-chip--uit pm-hub-staat">' + icoon('slot', { cls: 'ds-z-chip__icoon', maat: 's' }) + 'Kan nu niet</span>';
   const keuzes = (v) => `<div class="pm-hub-keuzes" role="group" aria-label="Waar speel je">${v.keuzes.map((k) => `
     <button type="button" class="ds-zeef ds-z-kaart ds-z-kaart--recht ${k.kan ? 'ds-z-kaart--klik' : 'ds-z-kaart--uit pm-hub-uit'} pm-hub-keuze" data-hub-keuze="${k.act}" data-act="${ACT_NAAM[k.act] || k.act}" data-keuze="${k.act}"${k.kan ? '' : ' aria-disabled="true"'}>
-      <span class="pm-hub-ico" aria-hidden="true">${KEUZE_TEKEN[k.act] || '·'}</span>
+      <span class="pm-hub-ico" aria-hidden="true">${icoon(KEUZE_ICOON[k.act] || 'info', { maat: 'm' })}</span>
       <span class="pm-hub-kt">${esc(k.label)}</span>
-      ${k.kan ? kanChip : nietChip}
+      ${k.kan ? '' : nietChip}
       <small>${esc(k.uitleg)}</small></button>`).join('')}</div>`;
   const rijen = (v) => `<ul class="pm-hub-rijen">${(v.rijen || []).map((r) => `<li data-hub-rij="${r.soort}"><span>${esc(r.tekst)}</span></li>`).join('')}</ul>`;
   const knoppen = (v) => (v.knoppen || []).map((k) => `<button type="button" class="ds-z-knop${k.primary ? ' pm-hub-primary' : ' ds-z-knop--secundair'} pm-hub-knop" data-hub-act="${k.act}"${k.disabled ? ' disabled aria-disabled="true"' : ''}>${esc(k.label)}</button>`).join('')
@@ -99,9 +98,9 @@ export function mountSamenHub(root, opts = {}, stap = STAP.WAAR) {
       <div class="pm-hub-stappen" role="group" aria-label="Stappen van Samen spelen">
         ${STAPPEN.map((s, i) => `<button type="button" class="m-tab pm-hub-stap" data-hub-stap="${s.id}"${s.id === nu ? ' aria-current="step"' : ' aria-current="false"'}><span class="pm-hub-nr">${i + 1}</span>${esc(s.label)}</button>`).join('')}
       </div>
-      <p class="pm-hub-teller mut" id="pm-hub-teller" role="status" aria-live="polite"></p>
+      <p class="pm-hub-teller pm-sr" id="pm-hub-teller" role="status" aria-live="polite"></p>
       <div class="pm-hub-inhoud" aria-labelledby="pm-hub-teller"></div>
-      <p class="pm-hub-veilig">Escape gaat een stap terug en beëindigt nooit een sessie. Je kunt altijd terug naar je eigen spel.</p>`;
+      <p class="pm-hub-veilig">${braceKeysHtml('{ESC} gaat een stap terug en beëindigt nooit een sessie. Je kunt altijd terug naar je eigen spel.')}</p>`;
   };
 
   // De stapknoppen blijven staan; alleen de inhoud en de statusregel wisselen. Deze focus zet de

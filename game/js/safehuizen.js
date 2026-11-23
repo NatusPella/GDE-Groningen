@@ -377,8 +377,10 @@ function slaap(w, h, uur, bericht) {
 }
 function slaapNu(w, h, uur, bericht) {
   respawnFade(1, 320);
+  const load0 = w.loadCount || 0; // #1297: a save loaded during the 0.9 s fade must not get this clock, health and save over it
   setTimeout(() => {
     try {
+      if ((w.loadCount || 0) !== load0) return;
       w.clock = uur;
       refreshDayNight(w);
       w.health = 100;
@@ -386,8 +388,9 @@ function slaapNu(w, h, uur, bericht) {
       recordStat(w, 'slept');
       saveGame(w, { toast: true });
       w.addMessage(bericht, 4, { kind: 'tip' });
-    } catch (e) { console.error('safehuis', e); }
-    setTimeout(() => { respawnFade(0, 420); bezig = false; }, 120);
+    } catch (e) { console.error('safehuis', e); } finally {
+      setTimeout(() => { respawnFade(0, 420); bezig = false; }, 120); // also after the early return of a load in between
+    }
   }, 900);
   return true;
 }
@@ -402,15 +405,18 @@ function duikOnder(w, h, uren) {
 }
 function duikOnderNu(w, h, uren) {
   respawnFade(1, 320);
+  const load0 = w.loadCount || 0; // #1297: zie slaapNu
   setTimeout(() => {
     try {
+      if ((w.loadCount || 0) !== load0) return;
       w.clock = (((w.clock + uren) % 24) + 24) % 24;
       refreshDayNight(w);
       w.wanted = 0;
       w.wantedDecayTimer = 0;
       w.addMessage(`${uren} uur onderduiken: de politie is je kwijt`, 5, { kind: 'tip' });
-    } catch (e) { console.error('safehuis', e); }
-    setTimeout(() => { respawnFade(0, 420); bezig = false; }, 120);
+    } catch (e) { console.error('safehuis', e); } finally {
+      setTimeout(() => { respawnFade(0, 420); bezig = false; }, 120); // also after the early return of a load in between
+    }
   }, 900);
   return true;
 }

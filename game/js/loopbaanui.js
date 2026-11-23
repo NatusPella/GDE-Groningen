@@ -330,7 +330,8 @@ const trapChip = (toon, icoon, tekst) => `<span class="ds-z-chip${toon ? ' ds-z-
 function trapHtml(id, d, v) {
   const info = L.vakInfo(id);
   if (!info) return '';
-  return `<section class="lb-ladder ds-zeef ds-z-kaart" aria-label="De ladder van dit vak"><div class="ds-z-kaart__kop"><span class="ds-z-kaart__voet">De ladder</span><span class="ds-z-kaart__voet">niveau ${d.niveau} van ${L.MAX_NIVEAU}</span></div>` +
+  // #1264: het niveau staat al bij de voortgangsbalk (of bij de titel op het hoogste niveau); de trap markeert het met Nu
+  return `<section class="lb-ladder ds-zeef ds-z-kaart" aria-label="De ladder van dit vak"><div class="ds-z-kaart__kop"><span class="ds-z-kaart__voet">De ladder</span></div>` +
     '<ol class="lb-trap" aria-label="Niveaus">' + info.titels.map((t, i) => {
       const niv = i + 1;
       const cls = niv < d.niveau ? 'bereikt' : niv === d.niveau ? 'nu' : '';
@@ -359,7 +360,9 @@ function actieHtml(profiel, id) {
   else if (a.soort === 'activiteiten') knop = `<button type="button" class="m-bp lb-hoofd ds-m-knop" data-goto="todo">${esc(a.label)}</button>`;
   else knop = `<span class="pm-badge" data-tone="ok">${esc(a.label)}</span>`;
   const balk = d.volgend ? `<div class="lb-voort"><span class="lb-voort__t">Niveau ${d.niveau} van ${L.MAX_NIVEAU}</span><span class="m-bar"><i data-bar="lbd-${esc(id)}" data-w="${e.pct}"></i></span><b class="lb-voort__p">${e.pct}%</b></div>` : '';
-  return `<div class="lb-vast" role="group" aria-label="Wat nu"><div class="lb-actie__r">${knop}${a.hint ? `<p class="lb-actie__hint">${esc(a.hint)}</p>` : ''}</div></div><section class="lb-actie" aria-label="Voortgang en eisen">${balk}` +
+  // #1264: bij een vak dat nog niet begon staat de eerste klus al in zijn eigen kader (startHtml): niet ook onder de knop
+  const hint = a.soort === 'start' && L.startVan(id) ? '' : a.hint;
+  return `<div class="lb-vast" role="group" aria-label="Wat nu"><div class="lb-actie__r">${knop}${hint ? `<p class="lb-actie__hint">${esc(hint)}</p>` : ''}</div></div><section class="lb-actie" aria-label="Voortgang en eisen">${balk}` +
     `<dl class="lb-feiten"><div><dt>Eis</dt><dd>${esc(e.eis)}</dd></div><div><dt>Verdient nu</dt><dd>${esc(e.verdiensten)}</dd></div>${e.volgende ? `<div><dt>Volgende beloning</dt><dd>${esc(e.volgende)}</dd></div>` : ''}</dl></section>`;
 }
 
@@ -394,8 +397,9 @@ function detailHtml(profiel, id, w = null) {
   const gestartNu = L.isGestart(profiel, id);
   const kaartjes = kaartjesHtml(id, d.niveau);
   const dienst = dienstHtml(id, w);
-  return `<div class="lb-d-kop"><div class="pm-pane-top">${sfeerBandHtml(id, { icoon: loopbaanIcoon(info.icoon, 'lb-sfeer-ico'), klein: groep })}<h2 class="m-h2 td-h2">${loopbaanIcoon(info.icoon, 'pa-ico big')}${esc(info.naam)}</h2></div>` +
-    `<div class="lb-kop"><p class="lb-titel"><b>${esc(d.titel)}</b> <span class="mut">· niveau ${d.niveau} van ${L.MAX_NIVEAU}</span></p></div>` +
+  // #1264: het icoon staat één keer (in de sfeerband), en het niveau bij de titel alleen als er geen voortgangsbalk is (hoogste niveau)
+  return `<div class="lb-d-kop"><div class="pm-pane-top">${sfeerBandHtml(id, { icoon: loopbaanIcoon(info.icoon, 'lb-sfeer-ico'), klein: groep })}<h2 class="m-h2 td-h2">${esc(info.naam)}</h2></div>` +
+    `<div class="lb-kop"><p class="lb-titel"><b>${esc(d.titel)}</b>${d.volgend ? '' : ` <span class="mut">· niveau ${d.niveau} van ${L.MAX_NIVEAU}</span>`}</p></div>` +
     // de ene gele hoofdknop (Doorgaan of Nu starten) staat direct bij de titel, met de voortgang en de drie feiten
     actieHtml(profiel, id) + '</div>' +
     '<div class="lb-d-kol"><div class="lb-d-a">' + (gestartNu ? '' : start) + trap + '</div>' +
