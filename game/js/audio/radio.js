@@ -97,7 +97,7 @@ export async function loadGMusicManifest() {
       // #660: geen preload='auto' meer voor alle 34 nummers (~128 MB); het
       // speelvenster wordt pas gearmd als het aan de beurt is (armGmusicQueue).
       const raw = t.id.replace(/_/g, ' ');
-      el.gmusicTitle = GMUSIC_TITLES[raw] || raw;
+      el.gmusicTitle = GMUSIC_TITLES[t.id] || raw; // keyed by file id, so no file name reads as a title
       if (!t.artist) t.artist = trackArtist(el.gmusicTitle);
       el.gmusicTrack = t;
       return el;
@@ -143,37 +143,37 @@ let pendingTrackAnnounce = null;
 // act get one picked from their title.
 const GMUSIC_ARTISTS = {
   'Onder de Martinitoren': "Lil' Eierbal",
-  'Hart van Beton': 'MC Moi Moi',
-  'Ivoren Toren in Helpman': 'De Helpman Hustlers',
+  'Hart van beton': 'MC Moi Moi',
+  'Ivoren toren in Helpman': 'De Helpman Hustlers',
   'Staal op staal': 'Sjonnie Kiekdoar & de Ringweg Crew',
-  'Vismarkt Sprint': 'DJ Kapsalon Kees',
+  'Vismarktsprint': 'DJ Kapsalon Kees',
   'Trouw aan het blok': 'Paddepoel Posse',
   'Perfectie kent geen grens': 'Young Kruudmoes',
-  'De Geest van Oosterpark': 'Spookie Stadjer',
+  'De geest van Oosterpark': 'Spookie Stadjer',
   'Goudgeld op de oprit': 'Rijke Riekus',
   'Suikerbuiken in de nacht': 'DJ Suikerbiet',
   "Oosterpark is m'n droom": 'Stadjer Supreme',
   'Staal en suiker': 'Beton Bert & de Bietenbende',
   'Wie stoan nait stil': 'De Nait Soezen Crew',
-  'Kleur in de Wind': 'Windkracht Wiebke',
+  'Kleur in de wind': 'Windkracht Wiebke',
   'Geen stoplicht houdt ons tegen': 'Ringweg Drillers',
-  'Goud in de Nacht': 'Nachtbus Nino',
-  'Hatchback op de Ring': 'De Uitlaatjes',
+  'Goud in de nacht': 'Nachtbus Nino',
+  'Hatchback op de ring': 'De Uitlaatjes',
   'Zomerse droom in de Stad': 'DJ Dageraad feat. MC Zernike',
   'Trots op mien grond': 'Wierde Wind',
-  'Koplampen in de Mist': 'Lil Polder',
-  'Zunne op de Ring': 'Zomerzoet Soezen',
+  'Koplampen in de mist': 'Lil Polder',
+  'Zunne op de ring': 'Zomerzoet Soezen',
   'Kapsalon Kees en de Vismarkt': 'MC Zoutkorrel',
-  'Klompendans bij de Sloot': 'Jelle en de Natte Voeten',
-  'Rood Licht Is Een Mening': 'De Ringweg Drillers',
+  'Klompendans bij de sloot': 'Jelle en de Natte Voeten',
+  'Rood licht is een mening': 'De Ringweg Drillers',
   'Elfde Verdieping': 'De Fietstunnels',
   'Net te dichtbij': 'Tessa & Tammo',
   'Kroket in de zon': 'DJ Frituurpan',
   'Grunn is nooit klaar': 'Wierde Wind en de Bietenbende',
   'Laagwater om middernacht': 'Wad en Wolk',
   'Zon op de gracht': 'Lil Polder',
-  'Brugwachter Wacht Niet': 'Orgel Oosterhaven',
-  'Naar Boven, Nooit Naar Beneden': 'De Martinitoren Ensemble',
+  'Brugwachter wacht niet': 'Orgel Oosterhaven',
+  'Naar boven, nooit naar beneden': 'De Martinitoren Ensemble',
   'Veenbrand': 'Zware Klei',
   'Vlucht over de Hereweg': 'Stalen Stuur',
   'Ridder zonder benzine': 'Ridder Roelof en de Roestbak',
@@ -181,11 +181,30 @@ const GMUSIC_ARTISTS = {
   'Bruggen van turf en wind': 'Terpdonder',
   'De horizon trekt zijn jas aan': 'Hemelhoog Hendrik en het Weidse Orkest',
 };
-// file names can't carry every character of a title
+// file ids (Oosterpark_is_m_n_droom) can't carry every character of a title, and Dutch titles take a capital only on the first word and on
+// names (Taaladvies: 'De avonden', not 'De Avonden'); the Title Case in some file names is an English habit (#AI-tells 23-11).
+// 'Elfde Verdieping' stays as it is: that is how Rikus says it in recorded lines.
 const GMUSIC_TITLES = {
-  'De Geest Van Oosterpark': 'De Geest van Oosterpark',
-  'Oosterpark is m n droom': "Oosterpark is m'n droom",
-  'Naar Boven Nooit Naar Beneden': 'Naar Boven, Nooit Naar Beneden',
+  'De_Geest_Van_Oosterpark': 'De geest van Oosterpark',
+  'Oosterpark_is_m_n_droom': "Oosterpark is m'n droom",
+  'Naar_Boven_Nooit_Naar_Beneden': 'Naar boven, nooit naar beneden',
+  'Hart_van_Beton': 'Hart van beton',
+  'Ivoren_Toren_in_Helpman': 'Ivoren toren in Helpman',
+  'Vismarkt_Sprint': 'Vismarktsprint',
+  'Kleur_in_de_Wind': 'Kleur in de wind',
+  'Goud_in_de_Nacht': 'Goud in de nacht',
+  'Hatchback_op_de_Ring': 'Hatchback op de ring',
+  'Koplampen_in_de_Mist': 'Koplampen in de mist',
+  'Klompendans_bij_de_Sloot': 'Klompendans bij de sloot',
+  'Rood_Licht_Is_Een_Mening': 'Rood licht is een mening',
+  'Brugwachter_Wacht_Niet': 'Brugwachter wacht niet',
+  'Fietsend_door_de_Ochtend': 'Fietsend door de ochtend',
+  'Hooge_Lucht': 'Hooge lucht',
+  'Kasseien_bij_Middernacht': 'Kasseien bij middernacht',
+  'Langs_het_Grunneger_Land': 'Langs het Grunneger land',
+  'Op_de_Fietse_noar_Klompenoord': 'Op de fietse noar Klompenoord',
+  'Zilverglans_op_het_Asfalt': 'Zilverglans op het asfalt',
+  'Zilverweide_Groen': 'Zilverweide groen',
 };
 const GMUSIC_SPARE_ARTISTS = ['Oma Trijntje & de Stadjers', 'Grunn Gang', 'Lord Stoepkrijt', 'De Diepenring Boys', 'Tante Tjoedie', 'Big Bommen Berend'];
 

@@ -17,7 +17,7 @@ export const LEADS = [
     employer: "n.v.t.; bank zei nee op de frietwagenlening",
     hobbies: ["rijden en auto's (de Escapade)", "eierballen, warm", "de groen-witte club uit Grunn en Oosterpark-nostalgie", "fietsen tegen de wind in", "duiven"],
     traits: ["droog", "onhandig-lief", "eigenwijs en vaak fout", "precies", "loyaal"],
-    tagline: "Stadjer. Groot hart. Kleine portemonnee.",
+    tagline: "Stadjer met een Escapade die nauwelijks rijdt.",
     want: "bij Tessa blijven en iets doen met auto's en rijden",
     need: "durven zeggen wat hij voelt, in vijf woorden",
     fear: "dat zeggen wat hij voelt de vriendschap kapotmaakt; en dat iedereen na de studie een eigen weg kiest",

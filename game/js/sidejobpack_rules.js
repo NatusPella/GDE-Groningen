@@ -74,7 +74,7 @@ export const PACK_JOBS = {
     id: 'toeristengids', name: 'Toeristengids bij de Martinitoren', firm: 'Gidsenbureau De Verdwaalde Toerist', boss: 'Gids Hindrik', vak: 'podium', family: 'kantoorklus', glyph: 'vigilantia',
     place: { landmark: 'Martinitoren', fallback: [213.81, 9.9] },
     blurb: 'Loop met een groep toeristen langs drie stops en vertel het verhaal dat ze willen horen',
-    tagline: 'Gidsenbureau De Verdwaalde Toerist: elke groep wil iets anders horen: vraag, luister en vertel.',
+    tagline: 'Gidsenbureau De Verdwaalde Toerist. Elke groep wil iets anders horen, dus vraag eerst wat.',
     intro: [
       'Gids Hindrik heeft een groep bij de Martinitoren en een stem die het begeeft: kun jij het van hem overnemen?',
       'Loop naar de stops. Per stop zegt de groep wat ze willen: geschiedenis, een grap of een uitzicht. Kies met 1, 2 of 3 het verhaal dat past.',

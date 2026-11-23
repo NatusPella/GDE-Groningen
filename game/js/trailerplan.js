@@ -14,12 +14,14 @@
 // trailer.js and desktop/trailervideo.js both build from noise and sine tones.
 // Lines in the script marked [NIEUW] are not voiced: nothing is recorded or
 // generated for them.
+import { TITLE } from './openingfilm.js';
 
 export const PLAN_CUTS = ['teaser', 'hoofd', 'ontdek'];
-// 21-11 (docs/verhaal/TRAILER-FILMSCRIPT-21-11.md): the new story sells 'Ontdek jezelf in Grunn.' (two friends, no plan yet, the world, Jelle,
+// 21-11 (docs/verhaal/TRAILER-FILMSCRIPT-21-11.md): the new story sells the slogan below (two friends, no plan yet, the world, Jelle,
 // the pigeons, summer); the snack van is NOT promised in marketing. 'ontdek' is the film cut of 75 s; teaser and hoofd keep their rhythm
 // but carry the new slogan and no van.
-export const SLOGAN = 'Ontdek jezelf in Grunn.';
+// 23-11 (docs/SLOGAN-23-11.md): one slogan for the opening's title card and every trailer cut; it replaces 'Ontdek jezelf in Grunn.'
+export const SLOGAN = TITLE.tagline;
 export const SFX_KINDS = ['knal', 'tik', 'stoot', 'riser'];
 
 const BANTER = 'audio/voicelines/banter/';
@@ -76,7 +78,7 @@ export const PLAN = {
       { shot: 'jelle', dur: 4.0, sfx: [[0.0, 'stoot']] },
       { shot: 'twins', dur: 3.4, plain: true, caps: [plakjes(0.2, 3.1)], sfx: plakjesTicks(0.2, 3.1) },
       { shot: 'night', dur: 3.4 },
-      { shot: 'ommeland', dur: 3.5, caps: [tekst(0.3, 3.0, 'Ontdek jezelf.', 'In heel Groningen.')], sfx: [[0.0, 'riser']] },
+      { shot: 'ommeland', dur: 3.5, caps: [tekst(0.3, 3.0, 'Van de Stad tot het wad.')], sfx: [[0.0, 'riser']] },
       { shot: 'boat', dur: 3.0 },
       { shot: 'storm', dur: 2.2 },
       { shot: 'kermis', dur: 2.6 },

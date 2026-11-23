@@ -727,7 +727,7 @@ function buildShots(w, film = false) {
   const door = KITCHEN.door;
   const tammoCard = {
     minDur: 3.1, clock: 5.1, focus: home, kitchen: true, freeze: 1.1,
-    tags: [[1.3, 99, 'Tammo', 'Stadjer. Groot hart. Kleine portemonnee.']],
+    tags: [[1.3, 99, 'Tammo', 'Stadjer met een Escapade die nauwelijks rijdt.']],
     enter(r, s) {
       s.kit = useKitchen(r, KIT);
       s.kit.holdCups(r.tammo, true, 1.6, 'L');

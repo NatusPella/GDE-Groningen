@@ -1231,14 +1231,14 @@ function succeed(world, def) {
     if (def.heist) world.stats.heistsDone++; // #818: Kiekdoar ziet een geslaagde overval
     world.addMessage(`${def.label} geklaard! ${replay ? 'Klusloon ' : ''}+€${base}${tip ? ` en €${tip} fooi` : ''}${adj.text}${cons.text}`, 4);
     toonNasleep(world, def); // AAA akte 3 en 4: wat er daarna gebeurt (alleen tekst)
-    if (tegen) world.addMessage(`Tegen elkaar: jouw deel van de buit is €${hostDeel}${buit.winnaar === 0 ? ' — de grootste buit was van jou.' : '.'}`, 4);
+    if (tegen) world.addMessage(`Tegen elkaar: jouw deel van de buit is €${hostDeel}${buit.winnaar === 0 ? '. De grootste buit was van jou.' : '.'}`, 4);
     // AAA slot (akte 5 en 6): een finale krijgt een groot slotakkoord en een nasleep van een paar regels; alleen beeld en geluid bij deze speler
     if (def.slotSting) { try { stingen.push(world, def.slotSting); } catch (e) { /* een sting mag de afloop nooit raken */ } }
     if (Array.isArray(def.nasleep)) for (const t of def.nasleep) world.addMessage(t, 5, { kind: 'missie' });
     if (bonus > 0) {
       // #685: dezelfde basis en factor als de gast ziet, met het totaal erbij; de uitleg van 1+1=3
       // staat één keer bij de eerste gedeelde beloning
-      const uitleg = !world.groepsbonusUitleg ? (world.groepsbonusUitleg = true, ' — ' + GROEPSBONUS_UITLEG) : '';
+      const uitleg = !world.groepsbonusUitleg ? (world.groepsbonusUitleg = true, '. ' + GROEPSBONUS_UITLEG) : '';
       world.addMessage(`Groepsbonus: ${bonusDelen(rewardRuw, aantal, reward).tekst} (${aantal} spelers)${uitleg}`, 3);
     }
     const stats = runStats(world, def);
@@ -1313,7 +1313,7 @@ function fail(world, def, reason) {
   const mee = gastStartMee(world); // een opdracht van een gast die de gastheer niet meespeelt: geen verhaalgevolg voor hem (#452)
   if (mee) playStoryFail(world, i, { reason: pretty, stats: failureStats(runStats(world, def)) });
   if (world.coopUitslag) world.coopUitslag(false, def.label, pretty); // samen spelen (#371): de gasten horen het
-  endInFailure(world, `${def.label} mislukt${reason ? ' — ' + reason : ''}`);
+  endInFailure(world, `${def.label} mislukt${reason ? ': ' + reason : ''}`);
   sluitGastStart(world, mee);
   if (mee) hooks.failed(world, i);
 }
@@ -2358,7 +2358,7 @@ function stageProgressBase(world, def) {
   if (def.eggs && chainState().stageIndex >= def.eggs.from && chainState().eggs != null) {
     const limit = eggLimitKmh(def);
     const kmh = Math.round(eggSpeedKmh(chainState().eggPrev));
-    return `${st.label} · ${eggText(def)} · ${kmh} km/u (max ${limit})${eggSpeedWarning(kmh, limit) ? ' — rem rustig' : ''}`;
+    return `${st.label} · ${eggText(def)} · ${kmh} km/u (max ${limit})${eggSpeedWarning(kmh, limit) ? ' · rem rustig' : ''}`;
   }
   return `${st.label} (${n})`;
 }
@@ -2665,7 +2665,7 @@ function updateBoatChase(dt, world, def, st, S) {
   animateSkutsjeRig(v, 0.55, [-2, 2, 6, 10].some((k) => world.map.isOnBridge(v.x + c * k, v.y + sn * k)) ? 1 : 0, world.time);
   const alongside = groepsActeurs(world).some((a) => a.inVehicle && a.inVehicle.isBoat && dist(a.x, a.y, v.x, v.y) < (st.board || 8));
   if (alongside) {
-    if (!S.said) { S.said = 1; world.addMessage(st.near || 'Langszij! Hou hem vast...', 2.5); }
+    if (!S.said) { S.said = 1; world.addMessage(st.near || 'Langszij! Hou hem vast…', 2.5); }
     S.hold += dt;
     if (S.hold >= (st.boardTime || 2.5)) { B.speed = 0; v.speed = 0; nextStage(world, def); return; }
   } else S.hold = Math.max(0, S.hold - dt * 0.5);

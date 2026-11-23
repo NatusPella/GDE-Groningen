@@ -267,7 +267,7 @@ export function flyHeli(v, dt, w) {
   // rotor: spools up while someone sits in it, down when the engine died
   v.rotor = clamp((v.rotor || 0) + (dead ? -dt / SPOOL_DOWN : dt / SPOOL_UP), 0, 1);
   const ready = v.rotor >= LIFT_SPOOL;
-  if (!ready && !dead && up > 0 && v.onGround) say('spool', 'De rotor draait op, nog even...', 1.6, 'tip', 4);
+  if (!ready && !dead && up > 0 && v.onGround) say('spool', 'De rotor draait op, nog even…', 1.6, 'tip', 4);
   else if (v.onGround && ready && !dead && fwd !== 0 && up <= 0) say('takeoff', 'Eerst opstijgen: {SPACE}', 2.2, 'tip', 8);
 
   // heading: keys build a turn rate, the mouse turns straight
@@ -612,7 +612,7 @@ function setText(key, el, text) {
 function landingStatus(v) {
   if (v.disabled) return ['Motorstoring: zet hem neer!', '#ff5a4a'];
   if (v.onGround) {
-    if (v.rotor < LIFT_SPOOL) return ['Rotor draait op...', '#e8c93a'];
+    if (v.rotor < LIFT_SPOOL) return ['Rotor draait op…', '#e8c93a'];
     const why = heliExitBlock(v);
     if (v.landKind === 'pad' && v.landPad && v.landPad.label) return [v.landPad.label, '#3fc97a'];
     return why ? ['Geland op een dak · {SPACE} om op te stijgen', '#e8c93a'] : ['Geland · {E} uitstappen, {SPACE} opstijgen', '#3fc97a'];

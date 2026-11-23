@@ -40,7 +40,7 @@ function kustDef() {
       {
         kind: 'boatchase', label: 'Ga langszij bij het skûtsje', name: 'Skûtsje van Jelle', path: SKUTSJE_PATH, lead: 140, board: 9, boardTime: 2.5, escape: 420, time: 240,
         say: 'Daar vaart hij, het Reitdiep af! Zwart skûtsje, rood zeil. Ga er vlak naast varen, dan spring je aan boord. Tot de sluis, zei Klaas.',
-        near: 'Langszij! Hou hem vast, Tammo springt zo...', lost: 'het skûtsje is weg, met zeil en al', talk: { ids: ['M11.2'], delay: 3 },
+        near: 'Langszij! Hou hem vast, Tammo springt zo…', lost: 'het skûtsje is weg, met zeil en al', talk: { ids: ['M11.2'], delay: 3 },
         kaart: KAART_M11_VAREN,
       },
       {

@@ -447,7 +447,7 @@ function garageMenu(w, site) {
     if (!out.length) out.push({ title: 'Werkplaats', note: 'Rij met een voertuig naar binnen, dan kijkt Henk ernaar', items: [] });
     return out;
   };
-  return { name: site.name, type: 'tuning', tagline: site.kind === 'pomp' ? 'Tanken, poetsen en sleutelen' : 'Sleutelen, spuiten, opvoeren. Nait zeuren', color: GARAGE_COLOR, sections };
+  return { name: site.name, type: 'tuning', tagline: site.kind === 'pomp' ? 'Tanken en een sponsje over de ruit' : 'Sleutelen en spuiten. Nait zeuren', color: GARAGE_COLOR, sections };
 }
 
 export function tryGarageInteract(w) {

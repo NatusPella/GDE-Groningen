@@ -30,7 +30,7 @@ const MAX_REIZIGERS = 16;               // gelijk aan stationlife3d.js
 // Wat een reiziger zegt: vast per station en plek, zodat dezelfde reiziger altijd hetzelfde antwoord geeft.
 export const ANTWOORDEN = {
   ok: 'Kaartje in orde, prettige reis.',
-  zoeken: 'Even zoeken... zat in zijn jaszak. In orde!',
+  zoeken: 'Even zoeken… zat in zijn jaszak. In orde!',
   automaat: 'Geen kaartje, maar hij koopt er bij de automaat meteen een. Netjes.',
 };
 export function uitkomst(stationNaam, i) {

@@ -40,7 +40,7 @@ export const CHEATS = [
   { id: 'duivenstorm', name: 'Duivenstorm', step: 'H4', safe: true, desc: 'Duiven. Overal. Ze hebben iets gehoord over een eierbal.' },
   { id: 'storm', name: 'Zomer? Ja.', step: 'H5', desc: 'Code rood, de hele dag. Een echte Groningse zomer.' },
   { id: 'geenpolitie', name: 'Geen politie', step: 'H6', desc: 'De politie heeft een vrije dag. Na die kraak hebben ze die wel verdiend.' },
-  { id: 'eeuwig', name: 'Eeuwige eierbal', step: 'H7', desc: 'Je gaat niet meer neer. Gefrituurd, gepaneerd en onverwoestbaar.' },
+  { id: 'eeuwig', name: 'Eeuwige eierbal', step: 'H7', desc: 'Je gaat niet meer neer. Gepaneerd en onverwoestbaar.' },
   { id: 'frituurvet', name: 'Frituurvet-wegen', step: 'H8', desc: 'Er lekt ergens een tankwagen. Remmen is meer een suggestie.' },
   { id: 'turbo', name: 'Turbo-Escapade', step: 'r-tuning', hint: 'Laat de Escapade eerst tunen in het verhaal', desc: 'De Escapade, maar dan zoals Knal & Kolder hem eigenlijk bedoeld had.' },
   { id: 'stuiter', name: 'Stuiterwagens', ach: 'wrakken_25', desc: 'Je auto stuitert bij elke klap en elke landing. Volgens de fabrikant is dat normaal.' },

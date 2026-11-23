@@ -833,7 +833,7 @@ function buildShots(w) {
   const dOut = { x: Math.cos(door.out), y: Math.sin(door.out) }, dSide = { x: -dOut.y, y: dOut.x };
   const tammo = {
     label: 'Tammo', cuts: ['vol', 'kort'], dur: 3.0, clock: 8.4, weather: 'helder', focus: door,
-    freezeAt: 1.35, name: { at: 1.35, title: 'Tammo', line: 'Stadjer. Groot hart. Kleine portemonnee.' },
+    freezeAt: 1.35, name: { at: 1.35, title: 'Tammo', line: 'Stadjer met een Escapade die nauwelijks rijdt.' },
     prep(r) { r.prop('door', () => buildDoor()); },
     enter(r, s) {
       s.door = r.prop('door', () => buildDoor());
@@ -939,7 +939,7 @@ function buildShots(w) {
   const kc = { x: 169.31, y: 108.28 };
   const twins = {
     label: 'Durk & Douwe', cuts: ['vol'], dur: 3.2, clock: 16.6, weather: 'helder', focus: kc,
-    freezeAt: 1.9, name: { at: 1.9, title: 'Durk <span class="amp">&amp;</span> Douwe', line: 'Twee reuzen. Eén brein.' },
+    freezeAt: 1.9, name: { at: 1.9, title: 'Durk <span class="amp">&amp;</span> Douwe', line: 'Twee reuzen die geen geheim kunnen houden.' },
     prep(r) { cast(r, 'durk', DURK_LOOK); cast(r, 'douwe', DOUWE_LOOK); r.prop('botsauto', buildBumperCar); },
     enter(r, s) { s.car = r.prop('botsauto', buildBumperCar); kermisTick(r.w, 1); },
     tick(r, s, t, dt) {

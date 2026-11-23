@@ -622,7 +622,7 @@ function showArrivalCard(w) {
 
 function showRemembranceCard(w, first) {
   if (first) {
-    const body = `${REMEMBRANCE.her.fries} — ${REMEMBRANCE.her.nl} ${REMEMBRANCE.hope} ${REMEMBRANCE.certain} ${REMEMBRANCE.gift}`;
+    const body = `${REMEMBRANCE.her.fries} (${REMEMBRANCE.her.nl}) ${REMEMBRANCE.hope} ${REMEMBRANCE.certain} ${REMEMBRANCE.gift}`;
     const bodyHtml = `${esc(REMEMBRANCE.her.fries)}<br><span class="nl-sub" lang="nl">${esc(REMEMBRANCE.her.nl)}</span>`
       + `<br>${esc(REMEMBRANCE.hope)}`
       + `<br>${esc(REMEMBRANCE.certain)}`

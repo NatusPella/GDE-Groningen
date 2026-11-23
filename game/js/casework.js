@@ -168,7 +168,7 @@ export const CABARET = {
   reply: {
     perfect: ['Moai sein! (Mooi gezegd!) Dat sit.', 'Ha! Dy hie ik net ferwachte. (Die had ik niet verwacht.)'],
     ok: ['Hm. Net hielendal. (Niet helemaal.) Maar toch bedankt.'],
-    early: ['Wachtsje even, jonge. (Wacht even, jongen.)', 'Te let... eh, te betiid. (Te laat... eh, te vroeg.)'],
+    early: ['Wachtsje even, jonge. (Wacht even, jongen.)', 'Te let… eh, te betiid. (Te laat… eh, te vroeg.)'],
     late: ['Dat kaam te let. (Dat kwam te laat.)', 'Ik wie al fierder. (Ik was al verder.)'],
   },
   windows: { perfect: 0.18, ok: 0.45 },

@@ -8,7 +8,7 @@ Elk blad is de toetssteen voor elke regel in de akte: past een scène niet bij d
 
 *Twee net afgestudeerde vrienden van 24 weten niet wat ze met hun leven moeten en zijn bang elkaar kwijt te raken. Ze proberen allerlei loopbanen en ontdekken onderweg dat ze verliefd zijn en samen kunnen werken; pas dan vallen de stukjes en willen ze samen een snackwagen met een eigen standplaats, en daar staat Jelle Terpstra voor.*
 
-Hun doel is **niet** de snackwagen: hun doel is een plekje in de wereld vinden. De snackwagen is een verhaaltwist rond het kantelpunt (akte 4 en 5) en komt niet prominent in de marketing of in het begin van het verhaal (slogan: *Ontdek jezelf in Grunn*).
+Hun doel is **niet** de snackwagen: hun doel is een plekje in de wereld vinden. De snackwagen is een verhaaltwist rond het kantelpunt (akte 4 en 5) en komt niet prominent in de marketing of in het begin van het verhaal (slogan: *Een zomer in Grunn. Kon minder.*, sinds 23-11).
 
 Vier lijnen, elke scène hoort bij minstens één:
 

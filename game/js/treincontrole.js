@@ -10,7 +10,7 @@ export const CONTROLE_RUST_S = 300; // na een ronde even geen nieuwe ronde: geen
 
 export const ANTWOORDEN = {
   ok: 'Kaartje in orde, prettige reis.',
-  zoeken: 'Even zoeken... zat in zijn jaszak. In orde!',
+  zoeken: 'Even zoeken… zat in zijn jaszak. In orde!',
   automaat: 'Geen kaartje, maar hij koopt er bij de automaat meteen een. Netjes.',
 };
 

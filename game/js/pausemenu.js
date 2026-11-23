@@ -163,7 +163,7 @@ const CONTROL_GROUPS = [
     // #985 punt 1: toets 5 stond wel in KEY_ACTIONS (en werkt), maar niet in dit overzicht: een
     // speler kon hem dus niet vinden. Hij staat bij de kaart, want hij zet een doel op de kaart.
     [['5'], 'Eigen doel op de kaart'],
-    [['ARROWS'], 'In het menu: kiezen, {ENTER}: ok'],
+    [['ARROWS'], 'In het menu: kiezen, {ENTER}: bevestigen'],
     [['Q', 'E'], 'Volgend tabblad of onderdeel'],
     [['[', ']'], 'Zelfde als {Q} en {E}'],
     [['N'], 'Radio aan of uit'],
@@ -231,7 +231,7 @@ const CONTROL_LONG = [
   ]],
   ['menu', [
     ['Pauzemenu', 'Pauzemenu openen; in het menu: terug.'],
-    ['Kiezen', 'In het menu: kiezen, {ENTER}: ok.'],
+    ['Kiezen', 'In het menu: kiezen, {ENTER}: bevestigen.'],
     ['Verhaalstap overslaan', 'De verhaalstap overslaan (als dat in beeld staat).'],
     ['Minigame stoppen', 'Een minigame of dienst stoppen.'],
     ['Geluid', 'Geluid uit of weer aan; staat het uit, dan staat linksboven een luidspreker met een streep, met de knop erbij.'],
@@ -628,7 +628,7 @@ function syncKeyChanged() {
 function fixedKeysHtml() {
   const rows = [
     ['Esc', 'Pauzemenu, terug en een vraag sluiten'],
-    ['Enter', 'Bevestigen en in het menu ok'],
+    ['Enter', 'Bevestigen, ook in het menu'],
     ['Pijltjes', 'Kiezen in het menu'],
     ['F8', 'Fotomodus'],
     ['F11', 'Volledig scherm (ook {ALT}+{ENTER})'],

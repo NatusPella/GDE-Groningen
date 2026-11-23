@@ -347,7 +347,7 @@
     },
     {
       "id": "geflitst",
-      "titel": "Smile!",
+      "titel": "Even lachen",
       "omschrijving": "Word geflitst",
       "verborgen": true,
       "voorstelApiNaam": "ACH_GEFLITST",
@@ -1387,7 +1387,7 @@
     },
     {
       "id": "pimp_1",
-      "titel": "Pimp my Ride",
+      "titel": "Opgepimpt",
       "omschrijving": "Laat je eerste wijziging installeren in een pimp-werkplaats",
       "verborgen": false,
       "voorstelApiNaam": "ACH_PIMP_1",
@@ -1715,7 +1715,7 @@
     },
     {
       "id": "sj_rondvaart",
-      "titel": "Links ziet u...",
+      "titel": "Links ziet u…",
       "omschrijving": "Vaar een rondvaart zonder één stukje uitleg te missen",
       "verborgen": false,
       "voorstelApiNaam": "ACH_SJ_RONDVAART",

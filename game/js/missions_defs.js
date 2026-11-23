@@ -258,7 +258,7 @@ export function buildDefsNaMuseum({ walk, drive }) {
         {
           kind: 'boatchase', label: 'Ga langszij bij het skûtsje', name: 'Skûtsje van Jelle', lead: 55, board: 8, boardTime: 2.5, escape: 230, time: 200,
           say: 'Daar vaart hij! Zwart skûtsje, rood zeil. Ga er vlak naast varen, dan spring je aan boord.',
-          near: 'Langszij! Hou hem vast, Tammo springt zo...', lost: 'het skûtsje is weg, met zeil en al',
+          near: 'Langszij! Hou hem vast, Tammo springt zo…', lost: 'het skûtsje is weg, met zeil en al',
         },
         {
           kind: 'scene', label: 'Aan boord', target: { skutsje: true }, deckCam: true,

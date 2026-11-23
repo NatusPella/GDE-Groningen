@@ -86,7 +86,7 @@ export const WEAPON_STOCK = [
   { key: 'jachtgeweer', label: 'Jachtgeweer "Hogelandse Havik"', desc: 'Met kijker: houd {RMB} vast. Van ver, één keer raak', gun: 650, ammoPrice: 40, ammo: 10, cap: 60 },
   { key: 'waterpistool', label: 'Waterpistool "Spetter"', desc: 'Doet geen pijn, maar niemand wil nat worden. Blust ook een brandende bak', gun: 25, ammoPrice: 5, ammo: 150, cap: 600, unit: 'water' },
   { key: 'carbidbus', label: 'Carbidbus "Knalbus"', desc: 'Melkbus met carbid, zoals op het Hogeland met de carbidschietwedstrijd. Gooien, of bukken en neerzetten', gun: 90, ammoPrice: 30, ammo: 3, cap: 15, unit: 'bussen' },
-  { key: 'vuurwerk', label: 'Vuurwerkpijlen "Sterrenregen"', desc: 'Het hele jaar oud en nieuw. Fluit, knalt en spat', gun: 60, ammoPrice: 25, ammo: 6, cap: 40, unit: 'pijlen' },
+  { key: 'vuurwerk', label: 'Vuurwerkpijlen "Sterrenregen"', desc: 'Het hele jaar oud en nieuw. De buren zijn het er niet mee eens', gun: 60, ammoPrice: 25, ammo: 6, cap: 40, unit: 'pijlen' },
   { key: 'knuppel', label: 'Honkbalknuppel "Stadjer Slugger"', desc: 'Essenhout. Zwaai, tok, klaar', gun: 60, melee: true },
   { key: 'hockeystick', label: 'Hockeystick "Helpman"', desc: 'Veel zwaaien, weinig raak. Sportief bedoeld', gun: 45, melee: true },
   { key: 'bezem', label: 'Bezem "Zaterdagochtend"', desc: 'Stoep vegen en verveeld kijken. Doet weinig pijn, duwt lekker', gun: 15, melee: true },
@@ -876,7 +876,7 @@ function dierenSections(world) {
     }
   }
   const sections = [{ title: 'Dierenhoek', note: `Je houdt ${bezit.dieren.length} dieren`, items: koopItems }];
-  if (eigen.length) sections.push({ title: 'Voor je dieren', note: 'Verzorgen, trainen en uitrusten', items: eigen });
+  if (eigen.length) sections.push({ title: 'Voor je dieren', note: 'Alles voor je dieren, behalve geduld', items: eigen });
   return sections;
 }
 
@@ -1393,7 +1393,7 @@ const shopKeyOf = (k) => (k && typeof k === 'object' ? `${k.name}|${Math.round(k
 export function fittingRoomMenu(world, key) {
   const ch = currentChar(world);
   const name = ch === 'anita' ? 'Tessa' : 'Tammo';
-  return { name: 'Pashokje', type: 'kleding', tagline: `Gordijn dicht, spiegel aan: ${name} past, kiest en bewaart`, color: '#2f6fb0', sections: () => fittingSections(clothingCtx(world, key || 'kleding')) };
+  return { name: 'Pashokje', type: 'kleding', tagline: `Gordijn dicht, spiegel aan: ${name} past en bewaart`, color: '#2f6fb0', sections: () => fittingSections(clothingCtx(world, key || 'kleding')) };
 }
 // Opens it from an interior: the curtain sounds, the menu comes up. The police at the door keep you out (like at the counter); a guest of a
 // Samen spelen game has his own wardrobe, so the room is open to him too (nothing here is the host's).

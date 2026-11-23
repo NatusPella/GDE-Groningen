@@ -26,7 +26,7 @@ const CRASH_DROP = 4.5;
 const STIL_SPEED = 1.2;   // m/s: langzamer dan dit geldt als stilstaan bij de laaddeur of de losplaats
 const HULP_R = 20;        // m: zo dicht bij de trekker moet een bijrijder staan om te helpen (coopbijbaan.js, #492)
 const THANKS = ['Mooi gedaan, die oplegger staat er weer als een huis.', 'Niks gedeukt? Dan krijg je een bakkie van het huis.', 'Zo kennen we je: netjes, en niet te snel.'];
-const BUMPY = ['Even de lading nakijken... Ach, het zal wel.', 'Een paar pallets staan scheef, maar goed.'];
+const BUMPY = ['Even de lading nakijken… Ach, het zal wel.', 'Een paar pallets staan scheef, maar goed.'];
 
 function buildTrailerMesh(spec) {
   const g = new THREE.Group();

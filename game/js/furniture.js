@@ -446,7 +446,7 @@ function assemblyMenu(w) {
         : { id: 'schroef', label: `Schroefje ${SCREW_FROM + screws} van 238`, desc: 'Inbussleuteltje erin en draaien. Rechtsom is vast', verb: 'Draaien', price: 0, keepFocus: true,
           preview: { kind: 'product', product: screws >= SCREWS / 2 ? 'kast' : 'pakket' },
           stats: [{ label: 'Opgebouwd', v: screws / SCREWS, to: (screws + 1) / SCREWS, text: `${SCREW_FROM + screws - 1} van 238` }],
-          buy() { screws++; return screws >= SCREWS ? 'Nog één... waar is schroefje 238?' : 'Krrrk. Vast!'; } };
+          buy() { screws++; return screws >= SCREWS ? 'Nog één… waar is schroefje 238?' : 'Krrrk. Vast!'; } };
       return [
         { title: 'Handleiding (alleen plaatjes)', items: [step] },
         { title: 'Of niet', items: [{ id: 'laatmaar', label: `Laat ${other(w)} het maar doen`, desc: 'Overslaan: de kast staat meteen', verb: 'Overslaan', price: 0, keepFocus: true, buy: () => finish(false) }] },

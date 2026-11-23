@@ -385,7 +385,7 @@ function findPrimary(world) {
     const st = horecaState(world, food);
     const name = food.name || 'Kroeg';
     if (st === 'ready') return { id: 'food-' + name, x: food.x, y: food.y, h: 2.75, key: 'E', label: 'Iets bestellen', sub: `${name}: hapje + drankje, +15 gezondheid`, ring: true };
-    return { id: 'food-' + name, x: food.x, y: food.y, h: 2.75, key: 'E', label: 'Iets bestellen', sub: st === 'broke' ? 'Te weinig geld (min. €12)' : 'Even laten zakken...', ring: true, dim: true };
+    return { id: 'food-' + name, x: food.x, y: food.y, h: 2.75, key: 'E', label: 'Iets bestellen', sub: st === 'broke' ? 'Te weinig geld (min. €12)' : 'Even laten zakken…', ring: true, dim: true };
   }
   const c = world.companion;
   const kissable = !!world.kissUnlocked && c && c.state !== 'dead' && !c.inVehicle && Math.hypot(c.x - p.x, c.y - p.y) <= KISS_DIST;
@@ -422,7 +422,7 @@ function findPrimary(world) {
   }
   if (facingC) {
     const name = c.character === 'tammo' ? 'Tammo' : 'Tessa';
-    return { id: 'kiss-' + name, x: c.x, y: c.y, h: 1.55, key: 'K', label: 'Kusje', sub: 'Even bijkomen...', ring: true, cooldown: (kissUntil - world.time) / KISS_COOLDOWN, dim: true };
+    return { id: 'kiss-' + name, x: c.x, y: c.y, h: 1.55, key: 'K', label: 'Kusje', sub: 'Even bijkomen…', ring: true, cooldown: (kissUntil - world.time) / KISS_COOLDOWN, dim: true };
   }
   const weapon = world.weapon || 'fists';
   if (isMeleeWeapon(weapon)) {

@@ -684,7 +684,7 @@ function updateHud() {
   // #628: hooguit drie toetsgroepen per fase.
   const help = g.phase === 'aim'
     ? `${k('A')}${k('D')} draaien · ${k('W')}${k('S')} richten · houd ${k('SPATIE')} water op het carbid`
-    : g.phase === 'gas' ? `${k('E')} aansteken als de ring goed ligt · ${k('A')}${k('D')}${k('W')}${k('S')} bijsturen` : 'Kijk hem gaan...';
+    : g.phase === 'gas' ? `${k('E')} aansteken als de ring goed ligt · ${k('A')}${k('D')}${k('W')}${k('S')} bijsturen` : 'Kijk hem gaan…';
   let fill = 0, mark = -1, color = 'var(--mk-mission, #f2c744)', tekst = '';
   if (g.phase === 'aim') { fill = g.water; mark = 0.65; }
   else if (g.phase === 'gas') {

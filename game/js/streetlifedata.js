@@ -245,11 +245,11 @@ export const SKATER_MAX = 2;
 export const SKATER_PACE = 2.1;
 export const SKATER_LINES = [
   'Pas op, ik rol!',
-  'Ollie! ...Nee, dat was een stoeptegel.',
+  'Ollie! …Nee, dat was een stoeptegel.',
   'Mijn bord, mijn regels.',
   'Dit gaat veel sneller dan fietsen, hoor.',
   'Bij het Forum mag het nog niet, zeggen ze.',
-  'Kijk, zonder handen! ...Oeps.',
+  'Kijk, zonder handen! …Oeps.',
 ];
 
 // --- the kennismakingsweek: a parody of student initiation (batch 3) --------------------

@@ -881,7 +881,7 @@ function playDedication(q, t0) {
     kicker: R.body,
     shot: finaleShot(t0),
     lines: [
-      { text: `Zij: “${R.her.fries}” — ${R.her.nl}`, at: 2.2, dur: 4.4 },
+      { text: `Zij: “${R.her.fries}” (${R.her.nl})`, at: 2.2, dur: 4.4 },
       { text: `Ik: “${R.hope}”`, at: 7.0, dur: 4.2 },
       { text: `Ik: “${R.certain}”`, at: 11.6, dur: 4.4 },
     ],

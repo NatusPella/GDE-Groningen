@@ -32,13 +32,13 @@ tekens heeft: "GDE Groningen - Zomer vol misdaad" met een gewoon streepje.
 
 ## Korte beschrijving (max. 300 tekens)
 
-**NL** (237 tekens):
+**NL** (285 tekens):
 
-> Ontdek jezelf in Grunn. Twee net afgestudeerden zonder werk of plan zoeken een plekje in de wereld, en raken verwikkeld in de diefstal van de Gouden Eierbal. Een gratis open-wereld misdaadparodie in de echte straten van Groningen: auto's jatten, de ring rond, kermis, kroegen en een Fries met een plan. Woist ja wel.
+> Een zomer in Grunn. Kon minder. Twee afgestudeerden zonder werk of plan belanden in de diefstal van de Gouden Eierbal. Een gratis misdaadparodie in een open wereld, in de echte straten van Groningen: auto's jatten, de ring rond, kermis, kroegen en een Fries met een plan. Woist ja wel.
 
-**EN** (255 tekens):
+**EN** (280 tekens):
 
-> Two broke locals plan to steal the Golden Eierbal to buy a chip van. A free open-world crime parody set in the real streets of Groningen: borrow cars, race the ring road, hit the fair and the pubs, and stop a Frisian with a plan. Dutch only, dry as toast.
+> Two fresh graduates without a job or a plan get caught up in the theft of the Golden Eierbal. A free open-world crime parody set in the real streets of Groningen: borrow cars, race the ring road, hit the fair and the pubs, and stop a Frisian with a plan. Dutch only, dry as toast.
 
 ---
 
@@ -82,7 +82,7 @@ De stad is gebouwd uit OpenStreetMap: de echte straten, grachten, bruggen en geb
 [h2]Gratis, zonder gedoe[/h2]
 [list]
 [*]Helemaal gratis. Geen aankopen in de game, geen lootboxes, geen advertenties.
-[*]Singleplayer in je eigen besloten online sessie (ook met één speler). Geen account, geen tracking. Samen spelen (online co-op én PvP) met een kamercode kan ook, of via de lijst met openbare sessies (internet nodig; geen tekstchat).
+[*]Alleen spelen in je eigen besloten sessie. Geen account, geen tracking. Samen spelen, met of tegen elkaar, kan met een kamercode of via de lijst met openbare sessies (internet nodig; geen tekstchat).
 [*]Toetsenbord en muis of controller, ook op de Steam Deck; alles opnieuw in te delen.
 [*]Ondertitels in vier maten, kleurenblinde paletten, en een benchmark die zegt welke instelling bij je pc past.
 [/list]
@@ -95,7 +95,7 @@ De stad is gebouwd uit OpenStreetMap: de echte straten, grachten, bruggen en geb
 
 ```
 [h2]A summer in Grunn[/h2]
-August in Groningen. Freshers' week, the Noorderzon festival, the fair on the Grote Markt and, to round it off, Gronings Ontzet. Tammo and Tessa have just enough money between them for one portion of chips. Tessa wants a chip van. Tammo wants Tessa, but he hasn't said so. Not in twelve years.
+August in Groningen. Freshers' week, the Noorderzon festival, the fair on the Grote Markt and, to round it off, Gronings Ontzet. Tammo and Tessa have just enough money between them for one portion of chips. Tessa doesn't know yet what she wants. Tammo wants Tessa, but he hasn't said so. Not since uni.
 
 Then the [b]Golden Eierbal[/b], the challenge trophy of the Northern Snack Prize, is suddenly no longer in the museum. And a Frisian snack king is cruising the old town in a tractor limo.
 
@@ -145,7 +145,7 @@ The city is built from OpenStreetMap: the real streets, canals, bridges and buil
 | Auto, brommer, fiets, boot, skûtsje, trein, helikopter en duif | Car, moped, bike, boat, sailing barge, train, helicopter and pigeon |
 | Zes bijbaantjes en minigames op de kermis | Six side jobs and fairground minigames |
 | De stad en het Ommeland, met dag, nacht en zomerweer | The city and the countryside, with day, night and summer weather |
-| 253 prestaties in het spel | 239 in-game achievements |
+| 253 prestaties in het spel | 253 in-game achievements |
 | Controller, Steam Deck, vrij in te delen toetsen | Controller and Steam Deck support, rebindable controls |
 | Gratis, offline, geen aankopen, geen account of tracking | Free, offline, no purchases, no account or tracking |
 

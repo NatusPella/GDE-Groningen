@@ -8,7 +8,7 @@ Besluit van de eigenaar, gesteund door de coördinator: "Als iets onderdeel is v
 |---|---|---|
 | **de Stad** | de stad Groningen zelf (hoofdletter S als eigennaam; "in de Stad", "naar de Stad", "uit de Stad", Stadjer) | wijken, straten, de Martinitoren, de Vismarkt, de Euroborg, het station, Paddepoel, de grachten, de Poelestraat |
 | **Ommeland**, de Ommelanden, in het Ommeland | de rest van de provincie, buiten de stad | de dorpen, de kust, de Veenkoloniën; de bestaande gebiedslabels ("Marum · Ommeland") |
-| **Grunn** | het geheel: de provincie, het gevoel, de naam van het spel | slogans ("Ontdek jezelf in Grunn"), titels, "Grunn is nooit klaar", "Moi, Grunn", "Heel Grunn klapt", prestatietitels, NPC-dialoog waar de hele provincie of de eigen identiteit bedoeld wordt |
+| **Grunn** | het geheel: de provincie, het gevoel, de naam van het spel | slogans ("Een zomer in Grunn. Kon minder."), titels, "Grunn is nooit klaar", "Moi, Grunn", "Heel Grunn klapt", prestatietitels, NPC-dialoog waar de hele provincie of de eigen identiteit bedoeld wordt |
 | **Groningen** | de officiële naam | titels, credits, bordteksten, een station ("Station Groningen"), de zin "het beleg van Groningen" waar het een naam is |
 
 Daarbij:
@@ -37,7 +37,7 @@ De wijken van de Stad tonen **Stad**, de rest toont **Ommeland** of de plaatsnaa
 | Het hart van Grunn. (Binnenstad) | Het hart van de Stad. | een wijk van de Stad |
 | Het grootste plein van Grunn. (Grote Markt) | Het grootste plein van de Stad. | een plek in de Stad |
 | Dat is Veendam. Bijna net zo groot als Grunn. | ... als de Stad. | vergelijking met de stad |
-| Ontdek jezelf in Grunn. | blijft | slogan, het geheel |
+| Een zomer in Grunn. Kon minder. | blijft | slogan, het geheel (sinds 23-11; was "Ontdek jezelf in Grunn.") |
 | Heel Grunn klapt voor een duif. | blijft | heel Grunn is idioom voor het geheel |
 | Groeten uit Grunn (ansichtkaart) | blijft | slogan, de kaart groet de provincie |
 

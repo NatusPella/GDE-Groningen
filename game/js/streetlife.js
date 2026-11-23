@@ -180,7 +180,7 @@ export function useStreetLife(world, rng = Math.random) {
     if (got.grenade && state.grenade) { got.grenade = false; got.name = 'een verroeste pan'; got.value = 0; }
     if (got.grenade) {
       state.grenade = true;
-      say(ped, world, 'Wacht even... dat is geen blikje. Niet aankomen!', 4);
+      say(ped, world, 'Wacht even… dat is geen blikje. Niet aankomen!', 4);
       world.addMessage(GRENADE_FOUND, 6, { kind: 'politie', key: 'granaat-gevonden' });
     } else {
       state.junk++;
