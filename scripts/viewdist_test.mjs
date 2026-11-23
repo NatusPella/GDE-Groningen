@@ -48,5 +48,20 @@ ok(LOOK_MAX >= 80, 'wide shots keep detail at their far side');
 const t2 = tileFocus(player, null, st, 0.016);
 ok(t2.x === 0 && t2.y === 0 && Object.keys(t2.opts).length === 0, 'back to the player after the cut: a jump, no speed');
 
+// de mist (24-11): zachte diepte, geen muur. Begint minstens op 40% van de zichtafstand, is dicht op de zichtafstand en groeit met de afstand
+for (const [name, view] of Object.entries(V.VIEW_DISTANCES)) {
+  const ring = V.detailDistanceFor('hoog', view, 0);
+  const fog = V.fogRange(view, ring);
+  ok(fog.near >= view * V.FOG_NEAR_SHARE - 1e-9, `mist ${name}: begint op minstens ${V.FOG_NEAR_SHARE * 100}% van de zichtafstand (${fog.near} van ${view})`);
+  ok(fog.far > fog.near && Math.abs(fog.far - view * 1.02) < 1e-9, `mist ${name}: dicht op de zichtafstand`);
+  ok(fog.far - fog.near >= view * 0.3, `mist ${name}: een brede, zachte overgang (${Math.round(fog.far - fog.near)} m)`);
+}
+const kort = V.fogRange(V.VIEW_DISTANCES.kort, V.detailDistanceFor('hoog', V.VIEW_DISTANCES.kort, 0));
+ok(kort.near === 63 && Math.round(kort.far) === 153, 'mist kort ongewijzigd (Laag): 63 tot 153 m');
+const verFog = V.fogRange(V.VIEW_DISTANCES.ver, V.detailDistanceFor('hoog', V.VIEW_DISTANCES.ver, 0));
+ok(verFog.near >= 240, `Hoog (ver): de mist begint pas op ${verFog.near} m (was 188 m)`);
+const ultraFog = V.fogRange(V.VIEW_DISTANCES.heelver, V.detailDistanceFor('hoog', V.VIEW_DISTANCES.heelver, 0));
+ok(ultraFog.near >= 360, `Ultra (heel ver): de mist begint pas op ${ultraFog.near} m (was 263 m)`);
+
 if (fails) { console.log(fails + ' failed'); process.exit(1); }
 console.log('viewdist: all passed');

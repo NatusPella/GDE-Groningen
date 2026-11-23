@@ -5,7 +5,7 @@ import { FLAGS } from './devflags.js';
 import { canvasTex as canvasTexture } from './canvastex.js';
 import { mulberry32 } from './rng.js';
 import { getScene, prewarmStreamAt, prewarmPending, streamPending, disposeObject } from './scene3d.js';
-import { createSettle, settleTick } from './benchsettle.js';
+import { createSettle, settleTick, queueNear } from './benchsettle.js';
 import { WARM } from './cutscenewarm.js';
 import { speakerHtml } from './speakers.js';
 import { getSettings, QUALITY_PRESETS, withTempSettings } from './settings.js';
@@ -1992,7 +1992,11 @@ function streamNext(r, i) {
 function enterShot(r, i) {
   const prev = r.shots[r.idx];
   if (BENCH_RUNS && prev) logShot(r, r.idx);
-  if (BENCH_RUNS) console.log(`[trailer] enter ${i + 1} at ${(performance.now() / 1000).toFixed(2)}`);
+  if (BENCH_RUNS) {
+    let pend = null;
+    try { pend = streamPending(); } catch (e) { /* geen meting */ }
+    console.log(`[trailer] enter ${i + 1} at ${(performance.now() / 1000).toFixed(2)} pending ${pend ? `gebouwen ${pend.buildings} wegen ${pend.roads}` : '-'}`);
+  }
   if (prev && prev.exit) { try { prev.exit(r, r.state); } catch (e) { console.warn('trailer exit', e); } }
   clearShot(r);
   r.idx = i;
@@ -2096,7 +2100,8 @@ function frame(r, dt, realMs) {
   if (s.name && !(ov && ov.plain)) showName(st >= s.name.at ? s.name : null, (st - s.name.at) / Math.max(0.1, s.dur - s.name.at));
 
   let pose = null;
-  if (s.black) pose = r.blackPose || r.pose;
+  if (r.gate) pose = r.gate.pose;
+  else if (s.black) pose = r.blackPose || r.pose;
   else if (s.cams) {
     let acc = 0;
     for (let c = 0; c < s.cams.length; c++) {
@@ -2133,7 +2138,7 @@ function frame(r, dt, realMs) {
 
   if (r.mode === 'benchmark') {
     // title cards are not measured, also when a picture runs behind them
-    if (!s.black && !s.card && !frozen && st / k > benchMeasureAfter(i)) r.stats[i].ms.push(realMs);
+    if (!s.black && !s.card && !frozen && !r.gate && st / k > benchMeasureAfter(i)) r.stats[i].ms.push(realMs);
     // the JS heap during the run (#379): one sample a second, the card shows the peak
     if (r.heap && r.T - r.heap.at >= 1) { r.heap.at = r.T; r.heap.peak = heapPeak([r.heap.peak, heapMb()]); }
     r.fpsAcc += realMs; r.fpsN++;
@@ -2211,7 +2216,7 @@ export function runTrailer(world, { mode = 'opname', cut = 'vol', shot = null, f
     if (commentary) for (const sh of shots) if (commentary[sh.id]) sh.lines = commentary[sh.id];
     const starts = [];
     let total = 0;
-    const r = { w: world, env, mode, cut, durs, beats, shots, starts, idx: -1, state: {}, cars: [], T: 0, pose: null, stats: [], fpsAcc: 0, fpsN: 0, done: false, camIdx: 0, black: { from: 1, to: 1, t0: 0, dur: 0 }, heap: mode === 'benchmark' ? { start: heapMb(), peak: 0, at: 0 } : null };
+    const r = { w: world, env, mode, cut, durs, beats, shots, starts, idx: -1, gate: null, gated: new Set(), gates: [], state: {}, cars: [], T: 0, pose: null, stats: [], fpsAcc: 0, fpsN: 0, done: false, camIdx: 0, black: { from: 1, to: 1, t0: 0, dur: 0 }, heap: mode === 'benchmark' ? { start: heapMb(), peak: 0, at: 0 } : null };
     const pl = hoofdspeler(world);
     r.savedPlayer = { x: pl.x, y: pl.y, angle: pl.angle, inVehicle: pl.inVehicle || null };
     r.savedCamYaw = world.camYaw;
@@ -2312,6 +2317,7 @@ export function runTrailer(world, { mode = 'opname', cut = 'vol', shot = null, f
     const end = (skipped, aborted = false) => {
       if (r.done) return;
       r.done = true;
+      r.w.cineJumpLoading = false;
       if (padOff) padOff();
       if (BENCH_RUNS) logShot(r, r.idx);
       if (nativeRender) ren.render = nativeRender;
@@ -2365,10 +2371,12 @@ export function runTrailer(world, { mode = 'opname', cut = 'vol', shot = null, f
       last = now;
       const dt = mode === 'opname' ? STEP : Math.min(0.1, realMs / 1000);
       const hold = frozen && r.T >= frozen.T;
-      if (!hold) r.T += dt;
+      const gated = mode === 'benchmark' && !hold && benchGate(now, dt);
+      if (!hold && !gated) r.T += dt;
       if (r.T >= total) { end(false); return; }
       probe.begin(now);
       try { frame(r, hold ? 0 : dt, realMs); } catch (e) { console.error('trailer', r.shots[r.idx] && r.shots[r.idx].label, e && e.stack); }
+      if (gated) ui.black.style.opacity = '1';
       probe.end();
       if (hold) { requestAnimationFrame(loop); return; }
       if (holdSince != null) {
@@ -2402,6 +2410,49 @@ export function runTrailer(world, { mode = 'opname', cut = 'vol', shot = null, f
     // 22-11: a benchmark (every preset, also the probe shots) starts its clock only when the world round the first place is settled
     // (benchsettle.js: tiles in, queue empty, nothing left to build, a calm stretch); the first measured run used to start on a world
     // that was still streaming in, which made the first preset look worse than the later ones. The wait is not measured (the black is up).
+    // wat er rond een plek nog moet komen (tegels, wachtrij, gebouwen, wegen, plaatsingsring): de klaar-regel van warm() en van de poort tussen shots
+    const placeQuery = (f) => () => {
+      const m = r.w.map;
+      const q = { tilesMissing: 0, prewarmPending: 0, buildings: 0, roads: 0, queue: 0 };
+      try { if (m && m.store && m.store.keysAround) q.tilesMissing = m.store.missing(m.store.keysAround(f.x, f.y, WARM.tileRadiusM)).length; } catch (e) { /* geen tegelmeting */ }
+      try { if (m && m.tileQueue && m.tileQueue.items) q.queue = queueNear(m.tileQueue.items, f, WARM.tileRadiusM); } catch (e) { /* idem */ }
+      try { q.prewarmPending = prewarmPending(); } catch (e) { /* idem */ }
+      try { const sp = streamPending(); q.buildings = sp.buildings; q.roads = sp.roads; } catch (e) { /* idem */ }
+      return q;
+    };
+    // 24-11 (pop-in in de benchmark): een shot op een nieuwe plek begint pas als de wereld daar staat. De klok van de route houdt vlak voor de cut
+    // stil onder zwart terwijl de camera al op de nieuwe plek staat (de streamfocus volgt de camera, niet de speler); de wachttijd wordt niet
+    // gemeten (r.gate: geen frametijden). Zelfde klaar-regel als de start (benchsettle.js), met een korter tijdvenster.
+    const GATE = { minMs: 900, calmMs: 700, maxMs: 5000 };
+    const benchGate = (now, dt) => {
+      if (r.gate) {
+        // de trailer tekent via env.render (main.js render), niet via de spellus: daar loopt map.follow niet en bleef de tegelrij staan
+        // (68 tot 186 wachtende rijen in de census-run). Onder het zwart werkt de poort de rij zelf af, rond de plek van het volgende shot.
+        try { if (r.w.map && r.w.map.follow) r.w.map.follow(r.gate.f.x, r.gate.f.y, {}, 8); } catch (e) { /* geen tegelwereld */ }
+        const q = placeQuery(r.gate.f)();
+        const st = settleTick(r.gate.settle, q, now);
+        if (!st.settled) return true;
+        r.gates.push({ shot: r.gate.j + 1, ms: Math.round(st.waitedMs), timedOut: st.timedOut, reason: st.reason, rest: q });
+        if (BENCH_RUNS) console.log('[trailer] gate', JSON.stringify(r.gates[r.gates.length - 1]));
+        r.gate = null;
+        r.w.cineJumpLoading = false;
+        return false;
+      }
+      const j = r.idx + 1;
+      const nx = shots[j];
+      if (r.idx < 0 || !nx || nx.black || !nx.focus || r.gated.has(j) || r.T + dt < starts[j]) return false;
+      r.gated.add(j);
+      r.w.cineJumpLoading = true; // het streambudget van de laadsluier (20 ms): onder zwart wordt niet getekend, dus alles mag
+      r.T = starts[j] - 0.001;
+      r.black = { from: 1, to: 1, t0: r.T, dur: 0 };
+      r.env.relocate(nx.focus.x, nx.focus.y);
+      if (nx.clock != null) setClock(r.w, nx.clock);
+      forceWeather(r.w, nx.weather);
+      prewarmStreamAt(nx.focus.x, nx.focus.y, 5);
+      if (r.w.map && r.w.map.warmAhead) r.w.map.warmAhead(nx.focus.x, nx.focus.y, { token: 'trailer', budgetMs: 8000 });
+      r.gate = { j, f: nx.focus, settle: createSettle(GATE), pose: { position: P(nx.focus.x + 20, nx.focus.y + 20, 60), lookAt: P(nx.focus.x, nx.focus.y, 0), fov: 50 } };
+      return true;
+    };
     const warm = () => new Promise((res) => {
       const first = mode === 'benchmark' ? shots.find((x) => !x.black && x.focus) : null;
       if (shots[0].black && !first) { res(); return; }
@@ -2410,25 +2461,20 @@ export function runTrailer(world, { mode = 'opname', cut = 'vol', shot = null, f
       if (f && r.w.map && r.w.map.warmAhead) r.w.map.warmAhead(f.x, f.y, { token: 'trailer', budgetMs: mode === 'benchmark' ? 8000 : 2500 });
       const t0 = performance.now();
       const settle = mode === 'benchmark' && f ? createSettle() : null;
-      const query = () => {
-        const m = r.w.map;
-        const q = { tilesMissing: 0, prewarmPending: 0, buildings: 0, roads: 0, queue: 0 };
-        try { if (m && m.store && m.store.keysAround) q.tilesMissing = m.store.missing(m.store.keysAround(f.x, f.y, WARM.tileRadiusM)).length; } catch (e) { /* geen tegelmeting */ }
-        try { if (m && m.tileQueue && m.tileQueue.items) q.queue = m.tileQueue.items.length; } catch (e) { /* idem */ }
-        try { q.prewarmPending = prewarmPending(); } catch (e) { /* idem */ }
-        try { const sp = streamPending(); q.buildings = sp.buildings; q.roads = sp.roads; } catch (e) { /* idem */ }
-        return q;
-      };
+      if (settle) r.w.cineJumpLoading = true; // idem: de start van de benchmark mag met het volle streambudget bouwen
+      const query = f ? placeQuery(f) : () => ({});
       let n = 0;
       const step = () => {
         if (r.done) { res(); return; }
         try { frame(r, 0, 16); } catch (e) { /* ignore */ }
         ui.black.style.opacity = '1';
         if (settle) {
+          try { if (r.w.map && r.w.map.follow) r.w.map.follow(f.x, f.y, {}, 8); } catch (e) { /* idem als in benchGate */ }
           const st = settleTick(settle, query(), performance.now());
           if (!st.settled) { requestAnimationFrame(step); return; }
           r.warmup = { ms: Math.round(st.waitedMs), timedOut: st.timedOut, reason: st.reason };
           try { window.__benchWarmup = r.warmup; } catch (e) { /* geen window */ }
+          r.w.cineJumpLoading = false;
           if (BENCH_RUNS) console.log('[trailer] settled', JSON.stringify(r.warmup));
           res();
           return;

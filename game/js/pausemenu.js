@@ -16,7 +16,7 @@ import { difficultyTabHtml, difficultyPaneText, syncDifficultyTab, stepDifficult
 import { logoHtml } from './logo.js';
 import { setPauseMenuOpen, setPauseMenuTabState, setPauseMenuControls } from './pausestate.js';
 import { uitlegBlok, zetUitlegGlyph, startUitleg, resetUitlegNietMeer } from './uitleg.js';
-import { PRESET_ORDER, presetLabel, PRESET_HINTS, describePreset, describeChanges, currentPreset, applyPreset, getBenchResult, dismissBenchBanner, GEAR_SVG } from './gfxprofile.js';
+import { PRESET_ORDER, presetLabel, PRESET_HINTS, describePreset, describeChanges, currentPreset, applyPreset, getBenchResult, dismissBenchBanner, GEAR_SVG, measureAutoPreset, autoGfxNote } from './gfxprofile.js';
 import { mountMapView, kaartUitlegSluiten, kaartReisPopupSluiten, kaartPlekkaartSluiten, kaartToets, setMapActive, setMapCloseHandler, setMapView, getDiscoveredRatio, setMapTeleport } from './mapview.js';
 import { mountOnlineInstelling } from './onlineconsentui.js';
 import { renderSamenPanel, requestOpenSamen, samenHubTerug } from './samenpanel.js';
@@ -514,6 +514,7 @@ let tab = HOME;
 // to Overzicht) or 'direct' (M, the phone: Esc closes the menu)
 let origin = 'home';
 let prestart = null;
+let remeasuring = false; // Opnieuw meten (automatische stand) loopt
 // #563: welk commando (Herstarten of Afsluiten) wacht na een mislukte save op een keuze van de speler
 let closeAction = null;
 const lastFocus = {};
@@ -743,6 +744,7 @@ function settingsHtml() {
       ${picker('worldColor', 'Wereldkleur', [['uit', 'Uit'], ['subtiel', 'Subtiel'], ['drukwerk', 'Drukwerk']], 'De kleuren van de wereld sluiten aan op het drukwerk van het spel; gevels, gras en straat na een herstart, licht en korrel meteen')}
       <!-- De benchmark hoort bij de beeldinstellingen, niet verstopt onder "Meer opties": hij
            beantwoordt juist de vraag welke stand bij deze computer past (spelersfeedback 15-11). -->
+      <div class="m-li pm-row">${rowName('Automatisch kiezen', 'Meet een paar seconden hoe soepel Grunn hier loopt en kies de mooiste stand die 60 fps haalt')}<button type="button" class="m-bg" data-action="gfx-remeasure">Opnieuw meten</button></div>
       <div class="m-li pm-row">${rowName('Benchmark', 'Meet hoe soepel Grunn op deze computer draait en welke stand daarbij past (±1 min)')}<button type="button" class="m-bg" data-action="bench">Benchmark draaien</button></div>
       <div class="pm-confirm" data-bench-confirm hidden>
         <p data-bench-text></p>
@@ -2252,6 +2254,19 @@ function runAction(a) {
     if (!startNewSlot()) { status('Alle plekken zijn in gebruik. Verwijder eerst een opgeslagen spel om opnieuw te beginnen.'); return; }
     preventCloseSave(); // #584: this reload starts a new game, so the old world must not be saved over the fresh slot
     location.reload();
+  } else if (a === 'gfx-remeasure') {
+    // 23-11: het menu gaat even dicht (het menu over de wereld is geen maat), de wereld draait 3,5 s op Ultra en de beste stand die hier
+    // 60 fps haalt wordt gekozen; daarna gaat Instellingen > Beeld weer open met de uitkomst. Alleen voor dit spel, niets gedeeld.
+    if (remeasuring) return;
+    // voor de start (titel, eerste-startkaart) draait er nog geen wereld om te meten, en sluiten zou de start laten doorgaan
+    if (prestart || !started()) { menuMelding('Opnieuw meten kan zodra je in het spel bent.'); return; }
+    remeasuring = true;
+    setOpen(false);
+    measureAutoPreset({ ms: 3500 }).then((res) => {
+      remeasuring = false;
+      openPauseMenu('settings', { sub: 'video' });
+      menuMelding(res ? `Gekozen op basis van je pc: ${presetLabel(res.pick)}` : 'Meten lukte niet; je instellingen zijn niet veranderd.');
+    }, () => { remeasuring = false; });
   } else if (a === 'gpuinfo') {
     import('./gpudiag.js').then((G) => G.showTechInfo());
   } else if (a === 'gpu-help') {
@@ -2581,7 +2596,8 @@ function syncPresets(st) {
   const res = getBenchResult();
   for (const b of root.querySelectorAll('[data-preset-btn]')) b.setAttribute('aria-pressed', String(b.dataset.presetBtn === cur));
   const now = root.querySelector('[data-preset-now]');
-  now.textContent = cur ? '' : 'Eigen instellingen';
+  // 23-11: na de automatische keuze (eerste start of Opnieuw meten) staat erbij dat de stand bij deze pc hoort, zolang hij niet is veranderd
+  now.textContent = cur ? autoGfxNote(st) : 'Eigen instellingen';
   // #893: onder de segmented control staat in één regel wat de gekozen stand doet
   const hint = root.querySelector('[data-preset-hint]');
   if (hint) hint.textContent = cur ? (PRESET_HINTS[cur] || '') : 'Je hebt zelf iets aangepast; kies een stand om terug te gaan naar een van de vier.';

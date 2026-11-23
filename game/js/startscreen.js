@@ -23,7 +23,8 @@ import { startTheme, stopTheme } from './theme.js';
 import { COW_LOADING } from './flavourlines.js';
 import { MENU_FRAME_S, getRenderer, streamPending } from './scene3d.js';
 import { makeMenuGate, GATE } from './menuready.js';
-import { isAdvisorSampling, startGfxAdvisor, classifyGpu, readGpu, presetFromSample, currentPreset, applyPreset, isDefaultGfx, readAdvice, writeAdvice, presetLabel } from './gfxprofile.js';
+import { isAdvisorSampling, startGfxAdvisor, applyPreset, isDefaultGfx, readAdvice, writeAdvice, presetLabel, measureAutoPreset, autoGfxValue } from './gfxprofile.js';
+import { setSetting } from './settings.js';
 import { ABOUT_HTML } from './credits.js';
 import { startLoadScreen } from './loadscreen.js';
 import { stepDurations, bootPlan, bootProgress, bootPhaseAt, bootCreepCap, BOOT_DONE_LABEL, easeBar } from './loadlogic.js';
@@ -476,45 +477,37 @@ function benchmarkFirstRun(opts, done) {
   bootStatusLocked = true;
   const status = document.querySelector('#loading .ld-status');
   if (status) status.textContent = 'Beeld instellen…';
-  let gpu = { tier: 'hoog' };
-  try { gpu = classifyGpu(readGpu(getRenderer().getContext())); } catch (e) { /* geen WebGL: standaard */ }
-  const times = [];
-  let last = 0, t0 = 0, finished = false, timer = 0;
-  const finish = ({ skip = false, persist = true } = {}) => {
+  // 23-11 (besluit eigenaar): de meting loopt op Ultra en kiest automatisch de beste stand die hier 60 fps haalt (gfxprofile.js
+  // measureAutoPreset, autoPresetFromSample); tot nu toe werd op de standaard (Hoog) gemeten en kon een sterke pc nooit Ultra krijgen
+  const ctl = new AbortController();
+  let finished = false, timer = 0, skipped = false, hiddenAbort = false;
+  const finish = (res) => {
     if (finished) return;
     finished = true;
     window.removeEventListener('keydown', onKey, true);
     clearTimeout(timer);
-    let pick = skip ? null : presetFromSample(gpu.tier, times, currentPreset());
-    // a visible machine too slow for ten samples still gets the lightest preset, not the default
-    if (!skip && !pick && times.length > 0 && times.length < 10) pick = 'laag';
-    if (pick) applyPreset(pick);
-    if (persist) writeAdvice(skip ? 'eerste-start:overgeslagen' : 'eerste-start:' + (pick || 'hoog'));
-    if (status) status.textContent = skip ? 'Klaar, Grunn staat te wachten' : `Beeld: ${presetLabel(pick || 'hoog')}`;
+    let pick = res ? res.pick : null;
+    // te traag voor tien beelden binnen de tijd (geen afbreken door de speler, geen verborgen venster): de lichtste stand, niet de standaard
+    if (!res && !skipped && !hiddenAbort) { pick = 'laag'; applyPreset(pick); setSetting('gfxAuto', autoGfxValue(pick)); }
+    // een verborgen venster is geen keuze: de deur voor een latere meting blijft open
+    if (!hiddenAbort) writeAdvice(skipped ? 'eerste-start:overgeslagen' : 'eerste-start:' + (pick || 'vlot'));
+    if (status) status.textContent = skipped || !pick ? 'Klaar, Grunn staat te wachten' : `Beeld: ${presetLabel(pick)} (gekozen op basis van je pc)`;
     done();
   };
   const onKey = (e) => {
-    if (e.key === 'Escape' || e.key === ' ') { e.preventDefault(); finish({ skip: true }); }
+    if (e.key === 'Escape' || e.key === ' ') { e.preventDefault(); skipped = true; ctl.abort(); }
   };
   window.addEventListener('keydown', onKey, true);
-  // a hidden or throttled tab must not keep the first start waiting; a hidden tab is not a
-  // choice, so it does not close the door for a later measurement
-  timer = setTimeout(() => {
-    if (document.hidden) finish({ skip: true, persist: false });
-    else finish();
-  }, FIRST_RUN_MS + 2500);
-  const step = (now) => {
-    if (finished) return;
-    if (!t0) t0 = now;
-    // skip the first half second: shader compilation and the first stream burst are not the game
-    if (last && now - t0 > 500) times.push(now - last);
-    last = now;
-    try { if (opts && opts.tick) opts.tick(0.016); } catch (e) { /* simulatie nog niet klaar */ }
-    try { if (opts && opts.render) opts.render(0.016, 0); } catch (e) { /* renderer nog niet klaar */ }
-    if (now - t0 < FIRST_RUN_MS || times.length < 10) requestAnimationFrame(step);
-    else finish();
-  };
-  requestAnimationFrame(step);
+  // a hidden or throttled tab must not keep the first start waiting
+  timer = setTimeout(() => { hiddenAbort = document.hidden; ctl.abort(); }, FIRST_RUN_MS + 3500);
+  measureAutoPreset({
+    ms: FIRST_RUN_MS,
+    signal: ctl.signal,
+    render: () => {
+      try { if (opts && opts.tick) opts.tick(0.016); } catch (e) { /* simulatie nog niet klaar */ }
+      if (opts && opts.render) opts.render(0.016, 0);
+    },
+  }).then(finish, () => finish(null));
 }
 
 // #581: the benchmark (--benchmark and the one from Instellingen > Beeld, which reloads into it)
@@ -607,7 +600,8 @@ function runBootScreen(world, opts, pending = null) {
     // #581: testruns start like the player: no menu, straight on to the world. A fresh profile
     // first gets a short graphics measurement; everything else starts at once. A benchmark that was
     // asked for (--benchmark, or Instellingen > Beeld via a reload) runs first, on this same world.
-    const firstRun = !save && !AUTO && !FLAGS.autoplay && !document.hidden && isDefaultGfx() && !readAdvice();
+    // --gfx-advice (FLAGS.gfxadvies): de automatische meting ook in een testrun (wegwerpprofiel), om hem in Electron te controleren
+    const firstRun = !save && (!AUTO || FLAGS.gfxadvies) && !FLAGS.autoplay && !document.hidden && isDefaultGfx() && !readAdvice();
     const begin = () => {
       if (firstRun) benchmarkFirstRun(opts, () => startNew());
       else if (save) continueGame(); else startNew();

@@ -20,6 +20,7 @@ import { TILE_M, GRID_X0, GRID_Y0, tileIndexOf } from './gdt.js';
 import { markInstancesDirty } from './util.js';
 import { gridItems } from './spatialgrid.js';
 import { createCalmGate } from './tilestream.js';
+import { dropStaleTiles } from './tilecache.js';
 const tilesCalmGate = createCalmGate(); // wacht ook op de achtergrondwachtrij van de tegelwereld, hoogstens twee seconden achter elkaar (#1052)
 import { EDGE_CLASSES, edgeColour, edgeHeight } from './edgeclasses.js';
 import { applyInteriorCut } from './interiorcut3d.js';
@@ -279,6 +280,12 @@ function rebuildBoards(boards) {
 
 // --- tiles ---------------------------------------------------------------------
 
+// 24-11 (profiel heli: furnitureForTile 4,4% van de hoofdthread): elke nieuwe of weggevallen kaarttegel gooide de HELE meubelcache weg, en
+// bij een vlucht of rit is dat om de paar seconden; alle tegels rond de speler werden dan opnieuw uitgerekend. Een meubeltegel hangt alleen af
+// van de kaart binnen STALE_REACH_M (wegen tot 220 m van het midden, water en gebouwen tot 60 m, plus de halve tegel): alleen die tegels gaan
+// weg (tilecache.js). Zonder log (of als de log niet ver genoeg teruggaat) alles, zoals voorheen.
+const STALE_REACH_M = 300;
+
 function tileItems(i, j) {
   // #314 C2: komt er een tegel bij of gaat die weg (map.geoVer), dan is de cache oud.
   // Tijdens een reeks streamende tegels (of de opening, die van plek naar plek springt)
@@ -286,7 +293,7 @@ function tileItems(i, j) {
   // even staan en er valt geen halve seconde per tegel in het spel (#4).
   if (map && map.geoVer !== tilesGeoVer) {
     const tilesCalm = tilesCalmGate(map);
-    if (tilesCalm) { tiles.clear(); tilesGeoVer = map.geoVer; }
+    if (tilesCalm) { dropStaleTiles(tiles, map.geoLog, tilesGeoVer, STALE_REACH_M); tilesGeoVer = map.geoVer; }
   }
   const key = `${i},${j}`;
   let t = tiles.get(key);

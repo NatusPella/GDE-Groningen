@@ -1,6 +1,7 @@
 // De benchmark wacht op "world settled" (game/js/benchsettle.js).  node scripts/benchsettle_test.mjs
 import fs from 'node:fs';
-import { createSettle, settleTick, SETTLE } from '../game/js/benchsettle.js';
+import { createSettle, settleTick, SETTLE, queueNear } from '../game/js/benchsettle.js';
+import { tileOrigin, TILE_M } from '../game/js/gdt.js';
 let n = 0, fails = 0;
 const ok = (c, name) => { n++; if (!c) { fails++; console.log(`FAIL ${name}`); } };
 const rust = { tilesMissing: 0, prewarmPending: 0, buildings: 0, roads: 0, queue: 0 };
@@ -43,7 +44,16 @@ for (const [naam, q] of [['tegels', { ...rust, tilesMissing: 3 }], ['tegelwachtr
 }
 // de bedrading: trailer.js wacht in de benchmark op deze poort voordat de klok start, voor elke stand
 const tr = fs.readFileSync(new URL('../game/js/trailer.js', import.meta.url), 'utf8');
-ok(/import \{ createSettle, settleTick \} from '\.\/benchsettle\.js'/.test(tr), 'trailer.js gebruikt benchsettle');
+ok(tr.includes("import { createSettle, settleTick, queueNear } from './benchsettle.js'"), 'trailer.js gebruikt benchsettle');
+// queueNear (24-11): alleen tegelstappen rond de plek tellen, niet de hele tegelrij
+{
+  const [cx, cy] = tileOrigin(3, 4);
+  const f = { x: cx + TILE_M / 2, y: cy + TILE_M / 2 };
+  const items = [{ label: 'add:3,4' }, { label: 'add:o3,5' }, { label: 'add:9,9' }, { label: 'drop:3,4' }, { label: '' }, {}, { label: 'add:kapot' }];
+  ok(queueNear(items, f, 400) === 2, 'queueNear: de eigen tegel en de buur, niet de verre tegel, de drop of een kapot label');
+  ok(queueNear(items, f, 20000) === 3, 'queueNear: met een enorme straal ook de verre tegel');
+  ok(queueNear(null, f, 400) === 0 && queueNear(items, null, 400) === 0, 'queueNear: zonder rij of plek nul');
+}
 ok(/mode === 'benchmark'[\s\S]{0,2500}settleTick\(/.test(tr), 'de warm-up van een benchmark gebruikt de settled-poort');
 if (fails) { console.log(`${fails} van ${n} mislukt`); process.exit(1); }
 console.log(`benchsettle_test: ${n} gecontroleerd, alles goed`);

@@ -110,7 +110,7 @@ import { glassMaterial } from './interiorglass.js';
 import { detailMaterial } from './models3d_buildings.js';
 import { streamLead } from './streambudget.js';
 import { fadeBand, loadRadius } from './popinrules.js';
-import { VIEW_DISTANCES, viewDistanceFor, detailDistanceFor, DETAIL_BASE } from './viewdist.js';
+import { VIEW_DISTANCES, viewDistanceFor, detailDistanceFor, fogRange, DETAIL_BASE } from './viewdist.js';
 import { glanceAt, shareFeet } from './gait.js';
 import { NEAR_MIN, cameraNearTarget, stepNear, parseNearFlag, parseFarFlag } from './cameranear.js';
 import { compareOpaque } from './drawpool.js';
@@ -1097,8 +1097,9 @@ function applyViewDistance(st) {
   viewDist = Math.round(viewDistanceFor(st.drawDistance, dynamicScale(), cpuLevel()) * gpuRamp()); // gpuherstel.js: na contextverlies groeit de afstand terug
   DRAW_DIST = detailDistanceFor(st.quality, viewDist, cpuLevel());
   cam.far = parseFarFlag(FLAGS.far) ?? Math.max(DRAW_DIST * 1.4, viewDist * 1.4, landmarkDist() * 1.1); // ?far=<m>: testvlag (#917)
-  lightBase.fogNear = DRAW_DIST * 0.45 + (viewDist - 150) * 0.25;
-  lightBase.fogFar = viewDist * 1.02;
+  const fog = fogRange(viewDist, DRAW_DIST);
+  lightBase.fogNear = fog.near;
+  lightBase.fogFar = fog.far;
 }
 
 function renderPixelRatio(st, preset) {
@@ -1651,7 +1652,7 @@ const _bSeen = new Set(), _bMissing = []; function syncBuildingsPass(world, px, 
   // wat de speler tegemoet rijdt eerst (#247); bij stilstand is de rang de afstand
   missing.sort((a, b) => a[3] - b[3]);
   const bt0 = performance.now();
-  const deadline = bt0 + plan.grant('building', bt0 < streamBoostUntil ? BUILDING_BUILD_BOOST_MS : BUILDING_BUILD_MS);
+  const deadline = bt0 + plan.grant('building', jumpLoading ? BUILDING_BUILD_BOOST_MS * 2 : bt0 < streamBoostUntil ? BUILDING_BUILD_BOOST_MS : BUILDING_BUILD_MS);
   let built = 0;
   let nearBuilt = 0;
   for (const m of missing) {
@@ -1835,6 +1836,9 @@ const BUILDING_BUILD_BOOST_MS = 9;
 const ROAD_BUILD_MS = 2.5;
 const STREAM_JUMP = 60;
 let streamBoostUntil = 0;
+// 24-11: onder het zwart van een wachtpoort (world.cineJumpLoading: cutscenesprong, de benchmark tussen twee shots) wordt niet getekend; gebouwen
+// en wegen mogen dan het dubbele (wegen: viervoudige) budget en aantal vragen, zodat de poort niet op 'detail' of 'wegen' volloopt
+let jumpLoading = false;
 // what still waits to be built round the player (the load screen's progress)
 const streamStat = { b: 0, r: 0 };
 export function streamPending() { return { buildings: streamStat.b, roads: streamStat.r, ahead: performance.now() < streamBoostUntil }; }
@@ -2184,9 +2188,9 @@ function syncRoads(world, px, py) {
   if (missing.length) {
     missing.sort((a, b) => a[0] - b[0]);
     const t0 = performance.now();
-    const boosted = t0 < streamBoostUntil;
-    const deadline = t0 + plan.grant('road', boosted ? ROAD_BUILD_MS * 2 : ROAD_BUILD_MS);
-    const cap = boosted ? ROAD_BUILD_MAX_PER_FRAME * 2 : ROAD_BUILD_MAX_PER_FRAME;
+    const boosted = jumpLoading || t0 < streamBoostUntil;
+    const deadline = t0 + plan.grant('road', jumpLoading ? ROAD_BUILD_MS * 4 : boosted ? ROAD_BUILD_MS * 2 : ROAD_BUILD_MS);
+    const cap = jumpLoading ? ROAD_BUILD_MAX_PER_FRAME * 4 : boosted ? ROAD_BUILD_MAX_PER_FRAME * 2 : ROAD_BUILD_MAX_PER_FRAME;
     let built = 0, waiting = false, deferred = false;
     for (const [, r, , near] of missing) {
       // surfaces still coming from the geometry worker: the far LOD covers
@@ -2631,6 +2635,7 @@ function syncSpeechBubbles(world) {
 export function update3D(dt, world) {
   // animations freeze with gameplay (pause, cutscenes); the camera keeps using dt
   const animDt = world.paused ? 0 : dt;
+  jumpLoading = !!world.cineJumpLoading && !perfOff('poortbudget');
   const player = hoofdspeler(world);
   const focus = updateStreamFocus(world);
 
@@ -3463,6 +3468,15 @@ function skipHiddenMatrixWalk() {
     const c = kids[i];
     if (c.isLight || c.isCamera) continue;
     c.matrixWorldAutoUpdate = c.visible;
+    // 24-11: ook één laag dieper. Een zichtbare groep met verborgen kinderen (de rekwisieten van de trailer en de benchmark, de eierballen,
+    // de flavour-props: ~700 van ~2600 knopen met matrixAutoUpdate in de census) liep elk frame mee. Alleen wat wij zelf uitzetten zetten we
+    // weer aan, zodat een bewust vastgezette knoop (freezeStatic, de terreintegels) vast blijft.
+    if (!c.visible || perfOff('verborgenkinderen')) continue;
+    const ks = c.children;
+    for (let j = 0; j < ks.length; j++) {
+      const k = ks[j];
+      if (!k.visible) { if (k.matrixWorldAutoUpdate) { k.matrixWorldAutoUpdate = false; k._hidWalk = true; } } else if (k._hidWalk) { k.matrixWorldAutoUpdate = true; k._hidWalk = false; }
+    }
   }
   // the terrain's ~500 tile meshes are final (freezeStatic): no walk through them either
   if (terrainMesh && !perfOff('terreinvast')) terrainMesh.matrixWorldAutoUpdate = false;
@@ -3653,8 +3667,8 @@ function guardRay(ox, oy, oz, dx, dy, dz, far, targets) {
   camRaycaster.set(camRayOrigin, camRayDir);
   camRaycaster.near = 0.05;
   camRaycaster.far = far;
-  const hits = camRaycaster.intersectObjects(targets, true);
-  return hits.length ? hits[0].distance : null;
+  // dezelfde afstand als camRaycaster.intersectObjects(targets, true)[0], maar alleen de driehoeken waar de straal door een chunk-box gaat (camNearestHit)
+  return camNearestHit(targets);
 }
 const GUARD_SAMPLES = [[0, 0]]; // only the camera point: walls beside it are handled by the push rays
 function roofTopNear(map, x, y) {
@@ -3684,7 +3698,8 @@ function guardCinematicCamera(dt, world) {
   guardLift += (need - guardLift) * Math.min(1, dt * (need > guardLift ? 10 : 1.5));
   if (guardLift > 0.01) cam.position.y += guardLift;
   const targets = guardTargets();
-  if (targets.length) {
+  // de duwstralen (CAM_CLEARANCE lang) raken niets als de camera buiten elke gebouwvoetafdruk plus marge hangt (vlucht, boot): dan geen enkele straal (zoals updateCamera)
+  if (targets.length && (!camTargetsBounded || camPushRaysNeeded(camTargetBounds, camTargetBounds.length, cam.position.x, cam.position.z, CAM_CLEARANCE + 1))) {
     for (const [ax, ay, az] of CAM_PUSH_DIRS) {
       const h = guardRay(cam.position.x, cam.position.y, cam.position.z, ax, ay, az, CAM_CLEARANCE, targets);
       if (h === null) continue;

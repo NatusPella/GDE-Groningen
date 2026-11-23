@@ -98,7 +98,7 @@ function attach(win, { gameDir }) {
     win.webContents.once('did-navigate', () => runHeapProfile(win, Number(argValue('--heapprof-load')) || 60000, true).catch((err) => console.log('[heapprof]', err.message)));
   }
   // --benchmark --profile: a CPU profile of 30 s of the first run
-  if (BENCH && hasFlag('--profile')) win.webContents.once('did-finish-load', () => setTimeout(() => runProfile(win, 30000), 25000));
+  if (BENCH && hasFlag('--profile')) win.webContents.once('did-finish-load', () => setTimeout(() => runProfile(win, Number(process.env.GDE_PROFILE_MS) || 30000), Number(process.env.GDE_PROFILE_AT) || 25000));
   if (BENCH || TRAILER || argValue('--bench-eval')) {
     win.webContents.on('console-message', (e, legacyLevel, legacyMessage) => {
       const message = String(e.message !== undefined ? e.message : legacyMessage);

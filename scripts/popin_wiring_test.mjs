@@ -14,7 +14,7 @@ let n = 0;
 const ok = (c, m) => { assert.ok(c, m); n++; };
 
 // 1. de statische no-undef-controle op de geraakte bestanden (zelfde als scripts/undef_check.mjs)
-const files = ['game/js/scene3d.js', 'game/js/grass.js', 'game/js/edgefade3d.js', 'game/js/popinrules.js'];
+const files = ['game/js/scene3d.js', 'game/js/grass.js', 'game/js/edgefade3d.js', 'game/js/popinrules.js', 'game/js/trailer.js'];
 const r = spawnSync(process.execPath, [path.join(ROOT, 'scripts', 'undef_check.mjs'), ...files.map((f) => path.join(ROOT, f))], { encoding: 'utf8' });
 ok(r.status === 0, `undef_check op de pop-in-bestanden: ${(r.stdout + r.stderr).trim().slice(0, 400)}`);
 
@@ -29,5 +29,11 @@ for (const [name, from] of [['applyEdgeFade', './edgefade3d.js'], ['edgeFadeClon
 
 // 3. de omvangsgrens van scene3d.js (#497) blijft gehaald
 ok(scene.split(/\r?\n/).length - (/\n$/.test(scene) ? 1 : 0) < 4500, 'scene3d.js blijft onder 4500 regels');
+
+// 4. de benchmark begint elke shot op een geladen plek (24-11): de poort onder zwart met het laadbudget, zonder meting van de wachttijd
+const trailer = read('game/js/trailer.js');
+ok(trailer.includes('const benchGate = (now, dt) =>') && trailer.includes('benchGate(now, dt)'), 'trailer.js: benchGate bestaat en wordt in de lus gebruikt');
+ok(trailer.includes('cineJumpLoading = true') && trailer.includes('cineJumpLoading = false'), 'trailer.js: de poort zet het laadbudget aan en weer uit');
+ok(trailer.includes('!r.gate && st / k > benchMeasureAfter'), 'trailer.js: tijdens de poort worden geen frametijden gemeten');
 
 console.log(`popin_wiring_test: ${n} controles groen`);

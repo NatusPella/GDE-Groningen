@@ -1229,7 +1229,10 @@ try { const slot = ensureLatestSlot(); const info = slot ? readSaveInfo() : null
       // queue itself stays sorted on the driving direction.
       const opts = tf.opts || {};
       if (opts.vx === undefined) noteStreamWorldPart(streamBudget, performance.now());
-      const tegelMs = cine ? 0.4 : planner.grant('tile', 3);
+      // 24-11: onder het zwart van een wachtpoort (cutscenewarm.js, de benchmark tussen twee shots) was dit ook 0,4 ms (cine): de tegelrij liep
+      // dan in een tiental frames niet leeg en de poort wachtte op niets; nu krijgt de rij daar het laadbudget
+      const wachtpoort = !!world.cineJumpLoading;
+      const tegelMs = cine && !wachtpoort ? 0.4 : planner.grant('tile', wachtpoort ? 12 : 3);
       const tegelT0 = performance.now();
       world.map.follow(tf.x, tf.y, tf.opts, tegelMs);
       planner.spend('tile', performance.now() - tegelT0);

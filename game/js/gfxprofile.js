@@ -10,16 +10,16 @@ import { frameWorkMs } from './framecap.js';
 export const GFX_PRESETS = {
   laag: { quality: 'laag', shadows: false, drawDistance: 'kort', resolution: 0.75, autoResolution: true },
   middel: { quality: 'middel', shadows: true, drawDistance: 'normaal', resolution: 1, autoResolution: true },
-  // Hoog's look with the view distance of Laag: no far LOD, no far terrain and countryside, ~400 draw calls fewer per frame
-  // in the city. On the RTX 3060 test machine 4 to 5 ms less CPU time per frame than Hoog (docs/PERF-METING-2026-10-19.md Vervolg 8): the 60 fps preset.
-  vlot: { quality: 'hoog', shadows: true, drawDistance: 'kort', resolution: 1, autoResolution: true },
+  // Hoog (sleutel 'vlot'): Ultra's look with a wide view of 600 m instead of 900 m (far LOD, far terrain and countryside, soft haze), so
+  // fewer far tiles and draw calls than Ultra. Until 24-11 this was 'kort' (150 m, a haze wall at 63 to 153 m).
+  vlot: { quality: 'hoog', shadows: true, drawDistance: 'ver', resolution: 1, autoResolution: true },
   hoog: { quality: 'hoog', shadows: true, drawDistance: 'heelver', resolution: 1, autoResolution: true },
 };
 export const PRESET_ORDER = ['laag', 'middel', 'vlot', 'hoog'];
 // #893: één heldere reeks van licht naar zwaar. De sleutels blijven zoals ze zijn (bestaande
 // instellingen, de benchmark en ?preset= verwijzen ernaar), maar de namen die de speler ziet
-// lopen op: Laag, Midden, Hoog, Ultra. 'vlot' is de 60fps-stand met de look van de zwaarste
-// stand en de zichtafstand van Laag; daarom heet die Hoog, en de zwaarste heet Ultra.
+// lopen op: Laag, Midden, Hoog, Ultra. 'vlot' is de soepele stand met de look van de zwaarste
+// stand en een ruime (maar kortere) zichtafstand; daarom heet die Hoog, en de zwaarste heet Ultra.
 // "Gemiddeld" en "Vlot" klonken als twee losse maten naast Laag en Hoog, terwijl het er vier
 // op één lijn zijn.
 const LABELS = { laag: 'Laag', middel: 'Midden', vlot: 'Hoog', hoog: 'Ultra' };
@@ -29,7 +29,7 @@ export const presetLabel = (name) => LABELS[name] || name;
 export const PRESET_HINTS = {
   laag: 'Lichtste stand: minder detail, korte zichtafstand, schaduwen uit',
   middel: 'Middenweg: schaduwen aan, normale zichtafstand, 1,5x resolutie',
-  vlot: 'De look van Ultra met een korte zichtafstand: soepel op een laptop',
+  vlot: 'De look van Ultra met een ruime zichtafstand en zachte mist: soepel op een sterke laptop',
   hoog: 'Alles op zijn mooist: verste zichtafstand en de grootste schaduwkaart',
 };
 
@@ -64,7 +64,7 @@ export function currentPreset(st = getSettings()) {
   return PRESET_ORDER.find((n) => Object.entries(GFX_PRESETS[n]).every(([k, v]) => st[k] === v)) || null;
 }
 
-// The out-of-the-box graphics: de preset Vlot (Hoog's look met de korte zichtafstand),
+// The out-of-the-box graphics: de preset Vlot (Hoog: Ultra's look met een ruime zichtafstand van 600 m),
 // zodat een eerste start op een iGPU-laptop speelbaar blijft.
 const GFX_DEFAULT = { ...GFX_PRESETS.vlot };
 export const isDefaultGfx = (st = getSettings()) => Object.entries(GFX_DEFAULT).every(([k, v]) => st[k] === v);
@@ -192,6 +192,80 @@ export function presetFromSample(gpuTier, times, current) {
   if (!Array.isArray(times) || times.length < 10) return null;
   const sorted = [...times].sort((a, b) => a - b);
   return adviseFromSample(gpuTier, sorted[sorted.length >> 1], current || 'hoog');
+}
+
+// --- automatic choice on the first start (besluit eigenaar 23-11) ---------
+// A new player gets the best preset that runs at 60 fps on this computer, without a question. The measurement runs on ULTRA (preset
+// 'hoog'): the frame interval at 60 Hz only shows how much is left over when the heaviest setting is drawn, so measuring the default
+// (Hoog) could never reach Ultra. The steps have a margin: Ultra needs a median under 17.5 ms (60 fps plus vsync jitter) AND a 90th
+// percentile under 22 ms (not too many dropped frames); each lighter preset takes over where the one above misses. The GPU's own tier
+// caps the pick (a basic iGPU that happened to draw a quiet frame does not get Ultra).
+export const AUTO_GFX_VERSION = 1;
+export const AUTO_GFX = { ultraMedianMs: 17.5, ultraP90Ms: 22, hoogMedianMs: 22, middelMedianMs: 30, minFrames: 10 };
+// Pure: frame intervals (ms) measured on Ultra -> the preset to use; null without a measurement (fewer than minFrames frames).
+export function autoPresetFromSample(gpuTier, times, p = AUTO_GFX) {
+  const v = Array.isArray(times) ? times.filter((x) => Number.isFinite(x) && x > 0) : [];
+  if (v.length < p.minFrames) return v.length ? 'laag' : null; // a visible machine too slow for ten frames gets the lightest preset
+  const s = [...v].sort((a, b) => a - b);
+  const median = s[s.length >> 1], p90 = s[Math.min(s.length - 1, Math.floor(s.length * 0.9))];
+  const measured = median <= p.ultraMedianMs && p90 <= p.ultraP90Ms ? 'hoog' : median <= p.hoogMedianMs ? 'vlot' : median <= p.middelMedianMs ? 'middel' : 'laag';
+  let pick = lower(gpuTier || 'hoog', measured);
+  // a weak GPU that still renders Ultra smoothly here only drops to Midden, not further
+  if (measured === 'hoog' && pick === 'laag') pick = 'middel';
+  return pick;
+}
+// What the settings remember (gde-settings, key gfxAuto): '<version>:<preset>', or '' when the player never had an automatic choice.
+export const autoGfxValue = (preset) => `${AUTO_GFX_VERSION}:${preset}`;
+export function parseAutoGfx(v) {
+  const m = /^(\d+):([a-z]+)$/.exec(typeof v === 'string' ? v : '');
+  return m && GFX_PRESETS[m[2]] ? { version: Number(m[1]), preset: m[2] } : null;
+}
+// The line in Instellingen > Beeld: only while the current settings are still the preset that was chosen automatically.
+export function autoGfxNote(st = getSettings()) {
+  const a = parseAutoGfx(st.gfxAuto);
+  return a && currentPreset(st) === a.preset ? `Gekozen op basis van je pc: ${presetLabel(a.preset)}` : '';
+}
+
+// Measures `ms` of real frames on Ultra and applies the pick. render(): draws a frame when the caller drives the loop itself (the boot
+// screen); in a running game the game loop draws and this only listens to the frame times. Resolves with { pick, median, frames } or null
+// (aborted: the old settings are back). The first FIRST_SKIP_MS (shaders, the first stream burst of the longer view) are not counted.
+const AUTO_SKIP_MS = 500;
+export function measureAutoPreset({ ms = 3500, render = null, signal = null } = {}) {
+  const before = { ...getSettings() };
+  let gpu = { tier: 'hoog' };
+  try { gpu = classifyGpu(readGpu(window.__scene3d && window.__scene3d.renderer ? window.__scene3d.renderer.getContext() : null)); } catch (e) { /* geen WebGL: standaard */ }
+  applyPreset('hoog');
+  return new Promise((resolve) => {
+    const times = [];
+    let last = 0, t0 = 0, done = false;
+    const finish = (aborted) => {
+      if (done) return;
+      done = true;
+      if (aborted) {
+        for (const k of Object.keys(GFX_PRESETS.hoog)) setSetting(k, before[k]);
+        resolve(null);
+        return;
+      }
+      const pick = autoPresetFromSample(gpu.tier, times) || 'vlot';
+      applyPreset(pick);
+      setSetting('gfxAuto', autoGfxValue(pick));
+      const s = [...times].sort((a, b) => a - b);
+      resolve({ pick, median: s.length ? +s[s.length >> 1].toFixed(1) : null, frames: times.length, gpu: gpu.tier });
+    };
+    const step = (now) => {
+      if (done) return;
+      if (signal && signal.aborted) { finish(true); return; }
+      if (typeof document !== 'undefined' && document.hidden) { last = 0; requestAnimationFrame(step); return; }
+      if (!t0) t0 = now;
+      if (last && now - t0 > AUTO_SKIP_MS) times.push(now - last);
+      last = now;
+      if (render) { try { render(); } catch (e) { /* renderer nog niet klaar */ } }
+      if (now - t0 < ms + AUTO_SKIP_MS || times.length < AUTO_GFX.minFrames) requestAnimationFrame(step);
+      else finish(false);
+    };
+    if (signal) signal.onabort = () => finish(true);
+    requestAnimationFrame(step);
+  });
 }
 
 // --- first-run advice ----------------------------------------------------
