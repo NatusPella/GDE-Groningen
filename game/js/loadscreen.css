@@ -52,7 +52,7 @@
 #load-screen .ls-bottom { flex: 0 0 auto; box-sizing: border-box; padding-right: 6px; }
 #load-screen .ls-prog { width: 100%; display: flex; flex-direction: column; gap: 0.55em; }
 /* hertest 1002: de statusregel was te klein; op een groot scherm groeit hij tot 1,2 keer de stagetekst, op 720p bij ui 1,5 blijft de zone gelijk */
-#load-screen .ls-step { font: 600 max(13px, min(1.2em, calc(var(--ls-h) * 0.03)))/1.3 var(--ds-font-zeef-tekst); color: var(--ds-c-ink-inkt); min-height: 2.6em; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; overflow: hidden; }
+#load-screen .ls-step { font: 600 1em/1.3 var(--ds-font-zeef-tekst); font-size: max(13px, min(1.2em, calc(var(--ls-h) * 0.03))); color: var(--ds-c-ink-inkt); min-height: 2.6em; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; overflow: hidden; }
 @keyframes ls-line-in { from { opacity: 0; transform: translateY(4px); } }
 #load-screen .ls-bar { width: 100%; height: 1.2em; min-height: 18px; box-sizing: border-box; border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); background-color: var(--ds-c-ink-papier); background-image: var(--ds-raster); background-size: var(--ds-raster-maat); box-shadow: var(--ds-schaduw-hard); overflow: hidden; }
 #load-screen .ls-bar i { display: block; height: 100%; box-sizing: border-box; border-right: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); transform-origin: left; transform: scaleX(0.04); background: var(--ds-c-ink-bord); transition: transform 0.1s linear; }
