@@ -175,7 +175,8 @@ const ACT_KEUKEN = {
     { t: 'L0+4.0', shot: 'dolly', from: [0.2, -0.9, 1.6], to: [-0.1, -0.7, 1.45], look: [-0.5, 0, 0.85], fov: 36 },
     { t: 'L1', shot: 'cut', at: [-1.5, -0.7, 1.3], look: [-2.05, 0.62, 1.08], fov: 36 },
     { t: 'L2-3.8', shot: 'dolly', from: [-0.8, -1.2, 1.7], to: [-0.2, -1, 1.6], look: [1.3, 1.7, 1.2], fov: 44 },
-    { t: 'L2-1.6', shot: 'dolly', from: [-0.6, -0.8, 1.55], to: [-0.2, -0.5, 1.4], look: 'tammo@1.3', fov: 40 },
+    // 23-11 (video-QA 0:18): op 'Moi. De bank?' keek de camera laag en dichtbij naar zijn borst (tammo@1.3): hoofd uit beeld. Nu op ooghoogte, iets verder weg
+    { t: 'L2-1.6', shot: 'dolly', from: [-0.8, -1.0, 1.62], to: [-0.45, -0.7, 1.58], look: 'tammo@1.62', fov: 40 },
     { t: 'L2+0.9', shot: 'cut', at: [-0.3, -1.1, 1.5], look: 'mid:tammo,tessa@1.2', fov: 38 },
     { t: 'L3', shot: 'cut', at: [0.3, 0.5, 1.4], look: 'tessa@1.15', fov: 28 },
     { t: 'L3+2.4', shot: 'cut', at: [0.2, 0.65, 1.4], look: 'tessa@1.2', fov: 34 },

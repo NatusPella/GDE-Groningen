@@ -33,6 +33,8 @@ import { handheldOffset } from './a11ylogic.js';
 import { reducedMotion } from './motion.js';
 import { getSettings } from './settings.js';
 import { failSceneMode } from './missioncheckpoint.js';
+import { deckPlan } from './boatdeck.js';
+import { DECOR_MAKERS, GLASS, shadowDisc } from './storyprops.js';
 
 // Story cutscenes around the mission chain: who asks and why (start), the
 // payoff (success) and a short sting (fail). Tammo and Tessa's relationship
@@ -577,12 +579,20 @@ const SKUTSJE_DECK = WATER_Y + 0.72;
 // Where two people can stand on board: the tour boat's open foredeck, in front
 // of its glass canopy (anywhere under it their heads go through the roof), on
 // its floor (0.14 above the water); other boats amidships.
-function boatStage(v) {
+// `stand`: staand op het open voordek (de kus, het dekmoment); anders praat het paar op de bank onder het dak (boatdeck.js).
+// De gesprekken (intro, outro, herhaling, mislukt) zitten op de bank: facing = naar de boeg, `bench` = het paar zit (quickScene 'bench').
+// `quick` = de soort quickScene: 'bench' (rondvaart), 'seats' (een romp te smal om op te staan: kano, kajak, SUP, roeiboot) of true (staand).
+function boatStage(v, stand = false) {
+  const plan = v.model ? deckPlan(v.model) : { mode: 'stand', floor: 0.45 };
   if (v.model && v.model.kind === 'rondvaart') {
-    const x = v.model.len / 2 - 1.0;
-    return { x: v.x + Math.cos(v.angle) * x, y: v.y + Math.sin(v.angle) * x, h: WATER_Y + 0.16 };
+    if (plan.mode === 'bench' && !stand) {
+      return { x: v.x + Math.cos(v.angle) * plan.x, y: v.y + Math.sin(v.angle) * plan.x, h: WATER_Y + plan.floor + 0.02, facing: v.angle, bench: true, quick: 'bench', plan };
+    }
+    const x = v.model.len / 2 - 0.7; // net voor het dak (CANOPY.front 1,35 m): het hoofd past er niet onder
+    return { x: v.x + Math.cos(v.angle) * x, y: v.y + Math.sin(v.angle) * x, h: WATER_Y + plan.floor + 0.02, facing: v.angle + Math.PI / 2, bench: false, quick: true, plan };
   }
-  return { x: v.x, y: v.y, h: DECK_H };
+  if (plan.mode === 'seats' && !stand) return { x: v.x, y: v.y, h: WATER_Y + plan.floor, facing: v.angle, bench: true, quick: 'seats', plan };
+  return { x: v.x, y: v.y, h: DECK_H, facing: v.angle + Math.PI / 2, bench: false, quick: true, plan };
 }
 const SWIM_H = WATER_Y - 1.25;
 const lerp = (a, b, t) => a + (b - a) * t;
@@ -596,13 +606,10 @@ function lineDur(text) {
 
 // --- actors -------------------------------------------------------------------
 
-const SHADOW_GEO = new THREE.CircleGeometry(0.42, 16).rotateX(-Math.PI / 2);
-const SHADOW_MAT = new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.35, depthWrite: false });
-
 function makeActor(app) {
   const m = buildPersonMesh(app.shirt, app.skin, app);
   m.traverse((o) => { if (o.isMesh) o.castShadow = true; });
-  const sh = new THREE.Mesh(SHADOW_GEO, SHADOW_MAT);
+  const sh = shadowDisc(); // de gedeelde schaduwvlek (storyprops.js)
   sh.position.y = 0.03;
   m.add(sh);
   m.userData.blob = sh;
@@ -770,8 +777,6 @@ function limoFits(w, x, y, a) {
   return true;
 }
 
-const BALL_GEO = new THREE.SphereGeometry(0.12, 14, 10);
-const BALL_GOLD = new THREE.MeshStandardMaterial({ color: 0xf2c14e, metalness: 0.9, roughness: 0.28, emissive: 0x3a2804 });
 
 function makeProp(r, p, anchor) {
   const w = r.w, f = r.f, n = r.n;
@@ -793,17 +798,7 @@ function makeProp(r, p, anchor) {
     // H2: the cash machine Durk & Douwe pulled out of the wall, on its side on the trailer
     const [fw, sd] = spec.at || [3, 2];
     const x = anchor.x + f.x * fw + n.x * sd, y = anchor.y + f.y * fw + n.y * sd;
-    const m = new THREE.Group();
-    const body = new THREE.Mesh(new THREE.BoxGeometry(0.7, 1.6, 0.6), new THREE.MeshStandardMaterial({ color: 0x9aa0a6, roughness: 0.5, metalness: 0.4 }));
-    body.position.y = 0.8;
-    const screen = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.28, 0.02), new THREE.MeshStandardMaterial({ color: 0x1e9e56, emissive: 0x0c4a28 }));
-    screen.position.set(0, 1.15, 0.31);
-    const trailer = new THREE.Mesh(new THREE.BoxGeometry(2.2, 0.25, 1.4), new THREE.MeshStandardMaterial({ color: 0x3a3a3a, roughness: 0.8 }));
-    trailer.position.y = 0.35;
-    body.position.y += 0.47;
-    screen.position.y += 0.47;
-    m.add(trailer, body, screen);
-    m.traverse((o) => { if (o.isMesh) o.castShadow = true; });
+    const m = DECOR_MAKERS.pinautomaat(); // het register (storyprops.js): kast, scherm, toetsen, aanhanger met wielen
     m.position.set(x, r.h, y);
     m.rotation.y = -(Math.atan2(f.y, f.x) + 0.4);
     return { kind: 'atm', mesh: m, x, y, own: true };
@@ -842,9 +837,10 @@ function makeProp(r, p, anchor) {
   if (spec.kind === 'ball') {
     const holder = r.extras.find((e) => e.key === spec.holder) || (spec.holder === 'N' && r.npc ? { mesh: r.npc } : null) || (spec.holder === 'T' ? { mesh: r.tammo } : spec.holder === 'A' ? { mesh: r.anita } : null);
     if (!holder) return null;
-    const m = new THREE.Mesh(BALL_GEO, spec.material || BALL_GOLD);
-    m.castShadow = true;
-    m.position.set(0.03, -0.3, 0);
+    // de gouden bal uit het register (storyprops.js goudbal, oorsprong op de grond: 0,12 m lager dan het midden)
+    const m = DECOR_MAKERS.goudbal();
+    if (spec.material) m.traverse((q) => { if (q.isMesh) q.material = spec.material; });
+    m.position.set(0.03, -0.42, 0);
     holder.mesh.userData.elbowR.add(m);
     // from: it only shows once a line starting with this has begun ("Hier is hij")
     const o = { kind: 'ball', mesh: m, attached: true, holder: spec.holder, shown: !spec.from };
@@ -861,8 +857,6 @@ function makeProp(r, p, anchor) {
 
 // Durk & Douwe's one fatbike: Durk pedals, Douwe stands on the rack, the
 // whole thing wobbles. The bike's own rider is hidden.
-const CAN_GEO = new THREE.BoxGeometry(0.22, 0.3, 0.14);
-const CAN_MAT = new THREE.MeshLambertMaterial({ color: 0xd8b01a });
 function fatbikeMesh() {
   const g = buildVehicleMesh({ id: 'cine-fatbike', isBike: true, model: { name: 'bike', fat: true, color: '#1b1b1b', rider: 0xc8102e, len: 1.9, wid: 0.6 } });
   for (const c of g.children) if (c.userData && c.userData.pelvis) c.visible = false;
@@ -873,8 +867,8 @@ function fatbikeMesh() {
 function addCans(mesh, n = 2) {
   const out = [];
   for (let k = 0; k < n; k++) {
-    const c = new THREE.Mesh(CAN_GEO, CAN_MAT);
-    c.position.set(-0.55 - k * 0.24, 0.95 + (k % 2) * 0.32, 0);
+    const c = DECOR_MAKERS.jerrycan(); // oorsprong op de bodem: 0,15 m onder het oude midden
+    c.position.set(-0.55 - k * 0.24, 0.8 + (k % 2) * 0.32, 0);
     mesh.add(c);
     out.push(c);
   }
@@ -1436,7 +1430,7 @@ export function playStoryIntro(w, i, { stage = i, short = false, kicker = '', ti
   const onDeck = !!(v && v.isBoat);
   const deck = onDeck ? boatStage(v) : null;
   const anchor = onDeck ? { x: deck.x, y: deck.y } : onFootAnchor(w);
-  const facing = onDeck ? v.angle + Math.PI / 2 : facingTowards(w, anchor, target);
+  const facing = onDeck ? deck.facing : facingTowards(w, anchor, target);
   const full = !short && stage >= i && !onDeck;
   // the new story: staged with the direction language (cutscenes_akte1.js); a step without staging plays below
   if (full) {
@@ -1449,7 +1443,7 @@ export function playStoryIntro(w, i, { stage = i, short = false, kicker = '', ti
     const npcKey = onDeck || s.introNpc === false ? null : s.npc;
     const qlines = short ? [s.intro[s.ask]] : stageLines(i, stage, 'intro', s).filter((l) => !(l[0] === 'V' && w.introTold && w.introTold.includes(l[1])));
     const tlQ = timeline(qlines, npcKey ? NPC[npcKey] : null, short ? 0.4 : 0.6);
-    if (playStaged(w, null, tlQ, { anchor, facing, kicker, title, cardFor: short ? tlQ.total : 3.6, z: onDeck ? deck.h : 0, def: (ls) => quickScene(ls, { npc: npcKey ? { key: npcKey, look: NPC[npcKey] } : null, deck: onDeck }) })) return true;
+    if (playStaged(w, null, tlQ, { anchor, facing, kicker, title, cardFor: short ? tlQ.total : 3.6, z: onDeck ? deck.h : 0, def: (ls) => quickScene(ls, { npc: npcKey ? { key: npcKey, look: NPC[npcKey] } : null, deck: onDeck ? deck.quick : false, plan: onDeck ? deck.plan : null }) })) return true;
   }
   const r = buildRun(w, { npcKey: onDeck || s.introNpc === false ? null : s.npc, anchor, facing, h: onDeck ? deck.h : 0, extras: full ? s.introCast || [] : [], props: full ? s.introProps || [] : [] });
   if (!r) return false;
@@ -1524,11 +1518,11 @@ function outroNow(w, i, { stage = i, short = false, reward = 0, stats = [], reas
     const anchor0 = onBoat ? { x: deck.x, y: deck.y } : onFootAnchor(w);
     const npcKey = wantNpc && !onBoat ? outroKey : null;
     const tlQ = timeline(lines, npcKey ? NPC[npcKey] : null, short ? 0.3 : 0.5);
-    if (playStaged(w, null, tlQ, { anchor: anchor0, facing: onBoat ? v.angle + Math.PI / 2 : facingTowards(w, anchor0, null), banner, z: onBoat ? deck.h : 0, def: (ls) => quickScene(ls, { npc: npcKey ? { key: npcKey, look: NPC[npcKey] } : null, deck: onBoat }) })) return true;
+    if (playStaged(w, null, tlQ, { anchor: anchor0, facing: onBoat ? deck.facing : facingTowards(w, anchor0, null), banner, z: onBoat ? deck.h : 0, def: (ls) => quickScene(ls, { npc: npcKey ? { key: npcKey, look: NPC[npcKey] } : null, deck: onBoat ? deck.quick : false, plan: onBoat ? deck.plan : null }) })) return true;
   }
   if (v && v.isBoat) {
-    const deck = boatStage(v);
-    r = buildRun(w, { anchor: { x: deck.x, y: deck.y }, facing: v.angle + Math.PI / 2, kiss, h: deck.h });
+    const deck = boatStage(v, true); // de kus staat: op het open voordek, nooit onder het dak
+    r = buildRun(w, { anchor: { x: deck.x, y: deck.y }, facing: deck.facing, kiss, h: deck.h });
   } else {
     const anchor = onFootAnchor(w);
     r = buildRun(w, { npcKey: wantNpc ? outroKey : null, anchor, facing: facingTowards(w, anchor, null), kiss, extras: full ? s.outroCast || [] : [], props: full ? s.outroProps || [] : [] });
@@ -1555,7 +1549,13 @@ export function playStoryFail(w, i, { reason = '', stats = [] } = {}) {
   if (!s || run || failSceneMode(eerder) === 'banner') { showBanner(banner); return false; }
   const v = hoofdspeler(w).inVehicle;
   let r;
-  if (v && v.isBoat) { const deck = boatStage(v); r = buildRun(w, { anchor: { x: deck.x, y: deck.y }, facing: v.angle + Math.PI / 2, h: deck.h }); }
+  if (v && v.isBoat) {
+    const deck = boatStage(v);
+    // op de rondvaartboot zit het paar op de bank (boatdeck.js): staand zou het hoofd door het glazen dak steken
+    if (deck.bench && playStaged(w, null, timeline(s.fail, null, 0.3), { anchor: { x: deck.x, y: deck.y }, facing: deck.facing, bannerAfter: banner, z: deck.h, def: (ls) => quickScene(ls, { deck: deck.quick, plan: deck.plan }) })) return true;
+    const st = deck.bench ? boatStage(v, true) : deck;
+    r = buildRun(w, { anchor: { x: st.x, y: st.y }, facing: st.facing, h: st.h });
+  }
   else {
     const anchor = onFootAnchor(w);
     r = buildRun(w, { anchor, facing: facingTowards(w, anchor, null) });
@@ -1629,7 +1629,7 @@ export function playVaultScene(w, { at, lines = [], landing = 'Moai! Oant sjen, 
   standActor(jelle, start.x, start.y, ang + Math.PI);
   standActor(durk, dS.x, dS.y, ang + Math.PI - 0.5);
   standActor(douwe, eS.x, eS.y, ang + Math.PI - 0.6);
-  const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.045, 0.06, 1, 6), new THREE.MeshLambertMaterial({ color: 0x8a6a3a }));
+  const pole = DECOR_MAKERS.polsstok(); // het register: 1 m om het midden, de scène schaalt hem
   group.add(pole);
   // the twins' getaway: both of them on one fatbike, parked behind them
   const bike = fail ? null : fatbikeMesh();
@@ -1687,7 +1687,7 @@ export function playVaultScene(w, { at, lines = [], landing = 'Moai! Oant sjen, 
     tmp.set(x1 - x0, z1 - z0, y1 - y0);
     const len = tmp.length() || 1;
     pole.scale.set(1, len, 1);
-    pole.position.set((x0 + x1) / 2, (z0 + z1) / 2, (y0 + y1) / 2);
+    pole.position.set(x0, z0, y0); // de polsstok uit het register staat op zijn voet
     pole.quaternion.setFromUnitVectors(up, tmp.normalize());
   };
   const cleanup = () => {
@@ -1695,8 +1695,6 @@ export function playVaultScene(w, { at, lines = [], landing = 'Moai! Oant sjen, 
     group.removeFromParent();
     disposeOwnVehicles(group); // #796: de fatbike van de tweeling hoort hier ook bij
     for (const m of [tammo, anita, jelle, durk, douwe]) disposeActor(m);
-    pole.geometry.dispose();
-    pole.material.dispose();
     w.cinematicHidePlayers = false;
     w.cinematicHideNav = false;
     if (hide.length) w.pedestrians.push(...hide);
@@ -2292,7 +2290,7 @@ export function playDeckMoment(w, { boat, lines = [], kicker = '' } = {}) {
   if (run || !boat || !lines.length) return false;
   const a = boat.angle;
   // at the bow rail, looking out ahead over the water, side by side
-  const deck = boatStage(boat);
+  const deck = boatStage(boat, true); // aan de reling van het open voordek
   const DECK_H = deck.h;
   const anchor = { x: deck.x, y: deck.y };
   const facing = a;
@@ -2313,7 +2311,7 @@ export function playDeckMoment(w, { boat, lines = [], kicker = '' } = {}) {
       if (t < firstEnd) {
         // low, in front of them: the two hands on the rail
         const k = smooth(t / firstEnd);
-        return pose(P(anchor.x + f.x * lerp(1.5, 1.25, k), anchor.y + f.y * lerp(1.5, 1.25, k), DECK_H + 1.05), P(anchor.x, anchor.y, DECK_H + lerp(0.95, 1.2, k)), 34);
+        return pose(P(anchor.x + f.x * lerp(2.7, 2.3, k), anchor.y + f.y * lerp(2.7, 2.3, k), DECK_H + 1.2), P(anchor.x, anchor.y, DECK_H + lerp(1.0, 1.25, k)), 38); // ver genoeg dat de hoofden in beeld blijven (op 1,5 m werden ze afgekapt)
       }
       const k = smooth((t - firstEnd) / Math.max(0.5, tl.total - firstEnd));
       const sx = anchor.x + f.x * lerp(2.2, 1.7, k) + n.x * 0.5, sy = anchor.y + f.y * lerp(2.2, 1.7, k) + n.y * 0.5;
@@ -2327,20 +2325,13 @@ export function playDeckMoment(w, { boat, lines = [], kicker = '' } = {}) {
 // glass and the camera, so four pubs are four different little shots; `lines`
 // is one short line or none.
 
-const GLASS = {
-  beer: { r: 0.038, h: 0.15, color: 0xd99a2b, top: 0xf4efe2, small: false },
-  jenever: { r: 0.022, h: 0.07, color: 0xe8eef0, top: 0xe8eef0, small: true },
-  wine: { r: 0.03, h: 0.11, color: 0x7a1f2b, top: 0x7a1f2b, small: false },
-};
 
+// de glazen komen uit het register (storyprops.js bierglas, jeneverglas, wijnglas)
 function glassMesh(kind) {
-  const g = GLASS[kind] || GLASS.beer;
+  const inner = (kind === 'jenever' ? DECOR_MAKERS.jeneverglas : kind === 'wine' ? DECOR_MAKERS.wijnglas : DECOR_MAKERS.bierglas)();
+  inner.position.y = -(GLASS[kind] || GLASS.beer).h / 2; // glassHold rekent met het midden van het glas
   const m = new THREE.Group();
-  const body = new THREE.Mesh(new THREE.CylinderGeometry(g.r, g.r * 0.82, g.h, 10), new THREE.MeshStandardMaterial({ color: g.color, roughness: 0.2, metalness: 0.1, transparent: true, opacity: 0.85 }));
-  const top = new THREE.Mesh(new THREE.CylinderGeometry(g.r * 1.02, g.r, g.h * 0.18, 10), new THREE.MeshStandardMaterial({ color: g.top, roughness: 0.6 }));
-  top.position.y = g.h * 0.5;
-  m.add(body, top);
-  m.userData.own = [body, top];
+  m.add(inner);
   return m;
 }
 

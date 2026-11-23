@@ -143,6 +143,18 @@ stille appjes; `scripts/calendar_test.mjs` de datums;
 `scripts/cutscenes_akte1_test.mjs` … `scripts/cutscenes_akte4_test.mjs` en
 `scripts/cutscenes_akte6_test.mjs`. De Electron-verhaaltest draait de coördinator.
 
+## Cutscenes en assets (eigenaar, 23-11)
+
+Een cutscene gebruikt **alleen de echte assets en systemen van het spel**, nooit eigen aankleding:
+
+- **Mensen:** alleen het personage-/kledingsysteem van de wereld (`buildPersonMesh`, dezelfde kleding, kapsels en animaties); geen eigen mannetjes.
+- **Dieren:** alleen de modellen van het dierenregister (`dierenregister.js`, `PROP_SOURCES` in `cutscenemodels.js`).
+- **Voertuigen:** alleen de echte voertuigmodellen (`PROP_SOURCES`: escort, van, tractor, police, bike, foodtruck, truck, trekkerlimo).
+- **Voorwerpen, meubels, gebouwen:** alleen de gedeelde bibliotheken: losse voorwerpen in `storyprops.js` (`DECOR_MAKERS`, het ene register), kamers in `realsets.js` en de interieurbibliotheek (`interiorfill.js`).
+- **Een nieuw voorwerp mag**, maar alleen in dat register, op het detailniveau van de beste wereldmodellen, met de checklist `PROP_NORM` (`cutscenemodels.js`) en het budget van `DECOR_BUDGET`. Geen losse `BoxGeometry`, `CylinderGeometry` of `SphereGeometry` in scène- of montagecode.
+- **Bewaking:** `scripts/cutscene_assets_audit.mjs` (met `scripts/cutscene_assets_audit_test.mjs`) faalt als een propsoort niet in een register staat, als een bouwer in het register ontbreekt of als scènecode meer losse primitieven bouwt dan de baseline (de bestaande schuld, alleen te verlagen). `scripts/verhaal_props_audit.mjs` meet de budgetten. De stand en de schuld staan in [docs/CUTSCENE-ISSUES-23-11.md](../../docs/CUTSCENE-ISSUES-23-11.md).
+- **Plaatsing op een voertuig of boot:** figuren staan alleen waar ze passen. Op de rondvaartboot praat het paar op de bank onder het glazen dak (staand zou het hoofd door het dak steken); een romp te smal om op te staan (kano, kajak, SUP, roeiboot) zet ze op hun eigen zitplaatsen; `boatdeck.js` en `scripts/boatdeck_test.mjs` bewaken dat, `scripts/cutscene_regie_audit.mjs` de rest (niemand loopt door of staat in een voertuig).
+
 ## Open punten (met issue)
 
 - **#472, #474, #475, #489 en #490 zijn op 25-10 gesloten.** `docs/personages.md`

@@ -3629,6 +3629,8 @@ function stepWarmup(world) {
 // in from the follow cam, tracks the override smoothly, and eases back out
 // once it is cleared.
 const CAM_OVERRIDE_BLEND_S = 0.9;
+// a cinematic that starts farther than this from the game camera opens with a hard cut instead of flying in (23-11)
+const CINE_ENTRY_SNAP_GAP = 10;
 // The follow camera's own pose in map coordinates, kept up to date under a
 // cutscene (collision included unless the override is a hard cut), so a
 // scene can end exactly where play resumes.
@@ -3744,15 +3746,21 @@ function applyCameraOverride(dt, world, lx, ly, lz) {
   const valid = !!(o && o.position && o.lookAt);
   _camLook.set(lx, ly, lz);
   if (valid) {
-    if (!overrideActive) {
+    // 23-11: begint een scène ver van de spelcamera (de volgcamera van de rondvaartboot hangt 16 m hoog), dan is het eerste beeld
+    // een harde snee: zacht invliegen duurde zes seconden waarin de speler niet zag wie er praatte. Dichtbij blijft het zachte invliegen.
+    // Ook als het vorige filmpje nog aan het uitblenden is (overrideBlend < 1: skip of einde, en meteen de volgende scène).
+    let entrySnap = false;
+    if (!overrideActive || overrideBlend < 1) {
+      if (!overrideActive) { overridePos.copy(cam.position); overrideLook.copy(_camLook); }
       overrideActive = true;
-      overridePos.copy(cam.position);
-      overrideLook.copy(_camLook);
+      entrySnap = cameraSnapNeeded(cam.position, _camTmp.set(o.position.x, o.position.z ?? 10, o.position.y), CINE_ENTRY_SNAP_GAP);
     }
-    const k = o.cut ? 1 : Math.min(1, dt * 3);
+    if (entrySnap) guardLift = 0; // de lift van de vorige plek (guardCinematicCamera) geldt niet voor de nieuwe
+    const snap = o.cut || entrySnap;
+    const k = snap ? 1 : Math.min(1, dt * 3);
     overridePos.lerp(_camTmp.set(o.position.x, o.position.z ?? 10, o.position.y), k);
     overrideLook.lerp(_camTmp.set(o.lookAt.x, o.lookAt.z ?? 1.3, o.lookAt.y), k);
-    overrideBlend = o.cut ? 1 : Math.min(1, overrideBlend + dt / CAM_OVERRIDE_BLEND_S);
+    overrideBlend = snap ? 1 : Math.min(1, overrideBlend + dt / CAM_OVERRIDE_BLEND_S);
   } else {
     // (#463) Een override die ver van de speler stond - het titelbeeld is een
     // straatbeeld 1,6 km verderop, 0,6 m boven de kale kaart - laat de camera

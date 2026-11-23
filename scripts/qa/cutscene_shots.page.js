@@ -116,6 +116,7 @@ for (const e of cat) {
     await sleep(120); // a few frames at this t
     await sleep(380);
     const name = prev.stillName(e.id, k, t).replace(/\.png$/, '').replace(/[^\w.-]/g, '_');
+    try { (await imp('pausemenu')).closePauseMenu(); } catch (err) { /* geen menu */ } // een pauzemenu over het beeld (nieuwe builds) gaat dicht
     console.log('[capture] ' + name);
     // lens vrij? 5x5 kijkstralen: een treffer binnen 1,3 m (lantaarnpaal, bord, boom, rug) vult het beeld
     {

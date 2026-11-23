@@ -193,7 +193,8 @@ S['M15.outro'] = {
   beats: [
     { on: 'Is dit waar', actor: 'jurylid1', face: 'actor:tessa' },
     { on: 'Ik stap eruit', actor: 'jurylid1', walk: [[11, 7]], speed: 1.5 },
-    { on: 'Ik ook', actor: 'jurylid2', walk: [[11, -7]], speed: 1.5 },
+    // hij loopt voor de limo langs (het rechte pad naar 11, -7 ging dwars door de limo)
+    { on: 'Ik ook', actor: 'jurylid2', walk: [[11.4, -1.4], [11.6, -7]], speed: 1.5 },
     { on: 'Het is een proeverij', actor: 'jelle', anim: 'shake' },
     { on: 'Twee weg', actor: 'tessa', anim: 'shrug' },
     { on: 'De molen in Midwolda', actor: 'roelfien', anim: 'point' },

@@ -1,7 +1,8 @@
 // De losse voorwerpen van de verhaalscènes (cutscenes): één bouwer per soort, laag-poly, met een eigen
 // polygoonbudget (DECOR_BUDGET). Voertuigen en dieren komen uit de wereld (cutscenemodels.js), alleen
 // "decor" wordt hier gebouwd. Elk model heeft zijn oorsprong op de grond en +x als voorkant; 2 tot 6
-// materialen, een herkenbaar silhouet en geen NaN (scripts/verhaal_props_audit.mjs meet dat).
+// materialen, een herkenbaar silhouet en geen NaN (scripts/verhaal_props_audit.mjs meet dat). De kwaliteitsnorm per voorwerp staat in
+// PROP_NORM (cutscenemodels.js); een nieuw voorwerp komt hier en nergens anders (scripts/cutscene_assets_audit.mjs).
 // Verplaatst uit cutscenehost.js (PROP_MAKERS) en uitgebreid met de voorwerpen die scènes noemden maar
 // als "doos" of "bord" werden getekend (klomp, stempel, statief, krat, ...), #1121.
 import * as THREE from 'three';
@@ -180,8 +181,77 @@ export const DECOR_MAKERS = {
   },
   // F1: het hek waar de aanhanger aan staat: twee palen en twee latten
   hek: () => { const g = new THREE.Group(); for (const x of [-1.2, 1.2]) g.add(box(0.1, 1.1, 0.1, 0x6b5a3e, 0.55, x, 0)); g.add(box(2.5, 0.08, 0.05, 0x7e6a48, 0.9), box(2.5, 0.08, 0.05, 0x7e6a48, 0.5)); return g; },
+  // H2: de pinautomaat die Durk en Douwe uit de muur trokken, rechtop op een aanhangertje: bak met randen, twee wielen, dissel,
+  // een kast met scherm, toetsenbord en kaartgleuf (was een losse grijze doos op een plaat in missionstory.js)
+  pinautomaat: () => grp(
+    box(2.2, 0.08, 1.4, 0x3a3a3a, 0.42), box(2.2, 0.18, 0.05, 0x2a2a2b, 0.55, 0, 0.68), box(2.2, 0.18, 0.05, 0x2a2a2b, 0.55, 0, -0.68),
+    box(0.05, 0.18, 1.4, 0x2a2a2b, 0.55, 1.08), box(0.05, 0.18, 1.4, 0x2a2a2b, 0.55, -1.08),
+    tilt(cyl(0.22, 0.12, 0x1b1b1b, 0.22, 0, 0.78, 10), Math.PI / 2), tilt(cyl(0.22, 0.12, 0x1b1b1b, 0.22, 0, -0.78, 10), Math.PI / 2),
+    box(0.9, 0.05, 0.06, 0x555555, 0.42, 1.55),
+    box(0.7, 1.6, 0.6, 0x9aa0a6, 1.27, 0, 0, { metalness: 0.4, roughness: 0.5 }),
+    box(0.4, 0.28, 0.02, 0x1e9e56, 1.62, 0, 0.31, { emissive: 0x0c4a28 }),
+    box(0.3, 0.14, 0.03, 0x2a2a2b, 1.36, 0, 0.31), box(0.12, 0.02, 0.03, 0x111111, 1.5, 0.16, 0.31),
+  ),
+  // de jerrycan op de fatbike van Durk en Douwe: romp, greep en dop
+  jerrycan: () => grp(box(0.22, 0.3, 0.14, 0xd8b01a, 0.15), box(0.12, 0.03, 0.04, 0xb08f12, 0.32, -0.03), cyl(0.022, 0.05, 0x222222, 0.32, 0.07)),
+  // de gouden bal (M10): metaal met een naad
+  goudbal: () => grp(
+    put(new THREE.Mesh(new THREE.IcosahedronGeometry(0.12, 2), mat(0xf2c14e, { metalness: 0.9, roughness: 0.28, emissive: 0x3a2804 })), 0, 0.12, 0),
+    tilt(put(new THREE.Mesh(new THREE.TorusGeometry(0.121, 0.006, 4, 24), mat(0xb88a2a, { metalness: 0.9, roughness: 0.35 })), 0, 0.12, 0), Math.PI / 2),
+  ),
+  // de polsstok van het fierljeppen (M24): één meter lang vanaf de voet (de scène schaalt hem naar de lengte), hout met een greepband
+  polsstok: () => grp(cyl(0.05, 1, 0x8a6a3a, 0.5, 0, 0, 6, 0.045), cyl(0.052, 0.12, 0x2a2a2b, 0.88, 0, 0, 6)),
+  // drie glazen voor de toosts (H11): oorsprong op de bodem (missionstory.js glassMesh legt het midden in de hand)
+  bierglas: () => glassOf('beer'),
+  jeneverglas: () => glassOf('jenever'),
+  wijnglas: () => glassOf('wine'),
+  // de snackkiosk die "VERKOCHT" krijgt (de opening, c2-raam): kast, dak met overstek, luik met toonbank
+  kiosk: () => grp(box(2.6, 2.3, 2.0, 0xe0b04a, 1.15), box(2.9, 0.12, 2.4, 0xb4492f, 2.36), box(0.04, 0.8, 1.3, 0x3a2a20, 1.45, 1.31), box(0.3, 0.06, 1.4, 0xd8d2c4, 1.0, 1.42)),
+  // de sticker VERKOCHT (rood met witte letters en een witte rand), plat; +z is de voorkant
+  sticker: () => {
+    const g = grp(box(1.56, 0.62, 0.005, 0xf4f1e8, 0.31));
+    let face;
+    if (typeof document !== 'undefined') {
+      const cv = document.createElement('canvas');
+      cv.width = 256; cv.height = 96;
+      const c = cv.getContext('2d');
+      c.fillStyle = '#c8261e'; c.fillRect(0, 0, 256, 96);
+      c.fillStyle = '#ffffff'; c.font = '700 40px sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText('VERKOCHT', 128, 50);
+      const tex = new THREE.CanvasTexture(cv);
+      face = new THREE.MeshBasicMaterial({ map: tex });
+    } else face = mat(0xc8261e);
+    const m = new THREE.Mesh(new THREE.PlaneGeometry(1.5, 0.56), face);
+    m.position.set(0, 0.31, 0.004);
+    g.add(m);
+    return g;
+  },
 };
 export const DECOR_KIND_LIST = Object.keys(DECOR_MAKERS);
+
+// De glazen van de toost: afmeting en kleur per soort (missionstory.js glassHold leest dezelfde tabel)
+export const GLASS = {
+  beer: { r: 0.038, h: 0.15, color: 0xd99a2b, top: 0xf4efe2, small: false },
+  jenever: { r: 0.022, h: 0.07, color: 0xe8eef0, top: 0xe8eef0, small: true },
+  wine: { r: 0.03, h: 0.11, color: 0x7a1f2b, top: 0x7a1f2b, small: false },
+};
+function glassOf(kind) {
+  const g = GLASS[kind] || GLASS.beer;
+  const body = put(new THREE.Mesh(new THREE.CylinderGeometry(g.r, g.r * 0.82, g.h, 10), mat(g.color, { roughness: 0.2, metalness: 0.1, transparent: true, opacity: 0.85 })), 0, g.h * 0.5, 0);
+  const top = put(new THREE.Mesh(new THREE.CylinderGeometry(g.r * 1.02, g.r, g.h * 0.18, 10), mat(g.top === g.color ? g.top + 0x050505 : g.top, { roughness: 0.6 })), 0, g.h, 0);
+  return grp(body, top);
+}
+
+// Gedeelde fabriek voor scènecode (cutscenehost.js, missionstory.js, intromontage.js): de schaduwvlek onder een figuur. Eén geometrie
+// en één materiaal voor alle scènes (gemarkeerd als gedeeld, de opruimcode laat ze staan).
+const SHADOW_DISC_GEO = new THREE.CircleGeometry(0.42, 16).rotateX(-Math.PI / 2);
+const SHADOW_DISC_MAT = new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.35, depthWrite: false });
+SHADOW_DISC_GEO.userData.shared = true;
+SHADOW_DISC_MAT.userData.shared = true;
+export function shadowDisc() {
+  const sh = new THREE.Mesh(SHADOW_DISC_GEO, SHADOW_DISC_MAT);
+  sh.userData.shared = true;
+  return sh;
+}
 
 // Het polygoonbudget per soort: maximaal aantal driehoeken, het toegestane aantal materialen en de grootste afmeting (m).
 // Ruim genoeg voor het silhouet, krap genoeg dat een scène er honderden van kan hebben.
@@ -196,6 +266,9 @@ export const DECOR_BUDGET = {
   // wagens van akte 3 en 5 (M15.5 het kantoor van Jelle, F1 de verroeste aanhanger): groot als een kleine caravan, 8 materialen
   // F6: de kaart van de provincie met 41 stippen van Us Mem Snacks (516 driehoeken)
   kaart: { tris: 600, mats: [2, 6], maxDim: 3.2 },
+  pinautomaat: { tris: 400, mats: [2, 8], maxDim: 3.2 },
+  kiosk: { tris: 300, mats: [2, 6], maxDim: 3.1 },
+  goudbal: { tris: 600, mats: [2, 6], maxDim: 0.3 },
   kantoorwagen: { tris: 400, mats: [2, 8], maxDim: 6.0 },
   frituuraanhanger: { tris: 400, mats: [2, 8], maxDim: 4.2 },
 };

@@ -120,7 +120,8 @@ Object.assign(SPECS, SPECS_AKTE2);
       { on: 'Wij brengen hem', dt: 0.3, actor: 'tessa', face: 'prop:bakkie' },
       { on: 'Wij brengen hem', dt: 0.8, actor: 'tessa', anim: 'point' },
       { on: 'Nul krassen. Of ik tel', actor: 'berend', face: 'prop:bakkie' },
-      { on: 'Nul krassen. Of ik tel', dt: 0.4, actor: 'berend', walk: [[4.0, 1.9]], speed: 1.3 },
+      // hij controleert de lak langs de flank van de bakkie, niet erin (4,0 / 1,9 lag midden in de bakkie: 46 s binnen de romp)
+      { on: 'Nul krassen. Of ik tel', dt: 0.4, actor: 'berend', walk: [[4.8, 0.3]], speed: 1.3 },
       { on: 'Nul krassen. Of ik tel', dt: 0.4, actor: 'berend', drop: 'kladblok' },
       { on: 'Jij rijdt als', actor: 'tessa', anim: 'laugh' },
       { on: 'Vijftig euro van Berend', dt: 2.5, actor: 'tessa', face: 'actor:tammo' },
@@ -149,7 +150,8 @@ Object.assign(SPECS, SPECS_AKTE2);
     open: [{ actor: 'berend', face: 'prop:bakkie' }, { actor: 'tessa', anim: 'cheer' }, ...cyclist('fietser', 'harm', [-20, -7], [40, -7], 0.2, 4).cues],
     beats: [
       // he walks round the pickup, inspecting it, and comes back to them
-      { on: 0, dt: 0.4, actor: 'berend', walk: [[4.6, 1.2], [6.6, 3.0], [4.8, 4.9], [3.0, 2.6], [2.6, 0.2]], speed: 1.3 },
+      // de ronde loopt langs de bumpers en flanken (1,45 m naast de bakkie, 2,95 m voorbij de neus en de staart); het oude pad ging dwars door de bakkie
+      { on: 0, dt: 0.4, actor: 'berend', walk: [[1.5, 2.8], [2.5, 5.6], [8.1, 3.6], [7.1, 0.8], [2.6, 0.2]], speed: 1.7 },
       { on: 0, dt: 0.4, actor: 'berend', gaze: 'prop:bakkie' },
       { on: '…Goud.', actor: 'tessa', face: 'actor:tammo' },
       { on: 'Goud, Tammo', actor: 'tessa', anim: 'point' },
@@ -159,7 +161,7 @@ Object.assign(SPECS, SPECS_AKTE2);
       { on: 'Wat moet een Fries', actor: 'tammo', anim: 'shrug' },
       { on: 'Wat moet een Fries met ons', dt: 2.0, actor: 'berend', anim: 'point' },
       // "Hier, vijftig euro. …Moi." and he goes inside
-      { on: 'Wat moet een Fries met ons', dt: 3.4, actor: 'berend', walk: [[8.5, 4.5]], speed: 1.2 },
+      { on: 'Wat moet een Fries met ons', dt: 3.4, actor: 'berend', walk: [[7.6, 0.6], [8.5, 4.5]], speed: 1.2 },
       { on: 'Hij zei moi', actor: 'tammo', face: 'actor:tessa' },
       { on: 'Hij zei moi', dt: 0.2, actor: 'tammo', anim: 'shake' },
       { on: 'Tegen mij', actor: 'tessa', anim: 'hips' },
@@ -808,12 +810,61 @@ export function missionScene(key, lines, { looks = {}, spec: given = null } = {}
   return { id: 'story-' + key, actors, props, cues, shots, ...(humor && humor.length ? { humor } : {}), ...(spec.set ? { set: spec.set } : {}), ...(spec.crowd ? { crowd: spec.crowd } : {}), ...(fx.length ? { fx } : {}) };
 }
 
+// Het paar praat op de bank van de rondvaartboot (boatdeck.js): zittend onder het glazen dak, de camera op zithoogte aan de boegkant.
+// Het anker (f = naar de boeg, s = bakboord) ligt op de bank en z op de vloer van de romp. Staan zou het hoofd door het dak steken (1,6 m).
+// Een vaste cameralijn per regel (manual), alle camera's aan één kant van de as tussen de twee, onder het dak (hoogste punt 1,15 m boven de vloer).
+const BENCH_SIT = 0.27; // het zitvlak van de bank boven de vloer (boatdeck.js benchPlan().seat)
+export function benchSpec(lines) {
+  // regel 0 hoort bij de brede opening; daarna wisselt een korte opname met een zachte dolly
+  const shots = lines.map((l, i) => (i % 2
+    ? { on: i, shot: 'dolly', from: [3.0, 0.9, 1.05], to: [2.3, 0.55, 1.0], look: 'speaker', fov: 32 }
+    : { on: i, shot: 'cut', at: [2.2, 0.15 - (i % 4 ? 0.2 : 0), 1.0], look: 'speaker', fov: 30 })).slice(1);
+  return {
+    cast: {},
+    props: {},
+    duo: { tammo: { at: [0, 0.5], face: 0, sit: BENCH_SIT, anim: 'idle' }, tessa: { at: [0, -0.5], face: 0, sit: BENCH_SIT, anim: 'idle' } },
+    open: [],
+    beats: [],
+    manual: true,
+    shots,
+    wide: { from: [4.6, 1.6, 1.5], to: [3.0, 0.6, 1.1], look: 'mid:tammo,tessa@0.9', fov: 46, until: 0 },
+  };
+}
+
+// Het paar op de zitplaatsen van een kleine boot (boatdeck.js deckPlan 'seats': kano, kajak, SUP, skiff, acht, roeiboot, dinghy): iedereen op
+// zijn eigen plek (boatSeats), de camera langs de zijkant op zithoogte, de lijven blijven naar voren of achter (alleen het hoofd draait).
+export function seatsSpec(lines, plan) {
+  const [a, b] = plan.seats;
+  const deg = (r) => Math.round(((r || 0) * 180) / Math.PI);
+  const sitOf = (st) => Math.max(0.08, Math.round((st.y - plan.floor) * 100) / 100);
+  const mx = (a.x + b.x) / 2, mz = -(a.z + b.z) / 2;
+  const d = Math.max(2.6, Math.hypot(a.x - b.x, a.z - b.z) * 1.1 + 1.8);
+  const shots = lines.map((l, i) => ({ on: i, shot: 'cut', at: [mx + (i % 2 ? 0.6 : -0.4), mz + d * (i % 3 ? 0.9 : 1.05), 1.1], look: 'speaker', fov: 32 })).slice(1);
+  return {
+    cast: {},
+    props: {},
+    duo: { tammo: { at: [a.x, -a.z], face: deg(a.face), sit: sitOf(a), anim: 'idle' }, tessa: { at: [b.x, -b.z], face: deg(b.face), sit: sitOf(b), anim: 'idle' } },
+    open: [],
+    beats: [],
+    manual: true,
+    shots,
+    wide: { from: [mx + d * 0.5, mz + d * 1.3, 1.7], to: [mx + 0.3, mz + d * 1.0, 1.2], look: 'mid:tammo,tessa@0.7', fov: 46, until: 0 },
+  };
+}
+
 // A scene for lines that have no spec of their own (#352): the repeat of a mission's question (the `short` intro), the one line of
 // a replay and the pair on a boat's deck. The NPC (when there is one) stands where the mission's NPCs do, the pair turns to
 // whoever speaks, every line gets a gesture and a new frame. npc: { key, look } or null (the pair alone: a deck).
-export function quickScene(lines, { npc = null, looks = {}, deck = false } = {}) {
+export function quickScene(lines, { npc = null, looks = {}, deck = false, plan = null } = {}) {
   const look = npc && (npc.look || looks[npc.key]);
   if (npc && !look) return null;
+  if (deck === 'bench' || (deck === 'seats' && plan && plan.seats && plan.seats.length > 1)) {
+    const def = missionScene(deck === 'bench' ? 'dek-bank' : 'dek-zitplaatsen', lines, { looks, spec: deck === 'bench' ? benchSpec(lines) : seatsSpec(lines, plan) });
+    // de lijven blijven naar de boeg: wie op de bank zit draait alleen zijn hoofd (gaze: speaker). Met de romp naar elkaar toe raakten
+    // hun knieën en handen elkaar en las de scène als hand in hand: een romantiek die het verhaal hier nog niet heeft.
+    if (def) def.cues = def.cues.filter((c) => c.face === undefined);
+    return def;
+  }
   const spec = {
     cast: npc ? { npc: { key: npc.key, at: [2.8, 0.2], face: 190, anim: 'idle', gest: ['point', 'hips', 'talk', 'shrug'] } } : {},
     props: {},

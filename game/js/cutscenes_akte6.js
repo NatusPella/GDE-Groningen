@@ -300,7 +300,8 @@ S['M30.outro'] = {
   props: { bus: { kind: 'snackwagen', at: [4.8, 0, 0], face: 90 } },
   open: [{ actor: 'tessa', face: 'actor:tammo' }, { actor: 'tammo', face: 'actor:tessa' }],
   beats: [
-    { on: 0, dt: 0.4, actor: 'tinus', walk: [[4.6, -1.8]], speed: 0.8 },
+    // hij loopt om de achterkant van de snackwagen heen naar de kant van het paar (4,6 / -1,8 lag midden in de wagen: 34 s binnen de romp)
+    { on: 0, dt: 0.4, actor: 'tinus', walk: [[6.2, -4.5], [3.3, -4.5], [3.3, -1.7]], speed: 0.9 },
     { on: 'De bieten staan', actor: 'geesje', anim: 'point' },
     { on: 'In Veendam zoeken ze', actor: 'berend', anim: 'point' },
     { on: 'Dat pand ken ik', actor: 'jelle', anim: 'shrug' },
@@ -310,6 +311,15 @@ S['M30.outro'] = {
     { on: 'Kon minder.', actor: 'tammo', anim: 'shrug' },
     { on: 'Kon veel minder', actor: 'tessa', anim: 'cheer' },
   ],
-  shots: [{ on: 'De bieten staan', shot: 'follow', target: 'geesje', dist: 3.0, side: 0.8, h: 1.6, fov: 40 }], // Geesje opent: zij in beeld
+  // het slot: de laatste beurten van Tammo en Tessa van achter het paar, met de snackwagen Tam & Tes achter hen in beeld (eerst keek
+  // de dekking van de wagen af naar het Stadhuis en verdween de wagen na de opening uit beeld); alle camera's aan de kant van de opening
+  shots: [
+    { on: 'De bieten staan', shot: 'follow', target: 'geesje', dist: 3.0, side: 0.8, h: 1.6, fov: 40 }, // Geesje opent: zij in beeld
+    { on: 'Elke zomer één ronde', shot: 'dolly', from: [-3.4, 1.7, 1.55], to: [-2.7, 1.2, 1.5], look: 'speaker', fov: 36 },
+    { on: 'Thuis is waar de kar staat', shot: 'cut', at: [-2.5, -1.3, 1.5], look: 'speaker', fov: 32 },
+    { on: 'Zes.', shot: 'cut', at: [-2.3, 1.4, 1.55], look: 'speaker', fov: 30 },
+    { on: 'Kon minder.', shot: 'cut', at: [-2.6, -1.2, 1.5], look: 'speaker', fov: 34 },
+    { on: 'Kon veel minder', shot: 'cut', at: [-2.3, 1.4, 1.55], look: 'speaker', fov: 32 },
+  ],
   wide: WIDE([-5, 4.2, 3.2], [-3, 3, 2.4], 'mid:tammo,tessa@1'),
 };
