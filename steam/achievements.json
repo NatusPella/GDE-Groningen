@@ -1084,7 +1084,7 @@
     {
       "id": "dierenboek",
       "titel": "Dierenvriend",
-      "omschrijving": "Zie alle dertien dieren van de provincie en schrijf ze op in je dierenboek",
+      "omschrijving": "Zie alle twintig dieren van de provincie en schrijf ze op in je dierenboek",
       "verborgen": false,
       "voorstelApiNaam": "ACH_DIERENBOEK",
       "steamApiNaam": ""
