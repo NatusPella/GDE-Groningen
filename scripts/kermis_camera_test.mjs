@@ -6,13 +6,13 @@
 import './node3d.mjs';
 import fs from 'node:fs';
 import { registerHooks } from 'node:module';
+import { skipAlsThreeOntbreekt } from './lib/threeskip.mjs';
 
 let THREE = null;
 try {
   THREE = await import('https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js');
 } catch (e) {
-  console.log('SKIP kermis_camera_test.mjs:', String(e.message).split('\n')[0]);
-  process.exit(0);
+  skipAlsThreeOntbreekt('kermis_camera_test.mjs', e); // #1298: in CI is een ontbrekende three.js een fout
 }
 
 // scene3d.js maakt zijn scène pas bij init3D (WebGL): de test zet er een eigen neer
