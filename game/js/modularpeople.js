@@ -39,6 +39,8 @@ export function registerModularRig(name, man, buf) {
     idx: man.idx32 ? new Uint32Array(ab, o.idx, totalIdx) : new Uint16Array(ab, o.idx, totalIdx),
     slots: {}, clips: {}, geoCache: new Map(),
   };
+  // grijphand (quaternius_import.mjs gripPositions): per verschoven vertex de index en de plek met gekrulde vingers
+  rig.grip = man.grip > 0 ? { idx: new Uint32Array(ab, o.gripIdx, man.grip), pos: new Int16Array(ab, o.gripPos, man.grip * 3) } : null;
   for (const s of MODULAR_SLOTS) rig.slots[s] = man.parts.filter((p) => p.slot === s);
   // per deel: welk materiaal (niet huid, haar, ogen) het meeste vertices heeft; dat krijgt de kledingkleur van dit zaad
   for (const p of man.parts) {
@@ -260,8 +262,9 @@ function capGeometry(face, kind, P, C, SI, SW, I, v0, i0, col, headBone) {
 }
 
 const GEO_CACHE_MAX = 120;
-function geometryFor(rig, look, lod = 0) {
-  const key = `${lod}|${look.cap || ''}|${look.capColor || ''}|${look.parts.hoofd}|${look.parts.romp}|${look.parts.benen}|${look.parts.voeten}|${look.skin}|${look.shirt}|${look.hair}|${look.pants}|${Math.floor(hashf(look.seed, 3) * 8)}`;
+function geometryFor(rig, look, lod = 0, grip = false) {
+  grip = !!(grip && lod === 0 && rig.grip);   // de LOD's houden een open hand (vanaf 25 m zie je geen vingers)
+  const key = `${lod}${grip ? 'g' : ''}|${look.cap || ''}|${look.capColor || ''}|${look.parts.hoofd}|${look.parts.romp}|${look.parts.benen}|${look.parts.voeten}|${look.skin}|${look.shirt}|${look.hair}|${look.pants}|${Math.floor(hashf(look.seed, 3) * 8)}`;
   let g = rig.geoCache.get(key);
   if (g) { rig.geoCache.delete(key); rig.geoCache.set(key, g); return g; }
   // per deel het bereik van dit LOD-niveau (0 = het origineel, 1 en 2 uit de importpijplijn, LOD_CELLS)
@@ -281,6 +284,11 @@ function geometryFor(rig, look, lod = 0) {
     SW.set(rig.sw.subarray(p.vStart * 4, (p.vStart + p.vCount) * 4), v0 * 4);
     // onder een pet of muts: het haar boven de rand gaat binnen de koepel (geen plukken door de stof)
     if (p.slot === 'hoofd' && face && look.cap) squashHair(rig, p, P, v0, face, look.cap);
+    // grijphand: de vertices van de vingers op hun gekrulde plek (om een stang van ~3,5 cm)
+    if (grip && p.gCount) for (let k = p.gStart; k < p.gStart + p.gCount; k++) {
+      const d = (v0 + rig.grip.idx[k] - p.vStart) * 3;
+      P[d] = rig.grip.pos[k * 3] * rig.man.posQ; P[d + 1] = rig.grip.pos[k * 3 + 1] * rig.man.posQ; P[d + 2] = rig.grip.pos[k * 3 + 2] * rig.man.posQ;
+    }
     for (let v = 0; v < p.vCount; v++) {
       const pi = rig.col[p.vStart + v], ck = p.id + '|' + pi;
       let c = palColor.get(ck);
@@ -361,13 +369,26 @@ export function registerModularLods(register, seeds = [11, 22, 33, 44]) {
 export function setModularLod(mesh, lod) {
   const ud = mesh && mesh.userData;
   if (!ud || !ud.qRig || ud.qLod === lod) return false;
+  ud.qLod = lod;
+  swapGeometry(ud);
+  return true;
+}
+// Gesloten handen (eis coördinator 23-11): aan het stuur of de stuurgreep krullen de vingers om de stang (de grijpvariant uit de
+// import, zelfde vertices en huid, alleen de vingers op een andere plek). Wisselt alleen als het verandert; LOD 1 en 2 houden een open hand.
+export function setModularGrip(mesh, on) {
+  const ud = mesh && mesh.userData;
+  if (!ud || !ud.qRig || !!ud.qGrip === !!on) return false;
+  ud.qGrip = !!on;
+  swapGeometry(ud);
+  return true;
+}
+function swapGeometry(ud) {
   const body = ud.body, old = body.geometry;
-  const g = geometryFor(ud.qRig, ud.qLook, lod);
+  const g = geometryFor(ud.qRig, ud.qLook, ud.qLod || 0, ud.qGrip);
+  if (g === old) return;
   g.userData.personRefs = (g.userData.personRefs || 0) + 1;
   body.geometry = g;
-  ud.qLod = lod;
-  if (old && old !== g) { old.userData.personRefs--; if (old.userData.personRefs <= 0 && old.userData.personRetired) old.dispose(); }
-  return true;
+  if (old) { old.userData.personRefs--; if (old.userData.personRefs <= 0 && old.userData.personRetired) old.dispose(); }
 }
 // Het niveau voor een afstand d (m) met een kleine marge, zodat iemand op de grens niet heen en weer springt.
 export function lodForDistance(d, cur = 0) {
@@ -547,6 +568,7 @@ function writeBones(ud, rig) {
 }
 
 export function animateModular(mesh, speed, dt) {
+  if (mesh && mesh.userData.qGrip && !mesh.userData.qInSeat) setModularGrip(mesh, false);   // uitgestapt: handen weer open
   const ud = mesh.userData, rig = ud.qRig, st = ud.qState;
   if (!rig) return;
   const s = Number.isFinite(speed) ? Math.max(0, speed) : 0;
@@ -699,9 +721,9 @@ export const SEAT_SLIDE = 0;   // m: hooguit zo ver schuift een bestuurder naar 
 export const SEAT_SLIDE_BACK = 0;   // m: hooguit zo ver naar achteren als het stuur te dichtbij is
 export const SEAT_TARGETS = {
   car: { back: 0.42, knee: 2.18, elbow: 2.27 },         // passagier: 24 graden, knie 125 graden
-  drive: { back: 0.3, knee: 2.18, elbow: 2.27 },       // bestuurder: 21 graden
+  drive: { back: 0.3, knee: 2.18, elbow: 2.27 },       // bestuurder: 17 graden (meer kan niet: de armen strekken dan, het stuur blijft staan)
   bike: { back: -0.3, knee: 2.7 },                      // 17 graden voorover, knie 155 graden onderaan de slag
-  rail: { back: 0.0, knee: 1.6 },                       // achterop: rechtop, knie 90 graden
+  rail: { back: 0.0, knee: 1.48 },                      // achterop: rechtop, knie 85 graden, voeten hangend
 };
 const _bv = new THREE.Vector3(), _bw = new THREE.Vector3(), _bx = new THREE.Vector3(), _bq = new THREE.Quaternion();
 // richt bot `bone` zo dat de wereldrichting van `from` naar `to` (twee botten) `dir` wordt (alleen zwaai, geen draaiing om de as)
@@ -808,7 +830,7 @@ function seatIK(mesh, seat, ctx = null) {
     let fx, fy, fz = 0;
     if (astride) { fx = pose.footX ?? 0.3; fy = pose.footY ?? -0.6; fz = side * Math.sin(pose.splay) * Math.abs(fy); }
     else if (rider) { const d = reachFor(T.knee); fy = -Math.min(d, 0.92 * d); fx = Math.sqrt(Math.max(0, d * d - fy * fy)); }
-    else if (railSit) { const d = reachFor(T.knee); fy = -0.82 * d; fx = Math.sqrt(d * d - fy * fy); }
+    else if (railSit) { const d = reachFor(T.knee); fy = -0.7 * d; fx = Math.sqrt(d * d - fy * fy); }
     else {
       // de vloer: 14 cm onder de enkel van het eigen model (pose.footY), en de dij zo schuin (0 tot 25 graden omhoog) dat de knie zo dicht
       // mogelijk bij de gewenste kniehoek uitkomt met de voet op die vloer
@@ -859,7 +881,7 @@ function seatIK(mesh, seat, ctx = null) {
   if (rider) {
     // handvatten: 0,43 m voor en 0,12 m boven de heup van het eigen model op het zadel, 0,28 m opzij
     bn('Hips').getWorldPosition(_hp); mesh.worldToLocal(_hp);
-    for (let k = 0; k < 2; k++) reach(k, toW(_hp.x + 0.47 / s, _hp.y + 0.2 / s, _hp.z + (k ? 0.28 : -0.28) / s, _tg));
+    for (let k = 0; k < 2; k++) reach(k, toW(_hp.x + 0.43 / s, _hp.y + 0.12 / s, _hp.z + (k ? 0.28 : -0.28) / s, _tg));
     return;
   }
   if (driver) {
@@ -978,7 +1000,11 @@ export function seatModular(mesh, seat, t, ctx = null) {
   p.vehicle = drive ? (rider ? 'bike' : 'car') : null;
   p.seated = !drive && !(seat && seat.stand);
   ud.qParams = p;
+  ud.qInSeat = true;
   animateModular(mesh, 0, dt);
+  ud.qInSeat = false;
+  // vuisten om het stuur (met de echte stuurpositie) of de stuurgreep van de fiets
+  setModularGrip(mesh, rider || arms === 'wheel');
   if (!(ud.qLod > 0)) seatIK(mesh, seat, ctx);
   return true;
 }

@@ -17,6 +17,7 @@ const AI = await import('/game/js/autointerieur.js');   // registreert ook het s
 const CAB = await import('/game/js/cabin3d.js');
 const CIL = await import('/game/js/carinteriorlayout.js');
 const CPL = await import('/game/js/cockpitlayout.js');
+const CI = await import('/game/js/carinterior.js');   // de kanteling van de binnencamera per klasse
 // het echte stuur van het voertuig (cabin3d.js cabinWheelPose) en een zitting en pedalen, zodat de houding te beoordelen is
 function props(host, v, seat, driver) {
   const mat = new THREE.MeshStandardMaterial({ color: 0x6b4a2a });
@@ -71,7 +72,9 @@ CASES.forEach(([label, v], i) => {
     const len = v.model.len || 2;
     const cam = new THREE.PerspectiveCamera(30, W / H, 0.1, 100);
     const sx = seat.x;
-    cam.position.set(sx + 0.4, (seat.y || 0) + 1.3, (seat.z || 0) + (driver ? -1 : 1) * 3.2); cam.lookAt(sx + 0.2, (seat.y || 0) + 0.45, seat.z || 0);
+    // de fiets helemaal in beeld (wielen tot hoofd): verder weg en lager richten
+    const far = v.isBike ? 4.6 : 3.2, aimY = v.isBike ? -0.25 : 0.45;
+    cam.position.set(sx + 0.4, (seat.y || 0) + 1.3, (seat.z || 0) + (driver ? -1 : 1) * far); cam.lookAt(sx + 0.2, (seat.y || 0) + aimY, seat.z || 0);
     const x = i * W, y = driver ? 900 : 400;
     renderer.setViewport(x, y, W, H); renderer.setScissor(x, y, W, H);
     renderer.render(scene, cam);
@@ -79,8 +82,9 @@ CASES.forEach(([label, v], i) => {
     if (driver && !v.isBike) {
       p.visible = false;
       const eye = new THREE.Vector3(seat.x + 0.05, seat.y + 0.62, seat.z);   // het oog van carinteriorlayout.js (de binnencamera)
-      const look = new THREE.Vector3(seat.x + 3, seat.y + 0.45, seat.z);
-      const ic = new THREE.PerspectiveCamera(65, W / 400, 0.05, 100); ic.position.copy(eye); ic.lookAt(look);
+      const pitch = CI.interiorCamPitch(v);   // zoals firstpersoncam.js en cinematics.js: per klasse iets omlaag
+      const look = new THREE.Vector3(seat.x + 3 * Math.cos(pitch), seat.y + 0.62 + 3 * Math.sin(pitch), seat.z);
+      const ic = new THREE.PerspectiveCamera(74, W / 400, 0.05, 100); ic.position.copy(eye); ic.lookAt(look);
       renderer.setViewport(x, 0, W, 400); renderer.setScissor(x, 0, W, 400);
       renderer.render(scene, ic);
       p.visible = true;

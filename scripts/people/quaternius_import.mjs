@@ -47,6 +47,64 @@ async function load(file) {
   return new Promise((res, rej) => new GLTFLoader().parse(ab, '', res, rej));
 }
 
+// Grijphand (eis coördinator 23-11): de vingers gaan bij de import op in de pols, dus een gesloten hand kan alleen als tweede set
+// posities. gripPose krult per vinger het basis-, midden- en eindkootje (MCP, PIP, DIP) om de as dwars op de vinger, naar de
+// handpalm (die wijst in rust naar het lijf: z naar 0), samen ~3,1 rad: een vuist om een stang van ~3,5 cm (stuur, stuurgreep).
+// De duim komt over de wijs- en middelvinger: de hoek die de duimtop het dichtst bij het middenkootje van de wijsvinger brengt.
+export const GRIP_CURL = [1.15, 1.25, 0.75];
+const FINGERS = ['Index', 'Middle', 'Ring', 'Pinky'];
+function gripPose(bones, side) {
+  // de top: 2 cm voorbij het laatste bot langs zijn as (de botten dragen de packschaal, dus de as genormaliseerd in de wereld)
+  const wp = new THREE.Vector3(), tip = (b) => { bones['Wrist' + side].updateMatrixWorld(true); return wp.setFromMatrixColumn(b.matrixWorld, 1).normalize().multiplyScalar(0.02).add(new THREE.Vector3().setFromMatrixPosition(b.matrixWorld)); };
+  const axis = new THREE.Vector3(1, 0, 0), q = new THREE.Quaternion();
+  for (const f of FINGERS) {
+    const chain = [2, 3, 4].map((k) => bones[f + k + side]).filter(Boolean);
+    if (!chain.length) continue;
+    const base = chain[0].quaternion.clone();
+    // richting: welk teken trekt de top naar de palm (|z| kleiner)
+    chain[0].quaternion.copy(base).multiply(q.setFromAxisAngle(axis, 0.5));
+    const zPlus = Math.abs(tip(chain[chain.length - 1]).z);
+    chain[0].quaternion.copy(base).multiply(q.setFromAxisAngle(axis, -0.5));
+    const zMin = Math.abs(tip(chain[chain.length - 1]).z);
+    chain[0].quaternion.copy(base);
+    const sgn = zPlus < zMin ? 1 : -1;
+    chain.forEach((b, k) => b.quaternion.multiply(q.setFromAxisAngle(axis, sgn * GRIP_CURL[k])));
+  }
+  const t1 = bones['Thumb1' + side], t2 = bones['Thumb2' + side], t3 = bones['Thumb3' + side], aim = bones['Index3' + side];
+  if (t1 && t2 && t3 && aim) {
+    aim.updateMatrixWorld(true);
+    const goal = new THREE.Vector3().setFromMatrixPosition(aim.matrixWorld);
+    const b1 = t1.quaternion.clone(), b2 = t2.quaternion.clone();
+    let best = null;
+    for (let ax = -1.2; ax <= 1.21; ax += 0.1) for (let az = -1.2; az <= 1.21; az += 0.1) for (const a2 of [0, 0.3, 0.6]) {
+      t1.quaternion.copy(b1).multiply(q.setFromEuler(new THREE.Euler(ax, 0, az)));
+      t2.quaternion.copy(b2).multiply(new THREE.Quaternion().setFromEuler(new THREE.Euler(a2, 0, 0)));
+      t1.updateMatrixWorld(true);
+      const d = tip(t3).distanceTo(goal);
+      if (!best || d < best.d) best = { d, ax, az, a2 };
+    }
+    t1.quaternion.copy(b1).multiply(q.setFromEuler(new THREE.Euler(best.ax, 0, best.az)));
+    t2.quaternion.copy(b2).multiply(new THREE.Quaternion().setFromEuler(new THREE.Euler(best.a2, 0, 0)));
+  }
+}
+// De gehuide posities van elke romp-mesh met beide handen gesloten (Map mesh -> Float32Array), daarna weer de rust.
+function gripPositions(sc, bones) {
+  const saved = new Map();
+  for (const b of Object.values(bones)) saved.set(b, b.quaternion.clone());
+  gripPose(bones, 'L'); gripPose(bones, 'R');
+  sc.updateMatrixWorld(true);
+  const out = new Map(), v = new THREE.Vector3();
+  sc.traverse((m) => {
+    if (!m.isSkinnedMesh || SLOT(partOf(m)) !== 'romp') return;
+    const P = m.geometry.attributes.position, a = new Float32Array(P.count * 3);
+    for (let i = 0; i < P.count; i++) { v.fromBufferAttribute(P, i); m.applyBoneTransform(i, v); v.applyMatrix4(m.matrixWorld); a[i * 3] = v.x; a[i * 3 + 1] = v.y; a[i * 3 + 2] = v.z; }
+    out.set(m, a);
+  });
+  for (const [b, qq] of saved) b.quaternion.copy(qq);
+  sc.updateMatrixWorld(true);
+  return out;
+}
+
 // Het bovenste deel onder de scène waar een SkinnedMesh onder hangt: de naam is het deel (Casual2_Body), ook als het meerdere primitieven heeft.
 function partOf(o) {
   let p = o;
@@ -70,22 +128,23 @@ async function importRig(rigName) {
     return i;
   };
   const parts = [], pos = [], col = [], si = [], sw = [], idx = [];
+  const gp = [];   // dezelfde vertices met de vingers om een stang gekruld (grijphand, zie gripPose); gelijk aan pos waar niets krult
   // Zonder normalen en uv's zijn naden overbodig: vertices met dezelfde (gekwantiseerde) plek, kleur en huid worden er één,
   // en driehoeken die daardoor wegvallen (twee hoeken op één plek) gaan eruit.
   const weld = (vStart, iStart) => {
     const n = pos.length / 3 - vStart, map = new Int32Array(n), keys = new Map();
-    const np = [], nc = [], nsi = [], nsw = [];
+    const np = [], nc = [], nsi = [], nsw = [], ngp = [];
     for (let i = 0; i < n; i++) {
       const g = vStart + i;
       const key = `${Math.round(pos[g * 3] / POS_Q)},${Math.round(pos[g * 3 + 1] / POS_Q)},${Math.round(pos[g * 3 + 2] / POS_Q)},${col[g]},${si.slice(g * 4, g * 4 + 4)},${sw.slice(g * 4, g * 4 + 4)}`;
       let j = keys.get(key);
-      if (j === undefined) { j = np.length / 3; keys.set(key, j); np.push(pos[g * 3], pos[g * 3 + 1], pos[g * 3 + 2]); nc.push(col[g]); for (let k = 0; k < 4; k++) { nsi.push(si[g * 4 + k]); nsw.push(sw[g * 4 + k]); } }
+      if (j === undefined) { j = np.length / 3; keys.set(key, j); np.push(pos[g * 3], pos[g * 3 + 1], pos[g * 3 + 2]); ngp.push(gp[g * 3], gp[g * 3 + 1], gp[g * 3 + 2]); nc.push(col[g]); for (let k = 0; k < 4; k++) { nsi.push(si[g * 4 + k]); nsw.push(sw[g * 4 + k]); } }
       map[i] = j;
     }
     const tri = idx.splice(iStart).map((i) => map[i]);
     for (let t = 0; t < tri.length; t += 3) if (tri[t] !== tri[t + 1] && tri[t + 1] !== tri[t + 2] && tri[t] !== tri[t + 2]) idx.push(tri[t], tri[t + 1], tri[t + 2]);
-    pos.length = vStart * 3; col.length = vStart; si.length = vStart * 4; sw.length = vStart * 4;
-    pos.push(...np); col.push(...nc); si.push(...nsi); sw.push(...nsw);
+    pos.length = vStart * 3; gp.length = vStart * 3; col.length = vStart; si.length = vStart * 4; sw.length = vStart * 4;
+    pos.push(...np); gp.push(...ngp); col.push(...nc); si.push(...nsi); sw.push(...nsw);
   };
   // LOD's (eis eigenaar 23-11): vertex-clustering per deel. Vertices in dezelfde cel van `cell` m, met dezelfde kleur en hetzelfde
   // zwaarste bot, worden er één (gemiddelde plek, huid van het eerste lid); driehoeken die wegvallen of dubbel zijn gaan eruit.
@@ -101,7 +160,7 @@ async function importRig(rigName) {
       const a = acc[j]; a.x += pos[g * 3]; a.y += pos[g * 3 + 1]; a.z += pos[g * 3 + 2]; a.n++;
       map[i] = j;
     }
-    for (const a of acc) { pos.push(a.x / a.n, a.y / a.n, a.z / a.n); col.push(col[a.g]); for (let k = 0; k < 4; k++) { si.push(si[a.g * 4 + k]); sw.push(sw[a.g * 4 + k]); } }
+    for (const a of acc) { pos.push(a.x / a.n, a.y / a.n, a.z / a.n); gp.push(a.x / a.n, a.y / a.n, a.z / a.n); col.push(col[a.g]); for (let k = 0; k < 4; k++) { si.push(si[a.g * 4 + k]); sw.push(sw[a.g * 4 + k]); } }
     const i0 = idx.length, seen = new Set();
     for (let t = iStart; t < iStart + iCount; t += 3) {
       const A = map[idx[t]], B2 = map[idx[t + 1]], C = map[idx[t + 2]];
@@ -161,6 +220,7 @@ async function importRig(rigName) {
     }
     const v = new THREE.Vector3(), c = new THREE.Color();
     const byPart = new Map();
+    const gripOf = gripPositions(sc, bones);
     sc.traverse((o) => { if (o.isSkinnedMesh) { const n = partOf(o); if (!byPart.has(n)) byPart.set(n, []); byPart.get(n).push(o); } });
     for (const [name, meshes] of byPart) {
       const slot = SLOT(name);
@@ -175,6 +235,8 @@ async function importRig(rigName) {
           m.applyBoneTransform(i, v);
           v.applyMatrix4(m.matrixWorld);
           pos.push(v.x, v.y, v.z);
+          const G = slot === 'romp' ? gripOf.get(m) : null;
+          if (G) gp.push(G[i * 3], G[i * 3 + 1], G[i * 3 + 2]); else gp.push(v.x, v.y, v.z);
           c.copy(mc);
           if (C) c.multiply(new THREE.Color(C.getX(i), C.getY(i), C.getZ(i)));
           col.push(pal(m.material.name, c.r, c.g, c.b));
@@ -225,7 +287,7 @@ async function importRig(rigName) {
     fresh.scene.traverse((o) => { if (o.isBone) fb[o.name] = o; });
     clips.push(...await retargetUAL(fresh.scene, fb));
   }
-  return { rest, clips, parts, palette, pos, col, si, sw, idx, heightRef };
+  return { rest, clips, parts, palette, pos, gp, col, si, sw, idx, heightRef };
 }
 
 // Neemt een clip op: setFrame(t) zet de doelbotten op tijd t, daarna leest record de bewaarde botten op 30 beelden per seconde:
@@ -364,6 +426,16 @@ function pack(rigName, r) {
   const P = new Int16Array(r.pos.length);
   for (let i = 0; i < r.pos.length; i++) P[i] = Math.max(-32767, Math.min(32767, Math.round(r.pos[i] / POS_Q)));
   const maxIdx = Math.max(...r.parts.map((p) => p.vCount));
+  const gi = [], gq = [];
+  for (const p of r.parts) {
+    p.gStart = gi.length;
+    if (p.slot === 'romp') for (let v = p.vStart; v < p.vStart + p.vCount; v++) {
+      const q3 = [0, 1, 2].map((k) => Math.max(-32767, Math.min(32767, Math.round(r.gp[v * 3 + k] / POS_Q))));
+      if (q3.some((x, k) => x !== P[v * 3 + k])) { gi.push(v); gq.push(...q3); }
+    }
+    p.gCount = gi.length - p.gStart;
+    if (!p.gCount) { delete p.gStart; delete p.gCount; }
+  }
   const man = {
     versie: 1, rig: rigName, bron: 'Quaternius, Ultimate Modular ' + (rigName === 'man' ? 'Men' : 'Women') + ' Pack (CC0 1.0), zie docs/ANIMATIE-LICENTIES.md',
     posQ: POS_Q, fps: FPS, hoofdhoogte: +r.heightRef.toFixed(4), schaal: RIGS[rigName].schaal, variatie: RIGS[rigName].variatie,
@@ -372,7 +444,9 @@ function pack(rigName, r) {
     offsets: {
       pos: add(P), col: add(Uint8Array.from(r.col)), si: add(Uint8Array.from(r.si)), sw: add(Uint8Array.from(r.sw)),
       idx: add(maxIdx < 65536 ? Uint16Array.from(r.idx) : Uint32Array.from(r.idx)),
+      gripIdx: add(Uint32Array.from(gi)), gripPos: add(Int16Array.from(gq)),
     },
+    grip: gi.length,
     idx32: maxIdx >= 65536,
     clips: [],
   };
@@ -395,7 +469,7 @@ for (const rig of Object.keys(RIGS)) {
   const avg = (a) => (a.reduce((s, x) => s + x, 0) / a.length).toFixed(0);
   const lodSum = (L) => r.parts.reduce((s2, p) => s2 + (L ? p.lods[L - 1].tris : p.tris), 0);
   report.push(`${rig} LOD-driehoeken (alle delen): LOD0 ${lodSum(0)}, LOD1 ${lodSum(1)} (-${(100 - 100 * lodSum(1) / lodSum(0)).toFixed(0)}%), LOD2 ${lodSum(2)} (-${(100 - 100 * lodSum(2) / lodSum(0)).toFixed(0)}%)`);
-  report.push(`${rig}: ${r.parts.length} delen (${Object.entries(bySlot).map(([s, a]) => `${s} ${a.length}x gem ${avg(a)} drh`).join(', ')}), ${man.vertices} vertices, palet ${r.palette.length}, ${man.clips.length} clips (${man.clips.map((c) => `${c.name} ${c.dur}s`).join(', ')}), bin ${(bin.length / 1024).toFixed(0)} kB + json ${(json.length / 1024).toFixed(0)} kB`);
+  report.push(`${rig}: ${r.parts.length} delen (${Object.entries(bySlot).map(([s, a]) => `${s} ${a.length}x gem ${avg(a)} drh`).join(', ')}), ${man.vertices} vertices, palet ${r.palette.length}, ${man.clips.length} clips (${man.clips.map((c) => `${c.name} ${c.dur}s`).join(', ')}), grijphand ${man.grip} vertices, bin ${(bin.length / 1024).toFixed(0)} kB + json ${(json.length / 1024).toFixed(0)} kB`);
   if (WRITE) {
     fs.mkdirSync(OUT, { recursive: true });
     fs.writeFileSync(path.join(OUT, `${rig}.bin`), bin);

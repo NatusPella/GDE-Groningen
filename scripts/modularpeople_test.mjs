@@ -84,6 +84,48 @@ for (const female of [false, true]) {
   M.setModularLodPolicy((d) => (d > 100 ? 2 : 0)); ok(M.lodForDistance(120, 0) === 2 && M.lodForDistance(30, 0) === 0, 'een beleid van het centrale register wint'); M.setModularLodPolicy(null);
 }
 
+// grijphand: alleen de vingers verschuiven (naar de pols toe gekruld, geen spies), wisselen telt netjes, LOD houdt een open hand,
+// en zitten aan het stuur of op de fiets sluit de handen; uitstappen opent ze weer
+for (const female of [false, true]) {
+  const m = M.buildModularPerson(77, { female });
+  const ud = m.userData, man = ud.qRig.man;
+  ok(man.grip > 100, `${ud.qLook.rig}: grijpvariant in de import (${man.grip} vertices)`);
+  const wrist = ['WristL', 'WristR'].map((nm) => new THREE.Vector3().setFromMatrixPosition(new THREE.Matrix4().fromArray(man.bones.find((b) => b.name === nm).inv).invert()));
+  const open = ud.body.geometry;
+  const g0 = open.userData.personRefs;
+  ok(M.setModularGrip(m, true) && !M.setModularGrip(m, true), 'setModularGrip wisselt alleen als het verandert');
+  const shut = ud.body.geometry;
+  ok(shut !== open && open.userData.personRefs === g0 - 1 && shut.userData.personRefs >= 1 && shut.attributes.position.count === open.attributes.position.count, 'grijpgeometrie: zelfde vertices, verwijzingen kloppen');
+  const A = open.attributes.position, B = shut.attributes.position, a = new THREE.Vector3(), b = new THREE.Vector3();
+  // per hand: de verschoven vertices liggen bij de pols, de hand wordt korter (de toppen komen omhoog naar de palm) en geen
+  // vertex steekt buiten de open hand (plus 2 cm): een vuist, geen spies en geen vingers naar de rug van de hand
+  let moved = 0, far = 0;
+  const hb = [0, 1].map(() => ({ open: new THREE.Box3(), shut: new THREE.Box3() }));
+  for (let i = 0; i < A.count; i++) {
+    a.fromBufferAttribute(A, i); b.fromBufferAttribute(B, i);
+    if (a.distanceTo(b) < 0.002) continue;
+    moved++;
+    const k = a.distanceTo(wrist[0]) < a.distanceTo(wrist[1]) ? 0 : 1;
+    if (a.distanceTo(wrist[k]) > 0.32) far++;
+    hb[k].open.expandByPoint(a); hb[k].shut.expandByPoint(b);
+  }
+  const rise = hb.map((h) => h.shut.min.y - h.open.min.y), inside = hb.every((h) => h.open.clone().expandByScalar(0.02).containsBox(h.shut));
+  ok(moved > 60 && far === 0 && rise.every((r) => r > 0.06) && inside, `${ud.qLook.rig}: alleen de vingers sluiten tot een vuist (${moved} verschoven, toppen ${rise.map((r) => (r * 100).toFixed(1)).join(' en ')} cm omhoog, binnen de open hand ${inside})`);
+  M.setModularLod(m, 1);
+  ok(ud.body.geometry.attributes.position.count < A.count, 'LOD 1 met grijphand blijft het lichte niveau');
+  M.setModularLod(m, 0);
+  ok(ud.body.geometry === shut, 'terug naar LOD 0: weer de grijphand');
+  M.setModularGrip(m, false);
+  ok(ud.body.geometry === open, 'open hand is weer de gewone geometrie');
+  const wheelSeat = { x: 0, y: 0.5, z: 0, pose: { arms: 'wheel', footY: -0.3 } };
+  M.seatModular(m, wheelSeat, 1); M.seatModular(m, wheelSeat, 1.02);
+  ok(ud.qGrip === true, 'aan het stuur: handen dicht');
+  M.animateModular(m, 1.4, 1 / 60);
+  ok(ud.qGrip === false, 'uitgestapt en lopen: handen open');
+  M.seatModular(m, { x: 0, y: 0.5, z: 0, pose: { arms: 'lap' } }, 2);
+  ok(!ud.qGrip, 'passagier: handen open');
+}
+
 // voeten op de grond: de voet op de tree komt mee omhoog, het been blijft heel (knie-enkel even lang)
 {
   const m = M.buildModularPerson(4242, { female: true });

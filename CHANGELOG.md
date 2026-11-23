@@ -16,7 +16,8 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 - Personages die leven: voeten staan op de grond op hellingen en trappen (de heup zakt mee naar de lage voet), de handen van een bestuurder draaien mee aan het stuur en een fietser houdt zijn handvatten vast, ook als het stuur draait.
 - Cutscenes: een acteur die rent zwaait verder met zijn armen en helt naar voren, met een vloeiende overgang van lopen naar rennen; wie stilstaat wisselt af en toe van houding.
 - Samen spelen: voeten, handen, blik en mond rekent elke speler lokaal uit wat hij al ziet (positie, snelheid, grond, stuurstand); er gaat niets extra over het netwerk.
-- Mensen (testvlag `?mensen=q`, `q2`, `q3`): de nieuwe, modulaire mensen van Quaternius (CC0) als voorbijgangers, in cutscenes en als speler, met hun eigen animaties en die uit de Universal Animation Library: zitten, rijden, zwemmen, springen, hurken, praten en een val zonder bloed. Iedereen behoudt zijn kleding; ogen knipperen en de mond beweegt met de stem. Zonder de vlag verandert er niets.
+- Mensen (testvlag `?mensen=q`, `q2`, `q3`): de nieuwe, modulaire mensen van Quaternius (CC0) als voorbijgangers, in cutscenes en als speler, met hun eigen animaties en die uit de Universal Animation Library: zitten, rijden, zwemmen, springen, hurken, praten en een val zonder bloed. Iedereen behoudt zijn kleding; ogen knipperen en de mond beweegt met de stem. Aan het stuur en op de fiets sluiten hun handen zich om het stuur. Zonder de vlag verandert er niets.
+- Binnencamera in voertuigen: de camera kijkt per soort voertuig iets omlaag, zodat het stuur onderin beeld staat in plaats van eronder te verdwijnen.
 
 ## [0.65.0] - 2026-11-22
 

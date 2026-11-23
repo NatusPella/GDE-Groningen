@@ -255,6 +255,14 @@ export function updateCarInterior(mesh, v, show) {
   return !!show;
 }
 
+// (mensen 23-11, besluit coördinator) De binnencamera kijkt per klasse iets omlaag (rad, - = omlaag), zodat het stuur, dat nu
+// waar een bestuurder het echt vasthoudt staat (cabin3d.js WHEEL_REACH), onderin beeld valt en niet onder de rand.
+export const INTERIOR_PITCH = { auto: -0.13, taxi: -0.13, politie: -0.13, sport: -0.15, bestel: -0.16, ambulance: -0.16, vrachtwagen: -0.15, bus: -0.14, trekker: -0.15 };
+export function interiorCamPitch(v) {
+  if (!v || !v.model) return 0;
+  return INTERIOR_PITCH[interiorKlasse(v)] ?? 0;
+}
+
 // Eye pose (map x, y, height z) and look direction for the cinematics camera.
 export function interiorEyePose(v) {
   if (!hasCarInterior(v) || v.wrecked) return null;
@@ -264,5 +272,5 @@ export function interiorEyePose(v) {
   const a = v.angle, c = Math.cos(a), s = Math.sin(a);
   // vehicle-local +x forward, +z right; map y runs with local +z
   const x = v.x + e.x * c - e.z * s, y = v.y + e.x * s + e.z * c;
-  return { x, y, z: (v.z || 0) + e.y, fx: c, fy: s };
+  return { x, y, z: (v.z || 0) + e.y, fx: c, fy: s, pitch: interiorCamPitch(v) };
 }

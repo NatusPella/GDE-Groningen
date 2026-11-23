@@ -37,6 +37,9 @@ if (MODULAR) {
   wheelPoseFor = (v, seat) => { const k = interiorKlasse(v); if (k === 'heli' || k === 'vliegtuig' || v.isBoat) return null; return cabinWheelPose(seat, v.model.len, v.model.wid, k, isCockpitKlasse(k) ? null : carBodyFit(v), v.model.name || ''); };
 }
 let modN = 0;
+// --modulair: de kleinste marge per maat tot zijn grens over alle stoelen (eis coördinator 23-11: binnen de grenzen MET marge)
+const margins = {};
+const noteMargin = (name, arr, lo, hi, label) => { for (const a of [].concat(arr)) { const m = Math.min(a - lo, hi - a); if (!margins[name] || m < margins[name].m) margins[name] = { m, a, label }; } };
 
 const car = (name, len, wid, extra = {}) => ({ model: { name, len, wid, color: '#888888', ...extra.model }, ...extra.v });
 const CASES = [
@@ -248,7 +251,11 @@ function check(label, v, driver) {
     const r0 = (a) => a.map((x) => x.toFixed(0)).join('/');
     const out = (arr, lo, hi) => arr.some((a) => a < lo || a > hi);
     const carSeat = !seat.horse && !seat.rider && seat.pose && !seat.pose.splay && (seat.pose.arms === 'wheel' || seat.pose.arms === 'lap');
+    const lbl = label + (driver ? ' bestuurder' : ' passagier');
     if (carSeat) {
+      noteMargin('rug', f.backDeg, 15, 30, lbl); noteMargin('heup', f.hipDeg, 90, 115, lbl); noteMargin('dij', f.thighDeg, -5, 35, lbl); noteMargin('knie', f.kneeDeg, 105, 135, lbl);
+      if (seat.pose.arms === 'wheel') noteMargin('elleboog', f.elbowDeg, 115, 150, lbl);
+      if (VERBOSE) console.log(`       rug ${f.backDeg.toFixed(0)} heup ${r0(f.hipDeg)} dij ${r0(f.thighDeg)} knie ${r0(f.kneeDeg)}` + (seat.pose.arms === 'wheel' ? ` elleboog ${r0(f.elbowDeg)}` : ''));
       if (f.backDeg < 15 || f.backDeg > 30) issues.push(`rug ${f.backDeg.toFixed(0)} graden achterover (15-30)`);
       if (out(f.hipDeg, 90, 115)) issues.push(`heuphoek ${r0(f.hipDeg)} graden (90-115)`);
       if (out(f.thighDeg, -5, 35)) issues.push(`dij ${r0(f.thighDeg)} graden boven horizontaal (-5 tot 35)`);
@@ -259,10 +266,12 @@ function check(label, v, driver) {
       }
     }
     if (seat.rider) {
+      noteMargin('fietser romp', -f.backDeg, 8, 50, lbl); noteMargin('fietser knie', f.kneeDeg, 135, 172, lbl);
       if (f.backDeg > -8 || f.backDeg < -50) issues.push(`fietser: romp ${(-f.backDeg).toFixed(0)} graden voorover (8-50)`);
       if (out(f.kneeDeg, 135, 172)) issues.push(`fietser: knie onderaan ${r0(f.kneeDeg)} graden (135-172)`);
     }
-    if (seat.pose && seat.pose.arms === 'rail' && !seat.stand && out(f.kneeDeg, 70, 120)) issues.push(`achterop: knie ${r0(f.kneeDeg)} graden (70-120)`);
+    if (seat.pose && seat.pose.arms === 'rail' && !seat.stand) noteMargin('achterop knie', f.kneeDeg, 70, 100, lbl);
+    if (seat.pose && seat.pose.arms === 'rail' && !seat.stand && out(f.kneeDeg, 70, 100)) issues.push(`achterop: knie ${r0(f.kneeDeg)} graden (70-100)`);
   }
   if (!seat.horse && (f.hip.x > body.max.x || f.hip.x < body.min.x || Math.abs(f.hip.z) > Math.max(body.max.z, -body.min.z))) issues.push('hip outside the body');
   problems += issues.length ? 1 : 0;
@@ -288,5 +297,6 @@ const HORSE = { name: 'horse', len: 2.4, wid: 0.75, maxSpeed: 9.2, accel: 3.2, b
 for (const d of [true, false]) check('politiepaard', { model: { ...HORSE }, isBike: true, _mount: 'horse' }, d);
 for (const [k, m] of Object.entries(BOAT_KINDS)) for (const d of [true, false]) check('boat ' + k, { model: { ...m }, isBoat: true }, d);
 check('politieboot', { model: { ...BOAT_KINDS.sloep, cabin: '#12294f' }, isBoat: true, isPolice: true }, true);
+if (MODULAR) console.log('\nkleinste marge tot de grens (graden): ' + Object.entries(margins).map(([k, v]) => `${k} ${v.m.toFixed(1)} (${v.a.toFixed(0)}, ${v.label})`).join('; '));
 console.log(problems ? `\n${problems} seat(s) with problems` : '\nall seats ok');
 process.exitCode = problems ? 1 : 0;
