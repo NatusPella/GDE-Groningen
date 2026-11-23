@@ -90,11 +90,12 @@ await t('de kaart heeft een naamveld en precies één knop Doorgaan', async () =
   assert.match(html, /Je naam voor Samen spelen/);
   assert.match(html, /gaat naar je medespeler en naar de openbare servers/);
   assert.match(html, /STUN-server en openbare brokers/);
-  assert.match(html, new RegExp(`>${EERSTE_START.doorgaan}<`));
+  assert.match(html, new RegExp(`>${EERSTE_START.doorgaan} <span class="sk-toets-in">`), 'Doorgaan met zijn toets in de knop (#1225)');
   assert.equal((html.match(/<button\b[^>]*class="os-knop/g) || []).length, 1, 'één antwoordknop: Doorgaan (naast het Meer info-schakelaartje)');
   assert.ok(!/data-keuze|Meedoen<|Alleen spelen|Later</.test(html), 'geen tweede antwoord of uitstelknop');
   assert.match(html, /class="os-naam"[^>]*maxlength="16"[^>]*required/, 'verplicht naamveld met dezelfde grens als het profiel');
-  assert.match(html, /class="os-consent-vink"/, 'het akkoord is een verplicht vinkje op dezelfde kaart');
+  assert.match(html, /class="m-sw os-consent-vink"/, 'het akkoord is een verplichte DS3-schakelaar op dezelfde kaart (#1225)');
+  assert.match(onlineStartHtml({ terug: true }), /data-terug aria-keyshortcuts="Escape">[^<]+ <span class="sk-toets-in">/, 'Terug heeft ook een toetsplaatje (#1225)');
   assert.doesNotMatch(onlineStartHtml({}), /data-terug/, 'zonder terug geen Terug-knop');
   assert.match(onlineStartHtml({ terug: true }), /data-terug/);
   assert.ok(html.indexOf('class="os-naam"') < html.indexOf('data-doorgaan'), 'het naamveld staat boven de knop');
