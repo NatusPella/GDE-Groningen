@@ -179,6 +179,7 @@ class Element {
       add: (c) => { const s = set(); s.add(c); e.attrs.class = [...s].join(' '); },
       remove: (c) => { const s = set(); s.delete(c); e.attrs.class = [...s].join(' '); },
       contains: (c) => set().has(c),
+      toggle: (c, on) => { const s = set(); if (on === undefined ? !s.has(c) : on) s.add(c); else s.delete(c); e.attrs.class = [...s].join(' '); }, // settings.js (via keycap.js, #1222)
     };
   }
   set innerHTML(html) { this.childNodes = []; parse(String(html), this); }
@@ -282,6 +283,13 @@ await t('de hub opent op stap 1 als wizard: geen tabsemantiek, wel een statusreg
   assert.equal(teller.getAttribute('id'), 'pm-hub-teller');
   assert.match(teller.textContent, /Stap 1 van 3/, 'de teller noemt de stap');
   assert.equal(root.querySelector('.pm-hub-inhoud').getAttribute('aria-labelledby'), 'pm-hub-teller', 'de inhoud hangt aan de teller');
+  // #1222: de stapregel is er alleen voor de schermlezer (geen debug-regel en geen dubbele ondertitel in beeld),
+  // de keuzes dragen een icoon uit de iconenset, 'Kan nu' staat er alleen bij een uitzondering, Escape is een toetsplaatje
+  assert.match(teller.getAttribute('class'), /\bpm-sr\b/, 'de stapregel is visueel verborgen');
+  assert.equal(root.querySelectorAll('.pm-hub-ico').filter((x) => /<svg/.test(x.innerHTML)).length, 3, 'elke keuze heeft een icoon (svg), geen tekstteken');
+  assert.doesNotMatch(root.innerHTML, /[↔＋]/, 'geen tekstglyphs als icoon');
+  assert.doesNotMatch(root.innerHTML, /Kan nu</, 'geen Kan nu-badge op elke keuze die gewoon kan');
+  assert.doesNotMatch(root.querySelector('.pm-hub-veilig').innerHTML, /Escape|\{ESC\}/, 'Escape staat er als toetsplaatje, niet als woord');
   const k = root.querySelectorAll('[data-hub-keuze]').map((b) => b.getAttribute('data-hub-keuze'));
   assert.deepEqual(k, [ACT.MEEDOEN, ACT.HOSTEN, ACT.BESLOTEN]);
   assert.ok(root.querySelector('.pm-hub-hero'), 'de hub heeft een eigen kop (#903)');
