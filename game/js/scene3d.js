@@ -133,7 +133,8 @@ import { wijkProfileAt } from './trafficfleet.js';
 import { pedRole } from './clothing.js';
 import { monumentAreaKey } from './heritagearea.js';
 import { applyWorldGrade } from './worldgrade3d.js'; // wereldkleur (21-11): saturatie, tinten en mist van de dag
-import { createPostFX } from './postfx3d.js';
+import { createPostFX, setSpeedStreak } from './postfx3d.js';
+import { streakAmount } from './landfeel.js';
 import { noteGfxEvent, watchContext, gpuRamp } from './blackframe.js';
 import { spawnExplosionFx, setFxCamera } from './fx3d.js';
 import { litFraction, moonPhase, STAR_SHARE, foliageGlow } from './nightrules.js';
@@ -3745,7 +3746,9 @@ function applyCameraOverride(dt, world, lx, ly, lz) {
   cam.lookAt(_camLook);
   if (t <= 0.5) applyDrunkCamera(cam);
   if (fovPunch) { cam.fov -= fovPunch; fovPunch = 0; }
-  const targetFov = valid && o.fov ? o.fov : (baseFov + stepCamFeel(camLean, cam, world && hoofdspeler(world) && hoofdspeler(world).inVehicle, valid, dt, effectsFor({ reduceMotion: reducedMotion() || getSettings().speedFeel === false }))) * (1 - 0.72 * scopeBlend);
+  const feelOpts = effectsFor({ reduceMotion: reducedMotion() || getSettings().speedFeel === false });
+  const targetFov = valid && o.fov ? o.fov : (baseFov + stepCamFeel(camLean, cam, world && hoofdspeler(world) && hoofdspeler(world).inVehicle, valid, dt, feelOpts)) * (1 - 0.72 * scopeBlend);
+  setSpeedStreak(valid ? 0 : streakAmount(camLean.speedFov + camLean.fov, feelOpts)); // landfeel.js: radial smear at the edge when fast
   if (cam.fov !== targetFov) {
     cam.fov = Math.abs(targetFov - cam.fov) < 0.05 || (valid && o.cut) || scopeBlend > 0 ? targetFov : cam.fov + (targetFov - cam.fov) * Math.min(1, dt * 3);
     cam.updateProjectionMatrix();

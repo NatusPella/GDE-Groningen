@@ -1476,6 +1476,7 @@ export function settleVehicleHeight(v, map, dt) {
       v.vzG = Math.max(v.vz, -Math.abs(v.speed) * 0.12);
       v.vz = 0;
       v.airborne = false;
+      v.landHit = hit; // fx3d.js: dust ring, thump and haptics of a hard landing (landfeel.js)
       v.susHeaveV = (v.susHeaveV || 0) - Math.min(2.5, hit * 0.35);
       v.susPitchV = (v.susPitchV || 0) - Math.min(1.2, hit * 0.12);
       if (hit > LAND_DAMAGE_SPEED) {

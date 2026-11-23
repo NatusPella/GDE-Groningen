@@ -31,6 +31,7 @@ const GradeShader = {
     uBright: { value: 1 },
     uLook: { value: 0 },
     uDrunk: { value: 0 },
+    uStreak: { value: 0 },
     uTime: { value: 0 },
     uFxSat: { value: 1 },
     uFxCon: { value: 1 },
@@ -45,7 +46,7 @@ const GradeShader = {
   fragmentShader: `
     uniform sampler2D tDiffuse;
     uniform sampler2D tBloom;
-    uniform float uSat, uContrast, uLift, uVignette, uAspect, uBright, uLook, uDrunk, uTime, uFxSat, uFxCon, uFlash, uRaster, uKorrel;
+    uniform float uSat, uContrast, uLift, uVignette, uAspect, uBright, uLook, uDrunk, uStreak, uTime, uFxSat, uFxCon, uFlash, uRaster, uKorrel;
     uniform vec3 uShadowTint, uHighTint;
     varying vec2 vUv;
     #include <tonemapping_pars_fragment>
@@ -70,6 +71,15 @@ const GradeShader = {
         vec2 o = vec2(sin(uTime * 0.9), cos(uTime * 0.7)) * uDrunk * 0.011;
         vec3 g = texture2D(tDiffuse, vUv + o).rgb + texture2D(tDiffuse, vUv + o * 0.5 + vec2(0.0, 0.002 * uDrunk)).rgb;
         c = mix(c, g * 0.5, 0.42 * uDrunk);
+      }
+      // speed streaks (landfeel.js streakAmount): a short radial smear toward the screen centre that only touches the edge,
+      // so the road ahead and the car stay sharp; 3 extra taps and only while driving fast
+      if (uStreak > 0.0) {
+        vec2 dir = (vec2(0.5) - vUv) * vec2(uAspect, 1.0);
+        float edge = smoothstep(0.28, 0.9, length(dir));
+        vec2 stp = (vec2(0.5) - vUv) * (0.035 * uStreak * edge);
+        vec3 sm = texture2D(tDiffuse, vUv + stp).rgb + texture2D(tDiffuse, vUv + stp * 2.0).rgb + texture2D(tDiffuse, vUv + stp * 3.0).rgb;
+        c = mix(c, (c + sm) * 0.25, 0.85 * min(1.0, edge * 1.2));
       }
       #ifdef USE_BLOOM
       // what UnrealBloomPass's additive (SRC_ALPHA, ONE) blend pass would add
@@ -164,6 +174,10 @@ let fxLast = 0, flashAt = -1e9, flashBig = false;
 // uses its DOM overlay). "Flitsen beperken" (#592) also covers this one: it
 // is a screen-wide white flash like the DOM ones, so without the setting the
 // callers either fall back to the (hidden) DOM flash or flash nothing.
+// Speed streaks (0..1): scene3d.js sets them every frame from the speed feel; 0 is off (no extra taps).
+let speedStreak = 0;
+export function setSpeedStreak(v) { speedStreak = v > 0 ? v : 0; }
+
 export function flashScreen(big = false) {
   if (!document.body.classList.contains('gpu-screenfx')) return false;
   if (!effectsFor({ reduceFlash: getSettings().reduceFlash }).screenFlash) return false;
@@ -345,6 +359,7 @@ export function createPostFX(renderer, scene, cam) {
       u.uAspect.value = width / Math.max(1, height);
       u.uLook.value = this.look;
       u.uDrunk.value = drunkVisual();
+      u.uStreak.value = speedStreak;
       u.uTime.value = performance.now() / 1000;
       u.toneMappingExposure.value = renderer.toneMappingExposure;
       if (bloom) {

@@ -4,6 +4,11 @@ import { getVehicleMesh, pruneVehicleMeshes, applyVehicleDamage, vehicleDamagePa
 import { rand } from './rng.js';
 import { nieuwLos } from './vehicledamage.js';
 import { hoofdspeler } from './players.js';
+import { hapticEvent } from './haptics.js';
+import { effectsFor } from './a11ylogic.js';
+import { getSettings } from './settings.js';
+import { reducedMotion } from './motion.js';
+import { makeFootFx, tickFootFx, dustLook, footLandPuffs, footLandSpeed, footLandSize, footLandDip, vehicleLandFx } from './landfeel.js';
 
 // Vehicle feel effects: skid marks, tyre smoke/dust/spray/exhaust, sparks,
 // debris and progressive body damage. Everything is pooled up front; the
@@ -517,6 +522,95 @@ function spawnCount(rate, dt) {
   return whole + (Math.random() < n - whole ? 1 : 0);
 }
 
+// --- landing and dust (landfeel.js) -----------------------------------------------------------
+// The walker's takeoff and landing puffs, the burst when a standing walker breaks into a run, a thin trail on grass,
+// and the ring of dust, sparks and thump of a car that comes down hard. Everything uses the pools above.
+const _dust = [0, 0, 0, 0];
+const footSt = makeFootFx();
+const footOut = { takeoff: false, land: 0, launch: false, runRate: 0 };
+const landOut = { puffs: 0, sparks: 0, dip: 0, haptic: 0 };
+let footSurf = 'klinkers', footSurfT = 0;
+
+function feelFx() {
+  return effectsFor({ reduceMotion: reducedMotion(), shake: getSettings().screenShake });
+}
+
+// The camera sinks a little and comes back (the recoil spring of scene3d.js applyRecoil does the settling).
+function camDip(world, dip) {
+  if (!dip) return;
+  const kick = world.camKick || (world.camKick = { pitch: 0, yaw: 0, fov: 0 });
+  kick.pitch = Math.max(-0.09, kick.pitch + dip);
+}
+
+function dustRing(x, up, z, n, speed, size, a, out) {
+  for (let k = 0; k < n; k++) {
+    const ang = (k / n) * Math.PI * 2 + rand(-0.3, 0.3), sp = speed * rand(0.6, 1.1);
+    spawnSmoke(x + Math.cos(ang) * 0.25, up, z + Math.sin(ang) * 0.25, Math.cos(ang) * sp, rand(0.15, 0.5), Math.sin(ang) * sp,
+      rand(0.5, 0.9), size * 0.5, size * rand(2.2, 3.2), out[0], out[1], out[2], a, 3, 0.2);
+  }
+}
+
+function footFx(world, dt) {
+  const p = hoofdspeler(world);
+  if (!p || p.inVehicle || p.water || p.swimming) { footSt.air = false; return; }
+  tickFootFx(footSt, p, dt, footOut);
+  const o = footOut;
+  if (!o.takeoff && !o.land && !o.launch && !(o.runRate > 0)) return;
+  footSurfT -= dt;
+  if (footSurfT <= 0 || o.land || o.launch) { footSurfT = 0.25; footSurf = surfaceUnder(world.map, p.x, p.y); }
+  dustLook(footSurf, _dust);
+  const up = (p.gz || 0) + 0.12;
+  if (o.land) {
+    dustRing(p.x, up, p.y, footLandPuffs(o.land), footLandSpeed(o.land), footLandSize(o.land), _dust[3] + 0.1, _dust);
+    if (footSurf === 'gras' && o.land > 0.6) {
+      for (let k = 0; k < 4; k++) spawnDebris(chunks, p.x + rand(-0.2, 0.2), up + 0.1, p.y + rand(-0.2, 0.2), rand(-1.4, 1.4), rand(1.2, 2.4), rand(-1.4, 1.4), 0.05, 0.04, 0.05, 0x5f6a33, rand(0.5, 0.8));
+    }
+    camDip(world, footLandDip(o.land, feelFx()));
+    hapticEvent('land', o.land * 0.5);
+  } else if (o.takeoff) {
+    dustRing(p.x, up, p.y, 3, 0.8, 0.14, _dust[3], _dust);
+  } else if (o.launch) {
+    const ca = Math.cos(p.angle || 0), sa = Math.sin(p.angle || 0);
+    for (let k = 0; k < 5; k++) {
+      spawnSmoke(p.x - ca * 0.2 + rand(-0.15, 0.15), up, p.y - sa * 0.2 + rand(-0.15, 0.15), -ca * rand(0.8, 1.8) + rand(-0.5, 0.5), rand(0.1, 0.4), -sa * rand(0.8, 1.8) + rand(-0.5, 0.5),
+        rand(0.4, 0.7), 0.12, rand(0.4, 0.7), _dust[0], _dust[1], _dust[2], _dust[3], 3, 0.2);
+    }
+  } else if (o.runRate > 0 && footSurf === 'gras') {
+    const cnt = spawnCount(o.runRate, dt);
+    const ca = Math.cos(p.angle || 0), sa = Math.sin(p.angle || 0);
+    for (let k = 0; k < cnt; k++) {
+      spawnSmoke(p.x - ca * 0.15 + rand(-0.2, 0.2), up, p.y - sa * 0.15 + rand(-0.2, 0.2), -ca * 0.5 + rand(-0.3, 0.3), rand(0.1, 0.35), -sa * 0.5 + rand(-0.3, 0.3),
+        rand(0.35, 0.6), 0.1, rand(0.3, 0.5), _dust[0], _dust[1], _dust[2], _dust[3] * 0.7, 3, 0.2);
+    }
+  }
+}
+
+// A hard landing of a vehicle (v.landHit from vehicle.js): dust ring around the car, sparks on paving, thump for the driver.
+function vehicleLanding(v, world, paved, small, vz) {
+  const hit = v.landHit;
+  v.landHit = 0;
+  const fx = v.driver === 'player' ? feelFx() : undefined;
+  const r = vehicleLandFx(hit, paved, small, fx, landOut);
+  if (!r) return;
+  dustLook(paved ? 'asfalt' : 'gras', _dust);
+  const hl = v.model.len / 2, hw = v.model.wid / 2;
+  const ca = Math.cos(v.angle), sa = Math.sin(v.angle);
+  for (let k = 0; k < r.puffs; k++) {
+    const ang = (k / r.puffs) * Math.PI * 2, ex = Math.cos(ang) * hl, ez = Math.sin(ang) * hw;
+    const x = v.x + ex * ca - ez * sa, y = v.y + ex * sa + ez * ca;
+    const dx = x - v.x, dy = y - v.y, l = Math.hypot(dx, dy) || 1, sp = rand(1.5, 3.2);
+    spawnSmoke(x, vz + 0.15, y, dx / l * sp, rand(0.3, 0.9), dy / l * sp, rand(0.7, 1.3), 0.35, rand(1.4, 2.4), _dust[0], _dust[1], _dust[2], _dust[3] + 0.12, 2.2, 0.3);
+  }
+  for (let k = 0; k < r.sparks; k++) {
+    const side = k % 2 ? 1 : -1, ang = rand(0, Math.PI * 2);
+    spawnSpark(v.x - ca * hl * 0.6 + side * -sa * hw, vz + 0.1, v.y - sa * hl * 0.6 + side * ca * hw, Math.cos(ang) * rand(1, 3), rand(1.5, 3.5), Math.sin(ang) * rand(1, 3), rand(0.25, 0.5));
+  }
+  if (v.driver === 'player') {
+    camDip(world, r.dip);
+    hapticEvent('land', r.haptic);
+  }
+}
+
 function vehicleFx(v, world, dt) {
   const abs = Math.abs(v.speed);
   const slip = vehicleSlip(v, dt, abs);
@@ -537,6 +631,7 @@ function vehicleFx(v, world, dt) {
   const rain = world.weather ? world.weather.intensity || 0 : 0;
   const n = Math.min(4, wheels.length);
   const vz = v.z || 0;
+  if (v.landHit) vehicleLanding(v, world, paved, small, vz);
   const braking = abs > 5 && v._fxDec > 11;
   for (let i = 0; i < n; i++) {
     const w = wheels[i];
@@ -862,10 +957,11 @@ export function updateFx3D(dt, world, scene) {
   if (pruneTimer <= 0) { pruneTimer = 1; pruneVehicleMeshes(); }
   if (dt > 0) {
     consumeContacts(world);
+    footFx(world, dt);
     const vs = world.vehicles;
     for (let i = 0; i < vs.length; i++) {
       const v = vs[i];
-      if (!nearPlayer(world, v.x, v.y, FX_RANGE)) continue;
+      if (!nearPlayer(world, v.x, v.y, FX_RANGE)) { v.landHit = 0; continue; }
       if (v.wrecked) wreckSmoke(v, world, dt);
       else { vehicleFx(v, world, dt); if (v._mount) horseDroppings(v, dt); }
     }
