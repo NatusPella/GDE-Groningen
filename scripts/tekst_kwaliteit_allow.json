@@ -96,54 +96,6 @@
       "file": "tilestore.js",
       "ctx": "tile worker",
       "why": "technische foutmelding voor de ontwikkelaar (bijdrage aan console), geen speltekst"
-    },
-    {
-      "rule": "hoofdletter",
-      "file": "CHANGELOG.md",
-      "ctx": "vraag Meedoen?",
-      "why": "de vraag staat tussen woorden als titel van een scherm; geen zinseinde"
-    },
-    {
-      "rule": "dubbele-spatie",
-      "file": "CHANGELOG.md",
-      "ctx": "Houd , laat",
-      "why": "citaat van de oude tekst, met de komma-toets als teken"
-    },
-    {
-      "rule": "hoofdletter",
-      "file": "CHANGELOG.md",
-      "ctx": "Stad, Ommeland en Grunn",
-      "why": "de changelogregel noemt de gebiedsnaam \"Grunn\" als naam van het Ommeland-gebied (zo schrijft de constitutie het); geen zinsbegin"
-    },
-    {
-      "rule": "toets-token",
-      "file": "CHANGELOG.md",
-      "ctx": "ruwe {ACCOLADES}",
-      "why": "de changelog citeert het gerepareerde defect (een ruw tekstteken in het menu); het komt niet als speltekst in beeld"
-    },
-    {
-      "rule": "placeholder",
-      "file": "CHANGELOG.md",
-      "ctx": "\"NaN km\"",
-      "why": "de changelog citeert het gerepareerde defect (een NaN in een reisvraag); het komt niet als speltekst in beeld"
-    },
-    {
-      "rule": "engels-restant",
-      "file": "CHANGELOG.md",
-      "ctx": "in plaats van \"LMB\"",
-      "why": "de changelog citeert de oude Engelse afkorting die is vervangen"
-    },
-    {
-      "rule": "engels-restant",
-      "file": "CHANGELOG.md",
-      "ctx": "gde-settings samenRol",
-      "why": "de changelog noemt de opslagsleutel van de instelling (code, niet speltekst)"
-    },
-    {
-      "rule": "dubbele-spatie",
-      "file": "CHANGELOG.md",
-      "ctx": "Je mist nog ...",
-      "why": "citaat van de knoptekst met weglatingsteken in de changelog"
     }
   ]
 }
