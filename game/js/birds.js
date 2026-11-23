@@ -8,7 +8,7 @@ import { pigeonMerged, pigeonWingGeometry, PIGEON_PIVOT } from './pigeonmodel.js
 const clamp01 = (t) => (t < 0 ? 0 : t > 1 ? 1 : t);
 // De zwerm gebruikt het middelniveau van het ene duivenmodel (pigeonmodel.js): een gladde romp met kop, staart en poten, en een
 // vleugel met veren die per vogel klapt. Geen doos met een plaatje meer. Romp en vleugel zijn gedeeld door alle zwermen.
-const FLOCK_SCALE = 0.9; // de duif van het model is 0,38 m lang; een stadsduif is ca. 0,33 m
+const FLOCK_SCALE = 0.6; // de duif van het model is 0,6 m lang (pigeonmodel.js); een stadsduif is ca. 0,33 tot 0,38 m (#1195: 0,9 gaf duiven van 0,54 m)
 let BIRD_GEO = null, WING_GEO = null, BIRD_MAT = null;
 function sharedParts() {
   if (BIRD_GEO) return;

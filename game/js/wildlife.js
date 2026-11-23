@@ -618,10 +618,14 @@ function updatePigeon(a, dt, world) {
     }
   } else if (a.state === 'land') {
     const d = dist(a.x, a.y, a.wanderTarget.x, a.wanderTarget.y);
-    a.speed = Math.max(1, Math.min(a.speed, d + 0.8));
-    steer(a, a.wanderTarget.x, a.wanderTarget.y, 3, dt);
+    // #1195 (hertest 24-11): met minstens 1 m/s en draaisnelheid 3 is de kleinste bocht ca. 0,33 m; een duif die net naast zijn landingsplek
+    // uitkwam bleef er laag omheen cirkelen, scheef in de bocht, en lag zo "plat op de keien". Dicht bij het doel remt hij af en landt hij.
+    a.speed = Math.max(d < 1.5 ? 0.3 : 1, Math.min(a.speed, d + 0.8));
+    a.landT = (a.landT || 0) + dt;
+    steer(a, a.wanderTarget.x, a.wanderTarget.y, d < 1.5 ? 8 : 3, dt);
     a.z += (PIGEON_STAND_Y + Math.min(6, d * 0.6) - a.z) * Math.min(1, dt * 2);
-    if (d < 0.4 || a.z < PIGEON_STAND_Y + 0.05) {
+    if (d < 0.4 || a.z < PIGEON_STAND_Y + 0.05 || (a.landT > 6 && a.z < PIGEON_STAND_Y + 0.8)) {
+      a.landT = 0;
       a.state = 'ground';
       a.z = PIGEON_STAND_Y;
       a.speed = 0;
@@ -2043,7 +2047,8 @@ function animateBird(mesh, a, time, C) {
   const gull = C === GULL_ANIM;
   const seed = gull ? a.flapSeed || 0 : (a.bobSeed || 0) * 5;
   mesh.position.y = a.z ?? (gull ? 6 + Math.sin(time * 2 + seed) * 1.2 : PIGEON_STAND_Y);
-  const bank = birdBank(ud, a, time);
+  // #1195: vlak boven de grond helt een duif niet ver over (een vleugel in de keien leek een liggende, dode duif)
+  const bank = birdBank(ud, a, time) * (gull ? 1 : clamp01(((a.z ?? C.standY) - C.standY) / 1.5));
   const hr = b.head.userData.rest;
   if (a.state === 'ground') {
     const walking = a.speed > 0.05;
