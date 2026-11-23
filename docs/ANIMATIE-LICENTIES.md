@@ -9,12 +9,14 @@
 | Set | Maker (handle) | Bron | Licentie (zoals de bron toont) | Gecontroleerd | Gebruik in de repo |
 | --- | --- | --- | --- | --- | --- |
 | Universal Animation Library (Standard) | Quaternius | [quaternius.com/packs/universalanimationlibrary.html](https://quaternius.com/packs/universalanimationlibrary.html) | [CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/), "free to use in personal, educational and commercial projects" | 23-11-2026 | Alleen referentie voor timing en houdingen; geen bestanden in de repo |
-| Ultimate Modular Men Pack (11 figuren, 24 animaties) | Quaternius | [quaternius.com/packs/ultimatemodularcharacters.html](https://quaternius.com/packs/ultimatemodularcharacters.html) | [CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/), "free to use in personal and commercial projects" | 23-11-2026 | Nieuwe basis voor mensen (besluit eigenaar 23-11); import volgt gefaseerd, nog geen bestanden in de repo |
-| Ultimate Modular Women Pack (10 figuren, 24 animaties) | Quaternius | [quaternius.com/packs/ultimatemodularwomen.html](https://quaternius.com/packs/ultimatemodularwomen.html) | [CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/), "free to use in personal and commercial projects" | 23-11-2026 | Nieuwe basis voor mensen (besluit eigenaar 23-11); import volgt gefaseerd, nog geen bestanden in de repo |
+| Ultimate Modular Men Pack (11 figuren, 24 animaties) | Quaternius | [quaternius.com/packs/ultimatemodularcharacters.html](https://quaternius.com/packs/ultimatemodularcharacters.html) | [CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/), "free to use in personal and commercial projects" | 23-11-2026 | Nieuwe basis voor mensen (besluit eigenaar 23-11); omgezet in `game/models/mensen/man.*` |
+| Ultimate Modular Women Pack (10 figuren, 24 animaties) | Quaternius | [quaternius.com/packs/ultimatemodularwomen.html](https://quaternius.com/packs/ultimatemodularwomen.html) (glb via [poly.pizza](https://poly.pizza/bundle/Ultimate-Modular-Women-Pack-aCBDXDdTNN), ook CC0) | [CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/), "free to use in personal and commercial projects" | 23-11-2026 | Nieuwe basis voor mensen (besluit eigenaar 23-11); omgezet in `game/models/mensen/vrouw.*` |
 
 ## Bestanden in de repo
 
-Nog geen. Elk omgezet bestand krijgt hier een regel: bestand, bronpack en bronbestand, licentie, bewerking (bijvoorbeeld: alleen de clips Idle, Walk en Run, omgezet naar vertexkleuren, gecomprimeerd) en datum.
+Gemaakt door `node scripts/people/quaternius_import.mjs --write` uit de packs buiten git (`<thuismap>/gde-assets/quaternius/`).
 
 | Bestand | Bron | Licentie | Bewerking | Datum |
 | --- | --- | --- | --- | --- |
+| `game/models/mensen/man.json`, `man.bin` | Ultimate Modular Men Pack, glb: Casual Character, Hoodie Character, Business Man, Worker, Farmer, Punk, Beach Character | CC0 1.0 | alleen hoofd, romp, benen en voeten (geen wapens of rugzak); skelet van 62 naar 22 botten (vingers in de pols); vertices gelast zonder normalen en uv's, kleur als paletindex, posities Int16; twee LOD's per deel (vertex-clustering); alleen de clips Idle, Idle_Neutral, Walk, Run, Wave en Interact op 30 beelden/s (quaternionen Int16) | 2026-11-23 |
+| `game/models/mensen/vrouw.json`, `vrouw.bin` | Ultimate Modular Women Pack, glb: Animated Woman (twee varianten), Suit, Worker, Punk, Adventurer | CC0 1.0 | zoals hierboven | 2026-11-23 |

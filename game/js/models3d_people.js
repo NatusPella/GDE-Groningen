@@ -4,6 +4,7 @@ import { hash2 } from './rng.js';
 import { weaponLayers } from './models3d_weapons.js';
 import { footContact, turnLean, approachTo, wrapPi, fidgetAt, blinkAmount } from './gait.js';
 import { twoBoneIK, twoBoneFK, armIK, armFK, footPlant, wheelGrip, mouthShape, STEER_TURN } from './actorlife.js';
+import { animateModular, plantFeetModular } from './modularpeople.js';
 import { idlePose } from './idleclips.js';
 import { attachAccessories } from './models3d_clothing.js';
 import { buildHairStyle } from './models3d_hair.js';
@@ -1691,6 +1692,7 @@ export function speakMouth(ud, jaw, mood = null) {
 const _plant = { drop: 0, liftL: 0, liftR: 0 }, _ank = [{ x: 0, y: 0 }, { x: 0, y: 0 }], _leg = { a: 0, b: 0, reach: true };
 export function plantFeet(mesh, ground, w = 1) {
   const ud = mesh && mesh.userData;
+  if (ud && ud.qRig) return plantFeetModular(mesh, ground, w);
   if (!ud || !ud.pelvis || !ud.legL || !(w > 0) || typeof ground !== 'function') return false;
   const sx = mesh.scale.x || 1, sy = mesh.scale.y || 1;
   const h = -mesh.rotation.y, ch = Math.cos(h), sh = Math.sin(h);
@@ -2358,6 +2360,7 @@ const UMBRELLA_TILT = new THREE.Quaternion().setFromEuler(new THREE.Euler(-0.06,
 // walk/run weights ease in and out so starts and stops blend smoothly.
 export function animatePersonWalk(mesh, speed, dt) {
   const ud = mesh && mesh.userData;
+  if (ud && ud.qRig) { animateModular(mesh, speed, dt); return; } // modulaire mens (modularpeople.js, ADR 0050, fase 1)
   if (!ud || !ud.legL || !ud.legR || !ud.armL || !ud.armR) return;
 
   const s = Number.isFinite(speed) ? Math.max(0, speed) : 0;

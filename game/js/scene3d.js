@@ -113,6 +113,7 @@ import { fadeBand, loadRadius } from './popinrules.js';
 import { VIEW_DISTANCES, viewDistanceFor, detailDistanceFor, DETAIL_BASE } from './viewdist.js';
 import { glanceAt, shareFeet } from './gait.js';
 import { lifeTier } from './actorlife.js';
+import { loadModularPeople, buildModularPerson, modularReady, setModularLod, lodForDistance } from './modularpeople.js';
 import { NEAR_MIN, cameraNearTarget, stepNear, parseNearFlag, parseFarFlag } from './cameranear.js';
 import { compareOpaque } from './drawpool.js';
 import { buildingBatcher, roadBatcher, facadeBatcher, shoreBatcher, drawHub } from './staticbatch3d.js';
@@ -839,6 +840,7 @@ function pinShaderPrograms(r) {
 export function init3D(map) {
   liftMap = map;
   preloadLandmarkModels();
+  if (FLAGS.mensen === 'q') loadModularPeople(); // fase 1 van ADR 0050: voorbijgangers als modulaire mensen (alleen met ?mensen=q)
   setBuildingMap(map);
   canvas3 = document.getElementById('game3d');
   // laptops with two GPUs: the fast one
@@ -2384,6 +2386,12 @@ function buildPedActor(p, world) {
   // stable per-ped look, so a ped doesn't change clothes when it streams back in
   if (p._lookSeed === undefined) p._lookSeed = Math.random() * 1000;
   const outfit = pedOutfitOpts(p, world);
+  // fase 1 (ADR 0050, ?mensen=q): een gewone voorbijganger wordt een modulaire mens zodra de rigs geladen zijn; agenten,
+  // verhaalfiguren en wie iets draagt blijven procedureel (die houdingen zitten nog alleen op het eigen rig)
+  if (FLAGS.mensen === 'q' && modularReady() && !p.isCop && !p.look && !p.carry && !p.pose && !p.heldWeapon) {
+    const q = buildModularPerson(p._lookSeed, { skin: p.skin ? colorFromHex(p.skin) : 0xe0b48a, shirt: p.clothing ? colorFromHex(p.clothing) : null });
+    if (q) { addBlobShadow(q, 0.85, 0.85); return enableShadows(q, false); }
+  }
   const mesh = buildPersonActor(p.clothing ? colorFromHex(p.clothing) : 0xcaa46a, p.skin ? colorFromHex(p.skin) : 0xe0b48a, p.look ? { seed: p._lookSeed, look: p.look } : outfit ? { seed: p._lookSeed, ...outfit } : { seed: p._lookSeed });
   if (p.carry) attachCarry(mesh, p.carry);
   return enableShadows(mesh, false);
@@ -2506,6 +2514,7 @@ function syncPedestrianMeshes(world, player, animDt) {
     // skinned mesh whose bones the renderer works out and uploads as a texture at every draw (~20 GL calls a person), and most of the people in the
     // ring are far (?perfoff=pedtier: as before, half rate beyond 45 m only on a CPU-bound machine, simload.js)
     const tier = pedTier(Math.abs(p.x - player.x) + Math.abs(p.y - player.y), p, world.time);
+    if (ud.qRig) setModularLod(mesh, lodForDistance(Math.hypot(p.x - player.x, p.y - player.y), ud.qLod)); // LOD van een modulaire mens (ADR 0050)
     if (tier > 1) {
       ud.animAcc = (ud.animAcc || 0) + animDt;
       ud.animTick = (ud.animTick || 0) + 1;
