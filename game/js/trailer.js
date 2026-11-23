@@ -5,7 +5,7 @@ import { FLAGS } from './devflags.js';
 import { canvasTex as canvasTexture } from './canvastex.js';
 import { mulberry32 } from './rng.js';
 import { getScene, prewarmStreamAt, prewarmPending, streamPending, disposeObject } from './scene3d.js';
-import { createSettle, settleTick } from './benchsettle.js';
+import { createSettle, settleTick, queueNear } from './benchsettle.js';
 import { WARM } from './cutscenewarm.js';
 import { speakerHtml } from './speakers.js';
 import { getSettings, QUALITY_PRESETS, withTempSettings } from './settings.js';
@@ -2416,7 +2416,7 @@ export function runTrailer(world, { mode = 'opname', cut = 'vol', shot = null, f
       const m = r.w.map;
       const q = { tilesMissing: 0, prewarmPending: 0, buildings: 0, roads: 0, queue: 0 };
       try { if (m && m.store && m.store.keysAround) q.tilesMissing = m.store.missing(m.store.keysAround(f.x, f.y, WARM.tileRadiusM)).length; } catch (e) { /* geen tegelmeting */ }
-      try { if (m && m.tileQueue && m.tileQueue.items) q.queue = m.tileQueue.items.length; } catch (e) { /* idem */ }
+      try { if (m && m.tileQueue && m.tileQueue.items) q.queue = queueNear(m.tileQueue.items, f, WARM.tileRadiusM); } catch (e) { /* idem */ }
       try { q.prewarmPending = prewarmPending(); } catch (e) { /* idem */ }
       try { const sp = streamPending(); q.buildings = sp.buildings; q.roads = sp.roads; } catch (e) { /* idem */ }
       return q;
@@ -2427,6 +2427,9 @@ export function runTrailer(world, { mode = 'opname', cut = 'vol', shot = null, f
     const GATE = { minMs: 900, calmMs: 700, maxMs: 5000 };
     const benchGate = (now, dt) => {
       if (r.gate) {
+        // de trailer tekent via env.render (main.js render), niet via de spellus: daar loopt map.follow niet en bleef de tegelrij staan
+        // (68 tot 186 wachtende rijen in de census-run). Onder het zwart werkt de poort de rij zelf af, rond de plek van het volgende shot.
+        try { if (r.w.map && r.w.map.follow) r.w.map.follow(r.gate.f.x, r.gate.f.y, {}, 8); } catch (e) { /* geen tegelwereld */ }
         const q = placeQuery(r.gate.f)();
         const st = settleTick(r.gate.settle, q, now);
         if (!st.settled) return true;
@@ -2467,6 +2470,7 @@ export function runTrailer(world, { mode = 'opname', cut = 'vol', shot = null, f
         try { frame(r, 0, 16); } catch (e) { /* ignore */ }
         ui.black.style.opacity = '1';
         if (settle) {
+          try { if (r.w.map && r.w.map.follow) r.w.map.follow(f.x, f.y, {}, 8); } catch (e) { /* idem als in benchGate */ }
           const st = settleTick(settle, query(), performance.now());
           if (!st.settled) { requestAnimationFrame(step); return; }
           r.warmup = { ms: Math.round(st.waitedMs), timedOut: st.timedOut, reason: st.reason };
