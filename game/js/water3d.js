@@ -3,6 +3,7 @@ import { polygonBounds } from './util.js';
 import { onSettingsChange } from './settings.js';
 import { WATER_TONES as TONES, WATER_SHARED_GLSL } from './watertones.js';
 import { KIELZOG_GLSL, kielzogVeld, veldHoogte } from './kielzogveld.js';
+import { CLOUD_SKY_GLSL, createCloudUniforms } from './cloudsky.js';
 
 // #865: gebouwen die in het water staan (werelddata: de waterpolygoon ligt over
 // de gebouwvoet). tilewatermask.js bakt de voeten van die gebouwen in een masker
@@ -76,6 +77,7 @@ void main() {
 `;
 
 const FRAGMENT_SHADER = `
+${CLOUD_SKY_GLSL}
 uniform float uTime;
 uniform vec3 uDeepColor;
 uniform vec3 uShallowColor;
@@ -138,6 +140,11 @@ void main() {
   vec3 r = reflect(-v, n);
   float ry = max(r.y, 0.0);
   vec3 sky = mix(uHorizon, uZenith, pow(ry, 0.55));
+#if WATER_Q > 0
+  // de wolken van de hemel spiegelen mee (cloudsky.js); het rimpelende oppervlak vervormt ze vanzelf
+  vec4 cl = cloudSky(normalize(vec3(r.x, max(r.y, 0.0), r.z)), normalize(uSunDir), uSunColor, uSunStrength);
+  sky = mix(sky, cl.rgb, cl.a * 0.85);
+#endif
 
   vec2 toP = vWorldPos.xz - cameraPosition.xz;
   float th = atan(toP.y, toP.x) + (n.x + n.z) * 0.22;
@@ -215,6 +222,7 @@ export function followWaterQuality(material) {
 }
 
 export function createWaterMaterial(sky = null) {
+  const cu = sky && sky.uCloudA ? sky : createCloudUniforms();
   const m = new THREE.ShaderMaterial({
     uniforms: {
       uTime: { value: 0 },
@@ -237,6 +245,7 @@ export function createWaterMaterial(sky = null) {
       uSunColor: sky ? sky.uSunColor : { value: new THREE.Color(0xffd49a) },
       uSunDir: sky ? sky.uSunDir : { value: new THREE.Vector3(0.6, 0.6, 0.4).normalize() },
       uSunStrength: sky ? sky.uSunStrength : { value: 1 },
+      uCloudTex: cu.uCloudTex, uCloudA: cu.uCloudA, uCloudLit: cu.uCloudLit, uCloudShade: cu.uCloudShade, uCloudAlpha: cu.uCloudAlpha,
       uOpacity: { value: TONES.opacity },
       uRain: { value: 0 },
       uLight: { value: 1 },

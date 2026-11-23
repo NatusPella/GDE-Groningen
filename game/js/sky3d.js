@@ -1,4 +1,5 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
+import { CLOUD_SKY_GLSL, createCloudUniforms } from './cloudsky.js';
 
 // Gradient sky dome + a matching PMREM environment for PBR materials. The
 // dome's lowest band blends into scene.fog's colour (fogColor uniform), so
@@ -18,6 +19,7 @@ void main() {
 `;
 
 const FRAGMENT = `
+${CLOUD_SKY_GLSL}
 uniform vec3 uZenith;
 uniform vec3 uHorizon;
 uniform vec3 uSunColor;
@@ -72,6 +74,9 @@ void main() {
       }
     }
   }
+  // wolken (cloudsky.js) over zon, maan en regenboog; sterren verdwijnen via hun eigen dekking
+  vec4 cl = cloudSky(d, normalize(uSunDir), uSunColor, uSunStrength);
+  col = mix(col, cl.rgb, cl.a);
   gl_FragColor = vec4(col, 1.0);
   #include <tonemapping_fragment>
   #include <colorspace_fragment>
@@ -95,6 +100,7 @@ export function createSkyUniforms(sunDir) {
     uMoonStrength: { value: 0 },
     uRainbowDir: { value: new THREE.Vector3(0, 0.4, -1).normalize() },
     uRainbow: { value: 0 },
+    ...createCloudUniforms(),
   };
 }
 

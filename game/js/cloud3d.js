@@ -3,6 +3,7 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { cloudState, cloudSpots, CLOUD_COUNT } from './cloudlook.js';
 import { easeTo, cloudFill } from './weersmooth.js';
+import { getSettings } from './settings.js';
 
 const _gm = new THREE.Matrix4(), _im = new THREE.Matrix4(), _q = new THREE.Quaternion(), _p = new THREE.Vector3(), _s = new THREE.Vector3(), _up = new THREE.Vector3(0, 1, 0);
 
@@ -35,18 +36,39 @@ export function buildCloudLayer() {
   return group;
 }
 
-// Elke frame: volgt de camera, kiest hoeveel wolken zichtbaar zijn en hun kleur.
-export function updateCloudLayer(layer, camPos, radius, weather, daylight, night, dt, glow = null) {
+// Elke frame: zet de wolkenlucht (cloudsky.js, in de hemelshader en in het water) op het weer. De blokjeswolken
+// hierboven blijven als terugval staan voor een hemel zonder wolkenuniformen (de laag is dan zichtbaar).
+// Geen toewijzingen per frame: alleen getallen in bestaande uniformen.
+const SHADE_CLEAR = [0.55, 0.62, 0.8], SHADE_DARK = [0.36, 0.38, 0.44];
+export function updateCloudLayer(layer, camPos, radius, weather, daylight, night, dt, glow = null, sky = null) {
   if (!layer) return;
   const u = layer.userData, st = cloudState(weather, daylight, night, glow);
+  u.fill = easeTo(u.fill, st.fill, dt, 4);
+  if (sky && sky.uCloudA) {
+    layer.visible = false;
+    u.mesh.count = 0;
+    const over = Math.max(0, Math.min(1, (u.fill - 4) / (CLOUD_COUNT - 4)));
+    const A = sky.uCloudA.value;
+    u.wind = (u.wind || 0) + st.speed * 0.6 * dt;
+    A.x = u.wind % 1; A.y = (u.wind * 0.35) % 1;
+    A.z = 0.3 + 0.7 * over;
+    A.w = getSettings().quality === 'laag' ? 0 : 1;
+    sky.uCloudLit.value.setRGB(st.tint[0], st.tint[1], st.tint[2]);
+    const k = over * over; // een dicht pak is onderaan donkerder
+    sky.uCloudShade.value.setRGB(
+      st.tint[0] * (SHADE_CLEAR[0] + (SHADE_DARK[0] - SHADE_CLEAR[0]) * k),
+      st.tint[1] * (SHADE_CLEAR[1] + (SHADE_DARK[1] - SHADE_CLEAR[1]) * k),
+      st.tint[2] * (SHADE_CLEAR[2] + (SHADE_DARK[2] - SHADE_CLEAR[2]) * k));
+    sky.uCloudAlpha.value = Math.min(1, st.opacity * 1.12);
+    return;
+  }
+  layer.visible = true;
   u.angle = (u.angle + st.speed * dt) % (Math.PI * 2);
   layer.position.copy(camPos);
   layer.rotation.y = u.angle;
   u.mat.color.setRGB(st.tint[0], st.tint[1], st.tint[2]);
   u.mat.opacity = st.opacity;
   const R = radius * 0.55;
-  // het aantal wolken schuift zacht mee met het weer; de laatste wolk groeit in plaats van er ineens te hangen
-  u.fill = easeTo(u.fill, st.fill, dt, 4);
   const { full, frac } = cloudFill(u.fill, u.clouds.length);
   let n = 0;
   for (let i = 0; i < u.clouds.length && i <= full; i++) {

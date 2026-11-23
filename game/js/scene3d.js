@@ -3886,7 +3886,7 @@ function updateSunAndSky(player, dt, world) {
   sun.target.position.copy(_shadowCenter);
   sun.position.copy(_shadowCenter).addScaledVector(sunDir, SUN_DIST);
   skyDome.position.copy(cam.position);
-  if (lastLight) updateCloudLayer(cloudLayer, cam.position, cam.far, world.weather, lastLight.daylight, lastLight.night, dt, sunGlow(lastLight.elevation, world.weather ? Math.max(world.weather.overcast || 0, world.weather.intensity || 0) : 0));
+  if (lastLight) updateCloudLayer(cloudLayer, cam.position, cam.far, world.weather, lastLight.daylight, lastLight.night, dt, sunGlow(lastLight.elevation, world.weather ? Math.max(world.weather.overcast || 0, world.weather.intensity || 0) : 0), skyUniforms);
 }
 
 function buildWildlifeActor(a) {
