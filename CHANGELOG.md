@@ -23,6 +23,8 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 - Dieren: koe, schaap, paard, kat en hond hebben nu oren die bewegen (vliegen wegschudden, naar voren bij iets nieuws, plat op de vlucht), een stap waarin de poot van de grond komt, een galop als ze schrikken, ademhaling, een zwiepende staart, af en toe een schuddende kop, en ze kijken je na als je dichtbij komt. De koe heeft een oormerk, het paard een bles, neusgaten en manen die meezwaaien, eenden en de reiger hebben een gevouwen vleugel, de reiger een kuif, en elke koe, elk schaap en elke kat heeft een iets andere maat. Ver weg blijft het bij stappen en grazen. Samen spelen: lokaal in ieders eigen spel, niets nieuws over het net.
 - Hemel: echte, zachte wolken in plaats van witte blokjes. Ze krijgen licht en schaduw van de zon, zilveren randen, een warme gloed bij zonsondergang, een donker dek bij onweer, en trekken langzaam met de wind mee. Het water spiegelt de wolken mee.
 
+- Wereld: bomen zijn geen gladde bollen meer maar hebben bobbelige kronen met een donkerder onderkant, en elke boom heeft een eigen tint groen. Gevels en daken hebben zachte verweringsvlekken, zodat lange muren en dakvlakken niet meer uit één egale kleur bestaan.
+
 ## [0.65.0] - 2026-11-22
 
 Samen spelen met vier echte vensters getest, een ronde zeefdruk-menu's (Spullen, Loopbanen, Boerderij, zoeken), echte voetstappen en weergeluid, AAA-aankleding van de missies van akte 1 tot en met 4 en een snellere start. Pre-release voor de speeltest.
