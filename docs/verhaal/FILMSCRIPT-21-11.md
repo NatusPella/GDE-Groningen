@@ -722,7 +722,7 @@ Op de Grote Markt winnen ze het Ontzet met de beste eierbal, een eerlijke wagen 
   - Tessa wijst naar het luik. Daarop staat in witte letters TAM & TES. Henk kijkt naar het luik, dan naar Tammo, dan naar Tessa.
   - praat: Henk, Tessa, Tammo, Sjabbe
 - **M22.3** BUITEN – WESTERKWARTIER, HET WEILAND – DAG · Een luik erin: de modder · cutscene of gespeeld in de missie
-  - praat: Tinus, Tessa, Tammo
+  - praat: Tinus, Tammo, Tessa
 - **M22.4** BUITEN – WESTERKWARTIER, TINUS' SCHUUR – AVOND · Een luik erin: de schuur 's avonds, de knuffel · cutscene of gespeeld in de missie
   - avond. De schuur is stil, de trekker staat buiten te ratelen. Ze zitten op een hooibaal, ver uit elkaar. Ze hebben een wagen en geen bal.
   - praat: Tessa, Tammo
