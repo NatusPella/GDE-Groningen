@@ -49,9 +49,9 @@ const play = async (key, fn) => {
 await play('deck', () => ms.playDeckMoment(w, { boat, lines: L2, kicker: 'Rondvaart' }));
 // de eerste missiestap met een verhaal: probeer elk nummer tot een scène speelt
 const stepOk = (fn) => { for (let i = 0; i < 40; i++) { if (fn(i)) return i; } return -1; };
-await play('intro', () => { const i = stepOk((q) => ms.playStoryIntro(w, q, { stage: q, kicker: 'Test', title: 'Test' })); out.step = i; CS.step = i; return i >= 0; });
+await play('intro', () => { const i = stepOk((q) => ms.playStoryIntro(w, q, { stage: q, kicker: 'Rondvaart', title: '' })); out.step = i; CS.step = i; return i >= 0; });
 await play('outro', () => ms.playStoryOutro(w, CS.step, { stage: CS.step }));
-await play('kort', () => ms.playStoryIntro(w, CS.step, { stage: CS.step, short: true, kicker: 'Test', title: 'Test' }));
+await play('kort', () => ms.playStoryIntro(w, CS.step, { stage: CS.step, short: true, kicker: 'Rondvaart', title: '' }));
 await play('fail', () => ms.playStoryFail(w, CS.step, { reason: 'test' }));
 clearInterval(hold);
 return JSON.stringify(out);
