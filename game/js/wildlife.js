@@ -1276,6 +1276,11 @@ function duckGeometry(variant) {
   B.geo(ellipsoid(8, 2, 0.15, 0.078, 0.085, 0, Math.PI * 0.32), composeMatrix(-0.015, 0.024, 0), L.back);
   B.geo(ellipsoid(6, 4, 0.07, 0.065, 0.075), composeMatrix(0.1, 0.04, 0), L.chest);
   for (const s of [1, -1]) B.box(-0.03, 0.055, s * 0.083, 0.07, 0.025, 0.01, L.speculum, 0, 0, 0, 0.1);
+  // de gevouwen vleugel langs de flank: een spitse veerplaat die richting de staart oploopt, met een lichte rand
+  for (const s of [1, -1]) {
+    B.geo(ellipsoid(7, 4, 0.125, 0.04, 0.014), composeMatrix(-0.05, 0.05, s * 0.086, 0, 0, 0.12), shadeHex(L.back, 0.9));
+    B.geo(ellipsoid(6, 3, 0.1, 0.01, 0.016), composeMatrix(-0.06, 0.036, s * 0.088, 0, 0, 0.12), shadeHex(L.back, 1.25));
+  }
   B.bone = I.tail;
   slab(B, [[-0.13, 0.03], [-0.21, 0.02], [-0.22, -0.02], [-0.13, -0.03]], 0.035, 0.05, L.tail);
   if (variant === 'drake') B.geo(tubeGeometry([-0.2, 0.05, 0], [-0.19, 0.09, 0], 0.008, 0.005, 4), null, 0x1c1c1c);
@@ -1288,6 +1293,11 @@ function duckGeometry(variant) {
   B.geo(new THREE.BoxGeometry(0.06, 0.016, 0.034), composeMatrix(0.205, 0.12 + nk, 0, 0, 0, -0.15), L.bill);
   for (const s of [1, -1]) B.box(0.165, 0.142 + nk, s * 0.03, 0.01, 0.01, 0.008, 0x111111);
   if (variant === 'goose') B.box(0.14, 0.11 + nk, 0, 0.03, 0.02, 0.07, 0xe6e1d6);
+  if (variant === 'reiger') {
+    B.geo(tubeGeometry([0.13, 0.15 + nk, 0], [0.04, 0.12 + nk, 0], 0.006, 0.002, 4), null, 0x1c1f24);   // de zwarte kuif
+    for (const s of [1, -1]) B.box(0.1, 0.152 + nk, s * 0.034, 0.1, 0.012, 0.006, 0x1c1f24);   // de zwarte streep boven het oog
+    B.geo(tubeGeometry([0.09, 0.05, 0], [0.12, 0.1 + nk, 0], 0.012, 0.01, 4), composeMatrix(0.012, 0, 0.0), 0x4a5560);   // de donkere halsvlekken
+  }
   if (variant === 'swan') B.box(0.178, 0.132 + nk, 0, 0.02, 0.022, 0.02, 0x1a1a1a);
   if (variant === 'hen') for (const s of [1, -1]) B.box(0.155, 0.142 + nk, s * 0.035, 0.05, 0.008, 0.006, 0x4a3422);
   return B.build();

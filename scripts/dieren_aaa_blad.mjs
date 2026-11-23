@@ -22,6 +22,8 @@ const SOORT = {
   schaap: { kind: 'sheep', bouw: (i) => W.buildSheepMesh3D(i), span: 1.6, hoog: 1.2 },
   paard: { kind: 'horse', bouw: (i) => C.buildHorseMesh(i), span: 3.0, hoog: 2.4 },
   kat: { kind: 'cat', bouw: (i) => W.buildCatMesh3D(i), span: 0.9, hoog: 0.6 },
+  eend: { kind: 'duck', bouw: (i) => W.buildDuckMesh3D(['drake', 'hen'][i % 2]), span: 0.7, hoog: 0.35, grond: 0.1 },
+  reiger: { kind: 'reiger', bouw: () => W.buildDuckMesh3D('reiger'), span: 2.0, hoog: 2.4 },
   hond: { kind: 'dog', bouw: (i) => W.buildDogMesh3D(i, 0.3), span: 1.4, hoog: 0.9 },
 };
 for (const [naam, S] of Object.entries(SOORT)) {
@@ -30,6 +32,7 @@ for (const [naam, S] of Object.entries(SOORT)) {
     const g = S.bouw(i);
     const a = { kind: S.kind, bobSeed: 0.37, angle: 0, x: 0, y: 0, ...P.a };
     W.animateWildlifeMesh3D(g, a, 12);   // t = 12: geen graaspuls, zodat staan ook staan is
+    if (S.grond !== undefined) g.position.y = S.grond;   // de eend ligt in de wereld op het water, hier op de grond
     g.updateMatrixWorld(true);
     const v = new THREE.Vector3();
     g.traverse((o) => {
