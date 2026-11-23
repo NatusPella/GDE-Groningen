@@ -1,16 +1,4 @@
 {
  "note": "Allowlist wacht op opname (#735): gegenereerd door scripts/voice_wacht.mjs uit tts_lines.json; leeg zodra de TTS-ronde klaar is.",
- "keys": [
-  "Anita|En wat doet Jelle daar?",
-  "Berend Bos|Elk jaar val ik de stad aan, en elk jaar verlies ik. Dat doet wat met een mens.",
-  "Berend Bos|Niet zo hard. Veertig jaar speel ik hem.",
-  "Rikus|Er is iets gestolen dat niemand zag, maar dat iedereen mist. 't Het nog nooit zo donker west, of 't wer altied wel weer licht.",
-  "Sjabbe|De notaris zit in de Oude Boteringestraat.",
-  "Sjabbe|Een notaris is ook maar een loket, met een stempel.",
-  "Sjabbe|Morgen om drie uur laat Jelle zich daar inschrijven als nieuwe bewaarder, met de bal. Dan tekent hij zelf de uitslag.",
-  "Tammo|Veertig jaar?",
-  "Tammo|Vierhonderd kilo?",
-  "Tinus|Houdt de achteras het niet, dan breekt hij op de Grote Markt. Rij hem dus de modder in.",
-  "Tinus|Met een luik is de zijkant zwakker, en een friteuse weegt vierhonderd kilo."
- ]
+ "keys": []
 }

@@ -31,23 +31,23 @@ const keyOf = (l) => (l.voice || l.speaker) + '|' + l.text;
 
 t('#924 data: elke opgenomen verhaalregel resolvet in zijn eigen manifest', () => {
   const recorded = data.scenes.flatMap((s) => s.lines).filter((l) => l.channel !== 'app-stil' && !l.textOnly);
-  assert.equal(recorded.length, 1993); // 23-11: 4 regels minder door het knippen van te lange beurten (M01.1, M22.3, M25.1, R1.3), wachten op een nieuwe opname; 22-11: tts-ronde3 nam 412 clips op (eerder 1560). 21-11 epic Verhaal: veel regels herschreven, die wachten nu op een nieuwe opname; eerder 1390. 4 regels minder sinds de verhaalcanon van 21-11 (vierentwintig, vijf jaar): wachten op een nieuwe opname; 22-11: 8 regels minder door de Stad-regel (docs/TAALREGEL-STAD-OMMELAND-22-11.md)
+  assert.equal(recorded.length, 2068); // 23-11 (integratie 0.66): TTS-ronde 23-11 en de 11 geknipte beurten opgenomen, verhaaldata opnieuw gebouwd (eerder 1993). 23-11: 4 regels minder door het knippen van te lange beurten (M01.1, M22.3, M25.1, R1.3), wachten op een nieuwe opname; 22-11: tts-ronde3 nam 412 clips op (eerder 1560). 21-11 epic Verhaal: veel regels herschreven, die wachten nu op een nieuwe opname; eerder 1390. 4 regels minder sinds de verhaalcanon van 21-11 (vierentwintig, vijf jaar): wachten op een nieuwe opname; 22-11: 8 regels minder door de Stad-regel (docs/TAALREGEL-STAD-OMMELAND-22-11.md)
   for (const l of recorded) {
     assert.ok(['story', 'lines', 'banter'].includes(l.rec), `${l.text.slice(0, 40)}: rec`);
     assert.ok(manifests[l.rec][keyOf(l)], `${l.text.slice(0, 40)}: opname in ${l.rec}`);
   }
 });
 
-t('#924 autorit: alle 130 exchange-regels resolven via de rec-aware resolver', () => {
+t('#924 autorit: alle 134 exchange-regels resolven via de rec-aware resolver', () => {
   setStoryData(data, manifests);
   const lines = banterExchanges().flatMap((ex) => ex.lines).filter((l) => l[3]);
-  assert.equal(lines.length, 130);
+  assert.equal(lines.length, 134); // 23-11: 4 autoritregels kregen een opname in de TTS-ronde (eerder 130)
   for (const l of lines) assert.ok(banterLineVoice(l), `geen opname: ${l[1]}`);
   // de oude bug: banter.js keek alleen in banter; 70 regels staan in lines
   const fromLines = lines.filter((l) => l[3] === 'lines').length;
   const fromBanter = lines.filter((l) => l[3] === 'banter').length;
-  assert.equal(fromLines, 114);
-  assert.equal(fromBanter, 16);
+  assert.equal(fromLines, 120); // 23-11: eerder 114 lines en 16 banter; de TTS-ronde nam er 6 op in lines
+  assert.equal(fromBanter, 14);
 });
 
 t('#924 dekking: elke verzamelde gesproken regel heeft een opname', () => {

@@ -322,7 +322,8 @@
      "text": "Zonder bank blijft er één weg over: een wedstrijd. Wie wint, krijgt de enige vrije standplaats van de Stad, een plek voor een wagen.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true,
+     "textOnly": false,
+     "rec": "lines",
      "voice": "Anita"
     },
     {
@@ -499,8 +500,9 @@
      "text": "Honderdvijftig euro. Ik heb er acht.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true,
-     "humor": "HS-12"
+     "textOnly": false,
+     "humor": "HS-12",
+     "rec": "lines"
     },
     {
      "speaker": "Tessa",
@@ -612,7 +614,8 @@
      "text": "Niet zo hard. Veertig jaar speel ik hem.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true
+     "textOnly": false,
+     "rec": "lines"
     },
     {
      "speaker": "Tammo",
@@ -620,10 +623,11 @@
      "text": "Veertig jaar?",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true,
+     "textOnly": false,
      "form": {
       "ov": 0.3
-     }
+     },
+     "rec": "lines"
     },
     {
      "speaker": "Berend Bos",
@@ -631,7 +635,8 @@
      "text": "Elk jaar val ik de stad aan, en elk jaar verlies ik. Dat doet wat met een mens.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true
+     "textOnly": false,
+     "rec": "lines"
     },
     {
      "speaker": "Tessa",
@@ -639,10 +644,11 @@
      "text": "Hij is de bisschop die de Stad in 1672 niet innam.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true,
+     "textOnly": false,
      "form": {
       "ov": 0.4
      },
+     "rec": "lines",
      "voice": "Anita"
     },
     {
@@ -1534,8 +1540,9 @@
      "text": "Ik rij. Rustig. Met alle richtingaanwijzers.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true,
-     "humor": "HS-11"
+     "textOnly": false,
+     "humor": "HS-11",
+     "rec": "lines"
     }
    ]
   },
@@ -1776,7 +1783,8 @@
      "text": "Fijn, die nieuwe band van Henk van de garage. Hij vroeg niks.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true
+     "textOnly": false,
+     "rec": "lines"
     },
     {
      "speaker": "Tessa",
@@ -1795,7 +1803,8 @@
      "text": "Waarom vraagt Jelle naar alarmen?",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true
+     "textOnly": false,
+     "rec": "lines"
     },
     {
      "speaker": "Tessa",
@@ -1813,8 +1822,9 @@
      "text": "Dan eerst het Loket. Nummer 4140 wacht op niemand.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true,
-     "humor": "HS-20"
+     "textOnly": false,
+     "humor": "HS-20",
+     "rec": "lines"
     }
    ]
   },
@@ -2082,7 +2092,8 @@
      "text": "Dat is de buurman. Hij woont hier met zijn duiven.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true
+     "textOnly": false,
+     "rec": "lines"
     },
     {
      "speaker": "Tessa",
@@ -2263,8 +2274,9 @@
      "text": "En als ik de verkeerde kant op rijd?",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true,
-     "humor": "HS-06"
+     "textOnly": false,
+     "humor": "HS-06",
+     "rec": "lines"
     },
     {
      "speaker": "Tessa",
@@ -2387,8 +2399,9 @@
      "text": "Vierentwintig mensen. Dat is een rij met een eigen postcode.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true,
-     "humor": "HS-01"
+     "textOnly": false,
+     "humor": "HS-01",
+     "rec": "lines"
     },
     {
      "speaker": "Tessa",
@@ -2524,7 +2537,8 @@
      "text": "Verder koop ik alle standplaatsen van de Stad die vrijkomen. Contant, uit een klomp, definitief.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true
+     "textOnly": false,
+     "rec": "lines"
     },
     {
      "speaker": "Tessa",
@@ -3149,8 +3163,9 @@
      "text": "En waarom Jelle in augustus een colbert draagt.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true,
-     "humor": "HS-22"
+     "textOnly": false,
+     "humor": "HS-22",
+     "rec": "lines"
     }
    ]
   },
@@ -3812,8 +3827,9 @@
      "text": "Eerst wachten. Daar ben ik in opgeleid.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true,
-     "humor": "HS-05"
+     "textOnly": false,
+     "humor": "HS-05",
+     "rec": "lines"
     }
    ]
   },
@@ -4470,7 +4486,8 @@
      "text": "Er is iets gestolen dat niemand zag, maar dat iedereen mist. 't Het nog nooit zo donker west, of 't wer altied wel weer licht.",
      "tag": "NIEUW",
      "channel": "radio",
-     "textOnly": true
+     "textOnly": false,
+     "rec": "lines"
     },
     {
      "speaker": "Rikus",
@@ -4985,7 +5002,8 @@
      "text": "Het is half drie.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true
+     "textOnly": false,
+     "rec": "lines"
     },
     {
      "speaker": "Tessa",
@@ -5003,7 +5021,8 @@
      "text": "Te bleek. Te zout. …Goed.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true
+     "textOnly": false,
+     "rec": "lines"
     },
     {
      "speaker": "Tessa",
@@ -5021,7 +5040,8 @@
      "text": "In een pannetje?",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true
+     "textOnly": false,
+     "rec": "lines"
     },
     {
      "speaker": "Tessa",
@@ -5039,7 +5059,8 @@
      "text": "Dan rijd ik. Jij bakt.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true
+     "textOnly": false,
+     "rec": "lines"
     },
     {
      "speaker": "Tessa",
@@ -5057,7 +5078,8 @@
      "text": "Naar waar ze wakker zijn.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true
+     "textOnly": false,
+     "rec": "lines"
     }
    ]
   },
@@ -5142,8 +5164,9 @@
      "text": "Eén klomp voor een stad vol vet. Dat is vrijwel gratis.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true,
-     "humor": "HS-21"
+     "textOnly": false,
+     "humor": "HS-21",
+     "rec": "lines"
     },
     {
      "speaker": "Tessa",
@@ -5445,7 +5468,7 @@
      "tag": "BEHOUDEN",
      "channel": "stem",
      "textOnly": false,
-     "rec": "banter",
+     "rec": "lines",
      "voice": "Anita"
     },
     {
@@ -5669,8 +5692,9 @@
      "text": "Dan zijn wij een fatbike. Tammo, op mijn rug.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true,
+     "textOnly": false,
      "humor": "HS-07",
+     "rec": "lines",
      "voice": "Anita"
     }
    ]
@@ -5891,7 +5915,7 @@
      "tag": "BEHOUDEN",
      "channel": "stem",
      "textOnly": false,
-     "rec": "banter",
+     "rec": "lines",
      "voice": "Anita"
     },
     {
@@ -6106,8 +6130,9 @@
      "text": "Ik bedoelde de rekening. Samen of apart?",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true,
-     "humor": "HN-16"
+     "textOnly": false,
+     "humor": "HN-16",
+     "rec": "lines"
     },
     {
      "speaker": "Tammo",
@@ -6280,8 +6305,9 @@
      "text": "De koe kijkt weer. Ze kent mijn duiven.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true,
-     "humor": "HN-14"
+     "textOnly": false,
+     "humor": "HN-14",
+     "rec": "lines"
     },
     {
      "speaker": "Tessa",
@@ -6482,8 +6508,9 @@
      "text": "Daar kan ik geen bezwaar tegen maken.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true,
-     "humor": "HN-17"
+     "textOnly": false,
+     "humor": "HN-17",
+     "rec": "lines"
     },
     {
      "speaker": "Tessa",
@@ -7589,8 +7616,9 @@
      "text": "Of hij mist haar. Dat is ook een soort dom.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true,
-     "humor": "HS-04"
+     "textOnly": false,
+     "humor": "HS-04",
+     "rec": "lines"
     },
     {
      "speaker": "Tessa",
@@ -8452,7 +8480,8 @@
      "text": "Wie appt je nou weer?",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true
+     "textOnly": false,
+     "rec": "lines"
     },
     {
      "speaker": "Tessa",
@@ -8799,7 +8828,8 @@
      "text": "In de Stad hebben we de Martinitoren.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true
+     "textOnly": false,
+     "rec": "lines"
     },
     {
      "speaker": "Tessa",
@@ -9280,8 +9310,9 @@
      "text": "Nee. Hij hangt er al veertig jaar. Hij wacht wel.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true,
-     "humor": "HK-01"
+     "textOnly": false,
+     "humor": "HK-01",
+     "rec": "lines"
     }
    ]
   },
@@ -9371,8 +9402,9 @@
      "text": "Hoeveel melk je in je koffie doet. Twee scheuten.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true,
-     "humor": "HK-02"
+     "textOnly": false,
+     "humor": "HK-02",
+     "rec": "lines"
     },
     {
      "speaker": "Tessa",
@@ -9463,8 +9495,9 @@
      "text": "Ik draai een plaat. Een lange.",
      "tag": "NIEUW",
      "channel": "radio",
-     "textOnly": true,
-     "humor": "HS-19"
+     "textOnly": false,
+     "humor": "HS-19",
+     "rec": "lines"
     }
    ]
   },
@@ -9746,8 +9779,9 @@
      "text": "U nadert privé-luchtruim, mevrouw. Mijn ballon heeft voorrang. Het staat in het contract, onder \"wind\".",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true,
-     "humor": "HS-17"
+     "textOnly": false,
+     "humor": "HS-17",
+     "rec": "lines"
     },
     {
      "speaker": "Tessa",
@@ -9930,8 +9964,9 @@
      "text": "Dan weten we waar we vannacht moeten zijn. Hier. Samen.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true,
+     "textOnly": false,
      "humor": "HS-24",
+     "rec": "lines",
      "voice": "Anita"
     },
     {
@@ -9940,7 +9975,8 @@
      "text": "Jelle is geland in een weiland bij Winschoten. Tussen de koeien. Hij was niet blij. De koeien ook niet.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true
+     "textOnly": false,
+     "rec": "lines"
     }
    ]
   },
@@ -10014,8 +10050,9 @@
      "text": "Dan maken wij eerst bezwaar tegen zijn bezwaar.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true,
-     "humor": "HJ-01"
+     "textOnly": false,
+     "humor": "HJ-01",
+     "rec": "lines"
     },
     {
      "speaker": "Tessa",
@@ -10745,8 +10782,9 @@
      "text": "Oogcontact gemaakt. Hij gaf voorrang.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true,
-     "humor": "HS-02"
+     "textOnly": false,
+     "humor": "HS-02",
+     "rec": "lines"
     },
     {
      "speaker": "Tessa",
@@ -10783,8 +10821,9 @@
      "text": "Mevrouw, u rijdt te hard. In mijn limo is plek, en er zit een vergunning bij.",
      "tag": "NIEUW",
      "channel": "telefoon",
-     "textOnly": true,
-     "humor": "HS-18"
+     "textOnly": false,
+     "humor": "HS-18",
+     "rec": "lines"
     },
     {
      "speaker": "Tessa",
@@ -10900,8 +10939,9 @@
      "text": "Durk, Douwe, schrijf op: de sluis was vooraf verloren. Mijn juristen noemen dat winst.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true,
-     "humor": "HS-13"
+     "textOnly": false,
+     "humor": "HS-13",
+     "rec": "lines"
     }
    ]
   },
@@ -11194,7 +11234,8 @@
      "text": "Let op, de trein gaat eerst terug via Station Groningen.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true,
+     "textOnly": false,
+     "rec": "lines",
      "voice": "Anita"
     },
     {
@@ -11436,8 +11477,9 @@
      "text": "Dat is waar. Dat is hinderlijk.",
      "tag": "NIEUW",
      "channel": "telefoon",
-     "textOnly": true,
-     "humor": "HS-03"
+     "textOnly": false,
+     "humor": "HS-03",
+     "rec": "lines"
     }
    ]
   },
@@ -11468,8 +11510,9 @@
      "text": "Het is een proeverij. Wat u proeft, is geen omkoping, maar smaak.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true,
-     "humor": "HS-16"
+     "textOnly": false,
+     "humor": "HS-16",
+     "rec": "lines"
     },
     {
      "speaker": "Jurylid",
@@ -12029,8 +12072,9 @@
      "text": "Botsauto's. Dat was Mems favoriet. Ik betaal jullie daar niet voor.",
      "tag": "NIEUW",
      "channel": "telefoon",
-     "textOnly": true,
-     "humor": "HS-14"
+     "textOnly": false,
+     "humor": "HS-14",
+     "rec": "lines"
     },
     {
      "speaker": "Durk",
@@ -13131,7 +13175,8 @@
      "text": "Dit kwam gisteren, voor jullie allebei. Jelle belde ook. Hij vroeg naar een vergunning voor de kippen.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true
+     "textOnly": false,
+     "rec": "lines"
     },
     {
      "speaker": "Tammo",
@@ -13184,8 +13229,9 @@
      "text": "Dat was niet de zin waar je mee begon.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true,
-     "humor": "HJ-04"
+     "textOnly": false,
+     "humor": "HJ-04",
+     "rec": "lines"
     }
    ]
   },
@@ -13363,7 +13409,8 @@
      "text": "Zo werkt verkopen niet.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true
+     "textOnly": false,
+     "rec": "lines"
     },
     {
      "speaker": "Tessa",
@@ -13399,7 +13446,8 @@
      "text": "Waarom een foto?",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true
+     "textOnly": false,
+     "rec": "lines"
     },
     {
      "speaker": "Tessa",
@@ -13879,8 +13927,9 @@
      "text": "Toeval heeft ook een server. En een update.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true,
-     "humor": "HS-23"
+     "textOnly": false,
+     "humor": "HS-23",
+     "rec": "lines"
     }
    ]
   },
@@ -14089,8 +14138,9 @@
      "text": "Jullie zijn al een koor. Dat is een begin.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true,
-     "humor": "HJ-05"
+     "textOnly": false,
+     "humor": "HJ-05",
+     "rec": "lines"
     },
     {
      "speaker": "Rikus",
@@ -14827,8 +14877,9 @@
      "text": "Ik kijk naar de beer. Hij kijkt terug.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true,
-     "humor": "HN-19"
+     "textOnly": false,
+     "humor": "HN-19",
+     "rec": "lines"
     },
     {
      "speaker": "Tessa",
@@ -15402,8 +15453,9 @@
      "text": "Vanavond komt de man die mijn bakkie wilde kopen naar het Beleg. Met zijn mannen.",
      "tag": "NIEUW",
      "channel": "telefoon",
-     "textOnly": true,
-     "humor": "H4-07"
+     "textOnly": false,
+     "humor": "H4-07",
+     "rec": "lines"
     },
     {
      "speaker": "Berend Bos",
@@ -15557,8 +15609,9 @@
      "text": "Een man mag naar soep lachen.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true,
-     "humor": "HJ-09"
+     "textOnly": false,
+     "humor": "HJ-09",
+     "rec": "lines"
     },
     {
      "speaker": "Beppe",
@@ -15655,7 +15708,8 @@
      "text": "Omdat de Stad te klein is voor een echt beleg.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true
+     "textOnly": false,
+     "rec": "lines"
     },
     {
      "speaker": "Berend Bos",
@@ -16389,7 +16443,8 @@
      "text": "\"Tige tank foar de auto. – J.\" Hij bedankt ons voor onze eigen auto.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true
+     "textOnly": false,
+     "rec": "lines"
     },
     {
      "speaker": "Tammo",
@@ -17161,7 +17216,8 @@
      "text": "Dat is Veendam. Bijna net zo groot als de Stad.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true
+     "textOnly": false,
+     "rec": "lines"
     },
     {
      "speaker": "Tessa",
@@ -17169,7 +17225,8 @@
      "text": "Het is een negende van de Stad.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true,
+     "textOnly": false,
+     "rec": "lines",
      "voice": "Anita"
     },
     {
@@ -17850,7 +17907,8 @@
      "text": "Met een luik is de zijkant zwakker, en een friteuse weegt vierhonderd kilo.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true
+     "textOnly": false,
+     "rec": "lines"
     },
     {
      "speaker": "Tammo",
@@ -17858,10 +17916,11 @@
      "text": "Vierhonderd kilo?",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true,
+     "textOnly": false,
      "form": {
       "ov": 0.3
-     }
+     },
+     "rec": "lines"
     },
     {
      "speaker": "Tinus",
@@ -17869,7 +17928,8 @@
      "text": "Houdt de achteras het niet, dan breekt hij op de Grote Markt. Rij hem dus de modder in.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true
+     "textOnly": false,
+     "rec": "lines"
     },
     {
      "speaker": "Tessa",
@@ -18728,8 +18788,9 @@
      "text": "De grootste stoet van de Stad. Met een scooter voorop.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true,
-     "humor": "HS-08"
+     "textOnly": false,
+     "humor": "HS-08",
+     "rec": "lines"
     },
     {
      "speaker": "Tessa",
@@ -19322,7 +19383,8 @@
      "text": "De notaris zit in de Oude Boteringestraat.",
      "tag": "NIEUW",
      "channel": "telefoon",
-     "textOnly": true
+     "textOnly": false,
+     "rec": "lines"
     },
     {
      "speaker": "Tessa",
@@ -19330,10 +19392,11 @@
      "text": "En wat doet Jelle daar?",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true,
+     "textOnly": false,
      "form": {
       "ov": 0.3
      },
+     "rec": "lines",
      "voice": "Anita"
     },
     {
@@ -19342,7 +19405,8 @@
      "text": "Morgen om drie uur laat Jelle zich daar inschrijven als nieuwe bewaarder, met de bal. Dan tekent hij zelf de uitslag.",
      "tag": "NIEUW",
      "channel": "telefoon",
-     "textOnly": true
+     "textOnly": false,
+     "rec": "lines"
     },
     {
      "speaker": "Sjabbe",
@@ -19350,7 +19414,8 @@
      "text": "Een notaris is ook maar een loket, met een stempel.",
      "tag": "NIEUW",
      "channel": "telefoon",
-     "textOnly": true
+     "textOnly": false,
+     "rec": "lines"
     },
     {
      "speaker": "Tessa",
@@ -20476,8 +20541,9 @@
      "text": "De trekker en de Martinitoren kijken elkaar aan. Gelijkspel.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true,
-     "humor": "HS-10"
+     "textOnly": false,
+     "humor": "HS-10",
+     "rec": "lines"
     }
    ]
   },
@@ -21452,7 +21518,8 @@
      "text": "Vaste klant. Uitverkocht voor vieren.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true
+     "textOnly": false,
+     "rec": "lines"
     },
     {
      "speaker": "Tessa",
@@ -21822,8 +21889,9 @@
      "text": "Naar de motor. Die ik er in gedachten al in heb gezet.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true,
-     "humor": "HE-01"
+     "textOnly": false,
+     "humor": "HE-01",
+     "rec": "lines"
     },
     {
      "speaker": "Tessa",
@@ -21860,7 +21928,8 @@
      "text": "Met deze aanhanger?",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true
+     "textOnly": false,
+     "rec": "lines"
     },
     {
      "speaker": "Tessa",
@@ -22097,8 +22166,9 @@
      "text": "Ik ben het niemandsland. Met soep.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true,
-     "humor": "HE-03"
+     "textOnly": false,
+     "humor": "HE-03",
+     "rec": "lines"
     },
     {
      "speaker": "Douwe",
@@ -22233,7 +22303,8 @@
      "text": "Ik heb erover nagedacht.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true
+     "textOnly": false,
+     "rec": "lines"
     },
     {
      "speaker": "Jelle Terpstra",
@@ -22400,8 +22471,9 @@
      "text": "Berend telde elf seconden en een duif telde mee. Dat is officieel.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true,
-     "humor": "HE-07"
+     "textOnly": false,
+     "humor": "HE-07",
+     "rec": "lines"
     },
     {
      "speaker": "Tessa",
@@ -22428,8 +22500,9 @@
      "text": "Vier woorden. Op de Grote Markt waren het er vijf.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true,
+     "textOnly": false,
      "humor": "HE-06",
+     "rec": "lines",
      "voice": "Anita"
     }
    ]
@@ -23123,7 +23196,7 @@
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": false,
-     "rec": "banter",
+     "rec": "lines",
      "voice": "Anita"
     },
     {
@@ -24146,8 +24219,9 @@
      "text": "Eén stip. Maar wel de onze.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true,
-     "humor": "HE-08"
+     "textOnly": false,
+     "humor": "HE-08",
+     "rec": "lines"
     },
     {
      "speaker": "Tessa",
@@ -24165,7 +24239,8 @@
      "text": "En een Escapade met karakter.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true
+     "textOnly": false,
+     "rec": "lines"
     },
     {
      "speaker": "Jelle Terpstra",

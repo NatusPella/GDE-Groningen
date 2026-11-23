@@ -1419,6 +1419,10 @@
 "src": "anita/en_waarom_luistert_die_duif_naar_0316bafb.mp3",
 "dur": 2.23
 },
+"Anita|En wat doet Jelle daar?": {
+"src": "anita/en_wat_doet_jelle_daar_b7fe7ba0.mp3",
+"dur": 1.41
+},
 "Anita|En wie een pand beheert?": {
 "src": "anita/en_wie_een_pand_beheert_654fabef.mp3",
 "dur": 1.87
@@ -3875,6 +3879,10 @@
 "src": "berend_bos/elk_jaar_hetzelfde_straks_zit_ik_e1488798.mp3",
 "dur": 6.26
 },
+"Berend Bos|Elk jaar val ik de stad aan, en elk jaar verlies ik. Dat doet wat met een mens.": {
+"src": "berend_bos/elk_jaar_val_ik_de_stad_aan_en_e_cd42429c.mp3",
+"dur": 4.44
+},
 "Berend Bos|Elk jaar. En elk jaar verlies ik. Wat mout, dat mout.": {
 "src": "berend_bos/elk_jaar_en_elk_jaar_verlies_ik__56c0c923.mp3",
 "dur": 3.99
@@ -4054,6 +4062,10 @@
 "Berend Bos|Niet erbij vertellen.": {
 "src": "berend_bos/niet_erbij_vertellen_c7c9cc98.mp3",
 "dur": 1.69
+},
+"Berend Bos|Niet zo hard. Veertig jaar speel ik hem.": {
+"src": "berend_bos/niet_zo_hard_veertig_jaar_speel__b53afefb.mp3",
+"dur": 2.47
 },
 "Berend Bos|Niet zo hard. Veertig jaar speel ik hem. Elk jaar val ik de stad aan, en elk jaar verlies ik. Dat doet wat met een mens.": {
 "src": "berend_bos/niet_zo_hard_veertig_jaar_speel__9e58ffb0.mp3",
@@ -7707,6 +7719,10 @@
 "src": "rikus/er_is_iets_gestolen_dat_niemand__3d61f1cf.mp3",
 "dur": 7.71
 },
+"Rikus|Er is iets gestolen dat niemand zag, maar dat iedereen mist. 't Het nog nooit zo donker west, of 't wer altied wel weer licht.": {
+"src": "rikus/er_is_iets_gestolen_dat_niemand__415b7ff9.mp3",
+"dur": 6.51
+},
 "Rikus|Er schijnt in Stad een jongen te zijn naar wie de duiven luisteren. Ik ken hem. Naar mij luistert hij nooit.": {
 "src": "rikus/er_schijnt_in_stad_een_jongen_te_40f83f96.mp3",
 "dur": 6.43
@@ -9071,6 +9087,10 @@
 "src": "sjabbe/dat_is_mijn_zin_hij_ligt_hier_al_c127a666.mp3",
 "dur": 3.71
 },
+"Sjabbe|De notaris zit in de Oude Boteringestraat.": {
+"src": "sjabbe/de_notaris_zit_in_de_oude_boteri_76a9df84.mp3",
+"dur": 3.31
+},
 "Sjabbe|De notaris zit in de Oude Boteringestraat. Morgen om drie uur laat Jelle zich daar inschrijven als nieuwe bewaarder, met de bal. Dan tekent hij zelf de uitslag. Een notaris is ook maar een loket, met een stempel.": {
 "src": "sjabbe/de_notaris_zit_in_de_oude_boteri_0c1d113a.mp3",
 "dur": 13.05
@@ -9094,6 +9114,10 @@
 "Sjabbe|Een man in een blauw colbert kocht gisteren al mijn kopieerpapier. Contant. Uit een klomp.": {
 "src": "sjabbe/een_man_in_een_blauw_colbert_koc_7b1e17f3.mp3",
 "dur": 6.45
+},
+"Sjabbe|Een notaris is ook maar een loket, met een stempel.": {
+"src": "sjabbe/een_notaris_is_ook_maar_een_loke_0380b2d0.mp3",
+"dur": 2.87
 },
 "Sjabbe|En hun baas vroeg waar het museum alarmen heeft.": {
 "src": "sjabbe/en_hun_baas_vroeg_waar_het_museu_114e0476.mp3",
@@ -9130,6 +9154,10 @@
 "Sjabbe|Loket C heeft een zijdeur bij de kopieermachine.": {
 "src": "sjabbe/loket_c_heeft_een_zijdeur_bij_de_06d63d2e.mp3",
 "dur": 3.05
+},
+"Sjabbe|Morgen om drie uur laat Jelle zich daar inschrijven als nieuwe bewaarder, met de bal. Dan tekent hij zelf de uitslag.": {
+"src": "sjabbe/morgen_om_drie_uur_laat_jelle_zi_a3d3c5b3.mp3",
+"dur": 7.77
 },
 "Sjabbe|Netjes. De automaat is vierhonderd euro waard aan onderdelen. Die houd ik. Jullie krijgen je pas en een envelop.": {
 "src": "sjabbe/netjes_de_automaat_is_vierhonder_7b531403.mp3",
@@ -11795,6 +11823,10 @@
 "src": "tammo/vaste_klant_uitverkocht_voor_vie_d7602217.mp3",
 "dur": 2.35
 },
+"Tammo|Veertig jaar?": {
+"src": "tammo/veertig_jaar_94a72564.mp3",
+"dur": 1.72
+},
 "Tammo|Vergelijkbaar.": {
 "src": "tammo/vergelijkbaar_e4a5539b.mp3",
 "dur": 1.03
@@ -11810,6 +11842,10 @@
 "Tammo|Vierentwintig mensen. Dat is een rij met een eigen postcode.": {
 "src": "tammo/vierentwintig_mensen_dat_is_een__f42cbb70.mp3",
 "dur": 3.87
+},
+"Tammo|Vierhonderd kilo?": {
+"src": "tammo/vierhonderd_kilo_a2fc5db2.mp3",
+"dur": 1.29
 },
 "Tammo|Vijf jaar. En dat zeg je nu pas?": {
 "src": "tammo/vijf_jaar_en_dat_zeg_je_nu_pas_5f942d3d.mp3",
@@ -12307,6 +12343,10 @@
 "src": "tinus/gelkingestraat_dicht_trekker_dwa_173e668d.mp3",
 "dur": 5.69
 },
+"Tinus|Houdt de achteras het niet, dan breekt hij op de Grote Markt. Rij hem dus de modder in.": {
+"src": "tinus/houdt_de_achteras_het_niet_dan_b_0062d1fb.mp3",
+"dur": 4.49
+},
 "Tinus|Ik ben Tinus. Ik beleg mee. Mijn trekker staat thuis, in het Westerkwartier.": {
 "src": "tinus/ik_ben_tinus_ik_beleg_mee_mijn_t_239ba4cc.mp3",
 "dur": 4.87
@@ -12330,6 +12370,10 @@
 "Tinus|Laat ze gaan, jong. Praten kun je niet.": {
 "src": "tinus/laat_ze_gaan_jong_praten_kun_je__fb752b8a.mp3",
 "dur": 3.08
+},
+"Tinus|Met een luik is de zijkant zwakker, en een friteuse weegt vierhonderd kilo.": {
+"src": "tinus/met_een_luik_is_de_zijkant_zwakk_02970572.mp3",
+"dur": 4.06
 },
 "Tinus|Met een luik is de zijkant zwakker, en een friteuse weegt vierhonderd kilo. Houdt de achteras het niet, dan breekt hij op de Grote Markt. Rij hem dus de modder in.": {
 "src": "tinus/met_een_luik_is_de_zijkant_zwakk_ccb049dc.mp3",

@@ -3915,6 +3915,17 @@
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-11-21"
 },
+"Anita|En wat doet Jelle daar?": {
+"src": "anita/en_wat_doet_jelle_daar_b7fe7ba0.mp3",
+"model": "google/gemini-3.8-flash-lite-tts",
+"via": "litellm",
+"lang": "own",
+"voice": "Callirrhoe",
+"input": "En wat doet Jelle daar?",
+"style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: ongelovig, vragend.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-11-23"
+},
 "Anita|En wie een pand beheert?": {
 "src": "anita/en_wie_een_pand_beheert_654fabef.mp3",
 "model": "google/gemini-3.8-flash-lite-tts",
@@ -10686,6 +10697,17 @@
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-10-05"
 },
+"Berend Bos|Elk jaar val ik de stad aan, en elk jaar verlies ik. Dat doet wat met een mens.": {
+"src": "berend_bos/elk_jaar_val_ik_de_stad_aan_en_e_cd42429c.mp3",
+"model": "google/gemini-3.8-flash-lite-tts",
+"via": "litellm",
+"lang": "gro",
+"voice": "Charon",
+"input": "Elk joar val ik de stad aan, en elk joar verlaus ik. Dat dut wat mit n mens.",
+"style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; Berend Bos, chagrijnige oude Stadjer uit de Schildersbuurt die al veertig jaar Bommen Berend speelt, nors en droog. Tone: mopperend, droog.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-11-23"
+},
 "Berend Bos|Elk jaar. En elk jaar verlies ik. Wat mout, dat mout.": {
 "src": "berend_bos/elk_jaar_en_elk_jaar_verlies_ik__56c0c923.mp3",
 "model": "google/gemini-3.8-flash-lite-tts",
@@ -11174,6 +11196,17 @@
 "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; Berend Bos, chagrijnige oude Stadjer uit de Schildersbuurt die al veertig jaar Bommen Berend speelt, nors en droog. Tone: nors, stiekem trots.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-11-22"
+},
+"Berend Bos|Niet zo hard. Veertig jaar speel ik hem.": {
+"src": "berend_bos/niet_zo_hard_veertig_jaar_speel__b53afefb.mp3",
+"model": "google/gemini-3.8-flash-lite-tts",
+"via": "litellm",
+"lang": "gro",
+"voice": "Charon",
+"input": "Nait zo hard. Veertig joar speul ik hom.",
+"style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; Berend Bos, chagrijnige oude Stadjer uit de Schildersbuurt die al veertig jaar Bommen Berend speelt, nors en droog. Tone: nors, stiekem trots.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-11-23"
 },
 "Berend Bos|Niet zo hard. Veertig jaar speel ik hem. Elk jaar val ik de stad aan, en elk jaar verlies ik. Dat doet wat met een mens.": {
 "src": "berend_bos/niet_zo_hard_veertig_jaar_speel__9e58ffb0.mp3",
@@ -21000,6 +21033,17 @@
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-11-07"
 },
+"Rikus|Er is iets gestolen dat niemand zag, maar dat iedereen mist. 't Het nog nooit zo donker west, of 't wer altied wel weer licht.": {
+"src": "rikus/er_is_iets_gestolen_dat_niemand__415b7ff9.mp3",
+"model": "google/gemini-3.8-flash-lite-tts",
+"via": "litellm",
+"lang": "gro",
+"voice": "Schedar",
+"input": "Der is wat stoalen dat niemand zag, mor dat ieder mist. 't Het nog nooit zo donker west, of 't wer aaltied wel weer licht.",
+"style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; Rikus, Groningse nacht-dj en verteller, jeugdvriend van Tammo, warm en droog. Tone: warm, vertellend.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-11-23"
+},
 "Rikus|Er schijnt in Stad een jongen te zijn naar wie de duiven luisteren. Ik ken hem. Naar mij luistert hij nooit.": {
 "src": "rikus/er_schijnt_in_stad_een_jongen_te_40f83f96.mp3",
 "model": "google/gemini-3.8-flash-tts",
@@ -24662,6 +24706,17 @@
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-11-22"
 },
+"Sjabbe|De notaris zit in de Oude Boteringestraat.": {
+"src": "sjabbe/de_notaris_zit_in_de_oude_boteri_76a9df84.mp3",
+"model": "google/gemini-3.8-flash-lite-tts",
+"via": "litellm",
+"lang": "gro",
+"voice": "Rasalgethi",
+"input": "De notaris zit in de Oude Boteringestraat.",
+"style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; sluwe Groningse heler, hees en zakelijk. Tone: zakelijk, onder de indruk.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-11-23"
+},
 "Sjabbe|De notaris zit in de Oude Boteringestraat. Morgen om drie uur laat Jelle zich daar inschrijven als nieuwe bewaarder, met de bal. Dan tekent hij zelf de uitslag. Een notaris is ook maar een loket, met een stempel.": {
 "src": "sjabbe/de_notaris_zit_in_de_oude_boteri_0c1d113a.mp3",
 "model": "google/gemini-3.8-flash-lite-tts",
@@ -24727,6 +24782,17 @@
 "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; sluwe Groningse heler, hees en zakelijk. Tone: samenzweerderig, zacht.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-11-22"
+},
+"Sjabbe|Een notaris is ook maar een loket, met een stempel.": {
+"src": "sjabbe/een_notaris_is_ook_maar_een_loke_0380b2d0.mp3",
+"model": "google/gemini-3.8-flash-lite-tts",
+"via": "litellm",
+"lang": "gro",
+"voice": "Rasalgethi",
+"input": "N notaris is ook mor n loket, mit n stempel.",
+"style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; sluwe Groningse heler, hees en zakelijk. Tone: afdingend, droog.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-11-23"
 },
 "Sjabbe|En hun baas vroeg waar het museum alarmen heeft.": {
 "src": "sjabbe/en_hun_baas_vroeg_waar_het_museu_114e0476.mp3",
@@ -24825,6 +24891,17 @@
 "style": "zakelijk, onder de indruk",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-11-07"
+},
+"Sjabbe|Morgen om drie uur laat Jelle zich daar inschrijven als nieuwe bewaarder, met de bal. Dan tekent hij zelf de uitslag.": {
+"src": "sjabbe/morgen_om_drie_uur_laat_jelle_zi_a3d3c5b3.mp3",
+"model": "google/gemini-3.8-flash-lite-tts",
+"via": "litellm",
+"lang": "gro",
+"voice": "Rasalgethi",
+"input": "Morgen om drij uur loat Jelle zich doar inschrieven as nije bewaarder, mit de bal. Dan tekent hai zulf de uitslag.",
+"style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; sluwe Groningse heler, hees en zakelijk. Tone: zakelijk, onder de indruk.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-11-23"
 },
 "Sjabbe|Netjes. De automaat is vierhonderd euro waard aan onderdelen. Die houd ik. Jullie krijgen je pas en een envelop.": {
 "src": "sjabbe/netjes_de_automaat_is_vierhonder_7b531403.mp3",
@@ -31955,6 +32032,17 @@
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-11-23"
 },
+"Tammo|Veertig jaar?": {
+"src": "tammo/veertig_jaar_94a72564.mp3",
+"model": "google/gemini-3.8-flash-lite-tts",
+"via": "litellm",
+"lang": "gro",
+"voice": "Orus",
+"input": "Veertig joar?",
+"style": "spoken in Gronings dialect (Grunnegs), warm and strong Groningen accent, like a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties. Tone: verbaasd, vragend.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-11-23"
+},
 "Tammo|Vergelijkbaar.": {
 "src": "tammo/vergelijkbaar_e4a5539b.mp3",
 "model": "google/gemini-3.8-flash-lite-tts",
@@ -31996,6 +32084,17 @@
 "voice": "Orus",
 "input": "Vaiventwintig mensen. Dat is n rie mit n aigen postcode.",
 "style": "spoken in Gronings dialect (Grunnegs), warm and strong Groningen accent, like a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties. Tone: deadpan, licht verbaasd.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-11-23"
+},
+"Tammo|Vierhonderd kilo?": {
+"src": "tammo/vierhonderd_kilo_a2fc5db2.mp3",
+"model": "google/gemini-3.8-flash-lite-tts",
+"via": "litellm",
+"lang": "gro",
+"voice": "Orus",
+"input": "Vierhonderd kilo?",
+"style": "spoken in Gronings dialect (Grunnegs), warm and strong Groningen accent, like a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties. Tone: verbaasd, vragend.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-11-23"
 },
@@ -33326,6 +33425,17 @@
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-11-07"
 },
+"Tinus|Houdt de achteras het niet, dan breekt hij op de Grote Markt. Rij hem dus de modder in.": {
+"src": "tinus/houdt_de_achteras_het_niet_dan_b_0062d1fb.mp3",
+"model": "google/gemini-3.8-flash-lite-tts",
+"via": "litellm",
+"lang": "gro",
+"voice": "Enceladus",
+"input": "Hol de achteras t nait, dan breekt hai op de Grote Markt. Rie hom dus de modder in.",
+"style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; oude boer met een trekker uit het Westerkwartier, schor en joviaal. Tone: joviaal, boers.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-11-23"
+},
 "Tinus|Ik ben Tinus. Ik beleg mee. Mijn trekker staat thuis, in het Westerkwartier.": {
 "src": "tinus/ik_ben_tinus_ik_beleg_mee_mijn_t_239ba4cc.mp3",
 "model": "google/gemini-3.8-flash-lite-tts",
@@ -33391,6 +33501,17 @@
 "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; oude boer met een trekker uit het Westerkwartier, schor en joviaal. Tone: joviaal, boers.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-11-07"
+},
+"Tinus|Met een luik is de zijkant zwakker, en een friteuse weegt vierhonderd kilo.": {
+"src": "tinus/met_een_luik_is_de_zijkant_zwakk_02970572.mp3",
+"model": "google/gemini-3.8-flash-lite-tts",
+"via": "litellm",
+"lang": "gro",
+"voice": "Enceladus",
+"input": "Mit n luik is de zijkant zwakker, en n friteuse weegt vierhonderd kilo.",
+"style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; oude boer met een trekker uit het Westerkwartier, schor en joviaal. Tone: gemoedelijk, praktisch.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-11-23"
 },
 "Tinus|Met een luik is de zijkant zwakker, en een friteuse weegt vierhonderd kilo. Houdt de achteras het niet, dan breekt hij op de Grote Markt. Rij hem dus de modder in.": {
 "src": "tinus/met_een_luik_is_de_zijkant_zwakk_ccb049dc.mp3",
