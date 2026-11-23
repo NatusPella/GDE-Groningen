@@ -29,7 +29,7 @@ export function onlineStartHtml({ naam = '', fout = '', consent = false, terug =
     ${fout ? `<p class="os-fout" role="alert">${esc(fout)}</p>` : '<p class="os-fout" role="alert" hidden></p>'}
     <div class="os-knoppen">
       <button type="button" class="os-knop os-doorgaan" data-doorgaan aria-keyshortcuts="Enter">${esc(EERSTE_START.doorgaan)} <span class="sk-toets-in">${keyLabelHtml('Enter')}</span></button>
-      ${terug ? `<button type="button" class="os-knop os-alleen" data-terug aria-keyshortcuts="Escape">${esc(EERSTE_START.terug)} <span class="sk-toets-in">${keyLabelHtml('Esc')}</span></button>` : ''}
+      ${terug ? `<button type="button" class="os-knop os-alleen" data-terug>${esc(EERSTE_START.terug)} <span class="sk-toets-in">${keyLabelHtml('Esc')}</span></button>` : ''}
     </div>
   </section>`;
 }
