@@ -49,6 +49,7 @@ De werkafspraken en de constitutie staan in [../AGENTS.md](../AGENTS.md); die wi
 | [AI-TELLS-23-11.md](<AI-TELLS-23-11.md>) | Waar lezers en publishers AI-tekst aan herkennen (met bronnen), hoe scripts/ai_tells_scan.mjs dat in de speltekst telt, de stand voor en na en wat bewust blijft. Regels: [`ui-taal.md`](../.specs-fire/standards/ui-taal.md). |
 | [CUTSCENE-ISSUES-23-11.md](<CUTSCENE-ISSUES-23-11.md>) | Visuele en regievondsten in de cutscenes (23-11, twee rondes): wat er mis was in beeld, wat is opgelost en wat nog open staat. |
 | [AI-TELLS-BEELD-23-11.md](<AI-TELLS-BEELD-23-11.md>) | Beeld-audit op AI-kenmerken (23-11): gevel, deur, markies, bord, bomen, straatgroen en schaal, met de meting en wat is aangepast. |
+| [ART-DIRECTION.md](<ART-DIRECTION.md>) | Canonieke stijlgids voor de 3D-wereld: kleurpaletten, licht, materialen, vormen en kwaliteitsnormen, met scripts/artdirection_audit.mjs als controle. |
 | [ANDROID.md](<ANDROID.md>) | Lokaal bouwbare debug-APK van het spel (Capacitor-WebView rond de webversie). Alleen voor testen: niets upl… |
 | [ARCHITECTUUR-STAD-NAAR-TEGELS.md](<ARCHITECTUUR-STAD-NAAR-TEGELS.md>) | *Migratieplan voor issue #90, 17 oktober 2026 (stand 0.34 + Unreleased). Historisch: de migratie is |
 | [BAG-LOD22.md](<BAG-LOD22.md>) | Besluit van de eigenaar: de 3D BAG-modellen (LoD 2.2: echte daken met dakkapellen, overstekken en schoorste… |
