@@ -16,7 +16,7 @@ import { difficultyTabHtml, difficultyPaneText, syncDifficultyTab, stepDifficult
 import { logoHtml } from './logo.js';
 import { setPauseMenuOpen, setPauseMenuTabState, setPauseMenuControls } from './pausestate.js';
 import { uitlegBlok, zetUitlegGlyph, startUitleg, resetUitlegNietMeer } from './uitleg.js';
-import { PRESET_ORDER, presetLabel, PRESET_HINTS, describePreset, describeChanges, currentPreset, applyPreset, getBenchResult, dismissBenchBanner, GEAR_SVG, measureAutoPreset, autoGfxNote } from './gfxprofile.js';
+import { PRESET_ORDER, presetLabel, PRESET_HINTS, describePreset, describeChanges, currentPreset, applyPreset, getBenchResult, dismissBenchBanner, GEAR_SVG, measureAutoPreset, autoGfxNote, autoGfxLabel } from './gfxprofile.js';
 import { mountMapView, kaartUitlegSluiten, kaartReisPopupSluiten, kaartPlekkaartSluiten, kaartToets, setMapActive, setMapCloseHandler, setMapView, getDiscoveredRatio, setMapTeleport } from './mapview.js';
 import { mountOnlineInstelling } from './onlineconsentui.js';
 import { renderSamenPanel, requestOpenSamen, samenHubTerug } from './samenpanel.js';
@@ -2265,7 +2265,7 @@ function runAction(a) {
     measureAutoPreset({ ms: 3500 }).then((res) => {
       remeasuring = false;
       openPauseMenu('settings', { sub: 'video' });
-      menuMelding(res ? `Gekozen op basis van je pc: ${presetLabel(res.pick)}` : 'Meten lukte niet; je instellingen zijn niet veranderd.');
+      menuMelding(res ? autoGfxLabel(res.pick) : 'Meten lukte niet; je instellingen zijn niet veranderd.');
     }, () => { remeasuring = false; });
   } else if (a === 'gpuinfo') {
     import('./gpudiag.js').then((G) => G.showTechInfo());

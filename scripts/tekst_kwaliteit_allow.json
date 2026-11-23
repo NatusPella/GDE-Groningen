@@ -96,6 +96,12 @@
       "file": "tilestore.js",
       "ctx": "tile worker",
       "why": "technische foutmelding voor de ontwikkelaar (bijdrage aan console), geen speltekst"
+    },
+    {
+      "rule": "placeholder",
+      "file": "cutscenemodels.js",
+      "ctx": "geen NaN en geen overlappende vlakken",
+      "why": "PROP_NORM is de kwaliteitsnorm voor bouwers van cutscene-props (cutscenes-visueel 23-11): ontwikkelaarstekst voor de assetaudit, komt niet als speltekst in beeld"
     }
   ]
 }

@@ -220,10 +220,12 @@ export function parseAutoGfx(v) {
   const m = /^(\d+):([a-z]+)$/.exec(typeof v === 'string' ? v : '');
   return m && GFX_PRESETS[m[2]] ? { version: Number(m[1]), preset: m[2] } : null;
 }
+// One wording for the automatic choice: the line in Instellingen and the message after Opnieuw meten (pausemenu.js).
+export const autoGfxLabel = (preset) => `Gekozen op basis van je pc: ${presetLabel(preset)}`;
 // The line in Instellingen > Beeld: only while the current settings are still the preset that was chosen automatically.
 export function autoGfxNote(st = getSettings()) {
   const a = parseAutoGfx(st.gfxAuto);
-  return a && currentPreset(st) === a.preset ? `Gekozen op basis van je pc: ${presetLabel(a.preset)}` : '';
+  return a && currentPreset(st) === a.preset ? autoGfxLabel(a.preset) : '';
 }
 
 // Measures `ms` of real frames on Ultra and applies the pick. render(): draws a frame when the caller drives the loop itself (the boot
