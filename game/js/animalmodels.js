@@ -10,6 +10,8 @@ import { vcMaterial, markShared } from './pixelart3d.js';
 import { setupSkinnedLods, updateSkinnedLod, makeDitherable, animalLods, triCount } from './meshlod.js';
 
 export const ANIMAL_MODEL_IDS = ['ree', 'vos', 'wolf', 'ezel', 'alpaca', 'varken'];
+// fish book species on a pack fish base, recoloured (fishmodels.js picks these or its own pike and eel)
+export const FISH_MODEL_IDS = ['vis_baars', 'vis_karper', 'vis_brasem', 'vis_voorn'];
 const MAT = markShared(makeDitherable(vcMaterial({ roughness: 0.9 })));
 const data = new Map(), templates = new Map(), loading = new Map();
 
@@ -19,7 +21,7 @@ export function primeAnimalModel(id, json) {
   templates.delete(id);
 }
 export const animalModelReady = (id) => data.has(id);
-export function preloadAnimalModels(ids = ANIMAL_MODEL_IDS) {
+export function preloadAnimalModels(ids = [...ANIMAL_MODEL_IDS, ...FISH_MODEL_IDS]) {
   return Promise.all(ids.map((id) => {
     if (data.has(id)) return Promise.resolve(true);
     if (!loading.has(id)) {
@@ -108,7 +110,9 @@ function fill(group) {
   const d = t.d;
   const inner = new THREE.Group();
   inner.rotation.y = d.norm.rotY;
-  inner.scale.setScalar(d.norm.scale);
+  // a fish gets its own height and width (scripts/dieren_converteer.mjs hoog, breed); the width axis is local x when the model was turned
+  const hoog = d.norm.hoog || 1, breed = d.norm.breed || 1, turned = Math.abs(d.norm.rotY) > 1;
+  inner.scale.set(d.norm.scale * (turned ? breed : 1), d.norm.scale * hoog, d.norm.scale * (turned ? 1 : breed));
   inner.position.y = d.norm.y;
   const arm = new THREE.Object3D();
   arm.position.fromArray(d.armature.t); arm.quaternion.fromArray(d.armature.q); arm.scale.fromArray(d.armature.s);
@@ -152,7 +156,9 @@ export function animateAnimalModel(group, a, time) {
   if (!ud.filled && !fill(group)) return;
   const [walkRef, runRef] = PACE[ud.animalModel] || [1, 4];
   const speed = a.speed || 0;
-  if (a.dead) play(ud, 'death', { once: true });
+  const fish = !!template(ud.animalModel).clips.swim;
+  if (fish) play(ud, a.state === 'vangst' ? 'out' : speed > 1.2 ? 'fast' : 'swim', { scale: a.state === 'vangst' ? 1 : Math.max(0.6, Math.min(2, 0.7 + speed)) });   // a fish: swim, dart, or flap on the line
+  else if (a.dead) play(ud, 'death', { once: true });
   else if (a.state === 'aanval' && speed < 1.5) play(ud, 'attack');
   else if (a.state === 'schrik') play(ud, 'hit');
   else if (speed > walkRef * 1.8) play(ud, 'run', { scale: Math.max(0.6, Math.min(1.8, speed / runRef)) });

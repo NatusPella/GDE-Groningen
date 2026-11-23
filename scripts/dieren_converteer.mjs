@@ -11,10 +11,12 @@ import { loadGlb, findClip } from './lib/glb_node.mjs';
 import { measureAnimal } from './lib/diermaat.mjs';
 const AM = await import('../game/js/animalmodels.js');
 const REG = await import('../game/js/dierenregister.js');
+const VIS = await import('../game/js/visdata.js');
 const THREE = await import('three');
 const [root, only = ''] = process.argv.slice(2);
 if (!root) { console.log('gebruik: node scripts/dieren_converteer.mjs <assetmap> [ids]'); process.exit(1); }
-const U = (f) => path.join(root, 'ultimate-animated-animals/pack', f), F = (f) => path.join(root, 'farm-animal/pack', f);
+const U = (f) => path.join(root, 'ultimate-animated-animals/pack', f), F = (f) => path.join(root, 'farm-animal/pack', f), V = (f) => path.join(root, 'animated-fish/pack', f);
+const FISH = { swim: 'Swimming_Normal', fast: 'Swimming_Fast', out: 'Out_Of_Water' };
 const WILD = { idle: 'Idle', idle2: 'Idle_2', walk: 'Walk', run: 'Gallop', eat: 'Eating', death: 'Death', hit: 'Idle_HitReact_Left' };
 // len: real nose-to-tail length in metres; src: the pack file; clips: game key -> clip name in the pack
 export const ANIMALS = {
@@ -24,6 +26,12 @@ export const ANIMALS = {
   ezel: { src: U('Donkey.glb'), len: 1.8, clips: { ...WILD, low: 'Idle_Headlow', attack: 'Attack_Kick' } },
   alpaca: { src: U('Alpaca.glb'), len: 1.6, clips: { ...WILD, low: 'Idle_Headlow' } },
   varken: { src: F('Pig.glb'), len: 1.3, clips: { idle: 'Idle', hit: 'Jump' } },
+  // the fish book (visdata.js): pack fish as a base, recoloured to Groningen species by material role (Main, Light, Fins, Dark),
+  // scaled to the real length in visdata.js (lengte). Pike and eel have no fitting base: they are our own (fishmodels.js).
+  vis_baars: { src: V('Red Snapper.glb'), fish: 'baars', clips: FISH, hoog: 0.8, breed: 0.8, kleur: { Main: 0x6f7a3a, Light: 0xd8c99a, Fins: 0xd8642a, Dark: 0x2a2e1e } },
+  vis_karper: { src: V('Koi.glb'), fish: 'karper', clips: FISH, hoog: 0.62, breed: 0.62, kleur: { Main: 0x8a6a2e, Light: 0xd8c08a, Fins: 0x7a5a2a, Dark: 0x4a3a20 } },
+  vis_brasem: { src: V('Koi.glb'), fish: 'brasem', clips: FISH, hoog: 0.85, breed: 0.42, kleur: { Main: 0x8a8468, Light: 0xc8c0a0, Fins: 0x4a4436, Dark: 0x5a5440 } },   // the carp body, deep and flat
+  vis_voorn: { src: V('Cardinal Fish.glb'), fish: 'voorn', clips: FISH, hoog: 0.75, breed: 0.65, kleur: { Main: 0x8a9aa8, Light: 0xe6e8ea, Fins: 0xc8402a, Dark: 0x3a4450 } },
 };
 const b64 = (ta) => Buffer.from(ta.buffer, ta.byteOffset, ta.byteLength).toString('base64');
 const r5 = (x) => Math.round(x * 1e5) / 1e5;
@@ -53,8 +61,11 @@ for (const [id, A] of Object.entries(ANIMALS)) {
   let base = 0;
   for (const m of meshes) {
     const g = m.geometry, mat = Array.isArray(m.material) ? m.material[0] : m.material;
-    let k = palette.indexOf(mat.color.getHex());
-    if (k < 0) { k = palette.length; palette.push(mat.color.getHex()); }
+    // a recoloured fish: the colour by the role at the end of the material name (RedSnapper_Main -> Main); eyes stay
+    const role = A.kleur && Object.keys(A.kleur).find((r) => mat.name.endsWith('_' + r) || mat.name === r);
+    const hex = role ? A.kleur[role] : mat.color.getHex();
+    let k = palette.indexOf(hex);
+    if (k < 0) { k = palette.length; palette.push(hex); }
     const p = g.attributes.position, j = g.attributes.skinIndex, w = g.attributes.skinWeight;
     for (let i = 0; i < p.count; i++) {
       pos.push(p.getX(i), p.getY(i), p.getZ(i));
@@ -117,12 +128,13 @@ for (const [id, A] of Object.entries(ANIMALS)) {
   const mw = meshes[0].matrixWorld;
   for (let i = 0; i < pos.length; i += 3) box.expandByPoint(v.set(pos[i], pos[i + 1], pos[i + 2]).applyMatrix4(mw));
   const sz = box.getSize(new THREE.Vector3()), ctr = box.getCenter(new THREE.Vector3());
+  // the head bone points the nose to +x; the pack fish have none: their nose is at +z
   const head = skel.bones.find((b) => /^head$/i.test(b.name));
-  const hp = head.getWorldPosition(new THREE.Vector3());
+  const hp = head ? head.getWorldPosition(new THREE.Vector3()) : ctr.clone().add(new THREE.Vector3(0, 0, 1));
   const alongZ = sz.z > sz.x;
   const sign = Math.sign((alongZ ? hp.z - ctr.z : hp.x - ctr.x) || 1);
   const rotY = alongZ ? (sign > 0 ? Math.PI / 2 : -Math.PI / 2) : (sign > 0 ? 0 : Math.PI);
-  const scale = A.len / Math.max(sz.x, sz.z);
+  const scale = (A.len || 1) / Math.max(sz.x, sz.z);
   // mesh LODs: vertex clustering on the bind pose per colour (a cell of len * f), triangles that collapse are dropped;
   // the LODs share the vertex buffer and only carry their own index list
   const lods = [], lodTris = [];
@@ -143,7 +155,8 @@ for (const [id, A] of Object.entries(ANIMALS)) {
   }
   const data = {
     id, bron: path.basename(A.src), licentie: 'CC0 1.0 (Quaternius)', len: A.len,
-    norm: { rotY: r5(rotY), scale: r5(scale), y: r5(-box.min.y * scale) },
+    // hoog, breed: the pack fish are chubby cartoons; a Groningen fish gets its own height and width (times the length scale)
+    norm: { rotY: r5(rotY), scale: r5(scale), y: r5(-box.min.y * scale), hoog: A.hoog || 1, breed: A.breed || 1 },
     armature: { t: armPos.toArray().map(r5), q: armQ.toArray().map(r5), s: armS.toArray().map(r5) },
     mesh: { t: meshPos.toArray().map(r5), q: meshQ.toArray().map(r5), s: meshS.toArray().map(r5) }, bind: meshes[0].bindMatrix.elements.map(r5),
     palette, box: { min: mn.map(r5), max: mx.map(r5) },
@@ -153,15 +166,15 @@ for (const [id, A] of Object.entries(ANIMALS)) {
   };
   // the real size: build the model as the game does, measure the shoulder height (scripts/lib/diermaat.mjs) and scale it to
   // the register's maat.schoft (the length above only gave the first guess)
-  const maat = REG.dierById(id).maat;
+  const maat = A.fish ? { lengte: VIS.soort(A.fish).lengte } : REG.dierById(id).maat;
   AM.primeAnimalModel(id, data);
   const m0 = measureAnimal(AM.buildAnimalModel(id));
-  const k = maat && maat.schoft ? maat.schoft / m0.schoft : 1;
+  const k = maat && maat.schoft ? maat.schoft / m0.schoft : maat && maat.lengte ? maat.lengte / m0.lengte : 1;
   data.norm.scale = r5(data.norm.scale * k);
   data.norm.y = r5(data.norm.y * k);
   AM.primeAnimalModel(id, data);
   const m1 = measureAnimal(AM.buildAnimalModel(id));
-  console.log(`  ${id}: schoft ${m1.schoft.toFixed(2)} m (doel ${maat ? maat.schoft : '-'}), lengte ${m1.lengte.toFixed(2)} m, hoogte ${m1.hoogte.toFixed(2)} m`);
+  console.log(`  ${id}: schoft ${m1.schoft === null ? '-' : m1.schoft.toFixed(2)} m, lengte ${m1.lengte.toFixed(2)} m, hoogte ${m1.hoogte.toFixed(2)} m (doel ${maat ? JSON.stringify(maat) : '-'})`);
   const file = path.join(outDir, `${id}.json`);
   const text = JSON.stringify(data);
   writeFileSync(file, text);

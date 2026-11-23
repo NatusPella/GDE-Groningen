@@ -1966,6 +1966,10 @@
   {
    "glob": "meshlod",
    "reden": "Alleen beeld: mesh-LOD per client, geen spelstaat en geen netwerk."
+  },
+  {
+   "glob": "fishmodels",
+   "reden": "Alleen beeld: het model van een vis (de vangst in de hand, de vissen van het visboek) bouwt elke speler zelf; geen spelstaat en geen netwerk."
   }
  ],
  "opslag": {

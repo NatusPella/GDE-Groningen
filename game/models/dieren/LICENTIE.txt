@@ -3,5 +3,7 @@ Bronnen (gedownload door de eigenaar op 23-11-2026, buiten git bewaard):
 - ree.json, vos.json, wolf.json, ezel.json, alpaca.json: Ultimate Animated Animal Pack (Deer, Fox, Wolf, Donkey, Alpaca),
   https://quaternius.com/packs/ultimateanimatedanimals.html
 - varken.json: Farm Animal Pack (Pig), https://quaternius.com/packs/farmanimal.html
-Omgezet met scripts/dieren_converteer.mjs (samengevoegde geometrie, kleur per hoekpunt, mesh-LOD's, alleen de gebruikte clips,
-geschaald op de schofthoogte uit dierenregister.js). CC0 vraagt geen naamsvermelding. Zie ADR 0050 en 0053.
+- vis_baars.json (Red Snapper), vis_karper.json en vis_brasem.json (Koi), vis_voorn.json (Cardinal Fish): Animated Fish Pack,
+  https://quaternius.com/packs/animatedfish.html, opnieuw gekleurd en op de echte lengte uit visdata.js gezet.
+Omgezet met scripts/dieren_converteer.mjs (samengevoegde geometrie, kleur per hoekpunt, alleen de gebruikte clips,
+geschaald op de schofthoogte uit dierenregister.js of de lengte uit visdata.js). CC0 vraagt geen naamsvermelding. Zie ADR 0050 en 0053.

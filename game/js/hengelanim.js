@@ -6,6 +6,7 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
 import { getScene } from './scene3d.js';
 import { WATER_Y } from './util.js';
 import { hengelPose, vangstBoog, dobberPositie, lijnPunten, REIK } from './hengelpose.js';
+import { buildFishModel, animateFishModel } from './fishmodels.js';
 
 const LIJN_N = 10;
 const ROD_LEN = 2.1;
@@ -30,8 +31,13 @@ export function maakHengelAnim() {
   lijn.frustumCulled = false;
   const ring = new THREE.Mesh(new THREE.RingGeometry(0.15, 0.22, 20), new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.6, side: THREE.DoubleSide, depthWrite: false }));
   ring.rotation.x = -Math.PI / 2;
-  const vis = new THREE.Mesh(new THREE.ConeGeometry(0.1, 0.4, 5), mat(0x8fa6b8));
-  vis.rotation.z = Math.PI / 2;
+  // the caught fish: the species of the catch at its real length (fishmodels.js); the cone only stands in for an unknown species
+  const vis = new THREE.Group();
+  const kegel = new THREE.Mesh(new THREE.ConeGeometry(0.1, 0.4, 5), mat(0x8fa6b8));
+  kegel.rotation.z = Math.PI / 2;
+  vis.add(kegel);
+  const vissen = new Map();   // one model per species, reused for every catch
+  let visNu = null;
   // het uitroepteken boven het dobbertje bij een beet (#985): je ziet vanaf de wal dat er wat gebeurt; één kleine mesh, geen licht, geen eigen shader
   const uitroep = new THREE.Group();
   const uitroepMat = new THREE.MeshBasicMaterial({ color: 0xffd23c, depthTest: false, transparent: true });
@@ -68,7 +74,14 @@ export function maakHengelAnim() {
       const afstand = afstandPlek > 1.5 ? Math.min(REIK, afstandPlek) : REIK;
       const doel = { x: px + ux * afstand, y: py + uy * afstand, h: WATER_Y + 0.02 };
       for (const e of events || []) {
-        if (e.type === 'catch') { s.vangstT = 0; s.splashAt = { ...doel }; s.splashT = 0; }
+        if (e.type === 'catch') {
+          s.vangstT = 0; s.splashAt = { ...doel }; s.splashT = 0;
+          if (visNu) visNu.visible = false;
+          visNu = vissen.get(e.fish);
+          if (visNu === undefined) { visNu = buildFishModel(e.fish); vissen.set(e.fish, visNu); if (visNu) vis.add(visNu); }
+          if (visNu) visNu.visible = true;
+          kegel.visible = !visNu;
+        }
         if (e.type === 'lost' || e.type === 'early') { s.splashAt = { ...doel }; s.splashT = 0; }
       }
       // de plons als het dobbertje landt
@@ -101,11 +114,13 @@ export function maakHengelAnim() {
           vis.visible = true;
           vis.position.set(doel.x + (hand.x - doel.x) * b.p * 0.5, WATER_Y + b.hoogte, doel.y + (hand.y - doel.y) * b.p * 0.5);
           vis.rotation.y = -ang; vis.rotation.x = b.terug ? 0.9 : -0.9;
+          if (visNu) animateFishModel(visNu, { state: 'vangst' }, s.vangstT);
         }
       }
     },
     dispose() {
       if (g.parent) g.parent.remove(g);
+      for (const m of vissen.values()) if (m) vis.remove(m);   // the fish share geometry and material with every other fish: not disposed here
       g.traverse((o) => { if (o.geometry) o.geometry.dispose(); if (o.material) o.material.dispose(); });
     },
   };

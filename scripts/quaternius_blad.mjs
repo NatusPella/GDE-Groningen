@@ -30,6 +30,8 @@ const ROWS = {
   ezel: { len: 1.8, q: [[U('Donkey.glb'), ANIM]] },
   alpaca: { len: 1.6, q: [[U('Alpaca.glb'), ANIM], [F('Llama.glb'), ['Idle', 'Jump']]] },
   varken: { len: 1.4, q: [[F('Pig.glb'), ['Idle', 'Jump']]] },
+  // candidate bases for the fish book species (each in its swimming pose)
+  visbasis: { len: 0.45, q: ['Tuna', 'Red Snapper', 'Coral Grouper', 'Koi', 'Goldfish', 'Tetra', 'Cardinal Fish', 'Butterfly Fish', 'Piranha', 'Armored Catfish', 'Swordfish', 'Flatfish'].map((n) => [V(n + '.glb'), ['Swimming_Normal']]) },
   vis: { len: 0.45, ons: ours(() => W.buildFishMesh3D(), 'vis', [{ speed: 0.4 }]), q: [[V('Flatfish.glb'), FISH], [V('Goldfish.glb'), FISH], [V('Red Snapper.glb'), FISH], [V('Tuna.glb'), FISH]] },
 };
 const tilt = new THREE.Matrix4().makeRotationX(0.45).multiply(new THREE.Matrix4().makeRotationY(-0.55));
