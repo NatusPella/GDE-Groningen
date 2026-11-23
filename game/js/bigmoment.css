@@ -15,6 +15,8 @@
 /* shared print bits */
 .bm-klein { display: inline-block; align-self: flex-start; padding: 2px 12px; font: 800 clamp(16px, 1.6vw, 26px) var(--ds-font-zeef-kop); letter-spacing: 0.12em; text-transform: uppercase; color: var(--ds-c-ink-papier); background: var(--ds-c-ink-bord); box-shadow: var(--ds-schaduw-hard); }
 .bm-kop { font: 800 clamp(56px, 9vw, 160px)/0.95 var(--ds-font-zeef-kop); color: var(--ds-c-ink-inkt); text-shadow: var(--ds-misdruk); overflow-wrap: anywhere; }
+/* #1217: de missienaam als titel van de band: kleiner dan een korte uitroep, hele woorden */
+.bm-band .bm-kop.lang { font-size: clamp(40px, 5.6vw, 104px); overflow-wrap: normal; hyphens: manual; text-wrap: balance; }
 .bm-regel { font: 700 clamp(20px, 2.4vw, 40px)/1.25 var(--ds-font-zeef-tekst); }
 .bm-meta { display: flex; flex-wrap: wrap; gap: 8px 28px; font: 600 clamp(18px, 1.8vw, 30px) var(--ds-font-zeef-kop); letter-spacing: 0.04em; }
 .bm-meta-i b { margin-right: 8px; font-weight: 800; text-transform: uppercase; color: var(--ds-c-ink-bord); }

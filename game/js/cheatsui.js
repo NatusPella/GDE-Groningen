@@ -20,7 +20,6 @@ const KIND = { car: 'Auto', bike: 'Fiets', scooter: 'E-step', boat: 'Boot', heli
 // dezelfde hero-taal spreekt als Prestaties en Loopbanen zonder in pausemenu.css te wonen.
 const CSS = `
 #pause-menu .ch-hero .pm-hero-t { font-size: 40px; }
-#pause-menu .ch-stats { margin: 0 24px 14px; }
 #pause-menu .ch-trophy { display: inline-flex; align-items: center; gap: 8px; }
 #pause-menu .ch-trophy svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
 #pause-menu .ch-note { margin: 0 24px 10px; max-width: 760px; }
@@ -105,7 +104,8 @@ function paneHtml(w) {
   const c = CHEATS.find((x) => x.id === sel);
   const busy = cheatsBusy(w);
   // De prestatiesregel staat boven de lijst; het paneel herhaalt hem niet nog eens.
-  if (!c) return `<div class="pm-pane-top"><span class="m-eb">Cheats</span><h2 class="m-h2 td-h2">Een beetje vals spelen</h2></div><p class="mut">Kies links een cheat om te zien wat hij doet en of hij je prestaties raakt.</p>`;
+  // #1268: the hero already says Cheats and Een beetje vals spelen; the empty pane only says what to do
+  if (!c) return `<div class="pm-pane-top"><span class="m-eb">Uitleg</span><h2 class="m-h2 td-h2">Kies een cheat</h2></div><p class="mut">Kies links een cheat om te zien wat hij doet en of hij je prestaties raakt.</p>`;
   const open = isAvailable(c.id);
   return `<div class="pm-pane-top"><span class="m-eb">${c.kind === 'action' || c.kind === 'perk' ? 'Actie' : c.safe ? 'Cheat · uiterlijk' : 'Cheat'}</span><h2 class="m-h2 td-h2">${open ? esc(c.name) : '???'}</h2></div>` +
     `<p>${open ? esc(c.desc) : esc(hintOf(c))}</p>` +
@@ -132,18 +132,17 @@ export function renderCheatsPanel(el, w) {
   // drie keer hetzelfde. Nu één hero bovenaan met de stand, en het paneel zegt het alleen
   // nog bij de cheat die je bekijkt.
   const n = CHEATS.filter((c) => isAvailable(c.id)).length;
-  const aan = toggles.filter((c) => isCheatOn(c.id)).length;
   const hero = `<section class="pm-hero ch-hero" aria-label="Cheats">` +
     `<div class="pm-hero-h"><span class="m-eb">Cheats</span><span class="pm-badge" data-tone="${sum.tone === 'red' ? 'warn' : 'ok'}">${n} van ${CHEATS.length} vrijgespeeld</span></div>` +
     `<h2 class="pm-hero-t">Een beetje vals spelen</h2>` +
-    `<p class="pm-hero-lead">${esc(sum.text)}</p></section>` +
-    `<div class="pm-stats ch-stats"><span class="pm-stat" data-tone="accent"><b>${n}</b><span>vrijgespeeld</span></span>` +
-    `<span class="pm-stat"><b>${aan}</b><span>nu aan</span></span>` +
-    `<span class="pm-stat"><b>${CHEATS.length - n}</b><span>nog op slot</span></span></div>`;
+    `<p class="pm-hero-lead">${esc(sum.text)}</p></section>`;
+  // #1268: no tiles (vrijgespeeld, nu aan, op slot): the badge, the group head and the fold already say those numbers,
+  // and a group without rows gets no head
+  const acts = actions.filter((c) => isAvailable(c.id));
   el.innerHTML = hero + '<div class="ch-note">' + `<p class="m-note cheat-rule">${esc(introOf(w))}</p></div>` +
     '<div class="m-main"><div class="m-list pm-slist">' +
-    '<div class="m-gh"><span>Acties</span></div>' + actions.filter((c) => isAvailable(c.id)).map((c) => actionRow(c, w)).join('') +
-    `<div class="m-gh"><span>Cheats</span><span>${lit ? `${lit} aan` : ''}</span></div>` + open.map(toggleRow).join('') +
+    (acts.length ? '<div class="m-gh"><span>Acties</span></div>' + acts.map((c) => actionRow(c, w)).join('') : '') +
+    (open.length ? `<div class="m-gh"><span>Aan of uit</span><span>${lit ? `${lit} aan` : ''}</span></div>` + open.map(toggleRow).join('') : '') +
     (shut.length ? `<div class="m-rule"></div><button type="button" class="m-disc" data-fold="locked" aria-expanded="${lockedOpen}" aria-controls="pm-f-locked">${CHEV}<b>Nog ${shut.length} op slot</b><span class="mut one">Speel verder in het verhaal of haal prestaties</span></button>` +
       `<div class="m-fold" id="pm-f-locked" data-fold-body="locked"${lockedOpen ? '' : ' hidden'}>${shut.map(lockedRow).join('')}</div>` : '') +
     `</div><aside class="m-pane cheat-pane" aria-live="polite">${paneHtml(w)}</aside></div>`;

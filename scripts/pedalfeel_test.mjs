@@ -2,7 +2,7 @@
 // eerst als pure regels en daarna met de echte rijfysica (Vehicle.applyControls) op een vlak:
 //   node scripts/pedalfeel_test.mjs [--verbose]
 import './node3d.mjs';
-import { TRIGGER_DEAD, TRIGGER_FULL, triggerPedal, pedalAxis, stickSteerCurve, pedalSpeedShare, pedalThrottle } from '../game/js/pedalfeel.js';
+import { TRIGGER_DEAD, TRIGGER_FULL, triggerPedal, pedalAxis, stickSteerCurve, pedalSpeedShare, pedalThrottle, STICK_STEER_RATE, isAnalogSteer, steerFollowRate } from '../game/js/pedalfeel.js';
 
 const { Vehicle, HERO_CAR_MODEL, speedCap } = await import('../game/js/vehicle.js');
 const VERBOSE = process.argv.includes('--verbose');
@@ -83,6 +83,18 @@ function drive(v, ay, secs) {
   const hard = stop(1), soft = stop(0.3);
   if (VERBOSE) console.log('remtijd vol', hard.t.toFixed(2), 'licht', soft.t.toFixed(2), 'vanaf', hard.v0.toFixed(1));
   ok(soft.t > hard.t * 2 && soft.t < 59, 'een lichte rem remt merkbaar zachter dan een volle', [hard.t, soft.t]);
+}
+
+// --- #1288: het stuurwiel volgt een stick directer dan een toets ---
+ok(!isAnalogSteer(0) && !isAnalogSteer(1) && !isAnalogSteer(-1) && !isAnalogSteer(NaN), 'een toets (-1, 0, 1) is digitaal');
+ok(isAnalogSteer(0.4) && isAnalogSteer(1, 0.9) && isAnalogSteer(-1, -1), 'een stick in gebruik of een tussenwaarde (gast aan het stuur) is analoog');
+ok(steerFollowRate(false, 5) === 5 && steerFollowRate(true, 5) === STICK_STEER_RATE && steerFollowRate(true, 20) === 20, 'een stick volgt nooit trager dan een toets');
+{
+  // 1/15 s na een snelle duim naar 60%: de stick staat bijna op zijn plek, de toets-snelheid zou halverwege zijn
+  const stuur = (analog) => { const v = make(); v.speed = 15; v.steerAnalog = analog; for (let i = 0; i < 4; i++) v.applyControls(1 / 60, 0, 0.6, false); return v.steer; };
+  const a = stuur(true), d = stuur(false);
+  if (VERBOSE) console.log('stuur na 1/15 s: stick', a.toFixed(3), 'toets-tempo', d.toFixed(3));
+  ok(a > d * 1.6 && a <= 0.6 + 1e-9, 'met de echte rijfysica volgt het wiel de stick sneller', [a, d]);
 }
 
 console.log(fails ? `${fails} FAIL` : 'pedalfeel_test ok');

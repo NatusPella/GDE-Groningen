@@ -29,4 +29,4 @@ export function prepareBenchmarkReload(deps) {
 export const BENCH_SAVE_FIRST_TEXT = 'Bewaar eerst je spel.';
 export const BENCH_COOP_TEXT = 'Niet beschikbaar tijdens Samen spelen.';
 
-export const BENCH_RELOAD_FAIL_TEXT = 'De benchmark start niet: je spel kon niet worden opgeslagen. Er is niets veranderd.';
+export const BENCH_RELOAD_FAIL_TEXT = 'De prestatietest start niet: je spel kon niet worden opgeslagen. Er is niets veranderd.';

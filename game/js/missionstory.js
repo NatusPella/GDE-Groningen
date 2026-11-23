@@ -1468,9 +1468,9 @@ export function playStoryOutro(w, i, opts = {}) {
   return outroNow(w, i, opts);
 }
 
-function outroNow(w, i, { stage = i, short = false, reward = 0, stats = [], reason = '' } = {}) {
+function outroNow(w, i, { stage = i, short = false, reward = 0, stats = [], reason = '', missie = '' } = {}) {
   const s = entryFor(i);
-  const banner = { kind: 'pass', title: 'MISSIE GESLAAGD', reason, reward, stats };
+  const banner = { kind: 'pass', title: 'MISSIE GESLAAGD', reason, reward, stats, missie }; // #1217: de naam van de missie is de titel van de kaart
   if (!s || run || (s.noOutro && !short)) { showBanner(banner); return false; }
   const p = hoofdspeler(w);
   const v = p.inVehicle;
@@ -1540,12 +1540,12 @@ function outroNow(w, i, { stage = i, short = false, reward = 0, stats = [], reas
 }
 
 const failTally = new Map(); // per missie: hoe vaak de mislukscène al speelde (deze sessie, per apparaat)
-export function playStoryFail(w, i, { reason = '', stats = [] } = {}) {
+export function playStoryFail(w, i, { reason = '', stats = [], missie = '' } = {}) {
   const s = storyOf(i);
   const eerder = failTally.get(i) || 0;
   failTally.set(i, eerder + 1);
   // sikkom: Gronings for "almost, but not quite" (the dialect word, not the news site)
-  const banner = { kind: 'fail', title: 'Sikkom.', reason, stats, opnieuw: true }; // UX-audit 23-11: de kaart noemt Opnieuw proberen (Enter, vanaf het checkpoint)
+  const banner = { kind: 'fail', title: 'Sikkom.', reason, stats, opnieuw: true, missie }; // UX-audit 23-11: de kaart noemt Opnieuw proberen (Enter, vanaf het checkpoint)
   if (!s || run || failSceneMode(eerder) === 'banner') { showBanner(banner); return false; }
   const v = hoofdspeler(w).inVehicle;
   let r;

@@ -85,6 +85,7 @@ export function bouwMoment(opts = {}) {
   const titel = cut(opts.titel, 40);
   // a new area is named by its place: the big print is the place, the exclamation is the small label
   const kop = titel || d.kop;
+  const lang = kop.length > 16; // #1217: een missienaam als titel is langer dan een uitroep: kleinere letter, geen afgebroken woorden
   const regelNl = klemWoorden(opts.regelNl || d.regelNl);
   const beloning = formatBeloning(opts.beloning);
   const tijd = formatTijd(opts.tijd);
@@ -102,7 +103,7 @@ export function bouwMoment(opts = {}) {
   if (opnieuw) delen.push('Opnieuw proberen kan meteen.');
   return {
     opnieuw,
-    soort, vorm: d.vorm, schermvullend: d.schermvullend, klein, kop, regelNl, beloning, beloningWaarde: Number.isFinite(opts.beloning) ? opts.beloning : null, beloningLabel, tijd, sterren, compact, ms: compact ? Math.round(d.ms * 0.65) : d.ms,
+    soort, vorm: d.vorm, schermvullend: d.schermvullend, klein, kop, lang, regelNl, beloning, beloningWaarde: Number.isFinite(opts.beloning) ? opts.beloning : null, beloningLabel, tijd, sterren, compact, ms: compact ? Math.round(d.ms * 0.65) : d.ms,
     aria: delen.join(' '),
   };
 }
@@ -149,11 +150,15 @@ export function kaartRegel(tekst, max = MAX_WOORDEN) {
   return klemWoorden(eerste, max);
 }
 
-export function momentVanBanner({ kind = 'pass', title = '', reason = '', reward = 0 } = {}) {
+// #1207, #1217: geeft de aanroeper de naam van de missie mee (missie), dan is die naam de grote titel en het label de uitkomst;
+// de Groningse standaardkop vervalt dan en de regel is alleen de reden. Zonder missie blijft alles zoals hierboven.
+export function momentVanBanner({ kind = 'pass', title = '', reason = '', reward = 0, missie = '' } = {}) {
   const soort = kind === 'fail' ? 'mislukt' : 'geslaagd';
   const ruw = String(title || '').replace(/\s+/g, ' ').trim();
   // #1206: een titel die alleen de uitkomst zegt ("Missie geslaagd", "Opdracht geslaagd", "Taak mislukt.") is het label al: hij staat niet nog eens als titel of in de regel
   const alLabel = ruw.length > 0 && (ruw.toLocaleLowerCase('nl') === STANDAARD[soort].klein.toLocaleLowerCase('nl') || UITKOMST_TITEL.test(ruw));
+  const naam = String(missie || '').replace(/\s+/g, ' ').trim();
+  if (naam) return { soort, titel: naam, regelNl: (String(reason || '').trim() === naam ? '' : kaartRegel(reason)) || undefined, beloning: soort === 'mislukt' ? 0 : reward };
   const t = alLabel ? '' : ruw;
   const kort = t.length > 0 && t.length <= 16;
   const regel = kort || !t ? reason : [t, reason].filter(Boolean).join('. ');
@@ -266,7 +271,7 @@ function binnenHtml(m) {
   if (m.tijd) meta.push(`<span class="bm-meta-i bm-i-tijd"><b>Tijd</b> ${esc(m.tijd)}</span>`);
   if (m.opnieuw) meta.push(`<span class="bm-meta-i bm-i-opnieuw">${m.opnieuw} <b>Opnieuw proberen</b></span>`);
   const metaHtml = meta.length ? `<div class="bm-meta">${meta.join('')}</div>` : '';
-  const kop = `<div class="bm-kop">${esc(m.kop)}</div>`;
+  const kop = `<div class="bm-kop${m.lang ? ' lang' : ''}">${esc(m.kop)}</div>`;
   const regel = `<p class="bm-regel">${esc(m.regelNl)}</p>`;
   if (m.vorm === 'band') return `<div class="bm-dim"></div><div class="bm-band ds-mi-in ds-mi-landing"><span class="bm-klein">${esc(m.klein)}</span>${kop}${regel}${metaHtml}${m.sterren != null && m.soort === 'geslaagd' ? sterrenHtml(m.sterren) : ''}<span class="bm-glans" aria-hidden="true"></span></div>`;
   if (m.vorm === 'stempel') return `<div class="bm-dim"></div><div class="bm-slip ds-mi-in ds-mi-landing"><span class="bm-klein">${esc(m.klein)}</span>${regel}${metaHtml}<div class="bm-stempel ds-mi-in ds-mi-landing ds-mi-na" aria-hidden="true">${esc(m.kop)}</div></div>`;

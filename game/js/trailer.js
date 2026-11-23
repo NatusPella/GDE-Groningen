@@ -56,7 +56,7 @@ import { ensureSubtitleCss } from './subtitleui.js';
 // docs/verhaal/E-trailer.md), one list of staged shots through Grunn, played
 // three ways:
 //   benchmark  the full cut ('vol') in real time with an fps counter
-//              (Instellingen > Beeld > Benchmark draaien)
+//              (Instellingen > Beeld > Prestatietest)
 //   opname     ?trailer / desktop --trailer: fixed 1/60 s steps for
 //              recordings, no fps counter, the desktop app quits at the end;
 //              desktop --trailer-video pipes those frames into an MP4

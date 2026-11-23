@@ -3,7 +3,7 @@
 // hervatten). Het rekenwerk in progress.js is puur; de bedrading staat in de bronchecks.
 //   node scripts/progress_test.mjs
 import fs from 'node:fs';
-import { combineProgress, storyCounts, saveProgress, progressText, PROGRESS_PARTS } from '../game/js/progress.js';
+import { combineProgress, storyCounts, saveProgress, progressText, PROGRESS_PARTS, progressPartText, tilesShownElsewhere } from '../game/js/progress.js';
 
 const lees = (f) => fs.readFileSync(new URL(`../game/js/${f}`, import.meta.url), 'utf8');
 let n = 0, bad = 0;
@@ -70,6 +70,19 @@ ok(/ssl-hero-prog/.test(ssl) && /% verhaal/.test(ssl), 'de grote Doorgaan-knop n
 // geen tweede waarheid: nergens anders wordt het percentage opnieuw uitgerekend
 ok(!/getStorySteps\(\)\.filter\(\(s\) => s\.available\)/.test(pm), 'het menu rekent het verhaalpercentage niet zelf uit');
 ok(!/gde-voortgang|gde-progress/.test(hud + pm + ssl), 'geen nieuwe opslagsleutel voor de voortgang');
+
+
+// #1259: geen "0 van 71 · 0%" en geen tweede cijfer voor Prestaties in een tegel
+ok(progressPartText({ done: 0, total: 71, pct: 0 }) === 'nog niets van 71', 'nul gedaan leest als nog niets', progressPartText({ done: 0, total: 71, pct: 0 }));
+ok(progressPartText({ done: 12, total: 71, pct: 17 }) === '12 van 71 · 17%', 'gewone regel met percentage');
+ok(progressPartText({ done: 0, total: 0, pct: 0 }) === '' && progressPartText(null) === '', 'leeg onderdeel geeft niets');
+ok(tilesShownElsewhere(combineProgress({ verhaal: { done: 0, total: 71 }, prestaties: { done: 0, total: 237 } }).parts).includes('prestaties'), 'prestaties in het blok: geen tegel');
+ok(tilesShownElsewhere(combineProgress({ verhaal: { done: 0, total: 71 } }).parts).length === 0 && tilesShownElsewhere(undefined).length === 0, 'zonder prestaties in het blok blijft de tegel');
+{
+  const tu = lees('todoui.js');
+  ok(/skipTiles \|\| \[\]\)\.includes\('prestaties'\)/.test(tu), 'todoui slaat de tegel Prestaties over als het blok hem toont');
+  ok(/progressPartText\(p\)/.test(pm) && /skipTiles: elders/.test(pm), 'pausemenu gebruikt de regel en geeft de tegels door');
+}
 
 console.log(bad ? `progress_test: ${bad} van ${n} checks rood` : `progress_test: ${n} checks groen`);
 process.exit(bad ? 1 : 0);

@@ -73,6 +73,7 @@ import { lichaamVan, startPlek, isKoploos } from './net/koploos.js'; // een gast
 import { heistRolGebruik, heistGastTik } from './heistrollen.js'; // de rolstap van de inbraak in Samen spelen (#438)
 import { activeStage, getMissionDefs } from './missionquery.js'; // de lopende stap van de opdracht (#438)
 import { hoofdspeler } from './players.js'; // de speler van dit apparaat (#500)
+import { hitNetBody, hitFromNet, hitNetDue, makeHitMark, markHit } from './combatfeel.js'; // raakbevestiging voor de kogel van een gast (#1290)
 import { localOutfitCode, cleanOutfitCode, onLocalOutfitChange } from './clothing.js'; import { zetGroepWarpHaken } from './groepwarp.js'; // een warp of de vluchtboot neemt de gasten mee (audit speelbaarheid 23-11)
 
 // (#684) De positieve "samen kan"-kaart naast de eerste "Meedoen?" is HUD-werk (samenplan.js →
@@ -273,7 +274,7 @@ function endCoop(world) {
   world.coopWanted = null; world.coopHeat = null; world.coopDoelwit = 0; world.coopWantedMeld = null; world.coopGepakt = null; world.coopStil = false; // (#434)
   if (world.companion) world.companion.coopWacht = false;
   world.coopOpdrachtDoor = null; world.coopMeespelers = null; // (#452)
-  world.coopMeld = null; world.coopDeel = null; world.coopBijbaanStart = null; world.coopBijbaanBeloning = null; world.coopBijbaanEind = null; world.coopBijbaanHostMee = null; world.coopHelpers = null; world.coopBijbaanHelpers = null; world.coopSideJobs = null; world.coopBijbaanStop = null; world.coopUitslag = null; world.coopPingMarks = []; world.coopSpelers = []; world.coopGebruik = false; world.coopWielSlot = null; world.coopWielVraag = null; world.coopWiel = false; world.coopInVoertuig = false; world.coopBestuurder = false; world.coopRadioGroep = null; // (#291, #434)
+  world.coopMeld = null; world.coopRaak = null; world.coopDeel = null; world.coopBijbaanStart = null; world.coopBijbaanBeloning = null; world.coopBijbaanEind = null; world.coopBijbaanHostMee = null; world.coopHelpers = null; world.coopBijbaanHelpers = null; world.coopSideJobs = null; world.coopBijbaanStop = null; world.coopUitslag = null; world.coopPingMarks = []; world.coopSpelers = []; world.coopGebruik = false; world.coopWielSlot = null; world.coopWielVraag = null; world.coopWiel = false; world.coopInVoertuig = false; world.coopBestuurder = false; world.coopRadioGroep = null; // (#291, #434)
   world.coopTreinMeld = null; world.coopTrein = null; world.coopTreinDeur = false; world.coopTreinWaak = false; world.coopTreinWalk = null; world.coopTreinWalkMeld = null; // de treinpassagier-haak, -stand, de deuren/waak en de looppositie van de conducteur horen bij de sessie (#492)
   world.coopVraag = null; world.coopStem = null; world.coopStemBeantwoord = null; world.coopKeuze = null; // gezamenlijke keuzes (#452, #686)
   world.coopBezit = null; world.coopBezitVraag = null; // eigen voertuigen meenemen en delen (#449)
@@ -423,6 +424,8 @@ export function startHost(world, info, opts = {}) {
   // Iedereen die bij deze groep hoort (ook wie even neer is), voor de opdrachtstand en de doelen per groep (#452).
   world.coopGroepDeelnemers = (id) => { const n = world.coopNet; if (!n || n.role !== 'host') return []; return [0, ...meespelers(n.meedoen, id || undefined)]; };
   world.coopMeld = (slot, tekst) => hub.announce({ k: 'melding', tekst: String(tekst).slice(0, 90) }, slot); // een korte melding voor een gast (#291)
+  const raakLaatst = new Map(); // #1290: per gast de tijd van de laatste raakbevestiging (hooguit eens per HIT_NET_GAP s)
+  world.coopRaak = (slot, x, y, z, soort) => { const body = hitNetBody(x, y, z, soort); if (!body || !(slot >= 1) || !hitNetDue(raakLaatst.get(slot), world.time)) return; raakLaatst.set(slot, world.time); hub.announce(body, slot); };
   world.coopTreinMeld = (slot, aan, rol) => hub.announce({ k: 'trein', aan: !!aan, rol: rol || null, id: aan ? treinIdVan(world) : null }, slot); // een gast rijdt als passagier mee in de trein van de gastheer (#492)
   world.coopPvp = maakPvp(); // iedereen begint op passief (#447)
   world.coopBezit = nieuweDeelStaat(); // eigen voertuigen die gasten meenemen en delen (#449)
@@ -1541,6 +1544,12 @@ export function handleEvent(world, body, van = 0) {
       const boete = Math.max(0, Math.floor(bustFineIn(Math.max(1, Math.min(5, body.wanted | 0)), world.money || 0, null)));
       world.money = Math.max(0, (world.money || 0) - boete);
       if (world.addMessage) world.addMessage(`Gepakt door de politie. Boete: €${boete.toLocaleString('nl-NL')}.`, 5);
+      return true;
+    }
+    case 'raak': { // #1290: jouw kogel raakte iets bij de gastheer: de streepjes op die plek, alleen op jouw scherm
+      if (!n || n.role !== 'client') return false;
+      const h = hitFromNet(body); if (!h) return false;
+      markHit(world.hitMark || (world.hitMark = makeHitMark()), world.time, h.x, h.y, h.z, h.kind);
       return true;
     }
     case 'melding': { // een korte melding van de host, alleen voor jou

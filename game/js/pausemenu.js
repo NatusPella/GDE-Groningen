@@ -5,14 +5,14 @@
 // then close. Sections: Overzicht, Te doen (todoui.js), Verhaal
 // (verhaalui.js), Kaart, Garage, Prestaties, Cheats (cheatsui.js),
 // Instellingen, Besturing.
-import { keyLabelGlyph, keyLabelHtml, braceKeysHtml } from './keycap.js';
+import { keyLabelHtml, braceKeysHtml, hintCapHtml } from './keycap.js';
 import { getSettings, setSetting, resetSettings, resetSettingsKeys, defaultSettings, QUALITY_PRESETS } from './settings.js';
 import { TAB_KEYS, changedPerTab, changedKeys, resetMessage, dependencies, silenceWarning, synonymsFor, cheatsVisible, COLOR_BLIND_LABELS, shakePreviewPx } from './settingsrules.js';
 import { effectsFor } from './a11ylogic.js';
 import { reducedMotion } from './motion.js';
 import { retryBeschikbaar, herstartMissie, herstartBlokkade } from './missions.js';   // #985 punt 16
 import { changeWithGroup } from './difficultyvote.js'; // moeilijkheid van de wereld is een gezamenlijke keuze
-import { difficultyTabHtml, difficultyPaneText, syncDifficultyTab, stepDifficultyPicker, handleDifficultyClick } from './difficultypanel.js'; // #1169: Instellingen > Moeilijkheid, per save
+import { difficultyTabHtml, difficultyPaneHtml, syncDifficultyTab, stepDifficultyPicker, handleDifficultyClick } from './difficultypanel.js'; // #1169: Instellingen > Moeilijkheid, per save
 import { logoHtml } from './logo.js';
 import { setPauseMenuOpen, setPauseMenuTabState, setPauseMenuControls } from './pausestate.js';
 import { uitlegBlok, zetUitlegGlyph, startUitleg, resetUitlegNietMeer } from './uitleg.js';
@@ -89,6 +89,7 @@ import { getErrorLog, errorReport, clearErrorLog, onErrorLogChange } from './err
 import { KEYS } from './storagekeys.js';
 import { renderFotoPanel, fotoClick, isPhotoMode } from './fotomodusui.js';
 import { gameProgress } from './progresslive.js';
+import { progressPartText, tilesShownElsewhere } from './progress.js';
 import { woordenVan, past } from './zoektekst.js';
 // Running inside the desktop app (desktop/preload.js): window mode + quit.
 const DESKTOP = typeof window !== 'undefined' && window.gdeDesktop && window.gdeDesktop.isDesktop ? window.gdeDesktop : null;
@@ -745,7 +746,7 @@ function settingsHtml() {
       <!-- De benchmark hoort bij de beeldinstellingen, niet verstopt onder "Meer opties": hij
            beantwoordt juist de vraag welke stand bij deze computer past (spelersfeedback 15-11). -->
       <div class="m-li pm-row">${rowName('Automatisch kiezen', 'Meet een paar seconden hoe soepel Grunn hier loopt en kies de mooiste stand die 60 fps haalt')}<button type="button" class="m-bg" data-action="gfx-remeasure">Opnieuw meten</button></div>
-      <div class="m-li pm-row">${rowName('Benchmark', 'Meet hoe soepel Grunn op deze computer draait en welke stand daarbij past (±1 min)')}<button type="button" class="m-bg" data-action="bench">Benchmark draaien</button></div>
+      <div class="m-li pm-row">${rowName('Prestatietest', 'Meet hoe soepel Grunn op deze computer draait en welke stand daarbij past (±1 min)')}<button type="button" class="m-bg" data-action="bench">Test starten</button></div>
       <div class="pm-confirm" data-bench-confirm hidden>
         <p data-bench-text></p>
         <div class="m-acts"><button type="button" class="m-bp" data-action="bench-go">Starten</button><button type="button" class="m-bt" data-action="bench-cancel">Annuleren</button></div>
@@ -770,7 +771,7 @@ function settingsHtml() {
       ${slider('sfxVolume', 'Effecten')}
       ${slider('voiceVolume', 'Stemmen')}
       <p class="pm-note pm-silence" data-silence role="status" hidden></p>
-      <label class="m-li pm-row pm-mute">${rowName('Geluid in één keer uit', 'Zet alle geluid uit; de luidspreker linksboven zet het weer aan')}<input type="checkbox" class="m-sw" data-mute-switch><span class="pm-mutehint">${icon('mute')}<span class="m-kc">U</span></span></label>
+      <label class="m-li pm-row pm-mute">${rowName('Geluid in één keer uit', 'Zet alle geluid uit, ook met {U}; de luidspreker linksboven zet het weer aan')}<input type="checkbox" class="m-sw" data-mute-switch></label>
       <label class="m-li pm-row">${rowName('Radio', 'Aan of uit met {N}, te voet en in elk voertuig. {SHIFT}+{N} is de volgende zender, {N} vasthouden het zenderwiel. Zender kiezen met een controller: houd Overzicht en kies Zenders kiezen')}<input type="checkbox" class="m-sw" data-radio-switch></label>
       <div class="pm-channels-wrap" data-channels-wrap></div>
       ${disclosure('subs', 'Ondertitels', 'Filmpjes, gesprekken, telefoon, radio en naamkaarten', `
@@ -780,7 +781,7 @@ function settingsHtml() {
         ${picker('subtitleVlak', 'Dichtheid van het vlak', [['vol', 'Vol'], ['zacht', 'Zacht'], ['licht', 'Licht']], 'Hoe goed je er doorheen kijkt; bij Contrast ondertitels Hoog is het vlak altijd vol')}
         ${toggle('soundCaptions', 'Geluiden beschrijven', 'Een korte tekst als [sirene] of [claxon] bij belangrijke geluiden')}`, true)}`, `
       <aside class="m-pane"><div class="pm-pane-top"><span class="m-eb">Zo ziet het eruit</span></div>
-        <div class="pm-subprev" data-sub-preview><span class="pm-subtxt"><b>Tammo:</b> Rustig an, rustig an.</span></div>
+        <div class="pm-subprev" data-sub-preview><img class="pm-subprev-img" src="img/laad/vismarkt.jpg" alt="" decoding="async"><span class="pm-subtxt"><b>Tammo:</b> Rustig an, rustig an.</span></div>
         <p class="mut">Muziek is de radio (G-Music, 's nachts Nachtstreek) en de titelsong, stemmen zijn Tammo, Tessa, de politie, de mensen op straat en de praatjes op de radio. Kleurenblind, interfacegrootte en beweging beperken vind je onder Toegankelijkheid.</p></aside>`)}
     ${tab('spel', `
       <div class="m-li pm-row">${rowName('Moeilijkheid', 'Het niveau en de opties van dit spel: politie, verkeer, schade, hulp, geld en meer')}<button type="button" class="m-bg" data-goto-sub="settings:moeilijkheid">Aanpassen</button></div>
@@ -800,7 +801,7 @@ function settingsHtml() {
       <div class="m-gh"><span>Thuis</span></div>
       ${toggle('startBinnen', 'Start binnen (thuis)', 'Laad je een spel dat bij je huis stond, of ga je naar huis, dan sta je binnen in de woning. Uit: je staat voor de deur')}`,
       `${pane('Spelregels', 'Zo speelt het', '<p>Hoe moeilijk het is, hoe het verkeer en het geweld zich gedragen en hoe het rijden aanvoelt. Alles wordt meteen bewaard.</p><p class="mut">Beeld, geluid, besturing en toegankelijkheid staan op de andere tabbladen. Camera-afstand, beeldhoek en eerste persoon staan onder Instellingen &gt; Camera; toetshints en uitleg onder Instellingen &gt; Hints &amp; uitleg.</p>')}`)}
-    ${tab('moeilijkheid', difficultyTabHtml(), pane('Moeilijkheid', 'Hoe pittig', `<p>${difficultyPaneText}</p>`))}
+    ${tab('moeilijkheid', difficultyTabHtml(), pane('Moeilijkheid', 'Hoe pittig', difficultyPaneHtml()))}
     ${tab('besturing', `
       <div class="m-gh"><span>Muis</span></div>
       ${slider('mouseSensitivity', 'Muisgevoeligheid', 0.3, 2.5, 0.05, 'Hoe snel de camera draait als je de muis beweegt', 'keer')}
@@ -2280,8 +2281,8 @@ function runAction(a) {
     const box = root.querySelector('[data-bench-confirm]');
     box.hidden = a === 'bench-cancel';
     box.querySelector('[data-bench-text]').innerHTML = braceKeysHtml(prestart
-      ? 'Benchmark starten? Duurt ongeveer een minuut. {ESC} stopt.'
-      : 'Benchmark starten? Je spel wordt eerst opgeslagen. {ESC} stopt.');
+      ? 'Prestatietest starten? Duurt ongeveer een minuut. {ESC} stopt.'
+      : 'Prestatietest starten? Je spel wordt eerst opgeslagen. {ESC} stopt.');
     if (!box.hidden) box.querySelector('[data-action="bench-go"]').focus();
     else root.querySelector('[data-action="bench"]').focus();
   } else if (a === 'bench-go') {
@@ -2661,7 +2662,7 @@ function progressOverviewHtml() {
   let info;
   try { info = gameProgress(); } catch (e) { return ''; }
   if (!info.parts.length) return '';
-  const rijen = info.parts.map((p) => `<li><span>${esc(p.label)}</span><span class="mut">${p.done} van ${p.total} · ${p.pct}%</span></li>`).join('');
+  const rijen = info.parts.map((p) => `<li><span>${esc(p.label)}</span><span class="mut">${esc(progressPartText(p))}</span></li>`).join('');
   return `<section class="pm-progress" aria-label="Je voortgang">` +
     `<div class="pm-progress-head"><span class="m-eb">Je voortgang</span><span class="pm-progress-pct"><b>${info.pct}%</b><span class="mut">klaar</span></span></div>` +
     `<span class="m-bar on"><i style="width:${info.pct}%"></i></span>` +
@@ -2670,7 +2671,10 @@ function progressOverviewHtml() {
 
 function renderOverviewPanel() {
   const el = root.querySelector(OV_SUB);
-  try { renderOverview(el, world, helpButtons(), { play: getPlaySeconds(), stop: stopInfo() }); } catch (err) { console.error('overzicht', err); }
+  // #1259: één bron per cijfer: wat het voortgangsblok toont, krijgt geen tegel meer
+  let elders = [];
+  try { elders = tilesShownElsewhere(gameProgress().parts); } catch (e) { elders = []; }
+  try { renderOverview(el, world, helpButtons(), { play: getPlaySeconds(), stop: stopInfo(), skipTiles: elders }); } catch (err) { console.error('overzicht', err); }
   // #898/#965: het voortgangsblok staat onder de hero, boven aan de scrollende
   // inhoud, zodat het percentage meteen in het oog valt en de grote kop blijft staan.
   if (el && !el.querySelector('.pm-progress')) {
@@ -2834,8 +2838,7 @@ function hintHtml([keys, label, action], pad, back) {
   if (pad && keys.every((k) => k in PAD_KEYS && PAD_KEYS[k] === null)) return '';
   const caps = keys.map((k) => {
     if (pad && k in PAD_KEYS) { const slot = PAD_KEYS[k]; return slot ? pg(slot) : ''; }
-    const kg = keyLabelGlyph(k);
-    return kg ? `<span class="m-kc is-kbg">${kg}</span>` : `<span class="m-kc is-kbg">${keyLabelHtml(k)}</span>`;
+    return hintCapHtml(k); // #1258: the same keycap as the shops
   }).join('');
   const text = label === BACK ? back : (pad && PAD_LABEL[label]) || label;
   return `<button type="button" class="m-hint" tabindex="-1"${action ? ` data-hint="${action}"` : ''}>${caps}<span>${esc(text)}</span></button>`;

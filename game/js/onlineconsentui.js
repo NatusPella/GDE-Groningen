@@ -9,6 +9,7 @@ import { getSettings } from './settings.js';
 import { EERSTE_START, SCHAKELAAR, ONLINE_INSTELLING, kiesNaam, wijzigNaam, zetMeedoen } from './onlineconsent.js';
 import { magOnline } from './settings.js';
 import { bewaarFocus } from './listnav.js';
+import { keyTextHtml } from './keycap.js';
 
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
@@ -23,12 +24,12 @@ export function onlineStartHtml({ naam = '', fout = '', consent = false, terug =
     <label class="os-label"><span>${esc(EERSTE_START.naamLabel)}</span>
       <input type="text" class="os-naam" data-osk="naam" data-osk-check="online-naam" data-osk-label="Online naam" maxlength="${ONLINE_NAAM_MAX}" spellcheck="false" autocomplete="off" placeholder="Je naam" required value="${esc(naam)}">${oskKnop('je naam')}
     </label>
-    <label class="os-consent"><input type="checkbox" class="os-consent-vink"${consent ? ' checked' : ''}> <span>${esc(EERSTE_START.consent)}</span></label>
+    <label class="os-consent"><input type="checkbox" class="m-sw os-consent-vink"${consent ? ' checked' : ''}> <span>${esc(EERSTE_START.consent)}</span></label>
     ${meerInfoHtml(EERSTE_START.meerInfo, EERSTE_START.info)}
     ${fout ? `<p class="os-fout" role="alert">${esc(fout)}</p>` : '<p class="os-fout" role="alert" hidden></p>'}
     <div class="os-knoppen">
-      <button type="button" class="os-knop os-doorgaan" data-doorgaan>${esc(EERSTE_START.doorgaan)}</button>
-      ${terug ? `<button type="button" class="os-knop os-alleen" data-terug>${esc(EERSTE_START.terug)}</button>` : ''}
+      <button type="button" class="os-knop os-doorgaan" data-doorgaan aria-keyshortcuts="Enter">${esc(EERSTE_START.doorgaan)} <span class="sk-toets-in">${keyTextHtml('{ENTER}')}</span></button>
+      ${terug ? `<button type="button" class="os-knop os-alleen" data-terug>${esc(EERSTE_START.terug)} <span class="sk-toets-in">${keyTextHtml('{ESC}')}</span></button>` : ''}
     </div>
   </section>`;
 }

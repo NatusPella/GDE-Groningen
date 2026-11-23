@@ -182,11 +182,13 @@ export function reeksTekst(streak) {
 }
 
 // De slotregel van een dienst: goed (3 of meer klussen), mager (1 of 2) of mis (geen klus of mislukt).
-export function eindregel(id, { kind = 'quit', streak = 0 } = {}) {
+// #1286: telt de betaalde rondes (rondes), niet de reeks: een reeks die door pech brak maakte van een goede dienst een magere.
+// Zonder rondes valt hij terug op de reeks (oude aanroepers).
+export function eindregel(id, { kind = 'quit', streak = 0, rondes } = {}) {
   const b = beatVan(id);
   if (!b) return null;
   if (kind === 'fail' || kind === 'wanted') return b.eind.mis;
-  const s = Math.floor(streak) || 0;
+  const s = Math.floor(Number.isFinite(rondes) ? rondes : streak) || 0;
   return s >= 3 ? b.eind.goed : s >= 1 ? b.eind.mager : b.eind.mis;
 }
 

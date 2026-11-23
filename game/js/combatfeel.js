@@ -35,6 +35,24 @@ export function markHit(m, now, x, y, z, kind = 'doel') {
   return m;
 }
 
+// #1290: a guest's bullets live on the host, so the host tells the shooter where his bullet hit (message 'raak',
+// coopnet.js). Pure: the message body for the net, and the check on the guest's side. At most one per HIT_NET_GAP s
+// per shooter (an uzi would otherwise send a message per bullet); a mark only shows for a person or a vehicle.
+export const HIT_NET_GAP = 0.08;
+const HIT_KINDS = ['doel', 'voertuig'];
+export function hitNetBody(x, y, z, kind) {
+  if (![x, y, z].every(Number.isFinite) || !HIT_KINDS.includes(kind)) return null;
+  const r = (v) => Math.round(v * 10) / 10;
+  return { k: 'raak', x: r(x), y: r(y), z: r(z), soort: kind };
+}
+export function hitFromNet(body) {
+  if (!body || ![body.x, body.y, body.z].every(Number.isFinite) || !HIT_KINDS.includes(body.soort)) return null;
+  return { x: body.x, y: body.y, z: body.z, kind: body.soort };
+}
+export function hitNetDue(lastAt, now) {
+  return !Number.isFinite(lastAt) || now - lastAt >= HIT_NET_GAP || now < lastAt;
+}
+
 export const hitMarkActive = (m, now) => !!m && now >= m.at && now - m.at < HIT_MARK_S;
 
 // Opacity 0..1: full during the pop, then a straight fade.

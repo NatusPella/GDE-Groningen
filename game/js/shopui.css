@@ -65,6 +65,8 @@
 #shop-menu .sm-buy-tekst { display: block; }
 #shop-menu .ds-z-knop__sub { display: inline-flex; align-items: center; gap: var(--ds-s-2); font-family: var(--ds-font-zeef-tekst); font-weight: 400; font-size: var(--ds-t-hulp); letter-spacing: 0; }
 #shop-menu .sm-buy.armed { background: var(--ds-c-rood-vlak); }
+/* #1258: de toetshint in de gele knop is leesbaar, niet 12 px */
+#shop-menu .sm-buy .ds-z-knop__sub { font-size: max(16px, var(--ds-t-hulp)); }
 #shop-menu .sm-risico { margin-top: calc(-1 * var(--ds-s-2)); color: var(--ds-zeef-tx); font-size: var(--ds-t-hulp); }
 #shop-menu .sm-bon:empty { display: none; }
 #shop-menu .sm-bon-mist b { color: var(--ds-c-rood-tx); }

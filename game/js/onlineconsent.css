@@ -52,6 +52,13 @@
 .os-naam { background: var(--ds-c-wit); color: var(--ds-zeef-tx); border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); border-radius: var(--ds-r); }
 .os-naam:focus-visible, .os-knop:focus-visible { outline: var(--ds-focus-dikte) solid var(--ds-c-ink-inkt); outline-offset: var(--ds-focus-afstand); }
 .os-consent-vink, .cs-meedoen-sw { accent-color: var(--ds-c-ink-bord); }
+/* #1225: het akkoord is de DS3-schakelaar van de menu's (papier en inkt), geen standaard vinkje */
+.os-kaart .os-consent .m-sw { width: 56px; height: 32px; margin-top: 0; background: var(--ds-c-papier-2); box-shadow: inset 0 0 0 var(--ds-lijn-dik) var(--ds-c-ink-inkt); }
+.os-kaart .os-consent .m-sw::after { background: var(--ds-c-ink-inkt); }
+.os-kaart .os-consent .m-sw:checked { background: var(--ds-c-ink-bord); }
+.os-kaart .os-consent .m-sw:checked::after { background: var(--ds-c-ink-papier); }
+.os-kaart .os-consent .m-sw:focus-visible { outline: var(--ds-focus-dikte) solid var(--ds-c-ink-inkt); outline-offset: var(--ds-focus-afstand); }
+.os-kaart .os-consent { align-items: center; }
 .os-hint { color: var(--ds-tx-zacht); }
 .os-fout { color: var(--ds-c-rood-tx); }
 .os-knop { font-family: var(--ds-font-zeef-kop); font-weight: 800; border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); border-radius: var(--ds-r); box-shadow: var(--ds-schaduw-hard-klein); }
@@ -98,6 +105,14 @@ html.reduce-motion .sk-keuze { transition: none; }
 .dk-keuze { min-height: 170px; }
 .dk-keuze .sk-label { font-size: 30px; padding-right: 34px; }
 .dk-keuze .sk-uitleg { font-size: 16px; }
+/* #1227: drie meters per niveau: icoon, woord en blokjes (gevuld = pittiger) */
+.dk-meters { display: flex; flex-direction: column; gap: 4px; margin-top: 8px; }
+.dk-meter { display: grid; grid-template-columns: 18px 1fr auto auto; align-items: center; gap: 8px; font-size: 14px; line-height: 1.2; }
+.dk-meter svg { width: 18px; height: 18px; }
+.dk-meter-w { min-width: 6ch; text-align: right; font-weight: 700; }
+.dk-blok { display: inline-flex; gap: 3px; }
+.dk-blok i { width: 10px; height: 10px; border: 2px solid currentColor; border-radius: 2px; }
+.dk-meter[data-n="1"] .dk-blok i:nth-child(-n+1), .dk-meter[data-n="2"] .dk-blok i:nth-child(-n+2), .dk-meter[data-n="3"] .dk-blok i { background: currentColor; }
 .dk-tag { display: inline-block; padding: 2px 8px; font-size: 13px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ds-primair-tx); background: var(--ds-zeef-primair); border: 2px solid var(--ds-c-ink-inkt); border-radius: var(--ds-r); }
 .dk-keuze:focus .dk-tag, .dk-keuze:focus-visible .dk-tag { background: var(--ds-zeef-bg); color: var(--ds-zeef-tx); }
 .dk-onder { margin-top: 14px; }
@@ -123,7 +138,7 @@ html.reduce-motion .sk-keuze { transition: none; }
 html.reduce-motion .dk-rij { transition: none; }
 
 /* Tekstdieet 21-11: de uitleg achter het vinkje is een uitklapper, standaard dicht (Tab + Enter of muis). */
-.os-info { margin: 8px 0 0 30px; font-size: 16px; }
-.os-info summary { display: inline-block; cursor: pointer; padding: 2px 4px; color: var(--ds-tx-zacht); text-decoration: underline; text-underline-offset: 3px; }
+.os-info { margin: 8px 0 0 66px; font-size: 17px; } /* #1225: onder de tekst van het akkoord (naast de schakelaar), niet klein en grijs */
+.os-info summary { display: inline-block; cursor: pointer; padding: 2px 4px; color: var(--ds-zeef-tx); font-weight: 700; text-decoration: underline; text-underline-offset: 3px; }
 .os-info summary:focus-visible { outline: var(--ds-lijn-zeef, 3px) solid var(--ds-c-ink-bord); outline-offset: 2px; }
 .os-info-tekst { margin: 6px 0 0; line-height: 1.4; color: var(--ds-zeef-tx); }

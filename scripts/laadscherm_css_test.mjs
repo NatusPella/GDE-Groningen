@@ -30,7 +30,7 @@ ok(/text-overflow:\s*ellipsis/.test(plaats) && /white-space:\s*nowrap/.test(plaa
 ok(/clamp\(2\.5em, min\(calc\(\(100cqw/.test(plaats) && /var\(--n, 8\)/.test(plaats), 'het lettertype van de bestemming volgt de kolom en de naamlengte, met een ondergrens');
 ok(/container-type:\s*inline-size/.test(rule('#load-screen .ls-left')), 'de linkerkolom is de container voor cqw');
 ok(/--ls-fs:\s*clamp\(14px,/.test(rule('#load-screen .ls-stage')), 'de tekstgrootte van de stage schaalt met de hoogte, niet onder 14 px');
-ok(/font:\s*400 max\(13px, 1em\)/.test(rule('#load-screen .ls-step')), 'de statusregel blijft op of boven de 13 px-vloer');
+ok(/font-size:\s*max\(13px, min\(1\.2em, calc\(var\(--ls-h\) \* 0\.03\)\)\)/.test(rule('#load-screen .ls-step')), 'de statusregel blijft op of boven de 13 px-vloer en groeit op een groot scherm tot 1,2 keer de tekst van de stage (hertest #1002)');
 ok(/clamp\(5em, min\(calc\(var\(--ls-h\) \* 0\.2\)/.test(rule('#load-screen .gde-logo')), 'het logo schaalt met de stagehoogte en de kolombreedte');
 
 // 3. gedraaide kaartjes: de rotatie komt uit het token, het plaatje en het logo houden ruimte voor draai en schaduw

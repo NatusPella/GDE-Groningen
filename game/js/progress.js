@@ -76,5 +76,18 @@ export function saveProgress(data) {
   return honestPercentage(c.done, c.total);
 }
 
+// #1259: de regel van één onderdeel in het voortgangsblok. Nog niets gedaan zegt "nog niets van 71"
+// in plaats van "0 van 71 · 0%" (twee nullen achter elkaar); verder "12 van 71 · 17%".
+export function progressPartText(p) {
+  if (!p || !(p.total > 0)) return '';
+  return p.done > 0 ? `${p.done} van ${p.total} · ${p.pct}%` : `nog niets van ${p.total}`;
+}
+
+// #1259: welke tegels in het Overzicht weg kunnen omdat het voortgangsblok hetzelfde cijfer al
+// geeft. De tegel Prestaties herhaalde de regel Prestaties uit het blok; één bron is genoeg.
+export function tilesShownElsewhere(parts) {
+  return Array.isArray(parts) && parts.some((p) => p && p.id === 'prestaties') ? ['prestaties'] : [];
+}
+
 // De regel die overal hetzelfde klinkt: "42% klaar".
 export const progressText = (pct) => `${pct}% klaar`;

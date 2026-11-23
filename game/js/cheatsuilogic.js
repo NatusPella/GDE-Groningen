@@ -14,7 +14,8 @@ export function summaryLine(cheats, isOn) {
   const hinder = cheats.filter((c) => isOn(c.id) && impact(c) === 'hindert');
   if (hinder.length) return { tone: 'red', text: `Prestaties zijn uitgeschakeld: ${hinder.map((c) => c.name).join(', ')} staat aan.` };
   const on = cheats.filter((c) => isOn(c.id)).length;
-  return { tone: 'good', text: on ? 'Prestaties blijven aan: alleen veilige cheats staan aan.' : 'Prestaties blijven aan. Niets staat aan.' };
+  // #1268: "Prestaties blijven aan. Niets staat aan." las als een tegenspraak
+  return { tone: 'good', text: on ? 'Prestaties tellen mee: alleen veilige cheats staan aan.' : 'Prestaties tellen gewoon mee zolang je geen cheat aanzet.' };
 }
 
 // A press on the switch button of cheat `c`.

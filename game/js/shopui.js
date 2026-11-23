@@ -1,6 +1,6 @@
 import { icoon } from './icons.js';
 import { saveGame } from './savehook.js';
-import { keyTextHtml, plainKeyText } from './keycap.js';
+import { keyTextHtml, plainKeyText, hintCapHtml } from './keycap.js';
 import { navIndex, rijCijfer } from './listnav.js';
 import { euro } from './geldtekst.js';
 import { createVehiclePreview } from './vehiclepreview.js';
@@ -151,7 +151,8 @@ function currentItems() {
 }
 
 const PG = (slot) => `<span class="pm-pad-g" data-g-raw>${padGlyphInner(slot)}</span>`;
-const cap = (t) => `<span class="m-kc">${t}</span>`;
+// #1258: the footer uses the same keycaps as the pause menu (keycap.js hintCapHtml), not outlined arrows and the word Enter
+const cap = (t) => hintCapHtml(t);
 function hint(caps, label, cls = '') {
   return `<button type="button" class="m-hint ${cls}" tabindex="-1">${caps}<span>${label}</span></button>`;
 }

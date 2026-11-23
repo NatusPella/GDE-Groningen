@@ -1,6 +1,6 @@
 // Schietgevoel (game/js/combatfeel.js): vaste hand per houding en de raakbevestiging.
 import { readFileSync } from 'node:fs';
-import { steadiness, kickFactor, STEADY, makeHitMark, markHit, hitMarkActive, hitMarkOpacity, hitMarkScale, HIT_MARK_S } from '../game/js/combatfeel.js';
+import { steadiness, kickFactor, STEADY, makeHitMark, markHit, hitMarkActive, hitMarkOpacity, hitMarkScale, HIT_MARK_S, hitNetBody, hitFromNet, hitNetDue, HIT_NET_GAP } from '../game/js/combatfeel.js';
 let n = 0, fails = 0;
 const ok = (c, name, info = '') => { n++; if (!c) { fails++; console.log(`FAIL ${name} ${info}`); } };
 
@@ -25,7 +25,7 @@ ok(STEADY.crouch < STEADY.still && STEADY.still < STEADY.walk && STEADY.walk < S
   ok(!!m && Math.abs(Number(m[1]) * STEADY.still - 0.02) < 0.0005, 'stilstaan houdt de oude spreiding van 0,02 rad', m && m[1]);
   ok(src.includes('* SHOT_JITTER * steady'), 'combat.js schaalt de spreiding met de houding');
   ok(src.includes('steadiness(Math.hypot(p.vx || 0, p.vy || 0), p.crouching, !!v)'), 'de houding komt van het lichaam dat schiet (ook dat van een gast)');
-  ok(src.includes("if (b.owner !== 'player' || b.dader) return;"), 'raakbevestiging alleen voor de eigen kogel, niet voor die van een gast');
+  ok(/if \(b\.dader\) \{ if \(world\.coopRaak\) world\.coopRaak\(b\.dader, x, y, [^;]+, kind\); return; \}/.test(src), 'de kogel van een gast tekent niets bij de gastheer, maar gaat als raak naar de gast (#1290)');
   // vier keer in de bron: de definitie en drie aanroepen
   ok(src.split('hitConfirm(world, b, ').length - 2 === 3, 'drie haken: voetganger, voertuig, medespeler');
   ok(!src.includes('hitConfirm(world, b, w.'), 'een muur geeft geen raakbevestiging');
@@ -62,5 +62,17 @@ ok(kickFactor(99) === 1.25 && kickFactor(0) === 0.7, 'grenzen');
   ok(src.includes("renderHitMark(world, !b.contains('game-started') || b.contains('cine-hide-hud') || world.paused);"), 'verborgen in filmpjes en pauze');
 }
 
+// #1290: de gast ziet de raakbevestiging van zijn eigen kogel (bericht 'raak' van de gastheer)
+{
+  const b = hitNetBody(12.34, -5.06, 1.25, 'voertuig');
+  ok(b && b.k === 'raak' && b.x === 12.3 && b.y === -5.1 && b.soort === 'voertuig', 'klein bericht, op 10 cm afgerond', JSON.stringify(b));
+  ok(hitNetBody(NaN, 0, 1, 'doel') === null && hitNetBody(0, 0, 1, 'muur') === null, 'geen bericht voor NaN of een muur');
+  const h = hitFromNet(b);
+  ok(h && h.kind === 'voertuig' && h.x === 12.3, 'de gast leest het terug');
+  ok(hitFromNet({ x: 1, y: 2, z: 'a', soort: 'doel' }) === null && hitFromNet({ x: 1, y: 2, z: 1, soort: '<b>' }) === null && hitFromNet(null) === null, 'een onzinbericht tekent niets');
+  ok(hitNetDue(undefined, 5) && !hitNetDue(5, 5 + HIT_NET_GAP / 2) && hitNetDue(5, 5 + HIT_NET_GAP) && hitNetDue(9, 1), 'hooguit eens per HIT_NET_GAP s per gast (een nieuwe sessie met een lagere klok mag meteen)');
+  const net = readFileSync(new URL('../game/js/coopnet.js', import.meta.url), 'utf8');
+  ok(/case 'raak':/.test(net) && /world\.coopRaak = \(slot/.test(net) && /world\.coopRaak = null/.test(net), 'coopnet stuurt raak naar de schutter, de gast tekent hem en het einde van de sessie ruimt de haak op');
+}
 console.log(`combatfeel_test: ${n - fails}/${n} ok`);
 process.exit(fails ? 1 : 0);

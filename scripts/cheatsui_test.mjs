@@ -31,5 +31,14 @@ ok(onSelect({ pending: 'storm' }, 'storm').pending === 'storm', 'same row keeps 
 r = pressToggle({ pending: 'storm' }, by('eeuwig'), false);
 ok(r.do === 'ask', 'a waiting confirmation for another cheat does not count');
 
+// #1268: geen tegenstrijdige zin, geen lege groepskoppen, geen tegels die de badge herhalen, Cheats niet vier keer
+{
+  const t = summaryLine(CHEATS, () => false).text;
+  ok(!/Niets staat aan/.test(t) && /tellen gewoon mee/.test(t), 'nothing on: one clear sentence');
+  const src = (await import('node:fs')).readFileSync(new URL('../game/js/cheatsui.js', import.meta.url), 'utf8');
+  ok(/acts\.length \? '<div class="m-gh"><span>Acties/.test(src) && /open\.length \? `<div class="m-gh"><span>Aan of uit/.test(src), 'a group head only above rows');
+  ok(!/pm-stat"/.test(src) && !/<span class="m-eb">Cheats<\/span><h2/.test(src), 'no stat tiles and no second Cheats heading in the empty pane');
+}
+
 console.log(`${n - fails}/${n} ok`);
 process.exit(fails ? 1 : 0);

@@ -380,7 +380,7 @@ Douwe), two voice lines (Rikus on the radio, Berend after the logo;
 `scripts/tts_trailer.py` into `audio/voicelines/trailer/`) and the theme song
 from the end of the radio intro. Used three ways:
 
-- **Benchmark**: *Instellingen → Beeld → Benchmark draaien* plays the full
+- **Benchmark**: *Instellingen → Beeld → Prestatietest* plays the full
   cut in real time with an fps counter, then measures the other presets on
   the two heaviest shots; the result and the recommended preset wait in
   *Beeld*. Name-card freeze frames, title cards and the black intro are not

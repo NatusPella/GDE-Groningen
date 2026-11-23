@@ -31,21 +31,36 @@ export function expectedYield(kind, ha, soil) {
   return { kg, euro: Math.round(kg * g.prijsKg), gewas: g.naam };
 }
 
+// #1233: een plaatje van het perceel bovenaan de kaart: de echte omtrek (parcelindex shapeOf, wereldmeters, y naar het noorden)
+// geschaald in een vak van 160 x 96, noorden boven. Zonder echte omtrek geen plaatje (#1092: nooit een verzonnen vorm).
+export function parcelShapeSvg(punten, w = 160, h = 96, pad = 6) {
+  if (!Array.isArray(punten) || punten.length < 3) return '';
+  const ok = punten.filter((q) => Array.isArray(q) && Number.isFinite(q[0]) && Number.isFinite(q[1]));
+  if (ok.length < 3) return '';
+  const xs = ok.map((q) => q[0]), ys = ok.map((q) => q[1]);
+  const x0 = Math.min(...xs), x1 = Math.max(...xs), y0 = Math.min(...ys), y1 = Math.max(...ys);
+  const s = Math.min((w - 2 * pad) / Math.max(1, x1 - x0), (h - 2 * pad) / Math.max(1, y1 - y0));
+  const ox = (w - (x1 - x0) * s) / 2, oy = (h - (y1 - y0) * s) / 2;
+  const d = ok.map((q) => `${(ox + (q[0] - x0) * s).toFixed(1)},${(oy + (y1 - q[1]) * s).toFixed(1)}`).join(' ');
+  return `<svg class="mv-perceel" viewBox="0 0 ${w} ${h}" width="${w}" height="${h}" aria-hidden="true" focusable="false"><polygon points="${d}"/></svg>`;
+}
+
 // offer: uit bezitlive.parcelOffer. stap: null | 'koop' | 'verkoop'. melding: een tekst na een mislukte actie. money: het geld van de speler.
 export function offerCardHtml(offer, { stap = null, melding = '', money = 0 } = {}) {
   if (!offer) return '';
   const y = expectedYield(offer.parcel.kind, offer.ha, offer.soil);
+  // #1233: de drie kernregels (oppervlakte, bodem, opbrengst) eerst, de rest eronder
   const rows = [
-    ['Soort', `${offer.kindName} · ${crops(offer.parcel.kind)}`],
     ['Oppervlakte', `${String(offer.ha.toFixed(1)).replace('.', ',')} ha`],
     ['Bodem', `${offer.soilWord} ${soilMeter(offer.soil)}`],
+    ['Verwacht', `ongeveer ${y.kg.toLocaleString('nl-NL')} kg ${esc(y.gewas.toLowerCase())} per oogst, ${euro(y.euro)}`],
+    ['Soort', `${offer.kindName} · ${crops(offer.parcel.kind)}`],
     ['Ligging', `${accessText(offer.access)}, bij ${esc(offer.place)}`],
     ...(offer.neighbours ? [['Buren', neighboursText(offer.neighbours)]] : []),
     ...(offer.mine && offer.mode ? [['Beheer', `${MODE_TEXT[offer.mode] || 'Zelf'}${offer.insured ? ' · verzekerd tegen stortbui' : ''}`]] : []),
     ['Verkoper', esc(offer.seller)],
-    ['Verwacht', `ongeveer ${y.kg.toLocaleString('nl-NL')} kg ${esc(y.gewas.toLowerCase())} per oogst, ${euro(y.euro)}`],
   ];
-  const dl = '<dl class="mv-bezit">' + rows.map(([k, v]) => `<div><dt>${k}</dt><dd>${v}</dd></div>`).join('') + '</dl>';
+  const dl = '<dl class="mv-bezit">' + rows.map(([k, v], i) => `<div${i < 3 ? ' class="mv-kern"' : ''}><dt>${k}</dt><dd>${v}</dd></div>`).join('') + '</dl>';
   let top = '';
   if (offer.mine) top = `<p class="mv-note" data-bezit="mine">Van jou. Verkopen levert ${euro(offer.sellValue)} op (75% van wat je betaalde).</p>`;
   else if (offer.claim) top = `<p class="mv-note" data-bezit="claimed">${esc(offer.reason)}</p>`;
@@ -66,7 +81,7 @@ export function offerCardHtml(offer, { stap = null, melding = '', money = 0 } = 
         '<button type="button" class="mv-actie" data-card="bezit-annuleer"><span class="mv-at"><span class="mv-al">Nee, houd het</span> <small>terug</small></span></button></div>';
     } else buttons = `<div class="mv-acties" role="group" aria-label="Perceel beheren"><button type="button" class="mv-actie" data-card="bezit-verkoop"><span class="mv-at"><span class="mv-al">Verkoop</span> <small>${euro(offer.sellValue + (offer.herdValue || 0))}</small></span></button></div>`;
   }
-  return `<div class="mv-bezit-kaart">${top}${dl}${melding ? `<p class="mv-note" role="status">${esc(melding)}</p>` : ''}${buttons}</div>`;
+  return `<div class="mv-bezit-kaart">${parcelShapeSvg(offer.shape)}${top}${dl}${melding ? `<p class="mv-note" role="status">${esc(melding)}</p>` : ''}${buttons}</div>`;
 }
 
 // De regel voor de tooltip en de hover: "Wierdeakker bij Winsum (K0482) · te koop €12.350".

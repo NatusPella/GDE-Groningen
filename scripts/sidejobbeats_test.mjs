@@ -55,6 +55,10 @@ t('de slotregel volgt de dienst: goed, mager of mis', () => {
   assert.equal(eindregel('bus', { kind: 'quit', streak: 0 }), BIJBAAN_BEATS.bus.eind.mis);
   assert.equal(eindregel('bus', { kind: 'fail', streak: 9 }), BIJBAAN_BEATS.bus.eind.mis);
   assert.equal(eindregel('onbekend', {}), null);
+  // #1286: vijf betaalde rondes met een reeks die door een aanrijding brak is een goede dienst
+  assert.equal(eindregel('bus', { kind: 'quit', streak: 1, rondes: 5 }), BIJBAAN_BEATS.bus.eind.goed);
+  assert.equal(eindregel('bus', { kind: 'quit', streak: 0, rondes: 0 }), BIJBAAN_BEATS.bus.eind.mis);
+  assert.ok(fs.readFileSync(new URL('../game/js/sidejobs.js', import.meta.url), 'utf8').includes('rondes: c.round'), 'sidejobs.js geeft de rondes mee');
 });
 t('tekstregels: geen echte merken, geen winter, geen losse toetsletter, alles heeft eindleesteken', () => {
   const VERBODEN = /\b(winter|sneeuw|ijs|uber|bolt|ns|arriva|qbuzz|thuisbezorgd|marktplaats|google|facebook)\b/i;
