@@ -44,6 +44,13 @@ t('#1277: Binnenkort in de zenderlijst is een chip, geen waarde in kopformaat', 
   assert.match(h, /<span class="ds-z-chip">Binnenkort<\/span>/);
   assert.ok(!/ds-z-rij__waarde">Binnenkort/.test(h));
 });
+t('#1277: Geluid uit is één schakelaar met de toets in de uitleg, en het ondertitelvoorbeeld staat op een echt spelplaatje', () => {
+  const pm = fs.readFileSync(new URL('../game/js/pausemenu.js', import.meta.url), 'utf8');
+  const rij = pm.split('\n').find((r) => r.includes('data-mute-switch>'));
+  assert.ok(rij && rij.includes('ook met {U}') && !/m-kc|pm-mutehint|icon\('mute'\)/.test(rij), 'geen luidspreker en losse toetsletter naast de schakelaar');
+  const img = pm.match(/class="pm-subprev-img" src="(img\/laad\/[a-z]+\.jpg)"/);
+  assert.ok(img && fs.existsSync(new URL(`../game/${img[1]}`, import.meta.url)), 'het voorbeeldplaatje bestaat');
+});
 t('#1275: de uitleg bij Moeilijkheid staat op dezelfde linkerrand als de rijen', () => {
   const css = fs.readFileSync(new URL('../game/js/pausemenu.css', import.meta.url), 'utf8');
   assert.match(css, /.pm-diff-intro, #pause-menu .pm-diff-note {[^}]*margin: 0 24px/);

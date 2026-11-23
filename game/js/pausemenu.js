@@ -771,7 +771,7 @@ function settingsHtml() {
       ${slider('sfxVolume', 'Effecten')}
       ${slider('voiceVolume', 'Stemmen')}
       <p class="pm-note pm-silence" data-silence role="status" hidden></p>
-      <label class="m-li pm-row pm-mute">${rowName('Geluid in één keer uit', 'Zet alle geluid uit; de luidspreker linksboven zet het weer aan')}<input type="checkbox" class="m-sw" data-mute-switch><span class="pm-mutehint">${icon('mute')}<span class="m-kc">U</span></span></label>
+      <label class="m-li pm-row pm-mute">${rowName('Geluid in één keer uit', 'Zet alle geluid uit, ook met {U}; de luidspreker linksboven zet het weer aan')}<input type="checkbox" class="m-sw" data-mute-switch></label>
       <label class="m-li pm-row">${rowName('Radio', 'Aan of uit met {N}, te voet en in elk voertuig. {SHIFT}+{N} is de volgende zender, {N} vasthouden het zenderwiel. Zender kiezen met een controller: houd Overzicht en kies Zenders kiezen')}<input type="checkbox" class="m-sw" data-radio-switch></label>
       <div class="pm-channels-wrap" data-channels-wrap></div>
       ${disclosure('subs', 'Ondertitels', 'Filmpjes, gesprekken, telefoon, radio en naamkaarten', `
@@ -781,7 +781,7 @@ function settingsHtml() {
         ${picker('subtitleVlak', 'Dichtheid van het vlak', [['vol', 'Vol'], ['zacht', 'Zacht'], ['licht', 'Licht']], 'Hoe goed je er doorheen kijkt; bij Contrast ondertitels Hoog is het vlak altijd vol')}
         ${toggle('soundCaptions', 'Geluiden beschrijven', 'Een korte tekst als [sirene] of [claxon] bij belangrijke geluiden')}`, true)}`, `
       <aside class="m-pane"><div class="pm-pane-top"><span class="m-eb">Zo ziet het eruit</span></div>
-        <div class="pm-subprev" data-sub-preview><span class="pm-subtxt"><b>Tammo:</b> Rustig an, rustig an.</span></div>
+        <div class="pm-subprev" data-sub-preview><img class="pm-subprev-img" src="img/laad/vismarkt.jpg" alt="" decoding="async"><span class="pm-subtxt"><b>Tammo:</b> Rustig an, rustig an.</span></div>
         <p class="mut">Muziek is de radio (G-Music, 's nachts Nachtstreek) en de titelsong, stemmen zijn Tammo, Tessa, de politie, de mensen op straat en de praatjes op de radio. Kleurenblind, interfacegrootte en beweging beperken vind je onder Toegankelijkheid.</p></aside>`)}
     ${tab('spel', `
       <div class="m-li pm-row">${rowName('Moeilijkheid', 'Het niveau en de opties van dit spel: politie, verkeer, schade, hulp, geld en meer')}<button type="button" class="m-bg" data-goto-sub="settings:moeilijkheid">Aanpassen</button></div>

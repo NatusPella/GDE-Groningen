@@ -77,6 +77,7 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 - Bijbanen: de slotregel van een dienst kijkt naar het aantal betaalde klussen, niet naar de reeks. Vijf klussen met een aanrijding halverwege is nu een goede dienst in plaats van een magere. Samen spelen: de slotregel is van wie de dienst draait; geen nieuw bericht.
 - Instellingen › Moeilijkheid: de kiezer voor het niveau staat bovenaan, met daaronder alleen de uitleg van het gekozen niveau. De drie niveaus naast elkaar staan in het zijpaneel, de regel over Samen spelen is een label in plaats van een alinea. Samen spelen: ongewijzigd; politie en verkeer kies je samen, de rest is van jezelf.
 - Moeilijkheidskaart bij een nieuw spel: elk niveau toont met een icoon, een woord en blokjes hoe het zit met tijd, politie en verkeer (Ontspannen: ruim, rustig, rustig; Uitdagend: krap, scherp, druk). Samen spelen: de kaart is van wie een nieuw spel begint; er gaat niets over het net.
+- Instellingen › Geluid: Geluid in één keer uit is één schakelaar, met de toets U in de uitleg in plaats van een losse luidspreker en letter ernaast. Het ondertitelvoorbeeld staat op een plaatje van de Vismarkt in plaats van op een groene vlek. Samen spelen: lokaal in je eigen menu.
 
 ## [0.65.0] - 2026-11-22
 
