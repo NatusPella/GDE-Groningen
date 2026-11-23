@@ -199,7 +199,7 @@ function xform(geo, m) {
 // --- de duif per niveau ------------------------------------------------------------------------------------------------
 
 const DETAIL = {
-  hi: { sides: 12, headSides: 10, headStacks: 7, eye: [6, 4], pupil: [6, 3], coverts: [10, 5], wingBars: true, secondaries: 6, primaries: 5, featherSegs: 2, tailFeathers: 7, legSides: 6, toes: 3, hindToe: true, cere: true, neckSides: 12, torsoRings: 9 },
+  hi: { sides: 12, headSides: 10, headStacks: 7, eye: [6, 4], pupil: [6, 3], coverts: [10, 5], wingBars: true, secondaries: 0, armPlate: [8, 3], primaries: 4, handW: 0.04, handSpread: 0.5, featherSegs: 3, handCovert: [8, 4], tailFeathers: 7, tailW: 0.045, legSides: 6, toes: 3, hindToe: true, cere: true, neckSides: 12, torsoRings: 9 },
   mid: { sides: 8, headSides: 6, headStacks: 4, eye: null, pupil: null, coverts: [6, 3], wingBars: false, secondaries: 0, armPlate: [5, 3], primaries: 3, featherSegs: 2, handCovert: [5, 3], tailFeathers: 0, tailBlade: true, legSides: 4, toes: 0, hindToe: false, cere: false, neckSides: 6, torsoRings: 7 },
   far: { sides: 8, headSides: 7, headStacks: 3, blade: true, eye: null, pupil: null, coverts: [0, 0], wingBars: false, secondaries: 0, primaries: 0, featherSegs: 1, tailFeathers: 0, legSides: 0, toes: 0, hindToe: false, cere: false, neckSides: 0, torsoRings: 5 },
 };
@@ -247,7 +247,7 @@ function addWingParts(out, D, c, side, kind, sp) {
     out.push({ g: 'wing', side, geo: f });
   }
   // handpennen aan de buitenvleugel: waaiert naar buiten en wijst iets naar achteren
-  const spreadHand = D.armPlate ? 0.42 : 0.62, wHand = D.armPlate ? 0.034 : 0.027;   // a few broad, rounded primaries at the middle level
+  const spreadHand = D.handSpread ?? (D.armPlate ? 0.42 : 0.62), wHand = D.handW ?? (D.armPlate ? 0.034 : 0.027);   // a few broad, rounded primaries at the middle level
   for (let i = 0; i < D.primaries; i++) {
     const t = D.primaries > 1 ? i / (D.primaries - 1) : 0;
     const f = feather((0.17 - t * 0.065) * big, wHand, D.featherSegs, -0.018, 0.4, wingHex, c.tip);
@@ -293,7 +293,7 @@ export function pigeonParts(lod = 'hi', { kind = 'pigeon', variant = null, map =
     const n = D.tailFeathers;
     for (let i = 0; i < n; i++) {
       const t = n > 1 ? i / (n - 1) - 0.5 : 0;
-      const f = feather(0.15, 0.03, D.featherSegs, -0.01, 0.25, c.tail, c.band);
+      const f = feather(0.15, D.tailW ?? 0.03, Math.min(2, D.featherSegs), -0.01, 0.25, c.tail, c.band);   // broad feathers overlap into a closed fan
       xform(f, place(0, 0, 0, 0, Math.PI + t * 0.5, 0.04 - Math.abs(t) * 0.05));
       out.push({ g: 'tail', geo: f });
     }

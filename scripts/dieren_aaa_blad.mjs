@@ -66,7 +66,7 @@ const SOORT = {
   duif: { kind: 'pigeon', bouw: () => W.buildWildlifeMesh3D({ kind: 'pigeon', bobSeed: 0.37 }), span: 0.55, hoog: 0.85, poses: VOGEL, schuin: true },
   meeuw: { kind: 'seagull', bouw: () => W.buildWildlifeMesh3D({ kind: 'seagull', bobSeed: 0.37 }), span: 1.3, hoog: 1.1, poses: VOGEL, schuin: true },
   gans: { kind: 'gans', bouw: () => W.buildWildlifeMesh3D({ kind: 'gans', bobSeed: 0.37 }), span: 1.0, hoog: 0.9, poses: GANS, schuin: true },
-  spelerduif: { bouw: () => { const b = PM.buildPigeonBird('pigeon'); b.userData.seed = 0; b.scale.setScalar(1); return b; }, span: 0.55, hoog: 0.5, poses: SPELERDUIF, schuin: true,
+  spelerduif: { bouw: () => { const b = PM.buildPigeonBird('pigeon'); b.userData.seed = 0; b.scale.setScalar(1); return b; }, span: 0.55, hoog: 0.62, poses: SPELERDUIF, schuin: true,
     zet: (g, P) => { PM.posePigeonBird(g, P.pose); g.rotation.set(P.pose.roll || 0, 0, P.pose.pitch || 0); g.position.y = P.pose.grounded ? 0 : 0.12; } },
   zeehond: { kind: 'zeehond', bouw: () => W.buildWildlifeMesh3D({ kind: 'zeehond', bobSeed: 0.37 }), span: 1.9, hoog: 1.0, poses: ZEEHOND, grond: 0.15, schuin: true },
 };
