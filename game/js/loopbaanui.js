@@ -176,14 +176,14 @@ const CSS = `${SFEER_BAND_CSS}
   .lb-trap li { min-height: 40px; }
 }
 .lb-banen { list-style: none; margin: 4px 0; padding: 0; display: grid; grid-template-columns: minmax(0, 1fr); gap: 4px 0; }
-.lb-banen li { display: flex; gap: 8px; align-items: center; opacity: 0.6; min-height: 38px; padding: 2px 8px; border-radius: 6px; }
+.lb-banen li { display: flex; flex-wrap: wrap; gap: 4px 8px; align-items: center; opacity: 0.6; min-height: 38px; padding: 2px 8px; border-radius: 6px; }
 .lb-banen li:has(.lb-doel) { opacity: 1; background: color-mix(in srgb, var(--ink) 4%, transparent); }
 .lb-banen .lb-doel { margin-left: auto; height: 34px; white-space: nowrap; }
 .lb-banen li.klaar { opacity: 1; }
 .lb-banen svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 2; flex: none; }
 .lb-banen li:not(.klaar) svg { visibility: hidden; }
 .lb-kan { padding-left: 10px; box-shadow: inset 3px 0 0 var(--g); }
-.lb-bz { display: flex; flex-direction: column; min-width: 0; line-height: 1.25; }
+.lb-bz { display: flex; flex-direction: column; flex: 1 1 8em; min-width: 0; line-height: 1.25; }
 .lb-bz > span:first-child { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .lb-bz .mut { font-size: max(14px, var(--menu-min, 14px)); }
 .lb-volg { flex: none; padding: 1px 8px; border-radius: 999px; font-family: var(--ds-font-zeef-tekst); font-size: max(13px, var(--menu-min, 13px)); letter-spacing: 0.08em; text-transform: uppercase; background: color-mix(in srgb, var(--g) 18%, transparent); color: var(--g); }
