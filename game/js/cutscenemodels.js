@@ -8,6 +8,7 @@
 // Een soort die hier niet staat, of in PLACEHOLDER_KINDS, valt door de validatie.
 
 import { DIEREN } from './dierenregister.js';
+import { CUTSCENE_PROPS } from './propregister.js';
 
 export const PROP_SOURCES = {
   auto: { vehicle: 'escort' },                      // de Escapade (HERO_CAR_MODEL)
@@ -33,6 +34,7 @@ export const DECOR_KINDS = [
   'map', 'bierviltje', 'fotolijst', 'statief', 'krat', 'pan', 'vuurwerk', 'koelbox',
   'jas', 'aktetas', 'hesjes', 'container', 'scherm', 'prikbord', 'broodtrommel', 'kantoorwagen',
   'frituuraanhanger', 'friteuse', 'deken', 'soepketel', 'mosterdpot', 'kaart', 'hek',
+  ...CUTSCENE_PROPS, // het register van de gedeelde props (propregister.js): bank, afvalbak, fietsenrek, bushokje, paaltje
 ];
 
 // geen spelobject: er is geen register voor, dus niet in een cutscene
@@ -73,6 +75,9 @@ export const PROP_FOOT = {
   statief: [0.6, 0.6, 1.6],
   prikbord: [0.2, 1.0, 1.4],
   kantoorwagen: [5.8, 2.3, 3.0],
+  bank: [0.75, 0.96, 1.7],
+  bushokje: [4.2, 2.76, 1.8],
+  fietsenrek: [0.15, 0.47, 2.9],
 };
 export const propFoot = (kind) => PROP_FOOT[kind] || null;
 

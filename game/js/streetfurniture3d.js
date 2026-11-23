@@ -23,6 +23,7 @@ import { createCalmGate } from './tilestream.js';
 const tilesCalmGate = createCalmGate(); // wacht ook op de achtergrondwachtrij van de tegelwereld, hoogstens twee seconden achter elkaar (#1052)
 import { EDGE_CLASSES, edgeColour, edgeHeight } from './edgeclasses.js';
 import { applyInteriorCut } from './interiorcut3d.js';
+import { propGeometry } from './propmodels3d.js'; // de gedeelde props (propregister.js)
 
 // the game draws its own lamps and path bollards (see above)
 export const GAME_OPTS = { lamps: false, bollards: false, livingBumps: false };
@@ -102,31 +103,17 @@ function beamGeo() {
     tint(new THREE.BoxGeometry(0.3, 0.3, 1).translate(0, -0.45, 0), 0x8a9196),
   ]);
 }
-function benchGeo() {
-  return mergeGeometries([
-    tint(new THREE.BoxGeometry(1.6, 0.06, 0.42).translate(0, 0.45, 0), 0x7a5a3a),
-    tint(new THREE.BoxGeometry(1.6, 0.36, 0.05).translate(0, 0.7, -0.2), 0x7a5a3a),
-    tint(new THREE.BoxGeometry(0.06, 0.45, 0.4).translate(-0.7, 0.22, 0), 0x3a3d40),
-    tint(new THREE.BoxGeometry(0.06, 0.45, 0.4).translate(0.7, 0.22, 0), 0x3a3d40),
-  ]);
-}
-function binGeo() { return mergeGeometries([tint(new THREE.CylinderGeometry(0.25, 0.22, 0.85, 8).translate(0, 0.425, 0), 0x2d4a3a)]); }
-function rackGeo() {
-  const parts = [];
-  for (let i = -2; i <= 2; i++) parts.push(tint(new THREE.TorusGeometry(0.35, 0.025, 4, 10, Math.PI).translate(0, 0.05, 0).rotateY(Math.PI / 2).translate(i * 0.5, 0, 0), 0x9a9ea2));
-  return mergeGeometries(parts);
-}
-function shelterGeo() {
-  return mergeGeometries([
-    tint(new THREE.BoxGeometry(3.2, 0.1, 1.5).translate(0, 2.45, 0), 0x2b3a4a),
-    tint(new THREE.BoxGeometry(3.2, 2.2, 0.04).translate(0, 1.2, -0.7), 0xa9c3cc),
-    tint(new THREE.BoxGeometry(0.06, 2.4, 0.06).translate(-1.55, 1.2, -0.7), 0x2b3a4a),
-    tint(new THREE.BoxGeometry(0.06, 2.4, 0.06).translate(1.55, 1.2, -0.7), 0x2b3a4a),
-  ]);
-}
+// bank, afvalbak, fietsenrek, bushokje en paaltje komen uit het ene register van propmodels3d.js (propregister.js): dezelfde
+// geometrie als in de stad en in de cutscenes. Hier een eigen kopie gedraaid naar de conventie van dit bestand (voorkant +z,
+// breedte langs x); een kopie omdat een omvallend stuk (breakables.js) zijn eigen geometrie krijgt.
+function rotProp(id, hoek) { const g = propGeometry(id).clone(); g.userData = {}; return hoek ? g.rotateY(hoek) : g; }
+function benchGeo() { return rotProp('bank', -Math.PI / 2); }
+function binGeo() { return rotProp('afvalbak', -Math.PI / 2); }
+function rackGeo() { return rotProp('fietsenrek', -Math.PI / 2); }
+function shelterGeo() { return rotProp('bushokje', 0); }
 // the post of a place name board or signpost (the board is drawn apart, see rebuildBoards)
 function postGeo() { return mergeGeometries([tint(new THREE.BoxGeometry(0.08, 2.2, 0.08).translate(0, 1.1, 0), 0x8a9196)]); }
-function bollardGeo() { return mergeGeometries([tint(new THREE.CylinderGeometry(0.08, 0.1, 0.9, 6).translate(0, 0.45, 0), 0x8c2a2a)]); }
+function bollardGeo() { return rotProp('paaltje', 0); }
 
 const GEOS = { guardrail: guardrailGeo, fence: fenceGeo, hedge: hedgeGeo, noise: noiseGeo, hectometer: hectometerGeo, speedbump: speedbumpGeo, gantry: gantryGeo, beam: beamGeo, bench: benchGeo, bin: binGeo, bikerack: rackGeo, shelter: shelterGeo, bollard: bollardGeo, placesign: postGeo, wegwijzer: postGeo };
 // kinds whose instance is hidden once the collider is knocked out (breakables.js owns the tumbling copy)

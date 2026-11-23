@@ -19,6 +19,7 @@ import { decorateScenePed } from './streetlife.js';
 import { pannenkoekenschipGeometry } from './pannenkoekenschip.js';
 import { dayState } from './daynight.js';
 import { applyInteriorCut } from './interiorcut3d.js';
+import { propGeometry, fietsenrekGeometry } from './propmodels3d.js'; // bank, afvalbak en fietsenrek: het ene register (propregister.js)
 
 // Ambient city life: benches, bins, bike racks, café terraces, market stalls,
 // canal anglers. Streamed per CELL around the player; each cell merges all its
@@ -76,25 +77,9 @@ function isFree(map, x, y, r, footOk = true) {
 
 // --- prototype geometry (local space, +X forward, y up) --------------------
 
-function buildBench() {
-  const B = new GeoBuilder(1);
-  const wood = HABBO_PALETTE.woodMid, iron = 0x2b2f2a;
-  for (let i = 0; i < 3; i++) B.box(0.12 - i * 0.14, 0.45, 0, 0.12, 0.04, 1.6, wood);
-  for (let i = 0; i < 2; i++) B.box(-0.2, 0.62 + i * 0.14, 0, 0.03, 0.1, 1.6, wood, 0, 0, 0, 0.12);
-  for (const z of [-0.65, 0.65]) {
-    B.box(-0.02, 0.22, z, 0.42, 0.44, 0.05, iron);
-    B.box(-0.2, 0.62, z, 0.05, 0.36, 0.05, iron);
-  }
-  return B.build();
-}
-
-function buildBin() {
-  const B = new GeoBuilder(1);
-  B.geo(new THREE.CylinderGeometry(0.24, 0.21, 0.85, 8), composeMatrix(0, 0.425, 0), 0x2f4a3a);
-  B.geo(new THREE.CylinderGeometry(0.26, 0.26, 0.06, 8), composeMatrix(0, 0.87, 0), 0x3d5a47);
-  B.geo(new THREE.CylinderGeometry(0.04, 0.04, 0.9, 5), composeMatrix(-0.3, 0.45, 0), 0x2b2f2a);
-  return B.build();
-}
+// bank en afvalbak: eigen kopie van de gedeelde geometrie (whiteUV past de uv aan)
+function buildBench() { const g = propGeometry('bank').clone(); g.userData = {}; return g; }
+function buildBin() { const g = propGeometry('afvalbak').clone(); g.userData = {}; return g; }
 
 function buildOmafiets(color) {
   const B = new GeoBuilder(1);
@@ -119,16 +104,7 @@ function buildOmafiets(color) {
   return B.build();
 }
 
-function buildRackRail(n) {
-  const B = new GeoBuilder(1);
-  const len = n * 0.7;
-  B.geo(tubeGeometry([0, 0.4, -len / 2], [0, 0.4, len / 2], 0.025), null, 0x6b6e70);
-  for (let i = 0; i <= n; i++) {
-    const z = -len / 2 + i * 0.7;
-    B.geo(tubeGeometry([0, 0, z], [0, 0.4, z], 0.02), null, 0x6b6e70);
-  }
-  return B.build();
-}
+function buildRackRail(n) { return fietsenrekGeometry(n); }
 
 function buildTable() {
   const B = new GeoBuilder(1);

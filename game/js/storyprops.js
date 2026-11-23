@@ -5,6 +5,8 @@
 // Verplaatst uit cutscenehost.js (PROP_MAKERS) en uitgebreid met de voorwerpen die scènes noemden maar
 // als "doos" of "bord" werden getekend (klomp, stempel, statief, krat, ...), #1121.
 import * as THREE from 'three';
+import { propGeometry } from './propmodels3d.js';
+import { PROP_REGISTER, CUTSCENE_PROPS } from './propregister.js';
 
 const MATS = {};
 const mat = (c, o = {}) => (MATS[c + JSON.stringify(o)] ||= new THREE.MeshStandardMaterial({ color: c, roughness: 0.8, ...o }));
@@ -15,7 +17,12 @@ const ball = (r, c, y, x = 0, z = 0, sy = 1, detail = 1) => { const m = put(new 
 const grp = (...kids) => { const g = new THREE.Group(); g.add(...kids); return g; };
 const tilt = (m, rx = 0, ry = 0, rz = 0) => { m.rotation.set(rx, ry, rz); return m; };
 
+// De gedeelde props uit het register (propregister.js): dezelfde geometrie als op straat in de wereld, één mesh met vertexkleuren.
+const VERTEXKLEUR = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.8, metalness: 0.1 });
+const registerProp = (id) => () => { const m = new THREE.Mesh(propGeometry(id), VERTEXKLEUR); m.castShadow = true; return grp(m); };
+
 export const DECOR_MAKERS = {
+  ...Object.fromEntries(CUTSCENE_PROPS.map((id) => [id, registerProp(id)])),
   // een matras met een bies en een kussen (de verhuisbeats van de opening)
   matras: () => grp(box(1.9, 0.2, 1.0, 0x6b8fb8, 0.1), box(1.9, 0.02, 0.05, 0xe8e3d6, 0.21), box(1.94, 0.04, 1.04, 0x4c6f96, 0.04), box(0.4, 0.1, 0.55, 0xf2efe6, 0.25, -0.7)),
   doos: () => grp(box(0.5, 0.38, 0.4, 0xb98d56), box(0.52, 0.04, 0.12, 0xe8d3a8, 0.38)),
@@ -192,6 +199,8 @@ export const DECOR_BUDGET = {
   kantoorwagen: { tris: 400, mats: [2, 8], maxDim: 6.0 },
   frituuraanhanger: { tris: 400, mats: [2, 8], maxDim: 4.2 },
 };
+// de props uit het register houden zich aan hun eigen norm (driehoeken; één vertexkleur-materiaal telt als één)
+for (const id of CUTSCENE_PROPS) DECOR_BUDGET[id] = { tris: PROP_REGISTER[id].norm.tris[1], mats: [1, 6], maxDim: 4.4 };
 export const budgetOf = (kind) => ({ ...DECOR_BUDGET.default, ...(DECOR_BUDGET[kind] || {}) });
 
 // De metingen van een gebouwd model (voor audit en test): { tris, mats, bbox: { x, y, z }, nan }
