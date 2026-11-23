@@ -281,10 +281,13 @@ await t('toestemmingskaart: de STUN- en brokertekst, een vinkje, Akkoord en Teru
   const html = UI.toestemmingHtml();
   assert.match(html, /gaat naar je medespeler en naar de openbare servers/);
   assert.match(html, /STUN-server en openbare brokers/);
-  assert.match(html, /class="os-consent-vink"/);
+  assert.match(html, /class="m-sw os-consent-vink"/);
   assert.match(html, /data-geef/);
   assert.match(html, /data-terug/);
   assert.match(html, /role="alert"[^>]*hidden/);
+  // #1225 (hertest 24-11): een schakelaar (m-sw) zoals de naamkaart en de toetsen in de knoppen
+  assert.match(html, /data-geef aria-keyshortcuts="Enter">[^<]*<span class="sk-toets-in">/);
+  assert.match(html, /data-terug aria-keyshortcuts="Escape">[^<]*<span class="sk-toets-in">/);
 });
 
 // Een nep-DOM die genoeg kan voor openLaunchChoice en openToestemming.

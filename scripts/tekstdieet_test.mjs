@@ -59,7 +59,7 @@ ok(L.TOESTEMMING_TEKST.titel.length <= 40 && L.TOESTEMMING_TEKST.consent.length 
   const h = UI.toestemmingHtml();
   const t = zichtbaar(h);
   ok(t.length <= 170, 'toestemming: alle zichtbare tekst ≤ 170 tekens', [t.length, t]);
-  ok(/<details class="os-info">/.test(h) && /STUN-server en openbare brokers/.test(h) && /class="os-consent-vink"/.test(h), 'toestemming: vinkje blijft, uitleg achter Meer info');
+  ok(/<details class="os-info">/.test(h) && /STUN-server en openbare brokers/.test(h) && /class="m-sw os-consent-vink"/.test(h), 'toestemming: vinkje blijft, uitleg achter Meer info');
 }
 
 // 4. moeilijkheidskaart: korte niveau-omschrijvingen
