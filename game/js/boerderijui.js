@@ -12,7 +12,7 @@ import * as WT from './werktuigen.js';
 import { fillBars } from './motion.js';
 import { setUserWaypoint } from './routing.js';
 import { wgsToWorld } from './rdnew.js';
-import { sfeerVan, sfeerStijl, sfeerBandHtml, SFEER_BAND_CSS } from './carrieresfeer.js';
+import { sfeerStijl, sfeerBandHtml, SFEER_BAND_CSS } from './carrieresfeer.js';
 import { dagKeuze, dagKeuzeTekst } from './boerderijdag.js';
 import { koopVraag, tweedeDruk } from './tweedruk.js';
 import { kaartenBlok, zetUitlegGezien } from './farmcards.js';
@@ -35,7 +35,8 @@ const icoon = (n, cls = 'pa-ico') => `<span class="${cls}">${fIcoon(ICOON[n])}</
 
 // De boerderij hoort bij het vak Landbouw en draagt dezelfde sfeerband als Loopbanen (#492, #609).
 const SFEER = 'landbouw';
-const band = () => sfeerBandHtml(SFEER, { icoon: icoon('machines', 'lb-sfeer-ico'), klein: 'Bij Hoogkerk' });
+// De band draagt ook de naam van de boerderij: één kop in plaats van band, eyebrow en paneelkop onder elkaar (#1243). Compact via .bd-pane .lb-sfeer in farm.css.
+const band = () => sfeerBandHtml(SFEER, { icoon: icoon('machines', 'lb-sfeer-ico'), klein: 'Boerderij De Zonnehoek, bij Hoogkerk' });
 
 const CSS = `${SFEER_BAND_CSS}
 .bd-pane .pa-ico svg { fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
@@ -434,8 +435,10 @@ export function renderBoerderijPanel(el, world, sluit = null) {
   const s = B.samenvatting(b);
   // de onderdelen als tabs in het paneel zelf (panelmodel, DESIGN_SYSTEM.md > Panels): Q en E wisselen, de tab zegt het aantal waar dat helpt
   const tel = { percelen: Object.keys(b.bedrijf.percelen).length, machines: b.bedrijf.machinepark.machines.length + b.bedrijf.machinepark.werktuigen.length };
-  const tabs = ONDERDELEN.map(([id, naam]) => `<button type="button" role="tab" class="m-tab" data-bd="${id}" aria-selected="${gekozen === id}">${esc(naam)}${tel[id] != null ? `<small>${tel[id]}</small>` : ''}</button>`).join('');
-  el.innerHTML = `<div class="m-tabs"><nav class="m-tablist" role="tablist" aria-label="Boerderij">${tabs}</nav><span class="m-grow"></span><span class="pa-total"><span class="lb-sfeer-chip" style="${sfeerStijl(SFEER)}" aria-hidden="true"></span><span class="mut">${esc(sfeerVan(SFEER).naam)}</span><span class="mut">Je geld</span><span class="m-num">${euro(geld)}</span></span></div>` +
+  // #1243: de onderdelen zijn een segmentbalk (ds-z-tabs), niet een tweede onderstreepte tabrij onder die van Land en bedrijf. Q en E werken op role="tab".
+  const tabs = ONDERDELEN.map(([id, naam]) => `<button type="button" role="tab" class="ds-z-tab bd-seg-tab${gekozen === id ? ' sel' : ''}" data-bd="${id}" aria-selected="${gekozen === id}">${esc(naam)}${tel[id] != null ? `<small>${tel[id]}</small>` : ''}</button>`).join('');
+  // De sfeernaam staat al in de band; hier alleen de chip en het geld.
+  el.innerHTML = `<div class="bd-seg-rij"><nav class="ds-z-tabs bd-seg" role="tablist" aria-label="Boerderij">${tabs}</nav><span class="m-grow"></span><span class="pa-total"><span class="lb-sfeer-chip" style="${sfeerStijl(SFEER)}" aria-hidden="true"></span><span class="mut">Je geld</span><span class="m-num">${euro(geld)}</span></span></div>` +
     dagKaart() +
     `<div class="m-main bd-main"><aside class="m-pane pa-pane bd-pane" aria-live="polite">${detail(b, geld)}</aside></div>`;
   fillBars(el, bars);
