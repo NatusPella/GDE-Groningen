@@ -85,7 +85,7 @@
       for (let k = 0; k < 40; k++) for (const rol of rollen) for (const side of (mode.includes('eenkant') ? [1] : [-1, 1])) syncVehicleDoors(m, v, 0.05, { rol, open: true, side });
     }
   });
-  const dist = set === 'gat3' ? 6 : set === 'gat' ? 7.5 : set === 'gat2' ? 15 : set === 'lod' ? 12 : set === 'vgl' || set === 'hyb' ? (mode.includes('ver') ? 20 : set === 'hyb' ? 13 : 11) : set === 'limo' || set === 'deur1' || set === 'auto1' ? 9 : set === 'deur' ? 17 : set === 'limo' ? 16 : set === 'boot' ? 36 : set === 'bus' ? 24 : set === 'bak' ? 24 : set === 'fiets' ? 12 : set === 'heli' ? 18 : 20;
+  const dist = (mode.includes('nabij') ? 0.5 : 1) * (set === 'gat3' ? 6 : set === 'gat' ? 7.5 : set === 'gat2' ? 15 : set === 'lod' ? 12 : set === 'vgl' || set === 'hyb' ? (mode.includes('ver') ? 20 : set === 'hyb' ? 13 : 11) : set === 'limo' || set === 'deur1' || set === 'auto1' ? 9 : set === 'deur' ? 17 : set === 'limo' ? 16 : set === 'boot' ? 36 : set === 'bus' ? 24 : set === 'bak' ? 24 : set === 'fiets' ? 12 : set === 'heli' ? 18 : 20);
   const cam = new THREE.PerspectiveCamera(36, W / H, 0.1, 400);
   if (mode.includes('boven')) cam.position.set(0, dist * 1.1, dist * 0.55);
   else if (mode.includes('opzij')) cam.position.set(0, 1.0, dist);

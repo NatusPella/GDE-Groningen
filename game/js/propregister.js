@@ -29,6 +29,14 @@ export const PROP_REGISTER = {
     nl: 'Bushokje', bouwer: 'bushokje', gebruik: ['buiten', 'cutscene'],
     norm: { tris: [380, 900], kleuren: 9, maat: [4.14, 2.76, 1.76], eisen: ['dak met rand en goot', 'glazen wanden in lijsten met een lichter weerspiegelvlak', 'zitbank', 'lichtbak met lijnkaart', 'haltepaal met rond bord en dienstregelingkastje'] },
   },
+  autostoel: {
+    nl: 'Autostoel', bouwer: 'autostoel', gebruik: ['voertuig'],
+    norm: { tris: [150, 400], kleuren: 4, maat: [0.62, 0.9, 0.48], eisen: ['zitting met zijwangen die naar achteren zakt', 'schuine rugleuning met zijwangen', 'hoofdsteun op twee stangen', 'rails en onderstel'] },
+  },
+  dashboard: {
+    nl: 'Dashboard met stuur', bouwer: 'dashboard', gebruik: ['voertuig'],
+    norm: { tris: [250, 700], kleuren: 5, maat: [0.75, 0.48, 1.42], eisen: ['aflopende bovenkant en kap boven de meters', 'twee ronde meters en ventilatieroosters', 'middenconsole met radio en pook', 'stuur met spaak en naaf op een schuine kolom'] },
+  },
   paaltje: {
     nl: 'Paaltje', bouwer: 'paaltje', gebruik: ['buiten', 'cutscene'],
     norm: { tris: [100, 260], kleuren: 4, maat: [0.23, 0.92, 0.23], eisen: ['rode romp met twee witte reflectiebanden', 'bolle kop', 'voetkraag'] },
@@ -49,7 +57,8 @@ export const CUTSCENE_PROPS = PROP_IDS.filter((id) => PROP_REGISTER[id].gebruik.
 // De LOD-opgave van alle voertuigmodellen komt uit het centrale LOD-register (lodregistry.js, soort 'vehicle'): één systeem.
 export const VOERTUIG_LOD = LOD_KINDS.vehicle.lod;
 export const VOERTUIG_NORM = { len: [4.2, 4.8], wid: [1.75, 1.85], hoog: [1.4, 1.5], hoogSuv: [1.65, 1.75], wielbasis: [2.6, 2.8], wielDiameter: [0.58, 0.75], deurHoogte: 0.95, persoon: 1.78 };
-const HYB_NORM = { tris: [1800, 6500], kleuren: 6, eisen: ['carrosserie uit het CC0-pakket, in lakkleur van het voertuig', 'echt gat in de flank met de uitgeknipte romp als deur (dikte, binnenkant), deurstijlen en dorpel', 'eenvoudig interieur achter de opening', 'onze wielen die draaien en sturen', 'koplampen en achterlichten in de lampgroep, schade met losse delen en hangende bumpers'] };
+// 23-11: 7.500 met het interieur uit het register (vier autostoelen en het dashboard, ca. 1.500 driehoeken; alleen op LOD-niveau 0)
+const HYB_NORM = { tris: [1800, 7500], kleuren: 6, eisen: ['carrosserie uit het CC0-pakket, in lakkleur van het voertuig', 'echt gat in de flank met de uitgeknipte romp als deur (dikte, binnenkant), deurstijlen en dorpel', 'eenvoudig interieur achter de opening', 'onze wielen die draaien en sturen', 'koplampen en achterlichten in de lampgroep, schade met losse delen en hangende bumpers'] };
 // de getekende maat van een hybride (null als het geen hybride is)
 export const hybrideSchaal = (key) => { for (const e of Object.values(VOERTUIG_REGISTER)) if (e.hybride === key) return e.schaal; return null; };
 

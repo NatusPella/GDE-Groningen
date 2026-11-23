@@ -13,6 +13,7 @@ import { hash2, hash3 } from './rng.js';
 import { zoneTotals, losseOnderdelen, fietsStaat } from './vehicledamage.js';
 import { staatSleutel } from './studentenfiets.js';
 import { naadStroken } from './vehicledoorcuts.js';
+import { propGeometry } from './propmodels3d.js';
 import { DEUR_DEFS as DEUR_DEFS_REF } from './vehicledoors.js';
 import { QCARS } from './models/qcars.js';
 import { hybrideSchaal } from './propregister.js';
@@ -672,6 +673,25 @@ function assembleCar(type, L, W, paint, { police = false, ambulance = false, wre
   return group;
 }
 
+// Het eenvoudige interieur achter een echte deuropening, uit het register (propregister.js: autostoel en dashboard): een vloer, twee
+// voorstoelen, twee achterstoelen en het dashboard met stuur aan de kant van de bestuurder (-z), op de maten van de romp.
+function addPropGeo(B, geo, m) {
+  const p = geo.attributes.position, c = geo.attributes.color, v = new THREE.Vector3();
+  for (let i = 0; i + 2 < p.count; i += 3) {
+    const pts = [0, 1, 2].map((k) => { v.fromBufferAttribute(p, i + k).applyMatrix4(m); return [v.x, v.y, v.z]; });
+    B._push(0, pts[0], pts[1], pts[2], [c.getX(i), c.getY(i), c.getZ(i)], null);
+  }
+}
+function addInterieur(B, { xA, xD, belt, vloerY, vloerW, stoelY, sx, zs, dashW }) {
+  B.box((xA + xD) / 2, vloerY, 0, xA - xD - 0.2, 0.02, vloerW, 0x45474c);
+  const stoel = propGeometry('autostoel'), dash = propGeometry('dashboard');
+  for (const z of [-zs, zs]) {
+    addPropGeo(B, stoel, composeMatrix(sx, stoelY, z));
+    addPropGeo(B, stoel, composeMatrix(sx - 0.85, stoelY, z * 0.92));
+  }
+  addPropGeo(B, dash, composeMatrix(xA - 0.2, belt - 0.5, 0, 0, 0, 0, 1, 1, Math.min(1, dashW / 1.42)));
+}
+
 // De echte deuropeningen (eis eigenaar 23-11): de dichte deuren als één statische mesh in het gat (buitenkant in lak, binnenkant
 // bekleding) zolang er geen deur-rig is, en een eenvoudig interieur (vloer, stoelen, dashboard) dat je door de open deur ziet zolang
 // de echte cabine (cabin3d.js) er niet is. Beide gedeelde geometrie per model.
@@ -708,18 +728,9 @@ function addRealDoors(group, body, gaten, doorName, L, W, paint, P, type) {
   group.userData.echtGat = ids;
   group.userData.gatRects = Object.fromEntries(gaten.flatMap((g) => g.ids.map((id) => [id, g.rect])));
   if (P) {
-    const ig = cached(`interieurSimpel|${type}|${L}|${W}`, () => {
+    const ig = cached(`interieurSimpel2|${type}|${L}|${W}`, () => {
       const B = new GeoBuilder(1);
-      const SEAT = 0x4d515c, DONKER = 0x2b2d32;
-      B.box((P.xA + P.xD) / 2, 0.335, 0, P.xA - P.xD, 0.02, W - 0.2, 0x45474c);                           // vloer
-      const sx = -hl * 0.06;
-      for (const z of [-1, 1]) {
-        B.box(sx, 0.39, z * hw * 0.34, 0.48, 0.1, 0.46, SEAT);                                            // zitting voor
-        B.box(sx - 0.27, 0.68, z * hw * 0.34, 0.1, 0.56, 0.46, SEAT, 0, 0, 0, 0.12);                      // leuning voor
-      }
-      B.box(sx - 0.85, 0.39, 0, 0.46, 0.1, W - 0.36, SEAT);                                               // achterbank
-      B.box(sx - 1.1, 0.68, 0, 0.1, 0.52, W - 0.36, SEAT, 0, 0, 0, 0.12);
-      B.box(P.xA - 0.2, P.belt - 0.06, 0, 0.34, 0.24, W - 0.3, DONKER);                                   // dashboard
+      addInterieur(B, { xA: P.xA, xD: P.xD, belt: P.belt, vloerY: 0.335, vloerW: W - 0.2, stoelY: 0.2, sx: -hl * 0.06, zs: hw * 0.36, dashW: W - 0.3 });
       return B.build();
     });
     const im = new THREE.Mesh(ig, cabinFallbackMaterial());
@@ -805,6 +816,9 @@ function looseCarParts(type, L, W, paint, P, mats, group) {
   };
   make('grille', (B) => B.box(hl + 0.005, P.nose - 0.12, 0, 0.03, 0.11, W * 0.42, TRIM));
   make('spiegels', (B) => {
+    // een hybride romp heeft zijn eigen spiegels (aan de voordeur, ze gaan met de deur mee): geen tweede blok ernaast, alleen een
+    // onzichtbaar stipje binnen de flank zodat de schade (fx3d.js) een plek heeft om de scherven van te laten vallen
+    if (P.uitlaat) { for (const s of [1, -1]) B.box(P.xA - 0.08, P.belt, s * (hw - 0.12), 0.01, 0.01, 0.01, TRIM); return; }
     const mx = P.van ? P.xA - 0.12 : P.xA - 0.08;
     for (const s of [1, -1]) {
       B.box(mx, P.belt + 0.1, s * (hw + 0.08), 0.1, 0.09, 0.14, paint);
@@ -812,6 +826,12 @@ function looseCarParts(type, L, W, paint, P, mats, group) {
     }
   });
   make('uitlaat', (B) => {
+    // een hybride romp heeft een ronde kont: de uitlaat zit eronder, vast aan de onderkant, en steekt maar een paar cm uit
+    if (P.uitlaat) {
+      const u = P.uitlaat; // half in de onderkant van de bumper, de punt 2 cm voorbij de achterkant
+      for (const s of [0.5, -0.5]) B.geo(new THREE.CylinderGeometry(0.024, 0.024, 0.14, 8).rotateZ(Math.PI / 2), composeMatrix(u.x - 0.02 + 0.07, u.y + 0.008, s * hw * 0.42), 0x2a2a2c);
+      return;
+    }
     for (const s of P.van ? [0.45] : [0.5, -0.5]) B.box(-hl - 0.08, 0.3, s * hw * 0.5, 0.22, 0.07, 0.09, 0x2a2a2c);
   });
   return parts;
@@ -1022,7 +1042,8 @@ function hybridBody(key, L, W, paint, doorName, police) {
       }
       return uit;
     };
-    const fan = (poly, r) => { const o = []; for (let i = 1; i + 1 < poly.length; i++) o.push({ v: [poly[0], poly[i], poly[i + 1]], r }); return o; };
+    const platOpp = (a, b, c) => { const u = [b[0] - a[0], b[1] - a[1], b[2] - a[2]], w = [c[0] - a[0], c[1] - a[1], c[2] - a[2]]; return Math.hypot(u[1] * w[2] - u[2] * w[1], u[2] * w[0] - u[0] * w[2], u[0] * w[1] - u[1] * w[0]); };
+    const fan = (poly, r) => { const o = []; for (let i = 1; i + 1 < poly.length; i++) if (platOpp(poly[0], poly[i], poly[i + 1]) > 1e-8) o.push({ v: [poly[0], poly[i], poly[i + 1]], r }); return o; };
     const kleiner = (x, c) => x <= c, groter = (x, c) => x >= c;
     // de flank wordt langs de deurcontour geknipt (Sutherland-Hodgman in x en y, z volgt lineair): alleen de vlakken die opzij kijken
     // (de deur en zijn ruit, ook de ronde dorpel en schouder, niet het dak of de voorruit). Het deurblad krijgt de contour 4 mm naar binnen (de kier), de romp houdt
@@ -1069,6 +1090,27 @@ function hybridBody(key, L, W, paint, doorName, police) {
         randVan(poly, r, true, RAND_GAT, d.side, 'romp');
       }
     }
+    // losse eilandjes langs de opening (een stukje raamlijst, een dunne lat van hun binnenrand) zweven anders als scherf in de open
+    // opening of hangen als lat aan het deurblad: kleine eilanden (onder 150 cm2) binnen 10 cm van een deurcontour gaan eruit
+    const KLEIN_EILAND = 0.015;
+    const eilanden = (lijst) => {
+      const key = (p) => `${Math.round(p[0] * 1000)},${Math.round(p[1] * 1000)},${Math.round(p[2] * 1000)}`;
+      const ouder = lijst.map((_, i) => i), vind = (a) => (ouder[a] === a ? a : (ouder[a] = vind(ouder[a])));
+      const eerste = new Map();
+      lijst.forEach((t, i) => { for (const p of t.v) { const k = key(p); if (eerste.has(k)) ouder[vind(i)] = vind(eerste.get(k)); else eerste.set(k, i); } });
+      const groep = new Map();
+      lijst.forEach((t, i) => { const r = vind(i); if (!groep.has(r)) groep.set(r, []); groep.get(r).push(t); });
+      return [...groep.values()];
+    };
+    const opp = (t) => { const [a, b, c] = t.v, u = [b[0] - a[0], b[1] - a[1], b[2] - a[2]], w = [c[0] - a[0], c[1] - a[1], c[2] - a[2]]; return Math.hypot(u[1] * w[2] - u[2] * w[1], u[2] * w[0] - u[0] * w[2], u[0] * w[1] - u[1] * w[0]) / 2; };
+    const bijContour = (lijst) => Object.values(rects).some((r) => lijst.some((t) => t.v.some((p) => p[0] > r[0] - 0.1 && p[0] < r[2] + 0.1 && p[1] > r[1] - 0.1 && p[1] < r[3] + 0.1)));
+    const opgeruimd = (lijst, alleenBijContour) => eilanden(lijst).filter((e) => e.reduce((a, t) => a + opp(t), 0) >= KLEIN_EILAND || (alleenBijContour && !bijContour(e))).flat();
+    for (const id of Object.keys(vlak)) vlak[id] = opgeruimd(vlak[id], false);
+    rest.splice(0, rest.length, ...opgeruimd(rest, true));
+    // de randen horen bij wat er overblijft: een rand van een opgeruimd eilandje gaat mee weg
+    const over = new Set([...rest, ...Object.values(vlak).flat()].flatMap((t) => t.v.map((p) => `${Math.round(p[0] * 1000)},${Math.round(p[1] * 1000)},${Math.round(p[2] * 1000)}`)));
+    const randOver = (rd) => [rd[0], rd[1]].every((p) => over.has(`${Math.round(p[0] * 1000)},${Math.round(p[1] * 1000)},${Math.round(p[2] * 1000)}`));
+    randen.splice(0, randen.length, ...randen.filter(randOver));
     const f0 = vcount();
     for (const t of rest) if (isVoor(t)) B.tri(t.v[0], t.v[1], t.v[2], kleur[t.r], groep[t.r]);
     const f1 = vcount();
@@ -1175,19 +1217,11 @@ function buildHybridCar(v, key, paint) {
   // de breedte van elk interieurdeel volgt de flank op die plek (de romp loopt in naar voren, achteren en boven): niets steekt erdoor
   const flankTris = hybridTris(key, L, W).filter((t) => t.r === 0).map((t) => t.v);
   const binnen = (x, y, marge = 0.1) => { const z = hybridSurface(flankTris, x, y, 1); return Math.max(0.3, 2 * ((z === null ? W / 2 : z) - marge)); };
-  const ig = cached(`hybInterieur2|${key}|${L}|${W}`, () => {
+  const ig = cached(`hybInterieur3|${key}|${L}|${W}`, () => {
     const B = new GeoBuilder(1);
-    const SEAT = 0x4d515c, sx = -L / 2 * 0.06;
-    const vx = (fit.xA + fit.xD) / 2;
-    B.box(vx, 0.36, 0, fit.xA - fit.xD - 0.3, 0.02, Math.min(binnen(fit.xA - 0.3, 0.45), binnen(fit.xD + 0.3, 0.45)), 0x45474c);
-    const zs = binnen(sx, 0.5) / 2 * 0.62;
-    for (const z of [-1, 1]) {
-      B.box(sx, 0.42, z * zs, 0.48, 0.1, 0.44, SEAT);
-      B.box(sx - 0.27, 0.7, z * zs, 0.1, 0.54, 0.44, SEAT, 0, 0, 0, 0.12);
-    }
-    B.box(sx - 0.85, 0.42, 0, 0.46, 0.1, binnen(sx - 0.85, 0.5, 0.12), SEAT);
-    B.box(sx - 1.1, 0.7, 0, 0.1, 0.5, binnen(sx - 1.1, 0.8, 0.12), SEAT, 0, 0, 0, 0.12);
-    B.box(fit.xA - 0.2, fit.belt - 0.1, 0, 0.26, 0.18, binnen(fit.xA - 0.2, fit.belt - 0.1, 0.12), 0x2b2d32);
+    const sx = -L / 2 * 0.06;
+    addInterieur(B, { xA: fit.xA, xD: fit.xD, belt: fit.belt, vloerY: 0.36, vloerW: Math.min(binnen(fit.xA - 0.3, 0.45), binnen(fit.xD + 0.3, 0.45)),
+      stoelY: 0.24, sx, zs: Math.min(binnen(sx, 0.6) / 2 - 0.26, 0.42), dashW: binnen(fit.xA - 0.2, fit.belt - 0.1, 0.12) });
     return B.build();
   });
   const im = new THREE.Mesh(ig, cabinFallbackMaterial());
@@ -1197,7 +1231,11 @@ function buildHybridCar(v, key, paint) {
   // losse delen bij schade: grille, spiegels, uitlaat (zoals onze bouwer), op de maten van deze romp
   const lakTris = hybridTris(key, L, W).filter((t) => t.r === 0).map((t) => t.v);
   const zSp = hybridSurface(lakTris, fit.xA - 0.08, fit.belt - 0.02, 1);
-  const P = { ...fit, van: false };
+  // de uitlaat hangt onder de achterbumper: de onderkant van hun kont (laagste punt in de laatste 35 cm) en hoe ver die naar achteren reikt
+  const kont = hybridTris(key, L, W).flatMap((t) => t.v).filter((p) => p[0] < -L / 2 + 0.35 && Math.abs(p[2]) < 0.6);
+  const kontY = kont.length ? Math.min(...kont.map((p) => p[1])) : 0.3;
+  const kontX = kont.length ? Math.min(...kont.filter((p) => p[1] < kontY + 0.06).map((p) => p[0])) : -L / 2;
+  const P = { ...fit, van: false, uitlaat: { x: kontX, y: kontY } };
   group.userData.loose = looseCarParts('hyb-' + key, L, zSp ? zSp * 2 : W, color, P, mats, group);
   // wielen: onze wielgeometrie op hun plekken
   const { sx, sy, sz } = hybridScale(auto, L, W, key);
@@ -1257,7 +1295,9 @@ function knipDeurgaten(B, doorName, L, W) {
     }
     return uit;
   };
-  const fan = (poly) => { const o = []; for (let i = 1; i + 1 < poly.length; i++) o.push([poly[0], poly[i], poly[i + 1]]); return o; };
+  // een waaier uit een geknipte veelhoek, zonder platte driehoeken (drie punten op een lijn langs de snede)
+  const vlakOpp = (a, b, c) => { const u = [b[0] - a[0], b[1] - a[1], b[2] - a[2]], w = [c[0] - a[0], c[1] - a[1], c[2] - a[2]]; return Math.hypot(u[1] * w[2] - u[2] * w[1], u[2] * w[0] - u[0] * w[2], u[0] * w[1] - u[1] * w[0]); };
+  const fan = (poly) => { const o = []; for (let i = 1; i + 1 < poly.length; i++) if (vlakOpp(poly[0], poly[i], poly[i + 1]) > 1e-8) o.push([poly[0], poly[i], poly[i + 1]]); return o; };
   const kl = (x, c) => x <= c, gr = (x, c) => x >= c;
   for (const gi of [G_BODY, G_GLASS]) {
     const G = B.groups[gi], p = G.p.slice(), c = G.c.slice();
@@ -1278,7 +1318,7 @@ function knipDeurgaten(B, doorName, L, W) {
       const [x0, y0, x1, y1] = rects[d.id];
       const inn = knip(knip(knip(knip(v, 0, x0, gr), 0, x1, kl), 1, y0, gr), 1, y1, kl);
       if (inn.length < 3) { houd(v); continue; }
-      for (const t of fan(inn)) shells[d.id].push({ v: t, rgb, gi });
+      for (const t of fan(inn)) if (vlakOpp(t[0], t[1], t[2]) > 2e-6) shells[d.id].push({ v: t, rgb, gi }); // geen platte reepjes (onder 1 mm2) aan het deurblad
       if (v.every((q) => q[0] >= x0 && q[0] <= x1 && q[1] >= y0 && q[1] <= y1)) continue;
       for (const t of [...fan(knip(v, 0, x0, kl)), ...fan(knip(v, 0, x1, gr))]) houd(t);
       const mid = knip(knip(v, 0, x0, gr), 0, x1, kl);

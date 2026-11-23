@@ -210,6 +210,24 @@ Aangepaste tests (bewust): `vehicledoors3d_test` telt bij een echt gat alleen de
 verwacht 63 graden; `voertuigmodel_test`, `vehicledoorcuts_test` en `vehicle_interior_plate_test` keuren onze eigen bouwer
 (`hybride: false`); `vehicle_zfight_test` staat bij de hybrides snippers langs de knipranden toe (geen flush, samen onder 50 cm2).
 
+### Vijfde ronde: losse eilanden, uitlaat, stoelen en dashboard
+
+- Losse eilanden: `hybridBody` ruimt na het knippen elk aaneengesloten stuk onder 150 cm2 binnen 10 cm van een deurcontour op (romp en
+  deurblad), en `knipDeurgaten` (vrachtwagen, trekker, trekker-limo) laat geen platte reepjes onder 1 mm2 meer aan het deurblad.
+  `deursnipper_test` controleert nu elk los eiland langs de opening: in de romp binnen de flank (de buitenste 40 % van de halve
+  breedte, dieper is interieur), en aan het deurblad ook als het buiten de flank uitsteekt; alleen het handvat mag los zitten.
+- Dorpel: elk deurblad blijft binnen zijn contour (gemeten: bbox van elk deurblad valt binnen de deurrechthoek, sedan, hatch, SUV,
+  trekker-limo); de strip die onder een open voordeur zichtbaar blijft is de dorpel van de romp zelf.
+- Uitlaat (hybride): twee pijpjes van 4,8 cm doorsnee en 14 cm lang, half in de onderkant van de achterbumper (gemeten per romp:
+  laagste punt in de laatste 35 cm), de punt 2 cm voorbij de achterkant. De dubbele spiegel (ons blok naast hun deurspiegel) is weg.
+- Interieur uit het register: `autostoel` (rails, zitting met zijwangen die naar achteren zakt, schuine rugleuning, hoofdsteun op
+  stangen; norm 150 tot 400 driehoeken) en `dashboard` (aflopende bovenkant, kap, twee meters, roosters, middenconsole met radio en
+  pook, stuur met spaak en naaf op een schuine kolom; norm 250 tot 700). Gebruikt door het procedurele en het hybride interieur.
+  De hybride norm gaat daardoor naar 7.500 driehoeken op niveau 0 (ca. 1.500 voor het interieur, dat op LOD 1 en 2 verborgen is).
+- Gezien op het contactblad (`gat3`, ook nieuw `-nabij`): stoelen, dashboard, uitlaat, geen dubbele spiegel. Niet zeker: een dunne
+  donkere lijn langs de dorpel in de bovenaanzicht (vermoedelijk de 6 cm rand van de opening, op de kant gezien) en de bovenkant
+  van het open achterportier (raamlijst van hun romp die meegaat met de deur).
+
 ## Niet in beeld gezien
 
 - Vierde ronde: niets in het spel bekeken; geen fps gemeten (alleen driehoeken). De echte cabine van `cabin3d.js` in de hybride (die volgt

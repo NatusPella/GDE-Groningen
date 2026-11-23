@@ -41,6 +41,39 @@ function snippers(geo, rects) {
   g.setAttribute('position', new THREE.Float32BufferAttribute([0, 0.5, 0.9, 0.01, 0.5, 0.9, 0, 0.51, 0.9, 1, 1, 0.9, 1.5, 1, 0.9, 1, 1.5, 0.9, 1.5, 1, 0.9, 1.5, 1.5, 0.9, 1, 1.5, 0.9], 3));
   check('toets: een losse snipper op de rand telt', snippers(g, [[0, 0.3, 1, 1.2]]) === 1, String(snippers(g, [[0, 0.3, 1, 1.2]])));
 }
+// Losse eilanden (aaneengesloten stukken die aan niets anders vastzitten) onder 150 cm2 binnen 10 cm van een deurcontour, die niet op
+// de flank liggen: binnen de auto (meer dan 2 cm binnen de flank: een lat die in de opening hangt) of erbuiten (meer dan 3 cm: een flap
+// die naar buiten steekt). Versiering en een handvat op de flank tellen niet; die horen erop. flankZ: de flank (halve breedte).
+function losseEilanden(geo, rects, flankZ) {
+  const p = geo.attributes.position, n = p.count / 3;
+  const ouder = Array.from({ length: n }, (_, i) => i), vind = (a) => (ouder[a] === a ? a : (ouder[a] = vind(ouder[a])));
+  const eerste = new Map();
+  for (let t = 0; t < n; t++) for (let k = 0; k < 3; k++) { const kk = sleutel(p, t * 3 + k); if (eerste.has(kk)) ouder[vind(t)] = vind(eerste.get(kk)); else eerste.set(kk, t); }
+  const groep = new Map();
+  for (let t = 0; t < n; t++) { const r = vind(t); if (!groep.has(r)) groep.set(r, []); groep.get(r).push(t); }
+  let fout = 0;
+  for (const ts of groep.values()) {
+    let opp = 0, bij = false, zmin = Infinity, zmax = 0;
+    const lo = [Infinity, Infinity, Infinity], hi = [-Infinity, -Infinity, -Infinity];
+    for (const t of ts) for (let k = 0; k < 3; k++) { const i = t * 3 + k; [p.getX(i), p.getY(i), p.getZ(i)].forEach((c, a) => { lo[a] = Math.min(lo[a], c); hi[a] = Math.max(hi[a], c); }); }
+    // het handvat: een los blokje van 13 x 2,2 x 1,6 cm (12 driehoeken) op het deurblad
+    if (ts.length === 12 && hi[0] - lo[0] < 0.14 && hi[1] - lo[1] < 0.03 && hi[2] - lo[2] < 0.03) continue;
+    for (const t of ts) {
+      const i = t * 3, ax = p.getX(i), ay = p.getY(i), az = p.getZ(i);
+      const ux = p.getX(i + 1) - ax, uy = p.getY(i + 1) - ay, uz = p.getZ(i + 1) - az, wx = p.getX(i + 2) - ax, wy = p.getY(i + 2) - ay, wz = p.getZ(i + 2) - az;
+      opp += Math.hypot(uy * wz - uz * wy, uz * wx - ux * wz, ux * wy - uy * wx) / 2;
+      for (let k = 0; k < 3; k++) {
+        const x = p.getX(i + k), y = p.getY(i + k), z = Math.abs(p.getZ(i + k));
+        if (rects.some((r) => x > r[0] - 0.1 && x < r[2] + 0.1 && y > r[1] - 0.1 && y < r[3] + 0.1)) bij = true;
+        zmin = Math.min(zmin, z); zmax = Math.max(zmax, z);
+      }
+    }
+    // binnen: in de buitenste 40 % van de halve breedte (dieper is interieur, zoals de glazen op het barkastje van de trekker-limo)
+    const binnen = zmax < flankZ - 0.02 && zmax > flankZ * 0.6, buiten = zmax > flankZ + 0.03;
+    if (opp < 0.015 && bij && (binnen || buiten)) fout++;
+  }
+  return fout;
+}
 const lijst = [
   ...Object.entries(VOERTUIG_REGISTER).filter(([, e]) => e.hybride).map(([id, e]) => [id, { ...e.model }, { isTaxi: !!e.isTaxi, isPolice: !!e.isPolice }]),
   ['bakwagen', { name: 'truck', len: 8.5, wid: 2.5, color: 0xe8e6e0 }],
@@ -55,9 +88,14 @@ for (const [naam, model, extra = {}] of lijst) {
   check(naam + ': heeft deurcontouren', rects.length >= 2);
   const romp = snippers(mesh.userData.body.geometry, rects);
   check(naam + ': geen losse snippers in de romp langs de opening', romp === 0, `${romp} snippers`);
+  const flank = Math.min(...Object.values(mesh.userData.deurZ || { a: v.model.wid / 2 }));
+  const rompE = losseEilanden(mesh.userData.body.geometry, rects, flank);
+  check(naam + ': geen losse eilanden in de romp langs de opening', rompE === 0, `${rompE} eilanden`);
   for (const [id, g] of Object.entries(mesh.userData.deurPanelen || {})) {
     const s = snippers(g, rects);
     check(`${naam}.${id}: geen losse snippers aan het deurblad`, s === 0, `${s} snippers`);
+    const e = losseEilanden(g, rects, mesh.userData.deurZ ? mesh.userData.deurZ[id] : flank);
+    check(`${naam}.${id}: geen losse eilanden aan het deurblad`, e === 0, `${e} eilanden`);
   }
 }
 console.log(bad ? `deursnipper_test: ${bad} mislukt` : 'deursnipper_test: ok');

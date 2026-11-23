@@ -14,6 +14,7 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 - Helikopter: afgeronde motorkap, interieur met stoelen en dashboard, schuifdeur met naad en raampje, bladen met gele tippen.
 - Auto's: de gewone personenauto's, de politieauto en de taxi hebben een nieuwe, rondere carrosserie (uit een vrij te gebruiken modelpakket) met alles wat het spel al had: deuren, interieur, sturende wielen, lichten, schade en kleuren. Ze zijn op echte maten gebracht (hoogte 1,42 tot 1,50 m, SUV 1,70) en botsen nu precies zo groot als ze eruitzien.
 - Deuren: de carrosserie heeft een echte opening waar de deur zit. Open kijk je de auto in (stoelen, vloer, dashboard), dicht vult de deur het gat. Ook bij de vrachtwagen, de trekker en de trekker-limo. Alle portieren scharnieren aan de voorkant.
+- Auto-interieur: achter een open deur staan echte autostoelen (zitting met zijwangen, schuine rugleuning, hoofdsteun) en een dashboard met meters, roosters, middenconsole en stuur. De uitlaat zit nu klein onder de achterbumper en de hybride auto's hebben geen dubbele spiegel meer.
 - Voertuigen worden op afstand eenvoudiger getekend (twee niveaus, met een zachte overgang), zodat drukke straten lichter zijn.
 - Straatmeubilair: parkbank met latten en gietijzer, afvalbak met deksel en klep, fietsenrek met beugels, bushokje met glas, bank en lijnkaart, paaltje met reflectiebanden. Ze komen uit één register (`propregister.js`) en staan in de stad, het buitengebied en de cutscenes.
 
