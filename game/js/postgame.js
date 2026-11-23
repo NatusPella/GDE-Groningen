@@ -1,3 +1,4 @@
+import { createSubtitle } from './subtitleui.js';
 import { setDualText } from './subtitles.js';
 import { euro } from './geldtekst.js';
 import { paintSpeaker } from './speakers.js';
@@ -479,11 +480,8 @@ const CSS = `
 #pg-panel .pg-menu kbd { display: inline-flex; align-items: center; justify-content: center; min-width: 20px; height: 20px; padding: 0 5px; margin-right: 5px; box-sizing: border-box; background: var(--ds-c-toets-vlak); border: 0; border-radius: 5px; color: var(--ds-c-glas); font-weight: bold; text-shadow: none; box-shadow: 0 2px 0 var(--ds-c-toets-rand), 0 0 0 1px color-mix(in srgb, var(--ds-c-ink-inkt) 18%, transparent); font: bold 12px var(--ds-font-tekst); }
 #pg-panel .pg-slot > div:not(.pg-menu) kbd { display: inline-block; min-width: 12px; margin: 0 3px; padding: 1px 6px; border: 1px solid color-mix(in srgb, var(--ds-c-creme) 60%, transparent); border-bottom-width: 3px; border-radius: 5px; background: color-mix(in srgb, var(--ds-c-wit) 8%, transparent); color: #f3efe4; font: bold 12px/1.2 var(--ds-font-tekst); text-align: center; }
 #pg-panel .pg-patience { height: 5px; margin-top: 6px; border-radius: 3px; background: var(--ds-c-ink-bord); }
-#pg-sub { position: fixed; left: 50%; bottom: 22vh; transform: translateX(-50%); width: min(86vw, 760px); text-align: center; z-index: 40; pointer-events: none;
-  font: clamp(15px, 1.5vw, 20px) var(--ds-font-tekst); color: var(--ds-c-wit); letter-spacing: .3px; text-shadow: 0 1px 3px color-mix(in srgb, var(--ds-c-ink-inkt) 95%, transparent), 0 0 12px color-mix(in srgb, var(--ds-c-ink-inkt) 60%, transparent); opacity: 0; transition: opacity .25s; }
-#pg-sub b { margin-right: 6px; }
 @media (max-width: 480px) { #pg-panel { top: auto; bottom: 30vh; } }
-/* Zomerse zeefdruk (ADR 0040): het paneel als papier met inktrand en harde schaduw; de ondertitel (#pg-sub) komt uit hud_panel.css. */
+/* Zomerse zeefdruk (ADR 0040): het paneel als papier met inktrand en harde schaduw; de ondertitel (#pg-sub) is het gedeelde component (subtitle.css). */
 #pg-panel { font-family: var(--ds-font-zeef-kop); font-weight: 600; color: var(--ds-c-ink-inkt); background: var(--ds-c-ink-papier); border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); border-left: 8px solid var(--ds-c-ink-bord); border-radius: 8px; box-shadow: var(--ds-schaduw-hard); }
 #pg-panel[data-kind="fjord"] { border-left-color: var(--ds-c-ink-geel); }
 #pg-panel .pg-title, #pg-panel[data-kind="fjord"] .pg-title { font-weight: 800; color: var(--ds-c-ink-bord); }
@@ -513,11 +511,7 @@ function ensureUi() {
   root.hidden = true;
   root.innerHTML = '<div class="pg-title"></div><div class="pg-rows"></div><div class="pg-slot"></div>';
   document.body.appendChild(root);
-  const s = document.createElement('div');
-  s.id = 'pg-sub';
-  s.setAttribute('aria-live', 'polite');
-  s.innerHTML = '<b></b><span></span>';
-  document.body.appendChild(s);
+  const s = createSubtitle({ id: 'pg-sub' }).el; // het gedeelde ondertitelcomponent (subtitleui.js): eerste kind = spreker, laatste = regel
   ui = {
     root, title: root.querySelector('.pg-title'), rows: root.querySelector('.pg-rows'), slot: root.querySelector('.pg-slot'), sub: s, rowsKey: '', slotKey: '',
     setRows(list) {

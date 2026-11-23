@@ -89,7 +89,7 @@ Deze lijst komt uit dezelfde telling als de ratel en `node scripts/ds3_dekkingli
 
 <!-- ds3-dekkinglijst:begin -->
 
-Totaal nog te doen: kleur 64, glas 114, oud 51, font 33, klein 1, lus 0, lang 0, emoji 0, svg 31 in 70 bestanden (bewust buiten de telling: 19).
+Totaal nog te doen: kleur 64, glas 114, oud 51, font 27, klein 1, lus 0, lang 0, emoji 0, svg 31 in 66 bestanden (bewust buiten de telling: 19).
 
 | bestand | kleur | glas | oud | font | klein | lus | lang | emoji | svg |
 |---|---|---|---|---|---|---|---|---|---|
@@ -101,9 +101,9 @@ Totaal nog te doen: kleur 64, glas 114, oud 51, font 33, klein 1, lus 0, lang 0,
 | `desktop/vendor-fonts.css` |  |  |  | 11 |  |  |  |  |  |
 | `game/index.html` | 1 | 5 |  |  |  |  |  |  |  |
 | `game/js/hud_panel.js` |  |  |  |  |  |  |  |  | 6 |
-| `game/js/trailer.js` | 1 | 2 |  | 3 |  |  |  |  |  |
 | `game/js/bigmoment.css` |  |  |  | 5 |  |  |  |  |  |
 | `game/js/prompts.css` |  | 5 |  |  |  |  |  |  |  |
+| `game/js/trailer.js` | 1 | 2 |  | 2 |  |  |  |  |  |
 | `game/js/heist.css` |  | 4 |  |  |  |  |  |  |  |
 | `game/js/intromontage.js` | 1 | 3 |  |  |  |  |  |  |  |
 | `game/js/onlineconsent.css` | 1 | 3 |  |  |  |  |  |  |  |
@@ -122,7 +122,6 @@ Totaal nog te doen: kleur 64, glas 114, oud 51, font 33, klein 1, lus 0, lang 0,
 | `game/js/missionicons.js` |  |  |  |  |  |  |  |  | 2 |
 | `game/js/padtest.js` | 1 |  |  | 1 |  |  |  |  |  |
 | `game/js/pigeonmode.js` |  |  |  |  |  |  |  |  | 2 |
-| `game/js/postgame.js` | 1 |  |  | 1 |  |  |  |  |  |
 | `game/js/reisrit.js` |  |  |  | 1 | 1 |  |  |  |  |
 | `game/js/sfx/menunav.js` |  | 2 |  |  |  |  |  |  |  |
 | `game/js/stunthud.js` | 2 |  |  |  |  |  |  |  |  |
@@ -131,7 +130,6 @@ Totaal nog te doen: kleur 64, glas 114, oud 51, font 33, klein 1, lus 0, lang 0,
 | `game/js/achievements.js` |  |  |  |  |  |  |  |  | 1 |
 | `game/js/achievementsui.js` |  |  |  |  |  |  |  |  | 1 |
 | `game/js/aimassist.js` |  | 1 |  |  |  |  |  |  |  |
-| `game/js/banter.js` |  |  |  | 1 |  |  |  |  |  |
 | `game/js/busbestuurhud.js` | 1 |  |  |  |  |  |  |  |  |
 | `game/js/busboard3d.js` |  | 1 |  |  |  |  |  |  |  |
 | `game/js/calendar.js` |  |  |  |  |  |  |  |  | 1 |
@@ -151,17 +149,15 @@ Totaal nog te doen: kleur 64, glas 114, oud 51, font 33, klein 1, lus 0, lang 0,
 | `game/js/hudcards.js` |  |  |  |  |  |  |  |  | 1 |
 | `game/js/instrumenten.js` |  | 1 |  |  |  |  |  |  |  |
 | `game/js/pausemenu.js` |  | 1 |  |  |  |  |  |  |  |
+| `game/js/postgame.js` | 1 |  |  |  |  |  |  |  |  |
 | `game/js/prompts.js` |  |  |  |  |  |  |  |  | 1 |
-| `game/js/radiosub.js` |  |  |  | 1 |  |  |  |  |  |
 | `game/js/regelwidget.css` |  | 1 |  |  |  |  |  |  |  |
-| `game/js/rondvaartchase.js` |  |  |  | 1 |  |  |  |  |  |
 | `game/js/saveslotsui.js` |  |  |  |  |  |  |  |  | 1 |
 | `game/js/shopicons.js` |  |  |  |  |  |  |  |  | 1 |
 | `game/js/shopui.js` |  | 1 |  |  |  |  |  |  |  |
 | `game/js/simhud.js` |  |  |  |  |  |  |  |  | 1 |
 | `game/js/startscreen.js` | 1 |  |  |  |  |  |  |  |  |
 | `game/js/story.js` |  | 1 |  |  |  |  |  |  |  |
-| `game/js/storytalk.js` |  |  |  | 1 |  |  |  |  |  |
 | `game/js/uitjepaneel.js` |  | 1 |  |  |  |  |  |  |  |
 
 <!-- ds3-dekkinglijst:eind -->

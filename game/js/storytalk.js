@@ -7,8 +7,7 @@
 //   playTalk(lines, { id, delay, onDone })   lines: storytext.js talkLines()
 //   stopTalk()                               drop everything (mission over)
 //   updateStoryTalk(dt, world)               story.js calls it every frame
-import { paintSpeaker } from './speakers.js';
-import { setDualText } from './subtitles.js';
+import { createSubtitle } from './subtitleui.js';
 import { playCallVoice } from './audio.js';
 import { isCinematicActive } from './cinematics.js';
 import { isCallActive } from './phonefeed.js';
@@ -27,29 +26,16 @@ let shown = null;
 
 function element() {
   if (subEl) return subEl;
-  subEl = document.createElement('div');
-  subEl.id = 'story-talk';
-  subEl.setAttribute('aria-live', 'polite');
-  Object.assign(subEl.style, {
-    position: 'fixed', left: '50%', bottom: '27vh', transform: 'translateX(-50%)', width: 'min(86vw, 760px)',
-    textAlign: 'center', font: "clamp(15px, 1.5vw, 20px) var(--ds-font-tekst)", color: '#fff',
-    letterSpacing: '0.3px', textShadow: '0 1px 3px rgba(0,0,0,0.95), 0 0 12px rgba(0,0,0,0.6)', pointerEvents: 'none',
-    opacity: '0', transition: 'opacity 0.25s', zIndex: '40',
-  });
-  subEl.innerHTML = '<span class="st-speaker" style="font-weight:bold;margin-right:6px"></span><span class="st-line"></span>';
-  document.body.appendChild(subEl);
+  subEl = createSubtitle({ id: 'story-talk', speaker: 'st-speaker', line: 'st-line' }); // het gedeelde ondertitelcomponent (subtitleui.js)
   return subEl;
 }
 
 function show(line) {
   if (typeof document === 'undefined') return;
-  const el = element();
-  if (line && line !== shown) {
-    paintSpeaker(el.querySelector('.st-speaker'), line.speaker);
-    setDualText(el.querySelector('.st-line'), line.text);
-  }
+  const sub = element();
+  if (line && line !== shown) sub.set(line.speaker, line.text);
   shown = line;
-  el.style.opacity = line ? '1' : '0';
+  sub.visible(!!line);
 }
 
 export function playTalk(lines, { id = '', delay = 0, onDone = null } = {}) {

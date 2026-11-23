@@ -35,6 +35,7 @@ import { BIRDS, makeBirds, scatterBirds, updateBirds } from './birds.js';
 import { setIntroPlaying } from './trailerstate.js';
 import { openBank } from './voicebank.js';
 import { hoofdspeler } from './players.js'; // de speler van dit apparaat (#500)
+import { ensureSubtitleCss } from './subtitleui.js';
 import { TITLE, SEQUENCE, NAME_CARDS, FILM_VOICES, SFX_KOPPELING, engineLines, themeEntryShot } from './openingfilm.js'; // titelkaart en slogan komen uit de filmdata (docs/verhaal/OPENING-FILMSCRIPT-21-11.md)
 
 // Recorded montage dialogue: the story manifest ("<speaker>|<text>"), then the
@@ -103,7 +104,7 @@ function polyline(pts) {
 const CSS = `
 #intro-montage { position: fixed; inset: 0; z-index: 16; pointer-events: none; font-family: var(--ds-font-zeef-kop); color: var(--ds-c-ink-papier); opacity: 0; transition: opacity 0.3s; } /* ds3-film: scene */
 #intro-montage.on { opacity: 1; }
-#intro-montage > div { position: absolute; inset: 0; }
+#intro-montage > div:not(.ds-sub) { position: absolute; inset: 0; }
 #intro-montage .im-grade { background: linear-gradient(160deg, rgba(0, 150, 170, 0.22) 0%, color-mix(in srgb, var(--ds-c-ink-inkt) 0%, transparent) 45%, rgba(255, 128, 40, 0.2) 100%); mix-blend-mode: soft-light; }
 #intro-montage .im-vig { background: radial-gradient(ellipse at center, color-mix(in srgb, var(--ds-c-ink-inkt) 0%, transparent) 55%, rgba(4, 10, 8, 0.55) 100%); }
 #intro-montage .im-grain { background-image: var(--grain); opacity: 0.07; animation: grain 0.5s steps(4) infinite; } /* ds3-film: scene */
@@ -136,9 +137,6 @@ const CSS = `
 #intro-montage .im-cap small { display: block; font-size: clamp(14px, 1.4vw, 19px); letter-spacing: 4px; color: var(--ds-c-ink-papier); }
 #intro-montage .im-cap span { display: block; margin-top: 2px; font-size: clamp(26px, 3.2vw, 44px); line-height: 1; letter-spacing: 1px; }
 #intro-montage .im-lower .im-role { font-family: var(--ds-font-tekst); font-size: clamp(18px, 2vw, 28px); letter-spacing: 0.4px; margin-top: 8px; max-width: min(70vw, 640px); color: color-mix(in srgb, var(--ds-c-ink-papier) 92%, transparent); }
-#intro-montage .im-sub { top: auto; bottom: 2.5vh; left: 50%; right: auto; transform: translateX(-50%); width: min(86vw, 860px); text-align: center; font-family: var(--ds-font-tekst); font-size: clamp(17px, 1.7vw, 23px); letter-spacing: 0.3px; opacity: 0; transition: opacity 0.25s; text-shadow: 2px 2px 0 var(--ds-c-ink-inkt); }
-#intro-montage .im-sub.on { opacity: 1; }
-#intro-montage .im-sub b { color: var(--ds-c-ink-papier); margin-right: 6px; }
 @keyframes im-card-fade { 0% { opacity: 0; } 18% { opacity: 1; } 82% { opacity: 1; } 100% { opacity: 0; } }
 @media (prefers-reduced-motion: reduce) { #intro-montage .im-card.on { animation-name: im-card-fade; } #intro-montage .im-grain { animation: none; } }
 html.reduce-motion #intro-montage .im-card.on { animation-name: im-card-fade; }
@@ -158,9 +156,10 @@ function ensureUi() {
   root.id = 'intro-montage';
   root.setAttribute('aria-live', 'polite');
   root.innerHTML = '<div class="im-grade"></div><div class="im-vig"></div><div class="im-flare"></div><div class="im-grain"></div>' +
-    '<div class="im-flash"></div><div class="im-black"></div><div class="im-card"></div><div class="im-cap"></div><div class="im-lower"></div><div class="im-sub"></div>';
+    '<div class="im-flash"></div><div class="im-black"></div><div class="im-card"></div><div class="im-cap"></div><div class="im-lower"></div><div class="ds-sub ds-sub--film im-sub" role="status" aria-live="polite"></div>';
   document.body.appendChild(root);
   const q = (s) => root.querySelector(s);
+  ensureSubtitleCss();
   ui = { root, flare: q('.im-flare'), flash: q('.im-flash'), black: q('.im-black'), card: q('.im-card'), cap: q('.im-cap'), lower: q('.im-lower'), sub: q('.im-sub'), subKey: '', tagKey: '' };
   return ui;
 }

@@ -1,32 +1,18 @@
-// De ondertitel van de radioreclames (#409): een regel onderin beeld, in de stijl van de autoondertitel
-// (banter.js), met de firma vooraan. Ondertitelgrootte, donker vlak en hoog contrast volgen a11y.css via #radio-sub.
+// De ondertitel van de radioreclames (#409): een regel onderin beeld in het gedeelde ondertitelcomponent
+// (subtitleui.js, subtitle.css), met de firma vooraan. Ondertitelgrootte, vlak en contrast volgen a11y.js via .ds-sub.
+import { createSubtitle } from './subtitleui.js';
 
-let el = null;
-function subEl() {
-  if (el) return el;
-  el = document.createElement('div');
-  el.id = 'radio-sub';
-  el.setAttribute('aria-live', 'polite');
-  Object.assign(el.style, {
-    position: 'fixed', left: '50%', bottom: '27vh', transform: 'translateX(-50%)', width: 'min(86vw, 760px)',
-    textAlign: 'center', font: "clamp(15px, 1.5vw, 20px) var(--ds-font-tekst)", color: '#fff',
-    letterSpacing: '0.3px', textShadow: '0 1px 3px rgba(0,0,0,0.95), 0 0 12px rgba(0,0,0,0.6)', pointerEvents: 'none',
-    opacity: '0', transition: 'opacity 0.25s', zIndex: '40',
-  });
-  el.innerHTML = '<span class="rs-firma bt-speaker"></span><span class="rs-line"></span>'; // #644: dezelfde sprekerstijl als de andere ondertitels
-  document.body.appendChild(el);
-  return el;
+let sub = null;
+function subtitle() {
+  if (!sub) sub = createSubtitle({ id: 'radio-sub', speaker: 'rs-firma bt-speaker', line: 'rs-line' });
+  return sub;
 }
 
 export function showRadioSub(firma, text) {
   if (typeof document === 'undefined') return;
-  const e = subEl();
-  e.querySelector('.rs-firma').textContent = firma ? firma + ':' : '';
-  e.querySelector('.rs-line').textContent = text;
-  e.style.opacity = '1';
+  subtitle().show(firma, text);
 }
 
 export function hideRadioSub() {
-  if (el) el.style.opacity = '0';
+  if (sub) sub.hide();
 }
-

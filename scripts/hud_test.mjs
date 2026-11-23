@@ -276,8 +276,8 @@ ok(A.planModeFor('ov', 'lopen') === 'ov' && A.planModeFor('boot', 'auto') === 'b
 // het midden, en de Nederlandse regel onder een Friese/Groningse regel zakt nooit onder 12 px.
 {
   const subCss = readFileSync(new URL('../game/js/hud_panel.css', import.meta.url), 'utf8');
-  const regel = subCss.match(/#banter-sub, #radio-sub \{[^}]*\}/);
-  ok(regel && /max-width:\s*min\(56vw, 560px\)/.test(regel[0]) && /width:\s*auto/.test(regel[0]), 'ondertitel: vaste smallere kolom vrij van de snelheidsmeter', regel && regel[0]);
+  const kolom = readFileSync(new URL('../game/js/subtitle.css', import.meta.url), 'utf8').match(/:root \{[^}]*\}/);
+  ok(kolom && /--ds-sub-max:\s*min\(56vw, calc\(560px \* var\(--ui, 1\)\)\)/.test(kolom[0]), 'ondertitel: vaste smallere kolom vrij van de snelheidsmeter', kolom && kolom[0]);
   const nl = subCss.match(/\.nl-sub \{[^}]*\}/);
   ok(nl && /font-size:\s*max\(13px, 0\.85em\)/.test(nl[0]), 'de Nederlandse regel is nooit kleiner dan 13 px', nl && nl[0]);
   const radio = readFileSync(new URL('../game/js/radiosub.js', import.meta.url), 'utf8');

@@ -1,0 +1,50 @@
+<!doctype html><html lang="nl"><head><meta charset="utf-8"><title>ondertitels: één component (DS3)</title>
+<link rel="stylesheet" href="../../../game/fonts/fonts.css">
+<link rel="stylesheet" href="../../../game/js/ds-tokens.css">
+<link rel="stylesheet" href="../../../game/js/subtitle.css">
+<style>
+  html, body { margin: 0; padding: 12px; background: #3a3a3a; font-family: Arial, sans-serif; color: #eee; }
+  h1 { font-size: 15px; margin: 0 0 8px; }
+  .bar { margin-bottom: 10px; display: flex; gap: 6px; flex-wrap: wrap; }
+  .bar button { font: 13px Arial; padding: 3px 8px; cursor: pointer; }
+  .grid { display: flex; flex-wrap: wrap; gap: 12px; }
+  .v { width: 560px; }
+  .v h6 { margin: 0 0 3px; font-size: 12px; font-weight: normal; color: #bbb; }
+  /* een venster: transform maakt de fixed-positie relatief aan dit kader (de echte pagina is het hele scherm) */
+  .fr { position: relative; height: 270px; overflow: hidden; transform: translate(0); background: linear-gradient(#7aa9c8 0 55%, #6e8f4d 55%); }
+  .fr .fake-hud { position: absolute; left: 0; bottom: 0; width: 110px; height: 110px; background: #222a; }
+  .fr .fake-hud.r { left: auto; right: 0; width: 130px; }
+  .fr .bartop, .fr .barbot { position: absolute; left: 0; right: 0; height: 30px; background: #111; }
+  .fr .bartop { top: 0; } .fr .barbot { bottom: 0; }
+</style></head><body>
+<h1>Eén ondertitelcomponent: alle lagen, zelfde stijl (subtitle.css)</h1>
+<div class="bar">
+  <button data-c="sub-groot">Groot</button><button data-c="sub-extragroot">Extra groot</button><button data-c="sub-box">Donker vlak</button><button data-c="subc-hoog">Contrast hoog</button><button data-c="sub-uit">Uit</button><button data-c="">Reset</button>
+</div>
+<div class="grid">
+  <section class="v"><h6>film (#cine, in de balk)</h6><div class="fr"><div class="bartop"></div><div class="barbot"></div>
+    <div id="cine" class="has-sub" style="position:absolute;inset:0;--bar:30px"><div class="ds-sub ds-sub--film cine-sub"><span class="ds-sub-speaker cine-speaker" style="color:#2a9">Tammo:</span><span class="ds-sub-line cine-line">Dit gaat niet goed komen, Tessa.</span></div></div></div></section>
+  <section class="v"><h6>film, aanwijzing (sub-clue)</h6><div class="fr"><div class="bartop"></div><div class="barbot"></div>
+    <div id="cine" class="has-sub sub-clue" style="position:absolute;inset:0;--bar:30px"><div class="ds-sub ds-sub--film cine-sub"><span class="ds-sub-speaker cine-speaker"></span><span class="ds-sub-line cine-line">Een paar tractorsporen leiden naar de oude zuivelfabriek.</span></div></div></div></section>
+  <section class="v"><h6>verhaalgesprek (#story-talk)</h6><div class="fr"><div class="fake-hud"></div><div class="fake-hud r"></div>
+    <div id="story-talk" class="ds-sub" style="opacity:1"><span class="ds-sub-speaker st-speaker" style="color:#2a9">Tessa:</span><span class="ds-sub-line st-line">Rij maar door, ik hou de agenten in de gaten.</span></div></div></section>
+  <section class="v"><h6>autopraat (#banter-sub), Gronings met Nederlandse regel</h6><div class="fr"><div class="fake-hud"></div><div class="fake-hud r"></div>
+    <div id="banter-sub" class="ds-sub" style="opacity:1"><span class="ds-sub-speaker bt-speaker">Tammo:</span><span class="ds-sub-line bt-line">Dat is nait dom, dat is gewoon Grunn.<span class="nl-sub" lang="nl">Dat is niet dom, dat is gewoon Groningen.</span></span></div></div></section>
+  <section class="v"><h6>radio (#radio-sub)</h6><div class="fr"><div class="fake-hud"></div><div class="fake-hud r"></div>
+    <div id="radio-sub" class="ds-sub" style="opacity:1"><span class="ds-sub-speaker rs-firma bt-speaker">Wiebelwerk:</span><span class="ds-sub-line rs-line">Voor al uw trillende vloeren, bel vandaag nog.</span></div></div></section>
+  <section class="v"><h6>rondvaart (#rv-sub)</h6><div class="fr"><div class="fake-hud"></div><div class="fake-hud r"></div>
+    <div id="rv-sub" class="ds-sub" style="opacity:1"><span class="ds-sub-speaker rv-speaker">Gids:</span><span class="ds-sub-line rv-line">Links ziet u de Martinitoren, rechts een eend.</span></div></div></section>
+  <section class="v"><h6>postgame (#pg-sub), lange regel (4 regels, brede maat)</h6><div class="fr"><div class="fake-hud"></div><div class="fake-hud r"></div>
+    <div id="pg-sub" class="ds-sub" style="opacity:1"><span class="ds-sub-speaker">Bert:</span><span class="ds-sub-line">Dat was een prima rit, maar de volgende keer nemen we gewoon de ringweg, want ik heb van die bochten echt genoeg gezien voor een hele zomer.</span></div></div></section>
+  <section class="v"><h6>introfilm (.im-sub)</h6><div class="fr" id="intro-montage" style="position:relative;inset:auto"><div class="ds-sub ds-sub--film im-sub on"><b class="spk" style="color:#c33">Tammo:</b> Eén zomer. Eén stad. Wat kan er misgaan?</div></div></section>
+  <section class="v"><h6>trailer (.tr-sub), grote maat</h6><div class="fr" id="trailer" style="--bar:30px;position:relative;inset:auto"><div class="barbot"></div><div class="ds-sub ds-sub--film tr-sub on"><b class="spk" style="color:#c33">Tessa:</b> Niemand kijkt naar de ringweg.</div></div></section>
+  <section class="v"><h6>geluidsondertitel (#sound-captions) boven een ondertitel</h6><div class="fr"><div class="fake-hud"></div><div class="fake-hud r"></div>
+    <div id="sound-captions"><div>[sirene]</div></div>
+    <div id="banter-sub" class="ds-sub" style="opacity:1"><span class="ds-sub-speaker bt-speaker">Tessa:</span><span class="ds-sub-line bt-line">Daar komt de politie.</span></div></div></section>
+</div>
+<script>
+  for (const b of document.querySelectorAll('.bar button')) b.onclick = () => {
+    document.documentElement.className = b.dataset.c; if (b.dataset.c === 'sub-groot') document.documentElement.style.setProperty('--sub-scale', '1.25');
+    else if (b.dataset.c === 'sub-extragroot') document.documentElement.style.setProperty('--sub-scale', '1.5'); else document.documentElement.style.setProperty('--sub-scale', '1');
+  };
+</script></body></html>

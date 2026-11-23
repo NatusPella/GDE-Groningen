@@ -43,11 +43,7 @@ html.pad-active #pause-menu [data-panel="map"] canvas:focus { outline: none !imp
 html.pad-active .map-pad-reticle { display: block; }
 .map-pad-reticle svg { width: 100%; height: 100%; color: var(--ds-c-creme); fill: none; stroke: var(--ds-c-creme); stroke-width: 2; filter: drop-shadow(0 0 2px color-mix(in srgb, var(--ds-c-ink-inkt) 90%, transparent)); }
 
-/* --- subtitle size (Instellingen > Toegankelijk) ---------------------------- */
-html:is(.sub-klein, .sub-groot, .sub-extragroot) #cine .cine-sub { font-size: calc(clamp(calc(16px * var(--ui, 1)), 1.6vw, calc(21px * var(--ui, 1))) * var(--sub-scale, 1)); }
-html:is(.sub-klein, .sub-groot, .sub-extragroot) :is(#banter-sub, #radio-sub, #rv-sub) { font-size: calc(clamp(15px, 1.5vw, 20px) * var(--sub-scale, 1)) !important; }
-html:is(.sub-klein, .sub-groot, .sub-extragroot) #pg-sub { font-size: calc(clamp(15px, 1.5vw, 20px) * var(--sub-scale, 1)); }
-html:is(.sub-klein, .sub-groot, .sub-extragroot) :is(#intro-montage .im-sub, #trailer .tr-sub) { font-size: calc(clamp(17px, 1.7vw, 23px) * var(--sub-scale, 1)); }
+/* --- subtitle size: --sub-scale; de ondertitels zelf staan in subtitle.css (Instellingen > Toegankelijk) --- */
 html:is(.sub-klein, .sub-groot, .sub-extragroot) #hud .pf-say { font-size: calc(19px * var(--sub-scale, 1)); }
 html:is(.sub-klein, .sub-groot, .sub-extragroot) #hud .pf-sub { font-size: calc(15px * var(--sub-scale, 1)); }
 html:is(.sub-klein, .sub-groot, .sub-extragroot) #hud .pf-speaker { font-size: calc(14px * var(--sub-scale, 1)); }
@@ -56,26 +52,16 @@ html:is(.sub-klein, .sub-groot, .sub-extragroot) #hud .sc-bubble { font-size: ca
 html:is(.sub-klein, .sub-groot, .sub-extragroot) #hud .sc-bubble .nl-sub { font-size: calc(13px * min(var(--sub-scale, 1), 1.25)); }
 html:is(.sub-klein, .sub-groot, .sub-extragroot) #name-card .nc-name { font-size: calc(clamp(44px, 7vw, 96px) * min(var(--sub-scale, 1), 1.25)); }
 html:is(.sub-klein, .sub-groot, .sub-extragroot) #name-card .nc-line { font-size: calc(clamp(16px, 1.6vw, 22px) * var(--sub-scale, 1)); max-width: calc(36ch * 1); }
-/* bigger lines need the width: keep them inside the screen */
-html:is(.sub-groot, .sub-extragroot) :is(#cine .cine-sub, #banter-sub, #radio-sub, #rv-sub, #pg-sub, #intro-montage .im-sub, #trailer .tr-sub) { width: min(92vw, calc(980px * var(--sub-scale, 1))) !important; }
 @media (max-height: 640px) {
   html:is(.sub-klein, .sub-groot, .sub-extragroot) #hud .pf-say { font-size: calc(16px * var(--sub-scale, 1)); }
 }
 
 /* the background box behind subtitles */
-html.sub-box :is(#cine .cine-sub, #banter-sub, #radio-sub, #rv-sub, #pg-sub, #intro-montage .im-sub, #trailer .tr-sub) {
-  width: fit-content !important; max-width: min(92vw, calc(980px * var(--sub-scale, 1)));
-  padding: 0.3em 0.75em 0.35em; border-radius: 6px; box-sizing: border-box;
-  background: color-mix(in srgb, var(--ds-c-ink-papier) calc(var(--sub-vlak, 1) * 100%), transparent); text-shadow: none;
-}
 html.sub-box #hud .sc-bubble { background: color-mix(in srgb, var(--ds-c-ink-papier) calc(var(--sub-vlak, 1) * 100%), transparent); }
-/* de introfilm en de trailer hebben lichte tekst: op het papieren vak moet die donker zijn (review: contrast 1:1) */
-html.sub-box :is(#intro-montage .im-sub, #trailer .tr-sub) { color: var(--ds-c-ink-inkt); }
 html.sub-box #name-card { padding: 10px 18px 12px; border-radius: 8px; background: color-mix(in srgb, var(--ds-c-ink-papier) calc(var(--sub-vlak, 1) * 100%), transparent); }
 
 /* #985: gesproken ondertitels uit. De geluidscaptions ([sirene]) blijven staan: die hebben hun
-   eigen schakelaar. Elke drager staat hier, ook de naamkaart en de telefoonkaart. */
-html.sub-uit :is(#cine .cine-sub, #banter-sub, #radio-sub, #rv-sub, #pg-sub, #intro-montage .im-sub, #trailer .tr-sub) { display: none !important; }
+   eigen schakelaar. De ondertitels zelf staan in subtitle.css; hier de naamkaart en de telefoonkaart. */
 html.sub-uit #name-card { display: none !important; }
 html.sub-uit #hud .sc-bubble, html.sub-uit #hud .pf-callcard { display: none !important; }
 
@@ -113,10 +99,6 @@ html:is(.cb-deuteranopie, .cb-protanopie, .cb-tritanopie) #hud .hud-race .hr-row
 html:is(.cb-deuteranopie, .cb-protanopie, .cb-tritanopie) #hud .hud-mm-sterren svg.on { fill: var(--mk-mission); stroke: var(--ds-c-creme); stroke-width: 1.4; }
 
 /* --- subtitle contrast "Hoog" (a11ylogic.js subtitleStyle): white on a nearly opaque dark box, heavier letters --- */
-html.subc-hoog :is(#cine .cine-sub, #banter-sub, #radio-sub, #rv-sub, #pg-sub, #intro-montage .im-sub, #trailer .tr-sub) {
-  color: var(--ds-c-ink-inkt) !important; font-weight: 700; width: fit-content !important; max-width: min(92vw, calc(980px * var(--sub-scale, 1)));
-  padding: 0.3em 0.75em 0.35em; border-radius: 6px; box-sizing: border-box; background: var(--ds-c-ink-papier); text-shadow: none;
-}
 html.subc-hoog #hud :is(.pf-say, .pf-sub, .pf-speaker) { color: var(--ds-zeef-tx); font-weight: 700; } /* #998: de telefoonkaart is papier */
 html.subc-hoog #hud .sc-bubble { background: var(--ds-c-ink-papier); color: var(--ds-c-ink-inkt); }
 html.subc-hoog #name-card { padding: 10px 18px 12px; border-radius: 8px; background: var(--ds-c-ink-papier); color: var(--ds-c-ink-inkt); }
@@ -147,9 +129,6 @@ html.vormen-extra #hud .hud-minimap-wrap.wanted.chase { outline-style: solid; }
 /* the Oefenen button in Hulp reads as a button */
 #pause-menu .pm-help .m-bt { margin-top: 8px; padding: 8px 20px; border-radius: 8px; background: color-mix(in srgb, var(--ds-c-licht-groen) 18%, transparent); box-shadow: inset 0 0 0 1.5px var(--g); color: var(--g); cursor: pointer; }
 
-/* geluidsondertitels (soundcaptions.js, #200) */
-#sound-captions { position: fixed; left: 50%; bottom: 22%; transform: translateX(-50%); z-index: 60; pointer-events: none; display: flex; flex-direction: column; align-items: center; gap: 4px; font: 400 calc(18px * var(--sub-scale, 1)) var(--ds-font-zeef-tekst); color: var(--ds-c-ink-inkt); text-shadow: none; }
-#sound-captions div { padding: 2px 12px; border-radius: 6px; background: var(--ds-c-ink-papier); border: 2px solid var(--ds-c-ink-inkt); box-shadow: var(--ds-schaduw-hard-klein); font-style: italic; }
 
 /* met een controller of aanraking geen muiscursor (inputdevice.js); een muisbeweging brengt hem terug */
 html.dev-pad, html.dev-pad * { cursor: none !important; }
@@ -164,8 +143,6 @@ html .pad-g.pad-kn[data-set="ps"] { font-family: var(--ds-font-knoppen-b, 'GDE K
 html .pad-g.pad-kn[data-set="deck"] { font-family: var(--ds-font-knoppen-deck, 'GDE Knoppen Deck'), var(--ds-font-tekst) !important; }
 html .pad-g.pad-kn.pad-dp { background: transparent; box-shadow: none; }
 
-/* #985: op een laag venster hangen de ondertitels boven de locatiekaart (F-kolom), niet erin; het toetsglyph in het stopvenster is 28 px */
-@media (max-height: 720px) { html body :is(#banter-sub, #radio-sub, #story-talk) { bottom: 200px !important; } } /* specificiteit (1,0,2): wint van hud_panel.css (1,0,0) ongeacht de laadvolgorde van de twee stylesheets */
 /* de maat van het toetsglyph in het stopvenster volgt de tekst (ds-keycap.css, .mg-stopask is een hintrij) */
 
 /* Toets-, muis- en knopglyphs: de maat staat in ds-keycap.css (een factor van de tekst, tokens --ds-kc-* in ds-tokens.css), niet hier. */

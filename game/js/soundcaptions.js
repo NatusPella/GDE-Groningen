@@ -5,6 +5,7 @@
 // tegelijk staan) zijn puur en getest in scripts/soundcaptions_test.mjs;
 // audio.js meldt een geluid met noteSound(), het getekende deel staat onderaan.
 import { getSettings } from './settings.js';
+import { ensureSubtitleCss } from './subtitleui.js';
 
 // audio-event kind (of fx/wapen-subsoort) -> tekst
 export const SOUND_LABELS = {
@@ -66,6 +67,7 @@ export function noteSound(kind, opts = {}) {
   const now = performance.now() / 1000;
   if (!pushCaption(st, kind, { ...opts, now })) return;
   if (!el) {
+    ensureSubtitleCss(); // dezelfde kaartstijl als de gesproken ondertitels (subtitle.css)
     el = document.createElement('div');
     el.id = 'sound-captions';
     el.setAttribute('aria-live', 'polite');
