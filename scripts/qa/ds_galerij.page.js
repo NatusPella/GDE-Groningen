@@ -50,7 +50,7 @@ for (const p of d.querySelectorAll('.g-paneel')) {
 
 // één focusring: Tab naar een knop en lees de omtrek
 w.__dsGalerij.zetOppervlak('papier');
-const knop = d.querySelector('.g-paneel.ds-papier .ds-knop:not(:disabled)');
+const knop = d.querySelector('.g-paneel .ds-z-knop:not(:disabled)');
 if (knop) {
   knop.focus();
   await sleep(100);

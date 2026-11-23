@@ -20,7 +20,7 @@ w.clock = 14;
 await sleep(CFG.settle || 8000);
 const out = { stappen: [], fouten: [], venster: [innerWidth, innerHeight] };
 const fps = async (ms = 1500) => new Promise((res) => { let n = 0; const t0 = performance.now(); const f = () => { n++; if (performance.now() - t0 < ms) requestAnimationFrame(f); else res(+(n / ((performance.now() - t0) / 1000)).toFixed(1)); }; requestAnimationFrame(f); });
-const geelNu = () => [...document.querySelectorAll('.ds-knop:not(.ds-knop--secundair):not(.ds-knop--tekst):not(.ds-knop--gevaar)')].filter((b) => b.getClientRects().length && getComputedStyle(b).visibility !== 'hidden' && !b.disabled).map((b) => b.textContent.trim().slice(0, 24)); // besluit eigenaar 20-11: één gele hoofdknop per scherm
+const geelNu = () => [...document.querySelectorAll('.ds-z-knop:not(.ds-z-knop--secundair):not(.ds-z-knop--ghost):not(.ds-z-knop--gevaar)')].filter((b) => b.getClientRects().length && getComputedStyle(b).visibility !== 'hidden' && !b.disabled).map((b) => b.textContent.trim().slice(0, 24)); // besluit eigenaar 20-11: één gele hoofdknop per scherm
 const shot = async (name, wait = 900) => { await sleep(wait); out.geel = out.geel || {}; out.geel[name] = geelNu(); out.fps = out.fps || {}; out.fps[name] = await fps(600); console.log('[capture] ' + PRE + '-' + name); await sleep(600); };
 const q = (s) => document.querySelector(s);
 const kleinste = (el) => { let min = 99, wie = ''; for (const n of el.querySelectorAll('*')) { const heeftTekst = [...n.childNodes].some((c) => c.nodeType === 3 && c.textContent.trim()); if (!heeftTekst) continue; const r = n.getBoundingClientRect(); if (!r.width || !r.height) continue; const px = parseFloat(getComputedStyle(n).fontSize); if (px < min) { min = px; wie = (n.className && n.className.baseVal === undefined ? n.className : n.tagName) + ': ' + n.textContent.trim().slice(0, 30); } } return { px: min, wie }; };
@@ -42,7 +42,7 @@ out.fps0 = await fps();
 if (STAP.includes('prestaties')) {
   await open('prestaties');
   const m = q('#pause-menu');
-  out.prestaties = { tegels: m.querySelectorAll('.pa-tile').length, kaarten: m.querySelectorAll('.ds-kaart').length, klein: kleinste(m) };
+  out.prestaties = { tegels: m.querySelectorAll('.pa-tile').length, kaarten: m.querySelectorAll('.ds-z-kaart').length, klein: kleinste(m) };
   await shot('prestaties-alles', 600);
   const tegel = m.querySelector('[data-achcat]'); if (tegel) { tegel.click(); await sleep(500); await shot('prestaties-open', 400); }
   const rij = m.querySelector('[data-ach]'); if (rij) { rij.click(); await sleep(500); await shot('prestaties-detail', 400); }
@@ -52,7 +52,7 @@ if (STAP.includes('prestaties')) {
 if (STAP.includes('fotos')) {
   await open('fotos');
   const m = q('#pause-menu');
-  out.fotos = { kaarten: m.querySelectorAll('.pm-fotos .ds-kaart').length, klein: kleinste(m.querySelector('.pm-fotos') || m) };
+  out.fotos = { kaarten: m.querySelectorAll('.pm-fotos .ds-z-kaart').length, klein: kleinste(m.querySelector('.pm-fotos') || m) };
   await shot('fotos', 700);
   await sluit();
 }

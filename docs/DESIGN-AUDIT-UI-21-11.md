@@ -89,11 +89,10 @@ Deze lijst komt uit dezelfde telling als de ratel en `node scripts/ds3_dekkingli
 
 <!-- ds3-dekkinglijst:begin -->
 
-Totaal nog te doen: kleur 64, glas 114, oud 51, font 33, klein 1, lus 0, lang 0, emoji 0, svg 31 in 70 bestanden (bewust buiten de telling: 19).
+Totaal nog te doen: kleur 64, glas 113, oud 0, font 33, klein 1, lus 0, lang 0, emoji 0, svg 31 in 68 bestanden (bewust buiten de telling: 19).
 
 | bestand | kleur | glas | oud | font | klein | lus | lang | emoji | svg |
 |---|---|---|---|---|---|---|---|---|---|
-| `game/js/ds-components.css` |  |  | 49 |  |  |  |  |  |  |
 | `game/js/menu.css` | 13 | 36 |  |  |  |  |  |  |  |
 | `game/js/hud_panel.css` | 11 | 11 |  |  |  |  |  |  |  |
 | `game/js/pausemenu.css` | 1 | 18 |  |  |  |  |  |  |  |
@@ -110,7 +109,6 @@ Totaal nog te doen: kleur 64, glas 114, oud 51, font 33, klein 1, lus 0, lang 0,
 | `game/js/regelwidget.js` |  |  |  |  |  |  |  |  | 4 |
 | `game/js/startscreen.css` | 1 | 3 |  |  |  |  |  |  |  |
 | `game/js/touch.js` | 3 |  |  | 1 |  |  |  |  |  |
-| `game/js/a11y.css` |  | 1 | 2 |  |  |  |  |  |  |
 | `game/js/furniture.js` |  |  |  | 3 |  |  |  |  |  |
 | `game/js/scene3d.js` | 3 |  |  |  |  |  |  |  |  |
 | `game/js/visboekui.js` | 2 |  |  |  |  |  |  |  | 1 |

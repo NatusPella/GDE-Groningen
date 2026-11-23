@@ -73,11 +73,10 @@ console.log(`ds_versies_test: 0 verwijzingen naar designsysteem v1/v2/v3 buiten 
 // in de bestanden hieronder voorkomen; een nieuw bestand ermee faalt. Elke omzetting naar de .ds-z-set haalt een
 // bestand uit deze lijst (en uit ds-components.css zodra er geen gebruiker meer is). Zie docs/DESIGN-STAND-21-11.md.
 export const OUDE_SET_TOEGESTAAN = {
-  'game/js/ds-components.css': 'de definitie zelf (ds_tokens_test toetst ze; weg met de hernoeming .ds-z-* naar .ds-*, aparte stap)',
+  'game/js/ds-components.css': 'alleen nog de kopnotitie dat de oude set is uitgefaseerd (UX-audit 23-11)',
   'game/js/ds-tokens.css': 'de rolvariabelen van papier en glas (het glas hoort bij .gm, zie docs/DESIGN-SCHULD.md)',
   'game/js/ds-galerij.js': 'de galerij toont ze (als referentie naast de zeefdruk)',
   'game/ds-galerij.html': 'de galerij toont ze',
-  'game/js/a11y.css': 'focusring op papier en glas',
 };
 {
   const OUD = /\bds-(?:kaart|knop|chip|papier|glas)\b/;

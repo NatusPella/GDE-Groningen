@@ -533,18 +533,15 @@ Elevation is only a soft shadow: `--ds-schaduw-laag` (a pressed or flat element)
 Classes in `ds-components.css` (block, `__part`, `--modifier`). The list below is checked against the CSS and against the gallery (`scripts/ds_tokens_test.mjs`).
 
 <!-- ds-componenten:start -->
+Since the UX audit of 23 November there is one component set, the screen print (`.ds-z-*`). The older set (`.ds-kaart`, `.ds-knop`, `.ds-chip`, `.ds-streep`, and `.ds-papier`/`.ds-glas` as components) is gone; paper and glass remain only as token scopes in `ds-tokens.css`.
+
 | Class | What | Parts | Modifiers and states |
 |---|---|---|---|
-| `.ds-papier`, `.ds-glas` | surface scope that sets the roles | none | paper is the default; nest a paper card on glass with `.ds-papier` |
 | `.ds-t-*` | type roles (`display`, `kop`, `subkop`, `cijfer`, `body`, `label`, `hulp`) | none | none |
 | `.ds-icoon` | one icon style: filled, one stroke weight, 24 px, colour by category | none | `--klein`, `--groot`, `--probleem`, `--succes`, `--waarschuwing`, `--selectie`, `--zacht` |
-| `.ds-kaart` | paper receipt or glass card: thin edge, status edge, soft shadow | `__kop`, `__titel`, `__label`, `__cijfer`, `__tekst`, `__voet` | `--klik` (hover lifts 1 px), `--selectie` (edge + tick), `--probleem`, `--succes`, `--waarschuwing`, `--uit` (dashed, with a reason), `--kop` (bordgroen header band), `--plat`, `--in` (fade-in) |
 | `.ds-uitleg` | short numbered how-to steps with a key or icon and a small animation that plays three times (uitleg.js, #989); off when motion is reduced | `__titel`, `__lijst`, `__stap`, `__beeld`, `__icoon`, `__tekst`, `__balk`, `__rimpel`, `__pijl`, `__meer`, `__weg`, `__nr` | `--compact`, `--rij` (first-time card as numbered rows: one icon per row on a shared column, keys as keycaps inside the sentence, text 15 px or more; the map's "Zo werkt de kaart") |
 | `.ds-uitleg-wijzer` | ring and row number on the real screen part a `.ds-uitleg--rij` row points at (placed by the host, `aria-hidden`, still when motion is reduced) | `__nr` | none |
 | `.ds-toetsregel` | a key inside running text or next to a button (the Enter next to Begrepen): a white keycap in em sizes that grows with the text, also in the pause menu where `.hud-key` has no plate; a key with its own icon (`.is-kbg`) keeps its own edge | none | none |
-| `.ds-chip` | status or consequence: icon or shape plus word | `__icoon` | `--primair` (Kan nu), `--selectie`, `--probleem`, `--succes`, `--waarschuwing` |
-| `.ds-knop` | button; yellow is the one primary, outlined is the risky choice | `__sub` (cost, payback) | `--secundair`, `--gevaar` (outlined, risk colour), `--tekst`, `--vol`; hover, active, `:focus-visible`, `:disabled` and `[aria-disabled]` (dashed, says why), `[aria-busy]` |
-| `.ds-streep` | micro progress for time or count, always with a number beside it | `__baan`, `__vul`, `__label` | `--tijd` (amber), `--laag` (red), `--dik`; set `--ds-streep-w` |
 | `.ds-paneel` | the panel model: a list left and a detail right, fixed widths and margins as tokens of the panel | `--enkel` (detail only) | `--ds-paneel-lijst-b`, `--ds-paneel-rij-h`, `--ds-paneel-rand` |
 | `.ds-lijst` | the list of a panel: rows with one title line, one status line and one right-aligned value | `__rij`, `__t`, `__w` | `aria-current` marks the chosen row |
 | `.ds-detail` | the detail of a panel: head, hero with the one yellow action, three or four facts, a fold "meer" | `__kop`, `__hero`, `__feiten`, `__meer` | |
