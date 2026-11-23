@@ -305,13 +305,32 @@ function geometryFor(rig, look, lod = 0) {
   return g;
 }
 
-// LOD-niveaus (eis eigenaar 23-11): 0 dichtbij, 1 vanaf LOD_NEAR m (~46% minder driehoeken), 2 vanaf LOD_FAR m (~80% minder).
-// Dezelfde vorm als het centrale LOD-register van perf-ultra-23-11 kan afnemen: een lijst niveaus met een afstand en een bouwer.
-export const LOD_NEAR = 15, LOD_FAR = 40;
+// LOD-niveaus (eis eigenaar 23-11): 0 dichtbij, 1 vanaf LOD_NEAR m (~49% minder driehoeken), 2 vanaf LOD_FAR m (~77% minder).
+// De standaard is de soort 'person' van het centrale LOD-register (perf-ultra-23-11, lodregistry.js LOD_KINDS.person: grenzen 25 en 60 m
+// bij Ultra). Anders dan lodForSkinned (LOD1+ als bevroren pose) blijven onze lichtere niveaus gehuid en geanimeerd: zelfde skelet,
+// minder driehoeken. Koppelen na het samenvoegen van die tak (scene3d.js):
+//   setModularLodPolicy((d, cur) => lodLevel('person', d, { levels: 3, prev: cur, scale }));
+//   registerModularLods(registerLodModel);   // het register en scripts/lod_audit_test.mjs zien de mensen dan ook
+export const LOD_NEAR = 25, LOD_FAR = 60;
+let lodPolicy = null;
+export function setModularLodPolicy(fn) { lodPolicy = typeof fn === 'function' ? fn : null; }
 export function modularLodLevels(mesh) {
   const ud = mesh && mesh.userData;
   if (!ud || !ud.qRig) return [];
   return [0, 1, 2].map((lod) => ({ lod, distance: [0, LOD_NEAR, LOD_FAR][lod], geometry: () => geometryFor(ud.qRig, ud.qLook, lod) }));
+}
+// Registreert per rig een paar representatieve mensen (vaste zaden) met hun driehoeken per niveau, in de vorm van lodregistry.js
+// registerLodModel(soort, naam, [LOD0, LOD1, LOD2]). Geeft het aantal geregistreerde modellen.
+export function registerModularLods(register, seeds = [11, 22, 33, 44]) {
+  let n = 0;
+  for (const name of rigs.keys()) for (const seed of seeds) {
+    const look = modularLook(seed, { female: name === 'vrouw' });
+    if (!look) continue;
+    const tris = [0, 1, 2].map((lod) => geometryFor(rigs.get(name), look, lod).index.count / 3);
+    register('person', `modulair:${name}:${seed}`, tris);
+    n++;
+  }
+  return n;
 }
 // Wisselt de geometrie van een modulaire mens naar niveau lod (alleen als het verandert; telt de gedeelde geometrie netjes af en op).
 export function setModularLod(mesh, lod) {
@@ -327,6 +346,7 @@ export function setModularLod(mesh, lod) {
 }
 // Het niveau voor een afstand d (m) met een kleine marge, zodat iemand op de grens niet heen en weer springt.
 export function lodForDistance(d, cur = 0) {
+  if (lodPolicy) { const L = lodPolicy(d, cur); return L >= 0 && L <= 2 ? L : 2; }
   const m = 1.5;
   if (cur === 0) return d > LOD_NEAR + m ? (d > LOD_FAR + m ? 2 : 1) : 0;
   if (cur === 1) return d < LOD_NEAR - m ? 0 : d > LOD_FAR + m ? 2 : 1;

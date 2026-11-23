@@ -79,7 +79,9 @@ for (const female of [false, true]) {
   M.setModularLod(m, 1);
   ok(g0.userData.personRefs === r0 - 1 && m.userData.body.geometry.userData.personRefs >= 1, 'LOD-wissel telt af en op');
   ok(!M.setModularLod(m, 1), 'hetzelfde niveau doet niets');
-  ok(M.lodForDistance(10, 0) === 0 && M.lodForDistance(20, 0) === 1 && M.lodForDistance(60, 1) === 2 && M.lodForDistance(14.5, 1) === 1 && M.lodForDistance(12, 1) === 0, 'LOD op afstand met marge');
+  ok(M.lodForDistance(20, 0) === 0 && M.lodForDistance(30, 0) === 1 && M.lodForDistance(70, 1) === 2 && M.lodForDistance(24.5, 1) === 1 && M.lodForDistance(22, 1) === 0, 'LOD op afstand met marge (25 en 60 m, de soort person van het centrale register)');
+  const reg = []; ok(M.registerModularLods((k, nm, t) => reg.push({ k, nm, t })) === 8 && reg.every((r) => r.k === 'person' && 1 - r.t[1] / r.t[0] >= 0.35 && 1 - r.t[2] / r.t[0] >= 0.6), 'registerModularLods: 8 mensen, elk binnen de minCut van de soort person (35% en 60%)');
+  M.setModularLodPolicy((d) => (d > 100 ? 2 : 0)); ok(M.lodForDistance(120, 0) === 2 && M.lodForDistance(30, 0) === 0, 'een beleid van het centrale register wint'); M.setModularLodPolicy(null);
 }
 
 // voeten op de grond: de voet op de tree komt mee omhoog, het been blijft heel (knie-enkel even lang)
