@@ -103,7 +103,8 @@ for (const [naam, model, open, eigenschap = {}] of GEVALLEN) {
   check(`${naam}: lading boven de bodem`, bb.min.y > m.floor - 0.12, `${rond(bb.min.y)} vs vloer ${m.floor}`);
   // het gat ligt net buiten het plaatwerk: achter de achterwand, boven het kofferdeksel of in de flank
   const bbGat = mas.geometry.boundingBox || (mas.geometry.computeBoundingBox(), mas.geometry.boundingBox);
-  if (eigenschap.achter) check(`${naam}: gat achter de achterwand`, bbGat.min.x <= -model.len / 2 - 0.01, `min x ${rond(bbGat.min.x)} bij halve lengte ${model.len / 2}`);
+  // de getekende romp (romp.halveLengte): een hybride auto is anders getekend dan zijn botsmaat model.len (objecten 23-11)
+  if (eigenschap.achter) check(`${naam}: gat achter de achterwand`, bbGat.min.x <= -romp.halveLengte - 0.01, `min x ${rond(bbGat.min.x)} bij halve lengte ${rond(romp.halveLengte)}`);
   if (eigenschap.boven) check(`${naam}: gat boven het kofferdeksel`, bbGat.max.y > m.ceil + 0.02, `max y ${rond(bbGat.max.y)}`);
   if (eigenschap.flank) check(`${naam}: gat in de flank`, bbGat.max.z >= model.wid / 2 + 0.01, `max z ${rond(bbGat.max.z)}`);
 
