@@ -198,6 +198,14 @@ Opdracht van de coördinator (eisen van de eigenaar), op deze tak, vanaf de WIP-
 - Beelden en vergelijking: `docs/beeld-23-11/objecten/vergelijking-hybride.html` (origineel, onze sedan en de hybride dichtbij en op
   20 m, dicht en open; recht van opzij en schuin van boven met de deur open; bakwagen, trekker en trekker-limo; de drie LOD-niveaus).
 
+Na de beoordeling van de coördinator (scherven, een plaat dwars door de cabine, gekartelde deurranden): de hybride knipt nu alleen de
+opzij gekeerde flank (boven de raamlijn alleen de zijruit en zijn lijst, nooit een hoek van de voor- of achterruit, het dak of de C-stijl),
+splitst elke driehoek die de contour snijdt, laat een kier van 4 mm en sluit elke snede met een rand met dikte (6 cm in de opening, 3,5 cm
+aan de deur). Kleine delen die helemaal binnen de contour op de buitenkant zitten (een spiegel) gaan mee met de deur. De 'plaat' was het
+platte zwarte vlak dat hun model binnenin op raamhoogte heeft; dat gaat eruit (alleen diep binnenin, de raamsluiting langs de flank
+blijft). Het eenvoudige interieur volgt de breedte van de flank op elke plek. De getekende deurnaden van de hybride zijn weg: de echte
+kier is de naad. `scripts/deursnipper_test.mjs` faalt bij losse snippers langs de contour.
+
 Aangepaste tests (bewust): `vehicledoors3d_test` telt bij een echt gat alleen deuren die uit hun rustpositie staan; `vehicledoors_test`
 verwacht 63 graden; `voertuigmodel_test`, `vehicledoorcuts_test` en `vehicle_interior_plate_test` keuren onze eigen bouwer
 (`hybride: false`); `vehicle_zfight_test` staat bij de hybrides snippers langs de knipranden toe (geen flush, samen onder 50 cm2).

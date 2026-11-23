@@ -17,6 +17,15 @@ buiten git geladen uit C:\Users\abuis\gde-assets\quaternius\cars\pack en is alle
 <h2>Zelfde, alle deuren open (dichtbij en op 20 m)</h2>
 <img src="g-hyb-open.png" alt="deuren open dichtbij"><img src="g-hyb-ver-open.png" alt="deuren open 20 m">
 
+<h2>Hybride sedan van dichtbij, na het nette knippen: dicht (recht van opzij), open (schuin, recht van opzij, van boven)</h2>
+<img src="g-gat3-opzij.png" alt="hybride dicht, recht van opzij">
+<img src="g-gat3-open-eenkant.png" alt="hybride open, schuin">
+<img src="g-gat3-opzij-open-eenkant.png" alt="hybride open, recht van opzij">
+<img src="g-gat3-boven-open-eenkant.png" alt="hybride open, van boven">
+<p class="klein">De deur is langs de contour uit de romp geknipt (driehoeken die de contour snijden worden gesplitst), met een kier van 4 mm; langs elke snede een
+rand met dikte (6 cm in de opening, 3,5 cm aan de deur). Alleen de opzij gekeerde flank wordt geknipt (boven de raamlijn alleen de zijruit en zijn lijst),
+dus geen stukken dak, voorruit of C-stijl aan de deur. Het platte zwarte vlak dat hun model binnenin op raamhoogte heeft, is weg. scripts/deursnipper_test.mjs
+faalt bij een losse snipper (kleiner dan 4 cm2, binnen 5 cm van de contour, aan niets vast).</p>
 <h2>Echte deuropening: close-up recht van opzij, deuren aan deze kant open (links de hybride sedan, rechts onze eigen stationwagen)</h2>
 <img src="g-gat-opzij-open-eenkant.png" alt="recht van opzij, open">
 <p class="klein">Ter vergelijking dicht: de deur vult het gat.</p>
@@ -34,6 +43,7 @@ buiten git geladen uit C:\Users\abuis\gde-assets\quaternius\cars\pack en is alle
 <table>
   <tr><th>Functie</th><th>Stand</th><th>Test</th></tr>
   <tr><td>Echte deuropening (geen romp in het gat, open: interieur of overkant, dicht: geen kier)</td><td>Hybrides, onze eigen auto's, bestelbus, bakwagen, trekker, trekker-limo</td><td>deuropening_test.mjs</td></tr>
+  <tr><td>Geen losse scherven langs de opening</td><td>Romp en deurbladen van alle hybrides en blokkenrompen</td><td>deursnipper_test.mjs</td></tr>
   <tr><td>Deurblad in de vorm van de romp, met dikte, binnenkant en handvat</td><td>Hybride: uitgeknipt stuk romp; blokkenrompen: uitgeknipt zijvlak; eigen auto's: vlak paneel in het gat</td><td>vehicledoors3d_test.mjs</td></tr>
   <tr><td>Wielen draaien en sturen, kleur, lampen, schade met losse delen en hangende bumper</td><td>Werkt</td><td>hybridecar_test.mjs</td></tr>
   <tr><td>Schaal (lengte, breedte, hoogte, wielbasis, wiel, deuropening, hoofd onder het dak)</td><td>Alle hybrides binnen de norm</td><td>voertuigschaal_test.mjs</td></tr>

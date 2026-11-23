@@ -191,7 +191,7 @@ function buildRig(mesh, v, defs) {
       } else {
         panel = new THREE.Mesh(panelGeo(d.w, d.h), panelMat(paint, glas));
       }
-      if (d.soort !== 'schuif') {
+      if (d.soort !== 'schuif' && !schil) { // een uitgeknipt deurblad (schil) heeft zijn eigen binnenkant, rand en handvat
         // de binnenkant van het deurblad (zichtbaar als de deur open staat): bekleding, armsteun met trekgreep, opbergvak en
         // bij een lage deur de raamlijst erboven met de ruit, zodat een open deur een portier is en geen gekleurde plaat
         const ph = Math.min(d.h, 0.62), yb = -d.h / 2 - panel.position.y, zi = -d.side * 0.03;

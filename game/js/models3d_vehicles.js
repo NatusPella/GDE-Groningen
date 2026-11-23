@@ -974,7 +974,7 @@ export function hybridFit(key, L, W) {
   }).userData.fit;
 }
 function hybridBody(key, L, W, paint, doorName, police) {
-  return cached(`hybride2|${key}|${L}|${W}|${paint}|${doorName}|${police}`, () => {
+  return cached(`hybride3|${key}|${L}|${W}|${paint}|${doorName}|${police}`, () => {
     const hl = L / 2, hw = W / 2;
     const tris = hybridTris(key, L, W);
     const fit = hybridFit(key, L, W);
@@ -988,7 +988,11 @@ function hybridBody(key, L, W, paint, doorName, police) {
       const z = hybridSurface(lakTris, d.x * L, d.y0 + d.h / 2, d.side);
       if (z === null) continue;
       deurZ[d.id] = Math.abs(z);
-      rects[d.id] = [d.x * L - d.w / 2, d.y0, d.x * L + d.w / 2, fit.roof - 0.07];
+      // bovenkant: de bovenkant van de zijruit boven deze deur plus de raamlijst (niet het dak of de C-stijl: die zitten niet aan de deur)
+      const x0 = d.x * L - d.w / 2, x1 = d.x * L + d.w / 2;
+      let ruitTop = 0;
+      for (const t of tris) if (t.r === 1) { const cx = (t.v[0][0] + t.v[1][0] + t.v[2][0]) / 3, cz = (t.v[0][2] + t.v[1][2] + t.v[2][2]) / 3; if (cx > x0 && cx < x1 && cz * d.side > 0.3) ruitTop = Math.max(ruitTop, ...t.v.map((p) => p[1])); }
+      rects[d.id] = [x0, d.y0, x1, Math.min(fit.roof - 0.07, ruitTop ? ruitTop + 0.035 : fit.roof - 0.07)];
       vlak[d.id] = [];
     }
     const inDeur = (t) => {
@@ -1020,21 +1024,50 @@ function hybridBody(key, L, W, paint, doorName, police) {
     };
     const fan = (poly, r) => { const o = []; for (let i = 1; i + 1 < poly.length; i++) o.push({ v: [poly[0], poly[i], poly[i + 1]], r }); return o; };
     const kleiner = (x, c) => x <= c, groter = (x, c) => x >= c;
+    // de flank wordt langs de deurcontour geknipt (Sutherland-Hodgman in x en y, z volgt lineair): alleen de vlakken die opzij kijken
+    // (de deur en zijn ruit, ook de ronde dorpel en schouder, niet het dak of de voorruit). Het deurblad krijgt de contour 4 mm naar binnen (de kier), de romp houdt
+    // alles buiten de contour. Langs elke snede komt een rand met dikte: in de opening 6 cm naar binnen (stijlen en dorpel), aan de
+    // deur 3,5 cm (tot zijn binnenkant). Zo blijven er geen losse scherven en geen gekartelde randen over.
+    const KIER = 0.004, RAND_GAT = 0.06, RAND_DEUR = 0.035, RANDKLEUR = shadeHex(paint, 0.45);
+    const randen = []; // [a, b, uit, diepte, side, kleur, doel] doel: 'romp' of deur-id
+    const opLijn = (a, b, as, c) => Math.abs(a[as] - c) < 1e-6 && Math.abs(b[as] - c) < 1e-6;
+    const randVan = (poly, r, naarBinnen, diepte, side, doel) => {
+      const lijnen = [[0, r[0], [1, 0, 0]], [0, r[2], [-1, 0, 0]], [1, r[1], [0, 1, 0]], [1, r[3], [0, -1, 0]]];
+      for (let i = 0; i < poly.length; i++) {
+        const a = poly[i], b = poly[(i + 1) % poly.length];
+        for (const [as, c, u] of lijnen) if (opLijn(a, b, as, c)) randen.push([a, b, naarBinnen ? u : u.map((x) => -x), diepte, side, RANDKLEUR, doel]);
+      }
+    };
+    // hun model heeft binnenin een plat zwart vlak op raamhoogte (de 'binnenkant' van de dichte auto); door een open deur zie je het
+    // dwars door de cabine liggen, dus het gaat eruit (het interieur is van ons)
+    const binnenPlaat = (t) => t.r === 4 && t.v.every((p) => Math.abs(p[2]) < hw - 0.3 && p[0] < fit.xA + 0.05 && p[0] > fit.xD - 0.05 && p[1] > fit.belt - 0.25 && p[1] < fit.belt + 0.25);
     for (const t of tris) {
+      if (binnenPlaat(t)) continue;
       const c = [0, 1, 2].map((k) => (t.v[0][k] + t.v[1][k] + t.v[2][k]) / 3);
-      const d = (t.r === 2 || t.r === 3) ? null : defs.find((q) => rects[q.id] && c[2] * q.side >= deurZ[q.id] * 0.55 && Math.max(...t.v.map((p) => p[0])) > rects[q.id][0] && Math.min(...t.v.map((p) => p[0])) < rects[q.id][2] && Math.max(...t.v.map((p) => p[1])) > rects[q.id][1] && Math.min(...t.v.map((p) => p[1])) < rects[q.id][3]);
-      if (!d) { rest.push(t); continue; }
-      const [x0, y0, x1, y1] = rects[d.id];
-      let p0 = t.v;
-      // binnen: x0 <= x <= x1 en y0 <= y <= y1
-      let inn = knip(knip(knip(knip(p0, 0, x0, groter), 0, x1, kleiner), 1, y0, groter), 1, y1, kleiner);
-      if (inn.length < 3) { rest.push(t); continue; } // raakt de opening niet: heel laten
-      if (p0.every((p) => p[0] >= x0 && p[0] <= x1 && p[1] >= y0 && p[1] <= y1)) { vlak[d.id].push(t); continue; } // helemaal binnen
-      vlak[d.id].push(...fan(inn, t.r));
-      // buiten: links, rechts, en in de middenstrook onder en boven
-      rest.push(...fan(knip(p0, 0, x0, kleiner), t.r), ...fan(knip(p0, 0, x1, groter), t.r));
-      const mid = knip(knip(p0, 0, x0, groter), 0, x1, kleiner);
-      rest.push(...fan(knip(mid, 1, y0, kleiner), t.r), ...fan(knip(mid, 1, y1, groter), t.r));
+      const u = [0, 1, 2].map((k) => t.v[1][k] - t.v[0][k]), w = [0, 1, 2].map((k) => t.v[2][k] - t.v[0][k]);
+      const n = [u[1] * w[2] - u[2] * w[1], u[2] * w[0] - u[0] * w[2], u[0] * w[1] - u[1] * w[0]], nl = Math.hypot(...n) || 1;
+      const ruitOpzij = t.r !== 1 || (n[2] / nl) * (c[2] < 0 ? -1 : 1) > 0.6; // van de ruiten alleen de zijruit, niet de hoek van de voor- of achterruit
+      const d = (t.r === 2 || t.r === 3 || !ruitOpzij) ? null : defs.find((q) => rects[q.id] && ((n[2] / nl) * q.side > (c[1] > fit.belt ? 0.5 : 0.15) && c[2] * q.side >= deurZ[q.id] * 0.55 || c[1] <= fit.belt && (n[2] / nl) * q.side > -0.3 && c[2] * q.side >= deurZ[q.id] * 0.8)
+        && Math.max(...t.v.map((p) => p[0])) > rects[q.id][0] && Math.min(...t.v.map((p) => p[0])) < rects[q.id][2] && Math.max(...t.v.map((p) => p[1])) > rects[q.id][1] && Math.min(...t.v.map((p) => p[1])) < rects[q.id][3]);
+      if (!d) {
+        // een klein deel dat helemaal binnen de contour aan de buitenkant zit maar niet opzij kijkt (een spiegel, een sierrand op de deur):
+        // gaat in zijn geheel mee met de deur, anders zweeft het in de open opening
+        const heel = (t.r === 1 || t.r === 2 || t.r === 3) ? null : defs.find((q) => { const r = rects[q.id]; return r && t.v.every((p) => p[0] > r[0] && p[0] < r[2] && p[1] > r[1] && p[1] < r[3] && p[2] * q.side >= deurZ[q.id] * 0.8); });
+        if (heel) vlak[heel.id].push(t); else rest.push(t);
+        continue;
+      }
+      const r = rects[d.id], ri = [r[0] + KIER, r[1] + KIER, r[2] - KIER, r[3] - KIER];
+      const binnenRect = (poly, q) => knip(knip(knip(knip(poly, 0, q[0], groter), 0, q[2], kleiner), 1, q[1], groter), 1, q[3], kleiner);
+      if (binnenRect(t.v, r).length < 3) { rest.push(t); continue; } // raakt de opening niet: heel laten
+      const deur = binnenRect(t.v, ri);
+      if (deur.length >= 3) { vlak[d.id].push(...fan(deur, t.r)); randVan(deur, ri, false, RAND_DEUR, d.side, d.id); }
+      // buiten de contour: links, rechts, en in de middenstrook onder en boven
+      const mid = knip(knip(t.v, 0, r[0], groter), 0, r[2], kleiner);
+      for (const poly of [knip(t.v, 0, r[0], kleiner), knip(t.v, 0, r[2], groter), knip(mid, 1, r[1], kleiner), knip(mid, 1, r[3], groter)]) {
+        if (poly.length < 3) continue;
+        rest.push(...fan(poly, t.r));
+        randVan(poly, r, true, RAND_GAT, d.side, 'romp');
+      }
     }
     const f0 = vcount();
     for (const t of rest) if (isVoor(t)) B.tri(t.v[0], t.v[1], t.v[2], kleur[t.r], groep[t.r]);
@@ -1042,32 +1075,16 @@ function hybridBody(key, L, W, paint, doorName, police) {
     for (const t of rest) if (!isVoor(t) && isAchter(t)) B.tri(t.v[0], t.v[1], t.v[2], kleur[t.r], groep[t.r]);
     const r1 = vcount();
     for (const t of rest) if (!isVoor(t) && !isAchter(t)) B.tri(t.v[0], t.v[1], t.v[2], kleur[t.r], groep[t.r]);
-    // de rand van elke opening: deurstijlen voor en achter en een dorpel, met diepte naar binnen
-    for (const d of defs) {
-      const r = rects[d.id];
-      if (!r) continue;
-      const z = deurZ[d.id], top = fit.belt;
-      // achter de dikte van het deurblad (3,5 cm), zodat stijl en dorpel niet in het vlak van de dichte deur liggen
-      for (const x of [r[0], r[2]]) B.box(x, (r[1] + top) / 2, d.side * (z - 0.1), 0.035, top - r[1], 0.1, 0x2f3136);
-      B.box((r[0] + r[2]) / 2, r[1] - 0.025, d.side * (z - 0.11), r[2] - r[0], 0.03, 0.12, 0x6a6d74);
-    }
-    // deurnaden en politiestrepen: dunne vlakjes die de gebogen flank volgen, in een eigen mesh met polygonOffset (NADEN_MAT),
+    // de rand van de opening in de romp (stijlen en dorpel met diepte); de rand van de deur gaat mee met het deurblad (hieronder)
+    const randQuad = (Bx, [a, b, uit, diepte, side, kl]) => {
+      const a2 = [a[0], a[1], a[2] - side * diepte], b2 = [b[0], b[1], b[2] - side * diepte];
+      Bx.quadOut(a, b, b2, a2, uit, kl);
+    };
+    for (const rd of randen) if (rd[6] === 'romp') randQuad(B, rd);
+    // politiestrepen: dunne vlakjes die de gebogen flank volgen, in een eigen mesh met polygonOffset (NADEN_MAT),
     // zodat ze vlak op het plaatwerk kunnen liggen zonder ermee te vechten
     const D = new GeoBuilder(1);
-    for (const s of naadStroken(doorName, L, hw)) {
-      const side = Math.sign(s.z), langs = s.sx > s.sy ? 'x' : 'y';
-      if (s.soort === 'handvat') continue; // het handvat zit op het deurblad (de schil), zie hieronder
-      const lengte = langs === 'x' ? s.sx : s.sy, n = Math.max(1, Math.round(lengte / 0.3)), half = (langs === 'x' ? s.sy : s.sx) / 2;
-      for (let k = 0; k < n; k++) {
-        const g0 = k / n - 0.5, g1 = (k + 1) / n - 0.5;
-        const p0 = langs === 'x' ? [s.x + g0 * s.sx, s.y] : [s.x, s.y + g0 * s.sy];
-        const p1 = langs === 'x' ? [s.x + g1 * s.sx, s.y] : [s.x, s.y + g1 * s.sy];
-        const z0 = hybridSurface(lakTris, p0[0], p0[1], side), z1 = hybridSurface(lakTris, p1[0], p1[1], side);
-        if (z0 === null || z1 === null) continue;
-        const o = side * 0.006, e = langs === 'x' ? [0, half] : [half, 0];
-        D.quadOut([p0[0] - e[0], p0[1] - e[1], z0 + o], [p1[0] - e[0], p1[1] - e[1], z1 + o], [p1[0] + e[0], p1[1] + e[1], z1 + o], [p0[0] + e[0], p0[1] + e[1], z0 + o], [0, 0, side], shadeHex(paint, 0.32));
-      }
-    }
+    // (de deurnaden zelf zijn nu de echte kier van 4 mm met een donkere rand erachter; een getekende naad zou in een open opening zweven)
     const streepOpDeur = {};
     if (police) {
       // Nederlandse politiestrepen langs de flank (blauw met een oranje lijn), de lijn volgt de flank; geen echte opschriften
@@ -1097,6 +1114,7 @@ function hybridBody(key, L, W, paint, doorName, police) {
       if (!vlak[d.id] || !vlak[d.id].length) continue;
       const P2 = new GeoBuilder(3);
       for (const Bx of [P2, alle]) {
+        for (const rd of randen) if (rd[6] === d.id) randQuad(Bx, rd);
         for (const t of vlak[d.id]) {
           Bx.tri(t.v[0], t.v[1], t.v[2], kleur[t.r], groep[t.r]);
           const inn = t.v.map((p) => [p[0], p[1], p[2] - d.side * 0.035]);
@@ -1154,17 +1172,22 @@ function buildHybridCar(v, key, paint) {
   body.add(naden);
   const fit = geo.userData.fit;
   // eenvoudig interieur achter de opening (tot cabin3d.js de echte cabine laat zien)
-  const ig = cached(`hybInterieur|${key}|${L}|${W}`, () => {
+  // de breedte van elk interieurdeel volgt de flank op die plek (de romp loopt in naar voren, achteren en boven): niets steekt erdoor
+  const flankTris = hybridTris(key, L, W).filter((t) => t.r === 0).map((t) => t.v);
+  const binnen = (x, y, marge = 0.1) => { const z = hybridSurface(flankTris, x, y, 1); return Math.max(0.3, 2 * ((z === null ? W / 2 : z) - marge)); };
+  const ig = cached(`hybInterieur2|${key}|${L}|${W}`, () => {
     const B = new GeoBuilder(1);
-    const SEAT = 0x4d515c, hw = W / 2, sx = -L / 2 * 0.06;
-    B.box((fit.xA + fit.xD) / 2, 0.36, 0, fit.xA - fit.xD, 0.02, W - 0.3, 0x45474c);
+    const SEAT = 0x4d515c, sx = -L / 2 * 0.06;
+    const vx = (fit.xA + fit.xD) / 2;
+    B.box(vx, 0.36, 0, fit.xA - fit.xD - 0.3, 0.02, Math.min(binnen(fit.xA - 0.3, 0.45), binnen(fit.xD + 0.3, 0.45)), 0x45474c);
+    const zs = binnen(sx, 0.5) / 2 * 0.62;
     for (const z of [-1, 1]) {
-      B.box(sx, 0.42, z * hw * 0.34, 0.48, 0.1, 0.44, SEAT);
-      B.box(sx - 0.27, 0.7, z * hw * 0.34, 0.1, 0.54, 0.44, SEAT, 0, 0, 0, 0.12);
+      B.box(sx, 0.42, z * zs, 0.48, 0.1, 0.44, SEAT);
+      B.box(sx - 0.27, 0.7, z * zs, 0.1, 0.54, 0.44, SEAT, 0, 0, 0, 0.12);
     }
-    B.box(sx - 0.85, 0.42, 0, 0.46, 0.1, W - 0.45, SEAT);
-    B.box(sx - 1.1, 0.7, 0, 0.1, 0.5, W - 0.45, SEAT, 0, 0, 0, 0.12);
-    B.box(fit.xA - 0.15, fit.belt - 0.06, 0, 0.3, 0.22, W - 0.4, 0x2b2d32);
+    B.box(sx - 0.85, 0.42, 0, 0.46, 0.1, binnen(sx - 0.85, 0.5, 0.12), SEAT);
+    B.box(sx - 1.1, 0.7, 0, 0.1, 0.5, binnen(sx - 1.1, 0.8, 0.12), SEAT, 0, 0, 0, 0.12);
+    B.box(fit.xA - 0.2, fit.belt - 0.1, 0, 0.26, 0.18, binnen(fit.xA - 0.2, fit.belt - 0.1, 0.12), 0x2b2d32);
     return B.build();
   });
   const im = new THREE.Mesh(ig, cabinFallbackMaterial());
