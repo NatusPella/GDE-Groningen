@@ -37,6 +37,12 @@ for (const sc of SCENES) {
     body += `<section><h3>${titel}</h3><p>${wat}</p><div class="paar"><figure>${img(`${k}-voor.jpg`)}<figcaption>Voor · ${telling(sv, k)}</figcaption></figure><figure>${img(`${k}-na.jpg`)}<figcaption>Na · ${telling(sn, k)}</figcaption></figure></div></section>\n`;
   }
 }
+// in de echte wereld (Electron, scripts/qa/akte1_sets_beeld.mjs via de veilige runner): ochtend 7,4 en avond 21,5
+const wereld = fs.readdirSync(OUT).filter((f) => /^wereld-.+-7\.4\.jpg$/.test(f)).map((f) => f.replace(/^wereld-/, '').replace(/-7\.4\.jpg$/, ''));
+if (wereld.length) {
+  body += `<h2>In de wereld (Electron): ochtend en avond</h2><p>De keuken hoog boven de straat zoals de opening hem neerzet, met de geleende setlampen; de flat op zijn plek in de toren in Paddepoel (de toren erboven verborgen zoals in het spel). Gemaakt met <code>scripts/qa/akte1_sets_beeld.mjs</code> (veilige runner, --no-sandbox, wegwerpprofiel), omgezet met <code>scripts/akte1/png_naar_jpg.mjs</code>.</p>\n`;
+  for (const k of wereld) body += `<section><h3>${k}</h3><div class="paar"><figure>${img(`wereld-${k}-7.4.jpg`)}<figcaption>Ochtend (7,4)</figcaption></figure><figure>${img(`wereld-${k}-21.5.jpg`)}<figcaption>Avond (21,5)</figcaption></figure></div></section>\n`;
+}
 body += `<h2>De meubels uit het register</h2><p>Lod 0 (het model) en lod 1 (van het centrale LOD-systeem, lodkit3d.js, soort interior). Blauwe paal: 1,8 m; rode pijl: de voorkant (+x).</p><div class="paar"><figure>${img('meubelblad-lod0-na.jpg')}<figcaption>Lod 0</figcaption></figure><figure>${img('meubelblad-lod1-na.jpg')}<figcaption>Lod 1</figcaption></figure></div>`;
 
 const html = `<!doctype html><html lang="nl"><head><meta charset="utf-8"><title>Akte 1 op eindniveau: voor en na</title>
@@ -46,7 +52,7 @@ figure{margin:0}img{width:100%;border-radius:4px;display:block}figcaption{font-s
 .let{background:#fff7e0;border-left:4px solid #d9a53a;padding:8px 12px}</style></head><body>
 <h1>Akte 1 op eindniveau: de keuken en de flat, voor en na</h1>
 <p>Branch <code>akte1-eindniveau-23-11</code>. Gemaakt met <code>scripts/akte1/sets_render.mjs</code> (headless Chrome, three.js uit de vendor-cache, de set alleen, met het licht van de wereld nagebootst) en <code>scripts/akte1/sets_pagina.mjs</code>.</p>
-<p class="let">Niet in beeld gezien: de sets in de echte wereld in Electron (hoog boven de straat, de lampen van de nachtrig op Laag en Midden), de personages op de stoelen, de LOD-wissel tijdens het spelen (scene3d.js roept updateLodObjects pas aan op perf-ultra-23-11).</p>
+<p class="let">Niet in beeld gezien: de sets tijdens het echte spelen (de opening met de personages op de stoelen, de speler in de flat met de volgcamera), de stand Laag (daar zijn de setlampen echte lampen), de LOD-wissel tijdens het spelen (scene3d.js roept updateLodObjects pas aan op perf-ultra-23-11).</p>
 ${body}
 </body></html>`;
 fs.writeFileSync(path.join(OUT, 'index.html'), html);

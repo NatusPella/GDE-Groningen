@@ -442,7 +442,7 @@ export function buildFlat3D(flat, skip = new Set()) {
   if (!skip.has('tv')) g.add(registeredProp('tv', { x: s.tv.x, y: 0.74, z: s.tv.z, rot: -Math.PI / 2 }));
   if (!skip.has('frituur')) g.add(registeredProp('frituurpan', { x: s.fryer.x, y: 0.876, z: s.fryer.z, rot: -Math.PI / 2 }));
   // light per room: warm lamps borrowed from the night rig (setlights.js), no fixtures floating over the cutaway walls
-  for (const [x, y, z, i] of [[3.4, 2.3, 2.6, 2.6], [8.9, 2.3, 2.2, 2.4], [7.2, 2.3, 7.3, 2.6]]) {
+  for (const [x, y, z, i] of [[3.4, 2.3, 2.6, 7], [8.9, 2.3, 2.2, 6], [7.2, 2.3, 7.3, 7]]) {
     const l = adoptSetLight(new THREE.PointLight(0xffdcb0, i, 7.5, 1.5));
     l.position.set(x, y, z);
     g.add(l);
