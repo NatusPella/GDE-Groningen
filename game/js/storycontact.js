@@ -65,10 +65,10 @@ function injectStyle() {
 #hud .sc-phone { position: absolute; right: var(--hud-edge, 46px); top: var(--hud-stack-top, 210px); width: 232px; box-sizing: border-box; border-radius: 26px; padding: 10px 9px 14px;
   max-height: calc(100vh / var(--ui, 1) - var(--hud-stack-top, 210px) - 200px); overflow: hidden;
   background: var(--ds-c-glas); border: 2px solid var(--ds-c-licht-groen); box-shadow: 0 14px 34px color-mix(in srgb, var(--ds-c-ink-inkt) 60%, transparent), 0 0 0 3px color-mix(in srgb, var(--ds-c-glas) 85%, transparent);
-  color: #f2f2f2; font-family: var(--ds-font-tekst); transform: translateY(40px) rotate(3deg); opacity: 0;
+  color: var(--ds-c-creme); font-family: var(--ds-font-tekst); transform: translateY(40px) rotate(3deg); opacity: 0;
   transition: transform var(--dur-slow, 320ms) var(--ease-out, ease-out), opacity var(--dur-base, 200ms) var(--ease-out, ease-out); pointer-events: none; }
-#hud .sc-phone { border: 5px solid #111613; border-left: 9px solid #1a201c; border-radius: 24px 22px 22px 24px; box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--ds-c-licht-groen) 35%, transparent), -2px 0 0 #070a08, 0 0 0 1px #2b332d, 0 14px 34px color-mix(in srgb, var(--ds-c-ink-inkt) 60%, transparent); }
-#hud .sc-phone::before { content: ''; position: absolute; top: 5px; left: 50%; width: 7px; height: 7px; margin-left: -3.5px; border-radius: 50%; background: #050806; box-shadow: 0 0 0 1.5px #1f2622; z-index: 2; }
+#hud .sc-phone { border: 5px solid var(--ds-c-glas); border-left: 9px solid var(--ds-c-inkt); border-radius: 24px 22px 22px 24px; box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--ds-c-licht-groen) 35%, transparent), -2px 0 0 var(--ds-c-glas), 0 0 0 1px var(--ds-c-glas-3), 0 14px 34px color-mix(in srgb, var(--ds-c-ink-inkt) 60%, transparent); }
+#hud .sc-phone::before { content: ''; position: absolute; top: 5px; left: 50%; width: 7px; height: 7px; margin-left: -3.5px; border-radius: 50%; background: var(--ds-c-glas); box-shadow: 0 0 0 1.5px var(--ds-c-glas-2); z-index: 2; }
 body.hide-minimap #hud .sc-phone { max-height: calc(100vh / var(--ui, 1) - var(--hud-stack-top, 210px) - 60px); }
 #hud .sc-phone.aside { top: calc(var(--hud-tr-bottom, 200px) + 8px); right: 258px; max-height: calc(100vh / var(--ui, 1) - var(--hud-tr-bottom, 200px) - 200px); }
 #hud .sc-phone.compact .sc-portrait, #hud .sc-phone.compact .sc-wave { display: none; }
@@ -82,7 +82,7 @@ body.hide-minimap #hud .sc-phone { max-height: calc(100vh / var(--ui, 1) - var(-
 #hud .sc-head { text-align: center; padding: 10px 10px 2px; }
 #hud .sc-state { font-size: 13px; letter-spacing: 1px; text-transform: uppercase; color: var(--ds-c-licht-groen); }
 #hud .sc-name { font-size: 22px; font-weight: bold; margin-top: 2px; }
-#hud .sc-portrait { display: block; margin: 6px auto 4px; width: 76px; height: 76px; border-radius: 50%; image-rendering: pixelated; background: #1d2a3a; }
+#hud .sc-portrait { display: block; margin: 6px auto 4px; width: 76px; height: 76px; border-radius: 50%; image-rendering: pixelated; background: var(--ds-c-glas-3); }
 #hud .sc-phone.ring .sc-portrait { box-shadow: 0 0 0 0 color-mix(in srgb, var(--ds-c-licht-groen) 70%, transparent); animation: sc-pulse 1.1s infinite; } /* ds3-lus: bel of live-stip */ /* ds3-film: scene */
 @keyframes sc-pulse { 0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--ds-c-licht-groen) 60%, transparent); } 100% { box-shadow: 0 0 0 16px color-mix(in srgb, var(--ds-c-licht-groen) 0%, transparent); } }
 #hud .sc-wave { display: flex; gap: 3px; justify-content: center; align-items: center; height: 22px; margin: 2px 0 4px; }
@@ -92,7 +92,7 @@ body.hide-minimap #hud .sc-phone { max-height: calc(100vh / var(--ui, 1) - var(-
 #hud .sc-bubble .nl-sub, #sc-card .nl-sub { display: block; margin-top: 3px; font-size: 13px; font-style: italic; color: color-mix(in srgb, var(--ds-c-wit) 62%, transparent); }
 #hud .sc-phone[data-via="live"] .sc-screen { background: var(--ds-c-ink-inkt); }
 #hud .sc-livebar, #sc-live .sc-livebar { display: flex; align-items: center; gap: 6px; padding: 7px 9px; font-size: 13px; }
-#hud .sc-dot, #sc-live .sc-dot { background: #e0262f; color: var(--ds-c-wit); font-weight: bold; border-radius: 4px; padding: 1px 5px; letter-spacing: 1px; }
+#hud .sc-dot, #sc-live .sc-dot { background: var(--ds-c-rood-glas); color: var(--ds-c-wit); font-weight: bold; border-radius: 4px; padding: 1px 5px; letter-spacing: 1px; }
 #hud .sc-livecanvas { width: 100%; height: 170px; image-rendering: pixelated; display: block; }
 #hud .sc-chat, #sc-live .sc-chat { font-size: 13px; line-height: 1.35; padding: 4px 9px; color: color-mix(in srgb, var(--ds-c-wit) 85%, transparent); height: 48px; overflow: hidden; }
 #hud .sc-chat b, #sc-live .sc-chat b { color: var(--ds-c-licht-groen); margin-right: 4px; }
@@ -102,21 +102,21 @@ body.hide-minimap #hud .sc-phone { max-height: calc(100vh / var(--ui, 1) - var(-
 #hud .sc-postimg { width: 100%; height: 150px; border-radius: 10px; margin-top: 7px; image-rendering: pixelated; display: block; }
 #hud .sc-likes { font-size: 13px; color: color-mix(in srgb, var(--ds-c-wit) 55%, transparent); margin-top: 4px; }
 #sc-card { position: fixed; left: 50%; top: 44%; z-index: 14; width: min(420px, 82vw); transform: translate(-50%, -40%) rotate(-3deg); opacity: 0;
-  transition: transform .45s ease, opacity .35s ease; pointer-events: none; background: #f6efdc; color: #2b2418; border-radius: 4px; /* ds3-film: scene */
+  transition: transform .45s ease, opacity .35s ease; pointer-events: none; background: var(--ds-c-papier); color: var(--ds-c-inkt); border-radius: 4px; /* ds3-film: scene */
   padding: 22px 26px 18px; box-shadow: 0 18px 40px color-mix(in srgb, var(--ds-c-ink-inkt) 55%, transparent); font-family: 'Segoe Print', 'Bradley Hand', 'Comic Sans MS', cursive; }
 #sc-card.show { opacity: 1; transform: translate(-50%, -50%) rotate(-2deg); }
-#sc-card .sc-cardkick { font-family: var(--ds-font-tekst); font-size: 13px; letter-spacing: 2px; text-transform: uppercase; color: #8a6f3c; }
+#sc-card .sc-cardkick { font-family: var(--ds-font-tekst); font-size: 13px; letter-spacing: 2px; text-transform: uppercase; color: var(--ds-c-amber); }
 #sc-card .sc-cardtext { font-size: 21px; line-height: 1.35; margin-top: 8px; }
-#sc-card .nl-sub { color: #6d5d44; font-family: var(--ds-font-tekst); }
+#sc-card .nl-sub { color: var(--ds-c-inkt-zacht); font-family: var(--ds-font-tekst); }
 #sc-card .sc-sign { text-align: right; margin-top: 10px; font-size: 18px; }
-#sc-card::before { content: ''; position: absolute; left: 44%; top: -10px; width: 70px; height: 22px; background: rgba(230,220,160,.7); transform: rotate(3deg); }
+#sc-card::before { content: ''; position: absolute; left: 44%; top: -10px; width: 70px; height: 22px; background: color-mix(in srgb, var(--ds-c-papier-2) 70%, transparent); transform: rotate(3deg); }
 #sc-live { position: fixed; inset: 0; z-index: 14; pointer-events: none; opacity: 0; transition: opacity .3s; background: radial-gradient(ellipse 34% 60% at 50% 50%, transparent 72%, color-mix(in srgb, var(--ds-c-ink-inkt) 72%, transparent) 100%); font-family: var(--ds-font-tekst); color: var(--ds-c-wit); } /* ds3-film: scene */
 #sc-live.show { opacity: 1; }
 #sc-live .sc-liveframe { position: absolute; top: 3vh; bottom: 3vh; left: 50%; transform: translateX(-50%); aspect-ratio: 9 / 16; max-width: 92vw;
-  border: 10px solid #111; border-radius: 34px; box-shadow: 0 0 0 100vmax color-mix(in srgb, var(--ds-c-ink-inkt) 72%, transparent); }
+  border: 10px solid var(--ds-c-glas); border-radius: 34px; box-shadow: 0 0 0 100vmax color-mix(in srgb, var(--ds-c-ink-inkt) 72%, transparent); }
 #sc-live .sc-livebar { position: absolute; top: 10px; left: 10px; right: 10px; font-size: 15px; text-shadow: 0 1px 2px #000; }
 #sc-live .sc-chat { position: absolute; left: 8px; right: 8px; bottom: 22%; height: auto; max-height: 30%; font-size: 14px; text-shadow: 0 1px 2px #000; }
-#sc-live .sc-hearts { position: absolute; right: 12px; bottom: 30%; font-size: 20px; color: #ff5a7a; text-shadow: 0 1px 2px #000; }
+#sc-live .sc-hearts { position: absolute; right: 12px; bottom: 30%; font-size: 20px; color: var(--ds-c-ink-roze); text-shadow: 0 1px 2px var(--ds-c-glas); }
 /* Zomerse zeefdruk (ADR 0040): het scherm van de verhaaltelefoon is papier met inkt; het toestel zelf blijft een inktkleurig voorwerp. */
 #hud .sc-phone { background: var(--ds-c-ink-inkt); border-color: var(--ds-c-ink-inkt); box-shadow: var(--ds-schaduw-hard); color: var(--ds-c-ink-inkt); font-family: var(--ds-font-zeef-tekst); }
 #hud .sc-phone::before { background: var(--ds-c-ink-papier); box-shadow: none; }

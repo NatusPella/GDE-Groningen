@@ -209,7 +209,7 @@ export function writeAdvice(v) {
 
 const CSS = `
 #gfx-advice { position: fixed; right: 28px; bottom: 64px; z-index: 31; width: min(400px, calc(100vw - 32px)); box-sizing: border-box;
-  background: rgba(10, 19, 13, 0.94); border: 1px solid color-mix(in srgb, var(--ds-c-licht-groen) 45%, transparent); border-radius: 12px; box-shadow: 0 12px 36px color-mix(in srgb, var(--ds-c-ink-inkt) 50%, transparent);
+  background: color-mix(in srgb, var(--ds-c-glas) 94%, transparent); border: 1px solid color-mix(in srgb, var(--ds-c-licht-groen) 45%, transparent); border-radius: 12px; box-shadow: 0 12px 36px color-mix(in srgb, var(--ds-c-ink-inkt) 50%, transparent);
   padding: 16px 20px 18px; color: var(--ds-c-creme); font-family: var(--ds-font-kop); animation: gfx-adv-in 0.35s ease both; } /* ds3-film: scene */
 @keyframes gfx-adv-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
 #gfx-advice h3 { display: flex; align-items: center; gap: 8px; margin: 0 0 6px; font-size: 26px; font-weight: normal; letter-spacing: 1.5px; color: var(--ds-c-licht-groen); }

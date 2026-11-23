@@ -2543,11 +2543,11 @@ function speechBubbleEl() {
   el.style.left = '0';
   el.style.top = '0';
   el.style.transform = bubbleTransform(0, 0);
-  el.style.background = 'rgba(242,240,234,0.92)';
-  el.style.border = '1px solid rgba(20,20,22,0.6)';
+  el.style.background = 'color-mix(in srgb, var(--ds-c-creme) 92%, transparent)';
+  el.style.border = '1px solid color-mix(in srgb, var(--ds-c-glas) 60%, transparent)';
   el.style.borderRadius = '8px';
   el.style.padding = '3px 9px';
-  el.style.color = '#20201e';
+  el.style.color = 'var(--ds-c-inkt)';
   el.style.font = 'bold 13px "Arial Narrow", Arial, sans-serif';
   // #868/#870: de bel hangt in de gezoomde HUD; op een telefoon werd 13 px daar
   // 8,7 px. Dezelfde 12px-vloer als de rest van de HUD-tekst.

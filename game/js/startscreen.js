@@ -747,7 +747,7 @@ function runMenuScreen(world, { render, relocate, tick, ready }, pending = null)
 
     const fade = document.createElement('div');
     fade.className = 'ss-fade';
-    fade.style.cssText = `position:fixed;inset:0;z-index:19;background:#05080a;opacity:0;pointer-events:none;transition:opacity ${FADE_S}s ease`;
+    fade.style.cssText = `position:fixed;inset:0;z-index:19;background:var(--ds-c-glas);opacity:0;pointer-events:none;transition:opacity ${FADE_S}s ease`;
     document.body.appendChild(fade);
 
     // to a viewpoint: the player goes there (the street life and the streaming follow), the sun to the camera's side

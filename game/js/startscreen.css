@@ -42,7 +42,7 @@
 #start-screen .ss-credit .heart .ic { width: 1.1em; height: 1.1em; vertical-align: -0.2em; color: var(--ds-c-rood); }
 @keyframes ss-beat { 0%, 60%, 100% { transform: scale(1); } 30% { transform: scale(1.18); } }
 #start-screen .ss-news { position: absolute; top: var(--mt); bottom: var(--mb); right: 80px; width: 760px; display: flex; flex-direction: column; border-radius: 16px; overflow: hidden;
-  background: linear-gradient(180deg, rgba(20, 40, 27, 0.9), color-mix(in srgb, var(--ds-c-glas) 94%, transparent)); box-shadow: 0 0 0 1px color-mix(in srgb, var(--ds-c-creme) 7%, transparent), 0 32px 64px color-mix(in srgb, var(--ds-c-ink-inkt) 30%, transparent); animation: m-panel-in 0.4s cubic-bezier(0.2, 0.7, 0.2, 1) both; -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); } /* ds3-film: scene */
+  background: linear-gradient(180deg, color-mix(in srgb, var(--ds-c-glas-2) 90%, transparent), color-mix(in srgb, var(--ds-c-glas) 94%, transparent)); box-shadow: 0 0 0 1px color-mix(in srgb, var(--ds-c-creme) 7%, transparent), 0 32px 64px color-mix(in srgb, var(--ds-c-ink-inkt) 30%, transparent); animation: m-panel-in 0.4s cubic-bezier(0.2, 0.7, 0.2, 1) both; -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); } /* ds3-film: scene */
 #start-screen .ss-news[hidden] { display: none; }
 #start-screen .ss-news-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; padding: 48px 56px 0; }
 #start-screen .ss-news-head h2 { font-family: var(--ds-font-kop); font-size: 64px; line-height: 0.92; letter-spacing: 0.02em; font-weight: normal; }
