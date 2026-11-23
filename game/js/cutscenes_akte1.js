@@ -179,6 +179,9 @@ Object.assign(SPECS, SPECS_AKTE2);
 {
   const life = merge(passer('student', 'student', [-2, -9], [14, -9], 1.5, 1.2, 'phone'));
   SPECS['M02.intro'] = {
+    // akte 1 op eindniveau (23-11, CS-C06): het eerste beeld van Tammo en Tessa samen hangt boven de straat, zodat de schouder-shots
+    // daarna aan één kant van het duo blijven
+    shotFix: [{ t: 'L5', shot: 'dolly', look: 'speaker', fov: 44, from: [4.6, 2.6, 3.4], to: [4.13, 2.33, 3.35] }],
     // #955: de intro staat waar de speler vandaan komt (na M01 vaak onder de bomen langs het
     // Boterdiep). De scène zoekt vrije grond als een camera in een kroon of tegen een stam
     // zou beginnen; de camera's stappen zelf ook uit de boom (cutscript.js, greenery.js).
@@ -516,6 +519,9 @@ Object.assign(SPECS, SPECS_AKTE2);
     cyclist('fietser', 'harm', [-16, 9], [40, 9], 0.3, 3.8),
   );
   SPECS['M01.3'] = {
+    // akte 1 op eindniveau (23-11, CS-C06): het beeld van het terras bij de regel van Jelmer is een hoog overzicht, geen gespreksshot
+    // aan de verkeerde kant van Jelmer en Tammo
+    shotFix: [{ t: 'L5+0.3', shot: 'cut', at: [1, 3.4, 3.4], look: 'mid:jelmer,gast1@1.3', fov: 46 }],
     cast: { jelmer: { key: 'jelmer', at: [3.4, 1.2], face: 195, anim: 'phone', gest: ['cheer', 'point', 'talk', 'wave'] }, ...terras.cast },
     props: { statief: { kind: 'statief', at: [2.4, 0.2, 0], face: 180 }, ...terras.props },
     open: [{ actor: 'jelmer', gaze: 'camera' }, ...terras.cues],
@@ -562,6 +568,8 @@ Object.assign(SPECS, SPECS_AKTE2);
 
   // M03.2: Jelle buys the queue, the Bewaarder stamps
   SPECS['M03.2'] = {
+    // akte 1 op eindniveau (23-11, CS-C06): Jelles laatste woorden en zijn vertrek aan dezelfde kant van de as als de rest van het gesprek
+    shotFix: [{ t: 'L8', shot: 'orbit', target: 'speaker', radius: 2.6, start: 30, sweep: -38, h0: 1.5, h1: 1.8, look: 'speaker', fov: 38 }],
     set: 'loket',
     cast: {
       jelle: { key: 'jelle', at: [2.6, 0.7], face: 190, anim: 'idle', gest: ['talk', 'point', 'hips'] },
@@ -593,7 +601,8 @@ Object.assign(SPECS, SPECS_AKTE2);
       { on: 'En wie let', actor: 'tessa', anim: 'shake' },
       { on: 'Het museum', actor: 'bewaarder', anim: 'hips' },
     ],
-    shots: [{ on: 'Foar mem', shot: 'follow', target: 'jelle', dist: 2.6, side: 0.8, h: 1.6, fov: 38 }],
+    // 23-11 (CS-C06): Jelle die wegloopt van boven gevolgd: geen gespreksshot meer dat over de as tussen hem en Tessa springt
+    shots: [{ on: 'Foar mem', shot: 'follow', target: 'jelle', dist: 3.2, side: 0.8, h: 3.4, fov: 40 }],
     // akte 1 op eindniveau (23-11, cutscene-lint CS-R03): het slotbeeld komt nog tijdens haar lange regel over het museum; het kijkt op haar
     wide: { from: [-3.2, 3.0, 3.0], to: [-1.2, 2.4, 2.5], look: 'mid:jelle,bewaarder@1.2', endLook: 'bewaarder@1.4', fov: 52, until: 1 },
   };
@@ -768,7 +777,12 @@ export function missionScene(key, lines, { looks = {}, spec: given = null } = {}
   // the closing frame keeps the last speaker in view: the middle of the wide's look moves to the first subject and the last speaker (a mid: look takes two)
   const lastMe = spec.wide && speakerActor(lines[lines.length - 1].speaker);
   const wendLook = spec.wide && spec.wide.endLook ? spec.wide.endLook : (() => { const m = spec.wide && typeof spec.wide.look === 'string' ? /^mid:([^@]+)(@.+)?$/.exec(spec.wide.look) : null; return m && lastMe && !m[1].split(',').includes(lastMe) ? `mid:${m[1].split(',')[0]},${lastMe}${m[2] || ''}` : spec.wide && spec.wide.look; })();
-  const wend = spec.wide ? { shot: 'dolly', from: [spec.wide.to[0] + 0.5, spec.wide.to[1], spec.wide.to[2] + 0.3], to: [spec.wide.to[0] + 2.2, spec.wide.to[1] * 0.9, spec.wide.to[2] + 1.2], look: wendLook, fov: spec.wide.fov || 48 } : null;
+  // het kijkpunt van het hogere slotbeeld 0,35 m lager: de mensen staan dan boven de ondertitel (CS-R04), niet erachter
+  const zakKijk = (look) => (typeof look === 'string' ? look.replace(/@([\d.]+)$/,(m, h) => '@' + Math.max(0.6, +h - 0.35).toFixed(2)) : look);
+  // 23-11 (akte 1 op eindniveau, cutscene-lint CS-C06): het slotbeeld begint als een echt wijd beeld boven de hoofden (minstens 3,3 m) en
+  // klimt naar 4 m: een terugtrekkende kraan over de straat, geen gespreksshot op ooghoogte. Op ooghoogte stond hij in 7 van de 10
+  // akte-1-scènes met een assprong aan de verkeerde kant van het duo.
+  const wend = spec.wide ? { shot: 'dolly', from: [spec.wide.to[0] + 0.5, spec.wide.to[1], Math.max(spec.wide.to[2] + 0.3, 3.3)], to: [spec.wide.to[0] + 2.2, spec.wide.to[1] * 0.9, Math.max(spec.wide.to[2] + 1.2, 4.0)], look: zakKijk(wendLook), fov: spec.wide.fov || 48 } : null;
   const lastLine = lines[lines.length - 1];
   if (wend && !spec.manual && lastLine.dur > 1.6) {
     // the closing frame comes at least a second after the shot before it (#1146: no flicker on the last line)
