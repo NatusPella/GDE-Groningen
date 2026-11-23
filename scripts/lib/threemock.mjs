@@ -260,6 +260,14 @@ export class Object3D {
   clone(recursive = true) { const c = new this.constructor(); c.copy(this); if (recursive) for (const ch of this.children) c.add(ch.clone(true)); return c; }
 }
 export class Group extends Object3D { constructor() { super(); this.isGroup = true; } }
+// zoals three: niveaus op afstand, het dichtstbijzijnde niveau zichtbaar (DitherLOD in lod3d.js breidt hem uit)
+export class LOD extends Object3D {
+  constructor() { super(); this.isLOD = true; this.levels = []; this.autoUpdate = true; this._currentLevel = 0; }
+  addLevel(object, distance = 0, hysteresis = 0) { distance = Math.abs(distance); let l = 0; while (l < this.levels.length && distance >= this.levels[l].distance) l++; this.levels.splice(l, 0, { distance, hysteresis, object }); this.add(object); return this; }
+  getCurrentLevel() { return this._currentLevel; }
+  getObjectForDistance(d) { let i = 1; for (; i < this.levels.length; i++) if (d < this.levels[i].distance) break; return this.levels.length ? this.levels[i - 1].object : null; }
+  update() {}
+}
 export class Scene extends Object3D { constructor() { super(); this.isScene = true; this.background = null; this.fog = null; } }
 export class Mesh extends Object3D {
   constructor(geometry = new BufferGeometry(), material = new MeshBasicMaterial()) { super(); this.isMesh = true; this.geometry = geometry; this.material = material; stats.meshes++; }
