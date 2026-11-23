@@ -142,6 +142,7 @@ export class Box3 { constructor() { this.min = new Vector3(Infinity, Infinity, I
 export class BufferAttribute {
   constructor(array, itemSize, normalized = false) { this.array = array; this.itemSize = itemSize; this.normalized = normalized; this.count = Math.floor(array.length / itemSize); this.needsUpdate = false; this.usage = 35044; }
   setUsage(u) { this.usage = u; return this; }
+  getComponent(i, c) { return this.array[i * this.itemSize + c]; } setComponent(i, c, v) { this.array[i * this.itemSize + c] = v; return this; }   // zoals three
   setXYZ(i, x, y, z) { this.array[i * 3] = x; this.array[i * 3 + 1] = y; this.array[i * 3 + 2] = z; return this; }
   getX(i) { return this.array[i * this.itemSize]; } setXY(i, x, y) { this.array[i * 2] = x; this.array[i * 2 + 1] = y; return this; } getW(i) { return this.array[i * this.itemSize + 3]; } getY(i) { return this.array[i * this.itemSize + 1]; } getZ(i) { return this.array[i * this.itemSize + 2]; }
 }
