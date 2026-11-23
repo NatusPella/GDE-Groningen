@@ -66,8 +66,8 @@ const { THIGH_LEN: T, SHIN_LEN: S, UPPER_ARM, FOREARM, HIP_Y, ANKLE_Y } = P.PERS
   ok(near(g.chestY, -0.15), 'de romp draait 30% mee');
   L.gazeSplit(1.8, 0, g); ok(Math.abs(g.headY) <= L.HEAD_YAW_MAX + 1e-9, 'ver opzij: het hoofd stopt bij HEAD_YAW_MAX');
   L.gazeSplit(3, 0, g); ok(g.w === 0 && g.headY === 0, 'achter de rug: geen blik (niemand draait 180 graden)');
-  L.gazeSplit(0, 2, g); ok(near(g.headZ, -L.PITCH_UP), 'omhoog: begrensd op PITCH_UP (knik negatief = omhoog)');
-  L.gazeSplit(0, -2, g); ok(near(g.headZ, L.PITCH_DOWN), 'omlaag: begrensd op PITCH_DOWN');
+  L.gazeSplit(0, 2, g); ok(near(g.headZ, L.PITCH_UP), 'omhoog: begrensd op PITCH_UP (rotation.z positief = neus omhoog)');
+  L.gazeSplit(0, -2, g); ok(near(g.headZ, -L.PITCH_DOWN), 'omlaag: begrensd op PITCH_DOWN');
   ok(L.pitchTo(0, 5) === 0 && L.pitchTo(1, 1) > 0.7 && L.pitchTo(1, 0) <= Math.atan2(1, 0.3) + 1e-9, 'pitchTo: vlak 0, omhoog positief, geen deling door nul');
 }
 
@@ -193,7 +193,7 @@ ok(L.lifeTier(0) === 0 && L.lifeTier(13.9 ** 2) === 0 && L.lifeTier(20 ** 2) ===
   s2.cue('z', 'zit', { x: 0, z: 0, heading: 0, zithoogte: 0.45 });
   s2.cue('z', 'kijk', { naar: 's' });
   for (let i = 0; i < 120; i++) s2.update(1 / 60);
-  ok(s2.pose('z').head.z < -0.1, `zittend kijkt omhoog naar wie staat (knik ${s2.pose('z').head.z.toFixed(2)})`);
+  ok(s2.pose('z').head.z > 0.1, `zittend kijkt omhoog naar wie staat (rotation.z ${s2.pose('z').head.z.toFixed(2)}, + = neus omhoog)`);
   // rennen: verder helling en gebogen ellebogen dan lopen
   const s3 = A.createStage({ seed: 9 });
   s3.add('r', { x: 0, z: 0 }); s3.add('w', { x: 0, z: 5 });

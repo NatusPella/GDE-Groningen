@@ -104,7 +104,8 @@ export function footPlant(dL, dR, out) {
 // yaw: hoek van het doel ten opzichte van de neus (rad, + = naar links in de wereldhoek, zoals actoranim's gazeRel),
 // pitch: hoek omhoog (+). Verdeelt over romp en hoofd met harde grenzen: de romp draait CHEST_SHARE mee, het
 // hoofd de rest tot HEAD_YAW_MAX. Een doel achter de mens (|yaw| > GAZE_BEHIND) geeft geen blik (w = 0).
-// out.chestY, out.headY (rotation.y; + draait naar -heading, dus het teken is omgedraaid), out.headZ (knik; - = omhoog), out.w (0..1).
+// out.chestY, out.headY (rotation.y; + draait naar -heading, dus het teken is omgedraaid), out.headZ (rotation.z van het hoofd; + = omhoog,
+// want een draaiing om +z brengt de neus (+X) naar boven), out.w (0..1).
 export const HEAD_YAW_MAX = 0.95;
 export const CHEST_SHARE = 0.3;
 export const PITCH_UP = 0.45;
@@ -117,7 +118,7 @@ export function gazeSplit(yaw, pitch, out) {
   const chest = total * CHEST_SHARE;
   out.chestY = -chest;
   out.headY = -clamp(total - chest, -HEAD_YAW_MAX, HEAD_YAW_MAX);
-  out.headZ = -clamp(pitch, -PITCH_DOWN, PITCH_UP);
+  out.headZ = clamp(pitch, -PITCH_DOWN, PITCH_UP);
   out.w = 1;
   return out;
 }
