@@ -1,3 +1,4 @@
+import { getekendeMaat } from './propregister.js';
 import { minAfstand } from './coopfoci.js';
 import { project as projectOnLine, stepRunner, pointAt as linePointAt } from './busroutes.js';
 import { assistDamage } from './assistlive.js';
@@ -173,7 +174,9 @@ export class Vehicle {
     this.angle = angle;
     this.speed = 0;
     this.steer = 0;
-    this.model = model;
+    // de botsing volgt de zichtbare auto: een hybride personenauto botst met zijn getekende maat (propregister.js getekendeMaat)
+    const maat = getekendeMaat(model);
+    this.model = maat && (maat.len !== model.len || maat.wid !== model.wid) ? { ...model, len: maat.len, wid: maat.wid } : model;
     this.health = 100;
     this.wrecked = false;
     this.driver = null; // 'player' | ai-controlled marker | null

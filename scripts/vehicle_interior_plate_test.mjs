@@ -72,7 +72,8 @@ for (const [naam, len, wid] of cases) {
 // De Knakker (hatch) precies zoals in shopdata.js: op de raamlijn (0,93 m) en op de onderkant van
 // de glasband (0,90 m) mag geen breed vlak meer liggen.
 {
-  const model = { name: 'hatch', len: 3.8, wid: 1.7, maxSpeed: 42, accel: 9, brake: 23, turnRate: 3, color: '#c7c9cc' };
+  // onze eigen bouwer (sinds 23-11 tekent het spel een gewone hatchback als hybride; die heeft geen raamlijnplaat, zie hybridecar_test)
+  const model = { name: 'hatch', len: 3.8, wid: 1.7, maxSpeed: 42, accel: 9, brake: 23, turnRate: 3, color: '#c7c9cc', hybride: false };
   const v = new Vehicle(0, 0, 0, model);
   const romp = carBodyFit(v);
   ok(!!romp && Math.abs(romp.belt - 0.93) < 1e-6, 'Knakker: raamlijn op 0,93 m', String(romp && romp.belt));

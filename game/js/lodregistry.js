@@ -20,7 +20,7 @@ export const LOD_KINDS = {
   prop: { lod: { grenzen: [28, 60], band: 6, weg: 150 }, minCut: [0.35, 0.6], wie: 'klein straatmeubilair en losse props (streetfurniture3d.js): bankjes, afvalbakken, paaltjes' },
   propfar: { lod: { grenzen: [60, 160], band: 10, weg: 700 }, minCut: [0.35, 0.6], wie: 'lange of hoge straatelementen die je van ver ziet (vangrails, geluidsschermen, portalen, borden): hun eigen tekenafstand blijft de grens' },
   tree: { lod: { grenzen: [130, 170], band: 12 }, minCut: [0.35, 0.6], wie: 'bomen (scene3d.js): de hele boom, voorbij de nabije straal alleen de kroon, verder een grove kroon' },
-  treecrown: { lod: { grenzen: [170], band: 12, weg: 260 }, minCut: [0.6], wie: 'de verre boomkroon (scene3d.js): de fijne kroon, voorbij 170 m de grove, voorbij 260 m (TREE_FAR) niets' },
+  treecrown: { lod: { grenzen: [170, 260], band: 12, weg: 700 }, minCut: [0.6, 0.9], wie: 'de verre boomkroon van bossen en parken (scene3d.js): de fijne kroon, voorbij 170 m de grove, voorbij 260 m een billboard (impostor) tot de weg-afstand (begrensd door de zichtafstand)' },
   boat: { lod: { grenzen: [40, 120], band: 8, weg: 600 }, minCut: [0.3, 0.55], wie: 'boten (models3d_vehicles.js buildBoatMesh)' },
   train: { lod: { grenzen: [60, 160], band: 10, weg: 820 }, minCut: [0.35, 0.6], wie: 'treinen (railway3d.js): per wagen' },
   building: { lod: { grenzen: [170], band: 14 }, minCut: [0.5], wie: 'gebouwen: detail tot de detailring, daarna de verre laag (farlod.js); nog geen dither-overgang' },

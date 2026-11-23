@@ -136,7 +136,121 @@ Escapade +2,9 %; drawcalls en meshes gelijk. Vergelijkingspagina (zelfde hoek, 1
 bouwer nodig (`git show 11b252310:game/js/models3d_vehicles.js` naar `game/js/_oud_voertuigen_tmp.js`), die niet in git staat.
 Niet in het spel bekeken.
 
+### Proef: hybride auto (hun romp, onze functies)
+
+Het pakket stond later wel klaar (`C:\Users\abuis\gde-assets\quaternius\cars\pack`, 7 glb, CC0, door de eigenaar gedownload). De
+coördinator vond het bijschaven van onze bouwer nog steeds een kleine stap en vroeg een proef met hun carrosserie als basis.
+- `scripts/convert_quaternius_car.mjs` zet `Car.glb` om naar een kleine module (eerst `qcar_sedan.js`, nu `qcars.js`): alleen de carrosserie,
+  in onze assen, op een millimeter, met per hoekpunt een rol (lak, glas, koplamp, achterlicht, zwart, grijs, onderkant); de
+  wielplekken en -straal. Licentie en herkomst: `docs/MODEL-LICENTIES.md`.
+- `buildHybridCar` (models3d_vehicles.js), alleen met `model.hybride` op een sedan of stationwagen: hun romp in onze drie
+  materialen (lak in de voertuigkleur), 17 % hoger dan hun lage auto zodat een inzittende past, onze wielen op hun plekken,
+  deurnaden die de gebogen flank volgen en per deur de flank voor de deur-rig (`userData.deurZ`, gelezen door vehicledoors3d.js).
+- Wat werkt en wat breekt: zie de tabel in `docs/beeld-23-11/objecten/vergelijking-hybride.html` en `scripts/hybridecar_test.mjs`.
+  Werkt: wielen draaien en sturen, kleurvarianten, lampen, deurnaden, deuren open met interieur, deuken zonder NaN.
+  Breekt of ontbreekt: politie-, taxi- en ambulance-uitvoeringen, roest/tokkie/EV, tuning (die hangen aan het profiel van onze
+  bouwer), losse delen bij schade (grille, spiegels, wieldoppen), het deurblad heeft nog onze vlakke vorm; de cabine van cabin3d.js
+  volgt het profiel van onze sedan en is in de hybride niet bekeken.
+- Kosten: hybride 2.098 driehoeken en 5 meshes, onze sedan 1.908 en 12, hun origineel 2.954 en 12.
+- Register: `VOERTUIG_REGISTER.hybrideSedan` met norm in `propregister.js`.
+
+Advies: de hybride haalt in één stap het niveau dat bijschaven niet haalt, voor een gewone verkeersauto. Zet hem in voor de
+gewone personenauto's (hun Car, Car2, SUV en sportauto's, telkens één omzetting), en houd onze bouwer voor de bijzondere uitvoeringen
+(politie, taxi, ambulance, Escapade, tuning) tot die per uitvoering zijn overgezet. Eerst nog in het spel bekijken: de cabine (dashboard
+en stoelen onder het lagere dak) en de koplampkegels van nightlights3d.js.
+
+## Vierde ronde: hybride standaard, echte deuropeningen, schaal, botsmaat en LOD's
+
+Opdracht van de coördinator (eisen van de eigenaar), op deze tak, vanaf de WIP-commit fbe4805c9.
+
+- **Hybride standaard.** Alle zeven auto's uit het pakket zijn omgezet (`game/js/models/qcars.js`, 139 kB, gedeelde hoekpunten en een
+  index; lagen die in het origineel op elkaar lagen zijn 3,2 cm uit elkaar geschoven). `hybridKey` kiest de hybride voor de gewone
+  sedan, hatchback, SUV, sportauto (twee varianten), politieauto en taxi; ambulance, de Escapade, roest, tokkie, elektrisch, belettering,
+  tuning (`v.look`) en `model.hybride === false` houden onze eigen bouwer. Op de hybride: politiestrepen (het stuk op een deur gaat mee
+  met het deurblad), lichtbalk met onze knipperende lampen, losse grille, spiegels en uitlaat, wieldoppen, hangende bumpers bij schade.
+- **Echte deuropeningen** (eis eigenaar: een gat in de romp, de deur vult het, open kijk je de auto in). Hybride: de flank wordt langs
+  de deurcontour geknipt (Sutherland-Hodgman), het uitgeknipte stuk romp (met ruit) is het deurblad, met een binnenkant op 3,5 cm en
+  een handvat; deurstijlen en een dorpel in de opening; een eenvoudig interieur (vloer, stoelen, achterbank, dashboard) dat wijkt voor
+  de echte cabine van `cabin3d.js`. Onze eigen bouwer: gaten in de extrusie (alleen deuren die links en rechts op dezelfde plek zitten,
+  van de wielkasten af), de versiering op de deur (strepen, sierlijn, handvat) gaat mee naar het deurblad (`moveDoorDecor`). Bakwagen,
+  trekker en trekker-limo: de flank van de blokkenromp wordt op dezelfde manier geknipt (`knipDeurgaten`), met een binnenbak met vloer
+  en stoel. `scripts/deuropening_test.mjs` controleert voor alle deze voertuigen: (a) geen flank binnen de deurcontour, (b) een straal
+  door de open opening raakt eerst interieur of de overkant, (c) dicht raakt hij eerst de dichte deur in de flank. De schuifdeur van de
+  bestelbus en de laadkleppen houden hun oude vlak (ze zitten maar aan één kant of achterop).
+- **Deuren.** Alle portieren scharnieren voor en gaan 63 graden open; bij een echt gat staat de dichte deur in de rig in de flank.
+- **Schaal** (eis eigenaar): de getekende maat per model staat in het register (`VOERTUIG_REGISTER[..].schaal`) en is getoetst aan
+  `VOERTUIG_NORM` (`scripts/voertuigschaal_test.mjs`). Hun auto's waren 1,15 tot 1,24 m hoog; de hoogte gaat per model naar 1,42 tot 1,45
+  (SUV 1,70), gemeten tot de bovenkant van de ruiten plus het dak, zonder daklicht of taxibord. Lengte 4,25 tot 4,55, breedte 1,78 tot
+  1,85, wielbasis 2,59 tot 2,78, wieldiameter 0,61 tot 0,73. Andere voertuigen (alleen gemeld): de bus is over de romp 2,60 m breed,
+  de 3,2 m kwam van de spiegels (vooraan op 2,2-2,5 m hoogte, 32 cm per kant); de midibus 2,45 m romp; trekker-limo 2,18 m over de
+  spatborden van de trekker (botsbreedte 2,0); bakwagen 2,59 m romp; heli en sloep binnen gangbare maten.
+- **Botsmaat** (een bug, geen keuze): een hybride botst nu met zijn getekende lengte en breedte (`getekendeMaat` in `propregister.js`,
+  toegepast in de constructor van `Vehicle`; het sjabloon blijft ongewijzigd). `scripts/botsmaat_test.mjs`: botsmaat en romp binnen 3 cm.
+  Een uitvoering met onze eigen bouwer houdt de maat uit het sjabloon (die tekent ook op die maat).
+- **LOD's op het centrale systeem.** `vehiclelod3d.js` gebruikt de `DitherLOD` van `lod3d.js`, de opgave van de soort `vehicle` uit
+  `lodregistry.js` (35 / 90 m, band 8, weg 450, meeschalend via `lodkit3d.js`) en `registerLodModel`; de vijf bestanden van het centrale
+  systeem (lodlevels, lod3d, lodsimplify, lodregistry, lodkit3d) zijn ongewijzigd overgenomen van `perf-ultra-23-11`, zodat het bij het
+  samenvoegen één systeem is. Voertuigspecifiek blijft alleen de geometrie: niveau 1 is de romp met dichte deuren en eenvoudige wielen
+  zonder naden, interieur en kleine driehoekjes (haalt hij de minCut niet, zoals de heli, dan vereenvoudigt `lodsimplify.js` hem
+  verder), niveau 2 het silhouet in de hoofdkleur. Boten krijgen hun LOD's in het centrale systeem zelf (`buildBoatMesh` op die tak).
+  `scripts/vehiclelod_test.mjs` controleert de niveaus op afstand, de dither op de grens en de audit van het register. Op die tak hoort
+  de voertuigbouw nog in het blok 'bouwen' van `scripts/lod_audit_test.mjs`; dat bestand staat niet op deze tak.
+- Beelden en vergelijking: `docs/beeld-23-11/objecten/vergelijking-hybride.html` (origineel, onze sedan en de hybride dichtbij en op
+  20 m, dicht en open; recht van opzij en schuin van boven met de deur open; bakwagen, trekker en trekker-limo; de drie LOD-niveaus).
+
+Na de beoordeling van de coördinator (scherven, een plaat dwars door de cabine, gekartelde deurranden): de hybride knipt nu alleen de
+opzij gekeerde flank (boven de raamlijn alleen de zijruit en zijn lijst, nooit een hoek van de voor- of achterruit, het dak of de C-stijl),
+splitst elke driehoek die de contour snijdt, laat een kier van 4 mm en sluit elke snede met een rand met dikte (6 cm in de opening, 3,5 cm
+aan de deur). Kleine delen die helemaal binnen de contour op de buitenkant zitten (een spiegel) gaan mee met de deur. De 'plaat' was het
+platte zwarte vlak dat hun model binnenin op raamhoogte heeft; dat gaat eruit (alleen diep binnenin, de raamsluiting langs de flank
+blijft). Het eenvoudige interieur volgt de breedte van de flank op elke plek. De getekende deurnaden van de hybride zijn weg: de echte
+kier is de naad. `scripts/deursnipper_test.mjs` faalt bij losse snippers langs de contour.
+
+Aangepaste tests (bewust): `vehicledoors3d_test` telt bij een echt gat alleen deuren die uit hun rustpositie staan; `vehicledoors_test`
+verwacht 63 graden; `voertuigmodel_test`, `vehicledoorcuts_test` en `vehicle_interior_plate_test` keuren onze eigen bouwer
+(`hybride: false`); `vehicle_zfight_test` staat bij de hybrides snippers langs de knipranden toe (geen flush, samen onder 50 cm2).
+
+### Vijfde ronde: losse eilanden, uitlaat, stoelen en dashboard
+
+- Losse eilanden: `hybridBody` ruimt na het knippen elk aaneengesloten stuk onder 150 cm2 binnen 10 cm van een deurcontour op (romp en
+  deurblad), en `knipDeurgaten` (vrachtwagen, trekker, trekker-limo) laat geen platte reepjes onder 1 mm2 meer aan het deurblad.
+  `deursnipper_test` controleert nu elk los eiland langs de opening: in de romp binnen de flank (de buitenste 40 % van de halve
+  breedte, dieper is interieur), en aan het deurblad ook als het buiten de flank uitsteekt; alleen het handvat mag los zitten.
+- Dorpel: elk deurblad blijft binnen zijn contour (gemeten: bbox van elk deurblad valt binnen de deurrechthoek, sedan, hatch, SUV,
+  trekker-limo); de strip die onder een open voordeur zichtbaar blijft is de dorpel van de romp zelf.
+- Uitlaat (hybride): twee pijpjes van 4,8 cm doorsnee en 14 cm lang, half in de onderkant van de achterbumper (gemeten per romp:
+  laagste punt in de laatste 35 cm), de punt 2 cm voorbij de achterkant. De dubbele spiegel (ons blok naast hun deurspiegel) is weg.
+- Interieur uit het register: `autostoel` (rails, zitting met zijwangen die naar achteren zakt, schuine rugleuning, hoofdsteun op
+  stangen; norm 150 tot 400 driehoeken) en `dashboard` (aflopende bovenkant, kap, twee meters, roosters, middenconsole met radio en
+  pook, stuur met spaak en naaf op een schuine kolom; norm 250 tot 700). Gebruikt door het procedurele en het hybride interieur.
+  De hybride norm gaat daardoor naar 7.500 driehoeken op niveau 0 (ca. 1.500 voor het interieur, dat op LOD 1 en 2 verborgen is).
+- Gezien op het contactblad (`gat3`, ook nieuw `-nabij`): stoelen, dashboard, uitlaat, geen dubbele spiegel. Niet zeker: een dunne
+  donkere lijn langs de dorpel in de bovenaanzicht (vermoedelijk de 6 cm rand van de opening, op de kant gezien) en de bovenkant
+  van het open achterportier (raamlijst van hun romp die meegaat met de deur).
+
+### Na de beoordeling: dashboard, wielkast en interieur binnen de romp
+
+- Het "donkere blok met grijze kast" naast de open voordeur was het voorwiel met zijn wieldop: de voordeur liep over de achterkant
+  van de voorste wielkast door, dus het gat liet het wiel zien. Een portier van een hybride begint nu achter de voorste wielkast en
+  eindigt voor de achterste (wielstraal plus 4 cm), houdt zijn breedte van 0,8 m en schuift daarvoor naar de B-stijl (minstens 14 cm
+  stijl). De rig volgt via `userData.deurMaat` (vehicledoors3d.js).
+- Het dashboard was op 27 % van zijn breedte samengeknepen (de flank loopt bij de voorruit in) en stond te ver naar voren. Nu schuift
+  het naar achteren tot de romp minstens 85 % van zijn breedte vrij laat (achter de onderrand van de voorruit) en wordt het alleen
+  zo smal als de flank daar toelaat. Stoelen en vloer volgen dezelfde vrije breedte per plek (`ruimte` in `addInterieur`); de
+  achterbank schuift naar voren tot de hoofdsteun onder de achterruit past.
+- Test: `deursnipper_test` eist dat elk punt van het interieur (vloer, stoelen, dashboard) minstens 5 mm binnen de buitenste flank
+  ligt (romp en dichte deuren, een straal langs z op dezelfde x en y); geen flank daar (boven het dak of achter de ruit) telt als buiten.
+- De zwarte raamlijst op de flank gaat nu altijd mee met de deur (ook zijn bovenvlak), anders bleef een reepje in de opening.
+- Het rode blokje boven de A-stijl was ons losse spiegelblok aan de overkant; dat is weg (zie de vijfde ronde). Wat daar nu zit is
+  de spiegel van het pakket, vast aan de voordeur.
+- Gezien op het contactblad: dicht van opzij (naden achter de wielkasten), open schuin en van boven. Niet zeker: een dun licht
+  lijntje op de raamlijn tussen de B-stijl en de voordeur in het zijaanzicht.
+
 ## Niet in beeld gezien
+
+- Vierde ronde: niets in het spel bekeken; geen fps gemeten (alleen driehoeken). De echte cabine van `cabin3d.js` in de hybride (die volgt
+  `hybridFit`), het verkeer met de nieuwe botsmaten (rijbanen, parkeerplekken, garages: een hatchback is nu 4,33 m in plaats van 3,8 m),
+  de dither-overgang tussen de LOD-niveaus in beweging, en de politielampen en koplampen 's nachts op de hybride.
 
 - Geen enkel model is in het echte spel bekeken (geen Electron-run; de perf-agent had het slot). Alleen het contactblad is gezien.
 - De trekker-limo met bestuurder en passagiers (de zithoogte `y: 0.5` van `limoStoel` is gekozen naar de auto's, niet bekeken).

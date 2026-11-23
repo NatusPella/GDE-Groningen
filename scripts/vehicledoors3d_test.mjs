@@ -14,7 +14,20 @@ const check = (name, ok, info = '') => { if (!ok) { bad++; console.log('FAIL', n
 const scene = new THREE.Scene();
 const seen = new Set();
 const zichtbaar = (o) => { for (let p = o; p; p = p.parent) if (!p.visible) return false; return true; };
-const visible = (mesh) => { let n = 0; mesh.traverse((o) => { if (o.isMesh && o.parent && o.parent.parent && o.parent.parent.name === 'deuren' && zichtbaar(o)) n++; }); return n; };
+// Zichtbare open deuren. Een deur met een echt gat in de romp (23-11) staat dicht ook in de rig (hij vult het gat): die telt alleen
+// als hij uit zijn rustpositie is gedraaid of geschoven.
+const visible = (mesh) => {
+  const rig = mesh.userData.doorRig;
+  if (rig) {
+    let n = 0;
+    for (const e of Object.values(rig.doors)) {
+      const uit = Math.abs(e.pivot.rotation.y) + Math.abs(e.pivot.rotation.z) + Math.abs(e.pivot.position.x - e.baseX) > 0.01;
+      if (e.echt ? uit && zichtbaar(e.pivot) : zichtbaar(e.pivot) && e.pivot.parent) n++;
+    }
+    return n;
+  }
+  let n = 0; mesh.traverse((o) => { if (o.isMesh && o.parent && o.parent.parent && o.parent.parent.name === 'deuren' && zichtbaar(o)) n++; }); return n;
+};
 
 for (const m of TRAFFIC_MODELS()) {
   if (seen.has(m.name)) continue;

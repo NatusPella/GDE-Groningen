@@ -348,4 +348,10 @@ export function syncCabins(world, meshes, px, py) {
     }
     cab.visible = true;
   }
+  // het eenvoudige interieur in de romp (stoelen, vloer, dashboard achter de echte deuropening, models3d_vehicles.js) wijkt voor de
+  // echte cabine zodra die er is, en staat er weer als die verdwijnt
+  for (const v of world.vehicles) {
+    const m = meshes.get(v.id), simpel = m && m.userData.interieurSimpel;
+    if (simpel) simpel.visible = !(m.userData.cabin && m.userData.cabin.visible);
+  }
 }

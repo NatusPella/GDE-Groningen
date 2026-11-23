@@ -43,7 +43,7 @@ for (const m of TRAFFIC_MODELS()) {
 // 2. de naden zitten echt in de gebouwde romp (hoekpunten van een naadstrook komen in de geometrie voor)
 const MODELLEN = [['sedan', 4.3, 1.8], ['hatch', 3.8, 1.7], ['wagon', 4.5, 1.8], ['van', 5.0, 2.0], ['sport', 4.1, 1.85], ['suv', 4.7, 1.95], ['truck', 8.5, 2.5], ['tractor', 4.3, 2.3], ['trekkerlimo', 5.6, 2.0], ['foodtruck', 5.4, 2.1]];
 for (const [naam, len, wid] of MODELLEN) {
-  const v = new Vehicle(0, 0, 0, { name: naam, len, wid, color: '#7a1f1f', maxSpeed: 40, accel: 8, brake: 20, turnRate: 2.5 });
+  const v = new Vehicle(0, 0, 0, { name: naam, len, wid, color: '#7a1f1f', hybride: false, maxSpeed: 40, accel: 8, brake: 20, turnRate: 2.5 });
   const mesh = buildVehicleMesh(v);
   const body = mesh.userData.body || mesh;
   const pos = body.geometry.attributes.position;

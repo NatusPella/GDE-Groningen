@@ -1,0 +1,71 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Hybride auto's, echte deuropeningen en LOD's (23-11)</title>
+<style>
+  body { margin: 0; padding: 24px; background: #17301f; color: #f0ede4; font: 15px/1.45 system-ui, sans-serif; max-width: 1500px; }
+  h1 { margin: 0 0 6px; font-size: 22px; } h2 { font-size: 16px; margin: 20px 0 8px; color: #3fc97a; }
+  img { width: 100%; display: block; border: 1px solid rgba(240,237,228,0.16); margin-bottom: 6px; }
+  table { border-collapse: collapse; } td, th { border: 1px solid rgba(240,237,228,0.2); padding: 4px 10px; text-align: left; vertical-align: top; }
+  .klein { opacity: 0.75; font-size: 13px; }
+</style>
+<h1>Hybride auto's (Quaternius-romp, onze functies), echte deuropeningen en LOD's</h1>
+<p class="klein">Headless Chrome met <code>sheet.html</code>, geen spelbelichting; niets hiervan is in het spel zelf bekeken. Het Quaternius-origineel (Car.glb, CC0) wordt
+buiten git geladen uit C:\Users\abuis\gde-assets\quaternius\cars\pack en is alleen op deze machine te zien.</p>
+
+<h2>Hun origineel, onze eigen sedan, de hybride (dichtbij en op 20 m)</h2>
+<img src="g-hyb.png" alt="dichtbij"><img src="g-hyb-ver.png" alt="20 m">
+<h2>Zelfde, alle deuren open (dichtbij en op 20 m)</h2>
+<img src="g-hyb-open.png" alt="deuren open dichtbij"><img src="g-hyb-ver-open.png" alt="deuren open 20 m">
+
+<h2>Hybride sedan van dichtbij, na het nette knippen: dicht (recht van opzij), open (schuin, recht van opzij, van boven)</h2>
+<img src="g-gat3-opzij.png" alt="hybride dicht, recht van opzij">
+<img src="g-gat3-open-eenkant.png" alt="hybride open, schuin">
+<img src="g-gat3-opzij-open-eenkant.png" alt="hybride open, recht van opzij">
+<img src="g-gat3-boven-open-eenkant.png" alt="hybride open, van boven">
+<img src="g-gat3-open-eenkant-nabij.png" alt="dichtbij: autostoelen en dashboard met stuur door de open deur">
+<img src="g-gat3-boven-open-eenkant-nabij.png" alt="dichtbij van boven: B-stijl en open portieren">
+<img src="g-gat3-achter-nabij.png" alt="dichtbij: voorkant met deurspiegel, geen dubbele spiegel">
+<img src="g-gat3-opzij-open-eenkant-nabij.png" alt="dichtbij recht van opzij, deuren open">
+<p class="klein">De deur is langs de contour uit de romp geknipt (driehoeken die de contour snijden worden gesplitst), met een kier van 4 mm; langs elke snede een
+rand met dikte (6 cm in de opening, 3,5 cm aan de deur). Alleen de opzij gekeerde flank wordt geknipt (boven de raamlijn alleen de zijruit en zijn lijst),
+dus geen stukken dak, voorruit of C-stijl aan de deur. Het platte zwarte vlak dat hun model binnenin op raamhoogte heeft, is weg. scripts/deursnipper_test.mjs
+faalt bij een losse snipper (kleiner dan 4 cm2, binnen 5 cm van de contour, aan niets vast).</p>
+<h2>Echte deuropening: close-up recht van opzij, deuren aan deze kant open (links de hybride sedan, rechts onze eigen stationwagen)</h2>
+<img src="g-gat-opzij-open-eenkant.png" alt="recht van opzij, open">
+<p class="klein">Ter vergelijking dicht: de deur vult het gat.</p>
+<img src="g-gat-opzij.png" alt="recht van opzij, dicht">
+<h2>Echte deuropening: schuin van boven</h2>
+<img src="g-gat-boven-open-eenkant.png" alt="schuin van boven, open">
+<h2>Bakwagen, trekker en trekker-limo: ook een echt gat (schuin van boven en van opzij)</h2>
+<img src="g-gat2-boven-open-eenkant.png" alt="bakwagen, trekker, trekker-limo van boven">
+<img src="g-gat2-opzij-open-eenkant.png" alt="bakwagen, trekker, trekker-limo van opzij">
+
+<h2>LOD's (centraal systeem, soort 'vehicle'): dezelfde sedan op niveau 0, 1 en 2</h2>
+<img src="g-lod.png" alt="LOD 0, 1, 2">
+
+<h2>Per functie</h2>
+<table>
+  <tr><th>Functie</th><th>Stand</th><th>Test</th></tr>
+  <tr><td>Echte deuropening (geen romp in het gat, open: interieur of overkant, dicht: geen kier)</td><td>Hybrides, onze eigen auto's, bestelbus, bakwagen, trekker, trekker-limo</td><td>deuropening_test.mjs</td></tr>
+  <tr><td>Geen losse scherven langs de opening</td><td>Romp en deurbladen van alle hybrides en blokkenrompen</td><td>deursnipper_test.mjs</td></tr>
+  <tr><td>Deurblad in de vorm van de romp, met dikte, binnenkant en handvat</td><td>Hybride: uitgeknipt stuk romp; blokkenrompen: uitgeknipt zijvlak; eigen auto's: vlak paneel in het gat</td><td>vehicledoors3d_test.mjs</td></tr>
+  <tr><td>Wielen draaien en sturen, kleur, lampen, schade met losse delen en hangende bumper</td><td>Werkt</td><td>hybridecar_test.mjs</td></tr>
+  <tr><td>Schaal (lengte, breedte, hoogte, wielbasis, wiel, deuropening, hoofd onder het dak)</td><td>Alle hybrides binnen de norm</td><td>voertuigschaal_test.mjs</td></tr>
+  <tr><td>Botsmaat = getekende maat</td><td>Alle hybrides (binnen 3 cm)</td><td>botsmaat_test.mjs</td></tr>
+  <tr><td>LOD's met dither</td><td>Alle voertuigen behalve fiets, step, paard (berijder) en boten (die doet het centrale systeem zelf)</td><td>vehiclelod_test.mjs (met de audit van lodregistry.js)</td></tr>
+  <tr><td>Politie, taxi</td><td>Hybride met lichtbalk, knipperende lampen, strepen (op de deur mee), taxibord</td><td>deuropening_test.mjs, botsmaat_test.mjs</td></tr>
+  <tr><td>Ambulance, Escapade, roest, tokkie, elektrisch, tuning, stationwagen, bestelbus</td><td>Onze eigen bouwer (met echte deurgaten)</td><td>voertuigmodel_test.mjs</td></tr>
+</table>
+
+<h2>Prestaties (per voertuig, driehoeken op niveau 0 / 1 / 2)</h2>
+<table>
+  <tr><th>Model</th><th>Niveau 0</th><th>1 (vanaf 35 m)</th><th>2 (vanaf 90 m)</th></tr>
+  <tr><td>Hybride sedan</td><td>3.553</td><td>1.817</td><td>92</td></tr>
+  <tr><td>Hybride SUV</td><td>3.938</td><td>2.046</td><td>92</td></tr>
+  <tr><td>Hybride politie</td><td>3.783</td><td>1.975</td><td>92</td></tr>
+  <tr><td>Stationwagen (eigen bouwer)</td><td>2.384</td><td>934</td><td>92</td></tr>
+  <tr><td>Bus</td><td>3.384</td><td>1.210</td><td>92</td></tr>
+  <tr><td>Trekker-limo</td><td>5.970</td><td>1.902</td><td>92</td></tr>
+</table>
+<p class="klein">Ter vergelijking: onze eigen sedan was vóór deze ronde 1.908 driehoeken in 12 meshes, zonder LOD. Het knippen van de deuren en de deurbladen kost
+op niveau 0 meer, alleen binnen 35 m.</p>
