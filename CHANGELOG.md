@@ -9,6 +9,8 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ## [Unreleased]
 
+- Wereld: bomen zijn geen gladde bollen meer maar hebben bobbelige kronen met een donkerder onderkant, en elke boom heeft een eigen tint groen. Gevels en daken hebben zachte verweringsvlekken, zodat lange muren en dakvlakken niet meer uit één egale kleur bestaan.
+
 ## [0.65.0] - 2026-11-22
 
 Samen spelen met vier echte vensters getest, een ronde zeefdruk-menu's (Spullen, Loopbanen, Boerderij, zoeken), echte voetstappen en weergeluid, AAA-aankleding van de missies van akte 1 tot en met 4 en een snellere start. Pre-release voor de speeltest.
