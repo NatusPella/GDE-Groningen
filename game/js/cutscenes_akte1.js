@@ -16,6 +16,11 @@
 //   manual  true: no automatic coverage after the forced `shots` (a camera that follows a moving car)
 //   direct  { lines: [{ on, emotion, kind, to, humor }], wide? }   OPT-IN: the camera coverage comes from the direction engine (cutdirector.js) instead of the automatic coverage
 //   align   'road': the scene stands on the nearest road, +f along it (a car that drives through the scene, missionstory.js alignToRoad)
+//   light   the light of the whole scene (#1323, shotlight.js): a preset name ('gouden-uur', 'avond-binnen', 'warm-intiem', 'spanning',
+//           'ochtend', 'avond-buiten', 'bewolkt-zacht', 'tl-binnen', 'nacht-straat', 'dag') or { preset, key: { kelvin, intensity,
+//           azimuth, elevation }, fill: { kelvin, intensity }, rim: { kelvin, intensity }, exposure, saturation, mix }; none = the world's light
+//   lights  [{ on, dt, light }]   the light from that line on: every shot that cuts in at or after that moment, until the next entry
+//           (a shot in `shots`, `shotFix` or `cuts` with its own `light` keeps it)
 // A key with '#from-to' ('M26.4#7-14') is a slice of a script scene: a stage scene that plays lines 7 to 13 of M26.4.
 // A beat whose line is not found (an edited text) is skipped, so a text edit never breaks a scene.
 // Coordinates are local to the player's spot: f forward, s left, h up (m). The pair stands at f 0,
@@ -799,6 +804,20 @@ export function missionScene(key, lines, { looks = {}, spec: given = null } = {}
   }
   // as-sprongen hersteld (shotFix, cineshots.js): vervangt de gegenereerde shots met dezelfde t
   if (spec.shotFix) applyShotFix(shots, spec.shotFix);
+  // licht per shot (#1323, shotlight.js): `lights: [{ on, dt, light }]` geldt vanaf de eerste snee op of na dat moment tot de volgende
+  // ingang; een shot met een eigen `light` (shotFix, shots) houdt dat. `spec.light` is het licht van de hele scène (def.light).
+  if (spec.lights && spec.lights.length) {
+    const tn = (t) => { if (typeof t === 'number') return t; const m = /^L(\d+)([+-][\d.]+)?$/.exec(t); return m && lines[+m[1]] ? lines[+m[1]].at + (m[2] ? +m[2] : 0) : 0; };
+    const keys = spec.lights.map((q) => { const idx = q.on === 0 || q.t === 0 ? 0 : resolveOn(q.on, lines); return { at: q.t !== undefined ? q.t : idx == null || idx < 0 ? null : lines[idx].at + (q.dt || 0), light: q.light }; })
+      .filter((q) => q.at != null).sort((a, b) => a.at - b.at);
+    for (const s of shots) {
+      if (s.light !== undefined) continue;
+      const t = tn(s.t);
+      let cur;
+      for (const q of keys) if (q.at <= t + 0.05) cur = q.light;
+      if (cur !== undefined) s.light = cur;
+    }
+  }
   // an effect is placed on a line (`on`, with `dt`) or at a scene time (`t`, e.g. a name card at 1.0 s; before #1138 such an fx was dropped)
   const fx = (spec.fx || []).flatMap((f) => {
     if (f.on === undefined && f.t !== undefined) return [{ ...f }];
@@ -807,7 +826,7 @@ export function missionScene(key, lines, { looks = {}, spec: given = null } = {}
     const { on, dt, ...rest } = f;
     return [{ t: idx == null ? 'end' : tspec(idx, dt || 0), ...rest }];
   });
-  return { id: 'story-' + key, actors, props, cues, shots, ...(humor && humor.length ? { humor } : {}), ...(spec.set ? { set: spec.set } : {}), ...(spec.crowd ? { crowd: spec.crowd } : {}), ...(fx.length ? { fx } : {}) };
+  return { id: 'story-' + key, actors, props, cues, shots, ...(spec.light ? { light: spec.light } : {}), ...(humor && humor.length ? { humor } : {}), ...(spec.set ? { set: spec.set } : {}), ...(spec.crowd ? { crowd: spec.crowd } : {}), ...(fx.length ? { fx } : {}) };
 }
 
 // Het paar praat op de bank van de rondvaartboot (boatdeck.js): zittend onder het glazen dak, de camera op zithoogte aan de boegkant.
