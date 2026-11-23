@@ -16,8 +16,9 @@ const note = (k, v) => { meet[k] = v; console.error('[mensen] ' + k + ' ' + JSON
 const S3 = () => window.__scene3d;
 // modulaire mensen in de scène: aantal, per LOD, met de mond open (lipsync), met de handen dicht (grijphand)
 const telMensen = () => {
-  const r = { modulair: 0, procedureel: 0, lod: [0, 0, 0], mondOpen: 0, grijp: 0 };
+  const r = { modulair: 0, procedureel: 0, lod: [0, 0, 0], mondOpen: 0, grijp: 0, ver: 0 };
   S3().scene.traverse((o) => {
+    if (o.isInstancedMesh && o.name === 'farcrowd' && o.visible) r.ver += o.count;   // verre menigte (farcrowd3d.js)
     const ud = o.userData;
     if (ud && ud.qRig) { r.modulair++; r.lod[ud.qLod || 0]++; if (ud.mouth && ud.mouth.scale.y > 0.05) r.mondOpen++; if (ud.qGrip) r.grijp++; }
     else if (ud && ud.body && ud.body.isSkinnedMesh && ud.body.skeleton && !ud.qRig) r.procedureel++;
@@ -67,6 +68,41 @@ await (async () => {
       await sleep(settle); p.x = x; p.y = y; p.gz = gh(x, y); fix();
     };
     const fout = []; window.addEventListener('error', (e) => fout.push(String(e.message).slice(0, 160)));
+    const origErr = console.error; console.error = (...a) => { if (!String(a[0]).startsWith('[mensen]')) fout.push(a.map(String).join(' ').slice(0, 200)); origErr.apply(console, a); };
+
+    // 1b. een gesprek met Tammo en Tessa uit de echte cutscenes (zelfde pad als scripts/ui/cutscene_render.page.js): de mond beweegt
+    //     op de stem of de lettergreepcurve (actoranim.js), de handen gebaren
+    try {
+      const stad0 = P(100, 77);
+      await jump(stad0[0] + 6, stad0[1] + 4, 6000);
+      await imp('cutscenehost');
+      const host = window.__cutHost, scr = await imp('cutscript'), prev = await imp('cutpreview'), sc3 = await imp('scene3d'), camp = await imp('camerapath');
+      const script = await (await fetch('/storydata/script.json')).json();
+      const src = await (await fetch('/js/missionstory.js')).text();
+      const cat = prev.buildCatalog({ script, npcSource: src });
+      const e = cat.find((x) => x.scene && x.def && x.lines && x.lines.length >= 3 && /^M0[1-3]/.test(x.id) && x.lines.some((l) => /tessa/i.test(l.speaker)) && x.lines.some((l) => /tammo/i.test(l.speaker)));
+      note('dialoog', e ? e.id : 'geen');
+      if (e) {
+        const anchor0 = { x: p.x, y: p.y, facing: 0.3, z: p.gz || 0 };
+        const env = { solid: (x, y, z) => camp.roofAt(map, x, y) > z - 0.2, tree: () => false };
+        const at = scr.fitAnchor(e.scene, anchor0, env);
+        const run = host.buildScriptRun(e.def, e.scene, at, env, w);
+        sc3.getScene().add(run.group);
+        let T = 0;
+        cine.playCinematic({ id: 'm-dialoog', duration: Math.min(e.duration, 40), priority: 9, letterbox: false, hideHud: true, skippable: false,
+          lines: e.lines.map((l) => ({ speaker: l.speaker, text: l.text, at: l.at, dur: l.dur })), shot: (u, t) => { T = t; return run.frame(t, 0.05); } });
+        let mond = 0, q = 0;
+        const tel = setInterval(() => { try { const r = telMensen(); mond = Math.max(mond, r.mondOpen); q = Math.max(q, r.modulair); } catch (er) { /* */ } }, 80);
+        const t1 = e.lines[1] ? e.lines[1].at + 0.6 : 3;
+        await sleep(Math.min(20, t1) * 1000); await shot('dialoog-a', 100);
+        await sleep(2500); await shot('dialoog-b', 100);
+        clearInterval(tel);
+        note('dialoogMond', { mondOpenMax: mond, modulair: q, t: +T.toFixed(1) });
+        if (cine.isCinematicActive()) cine.skipCinematic();
+        run.dispose();
+        w.cinematicHidePlayers = false; w.cinematicHideNav = false;
+      }
+    } catch (er) { note('dialoogFout', String(er && er.stack || er).slice(0, 300)); }
 
     // 2. straat met voetgangers: Vismarkt en Grote Markt (stadsmidden P(100, 77)); de speler zelf in beeld, dan de menigte van
     //    dichtbij, op 40 m en op 80 m (LOD 0, 1 en 2)
@@ -80,11 +116,11 @@ await (async () => {
     let cx = p.x, cy = p.y;
     if (peds.length) { cx = peds.reduce((s, q) => s + q.x, 0) / peds.length; cy = peds.reduce((s, q) => s + q.y, 0) / peds.length; }
     const gz = gh(cx, cy);
-    // de camera in het spel: x = kaart-x, y = hoogte, z = kaart-y
+    // cam(x, kaart-y, hoogte, kijk-x, kijk-kaart-y, kijkhoogte): de vorm van cinematics.js (zoals hertest_scenes.js H.cam)
     for (const [naam, d, h] of [['menigte-10m', 10, 3], ['menigte-40m', 40, 9], ['menigte-80m', 80, 18]]) {
       p.x = cx - d * 0.7; p.y = cy - d * 0.7;   // het LOD volgt de afstand tot de speler: hij staat bij de camera
       await sleep(1500);
-      cam(cx - d * 0.7, gz + h, cy - d * 0.7, cx, gz + 1, cy, d > 30 ? 40 : 60);
+      cam(cx - d * 0.7, cy - d * 0.7, gz + h, cx, cy, gz + 1, d > 30 ? 40 : 60);
       await sleep(1500);
       note(naam, telMensen());
       await shot(naam, 600);
@@ -106,7 +142,8 @@ await (async () => {
     await shot('auto-buiten', 800);
     // van opzij door het zijraam: de bestuurder met handen aan het stuur
     const sa = car.angle + Math.PI / 2;
-    cam(car.x + Math.cos(sa) * -3.2, (car.z || gh(car.x, car.y)) + 1.4, car.y + Math.sin(sa) * -3.2, car.x, (car.z || gh(car.x, car.y)) + 1.0, car.y, 45);
+    const cz = car.z || gh(car.x, car.y);
+    cam(car.x + Math.cos(sa) * -3.2, car.y + Math.sin(sa) * -3.2, cz + 1.4, car.x, car.y, cz + 1.0, 45);
     await shot('auto-zijkant', 1200);
     camOff();
 
@@ -123,7 +160,8 @@ await (async () => {
     note('fiets', { opFiets: p.inVehicle === bike, snelheid: +(bike.speed || 0).toFixed(1), ...telMensen() });
     await shot('fiets-achter', 300);
     const ba = bike.angle + Math.PI / 2;
-    cam(bike.x + Math.cos(ba) * -3.5, gh(bike.x, bike.y) + 1.3, bike.y + Math.sin(ba) * -3.5, bike.x, gh(bike.x, bike.y) + 1.0, bike.y, 45);
+    const bz = gh(bike.x, bike.y);
+    cam(bike.x + Math.cos(ba) * -3.5, bike.y + Math.sin(ba) * -3.5, bz + 1.3, bike.x, bike.y, bz + 1.0, 45);
     await shot('fiets-zijkant', 1000);
     camOff();
     note('fouten', fout);

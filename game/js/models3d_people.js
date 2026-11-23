@@ -1540,6 +1540,8 @@ export function seatedY(mesh, seatTop) {
 
 export function seatPose(mesh, spec = SEAT_CAR, t = 0) {
   const ud = mesh.userData;
+  // modulaire mens (ADR 0051): de zit-clip uit de state-machine; seatedY zet hem op de zitting
+  if (ud.qRig) { ud.qParams = ud.qSitP || (ud.qSitP = { seated: true }); animateModular(mesh, 0, 1 / 60); return; }
   if (!ud.pelvis) return;
   resetSpine(ud);
   const rec = spec.recline || 0;

@@ -458,7 +458,31 @@ export function buildModularPerson(seed, opts = {}) {
   const bi = (n) => rig.man.bones.findIndex((b) => b.name === n);
   ud.qIdxBy = Object.fromEntries(rig.man.bones.map((b, i) => [b.name, i]));
   ud.qIdx = { neck: bi('Neck'), head: bi('Head'), body: bi('Body'), root: bi('Root'), upL: bi('UpperLegL'), loL: bi('LowerLegL'), upR: bi('UpperLegR'), loR: bi('LowerLegR'), footL: bi('FootL'), footR: bi('FootR') };
+  addProceduralAliases(group);
   return group;
+}
+
+// Veel spelcode (minigames, missies, cutscenes) zet nog houdingen op de botten van het eigen model (ud.armR.rotation, ud.head, ...).
+// Een modulaire mens krijgt daarvoor houders met dezelfde namen, vast aan het overeenkomende bot (zonder de packschaal, -y langs het
+// lid): zo'n houding doet op het nieuwe model niets (de state-machine en de IK sturen het lijf), maar breekt ook niets, en een prop die
+// iemand aan ud.elbowR of ud.head hangt, beweegt met de arm of het hoofd mee. ud.qAlias = true markeert ze.
+const ALIAS = { pelvis: 'Hips', chest: 'Chest', head: 'Head', armL: 'UpperArmL', armR: 'UpperArmR', elbowL: 'LowerArmL', elbowR: 'LowerArmR', legL: 'UpperLegL', legR: 'UpperLegR', kneeL: 'LowerLegL', kneeR: 'LowerLegR' };
+const _as = new THREE.Vector3(), _aq = new THREE.Quaternion(), _ap = new THREE.Vector3();
+function addProceduralAliases(group) {
+  const ud = group.userData;
+  group.updateMatrixWorld(true);
+  for (const [k, n] of Object.entries(ALIAS)) {
+    const b = ud.qBones[ud.qIdxBy[n]];
+    if (!b || ud[k]) continue;
+    b.matrixWorld.decompose(_ap, _aq, _as);
+    const o = new THREE.Object3D();
+    o.name = 'alias-' + k;
+    o.scale.setScalar(group.scale.x / (_as.x || 1));
+    o.rotation.z = Math.PI;
+    b.add(o);
+    ud[k] = o;
+  }
+  ud.qAlias = true;
 }
 
 // ---- animatie -------------------------------------------------------------------------------------
@@ -639,8 +663,8 @@ export function animateModular(mesh, speed, dt) {
   st.gaze += ((gz === undefined || gz !== gz ? 0 : gz) - st.gaze) * Math.min(1, step * 6);
   if (Math.abs(st.gaze) > 1e-3) {
     const ax = rig.lookAxis;
-    bones[ud.qIdx.neck].quaternion.premultiply(_qa.setFromAxisAngle(_axis.fromArray(ax.Neck), -st.gaze * 0.4));
-    bones[ud.qIdx.head].quaternion.premultiply(_qa.setFromAxisAngle(_axis.fromArray(ax.Head), -st.gaze * 0.6));
+    ud.qBones[ud.qIdx.neck].quaternion.premultiply(_qa.setFromAxisAngle(_axis.fromArray(ax.Neck), -st.gaze * 0.4));
+    ud.qBones[ud.qIdx.head].quaternion.premultiply(_qa.setFromAxisAngle(_axis.fromArray(ax.Head), -st.gaze * 0.6));
   }
 }
 

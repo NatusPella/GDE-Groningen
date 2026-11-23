@@ -179,6 +179,22 @@ for (const female of [false, true]) {
   ok(L.x > 0.25 && R.x > 0.25 && L.y > 0.85 && R.y > 0.85 && L.z < 0 && R.z > 0, `dragen: beide handen voor de borst (L ${L.x.toFixed(2)},${L.y.toFixed(2)} R ${R.x.toFixed(2)},${R.y.toFixed(2)})`);
 }
 
+// blik en oude houdingen: een blik opzij draait het hoofd (in Electron gevonden: ReferenceError in animateModular), en code die nog
+// houdingen op de botten van het eigen model zet (ud.armR.rotation, ud.head) breekt niets op het nieuwe model
+{
+  const m = M.buildModularPerson(99, { female: true });
+  const ud = m.userData, head = ud.qBones[ud.qIdx.head];
+  for (let f = 0; f < 5; f++) M.animateModular(m, 0, 1 / 60);
+  const q0 = head.getWorldQuaternion(new THREE.Quaternion());
+  let threw = null;
+  try { ud.gazeT = 0.6; for (let f = 0; f < 40; f++) M.animateModular(m, 0, 1 / 30); } catch (e) { threw = e.message; }
+  m.updateMatrixWorld(true);
+  ok(!threw && head.getWorldQuaternion(new THREE.Quaternion()).angleTo(q0) > 0.2, `blik opzij draait het hoofd (${threw || 'geen fout'})`);
+  threw = null;
+  try { ud.armR.rotation.set(0.1, 0, 2.2); ud.elbowL.rotation.z = 1.2; ud.head.rotation.y = 0.3; ud.pelvis.position.y = 0.9; ud.chest.rotation.z = -0.1; P.swimPose(m, 1, true); P.seatPose(m); } catch (e) { threw = e.message; }
+  ok(!threw && ud.qAlias && ud.elbowR.parent === ud.qBones[ud.qIdxBy.LowerArmR], `oude houdingen op het nieuwe model: geen fout (${threw || 'ok'}), houders aan de echte botten`);
+}
+
 // eerste-persoonhanden: de echte onderarm met gesloten hand van Tammo en Anita, van ver naar dichtbij gesorteerd
 {
   const { TAMMO_APPEARANCE, ANITA_APPEARANCE } = P;
