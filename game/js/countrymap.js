@@ -359,6 +359,9 @@ function drawLevel(ctx, x0, y0, x1, y1, lvl, dev, pxPerM, build) {
   return missing;
 }
 
+// Missed the last drawCountryMinimap tiles that are still being built? The minimap's land cache (hud_panel.js) is drawn again until it is complete.
+export const miniTilesPending = () => miniQueue.size > 0;
+
 export function drawCountryMinimap(ctx, x0, y0, x1, y1, pxPerM = 1.2) {
   const m = ctx.getTransform();
   const dev = Math.hypot(m.a, m.b) || 1;

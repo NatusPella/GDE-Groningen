@@ -359,7 +359,7 @@ ok(A.planModeFor('ov', 'lopen') === 'ov' && A.planModeFor('boot', 'auto') === 'b
 // de minimap en de grote kaart tekenen "jij" via de kijkanker (#1141): duif, heli en trein draaien de kaart op hun eigen richting
 {
   const hp = readFileSync(new URL('../game/js/hud_panel.js', import.meta.url), 'utf8'), mv = readFileSync(new URL('../game/js/mapview.js', import.meta.url), 'utf8');
-  ok(/mapUpRotation\(anchor, northUp\(/.test(hp) && /angle: player\.angle \+ mapRotation/.test(hp), 'de minimap draait en tekent de driehoek via de kijkanker');
+  ok(/mapUpRotation\(anchor, northUp\(/.test(hp) && /drawMiniSpeler\(ctx, cx, cy, player\.angle \+ mapRotation\)/.test(hp), 'de minimap draait en tekent de driehoek via de kijkanker');
   ok(!/world\.camYaw \?\? player\.angle/.test(hp), 'de minimap leest camYaw niet meer los');
   ok(/getViewAnchor/.test(mv) && !/const ik = hoofdspeler\(world\)/.test(mv), 'de grote kaart gebruikt de kijkanker voor je marker en je plek');
 }

@@ -816,12 +816,15 @@ body.pigeon-mode #banter-sub, body.pigeon-mode #radio-sub { bottom: calc(198px *
 #hud .rpm-bg { stroke: var(--ds-c-ink-papier); }
 #hud .rpm-fill { stroke: var(--ds-c-ink-bord); }
 
-/* de minimap: afgerond vierkant op papier, inktrand, harde schaduw; de buurtnaam hangt als inktlabel eronder */
+/* de minimap: afgerond vierkant op papier, inktrand, harde schaduw; de buurtnaam hangt als inktlabel eronder.
+   23-11 (strakker): een smallere papieren lijst (4 px) en concentrische hoeken: de binnenhoek is de buitenhoek min rand en lijst,
+   dus de kaart en zijn lijst lopen evenwijdig. De canvas krijgt de apparaatpixels van dit vak (hud_panel.js, geen herschaling). */
 #hud .hud-minimap-wrap {
-  background: var(--hud-plaat); border: var(--hud-rand); border-radius: 16px; padding: 6px; box-sizing: border-box;
+  --mm-lijst: 4px;
+  background: var(--hud-plaat); border: var(--hud-rand); border-radius: 16px; padding: var(--mm-lijst); box-sizing: border-box;
   box-shadow: var(--hud-schaduw); overflow: hidden; transition: box-shadow var(--ds-m-max) ease;
 }
-#hud .hud-minimap-wrap canvas { border-radius: 10px; box-shadow: 0 0 0 1.5px var(--hud-inkt); }
+#hud .hud-minimap-wrap canvas { border-radius: calc(16px - var(--ds-lijn-zeef) - var(--mm-lijst)); box-shadow: 0 0 0 1.5px var(--hud-inkt); }
 #hud .hud-minimap-wrap.wanted { box-shadow: var(--ds-schaduw-hard-roze); border-color: var(--hud-inkt); }
 
 /* #1080: de rand van de minimap is rood tijdens de achtervolging en roze als ze je zoeken (geen sterren of cijfers op de kaart zelf; geen beweging) */
