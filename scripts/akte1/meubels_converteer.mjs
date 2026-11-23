@@ -1,8 +1,8 @@
 // Zet de meubels uit het interieurregister (game/js/propregister.js INTERIEUR_REGISTER) om van de glb's van Quaternius (CC0, buiten
 // git) naar ons formaat: game/js/interiorprops_data.js. Per meubel een palet (sRGB-hex per materiaal, met een soort: 0 vast,
-// 1 gloeit (lampkap), 2 glas), en twee LOD-niveaus met gekwantiseerde posities (uint16 over de box), een paletindex per hoekpunt en
-// indices. De normalen rekent het spel zelf (vlak gearceerd, laag-poly). Lod 1 is lod 0 na rasterlassen: hoekpunten met dezelfde
-// kleur in dezelfde rastercel worden één, platte driehoeken vallen weg.
+// 1 gloeit (lampkap), 2 glas), het model zelf met gekwantiseerde posities (uint16 over de box), een paletindex per hoekpunt en
+// indices. De normalen rekent het spel zelf (vlak gearceerd, laag-poly). De lichtere LOD-niveaus maakt het centrale
+// LOD-systeem (lodkit3d.js) bij het bouwen.
 //   node scripts/akte1/meubels_converteer.mjs [--bron=<map met de packs>] [--meet]
 // Standaardbron: %USERPROFILE%/gde-assets/quaternius (ultimate-home-interior/pack en ultimate-furniture/pack), of GDE_QUATERNIUS.
 // Alleen de bron leest dit script; het schrijft één bestand in de repo en verder niets.
@@ -185,18 +185,11 @@ for (const id of INTERIEUR_IDS) {
   for (let k = 0; k < p.length; k += 3) for (let c = 0; c < 3; c++) { mn[c] = Math.min(mn[c], p[k + c]); mx[c] = Math.max(mx[c], p[k + c]); }
   const maat = mx.map((v, c) => v - mn[c]);
   const box = [...mn, ...maat].map((v) => +v.toFixed(5));
-  // lod 1: rasterlassen, de cel groeit tot het driehoekenbudget van de norm gehaald is
-  const doel = Math.floor((lod0.idx.length / 3) * Math.min(e.norm.lod1, 0.6));
-  let lod1 = null;
-  // nooit grover dan een twaalfde van de grootste maat: anders verliest het silhouet zijn poten en randen
-  for (let cel = Math.max(...maat) / 60; cel <= Math.max(...maat) / 12; cel *= 1.2) {
-    lod1 = las(lod0, cel);
-    if (lod1.idx.length / 3 <= doel) break;
-  }
-  const a = pak(lod0, box), b = pak(lod1, box);
-  totaal += a.b64.length + b.b64.length;
-  data[id] = { palet: lod0.palet.map((c) => c.hex), soort: lod0.palet.map((c) => c.soort), namen: lod0.palet.map((c) => c.naam), schaal: e.bron.schaal, box, lod: [a, b] };
-  if (MEET) console.log(id.padEnd(12), `lod0 ${a.t} tris ${a.v} hp, lod1 ${b.t} tris`, 'maat', maat.map((v) => v.toFixed(2)).join(' x '), 'palet', lod0.palet.map((c) => c.naam + (c.soort ? '*' + c.soort : '')).join(','));
+  // de lichtere niveaus maakt het centrale LOD-systeem (lodkit3d.js makeLodObject, soort 'interior'): hier alleen het model zelf
+  const a = pak(lod0, box);
+  totaal += a.b64.length;
+  data[id] = { palet: lod0.palet.map((c) => c.hex), soort: lod0.palet.map((c) => c.soort), namen: lod0.palet.map((c) => c.naam), schaal: e.bron.schaal, box, lod: [a] };
+  if (MEET) console.log(id.padEnd(12), `${a.t} tris ${a.v} hp`, 'maat', maat.map((v) => v.toFixed(2)).join(' x '), 'palet', lod0.palet.map((c) => c.naam + (c.soort ? '*' + c.soort : '')).join(','));
 }
 
 const kop = `// GEGENEREERD door scripts/akte1/meubels_converteer.mjs uit de CC0-packs van Quaternius (zie docs/MEUBEL-LICENTIES.md). Niet met de hand

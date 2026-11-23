@@ -1,12 +1,15 @@
 // Het interieurregister (propregister.js INTERIEUR_REGISTER) en de omgezette meubels (interiorprops_data.js, interiorprops3d.js):
-// elk meubel is omgezet, heeft twee LOD-niveaus (lod 1 lichter dan lod 0), haalt zijn norm (driehoeken, kleuren, maat binnen 25 %),
-// staat op de grond, heeft geen NaN, en de data blijft klein. Ook de LOD-afstanden (meubelLodAt).
+// elk meubel is omgezet, krijgt LOD-niveaus van het centrale systeem, haalt zijn norm (driehoeken, kleuren, maat binnen 25 %),
+// staat op de grond, heeft geen NaN, en de data blijft klein. De LOD-niveaus komen uit het centrale systeem (lodkit3d.js, soort
+// 'interior'): elk geplaatst meubel krijgt ze en de audit van lodregistry.js keurt ze (lichter genoeg, silhouet bewaard).
 //   node scripts/interiorprops_test.mjs [--meet]   (eenmalig: cd desktop && npm run stage)
 import './node3d.mjs';
 import fs from 'node:fs';
 
 await import('three');
-const { INTERIEUR_REGISTER, INTERIEUR_IDS, isInterieurProp, MEUBEL_LOD_R, meubelLodAt, PROP_IDS, PACK_SCHAAL } = await import('../game/js/propregister.js');
+const { INTERIEUR_REGISTER, INTERIEUR_IDS, isInterieurProp, PROP_IDS, PACK_SCHAAL } = await import('../game/js/propregister.js');
+const { LOD_KINDS, lodModels, auditLod } = await import('../game/js/lodregistry.js');
+const THREE = await import('three');
 const { INTERIOR_PROP_DATA } = await import('../game/js/interiorprops_data.js');
 const { interiorPropGeometry, interiorPropRaw, interiorProp, INTERIOR_PROP_MATERIALS, fitScale } = await import('../game/js/interiorprops3d.js');
 
@@ -54,17 +57,24 @@ for (const id of INTERIEUR_IDS) {
   const e = INTERIEUR_REGISTER[id], n = e.norm;
   ok(id + ': Nederlandse naam, bron en gebruik', !!e.nl && !!e.bron.bestand && ['home', 'furniture'].includes(e.bron.pack) && e.gebruik.every((g) => g === 'keuken' || g === 'flat'));
   if (!INTERIOR_PROP_DATA[id]) continue;
-  const g0 = interiorPropGeometry(id, 0), g1 = interiorPropGeometry(id, 1);
+  const g0 = interiorPropGeometry(id, 0);
   ok(id + ': gedeelde geometrie', interiorPropGeometry(id, 0) === g0 && g0.userData.shared === true);
-  const t0 = g0.attributes.position.count / 3, t1 = g1.attributes.position.count / 3;
+  const t0 = g0.attributes.position.count / 3;
   ok(id + ': driehoeken binnen de norm', t0 >= n.tris[0] && t0 <= n.tris[1], t0 + ' niet in ' + n.tris);
-  ok(id + ': lod 1 is lichter (hoogstens ' + n.lod1 + ' van lod 0)', t1 > 8 && t1 <= t0 * n.lod1, t1 + ' tegen ' + t0);
+  // de LOD-niveaus van het centrale systeem: een geplaatst exemplaar heeft lichtere niveaus naast het model
+  const placed = interiorProp(id);
+  const levels = placed.userData.lod && placed.userData.lod.entries[0];
+  ok(id + ': LOD-niveaus van het centrale systeem (soort interior)', placed.userData.lod && placed.userData.lod.kind === 'interior' && levels && levels.length >= 2, levels && levels.length);
+  const t1 = levels && levels[1] ? levels[1].geometry.attributes.position.count / 3 : t0;
+  ok(id + ': LOD1 scheelt genoeg (minCut ' + LOD_KINDS.interior.minCut[0] + ')', t1 <= t0 * (1 - LOD_KINDS.interior.minCut[0]) + 1e-9, t1 + ' tegen ' + t0);
+  const g1 = levels && levels[1] ? levels[1].geometry : g0;
   for (const [g, l] of [[g0, 0], [g1, 1]]) {
     const p = g.attributes.position.array;
     let nan = false;
     for (let i = 0; i < p.length; i++) if (!Number.isFinite(p[i])) nan = true;
     ok(`${id}: lod ${l} zonder NaN`, !nan);
-    ok(`${id}: lod ${l} heeft groepen per materiaal`, g.groups.length >= 1 && g.groups.every((q) => q.materialIndex >= 0 && q.materialIndex < INTERIOR_PROP_MATERIALS.length));
+    const mat = (l === 0 ? placed.children[0] : levels[1]).material;
+    ok(`${id}: lod ${l} tekent (één materiaal, of groepen bij een lijst)`, Array.isArray(mat) ? g.groups.length >= 2 && g.groups.every((q) => q.materialIndex >= 0 && q.materialIndex < mat.length) : !!mat);
   }
   const bb = g0.boundingBox;
   ok(id + ': staat op de grond', Math.abs(bb.min.y) < 0.01, 'min y ' + bb.min.y);
@@ -86,18 +96,22 @@ for (const [id, h] of [['deur', 2.0], ['keukenkast', 0.9], ['keukentafel', 0.75]
   ok(`norm eigenaar: ${id} heeft een echte maat rond ${h} m`, !!INTERIEUR_REGISTER[id] && !!INTERIEUR_REGISTER[id].echt && Math.abs(INTERIEUR_REGISTER[id].echt.h - h) <= 0.1);
 }
 
-// een geplaatst meubel is een LOD met twee niveaus en een leeg derde
+// een geplaatst meubel: een groep met het model en zijn niveaus (verborgen tot updateLodObjects ze kiest), in de LOD-audit
 const lod = interiorProp('keukenstoel', { x: 1, z: 2, rot: 0.5 });
-ok('interiorProp geeft een LOD', lod.isLOD && lod.levels.length === 3);
-ok('LOD-afstanden volgen het register', lod.levels[1].distance === MEUBEL_LOD_R[0] && lod.levels[2].distance === MEUBEL_LOD_R[1]);
-ok('derde niveau tekent niets', !lod.levels[2].object.isMesh);
+ok('interiorProp geeft een groep met LOD-niveaus', lod.isGroup && lod.children.length >= 2 && lod.children.slice(1).every((c) => !c.visible));
 ok('positie en draaiing', lod.position.x === 1 && lod.position.z === 2 && lod.rotation.y === 0.5);
+const meubelModellen = lodModels().filter((m) => m.kind === 'interior');
+ok('alle meubels staan in het LOD-register', meubelModellen.length >= INTERIEUR_IDS.length, meubelModellen.length);
+const auditFouten = auditLod(meubelModellen);
+ok('LOD-audit van de meubels zonder fouten', auditFouten.length === 0, JSON.stringify(auditFouten.slice(0, 3)));
+const variant = interiorProp('keukenstoel', { kleuren: { Cushing: 0x335577 } });
+ok('een kleurvariant krijgt eigen lichtere niveaus', variant.children[1].geometry !== lod.children[1].geometry);
+void THREE;
 const s = fitScale('keukentafel', { b: 1.28, h: 0.75, d: 0.86 });
 ok('fitScale schaalt per as naar de doos', Math.abs(s[0] * INTERIOR_PROP_DATA.keukentafel.box[3] - 1.28) < 1e-6 && Math.abs(s[2] * INTERIOR_PROP_DATA.keukentafel.box[5] - 0.86) < 1e-6);
 let gooit = false;
 try { interiorProp('kaboutertje'); } catch (e) { gooit = true; }
 ok('een meubel buiten het register gooit', gooit);
-ok('meubelLodAt: dichtbij 0, door het raam 1, ver weg -1', meubelLodAt(2) === 0 && meubelLodAt(MEUBEL_LOD_R[0] + 1) === 1 && meubelLodAt(MEUBEL_LOD_R[1] + 1) === -1 && meubelLodAt(NaN) === 0);
 
 console.log(bad ? `interiorprops_test: ${bad} fout(en)` : 'interiorprops_test: ok');
 process.exit(bad ? 1 : 0);

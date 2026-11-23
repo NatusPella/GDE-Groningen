@@ -1,12 +1,14 @@
 // Meubels en huisraad uit het interieurregister (propregister.js INTERIEUR_REGISTER; de data maakt scripts/akte1/meubels_converteer.mjs
 // in interiorprops_data.js). Eén gedeelde geometrie per meubel en LOD-niveau met vertexkleuren, vlak gearceerd (laag-poly), en drie
-// gedeelde materialen: vast, gloeiend (lampkappen) en glas. Een geplaatst meubel is een THREE.LOD met twee niveaus en een leeg derde
-// (verder dan MEUBEL_LOD_R[1] wordt niets getekend); three wisselt het niveau zelf bij het renderen.
-//   interiorPropGeometry(id, lod)              -> BufferGeometry (gedeeld: niet weggooien)
-//   interiorProp(id, { x, y, z, rot, fit })    -> THREE.LOD; fit = { b, h, d } schaalt naar die maat (m; b langs x = voorkant)
+// gedeelde materialen: vast, gloeiend (lampkappen) en glas. De LOD's komen uit het centrale systeem (lodkit3d.js makeLodObject, soort
+// 'interior' van lodregistry.js): lichtere niveaus per materiaalgroep, dither-overgang, weg voorbij de weg-afstand; scene3d.js schakelt ze
+// elke frame (updateLodObjects). Zo staan de meubels in de LOD-audit naast straatmeubilair, bomen en boten.
+//   interiorPropGeometry(id, 0, kleuren)       -> BufferGeometry van het model zelf (gedeeld: niet weggooien)
+//   interiorProp(id, { x, y, z, rot, fit })    -> Group met het model en zijn LOD-niveaus; fit = { b, h, d } (m; b langs x = voorkant)
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { INTERIOR_PROP_DATA } from './interiorprops_data.js';
-import { MEUBEL_LOD_R, isInterieurProp } from './propregister.js';
+import { isInterieurProp } from './propregister.js';
+import { makeLodObject } from './lodkit3d.js';
 
 const cache = new Map();
 
@@ -92,21 +94,23 @@ export function fitScale(id, fit) {
   return f.map((v) => (v == null ? avg : v));
 }
 
-// Een meubel op zijn plek, als LOD. rot draait om de verticaal (rad, three-zin); de voorkant is +x voor rot = 0.
+// Een meubel op zijn plek. rot draait om de verticaal (rad, three-zin); de voorkant is +x voor rot = 0. De groep krijgt zijn LOD-niveaus van
+// makeLodObject (een kleurvariant heeft een eigen naam: anders deelt hij de lichtere niveaus met de gewone kleur).
 export function interiorProp(id, { x = 0, y = 0, z = 0, rot = 0, fit = null, scale = null, kleuren = null, shadows = false } = {}) {
   if (!isInterieurProp(id)) throw new Error('meubel niet in het register: ' + id);
-  const lod = new THREE.LOD();
-  lod.name = 'meubel:' + id;
-  for (let l = 0; l < 2; l++) {
-    const m = new THREE.Mesh(interiorPropGeometry(id, l, kleuren), INTERIOR_PROP_MATERIALS);
-    m.castShadow = shadows; m.receiveShadow = shadows;
-    lod.addLevel(m, l === 0 ? 0 : MEUBEL_LOD_R[0]);
-  }
-  lod.addLevel(new THREE.Object3D(), MEUBEL_LOD_R[1]);
-  lod.position.set(x, y, z);
-  lod.rotation.y = rot;
+  const g = new THREE.Group();
+  g.name = 'meubel:' + id;
+  const geo = interiorPropGeometry(id, 0, kleuren);
+  // één materiaalsoort: één materiaal (de lichtere niveaus van lodkit3d.js hebben dan geen groepen, en een materiaallijst zonder groepen
+  // tekent niets)
+  const m = new THREE.Mesh(geo, geo.groups.length === 1 ? INTERIOR_PROP_MATERIALS[geo.groups[0].materialIndex] : INTERIOR_PROP_MATERIALS);
+  m.castShadow = shadows; m.receiveShadow = shadows;
+  g.add(m);
+  g.position.set(x, y, z);
+  g.rotation.y = rot;
   const s = scale ? (Array.isArray(scale) ? scale : [scale, scale, scale]) : fitScale(id, fit);
-  lod.scale.set(s[0], s[1], s[2]);
-  lod.userData.meubel = id;
-  return lod;
+  g.scale.set(s[0], s[1], s[2]);
+  g.userData.meubel = id;
+  makeLodObject('interior', kleuren ? id + '~' + Object.values(kleuren).join('.') : id, g);
+  return g;
 }
