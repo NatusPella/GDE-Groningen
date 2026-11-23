@@ -9,6 +9,7 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ## [Unreleased]
 - Personages: mensen knipperen nu met hun ogen (elk in eigen ritme, soms twee keer kort na elkaar, ook in cutscenes), hebben handen met vingers, blosjes op de wangen en een eigen gezicht in rust (neutraal, vriendelijk of nors, met lachlijnen bij ouderen). Elke voorbijganger heeft een tikje andere kleuren in shirt, broek en huid, een breder bereik in lengte en postuur en soms een geverfd kapsel, zodat twee mensen in hetzelfde shirt niet meer als kopieën naast elkaar lopen.
+- Personages: Tessa's lange haar hangt niet meer als een zwart vlak voor haar gezicht in close-ups (de lokken beginnen achter de slaap, bijna zwart haar heeft een warme ondertoon en de binnenkant van een lok is niet meer pikzwart); dat geldt voor iedereen met lang of golvend haar. De hand loopt taps uit de pols en steekt niet meer als blok uit de mouw van Tammo's jack.
 - Lopen: wie begint te lopen duikt kort naar voren en wie stopt wiegt even terug; de ademhaling bij stilstaan is beter te zien.
 - Samen spelen: niets hiervan staat in een snapshot of bericht; elke speler rekent het lokaal uit hetzelfde zaad en dezelfde loopsnelheid, dus iedereen ziet dezelfde looks. Het knipperen is puur visueel en per scherm eigen.
 

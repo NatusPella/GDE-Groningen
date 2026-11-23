@@ -1112,7 +1112,14 @@ function buildArms(B, L, skin, shZ) {
     B.bone = BONE.elbow[k];
     tag(B, 'hand');
     const hy = -0.575;
-    B.geo(new THREE.BoxGeometry(0.068, 0.11, 0.028), m(0.008, hy - 0.015, 0, 0, 0, 0.12), skin);
+    // de hand loopt taps uit de pols: bovenaan smaller dan de manchet, zodat er nooit een blokhoek uit de mouw steekt (video-QA 23-11, bevinding 7);
+    // de punt sluit met een kleine ring (een loft is open)
+    B.geo(loftUp([
+      { y: hy - 0.07, d: 0.012, w: 0.006, x: 0.014 },
+      { y: hy - 0.05, d: 0.032, w: 0.013, x: 0.012 },
+      { y: hy - 0.005, d: 0.034, w: 0.015, x: 0.008 },
+      { y: hy + 0.055, d: 0.026, w: 0.022 },
+    ], 6), M, skin);
     B.geo(new THREE.BoxGeometry(0.02, 0.045, 0.02), m(0.04, hy - 0.012, -s * 0.012, 0, 0, 0.35), shade(skin, 0.95));
     // losjes gekromde vingers aan de palm: de hand leest als hand in plaats van als blok
     B.geo(new THREE.BoxGeometry(0.03, 0.05, 0.026), m(0.026, hy - 0.083, 0, 0, 0, 0.5), shade(skin, 0.97));

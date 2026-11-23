@@ -10,6 +10,7 @@ import { composeMatrix } from './pixelart3d.js';
 // Hoofdruimte: +x is voor, +y omhoog, z opzij; de hoek A loopt van 0 (voor) via ±pi/2 (zij) naar pi (achter), theta van de kruin (0) omlaag.
 
 const TAU = Math.PI * 2;
+const lum = (c) => (0.3 * ((c >> 16) & 0xff) + 0.59 * ((c >> 8) & 0xff) + 0.11 * (c & 0xff)) / 255;
 const wrap = (a) => { a %= TAU; if (a > Math.PI) a -= TAU; if (a < -Math.PI) a += TAU; return a; };
 const dir = (A, th) => [Math.cos(A) * Math.sin(th), Math.cos(th), Math.sin(A) * Math.sin(th)];
 // hairline: theta aan de voorkant, de zijkant en de achterkant, vloeiend ertussen
@@ -18,7 +19,8 @@ const line = (f, s, b) => (A) => { const a = Math.abs(wrap(A)); return a < Math.
 export function buildHairStyle(B, L, H) {
   const { HEAD_Y, headShape, shade, mix } = H;
   const style = L.hairStyle;
-  const c = L.hair;
+  // bijna zwart haar krijgt een warme ondertoon: puur zwart las in close-ups als een gat (video-QA 23-11, bevinding 5)
+  const c = lum(L.hair) < 0.16 ? mix(L.hair, 0x5c4a3e, 0.36) : L.hair;
   const capped = L.hat === 'tammo' || L.hat === 'cap' || L.hat === 'police' || L.hat === 'flatcap' || L.hat === 'beanie' || L.hoodUp;
   // een schaalhoed (pet, mutsje): knot, staart en staartjes zitten lager, onder de rand; de kam van de hanenkam past er niet onder (clipping 22-11)
   const capShell = L.hat === 'tammo' || L.hat === 'cap' || L.hat === 'flatcap' || L.hat === 'beanie';
@@ -73,7 +75,7 @@ export function buildHairStyle(B, L, H) {
       const s0 = i / segs, s1 = (i + 1) / segs;
       const col = i === segs - 1 ? shade(base, 0.85) : shade(base, 1 - 0.04 * (i % 2));
       B.quadOut(at(s0, -1, 0), at(s0, 1, 0), at(s1, 1, 0), at(s1, -1, 0), [rx, 0, rz], col);
-      B.quadOut(at(s0, -1, -0.009), at(s0, 1, -0.009), at(s1, 1, -0.009), at(s1, -1, -0.009), [-rx, 0, -rz], shade(c, 0.6));
+      B.quadOut(at(s0, -1, -0.009), at(s0, 1, -0.009), at(s1, 1, -0.009), at(s1, -1, -0.009), [-rx, 0, -rz], shade(base, 0.8));
     }
   }
   // Een staart: een rij samengedrukte bollen die vanaf het bindpunt omlaag hangen, dunner naar de punt, met een lichte zwaai. Van
@@ -166,13 +168,14 @@ export function buildHairStyle(B, L, H) {
       scalp({ thOf: line(1.0, 1.5, 1.7), kOf: (A, t) => 1.055 + 0.04 * Math.sin(t * Math.PI), rag: 0.05 });
       const n = 13;
       for (let i = 0; i < n; i++) {
-        const A = 0.85 + (i / (n - 1)) * (TAU - 1.7);
-        const back = Math.abs(Math.sin((A - 0.85) / (TAU - 1.7) * Math.PI)); // achter het langst
+        // vanaf de slaap naar achteren (A 1,1): een lok die eerder begon, viel in close-ups voor wang en oog (video-QA 23-11)
+        const A0 = wavy ? 1.22 : 1.1, A = A0 + (i / (n - 1)) * (TAU - 2 * A0);
+        const back = Math.abs(Math.sin((A - A0) / (TAU - 2 * A0) * Math.PI)); // achter het langst
         lock({ A, th0: 1.25, len: (wavy ? 0.23 : 0.27) + 0.07 * back * (0.6 + 0.4 * jit(i)), w: 0.058, bulge: wavy ? 0.05 : 0.035, wave: wavy ? 0.016 : 0.002, taper: wavy ? 0.5 : 0.35, curl: wavy ? 0.012 : 0, k: 1.06, tint: i % 3 ? 1 : 1.06 });
       }
       for (const s of [1, -1]) { // twee lokken voor de schouder
-        lock({ A: s * 1.12, th0: 1.1, len: wavy ? 0.26 : 0.3, w: 0.048, bulge: 0.03, wave: wavy ? 0.012 : 0, taper: 0.55, k: 1.06 });
-        lock({ A: s * 1.0, th0: 0.95, len: wavy ? 0.22 : 0.25, w: 0.04, bulge: 0.026, wave: wavy ? 0.012 : 0, taper: 0.55, k: 1.07 });
+        lock({ A: s * (wavy ? 1.38 : 1.3), th0: 1.1, len: wavy ? 0.26 : 0.3, w: 0.048, bulge: 0.03, wave: wavy ? 0.012 : 0, taper: 0.55, k: 1.06 });
+        lock({ A: s * (wavy ? 1.3 : 1.2), th0: 1.0, len: wavy ? 0.22 : 0.25, w: 0.04, bulge: 0.026, wave: wavy ? 0.012 : 0, taper: 0.55, k: 1.07 });
       }
       return true;
     }
