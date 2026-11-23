@@ -89,7 +89,7 @@ Deze lijst komt uit dezelfde telling als de ratel en `node scripts/ds3_dekkingli
 
 <!-- ds3-dekkinglijst:begin -->
 
-Totaal nog te doen: kleur 5, glas 113, oud 0, font 15, klein 1, lus 0, lang 0, emoji 0, svg 31 in 56 bestanden (bewust buiten de telling: 20).
+Totaal nog te doen: kleur 5, glas 113, oud 0, font 15, klein 1, lus 0, lang 0, emoji 0, svg 31 in 56 bestanden (bewust buiten de telling: 21).
 
 | bestand | kleur | glas | oud | font | klein | lus | lang | emoji | svg |
 |---|---|---|---|---|---|---|---|---|---|
