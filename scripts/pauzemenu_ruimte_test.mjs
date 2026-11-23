@@ -18,7 +18,7 @@ const lb = read('game/js/loopbaanui.js');
 // 1. geen omschrijving meer in de kop
 ok(!/pm-sheet-sub/.test(pm), 'pausemenu.js kent geen pm-sheet-sub meer');
 ok(!/pm-sheet-sub/.test(css), 'pausemenu.css kent geen pm-sheet-sub meer');
-ok(/const \[, label\] = sectionOf\(name\);/.test(pm), 'de kop leest alleen de titel van de sectie, niet de omschrijving');
+ok(/const \[, label\] = sectionOf\(name\)( \|\| sectionOf\('spel'\))?;/.test(pm), 'de kop leest alleen de titel van de sectie, niet de omschrijving');
 
 // 2. compacte kop: één regel, de tabs er direct onder
 const slot = css.slice(css.indexOf('pauzemenu-ruimte (21-11): een compacte kop'));
