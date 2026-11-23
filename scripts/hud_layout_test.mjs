@@ -65,8 +65,11 @@ ok(/\.ach-toast \{[^}]*top: auto; bottom: calc\(var\(--mm-bottom, 46px\) \+ var\
 
 // the sticky action bar of a pane ('Laten afleveren') is opaque within 16px, so it never lets the row under it read through
 {
-  const m = /\.m-pane > \.m-acts\.td-acts \{[^}]*padding-top: (\d+)px; background: linear-gradient\(180deg, rgba\([^)]*, 0\), rgba\([^)]*, ([\d.]+)\) (\d+)px\)/.exec(css('menu.css'));
-  ok(!!m && Number(m[3]) <= 16 && Number(m[2]) >= 0.95, 'actiebalk van een pane is binnen 16px dekkend', m && m.slice(1));
+  // rgba(r, g, b, a) of, sinds de inkt-tokens (audit UX 23-11), color-mix(in srgb, var(--token) P%, transparent)
+  const stop = String.raw`(?:rgba\([^)]*, ([\d.]+)\)|color-mix\(in srgb, var\([^)]*\) ([\d.]+)%, transparent\))`;
+  const m = new RegExp(String.raw`\.m-pane > \.m-acts\.td-acts \{[^}]*padding-top: (\d+)px; background: linear-gradient\(180deg, ${stop}, ${stop} (\d+)px\)`).exec(css('menu.css'));
+  const dekking = m && (m[4] !== undefined ? Number(m[4]) : Number(m[5]) / 100);
+  ok(!!m && Number(m[6]) <= 16 && dekking >= 0.95, 'actiebalk van een pane is binnen 16px dekkend', m && m.slice(1));
 }
 
 // contrast on the HUD card for every palette: signal colours are graphics (3:1), the text colour is text (4.5:1)
