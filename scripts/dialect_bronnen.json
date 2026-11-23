@@ -2397,7 +2397,184 @@
     "bezwoar": null,
     "leest": null,
     "belst": null,
-    "metmoaken": null
+    "metmoaken": null,
+    "lieste": {
+      "b": [
+        "S.J.H. Reker"
+      ],
+      "n": [
+        "lijst"
+      ]
+    },
+    "aalbaaident": {
+      "b": [
+        "S.J.H. Reker",
+        "K. ter Laan"
+      ],
+      "n": [
+        "allebei",
+        "allebei ⋅ beide ⋅ beiden"
+      ]
+    },
+    "overkaant": {
+      "b": [
+        "K. ter Laan"
+      ],
+      "n": []
+    },
+    "vaier": {
+      "b": [
+        "S.J.H. Reker",
+        "F.H. Steenhuis 1"
+      ],
+      "n": [
+        "vier"
+      ]
+    },
+    "vaast": {
+      "b": [
+        "S.J.H. Reker",
+        "K. ter Laan"
+      ],
+      "n": [
+        "vast",
+        "stellig ⋅ vast"
+      ]
+    },
+    "hoalen": {
+      "b": [
+        "S.J.H. Reker",
+        "K. ter Laan",
+        "A.A. Ganderheyden",
+        "H. Molema"
+      ],
+      "n": [
+        "halen",
+        "heg"
+      ]
+    },
+    "opstoan": {
+      "b": [
+        "K. ter Laan",
+        "A.A. Ganderheyden",
+        "H. Molema"
+      ],
+      "n": [
+        "opstaan",
+        "afstaan"
+      ]
+    },
+    "vekansie": {
+      "b": [
+        "S.J.H. Reker",
+        "K. ter Laan"
+      ],
+      "n": [
+        "vakantie",
+        "uitslag ⋅ vakantie"
+      ]
+    },
+    "drei": {
+      "b": [
+        "K. ter Laan",
+        "P. Boeles"
+      ],
+      "n": [
+        "drie"
+      ]
+    },
+    "bedoulde": null,
+    "trug": {
+      "b": [
+        "S.J.H. Reker"
+      ],
+      "n": [
+        "terug",
+        "ruggelings ⋅ terug"
+      ]
+    },
+    "veumirreg": {
+      "b": [
+        "S.J.H. Reker"
+      ],
+      "n": [
+        "ochtend"
+      ]
+    },
+    "onderwegens": {
+      "b": [
+        "S.J.H. Reker",
+        "K. ter Laan",
+        "H. Molema"
+      ],
+      "n": [
+        "onderweg"
+      ]
+    },
+    "lainen": {
+      "b": [
+        "S.J.H. Reker",
+        "K. ter Laan"
+      ],
+      "n": [
+        "lenen",
+        "lening",
+        "lenen ⋅ lening",
+        "krediet, verkopen op - ⋅ lenen",
+        "lenen ⋅ zeuren"
+      ]
+    },
+    "rusteg": {
+      "b": [
+        "S.J.H. Reker",
+        "K. ter Laan"
+      ],
+      "n": [
+        "rustig",
+        "bescheiden ⋅ rustig ⋅ schijnheilig",
+        "doodgemoedereerd ⋅ rustig ⋅ vrijmoedig"
+      ]
+    },
+    "host": {
+      "b": [
+        "Westerkwartier",
+        "S.J.H. Reker",
+        "K. ter Laan",
+        "H. Molema"
+      ],
+      "n": [
+        "bijna ⋅ haast ⋅ zowat",
+        "bijna",
+        "haast",
+        "aan ⋅ bijna ⋅ tot ⋅ voortdurend",
+        "bijna ⋅ helemaal",
+        "bijna ⋅ haast (bijna)",
+        "bijna ⋅ wankel",
+        "bepaald ⋅ bijna",
+        "bijna ⋅ louter ⋅ netjes"
+      ]
+    },
+    "guster": {
+      "b": [
+        "S.J.H. Reker",
+        "F.H. Steenhuis 1",
+        "K. ter Laan",
+        "A.A. Ganderheyden",
+        "H. Molema"
+      ],
+      "n": [
+        "gisteren",
+        "gister"
+      ]
+    },
+    "veuran": {
+      "b": [
+        "H. Molema"
+      ],
+      "n": [
+        "vooraan"
+      ]
+    }
   },
   "fries": {
     "moai": {

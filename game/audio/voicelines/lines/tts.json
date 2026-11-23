@@ -10321,7 +10321,7 @@
 "via": "litellm",
 "lang": "gro",
 "voice": "Achernar",
-"input": "Dat was nait de zin woar je mit begunden.",
+"input": "Dat was nait de zin woar je mit begon.",
 "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; de moeder van Tessa, nuchtere Groningse boerin bij Siddeburen, warm en stellig. Tone: stellig, zacht.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-11-23"
@@ -10343,7 +10343,7 @@
 "via": "litellm",
 "lang": "gro",
 "voice": "Achernar",
-"input": "Dit kwam gister, veur jim aalbaaident. Jelle belde ook. Hai vroeg noar n vergunning veur de kippen.",
+"input": "Dit kwam guster, veur jim aalbaaident. Jelle belde ook. Hai vroeg noar n vergunning veur de kippen.",
 "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; de moeder van Tessa, nuchtere Groningse boerin bij Siddeburen, warm en stellig. Tone: stellig, zacht.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-11-23"
@@ -11734,7 +11734,7 @@
 "via": "litellm",
 "lang": "gro",
 "voice": "Enceladus",
-"input": "Dat is t zwoarste werk van t joar.",
+"input": "Dat is t zwaarste werk van t joar.",
 "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; oude Groningse boer en buurman, nuchter en hartelijk, weinig woorden. Tone: nuchter, vriendelijk.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-11-23"
@@ -11756,7 +11756,7 @@
 "via": "litellm",
 "lang": "gro",
 "voice": "Enceladus",
-"input": "n Koo merkt dat meteen.",
+"input": "n Kou merkt dat meteen.",
 "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; oude Groningse boer en buurman, nuchter en hartelijk, weinig woorden. Tone: warm, rustig.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-11-23"
@@ -11789,7 +11789,7 @@
 "via": "litellm",
 "lang": "gro",
 "voice": "Enceladus",
-"input": "Ik goa koffie hoalen. Tot moarn, zes uur.",
+"input": "Ik goa koffie hoalen. Tot mörn, zes uur.",
 "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; oude Groningse boer en buurman, nuchter en hartelijk, weinig woorden. Tone: warm, rustig.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-11-23"
@@ -11800,7 +11800,7 @@
 "via": "litellm",
 "lang": "gro",
 "voice": "Enceladus",
-"input": "Mien trekker stait doar. Dij mouten jim lienen.",
+"input": "Mien trekker stait doar. Dij mouten jim lainen.",
 "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; oude Groningse boer en buurman, nuchter en hartelijk, weinig woorden. Tone: droog, met een knipoog.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-11-23"
@@ -25968,7 +25968,7 @@
 "via": "litellm",
 "lang": "gro",
 "voice": "Orus",
-"input": "Dan aerst t Loket. Nummer 4140 wacht op niemand.",
+"input": "Dan eerst t Loket. Nummer 4140 wacht op niemand.",
 "style": "spoken in Gronings dialect (Grunnegs), warm and strong Groningen accent, like a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties. Tone: deadpan, licht verbaasd.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-11-23"
@@ -26044,7 +26044,7 @@
 "via": "litellm",
 "lang": "gro",
 "voice": "Orus",
-"input": "Dan moake wie aerst bezwoar tegen zien bezwoar.",
+"input": "Dan moaken wie eerst bezwoar tegen zien bezwoar.",
 "style": "spoken in Gronings dialect (Grunnegs), warm and strong Groningen accent, like a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties. Tone: sarcastisch, zuchtend.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-11-23"
@@ -26077,7 +26077,7 @@
 "via": "litellm",
 "lang": "gro",
 "voice": "Orus",
-"input": "Dan rie ik. Doe bakst.",
+"input": "Dan rie ik. Doe bakt.",
 "style": "spoken in Gronings dialect (Grunnegs), warm and strong Groningen accent, like a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties. Tone: mompelend, stiekem trots.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-11-23"
@@ -26841,7 +26841,7 @@
 "via": "litellm",
 "lang": "gro",
 "voice": "Orus",
-"input": "De grootste stoet van de Stad. Mit n scooter veuroan.",
+"input": "De grootste stoet van de Stad. Mit n scooter veuran.",
 "style": "spoken in Gronings dialect (Grunnegs), warm and strong Groningen accent, like a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties. Tone: sarcastisch, zuchtend.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-11-23"
@@ -26863,7 +26863,7 @@
 "via": "litellm",
 "lang": "gro",
 "voice": "Orus",
-"input": "De koo kikt weer. Ze kent mien duven.",
+"input": "De kou kikt weer. Ze kent mien duven.",
 "style": "spoken in Gronings dialect (Grunnegs), warm and strong Groningen accent, like a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties. Tone: deadpan, licht verbaasd.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-11-23"
@@ -26927,7 +26927,7 @@
 "via": "litellm",
 "lang": "gro",
 "voice": "Orus",
-"input": "De trekker en de Martinitoren kieken mekoar aan. Gliekspul.",
+"input": "De trekker en de Martinitoren kieken mekoar aan. Gelijkspel.",
 "style": "spoken in Gronings dialect (Grunnegs), warm and strong Groningen accent, like a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties. Tone: droog, laconiek.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-11-23"
@@ -27765,7 +27765,7 @@
 "via": "litellm",
 "lang": "gro",
 "voice": "Orus",
-"input": "Aerst wachten. Doar ben ik in opleid.",
+"input": "Eerst wachten. Doar ben ik in opgeleid.",
 "style": "spoken in Gronings dialect (Grunnegs), warm and strong Groningen accent, like a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties. Tone: deadpan, licht verbaasd.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-11-23"
@@ -28107,7 +28107,7 @@
 "via": "litellm",
 "lang": "gro",
 "voice": "Orus",
-"input": "En woarom Jelle in augustus n colbert dragt.",
+"input": "En woarom Jelle in augustus n colbert draagt.",
 "style": "spoken in Gronings dialect (Grunnegs), warm and strong Groningen accent, like a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties. Tone: droog, laconiek.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-11-23"
@@ -28258,7 +28258,7 @@
 "via": "litellm",
 "lang": "gro",
 "voice": "Orus",
-"input": "Ain klomp veur n stad vol vet. Dat is bienoa gratis.",
+"input": "Ain klomp veur n stad vol vet. Dat is host gratis.",
 "style": "spoken in Gronings dialect (Grunnegs), warm and strong Groningen accent, like a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties. Tone: mompelend, stiekem trots.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-11-23"
@@ -28568,7 +28568,7 @@
 "via": "litellm",
 "lang": "gro",
 "voice": "Orus",
-"input": "t Is n feit. Troost komt nei afloop, mit n eierbal.",
+"input": "t Is n feit. Troost komt noa afloop, mit n eierbal.",
 "style": "spoken in Gronings dialect (Grunnegs), warm and strong Groningen accent, like a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties. Tone: droog, met een stille grijns.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-11-23"
@@ -29184,7 +29184,7 @@
 "via": "litellm",
 "lang": "gro",
 "voice": "Orus",
-"input": "Hou völle mölk je in je koffie doun. Twij scheuten.",
+"input": "Hou veul melk je in je koffie doun. Twij scheuten.",
 "style": "spoken in Gronings dialect (Grunnegs), warm and strong Groningen accent, like a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties. Tone: sarcastisch, zuchtend.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-11-23"
@@ -29616,7 +29616,7 @@
 "via": "litellm",
 "lang": "gro",
 "voice": "Orus",
-"input": "Ik heb der over nodocht.",
+"input": "Ik heb der over nagedacht.",
 "style": "spoken in Gronings dialect (Grunnegs), warm and strong Groningen accent, like a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties. Tone: mompelend, stiekem trots.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-11-23"
@@ -29876,7 +29876,7 @@
 "via": "litellm",
 "lang": "gro",
 "voice": "Orus",
-"input": "Ik rie. Roestig. Mit aal de richtingaanwiezers.",
+"input": "Ik rie. Rusteg. Mit aal de richtingaanwijzers.",
 "style": "spoken in Gronings dialect (Grunnegs), warm and strong Groningen accent, like a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties. Tone: mompelend, stiekem trots.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-11-23"
@@ -30331,7 +30331,7 @@
 "via": "litellm",
 "lang": "gro",
 "voice": "Orus",
-"input": "Is der n haandlaaiding?",
+"input": "Is der n handleiding?",
 "style": "spoken in Gronings dialect (Grunnegs), warm and strong Groningen accent, like a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties. Tone: verbaasd, vragend.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-11-23"
@@ -31445,7 +31445,7 @@
 "via": "litellm",
 "lang": "gro",
 "voice": "Orus",
-"input": "Oogcontact moakt. Hai gaf veurrang.",
+"input": "Oogcontact moakt. Hai gaf voorrang.",
 "style": "spoken in Gronings dialect (Grunnegs), warm and strong Groningen accent, like a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties. Tone: sarcastisch, zuchtend.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-11-23"
@@ -31794,7 +31794,7 @@
 "via": "litellm",
 "lang": "gro",
 "voice": "Orus",
-"input": "Sinds vanmörn. Half negen.",
+"input": "Sinds van veumirreg. Half negen.",
 "style": "spoken in Gronings dialect (Grunnegs), warm and strong Groningen accent, like a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties. Tone: sarcastisch, zuchtend.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-11-23"
@@ -32093,7 +32093,7 @@
 "via": "litellm",
 "lang": "gro",
 "voice": "Orus",
-"input": "Vaiventwintig mensen. Dat is n rie mit n aigen postcode.",
+"input": "Vierentwintig mensen. Dat is n rie mit n aigen postcode.",
 "style": "spoken in Gronings dialect (Grunnegs), warm and strong Groningen accent, like a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties. Tone: deadpan, licht verbaasd.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-11-23"
@@ -33758,7 +33758,7 @@
 "via": "litellm",
 "lang": "gro",
 "voice": "Alnilam",
-"input": "Dan lopt de zaakwaarnemer mit. Zaken regel je ondersweg.",
+"input": "Dan lopt de zaakwaarnemer mit. Zaken regel je onderwegens.",
 "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; scherpe, droge Groningse voetbaltrainer van een dorpsclub, geeft bevelen en grapt zonder te lachen. Tone: droog, bazig.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-11-23"
@@ -33769,7 +33769,7 @@
 "via": "litellm",
 "lang": "gro",
 "voice": "Alnilam",
-"input": "De club wil ainmoal dij n bal stoppen kin. Hier.",
+"input": "De club wil ain dij n bal stoppen kin. Hier.",
 "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; scherpe, droge Groningse voetbaltrainer van een dorpsclub, geeft bevelen en grapt zonder te lachen. Tone: nuchter, laconiek.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-11-23"
@@ -33791,7 +33791,7 @@
 "via": "litellm",
 "lang": "gro",
 "voice": "Alnilam",
-"input": "Doe bist de nije. Doe staist op mien lieste, onderoan, in potlood.",
+"input": "Doe bist de nije. Doe staat op mien lieste, onderaan, in potlood.",
 "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; scherpe, droge Groningse voetbaltrainer van een dorpsclub, geeft bevelen en grapt zonder te lachen. Tone: nuchter, laconiek.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-11-23"
@@ -33802,7 +33802,7 @@
 "via": "litellm",
 "lang": "gro",
 "voice": "Alnilam",
-"input": "Mien vorige linksbuten stopte hem ook. Mit zien gezicht.",
+"input": "Mien vorige linksbuiten stopte hem ook. Mit zien gezicht.",
 "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; scherpe, droge Groningse voetbaltrainer van een dorpsclub, geeft bevelen en grapt zonder te lachen. Tone: droog, bazig.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-11-23"
