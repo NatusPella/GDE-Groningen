@@ -20,7 +20,7 @@ const read = (p) => fs.readFileSync(new URL('../' + p, import.meta.url), 'utf8')
 // --- 1. het register zelf ---
 const ids = R.DIEREN.map((d) => d.id);
 check('ids zijn uniek', new Set(ids).size === ids.length);
-check('negentien dieren (dertien plus de zes provinciedieren van 23-11)', R.DIEREN.length === 19, String(R.DIEREN.length));
+check('twintig dieren (dertien plus de zeven provinciedieren van 23-11)', R.DIEREN.length === 20, String(R.DIEREN.length));
 const BIOTOPEN = ['weide', 'dijk', 'water', 'kust', 'wad', 'stad', 'erf'];
 for (const d of R.DIEREN) {
   const t = `${d.id}: `;

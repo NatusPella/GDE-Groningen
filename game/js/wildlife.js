@@ -299,7 +299,7 @@ function maintain(world, focus = null, n = 1) {
   }
   const LIMITS = wildlifeLimits(streekId, getSettings().quality, BASE_LIMITS);   // #193
   if (lokaal) for (const k of Object.keys(LIMITS)) LIMITS[k] = Math.ceil(LIMITS[k] * aandeel(n)); // de foci delen het budget
-  const count = { seagull: 0, grazer: 0, duck: 0, pigeon: 0, cat: 0, dog: 0, reiger: 0, zeehond: 0, vis: 0, ree: 0, vos: 0, wolf: 0, ezel: 0, alpaca: 0, varken: 0 };
+  const count = { seagull: 0, grazer: 0, duck: 0, pigeon: 0, cat: 0, dog: 0, reiger: 0, zeehond: 0, vis: 0, ree: 0, vos: 0, wolf: 0, ezel: 0, alpaca: 0, varken: 0, haas: 0 };
   for (const a of list) if (!lokaal || hier(a)) count[a.kind === 'cow' || a.kind === 'sheep' || a.kind === 'gans' ? 'grazer' : a.kind]++;
   const rng = Math.random;
   const waterClose = waterNearby(map, player.x, player.y, BIAS_SEARCH_RADIUS);
@@ -769,7 +769,7 @@ export function updateWildlife(dt, world) {
       case 'reiger': updateReiger(a, dt, world); break;
       case 'zeehond': updateZeehond(a, dt, world); break;
       case 'vis': updateVis(a, dt, world); break;
-      case 'ree': case 'vos': case 'wolf': case 'ezel': case 'alpaca': case 'varken': updateProvinceAnimal(a, dt, provinceCtx(world)); break;
+      case 'ree': case 'vos': case 'wolf': case 'ezel': case 'alpaca': case 'varken': case 'haas': updateProvinceAnimal(a, dt, provinceCtx(world)); break;
       default: updateHerd(a, dt, world);
     }
     keepOffRoad(a, dt, world);
@@ -813,7 +813,7 @@ function provinceCtx(world) {
 
 // Een dier dat de speler van dichtbij ziet draait zijn kop mee (animatie): a.watch is de hoek van de speler ten opzichte van de neus
 // van het dier, of null als er niemand in de buurt is. Per dier een paar vermenigvuldigingen, geen nieuwe objecten.
-const WATCH_KINDS = new Set(['cow', 'sheep', 'cat', 'dog', 'pigeon', 'seagull', 'gans', 'zeehond']);
+const WATCH_KINDS = new Set(['cow', 'sheep', 'cat', 'dog', 'pigeon', 'seagull', 'gans', 'zeehond', 'haas']);
 export function zetBlik(a, p, straal = 11) {
   if (!p || a.dead) { a.watch = null; return; }
   const dx = p.x - a.x, dy = p.y - a.y;
@@ -827,7 +827,7 @@ export function zetBlik(a, p, straal = 11) {
 
 // A ground animal that ends up on a carriageway or a junction anyway (a flock landing, a flight from a car, a shove) leaves:
 // no animal stands in the traffic (#334). Looked at a few times a second.
-const OFF_ROAD = new Set(['cat', 'pigeon', 'cow', 'sheep', 'gans', 'ree', 'vos', 'ezel', 'alpaca', 'varken']);
+const OFF_ROAD = new Set(['cat', 'pigeon', 'cow', 'sheep', 'gans', 'ree', 'vos', 'ezel', 'alpaca', 'varken', 'haas']);
 function keepOffRoad(a, dt, world) {
   if (!OFF_ROAD.has(a.kind) || (a.kind === 'pigeon' && a.state !== 'ground')) return;
   a.roadT = (a.roadT || 0) - dt;
@@ -838,7 +838,7 @@ function keepOffRoad(a, dt, world) {
 
 // Animals on the ground are bodies like any walker: walls and posts stop
 // them, cars shove them aside (and scare them off), the player bumps them.
-const GROUND_RADIUS = { grazer: 0.5, gans: 0.22, cat: 0.2, dog: 0.25, pigeon: 0.1, seagull: 0.15, ree: 0.3, vos: 0.2, wolf: 0.3, ezel: 0.45, alpaca: 0.4, varken: 0.4 };
+const GROUND_RADIUS = { grazer: 0.5, gans: 0.22, cat: 0.2, dog: 0.25, pigeon: 0.1, seagull: 0.15, ree: 0.3, vos: 0.2, haas: 0.15, wolf: 0.3, ezel: 0.45, alpaca: 0.4, varken: 0.4 };
 const _nearVeh = []; // #653: hergebruikte kandidatenlijst
 function groundContacts(a, world) {
   if (a.kind === 'duck' || a.kind === 'vis' || a.kind === 'zeehond' || a.gone) return;
@@ -1648,7 +1648,11 @@ function quadGeometry(P, spec) {
     B.geo(new THREE.BoxGeometry(0.012, P.head * 0.12, P.head * 0.14), hm(P.head * 0.72, P.hh * 0.3 + P.head * 0.14, s * P.head * 0.28, 0, -s * 0.5, 0), P.eye);
     B.bone = I[s > 0 ? 'earL' : 'earR'];
     if (P.floppy) B.geo(new THREE.BoxGeometry(P.head * 0.35, P.head * 0.6, 0.02), hm(P.head * 0.3, P.hh * 0.3 + P.head * 0.05, s * P.head * 0.5, s * 0.15, 0, 0.1), P.ear);
-    else B.geo(new THREE.ConeGeometry(P.head * 0.2, P.head * 0.45, 3), hm(P.head * 0.3, P.hh * 0.3 + P.head * 0.6, s * P.head * 0.28, s * -0.25, 0, 0.1), P.ear);
+    else if (P.earLen) {   // the hare: long spoon ears with a black tip
+      const L = P.head * P.earLen;
+      B.geo(new THREE.ConeGeometry(P.head * 0.17, L, 4).scale(1, 1, 0.45), hm(P.head * 0.1, P.hh * 0.3 + P.head * 0.3 + L / 2, s * P.head * 0.24, s * -0.18, 0, 0.35), P.ear);
+      B.geo(new THREE.ConeGeometry(P.head * 0.09, L * 0.22, 4).scale(1, 1, 0.45), hm(P.head * 0.1 - Math.sin(0.35) * L * 0.9, P.hh * 0.3 + P.head * 0.3 + L * 0.98, s * (P.head * 0.24 + Math.sin(0.18) * L * 0.4), s * -0.18, 0, 0.35), P.earTip);
+    } else B.geo(new THREE.ConeGeometry(P.head * 0.2, P.head * 0.45, 3), hm(P.head * 0.3, P.hh * 0.3 + P.head * 0.6, s * P.head * 0.28, s * -0.25, 0, 0.1), P.ear);
     B.bone = I.head;
   }
   if (P.collar) B.geo(loftGeometry([{ y: -0.015, d: P.hh * 0.82, w: P.hw * 0.8 }, { y: 0.015, d: P.hh * 0.8, w: P.hw * 0.78 }], 8), hm(-P.hh * 0.35, -P.hh * 0.1, 0, 0, 0, -1.2), P.collar);
@@ -1657,8 +1661,11 @@ function quadGeometry(P, spec) {
   const t0 = [tp[2], tp[3], 0];
   const t1 = [tp[2] - P.tail * 0.55, tp[3] + P.tail * P.tailUp * 0.6, 0];
   const t2 = [tp[2] - P.tail * 0.8, tp[3] + P.tail * P.tailUp, 0];
-  B.geo(tubeGeometry(t0, t1, P.tailR, P.tailR * 0.85, 5), null, coat);
-  B.geo(tubeGeometry(t1, t2, P.tailR * 0.85, P.tailR * 0.5, 5), null, P.tailTip || coat);
+  if (P.scut) B.geo(ellipsoid(6, 4, P.tailR * 1.4, P.tailR * 1.3, P.tailR * 1.3), composeMatrix(t0[0] - P.tailR * 0.6, t0[1] + P.tailR * 0.4, 0), P.scut);   // a white scut, no tail
+  else {
+    B.geo(tubeGeometry(t0, t1, P.tailR, P.tailR * 0.85, 5), null, coat);
+    B.geo(tubeGeometry(t1, t2, P.tailR * 0.85, P.tailR * 0.5, 5), null, P.tailTip || coat);
+  }
   return B.build();
 }
 
@@ -1677,6 +1684,22 @@ function catParams(v) {
     tail: 0.32, tailR: 0.014, tailUp: 1.1, coat, legCoat: c.base, paw: c.belly, face: c.base,
     nose: 0xc88a8a, eye: 0xb8b040, ear: c.base, floppy: false,
   };
+}
+
+// The hare (haas, 23-11, in no Quaternius pack): our own quad with long spoon ears, a white scut, a sandy brown coat with a light
+// belly; schoft 0.3 m (dierenregister.js maat). It hops: front and hind legs together (animateQuad).
+const HARE_LOOKS = [{ base: 0x8a6a48, dark: 0x6a5038, belly: 0xd8cbb0 }, { base: 0x96764e, dark: 0x6e5236, belly: 0xe0d4ba }];
+function hareParams(v) {
+  const c = HARE_LOOKS[v % HARE_LOOKS.length];
+  const coat = (x, y, z) => (y < 0.17 && Math.abs(z) < 0.05 ? c.belly : (Math.floor((x + z) * 22) & 3) === 0 ? c.dark : c.base);
+  return {
+    len: 0.5, leg: 0.12, hh: 0.085, hw: 0.075, legR: 0.019, head: 0.095, snout: 0.035,
+    tail: 0.04, tailR: 0.026, tailUp: 1, coat, legCoat: c.base, paw: c.belly, face: c.base,
+    nose: 0x3a2a24, eye: 0xc8902a, ear: c.base, earTip: 0x1a1714, earLen: 1.7, scut: 0xf2efe6, floppy: false,
+  };
+}
+export function buildHareMesh3D(variant = 0) {
+  return buildQuad('haas' + (variant % HARE_LOOKS.length), hareParams(variant));
 }
 
 const DOG_BREEDS = [
@@ -1814,6 +1837,7 @@ function bouwWildlifeMesh3D(a) {
     case 'vis': return buildFishMesh3D();
     case 'pigeon': return buildPigeonMesh3D(Math.floor((a.bobSeed || 0) * 10) % 4, a.lod);
     case 'cat': return buildCatMesh3D(a.variant || 0);
+    case 'haas': return buildHareMesh3D(Math.floor((a.bobSeed || 0) * 10) % 2);
     case 'dog': return buildDogMesh3D(a.breed || 0, a.color || 0);
     case 'ree': case 'vos': case 'wolf': case 'ezel': case 'alpaca': case 'varken': return buildAnimalModel(a.kind);   // province animals (animalmodels.js, provinceanimals.js)
     default: return buildCowMesh3D(a.bobSeed, a.variant === 'red');
@@ -1837,7 +1861,7 @@ export function buildWildlifeMesh3D(a) {
 
 // Blob-shadow footprint [length, width] per kind (null: none, e.g. birds in flight).
 export function wildlifeShadowSize(kind) {
-  return { cow: [1.3, 0.75], sheep: [0.9, 0.6], gans: [0.5, 0.3], cat: [0.45, 0.2], dog: [0.8, 0.35], pigeon: [0.2, 0.12], duck: [0.35, 0.2], reiger: [0.5, 0.3], ree: [0.9, 0.35], vos: [0.7, 0.25], wolf: [1, 0.35], ezel: [1.3, 0.5], alpaca: [1.1, 0.45], varken: [1, 0.5] }[kind] || null;
+  return { cow: [1.3, 0.75], sheep: [0.9, 0.6], gans: [0.5, 0.3], cat: [0.45, 0.2], dog: [0.8, 0.35], pigeon: [0.2, 0.12], duck: [0.35, 0.2], reiger: [0.5, 0.3], ree: [0.9, 0.35], vos: [0.7, 0.25], haas: [0.5, 0.2], wolf: [1, 0.35], ezel: [1.3, 0.5], alpaca: [1.1, 0.45], varken: [1, 0.5] }[kind] || null;
 }
 
 // --- animation ---------------------------------------------------------------
@@ -2223,12 +2247,14 @@ function animateQuad(mesh, a, time) {
     return;
   }
   if (moving) {
-    const gallop = run > 0.8 ? 1 : 0;   // een rennende hond of kat: voorpoten en achterpoten samen
+    const gallop = run > 0.8 || a.kind === 'haas' ? 1 : 0;   // een rennende hond of kat: voorpoten en achterpoten samen; een haas huppelt altijd
     walkLegs(ud, phase, 0.45 + run * 0.35, P.leg * (0.1 + run * 0.12), gallop);
     b.body.position.y += Math.abs(Math.sin(phase)) * 0.015 * (1 + run * 2);
     b.body.rotation.z = Math.sin(phase * 2) * 0.03 * run + (gallop ? Math.sin(phase) * 0.1 : 0);
     b.body.rotation.x = Math.sin(phase) * 0.025;
   }
+  if (a.kind === 'haas' && moving) b.body.position.y += Math.max(0, Math.sin(phase)) * 0.05;   // the hop
+  if (a.kind === 'haas' && !moving && stand === 1) { b.body.rotation.z = 0.35; b.body.position.y += P.leg * 0.25; }   // sits up and looks
   const sniff = a.kind === 'dog' && a.sniff > 0 && !moving;
   const doel = !moving && w !== undefined && w !== null ? Math.max(-1, Math.min(1, -w)) : Math.sin(time * 0.5 + seed) * 0.5;
   ud.kijkY = (ud.kijkY || 0) + (doel - (ud.kijkY || 0)) * Math.min(1, Math.max(0, time - (ud.kijkT ?? time)) * 3);
@@ -2278,7 +2304,7 @@ function animateKind(mesh, a, time) {
     case 'reiger': animateReiger(mesh, a, time); return;
     case 'zeehond': animateZeehond(mesh, a, time); return;
     case 'vis': animateVis(mesh, a, time); return;
-    case 'cat': animateQuad(mesh, a, time); return;
+    case 'cat': case 'haas': animateQuad(mesh, a, time); return;
     case 'dog': animateQuad(mesh, a, time); updateLeash(mesh, a); return;
     case 'ree': case 'vos': case 'wolf': case 'ezel': case 'alpaca': case 'varken': animateAnimalModel(mesh, a, time); return;
   }

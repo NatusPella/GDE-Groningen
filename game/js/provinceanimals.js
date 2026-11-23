@@ -13,12 +13,12 @@
 import { spawnWeight } from './dierenregister.js';
 import { fleeFrom } from './dierenplan.js';
 
-export const PROVINCE_KINDS = new Set(['ree', 'vos', 'wolf', 'ezel', 'alpaca', 'varken']);
+export const PROVINCE_KINDS = new Set(['ree', 'vos', 'haas', 'wolf', 'ezel', 'alpaca', 'varken']);
 export const WOLF_STATES = ['zwerf', 'loer', 'aanval', 'vlucht'];
 export const WOLF_BITE = 14;
 const WOLF_WATCH_M = 30, WOLF_ATTACK_M = 9, WOLF_BITE_M = 1.5, WOLF_BITE_S = 1.1;
 const FARM = new Set(['ezel', 'alpaca', 'varken']);
-const LIMIT = { ree: 4, vos: 1, wolf: 1, farm: 4 };
+const LIMIT = { ree: 4, vos: 1, haas: 3, wolf: 1, farm: 4 };
 
 const dist = (ax, ay, bx, by) => Math.hypot(ax - bx, ay - by);
 
@@ -42,6 +42,14 @@ export function spawnProvinceAnimals(ctx, count) {
     if (p && ctx.urbanAt(p.x, p.y) < 0.08 && !ctx.inKom(p.x, p.y)) {
       const n = 1 + Math.floor(rng() * 3);
       for (let i = 0; i < n; i++) { const x = p.x + (rng() - 0.5) * 6, y = p.y + (rng() - 0.5) * 6; if (ctx.openGround(x, y)) out.push(newAnimal('ree', x, y, rng)); }
+    }
+  }
+  // hares: alone or two together on open fields, also close to a village
+  if ((count.haas || 0) < LIMIT.haas && rng() < 0.15 * w('haas')) {
+    const p = ctx.greenPoint(20, 70);
+    if (p && ctx.urbanAt(p.x, p.y) < 0.15 && !ctx.inKom(p.x, p.y)) {
+      const n = 1 + Math.floor(rng() * 2);
+      for (let i = 0; i < n; i++) { const x = p.x + (rng() - 0.5) * 8, y = p.y + (rng() - 0.5) * 8; if (ctx.openGround(x, y)) out.push(newAnimal('haas', x, y, rng, { homeRadius: 15 })); }
     }
   }
   if ((count.vos || 0) < LIMIT.vos && rng() < 0.08 * w('vos')) {
@@ -87,13 +95,13 @@ export function updateProvinceAnimal(a, dt, ctx) {
     }
     const f = fleeFrom(a.kind, a.x, a.y, mv);
     if (f) {
-      a.fleeT = a.kind === 'ree' ? 4 : 3;
+      a.fleeT = a.kind === 'ree' ? 4 : a.kind === 'haas' ? 3.5 : 3;
       a.speed = f.speed;
       a.wanderTarget = { x: a.x + f.ux * 40, y: a.y + f.uy * 40 };
       return;
     }
   }
-  wander(a, dt, ctx, a.kind === 'vos' ? 1.1 : a.kind === 'ree' ? 0.7 : 0.6);
+  wander(a, dt, ctx, a.kind === 'vos' ? 1.1 : a.kind === 'ree' ? 0.7 : a.kind === 'haas' ? 0.9 : 0.6);
 }
 
 function wander(a, dt, ctx, pace) {

@@ -43,7 +43,7 @@ export const V_GROET = 1, V_FEEST = 2, V_WAPEN = 4, V_AANVAL = 8, V_GERAAKT = 16
 // vlaggen per dier
 export const D_DOOD = 1;
 
-export const DIER_SOORTEN = ['cow', 'sheep', 'seagull', 'duck', 'gans', 'reiger', 'zeehond', 'vis', 'pigeon', 'cat', 'dog', 'ree', 'vos', 'wolf', 'ezel', 'alpaca', 'varken'];   // new kinds only at the end: the index is on the wire
+export const DIER_SOORTEN = ['cow', 'sheep', 'seagull', 'duck', 'gans', 'reiger', 'zeehond', 'vis', 'pigeon', 'cat', 'dog', 'ree', 'vos', 'wolf', 'ezel', 'alpaca', 'varken', 'haas'];   // new kinds only at the end: the index is on the wire
 const EEND_VARIANTEN = ['drake', 'hen', 'swan', 'goose'];
 // De grootste schaal die een dier bij een gast mag hebben staat in dierschaal.js, samen met dezelfde grens voor de
 // eigen wereld en de modelbouwer (de zwaan en de reiger zijn de grootste). Een ongeldige of te grote schaal gaf een

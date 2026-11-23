@@ -152,6 +152,13 @@ export const DIEREN = [
     kopen: null, reden: 'Een ree is wild: kijk vanaf de weg en laat haar grazen.', cutscene: null, upgrades: [],
   },
   {
+    id: 'haas', naam: 'Haas', soort: 'wild', kind: 'haas', plan: 'haas', biotoop: ['weide'], uren: [4, 23],
+    model: { module: 'wildlife', fn: 'buildHareMesh3D', args: [0] },
+    maat: { schoft: 0.3 },
+    boek: 'Zit als een kluit aarde in de akker tot je te dichtbij komt. Dan zie je alleen nog lange oren en een wit staartje.',
+    kopen: null, reden: 'Een haas is wild en snel: kijk en laat hem gaan.', cutscene: null, upgrades: [],
+  },
+  {
     id: 'vos', naam: 'Vos', soort: 'wild', kind: 'vos', plan: 'vos', biotoop: ['weide'], uren: [17, 9],
     model: { module: 'wildlife', fn: 'buildProvinceAnimalMesh3D', args: ['vos'] },
     maat: { schoft: 0.4 },
