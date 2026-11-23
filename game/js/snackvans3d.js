@@ -83,9 +83,10 @@ function plan(w) {
 // Elk beeld aangeroepen (main.js): de planning elke halve seconde.
 export function updateSnackVans(w, dt) {
   if (!w || !w.map || !(dt > 0)) return;
-  if (!snackOpen()) { if (S.actors.size) clearSnackVans(); return; }
   S.t += dt;
-  if (S.t - S.planT >= PLAN_EVERY_S) { S.planT = S.t; plan(w); }
+  if (S.t - S.planT < PLAN_EVERY_S) return;   // de poort (snackOpen rekent de verhaalstand uit) en de planning alleen op de planklok, niet elk beeld
+  if (!snackOpen()) { if (S.actors.size) clearSnackVans(); S.planT = S.t; return; }
+  S.planT = S.t; plan(w);
 }
 export function clearSnackVans() { for (const a of S.actors.values()) dropActor(a); S.actors.clear(); S.planT = -9; }
 export const snackVanCount = () => S.actors.size;
