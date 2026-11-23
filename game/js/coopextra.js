@@ -43,7 +43,7 @@ export const V_GROET = 1, V_FEEST = 2, V_WAPEN = 4, V_AANVAL = 8, V_GERAAKT = 16
 // vlaggen per dier
 export const D_DOOD = 1;
 
-export const DIER_SOORTEN = ['cow', 'sheep', 'seagull', 'duck', 'gans', 'reiger', 'zeehond', 'vis', 'pigeon', 'cat', 'dog'];
+export const DIER_SOORTEN = ['cow', 'sheep', 'seagull', 'duck', 'gans', 'reiger', 'zeehond', 'vis', 'pigeon', 'cat', 'dog', 'ree', 'vos', 'wolf', 'ezel', 'alpaca', 'varken'];   // new kinds only at the end: the index is on the wire
 const EEND_VARIANTEN = ['drake', 'hen', 'swan', 'goose'];
 // De grootste schaal die een dier bij een gast mag hebben staat in dierschaal.js, samen met dezelfde grens voor de
 // eigen wereld en de modelbouwer (de zwaan en de reiger zijn de grootste). Een ongeldige of te grote schaal gaf een
@@ -88,7 +88,10 @@ function dierVar(a) {
 export const VOGEL_HOOGTE = new Set(['seagull', 'pigeon', 'reiger']);
 // The seal: 1 = lying on the shore, 2 = crawling to the water (else in the water); an older guest reads 0 and keeps it in the water.
 export const SEAL_STATES = ['rust', 'kant', 'naarWater'];
-function dierAux(a) { if (a.kind === 'zeehond') return Math.max(0, SEAL_STATES.indexOf(a.state)); return a.kind === 'dog' ? u8((Number.isFinite(a.color) ? a.color : 0) * 255) : VOGEL_HOOGTE.has(a.kind) ? u8((Number(a.z) || 0) * 10) : 0; }
+// The wolf: its state (WOLF_STATES in provinceanimals.js: 0 roaming, 1 watching, 2 attacking, 3 leaving), so a guest sees it
+// attack and takes the bite in its own game.
+export const WOLF_STATES_NET = ['zwerf', 'loer', 'aanval', 'vlucht'];
+function dierAux(a) { if (a.kind === 'zeehond') return Math.max(0, SEAL_STATES.indexOf(a.state)); if (a.kind === 'wolf') return Math.max(0, WOLF_STATES_NET.indexOf(a.state)); return a.kind === 'dog' ? u8((Number.isFinite(a.color) ? a.color : 0) * 255) : VOGEL_HOOGTE.has(a.kind) ? u8((Number(a.z) || 0) * 10) : 0; }
 
 // ----------------------------------------------------------- de host: verzamelen en coderen
 export const nieuwGeheugen = () => ({ looks: new Map(), kapotHash: '', kapotAt: -99, n: 0 });

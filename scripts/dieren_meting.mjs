@@ -16,7 +16,7 @@ const kanten = [];
 for (const b of bronnen) kanten.push(await laad(b));
 const tel = (g) => {
   let t = 0, dc = 0;
-  g.traverse((o) => { if (o.isMesh) { dc++; t += (o.geometry.index ? o.geometry.index.count : o.geometry.attributes.position.count) / 3; } });
+  g.traverse((o) => { if (o.isMesh && o.visible) { dc++; t += (o.geometry.index ? o.geometry.index.count : o.geometry.attributes.position.count) / 3; } });
   return [Math.round(t), dc];
 };
 const wl = (kind) => ({ W }) => W.buildWildlifeMesh3D({ kind, bobSeed: 0.4 });
