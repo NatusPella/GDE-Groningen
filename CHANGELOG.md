@@ -9,6 +9,9 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ## [Unreleased]
 
+- Missie mislukt: Enter op de kaart start meteen een nieuwe poging, zoals de kaart zegt (eerst moest je wachten tot hij weg was en nog eens drukken).
+- Eindkaart: de cijfers van de uitslag staan nu leesbaar onder de kaart in plaats van half erachter.
+- In de flat hoor je nu een zachte kamertoon, de koelkast in de keuken en de stad gedempt door het glas.
 - Autorijden: Tammo en Tessa praten onderweg weer over de plekken, wijken en het weer waar je langs rijdt; de eerste rit naar Berend is niet meer stil.
 - Tammo en Tessa worden niet meer aangereden door het verkeer van de stad terwijl ze naast je lopen.
 - Akte 1: de zolderkeuken van de opening en de flat van Tammo en Tessa zijn echt ingericht (keukenkastjes, fornuis, koelkast, houten stoelen, een bank tegenover de tv, boekenkast, bureau met laptop, verhuisdozen, een droogrek met was), met warm licht per kamer. Achter de keukendeur ligt nu een verlichte gang in plaats van een zwart gat.
