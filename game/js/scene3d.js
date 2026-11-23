@@ -30,7 +30,7 @@ import {
 } from './vehicle.js';
 import { DEAD_DURATION } from './pedconst.js';
 import { attachCarry, carryPose } from './streetlife3d.js';
-import { buildPersonMesh, releasePersonGeometry, animatePersonWalk, plantFeet, applyAttackPose, applyHitReaction, setHeldWeapon, seatPose, seatedY, waveOverlay, juichOverlay, carryOverlay, TAMMO_APPEARANCE, ANITA_APPEARANCE } from './models3d_people.js';
+import { buildPersonMesh, setModularPlayerLooks, releasePersonGeometry, animatePersonWalk, plantFeet, applyAttackPose, applyHitReaction, setHeldWeapon, seatPose, seatedY, waveOverlay, juichOverlay, carryOverlay, TAMMO_APPEARANCE, ANITA_APPEARANCE } from './models3d_people.js';
 import { syncDoorsNear, vraagVoorAnim } from './vehicledoors3d.js';
 import { syncCabins } from './cabin3d.js';
 import { updateRitCabine, syncTreinKader } from './ritcabine3d.js';
@@ -3061,6 +3061,7 @@ export function update3D(dt, world) {
 
   // spelerfase (?mensen=q3, ADR 0050): de speler wordt een modulaire mens zodra de rigs geladen zijn
   const playerQ = mensenFase(FLAGS.mensen) >= 3 && modularReady();
+  if (playerQ) setModularPlayerLooks(true);
   if (player.character !== playerCharacter || (playerQ && !playerMesh.userData.qRig)) {
     playerCharacter = player.character;
     scene.remove(playerMesh);

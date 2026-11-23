@@ -12,6 +12,7 @@ import { crossfade, footPlant, wheelGrip, STEER_TURN } from './actorlife.js';
 import { createAnimState, stepAnimState, stateName, STATES, STATE_IDS } from './animstate.js';
 import { blinkAmount } from './gait.js';
 import { lookFromAppearance } from './modularlooks.js';
+import { BODY_TYPES } from './clothinghair.js';
 import { setModularActorHook } from './actoranim.js';
 
 const rigs = new Map();               // 'man' | 'vrouw' -> gedecodeerde rig
@@ -101,8 +102,12 @@ export function buildModularFromAppearance(a) {
   const look = lookFromAppearance(a, modularPartIds());
   if (!look) return null;
   const rig = rigs.get(look.rig);
-  look.scale = (rig.man.schaal || 1) * Math.max(0.92, Math.min(1.08, (a.look && a.look.heightScale) || 1)) * (look.old ? 0.985 : 1);
-  return buildModularPerson(look.seed, { look });
+  // lengte: de look (verhaalfiguren) of het lichaam uit de kledingkast (BODY_TYPES.hs), binnen de norm van de rig
+  const bt = look.body && BODY_TYPES[look.body];
+  look.scale = (rig.man.schaal || 1) * Math.max(0.92, Math.min(1.08, ((a.look && a.look.heightScale) || 1) * (bt ? bt.hs : 1))) * (look.old ? 0.985 : 1);
+  const g = buildModularPerson(look.seed, { look });
+  if (g && bt) { g.scale.x *= Math.max(0.9, Math.min(1.15, bt.bs || 1)); g.scale.z = g.scale.x; } // breder of smaller postuur
+  return g;
 }
 
 // ---- bouwen ------------------------------------------------------------------------------------

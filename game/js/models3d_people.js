@@ -4,7 +4,7 @@ import { hash2 } from './rng.js';
 import { weaponLayers } from './models3d_weapons.js';
 import { footContact, turnLean, approachTo, wrapPi, fidgetAt, blinkAmount } from './gait.js';
 import { twoBoneIK, twoBoneFK, armIK, armFK, footPlant, wheelGrip, mouthShape, STEER_TURN } from './actorlife.js';
-import { animateModular, plantFeetModular, modularSeatContact } from './modularpeople.js';
+import { animateModular, plantFeetModular, modularSeatContact, buildModularFromAppearance, modularReady } from './modularpeople.js';
 import { idlePose } from './idleclips.js';
 import { attachAccessories } from './models3d_clothing.js';
 import { buildHairStyle } from './models3d_hair.js';
@@ -1254,7 +1254,15 @@ export function personPalette(shirt, skin, seed) {
   };
 }
 
+// Spelerfase (?mensen=q3, ADR 0052): de speelbare personages (opts.character: tammo, anita) worden een modulaire mens, ook in de
+// kledingkast, het pashokje, het winkelvoorbeeld en bij medespelers. scene3d.js zet dit aan; zonder rigs blijft het procedureel.
+let modularPlayers = false;
+export function setModularPlayerLooks(on) { modularPlayers = !!on; }
 export function buildPersonMesh(shirt, skin, opts = {}) {
+  if (modularPlayers && opts && opts.character && !opts.swim && modularReady()) {
+    const q = buildModularFromAppearance({ ...opts, shirt, skin });
+    if (q) return q;
+  }
   const L = resolveLook(shirt, skin, opts);
   L.topColor = L.cop ? COP_NAVY : shirt;
   L.skirtColor = L.pants;
