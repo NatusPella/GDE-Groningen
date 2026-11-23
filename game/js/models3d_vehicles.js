@@ -293,7 +293,12 @@ function buildCarGeometry(type, L, W, paint, opts) {
   const xK = P.xB - 0.8;
   const top = P.van
     ? [[hl, P.nose], [hl - 0.12, P.hood], [P.xA, P.belt], [xK, P.belt], [xK, P.roof], [-hl + 0.06, P.roof], [-hl, P.roof - 0.06]]
-    : [[hl, P.nose], [hl - (P.boxy ? 0.05 : 0.14), P.hood], [P.xA, P.belt], [P.xD, P.belt], [-hl + (P.boxy ? 0.04 : 0.1), P.deck], [-hl, P.tail]];
+    : P.boxy
+      ? [[hl, P.nose], [hl - 0.05, P.hood], [P.xA, P.belt], [P.xD, P.belt], [-hl + 0.04, P.deck], [-hl, P.tail]]
+      // 23-11 (vormtaal van het Quaternius-autopakket): een ronde neus en kont en een bolle motorkap, met een paar extra punten
+      // alleen op die plekken; de rest van het profiel blijft zoals het was
+      : [[hl, P.nose - 0.08], [hl - 0.05, P.nose + 0.07], [hl - 0.22, P.hood], [(hl - 0.22 + P.xA) / 2, P.hood + 0.05], [P.xA, P.belt],
+        [P.xD, P.belt], [-hl + Math.min(0.34, (P.xD + hl) * 0.5), P.deck + 0.03], [-hl + 0.08, P.deck - 0.05], [-hl, P.tail - 0.1]];
   const outline = [...top, [-hl, sill + 0.08], ...archedSill(-hl, hl, sill, arches), [hl, sill + 0.08]];
   // #923: bij een personenauto staat de raamband open (zie withoutBeltPlate), zodat het interieur
   // door het glas te zien is; de raamlijst (sideStrip, verderop) sluit de band langs de buitenkant
@@ -302,8 +307,8 @@ function buildCarGeometry(type, L, W, paint, opts) {
   // flanken naar het dak en de bodem toe inlopen in plaats van als een kist te eindigen
   const bevel = P.boxy ? 0.035 : 0.075;
   const body = P.van
-    ? extrudeProfile(outline, W, bevel, 2)
-    : withoutBeltPlate(extrudeProfile(outline, W, bevel, 2), P.belt, P.xD, P.xA);
+    ? extrudeProfile(outline, W, bevel)
+    : withoutBeltPlate(extrudeProfile(outline, W, bevel), P.belt, P.xD, P.xA);
   B.geo(body, null, paint);
   archLiners(B, arches, W);
 
@@ -330,16 +335,22 @@ function buildCarGeometry(type, L, W, paint, opts) {
     // De glasband is een dichte extrusie: de onderkant daarvan is een plaat over de hele cabine
     // op de raamlijn, en die sneed door het interieur (#923). De onderkant gaat eruit; de
     // raamlijst van het koetswerk sluit de band af.
-    B.geo(withoutBeltPlate(extrudeProfile(gh, W * 0.94, 0.03), P.belt - 0.03, P.xD, P.xA), null, GLASS, G_GLASS);
-    const roofPts = [[P.xB + 0.07, P.roof - 0.09], [P.xB - 0.04, P.roof], [P.xC + 0.04, P.roof], [P.xC - 0.07, P.roof - 0.09]];
-    B.geo(extrudeProfile(roofPts, W * 0.98, 0.025), null, paint);
-    const pz = W * 0.47;
+    // 23-11: ingelopen ramen (de kas is smaller dan de romp, 0,90 in plaats van 0,94; de test van #463 eist meer dan 0,88) met een richel in lak op de raamlijn die de
+    // gleuf tussen glas en plaatwerk dicht houdt (#463), en een bol dak met afgeronde zijkanten
+    const ghW = P.boxy ? 0.94 : 0.9;
+    B.geo(withoutBeltPlate(extrudeProfile(gh, W * ghW, 0.03), P.belt - 0.03, P.xD, P.xA), null, GLASS, G_GLASS);
+    if (!P.boxy) for (const s of [1, -1]) B.box((P.xA + P.xD) / 2, P.belt - 0.006, s * W * (ghW + 1) / 4, P.xA - P.xD + 0.02, 0.012, W * (1 - ghW) / 2 + 0.01, paint);
+    const roofPts = P.boxy
+      ? [[P.xB + 0.07, P.roof - 0.09], [P.xB - 0.04, P.roof], [P.xC + 0.04, P.roof], [P.xC - 0.07, P.roof - 0.09]]
+      : [[P.xB + 0.07, P.roof - 0.09], [P.xB - 0.03, P.roof - 0.025], [P.xB - 0.2, P.roof + 0.035], [P.xC + 0.2, P.roof + 0.035], [P.xC + 0.03, P.roof - 0.025], [P.xC - 0.07, P.roof - 0.09]];
+    B.geo(extrudeProfile(roofPts, W * (P.boxy ? 0.98 : ghW + 0.06), P.boxy ? 0.025 : 0.06), null, paint);
+    const pz = W * ghW / 2; // de stijlen staan op de ruit (#463)
     for (const s of [1, -1]) {
       sideStrip(B, P.xA + 0.02, P.belt - 0.01, P.xB + 0.02, P.roof - 0.05, s * pz, 0.07, 0.05, paint);
       sideStrip(B, P.xC - 0.02, P.roof - 0.05, P.xD, P.belt - 0.01, s * pz, type === 'sedan' || type === 'sport' ? 0.09 : 0.16, 0.05, paint);
       const bx = (P.xB + P.xC) / 2 + 0.15;
       sideStrip(B, bx, P.belt, bx - 0.06, P.roof - 0.06, s * (pz + 0.005), 0.07, 0.04, TRIM);
-      sideStrip(B, P.xA + 0.02, P.belt + 0.005, P.xD, P.belt + 0.005, s * (pz + 0.02), 0.025, 0.03, TRIM);
+      sideStrip(B, P.xA + 0.02, P.belt + 0.005, P.xD, P.belt + 0.005, s * (pz + (P.boxy ? 0.02 : 0.03)), 0.025, 0.03, TRIM);
     }
   }
 
@@ -350,24 +361,21 @@ function buildCarGeometry(type, L, W, paint, opts) {
   const f0 = vcount();
   B.box(hl + 0.02, 0.38, 0, 0.12, 0.14, W - 0.04, bumper);
   B.box(hl + 0.085, 0.38, 0, 0.012, 0.1, 0.48, PLATE);
-  if (!P.boxy) for (const s of [1, -1]) B.box(hl - 0.08, 0.38, s * (hw - 0.03), 0.22, 0.14, 0.05, bumper); // de hoek van de bumper
+  if (!P.boxy) for (const s of [1, -1]) B.box(hl - 0.08, 0.38, s * hw, 0.22, 0.14, 0.05, bumper); // de hoek van de bumper
   B.box(hl + 0.035, 0.29, 0, 0.1, 0.045, W - 0.12, lip);
   const f1 = vcount();
   B.box(-hl - 0.02, 0.4, 0, 0.12, 0.14, W - 0.04, bumper);
-  if (!P.boxy) for (const s of [1, -1]) B.box(-hl + 0.08, 0.4, s * (hw - 0.03), 0.22, 0.14, 0.05, bumper);
+  if (!P.boxy) for (const s of [1, -1]) B.box(-hl + 0.08, 0.4, s * hw, 0.22, 0.14, 0.05, bumper);
   B.box(-hl - 0.035, 0.31, 0, 0.1, 0.045, W - 0.12, lip);
   const r1 = vcount();
-  // uitgebouwde wielkasten (een lijst om de boog) en een karakterlijn in de flank
-  for (const { x, r: ar, cy } of arches) {
-    for (const s of [1, -1]) B.geo(new THREE.TorusGeometry(ar + 0.012, 0.026, 4, 10, Math.PI), composeMatrix(x, cy, s * (hw - 0.012)), shadeHex(paint, 0.78));
-  }
+  // een lichte karakterlijn in de flank (de wielkastlijsten van de vorige ronde waren op afstand niet te zien en zijn eruit)
   for (const s of [1, -1]) B.box((P.fw + P.rw) / 2, P.belt - 0.15, s * (hw + 0.002), P.fw - P.rw - 0.2, 0.014, 0.008, shadeHex(paint, 1.15));
   B.box(-hl - 0.008, P.van ? 0.62 : Math.min(0.6, P.tail - 0.22), 0, 0.012, 0.1, 0.48, PLATE);
-  const lampY = P.nose - 0.06;
+  const lampY = P.nose - (P.boxy || P.van ? 0.06 : 0.13); // de ronde neus (23-11) loopt boven de lampen in
   for (const s of [1, -1]) {
     B.box(hl + 0.006, lampY, s * (hw - 0.26), 0.03, P.boxy ? 0.14 : 0.1, 0.3, HEADLAMP, G_LAMP);
     B.box(hl + 0.006, lampY - (P.boxy ? 0.1 : 0.09), s * (hw - 0.1), 0.03, 0.05, 0.1, INDICATOR, G_LAMP);
-    const tailY = P.van ? 0.95 : P.tail - 0.1;
+    const tailY = P.van ? 0.95 : P.tail - (P.boxy ? 0.1 : 0.19);
     B.box(-hl - 0.006, tailY, s * (hw - 0.18), 0.03, P.van ? 0.3 : 0.12, P.van ? 0.14 : 0.3, TAIL, G_LAMP);
     B.box((P.fw + P.rw) / 2, sill + 0.08, s * (hw + 0.005), (P.fw - P.rw) - R * 2 - 0.1, 0.1, 0.02, TRIM);
   }
@@ -379,7 +387,7 @@ function buildCarGeometry(type, L, W, paint, opts) {
       B.box(0, 0.84, z, L - 0.3, 0.13, 0.012, 0x1f3f8f);
       B.box(0, 0.755, z, L - 0.3, 0.025, 0.012, 0xd9772b);
     }
-    B.box((P.xB + P.xC) / 2, P.roof + 0.05, 0, 0.3, 0.07, W * 0.72, TRIM);
+    B.box((P.xB + P.xC) / 2, P.roof + 0.075, 0, 0.3, 0.07, W * 0.72, TRIM);
   }
   if (opts.ambulance) {
     // Nederlandse ambulance (#407): geel met een witte hoge dakkap, een band van rode en witte reflecterende blokken langs de
@@ -511,9 +519,22 @@ function buildCarGeometry(type, L, W, paint, opts) {
     for (const s of [1, -1]) B.box(-hl + 0.14, P.deck + 0.05, s * W * 0.34, 0.06, 0.08, 0.04, TRIM);
   }
   if (type === 'wagon' && !opts.police) {
-    for (const s of [1, -1]) B.box((P.xB + P.xC) / 2, P.roof + 0.03, s * W * 0.36, (P.xB - P.xC) * 0.8, 0.04, 0.04, TRIM);
+    for (const s of [1, -1]) B.box((P.xB + P.xC) / 2, P.roof + 0.065, s * W * 0.36, (P.xB - P.xC) * 0.8, 0.04, 0.04, TRIM); // boven het bolle dak
   }
   const geo = B.build();
+  // 23-11 (vormtaal van het Quaternius-autopakket): van boven gezien lopen neus en kont rond in. De laatste halve meter aan
+  // beide kanten wordt smaller (tot 13 % van de halve breedte, kwadratisch), het hele model mee: lak, bumpers, lampen en glas. Geen extra driehoeken;
+  // de deuren liggen daarbuiten, dus hun naden en de deurtabel blijven kloppen. De materialen tekenen platte normalen (flatShading).
+  if (!P.boxy && !P.van && !(typeof process !== 'undefined' && process.env.GDE_GEEN_TAPER)) {
+    // een verschuiving in plaats van een schaal: alles in de buitenste helft schuift evenveel naar binnen, zodat lagen die
+    // op het plaatwerk liggen (naden, strepen, belettering, lampen) hun afstand tot het plaatwerk houden
+    const pos = geo.attributes.position, a = pos.array, zone = 0.55, d = (P.van ? 0.07 : 0.13) * hw, binnen = hw * 0.55;
+    for (let i = 0; i < a.length; i += 3) {
+      const t = Math.min(1, Math.max(0, (Math.abs(a[i]) - (hl - zone)) / zone));
+      if (t > 0 && Math.abs(a[i + 2]) > binnen) a[i + 2] -= Math.sign(a[i + 2]) * d * t * t;
+    }
+    pos.needsUpdate = true;
+  }
   geo.userData.parts = {
     hl, hw, hood: P.hood, bumperColor: bumper,
     front: { start: f0, end: f1, y: 0.38, x: hl + 0.02 },

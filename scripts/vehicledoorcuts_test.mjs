@@ -53,7 +53,10 @@ for (const [naam, len, wid] of MODELLEN) {
   for (const s of stroken) {
     const cx = s.x - s.sx / 2, cy = s.y - s.sy / 2, cz = s.z - s.sz / 2; // één hoekpunt van de strook
     for (let i = 0; i < pos.count; i++) {
-      if (Math.abs(pos.getX(i) - cx) < 2e-3 && Math.abs(pos.getY(i) - cy) < 2e-3 && Math.abs(pos.getZ(i) - cz) < 2e-3) { gevonden++; break; }
+      // z met speling: neus en kont van een personenauto lopen van boven gezien in (buildCarGeometry), dus een naad op de achterkant
+      // ligt daar iets naar binnen
+      const dz = s.x < -len / 2 + 0.6 || s.x > len / 2 - 0.6 ? 0.14 : 2e-3;
+      if (Math.abs(pos.getX(i) - cx) < 2e-3 && Math.abs(pos.getY(i) - cy) < 2e-3 && Math.abs(pos.getZ(i) - cz) < dz) { gevonden++; break; }
     }
   }
   check(naam + ': naden zitten in de romp', gevonden >= stroken.length * 0.9, `${gevonden} van ${stroken.length}`);

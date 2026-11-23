@@ -69,17 +69,18 @@ export const TRAFFIC_MODELS = () => [...MODELS, ...BUS_MODELS, ...SCOOTER_MODELS
 const MODELS = [
   // Dutch daily traffic skews heavily toward grey/black/white/silver compacts
   // and hatchbacks, so those are weighted more heavily than the odd flash of
-  // color rather than an even split across a bright arcade palette.
+  // color rather than an even split across a bright arcade palette. The colours are soft, slightly chalky tones (23-11, after the
+  // Quaternius car pack): no deep saturated reds and blues, and never a brand colour.
   { name: 'hatch', len: 3.8, wid: 1.7, maxSpeed: 42, accel: 9, brake: 23, turnRate: 3.0, color: '#c7c9cc' },
   { name: 'hatch', len: 3.8, wid: 1.7, maxSpeed: 42, accel: 9, brake: 23, turnRate: 3.0, color: '#23262a' },
   { name: 'hatch', len: 3.8, wid: 1.7, maxSpeed: 42, accel: 9, brake: 23, turnRate: 3.0, color: '#e8e6e0' },
   { name: 'sedan', len: 4.3, wid: 1.8, maxSpeed: 50, accel: 10, brake: 24, turnRate: 2.6, color: '#4a4d52' },
-  { name: 'sedan', len: 4.3, wid: 1.8, maxSpeed: 50, accel: 10, brake: 24, turnRate: 2.6, color: '#2f3a52' },
-  { name: 'sedan', len: 4.3, wid: 1.8, maxSpeed: 50, accel: 10, brake: 24, turnRate: 2.6, color: '#7a1f1f' },
-  { name: 'wagon', len: 4.5, wid: 1.8, maxSpeed: 47, accel: 9, brake: 23, turnRate: 2.5, color: '#2e4a34' },
+  { name: 'sedan', len: 4.3, wid: 1.8, maxSpeed: 50, accel: 10, brake: 24, turnRate: 2.6, color: '#5a7392' },
+  { name: 'sedan', len: 4.3, wid: 1.8, maxSpeed: 50, accel: 10, brake: 24, turnRate: 2.6, color: '#a3473f' },
+  { name: 'wagon', len: 4.5, wid: 1.8, maxSpeed: 47, accel: 9, brake: 23, turnRate: 2.5, color: '#6e937c' },
   { name: 'van', len: 5.0, wid: 2.0, maxSpeed: 38, accel: 7, brake: 19, turnRate: 2.0, color: '#d9d9d9' },
-  { name: 'van', len: 5.0, wid: 2.0, maxSpeed: 38, accel: 7, brake: 19, turnRate: 2.0, color: '#c9541e' },
-  { name: 'sport', len: 4.1, wid: 1.85, maxSpeed: 64, accel: 14, brake: 30, turnRate: 3.2, color: '#8a1414' },
+  { name: 'van', len: 5.0, wid: 2.0, maxSpeed: 38, accel: 7, brake: 19, turnRate: 2.0, color: '#d98a4e' },
+  { name: 'sport', len: 4.1, wid: 1.85, maxSpeed: 64, accel: 14, brake: 30, turnRate: 3.2, color: '#b93a32' },
 ];
 
 // Signature red Ford Escort - the game's hero car, spawned once via
