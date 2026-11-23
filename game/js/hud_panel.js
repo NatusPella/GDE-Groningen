@@ -85,7 +85,7 @@ import { sterTeken } from './a11ylogic.js';
 import { drawMissionGlyph } from './missionicons.js';
 import { drawMapGlyph, phosphorPaden } from './mapglyphs.js';
 import { miniWind, windSterkte, windPijlHoek, windTekst } from './windmini.js';
-import { decideHud, zones, hudNow, cardYields, vehnameBottom, P3, PLACE_SHOW, DEFER_MAX, GPS_NEAR, nowPlayingSeconds } from './hudrules.js';
+import { decideHud, zones, hudNow, cardYields, vehnameBottom, P3, PLACE_SHOW, DEFER_MAX, GPS_NEAR, nowPlayingSeconds, storySubLine } from './hudrules.js';
 import { goalTitle, travelMode } from './goaltext.js';
 import { vehicleKind, speedoLook, meterLevel, hudEdge, distanceOwner, vehicleLabelOwner } from './hudlook.js';
 import { nextTurn, turnText, etaText, dichtstbijDoel } from './hudgps.js';
@@ -1648,6 +1648,7 @@ const STORY_AFSTAND_M = 300; // vanaf hier zegt de doelbalk van het verhaal hoe 
 const QUIET_AFTER = 9;
 const GOAL_HINTS = 3;
 let goalHints = 0;
+let storyHints = 0; // UX-audit 23-11 (S6): hoeveel verhaaldoelen er al stonden (de routeregel alleen de eerste keren)
 
 let lastObjective = null;
 const missionTick = { t: 0 };
@@ -1670,9 +1671,9 @@ function updateMission(dt, world) {
   }
   els.gps.classList.toggle('time-low', secs != null && secs <= 10);
   const key = o.kind + '|' + (o.raw ?? o.title); // de bestemming, niet het werkwoord: instappen laat het doel niet opnieuw verschijnen
-  if (key !== els.objKey) { els.objAt = world.time; if (o.kind === 'goal') goalHints++; }
+  if (key !== els.objKey) { els.objAt = world.time; if (o.kind === 'goal') goalHints++; if (o.kind === 'story') storyHints++; }
   // a new objective first says how (the bijbaan's hint), then its counter
-  const sub = o.hint && world.time - els.objAt < OBJ_HINT_TIME ? o.hint : o.sub;
+  const sub = o.hint && world.time - els.objAt < OBJ_HINT_TIME ? o.hint : o.kind === 'story' ? storySubLine(o.sub, storyHints) : o.sub;
   // the route and the story speak for themselves after a moment: the card shrinks to the goal and the distance
   els.mission.classList.toggle('obj-fresh', world.time - els.objAt < OBJ_HINT_TIME); // #985: de hulpregel alleen bij een nieuw doel
   els.mission.classList.toggle('obj-quiet', (o.kind === 'story' || o.kind === 'goal' || o.kind === 'police') && world.time - els.objAt >= QUIET_AFTER);

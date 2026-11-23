@@ -9,7 +9,7 @@
 .os-kaart {
   width: min(560px, 100%); max-height: calc(100vh - 48px); overflow-y: auto; scrollbar-width: none;
   padding: 32px 36px 30px; border-radius: 16px;
-  background: linear-gradient(180deg, rgba(20, 40, 27, 0.94), color-mix(in srgb, var(--ds-c-glas) 96%, transparent));
+  background: linear-gradient(180deg, color-mix(in srgb, var(--ds-c-glas-2) 94%, transparent), color-mix(in srgb, var(--ds-c-glas) 96%, transparent));
   box-shadow: 0 0 0 1px color-mix(in srgb, var(--ds-c-creme) 10%, transparent), 0 32px 64px color-mix(in srgb, var(--ds-c-ink-inkt) 40%, transparent);
   animation: os-in var(--ds-m-max) cubic-bezier(0.2, 0.7, 0.2, 1) both;
 }

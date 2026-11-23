@@ -50,7 +50,7 @@ requestAnimationFrame(houd);
 const origAdd = w.addMessage ? w.addMessage.bind(w) : null;
 if (origAdd) w.addMessage = (t, d) => { uit.meldingen.push(String(t).slice(0, 160)); return origAdd(t, d); };
 const kleinste = (el) => { let min = 99, wie = ''; for (const n of el.querySelectorAll('*')) { const heeftTekst = [...n.childNodes].some((c) => c.nodeType === 3 && c.textContent.trim()); if (!heeftTekst) continue; const r = n.getBoundingClientRect(); if (!r.width || !r.height) continue; const px = parseFloat(getComputedStyle(n).fontSize); if (px < min) { min = px; wie = (n.className && n.className.baseVal === undefined ? n.className : n.tagName) + ': ' + n.textContent.trim().slice(0, 30); } } return { px: min, wie }; };
-const geelNu = () => [...document.querySelectorAll('.ds-knop:not(.ds-knop--secundair):not(.ds-knop--tekst):not(.ds-knop--gevaar)')].filter((b) => b.getClientRects().length && getComputedStyle(b).visibility !== 'hidden' && !b.disabled).map((b) => b.textContent.trim().slice(0, 24));
+const geelNu = () => [...document.querySelectorAll('.ds-z-knop:not(.ds-z-knop--secundair):not(.ds-z-knop--ghost):not(.ds-z-knop--gevaar)')].filter((b) => b.getClientRects().length && getComputedStyle(b).visibility !== 'hidden' && !b.disabled).map((b) => b.textContent.trim().slice(0, 24));
 
 fix(14);
 const [ex, ey] = RD.wgsToWorld(PC.erfDef(PC.START_ERF).lat, PC.erfDef(PC.START_ERF).lon);

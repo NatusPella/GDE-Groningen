@@ -72,6 +72,7 @@ ok(C.KEY_ACTIONS.some(([k, d]) => k === 'n' && /radio aan of uit/i.test(d)), 'N 
 ok(!C.KEY_ACTIONS.some(([k]) => k === 'b') && !C.KEY_ACTIONS.some(([k, d]) => k !== 'n' && /zender/i.test(d)), 'no separate previous/next station keys left (the next station is Shift+N, radiokeuze 21-11)');
 ok(C.padSlotFor('N', 'foot') === 'up' && /radio aan of uit/i.test(C.slotUses('up')), 'N on foot is D-pad up, and Besturing says so', C.slotUses('up'));
 ok(C.PAD_MAPS.vehicle.lb === 't' && /hef/i.test(C.slotUses('lb')), 'LB in a vehicle is the trekker hef', C.slotUses('lb'));
+{ const u = C.slotUseParts('lb'); ok(/hef/i.test(u.rijden) && u.voet && u.menu && u.rijden !== u.voet, 'S10: LB heeft een kolom te voet, rijden en menu', JSON.stringify(u)); }
 ok(JSON.stringify(C.normalizeKeyBinds({ b: ';', n: ';' })) === '{"n":";"}', 'a saved bind for the old B action is dropped, N keeps its own');
 
 // every situation maps every game key it needs to some button (F falls back to E via Y on foot, #495)

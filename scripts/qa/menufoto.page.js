@@ -28,7 +28,11 @@ await skipOpening();
 w.devInvuln = true; D.input.canLock = () => false;
 if (document.pointerLockElement) document.exitPointerLock();
 await document.fonts.ready;
-const cap = async (name, wait = 1500) => { await sleep(wait); console.log('[capture] ' + name + '-' + SIZE.split('x')[0]); await sleep(900); done.push(name); };
+// UX-audit 23-11: de gatebeelden van 22-11 toonden de foutkaart 'Er ging iets mis' zonder spoor (de uitvoermap was weg). Leg de eerste
+// foutkaart vast met het beeld waarbij hij opdook en de technische tekst (Details), zodat de oorzaak in menufoto-<breedte>.json staat.
+const ERRLOG = await imp('errorlog'); // de foutkaart toont buiten DEV geen Details: het rapport komt uit errorlog.js
+const noteerFout = (name) => { const f = document.querySelector('.frame-error'); if (!f || notities.foutkaart) return; notities.foutkaart = { eersteBeeld: name, details: (() => { try { return String(ERRLOG.errorReport()).slice(0, 1500); } catch (e) { return ''; } })() }; console.log('[foutkaart] ' + name + ': ' + notities.foutkaart.details); };
+const cap = async (name, wait = 1500) => { await sleep(wait); noteerFout(name); console.log('[capture] ' + name + '-' + SIZE.split('x')[0]); await sleep(900); done.push(name); };
 const probeer = async (naam, fn) => { try { await fn(); } catch (e) { done.push(naam + ' FOUT ' + (e && e.message)); try { PM.closePauseMenu(); } catch (e2) { /* niet open */ } } };
 const sluit = async () => { try { PM.closePauseMenu(); } catch (e) { /* niet open */ } await sleep(700); };
 const teleport = (x, y) => {

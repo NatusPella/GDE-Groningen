@@ -15,14 +15,14 @@ function speelDuikScene(plek) {
   if (typeof document === 'undefined' || !document.body) return;
   const el = document.createElement('div');
   el.setAttribute('aria-hidden', 'true');
-  el.style.cssText = 'position:fixed;inset:0;pointer-events:none;z-index:80;opacity:0;background:radial-gradient(circle at 50% 30%, rgba(63,208,255,0.35), color-mix(in srgb, var(--ds-c-glas) 88%, transparent) 70%)';
+  el.style.cssText = 'position:fixed;inset:0;pointer-events:none;z-index:80;opacity:0;background:radial-gradient(circle at 50% 30%, color-mix(in srgb, var(--ds-c-licht-groen) 35%, transparent), color-mix(in srgb, var(--ds-c-glas) 88%, transparent) 70%)';
   const txt = document.createElement('div');
   txt.textContent = `Je duikt naar ${plek.wrak.naam}…`;
   txt.style.cssText = 'position:absolute;left:50%;top:42%;transform:translate(-50%,-50%);font:800 24px var(--ds-font-zeef-kop);letter-spacing:1px;color:var(--ds-c-ink-inkt);background:var(--ds-c-ink-papier);padding:6px 18px;border:var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt);border-radius:8px;box-shadow:var(--ds-schaduw-hard);white-space:nowrap';
   el.appendChild(txt);
   for (let i = 0; i < 10; i++) {
     const b = document.createElement('i');
-    b.style.cssText = `position:absolute;left:${8 + Math.random() * 84}%;bottom:-10%;width:${4 + Math.random() * 7}px;height:${4 + Math.random() * 7}px;border-radius:50%;border:1px solid rgba(63,208,255,0.65)`;
+    b.style.cssText = `position:absolute;left:${8 + Math.random() * 84}%;bottom:-10%;width:${4 + Math.random() * 7}px;height:${4 + Math.random() * 7}px;border-radius:50%;border:1px solid color-mix(in srgb, var(--ds-c-licht-groen) 65%, transparent)`;
     el.appendChild(b);
     b.animate([{ transform: 'translateY(0)', opacity: 0 }, { opacity: 0.8, offset: 0.2 }, { transform: 'translateY(-70vh)', opacity: 0 }], { duration: 1500 + Math.random() * 900, delay: Math.random() * 300, easing: 'ease-out' });
   }

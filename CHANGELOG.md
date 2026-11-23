@@ -25,6 +25,14 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 - Wereld: bomen zijn geen gladde bollen meer maar hebben bobbelige kronen met een donkerder onderkant, en elke boom heeft een eigen tint groen. Gevels en daken hebben zachte verweringsvlekken, zodat lange muren en dakvlakken niet meer uit één egale kleur bestaan.
 
+- Laadschermen bewegen: net als het opstartscherm stempelen logo en bestemming binnen, het beeld drijft traag, er loopt een glans over de balk en een nieuwe statusregel schuift vloeiend in. Bij Beweging beperken of Rustig drukwerk staat alles stil.
+- Minder ruis in HUD en menu's: tijdens een achtervolging verdwijnt een knophint die toch niet kan; de regel Volg de gele route staat alleen bij de eerste drie verhaaldoelen; het verhaaloverzicht heeft één gele Doorgaan (in de rail).
+- De kaart opent de eerste keer zonder uitlegvenster: de tip komt pas als je in het zoekveld klikt. De Hulp-knop toont de hele uitleg.
+- Besturing > Controller toont per knop kolommen Te voet, Rijden en Menu. Standaard herstellen staat onderaan Instellingen.
+- Spullen: een vinkje op wat je aanhebt, het geld achteraan (het bedrag staat bovenin). Het laadscherm toont het evenement van vandaag met een kalendericoon.
+- Missie mislukt: de eindkaart zegt met welke toets je meteen opnieuw probeert.
+- Menu's opgeruimd na een UX-audit (docs/AUDIT-UXUI-23-11.md): de knop Toetsenbord naast een invulveld heeft een rand en leest niet meer als kop; Land en bedrijf toont zonder bezit alleen de volgende stap; de tour bij Loopbanen toont de dichte stops als één regel; in het pashokje heten de winkeltabbladen Winkel; Q en E heten overal tabblad en staan ook in de toetsregel van het Overzicht.
+
 ## [0.65.0] - 2026-11-22
 
 Samen spelen met vier echte vensters getest, een ronde zeefdruk-menu's (Spullen, Loopbanen, Boerderij, zoeken), echte voetstappen en weergeluid, AAA-aankleding van de missies van akte 1 tot en met 4 en een snellere start. Pre-release voor de speeltest.

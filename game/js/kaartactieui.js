@@ -145,6 +145,7 @@ export const KAART_ACTIE_CSS = `
 .mapview-overlay .mv-reispop .mv-kk .mv-kl { font-size: max(20px, var(--menu-min, 20px)); }
 .mapview-overlay .mv-reispop .mv-uit, .mapview-overlay .mv-reispop .mv-ku, .mapview-overlay .mv-reispop .mv-kd { color: var(--ds-tx-zacht); font-size: max(15px, var(--menu-min, 15px)); font-family: var(--ds-font-zeef-tekst); }
 .mapview-overlay .mv-reispop .mv-aanb { font-size: max(13px, var(--menu-min, 13px)); }
+.mapview-overlay .mv-zoektip { position: absolute; left: 0; right: 0; top: calc(100% + var(--ds-s-2)); z-index: 12; margin: 0; padding: var(--ds-s-2) var(--ds-s-3); font-family: var(--ds-font-zeef-tekst); font-size: var(--ds-t-hulp); line-height: var(--ds-lh-tekst); pointer-events: none; }
 @keyframes mv-help-in { from { opacity: 0; } to { opacity: 1; } }
 @keyframes mv-help-kaart { from { opacity: 0; translate: 0 var(--ds-s-2); } to { opacity: 1; translate: 0 0; } }
 @media (prefers-reduced-motion: reduce) { .mapview-overlay :is(.mv-help, .mv-reispop, .mv-help-box, .mv-reispop-box) { animation: none; } }

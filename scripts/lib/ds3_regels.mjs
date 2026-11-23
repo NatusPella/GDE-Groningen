@@ -174,6 +174,7 @@ export const BEWUST = {
   'game/js/ds-galerij.js': 'de galerij toont de oude set als referentie naast de zeefdruk',
   'game/ds-galerij.html': 'de galerij toont de oude set als referentie',
   'game/fonts/fonts.css': 'de @font-face-regels van de zelf gehoste lettertypen',
+  'desktop/vendor-fonts.css': 'de @font-face-bron die desktop/build.mjs bij het bouwen vastlegt (zelfde rol als game/fonts/fonts.css)',
   'game/cutpreview.html': 'ontwikkelaarstool voor het bekijken van cutscenes, geen speler-UI',
   // Alleen met een URL-vlag of --dev geladen (main.js importeert ze dan pas): ontwikkelaarsgereedschap, geen speler-UI.
   'game/js/testmenu.js': 'ontwikkelaarsmenu (?testmenu, F10): alleen met de vlag geladen, eigen opslag',

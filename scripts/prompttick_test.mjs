@@ -1,6 +1,6 @@
 // #659: de primaire E-hintzoeker draait op 8 Hz in plaats van 60x/s.
 // node scripts/prompttick_test.mjs
-import { makePromptClock, PRIMARY_INTERVAL } from '../game/js/prompttick.js';
+import { makePromptClock, PRIMARY_INTERVAL, blockedInChase } from '../game/js/prompttick.js';
 
 let n = 0, fails = 0;
 const ok = (c, name, info = '') => { n++; if (!c) { fails++; console.log(`FAIL ${name}${info !== '' ? ` (${info})` : ''}`); } };
@@ -15,6 +15,7 @@ const c2 = makePromptClock();
 c2.due(5);
 c2.reset();
 ok(c2.due(0.01), 'reset: de volgende frame zoekt meteen weer');
+ok(blockedInChase({ dim: true }, 2) && !blockedInChase({ dim: true }, 0) && !blockedInChase({ dim: false }, 3) && !blockedInChase(null, 3), 'S4: een grijze prompt valt alleen tijdens een achtervolging weg');
 console.log(`#659 meting: ${runs} primaire zoekrondes in 60 frames (was 60), ${60 - runs} overgeslagen`);
 console.log(`${n - fails}/${n} prompttick`);
 process.exit(fails ? 1 : 0);

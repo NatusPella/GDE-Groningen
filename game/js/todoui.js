@@ -4,7 +4,7 @@
 // pausemenu.css (ov-*, td-*).
 import { icoon } from './icons.js';
 import { hoofdspeler } from './players.js';
-import { keyTextHtml, braceKeysHtml } from './keycap.js';
+import { keyTextHtml } from './keycap.js';
 import { wasHelped } from './assistlive.js';
 import { getTodoItems, chooseTodo, mapIconUrl, placeName, GROUPS, STATUS_LABEL, buyFjordUpgrade, paspoortOverzicht, beginHierItems, beginHierCount } from './todo.js';
 import { activityTodoItems } from './activities.js';
@@ -236,7 +236,7 @@ function heroHtml(world) {
       ? `Nog te doen voor de aftiteling: ${open.join(', ')}. Een overgeslagen missie telt pas als je hem alsnog haalt.`
       : 'Speel missies opnieuw als klus voor een betere medaille, verdien bij met een bijbaantje of zoek wat er nog verstopt ligt.';
     return `<article class="ov-hero"><div class="ov-main"><span class="m-eb">Het verhaal</span><h1 class="ov-title">${esc(sv.title)}</h1><p class="ov-lead">${esc(text)}</p></div>` +
-      `<div class="m-acts">${doorgaanKnop()}<button type="button" class="m-bg" data-todo-view="alles">Alles te doen</button>` +
+      `<div class="m-acts"><button type="button" class="m-bg" data-todo-view="alles">Alles te doen</button>` +
       `${e && e.credits ? '<button type="button" class="m-bg" data-story-credits>Aftiteling bekijken</button>' : ''}</div>${goalLine(world)}</article>`;
   }
   const steps = getStorySteps().filter((s) => s.part === sv.part && s.available);
@@ -253,12 +253,13 @@ function heroHtml(world) {
     `<div class="ov-main"><span class="m-eb">Het verhaal · ${esc(partName(sv.part))}</span>` +
     `<h1 class="ov-title${title.length > 20 ? " long" : ""}">${esc(title)}</h1>${cur && cur.lead ? `<p class="ov-lead">${esc(cur.lead)}</p>` : ''}` +
     `<div class="ov-prog"><span class="m-bar"><i data-bar="ov-part" data-w="${pct}"></i></span><span class="mut">Stap <span data-num="ov-part" data-to="${stapNu}">${stapNu}</span> van ${steps.length}${where ? ` · ${esc(where)}` : ''}</span></div></div>` +
-    `<div class="m-acts ov-acts">${doorgaanKnop()}` +
+    // UX-audit 23-11 (S7): Doorgaan staat al geel bovenaan de rail; een tweede gele Doorgaan hier was dubbel. De rest is secundair.
+    `<div class="m-acts ov-acts">` +
     `${it && !goal ? `<button type="button" class="m-bg" data-todo-goal="${esc(it.key)}">Zet als doel</button>` : ''}` +
     `${it && goal ? `<button type="button" class="m-bg" data-todo-goal="${esc(it.key)}">Terug naar het verhaal</button>` : ''}` +
     `<button type="button" class="m-bg" data-goto="map">${svg(ICON.pin)}Op de kaart</button>` +
     `<button type="button" class="m-bg" data-todo-view="verhaal">Alle opdrachten</button>` +
-    `<button type="button" class="m-bt" data-action="save" title="Bewaart je voortgang">Opslaan</button>` +
+    `<button type="button" class="m-bg" data-action="save" title="Bewaart je voortgang">Opslaan</button>` +
     `${sv.canSkip ? `<button type="button" class="m-bt" data-story-skip>${esc(sv.skipLabel)}</button>` : ''}</div>${goalLine(world)}</article>`;
 }
 
@@ -309,7 +310,6 @@ function disc(id, title, hint, inner) {
 }
 
 // #1259: the Doorgaan button with its key as a keycap (never raw {ESC}); no key on a touch device.
-const doorgaanKnop = () => deviceText(braceKeysHtml('<button type="button" class="m-bp" data-action="resume">Doorgaan <span class="m-kc dark">{ESC}</span></button>'), '<button type="button" class="m-bp" data-action="resume">Doorgaan</button>');
 
 // The state of the game in four tiles: a quick look, no text to read (#34, #92)
 function tilesHtml(world, extra) {

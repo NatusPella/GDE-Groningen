@@ -56,6 +56,14 @@ function ensureCss() {
 // mission (a key of MISSION_PICTURE) picks that mission's own picture.
 // snel is the small hop (fast travel nearby): only the place and the bar.
 // Returns { done: Promise, el }. One at a time.
+// Een nieuwe statusregel komt vloeiend binnen (ds-laad.css): de klasse eraf en een frame later erop, zodat de animatie opnieuw start
+// zonder een geforceerde layout. Bij Beweging beperken zet de CSS de animatie uit.
+const NIEUW = 'ds-laad__status--nieuw';
+function nieuweRegel(el) {
+  el.classList.remove(NIEUW);
+  if (typeof requestAnimationFrame === 'function') requestAnimationFrame(() => el.classList.add(NIEUW)); else el.classList.add(NIEUW);
+}
+
 export function startLoadScreen(world, opts = {}) {
   if (active) return active;
   ensureCss();
@@ -68,11 +76,11 @@ export function startLoadScreen(world, opts = {}) {
   const img = pickImage(world, place, opts.mission);
   const el = document.createElement('div');
   el.id = 'load-screen';
-  el.className = 'ls ls-' + kind + ' instant';
+  el.className = 'ls ls-' + kind + ' instant ds-laad'; // ds-laad.css: de gedeelde beweging van alle laadschermen
   // #600: the bar is the one progressbar; the destination, the story and the tip
   // stay ordinary text a screen reader can read (children of a progressbar are
   // presentational, so the role used to be on the whole screen).
-  el.innerHTML = loadScreenHtml({ kind, name: place.name, special: date.special, img });
+  el.innerHTML = loadScreenHtml({ kind, name: place.name, special: date.special, icon: date.icon, img });
   document.body.appendChild(el);
   // the boot screen may still be fading underneath: one bar at a time
   const boot = document.getElementById('loading');
@@ -145,7 +153,7 @@ export function startLoadScreen(world, opts = {}) {
     }
     // de ene statusregel onder de balk: de echte stap (of de reden van een lange wacht); alleen schrijven bij een wijziging
     const gv = gateTick(gate, { done: prog.done, elapsedS: (now - t0) / 1000, stap: gateStap, wachtOp: opts.wachtOp ? opts.wachtOp() : wachtOpGastheer(world.coopNet, () => openerNaam(world.coopRoster)) });
-    if (stepEl.textContent !== gv.status) { stepEl.textContent = gv.status; barEl.setAttribute('aria-valuetext', gv.status); }
+    if (stepEl.textContent !== gv.status) { stepEl.textContent = gv.status; barEl.setAttribute('aria-valuetext', gv.status); nieuweRegel(stepEl); }
     if (gv.actie === 'door') { finish(); return; }
     requestAnimationFrame(step);
   };

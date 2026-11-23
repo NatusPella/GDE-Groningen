@@ -154,7 +154,7 @@ const blokVan = (naam) => naam.split('__')[0].split('--')[0];
   // alle typografierollen en de toestanden staan in de galerij
   for (const t of ['display', 'kop', 'subkop', 'cijfer', 'body', 'label', 'hulp']) ok(galerij.includes(`ds-t-${t}`), `de galerij toont .ds-t-${t}`);
   for (const t of ['--uit', '--selectie', '--probleem', '--succes', '--waarschuwing', '--secundair', '--gevaar', '--tekst', '--tijd', '--laag', '--dik', '--op', '--neer', '--omgekeerd']) {
-    if (componentsCss.includes(t)) ok(galerij.includes(t) || t === '--omgekeerd' || t === '--dik' || t === '--laag' || galerij.includes(`ds-streep${t}`), `de galerij toont de variant ${t}`);
+    if (new RegExp('\\.ds-[a-z0-9-]+' + t + '(?![\\w-])').test(componentsCss)) ok(galerij.includes(t) || t === '--omgekeerd' || t === '--dik' || t === '--laag' || galerij.includes(`ds-streep${t}`), `de galerij toont de variant ${t}`);
   }
   ok(/disabled/.test(galerij) && /aria-disabled/.test(galerij) && /aria-busy/.test(galerij), 'de galerij toont uitgeschakeld en bezig');
   ok(/lang="nl"/.test(galerij), 'de galerij is Nederlands (lang="nl")');

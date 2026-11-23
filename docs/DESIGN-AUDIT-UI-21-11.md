@@ -89,33 +89,25 @@ Deze lijst komt uit dezelfde telling als de ratel en `node scripts/ds3_dekkingli
 
 <!-- ds3-dekkinglijst:begin -->
 
-Totaal nog te doen: kleur 64, glas 114, oud 51, font 27, klein 1, lus 0, lang 0, emoji 0, svg 31 in 66 bestanden (bewust buiten de telling: 19).
+Totaal nog te doen: kleur 5, glas 113, oud 0, font 15, klein 1, lus 0, lang 0, emoji 0, svg 31 in 56 bestanden (bewust buiten de telling: 20).
 
 | bestand | kleur | glas | oud | font | klein | lus | lang | emoji | svg |
 |---|---|---|---|---|---|---|---|---|---|
-| `game/js/ds-components.css` |  |  | 49 |  |  |  |  |  |  |
-| `game/js/menu.css` | 13 | 36 |  |  |  |  |  |  |  |
-| `game/js/hud_panel.css` | 11 | 11 |  |  |  |  |  |  |  |
-| `game/js/pausemenu.css` | 1 | 18 |  |  |  |  |  |  |  |
-| `game/js/storycontact.js` | 14 | 2 |  | 1 |  |  |  |  |  |
-| `desktop/vendor-fonts.css` |  |  |  | 11 |  |  |  |  |  |
+| `game/js/menu.css` |  | 36 |  |  |  |  |  |  |  |
+| `game/js/pausemenu.css` |  | 18 |  |  |  |  |  |  |  |
+| `game/js/hud_panel.css` |  | 11 |  |  |  |  |  |  |  |
 | `game/index.html` | 1 | 5 |  |  |  |  |  |  |  |
 | `game/js/hud_panel.js` |  |  |  |  |  |  |  |  | 6 |
 | `game/js/bigmoment.css` |  |  |  | 5 |  |  |  |  |  |
 | `game/js/prompts.css` |  | 5 |  |  |  |  |  |  |  |
 | `game/js/trailer.js` | 1 | 2 |  | 2 |  |  |  |  |  |
 | `game/js/heist.css` |  | 4 |  |  |  |  |  |  |  |
-| `game/js/intromontage.js` | 1 | 3 |  |  |  |  |  |  |  |
-| `game/js/onlineconsent.css` | 1 | 3 |  |  |  |  |  |  |  |
 | `game/js/regelwidget.js` |  |  |  |  |  |  |  |  | 4 |
-| `game/js/startscreen.css` | 1 | 3 |  |  |  |  |  |  |  |
-| `game/js/touch.js` | 3 |  |  | 1 |  |  |  |  |  |
-| `game/js/a11y.css` |  | 1 | 2 |  |  |  |  |  |  |
 | `game/js/furniture.js` |  |  |  | 3 |  |  |  |  |  |
-| `game/js/scene3d.js` | 3 |  |  |  |  |  |  |  |  |
-| `game/js/visboekui.js` | 2 |  |  |  |  |  |  |  | 1 |
-| `game/js/wrakduikenlive.js` | 2 | 1 |  |  |  |  |  |  |  |
-| `game/js/gfxprofile.js` | 1 |  |  |  |  |  |  |  | 1 |
+| `game/js/intromontage.js` |  | 3 |  |  |  |  |  |  |  |
+| `game/js/onlineconsent.css` |  | 3 |  |  |  |  |  |  |  |
+| `game/js/startscreen.css` |  | 3 |  |  |  |  |  |  |  |
+| `game/js/storycontact.js` |  | 2 |  | 1 |  |  |  |  |  |
 | `game/js/loopbaanui.js` |  |  |  |  |  |  |  |  | 2 |
 | `game/js/lowhealth.js` |  | 2 |  |  |  |  |  |  |  |
 | `game/js/main.js` | 2 |  |  |  |  |  |  |  |  |
@@ -124,41 +116,39 @@ Totaal nog te doen: kleur 64, glas 114, oud 51, font 27, klein 1, lus 0, lang 0,
 | `game/js/pigeonmode.js` |  |  |  |  |  |  |  |  | 2 |
 | `game/js/reisrit.js` |  |  |  | 1 | 1 |  |  |  |  |
 | `game/js/sfx/menunav.js` |  | 2 |  |  |  |  |  |  |  |
-| `game/js/stunthud.js` | 2 |  |  |  |  |  |  |  |  |
 | `game/js/treincabine.js` |  | 1 |  | 1 |  |  |  |  |  |
 | `game/js/achievementicons.js` |  |  |  |  |  |  |  |  | 1 |
 | `game/js/achievements.js` |  |  |  |  |  |  |  |  | 1 |
 | `game/js/achievementsui.js` |  |  |  |  |  |  |  |  | 1 |
 | `game/js/aimassist.js` |  | 1 |  |  |  |  |  |  |  |
-| `game/js/busbestuurhud.js` | 1 |  |  |  |  |  |  |  |  |
 | `game/js/busboard3d.js` |  | 1 |  |  |  |  |  |  |  |
 | `game/js/calendar.js` |  |  |  |  |  |  |  |  | 1 |
 | `game/js/carrieresfeer.js` |  | 1 |  |  |  |  |  |  |  |
 | `game/js/cheatsui.js` |  |  |  |  |  |  |  |  | 1 |
 | `game/js/choicepanel.js` |  | 1 |  |  |  |  |  |  |  |
 | `game/js/coopoverlay.js` |  | 1 |  |  |  |  |  |  |  |
-| `game/js/coopscene.js` |  |  |  | 1 |  |  |  |  |  |
 | `game/js/drunk.js` |  | 1 |  |  |  |  |  |  |  |
 | `game/js/ds-menu-zeef.css` |  | 1 |  |  |  |  |  |  |  |
 | `game/js/farmcards.js` |  |  |  |  |  |  |  |  | 1 |
 | `game/js/garageui.js` |  |  |  |  |  |  |  |  | 1 |
-| `game/js/golfhud.js` | 1 |  |  |  |  |  |  |  |  |
+| `game/js/gfxprofile.js` |  |  |  |  |  |  |  |  | 1 |
 | `game/js/golficons.js` |  |  |  |  |  |  |  |  | 1 |
 | `game/js/heliflight.js` |  | 1 |  |  |  |  |  |  |  |
 | `game/js/hudcards.css` |  | 1 |  |  |  |  |  |  |  |
 | `game/js/hudcards.js` |  |  |  |  |  |  |  |  | 1 |
 | `game/js/instrumenten.js` |  | 1 |  |  |  |  |  |  |  |
 | `game/js/pausemenu.js` |  | 1 |  |  |  |  |  |  |  |
-| `game/js/postgame.js` | 1 |  |  |  |  |  |  |  |  |
 | `game/js/prompts.js` |  |  |  |  |  |  |  |  | 1 |
 | `game/js/regelwidget.css` |  | 1 |  |  |  |  |  |  |  |
 | `game/js/saveslotsui.js` |  |  |  |  |  |  |  |  | 1 |
 | `game/js/shopicons.js` |  |  |  |  |  |  |  |  | 1 |
 | `game/js/shopui.js` |  | 1 |  |  |  |  |  |  |  |
 | `game/js/simhud.js` |  |  |  |  |  |  |  |  | 1 |
-| `game/js/startscreen.js` | 1 |  |  |  |  |  |  |  |  |
 | `game/js/story.js` |  | 1 |  |  |  |  |  |  |  |
+| `game/js/touch.js` |  |  |  | 1 |  |  |  |  |  |
 | `game/js/uitjepaneel.js` |  | 1 |  |  |  |  |  |  |  |
+| `game/js/visboekui.js` |  |  |  |  |  |  |  |  | 1 |
+| `game/js/wrakduikenlive.js` |  | 1 |  |  |  |  |  |  |  |
 
 <!-- ds3-dekkinglijst:eind -->
 

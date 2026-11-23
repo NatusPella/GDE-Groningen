@@ -116,7 +116,7 @@ const CSS = `
 #intro-montage .im-flare.on { opacity: var(--fa, 1); }
 #intro-montage .im-black { background: var(--ds-c-glas); opacity: 0; transition: opacity 0.35s; } /* ds3-film: scene */
 #intro-montage .im-black.on { opacity: 1; transition: opacity 0.12s; }
-#intro-montage .im-flash { background: #fff6e6; opacity: 0; }
+#intro-montage .im-flash { background: var(--ds-c-papier); opacity: 0; }
 #intro-montage .im-flash.go { animation: im-flash 0.28s ease-out; }
 @keyframes im-flash { 0% { opacity: 0.85; } 100% { opacity: 0; } }
 #intro-montage .im-card { display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; opacity: 0; padding: 0 6vw; text-shadow: 3px 3px 0 var(--ds-c-ink-roze); }

@@ -234,11 +234,15 @@ function kaart(k) {
 const STOP_ICOON = { gedaan: 'vinkje', nu: 'afspelen', volgende: 'volgende', dicht: 'slot' };
 function tourHtml(profiel) {
   const stops = tourStops(profiel, storyWorldOpen);
+  const dicht = stops.filter((s) => s.staat === STATE.closed);
+  const eersteDicht = dicht[0];
   return '<ol class="lb-tour" aria-label="De tour door de loopbanen">' + stops.map((s, i) => {
     const punt = `<span class="lb-stop__punt">${icoon(STOP_ICOON[s.staat])}</span>`;
     const stijl = `style="animation-delay:${Math.min(i, 8) * 20}ms"`;
     if (s.staat === STATE.closed) {
-      return `<li class="lb-stop" data-staat="dicht" ${stijl}>${punt}<span class="lb-stop__dicht" aria-label="Stop ${s.nr}, nog dicht, later in het verhaal"><span class="lb-stop__t"><span class="lb-stop__naam">Nog dicht</span><span class="lb-stop__s">${esc(stopLine(s))}</span></span></span></li>`;
+      // Progressive disclosure: de dichte stops verklappen niets en herhalen zich, dus een regel voor allemaal (geen tiental "Nog dicht").
+      if (s !== eersteDicht) return '';
+      return `<li class="lb-stop" data-staat="dicht" ${stijl}>${punt}<span class="lb-stop__dicht" aria-label="${dicht.length > 1 ? `Nog ${dicht.length} stops dicht` : 'Nog een stop dicht'}, later in het verhaal"><span class="lb-stop__t"><span class="lb-stop__naam">Nog dicht</span><span class="lb-stop__s">${dicht.length > 1 ? `${dicht.length} stops volgen` : 'Nog een stop volgt'} later in het verhaal</span></span></span></li>`;
     }
     const aan = gekozen === s.vak;
     const regel = stopLine(s);

@@ -21,7 +21,7 @@ w.clock = 14;
 await sleep(CFG.settle || 9000);
 const out = { stappen: [], fouten: [] };
 const fps = async (ms = 2000) => new Promise((res) => { let n = 0; const t0 = performance.now(); const f = () => { n++; if (performance.now() - t0 < ms) requestAnimationFrame(f); else res(+(n / ((performance.now() - t0) / 1000)).toFixed(1)); }; requestAnimationFrame(f); });
-const geelNu = () => [...document.querySelectorAll('.ds-knop:not(.ds-knop--secundair):not(.ds-knop--tekst):not(.ds-knop--gevaar)')].filter((b) => b.getClientRects().length && getComputedStyle(b).visibility !== 'hidden' && !b.disabled).map((b) => b.textContent.trim().slice(0, 24)); // besluit eigenaar 20-11: één gele hoofdknop per scherm
+const geelNu = () => [...document.querySelectorAll('.ds-z-knop:not(.ds-z-knop--secundair):not(.ds-z-knop--ghost):not(.ds-z-knop--gevaar)')].filter((b) => b.getClientRects().length && getComputedStyle(b).visibility !== 'hidden' && !b.disabled).map((b) => b.textContent.trim().slice(0, 24)); // besluit eigenaar 20-11: één gele hoofdknop per scherm
 const shot = async (name, wait = 900) => { await sleep(wait); out.geel = out.geel || {}; out.geel[name] = geelNu(); out.fps = out.fps || {}; out.fps[name] = await fps(700); console.log('[capture] ' + name); await sleep(700); };
 const teleport = (x, y) => { if (p.inVehicle) p.exitVehicle(map, w); p.x = x; p.y = y; p.vx = 0; p.vy = 0; p.z = 0; p.vz = 0; p.gz = map.groundHeightAt ? map.groundHeightAt(x, y, 0) || 0 : 0; };
 const hold = () => { /* de speler blijft staan */ };
@@ -146,7 +146,7 @@ if (STAP.includes('garage')) {
   const hero = (w.vehicles || []).find((v) => v.isHeroCar);
   if (hero) { hero.health = 55; hero.flat = true; }
   if (eigen[0]) { eigen[0].click(); await sleep(1800); }
-  out.chips = [...pm().querySelectorAll('.gar-chips .ds-chip')].map((c) => c.textContent.trim());
+  out.chips = [...pm().querySelectorAll('.gar-chips .ds-z-chip')].map((c) => c.textContent.trim());
   await shot('garage-hero', 1200);
   // verkopen of slopen: een eigen voertuig dat niet de Escapade is, twee keer
   const ander = eigen.find((c) => c.dataset.garageSelect !== 'hero');

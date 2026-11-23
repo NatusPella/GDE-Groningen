@@ -382,6 +382,16 @@ export function padInfo(id, mapping = '') {
   return { family, name: id ? name : '', standard, note };
 }
 
+// UX-audit 23-11 (S10): wat een knop doet per context, voor de kolommen Te voet, Rijden en Menu in Besturing. Rijden is leeg
+// als het hetzelfde is als te voet (dan herhaalt de kolom niets).
+export function slotUseParts(slot) {
+  const d = (ctx) => { const v = PAD_MAPS[ctx][slot]; return v ? describe(v) || '' : ''; };
+  const voet = d('foot');
+  const rijden = d('vehicle');
+  const m = PAD_MAPS.menu[slot];
+  return { voet, rijden: rijden && rijden !== voet ? rijden : '', menu: m && MENU_WORDS[m] ? MENU_WORDS[m] : '' };
+}
+
 // What a button does on foot and in a vehicle, for the remap list.
 export function slotUses(slot) {
   const words = [];

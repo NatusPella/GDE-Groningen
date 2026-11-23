@@ -58,7 +58,7 @@ import { radioIsOn, setRadio, channelList, selectChannel, stepChannel } from './
 import { channelPickerHtml } from './radiokeuze.js';
 import { isMuted, toggleMute } from './audio.js';
 import { glyphHtml, resetHintUses } from './prompts.js';
-import { KEY_ACTIONS, KEY_GROUPS, PAD_REMAPPABLE, PAD_SLOT_NAMES, bindKey, bindButton, physicalKey, defaultKey, physicalButton, isBindableKey, keyName, slotUses } from './controls.js';
+import { KEY_ACTIONS, KEY_GROUPS, PAD_REMAPPABLE, PAD_SLOT_NAMES, bindKey, bindButton, physicalKey, defaultKey, physicalButton, isBindableKey, keyName, slotUses, slotUseParts } from './controls.js';
 import { capturePadButton, isPadActive, onPadChange } from './gamepad.js';
 import { mapControlList, stepMapControls, toggleMapControls } from './padmapnav.js';
 import { padGlyphInner } from './glyphs.js';
@@ -439,7 +439,7 @@ const SUBTABS = {
 // tabblad, dus die oude voorkeur opent nu gewoon Camera.
 const SUB_ALIAS = { settings: { controller: 'besturing' } };
 
-// #911: waar je bent in de rail, voor de rechterkant van de bladkop: "Spelen · 2 van 5". Zo zie
+// #911: waar je bent in de rail, voor de rechterkant van de bladkop: "Spelen" (sinds 23-11 zonder teller). Zo zie
 // je hoeveel onderdelen er zijn en waar dit er een van is. Een onderdeel onder een ander
 // (Besturing onder Instellingen) noemt de plek van zijn ouder.
 function railPosition(id) {
@@ -449,7 +449,7 @@ function railPosition(id) {
   for (const [, label, members] of RAIL_GROUPS) {
     const zichtbaar = members.filter((m) => railIds.includes(m));
     const i = zichtbaar.indexOf(want);
-    if (i >= 0) return zichtbaar.length > 1 ? `${label} · ${i + 1} van ${zichtbaar.length}` : label;
+    if (i >= 0) return label; // UX-audit 23-11 (S3): alleen de groep; de teller "1 van 2" voegde niets toe
   }
   return '';
 }
@@ -468,24 +468,24 @@ function basisUitlegHtml() {
 }
 
 const HINTS = {
-  overzicht: [[['↑', '↓'], 'kiezen'], [['Enter'], 'ok'], [['Esc'], 'doorgaan', 'resume']],
+  overzicht: [[['↑', '↓'], 'kiezen'], [['Enter'], 'ok'], [['Q', 'E'], 'tabblad'], [['Esc'], 'doorgaan', 'resume']],
   todo: [[['↑', '↓'], 'kiezen'], [['Enter'], 'zet als doel'], [['Esc'], BACK, 'back']],
   map: [[['Klik'], 'plek kiezen'], [['Q', 'E'], 'andere pagina'], [['M'], 'sluiten', 'resume'], [['Esc'], BACK, 'back']],
   verhaal: [[['↑', '↓'], 'kiezen'], [['Enter'], 'kiezen of bellen'], [['Q', 'E'], 'tabblad'], [['Esc'], BACK, 'back']],
   spullen: [[['↑', '↓', '←', '→'], 'kiezen'], [['Enter'], 'gebruiken'], [['Q', 'E'], 'soort'], [['Esc'], BACK, 'back']],
   garage: [[['↑', '↓'], 'kiezen'], [['Enter'], 'afleveren of kopen'], [['Q', 'E'], 'soort'], [['Esc'], BACK, 'back']],
   prestaties: [[['↑', '↓'], 'kiezen'], [['Enter'], 'openen'], [['Q', 'E'], 'weergave'], [['Esc'], BACK, 'back']],
-  loopbaan: [[['↑', '↓'], 'kiezen'], [['T'], 'tour of vakken'], [['→'], 'naar de actie'], [['Q', 'E'], 'onderdeel'], [['Esc'], BACK, 'back']],
-  visboek: [[['↑', '↓'], 'kiezen'], [['Q', 'E'], 'onderdeel'], [['Esc'], BACK, 'back']],
+  loopbaan: [[['↑', '↓'], 'kiezen'], [['T'], 'tour of vakken'], [['→'], 'naar de actie'], [['Q', 'E'], 'tabblad'], [['Esc'], BACK, 'back']],
+  visboek: [[['↑', '↓'], 'kiezen'], [['Q', 'E'], 'tabblad'], [['Esc'], BACK, 'back']],
   // Veroverd had geen eigen regel en leende die van het Overzicht: Esc stond er als "doorgaan" terwijl hij een stap terug gaat
   veroverd: [[['↑', '↓'], 'kiezen'], [['Enter'], 'naar de kaart'], [['Esc'], BACK, 'back']],
-  boerderij: [[['↑', '↓'], 'kiezen'], [['Enter'], 'doen'], [['Q', 'E'], 'onderdeel'], [['Esc'], BACK, 'back']],
+  boerderij: [[['↑', '↓'], 'kiezen'], [['Enter'], 'doen'], [['Q', 'E'], 'tabblad'], [['Esc'], BACK, 'back']],
   voetbal: [[['↑', '↓'], 'kiezen'], [['Enter'], 'doen'], [['Esc'], BACK, 'back']],
-  fotos: [[['F8'], 'fotomodus'], [['Q', 'E'], 'onderdeel'], [['Esc'], BACK, 'back']],
+  fotos: [[['F8'], 'fotomodus'], [['Q', 'E'], 'tabblad'], [['Esc'], BACK, 'back']],
   spelers: [[['↑', '↓'], 'kiezen'], [['Enter'], 'roepen of erheen'], [['Esc'], BACK, 'back']],
-  streken: [[['↑', '↓'], 'kiezen'], [['Enter'], 'aan of uit'], [['Q', 'E'], 'onderdeel'], [['Esc'], BACK, 'back']],
+  streken: [[['↑', '↓'], 'kiezen'], [['Enter'], 'aan of uit'], [['Q', 'E'], 'tabblad'], [['Esc'], BACK, 'back']],
   samen: [[['↑', '↓'], 'kiezen'], [['Enter'], 'ok'], [['Esc'], BACK, 'back']],
-  over: [[['↑', '↓'], 'kiezen'], [['Enter'], 'open of dicht'], [['Q', 'E'], 'onderdeel'], [['Esc'], BACK, 'back']],
+  over: [[['↑', '↓'], 'kiezen'], [['Enter'], 'open of dicht'], [['Q', 'E'], 'tabblad'], [['Esc'], BACK, 'back']],
   spel: [[['↑', '↓'], 'kiezen'], [['Enter'], 'ok'], [['Q', 'E'], 'tabblad'], [['Esc'], BACK, 'back']],
   settings: [[['↑', '↓'], 'kiezen'], [['←', '→'], 'wijzigen'], [['Q', 'E'], 'tabblad'], [['Esc'], BACK, 'back']],
   controls: [[['↑', '↓'], 'kiezen'], [['Enter'], 'toets wijzigen'], [['Q', 'E'], 'tabblad'], [['Esc'], BACK, 'back']],
@@ -882,7 +882,8 @@ ${keyReuseHtml()}
   <div class="pm-a11y-shake"><button type="button" class="m-bg" data-shake-proef>Proef het schudden</button><span class="pm-shake-box" data-shake-box aria-hidden="true">klap</span><span class="mut" data-shake-msg role="status"></span></div>
   <div class="pm-a11y-text"><span class="pm-a11y-13">13 px: een bericht op het scherm</span><span class="pm-a11y-20">20 px: een regel in het menu</span></div>
 </div>
-<p class="mut">Zo zie je de kleuren, lijnen en letters nu. Ondertitels stel je in onder Geluid &amp; ondertitels.</p>`)}`)}`;
+<p class="mut">Zo zie je de kleuren, lijnen en letters nu. Ondertitels stel je in onder Geluid &amp; ondertitels.</p>`)}`)}
+    <div class="m-acts pm-reset-voet"><button type="button" class="m-bg" data-action="reset" hidden>Standaard herstellen</button></div>`; // UX-audit 23-11: herstellen onderaan, niet op de koplijn naast de titel
 }
 // #980: Opslaan & stoppen opent met de stand van deze speelsessie: hoelang je speelt, wanneer het
 // spel voor het laatst bewaard werd en in welke savegame. Zo zie je wat "Spel opslaan" overschrijft.
@@ -1025,7 +1026,7 @@ export function initPauseMenu(w) {
       <section class="pm-sheet m-panel" aria-labelledby="pm-sheet-title">
         <header class="pm-sheet-head m-head">
           <div class="pm-sheet-titles"><span class="m-eb pm-sheet-eb" hidden></span><h1 class="m-h1 pm-sheet-title" id="pm-sheet-title"></h1></div>
-          <div class="m-hr pm-sheet-r"><span class="mut pm-sheet-pos"></span><button type="button" class="m-bt" data-action="reset" hidden>Standaard herstellen</button></div>
+          <div class="m-hr pm-sheet-r"><span class="mut pm-sheet-pos"></span></div>
         </header>
         <div class="pm-sheet-body">
           <section data-panel="todo" class="pm-panel pm-col" hidden><div class="pm-inner pm-todo">
@@ -1799,10 +1800,14 @@ function bindRowsPad() {
   const rows = PAD_REMAPPABLE.map((slot) => {
     const phys = physicalButton(binds, slot);
     const changed = phys !== slot;
-    return `<button type="button" class="m-li pm-bind${changed ? ' pm-changed' : ''}" data-rebind-pad="${slot}" aria-label="${esc(PAD_SLOT_NAMES[slot])}. Kies om te wijzigen">` +
-      `<span class="nm"><span class="one">${esc(slotUses(slot) || PAD_SLOT_NAMES[slot])}</span><span class="mut">${esc(PAD_SLOT_NAMES[slot])}${changed ? ' · aangepast' : ''}</span></span><span class="pm-padcap">${pg(phys)}</span></button>`;
+    // UX-audit 23-11 (S10): per context een kolom (Te voet, Rijden, Menu) in plaats van drie contexten in één regel met puntjes
+    const u = slotUseParts(slot);
+    const cel = (ctx, t) => `<span class="pm-ctx" data-ctx="${ctx}">${t ? esc(t) : '<span class="mut" aria-hidden="true">–</span>'}</span>`;
+    return `<button type="button" class="m-li pm-bind pm-bind-pad${changed ? ' pm-changed' : ''}" data-rebind-pad="${slot}" aria-label="${esc(PAD_SLOT_NAMES[slot])}: ${esc(slotUses(slot) || PAD_SLOT_NAMES[slot])}. Kies om te wijzigen">` +
+      `<span class="nm"><span class="one">${esc(PAD_SLOT_NAMES[slot])}${changed ? ' · aangepast' : ''}</span></span>${cel('voet', u.voet)}${cel('rijden', u.rijden)}${cel('menu', u.menu)}<span class="pm-padcap">${pg(phys)}</span></button>`;
   }).join('');
-  return `<p class="m-note pm-cempty" hidden>Niks gevonden. Probeer een ander woord of een toets.</p><div class="m-list pm-slist">${rows}</div>${bindPane('pad', 'Kies een rij en druk op de controller de knop die het voortaan moet doen. Ze ruilen van plek. Menu/Start opent altijd het pauzemenu; de sticks liggen vast.')}`;
+  const kop = '<div class="pm-bind-pad pm-padkop" aria-hidden="true"><span class="nm">Knop</span><span class="pm-ctx">Te voet</span><span class="pm-ctx">Rijden</span><span class="pm-ctx">Menu</span><span class="pm-padcap"></span></div>';
+  return `<p class="m-note pm-cempty" hidden>Niks gevonden. Probeer een ander woord of een toets.</p><div class="m-list pm-slist">${kop}${rows}</div>${bindPane('pad', 'Kies een rij en druk op de controller de knop die het voortaan moet doen. Ze ruilen van plek. Menu/Start opent altijd het pauzemenu; de sticks liggen vast.')}`;
 }
 
 function renderBinds() {

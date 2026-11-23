@@ -20,16 +20,16 @@ html.touch-play #touch-ui { display: block; }
 #touch-ui .t-zone { position: absolute; top: 0; bottom: 0; pointer-events: auto; touch-action: none; }
 #touch-ui .t-left { left: 0; width: 45%; }
 #touch-ui .t-right { right: 0; width: 55%; }
-#touch-ui .t-ring { position: absolute; width: 112px; height: 112px; margin: -56px 0 0 -56px; border-radius: 50%; border: 2px solid color-mix(in srgb, var(--ds-c-creme) 45%, transparent); background: rgba(10, 19, 13, 0.25); display: none; }
+#touch-ui .t-ring { position: absolute; width: 112px; height: 112px; margin: -56px 0 0 -56px; border-radius: 50%; border: 2px solid color-mix(in srgb, var(--ds-c-creme) 45%, transparent); background: color-mix(in srgb, var(--ds-c-glas) 25%, transparent); display: none; }
 #touch-ui .t-knob { position: absolute; left: 50%; top: 50%; width: 52px; height: 52px; margin: -26px 0 0 -26px; border-radius: 50%; background: color-mix(in srgb, var(--ds-c-licht-groen) 70%, transparent); }
 #touch-ui .t-btn { position: absolute; pointer-events: auto; touch-action: none; min-width: 64px; height: 64px; padding: 0 8px; box-sizing: border-box; border-radius: 32px; border: 2px solid color-mix(in srgb, var(--ds-c-creme) 55%, transparent);
-  background: rgba(10, 19, 13, 0.5); color: var(--ds-c-creme); font: 17px var(--ds-font-kop); letter-spacing: 1px; display: flex; align-items: center; justify-content: center; }
+  background: color-mix(in srgb, var(--ds-c-glas) 50%, transparent); color: var(--ds-c-creme); font: 17px var(--ds-font-kop); letter-spacing: 1px; display: flex; align-items: center; justify-content: center; }
 #touch-ui .t-btn.on { background: color-mix(in srgb, var(--ds-c-licht-groen) 75%, transparent); color: var(--ds-c-glas); }
 #touch-ui .t-more { right: calc(max(10px, env(safe-area-inset-right)) + 68px); top: max(10px, env(safe-area-inset-top)); min-width: 64px; height: 64px; font-size: 15px; }
 #touch-ui .t-panel { position: absolute; right: calc(max(10px, env(safe-area-inset-right)) + 56px); top: max(10px, env(safe-area-inset-top)); display: none; flex-wrap: wrap; gap: 8px; max-width: 60%; justify-content: flex-end; pointer-events: auto; }
 #touch-ui .t-panel.open { display: flex; }
 #touch-ui .t-panel .t-btn { position: static; }
-#touch-ui .t-turn { position: absolute; left: 50%; top: 12px; transform: translateX(-50%); padding: 8px 14px; border-radius: 18px; background: rgba(10, 19, 13, 0.8); color: var(--ds-c-creme); font: 15px Arial, sans-serif; display: none; pointer-events: none; text-align: center; max-width: 90%; }
+#touch-ui .t-turn { position: absolute; left: 50%; top: 12px; transform: translateX(-50%); padding: 8px 14px; border-radius: 18px; background: color-mix(in srgb, var(--ds-c-glas) 80%, transparent); color: var(--ds-c-creme); font: 15px Arial, sans-serif; display: none; pointer-events: none; text-align: center; max-width: 90%; }
 html.touch-portrait #touch-ui .t-turn { display: block; }
 /* #463: de draaibanner is een wenk, geen melding. Op de beelden van #463 lag hij
    over "AANGEREDEN DOOR DE TREIN!" (een berichtkaart van zone A), over de

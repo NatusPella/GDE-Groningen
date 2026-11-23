@@ -93,6 +93,7 @@ ok(/function focusPlekkaart\(/.test(mv) && /if \(!popup\) focusPlekkaart\(/.test
 ok(/plekkaartToets\(e\)/.test(mv) && /\.mv-actie\[data-key=/.test(mv), 'de cijfers 1 tot 3 doen een actie van de plekkaart');
 ok(/const pijl = !\(state\.cardEl/.test(mv), 'met de focus in de plekkaart schuiven de pijlen de kaart niet');
 ok(/data-act="hulp"/.test(mv) && /act === 'hulp'/.test(mv) && /syncKaartUitleg\(world, true\)/.test(mv), 'een Hulp-knop bij de zoomknoppen opent de uitleg opnieuw');
+ok(/else if \(!opnieuw && !kaartGezien\(\)\) \{[\s\S]{0,400}wachtOpZoekTip\(\)/.test(mv) && /addEventListener\('focus'/.test(mv), 'UX-audit 23-11: de eerste keer geen venster over de kaart; de tip komt bij de eerste focus op het zoekveld');
 ok(/\.mv-reispop, \.mv-help'\) \|\| overlay/.test(src('game/js/padmapnav.js')), 'de D-pad van een controller blijft in een open kaartvenster (padmapnav.js)');
 ok(!/'Q', 'E'\], 'onderdeel'\]/.test(pm.match(/map: \[\[\['Klik'.*\n/)[0]), 'de voetbalk van de kaart zegt niet meer "onderdeel" bij Q en E');
 ok(!/mv-link" data-card="close"/.test(mv), 'mapview.js bouwt Sluiten via sluitHtml (met de Esc-toets erin)');

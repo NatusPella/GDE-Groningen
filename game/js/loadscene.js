@@ -40,24 +40,26 @@ const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&l
 
 // The whole markup of a load screen (loadscreen.js puts it in #load-screen; scripts/ui/laadscherm_render.html
 // renders the same string for the layout measurement, #1069). { kind: 'save' | 'travel' | 'snel', name, special, img }.
+// Beweging (ds-laad.css, 23-11): het logo en de kaart stempelen binnen, het beeld drijft traag in zijn lijst, de bestemming ademt,
+// een glans loopt over de balk en een nieuwe statusregel komt vloeiend binnen. Allemaal CSS (transform en opacity), stil bij Beweging beperken.
 // Two columns in one flow (loadscreen.css): left the logo and the destination card ("Naar <plaats>" as one sign), right the render;
 // below them the bar and the one status line. --n (the length of the name) lets the CSS size a long name down.
-export function loadScreenHtml({ kind = 'travel', name = '', special = '', img = 'vismarkt' } = {}) {
+export function loadScreenHtml({ kind = 'travel', name = '', special = '', icon = '', img = 'vismarkt' } = {}) {
   const plaats = String(name || 'Grunn');
   return '<div class="ls-stage">' +
     '<div class="ls-main">' +
       '<div class="ls-left">' +
-        '<div class="ls-brand"><div class="gde-logo" aria-hidden="true"><span class="gde-mark">GDE</span><span class="gde-sign">Groningen</span><span class="gde-sub">Zomer vol misdaad</span></div></div>' +
-        '<div class="ls-card">' +
+        '<div class="ls-brand"><div class="gde-logo" aria-hidden="true"><span class="gde-mark ds-laad__stempel" style="--i:0">GDE</span><span class="gde-sign ds-laad__stempel" style="--i:3">Groningen</span><span class="gde-sub ds-laad__stempel" style="--i:6">Zomer vol misdaad</span></div></div>' +
+        '<div class="ls-card ds-laad__stempel" style="--i:2">' +
           `<span class="ls-kick">${kind === 'save' ? 'Verder in' : 'Naar'}</span>` +
-          `<b class="ls-place" style="--n:${Math.max(1, plaats.length)}" title="${esc(plaats)}">${esc(plaats)}</b>` +
-          (special ? `<div class="ls-when"><span class="ls-badge">${esc(special)}</span></div>` : '') +
+          `<b class="ls-place ds-laad__adem" style="--n:${Math.max(1, plaats.length)}" title="${esc(plaats)}">${esc(plaats)}</b>` +
+          (special ? `<div class="ls-when"><span class="ls-badge" aria-label="Vandaag: ${esc(special)}">${icon}${esc(special)}</span></div>` : '') + // UX-audit 23-11: met het kalendericoon van de HUD leest de chip als evenement van vandaag
         '</div>' +
       '</div>' +
-      '<div class="ls-pic">' + pictureHtml(img) + '</div>' +
+      '<div class="ls-pic ds-laad__stempel" style="--i:1"><div class="ls-bg">' + pictureHtml(img, 'ls-bg__beeld ds-laad__drift') + '</div></div>' +
     '</div>' +
     '<div class="ls-bottom">' +
-      '<div class="ls-prog"><div class="ls-bar" role="progressbar" aria-label="Voortgang laden" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><i></i></div><div class="ls-step" role="status" aria-live="polite"></div></div>' +
+      '<div class="ls-prog"><div class="ls-bar" role="progressbar" aria-label="Voortgang laden" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><i class="ds-laad__balk"></i></div><div class="ls-step ds-laad__status" role="status" aria-live="polite"></div></div>' +
     '</div>' +
   '</div>';
 }

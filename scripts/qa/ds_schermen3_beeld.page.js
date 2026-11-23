@@ -20,7 +20,7 @@ w.clock = 14;
 await sleep(CFG.settle || 8000);
 const out = { stappen: [], fouten: [], venster: [innerWidth, innerHeight] };
 const fps = async (ms = 1500) => new Promise((res) => { let n = 0; const t0 = performance.now(); const f = () => { n++; if (performance.now() - t0 < ms) requestAnimationFrame(f); else res(+(n / ((performance.now() - t0) / 1000)).toFixed(1)); }; requestAnimationFrame(f); });
-const geelNu = () => [...document.querySelectorAll('.ds-knop:not(.ds-knop--secundair):not(.ds-knop--tekst):not(.ds-knop--gevaar)')].filter((b) => b.getClientRects().length && getComputedStyle(b).visibility !== 'hidden' && !b.disabled).map((b) => b.textContent.trim().slice(0, 24)); // besluit eigenaar 20-11: één gele hoofdknop per scherm
+const geelNu = () => [...document.querySelectorAll('.ds-z-knop:not(.ds-z-knop--secundair):not(.ds-z-knop--ghost):not(.ds-z-knop--gevaar)')].filter((b) => b.getClientRects().length && getComputedStyle(b).visibility !== 'hidden' && !b.disabled).map((b) => b.textContent.trim().slice(0, 24)); // besluit eigenaar 20-11: één gele hoofdknop per scherm
 const shot = async (name, wait = 900) => { await sleep(wait); out.geel = out.geel || {}; out.geel[name] = geelNu(); out.fps = out.fps || {}; out.fps[name] = await fps(600); console.log('[capture] ' + PRE + '-' + name); await sleep(600); };
 const q = (s) => document.querySelector(s);
 const kleinste = (el) => { let min = 99, wie = ''; for (const n of el.querySelectorAll('*')) { const heeftTekst = [...n.childNodes].some((c) => c.nodeType === 3 && c.textContent.trim()); if (!heeftTekst) continue; const r = n.getBoundingClientRect(); if (!r.width || !r.height) continue; const px = parseFloat(getComputedStyle(n).fontSize); if (px < min) { min = px; wie = (n.className && n.className.baseVal === undefined ? n.className : n.tagName) + ': ' + n.textContent.trim().slice(0, 30); } } return { px: min, wie }; };
@@ -42,7 +42,7 @@ out.fps0 = await fps();
 if (STAP.includes('todo')) {
   await open('todo');
   const m = q('#pause-menu');
-  out.todo = { kaarten: m.querySelectorAll('.td-card, .ds-kaart').length, chips: m.querySelectorAll('.ds-chip').length, knopGeel: m.querySelectorAll('.ds-knop:not(.ds-knop--secundair):not(.ds-knop--tekst)').length, klein: kleinste(m) };
+  out.todo = { kaarten: m.querySelectorAll('.td-card, .ds-z-kaart').length, chips: m.querySelectorAll('.ds-z-chip').length, knopGeel: m.querySelectorAll('.ds-z-knop:not(.ds-z-knop--secundair):not(.ds-z-knop--ghost)').length, klein: kleinste(m) };
   await shot('todo-begin', 600);
   const lijst = m.querySelector('.td-list'); if (lijst) { lijst.scrollTop = 520; await shot('todo-lijst', 500); lijst.scrollTop = 0; }
   const rij = m.querySelector('.td-list [data-todo]:not(.off)'); if (rij) { rij.click(); await sleep(500); await shot('todo-detail', 400); }

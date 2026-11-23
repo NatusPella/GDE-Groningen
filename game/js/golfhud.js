@@ -78,7 +78,7 @@ export const GOLF_CSS = `
 #hud .mg-board .gf-score thead th.on { color: var(--mk-mission, #e8c93a); }
 #hud .mg-board .gf-score tr.on { background: color-mix(in srgb, var(--ds-c-licht-groen) 18%, transparent); color: var(--ds-c-creme); }
 #hud .mg-board .gf-score tr.kijkt { opacity: 0.7; }
-#hud .mg-board .gf-score td.nu { background: rgba(255,210,63,0.2); color: var(--ink, #fff); }
+#hud .mg-board .gf-score td.nu { background: color-mix(in srgb, var(--ds-c-geel-hover) 20%, transparent); color: var(--ink, #fff); }
 #hud .mg-board .gf-score td.good { color: var(--mk-ok, #3fc97a); }
 #hud .mg-board .gf-score td.bad { color: var(--mk-job, #ff9a3c); }
 #hud .mg-board .gf-score td .gf-ic { margin-right: 3px; vertical-align: -2px; }

@@ -43,9 +43,11 @@
 #load-screen .ls-when { display: flex; gap: 0.5em; align-items: center; flex-wrap: wrap; padding: 0.1em 0.9em 0.75em 0.9em; }
 #load-screen .ls-when > span { font-size: 1em; color: var(--ds-c-ink-inkt); }
 #load-screen .ls-when .ls-badge { font: 800 1em/1.3 var(--ds-font-zeef-kop); letter-spacing: 0.06em; padding: 0.1em 0.6em; max-width: 100%; box-sizing: border-box; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--ds-c-ink-inkt); background: var(--ds-c-ink-geel); border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); }
+#load-screen .ls-when .ls-badge svg { width: 1em; height: 1em; margin-inline-end: var(--ds-s-1); vertical-align: -0.12em; fill: currentColor; } /* UX-audit 23-11: het kalendericoon zegt dat dit het evenement van vandaag is */
 /* the render: a framed print, tilted a little like a pulled poster; the room round it (tilt + shadow) belongs to it */
 #load-screen .ls-pic { position: relative; min-width: 0; min-height: 0; }
-#load-screen .ls-bg { position: absolute; left: 14px; top: 18px; width: calc(100% - 38px); height: calc(100% - 42px); box-sizing: border-box; object-fit: cover; border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); box-shadow: var(--ds-schaduw-hard-roze); background: var(--ds-c-ink-papier); transform: rotate(calc(var(--ds-schuin) * -1)); }
+#load-screen .ls-bg { position: absolute; left: 14px; top: 18px; width: calc(100% - 38px); height: calc(100% - 42px); box-sizing: border-box; object-fit: cover; overflow: hidden; border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); box-shadow: var(--ds-schaduw-hard-roze); background: var(--ds-c-ink-papier); transform: rotate(calc(var(--ds-schuin) * -1)); }
+#load-screen .ls-bg__beeld { display: block; width: 100%; height: 100%; object-fit: cover; transform-origin: 60% 45%; } /* het beeld drijft binnen zijn lijst (ds-laad.css); de lijst zelf staat stil */
 /* the fixed bottom zone: the bar and the one status line (room for two lines so the zone never changes height) */
 #load-screen .ls-bottom { flex: 0 0 auto; box-sizing: border-box; padding-right: 6px; }
 #load-screen .ls-prog { width: 100%; display: flex; flex-direction: column; gap: 0.55em; }

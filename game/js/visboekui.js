@@ -44,7 +44,7 @@ const CSS = `${SFEER_BAND_CSS}
 .vb-soorten .nm { font-size: 17px; }
 .vb-soorten .wat { grid-column: 1 / -1; font-size: max(14px, var(--menu-min, 14px)); opacity: 0.72; }
 .vb-soorten .z { font-size: max(13px, var(--menu-min, 13px)); letter-spacing: 0.08em; text-transform: uppercase; opacity: 0.8; align-self: center; }
-.vb-soorten .z1 { opacity: 0.55; } .vb-soorten .z3 { color: #f2c14a; } .vb-soorten .z4 { color: #ff9a3c; }
+.vb-soorten .z1 { opacity: 0.55; } .vb-soorten .z3 { color: var(--ds-c-ink-geel); } .vb-soorten .z4 { color: var(--ds-c-amber-glas-tx); }
 .vb-soorten .rec { grid-column: 1 / -1; font-size: max(14px, var(--menu-min, 14px)); color: var(--g, #3fc97a); }
 `;
 let cssAan = false;

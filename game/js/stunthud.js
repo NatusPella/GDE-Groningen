@@ -10,7 +10,7 @@ import { maakWidget } from './regelwidget.js';
 
 const CSS = `
 #hud .stunt-hud { position: absolute; top: calc(var(--hud-tr-bottom) + 8px); right: var(--hud-edge, 46px); width: 232px; box-sizing: border-box;
-  padding: 8px 14px 10px; border-radius: 10px; background: rgba(10, 19, 13, 0.78); border: 1px solid color-mix(in srgb, var(--ds-c-licht-groen) 16%, transparent);
+  padding: 8px 14px 10px; border-radius: 10px; background: color-mix(in srgb, var(--ds-c-glas) 78%, transparent); border: 1px solid color-mix(in srgb, var(--ds-c-licht-groen) 16%, transparent);
   border-right: 3px solid var(--ds-c-licht-groen); color: var(--ds-c-creme); text-shadow: var(--hud-shadow); font-family: var(--ds-font-kop); }
 #hud .stunt-hud[hidden], #hud .stunt-brief[hidden] { display: none; }
 #hud .stunt-hud .sh-top { display: flex; justify-content: space-between; align-items: baseline; }
@@ -36,7 +36,7 @@ const CSS = `
 #hud .stunt-pop.bad b, #hud .stunt-pop.bad { color: var(--ds-c-rood-glas); }
 @keyframes sh-rise { 0% { transform: translateY(20px) scale(0.85); opacity: 0; } 12% { transform: translateY(0) scale(1.05); opacity: 1; } 70% { opacity: 1; } 100% { transform: translateY(-46px); opacity: 0; } }
 #hud .stunt-brief { position: absolute; left: 50%; top: 22%; transform: translateX(-50%); width: min(340px, 86vw); box-sizing: border-box;
-  padding: 14px 18px 12px; border-radius: 12px; background: rgba(10, 19, 13, 0.88); border: 1px solid color-mix(in srgb, var(--ds-c-licht-groen) 30%, transparent);
+  padding: 14px 18px 12px; border-radius: 12px; background: color-mix(in srgb, var(--ds-c-glas) 88%, transparent); border: 1px solid color-mix(in srgb, var(--ds-c-licht-groen) 30%, transparent);
   border-top: 3px solid var(--ds-c-licht-groen); color: var(--ds-c-creme); text-shadow: var(--hud-shadow); animation: hud-rise var(--dur-slow, 320ms) var(--ease-out, ease-out); }
 #hud .stunt-brief.out { opacity: 0; transition: opacity 0.4s; }
 #hud .stunt-brief h3 { margin: 0 0 2px; font: normal 30px var(--ds-font-kop); letter-spacing: 1px; color: var(--ds-c-licht-groen); }

@@ -1,0 +1,49 @@
+/* Laadschermbeweging (DS3, 23-11, wens van de eigenaar: "op het eerste laadscherm zit animatie op de elementen; laadschermen
+   mogen meer visueel bewegen zodat het minder lang voelt"). Eén gedeelde set voor ALLE laadschermen: het opstartscherm
+   (#loading in index.html, ook het voorladen van de benchmark) en het laadscherm van loadscreen.js (een save laden, reizen,
+   snel reizen, een wereldwissel, de start van een missie en het wachten op de gastheer bij Samen spelen).
+
+   Regels (zoals ds-micro.css): alleen transform en opacity, geen layout; alle tijden en curves uit tokens (--ds-laad-*,
+   ds-tokens.css). Doorlopend mag hier, want een laadscherm is een wachtmoment: de trage drift van het beeld, de glans over
+   de balk en het zachte ademen van de bestemming. Die regels dragen `ds3-lus`. Beweging beperken (de instelling en het
+   systeem) en Rustig drukwerk zetten alles uit: hetzelfde beeld, stil. Geen JavaScript per frame: de browser animeert dit
+   op de compositor, dus het laden wacht er niet op. scripts/laadbeweging_test.mjs bewaakt de regels.
+
+   Klassen:
+   .ds-laad                 de wortel van een laadscherm (zet de set aan)
+   .ds-laad__stempel        komt binnen als een stempel (zoals het logo op het opstartscherm); --i is de plek in de staffel
+   .ds-laad__drift          het beeld beweegt heel traag (inzoomen en schuiven, heen en terug)
+   .ds-laad__adem           ademt zacht op en neer (de bestemmingskaart)
+   .ds-laad__balk           de vulling van de voortgangsbalk; een glans (een schuine papieren streep) loopt eroverheen
+   .ds-laad__status         de statusregel; .ds-laad__status--nieuw laat een nieuwe regel vloeiend binnenkomen */
+
+.ds-laad .ds-laad__stempel { animation: ds-laad-stempel var(--ds-laad-stempel) var(--ds-m-stempel) both; animation-delay: calc(var(--i, 0) * var(--ds-laad-staffel)); }
+.ds-laad .ds-laad__drift { animation: ds-laad-drift var(--ds-laad-drift) var(--ds-m-inuit) infinite alternate; } /* ds3-lus: het beeld van een laadscherm, bewust */
+.ds-laad .ds-laad__adem { animation: ds-laad-adem var(--ds-laad-adem) var(--ds-m-inuit) infinite alternate; } /* ds3-lus: de bestemming ademt zacht, bewust */
+.ds-laad .ds-laad__balk { position: relative; overflow: hidden; }
+.ds-laad .ds-laad__balk::after {
+  content: ''; position: absolute; top: 0; bottom: 0; left: 0; width: 18%; pointer-events: none;
+  background: color-mix(in srgb, var(--ds-c-ink-papier) 35%, transparent);
+  transform: translateX(-160%) skewX(-20deg); animation: ds-laad-glans var(--ds-laad-glans) var(--ds-m-inuit) infinite; /* ds3-lus: de glans over de balk, bewust */
+}
+.ds-laad .ds-laad__status--nieuw { animation: ds-laad-regel var(--ds-laad-wissel) var(--ds-m-uit) both; }
+
+@keyframes ds-laad-stempel { 0% { opacity: 0; transform: scale(1.12) rotate(-1.5deg); } 70% { opacity: 1; transform: scale(0.99); } 100% { opacity: 1; transform: none; } }
+@keyframes ds-laad-drift { from { transform: scale(1.02) translate(0, 0); } to { transform: scale(1.09) translate(-2%, -1.5%); } }
+@keyframes ds-laad-adem { from { transform: translateY(0); } to { transform: translateY(-4px); } }
+@keyframes ds-laad-glans { from { transform: translateX(-160%) skewX(-20deg); } to { transform: translateX(660%) skewX(-20deg); } }
+@keyframes ds-laad-regel { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+/* Weg of op weg naar weg (#loading.done blijft in de DOM, #load-screen.out vervaagt): de lussen stoppen, zodat er tijdens het spelen niets
+   meer op de compositor loopt. De stempels staan dan al in hun eindstand. */
+.ds-laad:is(.done, .out) :is(.ds-laad__stempel, .ds-laad__drift, .ds-laad__adem, .ds-laad__status--nieuw), .ds-laad:is(.done, .out) .ds-laad__balk::after { animation: none; }
+
+/* Beweging beperken en Rustig drukwerk: alles staat stil, niets verdwijnt (de glans is weg, de rest staat op zijn plek). */
+@media (prefers-reduced-motion: reduce) {
+  .ds-laad .ds-laad__stempel, .ds-laad .ds-laad__drift, .ds-laad .ds-laad__adem, .ds-laad .ds-laad__status--nieuw, .ds-laad .ds-laad__balk::after { animation: none; transition-duration: 0ms; transition-delay: 0ms; }
+  .ds-laad .ds-laad__balk::after { display: none; }
+}
+html.reduce-motion .ds-laad :is(.ds-laad__stempel, .ds-laad__drift, .ds-laad__adem, .ds-laad__status--nieuw), html.reduce-motion .ds-laad .ds-laad__balk::after { animation: none; transition-duration: 0ms; transition-delay: 0ms; }
+html.reduce-motion .ds-laad .ds-laad__balk::after { display: none; }
+html.rustig-drukwerk .ds-laad :is(.ds-laad__stempel, .ds-laad__drift, .ds-laad__adem, .ds-laad__status--nieuw), html.rustig-drukwerk .ds-laad .ds-laad__balk::after { animation: none; transition-duration: 0ms; transition-delay: 0ms; }
+html.rustig-drukwerk .ds-laad .ds-laad__balk::after { display: none; }

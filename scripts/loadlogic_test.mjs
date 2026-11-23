@@ -180,7 +180,7 @@ ok(LOAD_STEPS.every((s, i) => s.label.length > 8 && (i === 0 || s.from > LOAD_ST
 {
   const css = fs.readFileSync(new URL('../game/js/loadscreen.css', import.meta.url), 'utf8');
   const sceneSrc = fs.readFileSync(new URL('../game/js/loadscene.js', import.meta.url), 'utf8');
-  ok(!/ls-tip/.test(src + sceneSrc + css) && ((src + sceneSrc).match(/class="ls-step"/g) || []).length === 1, 'het laadscherm heeft één statusregel en geen tipregel');
+  ok(!/ls-tip/.test(src + sceneSrc + css) && ((src + sceneSrc).match(/class="ls-step[ "]/g) || []).length === 1, 'het laadscherm heeft één statusregel en geen tipregel');
 }
 console.log(`${n - fails}/${n} loadlogic`);
 process.exit(fails ? 1 : 0);

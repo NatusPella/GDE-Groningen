@@ -96,7 +96,12 @@ export function bouwMoment(opts = {}) {
   if (beloning) delen.push(`${beloningLabel}: ${beloning}.`);
   if (tijd) delen.push(`Tijd: ${tijd}.`);
   if (sterren != null) delen.push(`${sterren} van 5 sterren.`);
+  // UX-audit 23-11: bij een mislukte missie zegt de kaart zelf hoe je opnieuw begint (vanaf het laatste checkpoint, missioncheckpoint.js);
+  // opnieuwToets is de toetsglyph die de aanroeper meegeeft (cinematics.js), zodat dit bestand geen toetsen kent
+  const opnieuw = soort === 'mislukt' && opts.opnieuwToets ? String(opts.opnieuwToets) : '';
+  if (opnieuw) delen.push('Opnieuw proberen kan meteen.');
   return {
+    opnieuw,
     soort, vorm: d.vorm, schermvullend: d.schermvullend, klein, kop, regelNl, beloning, beloningWaarde: Number.isFinite(opts.beloning) ? opts.beloning : null, beloningLabel, tijd, sterren, compact, ms: compact ? Math.round(d.ms * 0.65) : d.ms,
     aria: delen.join(' '),
   };
@@ -259,6 +264,7 @@ function binnenHtml(m) {
   const meta = [];
   if (m.beloning) meta.push(`<span class="bm-meta-i bm-i-beloning"><b>${esc(m.beloningLabel)}</b> <span class="bm-teller">${esc(m.beloning)}</span></span>`);
   if (m.tijd) meta.push(`<span class="bm-meta-i bm-i-tijd"><b>Tijd</b> ${esc(m.tijd)}</span>`);
+  if (m.opnieuw) meta.push(`<span class="bm-meta-i bm-i-opnieuw">${m.opnieuw} <b>Opnieuw proberen</b></span>`);
   const metaHtml = meta.length ? `<div class="bm-meta">${meta.join('')}</div>` : '';
   const kop = `<div class="bm-kop">${esc(m.kop)}</div>`;
   const regel = `<p class="bm-regel">${esc(m.regelNl)}</p>`;

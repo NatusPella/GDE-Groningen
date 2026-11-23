@@ -2836,8 +2836,12 @@ function syncKaartUitleg(world, opnieuw = false) {
   const box = state.overlay.querySelector('.mv-help');
   if (box) {
     if ((box.dataset.gast === '1') !== gast) { box.outerHTML = uitlegHtml({ gast }); plaatsWijzers(); }
-  } else if (opnieuw || !kaartGezien()) {
-    // eenmalige popup over de kaart; hij neemt zelf de focus, dus de kaart eronder is even rustig
+  } else if (!opnieuw && !kaartGezien()) {
+    // UX-audit 23-11 (just-in-time): geen venster over de kaart bij de eerste keer. De uitleg komt pas als je hem nodig hebt:
+    // bij de eerste focus op het zoekveld een korte tip eronder. De volledige uitleg blijft achter de Hulp-knop.
+    wachtOpZoekTip();
+  } else if (opnieuw) {
+    // de popup over de kaart (alleen via de Hulp-knop); hij neemt zelf de focus, dus de kaart eronder is even rustig
     body.insertAdjacentHTML('beforeend', uitlegHtml({ gast }));
     const knop = state.overlay.querySelector('.mv-help .mv-help-ok');
     if (knop) knop.focus({ preventScroll: true });
@@ -2848,6 +2852,26 @@ function syncKaartUitleg(world, opnieuw = false) {
   // de legenda bovenaan Lagen zegt hetzelfde in het kort (#445)
   const leg = state.overlay.querySelector('.mv-leg-hint');
   if (leg && (leg.dataset.gast === '1') !== gast) leg.outerHTML = legendaHintHtml({ gast });
+}
+// De tip bij het zoekveld (UX-audit 23-11): één keer, bij de eerste focus, onder het veld; geen focusdief en geen venster. Hij gaat weg
+// bij blur of na ZOEKTIP_MS, en daarmee is de uitleg gezien (dezelfde sleutel als de popup).
+export const ZOEKTIP = 'Zoek een plek, missie of minigame. Klik op de kaart voor een waypoint of een reis.';
+const ZOEKTIP_MS = 8000;
+function wachtOpZoekTip() {
+  const veld = state.overlay && state.overlay.querySelector('.mapview-search input');
+  if (!veld || veld.dataset.tip) return;
+  veld.dataset.tip = '1';
+  veld.addEventListener('focus', () => {
+    if (kaartGezien()) return;
+    const zoek = veld.closest('.mapview-search');
+    if (!zoek || zoek.querySelector('.mv-zoektip')) return;
+    zoek.insertAdjacentHTML('beforeend', `<p class="mv-zoektip ds-zeef ds-z-kaart ds-z-kaart--recht" role="status">${ZOEKTIP}</p>`);
+    const weg = () => { const t = zoek.querySelector('.mv-zoektip'); if (t) t.remove(); };
+    setTimeout(weg, ZOEKTIP_MS);
+    veld.addEventListener('blur', weg, { once: true });
+    uitlegGezien = true;
+    try { localStorage.setItem(KEYS.hudSeen, JSON.stringify(markSeen(parseSeen(localStorage.getItem(KEYS.hudSeen)), UITLEG_ID))); } catch (e) { /* ignore */ }
+  }, { once: true });
 }
 // De wijzers van de uitleg (21-11): een ring met het cijfer van de rij om het echte onderdeel van de kaart (zoekveld, knop Lagen), geplaatst
 // in de eigen laag van de uitleg, dus de kaart eronder verandert niet en de wijzer is geen focusdoel (aria-hidden).
