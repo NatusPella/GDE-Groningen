@@ -50,6 +50,7 @@ import { trailerPhone } from './phone.js';
 import { KEYS, SESSION_KEYS } from './storagekeys.js';
 import { PLAN, PLAN_CUTS, SLICES } from './trailerplan.js';
 import { holdBackground } from './tilestream.js';
+import { ensureSubtitleCss } from './subtitleui.js';
 
 // Trailer mode: "GDE Groningen - Een zomer in Grunn" (shot list in
 // docs/verhaal/E-trailer.md), one list of staged shots through Grunn, played
@@ -141,7 +142,7 @@ const POLICE_MODEL = { name: 'police', len: 4.3, wid: 1.8, maxSpeed: 55, accel: 
 const CSS = `
 #trailer { position: fixed; inset: 0; z-index: 17; pointer-events: none; font-family: var(--ds-font-zeef-kop); color: var(--ds-c-ink-papier); opacity: 0; transition: opacity 0.4s; --bar: 9vh; } /* ds3-film: scene */
 #trailer.on { opacity: 1; }
-#trailer > div { position: absolute; }
+#trailer > div:not(.ds-sub) { position: absolute; }
 #trailer .tr-vig { inset: 0; background: radial-gradient(ellipse at center, color-mix(in srgb, var(--ds-c-ink-inkt) 0%, transparent) 55%, rgba(4, 10, 8, 0.5) 100%); transition: opacity 1.2s; } /* ds3-film: scene */
 #trailer .tr-bar { left: 0; right: 0; height: var(--bar); background: var(--ds-c-ink-inkt); transition: transform 0.8s cubic-bezier(0.6, 0, 0.3, 1); } /* ds3-film: scene */
 #trailer .tr-bar.top { top: 0; } #trailer .tr-bar.bottom { bottom: 0; }
@@ -175,9 +176,6 @@ const CSS = `
 #trailer .tr-name b { display: block; font-weight: normal; font-size: clamp(64px, 10vw, 160px); line-height: 0.88; text-transform: uppercase; letter-spacing: 0.02em; }
 #trailer .tr-name b .amp { color: var(--ds-c-ink-roze); }
 #trailer .tr-name i { display: block; margin-top: 0.5vh; border-left: 0.14em solid var(--ds-c-ink-roze); padding-left: 0.4em; font: clamp(20px, 2.5vw, 64px) var(--ds-font-zeef-tekst); letter-spacing: 0.3px; color: var(--ds-c-ink-papier); }
-#trailer .tr-sub { left: 50%; bottom: calc(var(--bar) + 3vh); transform: translateX(-50%); width: min(86vw, 1500px); text-align: center; font: 700 clamp(18px, 2.3vw, 60px) var(--ds-font-zeef-tekst); letter-spacing: 0.3px; opacity: 0; text-shadow: 2px 2px 0 var(--ds-c-ink-inkt), 0 0 2px color-mix(in srgb, var(--ds-c-ink-inkt) 90%, transparent); }
-#trailer .tr-sub.on { opacity: 1; }
-#trailer .tr-sub b { color: var(--ds-c-ink-roze); margin-right: 6px; }
 #trailer .tr-skip { right: 3vw; bottom: calc(var(--bar) * 0.5); transform: translateY(50%); display: block; text-align: center; white-space: nowrap; opacity: 0; transition: opacity 0.25s; } /* uiterlijk: ds-schermen.css */
 #trailer.skippable .tr-skip { opacity: 1; }
 body.trailer-rec #trailer .tr-skip, body.trailer-rec #trailer .tr-fps { display: none; }
@@ -216,7 +214,7 @@ function ensureUi() {
   root.id = 'trailer';
   root.setAttribute('aria-live', 'polite');
   root.innerHTML = '<div class="tr-vig"></div><div class="tr-flash"></div><div class="tr-black"></div>' +
-    '<div class="tr-freeze"></div><div class="tr-card"></div><div class="tr-name"></div><div class="tr-sub"></div><div class="tr-bar top"></div><div class="tr-bar bottom"></div>' +
+    '<div class="tr-freeze"></div><div class="tr-card"></div><div class="tr-name"></div><div class="ds-sub ds-sub--film tr-sub" role="status" aria-live="polite"></div><div class="tr-bar top"></div><div class="tr-bar bottom"></div>' +
     '<div class="tr-skip"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><circle class="fill" cx="12" cy="12" r="10"/></svg>' +
     '<span>Houd</span> <span class="key is-kbg">' + glyphHtml('SPACE') + '</span> <span>ingedrukt om over te slaan</span></div>' +
     '<div class="tr-cancel"><span class="key is-kbg">' + glyphHtml('ESC') + '</span><span>Benchmark stoppen</span></div>' +
@@ -225,6 +223,7 @@ function ensureUi() {
   document.body.appendChild(root);
   const q = (s) => root.querySelector(s);
   q('.tr-flash').addEventListener('animationend', (e) => e.target.classList.remove('go', 'big'));
+  ensureSubtitleCss();
   ui = { root, flash: q('.tr-flash'), card: q('.tr-card'), sub: q('.tr-sub'), skip: q('.tr-skip'), fps: q('.tr-fps'), prog: q('.tr-prog__t'), progBar: q('.tr-prog .ds-z-balk'), black: q('.tr-black'), name: q('.tr-name'), freeze: q('.tr-freeze'), cardKey: '', subKey: '', nameKey: '' };
   return ui;
 }

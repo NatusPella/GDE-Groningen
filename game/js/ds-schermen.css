@@ -43,8 +43,7 @@
   font-family: var(--ds-font-zeef-kop); font-weight: 800; font-size: var(--ds-t-hulp); letter-spacing: var(--ds-ls-label); font-variant-numeric: tabular-nums;
 }
 /* tijdens de meting en op het resultaat zwijgen de ondertitels en bijschriften: ze lagen over het scherm */
-body.trailer-on :is(#banter-sub, #radio-sub, #sound-captions),
-body.tr-result-open :is(#banter-sub, #radio-sub, #sound-captions, #cine) { display: none !important; }
+body.tr-result-open #cine { display: none !important; }
 
 /* ---- Benchmark, resultaat: één zeefdrukpaneel boven alles (z-index boven de ondertitels), cijfers als feiten, advies in bordgroen ---- */
 #trailer-result {

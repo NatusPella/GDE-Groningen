@@ -18,6 +18,7 @@ import { HABBO_PALETTE } from './pixelart3d.js';
 import { LINE as GIDS_LINE } from './sidejob_rondvaart.js';
 import { isCinematicActive, playCinematic } from './cinematics.js';
 import { setDualText } from './subtitles.js';
+import { createSubtitle } from './subtitleui.js';
 import { playLineVoice } from './audio.js';
 import { lineVoiceFor } from './linevoice.js';
 import { TOUR_WELCOME, TOUR_STOPS, TOURIST_REACT, RV_SCENES } from './rondvaartlines.js';
@@ -324,17 +325,7 @@ const voices = openBank('story').entries;
 let subEl = null;
 function subtitleEl() {
   if (subEl) return subEl;
-  subEl = document.createElement('div');
-  subEl.id = 'rv-sub';
-  subEl.setAttribute('aria-live', 'polite');
-  Object.assign(subEl.style, {
-    position: 'fixed', left: '50%', bottom: '17vh', transform: 'translateX(-50%)', width: 'min(86vw, 760px)',
-    textAlign: 'center', font: "clamp(15px, 1.5vw, 20px) var(--ds-font-tekst)", color: '#fff',
-    letterSpacing: '0.3px', textShadow: '0 1px 3px rgba(0,0,0,0.95), 0 0 12px rgba(0,0,0,0.6)', pointerEvents: 'none',
-    opacity: '0', transition: 'opacity 0.25s', zIndex: '40',
-  });
-  subEl.innerHTML = '<span class="rv-speaker" style="font-weight:bold;margin-right:6px"></span><span class="rv-line"></span>';
-  document.body.appendChild(subEl);
+  subEl = createSubtitle({ id: 'rv-sub', speaker: 'rv-speaker', line: 'rv-line' }).el; // het gedeelde ondertitelcomponent (subtitleui.js)
   return subEl;
 }
 

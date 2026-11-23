@@ -5,7 +5,7 @@ import { heldOverlays, mayStartOverlay } from './overlayrules.js';
 import { setVisibleInterval } from './visibletimer.js';
 import { isPauseMenuOpen, isMapOpen } from './pausestate.js';
 import { registerNoticeHold } from './notifyqueue.js';
-import { SUBTITLE_LAYERS, hiddenSubtitles } from './subtitlegate.js';
+import { SUBTITLE_LAYERS, SUBTITLE_SELECTORS, hiddenSubtitles } from './subtitlegate.js';
 
 // hoe elke overlay in de DOM te herkennen is (zichtbaar = aanwezig)
 const SELECTORS = {
@@ -43,7 +43,7 @@ export function isOverlayHeld(name) {
 }
 
 // Ondertitels en meldingen: één ondertitel tegelijk, geen ondertitel over een menu, geen kaart of ondertitel over het laadscherm.
-const SUBTITLE_EL = { cine: '#cine.has-sub .cine-sub', 'story-talk': '#story-talk', 'rv-sub': '#rv-sub', 'pg-sub': '#pg-sub', 'banter-sub': '#banter-sub', 'radio-sub': '#radio-sub' };
+const SUBTITLE_EL = SUBTITLE_SELECTORS; // de lagen van het ene ondertitelcomponent (subtitleui.js)
 const LAAD_HIDE = ['#hud .hud-cards', '#hud .hud-cards-e', '#hud .hud-count', '#menu-meldingen'];
 const toonbaar = (el) => !!el && el.style.opacity !== '0' && el.style.display !== 'none' && (el.id === '' || el.style.opacity === '1');
 function tickSubtitles() {
