@@ -1418,3 +1418,10 @@ html.pad-active #pause-menu.gm :is(.ra, .m-li, .m-tab, .m-bp, .m-bg, .m-bt, .m-c
   60% { transform: translate(calc(var(--shake-px) * -0.5), calc(var(--shake-px) * -0.4)); }
   80% { transform: translate(calc(var(--shake-px) * 0.2), 0); }
 }
+
+/* #1200: Instellingen. De kop tussen twee rijen (Hulp onder Toegankelijkheid) krijgt lucht en een lijn erboven, de
+   uitleg onder een rij staat op het DS3-contrast (inkt-zacht op papier, ruim boven 4,5:1) en de focusrand om een tab
+   is de dunne DS3-rand in plaats van een breed kader over de buren. */
+#pause-menu .pm-settab .pm-slist .m-gh:not(:first-child) { margin-top: 12px; padding-top: 14px; border-top: var(--ds-lijn-zeef, 2px) solid color-mix(in srgb, var(--ds-c-ink-inkt) 18%, transparent); }
+#pause-menu.gm .pm-settab .pm-slist .m-li .nm > .mut { color: var(--ds-c-inkt-zacht); }
+html.pad-active #pause-menu.gm [data-panel="settings"] .m-tablist .m-tab:focus { outline-width: 2px; outline-offset: -2px; }
