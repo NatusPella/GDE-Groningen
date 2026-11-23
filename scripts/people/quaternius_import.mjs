@@ -25,9 +25,12 @@ const WRITE = process.argv.includes('--write');
 const ONLY = (process.argv.find((a) => a.startsWith('--rig=')) || '').slice(6) || null;
 
 // Gewone kleding voor voorbijgangers en bijrollen; geen koning, astronaut, ridder, heks of soldaat (die passen niet in Grunn).
+// schaal: de importschaal per pack (eis eigenaar 23-11, gemeten met scripts/people/mensen_maten.mjs): het pack is in meters
+// (CharacterArmature schaal 100 op centimeters). Man in rust 1,80 m tot de kruin, oog 1,66 m: schaal 1. Vrouw 1,75 m: schaal 0,965
+// geeft 1,69 m. Per zaad komt daar hooguit 2,5% (man) of 2% (vrouw) bij of af: man 1,75-1,85 m, vrouw 1,65-1,72 m.
 export const RIGS = {
-  man: { dir: path.join(ASSETS, 'ultimate-modular-men', 'glb'), figures: ['Casual Character', 'Hoodie Character', 'Business Man', 'Worker', 'Farmer', 'Punk', 'Beach Character'] },
-  vrouw: { dir: path.join(ASSETS, 'ultimate-modular-women', 'pack'), figures: ['Animated Woman', 'Animated Woman-nIItLV9nxS', 'Suit', 'Worker', 'Punk', 'Adventurer'] },
+  man: { schaal: 1, variatie: 0.025, dir: path.join(ASSETS, 'ultimate-modular-men', 'glb'), figures: ['Casual Character', 'Hoodie Character', 'Business Man', 'Worker', 'Farmer', 'Punk', 'Beach Character'] },
+  vrouw: { schaal: 0.965, variatie: 0.02, dir: path.join(ASSETS, 'ultimate-modular-women', 'pack'), figures: ['Animated Woman', 'Animated Woman-nIItLV9nxS', 'Suit', 'Worker', 'Punk', 'Adventurer'] },
 };
 export const KEEP = ['Root', 'Body', 'Hips', 'Abdomen', 'Torso', 'Chest', 'Neck', 'Head', 'ShoulderL', 'UpperArmL', 'LowerArmL', 'WristL', 'ShoulderR', 'UpperArmR', 'LowerArmR', 'WristR', 'UpperLegL', 'LowerLegL', 'UpperLegR', 'LowerLegR', 'FootL', 'FootR'];
 export const CLIPS = ['Idle', 'Idle_Neutral', 'Walk', 'Run', 'Wave', 'Interact'];
@@ -243,7 +246,7 @@ function pack(rigName, r) {
   const maxIdx = Math.max(...r.parts.map((p) => p.vCount));
   const man = {
     versie: 1, rig: rigName, bron: 'Quaternius, Ultimate Modular ' + (rigName === 'man' ? 'Men' : 'Women') + ' Pack (CC0 1.0), zie docs/ANIMATIE-LICENTIES.md',
-    posQ: POS_Q, fps: FPS, hoofdhoogte: +r.heightRef.toFixed(4),
+    posQ: POS_Q, fps: FPS, hoofdhoogte: +r.heightRef.toFixed(4), schaal: RIGS[rigName].schaal, variatie: RIGS[rigName].variatie,
     armature: r.rest.armature, bones: r.rest.bones, palette: r.palette,
     parts: r.parts, vertices: r.pos.length / 3,
     offsets: {

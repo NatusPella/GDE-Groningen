@@ -83,6 +83,30 @@ for (const female of [false, true]) {
   ok(!P.plantFeet(m, () => 0, 1) || true, 'vlak: geen fout');
 }
 
+// maten (eis eigenaar 23-11): lengte tot de kruin, ooghoogte, schouders, en of een stoel van 0,45 m en een deur van 2,05 m passen
+{
+  const { measure } = await import('./people/mensen_maten.mjs');
+  const NORM = { man: [1.75, 1.85], vrouw: [1.65, 1.72] };
+  for (const female of [false, true]) {
+    const rig = female ? 'vrouw' : 'man';
+    let lo = 9, hi = 0, eyeMin = 9, eyeMax = 0, knee = 0, sh = 0, bad = 0;
+    for (let i = 0; i < 40; i++) {
+      const m = M.buildModularPerson(i * 13.7 + 2, { female });
+      const r = measure(m);
+      lo = Math.min(lo, r.lengte); hi = Math.max(hi, r.lengte);
+      if (Number.isFinite(r.oog)) { eyeMin = Math.min(eyeMin, r.oog); eyeMax = Math.max(eyeMax, r.oog); }
+      if (r.lengte < NORM[rig][0] - 0.005 || r.lengte > NORM[rig][1] + 0.005) bad++;
+      const k = new THREE.Vector3(); m.userData.qBones[m.userData.qIdx.loL].getWorldPosition(k); knee = Math.max(knee, k.y);
+      sh = Math.max(sh, r.schouder);
+    }
+    ok(bad === 0, `${rig}: lengte binnen ${NORM[rig].join('-')} m (gemeten ${lo.toFixed(3)}-${hi.toFixed(3)})`);
+    if (!female) ok(eyeMin > 1.55 && eyeMax < 1.72, `${rig}: ooghoogte rond 1,62 m (${eyeMin.toFixed(3)}-${eyeMax.toFixed(3)})`);
+    ok(knee > 0.4 && knee < 0.6, `${rig}: kniehoogte ${knee.toFixed(2)} m past bij een zitting van 0,45 m`);
+    ok(hi < 2.05 - 0.1, `${rig}: past onder een deur van 2,05 m`);
+    ok(sh > 0.38 && sh < 0.6, `${rig}: schouders ${sh.toFixed(2)} m`);
+  }
+}
+
 // CPU: animatie per mens per beeld
 {
   const crowd = []; for (let i = 0; i < 40; i++) crowd.push(M.buildModularPerson(i * 11, {}));

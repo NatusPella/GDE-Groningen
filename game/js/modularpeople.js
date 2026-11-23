@@ -127,7 +127,8 @@ export function modularLook(seed, opts = {}) {
     seed, rig: rigName, parts,
     skin: opts.skin ?? 0xd9a47a, shirt: opts.shirt ?? null,
     hair: HAIR[Math.floor(hashf(seed, 20) * HAIR.length)], pants: PANTS[Math.floor(hashf(seed, 21) * PANTS.length)],
-    scale: (female ? 0.93 : 0.97) + 0.07 * hashf(seed, 22),
+    // importschaal per pack (quaternius_import.mjs RIGS) met een kleine variatie per zaad: man 1,75-1,85 m, vrouw 1,65-1,72 m
+    scale: (rig.man.schaal || 1) * (1 + (rig.man.variatie ?? 0.02) * (2 * hashf(seed, 22) - 1)),
   };
 }
 
