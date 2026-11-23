@@ -8,6 +8,7 @@ versies staan op datum op volgorde. Er zijn geen aparte kopstijlen per sectie:
 elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ## [Unreleased]
+- Doelbalk en herinnering: een verhaalstap toont nu een korte opdracht met de plek erin ("Praat met Berend bij het Martinikerkhof", "Ga naar het museum: pak de bal") in plaats van de grappige titel van de stap ("Ga naar: Het museum stond er al zo"). Het lange appje blijft zoals het was.
 
 ## [0.65.0] - 2026-11-22
 
