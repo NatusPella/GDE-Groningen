@@ -176,7 +176,7 @@ function addWheel(group, geo, mat, x, y, z, wheels) {
 
 // --- generic helpers ------------------------------------------------------------
 
-function extrudeProfile(pts, depth, bevel = 0.04) {
+function extrudeProfile(pts, depth, bevel = 0.04, segments = 1) {
   const shape = new THREE.Shape();
   shape.moveTo(pts[0][0], pts[0][1]);
   for (let i = 1; i < pts.length; i++) shape.lineTo(pts[i][0], pts[i][1]);
@@ -186,7 +186,7 @@ function extrudeProfile(pts, depth, bevel = 0.04) {
     bevelThickness: bevel,
     bevelSize: bevel * 0.8,
     bevelOffset: -bevel * 0.8,
-    bevelSegments: 1,
+    bevelSegments: segments,
     curveSegments: 1,
   });
   geo.translate(0, 0, -(depth - bevel * 2) / 2);
@@ -298,9 +298,12 @@ function buildCarGeometry(type, L, W, paint, opts) {
   // #923: bij een personenauto staat de raamband open (zie withoutBeltPlate), zodat het interieur
   // door het glas te zien is; de raamlijst (sideStrip, verderop) sluit de band langs de buitenkant
   // af. Een bestelbus houdt zijn vlak tussen voorruit en laadruimte: dat is de neus/dashboardplaat.
+  // 23-11 (inspiratie: Quaternius' CC0-autopakket): een ronder koetswerk met een bredere afronding in twee stappen, zodat de
+  // flanken naar het dak en de bodem toe inlopen in plaats van als een kist te eindigen
+  const bevel = P.boxy ? 0.035 : 0.075;
   const body = P.van
-    ? extrudeProfile(outline, W, P.boxy ? 0.025 : 0.05)
-    : withoutBeltPlate(extrudeProfile(outline, W, P.boxy ? 0.025 : 0.05), P.belt, P.xD, P.xA);
+    ? extrudeProfile(outline, W, bevel, 2)
+    : withoutBeltPlate(extrudeProfile(outline, W, bevel, 2), P.belt, P.xD, P.xA);
   B.geo(body, null, paint);
   archLiners(B, arches, W);
 
@@ -340,14 +343,25 @@ function buildCarGeometry(type, L, W, paint, opts) {
     }
   }
 
-  const bumper = P.boxy ? CHROME : 0x2a2b2d;
+  // bumpers in de lakkleur met een donkere onderlip die om de hoeken loopt (een oude 'boxy' auto houdt zijn chroom)
+  const bumper = P.boxy ? CHROME : shadeHex(paint, 0.9);
+  const lip = 0x1f2022;
   const vcount = () => B.groups[G_BODY].p.length / 3;
   const f0 = vcount();
   B.box(hl + 0.02, 0.38, 0, 0.12, 0.14, W - 0.04, bumper);
   B.box(hl + 0.085, 0.38, 0, 0.012, 0.1, 0.48, PLATE);
+  if (!P.boxy) for (const s of [1, -1]) B.box(hl - 0.08, 0.38, s * (hw - 0.03), 0.22, 0.14, 0.05, bumper); // de hoek van de bumper
+  B.box(hl + 0.035, 0.29, 0, 0.1, 0.045, W - 0.12, lip);
   const f1 = vcount();
   B.box(-hl - 0.02, 0.4, 0, 0.12, 0.14, W - 0.04, bumper);
+  if (!P.boxy) for (const s of [1, -1]) B.box(-hl + 0.08, 0.4, s * (hw - 0.03), 0.22, 0.14, 0.05, bumper);
+  B.box(-hl - 0.035, 0.31, 0, 0.1, 0.045, W - 0.12, lip);
   const r1 = vcount();
+  // uitgebouwde wielkasten (een lijst om de boog) en een karakterlijn in de flank
+  for (const { x, r: ar, cy } of arches) {
+    for (const s of [1, -1]) B.geo(new THREE.TorusGeometry(ar + 0.012, 0.026, 4, 10, Math.PI), composeMatrix(x, cy, s * (hw - 0.012)), shadeHex(paint, 0.78));
+  }
+  for (const s of [1, -1]) B.box((P.fw + P.rw) / 2, P.belt - 0.15, s * (hw + 0.002), P.fw - P.rw - 0.2, 0.014, 0.008, shadeHex(paint, 1.15));
   B.box(-hl - 0.008, P.van ? 0.62 : Math.min(0.6, P.tail - 0.22), 0, 0.012, 0.1, 0.48, PLATE);
   const lampY = P.nose - 0.06;
   for (const s of [1, -1]) {

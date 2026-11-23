@@ -75,3 +75,6 @@ docs/SFX-LUISTER-VERVANGING-abs.html
 # tijdelijke uitvoer en hulpscripts van agents
 scripts/_*.mjs
 desktop/out*.txt
+
+# referentiebeelden van externe CC0-packs (alleen lokaal, niet in git)
+.tmp-quaternius/

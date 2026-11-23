@@ -98,6 +98,26 @@ geval circa 150.000 driehoeken, alleen binnen 90 tot 140 m en alleen als ze alle
   van cabin3d.js bepaalt alleen of de echte cabine er dichtbij overheen tekent; daarbuiten blijft het interieurvlak staan.
 - Nieuwe beelden: `na-limo.png`, `na-limo-achter.png`, `na-limo-zij-open.png`, `na-deur1-zij-open.png`, `na-deur-zij-open.png`, `na-bak.png`.
 
+## Derde ronde: Quaternius als inspiratie (auto's)
+
+Bron: https://quaternius.com/packs/cars.html, licentie CC0 (zoals de pagina vermeldt; 8 auto's, FBX/OBJ/Blend, nov. 2018). Niet
+gedownload: voor een download is akkoord van de eigenaar in de chat nodig, en een schermafdruk van de pagina was genoeg om de vormtaal
+te lezen. Die schermafdruk staat lokaal in `.tmp-quaternius/` (in `.gitignore`).
+
+Wat hun auto's mooier maakt en wat we overnamen in `buildCarGeometry` (alle personenauto's, bestelbus, taxi, politie, Escapade):
+- ronde, ingelopen flanken: de romp heeft een bredere afronding in twee stappen (bevel 0,075, bij de oude 'boxy' auto's 0,035);
+- bumpers in de lakkleur die om de hoek doorlopen, met een donkere onderlip (de oude 'boxy' auto's houden hun chroom);
+- wielkasten met een lijst om de boog en een lichte karakterlijn in de flank.
+
+Niet overgenomen: hun donkere, ondoorzichtige ruiten (wij laten het interieur zien) en hun lakkleuren (die staan in vehicle.js).
+Alle eigen functies blijven: deuren met naden en interieur, cabine-LOD, sturende wielen, lichten, schade (de onderlip hoort bij de
+bumper en valt mee), kleurvarianten.
+
+Kosten: ongeveer 520 driehoeken per auto meer (+30 %, bijvoorbeeld sedan 1.748 naar 2.268), drawcalls gelijk (12 meshes per auto,
+128 voor het contactblad van 9 auto's). Vergelijkingspagina: `docs/beeld-23-11/objecten/vergelijking-quaternius.html`. De
+`-oud`-weergave van `sheet.html` heeft een tijdelijke kopie van de oude bouwer nodig (`git show c46fd93a6:game/js/models3d_vehicles.js`
+naar `game/js/_oud_voertuigen_tmp.js`), die niet in git staat. Niet in het spel bekeken.
+
 ## Niet in beeld gezien
 
 - Geen enkel model is in het echte spel bekeken (geen Electron-run; de perf-agent had het slot). Alleen het contactblad is gezien.
