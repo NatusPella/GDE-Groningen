@@ -55,6 +55,57 @@ function normalize(root, targetHeight) {
   return root;
 }
 
+// The tower arrives as 70 separate meshes, one per part (shaft stages, cornices, clock faces, the spire): drawn
+// like that it costs 70 draw calls and as many shadow casts. Merged on load into one mesh per material (six)
+// with the same triangles and the same look; the clones share these geometries.
+export function mergeByMaterial(root) {
+  root.updateMatrixWorld(true);
+  const byMat = new Map();
+  root.traverse((o) => {
+    if (!o.isMesh || Array.isArray(o.material)) return;
+    if (!byMat.has(o.material)) byMat.set(o.material, []);
+    byMat.get(o.material).push(o);
+  });
+  const out = new THREE.Group();
+  out.name = root.name;
+  const v = new THREE.Vector3(), nm = new THREE.Matrix3();
+  for (const [mat, meshes] of byMat) {
+    let n = 0;
+    for (const m of meshes) n += m.geometry.index ? m.geometry.index.count : m.geometry.attributes.position.count;
+    const pos = new Float32Array(n * 3), nor = new Float32Array(n * 3);
+    let k = 0;
+    for (const m of meshes) {
+      const g = m.geometry, P = g.attributes.position, N = g.attributes.normal, I = g.index;
+      const cnt = I ? I.count : P.count;
+      const flip = m.matrixWorld.determinant() < 0; // a mirrored part: keep the winding facing out
+      nm.getNormalMatrix(m.matrixWorld);
+      for (let i = 0; i < cnt; i++) {
+        const c = flip ? i - (i % 3) + [0, 2, 1][i % 3] : i;
+        const j = I ? I.getX(c) : c;
+        v.fromBufferAttribute(P, j).applyMatrix4(m.matrixWorld);
+        pos[k * 3] = v.x; pos[k * 3 + 1] = v.y; pos[k * 3 + 2] = v.z;
+        if (N) { v.fromBufferAttribute(N, j).applyMatrix3(nm).normalize(); nor[k * 3] = v.x; nor[k * 3 + 1] = v.y; nor[k * 3 + 2] = v.z; }
+        k++;
+      }
+    }
+    const geo = new THREE.BufferGeometry();
+    geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+    if (meshes.every((m) => m.geometry.attributes.normal)) geo.setAttribute('normal', new THREE.BufferAttribute(nor, 3));
+    else geo.computeVertexNormals();
+    geo.computeBoundingSphere();
+    const mesh = new THREE.Mesh(geo, mat);
+    mesh.name = mat.name || '';
+    out.add(mesh);
+  }
+  return out;
+}
+
+// Night: the tower's window openings (material "raam") glow faintly warm, like the landmark glazing.
+const nightMats = [];
+export function setLandmarkModelNight(glow) {
+  for (const m of nightMats) m.emissiveIntensity = Math.min(0.6, glow * 0.3);
+}
+
 export function preloadLandmarkModels() {
   const loader = new GLTFLoader();
   for (const [name, path] of Object.entries(MODEL_PATHS)) {
@@ -63,8 +114,15 @@ export function preloadLandmarkModels() {
     loader.load(
       path,
       (gltf) => {
-        const root = gltf.scene;
-        root.traverse((o) => { o.castShadow = false; o.receiveShadow = false; });
+        const root = mergeByMaterial(gltf.scene);
+        root.traverse((o) => {
+          o.castShadow = false; o.receiveShadow = false;
+          if (o.isMesh && o.material.name === 'raam' && o.material.emissive && !nightMats.includes(o.material)) {
+            o.material.emissive.setHex(0xffc27a);
+            o.material.emissiveIntensity = 0;
+            nightMats.push(o.material);
+          }
+        });
         normalize(root, TARGET_HEIGHT_M[name] ?? 30);
         templates.set(name, root);
         for (const cb of loadListeners) cb(name);

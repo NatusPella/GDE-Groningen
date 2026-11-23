@@ -1,7 +1,7 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { HABBO_PALETTE, habboMaterial, vcMaterial, GeoBuilder, createBrickDetailTexture, createRoofTileTexture, composeMatrix } from './pixelart3d.js';
-import { getLandmarkModel } from './landmarkmodels.js';
-import { hasLandmarkModel, buildLandmarkGeometry, LANDMARK_MATERIALS, setLandmarkNight } from './landmarks3d.js';
+import { getLandmarkModel, setLandmarkModelNight } from './landmarkmodels.js';
+import { hasLandmarkModel, buildLandmarkGeometry, landmarkLodObject, LANDMARK_MATERIALS, setLandmarkNight } from './landmarks3d.js';
 import { facadeLook, rankForType } from './winkelkit.js';
 import { shopSpotFor } from './shopspots.js';
 import { capBuilding, ringArea } from './buildingcap.js';
@@ -175,6 +175,7 @@ export const detailMaterial = vcMaterial({ side: THREE.DoubleSide, polygonOffset
 export function setNightFactor(glow, litFrac, shopFrac = litFrac, officeFrac = litFrac) {
   setGlassNight(glow, litFrac, shopFrac, officeFrac);
   setLandmarkNight(glow);
+  setLandmarkModelNight(glow);
 }
 
 // Darkens the bottom metre of walls a little: cheap contact shadow where
@@ -1628,6 +1629,16 @@ function buildBuildingMeshRaw(b) {
     if (!b._geo3dParts) b._geo3dParts = {};
     touchParts(b);
     const parts = b._geo3dParts;
+    // a named landmark (drawn to the view distance, never batched) gets its detail levels (landmarks3d.js)
+    if (b.landmark) {
+      const lod = landmarkLodObject(b, parts, sanitizeFootprint(b.pts).pts, box.edges);
+      if (lod) {
+        const group = new THREE.Group();
+        group.add(lod);
+        addPassages(group, b, parts, Math.max(2.4, b.h * LEVEL_HEIGHT));
+        return group;
+      }
+    }
     if (parts.landmark === undefined) parts.landmark = buildLandmarkGeometry(b, sanitizeFootprint(b.pts).pts, box.edges);
     if (parts.landmark) {
       const group = new THREE.Group();

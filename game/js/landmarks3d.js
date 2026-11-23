@@ -1,6 +1,6 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { GeoBuilder } from './pixelart3d.js';
-import { LANDMARK_MATERIALS, glassMat } from './landmarkmaterials.js';
+import { LANDMARK_MATERIALS, glassMat, litGlassMat } from './landmarkmaterials.js';
 import { pointInPolygon, closestPointOnSegment } from './util.js';
 import { MUSEUM_ROOMS, rectCorners } from './museumplan.js';
 import { paddepoelBlock, setPaddepoelNight } from './paddepoel3d.js';
@@ -14,15 +14,46 @@ import { hash2 } from './rng.js';
 // stays inside the building footprint, so collision needs no changes; only
 // roofs, eaves and cantilevers overhang above head height.
 
-const G_PLAIN = 0, G_BRICK = 1, G_GLASS = 2, G_METAL = 3, G_TILE = 4;
+const G_PLAIN = 0, G_BRICK = 1, G_GLASS = 2, G_METAL = 3, G_TILE = 4, G_LIT = 5;
+const GROUPS = 6;
 
 export { LANDMARK_MATERIALS };
 
 // Night: landmark glazing gets a faint warm glow (the lit-window shader
-// used by ordinary buildings needs per-pane UVs these models don't have).
+// used by ordinary buildings needs per-pane UVs these models don't have);
+// the windows in G_LIT (about a third, chosen per window from a hash) burn
+// properly, so a facade at night reads as rooms with the light on.
 export function setLandmarkNight(glow) {
   glassMat.emissiveIntensity = Math.min(0.5, glow * 0.22);
+  litGlassMat.emissiveIntensity = Math.min(1.5, glow * 0.75);
   setPaddepoelNight(glow);
+}
+
+// Detail levels (THREE.LOD) of the named landmarks: 0 = full, 1 = mass (windows as flat panes, no bands or
+// small ornament), 2 = silhouette (volumes, roofs, towers, spires). Distances in metres from the camera.
+export const LANDMARK_LOD_DIST = [0, 170, 430];
+const LOD_SMALL = [0, 0.9, 2.6]; // parts below this size (m) drop out per level
+const LOD_HYST = 0.08;
+
+// GeoBuilder that knows its detail level: small boxes and merged primitives drop out, round
+// primitives lose sides. The builders themselves only check B.lod for windows and bands.
+class LandmarkBuilder extends GeoBuilder {
+  constructor(lod = 0) { super(GROUPS); this.lod = lod; this.lit = true; }
+  geo(geometry, matrix, color, group = 0) {
+    if (this.lod) {
+      if (!geometry.boundingSphere) geometry.computeBoundingSphere();
+      const s = matrix ? matrix.getMaxScaleOnAxis() : 1;
+      if (geometry.boundingSphere.radius * 2 * s < LOD_SMALL[this.lod]) { geometry.dispose(); return this; }
+    }
+    return super.geo(geometry, matrix, color, group);
+  }
+}
+const lodSides = (B, sides) => (B.lod ? Math.max(4, Math.ceil(sides / (1 + B.lod))) : sides);
+
+// About a third of the windows burn at night; the pick is a hash of the window's place, so the same rooms are lit
+// every evening and two windows side by side differ.
+function paneGroup(x, y, z) {
+  return hash2(x * 0.71 + y * 1.37, z * 0.53 - y * 0.29) < 0.36 ? G_LIT : G_GLASS;
 }
 
 const C = {
@@ -41,6 +72,10 @@ const W = (x, h, y) => [x, h, y];
 // jitter per box: twee kits die een muur delen staan anders exact coplanair en
 // flikkeren; de jitter is kleiner dan de dikte van een verfstreek en onzichtbaar.
 function obox(B, cx, cy, y0, sx, sy, h, rot, color, g) {
+  if (B.lod && Math.max(sx, sy, h) < LOD_SMALL[B.lod]) return;
+  if (B.lod && (sx < 0.15) + (sy < 0.15) + (h < 0.15) >= 2) return; // a seam or a joint line: gone past the full level
+  // a pane of a landmark (not a whole glass wall) may be one of the windows that burn at night
+  if (g === G_GLASS && B.lit && sx * h < 60) g = paneGroup(cx, y0, cy);
   const c = Math.cos(rot), s = Math.sin(rot);
   const hx = sx / 2, hy = sy / 2;
   const f = hash2(cx * 1.7 + 3.2, cy * 1.3 + y0 * 0.7 + sx * 0.11);
@@ -101,9 +136,11 @@ function prism(B, geo, x, y, z, rot, color, g) {
   B.geo(geo, m, color, g);
 }
 function cone(B, x, y, z, r, h, sides, color, g, rot = 0) {
+  sides = lodSides(B, sides);
   prism(B, new THREE.ConeGeometry(r, h, sides, 1, true), x, y + h / 2, z, rot + Math.PI / sides, color, g);
 }
 function cyl(B, x, y, z, rTop, rBot, h, sides, color, g, rot = 0, open = false) {
+  sides = lodSides(B, sides);
   prism(B, new THREE.CylinderGeometry(rTop, rBot, h, sides, 1, open), x, y + h / 2, z, rot + Math.PI / sides, color, g);
 }
 
@@ -166,6 +203,29 @@ function clipRing(ring, f) {
   }
   return out;
 }
+// The OSM outlines of the old buildings trace every jog of the brickwork: dozens of edges under a metre or two,
+// too short for a window or a buttress. Drop every vertex that lies within `tol` of the line through its
+// neighbours (repeatedly, smallest deviation first) so the facades come back as the long straight runs they are.
+function simplifyRing(ring, tol) {
+  const r = ring.slice();
+  const dev = (i) => {
+    const a = r[(i + r.length - 1) % r.length], p = r[i], b = r[(i + 1) % r.length];
+    const dx = b[0] - a[0], dy = b[1] - a[1], L = Math.hypot(dx, dy);
+    if (L < 1e-6) return 0;
+    return Math.abs((p[0] - a[0]) * dy - (p[1] - a[1]) * dx) / L;
+  };
+  while (r.length > 4) {
+    let best = -1, bd = tol;
+    for (let i = 0; i < r.length; i++) { const d = dev(i); if (d < bd) { bd = d; best = i; } }
+    if (best < 0) break;
+    r.splice(best, 1);
+  }
+  return r;
+}
+// Facade runs for windows and buttresses on a jagged outline: the edges of the simplified ring. A tolerance
+// of a few decimetres keeps every pane within a hand's width of the real wall.
+const runsOf = (ring, party, tol = 0.3) => edgesOf(simplifyRing(ring, tol), party);
+
 // Pitched roof over an arbitrary footprint: ridge along the frame's u axis,
 // slopes planar per half; walls rise to meet it (gables at the ends).
 function polyGableRoof(B, ring, F, eave, maxRise, pitchDeg, roofColor, wallColor) {
@@ -217,22 +277,30 @@ function ebox(B, e, t, y0, w, h, d, color, g, out = 0) {
 // Pointed (lancet) or round-headed window: stone surround + glass, proud of
 // the wall by >= 3 cm so nothing z-fights.
 function archWindow(B, e, t, y0, w, h, { frame = C.stone, pointed = true, mullion = false, out = 0, arch = true } = {}) {
+  const x = e.a[0] + e.tx * t + e.nx * (out + 0.09), z = e.a[1] + e.ty * t + e.ny * (out + 0.09);
+  const pane = paneGroup(x, y0, z);
+  // mass level: the window as one flat pane (2 triangles) a hair proud of the wall; silhouette level: none
+  if (B.lod) { if (B.lod === 1) pane2(B, e, t, y0, w, h + (pointed || arch ? w * 0.4 : 0), out + 0.05, C.glass, pane); return; }
   ebox(B, e, t, y0 - 0.15, w + 0.36, h + 0.2, 0.06, frame, G_PLAIN, out + 0.02);
-  ebox(B, e, t, y0, w, h, 0.06, C.glass, G_GLASS, out + 0.06);
+  ebox(B, e, t, y0, w, h, 0.06, C.glass, pane, out + 0.06);
   const rot = Math.atan2(e.ty, e.tx);
   const r = w / 2;
-  const x = e.a[0] + e.tx * t + e.nx * (out + 0.09), z = e.a[1] + e.ty * t + e.ny * (out + 0.09);
   if (pointed) {
     const s = w * 0.7071;
     B.box(x, y0 + h, z, s + 0.25, s + 0.25, 0.06, frame, G_PLAIN, 0, -rot, Math.PI / 4);
     const x2 = e.a[0] + e.tx * t + e.nx * (out + 0.12), z2 = e.a[1] + e.ty * t + e.ny * (out + 0.12);
-    B.box(x2, y0 + h, z2, s, s, 0.06, C.glass, G_GLASS, 0, -rot, Math.PI / 4);
+    B.box(x2, y0 + h, z2, s, s, 0.06, C.glass, pane, 0, -rot, Math.PI / 4);
   } else if (arch) {
     B.geo(new THREE.CylinderGeometry(r + 0.18, r + 0.18, 0.06, 4, 1, false, 0, Math.PI), new THREE.Matrix4().makeRotationY(-rot).multiply(new THREE.Matrix4().makeRotationX(Math.PI / 2)).multiply(new THREE.Matrix4().makeRotationY(Math.PI / 2)).setPosition(x, y0 + h, z), frame, G_PLAIN);
     const x2 = e.a[0] + e.tx * t + e.nx * (out + 0.12), z2 = e.a[1] + e.ty * t + e.ny * (out + 0.12);
-    B.geo(new THREE.CylinderGeometry(r, r, 0.06, 4, 1, false, 0, Math.PI), new THREE.Matrix4().makeRotationY(-rot).multiply(new THREE.Matrix4().makeRotationX(Math.PI / 2)).multiply(new THREE.Matrix4().makeRotationY(Math.PI / 2)).setPosition(x2, y0 + h, z2), C.glass, G_GLASS);
+    B.geo(new THREE.CylinderGeometry(r, r, 0.06, 4, 1, false, 0, Math.PI), new THREE.Matrix4().makeRotationY(-rot).multiply(new THREE.Matrix4().makeRotationX(Math.PI / 2)).multiply(new THREE.Matrix4().makeRotationY(Math.PI / 2)).setPosition(x2, y0 + h, z2), C.glass, pane);
   }
   if (mullion) ebox(B, e, t, y0, 0.12, h, 0.05, frame, G_PLAIN, out + 0.12);
+}
+// One flat quad on an edge's outside face (the mass level's window, a panel, a dial).
+function pane2(B, e, t, y0, w, h, out, color, g) {
+  const p = (s, y) => W(e.a[0] + e.tx * s + e.nx * out, y, e.a[1] + e.ty * s + e.ny * out);
+  B.quadOut(p(t - w / 2, y0), p(t + w / 2, y0), p(t + w / 2, y0 + h), p(t - w / 2, y0 + h), [e.nx, 0, e.ny], color, g);
 }
 // Evenly spaced positions along an edge, `margin` clear of both corners.
 function slots(len, spacing, margin) {
@@ -246,38 +314,148 @@ function slots(len, spacing, margin) {
 // a band sits a little into the wall: no face of it in the wall's plane
 const BAND_SINK = 0.03;
 function band(B, edges, y, h, d, color, g = G_PLAIN) {
+  if (B.lod) return;
   for (const e of edges) if (!e.party && e.len > 0.6) ebox(B, e, e.len / 2, y, e.len + 0.02, h, d + BAND_SINK, color, g, -BAND_SINK);
 }
 
 // --- churches -----------------------------------------------------------------------
 
-function gothicChurch(B, ring, srcEdges, { eave, maxRise, pitch = 55, towerEnd = null, flecheAt = 0.55, towerSpec = null }) {
+// Gothic brick church on its real outline, built part by part along the long axis. spec.parts: [{ from, to,
+// eave, pitch, bay, brick }] as fractions of the length from the EAST end (a hall choir stands higher than its
+// nave). A polygonal east end gets an apse roof that fans up to the ridge; spec.transept { at, width } shows as
+// cross gables with a tall window over both long sides; windows with tracery and two-stage buttresses follow
+// the facade runs bay by bay; spec.fleche puts a ridge turret on the roof; spec.tower(B, F, roof) the tower.
+function hallChurch(B, ring0, srcEdges, spec) {
+  const ring = simplifyRing(ring0, 1.5); // the OSM outline carries every buttress: back to the wall line, ours stand on it
   const F = minAreaFrame(ring);
-  const roof = polyGableRoof(B, ring, F, eave, maxRise, pitch, C.slate, C.brick);
-  const edges = edgesOf(ring, partyTester(srcEdges));
-  // plinth + string course
+  const eastHi = F.P(F.u1, 0)[0] > F.P(F.u0, 0)[0]; // east = the end with the larger map x
+  const len = F.u1 - F.u0;
+  const uOf = (f) => (eastHi ? F.u1 - f * len : F.u0 + f * len);
+  const fOf = (x, y) => { const u = F.U(x, y); return eastHi ? (F.u1 - u) / len : (u - F.u0) / len; };
+  const partAt = (f) => spec.parts.find((s) => f <= s.to + 1e-6) || spec.parts[spec.parts.length - 1];
+  const roofC = spec.roof || C.slate;
+  const roofs = [];
+  for (const s of spec.parts) {
+    const ua = uOf(s.from), ub = uOf(s.to), lo = Math.min(ua, ub), hi = Math.max(ua, ub);
+    const poly = clipRing(clipRing(ring, (p) => F.U(p[0], p[1]) - lo), (p) => hi - F.U(p[0], p[1]));
+    if (poly.length < 3) continue;
+    let v0 = Infinity, v1 = -Infinity;
+    for (const p of poly) { const v = F.V(p[0], p[1]); v0 = Math.min(v0, v); v1 = Math.max(v1, v); }
+    const vm = (v0 + v1) / 2, half = (v1 - v0) / 2;
+    const k = Math.tan(s.pitch * Math.PI / 180);
+    const ridge = s.eave + k * half;
+    const yAt = (p) => s.eave + k * Math.max(0, half - Math.abs(F.V(p[0], p[1]) - vm));
+    const wall = s.brick || C.brick;
+    // a polygonal east end: clearly narrower over its last metre and a half than the part is wide
+    let body = poly, apse = null, uCut = 0;
+    if (s.from === 0) {
+      const dir = eastHi ? 1 : -1, uEnd = eastHi ? hi : lo;
+      const tip = clipRing(poly, (p) => dir * (F.U(p[0], p[1]) - (uEnd - dir * 1.5)));
+      let t0 = Infinity, t1 = -Infinity;
+      for (const p of tip) { const v = F.V(p[0], p[1]); t0 = Math.min(t0, v); t1 = Math.max(t1, v); }
+      if (tip.length >= 3 && t1 - t0 < (v1 - v0) * 0.75) {
+        uCut = uEnd - dir * Math.min(half, (hi - lo) * 0.45);
+        apse = clipRing(poly, (p) => dir * (F.U(p[0], p[1]) - uCut));
+        body = clipRing(poly, (p) => -dir * (F.U(p[0], p[1]) - uCut));
+      }
+    }
+    // gable walls (across the ridge) rise to the roof, the gable of a taller part standing over the lower roof;
+    // the long walls stop at the eave and where the plan steps in the roof runs down to that eave over the step
+    for (let i = 0; i < body.length; i++) {
+      const a = body[i], b = body[(i + 1) % body.length];
+      const dx = b[0] - a[0], dy = b[1] - a[1], L = Math.hypot(dx, dy);
+      if (L < 0.05) continue;
+      const ya = yAt(a), yb = yAt(b);
+      if (Math.abs((dx * F.ux + dy * F.uy) / L) < 0.6) {
+        B.quad(W(a[0], 0, a[1]), W(b[0], 0, b[1]), W(b[0], yb, b[1]), W(a[0], ya, a[1]), wall, G_BRICK);
+        continue;
+      }
+      B.quad(W(a[0], 0, a[1]), W(b[0], 0, b[1]), W(b[0], s.eave, b[1]), W(a[0], s.eave, a[1]), wall, G_BRICK);
+      if (ya > s.eave + 0.05 || yb > s.eave + 0.05) B.quad(W(a[0], s.eave, a[1]), W(b[0], s.eave, b[1]), W(b[0], yb, b[1]), W(a[0], ya, a[1]), roofC, G_TILE);
+    }
+    for (const sg of [1, -1]) {
+      const h = clipRing(body, (p) => sg * (F.V(p[0], p[1]) - vm));
+      if (h.length >= 3) cap(B, h, yAt, roofC, G_TILE);
+    }
+    if (apse && apse.length >= 3) {
+      const [ax, az] = F.P(uCut, vm);
+      const top = W(ax, ridge, az);
+      for (let i = 0; i < apse.length; i++) {
+        const a = apse[i], b = apse[(i + 1) % apse.length];
+        if (Math.abs(F.U(a[0], a[1]) - uCut) < 0.05 && Math.abs(F.U(b[0], b[1]) - uCut) < 0.05) continue; // the cut itself
+        B.quad(W(a[0], 0, a[1]), W(b[0], 0, b[1]), W(b[0], s.eave, b[1]), W(a[0], s.eave, a[1]), wall, G_BRICK);
+        B.tri(W(a[0], s.eave, a[1]), W(b[0], s.eave, b[1]), top, roofC, G_TILE);
+      }
+    }
+    roofs.push({ s, vm, half, ridge, k, lo, hi, v0, v1, wall });
+  }
+  if (!roofs.length) return null;
+  // plinth, then per facade run: windows in every bay, a buttress between bays, a string course under the eave
+  const edges = runsOf(ring, partyTester(srcEdges), 0.3);
   band(B, edges, 0, 0.9, 0.08, C.sandstone);
-  band(B, edges, eave - 0.6, 0.45, 0.14, C.sandstone);
   for (const e of edges) {
     if (e.party || e.len < 3.2) continue;
-    const pos = slots(e.len, 6.2, 1.2);
-    for (const t of pos) archWindow(B, e, t, 3.4, Math.min(2.4, e.len * 0.3), Math.max(3, eave - 7.2), { mullion: true });
-    // buttresses at the bay divisions
-    const bays = [0, ...pos.map((t, i) => (i + 1 < pos.length ? (t + pos[i + 1]) / 2 : null)).filter((t) => t != null), e.len];
-    for (const t of bays) {
-      if (t < 0.5 || t > e.len - 0.5) continue;
-      ebox(B, e, t, 0, 1.0, eave - 2.5, 0.65, C.brickDark, G_BRICK, -0.3);
-      ebox(B, e, t, eave - 2.5, 1.0, 1.2, 0.4, C.brickDark, G_BRICK, -0.3);
+    const at = (t) => partAt(fOf(e.a[0] + e.tx * t, e.a[1] + e.ty * t));
+    const mid = at(e.len / 2);
+    // bays of about `bay` metres, at least one on a run of 4.5 m (a chapel or a stretch between two jogs)
+    const n = Math.max(e.len >= 4.5 ? 1 : 0, Math.round((e.len - 1.6) / (mid.bay || 6.4)));
+    const step = (e.len - 1.6) / Math.max(1, n);
+    const pos = Array.from({ length: n }, (_, i) => 0.8 + step * (i + 0.5));
+    for (const t of pos) {
+      const s = at(t);
+      const ww = Math.min(2.6, step * 0.42), wh = Math.max(3, s.eave - 7);
+      archWindow(B, e, t, 3.2, ww, wh, { mullion: true });
+      if (!B.lod) ebox(B, e, t, 3.2 + wh * 0.56, ww, 0.16, 0.05, C.stone, G_PLAIN, 0.12); // transom of the tracery
+    }
+    for (let i = 0; i + 1 < pos.length; i++) {
+      const t = (pos[i] + pos[i + 1]) / 2, s = at(t);
+      buttress(B, e, t, s.eave);
+    }
+    if (!B.lod) ebox(B, e, e.len / 2, mid.eave - 0.65, e.len + 0.02, 0.45, 0.17, C.sandstone, G_PLAIN, -BAND_SINK);
+  }
+  // transept: a cross roof over both long sides with a gable and a tall window at each end
+  if (spec.transept) {
+    const T = spec.transept, uc = uOf(T.at);
+    const r = roofs.find((q) => uc >= q.lo - 0.5 && uc <= q.hi + 0.5) || roofs[0];
+    const rise = Math.min(r.ridge - r.s.eave - 0.8, (T.width / 2) * r.k);
+    roofRect(B, alongV(F), r.v0 - 0.1, r.v1 + 0.1, uc - T.width / 2, uc + T.width / 2, r.s.eave, rise, roofC, G_TILE, { oh: 0.3, gable: r.wall, gableG: G_BRICK });
+    for (const sg of [-1, 1]) {
+      const v = sg > 0 ? r.v1 + 0.1 : r.v0 - 0.1;
+      const a = F.P(uc - sg * T.width / 2, v);
+      const e = { a, tx: sg * F.ux, ty: sg * F.uy, nx: -sg * F.uy, ny: sg * F.ux, len: T.width };
+      archWindow(B, e, T.width / 2, 3.6, T.width * 0.42, r.s.eave + rise * 0.35 - 3.6, { mullion: true });
+      for (const t of [0.5, T.width - 0.5]) buttress(B, e, t, r.s.eave);
+      if (!B.lod) {
+        ebox(B, e, T.width / 2, r.s.eave - 0.65, T.width, 0.45, 0.17, C.sandstone, G_PLAIN, -BAND_SINK);
+        // pinnacles on the gable shoulders and the top
+        for (const t of [0.5, T.width - 0.5]) { const [px, pz] = xz(e, t, -0.3); cone(B, px, r.s.eave, pz, 0.45, 2.4, 4, C.sandstone, G_PLAIN); }
+      }
     }
   }
-  if (flecheAt != null) {
-    const [fx, fz] = F.P(F.u0 + (F.u1 - F.u0) * flecheAt, roof.vm);
-    cyl(B, fx, roof.ridge - 1.5, fz, 1.1, 1.3, 4.5, 8, C.lead, G_METAL);
-    cone(B, fx, roof.ridge + 3, fz, 1.35, 9, 8, C.slateDark, G_PLAIN);
-    cyl(B, fx, roof.ridge + 11.6, fz, 0.1, 0.1, 1.6, 4, C.gold, G_METAL);
+  // ridge turret: a lead lantern and a slender spire
+  if (spec.fleche != null) {
+    const uc = uOf(spec.fleche);
+    const r = roofs.find((q) => uc >= q.lo - 0.5 && uc <= q.hi + 0.5) || roofs[0];
+    const [fx, fz] = F.P(uc, r.vm);
+    obox(B, fx, fz, r.ridge - 2.5, 2.4, 2.4, 2.6, F.rot, C.lead, G_METAL);
+    cyl(B, fx, r.ridge, fz, 1.0, 1.2, 3.6, 8, C.lead, G_METAL);
+    cone(B, fx, r.ridge + 3.6, fz, 1.3, 9.5, 8, C.slateDark, G_PLAIN);
+    cyl(B, fx, r.ridge + 13, fz, 0.08, 0.08, 1.6, 4, C.gold, G_METAL);
+    B.box(fx, r.ridge + 14.7, fz, 0.35, 0.35, 0.35, C.gold, G_METAL);
   }
-  if (towerSpec) towerSpec(B, F, roof);
+  const west = roofs[roofs.length - 1];
+  const roof = { vm: west.vm, ridge: west.ridge };
+  if (spec.tower) spec.tower(B, F, roof);
   return F;
+}
+const xz = (e, t, off) => [e.a[0] + e.tx * t - e.nx * off, e.a[1] + e.ty * t - e.ny * off];
+// Two-stage brick buttress with sandstone weatherings, standing on the outside of edge e at t.
+function buttress(B, e, t, eave) {
+  const y1 = eave * 0.5, y2 = eave - 1.2;
+  ebox(B, e, t, 0, 1.1, y1, 1.15, C.brickDark, G_BRICK, -0.3);
+  ebox(B, e, t, y1, 1.16, 0.28, 1.2, C.sandstone, G_PLAIN, -0.3);
+  ebox(B, e, t, y1 + 0.28, 1.0, y2 - y1 - 0.28, 0.75, C.brickDark, G_BRICK, -0.3);
+  ebox(B, e, t, y2, 1.06, 0.28, 0.8, C.sandstone, G_PLAIN, -0.3);
 }
 
 function aKerkTower(B, F, roof) {
@@ -555,7 +733,8 @@ function hoofdstation(B, ring) {
   const base = 10.5;
   walls(B, ring, 0, () => base, C.brick, G_BRICK);
   cap(B, ring, () => base, 0x5b5f63, G_PLAIN);
-  const edges = edgesOf(ring);
+  // the OSM outline has some 500 vertices: windows go on its straight runs, not on the metre-long edges
+  const edges = runsOf(ring, null, 0.25);
   band(B, edges, 0, 1.0, 0.1, C.sandstone);
   band(B, edges, 4.6, 0.45, 0.1, C.stone);
   band(B, edges, base - 0.7, 0.7, 0.18, C.stone);
@@ -587,6 +766,15 @@ function hoofdstation(B, ring) {
     const e = { a: F.P(u0, v0), tx: F.ux, ty: F.uy, nx: F.uy, ny: -F.ux, len: u1 - u0 };
     if (eave > base + 2 && kind !== 'front') {
       for (const t of slots(u1 - u0, 3.2, 1.2)) archWindow(B, e, t, base + 0.4, 1.2, eave - base - 2.4, { pointed: false });
+    }
+    // the platform side: the same two rows of arched windows (and the upper row) on the block's back face
+    if (kind !== 'front') {
+      const bk = { a: F.P(u1, v1), tx: -F.ux, ty: -F.uy, nx: -F.uy, ny: F.ux, len: u1 - u0 };
+      for (const t of slots(u1 - u0, 3.4, 1.0)) {
+        archWindow(B, bk, t, 1.3, 1.5, 2.3, { pointed: false, frame: C.stone });
+        archWindow(B, bk, t, 5.7, 1.3, 2.2, { pointed: false, frame: C.stone });
+        if (eave > base + 2) archWindow(B, bk, t, base + 0.4, 1.2, eave - base - 2.4, { pointed: false });
+      }
     }
     const M = alongU(F);
     if (kind === 'wing') {
@@ -983,6 +1171,77 @@ function stadhuis(B, ring) {
   for (const [i, c] of [0xc8102e, C.white, 0x21468b].entries()) B.box(fx + 0.9, eave + rise + 7.6 - i * 0.4, fz, 1.8, 0.4, 0.04, c, G_PLAIN);
 }
 
+// --- Synagoge (Folkingestraat) -------------------------------------------------------
+
+// The 1906 synagogue in Moorish style: red brick striped with cream bands, horseshoe-arched windows, and at
+// the street front two square towers either side of the recessed entrance, each crowned by an octagonal drum
+// and a green copper dome. The front is the end of the long axis where the outline steps in between two
+// projecting blocks (the towers); without such a step, the west end.
+function synagoge(B, ring0) {
+  const ring = simplifyRing(ring0, 0.3);
+  const F = minAreaFrame(ring);
+  const red = 0x9b4a35, cream = 0xe3d3ad, copper = 0x5f9e83, eave = 12.5;
+  // which end is the front: the one whose outline has the most vertices in its first 5 m (the tower jogs)
+  const nearEnd = (end) => ring0.filter(([x, y]) => Math.abs(F.U(x, y) - end) < 5).length;
+  let front = nearEnd(F.u0) >= nearEnd(F.u1) ? -1 : 1;
+  if (nearEnd(F.u0) === nearEnd(F.u1)) front = F.P(F.u0, 0)[0] < F.P(F.u1, 0)[0] ? -1 : 1;
+  const uF = front < 0 ? F.u0 : F.u1, inward = -front; // u of the front, and the direction into the building
+  const vm = (F.v0 + F.v1) / 2, half = (F.v1 - F.v0) / 2;
+  // body and a low-pitched roof along the long axis
+  const roof = polyGableRoof(B, ring, F, eave, 7, 30, C.slateDark, red);
+  const edges = runsOf(ring, null, 0.3);
+  // polychrome brick: cream bands every 1.6 m, a cream plinth and a corbelled cornice
+  if (!B.lod) for (let y = 1.6; y < eave - 1; y += 1.6) band(B, edges, y, 0.3, 0.05, cream);
+  band(B, edges, 0, 0.8, 0.08, cream);
+  band(B, edges, eave - 0.5, 0.5, 0.2, cream);
+  for (const e of edges) {
+    if (e.len < 3.5) continue;
+    for (const t of slots(e.len, 3.6, 1.0)) {
+      archWindow(B, e, t, 1.6, 1.3, 2.4, { pointed: false, frame: cream });
+      archWindow(B, e, t, 6.2, 1.5, 3.6, { pointed: false, frame: cream, mullion: true });
+    }
+  }
+  // the two towers on the front corners, inside the outline
+  const tw = Math.min(5.2, half * 0.45), tu = uF + inward * (tw / 2 + 0.4);
+  const fe = { a: F.P(uF, front < 0 ? F.v1 : F.v0), tx: front < 0 ? F.uy : -F.uy, ty: front < 0 ? -F.ux : F.ux, len: F.v1 - F.v0 };
+  fe.nx = front < 0 ? -F.ux : F.ux; fe.ny = front < 0 ? -F.uy : F.uy;
+  for (const sg of [-1, 1]) {
+    const v = vm + sg * (half - tw / 2 - 0.3);
+    const [x, z] = F.P(tu, v);
+    const shaft = 18;
+    obox(B, x, z, 0, tw, tw, shaft, F.rot, red, G_BRICK);
+    if (!B.lod) for (let y = 1.6; y < shaft - 1; y += 1.6) obox(B, x, z, y, tw + 0.08, tw + 0.08, 0.3, F.rot, cream, G_PLAIN);
+    obox(B, x, z, shaft - 0.2, tw + 0.5, tw + 0.5, 0.6, F.rot, cream, G_PLAIN);
+    // horseshoe openings on all four faces of the upper shaft
+    for (let s = 0; s < 4; s++) {
+      const ang = F.rot + s * Math.PI / 2;
+      const nx = Math.cos(ang - Math.PI / 2), nz = Math.sin(ang - Math.PI / 2), tx = Math.cos(ang), tz = Math.sin(ang);
+      const e = { a: [x + nx * tw / 2 - tx * tw / 2, z + nz * tw / 2 - tz * tw / 2], tx, ty: tz, nx, ny: nz, len: tw };
+      archWindow(B, e, tw / 2, shaft - 5.2, tw * 0.36, 3.2, { pointed: false, frame: cream });
+    }
+    // octagonal drum, the dome and its finial
+    cyl(B, x, shaft + 0.4, z, tw * 0.42, tw * 0.45, 2.6, 8, cream, G_PLAIN, F.rot);
+    cyl(B, x, shaft + 3.0, z, tw * 0.47, tw * 0.47, 0.35, 8, red, G_BRICK, F.rot);
+    prism(B, new THREE.SphereGeometry(tw * 0.46, lodSides(B, 10), lodSides(B, 6), 0, Math.PI * 2, 0, Math.PI * 0.62), x, shaft + 3.35, z, F.rot, copper, G_METAL);
+    cone(B, x, shaft + 3.35 + tw * 0.42, z, 0.32, 1.6, 6, copper, G_METAL);
+    cyl(B, x, shaft + 4.8 + tw * 0.42, z, 0.06, 0.06, 1.2, 4, C.gold, G_METAL);
+    B.box(x, shaft + 6.1 + tw * 0.42, z, 0.3, 0.3, 0.3, C.gold, G_METAL);
+  }
+  // between the towers: a raised front gable with a round top and a great horseshoe window over the portal
+  const gw = Math.max(4, F.v1 - F.v0 - 2 * (tw + 0.3) - 0.4);
+  const t = (F.v1 - F.v0) / 2;
+  ebox(B, fe, t, 0, gw, eave + 3.5, 0.5, red, G_BRICK, -0.5);
+  ebox(B, fe, t, eave + 3.3, gw + 0.4, 0.5, 0.6, cream, G_PLAIN, -0.5);
+  const [gx, gz] = F.P(uF + inward * 0.25, vm);
+  B.geo(new THREE.CylinderGeometry(gw / 2, gw / 2, 0.5, lodSides(B, 12), 1, false, 0, Math.PI), new THREE.Matrix4().makeRotationY(-Math.atan2(fe.ty, fe.tx)).multiply(new THREE.Matrix4().makeRotationX(Math.PI / 2)).multiply(new THREE.Matrix4().makeRotationY(Math.PI / 2)).multiply(new THREE.Matrix4().makeScale(0.55, 1, 1)).setPosition(gx, eave + 3.8, gz), red, G_BRICK);
+  archWindow(B, fe, t, 6.4, Math.min(4.2, gw * 0.55), 5.2, { pointed: false, frame: cream, mullion: true, out: 0.02 });
+  for (const ds of [-1.6, 0, 1.6]) {
+    ebox(B, fe, t + ds, 0, 1.2, 3.2, 0.06, C.door, G_GLASS, 0.04);
+    if (!B.lod) ebox(B, fe, t + ds, 3.2, 1.5, 0.35, 0.12, cream, G_PLAIN, 0.04);
+  }
+  return roof;
+}
+
 // --- Prinsenhof -------------------------------------------------------------------
 
 function prinsenhof(B, ring, srcEdges) {
@@ -997,6 +1256,7 @@ function prinsenhof(B, ring, srcEdges) {
     if (e.party || e.len < 2.8) continue;
     for (const t of slots(e.len, 2.9, 0.8)) {
       for (const y0 of [1.2, 4.9]) {
+        if (B.lod) { if (B.lod === 1) pane2(B, e, t, y0, 1.05, 2.4, 0.06, C.glass, paneGroup(e.a[0] + e.tx * t, y0, e.a[1] + e.ty * t)); continue; }
         ebox(B, e, t, y0 - 0.1, 1.3, 2.6, 0.06, C.white, G_PLAIN, 0.02);
         ebox(B, e, t, y0, 1.05, 2.4, 0.06, C.glass, G_GLASS, 0.06);
         ebox(B, e, t, y0 + 1.1, 1.05, 0.1, 0.05, C.white, G_PLAIN, 0.11);
@@ -1100,10 +1360,17 @@ function duoCruiseschip(B, ring) {
 
 const BUILDERS = {
   EIKEA: (B, b, ring) => eikea(B, ring),
-  Martinikerk: (B, b, ring, edges) => gothicChurch(B, ring, edges, { eave: 17, maxRise: 16, pitch: 52, flecheAt: 0.6 }),
+  // Martinikerk: the tall hall choir with its ambulatory (polygonal east end) over a lower nave, the transept between them
+  Martinikerk: (B, b, ring, edges) => hallChurch(B, ring, edges, {
+    parts: [{ from: 0, to: 0.4, eave: 18, pitch: 48, bay: 6.2, brick: 0x9a4733 }, { from: 0.4, to: 1, eave: 15, pitch: 46, bay: 6.6 }],
+    transept: { at: 0.47, width: 11 }, fleche: 0.36,
+  }),
   'Der Aa-kerk': (B, b, ring, edges) => {
     if (b.type !== 'church') return false;
-    gothicChurch(B, ring, edges, { eave: 15, maxRise: 13, pitch: 50, flecheAt: 0.62, towerSpec: aKerkTower });
+    hallChurch(B, ring, edges, {
+      parts: [{ from: 0, to: 0.3, eave: 12.5, pitch: 42, bay: 5.8 }, { from: 0.3, to: 1, eave: 13.5, pitch: 40, bay: 6.2 }],
+      transept: { at: 0.36, width: 8 }, fleche: 0.33, tower: aKerkTower,
+    });
   },
   'Groninger Museum': (B, b) => { if (!b.parts) return false; groningerMuseum(B, b); },
   'Forum Groningen': (B, b, ring, edges) => forum(B, ring, edges),
@@ -1118,6 +1385,7 @@ const BUILDERS = {
 const NAMED = {
   Stadhuis: (B, b, ring) => { if (b.type !== 'civic') return false; stadhuis(B, ring); },
   Prinsenhof: (B, b, ring, edges) => prinsenhof(B, ring, edges),
+  Synagoge: (B, b, ring) => { if (b.type !== 'synagogue') return false; synagoge(B, ring); },
   Apenrots: (B, b, ring, edges) => gasunie(B, ring, edges),
   'Rijkskantoor Kempkensberg': (B, b, ring) => duoCruiseschip(B, ring),
 };
@@ -1166,10 +1434,52 @@ export function hasLandmarkModel(b) {
 
 // ring: sanitized footprint [[x, y], ...]; edges: the building's outward
 // edge list with party-wall flags (models3d_buildings' format).
-export function buildLandmarkGeometry(b, ring, edges) {
+// lod: detail level (LANDMARK_LOD_DIST); the everyday kits have their own levels (landmarkkit.js) and stay at 0.
+export function buildLandmarkGeometry(b, ring, edges, lod = 0) {
   const fn = builderOf(b);
   if (!fn) return null;
-  const B = new GeoBuilder(5);
+  const B = new LandmarkBuilder(fn === kitBuilder ? 0 : lod);
   if (fn(B, b, ring, edges) === false) return null;
   return B.build();
+}
+
+// A named landmark (b.landmark: drawn up to the view distance, never batched) as a THREE.LOD with the three
+// levels above, its geometry cached in `parts` beside parts.landmark (level 0). The levels are moved to the
+// footprint centre (THREE.LOD measures from its own position); the renderer picks the level per frame without
+// allocating. Returns null when the building has no model.
+export function landmarkLodObject(b, parts, ring, edges) {
+  if (parts.landmarkLods === undefined) {
+    const g0 = parts.landmark !== undefined ? parts.landmark : buildLandmarkGeometry(b, ring, edges, 0);
+    parts.landmark = null; // level 0 lives on in landmarkLods, moved to the centre
+    if (!g0) { parts.landmarkLods = null; return null; }
+    g0.computeBoundingBox();
+    const bb = g0.boundingBox, cx = (bb.min.x + bb.max.x) / 2, cz = (bb.min.z + bb.max.z) / 2;
+    // a level that saves less than 15% of the one before it is not worth a switch (the light modern blocks)
+    const levels = [g0];
+    for (const lod of [1, 2]) {
+      const g = buildLandmarkGeometry(b, ring, edges, lod), prev = levels.filter(Boolean).pop();
+      if (g && g.attributes.position.count < prev.attributes.position.count * 0.85) levels.push(g);
+      else { if (g) g.dispose(); levels.push(null); }
+    }
+    for (const g of levels) if (g) { g.translate(-cx, 0, -cz); g.computeBoundingSphere(); }
+    // dispose(): the part cache (models3d_buildings touchParts) frees every part that has one
+    parts.landmarkLods = { levels, cx, cz, dispose() { for (const g of levels) if (g) g.dispose(); } };
+  }
+  const L = parts.landmarkLods;
+  if (!L) return null;
+  const lod = new THREE.LOD();
+  lod.position.set(L.cx, 0, L.cz);
+  L.levels.forEach((g, i) => { if (g) lod.addLevel(new THREE.Mesh(g, LANDMARK_MATERIALS), LANDMARK_LOD_DIST[i], i ? LOD_HYST : 0); });
+  return lod;
+}
+
+// Triangles and draw calls (non-empty material groups) per level, for the budget test and the picture sheet.
+export function landmarkLodStats(b, ring, edges) {
+  return [0, 1, 2].map((lod) => {
+    const g = buildLandmarkGeometry(b, ring, edges, lod);
+    if (!g) return null;
+    const s = { tris: g.attributes.position.count / 3, draws: g.groups.filter((q) => q.count > 0).length };
+    g.dispose();
+    return s;
+  });
 }
