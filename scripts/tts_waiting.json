@@ -49,6 +49,12 @@
  },
  {
   "reason": "spreektekst",
+  "speaker": "Rikus",
+  "text": "Dat is een helder plan. Ik draai een plaat.",
+  "scene": "R1.1"
+ },
+ {
+  "reason": "spreektekst",
   "speaker": "Tammo",
   "text": "En waarom Jelle in augustus een colbert draagt.",
   "scene": "M04.1"
@@ -56,8 +62,26 @@
  {
   "reason": "spreektekst",
   "speaker": "Tammo",
+  "text": "En die trekker-limo. Vlaggetjes met rode blaadjes.",
+  "scene": "M04.3"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Tammo",
+  "text": "Zes. Het laatste jaar was ik ziek.",
+  "scene": "M05.1"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Tammo",
   "text": "Eerst wachten. Daar ben ik in opgeleid.",
   "scene": "M05.3"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Meneer Veldkamp",
+  "text": "Mijn duiven slapen al. Die ene niet. Hij wil naar Tammo.",
+  "scene": "M06.0"
  },
  {
   "reason": "spreektekst",
@@ -127,6 +151,18 @@
  },
  {
   "reason": "spreektekst",
+  "speaker": "Rikus",
+  "text": "Het festival heeft een hoofdsponsor: Oldenhuis Bakt, de keten met de eenenveertig snackbars. Bij elke frikandel hoort een bonnetje voor een tweede.",
+  "scene": "R2.3"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Tammo",
+  "text": "Tijdens het rijden?",
+  "scene": "B2"
+ },
+ {
+  "reason": "spreektekst",
   "speaker": "Geesje",
   "text": "Nee. Hij hangt er al veertig jaar. Hij wacht wel.",
   "scene": "K1"
@@ -136,6 +172,12 @@
   "speaker": "Tammo",
   "text": "Hoeveel melk je in je koffie doet. Twee scheuten.",
   "scene": "K2"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Rikus",
+  "text": "Vrijdag 21 augustus. Een beller meldt dat hij vanmiddag opstijgt. Ik kijk alvast omhoog.",
+  "scene": "R3.0"
  },
  {
   "reason": "spreektekst",
@@ -163,6 +205,18 @@
  },
  {
   "reason": "spreektekst",
+  "speaker": "Rikus",
+  "text": "Voor twee Stadjers die elk een kant van het refrein zingen. Ik noem geen namen.",
+  "scene": "R3.4"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Tammo",
+  "text": "Tot drie tenten. Daarna wordt het gokken.",
+  "scene": "M16.5"
+ },
+ {
+  "reason": "spreektekst",
   "speaker": "Anneke",
   "text": "Dit kwam gisteren, voor jullie allebei. Jelle belde ook. Hij vroeg naar een vergunning voor de kippen.",
   "scene": "J3"
@@ -187,15 +241,39 @@
  },
  {
   "reason": "spreektekst",
+  "speaker": "Rikus",
+  "text": "Maandag 24 augustus. In de chat zeggen ze dat twee Stadjers het museum leegroofden. Ik lees het alleen voor.",
+  "scene": "R4.0"
+ },
+ {
+  "reason": "spreektekst",
   "speaker": "Tammo",
   "text": "Toeval heeft ook een server. En een update.",
   "scene": "M17.3"
  },
  {
   "reason": "spreektekst",
+  "speaker": "Rikus",
+  "text": "Ik zit hier alleen voor de kaars.",
+  "scene": "J4"
+ },
+ {
+  "reason": "spreektekst",
   "speaker": "Femke",
   "text": "Jullie zijn al een koor. Dat is een begin.",
   "scene": "J4"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Rikus",
+  "text": "Mijn mond zit vol brood.",
+  "scene": "J4"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Rikus",
+  "text": "Moi, Nachtstreek. Voor wie vannacht niet thuis slaapt: de sterren zijn gratis.",
+  "scene": "N9"
  },
  {
   "reason": "spreektekst",
@@ -223,9 +301,21 @@
  },
  {
   "reason": "spreektekst",
+  "speaker": "Henk",
+  "text": "Dat rijmt. Eén koekje.",
+  "scene": "M22.2"
+ },
+ {
+  "reason": "spreektekst",
   "speaker": "Tammo",
   "text": "De grootste stoet van de Stad. Met een scooter voorop.",
   "scene": "M23.4"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Lieke",
+  "text": "Jullie eten van één bord. Dat is meer dan samenwonen.",
+  "scene": "M25.6"
  },
  {
   "reason": "spreektekst",
@@ -268,6 +358,12 @@
   "speaker": "Tammo",
   "text": "Berend telde elf seconden en een duif telde mee. Dat is officieel.",
   "scene": "F5"
+ },
+ {
+  "reason": "spreektekst",
+  "speaker": "Tinus",
+  "text": "De trekker trekt de toren. In 1672 hadden ze daar paarden voor. Ik heb er driehonderd.",
+  "scene": "M30.1"
  },
  {
   "reason": "spreektekst",
