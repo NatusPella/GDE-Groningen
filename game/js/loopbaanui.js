@@ -57,8 +57,9 @@ const loopbaanIcoon = (naam, cls = 'pa-ico') => `<span class="${cls}"><svg viewB
 
 
 const CSS = `${SFEER_BAND_CSS}
-.lb-balk { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: var(--ds-s-2) var(--ds-s-5); flex: none; margin: 0 0 var(--ds-s-3); padding: 0 var(--ds-s-1); }
-.lb-balk__t { display: flex; align-items: baseline; gap: var(--ds-s-3); min-width: 0; }
+/* #999 (hertest 22-11): kicker, titel en ondertitel staan onder elkaar links; de ondertitel zweefde los in het midden en de kicker stond op een andere basislijn naast de titel */
+.lb-balk { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--ds-s-2) var(--ds-s-5); flex: none; margin: 0 0 var(--ds-s-3); padding: 0 var(--ds-s-1); }
+.lb-balk__t { display: flex; flex-direction: column; align-items: flex-start; gap: var(--ds-s-1); min-width: 0; }
 .lb-balk__t > b { font-family: var(--ds-font-zeef-kop); font-weight: normal; font-size: var(--ds-t-kop); line-height: 1.05; letter-spacing: var(--ds-ls-kop); text-transform: uppercase; overflow-wrap: break-word; }
 .lb-balk__s { display: flex; flex-wrap: wrap; gap: var(--ds-s-1) var(--ds-s-4); font-size: max(14px, var(--menu-min, 14px)); color: var(--mut); }
 .lb-balk__s b { color: var(--ink); font-weight: 700; }
@@ -445,7 +446,7 @@ export function renderLoopbaanPanel(el, sluit = null, w = null) {
   // De kop: titel (hooguit 30 tekens), één ondertitel (hooguit 40) en de wissel Tour of Vakken. Geen hero en geen alinea's meer (DS3, tekstdieet).
   const titel = leeg ? 'Nog geen vak gekozen' : sam.hoogste.titel; // #1264: de kop "Je loopbaan" staat al als kicker
   const onder = leeg ? 'Kies een vak en doe een eerste klus' : eerste.klaar ? `${L.DUIZENDPOOT_TITEL} · alle ${eerste.totaal} gedaan` : `${eerste.gedaan} van ${eerste.totaal} eerste klussen`;
-  const kop = `<header class="lb-balk" aria-label="Je loopbaan"><span class="lb-balk__t"><span class="m-eb">Je loopbaan</span><b>${esc(titel)}</b></span><span class="lb-balk__s">${esc(onder)}</span>` +
+  const kop = `<header class="lb-balk" aria-label="Je loopbaan"><span class="lb-balk__t"><span class="m-eb">Je loopbaan</span><b>${esc(titel)}</b><span class="lb-balk__s">${esc(onder)}</span></span>` +
     `<span class="lb-wissel" role="group" aria-label="Weergave">${wisselKnop('tour', 'Tour', weergave === 'tour')}${wisselKnop('vakken', 'Vakken', weergave === 'vakken')}</span></header>`;
   // de tour opent bij de stop waar je nu bent, tot je zelf een vak kiest
   if (!gekozenDoorSpeler) {

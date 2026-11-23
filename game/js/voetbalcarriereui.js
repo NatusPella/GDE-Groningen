@@ -185,7 +185,11 @@ const CSS = `.vb-pane { display: grid; gap: var(--ds-s-2, 10px); padding: var(--
 .vb-foci { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px; }
 .vb-focus { text-align: left; cursor: pointer; }
 .vb-stand, .vb-kalender, .vb-selectie, .vb-vaardig { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
-.vb-vaardig .ds-z-rij__waarde { min-width: 180px; }`;
+.vb-vaardig .ds-z-rij__waarde { min-width: 180px; }
+/* #1110 (hertest 22-11): een brede kaart onder 1 graad schuift over de chips en de kop eronder; in de body liggen ze recht en met lucht ertussen */
+.vb-body { display: grid; gap: var(--ds-s-3); }
+.vb-body > .ds-z-kaart { transform: none; }
+.vb-body > h3 { margin: var(--ds-s-2) 0 0; }`;
 let cssLoaded = false;
 const zetCss = () => { if (cssLoaded || typeof document === 'undefined') return; cssLoaded = true; const el = document.createElement('style'); el.textContent = CSS; document.head.appendChild(el); };
 const envFor = (w, progress = {}) => ({ money: w ? w.money || 0 : 0, getClub: V.getClub, unlocked: voetbalOpen(progress), hint: voetbalHint(progress), char: ((w && hoofdspeler(w)) || {}).character === 'tammo' ? 'tammo' : 'anita' });

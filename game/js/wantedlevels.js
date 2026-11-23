@@ -101,6 +101,14 @@ export const SEARCH_MIN_RADIUS = 25;
 // QoL (#985): de vulling van de zoekbalk in de HUD, 0..1. De helft is hoe ver je buiten de cirkel zit (de
 // cirkel krimpt, dus de actuele straal telt), de andere helft hoe ver de teller naar de volgende ster is
 // (de afkoeltijd van dit niveau: 10 tot 20 s, niet vast 24 zoals eerst).
+// #989: de zoektocht als teller (regelwidget 'teller') in plaats van een zin: nog `rest` van `totaal` seconden tot er
+// een ster af gaat. Buiten de cirkel loopt de klok dubbel zo snel (zie de decay hieronder), dus de teller ook.
+export function zoekTeller(wanted, timer, afstand, straal) {
+  const totaal = cooldownOf(levelOf(Math.max(1, wanted | 0)));
+  const rest = Math.max(0, totaal - (Number(timer) || 0));
+  return { rest, totaal, buiten: Number(afstand) > Number(straal) };
+}
+
 export function zoekBalkVulling(afstand, straal, timer, cooldown) {
   const buiten = Math.max(0, Math.min(1, (Number(afstand) || 0) / Math.max(1, Number(straal) || 0)));
   const tijd = Math.max(0, Math.min(1, (Number(timer) || 0) / Math.max(1, Number(cooldown) || 0)));
