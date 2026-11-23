@@ -104,6 +104,9 @@
 #pause-menu.gm .m-bt.bz-hoofd:hover:not(:disabled) { background: var(--ds-c-geel-hover); }
 #pause-menu.gm .m-bt[data-bz]:disabled, #pause-menu.gm .m-bt[data-sn]:disabled { opacity: 1; border-style: dashed; box-shadow: none; color: var(--ds-zeef-tx); cursor: not-allowed; }
 .bd-rij { display: flex; align-items: center; justify-content: space-between; gap: var(--ds-s-4); padding: var(--ds-s-3) 0; border-bottom: var(--ds-lijn) dashed var(--ds-c-ink-inkt); }
+/* #1249: het pictogram van een standplaats voor zijn naam */
+.bd-rij .sn-plek-ic { display: inline-grid; place-items: center; flex: none; width: 40px; height: 40px; border: var(--ds-lijn) solid var(--ds-c-ink-inkt); border-radius: var(--ds-r); background: var(--ds-c-sel-vlak); }
+.bd-rij .sn-plek-ic svg { width: 24px; height: 24px; }
 .bd-naam { display: flex; flex-direction: column; gap: var(--ds-s-1); min-width: 0; flex: 1 1 auto; }
 .bd-feiten { display: flex; flex-wrap: wrap; gap: 0 var(--ds-s-4); color: var(--ds-tx-2); font-size: var(--ds-t-hulp); }
 .bd-acties { display: flex; flex-wrap: wrap; flex: none; gap: var(--ds-s-2); align-items: center; justify-content: flex-end; }

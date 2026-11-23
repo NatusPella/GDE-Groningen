@@ -6,6 +6,7 @@ import * as SL from './snacklive.js';
 import * as SN from './snackvan.js';
 import { PERMIT_DAYS } from './pitch.js';
 import { euro } from './geldtekst.js';
+import { icoon } from './icons.js';
 
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 export const sui = { msg: '', confirm: null };
@@ -64,6 +65,17 @@ function ownHtml(v) {
     `<span class="bd-acties">${btn('vul', `Vul aan (${euro(SN.RESTOCK_FEE)})`, '', o.stockDays >= SN.STOCK_MAX)} ${next ? askOr('tier', 'own', `Grotere wagen ${euro(SN.TIERS[next].up)}`, `Voor ${euro(SN.TIERS[next].up)}?`, miss(v.money, SN.TIERS[next].up), v.money < SN.TIERS[next].up) : ''}</span></div>${knobs}${offeringsBlock}<div class="bz-bulk">${up}</div>`;
 }
 
+// Het pictogram van een standplaats uit zijn naam: een stadion, een station, een markt, een strand of een park; anders een plek.
+export function spotIcon(s) {
+  const n = String((s && (s.name || s.short)) || '').toLowerCase();
+  if (/stadion|voetbal/.test(n)) return 'prestaties';
+  if (/station|perron/.test(n)) return 'trein';
+  if (/markt|plein/.test(n)) return 'winkel';
+  if (/strand|meer|haven|kade|water/.test(n)) return 'boot';
+  if (/park|bos/.test(n)) return 'boom';
+  return 'plek';
+}
+
 function spotsHtml(v) {
   const hasEmpty = (id) => !v.spots.find((s) => s.id === id).wagon;
   const rows = v.spots.slice().sort((a, b) => b.foot - a.foot).map((s) => {
@@ -75,9 +87,11 @@ function spotsHtml(v) {
       if (v.own.hasWagon) acts += ' ' + btn('zet-wagen', 'Zet mijn wagen hier', ` data-id="${esc(s.id)}"`, st(v, 'standplaats'));
       acts += ' ' + askOr('vloot', s.id, `Extra wagen ${euro(v.wagonPrice)}`, `Voor ${euro(v.wagonPrice)} met een medewerker?`, '', v.money < v.wagonPrice || v.fleet.length >= SN.MAX_FLEET || st(v, 'team') || (v.fleet.length >= 1 && st(v, 'keten')));
     }
-    return `<div class="bd-rij" data-spot="${esc(s.id)}" data-status="${s.status}"><span class="bd-naam"><b>${esc(s.name)}</b><span class="bd-feiten">${feiten}</span></span><span class="bd-acties">${acts}</span></div>`;
+    // #1249: een plaatje per standplaats (het pictogram van het soort plek)
+    return `<div class="bd-rij" data-spot="${esc(s.id)}" data-status="${s.status}"><span class="sn-plek-ic" aria-hidden="true">${icoon(spotIcon(s))}</span><span class="bd-naam"><b>${esc(s.name)}</b><span class="bd-feiten">${feiten}</span></span><span class="bd-acties">${acts}</span></div>`;
   }).join('');
-  return `<h3 class="m-h3">Standplaatsen</h3><p class="mut">Een vergunning duurt ${PERMIT_DAYS} speldagen en verlengt zichzelf voor een kwart van de prijs; elke extra vergunning maakt de volgende duurder.</p>${stNote(v, 'stek', 'standplaats', 'team', 'keten')}${rows}`;
+  // #1249: de uitleg in één regel
+  return `<h3 class="m-h3">Standplaatsen</h3><p class="mut">Vergunning: ${PERMIT_DAYS} speldagen, verlengen kost een kwart.</p>${stNote(v, 'stek', 'standplaats', 'team', 'keten')}${rows}`;
 }
 
 function fleetHtml(v) {
@@ -111,7 +125,8 @@ export function snackHtml(v) {
   const goals = `<ul class="bz-lijst">${v.goals.map((g) => `<li data-goal="${g.id}" data-done="${g.done ? 1 : 0}">${g.done ? 'Klaar: ' : 'Nog niet: '}${esc(g.label)}</li>`).join('')}</ul>`;
   const war = v.war ? `<p class="bz-zwak" data-kind="oorlog">Prijzenoorlog tot dag ${v.war.until}: Usmem Snacks verlaagt zijn prijzen met ${Math.round(v.war.depth * 100)}%${v.war.matched ? '; jij prijst mee.' : '.'}</p>` : '';
   return `<div class="pm-pane-top"><span class="m-eb">Land en bedrijf</span><h2 class="m-h2 td-h2">Snackwagen</h2></div><div class="bz-tegels">${tiles}</div>` +
-    `<p class="mut">${esc(v.rival.name)} van ${esc(v.rival.owner)} heeft ${v.rival.spots} standplaatsen, ${v.rival.pand} panden en een keten van niveau ${v.rival.chain}. Jouw aandeel: ${Math.round(v.score.share * 100)}%.</p>${war}${eventHtml(v)}` +
+    // #1249 (hertest 24-11): één korte regel; de standplaatsen staan al in de tegel
+    `<p class="mut">${esc(v.rival.name)}: ${v.rival.pand} panden, keten niveau ${v.rival.chain}. Jouw aandeel ${Math.round(v.score.share * 100)}%.</p>${war}${eventHtml(v)}` +
     ownHtml(v) + fleetHtml(v) + spotsHtml(v) + neighbourhoodHtml(v) + `<h3 class="m-h3">Doelen</h3>${goals}<p class="bd-melding" aria-live="polite">${esc(sui.msg)}</p>`;
 }
 
