@@ -1206,13 +1206,108 @@ function buildHybridCar(v, key, paint) {
   return group;
 }
 
+// --- echte deurgaten in een romp van blokken (vrachtwagen, trekker, trekker-limo, 23-11) ------------------------------------------
+// Een voertuig dat uit dozen is opgebouwd (cabine, zijpanelen) krijgt dezelfde echte opening als de auto's: de zijvlakken binnen de
+// deurcontour worden langs de contour geknipt (Sutherland-Hodgman, zoals bij de hybride) en het uitgeknipte stuk wordt het deurblad
+// (met een binnenkant 3,5 cm naar binnen en het handvat). Achter de opening staat een binnenbak (naar binnen gekeerde vlakken) met
+// vloer en stoel, zodat je door de open deur de cabine in kijkt en niet dwars door de doos naar buiten.
+function binnenDoos(B, x, y, z, sx, sy, sz, color) {
+  const g0 = new THREE.BoxGeometry(sx, sy, sz).toNonIndexed(); // Box is geïndexeerd
+  const a = g0.attributes.position.array;
+  for (let i = 0; i < a.length; i += 9) for (let k = 0; k < 3; k++) { const t = a[i + 3 + k]; a[i + 3 + k] = a[i + 6 + k]; a[i + 6 + k] = t; } // omgekeerde winding
+  B.geo(g0, composeMatrix(x, y, z), color);
+}
+function knipDeurgaten(B, doorName, L, W) {
+  const defs = (DEUR_DEFS_REF[doorName] || []).filter((d) => d.soort === 'scharnier' || d.soort === 'achterscharnier');
+  const rects = {}, zs = {}, shells = {};
+  for (const d of defs) {
+    zs[d.id] = d.zij ? d.zij * W : W / 2;
+    rects[d.id] = [d.x * L - d.w / 2 + 0.02, d.y0 + 0.02, d.x * L + d.w / 2 - 0.02, d.y0 + d.h - 0.02];
+    shells[d.id] = [];
+  }
+  const knip = (poly, as, c, binnen) => {
+    const uit = [];
+    for (let i = 0; i < poly.length; i++) {
+      const a = poly[i], b = poly[(i + 1) % poly.length], ia = binnen(a[as], c), ib = binnen(b[as], c);
+      if (ia) uit.push(a);
+      if (ia !== ib) { const t2 = (c - a[as]) / (b[as] - a[as]); uit.push(a.map((v2, k) => v2 + (b[k] - v2) * t2)); }
+    }
+    return uit;
+  };
+  const fan = (poly) => { const o = []; for (let i = 1; i + 1 < poly.length; i++) o.push([poly[0], poly[i], poly[i + 1]]); return o; };
+  const kl = (x, c) => x <= c, gr = (x, c) => x >= c;
+  for (const gi of [G_BODY, G_GLASS]) {
+    const G = B.groups[gi], p = G.p.slice(), c = G.c.slice();
+    G.p.length = 0; G.c.length = 0; G.uv.length = 0;
+    for (let o = 0; o < p.length; o += 9) {
+      const v = [[p[o], p[o + 1], p[o + 2]], [p[o + 3], p[o + 4], p[o + 5]], [p[o + 6], p[o + 7], p[o + 8]]], rgb = [c[o], c[o + 1], c[o + 2]];
+      const u = [v[1][0] - v[0][0], v[1][1] - v[0][1], v[1][2] - v[0][2]], w = [v[2][0] - v[0][0], v[2][1] - v[0][1], v[2][2] - v[0][2]];
+      const n = [u[1] * w[2] - u[2] * w[1], u[2] * w[0] - u[0] * w[2], u[0] * w[1] - u[1] * w[0]], nl = Math.hypot(...n) || 1;
+      const cz = (v[0][2] + v[1][2] + v[2][2]) / 3;
+      const d = defs.find((q) => {
+        const r = rects[q.id];
+        // alles in de schil van de flank (het zijvlak met zijn dikte, en sierlijsten en strips die erop liggen): van 7,5 cm binnen tot 6 cm buiten
+        return cz * q.side > zs[q.id] - 0.075 && cz * q.side < zs[q.id] + 0.06
+          && Math.max(...v.map((x) => x[0])) > r[0] && Math.min(...v.map((x) => x[0])) < r[2] && Math.max(...v.map((x) => x[1])) > r[1] && Math.min(...v.map((x) => x[1])) < r[3];
+      });
+      const houd = (t) => B._push(gi, t[0], t[1], t[2], rgb, null);
+      if (!d) { houd(v); continue; }
+      const [x0, y0, x1, y1] = rects[d.id];
+      const inn = knip(knip(knip(knip(v, 0, x0, gr), 0, x1, kl), 1, y0, gr), 1, y1, kl);
+      if (inn.length < 3) { houd(v); continue; }
+      for (const t of fan(inn)) shells[d.id].push({ v: t, rgb, gi });
+      if (v.every((q) => q[0] >= x0 && q[0] <= x1 && q[1] >= y0 && q[1] <= y1)) continue;
+      for (const t of [...fan(knip(v, 0, x0, kl)), ...fan(knip(v, 0, x1, gr))]) houd(t);
+      const mid = knip(knip(v, 0, x0, gr), 0, x1, kl);
+      for (const t of [...fan(knip(mid, 1, y0, kl)), ...fan(knip(mid, 1, y1, gr))]) houd(t);
+    }
+  }
+  return { defs, rects, zs, shells };
+}
+// De deurbladen uit het uitgeknipte stuk: per deur een geometrie (buitenkant, binnenkant in bekleding, handvat) en alle samen (dicht).
+function deurSchillen(res, L) {
+  const panelen = {};
+  const alle = new GeoBuilder(3);
+  const LINER = linearRGBArr(0x2a2c30), GL = linearRGBArr(GLASS);
+  for (const d of res.defs) {
+    const tris = res.shells[d.id];
+    if (!tris.length) continue;
+    const P2 = new GeoBuilder(3);
+    for (const Bx of [P2, alle]) {
+      for (const t of tris) {
+        Bx._push(t.gi, t.v[0], t.v[1], t.v[2], t.rgb, null);
+        const inn = t.v.map((q) => [q[0], q[1], q[2] - d.side * 0.035]);
+        Bx._push(t.gi, inn[0], inn[2], inn[1], t.gi === G_GLASS ? GL : LINER, null);
+      }
+      const hx = d.x * L + (d.soort === 'scharnier' ? -1 : 1) * d.w * 0.36, hy = d.y0 + Math.min(d.h - 0.12, 0.62 - 0.12);
+      Bx.box(hx, hy, d.side * (res.zs[d.id] + 0.008), 0.13, 0.022, 0.016, CHROME);
+    }
+    panelen[d.id] = markShared(P2.build());
+  }
+  return { panelen, dicht: markShared(alle.build()) };
+}
+const linearRGBArr = (hex) => { const c = new THREE.Color(hex); return [c.r, c.g, c.b]; };
+// Hangt de dichte deuren aan de romp en zet wat de deur-rig en de tests nodig hebben (zoals addRealDoors en de hybride).
+function koppelDeurgaten(group, body, geo) {
+  const k = geo.userData.knip;
+  if (!k) return;
+  const dm = new THREE.Mesh(k.dicht, body.material);
+  dm.name = 'deurenDicht';
+  body.add(dm);
+  group.userData.deurenDicht = dm;
+  group.userData.deurPanelen = k.panelen;
+  group.userData.echtGat = new Set(Object.keys(k.panelen));
+  group.userData.gatRects = k.rects;
+  group.userData.deurZ = k.zs;
+}
+
 // Bakwagen: cab-over front with a box body.
 function buildTruckMesh(v) {
   const L = v.model.len, W = v.model.wid, hl = L / 2, hw = W / 2;
   const paint = v.wrecked ? WRECKED_COLOR : toHex(v.model.color, 0xe8e6e0);
   const r = 0.52;
   const tank = !!v.model.tank;
-  const geo = cached(`truck2|${L}|${W}|${paint}|${tank}`, () => {
+  const geo = cached(`truck3|${L}|${W}|${paint}|${tank}`, () => {
     const B = new GeoBuilder(3);
     const cabL = 2.0, boxX0 = -hl, boxX1 = hl - cabL - 0.1;
     B.box(0, 0.74, 0, L - 0.2, 0.22, W - 0.3, 0x2a2b2d);
@@ -1274,14 +1369,23 @@ function buildTruckMesh(v) {
     B.box(hl + 0.03, 0.64, 0, 0.1, 0.24, W - 0.1, 0x2a2b2d);
     B.box(hl + 0.085, 0.64, 0, 0.012, 0.1, 0.48, PLATE);
     B.box(-hl - 0.012, 0.7, 0, 0.012, 0.1, 0.48, PLATE);
-    addDoorCuts(B, 'truck', L, hw, paint);
-    return B.build();
+    addDoorCuts(B, 'truck', L, hw, paint, CHROME, true);
+    // de cabine van binnen: wanden, vloer, twee stoelen en het dashboard (zichtbaar door de open deur)
+    binnenDoos(B, hl - cabL / 2, 1.32, 0, cabL - 0.14, 1.02, W - 0.32, 0x3a3c40);
+    B.box(hl - cabL / 2, 0.83, 0, cabL - 0.16, 0.02, W - 0.4, 0x45474c);
+    for (const s of [1, -1]) { B.box(hl - 1.05, 1.05, s * 0.5, 0.5, 0.12, 0.5, 0x4d515c); B.box(hl - 1.33, 1.4, s * 0.5, 0.1, 0.6, 0.5, 0x4d515c); }
+    B.box(hl - 0.25, 1.62, 0, 0.35, 0.3, W - 0.3, 0x2b2d32);
+    const k = knipDeurgaten(B, 'truck', L, W);
+    const g = B.build();
+    g.userData.knip = { ...deurSchillen(k, L), rects: k.rects, zs: k.zs };
+    return g;
   });
   const mats = vehicleMaterials();
   const group = new THREE.Group();
   const body = new THREE.Mesh(geo, mats);
   group.add(body);
   group.userData.body = body;
+  koppelDeurgaten(group, body, geo);
   const wgeo = carWheelGeometry(r, 0.3);
   const wheels = [];
   for (const x of [hl - 1.25, -hl + 1.7]) for (const s of [1, -1]) addWheel(group, wgeo, mats[0], x, r, s * (hw - 0.2), wheels);
@@ -1403,7 +1507,7 @@ function buildTrekkerLimoMesh(v) {
   const gold = wrecked ? WRECKED_COLOR : 0xd8a521;
   const M = trekkerLimoMaten(L, W);
   const { hl, tx0, cabX0, cabX1, cabHw: cw, limoHw: lw } = M;
-  const geo = cached(`trekkerlimo3|${L}|${W}|${paint}|${wrecked}`, () => {
+  const geo = cached(`trekkerlimo4|${L}|${W}|${paint}|${wrecked}`, () => {
     const B = new GeoBuilder(3);
     const belt = LIMO_BELT, roof = LIMO_ROOF, sill = 0.3, R = 0.43;
     const greenDark = shadeHex(green, 0.72);
@@ -1530,8 +1634,14 @@ function buildTrekkerLimoMesh(v) {
       for (const px of [cabX0 + 0.03, cabX1 - 0.03]) B.box(px, cgy, s * cw, 0.06, cgh, 0.06, green);
       B.box(cabCx, cgy, s * (cw - 0.01), cabX1 - cabX0 - 0.1, cgh, 0.02, GLASS, G_GLASS);
     }
-    addDoorCuts(B, 'trekkerlimo', L, hw, paint, CHROME);
-    return B.build();
+    addDoorCuts(B, 'trekkerlimo', L, hw, paint, CHROME, true);
+    // de trekkercabine van binnen (de limousine heeft al banken en een barkastje)
+    binnenDoos(B, cabCx, 1.25, 0, cabX1 - cabX0 - 0.12, 0.5, cw * 2 - 0.2, 0x2f4a36);
+    B.box(cabCx - 0.05, 1.42, -0.1, 0.42, 0.1, 0.42, 0x2b2d32);
+    const k = knipDeurgaten(B, 'trekkerlimo', L, W);
+    const g = B.build();
+    g.userData.knip = { ...deurSchillen(k, L), rects: k.rects, zs: k.zs };
+    return g;
   });
   const mats = vehicleMaterials(wrecked);
   // hoogglans: een blanke laklaag over de lak (alleen dit ene voertuig, dus de duurdere shader kost weinig)
@@ -1540,6 +1650,7 @@ function buildTrekkerLimoMesh(v) {
   const body = new THREE.Mesh(geo, mats);
   group.add(body);
   group.userData.body = body;
+  koppelDeurgaten(group, body, geo);
   const wheels = [], front = [];
   const small = treadWheelGeometry(0.42, 0.3, 14), big = treadWheelGeometry(0.78, 0.5, 18), limo = treadWheelGeometry(0.34, 0.26, 0, true);
   const k = (r) => 0.42 / r; // dezelfde grondsnelheid: een groter wiel draait trager
@@ -1581,7 +1692,7 @@ function buildTractorMesh(v) {
   const paint = v.wrecked ? WRECKED_COLOR : toHex(v.model.color, 0x3f7d3a);
   const C = tractorCab(L);
   const kratten = v.model.kratten ? Math.min(6, v.model.kratten | 0) : 0; // M09 (AAA): Geesjes eierkratten achterop, zichtbaar op de hef
-  const geo = cached(`tractor|${L}|${W}|${paint}|${kratten}`, () => {
+  const geo = cached(`tractor2|${L}|${W}|${paint}|${kratten}`, () => {
     const B = new GeoBuilder(3);
     const cz = W * 0.43, cl = C.x1 - C.x0, cx = (C.x0 + C.x1) / 2;
     const gh = C.roof - C.belt, gy = (C.roof + C.belt) / 2;
@@ -1613,14 +1724,22 @@ function buildTractorMesh(v) {
     B.box(C.x1 + 0.12, C.belt + 0.35, W * 0.22, 0.1, 1.5, 0.1, TRIM);
     B.box(-hl + 0.12, 0.68, 0, 0.24, 0.3, W * 0.5, 0x2a2a2a);
     if (kratten) addEggCrates(B, -hl - 0.12, kratten);
-    addDoorCuts(B, 'tractor', L, hw, paint);
-    return B.build();
+    addDoorCuts(B, 'tractor', L, hw, paint, CHROME, true);
+    // de cabine van binnen onder de raamlijn, met de stoel
+    binnenDoos(B, cx, (C.floor + C.belt) / 2, 0, cl - 0.12, C.belt - C.floor - 0.02, W * 0.86 - 0.2, 0x2f3a32);
+    B.box(cx, C.floor + 0.42, 0, 0.45, 0.1, 0.45, 0x2b2d32);
+    B.box(cx - 0.22, C.floor + 0.75, 0, 0.1, 0.55, 0.45, 0x2b2d32);
+    const k = knipDeurgaten(B, 'tractor', L, W);
+    const g = B.build();
+    g.userData.knip = { ...deurSchillen(k, L), rects: k.rects, zs: k.zs };
+    return g;
   });
   const mats = vehicleMaterials(v.wrecked);
   const group = new THREE.Group();
   const body = new THREE.Mesh(geo, mats);
   group.add(body);
   group.userData.body = body;
+  koppelDeurgaten(group, body, geo);
   const wheels = [];
   const small = carWheelGeometry(TRACTOR_FR, 0.36), big = carWheelGeometry(TRACTOR_RR, 0.52);
   for (const s of [1, -1]) {
@@ -3531,8 +3650,8 @@ export function buildVehicleMesh(v) {
   else if (v.dentLog && v.dentLog.length && !v.wrecked) replayDents(group, v);
   if (v.dentLog && v.dentLog.length) syncLooseParts(group, v);
   if ((v.look || (v.model && (v.model.name === 'foodtruck' || v.model.name === 'snackwagen'))) && !v.wrecked) applyVehicleLook(group, v, carBodyFit(v)); // de snackwagen draagt altijd zijn belettering
-  // LOD's (vehiclelod3d.js): niet voor fietsen, steps en het paard (de berijder hoort bij het model)
-  if (!v.isBike && !v.isScooter && v._mount !== 'horse') attachVehicleLods(group);
+  // LOD's (vehiclelod3d.js, op het centrale systeem): niet voor fietsen, steps en het paard (de berijder hoort bij het model)
+  if (!v.isBike && !v.isScooter && !v.isBoat && v._mount !== 'horse') attachVehicleLods(group, v.model.name); // boten: buildBoatMesh (centraal systeem, soort 'boat')
   return group;
 }
 

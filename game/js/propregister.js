@@ -10,6 +10,8 @@
 // Kwaliteitsnorm voor iedere prop: zichtbaar materiaalverschil (hout tegen staal, glas tegen kader), echte onderdelen
 // (voet, rand, bevestiging) in plaats van één primitief, en een driehoekenbudget dat per cel samen te voegen of te instancen blijft.
 
+import { LOD_KINDS } from './lodregistry.js';
+
 export const PROP_REGISTER = {
   bank: {
     nl: 'Parkbank', bouwer: 'bank', gebruik: ['stad', 'buiten', 'cutscene'],
@@ -44,13 +46,8 @@ export const CUTSCENE_PROPS = PROP_IDS.filter((id) => PROP_REGISTER[id].gebruik.
 // wielen), kleuren: verschillende vertexkleuren in de romp. propregister_test.mjs bouwt ze met buildVehicleMesh.
 // De norm voor een personenauto (eigenaar 23-11): lengte 4,2-4,8 m, breedte 1,75-1,85, hoogte 1,40-1,50 (SUV 1,65-1,75), wielbasis
 // 2,6-2,8, wieldiameter rond 0,65; een volwassene van 1,78 m past erin (hoofd onder het dak, een deuropening van minstens 0,95 m).
-// De LOD-niveaus van alle voertuigmodellen (vehiclelod3d.js), in de vorm van het centrale LOD-register: niveau, vanaf welke afstand
-// (m) en wat er getekend wordt. Naast de cabine-LOD van cabin3d.js.
-export const VOERTUIG_LOD = [
-  { niveau: 0, vanaf: 0, wat: 'vol model: romp, deuren met naden en interieur, losse delen, wielen met spaken' },
-  { niveau: 1, vanaf: 35, wat: 'romp met dichte deuren en eenvoudige wielen in één mesh; geen naden, interieur of losse delen' },
-  { niveau: 2, vanaf: 90, wat: 'silhouet van opzij in de hoofdkleur met vier wielblokken' },
-];
+// De LOD-opgave van alle voertuigmodellen komt uit het centrale LOD-register (lodregistry.js, soort 'vehicle'): één systeem.
+export const VOERTUIG_LOD = LOD_KINDS.vehicle.lod;
 export const VOERTUIG_NORM = { len: [4.2, 4.8], wid: [1.75, 1.85], hoog: [1.4, 1.5], hoogSuv: [1.65, 1.75], wielbasis: [2.6, 2.8], wielDiameter: [0.58, 0.75], deurHoogte: 0.95, persoon: 1.78 };
 const HYB_NORM = { tris: [1800, 6500], kleuren: 7, eisen: ['carrosserie uit het CC0-pakket, in lakkleur van het voertuig', 'echt gat in de flank met de uitgeknipte romp als deur (dikte, binnenkant), deurstijlen en dorpel', 'eenvoudig interieur achter de opening', 'onze wielen die draaien en sturen', 'koplampen en achterlichten in de lampgroep, schade met losse delen en hangende bumpers'] };
 // de getekende maat van een hybride (null als het geen hybride is)
