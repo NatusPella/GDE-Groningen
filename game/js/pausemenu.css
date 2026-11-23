@@ -1272,6 +1272,7 @@ html.pad-active #pause-menu.gm :is(.ra, .m-li, .m-tab, .m-bp, .m-bg, .m-bt, .m-c
 #pause-menu .pm-bind > .nm { align-self: center; }
 #pause-menu .pm-bind > .m-kc, #pause-menu .pm-bind > .pm-padcap { flex: none; width: 112px; display: inline-flex; align-items: center; justify-content: flex-end; text-align: right; box-sizing: border-box; }
 #pause-menu .pm-bind > .m-kc { justify-content: center; }
+#pause-menu .pm-reset-voet { justify-content: flex-end; padding-top: var(--ds-s-3); } /* UX-audit 23-11: Standaard herstellen onderaan Instellingen */
 /* UX-audit 23-11 (S10): Besturing > Controller in kolommen per context: knop, te voet, rijden, menu, glyph. Alleen tokens. */
 #pause-menu .pm-bind-pad { display: grid; grid-template-columns: minmax(8em, 1fr) repeat(3, minmax(0, 1.4fr)) 112px; align-items: center; gap: var(--ds-s-3); text-align: left; }
 #pause-menu .pm-bind-pad > .pm-ctx { font-size: var(--ds-t-hulp); line-height: var(--ds-lh-tekst); overflow-wrap: break-word; }

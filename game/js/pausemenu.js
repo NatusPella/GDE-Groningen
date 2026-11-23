@@ -439,7 +439,7 @@ const SUBTABS = {
 // tabblad, dus die oude voorkeur opent nu gewoon Camera.
 const SUB_ALIAS = { settings: { controller: 'besturing' } };
 
-// #911: waar je bent in de rail, voor de rechterkant van de bladkop: "Spelen · 2 van 5". Zo zie
+// #911: waar je bent in de rail, voor de rechterkant van de bladkop: "Spelen" (sinds 23-11 zonder teller). Zo zie
 // je hoeveel onderdelen er zijn en waar dit er een van is. Een onderdeel onder een ander
 // (Besturing onder Instellingen) noemt de plek van zijn ouder.
 function railPosition(id) {
@@ -449,7 +449,7 @@ function railPosition(id) {
   for (const [, label, members] of RAIL_GROUPS) {
     const zichtbaar = members.filter((m) => railIds.includes(m));
     const i = zichtbaar.indexOf(want);
-    if (i >= 0) return zichtbaar.length > 1 ? `${label} · ${i + 1} van ${zichtbaar.length}` : label;
+    if (i >= 0) return label; // UX-audit 23-11 (S3): alleen de groep; de teller "1 van 2" voegde niets toe
   }
   return '';
 }
@@ -882,7 +882,8 @@ ${keyReuseHtml()}
   <div class="pm-a11y-shake"><button type="button" class="m-bg" data-shake-proef>Proef het schudden</button><span class="pm-shake-box" data-shake-box aria-hidden="true">klap</span><span class="mut" data-shake-msg role="status"></span></div>
   <div class="pm-a11y-text"><span class="pm-a11y-13">13 px: een bericht op het scherm</span><span class="pm-a11y-20">20 px: een regel in het menu</span></div>
 </div>
-<p class="mut">Zo zie je de kleuren, lijnen en letters nu. Ondertitels stel je in onder Geluid &amp; ondertitels.</p>`)}`)}`;
+<p class="mut">Zo zie je de kleuren, lijnen en letters nu. Ondertitels stel je in onder Geluid &amp; ondertitels.</p>`)}`)}
+    <div class="m-acts pm-reset-voet"><button type="button" class="m-bg" data-action="reset" hidden>Standaard herstellen</button></div>`; // UX-audit 23-11: herstellen onderaan, niet op de koplijn naast de titel
 }
 // #980: Opslaan & stoppen opent met de stand van deze speelsessie: hoelang je speelt, wanneer het
 // spel voor het laatst bewaard werd en in welke savegame. Zo zie je wat "Spel opslaan" overschrijft.
@@ -1025,7 +1026,7 @@ export function initPauseMenu(w) {
       <section class="pm-sheet m-panel" aria-labelledby="pm-sheet-title">
         <header class="pm-sheet-head m-head">
           <div class="pm-sheet-titles"><span class="m-eb pm-sheet-eb" hidden></span><h1 class="m-h1 pm-sheet-title" id="pm-sheet-title"></h1></div>
-          <div class="m-hr pm-sheet-r"><span class="mut pm-sheet-pos"></span><button type="button" class="m-bt" data-action="reset" hidden>Standaard herstellen</button></div>
+          <div class="m-hr pm-sheet-r"><span class="mut pm-sheet-pos"></span></div>
         </header>
         <div class="pm-sheet-body">
           <section data-panel="todo" class="pm-panel pm-col" hidden><div class="pm-inner pm-todo">
