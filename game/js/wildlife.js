@@ -7,6 +7,7 @@ import { pigeonBoneParts, mergePigeonGeometries } from './pigeonmodel.js';
 import { buildAnimalModel, animateAnimalModel, preloadAnimalModels } from './animalmodels.js';
 import { spawnProvinceAnimals, updateProvinceAnimal, queueAnimalHit } from './provinceanimals.js';
 import { animalLods, setupSkinnedLods, updateSkinnedLod } from './meshlod.js';
+import { buildFishModel, animateFishModel } from './fishmodels.js';
 import { dsWereld } from './worldpalette.js';
 import { SkinBuilder, vcMaterial, composeMatrix, tubeGeometry, loftGeometry, markShared } from './pixelart3d.js';
 import { setLeashHolder, setPeopleWeather } from './models3d_people.js';
@@ -951,6 +952,16 @@ function scareOff(a, world, fromX, fromY) {
   }
 }
 
+// The fish in the canals and ditches: the fish of the fish book (fishmodels.js) at their real length, chosen by the animal's seed:
+// mostly roach, perch and bream, some carp, now and then a pike or an eel. Seed 0 is a perch (the register's model).
+const CANAL_FISH = [['baars', 0.22], ['voorn', 0.3], ['brasem', 0.18], ['karper', 0.12], ['snoek', 0.1], ['paling', 0.08]];
+export function canalFishSpecies(seed) {
+  let r = ((Math.abs(seed) * 7.13) % 1 + 1) % 1;
+  for (const [id, w] of CANAL_FISH) { if (r < w) return id; r -= w; }
+  return 'voorn';
+}
+export const buildCanalFishMesh3D = (seed = 0) => buildFishModel(canalFishSpecies(seed));
+
 // The register's builder for the province animals (dierenregister.js model.fn).
 export const buildProvinceAnimalMesh3D = (id) => buildAnimalModel(id);
 
@@ -1690,18 +1701,73 @@ function catParams(v) {
 
 // The hare (haas, 23-11, in no Quaternius pack): our own quad with long spoon ears, a white scut, a sandy brown coat with a light
 // belly; schoft 0.3 m (dierenregister.js maat). It hops: front and hind legs together (animateQuad).
-const HARE_LOOKS = [{ base: 0x8a6a48, dark: 0x6a5038, belly: 0xd8cbb0 }, { base: 0x96764e, dark: 0x6e5236, belly: 0xe0d4ba }];
-function hareParams(v) {
+const HARE_LOOKS = [{ base: 0x8a6a48, dark: 0x5e4630, belly: 0xd8cbb0 }, { base: 0x96764e, dark: 0x664a32, belly: 0xe0d4ba }];
+// A real hare in our own rig (QUAD_SPEC bones, its own shape), from the reference (Lepus europaeus, Mammalian Species 52/997; HMW):
+// head and body 55-65 cm, ears 10-14 cm with black tips, hind foot 13-16 cm (about twice the front leg), eyes high on the side of
+// the head, back arched, tail white below and black on top. Crouched: a round, high rump, the long hind feet flat on the ground
+// (heels down), short thin front legs. No block feet. Schoft 0.28 m, length 0.55 m.
+const HARE_SPEC = [
+  ['body', null, 0, 0.16, 0],
+  ['head', 'body', 0.15, 0.2, 0],
+  ['tail', 'body', -0.21, 0.2, 0],
+  ['legFL', 'body', 0.1, 0.12, 0.035],
+  ['legFR', 'body', 0.1, 0.12, -0.035],
+  ['legBL', 'body', -0.09, 0.15, 0.06],
+  ['legBR', 'body', -0.09, 0.15, -0.06],
+  ['earL', 'head', 0.19, 0.27, 0.022],
+  ['earR', 'head', 0.19, 0.27, -0.022],
+];
+function hareGeometry(v) {
   const c = HARE_LOOKS[v % HARE_LOOKS.length];
-  const coat = (x, y, z) => (y < 0.17 && Math.abs(z) < 0.05 ? c.belly : (Math.floor((x + z) * 22) & 3) === 0 ? c.dark : c.base);
-  return {
-    len: 0.4, leg: 0.1, hh: 0.1, hw: 0.08, legR: 0.017, head: 0.09, snout: 0.03, deepChest: 1.15,
-    tail: 0.04, tailR: 0.028, tailUp: 1, coat, legCoat: c.base, paw: c.base, face: c.base,
-    nose: 0x3a2a24, eye: 0xc8902a, ear: c.base, earTip: 0x1a1714, earLen: 1.5, scut: 0xf2efe6, floppy: false,
-  };
+  const I = boneIndex(HARE_SPEC);
+  const B = new SkinBuilder(1);
+  const coat = (x, y, z) => (y < 0.1 && Math.abs(z) < 0.06 ? c.belly : noiseHare(x, y, z) > 0.78 ? c.dark : c.base);
+  B.bone = I.body;
+  B.geo(ellipsoid(12, 8, 0.15, 0.115, 0.1), composeMatrix(-0.07, 0.17, 0, 0, 0, 0.12), coat);   // the round, high rump
+  B.geo(ellipsoid(10, 7, 0.11, 0.08, 0.07), composeMatrix(0.07, 0.15, 0, 0, 0, -0.15), coat);   // the chest, lower to the front
+  B.geo(ellipsoid(8, 6, 0.05, 0.06, 0.05), composeMatrix(0.13, 0.19, 0, 0, 0, -0.5), coat);    // the neck
+  for (const s of [1, -1]) {
+    // hind leg: a big thigh on the flank, the long foot flat on the ground from the heel forward
+    B.bone = I[s > 0 ? 'legBL' : 'legBR'];
+    B.geo(ellipsoid(9, 6, 0.08, 0.07, 0.035), composeMatrix(-0.08, 0.11, s * 0.075, 0, 0, 0.5), coat);
+    B.geo(ellipsoid(6, 4, 0.03, 0.05, 0.02), composeMatrix(-0.15, 0.05, s * 0.07, 0, 0, -0.35), c.base);   // the shank down to the heel
+    B.geo(ellipsoid(6, 3, 0.075, 0.016, 0.022), composeMatrix(-0.1, 0.016, s * 0.065), c.dark);          // the long hind foot
+    // front leg: short and thin, a small rounded paw
+    B.bone = I[s > 0 ? 'legFL' : 'legFR'];
+    B.geo(tubeGeometry([0.1, 0.12, s * 0.035], [0.115, 0.012, s * 0.035], 0.014, 0.011, 5), null, c.base);
+    B.geo(ellipsoid(5, 3, 0.022, 0.011, 0.014), composeMatrix(0.122, 0.01, s * 0.035), c.base);
+  }
+  B.bone = I.tail;
+  B.geo(ellipsoid(6, 4, 0.028, 0.03, 0.03), composeMatrix(-0.215, 0.2, 0), 0xf2efe6);          // the white scut
+  B.geo(ellipsoid(5, 3, 0.02, 0.012, 0.02), composeMatrix(-0.21, 0.226, 0), c.dark);           // dark on top
+  B.bone = I.head;
+  const hl = 0.13;   // head length
+  B.geo(ellipsoid(10, 7, hl / 2, 0.05, 0.045), composeMatrix(0.19, 0.22, 0, 0, 0, -0.15), coat);
+  B.geo(ellipsoid(6, 4, 0.03, 0.03, 0.033), composeMatrix(0.245, 0.205, 0), c.belly);           // muzzle
+  B.box(0.272, 0.21, 0, 0.012, 0.012, 0.016, 0x3a2a24);                                         // nose
+  for (const s of [1, -1]) B.geo(ellipsoid(5, 4, 0.012, 0.012, 0.008), composeMatrix(0.205, 0.235, s * 0.04), 0xc8902a);   // amber eyes
+  for (const s of [1, -1]) {
+    B.bone = I[s > 0 ? 'earL' : 'earR'];
+    const L = 0.125;   // reference (Lepus europaeus): ears 10-14 cm from the notch, longer than the head
+    const E = composeMatrix(0.19, 0.27, s * 0.022, s * -0.15, 0, 0.35).multiply(composeMatrix(0, L / 2, 0));
+    B.geo(ellipsoid(7, 5, 0.024, L / 2, 0.009), E, c.base);
+    B.geo(ellipsoid(5, 3, 0.017, L * 0.13, 0.0095), E.clone().multiply(composeMatrix(0, L * 0.4, 0)), 0x1a1714);   // black tip
+  }
+  return B.build();
 }
+const noiseHare = (x, y, z) => { const v = Math.sin(Math.floor(x * 40) * 12.9898 + Math.floor(y * 40) * 78.233 + Math.floor(z * 40) * 37.719) * 43758.5453; return v - Math.floor(v); };
+// the fields animateQuad reads (len, leg, hh: the hop length; floppy: ear mode)
+const HARE_P = { len: 0.5, leg: 0.1, hh: 0.06, hw: 0.08, head: 0.13, floppy: false };
 export function buildHareMesh3D(variant = 0) {
-  return buildQuad('haas' + (variant % HARE_LOOKS.length), hareParams(variant));
+  const v = Math.abs(variant | 0) % HARE_LOOKS.length;
+  const group = assemble(cachedGeo('haas' + v, () => hareGeometry(v)), HARE_SPEC, 0.4, 0.15);
+  const b = group.userData.bones;
+  group.userData.head = b.head;
+  group.userData.legs = [b.legFL, b.legFR, b.legBL, b.legBR];
+  group.userData.tail = b.tail;
+  group.userData.quad = HARE_P;
+  group.userData.earMode = 'op';
+  return group;
 }
 
 const DOG_BREEDS = [
@@ -1736,7 +1802,7 @@ function buildQuad(key, P) {
 }
 
 // Real sizes (dierenregister.js maat, scripts/dierschaal_test.mjs): the model scale of the animals whose build was off.
-export const MODEL_SCALE = Object.freeze({ cat: 0.85, sheep: 0.8, gans: 1.95, reiger: 1.56, vis: 0.96, zeehond: 1.13 });
+export const MODEL_SCALE = Object.freeze({ cat: 0.85, sheep: 0.8, gans: 1.95, reiger: 1.56, vis: 1, zeehond: 1.13 });   // vis: the fish book models carry their own length
 const GOOSE_BODY_Y = 0.2 * MODEL_SCALE.gans / 1.7;   // the goose body was 0.2 m up at scale 1.7
 export const gooseBodyY = () => GOOSE_BODY_Y;
 
@@ -1836,7 +1902,7 @@ function bouwWildlifeMesh3D(a) {
     case 'gans': return buildGooseMesh3D();
     case 'reiger': return buildDuckMesh3D('reiger');
     case 'zeehond': return buildSealMesh3D();
-    case 'vis': return buildFishMesh3D();
+    case 'vis': return buildCanalFishMesh3D(a.bobSeed || 0);
     case 'pigeon': return buildPigeonMesh3D(Math.floor((a.bobSeed || 0) * 10) % 4, a.lod);
     case 'cat': return buildCatMesh3D(a.variant || 0);
     case 'haas': return buildHareMesh3D(Math.floor((a.bobSeed || 0) * 10) % 2);
@@ -2177,6 +2243,7 @@ function animateVis(mesh, a, time) {
   const seed = a.bobSeed || 0;
   mesh.visible = true;
   mesh.position.y = CANAL_Y - 0.28 + Math.sin(time * 1.1 + seed) * 0.03;
+  if (mesh.userData.fishId) { mesh.userData.lodD2 = mesh.userData.lodD2 || 0; animateFishModel(mesh, { state: 'zwem', speed: a.speed || 0 }, time); return; }   // a fish of the fish book (fishmodels.js)
   const slag = time * (4 + a.speed * 6) + seed;
   b.body.rotation.set(0, Math.sin(slag - 0.8) * 0.12, Math.sin(time * 0.7 + seed) * 0.04);   // het lijf slingert mee met de staart
   b.tail.rotation.set(0, Math.sin(slag) * 0.5, 0);

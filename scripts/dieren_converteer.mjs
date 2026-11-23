@@ -28,10 +28,10 @@ export const ANIMALS = {
   varken: { src: F('Pig.glb'), len: 1.3, clips: { idle: 'Idle', hit: 'Jump' } },
   // the fish book (visdata.js): pack fish as a base, recoloured to Groningen species by material role (Main, Light, Fins, Dark),
   // scaled to the real length in visdata.js (lengte). Pike and eel have no fitting base: they are our own (fishmodels.js).
-  vis_baars: { src: V('Red Snapper.glb'), fish: 'baars', clips: FISH, hoog: 0.8, breed: 0.8, kleur: { Main: 0x6f7a3a, Light: 0xd8c99a, Fins: 0xd8642a, Dark: 0x2a2e1e } },
-  vis_karper: { src: V('Koi.glb'), fish: 'karper', clips: FISH, hoog: 0.62, breed: 0.62, kleur: { Main: 0x8a6a2e, Light: 0xd8c08a, Fins: 0x7a5a2a, Dark: 0x4a3a20 } },
-  vis_brasem: { src: V('Koi.glb'), fish: 'brasem', clips: FISH, hoog: 0.85, breed: 0.42, kleur: { Main: 0x8a8468, Light: 0xc8c0a0, Fins: 0x4a4436, Dark: 0x5a5440 } },   // the carp body, deep and flat
-  vis_voorn: { src: V('Cardinal Fish.glb'), fish: 'voorn', clips: FISH, hoog: 0.75, breed: 0.65, kleur: { Main: 0x8a9aa8, Light: 0xe6e8ea, Fins: 0xc8402a, Dark: 0x3a4450 } },
+  vis_baars: { src: V('Red Snapper.glb'), fish: 'baars', clips: FISH, oog: 0.45, hoog: 0.8, breed: 0.8, kleur: { Main: 0x6f7a3a, Light: 0xd8c99a, Fins: 0xd8642a, Dark: 0x2a2e1e } },
+  vis_karper: { src: V('Koi.glb'), fish: 'karper', clips: FISH, oog: 0.4, hoog: 0.62, breed: 0.62, kleur: { Main: 0x8a6a2e, Light: 0xd8c08a, Fins: 0x7a5a2a, Dark: 0x4a3a20 } },
+  vis_brasem: { src: V('Koi.glb'), fish: 'brasem', clips: FISH, oog: 0.4, hoog: 0.85, breed: 0.42, kleur: { Main: 0x8a8468, Light: 0xc8c0a0, Fins: 0x4a4436, Dark: 0x5a5440 } },   // the carp body, deep and flat
+  vis_voorn: { src: V('Cardinal Fish.glb'), fish: 'voorn', clips: FISH, oog: 0.5, hoog: 0.75, breed: 0.65, kleur: { Main: 0x8a9aa8, Light: 0xe6e8ea, Fins: 0xc8402a, Dark: 0x3a4450 } },
 };
 const b64 = (ta) => Buffer.from(ta.buffer, ta.byteOffset, ta.byteLength).toString('base64');
 const r5 = (x) => Math.round(x * 1e5) / 1e5;
@@ -57,7 +57,7 @@ for (const [id, A] of Object.entries(ANIMALS)) {
   const meshPos = new THREE.Vector3(), meshQ = new THREE.Quaternion(), meshS = new THREE.Vector3();
   meshes[0].matrixWorld.decompose(meshPos, meshQ, meshS);
   // merged geometry: position, joints, weights, a material index per vertex
-  const palette = [], pos = [], si = [], sw = [], mi = [], idx = [];
+  const palette = [], pos = [], si = [], sw = [], mi = [], idx = [], eyes = [];
   let base = 0;
   for (const m of meshes) {
     const g = m.geometry, mat = Array.isArray(m.material) ? m.material[0] : m.material;
@@ -67,13 +67,32 @@ for (const [id, A] of Object.entries(ANIMALS)) {
     let k = palette.indexOf(hex);
     if (k < 0) { k = palette.length; palette.push(hex); }
     const p = g.attributes.position, j = g.attributes.skinIndex, w = g.attributes.skinWeight;
+    const isEye = /^eyes?$/i.test(mat.name);
     for (let i = 0; i < p.count; i++) {
+      if (isEye) eyes.push(pos.length / 3);
       pos.push(p.getX(i), p.getY(i), p.getZ(i));
       for (let c = 0; c < 4; c++) { si.push(j.getComponent(i, c)); sw.push(w.getComponent(i, c)); }
       mi.push(k);
     }
     if (g.index) for (let i = 0; i < g.index.count; i++) idx.push(g.index.getX(i) + base); else for (let i = 0; i < p.count; i++) idx.push(i + base);
     base += p.count;
+  }
+  // the pack fish have cartoon eyes (a third of the head): smaller (A.oog: scale per eye round its own centre) and a little higher
+  if (A.oog && eyes.length) {
+    const up = new THREE.Vector3(0, 1, 0).transformDirection(new THREE.Matrix4().copy(meshes[0].matrixWorld).invert()).normalize();
+    const lo = [1e9, 1e9, 1e9], hi = [-1e9, -1e9, -1e9];
+    for (const i of eyes) for (let c = 0; c < 3; c++) { lo[c] = Math.min(lo[c], pos[i * 3 + c]); hi[c] = Math.max(hi[c], pos[i * 3 + c]); }
+    const ax = [0, 1, 2].reduce((m, c) => (hi[c] - lo[c] > hi[m] - lo[m] ? c : m), 0), mid = (lo[ax] + hi[ax]) / 2;
+    for (const side of [-1, 1]) {
+      const vs = eyes.filter((i) => Math.sign(pos[i * 3 + ax] - mid) === side);
+      if (!vs.length) continue;
+      const c = [0, 0, 0];
+      for (const i of vs) for (let k = 0; k < 3; k++) c[k] += pos[i * 3 + k] / vs.length;
+      let r = 0;
+      for (const i of vs) r = Math.max(r, Math.hypot(pos[i * 3] - c[0], pos[i * 3 + 1] - c[1], pos[i * 3 + 2] - c[2]));
+      const lift = r * A.oog * 0.8;
+      for (const i of vs) for (let k = 0; k < 3; k++) pos[i * 3 + k] = c[k] + (pos[i * 3 + k] - c[k]) * A.oog + up.getComponent(k) * lift;
+    }
   }
   let mn = [1e9, 1e9, 1e9], mx = [-1e9, -1e9, -1e9];
   for (let i = 0; i < pos.length; i += 3) for (let c = 0; c < 3; c++) { mn[c] = Math.min(mn[c], pos[i + c]); mx[c] = Math.max(mx[c], pos[i + c]); }

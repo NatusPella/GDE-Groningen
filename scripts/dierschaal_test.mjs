@@ -48,7 +48,7 @@ const W = await import('../game/js/wildlife.js');
 const C = await import('../game/js/countryside.js');
 const AM = await import('../game/js/animalmodels.js');
 const { measureAnimal } = await import('./lib/diermaat.mjs');
-for (const id of AM.ANIMAL_MODEL_IDS) AM.primeAnimalModel(id, JSON.parse(fs.readFileSync(new URL(`../game/models/dieren/${id}.json`, import.meta.url), 'utf8')));
+for (const id of [...AM.ANIMAL_MODEL_IDS, ...AM.FISH_MODEL_IDS]) AM.primeAnimalModel(id, JSON.parse(fs.readFileSync(new URL(`../game/models/dieren/${id}.json`, import.meta.url), 'utf8')));
 const gemeten = [];
 t('elk dier heeft een echte maat en zijn model klopt daarmee (15%)', () => {
   for (const d of R.DIEREN) {

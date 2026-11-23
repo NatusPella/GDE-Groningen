@@ -92,7 +92,7 @@ export const DIEREN = [
   },
   {
     id: 'vis', naam: 'Vis', soort: 'wild', kind: 'vis', plan: 'vis', biotoop: ['water'], uren: [0, 24],
-    model: { module: 'wildlife', fn: 'buildFishMesh3D', args: [] },
+    model: { module: 'wildlife', fn: 'buildCanalFishMesh3D', args: [0] },
     maat: { lengte: 0.3 },
     boek: 'Een zilveren flits onder het wateroppervlak.',
     kopen: { prijs: 15, houden: 'vijver' }, cutscene: null,

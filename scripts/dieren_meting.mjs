@@ -14,7 +14,7 @@ const laad = async (src) => {
   const W = await imp('wildlife.js'), C = await imp('countryside.js');
   // the province animals (23-11) load their converted models; older sources do not have them
   let AM = null;
-  try { AM = await imp('animalmodels.js'); for (const id of AM.ANIMAL_MODEL_IDS) AM.primeAnimalModel(id, JSON.parse(readFileSync(path.join(src, 'game/models/dieren', id + '.json'), 'utf8'))); } catch (e) { AM = null; }
+  try { AM = await imp('animalmodels.js'); for (const id of [...AM.ANIMAL_MODEL_IDS, ...(AM.FISH_MODEL_IDS || [])]) AM.primeAnimalModel(id, JSON.parse(readFileSync(path.join(src, 'game/models/dieren', id + '.json'), 'utf8'))); } catch (e) { AM = null; }
   return { W, C, AM };
 };
 const kanten = [];

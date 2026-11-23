@@ -12,7 +12,7 @@ const W = await import('../game/js/wildlife.js');
 const C = await import('../game/js/countryside.js');
 const AM = await import('../game/js/animalmodels.js');
 // the province animals load their converted models (game/models/dieren); in the game by fetch, here straight from disk
-for (const id of AM.ANIMAL_MODEL_IDS) AM.primeAnimalModel(id, JSON.parse(fs.readFileSync(new URL(`../game/models/dieren/${id}.json`, import.meta.url), 'utf8')));
+for (const id of [...AM.ANIMAL_MODEL_IDS, ...AM.FISH_MODEL_IDS]) AM.primeAnimalModel(id, JSON.parse(fs.readFileSync(new URL(`../game/models/dieren/${id}.json`, import.meta.url), 'utf8')));
 let n = 0, bad = 0;
 const check = (name, c, extra = '') => { n++; if (!c) { bad++; console.log('FAIL', name, extra); } };
 const read = (p) => fs.readFileSync(new URL('../' + p, import.meta.url), 'utf8');

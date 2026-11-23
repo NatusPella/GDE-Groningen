@@ -11,7 +11,7 @@ const C = await import('../game/js/countryside.js');
 const AM = await import('../game/js/animalmodels.js');
 const L = await import('../game/js/meshlod.js');
 const out = process.argv[2] || 'dieren_lod.png';
-for (const id of AM.ANIMAL_MODEL_IDS) AM.primeAnimalModel(id, JSON.parse(fs.readFileSync(new URL(`../game/models/dieren/${id}.json`, import.meta.url), 'utf8')));
+for (const id of [...AM.ANIMAL_MODEL_IDS, ...AM.FISH_MODEL_IDS]) AM.primeAnimalModel(id, JSON.parse(fs.readFileSync(new URL(`../game/models/dieren/${id}.json`, import.meta.url), 'utf8')));
 const tilt = new THREE.Matrix4().makeRotationX(0.4).multiply(new THREE.Matrix4().makeRotationY(-0.5));
 const all = { pos: [], col: [] };
 let y = 0;

@@ -11,7 +11,7 @@ const P = await import('../game/js/provinceanimals.js');
 const X = await import('../game/js/coopextra.js');
 let n = 0, bad = 0;
 const check = (name, c, extra = '') => { n++; if (!c) { bad++; console.log('FAIL', name, extra); } };
-for (const id of AM.ANIMAL_MODEL_IDS) AM.primeAnimalModel(id, JSON.parse(fs.readFileSync(new URL(`../game/models/dieren/${id}.json`, import.meta.url), 'utf8')));
+for (const id of [...AM.ANIMAL_MODEL_IDS, ...AM.FISH_MODEL_IDS]) AM.primeAnimalModel(id, JSON.parse(fs.readFileSync(new URL(`../game/models/dieren/${id}.json`, import.meta.url), 'utf8')));
 
 // --- modellen, clips en LOD's ---
 for (const id of AM.ANIMAL_MODEL_IDS) {

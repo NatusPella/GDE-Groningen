@@ -51,24 +51,61 @@ function pikeGeometry() {
   return B.build();
 }
 
-// the eel: 0.6 m, a ribbon: dark olive-brown back, yellowish belly, one long fin seam over the back half and round the tail
+// the eel: 0.6 m, one closed tube that tapers smoothly to a point (round in front, flatter towards the tail), a small head, and
+// one fin seam that runs from the middle of the back round the tail to the belly. One lofted surface, so it bends without seams.
 const EEL_BONES = [0.22, 0.1, -0.02, -0.14, -0.26];
+const EEL_LEN = 0.6, EEL_X0 = 0.3;
+// reference (Anguilla anguilla, MarLIN, FishBase): snake-like, round in front and flatter towards the tail, body depth 2.5 to 4% of
+// the length, a small head whose lower jaw sticks out past the upper, a small pectoral fin behind the head, and dorsal, tail and anal
+// fin as one continuous seam over the rear two thirds; dark olive above, yellowish below
+const eelR = (t) => 0.0105 * (t < 0.07 ? 0.5 + t * 7.1 : t < 0.6 ? 1 : 1 - (t - 0.6) * 2.2);   // radius along the body (t: 0 nose, 1 tail)
+function tubeGeometry(rings, sides, ry, rz) {
+  const pos = [], idx = [];
+  pos.push(EEL_X0 + 0.012, 0, 0);   // the nose point
+  for (let i = 0; i < rings; i++) {
+    const t = (i + 0.5) / rings, x = EEL_X0 - t * EEL_LEN;
+    for (let j = 0; j < sides; j++) { const an = (j / sides) * Math.PI * 2; pos.push(x, Math.sin(an) * ry(t), Math.cos(an) * rz(t)); }
+  }
+  pos.push(EEL_X0 - EEL_LEN - 0.01, 0, 0);   // the tail point
+  const ring = (i) => 1 + i * sides, last = pos.length / 3 - 1;
+  for (let j = 0; j < sides; j++) { const j2 = (j + 1) % sides; idx.push(0, ring(0) + j2, ring(0) + j); }
+  for (let i = 0; i < rings - 1; i++) for (let j = 0; j < sides; j++) {
+    const j2 = (j + 1) % sides, a = ring(i) + j, b = ring(i) + j2, c = ring(i + 1) + j, d = ring(i + 1) + j2;
+    idx.push(a, b, d, a, d, c);
+  }
+  for (let j = 0; j < sides; j++) { const j2 = (j + 1) % sides; idx.push(last, ring(rings - 1) + j, ring(rings - 1) + j2); }
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+  g.setIndex(idx);
+  return g;
+}
+// a fin seam in the middle plane: from t0 to 1 along the top (side +1) or the bottom (-1), height h at the tail end
+function seamGeometry(t0, side, h) {
+  const pos = [], idx = [], n = 14;
+  for (let i = 0; i <= n; i++) {
+    // the seam rises from nothing, runs on, and rounds off round the tail tip (top and bottom meet behind the body)
+    const u = i / n, t = t0 + (1 - t0) * u, x = EEL_X0 - t * EEL_LEN - (u > 0.9 ? (u - 0.9) * 0.12 : 0), r = eelR(t) * 0.8;
+    const hh = h * Math.sin(Math.min(1, u * 2.2) * Math.PI / 2) * (u > 0.8 ? 0.35 + 0.65 * Math.cos(((u - 0.8) / 0.2) * Math.PI / 2) : 1);
+    pos.push(x, side * r, 0, x, side * (r + hh), 0);
+  }
+  for (let i = 0; i < n; i++) { const a = i * 2; idx.push(a, a + 2, a + 1, a + 1, a + 2, a + 3, a, a + 1, a + 2, a + 1, a + 3, a + 2); }   // both sides
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+  g.setIndex(idx);
+  return g;
+}
 function eelGeometry() {
   const B = new SkinBuilder(1);
   B.bone = alongX(EEL_BONES);
-  const back = 0x3a3424, belly = 0xb8a860;
-  const coat = (x, y) => (y < -0.008 ? belly : back);
-  const segs = 10;
-  for (let i = 0; i < segs; i++) {
-    const t = i / (segs - 1), x = 0.25 - t * 0.55;
-    const r = 0.022 * (t < 0.15 ? 0.75 + t * 1.6 : 1 - Math.max(0, t - 0.55) * 1.2);
-    B.geo(ellip(0.04, r, r * 0.85, 6, 4), composeMatrix(x, 0, 0), coat);
-  }
-  B.geo(ellip(0.035, 0.018, 0.016, 6, 4), composeMatrix(0.27, 0.002, 0), back);              // the head
-  for (const s of [1, -1]) B.geo(ellip(0.005, 0.005, 0.004, 4, 3), composeMatrix(0.285, 0.01, s * 0.013), 0x111111);
-  B.geo(ellip(0.2, 0.012, 0.0025, 8, 3), composeMatrix(-0.12, 0.022, 0), 0x4a4430);           // the fin seam over the back
-  B.geo(ellip(0.16, 0.01, 0.0025, 8, 3), composeMatrix(-0.16, -0.02, 0), 0x6a6040);           // and under the tail
-  for (const s of [1, -1]) B.geo(ellip(0.012, 0.003, 0.008, 4, 3), composeMatrix(0.21, -0.006, s * 0.022, s * 0.4, 0, 0), 0x4a4430);
+  // a smooth gradient from the dark olive back to the yellowish belly (per vertex, so no saw edge)
+  const mix = (a, b, k) => { const ch = (s) => Math.round(((a >> s) & 255) * (1 - k) + ((b >> s) & 255) * k); return (ch(16) << 16) | (ch(8) << 8) | ch(0); };
+  const coat = (x, y) => mix(0x3a3620, 0xb8a85a, Math.max(0, Math.min(1, 0.5 - y / 0.016)));
+  B.geo(tubeGeometry(34, 10, eelR, (t) => eelR(t) * (0.95 - 0.5 * Math.max(0, t - 0.35))), null, coat);
+  B.geo(ellip(0.016, 0.004, 0.006, 5, 3), composeMatrix(EEL_X0 + 0.004, -0.006, 0), 0x4a4428);   // the lower jaw, a little past the upper
+  for (const s of [1, -1]) B.geo(ellip(0.0025, 0.0025, 0.002, 4, 3), composeMatrix(EEL_X0 - 0.014, 0.004, s * 0.0055), 0x111111);   // small eyes
+  B.geo(seamGeometry(0.33, 1, 0.008), null, 0x4a4430);    // dorsal fin over the rear two thirds to the tail
+  B.geo(seamGeometry(0.48, -1, 0.007), null, 0x6a6040);   // anal fin from just behind the middle, meeting it round the tail
+  for (const s of [1, -1]) B.geo(ellip(0.007, 0.0025, 0.005, 4, 3), composeMatrix(EEL_X0 - 0.045, -0.002, s * 0.011, s * 0.5, 0, 0), 0x4a4430);   // small pectoral fins
   return B.build();
 }
 
@@ -113,7 +150,9 @@ export function buildFishModel(fishId) {
   const own = OWN_FISH.includes(m) ? (m === 'snoek' ? 0.7 : 0.6) : (soort(m.slice(4)) || {}).lengte;
   const want = s && s.lengte ? s.lengte : own;
   if (own && want) g.scale.setScalar(want / own);
-  outer.userData = { fishId, inner: g, lodD2: 0 };
+  // what the world and the tests read on an animal model: its head bone and its LODs
+  const head = g.userData.ownFish ? g.userData.bones[0] : g.userData.bones && g.userData.bones.head;
+  outer.userData = { fishId, inner: g, lodD2: 0, bones: { head }, head, lod: g.userData.lod };
   return outer;
 }
 

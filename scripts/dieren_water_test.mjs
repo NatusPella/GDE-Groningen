@@ -2,6 +2,10 @@
 //   node scripts/dieren_water_test.mjs      (3D-modules in Node: zie scripts/node3d.mjs)
 import './node3d.mjs';
 const W = await import('../game/js/wildlife.js');
+const AM = await import('../game/js/animalmodels.js');
+import fs from 'node:fs';
+// the fish in the water are the fish of the fish book (fishmodels.js); in the game the models load by fetch, here from disk
+for (const id of AM.FISH_MODEL_IDS) AM.primeAnimalModel(id, JSON.parse(fs.readFileSync(new URL(`../game/models/dieren/${id}.json`, import.meta.url), 'utf8')));
 let n = 0, bad = 0;
 const check = (name, c, extra = '') => { n++; if (!c) { bad++; console.log('FAIL', name, extra); } };
 
