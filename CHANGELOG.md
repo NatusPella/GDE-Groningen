@@ -9,6 +9,11 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ## [Unreleased]
 
+- Voertuigen: elk voertuig met openende deuren heeft nu een zichtbare naad rond het deurpaneel en een handvat, ook als de deur dicht is. Een open deur heeft dikte en een bekleding aan de binnenkant, en je kijkt in het interieur in plaats van in een zwart vlak. Hoge cabinedeuren (vrachtwagen, trekker) hebben een dicht onderpaneel met de ruit erboven.
+- Trekker-limo van Jelle: opnieuw gebouwd met een echte trekkerkop (kap, grille, ronde koplampen, noppenbanden), een limousine met wielkasten, witte flanken, glanzende lak, chroom, een rode loper over de kofferklep en achterin twee banken met een barkastje en gouden glazen. De voorwielen sturen, de wielen draaien met de juiste snelheid en er zijn deuren om in en uit te stappen.
+- Helikopter: afgeronde motorkap, interieur met stoelen en dashboard, schuifdeur met naad en raampje, bladen met gele tippen.
+- Straatmeubilair: parkbank met latten en gietijzer, afvalbak met deksel en klep, fietsenrek met beugels, bushokje met glas, bank en lijnkaart, paaltje met reflectiebanden. Ze komen uit één register (`propregister.js`) en staan in de stad, het buitengebied en de cutscenes.
+
 ## [0.65.0] - 2026-11-22
 
 Samen spelen met vier echte vensters getest, een ronde zeefdruk-menu's (Spullen, Loopbanen, Boerderij, zoeken), echte voetstappen en weergeluid, AAA-aankleding van de missies van akte 1 tot en met 4 en een snellere start. Pre-release voor de speeltest.

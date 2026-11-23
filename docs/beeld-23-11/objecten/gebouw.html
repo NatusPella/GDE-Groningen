@@ -1,0 +1,48 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Objecten: contactblad van gewone gebouwen (headless Chrome, geen Electron)</title>
+<style>html,body{margin:0;background:#17301f}canvas{display:block}</style>
+<script>
+  const root = location.href.replace(/docs\/beeld-23-11\/objecten\/gebouw\.html.*$/, '');
+  document.write('<script type="importmap">' + JSON.stringify({ imports: { 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js': root + 'desktop/vendor-cache/npm/three@0.160.0/build/three.module.js', three: root + 'desktop/vendor-cache/npm/three@0.160.0/build/three.module.js', 'three/addons/': root + 'desktop/vendor-cache/npm/three@0.160.0/examples/jsm/', 'https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/': root + 'desktop/vendor-cache/npm/three@0.160.0/examples/jsm/' } }) + '<\/script>');
+</script>
+<body>
+<script>
+  const toon = (t) => { const d = document.createElement('pre'); d.style.cssText = 'position:fixed;top:0;left:0;color:#fff;background:#900;margin:0;padding:8px;font:14px monospace;white-space:pre-wrap;z-index:9'; d.textContent = t; document.body.appendChild(d); };
+  window.addEventListener('error', (e) => toon('FOUT: ' + e.message));
+  window.addEventListener('unhandledrejection', (e) => toon('FOUT: ' + (e.reason && e.reason.stack || e.reason)));
+</script>
+<script type="module">
+  // Hash: #gebouw[-nacht]. Rijtjeshuizen, een winkelpand, een appartementenblok, een kantoor en een loods.
+  const root = location.href.replace(/docs\/beeld-23-11\/objecten\/gebouw\.html.*$/, '');
+  const THREE = await import('https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js');
+  const bm = await import(root + 'game/js/models3d_buildings.js');
+  const mode = (location.hash || '#gebouw').slice(1);
+  const night = mode.includes('nacht') ? 1 : 0;
+  const W = 1400, H = 800;
+  const renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
+  renderer.setSize(W, H);
+  document.body.appendChild(renderer.domElement);
+  const scene = new THREE.Scene();
+  scene.background = new THREE.Color(night ? 0x0b1420 : 0xbfe3f2);
+  scene.add(new THREE.HemisphereLight(night ? 0x405070 : 0xf4f2ec, 0x2a3a2e, night ? 0.9 : 1.7));
+  const sun = new THREE.DirectionalLight(night ? 0x8090c0 : 0xffffff, night ? 0.8 : 2.4); sun.position.set(-20, 30, 40); scene.add(sun);
+  const ground = new THREE.Mesh(new THREE.PlaneGeometry(200, 120), new THREE.MeshLambertMaterial({ color: night ? 0x1c2420 : 0x6b7a66 }));
+  ground.rotation.x = -Math.PI / 2; scene.add(ground);
+  if (night) bm.setNightFactor(1.5, 1, 1, 1);
+  const rect = (x, y, w, d) => [[x, y], [x + w, y], [x + w, y + d], [x, y + d]];
+  let id = 1;
+  const mk = (type, x, y, w, d, h, extra = {}) => ({ id: 9000 + id++, type, h, pts: rect(x, y, w, d), bounds: [x, y, x + w, y + d], ...extra });
+  const list = [
+    mk('house', -34, -6, 6, 9, 2), mk('house', -28, -6, 6, 9, 2), mk('house', -22, -6, 6, 9, 3), mk('detached', -13, -6, 9, 10, 2),
+    mk('retail', -1, -6, 8, 12, 3), mk('apartments', 10, -8, 18, 14, 5), mk('office', 31, -8, 14, 16, 6), mk('industrial', 20, 14, 24, 14, 2), mk('shed', -14, 8, 7, 6, 1),
+  ];
+  for (const b of list) {
+    const g = bm.buildBuildingMesh(b);
+    if (g) scene.add(g);
+  }
+  const cam = new THREE.PerspectiveCamera(36, W / H, 0.1, 600);
+  cam.position.set(2, 38, 78); cam.lookAt(2, 3, 0);
+  renderer.render(scene, cam);
+  document.title = 'klaar:' + list.length + ' draws=' + renderer.info.render.calls + ' tris=' + renderer.info.render.triangles;
+</script>
