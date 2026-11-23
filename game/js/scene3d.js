@@ -1637,7 +1637,7 @@ const _bSeen = new Set(), _bMissing = []; function syncBuildingsPass(world, px, 
   // wat de speler tegemoet rijdt eerst (#247); bij stilstand is de rang de afstand
   missing.sort((a, b) => a[3] - b[3]);
   const bt0 = performance.now();
-  const deadline = bt0 + plan.grant('building', bt0 < streamBoostUntil ? BUILDING_BUILD_BOOST_MS : BUILDING_BUILD_MS);
+  const deadline = bt0 + plan.grant('building', jumpLoading ? BUILDING_BUILD_BOOST_MS * 2 : bt0 < streamBoostUntil ? BUILDING_BUILD_BOOST_MS : BUILDING_BUILD_MS);
   let built = 0;
   let nearBuilt = 0;
   for (const m of missing) {
@@ -1821,6 +1821,9 @@ const BUILDING_BUILD_BOOST_MS = 9;
 const ROAD_BUILD_MS = 2.5;
 const STREAM_JUMP = 60;
 let streamBoostUntil = 0;
+// 24-11: onder het zwart van een wachtpoort (world.cineJumpLoading: cutscenesprong, de benchmark tussen twee shots) wordt niet getekend; gebouwen
+// en wegen mogen dan het dubbele (wegen: viervoudige) budget en aantal vragen, zodat de poort niet op 'detail' of 'wegen' volloopt
+let jumpLoading = false;
 // what still waits to be built round the player (the load screen's progress)
 const streamStat = { b: 0, r: 0 };
 export function streamPending() { return { buildings: streamStat.b, roads: streamStat.r, ahead: performance.now() < streamBoostUntil }; }
@@ -2170,9 +2173,9 @@ function syncRoads(world, px, py) {
   if (missing.length) {
     missing.sort((a, b) => a[0] - b[0]);
     const t0 = performance.now();
-    const boosted = t0 < streamBoostUntil;
-    const deadline = t0 + plan.grant('road', boosted ? ROAD_BUILD_MS * 2 : ROAD_BUILD_MS);
-    const cap = boosted ? ROAD_BUILD_MAX_PER_FRAME * 2 : ROAD_BUILD_MAX_PER_FRAME;
+    const boosted = jumpLoading || t0 < streamBoostUntil;
+    const deadline = t0 + plan.grant('road', jumpLoading ? ROAD_BUILD_MS * 4 : boosted ? ROAD_BUILD_MS * 2 : ROAD_BUILD_MS);
+    const cap = jumpLoading ? ROAD_BUILD_MAX_PER_FRAME * 4 : boosted ? ROAD_BUILD_MAX_PER_FRAME * 2 : ROAD_BUILD_MAX_PER_FRAME;
     let built = 0, waiting = false, deferred = false;
     for (const [, r, , near] of missing) {
       // surfaces still coming from the geometry worker: the far LOD covers
@@ -2617,6 +2620,7 @@ function syncSpeechBubbles(world) {
 export function update3D(dt, world) {
   // animations freeze with gameplay (pause, cutscenes); the camera keeps using dt
   const animDt = world.paused ? 0 : dt;
+  jumpLoading = !!world.cineJumpLoading && !perfOff('poortbudget');
   const player = hoofdspeler(world);
   const focus = updateStreamFocus(world);
 
@@ -3448,6 +3452,15 @@ function skipHiddenMatrixWalk() {
     const c = kids[i];
     if (c.isLight || c.isCamera) continue;
     c.matrixWorldAutoUpdate = c.visible;
+    // 24-11: ook één laag dieper. Een zichtbare groep met verborgen kinderen (de rekwisieten van de trailer en de benchmark, de eierballen,
+    // de flavour-props: ~700 van ~2600 knopen met matrixAutoUpdate in de census) liep elk frame mee. Alleen wat wij zelf uitzetten zetten we
+    // weer aan, zodat een bewust vastgezette knoop (freezeStatic, de terreintegels) vast blijft.
+    if (!c.visible || perfOff('verborgenkinderen')) continue;
+    const ks = c.children;
+    for (let j = 0; j < ks.length; j++) {
+      const k = ks[j];
+      if (!k.visible) { if (k.matrixWorldAutoUpdate) { k.matrixWorldAutoUpdate = false; k._hidWalk = true; } } else if (k._hidWalk) { k.matrixWorldAutoUpdate = true; k._hidWalk = false; }
+    }
   }
   // the terrain's ~500 tile meshes are final (freezeStatic): no walk through them either
   if (terrainMesh && !perfOff('terreinvast')) terrainMesh.matrixWorldAutoUpdate = false;
