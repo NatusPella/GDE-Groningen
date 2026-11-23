@@ -209,17 +209,18 @@ export const DECOR_MAKERS = {
   kiosk: () => grp(box(2.6, 2.3, 2.0, 0xe0b04a, 1.15), box(2.9, 0.12, 2.4, 0xb4492f, 2.36), box(0.04, 0.8, 1.3, 0x3a2a20, 1.45, 1.31), box(0.3, 0.06, 1.4, 0xd8d2c4, 1.0, 1.42)),
   // de sticker VERKOCHT (rood met witte letters en een witte rand), plat; +z is de voorkant
   sticker: () => {
+    const ROOD = 0xc8261e; // de inkt van de sticker: 3D-textuur, geen UI-kleur
     const g = grp(box(1.56, 0.62, 0.005, 0xf4f1e8, 0.31));
     let face;
     if (typeof document !== 'undefined') {
       const cv = document.createElement('canvas');
       cv.width = 256; cv.height = 96;
       const c = cv.getContext('2d');
-      c.fillStyle = '#c8261e'; c.fillRect(0, 0, 256, 96);
+      c.fillStyle = '#' + ROOD.toString(16).padStart(6, '0'); c.fillRect(0, 0, 256, 96);
       c.fillStyle = '#ffffff'; c.font = '700 40px sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText('VERKOCHT', 128, 50);
       const tex = new THREE.CanvasTexture(cv);
       face = new THREE.MeshBasicMaterial({ map: tex });
-    } else face = mat(0xc8261e);
+    } else face = mat(ROOD);
     const m = new THREE.Mesh(new THREE.PlaneGeometry(1.5, 0.56), face);
     m.position.set(0, 0.31, 0.004);
     g.add(m);
