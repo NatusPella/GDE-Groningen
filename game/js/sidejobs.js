@@ -846,6 +846,7 @@ export function sideJobSecondary(w) {
     return out;
   }
   if (hoofdspeler(w).inVehicle) return out;
+  if (!bijbaanPromptToegestaan(w.mission)) return out; // missiestart.js: geen bijbaanbord tijdens een missie (de naam met het icoon)
   const { x, y } = hoofdspeler(w);
   for (const s of spots) {
     if (Math.abs(s.x - x) > 20 || Math.abs(s.y - y) > 20) continue;

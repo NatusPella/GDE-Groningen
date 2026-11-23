@@ -37,6 +37,7 @@ ok(/BRIEF_TIME = INTRO_MAX_S/.test(hud), 'de introkaart volgt INTRO_MAX_S');
 ok(/export function armStuntHud/.test(hud) && /if \(!state\.armed\) return;/.test(hud), 'het stuntpaneel wacht op armStuntHud');
 const sj = bron('sidejobs.js');
 ok(/if \(!bijbaanPromptToegestaan\(w\.mission\)\) return null;/.test(sj), 'sidejobs.js toont geen bijbaanprompt tijdens een missie');
+ok(/if \(!bijbaanPromptToegestaan\(w\.mission\)\) return out;/.test(sj), 'en ook geen bijbaanbord met naam en icoon (sideJobSecondary)');
 
 console.log(bad ? `missiestart_test: ${bad} van ${n} fout` : `missiestart_test: ${n} controles ok`);
 process.exit(bad ? 1 : 0);
