@@ -15,7 +15,7 @@ export const SHOP_TYPES = {
   super: { color: '#3b8f3b', label: 'Avondwinkel', chain: 'Nait Duur', tagline: 'Open tot laat, goedkoop tot op de cent', group: 'shops' },
   snack: { color: '#d0652a', label: 'Snackbar', chain: 'Frituur Vet & Lekker', tagline: 'Vers uit het vet, met of zonder', group: 'shops' },
   fietsen: { color: '#2f6fb8', label: 'Fietsenwinkel', chain: 'Trap & Toeter', tagline: 'Fietsen, bakfietsen, e-steps en brommers', group: 'shopsVoertuigen' },
-  fietsenmaker: { color: '#4f86a8', label: 'Fietsenmaker', chain: 'Spaak & Band', tagline: 'Plakken, poetsen en opvoeren', group: 'shopsVoertuigen' },
+  fietsenmaker: { color: '#4f86a8', label: 'Fietsenmaker', chain: 'Spaak & Band', tagline: 'Band plakken terwijl je wacht', group: 'shopsVoertuigen' },
   auto: { color: '#c98a16', label: 'Autodealer', chain: 'Ome Harm Occasions', tagline: 'Nait zeuren, gewoon rijden', group: 'shopsVoertuigen' },
   tuning: { color: '#8c3fa8', label: 'Tuning', chain: 'Knal & Kolder Tuning', tagline: 'Meer vermogen, meer herrie', group: 'shopsVoertuigen' },
   boot: { color: '#2a8fb0', label: 'Botenverhuur & werf', chain: 'Bootje Huren', tagline: 'De stad vanaf het water. Aan de steiger je boot tunen (R)', group: 'shopsVoertuigen' },
@@ -34,7 +34,7 @@ const BUS_STRIPES = { stripe: '#3fc6d4', accent: '#e8e6de' };
 // VEHICLE_UNLOCKS instead of a price. flags: set on the spawned vehicle.
 // Keys are saved: only ever add.
 export const VEHICLE_STOCK = {
-  omafiets: { kind: 'bike', type: 'Fiets', shop: 'fietsen', label: 'Omafiets', desc: 'Zwart, zwaar en onverwoestbaar', price: 75, nameIdx: 0, color: '#1c1c1c', model: { name: 'bike', len: 1.75, wid: 0.5, maxSpeed: 6.2, accel: 3.2, brake: 6, turnRate: 4.6 } },
+  omafiets: { kind: 'bike', type: 'Fiets', shop: 'fietsen', label: 'Omafiets', desc: 'Weegt meer dan jij en gaat langer mee', price: 75, nameIdx: 0, color: '#1c1c1c', model: { name: 'bike', len: 1.75, wid: 0.5, maxSpeed: 6.2, accel: 3.2, brake: 6, turnRate: 4.6 } },
   stadsfiets: { kind: 'bike', type: 'Fiets', shop: 'fietsen', label: 'Stadsfiets', desc: 'Lichter en sneller, in Stadjersgroen', price: 110, nameIdx: 2, color: '#1e9e56', model: { name: 'bike', len: 1.75, wid: 0.5, maxSpeed: 7.0, accel: 3.6, brake: 6.2, turnRate: 4.8 } },
   fatbike: { kind: 'bike', type: 'Fatbike', shop: 'fietsen', label: 'Fatbike "Dikke Tinus"', desc: 'Dikke banden, dikke prijs', price: 350, nameIdx: 0, color: '#20221f', model: { name: 'bike', fat: true, len: 1.95, wid: 0.62, maxSpeed: 7.4, accel: 3.4, brake: 5, turnRate: 3.8 } },
   brommer: { kind: 'scooter', type: 'E-step', shop: 'fietsen', label: 'E-step Zoemzoem', desc: 'Elektrische step: staan, gas, zoemen', price: 600, nameIdx: 0, color: '#c94b3a', model: { name: 'scooter', len: 1.15, wid: 0.42, maxSpeed: 8.5, accel: 4.0, brake: 4.4, turnRate: 5.4 } },
@@ -57,7 +57,7 @@ export const VEHICLE_STOCK = {
   pruttelaar: { kind: 'scooter', type: 'Brommer', shop: 'fietsen', label: 'Tweetakt Pruttelaar', desc: 'Echte brommer met koppeling en vier versnellingen: 45 km/u, geen meter harder. Voor de politie dan', price: 1100, nameIdx: 0, color: '#c9541e', model: { ...GEARED_MOPED_MODEL } },
   // --- cars ---
   knakker: { kind: 'car', type: 'Hatchback', shop: 'auto', label: 'Dollard Knakker', desc: 'Klein, pittig en altijd net te laat bij de APK', price: 650, nameIdx: 0, color: '#c7c9cc', model: CAR_M('hatch', 3.8, 1.7, 41, 9, 15, 3.0) },
-  pienter: { kind: 'car', type: 'Hatchback', shop: 'auto', label: 'Eemsmond Pienter', desc: 'Zuinig, slim en saai. Precies wat je moeder wil', price: 700, nameIdx: 1, color: '#e8e6e0', model: CAR_M('hatch', 3.8, 1.7, 42, 9, 15, 3.1) },
+  pienter: { kind: 'car', type: 'Hatchback', shop: 'auto', label: 'Eemsmond Pienter', desc: 'Zuinig en saai. Precies wat je moeder wil', price: 700, nameIdx: 1, color: '#e8e6e0', model: CAR_M('hatch', 3.8, 1.7, 42, 9, 15, 3.1) },
   roestbak: { kind: 'car', type: 'Barrel', shop: 'auto', label: 'Dollard Roestbak', desc: 'Drie kleuren, twee werkende deuren, één koplamp', price: 350, nameIdx: 0, color: '#8a6a4a', model: CAR_M('hatch', 3.7, 1.65, 34, 7, 13, 2.8, { rusty: true }) },
   statig: { kind: 'car', type: 'Sedan', shop: 'auto', label: 'Wadden Statig', desc: 'Voor notarissen en mensen die willen lijken op een notaris', price: 1400, nameIdx: 0, color: '#4a4d52', model: CAR_M('sedan', 4.3, 1.8, 50, 10, 16, 2.6) },
   kanselier: { kind: 'car', type: 'Sedan', shop: 'auto', label: 'Hunze Kanselier', desc: 'Leren stoelen, stoelverwarming, ego-verwarming', price: 1550, nameIdx: 1, color: '#2f3a52', model: CAR_M('sedan', 4.3, 1.8, 51, 10, 16, 2.6) },
@@ -76,7 +76,7 @@ export const VEHICLE_STOCK = {
   midibus: { kind: 'car', type: 'Midibus', shop: 'auto', label: 'Stadsbus Wijkhopper', desc: 'Buurtbus voor als lijn 3 weer niet komt', price: 3800, nameIdx: 0, color: '#132a44', flags: { isBus: true }, model: CAR_M('midibus', 8.4, 2.3, 24, 5, 12, 1.3, BUS_STRIPES) },
   stadsbus: { kind: 'car', type: 'Stadsbus', shop: 'auto', label: 'Stadsbus Diepenrinkel', desc: 'Je eigen lijn. Haltes kies je zelf, dienstregeling ook', unlock: 'buschauffeur', nameIdx: 0, color: '#132a44', flags: { isBus: true }, model: { ...CAR_M('bus', 11.2, 2.55, 22, 4.5, 12, 1.1, BUS_STRIPES), trailer: 6.8 } },
   // --- specials, unlocked through the story and achievements ---
-  poen: { kind: 'car', type: 'Geldwagen', shop: 'auto', label: 'Poen Express Kluiswagen', desc: 'Gepantserd, loodzwaar en helaas leeg', unlock: 'pinautomaat', nameIdx: 0, color: '#5b625d', flags: { isCashVan: true }, model: CAR_M('cashvan', 5.2, 2.0, 36, 6.5, 13, 2.0) },
+  poen: { kind: 'car', type: 'Geldwagen', shop: 'auto', label: 'Poen Express Kluiswagen', desc: 'Gepantserd en loodzwaar. Helaas leeg', unlock: 'pinautomaat', nameIdx: 0, color: '#5b625d', flags: { isCashVan: true }, model: CAR_M('cashvan', 5.2, 2.0, 36, 6.5, 13, 2.0) },
   ambulance: { kind: 'car', type: 'Ambulance', shop: 'auto', label: 'Ambulance Spoedrit', desc: 'Sirene aan en heel de Herestraat gaat opzij', unlock: 'fatbike', nameIdx: 0, color: '#f1d21c', flags: { isAmbulance: true }, model: CAR_M('ambulance', 5.6, 2.0, 46, 9, 17, 2.6) },
   politie: { kind: 'car', type: 'Politieauto', shop: 'auto', label: 'Politie Achtervolger', desc: 'Afgeschreven, opgeknapt, zwaailicht doet het nog', unlock: 'ontsnapt', nameIdx: 0, color: '#1c1c1c', flags: { isPolice: true, hijacked: true }, model: CAR_M('police', 4.3, 1.8, 55, 11, 20, 2.8) },
   tankwagen: { kind: 'car', type: 'Tankwagen', shop: 'auto', label: 'Us Mem Vet Tankwagen', desc: 'Nog half vol frituurvet. Rijdt op zijn eigen lading', unlock: 'vetgekaapt', nameIdx: 0, color: '#e6c21a', model: CAR_M('truck', 7.2, 2.35, 28, 4.5, 13, 1.5, { tank: true }) },
@@ -95,5 +95,5 @@ export const VEHICLE_STOCK = {
   rondvaartboot: { kind: 'boat', type: 'Rondvaartboot', shop: 'boot', label: 'Rondvaartboot Stadjer', desc: 'Glazen dak, veertig stoelen, nul passagiers', price: 3500, nameIdx: 1, color: '#1d3350', model: { ...BOAT_KINDS.rondvaart } },
   // --- the air ---
   wiekenwubbo: { kind: 'heli', type: 'Helikopter', shop: 'heli', label: 'Wieken Wubbo', desc: 'Tweezits helikopter. Landt op elk plat stuk: het weiland, een plat dak of je eigen helidek', price: 5500, nameIdx: 0, color: '#b8322a', flags: { isHeli: true }, model: { name: 'heli', len: 8.8, wid: 2.1, maxSpeed: 40, accel: 7, brake: 9, turnRate: 1.5 } },
-  politieboot: { kind: 'boat', type: 'Politieboot', shop: 'boot', label: 'Politie Boot', desc: 'Voor wie de politie op het water ook eens wil ontlopen. Met de politie', unlock: 'vijfsterren', nameIdx: 0, color: '#e8e6e0', flags: { isPolice: true, hijacked: true }, model: { name: 'boat', kind: 'sloep', len: 5.5, wid: 2.0, maxSpeed: 9.8, accel: 3.2, brake: 3.4, turnRate: 1.8, color: '#e8e6e0', cabin: '#12294f' } },
+  politieboot: { kind: 'boat', type: 'Politieboot', shop: 'boot', label: 'Politieboot', desc: 'Voor wie de politie op het water ook eens wil ontlopen. Met de politie', unlock: 'vijfsterren', nameIdx: 0, color: '#e8e6e0', flags: { isPolice: true, hijacked: true }, model: { name: 'boat', kind: 'sloep', len: 5.5, wid: 2.0, maxSpeed: 9.8, accel: 3.2, brake: 3.4, turnRate: 1.8, color: '#e8e6e0', cabin: '#12294f' } },
 };
