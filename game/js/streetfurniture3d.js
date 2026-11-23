@@ -11,6 +11,7 @@
 // their slip roads at street level, gantries before the exits, hectometre
 // posts, mapped fences, noise barriers and speed tables.
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
+import { plainBack } from './canvastex.js';
 import { furnitureForTile, furnitureColliders, spotFreeOnMap, LAMP_AWNING, DESTINATIONS } from './streetfurniture.js';
 import { worldSignPlaces, worldTownSigns } from './worldplaces.js';
 import { boardQuads, bordTekst, paneelTekst, bordHeeftTekst } from './boardquad.js';
@@ -164,7 +165,7 @@ function rebuildSigns(gantries) {
     atlas.width = SIGN_W * ATLAS_COLS; atlas.height = SIGN_H * ATLAS_ROWS;
     atlasTex = new THREE.CanvasTexture(atlas);
     atlasTex.colorSpace = THREE.SRGBColorSpace;
-    signMat = applyInteriorCut(new THREE.MeshBasicMaterial({ map: atlasTex, side: THREE.DoubleSide }));
+    signMat = plainBack(applyInteriorCut(new THREE.MeshBasicMaterial({ map: atlasTex }))); // hertest 24-11: de achterkant is een effen bordrug, geen spiegelschrift (canvastex.js plainBack)
   }
   const ctx = atlas.getContext('2d');
   ctx.clearRect(0, 0, atlas.width, atlas.height);

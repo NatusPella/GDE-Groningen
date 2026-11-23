@@ -7,6 +7,7 @@ import { lookKind, parseLook } from './vehiclelook.js';
 import { DIEREN, dierById } from './dierenregister.js';
 import { loadBezit, saveBezit, koop, upgrade, koopBlokkade, upgradeBlokkade, stemming, PLEK_MAX } from './dierenbezit.js';
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
+import { plainBack } from './canvastex.js';
 import { dist, closestPointOnSegment, isInWater, pointInPolygon, boatDryPoints } from './util.js';
 import { waterPolyAt } from './waterlevels.js';
 import { clearOfBuildings, withTiles, nearestOnRoads } from './tileplace.js';
@@ -2475,7 +2476,8 @@ function buildShopFront3D(shop) {
   }
   const draw = () => {
     if (root.userData.disposed) return;
-    const signMat = new THREE.MeshBasicMaterial({ map: signTexture(shop), fog: true, side: shop.face ? THREE.FrontSide : THREE.DoubleSide });
+    const signMat = new THREE.MeshBasicMaterial({ map: signTexture(shop), fog: true, side: THREE.FrontSide });
+    if (!shop.face) plainBack(signMat); // hertest 24-11: de achterkant is een effen bordrug, geen spiegelschrift (canvastex.js plainBack)
     const sign = new THREE.Mesh(signGeometry, signMat);
     sign.userData.ownMaterial = true;
     const y = shop.face ? Math.max(2.7, Math.min(3.4, f.h - 0.7)) : 2.4;

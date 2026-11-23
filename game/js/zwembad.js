@@ -3,7 +3,7 @@ import { volgendeTredeRij } from './medalrules.js';
 import { getSettings } from './settings.js';
 import { cleanDifficulty, difficultyRecordKey, scaleTimeLimit } from './difficulty.js'; // #800: stand en records per stand
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
-import { canvasTex } from './canvastex.js';
+import { canvasTex, plainBack } from './canvastex.js';
 import { getScene } from './scene3d.js';
 import { buildPersonMesh, animatePersonWalk } from './models3d_people.js';
 import { showBanner } from './cinematics.js';
@@ -106,7 +106,7 @@ function buildPool() {
     add(new THREE.BoxGeometry(0.9, BLOCK_H - 0.82 - 0.04 + 0.5, 0.7), std(0xf2f0e6), -L / 2 - 0.9, 0.82 + 0.1, v);
   }
   // a sign, a lifeguard chair, flags
-  const sign = new THREE.Mesh(new THREE.PlaneGeometry(4.2, 1.4), new THREE.MeshBasicMaterial({ map: signTexture(), side: THREE.DoubleSide }));
+  const sign = new THREE.Mesh(new THREE.PlaneGeometry(4.2, 1.4), plainBack(new THREE.MeshBasicMaterial({ map: signTexture() }))); // hertest 24-11: de achterkant is een effen bordrug, geen spiegelschrift (canvastex.js plainBack)
   sign.position.set(-L / 2 - 4, 2.6, 8.8);
   grp.add(sign);
   for (const s of [-1.9, 1.9]) add(new THREE.CylinderGeometry(0.05, 0.05, 2.6, 6), std(0x4a4e52, { metalness: 0.4 }), -L / 2 - 4 + s, 1.3, 8.8);
