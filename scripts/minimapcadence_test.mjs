@@ -27,7 +27,11 @@ ok(simuleer({ sec: 10, costMs: 2, beweegt: false, settling: true }) === rijdt, '
 const duur = simuleer({ sec: 10, costMs: 6, beweegt: true });
 ok(duur < rijdt && duur >= 90, `een dure kaart ververst minder (${duur}), kostenproportioneel`);
 ok(C.minimapIntervalMs(5, true) === 50 && C.minimapIntervalMs(12, true) === 120, '5 ms tekenen geeft 50 ms (was 80), 10% kostenbegroting (#804)');
-ok(C.minimapIntervalMs(1, true) === C.MM_MIN_INTERVAL_MS && C.minimapIntervalMs(5, true) >= C.MM_HEAVY_INTERVAL_MS, 'cadansvloer licht en zwaar blijft zoals in #804');
+ok(C.minimapIntervalMs(2, true) === C.MM_MIN_INTERVAL_MS && C.minimapIntervalMs(5, true) >= C.MM_HEAVY_INTERVAL_MS, 'cadansvloer licht en zwaar blijft zoals in #804');
+// 23-11: een goedkope tekenbeurt (landcache) draait bewegend op 60 fps, stilstaand blijft het rustig, en de 10%-begroting blijft de grens
+ok(C.minimapIntervalMs(0.6, true) === C.MM_LIGHT_INTERVAL_MS && C.minimapIntervalMs(0.6, false) === C.MM_IDLE_INTERVAL_MS, 'goedkoop en bewegend: 60 fps; stilstaand rustig');
+ok(simuleer({ sec: 10, costMs: 0.6, beweegt: true }) >= 550, 'een goedkope bewegende kaart haalt ~60 fps (' + simuleer({ sec: 10, costMs: 0.6, beweegt: true }) + ' in 10 s)');
+ok(C.minimapIntervalMs(0.99, true) >= 0.99 * C.MM_COST_FACTOR, 'ook op 60 fps hooguit 10% van de tijd');
 ok(C.minimapIntervalMs(1, false) === C.MM_IDLE_INTERVAL_MS, 'stilstaand is rustig');
 ok(C.minimapIntervalMs(undefined, true) === C.MM_MIN_INTERVAL_MS, 'ontbrekende kosten crasht niet');
 

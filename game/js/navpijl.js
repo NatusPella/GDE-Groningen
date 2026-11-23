@@ -31,7 +31,16 @@ export const activeArea = (tekstBreedte) => { const t = tagMaat(tekstBreedte), r
 
 // ------------------------------------------------------------------ meetkunde
 // Een afgeronde vierkante baan met de klok mee vanaf het begin van de bovenrand. S: de breedte van de kaart.
+// 23-11: de minimap vraagt de baan elke tekenbeurt; dezelfde maat geeft dezelfde baan terug (met zijn hoekentabel), zonder nieuwe closures.
+let laatsteBaan = null;
 export function track(S, inset = TRACK_INSET, radius = TRACK_RADIUS) {
+  const l = laatsteBaan;
+  if (l && l.S === S && l.inset === inset && l.radius === radius) return l.baan;
+  const baan = maakBaan(S, inset, radius);
+  laatsteBaan = { S, inset, radius, baan };
+  return baan;
+}
+function maakBaan(S, inset, radius) {
   const a = inset, b = S - inset, r = radius, w = b - a - 2 * r;
   const piece = [w, Math.PI * r / 2, w, Math.PI * r / 2, w, Math.PI * r / 2, w, Math.PI * r / 2];
   const lengte = piece.reduce((p, q) => p + q, 0);
@@ -50,15 +59,19 @@ export function track(S, inset = TRACK_INSET, radius = TRACK_RADIUS) {
       default: { const h = Math.PI + t * Math.PI / 2; return [a + r + Math.cos(h) * r, a + r + Math.sin(h) * r]; }
     }
   }
-  // de plek op de baan voor een schermhoek (radialen, 0 = rechts, met de klok mee): de s waarvan de hoek vanuit het midden er het dichtst bij ligt
+  // de plek op de baan voor een schermhoek (radialen, 0 = rechts, met de klok mee): de s waarvan de hoek vanuit het midden er het dichtst bij ligt.
+  // De hoeken van de stappen van 0,5 px staan één keer in een tabel (was: elke vraag ~1800 keer dot() en atan2, per marker per beeld).
+  let hoeken = null;
   function sVoor(hoek) {
+    if (!hoeken) {
+      hoeken = [];
+      for (let s = 0; s < lengte; s += 0.5) { const [x, y] = dot(s); hoeken.push((Math.atan2(y - S / 2, x - S / 2) + 2 * Math.PI) % (2 * Math.PI)); }
+    }
     const target = ((hoek % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI);
     let best = 0, bd = 1e9;
-    for (let s = 0; s < lengte; s += 0.5) {
-      const [x, y] = dot(s);
-      const h = (Math.atan2(y - S / 2, x - S / 2) + 2 * Math.PI) % (2 * Math.PI);
-      let d = Math.abs(h - target); d = Math.min(d, 2 * Math.PI - d);
-      if (d < bd) { bd = d; best = s; }
+    for (let i = 0; i < hoeken.length; i++) {
+      let d = Math.abs(hoeken[i] - target); d = Math.min(d, 2 * Math.PI - d);
+      if (d < bd) { bd = d; best = i * 0.5; }
     }
     return best;
   }

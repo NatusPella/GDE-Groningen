@@ -18,7 +18,7 @@ import { getGaragesForRender, lekkeBandGarage } from './garages.js';
 import { getHomeForRender, getHomeGarageForRender, getHomeMooringForRender, getHomeHelipadForRender } from './home.js';
 import { minimapShows } from './mapfilters.js';
 import { borderSegments, BORDER_CELL } from './mapborders.js'; // #885: stabiele buurtgrenzen op de minikaart
-import { tekenVeroverdMini, plekOnbezocht } from './gebiedenkaart.js';
+import { tekenVeroverdMini, plekOnbezocht, kaartLaag as gebiedenLaag } from './gebiedenkaart.js';
 import { pinBlijftInMist } from './kaartontdekking.js';
 import { GLYPH_LIGHT as GLYPH_CREAM, mapCategory, mapFillColor, FLAT_INK, haloRim, HALO_DARK, HALO_LIGHT, mapPriority, miniIconScale, iconGapPx, badgeShape, badgeGlyphColor, shadeHex, stateLook, BADGE_UNITS, BADGE_GLYPH } from './mapicons.js';
 import { facilitiesOf } from './facilities.js';
@@ -48,7 +48,7 @@ import { timeWarning, timeWarningText } from './timewarn.js'; // #985
 import { dempMelding } from './coopgeluid.js';
 import { gearboxReadout } from './gearbox.js';
 import { drawRailsOnMap, drawTrainsOnMap } from './railway.js';
-import { drawCountryMinimap, villageLabels, syncMapPhase } from './countrymap.js';
+import { drawCountryMinimap, villageLabels, syncMapPhase, miniTilesPending } from './countrymap.js';
 import { markerIcoon } from './mapmarkers.js';
 import { MINI_PALETTE as MINI_STYLE, EMPHASIS, INK, inkA, seaStyle, miniRoadStyle, MINI_RANGE_M, kaartTekst, labelHalo } from './mapstyle.js';
 import { drawSea, drawOutside, regionLabels, regionEdgeLabels, areaNameAt, REGIONS } from './regions.js';
@@ -81,6 +81,7 @@ import { initPrompts, updatePrompts, hintCount } from './prompts.js';
 import { hudPixelRatio, sizeSquareCanvas, getUiScale, onUiScaleChange } from './uiscale.js';
 import { initCards, updateCards } from './hudcards.js';
 import { markerColors, onPaletteChange } from './a11y.js';
+import { dsKleur } from './kaartkleuren.js';
 import { sterTeken } from './a11ylogic.js';
 import { drawMissionGlyph } from './missionicons.js';
 import { drawMapGlyph, phosphorPaden } from './mapglyphs.js';
@@ -94,7 +95,8 @@ import { airCard, cutTitle } from './airguidecard.js'; // #1038: één kaart in 
 import { getAirNeed } from './airprofile.js';
 import { gastDoelen } from './coopextra.js';
 import { kaartDoelen, KAART_ANDER_ALPHA } from './coopmissie.js';
-import { travelModeOf, roadAllowed, minimapScale, northUp, MINIMAP_MODE } from './roadaccess.js';
+import { travelModeOf, roadAllowed, minimapScale, minimapTopSpeed, northUp, MINIMAP_MODE } from './roadaccess.js';
+import { routeLook, CHEVRON_STAP, CHEVRON_MAAT, plekAlpha, plekBudget, volgSnelheid, zoomStap, naarZoom, naarHoek, backingPx, landMaat, landVerouderd, SPELER_PIJL, SPELER_SCHADUW, NOORD } from './minimapstyle.js';
 import { hudDate } from './hudcalendar.js';
 import { fmtTime } from './missionstats.js';
 import { LANDMARK_LINES } from './placelines.js';
@@ -126,6 +128,8 @@ let mmScale = 1.45;
 let mmSkip = 0, mmDt = 0;
 let mmMode = 'lopen';
 let mmRot = null;
+// 23-11 (minimapstyle.js): de gladgestreken snelheid voor de zoom, de zoomstand bij Beweging beperken, de apparaatpixels van het vak
+let mmSpeed = NaN, mmZoomStap = 0, mmBoxPx = 0;
 const mmEase = { heading: null, kind: null, t: 0 }; // zachte richting van de driehoek bij in- en uitstappen (viewanchor.js)
 
 // Genre convention: purple for your own waypoint, yellow for missions, orange for
@@ -273,6 +277,19 @@ export function initHud(world) {
   mmWrap.className = 'hud-minimap-wrap';
   const mmCanvas = document.createElement('canvas');
   mmWrap.appendChild(mmCanvas);
+  // 23-11: de canvas krijgt precies de apparaatpixels van zijn vak (binnen de papieren rand is dat geen 250 HUD-px): zo hoeft de
+  // browser niets te herschalen en blijven de lijnen scherp (minimapstyle.js backingPx). Eén meting per maatwissel, niet per beeld.
+  if (typeof ResizeObserver === 'function') {
+    try {
+      const meet = (es) => {
+        const e = es[es.length - 1];
+        const d = e.devicePixelContentBoxSize && e.devicePixelContentBoxSize[0];
+        mmBoxPx = d ? d.inlineSize : 0; // zonder apparaatmaat (Safari): de oude maat, want contentRect telt de CSS-zoom van de HUD niet overal gelijk
+        mmPrev = null; // de volgende tekenbeurt mag meteen
+      };
+      try { new ResizeObserver(meet).observe(mmCanvas, { box: 'device-pixel-content-box' }); } catch (e) { new ResizeObserver(meet).observe(mmCanvas); }
+    } catch (e) { /* zonder meting: CSS-maat keer verhouding */ }
+  }
   // #1175: de sterren staan op de minimap, alleen bij 1 ster of meer; de schermlezer hoort één regel (de aria-label van de statuskaart)
   const mmSterren = document.createElement('div');
   mmSterren.className = 'hud-mm-sterren';
@@ -2872,14 +2889,15 @@ function collectMinimapPois(world, job, player) {
   return pois;
 }
 
-function drawMinimapPois(ctx, world, job, placed, inRange, toScreen, t) {
+// max: hoeveel plekken hooguit (minimapstyle.js plekBudget: minder naarmate je harder gaat); alpha: stil als er een doel is (plekAlpha)
+function drawMinimapPois(ctx, world, job, placed, inRange, toScreen, t, max = Infinity, alpha = 1) {
   const pois = minimapPoiList(world, job, hoofdspeler(world));
   const gap2 = MM_POI_GAP_PX * MM_POI_GAP_PX;
   const drawn = _poiDrawn; // vlak: soort, sx, sy per icoon (geen array per icoon)
   drawn.length = 0;
   const xy = _poiXY;
   const mist = getSettings().showFog; // 20-11: in nog onbezocht gebied geen pins op de minikaart (zoals op de grote kaart)
-  for (let k = 0; k < pois.length; k++) {
+  for (let k = 0; k < pois.length && drawn.length < max * 3; k++) {
     const p = pois[k], kind = p[0], x = p[1], y = p[2];
     if (!inRange(x, y)) continue;
     if (mist && !pinBlijftInMist(kind, null) && plekOnbezocht(x, y)) continue;
@@ -2891,12 +2909,16 @@ function drawMinimapPois(ctx, world, job, placed, inRange, toScreen, t) {
     placed.push(sx, sy);
     drawn.push(kind, sx, sy);
   }
-  const opts = { t };
+  const opts = _poiOpts;
+  opts.t = t; opts.alpha = alpha;
+  ctx.globalAlpha = alpha;
   for (let i = 0; i < drawn.length; i += 3) {
     drawMapIconHalo(ctx, drawn[i], drawn[i + 1], drawn[i + 2], MM_POI_ICON);
     drawMapIcon(ctx, drawn[i], drawn[i + 1], drawn[i + 2], MM_POI_ICON, opts);
   }
+  ctx.globalAlpha = 1;
 }
+const _poiOpts = { t: 0, alpha: 1 };
 
 // Town, village and region names on the minimap (the list is refreshed when
 // the player has moved a bit), upright over the rotating map; a name just
@@ -2974,8 +2996,10 @@ let mmLastAt = 0, mmCostMs = 0, mmPrev = null, mmSettling = true;
 function drawMinimap(dt, world) {
   syncMapPhase(world);
   const ctx = els.mmCtx;
-  const dpr = hudPixelRatio();
-  sizeSquareCanvas(els.mmCanvas, Math.round(MINIMAP_SIZE * dpr));
+  // 23-11: precies de apparaatpixels van het vak (ResizeObserver hierboven); dpr is dan apparaatpixels per HUD-px van een kaart van 250
+  const px = backingPx(mmBoxPx, MINIMAP_SIZE, hudPixelRatio());
+  sizeSquareCanvas(els.mmCanvas, px);
+  const dpr = px / MINIMAP_SIZE;
   // "jij" is de bestuurde entiteit (viewanchor.js): plek, richting en kijkhoek komen van de duif, de heli, het voertuig of de trein;
   // het lichaam leent de rest (inVehicle enz.)
   const body = hoofdspeler(world);
@@ -2993,8 +3017,15 @@ function drawMinimap(dt, world) {
   // a running mission zooms the minimap in on its area (missionmap.js)
   const layer = getMissionLayer(world);
   updateMissionNotices(world, layer);
-  const targetScale = missionMinimapScale(layer, minimapScale(mmMode, speed, st.minimapZoom || 1), MINIMAP_SIZE);
-  mmScale += (targetScale - mmScale) * Math.min(1, dt * 1.6);
+  // 23-11 (minimapstyle.js): de zoom volgt een gladgestreken snelheid en eased los van de framerate; bij Beweging beperken
+  // twee vaste standen (dichtbij, ver) die in één keer wisselen, en de draaiing volgt de camera zonder eigen naloop
+  const beperkt = reducedMotion();
+  const top = minimapTopSpeed(mmMode);
+  mmSpeed = volgSnelheid(mmSpeed, speed, dt);
+  if (beperkt) mmZoomStap = zoomStap(mmZoomStap, speed, top);
+  const targetScale = missionMinimapScale(layer, minimapScale(mmMode, beperkt ? mmZoomStap * top : mmSpeed, st.minimapZoom || 1), MINIMAP_SIZE);
+  const zoom = naarZoom(mmScale, targetScale, dt, beperkt);
+  mmScale = zoom.waarde;
   const MM_RADIUS_M = MINIMAP_SIZE / 2 * 1.42 / mmScale;
 
   const cx = MINIMAP_SIZE / 2, cy = MINIMAP_SIZE / 2;
@@ -3003,70 +3034,22 @@ function drawMinimap(dt, world) {
   // on-screen angle. A change of mode turns it smoothly.
   // viewanchor.js: de camerahoek, maar de richting van de duif, heli, het vliegtuig en de trein, en bij een scenecamera de eigen richting
   const rotTarget = mapUpRotation(anchor, northUp(st.minimapNorth, mmMode));
-  if (mmRot == null) mmRot = rotTarget;
-  let dr = rotTarget - mmRot;
-  dr -= Math.round(dr / (Math.PI * 2)) * Math.PI * 2;
-  mmRot += Math.abs(dr) < 0.02 ? dr : dr * Math.min(1, dt * 8);
-  mmSettling = Math.abs(dr) >= 0.02 || Math.abs(targetScale - mmScale) > targetScale * 0.002;
+  const draai = naarHoek(mmRot, rotTarget, dt, beperkt);
+  mmRot = draai.waarde;
+  mmSettling = zoom.bezig || draai.bezig;
   const mapRotation = mmRot;
   const cosR = Math.cos(mapRotation), sinR = Math.sin(mapRotation);
-  const dimLand = mode.dimLand;
   ctx.translate(cx * dpr, cy * dpr);
   ctx.rotate(mapRotation);
   ctx.scale(mmScale * dpr, mmScale * dpr);
   ctx.translate(-player.x, -player.y);
 
-  ctx.fillStyle = MINI_STYLE.meadow;
-  ctx.fillRect(player.x - MM_RADIUS_M, player.y - MM_RADIUS_M, MM_RADIUS_M * 2, MM_RADIUS_M * 2);
-  drawCountryMinimap(ctx, player.x - MM_RADIUS_M, player.y - MM_RADIUS_M, player.x + MM_RADIUS_M, player.y + MM_RADIUS_M, mmScale);
-  const province = provinceMapOn();
-  if (province) drawSea(ctx, (n) => n / mmScale, seaStyle(MINI_STYLE));
-
-  const view = minimapView(world.map, player.x - MM_RADIUS_M, player.y - MM_RADIUS_M, player.x + MM_RADIUS_M, player.y + MM_RADIUS_M);
-
-  if (edgeDistance(player.x, player.y) < 0) drawNeighbourhoodBorders(ctx, dt, world, player, MM_RADIUS_M);
-
-  ctx.fillStyle = MINI_STYLE.park;
-  fillPolys(ctx, view.green);
-
-  ctx.fillStyle = MINI_STYLE.water;
-  fillPolys(ctx, view.water);
-  // gebieden veroveren (#414, #423): boven het groen en het water, onder de wegen en gebouwen
-  if (minimapShows('veroverd')) tekenVeroverdMini(ctx, mmScale, player.x, player.y, MM_RADIUS_M);
-
-  const emph = mode.emph;
-  const landAlpha = 1 - dimLand;
-  for (const r of view.roads) {
-    if (r.pts.length < 2) continue;
-    // the paths and styles of the roads that fade out at this zoom (foot, cycle) are not worked out at all
-    const rs = miniRoadStyle(r.cat, r.width, mmScale);
-    if (rs.alpha <= 0.02) continue;
-    const allowed = roadAllowed(r, mmMode);
-    ctx.beginPath();
-    ctx.moveTo(r.pts[0][0], r.pts[0][1]);
-    for (let i = 1; i < r.pts.length; i++) ctx.lineTo(r.pts[i][0], r.pts[i][1]);
-    let color = r.cat === 'major' ? MINI_STYLE.major : r.cat === 'cycle' ? MINI_STYLE.cycle : MINI_STYLE.road;
-    let w = rs.widthM;
-    let a = landAlpha * rs.alpha;
-    if (emph === 'foot') { if (r.cat === 'foot') { color = EMPHASIS.foot; w = Math.max(w, 3.4); } }
-    else if (emph === 'cycle') { if (r.cat === 'cycle') { color = EMPHASIS.cycle; w = Math.max(w, 4); } else if (r.cat === 'foot') a *= 0.4; }
-    else if (emph === 'major') { if (r.cat === 'major') w = Math.max(w, r.width * 1.1); else if (r.cat === 'foot' || r.cat === 'cycle') a *= 0.35; }
-    if (allowed === false && r.cat !== 'major') a *= 0.45;
-    ctx.globalAlpha = a;
-    ctx.strokeStyle = color;
-    ctx.lineWidth = w;
-    ctx.stroke();
-  }
-  ctx.globalAlpha = landAlpha;
-  drawRailsOnMap(ctx, world.map, player.x - MM_RADIUS_M, player.y - MM_RADIUS_M, player.x + MM_RADIUS_M, player.y + MM_RADIUS_M, 3.2, MINI_STYLE);
+  // 23-11: het land (alles wat stilligt) komt uit één gecachete laag, noord-boven in wereldmaat, en wordt hier gedraaid neergelegd
+  // (minimapstyle.js LAND_LAYERS, landVerouderd). Alleen de rijdende treinen komen er elke tekenbeurt bovenop.
+  drawMiniLandCached(ctx, world, player, MM_RADIUS_M, mode, dpr, mmSettling);
+  ctx.globalAlpha = 1 - mode.dimLand;
   drawTrainsOnMap(ctx);
-
-  const MM_BUILDING_COLORS = MINI_STYLE.buildings;
-  fillBuildings(ctx, view.buildings, MM_BUILDING_COLORS);
   ctx.globalAlpha = 1;
-  // outside the province darker, with its land borders (#885: doorgetrokken op de
-  // minikaart, want streeplengtes die met de zoom meeschuiven lieten de lijn trillen)
-  if (province) drawOutside(ctx, [player.x - MM_RADIUS_M, player.y - MM_RADIUS_M, player.x + MM_RADIUS_M, player.y + MM_RADIUS_M], (n) => n / mmScale, { tint: inkA('tintMini', 0.34), width: 2.6, dash: false });
 
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
@@ -3091,10 +3074,13 @@ function drawMinimap(dt, world) {
     drawSearchArea(ctx, sx, sy, search.r * mmScale, t);
   }
 
-  for (const route of getRoutes()) {
+  // 23-11 (minimapstyle.js routeLook): eerst de andere routes, dun en stil, dan de route die je volgt bovenop, dik met een papieren rand
+  const volgRoute = getActiveRoute();
+  for (let pass = 0; pass < 2; pass++) for (const route of getRoutes()) {
+    if ((route === volgRoute) !== (pass === 1)) continue;
     if (route.fly || (route.noRoute && route.mode === 'boat')) { drawCrowLine(ctx, toScreen(player.x, player.y), toScreen(route.target.x, route.target.y), ROUTE_COLORS[route.kind] || ROUTE_COLORS.user); continue; }
     const ahead = getRouteAhead(MM_RADIUS_M * 2.5, route);
-    if (ahead && ahead.length > 1) drawRoadRoute(ctx, [[player.x, player.y], ...ahead].map(([x, y]) => toScreen(x, y)), ROUTE_COLORS[route.kind] || ROUTE_COLORS.user, route === getActiveRoute() ? 4 : 3);
+    if (ahead && ahead.length > 1) drawMiniRoute(ctx, player, ahead, toScreen, ROUTE_COLORS[route.kind] || ROUTE_COLORS.user, route.kind, route === volgRoute);
   }
   const inRange = (x, y) => (x - player.x) ** 2 + (y - player.y) ** 2 <= iconRangeM * iconRangeM;
   const heliMarks = getHeliRunMarks();
@@ -3150,7 +3136,8 @@ function drawMinimap(dt, world) {
   const storyAt = storyShop && inRange(storyShop.x, storyShop.y) ? toScreen(storyShop.x, storyShop.y) : null;
   if (storyAt) placed.push(storyAt[0], storyAt[1]);
   // a mission layer quiets the places that do not count for it
-  if (!(layer && layer.quiet)) drawMinimapPois(ctx, world, job, placed, inRange, toScreen, t);
+  // 23-11 (minimapstyle.js): hoe harder je gaat hoe minder plekken, en met een doel stappen ze een tree terug
+  if (!(layer && layer.quiet)) drawMinimapPois(ctx, world, job, placed, inRange, toScreen, t, plekBudget(mmSpeed, top), plekAlpha(!!nav.actief));
   if (layer) {
     drawLayerAreas(ctx, layer, toScreen, mmScale, t);
     drawLayerLines(ctx, layer, toScreen, 3);
@@ -3238,9 +3225,9 @@ function drawMinimap(dt, world) {
   let cashN = 0;
   forEachCashTarget(world, (x, y) => { if (cashN < 3 && icon('cash', x, y)) cashN++; });
 
-  drawMapIcon(ctx, 'player', cx, cy, 1.8, { angle: player.angle + mapRotation });
+  drawMiniSpeler(ctx, cx, cy, player.angle + mapRotation);
 
-  drawNorthIndicator(ctx, cx, cy, mapRotation - Math.PI / 2);
+  drawNorthIndicator(ctx, cx, cy, mapRotation - Math.PI / 2, dpr);
   const wind = miniWind(world);
   if (wind) drawMiniWind(ctx, WIND_X, MINIMAP_SIZE - WIND_Y, wind, mapRotation);
 
@@ -3259,6 +3246,235 @@ function drawMinimap(dt, world) {
   const obstakels = [{ a: mapRotation - Math.PI / 2, nodig: 31, r: 13, inset: 17 }];
   if (wind) obstakels.push({ a: Math.atan2(MINIMAP_SIZE - WIND_Y - cy, WIND_X - cx), nodig: 34, r: 24, x: WIND_X, y: MINIMAP_SIZE - WIND_Y });
   drawKompasRand(ctx, MINIMAP_SIZE, kompas, { t, beweging: !reducedMotion(), obstakels });
+}
+
+// De kleuren van route en speler op de minimap, uit de tokens (inkt en papier van het drukwerk), één keer gemaakt.
+let mmInkt = null;
+function mmKleuren() {
+  return mmInkt || (mmInkt = {
+    inkt: dsKleur('ink-inkt'), randInkt: hexA(dsKleur('ink-inkt'), 0.9), papier: hexA(dsKleur('ink-papier'), 0.92),
+    kring: inkA('greenLight', 0.2), groen: INK.greenLight, creme: INK.cream,
+  });
+}
+
+// Een route op de minimap (23-11, minimapstyle.js routeLook). De route die je volgt: papieren rand, inktrand, de kleur van zijn
+// soort en inktchevrons in de looprichting (missie); paars, oranje en roze houden hun eigen streeppatroon (vorm naast kleur).
+// Een andere route is dun en stapt terug. Schermpunten in één platte lijst, zonder array per punt.
+const _routeXY = [];
+const _rxy = [0, 0];
+const _dashes = new Map();
+const GEEN_STREEP = [];
+function drawMiniRoute(ctx, player, ahead, toScreen, kleur, kind, actief) {
+  const L = routeLook(actief);
+  const xy = _routeXY;
+  xy.length = 0;
+  toScreen.into(player.x, player.y, _rxy); xy.push(_rxy[0], _rxy[1]);
+  for (const p of ahead) { toScreen.into(p[0], p[1], _rxy); xy.push(_rxy[0], _rxy[1]); }
+  const n = xy.length;
+  if (n < 4) return;
+  const k = mmKleuren();
+  ctx.save();
+  ctx.globalAlpha = L.alpha;
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+  ctx.beginPath();
+  ctx.moveTo(xy[0], xy[1]);
+  for (let i = 2; i < n; i += 2) ctx.lineTo(xy[i], xy[i + 1]);
+  if (L.halo) { ctx.lineWidth = L.width + L.casing + 2 * L.halo; ctx.strokeStyle = k.papier; ctx.stroke(); }
+  ctx.lineWidth = L.width + L.casing;
+  ctx.strokeStyle = k.randInkt;
+  ctx.stroke();
+  ctx.lineWidth = L.width;
+  ctx.strokeStyle = kleur;
+  ctx.stroke();
+  const dash = ROUTE_DASH[kind];
+  if (dash) {
+    const sleutel = kind + L.width;
+    let d = _dashes.get(sleutel);
+    if (!d) _dashes.set(sleutel, (d = dash.map((v) => v * L.width)));
+    ctx.setLineDash(d);
+    ctx.lineWidth = Math.max(1.2, L.width * 0.42);
+    ctx.strokeStyle = k.randInkt;
+    ctx.stroke();
+    ctx.setLineDash(GEEN_STREEP);
+  } else if (L.chevrons) routeChevrons(ctx, xy, n, k.inkt);
+  ctx.restore();
+}
+// Inktchevrons langs de route, elke CHEVRON_STAP px, niet vlak bij de speler en niet vlak bij het einde, alleen binnen de kaart.
+function routeChevrons(ctx, xy, n, inkt) {
+  let totaal = 0;
+  for (let i = 0; i + 3 < n; i += 2) totaal += Math.hypot(xy[i + 2] - xy[i], xy[i + 3] - xy[i + 1]);
+  const m = CHEVRON_MAAT;
+  let rest = 18, afgelegd = 0;
+  ctx.beginPath();
+  for (let i = 0; i + 3 < n; i += 2) {
+    const ax = xy[i], ay = xy[i + 1], bx = xy[i + 2], by = xy[i + 3];
+    const len = Math.hypot(bx - ax, by - ay);
+    if (len < 1e-3) continue;
+    const ux = (bx - ax) / len, uy = (by - ay) / len;
+    let d = rest;
+    for (; d <= len; d += CHEVRON_STAP) {
+      if (afgelegd + d > totaal - 14) break;
+      const px = ax + ux * d, py = ay + uy * d;
+      if (px < 4 || py < 4 || px > MINIMAP_SIZE - 4 || py > MINIMAP_SIZE - 4) continue;
+      ctx.moveTo(px - ux * m * 0.7 - uy * m, py - uy * m * 0.7 + ux * m);
+      ctx.lineTo(px + ux * m * 0.7, py + uy * m * 0.7);
+      ctx.lineTo(px - ux * m * 0.7 + uy * m, py - uy * m * 0.7 - ux * m);
+    }
+    rest = d - len;
+    afgelegd += len;
+  }
+  ctx.lineWidth = 1.5;
+  ctx.lineJoin = 'miter';
+  ctx.strokeStyle = inkt;
+  ctx.stroke();
+}
+
+// Jij op de minimap (23-11): een strakke lichtgroene pijl met een inkeping, een crème rand binnen een inktrand en een harde
+// inktschaduw (het drukwerk van de kaart), op een stille lichtgroene kring zodat je altijd te vinden bent. Geen verloop per beeld.
+function spelerPijl(ctx) {
+  const P = SPELER_PIJL;
+  ctx.beginPath();
+  ctx.moveTo(P[0][0], P[0][1]);
+  for (let i = 1; i < P.length; i++) ctx.lineTo(P[i][0], P[i][1]);
+  ctx.closePath();
+}
+function drawMiniSpeler(ctx, x, y, hoek) {
+  const k = mmKleuren();
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.beginPath();
+  ctx.arc(0, 0, 12.5, 0, Math.PI * 2);
+  ctx.fillStyle = k.kring;
+  ctx.fill();
+  ctx.save();
+  ctx.translate(SPELER_SCHADUW, SPELER_SCHADUW);
+  ctx.rotate(hoek);
+  spelerPijl(ctx);
+  ctx.fillStyle = k.inkt;
+  ctx.fill();
+  ctx.lineWidth = 3; // zo groot als de pijl met zijn inktrand: de schaduw steekt er 1,4 px rechtsonder onder uit
+  ctx.lineJoin = 'round';
+  ctx.strokeStyle = k.inkt;
+  ctx.stroke();
+  ctx.restore();
+  ctx.rotate(hoek);
+  ctx.lineJoin = 'round';
+  spelerPijl(ctx);
+  ctx.fillStyle = k.groen;
+  ctx.fill();
+  ctx.lineWidth = 3;
+  ctx.strokeStyle = k.inkt;
+  ctx.stroke();
+  ctx.lineWidth = 1.4;
+  ctx.strokeStyle = k.creme;
+  ctx.stroke();
+  ctx.fill();
+  ctx.restore();
+}
+
+// Het land van de minimap in wereldcoördinaten (de transformatie staat al), rond (x, y) met straal R, getekend voor een kaartschaal
+// (px per meter). Volgorde: minimapstyle.js LAND_LAYERS. Wordt alleen in de landcache getekend, niet per beeld.
+function drawMiniLand(ctx, world, x, y, R, scale, mode) {
+  const x0 = x - R, y0 = y - R, x1 = x + R, y1 = y + R;
+  ctx.fillStyle = MINI_STYLE.meadow;
+  ctx.fillRect(x0, y0, R * 2, R * 2);
+  drawCountryMinimap(ctx, x0, y0, x1, y1, scale);
+  const province = provinceMapOn();
+  if (province) drawSea(ctx, (n) => n / scale, seaStyle(MINI_STYLE));
+
+  const view = minimapView(world.map, x0, y0, x1, y1);
+
+  if (edgeDistance(x, y) < 0) drawNeighbourhoodBorders(ctx, world, { x, y }, R, scale);
+
+  ctx.fillStyle = MINI_STYLE.park;
+  fillPolys(ctx, view.green);
+
+  ctx.fillStyle = MINI_STYLE.water;
+  fillPolys(ctx, view.water);
+  // gebieden veroveren (#414, #423): boven het groen en het water, onder de wegen en gebouwen
+  if (minimapShows('veroverd')) tekenVeroverdMini(ctx, scale, x, y, R);
+
+  const emph = mode.emph;
+  const landAlpha = 1 - mode.dimLand;
+  for (const r of view.roads) {
+    if (r.pts.length < 2) continue;
+    // the paths and styles of the roads that fade out at this zoom (foot, cycle) are not worked out at all
+    const rs = miniRoadStyle(r.cat, r.width, scale);
+    if (rs.alpha <= 0.02) continue;
+    const allowed = roadAllowed(r, mmMode);
+    ctx.beginPath();
+    ctx.moveTo(r.pts[0][0], r.pts[0][1]);
+    for (let i = 1; i < r.pts.length; i++) ctx.lineTo(r.pts[i][0], r.pts[i][1]);
+    let color = r.cat === 'major' ? MINI_STYLE.major : r.cat === 'cycle' ? MINI_STYLE.cycle : MINI_STYLE.road;
+    let w = rs.widthM;
+    let a = landAlpha * rs.alpha;
+    if (emph === 'foot') { if (r.cat === 'foot') { color = EMPHASIS.foot; w = Math.max(w, 3.4); } }
+    else if (emph === 'cycle') { if (r.cat === 'cycle') { color = EMPHASIS.cycle; w = Math.max(w, 4); } else if (r.cat === 'foot') a *= 0.4; }
+    else if (emph === 'major') { if (r.cat === 'major') w = Math.max(w, r.width * 1.1); else if (r.cat === 'foot' || r.cat === 'cycle') a *= 0.35; }
+    if (allowed === false && r.cat !== 'major') a *= 0.45;
+    ctx.globalAlpha = a;
+    ctx.strokeStyle = color;
+    ctx.lineWidth = w;
+    ctx.stroke();
+  }
+  ctx.globalAlpha = landAlpha;
+  drawRailsOnMap(ctx, world.map, x0, y0, x1, y1, 3.2, MINI_STYLE);
+
+  fillBuildings(ctx, view.buildings, MINI_STYLE.buildings);
+  ctx.globalAlpha = 1;
+  // outside the province darker, with its land borders (#885: doorgetrokken op de
+  // minikaart, want streeplengtes die met de zoom meeschuiven lieten de lijn trillen)
+  if (province) drawOutside(ctx, [x0, y0, x1, y1], (n) => n / scale, { tint: inkA('tintMini', 0.34), width: 2.6, dash: false });
+}
+
+// De landcache (23-11, minimapstyle.js): een canvas noord-boven rond het punt waar hij getekend is, ruimer dan het beeld en
+// overbemonsterd, zodat hij gedraaid scherp blijft. Opnieuw getekend alleen als het beeld de rand nadert, de zoom echt verandert,
+// dag/nacht, vervoermiddel, provinciekaart of veroverde gebieden wisselen, of er nieuwe tegels binnenkomen (landVerouderd).
+let mmLand = null; // { canvas, g, x, y, half, schaal, sleutel, geo, at, onvolledig, map }
+const mmLandQ = { x: 0, y: 0, straal: 0, schaal: 0, sleutel: 0, geo: 0, nu: 0, bezig: false, laden: false };
+let veroverdLaag = null, veroverdSig = 0;
+// Een getal dat verandert als de veroverde gebieden veranderen (de laag zelf wordt eens per seconde nieuw gemaakt).
+function veroverdStand() {
+  if (!minimapShows('veroverd')) return -1;
+  const l = gebiedenLaag();
+  if (l !== veroverdLaag) {
+    veroverdLaag = l;
+    let h = l.lijst.length;
+    for (const r of l.lijst) h = (h * 31 + (r.pct | 0) * 7 + (r.voltooid ? 3 : 0) + (r.toestand ? r.toestand.length : 0)) % 1000000007;
+    veroverdSig = h;
+  }
+  return veroverdSig;
+}
+function drawMiniLandCached(ctx, world, player, R, mode, k, bezig) {
+  const now = performance.now();
+  const c = mmLand;
+  const ver = veroverdStand();
+  // de stijlsleutel als vergelijking van velden, zonder een nieuwe tekenreeks per beeld (1 = gelijk aan de cache)
+  const zelfde = c && c.map === world.map && c.meadow === MINI_STYLE.meadow && c.park === MINI_STYLE.park && c.mode === mmMode && c.dim === mode.dimLand
+    && c.province === provinceMapOn() && c.veroverd === ver && c.binnen === (edgeDistance(player.x, player.y) < 0);
+  const q = mmLandQ;
+  q.x = player.x; q.y = player.y; q.straal = R; q.schaal = mmScale; q.sleutel = zelfde ? 1 : 0;
+  q.geo = world.map.geoVer || 0; q.nu = now; q.bezig = bezig; q.laden = !!(c && c.onvolledig);
+  if (landVerouderd(c, q)) {
+    const m = landMaat(R, mmScale, k);
+    const l = mmLand || (mmLand = { canvas: document.createElement('canvas'), g: null });
+    sizeSquareCanvas(l.canvas, m.px);
+    const g = l.g || (l.g = l.canvas.getContext('2d'));
+    g.setTransform(1, 0, 0, 1, 0, 0);
+    g.clearRect(0, 0, m.px, m.px);
+    g.setTransform(m.res, 0, 0, m.res, -(player.x - m.half) * m.res, -(player.y - m.half) * m.res);
+    drawMiniLand(g, world, player.x, player.y, m.half, mmScale, mode);
+    Object.assign(l, {
+      x: player.x, y: player.y, half: m.half, schaal: mmScale, geo: q.geo, at: now, onvolledig: miniTilesPending(), map: world.map,
+      meadow: MINI_STYLE.meadow, park: MINI_STYLE.park, mode: mmMode, dim: mode.dimLand, province: provinceMapOn(), veroverd: ver,
+      binnen: edgeDistance(player.x, player.y) < 0, sleutel: 1,
+    });
+  }
+  const l = mmLand;
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = 'high';
+  ctx.drawImage(l.canvas, l.x - l.half, l.y - l.half, l.half * 2, l.half * 2);
 }
 
 // A heli run (helirun.js): its rings as circles where they hang, the H to land
@@ -3302,15 +3518,27 @@ function drawHeliRunMarks(ctx, marks, toScreen, inRange, scale, t) {
   ctx.restore();
 }
 
-// The N badge sits on the square's edge, towards north.
-function drawNorthIndicator(ctx, cx, cy, screenAngle) {
-  const half = MINIMAP_SIZE / 2 - 17;
+// The N badge sits on the square's edge, towards north (23-11: paper with an ink edge and a hard shadow, like the minimap's own
+// frame, and a small ink point outwards that says where north is; minimapstyle.js NOORD). k: device px per HUD px.
+function drawNorthIndicator(ctx, cx, cy, screenAngle, k = 1) {
+  const half = MINIMAP_SIZE / 2 - NOORD.inset;
   const dx = Math.cos(screenAngle), dy = Math.sin(screenAngle);
   const t = Math.min(half / (Math.abs(dx) || 1e-6), half / (Math.abs(dy) || 1e-6));
   const x = cx + dx * t, y = cy + dy * t;
-  const tf = ctx.getTransform();
-  const dpr = Math.max(1, Math.round(Math.hypot(tf.a, tf.b)));
-  if (!northGlyph || northGlyph.dpr !== dpr || (!northGlyph.font && document.fonts && document.fonts.check('bold 10px "Bebas Neue"'))) northGlyph = makeNorthGlyph(dpr);
+  const kk = Math.round(k * 100) / 100;
+  if (!northGlyph || northGlyph.k !== kk || (!northGlyph.font && document.fonts && document.fonts.check('bold 10px "Bebas Neue"'))) northGlyph = makeNorthGlyph(kk);
+  const r = NOORD.r;
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.rotate(screenAngle);
+  ctx.beginPath();
+  ctx.moveTo(r + NOORD.punt + 0.6, 0);
+  ctx.lineTo(r - 0.4, -4);
+  ctx.lineTo(r - 0.4, 4);
+  ctx.closePath();
+  ctx.fillStyle = NOORD_INKT.inkt;
+  ctx.fill();
+  ctx.restore();
   ctx.drawImage(northGlyph.c, x - 13, y - 13, 26, 26);
 }
 
@@ -3367,24 +3595,31 @@ export function drawMiniWind(ctx, x, y, wind, mapRotation) {
 }
 
 let northGlyph = null;
-function makeNorthGlyph(dpr) {
+// de kleuren van de N uit de tokens (papier en inkt), één keer gelezen
+const NOORD_INKT = { get inkt() { return dsKleur('ink-inkt'); }, get papier() { return dsKleur('ink-papier'); } };
+function makeNorthGlyph(k) {
   const c = document.createElement('canvas');
-  c.width = c.height = 26 * dpr;
+  c.width = c.height = Math.ceil(26 * k);
   const g = c.getContext('2d');
-  g.scale(dpr, dpr);
+  g.scale(c.width / 26, c.height / 26);
+  const r = NOORD.r;
   g.beginPath();
-  g.arc(13, 13, 12, 0, Math.PI * 2);
-  g.fillStyle = INK.dark;
+  g.arc(13 + 1.2, 13 + 1.2, r, 0, Math.PI * 2); // de harde schaduw
+  g.fillStyle = NOORD_INKT.inkt;
   g.fill();
-  g.lineWidth = 1.2;
-  g.strokeStyle = INK.greenLight;
+  g.beginPath();
+  g.arc(13, 13, r, 0, Math.PI * 2);
+  g.fillStyle = NOORD_INKT.papier;
+  g.fill();
+  g.lineWidth = NOORD.rand;
+  g.strokeStyle = NOORD_INKT.inkt;
   g.stroke();
-  g.fillStyle = INK.greenLight;
-  g.font = '18px "Bebas Neue", "Arial Narrow", Arial, sans-serif';
+  g.fillStyle = NOORD_INKT.inkt;
+  g.font = '16px "Bebas Neue", "Arial Narrow", Arial, sans-serif';
   g.textAlign = 'center';
   g.textBaseline = 'middle';
   g.fillText('N', 13, 14);
-  return { c, dpr, font: !!(document.fonts && document.fonts.check('bold 10px "Bebas Neue"')) };
+  return { c, k, font: !!(document.fonts && document.fonts.check('bold 10px "Bebas Neue"')) };
 }
 
 // The map behind the minimap: the grids are asked for 25% more than the view needs and the answer is kept for
@@ -3459,7 +3694,7 @@ function mmHash(x, y) {
 // opnieuw opgebouwd. De lijnbreedte staat in schermpunten, dus ook bij in- en uitzoomen
 // blijft de lijn rustig.
 let borderCache = null; // { gx, gy, half, lines }
-function drawNeighbourhoodBorders(ctx, dt, world, player, MM_RADIUS_M) {
+function drawNeighbourhoodBorders(ctx, world, player, MM_RADIUS_M, scale) {
   const points = world.map.meta.neighbourhoodPoints;
   if (!points || !points.length) return;
   const cell = BORDER_CELL;
@@ -3478,10 +3713,10 @@ function drawNeighbourhoodBorders(ctx, dt, world, player, MM_RADIUS_M) {
   for (const [ax, ay, bx, by] of borderCache.lines) { ctx.moveTo(ax, ay); ctx.lineTo(bx, by); }
   ctx.lineCap = 'round';
   ctx.strokeStyle = inkA('dark', 0.35);
-  ctx.lineWidth = 2.8 / mmScale;
+  ctx.lineWidth = 2.8 / scale;
   ctx.stroke();
   ctx.strokeStyle = inkA('white', 0.4);
-  ctx.lineWidth = 1.2 / mmScale;
+  ctx.lineWidth = 1.2 / scale;
   ctx.stroke();
   ctx.restore();
 }

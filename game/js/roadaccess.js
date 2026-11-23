@@ -60,9 +60,12 @@ export const MINIMAP_MODE = {
   lucht: { scale: 0.42, fast: 0.24, emph: 'air', dimLand: 0.15 },
 };
 
+// the speed (m/s) at which the minimap is zoomed out all the way (minimapstyle.js: zoom steps and the place budget read it too)
+export const minimapTopSpeed = (mode) => (mode === 'lopen' ? 6 : mode === 'fiets' ? 9 : mode === 'lucht' ? 45 : mode === 'ov' ? 35 : 28);
+
 export function minimapScale(mode, speed, zoom = 1) {
   const m = MINIMAP_MODE[mode] || MINIMAP_MODE.lopen;
-  const top = mode === 'lopen' ? 6 : mode === 'fiets' ? 9 : mode === 'lucht' ? 45 : mode === 'ov' ? 35 : 28;
+  const top = minimapTopSpeed(mode);
   const k = Math.min(1, Math.abs(speed || 0) / top);
   return (m.scale - (m.scale - m.fast) * k) * zoom;
 }
