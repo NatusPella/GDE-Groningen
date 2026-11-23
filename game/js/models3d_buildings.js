@@ -1217,7 +1217,11 @@ function buildDetailGeometry(b, box, archetype, depth, fine, fine2, wallHex, roo
 
   if (!industrial && archetype !== 'house' && floorCount >= 3 && r(15) < 0.45) {
     for (let f = 1; f < floorCount; f++) {
-      for (const e of open) wallBox(B, e, 0, e.len, f * floorH - 0.08, f * floorH + 0.06, 0, 0.04, shade(wallHex, brick ? 1.35 : 0.88), G_DETAIL, FACE_FRONT | FACE_TOP | FACE_BOTTOM);
+      for (const e of open) {
+        // boven een hoge winkelpui ligt de reclameband al op die hoogte: geen lijst in het vlak van de pui (z-fighting)
+        if (f === 1 && e === shopEdge && shopTop > floorH - 0.12) continue;
+        wallBox(B, e, 0, e.len, f * floorH - 0.08, f * floorH + 0.06, 0, 0.04, shade(wallHex, brick ? 1.35 : 0.88), G_DETAIL, FACE_FRONT | FACE_TOP | FACE_BOTTOM);
+      }
     }
   }
 
