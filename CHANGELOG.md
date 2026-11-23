@@ -11,6 +11,7 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 - Doelbalk en herinnering: een verhaalstap toont nu een korte opdracht met de plek erin ("Praat met Berend bij het Martinikerkhof", "Ga naar het museum: pak de bal") in plaats van de grappige titel van de stap ("Ga naar: Het museum stond er al zo"). Het lange appje blijft zoals het was.
 - Uitleg: "De weg kwijt?" komt nu bij elke verhaalstap, niet alleen bij het eerste doel: wie 200 m van het doel afdwaalt of anderhalve minuut niet opschiet krijgt één korte kaart per stap (de eerste stap houdt er twee), ook als alle uitlegkaarten al gezien zijn. Staat uit met de schakelaar Uitleg-tips.
 - Open, dicht (M17): de regelkaart zei zeven minuten voor alle elf bruggen, terwijl elk deel een eigen klok heeft (190, 130, 130 en 100 s). De kaart noemt nu die eigen klok en de eerste klok staat goed.
+- Samen spelen: als het spel jou verplaatst (de oversteek naar Noordpolderzijl in M11, een reisscène, opnieuw beginnen na een mislukte missie, afmeren, de finale op de Grote Markt), reizen de andere spelers mee naar een vrije plek naast je. Eerder bleef een medespeler in Zoutkamp achter.
 
 ## [0.65.0] - 2026-11-22
 

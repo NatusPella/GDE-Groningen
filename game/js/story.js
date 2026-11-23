@@ -33,7 +33,7 @@ import { getPigeonFlight, stopPigeonMode } from './pigeonmode.js';
 import { isHeliRunActive, abortHeliRun } from './helirun.js';
 import { jumpPrep, jumpSpot, openRond } from './storyjump.js';
 import { remindDue, remindText } from './storyremind.js';
-import { stepDoel, doelInZin } from './stepdoel.js';
+import { stepDoel, doelInZin } from './stepdoel.js'; import { warpGasten } from './groepwarp.js';
 import { isLoopbaanGestart } from './loopbaanlive.js';
 import { maybeCareerCards } from './loopbaankaarten.js';
 import { JUMP_M } from './loadlogic.js';
@@ -771,6 +771,7 @@ function playFinale(part) {
   if ('swimming' in p) p.swimming = false;
   const c = world.companion;
   if (c && !c.inVehicle) { c.x = p.x + 1.2; c.y = p.y + 0.6; }
+  warpGasten(world, spot); // de gasten staan mee op de Markt (groepwarp.js)
   flash(); // zwarte doof over de sprong; fade't uit over de Markt
   let at = 3.2;
   const card = P.card || [];

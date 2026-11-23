@@ -96,7 +96,8 @@ import { hoofdspeler } from './players.js';
 import { teamActor, doelStand, groepKlaar, groepsActeurs, WACHT_OP_ANDEREN } from './stagegroep.js';
 import { postenBegin, postenTik, postenWaypoints } from './missionposts.js'; // Samen spelen (#983): posten tegelijk bezetten (M30)
 import { registreerWedstrijd, wedNodigUit, wedHostBaan, wedBaanStand } from './multiplayerwedstrijd.js';
-import { lichaamVan, bestuurInstappenIn, bestuurLos } from './coopbestuur.js';
+import { lichaamVan, bestuurInstappenIn, bestuurLos, gastLichamen } from './coopbestuur.js';
+import { zetGroepWarpHaken, warpGasten } from './groepwarp.js';
 import { neemBakeDruk, neemVaultDruk, vergeetBakeDruk } from './coopgast.js'; // de toets van een gast bij de bakronde en de polsstok (#525)
 // a radio fragment of a stage that never got played within ten minutes is moot (refs #171; not tied to the mission: the clue in it must not be lost)
 const MISSION_RADIO_VALID = { ttl: 600 };
@@ -112,6 +113,9 @@ import { noteMoney } from './finance.js';
 import { lateInstapVoor } from './coopmeedoen.js';
 import { gastheerMee, gastheerVraagTik } from './coopmissie.js';
 import { missieStatus, waarschuwVoorStart } from './coopstatus.js';
+
+// Samen spelen: een warp, een reisscène of de finale neemt de gasten mee (groepwarp.js, audit speelbaarheid 23-11)
+zetGroepWarpHaken({ lichamen: gastLichamen, los: bestuurLos });
 
 // radio fragments a stage puts on Nachtstreek (storycontact.js, loaded lazily: it imports the UI)
 let contactMod = null;
@@ -1060,6 +1064,7 @@ function handBack(world, def, v) {
       p.x = def.start.x; p.y = def.start.y; p.vx = 0; p.vy = 0; p.z = 0; p.vz = 0; p.gz = 0;
       const c = world.companion;
       if (c && c.inVehicle === v) { v.passenger = null; c.inVehicle = null; c.x = p.x + 1; c.y = p.y; c.water = null; c.swimming = false; }
+      warpGasten(world, p, { alleen: (l) => l.inVeh === v }); // gasten in de afgemeerde boot stappen mee uit (groepwarp.js)
     } else p.exitVehicle(world.map, world);
   }
   v.missionCar = false;
@@ -2754,6 +2759,7 @@ function warpPlayer(world, spec) {
     if (c.inVehicle) { c.inVehicle.passenger = null; c.inVehicle = null; }
     c.x = t.x + 1.6; c.y = t.y + 0.6; c.vx = 0; c.vy = 0; c.water = null; c.swimming = false;
   }
+  warpGasten(world, t); // de gasten van de sessie gaan mee (groepwarp.js)
   if (spec.clock != null && typeof world.clock === 'number') world.clock = spec.clock;
 }
 
