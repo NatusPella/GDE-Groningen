@@ -72,7 +72,7 @@ export function startLoadScreen(world, opts = {}) {
   // #600: the bar is the one progressbar; the destination, the story and the tip
   // stay ordinary text a screen reader can read (children of a progressbar are
   // presentational, so the role used to be on the whole screen).
-  el.innerHTML = loadScreenHtml({ kind, name: place.name, special: date.special, img });
+  el.innerHTML = loadScreenHtml({ kind, name: place.name, special: date.special, icon: date.icon, img });
   document.body.appendChild(el);
   // the boot screen may still be fading underneath: one bar at a time
   const boot = document.getElementById('loading');

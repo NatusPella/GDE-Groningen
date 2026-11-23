@@ -42,7 +42,7 @@ const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&l
 // renders the same string for the layout measurement, #1069). { kind: 'save' | 'travel' | 'snel', name, special, img }.
 // Two columns in one flow (loadscreen.css): left the logo and the destination card ("Naar <plaats>" as one sign), right the render;
 // below them the bar and the one status line. --n (the length of the name) lets the CSS size a long name down.
-export function loadScreenHtml({ kind = 'travel', name = '', special = '', img = 'vismarkt' } = {}) {
+export function loadScreenHtml({ kind = 'travel', name = '', special = '', icon = '', img = 'vismarkt' } = {}) {
   const plaats = String(name || 'Grunn');
   return '<div class="ls-stage">' +
     '<div class="ls-main">' +
@@ -51,7 +51,7 @@ export function loadScreenHtml({ kind = 'travel', name = '', special = '', img =
         '<div class="ls-card">' +
           `<span class="ls-kick">${kind === 'save' ? 'Verder in' : 'Naar'}</span>` +
           `<b class="ls-place" style="--n:${Math.max(1, plaats.length)}" title="${esc(plaats)}">${esc(plaats)}</b>` +
-          (special ? `<div class="ls-when"><span class="ls-badge">${esc(special)}</span></div>` : '') +
+          (special ? `<div class="ls-when"><span class="ls-badge" aria-label="Vandaag: ${esc(special)}">${icon}${esc(special)}</span></div>` : '') + // UX-audit 23-11: met het kalendericoon van de HUD leest de chip als evenement van vandaag
         '</div>' +
       '</div>' +
       '<div class="ls-pic">' + pictureHtml(img) + '</div>' +
