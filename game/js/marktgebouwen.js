@@ -919,7 +919,7 @@ function kiosk(B, ring) {
 
 function buildModel(b, ring, edges) {
   const fn = MODELS[b.name];
-  const B = new GeoBuilder(5);
+  const B = new GeoBuilder(6);
   if (!fn || fn(B, b, ring, edges) === false) return null;
   return B.build();
 }

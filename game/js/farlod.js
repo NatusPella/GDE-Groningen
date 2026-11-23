@@ -1,5 +1,6 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { buildingLodStyle } from './models3d_buildings.js';
+import { namedSilhouette } from './landmarks3d.js';
 import { perfOff } from './devflags.js';
 import { buildingLift, roadBaseAt } from './terrainlift.js';
 import { drawHub } from './multidraw3d.js';
@@ -316,6 +317,9 @@ function addBuilding(B, b, lift = 0) {
   const ring = s.ring;
   const n = ring.length;
   if (n < 3) return;
+  // a named city model (cathedral, theatre, synagogue) keeps its own silhouette here (landmarks3d.js)
+  const sil = namedSilhouette(b, ring);
+  if (sil) { addSilhouette(B, b, sil, (s.base || 0) + lift); return; }
   let area2 = 0;
   for (let i = 0; i < n; i++) {
     const a = ring[i], c = ring[(i + 1) % n];
@@ -342,6 +346,22 @@ function addBuilding(B, b, lift = 0) {
     if (ux * vz - uz * vx < 0) B.tri(r0 + a, r0 + b2, r0 + c);
     else B.tri(r0 + a, r0 + c, r0 + b2);
   }
+}
+
+// The silhouette geometry (non-indexed, linear vertex colours as 0-255) into the far layer's builder; the wall
+// band for the facade rhythm is the whole height of the model.
+function addSilhouette(B, b, g, y0) {
+  const p = g.attributes.position.array, c = g.attributes.color.array;
+  const cx = (b.bounds[0] + b.bounds[2]) / 2, cy = (b.bounds[1] + b.bounds[3]) / 2;
+  let top = y0;
+  for (let i = 1; i < p.length; i += 3) top = Math.max(top, p[i] + y0);
+  const base = B.vertCount, col = [0, 0, 0];
+  for (let i = 0; i < p.length; i += 3) {
+    col[0] = c[i]; col[1] = c[i + 1]; col[2] = c[i + 2];
+    B.vert(p[i], p[i + 1] + y0, p[i + 2], col, cx, cy, y0, top);
+  }
+  // the model is drawn double-sided up close (its windings are not all outward): both faces here too
+  for (let i = 0; i < p.length / 3; i += 3) { B.tri(base + i, base + i + 1, base + i + 2); B.tri(base + i, base + i + 2, base + i + 1); }
 }
 
 // za/zb: height of a raised ring road (the far view keeps its viaducts up;

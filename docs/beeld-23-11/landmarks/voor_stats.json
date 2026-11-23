@@ -1,0 +1,114 @@
+{
+ "Goudkantoor": [
+  {
+   "tris": 1796,
+   "draws": 5
+  },
+  null,
+  null
+ ],
+ "Martinikerk": [
+  {
+   "tris": 2566,
+   "draws": 5
+  },
+  null,
+  null
+ ],
+ "Der Aa-kerk": [
+  {
+   "tris": 3607,
+   "draws": 5
+  },
+  null,
+  null
+ ],
+ "Hoofdstation Groningen": [
+  {
+   "tris": 8824,
+   "draws": 5
+  },
+  null,
+  null
+ ],
+ "Forum Groningen": [
+  {
+   "tris": 937,
+   "draws": 2
+  },
+  null,
+  null
+ ],
+ "Winkelcentrum Paddepoel": [
+  {
+   "tris": 1151,
+   "draws": 4
+  },
+  null,
+  null
+ ],
+ "Academiegebouw": [
+  {
+   "tris": 19456,
+   "draws": 5
+  },
+  null,
+  null
+ ],
+ "Groninger Museum": [
+  {
+   "tris": 5996,
+   "draws": 4
+  },
+  null,
+  null
+ ],
+ "Euroborg": [
+  {
+   "tris": 680,
+   "draws": 3
+  },
+  null,
+  null
+ ],
+ "Prinsenhof": [
+  {
+   "tris": 6201,
+   "draws": 5
+  },
+  null,
+  null
+ ],
+ "Stadhuis": [
+  {
+   "tris": 4163,
+   "draws": 4
+  },
+  null,
+  null
+ ],
+ "Rijkskantoor Kempkensberg": [
+  {
+   "tris": 3730,
+   "draws": 3
+  },
+  null,
+  null
+ ],
+ "Sint-Jozefkathedraal": [
+  {
+   "tris": 916,
+   "draws": 2
+  },
+  null,
+  null
+ ],
+ "EIKEA": [
+  {
+   "tris": 403,
+   "draws": 2
+  },
+  null,
+  null
+ ]
+}
