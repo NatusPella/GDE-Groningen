@@ -1,0 +1,84 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Personages voor en na</title>
+<style>html,body{margin:0;background:#222}canvas{display:block}</style>
+<canvas id="c" width="1600" height="1000"></canvas>
+<script type="module">
+// Eén pagina met voor (models3d_people_voor.js = de versie van main) en na (models3d_people.js), dezelfde zaden. Rij 1 en 2: hele figuren,
+// rij 3 en 4: gezichten en handen van dichtbij. Meet ook drawcalls en driehoeken van een menigte van 120 mensen per versie (renderer.info).
+import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
+const voor = await import('/game/js/models3d_people_voor.js');
+const na = await import('/game/js/models3d_people.js');
+const canvas = document.getElementById('c');
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, preserveDrawingBuffer: true });
+renderer.setPixelRatio(1);
+renderer.setScissorTest(true);
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0xa9c7de);
+scene.add(new THREE.HemisphereLight(0xdfeaff, 0x7a6f5c, 1.5));
+const sun = new THREE.DirectionalLight(0xfff0d8, 2.2); sun.position.set(2, 4, 3); scene.add(sun);
+const ground = new THREE.Mesh(new THREE.PlaneGeometry(60, 60), new THREE.MeshStandardMaterial({ color: 0x8a8f86, roughness: 1 }));
+ground.rotation.x = -Math.PI / 2; scene.add(ground);
+
+const SKINS = [0xf1c9a5, 0xd9a47a, 0xa8754f, 0x6e4a33, 0xf6d7bd];
+const SHIRTS = [0x3f6ea8, 0x9e3027, 0x4a7a4a, 0xc9a227, 0x5c3f7a, 0xe3ddd0, 0x2b2f36];
+const SEEDS = [101, 202, 303, 404, 505, 606, 707, 808, 909, 1010];
+const info = {};
+
+function row(mod, seeds, walk) {
+  const g = new THREE.Group();
+  seeds.forEach((seed, i) => {
+    const m = mod.buildPersonMesh(SHIRTS[i % SHIRTS.length], SKINS[(i * 3) % SKINS.length], { seed });
+    m.position.set((i - (seeds.length - 1) / 2) * 1.05, 0, 0);
+    m.rotation.y = -1.15;
+    const speed = walk && i % 3 === 0 ? 1.4 : walk && i % 3 === 1 ? 4 : 0;
+    for (let f = 0; f < 40 + i * 7; f++) mod.animatePersonWalk(m, speed, 1 / 60);
+    if (m.userData.lids) m.userData.lids.scale.y = 0;
+    g.add(m);
+  });
+  return g;
+}
+
+function shoot(group, x, y, w, h, cam) {
+  scene.add(group);
+  renderer.setViewport(x, y, w, h); renderer.setScissor(x, y, w, h);
+  renderer.render(scene, cam);
+  scene.remove(group);
+}
+const camFull = new THREE.PerspectiveCamera(24, 1600 / 300, 0.1, 100); camFull.position.set(0, 1.0, 12.5); camFull.lookAt(0, 0.9, 0);
+const camFace = new THREE.PerspectiveCamera(20, 1600 / 200, 0.1, 100); camFace.position.set(0, 1.55, 7.5); camFace.lookAt(0, 1.45, 0);
+
+const voorRij = row(voor, SEEDS, true), naRij = row(na, SEEDS, true);
+const voorKop = row(voor, SEEDS, false), naKop = row(na, SEEDS, false);
+// gezichten: iedereen draait naar de camera (iets minder dan 90 graden); de laatste knippert om de oogleden te laten zien
+for (const g of [voorKop, naKop]) g.children.forEach((m, i) => { m.rotation.y = -1.35; m.position.x = (i - 4.5) * 0.8; });
+if (naKop.children[9].userData.lids) naKop.children[9].userData.lids.scale.y = 1;
+// menigte: 120 mensen met dezelfde zaden, per versie één render (drawcalls en driehoeken van renderer.info)
+function crowd(mod) {
+  const g = new THREE.Group();
+  for (let i = 0; i < 120; i++) {
+    const m = mod.buildPersonMesh(SHIRTS[i % SHIRTS.length], SKINS[(i * 3) % SKINS.length], { seed: 5000 + i * 7 });
+    m.position.set((i % 12) * 1.2 - 7, 0, -Math.floor(i / 12) * 1.2);
+    g.add(m);
+  }
+  return g;
+}
+for (const [naam, mod] of [['voor', voor], ['na', na]]) {
+  const g = crowd(mod);
+  scene.add(g);
+  renderer.info.reset();
+  renderer.setScissor(0, 0, 100, 100); renderer.setViewport(0, 0, 100, 100);
+  renderer.render(scene, camFull);
+  info[naam] = { drawcalls: renderer.info.render.calls - 1, driehoeken: renderer.info.render.triangles - 2 }; // min de grond
+  scene.remove(g);
+}
+renderer.setClearColor(0x222222); renderer.setScissor(0, 0, 1600, 1000); renderer.setViewport(0, 0, 1600, 1000); renderer.clear();
+shoot(voorRij, 0, 700, 1600, 300, camFull);
+shoot(naRij, 0, 400, 1600, 300, camFull);
+shoot(voorKop, 0, 200, 1600, 200, camFace);
+shoot(naKop, 0, 0, 1600, 200, camFace);
+
+renderer.setScissor(0, 0, 1600, 1000); renderer.setViewport(0, 0, 1600, 1000);
+window.__info = info;
+window.__klaar = true;
+</script>

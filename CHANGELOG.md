@@ -8,6 +8,7 @@ versies staan op datum op volgorde. Er zijn geen aparte kopstijlen per sectie:
 elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ## [Unreleased]
+
 - Doelbalk en herinnering: een verhaalstap toont nu een korte opdracht met de plek erin ("Praat met Berend bij het Martinikerkhof", "Ga naar het museum: pak de bal") in plaats van de grappige titel van de stap ("Ga naar: Het museum stond er al zo"). Het lange appje blijft zoals het was.
 - Uitleg: "De weg kwijt?" komt nu bij elke verhaalstap, niet alleen bij het eerste doel: wie 200 m van het doel afdwaalt of anderhalve minuut niet opschiet krijgt één korte kaart per stap (de eerste stap houdt er twee), ook als alle uitlegkaarten al gezien zijn. Staat uit met de schakelaar Uitleg-tips.
 - Open, dicht (M17): de regelkaart zei zeven minuten voor alle elf bruggen, terwijl elk deel een eigen klok heeft (190, 130, 130 en 100 s). De kaart noemt nu die eigen klok en de eerste klok staat goed.
@@ -15,16 +16,13 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 - Samen spelen: de vluchtboot na de museumkraak (M06) neemt je medespelers mee aan boord, en na de fierljepsprong in Bourtange (M20) staan ze mee aan de overkant.
 - Lange ritten: de doelbalk van het verhaal zegt hoe ver de volgende stap is (vanaf 300 m), en de korte OV- of taxihint van je metgezel geldt nu ook voor de start van de volgende verhaalmissie. Ligt die meer dan 20 km weg (tot bijna 60 km), dan hoor je de hint altijd één keer.
 - Balans: Het museum stond er al zo (M06) betaalt nu €550 en Een luik erin (M22) €500, passend bij hun vele stappen; Het staat niet in het rooster (M12) betaalt €1.200. In Te doen staat zodra de boerderij open is een spaardoel: het eerstvolgende stuk uit de machinecatalogus dat je nog niet kunt betalen.
-
 - Ondertitels: overal dezelfde. Films, het verhaalgesprek, de rondvaart, de autopraat, de radio, de introfilm en de trailer gebruiken nu één ondertitelvak: een papieren plaatje met inktrand, onderaan het midden, met het sprekerlabel vooraan. Het verhaalgesprek stond nog als losse witte tekst; dat is nu hetzelfde vak. De instellingen Grootte, Donker vlak, Contrast hoog en Ondertitels uit werken op alle vakken, en het vak blijft binnen de veilige rand van het scherm.
 - Game feel: een landing na een sprong voelt nu als een landing. Je voeten stuiven op (bruin stof op gras, grijs op straat), het beeld zakt even mee en de controller geeft een klein tikje. Opstijgen, aanzetten tot rennen en rennen over gras laten ook een lichte stofsliert achter.
 - Game feel: een auto die hard landt na een sprong werpt een ring van stof op, geeft op verharding vonken van de bodem en een dreun in beeld en op de controller; je ziet ook de landing van auto's in de buurt. Bij Beweging beperken blijft het beeld stil.
 - Game feel: bij hoge snelheid krijgt de rand van het beeld een lichte streep naar het midden (alleen op Middel, Hoog en Ultra), zodat snelheid voelt zonder dat de weg onscherp wordt. Gaat uit met Beweging beperken en met Snelheidsgevoel uit.
 - Dieren: koe, schaap, paard, kat en hond hebben nu oren die bewegen (vliegen wegschudden, naar voren bij iets nieuws, plat op de vlucht), een stap waarin de poot van de grond komt, een galop als ze schrikken, ademhaling, een zwiepende staart, af en toe een schuddende kop, en ze kijken je na als je dichtbij komt. De koe heeft een oormerk, het paard een bles, neusgaten en manen die meezwaaien, eenden en de reiger hebben een gevouwen vleugel, de reiger een kuif, en elke koe, elk schaap en elke kat heeft een iets andere maat. Ver weg blijft het bij stappen en grazen. Samen spelen: lokaal in ieders eigen spel, niets nieuws over het net.
 - Hemel: echte, zachte wolken in plaats van witte blokjes. Ze krijgen licht en schaduw van de zon, zilveren randen, een warme gloed bij zonsondergang, een donker dek bij onweer, en trekken langzaam met de wind mee. Het water spiegelt de wolken mee.
-
 - Wereld: bomen zijn geen gladde bollen meer maar hebben bobbelige kronen met een donkerder onderkant, en elke boom heeft een eigen tint groen. Gevels en daken hebben zachte verweringsvlekken, zodat lange muren en dakvlakken niet meer uit één egale kleur bestaan.
-
 - Laadschermen bewegen: net als het opstartscherm stempelen logo en bestemming binnen, het beeld drijft traag, er loopt een glans over de balk en een nieuwe statusregel schuift vloeiend in. Bij Beweging beperken of Rustig drukwerk staat alles stil.
 - Minder ruis in HUD en menu's: tijdens een achtervolging verdwijnt een knophint die toch niet kan; de regel Volg de gele route staat alleen bij de eerste drie verhaaldoelen; het verhaaloverzicht heeft één gele Doorgaan (in de rail).
 - De kaart opent de eerste keer zonder uitlegvenster: de tip komt pas als je in het zoekveld klikt. De Hulp-knop toont de hele uitleg.
@@ -32,6 +30,10 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 - Spullen: een vinkje op wat je aanhebt, het geld achteraan (het bedrag staat bovenin). Het laadscherm toont het evenement van vandaag met een kalendericoon.
 - Missie mislukt: de eindkaart zegt met welke toets je meteen opnieuw probeert.
 - Menu's opgeruimd na een UX-audit (docs/AUDIT-UXUI-23-11.md): de knop Toetsenbord naast een invulveld heeft een rand en leest niet meer als kop; Land en bedrijf toont zonder bezit alleen de volgende stap; de tour bij Loopbanen toont de dichte stops als één regel; in het pashokje heten de winkeltabbladen Winkel; Q en E heten overal tabblad en staan ook in de toetsregel van het Overzicht.
+- Personages: mensen knipperen nu met hun ogen (elk in eigen ritme, soms twee keer kort na elkaar, ook in cutscenes), hebben handen met vingers, blosjes op de wangen en een eigen gezicht in rust (neutraal, vriendelijk of nors, met lachlijnen bij ouderen). Elke voorbijganger heeft een tikje andere kleuren in shirt, broek en huid, een breder bereik in lengte en postuur en soms een geverfd kapsel, zodat twee mensen in hetzelfde shirt niet meer als kopieën naast elkaar lopen.
+- Personages: Tessa's lange haar hangt niet meer als een zwart vlak voor haar gezicht in close-ups (de lokken beginnen achter de slaap, bijna zwart haar heeft een warme ondertoon en de binnenkant van een lok is niet meer pikzwart); dat geldt voor iedereen met lang of golvend haar. De hand loopt taps uit de pols en steekt niet meer als blok uit de mouw van Tammo's jack.
+- Lopen: wie begint te lopen duikt kort naar voren en wie stopt wiegt even terug; de ademhaling bij stilstaan is beter te zien.
+- Samen spelen: niets hiervan staat in een snapshot of bericht; elke speler rekent het lokaal uit hetzelfde zaad en dezelfde loopsnelheid, dus iedereen ziet dezelfde looks. Het knipperen is puur visueel en per scherm eigen.
 
 ## [0.65.0] - 2026-11-22
 

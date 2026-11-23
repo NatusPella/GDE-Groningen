@@ -105,3 +105,15 @@ export function glanceAt(ud, p, player, t) {
   const g = gazeToward(p.angle, p.x, p.y, player.x, player.y, honk ? HONK_RANGE : GLANCE_RANGE); // the cheap range test first: most walkers are far
   ud.gazeT = g === g && !p.pose && !p.carry && !p.heldWeapon && (honk || glanceOn(t, ud.animOffset * 0.01)) ? g : NaN;
 }
+
+// Knipperen (zelfde functie voor lopers en cutsceneacteurs): 0 = ogen open, 1 = dicht. Een knip duurt 0,16 s; het ritme is per mens 3 tot 6 s
+// (offset = de eigen tijdverschuiving van de mens) en de lange ritmes knipperen twee keer kort na elkaar. Pure functie, geen allocaties.
+export const BLINK_TIME = 0.16;
+export function blinkAmount(t, offset = 0) {
+  if (!Number.isFinite(t) || !Number.isFinite(offset)) return 0;
+  const period = 3 + 3 * ((Math.abs(offset) * 0.173) % 1);
+  const u = (t + offset) % period;
+  if (u < BLINK_TIME) return Math.sin(Math.PI * u / BLINK_TIME);
+  if (period > 4.6 && u > 0.3 && u < 0.3 + BLINK_TIME) return Math.sin(Math.PI * (u - 0.3) / BLINK_TIME);
+  return 0;
+}
