@@ -34,6 +34,18 @@ for (const id of AM.ANIMAL_MODEL_IDS) {
   check(`${id}: ver weg de laagste LOD`, g.userData.lod.level === 2 && g.userData.lod.twin.visible === false);
 }
 
+// de grafische stand schaalt de dier-LOD's mee (scene3d.js roept setAnimalLodPreset aan, zoals setLodPreset in het centrale systeem)
+{
+  const ML = await import('../game/js/meshlod.js');
+  ML.setAnimalLodPreset('hoog');
+  const hoog = ML.pickLod(22, 0);
+  ML.setAnimalLodPreset('laag');
+  const laag = ML.pickLod(22, 0);
+  ML.setAnimalLodPreset('hoog');
+  check('op Laag stapt een dier eerder naar een lichter niveau', hoog === 0 && laag >= 1, `${hoog} ${laag}`);
+  check('scene3d.js zet de dier-LOD-stand mee met de grafische stand', /setAnimalLodPreset\(currentPreset\(st\)/.test(fs.readFileSync(new URL('../game/js/scene3d.js', import.meta.url), 'utf8')));
+}
+
 // --- gedrag ---
 const map = new Proxy({ meta: { horeca: [] }, _bridgeRails: new Map() }, { get: (t, k) => (k in t ? t[k] : () => []) });
 const mkWorld = (px, py) => ({ time: 10, clock: 22, player: { x: px, y: py, vx: 0, vy: 0, inVehicle: null }, vehicles: [], map, wildlife: [], pedestrians: [], weather: null, msgs: [], addMessage(t) { this.msgs.push(t); } });
