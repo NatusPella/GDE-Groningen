@@ -89,6 +89,7 @@ import { getErrorLog, errorReport, clearErrorLog, onErrorLogChange } from './err
 import { KEYS } from './storagekeys.js';
 import { renderFotoPanel, fotoClick, isPhotoMode } from './fotomodusui.js';
 import { gameProgress } from './progresslive.js';
+import { progressPartText, tilesShownElsewhere } from './progress.js';
 import { woordenVan, past } from './zoektekst.js';
 // Running inside the desktop app (desktop/preload.js): window mode + quit.
 const DESKTOP = typeof window !== 'undefined' && window.gdeDesktop && window.gdeDesktop.isDesktop ? window.gdeDesktop : null;
@@ -2661,7 +2662,7 @@ function progressOverviewHtml() {
   let info;
   try { info = gameProgress(); } catch (e) { return ''; }
   if (!info.parts.length) return '';
-  const rijen = info.parts.map((p) => `<li><span>${esc(p.label)}</span><span class="mut">${p.done} van ${p.total} · ${p.pct}%</span></li>`).join('');
+  const rijen = info.parts.map((p) => `<li><span>${esc(p.label)}</span><span class="mut">${esc(progressPartText(p))}</span></li>`).join('');
   return `<section class="pm-progress" aria-label="Je voortgang">` +
     `<div class="pm-progress-head"><span class="m-eb">Je voortgang</span><span class="pm-progress-pct"><b>${info.pct}%</b><span class="mut">klaar</span></span></div>` +
     `<span class="m-bar on"><i style="width:${info.pct}%"></i></span>` +
@@ -2670,7 +2671,10 @@ function progressOverviewHtml() {
 
 function renderOverviewPanel() {
   const el = root.querySelector(OV_SUB);
-  try { renderOverview(el, world, helpButtons(), { play: getPlaySeconds(), stop: stopInfo() }); } catch (err) { console.error('overzicht', err); }
+  // #1259: één bron per cijfer: wat het voortgangsblok toont, krijgt geen tegel meer
+  let elders = [];
+  try { elders = tilesShownElsewhere(gameProgress().parts); } catch (e) { elders = []; }
+  try { renderOverview(el, world, helpButtons(), { play: getPlaySeconds(), stop: stopInfo(), skipTiles: elders }); } catch (err) { console.error('overzicht', err); }
   // #898/#965: het voortgangsblok staat onder de hero, boven aan de scrollende
   // inhoud, zodat het percentage meteen in het oog valt en de grote kop blijft staan.
   if (el && !el.querySelector('.pm-progress')) {

@@ -325,7 +325,8 @@ function tilesHtml(world, extra) {
     tile(ICON.clock, 'Speeltijd', play, null, '') +
     // #1259: "0/0 Missies klaar" zegt niets: de tegel komt er pas als er missies zijn
     (ms.length ? tile(ICON.flag, 'Missies klaar', `${mDone}/${ms.length}`, Math.round((mDone / ms.length) * 100), 'todo') : '') +
-    tile(ICON.cup, 'Prestaties', `${ach.done}/${ach.total}`, ach.pct, 'prestaties') +
+    // #1259: staat Prestaties al in het voortgangsblok (pausemenu.js), dan geen tweede cijfer in een tegel
+    ((extra.skipTiles || []).includes('prestaties') ? '' : tile(ICON.cup, 'Prestaties', `${ach.done}/${ach.total}`, ach.pct, 'prestaties')) +
     tile(ICON.pin, 'Gevonden', `${found}/${all}`, all ? Math.round((found / all) * 100) : 0, 'todo') + '</div>';
 }
 
