@@ -4,7 +4,7 @@ import { toggleChoice } from './difficulty.js';
 import { probe } from './hitchprobe.js';
 import { iconInner, icoon } from './icons.js';
 import { wantedPhase, wantedStatus, wantedAnnounce } from './wantedstate.js';
-import { levelOf, cooldownOf, zoekBalkVulling } from './wantedlevels.js';
+import { levelOf, cooldownOf, zoekBalkVulling, zoekTeller } from './wantedlevels.js';
 import { telStap, bewegingUit, MI } from './microinteractions.js';
 import { tikGetal } from './dsmicro.js'; // DS3: het geldgetal tikt even bij geld binnen (ds-micro.css, .ds-m-tik)
 import { moneyLabel, moneyNeedsUpdate, weaponAmmoText } from './hudmoney.js';
@@ -1587,15 +1587,14 @@ const clockText = (s) => (s < 60 ? `${Math.ceil(s)}s` : fmtTime(s));
 // afgaat. De teller loopt met dt * (buiten de cirkel ? 2 : 1) * de signalementfactor
 // (stepUnseen in wantedlevels.js, decayFactor in signalement.js); die factoren staan hier
 // deels in plaats van in een import, omdat de HUD alleen hoeft te schatten wat de speler ziet.
+function zoekStand(world) {
+  const pol = world.police, h = hoofdspeler(world);
+  const d = pol.searchCenter ? Math.hypot(h.x - pol.searchCenter.x, h.y - pol.searchCenter.y) : 0;
+  return zoekTeller(world.wanted, world.wantedDecayTimer, d, pol.searchCenter ? pol.searchRadius : Infinity);
+}
+// #989: de seconden staan in de teller onder de doelregel; de regel zegt alleen nog wat je doet
 function zoekSub(world) {
-  const pol = world.police;
-  const lvl = levelOf(Math.max(1, world.wanted | 0));
-  const h = hoofdspeler(world);
-  const buiten = !!(pol.searchCenter && Math.hypot(h.x - pol.searchCenter.x, h.y - pol.searchCenter.y) > pol.searchRadius);
-  const rest = Math.max(0, Math.ceil(cooldownOf(lvl) - (world.wantedDecayTimer || 0)));
-  return buiten
-    ? `Buiten de cirkel: nog ${rest}s, dan een ster minder`
-    : `Ze zijn je kwijt · ${rest}s uit het zicht voor een ster minder`;
+  return zoekStand(world).buiten ? 'Buiten de cirkel: twee keer zo snel een ster minder' : 'Ze zijn je kwijt: blijf uit het zicht';
 }
 
 // The objective line: one objective at a time (a mission stage, else the
@@ -1723,9 +1722,10 @@ function updateRegelwidgets(world, kind) {
   const egg = kind === 'mission' && m && m.phase === 'active' && m.eggLimit ? m : null;
   const limo = kind === 'mission' && m && m.phase === 'active' && Number.isFinite(m.limoAfstand) ? m : null;
   updateLimoMeter(limo);
+  const zoek = updateZoekTeller(world, kind);
   if (!egg) {
     if (els.rwEgg) { els.rwEgg.verberg(); els.rwEggen.verberg(); }
-    if (!limo) els.objRegel.hidden = true;
+    if (!limo && !zoek) els.objRegel.hidden = true;
     return;
   }
   if (!els.rwEgg) {
@@ -1743,6 +1743,25 @@ function updateRegelwidgets(world, kind) {
   v.heel = heel; v.totaal = egg.eggsTotaal;
   els.rwEgg.ververs();
   els.rwEggen.ververs();
+}
+
+// #989: de zoektocht van de politie als teller: hoe lang nog tot er een ster af gaat. Alleen bij de doelregel Blijf uit
+// het zicht (kind 'police' en zoeken); hele seconden, dus hooguit één schrijfbeurt per seconde.
+function updateZoekTeller(world, kind) {
+  const aan = kind === 'police' && world.wanted > 0 && !!(world.police && world.police.searching);
+  if (!aan) {
+    if (els.rwZoek) els.rwZoek.verberg();
+    els.rwZoekA = undefined;
+    return false;
+  }
+  if (!els.rwZoek) { zetAankondiger(announce); els.rwZoek = maakWidget('teller', els.objRegel, { eenheid: 's', label: 'Tot een ster minder' }); }
+  const z = zoekStand(world), rest = Math.ceil(z.rest);
+  if (rest === els.rwZoekA && z.totaal === els.rwZoekB) return true;
+  els.rwZoekA = rest; els.rwZoekB = z.totaal;
+  els.objRegel.hidden = false;
+  els.rwZoek.inv.rest = rest; els.rwZoek.inv.totaal = z.totaal;
+  els.rwZoek.ververs();
+  return true;
 }
 
 // AAA M10: de afstand tot de limo als wijzer (richting en afstandsringen), zodat "hij zit op je bumper" te zien is voor het te laat is.
