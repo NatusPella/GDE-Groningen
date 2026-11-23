@@ -33,6 +33,7 @@ import { handheldOffset } from './a11ylogic.js';
 import { reducedMotion } from './motion.js';
 import { getSettings } from './settings.js';
 import { failSceneMode } from './missioncheckpoint.js';
+import { deckPlan } from './boatdeck.js';
 
 // Story cutscenes around the mission chain: who asks and why (start), the
 // payoff (success) and a short sting (fail). Tammo and Tessa's relationship
@@ -576,12 +577,20 @@ const SKUTSJE_DECK = WATER_Y + 0.72;
 // Where two people can stand on board: the tour boat's open foredeck, in front
 // of its glass canopy (anywhere under it their heads go through the roof), on
 // its floor (0.14 above the water); other boats amidships.
-function boatStage(v) {
+// `stand`: staand op het open voordek (de kus, het dekmoment); anders praat het paar op de bank onder het dak (boatdeck.js).
+// De gesprekken (intro, outro, herhaling, mislukt) zitten op de bank: facing = naar de boeg, `bench` = het paar zit (quickScene 'bench').
+// `quick` = de soort quickScene: 'bench' (rondvaart), 'seats' (een romp te smal om op te staan: kano, kajak, SUP, roeiboot) of true (staand).
+function boatStage(v, stand = false) {
+  const plan = v.model ? deckPlan(v.model) : { mode: 'stand', floor: 0.45 };
   if (v.model && v.model.kind === 'rondvaart') {
-    const x = v.model.len / 2 - 1.0;
-    return { x: v.x + Math.cos(v.angle) * x, y: v.y + Math.sin(v.angle) * x, h: WATER_Y + 0.16 };
+    if (plan.mode === 'bench' && !stand) {
+      return { x: v.x + Math.cos(v.angle) * plan.x, y: v.y + Math.sin(v.angle) * plan.x, h: WATER_Y + plan.floor + 0.02, facing: v.angle, bench: true, quick: 'bench', plan };
+    }
+    const x = v.model.len / 2 - 0.7; // net voor het dak (CANOPY.front 1,35 m): het hoofd past er niet onder
+    return { x: v.x + Math.cos(v.angle) * x, y: v.y + Math.sin(v.angle) * x, h: WATER_Y + plan.floor + 0.02, facing: v.angle + Math.PI / 2, bench: false, quick: true, plan };
   }
-  return { x: v.x, y: v.y, h: DECK_H };
+  if (plan.mode === 'seats' && !stand) return { x: v.x, y: v.y, h: WATER_Y + plan.floor, facing: v.angle, bench: true, quick: 'seats', plan };
+  return { x: v.x, y: v.y, h: DECK_H, facing: v.angle + Math.PI / 2, bench: false, quick: true, plan };
 }
 const SWIM_H = WATER_Y - 1.25;
 const lerp = (a, b, t) => a + (b - a) * t;
@@ -1435,7 +1444,7 @@ export function playStoryIntro(w, i, { stage = i, short = false, kicker = '', ti
   const onDeck = !!(v && v.isBoat);
   const deck = onDeck ? boatStage(v) : null;
   const anchor = onDeck ? { x: deck.x, y: deck.y } : onFootAnchor(w);
-  const facing = onDeck ? v.angle + Math.PI / 2 : facingTowards(w, anchor, target);
+  const facing = onDeck ? deck.facing : facingTowards(w, anchor, target);
   const full = !short && stage >= i && !onDeck;
   // the new story: staged with the direction language (cutscenes_akte1.js); a step without staging plays below
   if (full) {
@@ -1448,7 +1457,7 @@ export function playStoryIntro(w, i, { stage = i, short = false, kicker = '', ti
     const npcKey = onDeck || s.introNpc === false ? null : s.npc;
     const qlines = short ? [s.intro[s.ask]] : stageLines(i, stage, 'intro', s).filter((l) => !(l[0] === 'V' && w.introTold && w.introTold.includes(l[1])));
     const tlQ = timeline(qlines, npcKey ? NPC[npcKey] : null, short ? 0.4 : 0.6);
-    if (playStaged(w, null, tlQ, { anchor, facing, kicker, title, cardFor: short ? tlQ.total : 3.6, z: onDeck ? deck.h : 0, def: (ls) => quickScene(ls, { npc: npcKey ? { key: npcKey, look: NPC[npcKey] } : null, deck: onDeck }) })) return true;
+    if (playStaged(w, null, tlQ, { anchor, facing, kicker, title, cardFor: short ? tlQ.total : 3.6, z: onDeck ? deck.h : 0, def: (ls) => quickScene(ls, { npc: npcKey ? { key: npcKey, look: NPC[npcKey] } : null, deck: onDeck ? deck.quick : false, plan: onDeck ? deck.plan : null }) })) return true;
   }
   const r = buildRun(w, { npcKey: onDeck || s.introNpc === false ? null : s.npc, anchor, facing, h: onDeck ? deck.h : 0, extras: full ? s.introCast || [] : [], props: full ? s.introProps || [] : [] });
   if (!r) return false;
@@ -1523,11 +1532,11 @@ function outroNow(w, i, { stage = i, short = false, reward = 0, stats = [], reas
     const anchor0 = onBoat ? { x: deck.x, y: deck.y } : onFootAnchor(w);
     const npcKey = wantNpc && !onBoat ? outroKey : null;
     const tlQ = timeline(lines, npcKey ? NPC[npcKey] : null, short ? 0.3 : 0.5);
-    if (playStaged(w, null, tlQ, { anchor: anchor0, facing: onBoat ? v.angle + Math.PI / 2 : facingTowards(w, anchor0, null), banner, z: onBoat ? deck.h : 0, def: (ls) => quickScene(ls, { npc: npcKey ? { key: npcKey, look: NPC[npcKey] } : null, deck: onBoat }) })) return true;
+    if (playStaged(w, null, tlQ, { anchor: anchor0, facing: onBoat ? deck.facing : facingTowards(w, anchor0, null), banner, z: onBoat ? deck.h : 0, def: (ls) => quickScene(ls, { npc: npcKey ? { key: npcKey, look: NPC[npcKey] } : null, deck: onBoat ? deck.quick : false, plan: onBoat ? deck.plan : null }) })) return true;
   }
   if (v && v.isBoat) {
-    const deck = boatStage(v);
-    r = buildRun(w, { anchor: { x: deck.x, y: deck.y }, facing: v.angle + Math.PI / 2, kiss, h: deck.h });
+    const deck = boatStage(v, true); // de kus staat: op het open voordek, nooit onder het dak
+    r = buildRun(w, { anchor: { x: deck.x, y: deck.y }, facing: deck.facing, kiss, h: deck.h });
   } else {
     const anchor = onFootAnchor(w);
     r = buildRun(w, { npcKey: wantNpc ? outroKey : null, anchor, facing: facingTowards(w, anchor, null), kiss, extras: full ? s.outroCast || [] : [], props: full ? s.outroProps || [] : [] });
@@ -1554,7 +1563,13 @@ export function playStoryFail(w, i, { reason = '', stats = [] } = {}) {
   if (!s || run || failSceneMode(eerder) === 'banner') { showBanner(banner); return false; }
   const v = hoofdspeler(w).inVehicle;
   let r;
-  if (v && v.isBoat) { const deck = boatStage(v); r = buildRun(w, { anchor: { x: deck.x, y: deck.y }, facing: v.angle + Math.PI / 2, h: deck.h }); }
+  if (v && v.isBoat) {
+    const deck = boatStage(v);
+    // op de rondvaartboot zit het paar op de bank (boatdeck.js): staand zou het hoofd door het glazen dak steken
+    if (deck.bench && playStaged(w, null, timeline(s.fail, null, 0.3), { anchor: { x: deck.x, y: deck.y }, facing: deck.facing, bannerAfter: banner, z: deck.h, def: (ls) => quickScene(ls, { deck: deck.quick, plan: deck.plan }) })) return true;
+    const st = deck.bench ? boatStage(v, true) : deck;
+    r = buildRun(w, { anchor: { x: st.x, y: st.y }, facing: st.facing, h: st.h });
+  }
   else {
     const anchor = onFootAnchor(w);
     r = buildRun(w, { anchor, facing: facingTowards(w, anchor, null) });
@@ -2291,7 +2306,7 @@ export function playDeckMoment(w, { boat, lines = [], kicker = '' } = {}) {
   if (run || !boat || !lines.length) return false;
   const a = boat.angle;
   // at the bow rail, looking out ahead over the water, side by side
-  const deck = boatStage(boat);
+  const deck = boatStage(boat, true); // aan de reling van het open voordek
   const DECK_H = deck.h;
   const anchor = { x: deck.x, y: deck.y };
   const facing = a;
@@ -2312,7 +2327,7 @@ export function playDeckMoment(w, { boat, lines = [], kicker = '' } = {}) {
       if (t < firstEnd) {
         // low, in front of them: the two hands on the rail
         const k = smooth(t / firstEnd);
-        return pose(P(anchor.x + f.x * lerp(1.5, 1.25, k), anchor.y + f.y * lerp(1.5, 1.25, k), DECK_H + 1.05), P(anchor.x, anchor.y, DECK_H + lerp(0.95, 1.2, k)), 34);
+        return pose(P(anchor.x + f.x * lerp(2.7, 2.3, k), anchor.y + f.y * lerp(2.7, 2.3, k), DECK_H + 1.2), P(anchor.x, anchor.y, DECK_H + lerp(1.0, 1.25, k)), 38); // ver genoeg dat de hoofden in beeld blijven (op 1,5 m werden ze afgekapt)
       }
       const k = smooth((t - firstEnd) / Math.max(0.5, tl.total - firstEnd));
       const sx = anchor.x + f.x * lerp(2.2, 1.7, k) + n.x * 0.5, sy = anchor.y + f.y * lerp(2.2, 1.7, k) + n.y * 0.5;

@@ -5,6 +5,7 @@ import { applyVehicleLook } from './vehiclelook3d.js'; // epic Autotuning (#1155
 import { HABBO_PALETTE, habboMaterial, GeoBuilder, vcMaterial, markShared, composeMatrix, tubeGeometry } from './pixelart3d.js';
 import { buildPersonMesh, PERSON_RIG, holdPhoneRiding } from './models3d_people.js';
 import { boatKind, boatHasCabin } from './boattypes.js';
+import { CANOPY } from './boatdeck.js';
 import { midibusDeurXs } from './businterieur.js';
 import { ZEESCHIP_SHAPE, SLEPER_SHAPE, zeeschipFit, sleperFit } from './zeeschip3d.js';
 import { buildHeliMesh } from './heli3d.js';
@@ -2272,7 +2273,7 @@ function rondvaartFit(B, st, L, W, hull, cabin) {
     }
   }
   // glass-roofed canopy on slim posts
-  const rx0 = -hl + 1.25, rx1 = hl - 1.35, roofY = 1.6;
+  const rx0 = -hl + CANOPY.back, rx1 = hl - CANOPY.front, roofY = CANOPY.roofY;
   const n = 5;
   for (let i = 0; i <= n; i++) {
     const x = rx0 + ((rx1 - rx0) * i) / n;
