@@ -34,11 +34,17 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 async function takeSlot() {
   fs.mkdirSync(LOCKS, { recursive: true });
   const until = Date.now() + WAIT_MIN * 60000;
+  let polls = 0;
   while (Date.now() < until) {
     // de perf-agent meet exclusief: pas beginnen als geen enkel slot meer bezet is (dan ook geen fps-meting die door dit venster verstoord wordt)
-    if (fs.readdirSync(LOCKS).some((f) => /^electron-\d+$/.test(f))) { await sleep(Number(process.env.GDE_LOCK_POLL_MS) || 20000); continue; }
+    const busy = fs.readdirSync(LOCKS).filter((f) => /^electron-\d+$/.test(f));
+    if (polls++ % 3 === 0) log('wacht op slot', new Date().toISOString(), busy.length ? `bezet: ${busy.join(', ')}` : 'alles vrij');
+    if (busy.length) { await sleep(Number(process.env.GDE_LOCK_POLL_MS) || 20000); continue; }
     for (const n of [1, 2, 3]) {
-      try { fs.mkdirSync(path.join(LOCKS, `electron-${n}`)); slot = path.join(LOCKS, `electron-${n}`); log(`slot electron-${n}`); return true; } catch { /* bezet */ }
+      try { fs.mkdirSync(path.join(LOCKS, `electron-${n}`)); slot = path.join(LOCKS, `electron-${n}`); log(`slot electron-${n}`); return true; } catch (e) {
+        // alleen 'bestaat al' is bezet; elke andere fout (bijv. EPERM in een afgeschermde sessie) stopt de runner in plaats van eindeloos te wachten
+        if (!e || e.code !== 'EEXIST') { log('slot nemen mislukt', (e && e.code) || e); return false; }
+      }
     }
     await sleep(Number(process.env.GDE_LOCK_POLL_MS) || 20000);
   }
