@@ -18,7 +18,7 @@ Telling: 102 scènes, 155 props, 49 soorten in gebruik, 27 aankledingsplannen, 5
 | botsauto | decor | 48 | 300 | 4 | 1.74 x 0.95 x 1.04 | 2 |
 | briefje | decor | 24 | 400 | 2 | 0.21 x 0.016 x 0.15 | 4 |
 | broodtrommel | decor | 36 | 400 | 3 | 0.29 x 0.145 x 0.195 | 1 |
-| bushokje | decor | 502 | 900 | 1 | 4.14 x 2.76 x 1.76 | 0 |
+| bushokje | decor | 514 | 900 | 1 | 4.14 x 2.76 x 1.76 | 0 |
 | container | decor | 204 | 600 | 4 | 3.1 x 2.72 x 2.5 | 5 |
 | deken | decor | 48 | 400 | 2 | 1.3 x 0.032 x 0.9 | 1 |
 | doos | decor | 24 | 400 | 2 | 0.52 x 0.4 x 0.4 | 12 |
@@ -66,8 +66,8 @@ Telling: 102 scènes, 155 props, 49 soorten in gebruik, 27 aankledingsplannen, 5
 | koe | dier (wereld) |  |  |  |  | 0 |
 | limo | voertuig (wereld) | 5792 |  |  | 5.84 x 2.667 x 2.24 | 6 |
 | politie | voertuig (wereld) |  |  |  | 4.8 x 1.95 x 1.75 | 1 |
-| snackwagen | voertuig (wereld) | 2422 |  |  | 5.681 x 2.964 x 3.073 | 5 |
-| tankwagen | voertuig (wereld) | 1028 |  |  | 8.611 x 3.61 x 3 | 2 |
+| snackwagen | voertuig (wereld) | 2314 |  |  | 5.681 x 2.964 x 3.073 | 5 |
+| tankwagen | voertuig (wereld) | 1148 |  |  | 8.611 x 3.61 x 3 | 2 |
 | trekker | voertuig (wereld) |  |  |  | 4.5 x 2.4 x 3 | 4 |
 
 ## Aankleding van missies (missiedecor.js) en wachtstappen (wachtprops.js)
