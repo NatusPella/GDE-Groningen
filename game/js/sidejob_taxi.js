@@ -90,7 +90,9 @@ function roofSign() {
 
 function kerbFor(map, place) {
   const rp = map.nearestRoadPoint(place.x, place.y, 250, true);
-  if (!rp) return null;
+  // #1285: roads near the fixed place not streamed in (yet): the place itself is the kerb, instead of a round that
+  // reads d.to.road of undefined and stops the job
+  if (!rp) return { road: { x: place.x, y: place.y }, walk: { x: place.x, y: place.y } };
   const pts = rp.road.pts;
   let bi = 0, bd = Infinity;
   for (let i = 0; i < pts.length - 1; i++) {
