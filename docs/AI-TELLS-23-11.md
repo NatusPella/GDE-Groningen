@@ -54,7 +54,27 @@ engels-woord, dubbele-spatie, drie-puntjes ('...' waar het spel '…' gebruikt),
 
 ## Stand 23-11
 
-TABEL_VOOR_NA
+Gemeten met dezelfde scan op origin/main (voor) en op deze branch (na), 594 en 525 treffers in totaal.
+
+| Kenmerk | Voor | Na | Toelichting |
+|---|---:|---:|---|
+| identieke-zin | 232 | 233 | vooral code die dezelfde regel op twee plekken draagt (missietitels, dossiers); +1 doordat Durk en Douwe nu overal dezelfde tagline hebben |
+| drietal | 91 | 77 | winkel-, voertuig- en personageteksten |
+| staccato-drietal | 83 | 74 | taglines; de rest is ingesproken of de stem van een personage |
+| drie-puntjes | 44 | 11 | de rest is ingesproken (de tekst is de sleutel van de opname) |
+| titel-dubbelepunt | 42 | 42 | scènetitels uit de 09-scripts; zie hieronder |
+| engels-woord | 21 | 15 | de rest: Engelse toeristen (ingesproken), een ontwikkelscherm |
+| niet-x-maar-y | 19 | 19 | gelezen: gewone spreektaal, geen formule |
+| uitroep-stapel | 19 | 19 | bijna alles ingesproken; de radioreclame is een parodie |
+| gedachtestreepje | 11 | 8 | de rest: ondertekening (– M.), draaiboekkoppen, één ingesproken regel |
+| ai-woord | 7 | 7 | de slogan (besluit eigenaar) en technische termen (Dynamische resolutie, Legendarisch als vissoort) |
+| title-case | 7 | 2 | de rest zijn eigennamen |
+| uitroep-enthousiasme | 6 | 6 |  |
+| dubbele-spatie | 6 | 6 | uitlijning op een schermpje in de wereld en een ontwikkeloverlay |
+| laten-we | 3 | 3 | gewone zinnen |
+| emoji, nep-statistiek, afsluitzin | 0 | 0 |  |
+
+Ook rechtgezet, buiten de telling: de NL-korte beschrijving op de winkelpagina was 316 tekens (de pagina zei 237, Steam staat er 300 toe), de Engelse winkeltekst zei nog dat Tessa een frietwagen wil, dat Tammo twaalf jaar zwijgt en dat er 239 prestaties zijn (het zijn er 253), en de NL-tekst zei "Singleplayer" en "online co-op" (woordenlijst: Alleen spelen, Samen spelen). Twee prestatienamen waren Engels, waarvan één een echte tv-titel (constitution 2).
 
 ## Wat bewust blijft
 
