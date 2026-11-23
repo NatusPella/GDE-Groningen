@@ -321,7 +321,7 @@ export function fittingSections(base) {
   out.push(...head);
   if (ctx.shopKey) {
     for (const s of shopSections(ctx)) {
-      out.push({ ...s, title: `Passen: ${s.title}`, items: s.items.map((it) => ({ ...it, id: 'p-' + it.id })) });
+      out.push({ ...s, title: `Winkel: ${s.title}`, items: s.items.map((it) => ({ ...it, id: 'p-' + it.id })) });
     }
   }
   out.push(...rest.map((s) => ({ ...s, items: s.items.map((it) => ({ ...it, id: it.id.startsWith('c-') ? 'k-' + it.id : it.id })) })));
