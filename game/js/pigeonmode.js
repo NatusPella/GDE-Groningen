@@ -381,32 +381,73 @@ function buildBird(kind = 'pigeon', tint = null) {
   body.add(legs);
   root.scale.setScalar(kind === 'gull' ? 2.1 : PIGEON_SCALE);
   root.rotation.order = 'YZX';
-  root.userData = { body, head, tail, wingL, wingR, legs, legParts, flap: Math.random() * 6 };
+  root.userData = { body, head, tail, wingL, wingR, legs, legParts, flap: Math.random() * 6, seed: Math.random() * 10 };
   return root;
 }
 
-function poseBird(bird, { flapPhase, amp, fold, grounded, walkPhase = 0, peck = 0 }) {
+// A rare pulse from 0 to 1 and back (cooing), shifted per bird by its seed.
+function birdPulse(time, seed, period, len) {
+  const t = (((time + seed * 7.3) % period) + period) % period;
+  return t < len ? Math.sin((t / len) * Math.PI) : 0;
+}
+
+// The pose of a highest-level pigeon or gull (the player, its flock, the gull chasing you).
+// Flying: a faster downstroke than upstroke, the hand wing half folding on the upstroke, gliding with the wings in a V (low amp),
+// a tail that steers in turns and fans out when landing, legs that swing forward to land, and a head that stays level (roll and
+// pitch: the angles the caller puts on the bird itself). Walking: hold and thrust with the head, the swinging foot leaves the
+// ground. Standing still (idle): jerky glances and now and then cooing (neck puffed, bowing and turning, tail spread).
+// No new objects per frame.
+function poseBird(bird, { flapPhase, amp, fold, grounded, walkPhase = 0, peck = 0, roll = 0, pitch = 0, time = 0, landing = 0, idle = false }) {
   const u = bird.userData;
-  const f = Math.sin(flapPhase);
-  const lift = amp * f + 0.12 * (1 - fold) - 0.5 * fold;
-  const outerBend = grounded ? 0 : -amp * 0.5 * Math.cos(flapPhase);
-  for (const w of [u.wingL, u.wingR]) {
-    const s = w.userData.side;
+  const seed = u.seed || 0;
+  const first = u.poseT === undefined || !time;
+  const dtp = Math.max(0, Math.min(0.1, time - (u.poseT ?? time)));
+  u.poseT = time;
+  u.land = (u.land || 0) + (landing - (u.land || 0)) * (first ? 1 : Math.min(1, dtp * 5));   // legs and tail ease into the landing pose
+  landing = u.land;
+  const w = flapPhase - 0.5 * Math.sin(flapPhase);   // the downstroke is faster than the upstroke
+  const f = Math.sin(w);
+  const glide = grounded ? 0 : clamp((0.3 - amp) / 0.22, 0, 1) * (1 - fold) * (1 - landing);
+  const lift = amp * f + 0.12 * (1 - fold) - 0.5 * fold + glide * (0.3 + Math.sin(time * 3.1 + seed) * 0.04);
+  const outerBend = grounded ? 0 : -amp * 0.5 * Math.cos(w) - glide * 0.06;
+  const sweep = grounded ? 0 : Math.max(0, Math.cos(w)) * amp * 0.25 - landing * 0.2;   // upstroke: the wing sweeps back; landing: forward
+  for (const wg of [u.wingL, u.wingR]) {
+    const s = wg.userData.side;
     // gevouwen ligt de vleugel op de flank in plaats van op de schouder: iets naar buiten en omhoog zodat hij om de romp sluit
-    w.position.set(PIGEON_PIVOT.wing[0] + 0.015 * fold, PIGEON_PIVOT.wing[1] - 0.02 * fold, PIGEON_PIVOT.wing[2] * s * (1 + 0.3 * fold));
-    w.rotation.set(-s * lift, -s * fold * 1.55, 0, 'XYZ');
-    w.userData.outer.rotation.set(-s * outerBend, s * fold * 2.9, 0);
+    wg.position.set(PIGEON_PIVOT.wing[0] + 0.015 * fold, PIGEON_PIVOT.wing[1] - 0.02 * fold, PIGEON_PIVOT.wing[2] * s * (1 + 0.3 * fold));
+    wg.rotation.set(-s * lift, -s * (fold * 1.55 + sweep), 0, 'XYZ');
+    wg.userData.outer.rotation.set(-s * outerBend, s * fold * 2.9, 0);
   }
-  u.legs.rotation.z = grounded ? 0 : -1.25;
-  u.legs.scale.setScalar(grounded ? 1 : 0.7);
+  const legsDown = grounded || landing > 0.3;
+  u.legs.rotation.z = grounded ? 0 : -1.25 + landing * 1.45;
+  u.legs.scale.setScalar(legsDown ? 1 : 0.7);
   u.legParts[0].rotation.z = grounded ? Math.sin(walkPhase) * 0.5 : 0;
   u.legParts[1].rotation.z = grounded ? -Math.sin(walkPhase) * 0.5 : 0;
-  const bob = grounded ? Math.max(0, Math.sin(walkPhase * 2)) : 0;
-  u.head.position.x = 0.19 + (grounded ? Math.sin(walkPhase * 2) * 0.025 : 0.01) + peck * 0.04;
-  u.head.position.y = 0.115 - peck * 0.09;
-  u.body.position.y = 0.15 + bob * 0.02;
-  u.body.rotation.z = -peck * 0.5;
-  u.tail.rotation.z = grounded ? 0.15 : -amp * 0.15 * f;
+  u.legParts[0].position.y = grounded ? Math.max(0, Math.cos(walkPhase)) * 0.012 : 0;   // the foot swinging forward leaves the ground
+  u.legParts[1].position.y = grounded ? Math.max(0, -Math.cos(walkPhase)) * 0.012 : 0;
+  const walking = grounded && !idle;
+  const bob = walking ? Math.max(0, Math.sin(walkPhase * 2)) : 0;
+  // hold and thrust: the head stays put while the body walks on beneath it, then shoots forward
+  const step01 = (((walkPhase * 2) / (Math.PI * 2)) % 1 + 1) % 1;
+  const nod = walking ? (step01 < 0.7 ? 1 - (step01 / 0.7) * 2 : -1 + ((step01 - 0.7) / 0.3) * 2) * 0.022 : 0;
+  const coo = idle && peck < 0.05 ? birdPulse(time, seed, 11, 2.6) : 0;
+  const bow = Math.max(0, Math.sin(time * 5.5)) * coo;
+  u.head.position.x = 0.19 + (grounded ? nod : 0.01) + peck * 0.04;
+  u.head.position.y = 0.115 - peck * 0.09 - bow * 0.03;
+  u.body.position.y = 0.15 + bob * 0.02 + Math.sin(w - 1.2) * 0.008 * (grounded ? 0 : amp);
+  u.body.rotation.set(0, Math.sin(time * 1.3) * 0.6 * coo, -peck * 0.5 - bow * 0.3 + (grounded ? 0 : landing * 0.35));
+  const breath = grounded ? Math.sin(time * 4.2 + seed) * 0.012 : 0;
+  u.body.scale.set(1, 1 + breath + coo * 0.07, 1 + breath + coo * 0.09);   // the cock pigeon puffs up his neck
+  // the head stays level against the body's pitch and bank; standing still it glances around in jerks
+  if (grounded) {
+    const target = idle && coo < 0.2 && peck < 0.3 ? (((Math.sin(Math.floor(time * 0.9 + seed) * 12.9898 + seed) * 43758.5453) % 1 + 1) % 1 - 0.5) * 1.6 : 0;
+    u.look = (u.look || 0) + (target - (u.look || 0)) * Math.min(1, Math.max(0, time - (u.lookT ?? time)) * 14);
+    u.lookT = time;
+    u.head.rotation.set(0, u.look, -bow * 0.6);
+  } else u.head.rotation.set(-roll * 0.85, -roll * 0.3, -pitch * 0.8);
+  // the tail: steers along in turns, fans out when landing and when cooing, and drags over the ground while cooing
+  u.tail.rotation.set(grounded ? 0 : roll * 0.6, grounded ? 0 : -roll * 0.4, grounded ? 0.15 + bow * 0.2 + coo * 0.25 : -amp * 0.15 * f + landing * 0.45);
+  u.tail.scale.set(1, 1, 1 + landing * 0.7 + Math.abs(roll) * 0.4 + glide * 0.15 + coo * 0.6);
 }
 
 function buildFood(kind) {
@@ -1287,7 +1328,7 @@ function updateGull(dt) {
   const yaw = Math.atan2(g.vy, g.vx);
   g.mesh.position.set(g.x, g.z - 0.3, g.y);
   g.mesh.rotation.set(0, -yaw, Math.atan2(g.vz, Math.hypot(g.vx, g.vy)) * 0.6);
-  poseBird(g.mesh, { flapPhase: g.flap, amp: 0.7, fold: 0, grounded: false });
+  poseBird(g.mesh, { flapPhase: g.flap, amp: 0.7, fold: 0, grounded: false, pitch: g.mesh.rotation.z, time: elapsed });
   if (g.state === 'chase' && Math.random() < dt * 0.4) sfx('caw', g.x, g.y, 0.7);
 }
 
@@ -1374,7 +1415,7 @@ function updateFlock(dt) {
     b.mesh.position.set(b.x, b.z, b.y);
     b.mesh.rotation.set(b.grounded ? 0 : clamp(-(ax * s - ay * c) * 0.02, -0.7, 0.7), -(b.yaw || 0), b.grounded ? 0 : clamp(Math.atan2(b.vz, hsp + 0.1) * 0.5, -0.6, 0.6));
     const peck = b.grounded ? Math.max(0, Math.sin(elapsed * 2.3 + b.i * 1.7)) ** 8 : 0;
-    poseBird(b.mesh, { flapPhase: b.flap, amp: b.grounded ? 0 : 0.8, fold: b.grounded ? 1 : 0, grounded: b.grounded, walkPhase: b.walk, peck });
+    poseBird(b.mesh, { flapPhase: b.flap, amp: b.grounded ? 0 : 0.8, fold: b.grounded ? 1 : 0, grounded: b.grounded, walkPhase: b.walk, peck, roll: b.mesh.rotation.x, pitch: b.mesh.rotation.z, time: elapsed, idle: b.grounded && hsp < 0.3 });
   }
 }
 
@@ -1537,7 +1578,7 @@ function placePigeonMesh(dt) {
   pigeon.rotation.set(P.roll, -P.yaw, P.mode === 'fly' ? P.pitch * 0.8 : 0);
   if (P.peckT > 0) P.peckT -= dt;
   const peck = P.peckT > 0 ? Math.sin((0.35 - P.peckT) / 0.35 * Math.PI) : 0;
-  poseBird(pigeon, { flapPhase: P.flapPhase, amp: P.mode === 'fly' ? P.flapAmp : 0, fold: P.fold, grounded: P.mode !== 'fly', walkPhase: P.walkPhase, peck });
+  poseBird(pigeon, { flapPhase: P.flapPhase, amp: P.mode === 'fly' ? P.flapAmp : 0, fold: P.fold, grounded: P.mode !== 'fly', walkPhase: P.walkPhase, peck, roll: P.roll, pitch: pigeon.rotation.z, time: elapsed, landing: P.mode === 'fly' && P.landing ? 1 : 0, idle: P.mode !== 'fly' && !P.walkSpeed });
   const floor = P.mode === 'fly' ? P.groundH ?? 0 : P.z;
   const alt = P.z - floor;
   shadow.visible = alt < 30;

@@ -63,7 +63,7 @@ export function updateBirds(b, dt, t) {
   const cam = b.avoid > 0 ? getCamera() : null;
   const cp = cam && cam.position;
   b.list.forEach((p, i) => {
-    let flap;
+    let flap, bank = 0;
     if (p.fly) {
       if ((p.delay -= dt) > 0) flap = 0.3;
       else {
@@ -79,7 +79,10 @@ export function updateBirds(b, dt, t) {
           p.h = Math.atan2(p.vy, p.vx);
         } else p.vz = Math.max(0.6, p.vz - 1.2 * dt);
         p.x += p.vx * dt; p.y += p.vy * dt; p.z += p.vz * dt;
-        flap = Math.sin(t * 26 + p.ph) * 1.05;
+        // a faster downstroke than upstroke; circling, a pigeon now and then glides with its wings in a V and banks into the turn
+        const ph = t * 26 + p.ph, glide = p.air > 1.5 ? clamp01((Math.sin(t * 0.6 + p.ph) - 0.4) * 2.5) : 0;
+        flap = Math.sin(ph - 0.5 * Math.sin(ph)) * 1.05 * (1 - glide) + glide * 0.35;
+        if (p.air > 0.7) bank = -b.spin * 0.35;
       }
     } else {
       flap = 0.3;
@@ -100,7 +103,7 @@ export function updateBirds(b, dt, t) {
     }
     const peck = p.fly ? 0 : Math.max(0, Math.sin(t * 2.2 + p.ph * 3)) * 0.5;
     d.position.set(p.x, p.z + 0.147 * FLOCK_SCALE * size, p.y);
-    d.rotation.set(0, -p.h, -peck);
+    d.rotation.set(bank, -p.h, -peck);
     d.scale.set(size, size, size);
     d.updateMatrix();
     b.body.setMatrixAt(i, d.matrix);

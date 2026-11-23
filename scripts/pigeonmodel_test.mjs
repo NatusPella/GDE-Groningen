@@ -213,6 +213,22 @@ t('poseBird: alle standen geven eindige matrices (vliegen, zitten, lopen, pikken
   }
 });
 
+t('poseBird: zweven, landen, bocht en koeren (vervolg 23-11) zijn eindig en doen wat ze zeggen', () => {
+  const bird = P.buildPigeonBird('pigeon');
+  bird.userData.seed = 0;
+  const poses = { zweven: { flapPhase: 0.4, amp: 0.08, fold: 0, grounded: false, roll: 0.5, pitch: -0.2, time: 1 }, landen: { flapPhase: 1, amp: 0.9, fold: 0, grounded: false, landing: 1, time: 2 }, koeren: { flapPhase: 0, amp: 0, fold: 1, grounded: true, idle: true, time: 1.3 }, lopen: { flapPhase: 0, amp: 0, fold: 1, grounded: true, walkPhase: 0.7, time: 3 } };
+  const u = bird.userData;
+  for (const [naam, pose] of Object.entries(poses)) {
+    u.poseT = undefined;   // een losse pose: de landingsstand springt meteen goed (in het spel loopt hij in)
+    P.posePigeonBird(bird, pose);
+    bird.updateMatrixWorld(true);
+    bird.traverse((o) => { for (const v of o.matrixWorld.elements) assert.ok(Number.isFinite(v), naam); });
+    if (naam === 'zweven') { assert.ok(u.wingL.rotation.x !== 0 && Math.abs(u.head.rotation.x) > 0.2, 'de kop blijft waterpas in de bocht'); assert.ok(u.tail.scale.z > 1, 'de staart waaiert in de bocht'); }
+    if (naam === 'landen') { assert.ok(u.legs.rotation.z > 0, 'de poten komen naar voren'); assert.ok(u.tail.scale.z > 1.5, 'de staart remt'); }
+    if (naam === 'koeren') assert.ok(u.body.scale.y > 1.03 && u.tail.scale.z > 1.2, 'de hals op, de staart gespreid');
+  }
+});
+
 // --- niets meer van de oude blokvogels --------------------------------------------------------------------------------
 t('de oude blokvogels zijn weg: geen BoxGeometry-vogel in de zwerm, geen bol als dier, geen box-vogel in het weidegebied, geen birdbake', () => {
   const birds = sansComments(src('birds.js'));

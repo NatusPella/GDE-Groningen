@@ -319,7 +319,12 @@ export function pigeonMaterial() {
   return _mat;
 }
 export function pigeonShinyMaterial() {
-  if (!_shiny) { _shiny = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.35, metalness: 0.2, emissive: 0x120a1c }); _shiny.userData.shared = true; }
+  // feather sheen: a city pigeon's neck shifts from green to purple with the viewing angle, a thin-film layer (iridescence) over
+  // the vertex colours. Only the neck of the highest level (player, pigeon-mode flock, cutscenes), a small piece per bird.
+  if (!_shiny) {
+    _shiny = new THREE.MeshPhysicalMaterial({ vertexColors: true, roughness: 0.35, metalness: 0.2, emissive: 0x120a1c, iridescence: 0.8, iridescenceIOR: 1.6, iridescenceThicknessRange: [260, 620] });
+    _shiny.userData.shared = true;
+  }
   return _shiny;
 }
 
@@ -358,10 +363,11 @@ export function mergePigeonGeometries(geos) {
 }
 
 // De onderdelen in het absolute lichaamsframe (verschaald met k), gegroepeerd per bot voor een skelet (wildlife.js):
-// body (romp, staart), leg (poten), head, wingL/wingR (zijde +1/-1, dekveren en armpennen) en wingOutL/wingOutR (handpennen).
+// body (romp), tail (staart; een skelet zonder staartbot hangt hem aan de romp), leg (poten), head, wingL/wingR (zijde +1/-1, dekveren
+// en armpennen) en wingOutL/wingOutR (handpennen).
 export function pigeonBoneParts(lod = 'mid', opts = {}, k = 1) {
   return pigeonParts(lod, opts).map((p) => {
-    const bone = p.g === 'leg' ? 'leg' : p.g === 'wing' ? (p.side > 0 ? 'wingL' : 'wingR') : p.g === 'wingOut' ? (p.side > 0 ? 'wingOutL' : 'wingOutR') : p.g === 'head' ? 'head' : 'body';
+    const bone = p.g === 'leg' ? 'leg' : p.g === 'wing' ? (p.side > 0 ? 'wingL' : 'wingR') : p.g === 'wingOut' ? (p.side > 0 ? 'wingOutL' : 'wingOutR') : p.g === 'head' ? 'head' : p.g === 'tail' ? 'tail' : 'body';
     p.geo.applyMatrix4(groupMatrix(p, p.side));
     if (k !== 1) p.geo.scale(k, k, k);
     return { bone, geo: p.geo };
