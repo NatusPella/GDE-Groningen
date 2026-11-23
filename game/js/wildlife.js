@@ -1775,13 +1775,15 @@ export function wildlifeShadowSize(kind) {
 const _v = new THREE.Vector3();
 const _up = new THREE.Vector3(0, 1, 0);
 
+// Folded (fold 1) exactly like poseBird in pigeonmode.js: the arm wing swings back along the flank and the hand wing folds over
+// it (2.9 rad), so no primaries stick out as spikes. A negative fold (landing flare) sweeps the wing forward.
 function setWings(ud, sign, inner, outer, fold = 0) {
   for (const w of ud.wings) {
     const s = w.userData.sign;
-    w.rotation.set(-s * inner, -s * fold * 1.45, 0);
+    w.rotation.set(-s * inner, -s * fold * 1.55, 0);
     w.position.set(w.userData.rest.x + fold * (ud.foldShift || 0), w.userData.rest.y + fold * (ud.foldLift || 0), w.userData.rest.z * (1 - fold * (ud.foldZ ?? 0.3)));
     const o = w.children[0];
-    if (o) o.rotation.set(-s * outer, -s * fold * 0.15, 0);
+    if (o) o.rotation.set(-s * outer, fold > 0 ? s * fold * 2.9 : -s * fold * 0.15, 0);
   }
 }
 
@@ -1920,7 +1922,7 @@ function animateBird(mesh, a, time, C) {
   const f = Math.sin(w);
   const upstroke = Math.max(0, Math.cos(w)) * (1 - glide);   // the hand wing half folds and sweeps back
   const trim = Math.sin(time * 3.1 + seed) * 0.04 * glide;
-  setWings(ud, 1, 0.12 + f * amp + glide * C.dihedral + trim, Math.sin(w - 0.9) * amp * 0.6 - glide * C.crook - 0.05, upstroke * 0.22 - flare * 0.15);
+  setWings(ud, 1, 0.12 + f * amp + glide * C.dihedral + trim, Math.sin(w - 0.9) * amp * 0.4 - glide * C.crook - 0.05, upstroke * 0.15 - flare * 0.15);
   const pitch = landing ? 0.25 + flare * 0.45 : climb ? 0.3 : Math.max(-0.2, Math.min(0.2, ((a.cruise ?? a.z ?? 0) - (a.z ?? 0)) * 0.08));
   b.body.position.y = Math.sin(w - 1.2) * 0.008 * amp;
   b.body.rotation.set(-bank, 0, pitch);
