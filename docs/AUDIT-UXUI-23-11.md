@@ -129,3 +129,27 @@ Per scherm: **primair / secundair / tertiair**, wat er niet hoort, wat ten onrec
 - Controller- en focusvolgorde: alleen `controller_audit_overlays` (47 schermen, 1 bevinding) en `menu_tabs_audit` (18 tabbladen) gelezen; echte padnavigatie niet gespeeld.
 - Contrast van de uit-schakelaar, beeldgrootte van de 3D-preview in het pashokje en de afstand tussen toetsregel en kaartknoppen onderaan de kaart zijn schattingen uit de beelden.
 - Winkels, benchmark en tutorial: alleen code en vorige audits, geen eigen beeld.
+
+## 7. Ronde 2 (23-11, zelfde branch): de open punten doorgevoerd
+
+| Punt | Wat er nu is | Bestanden | Test |
+|---|---|---|---|
+| S4 prompt die niet kan | Tijdens een achtervolging valt een grijze prompt ("Niet nu: ...") weg; buiten een achtervolging blijft hij met zijn reden | `prompts.js`, `prompttick.js` (`blockedInChase`) | `prompttick_test` |
+| S7 dubbele Doorgaan | Het verhaaloverzicht heeft geen eigen gele Doorgaan meer (die staat in de rail); Opslaan is een secundaire knop | `todoui.js` | `todo_ui_test`, `spelmenu_test` |
+| S10 Besturing | Controller-tabblad in kolommen Knop, Te voet, Rijden, Menu (een streepje waar niets is; Rijden leeg als het gelijk is aan te voet) | `controls.js` (`slotUseParts`), `pausemenu.js`, `pausemenu.css` | `controls_test`, `besturing_overzicht_test` |
+| S3 koplijn | Geen teller "1 van 2" meer naast de bladkop; Standaard herstellen staat onderaan Instellingen (met de bestaande bevestiging en Ongedaan maken) | `pausemenu.js`, `pausemenu.css` | `spelmenu_test`, `menu_issues_062_test`, `instellingen_audit_test` |
+| Kiezelweek-chip | De chip toonde al alleen bij een evenement (kalender, dag 14-17 augustus); hij krijgt nu het kalendericoon van de HUD en heet voor de schermlezer "Vandaag: ..." | `loadscene.js`, `loadscreen.js`, `loadscreen.css` | `laadscherm_css_test` |
+| S14 Spullen | Een vinkje in plaats van "Aan" op aangetrokken kleding; de geldtegel (met kasboek) sluit de rij af, het bedrag staat in de kop | `spullen.js`, `spullenmodel.js` | `spullenmodel_test`, `spullen_test` |
+| Kaartuitleg | Geen venster over de kaart bij de eerste keer; bij de eerste focus op het zoekveld een korte tip eronder (8 s, weg bij blur). De Hulp-knop toont de volledige uitleg | `mapview.js`, `kaartactieui.js` | `kaartpopups_test` |
+| S6 doelregel | "Volg de gele route ..." alleen bij de eerste drie verhaaldoelen; regels die iets anders zeggen (Je bent er, loop naar binnen, een keuze) blijven | `hudrules.js` (`storySubLine`), `hud_panel.js` | `hud_test` |
+| Opnieuw proberen | Bestond al (checkpoint per stage, Enter of E binnen 40 s, rij in Overzicht). De eindkaart "Missie mislukt" noemt het nu zelf met de toets; "Terug" is gewoon doorspelen (de kaart verdwijnt vanzelf) | `bigmoment.js`, `cinematics.js`, `missionstory.js` | `bigmoment_test`, `missioncheckpoint_test` |
+| S13 tuning voor/na | Bestond al: per waarde een balk "voor → na" (`tm-stat`) en een gesplitst beeld voor en na (Y) | geen wijziging | n.v.t. |
+| Eén DS3-stelsel | `.ds-kaart`, `.ds-knop`, `.ds-chip`, `.ds-streep` en de oppervlakken `.ds-papier`/`.ds-glas` als component zijn weg uit `ds-components.css` en `a11y.css`; de galerij en de beeldscripts gebruiken `.ds-z-*`; papier en glas blijven alleen tokenbereik | `ds-components.css`, `a11y.css`, `ds-galerij.html`, `DESIGN_SYSTEM.md`, `scripts/qa/*` | `ds_tokens_test`, `ds_versies_test`, `ds3_dekkinglijst_test` |
+| Ratel | Van kleur 64, glas 114, oud 51, font 33, klein 1, svg 31 (70 bestanden) naar kleur 5, glas 113, oud 0, font 21, klein 1, svg 31 (61 bestanden). `desktop/vendor-fonts.css` staat als lettertypebron bij BEWUST (zelfde rol als `game/fonts/fonts.css`) | o.a. `hud_panel.css`, `menu.css`, `storycontact.js`, `touch.js` | `ds3_ratel_test --write` na elke stap |
+
+Kleuren zijn naar het dichtstbijzijnde inkt-token gezet; waar dat de betekenis veranderde is met de hand gekozen (medailles brons en zilver, de zeldzaamheden in het visboek). **Niet in beeld gezien:** de kolommen in Besturing, de tip bij het zoekveld, de verschoven herstelknop, de kleurwissels (vooral telefoon en notitiekaartje van `storycontact.js`, foto-UI en touch). Die horen in de volgende beeldronde.
+
+### De foutkaart in de gatebeelden van 22-11
+De beelden 30, 52, 54 en 55 tonen "Er ging iets mis". Wat vaststaat: de kaart staat er nog niet in beeld 24 (kaart) en wel in beeld 30 (eerste beeld van de set Samen); vanaf dan blijft ook de naamkaart van Samen spelen staan (die kent geen Escape, dus de `esc2()` van de beeldscript sloot hem niet). De uitvoermap met `run-1920.log` stond in een worktree die al is opgeruimd, en de foutkaart toont buiten DEV geen technische tekst, dus de oorzaak is niet meer te lezen. Er is sinds de gate-tag geen code gewijzigd die het verklaart. **Niet opgelost; wel een spoor gelegd:** `scripts/qa/menufoto.page.js` noteert nu bij elk beeld de eerste foutkaart met het beeld waarbij hij opdook en het foutrapport (`errorlog.js`) in `menufoto-<breedte>.json`. De volgende beeldronde geeft dus de stacktrace.
+
+Nog open: glas 113 (de HUD- en menuverlopen; vraagt een ontwerpkeuze per scherm), font 21 (vooral de clamp-maten van `bigmoment.css` en de ondertitelachtige teksten, waar de ondertitelagent werkt), svg 31 (eigen iconen naar Phosphor) en de 7-px "TAXI" in `reisrit.js` (een bordje in een illustratie).
