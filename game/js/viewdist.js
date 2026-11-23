@@ -17,6 +17,15 @@ export function viewDistanceFor(setting, scale = 1, cpuLvl = 0) {
   return VIEW_DISTANCES[setting] || VIEW_DISTANCES.normaal;
 }
 
+// Mist (Hoog en Ultra): zachte atmosferische diepte in plaats van een muur. De mist begint op minstens FOG_NEAR_SHARE van de
+// zichtafstand (op 'kort' liep hij van 63 tot 153 m: een muur die het landschap wegsnijdt) en is dicht op de zichtafstand zelf.
+// Puur, zodat scripts/viewdist_test.mjs de reeks per stand narekent. drawDist: de detailring (DRAW_DIST in scene3d.js).
+export const FOG_NEAR_SHARE = 0.4;
+export function fogRange(viewDist, drawDist) {
+  const base = drawDist * 0.45 + (viewDist - 150) * 0.25;
+  return { near: Math.max(base, viewDist * FOG_NEAR_SHARE), far: viewDist * 1.02 };
+}
+
 // The high-detail radius (scene3d.js DRAW_DIST: full buildings, roads, street
 // furniture, walkers) per quality profile. It was one 140 m for everyone; a
 // better profile with a view distance of 350 m or more gets a bigger ring.

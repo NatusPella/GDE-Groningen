@@ -110,7 +110,7 @@ import { glassMaterial } from './interiorglass.js';
 import { detailMaterial } from './models3d_buildings.js';
 import { streamLead } from './streambudget.js';
 import { fadeBand, loadRadius } from './popinrules.js';
-import { VIEW_DISTANCES, viewDistanceFor, detailDistanceFor, DETAIL_BASE } from './viewdist.js';
+import { VIEW_DISTANCES, viewDistanceFor, detailDistanceFor, fogRange, DETAIL_BASE } from './viewdist.js';
 import { glanceAt, shareFeet } from './gait.js';
 import { NEAR_MIN, cameraNearTarget, stepNear, parseNearFlag, parseFarFlag } from './cameranear.js';
 import { compareOpaque } from './drawpool.js';
@@ -1096,8 +1096,9 @@ function applyViewDistance(st) {
   viewDist = Math.round(viewDistanceFor(st.drawDistance, dynamicScale(), cpuLevel()) * gpuRamp()); // gpuherstel.js: na contextverlies groeit de afstand terug
   DRAW_DIST = detailDistanceFor(st.quality, viewDist, cpuLevel());
   cam.far = parseFarFlag(FLAGS.far) ?? Math.max(DRAW_DIST * 1.4, viewDist * 1.4, landmarkDist() * 1.1); // ?far=<m>: testvlag (#917)
-  lightBase.fogNear = DRAW_DIST * 0.45 + (viewDist - 150) * 0.25;
-  lightBase.fogFar = viewDist * 1.02;
+  const fog = fogRange(viewDist, DRAW_DIST);
+  lightBase.fogNear = fog.near;
+  lightBase.fogFar = fog.far;
 }
 
 function renderPixelRatio(st, preset) {
@@ -3637,8 +3638,8 @@ function guardRay(ox, oy, oz, dx, dy, dz, far, targets) {
   camRaycaster.set(camRayOrigin, camRayDir);
   camRaycaster.near = 0.05;
   camRaycaster.far = far;
-  const hits = camRaycaster.intersectObjects(targets, true);
-  return hits.length ? hits[0].distance : null;
+  // dezelfde afstand als camRaycaster.intersectObjects(targets, true)[0], maar alleen de driehoeken waar de straal door een chunk-box gaat (camNearestHit)
+  return camNearestHit(targets);
 }
 const GUARD_SAMPLES = [[0, 0]]; // only the camera point: walls beside it are handled by the push rays
 function roofTopNear(map, x, y) {
@@ -3668,7 +3669,8 @@ function guardCinematicCamera(dt, world) {
   guardLift += (need - guardLift) * Math.min(1, dt * (need > guardLift ? 10 : 1.5));
   if (guardLift > 0.01) cam.position.y += guardLift;
   const targets = guardTargets();
-  if (targets.length) {
+  // de duwstralen (CAM_CLEARANCE lang) raken niets als de camera buiten elke gebouwvoetafdruk plus marge hangt (vlucht, boot): dan geen enkele straal (zoals updateCamera)
+  if (targets.length && (!camTargetsBounded || camPushRaysNeeded(camTargetBounds, camTargetBounds.length, cam.position.x, cam.position.z, CAM_CLEARANCE + 1))) {
     for (const [ax, ay, az] of CAM_PUSH_DIRS) {
       const h = guardRay(cam.position.x, cam.position.y, cam.position.z, ax, ay, az, CAM_CLEARANCE, targets);
       if (h === null) continue;
