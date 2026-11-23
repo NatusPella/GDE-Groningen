@@ -12,6 +12,10 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 - Personages: Tessa's lange haar hangt niet meer als een zwart vlak voor haar gezicht in close-ups (de lokken beginnen achter de slaap, bijna zwart haar heeft een warme ondertoon en de binnenkant van een lok is niet meer pikzwart); dat geldt voor iedereen met lang of golvend haar. De hand loopt taps uit de pols en steekt niet meer als blok uit de mouw van Tammo's jack.
 - Lopen: wie begint te lopen duikt kort naar voren en wie stopt wiegt even terug; de ademhaling bij stilstaan is beter te zien.
 - Samen spelen: niets hiervan staat in een snapshot of bericht; elke speler rekent het lokaal uit hetzelfde zaad en dezelfde loopsnelheid, dus iedereen ziet dezelfde looks. Het knipperen is puur visueel en per scherm eigen.
+- Personages die leven: wie praat beweegt zijn mond mee met de stem (in cutscenes en aan tafel; zonder geluid op een eigen ritme), een lach of schrik is aan de mond te zien, en wie luistert kijkt de spreker ook omhoog of omlaag aan.
+- Personages die leven: voeten staan op de grond op hellingen en trappen (de heup zakt mee naar de lage voet), de handen van een bestuurder draaien mee aan het stuur en een fietser houdt zijn handvatten vast, ook als het stuur draait.
+- Cutscenes: een acteur die rent zwaait verder met zijn armen en helt naar voren, met een vloeiende overgang van lopen naar rennen; wie stilstaat wisselt af en toe van houding.
+- Samen spelen: voeten, handen, blik en mond rekent elke speler lokaal uit wat hij al ziet (positie, snelheid, grond, stuurstand); er gaat niets extra over het netwerk.
 
 ## [0.65.0] - 2026-11-22
 
