@@ -40,6 +40,11 @@ De werkafspraken en de constitutie staan in [../AGENTS.md](../AGENTS.md); die wi
 | [1.0-TRACK.md](<1.0-TRACK.md>) | Deze pagina bundelt wat er voor de publicatie en 1.0 lokaal is gedaan en wat alleen de eigenaar |
 | [3d-model-prompts.md](<3d-model-prompts.md>) | Naslag. De regels staan in de canonieke spec [`.specs-fire/standards/ui-taal.md`](../.specs-fire/standards/… |
 | [AAA-JUICE-23-11.md](<AAA-JUICE-23-11.md>) | Game feel 23-11: wat er al was en wat er bij kwam (landingen met stof, camerazakking en haptiek, voertuigdreun, snelheidsstrepen). |
+| [AAA-OBJECTEN-23-11.md](<AAA-OBJECTEN-23-11.md>) | AAA-objecten 23-11: voertuigen (deurnaden, interieur, trekker-limo, auto's naar de vormtaal van een CC0-pakket), helikopter, straatmeubilair en één propregister, met voor- en nabeelden. |
+| [AUDIT-SPEELBAARHEID-23-11.md](<AUDIT-SPEELBAARHEID-23-11.md>) | Audit speelbaarheid 23-11 als speler: doelbalk per stap, warps in Samen spelen, lange ritten en balans, met wat is doorgevoerd en wat open staat. |
+| [AUDIT-UITERLIJK-23-11.md](<AUDIT-UITERLIJK-23-11.md>) | Audit uiterlijk 23-11 (art director): wat goedkoop of leeg oogt, en wat is opgepakt (boomkronen, gevels, daken). |
+| [AUDIT-UXUI-23-11.md](<AUDIT-UXUI-23-11.md>) | UX/UI-audit 23-11: bevindingen per scherm, wat in twee rondes is doorgevoerd (componenten, inkt-tokens, laadschermen) en wat nog open is. |
+| [AUDIT-VERHAAL-23-11.md](<AUDIT-VERHAAL-23-11.md>) | Redactie-audit van de speltekst 23-11: continuïteit, tics en uitleg, met meetscript en de herschreven regels. |
 | [AAA-WERELD-23-11.md](<AAA-WERELD-23-11.md>) | AAA-oppimp van de wereld 23-11: bevindingen en stand, met de wolken in de hemelshader en de weerspiegeling in het water. |
 | [ANDROID.md](<ANDROID.md>) | Lokaal bouwbare debug-APK van het spel (Capacitor-WebView rond de webversie). Alleen voor testen: niets upl… |
 | [ARCHITECTUUR-STAD-NAAR-TEGELS.md](<ARCHITECTUUR-STAD-NAAR-TEGELS.md>) | *Migratieplan voor issue #90, 17 oktober 2026 (stand 0.34 + Unreleased). Historisch: de migratie is |
