@@ -27,6 +27,7 @@ import { fileURLToPath } from 'node:url';
 import { checkSyntax, checkSyntaxAsync } from './lib/syntaxcheck.mjs';
 import { SERIE, runProces, pool, maakHartslag, runMetHerkansing, flakeMelding, laadBehoeften, skipReden, dataCacheAanwezig } from './lib/testloop.mjs';
 import { heeftVendorCache } from './lib/vendorcache.mjs';
+import { findWorld } from './lib/worldlocator.mjs';
 import { EXCLUDED, SLOW, MISSING_DATA, listFiles } from './run_tests.mjs';
 import { decodePng, analyseImage, signature, signatureDiff } from './lib/pngcheck.mjs';
 import * as R from './lib/testrapport.mjs';
@@ -90,7 +91,12 @@ export function eindCode(report, fasen, { allowSkip = false } = {}) {
 
 const behoeften = laadBehoeften(ROOT);
 const omgeving = () => ({ wereld: heeftWereld(), three: heeftVendorCache(ROOT), data: dataCacheAanwezig(ROOT) });
-const heeftWereld = () => fs.existsSync(path.join(ROOT, 'game', 'world', 'index-provincie.json'));
+// #1183: dezelfde wereldzoeker als de releasegate (ook desktop/build/game/world in een worktree). Staat de wereld
+// niet in game/world, dan krijgen de kindprocessen GAME_WORLD mee; een audit die alleen game/world kent, meldt
+// zelf SKIP en de gate telt dat als onvolledig in plaats van groen.
+const WERELD = findWorld(ROOT);
+if (WERELD && !process.env.GAME_WORLD && path.resolve(WERELD) !== path.resolve(ROOT, 'game', 'world')) process.env.GAME_WORLD = WERELD;
+const heeftWereld = () => Boolean(WERELD);
 const skip = (fase, id, naam, reden) => R.maakItem(fase, id, naam, 'SKIP', 0, 'niet gedraaid: ' + reden);
 const wilDit = (id) => !ONLY || id.includes(ONLY);
 

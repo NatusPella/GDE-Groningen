@@ -23,6 +23,7 @@ import {
 } from './release/stages.mjs';
 import { checkOwnerReview, OWNER_REVIEW_FILE } from './release/ownerreview.mjs';
 import { checkBeeldregressieBekeken, BEELDREGRESSIE_FILE } from './release/beeldregressiebekeken.mjs';
+import { findWorld, worldPhaseVerdict } from './lib/worldlocator.mjs';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(HERE, '..');
@@ -78,14 +79,17 @@ function electronPad() {
   const eigen = path.join(ROOT, 'desktop', 'node_modules', 'electron', 'dist', process.platform === 'win32' ? 'electron.exe' : 'electron');
   return process.env.ELECTRON_EXE || (fs.existsSync(eigen) ? eigen : '');
 }
-function wereldMap() {
-  const kandidaten = [
-    process.env.GDE_GAME_DIR && path.join(process.env.GDE_GAME_DIR, 'world'),
-    process.env.GDE_PREBUILT_WORLD,
-    path.join(ROOT, 'game', 'world'),
-    path.join(ROOT, 'desktop', 'build', 'game', 'world'),
-  ].filter(Boolean);
-  return kandidaten.find((d) => fs.existsSync(path.join(d, 'index-provincie.json'))) || '';
+// Dezelfde zoeker als test_all (#1183): GDE_GAME_DIR, GDE_PREBUILT_WORLD, GAME_WORLD, game/world, desktop/build/game/world.
+const wereldMap = () => findWorld(ROOT);
+
+// De items van de nieuwste test_all-run in <rapportmap> (fase zwaar), of [] als er geen rapport is.
+function zwaarItems(rapportMap) {
+  try {
+    const runs = fs.readdirSync(rapportMap).filter((n) => fs.existsSync(path.join(rapportMap, n, 'rapport.json'))).sort();
+    if (!runs.length) return [];
+    const r = JSON.parse(fs.readFileSync(path.join(rapportMap, runs[runs.length - 1], 'rapport.json'), 'utf8'));
+    return (r.fases && r.fases.zwaar && r.fases.zwaar.items) || [];
+  } catch { return []; }
 }
 
 // ---------------------------------------------------------------- fasen
@@ -148,8 +152,10 @@ function faseWereld(ctx) {
     const md = fs.readFileSync(path.join(testDir, 'laatste-rapport.md'), 'utf8').split('\n').filter(Boolean);
     samenvatting = md.slice(0, 12).join(' | ');
   } catch { /* rapport kan ontbreken als de fase niet startte */ }
-  const status = r.code === 0 ? 'PASS' : r.code === 3 ? 'SKIP' : 'FAIL';
-  return { status, code: r.code === 0 ? 0 : r.code === 3 ? 3 : 1, secs: r.secs, detail: r.code === 0 ? samenvatting : `${MELDING(r)}${samenvatting ? `: ${samenvatting}` : ''}`, log: d };
+  // #1183: een wereld die er wel is maar door de audits niet gevonden werd, maakt de fase onvolledig, niet PASS.
+  const u = worldPhaseVerdict(r.code, zwaarItems(testDir), Boolean(wereldMap()));
+  const gemist = u.gemist && u.status !== 'FAIL' && r.code === 0 ? `${u.gemist} items niet gedraaid terwijl er een wereld is (${wereldMap()}); ` : '';
+  return { status: u.status, code: u.code, secs: r.secs, detail: r.code === 0 ? gemist + samenvatting : `${MELDING(r)}${samenvatting ? `: ${samenvatting}` : ''}`, log: d };
 }
 
 function fasePerf(ctx) {
