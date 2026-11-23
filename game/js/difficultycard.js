@@ -26,6 +26,23 @@ export const levelCards = () => DIFFICULTY_MODES.map((id, i) => ({
   id, label: DIFFICULTY[id].label, uitleg: LEVEL_TEXT[id].uitleg, toets: LEVEL_KEYS[i], aanbevolen: id === DIFFICULTY_DEFAULT,
 }));
 
+// #1227: per niveau drie meters (tijd, politie, verkeer) met een icoon, een woord en 1 tot 3 blokjes: hoe pittig dat deel is.
+// Afgeleid uit de voorinstellingen van de opties zelf, zodat de kaart niet liegt als een preset verandert.
+// richting: 1 = een hogere waarde is pittiger, -1 = een lagere waarde is pittiger (minder tijd).
+export const LEVEL_METERS = Object.freeze([
+  { id: 'tijd', key: 'timeFactor', icoon: 'tijd', label: 'Tijd', richting: -1, woorden: ['ruim', 'gewoon', 'krap'] },
+  { id: 'politie', key: 'policeUnits', icoon: 'politie', label: 'Politie', richting: 1, woorden: ['rustig', 'gewoon', 'scherp'] },
+  { id: 'verkeer', key: 'trafficDensity', icoon: 'auto', label: 'Verkeer', richting: 1, woorden: ['rustig', 'gewoon', 'druk'] },
+]);
+export function levelMeters(level) {
+  return LEVEL_METERS.map((m) => {
+    const waarden = [...new Set(DIFFICULTY_MODES.map((l) => presetValue(l, m.key)))].sort((a, b) => (a - b) * m.richting);
+    const i = Math.max(0, waarden.indexOf(presetValue(level, m.key)));
+    const n = Math.min(3, i + 1);
+    return { id: m.id, icoon: m.icoon, label: m.label, n, woord: m.woorden[n - 1] };
+  });
+}
+
 // Wat de start vraagt. `testmodus`: een geautomatiseerde run (main.js telt de vlaggen), `vlag`: ?moeilijkheid=
 //   'vraag' toont de kaart ook in een testrun (beeld en tests); een niveau (bijv. 'uitdagend') zet dat niveau zonder kaart;
 //   anders slaat een testrun de kaart over en is het niveau Standaard (de bestaande tests en de benchmark veranderen niet).

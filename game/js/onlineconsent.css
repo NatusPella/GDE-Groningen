@@ -98,6 +98,14 @@ html.reduce-motion .sk-keuze { transition: none; }
 .dk-keuze { min-height: 170px; }
 .dk-keuze .sk-label { font-size: 30px; padding-right: 34px; }
 .dk-keuze .sk-uitleg { font-size: 16px; }
+/* #1227: drie meters per niveau: icoon, woord en blokjes (gevuld = pittiger) */
+.dk-meters { display: flex; flex-direction: column; gap: 4px; margin-top: 8px; }
+.dk-meter { display: grid; grid-template-columns: 18px 1fr auto auto; align-items: center; gap: 8px; font-size: 14px; line-height: 1.2; }
+.dk-meter svg { width: 18px; height: 18px; }
+.dk-meter-w { min-width: 6ch; text-align: right; font-weight: 700; }
+.dk-blok { display: inline-flex; gap: 3px; }
+.dk-blok i { width: 10px; height: 10px; border: 2px solid currentColor; border-radius: 2px; }
+.dk-meter[data-n="1"] .dk-blok i:nth-child(-n+1), .dk-meter[data-n="2"] .dk-blok i:nth-child(-n+2), .dk-meter[data-n="3"] .dk-blok i { background: currentColor; }
 .dk-tag { display: inline-block; padding: 2px 8px; font-size: 13px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ds-primair-tx); background: var(--ds-zeef-primair); border: 2px solid var(--ds-c-ink-inkt); border-radius: var(--ds-r); }
 .dk-keuze:focus .dk-tag, .dk-keuze:focus-visible .dk-tag { background: var(--ds-zeef-bg); color: var(--ds-zeef-tx); }
 .dk-onder { margin-top: 14px; }

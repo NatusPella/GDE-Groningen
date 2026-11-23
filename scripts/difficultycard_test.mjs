@@ -195,6 +195,15 @@ const next = () => new Promise((r) => setTimeout(r, 0));
   ok(/GDE_MOEILIJKHEID === 'vraag' \? 'moeilijkheid=vraag' : isTestRun && 'moeilijkheid=standaard'/.test(dt), 'devtools.js: elke testrun speelt Standaard zonder kaart');
 }
 
+// --- #1227: meters per niveau op de kaart (tijd, politie, verkeer) ---
+{
+  const m = (l) => C.levelMeters(l).map((x) => x.n).join('');
+  ok(m('ontspannen') === '111' && m('standaard') === '222' && m('uitdagend') === '333', 'ontspannen is overal het rustigst, uitdagend overal het pittigst', [m('ontspannen'), m('standaard'), m('uitdagend')]);
+  ok(C.levelMeters('uitdagend').map((x) => x.woord).join(' ') === 'krap scherp druk', 'elke meter heeft een woord naast de blokjes');
+  const kaart = UI.levelViewHtml({ level: 'standaard' });
+  ok((kaart.match(/class="dk-meters"/g) || []).length === 3 && (kaart.match(/class="dk-meter" data-n=/g) || []).length === 9, 'drie niveaus met elk drie meters op de kaart');
+}
+
 // --- Instellingen > Moeilijkheid (difficultypanel.js) ---------------------------------------------------------------------------------
 {
   const html = M.difficultyTabHtml();

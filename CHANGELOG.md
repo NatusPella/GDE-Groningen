@@ -76,6 +76,7 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 - Pauzemenu › Cheats: geen lege kop Acties meer, de groep schakelaars heet Aan of uit, de drie tegels die de badge herhaalden zijn weg en de zin bovenaan zegt "Prestaties tellen gewoon mee zolang je geen cheat aanzet." Samen spelen: ongewijzigd; met meer spelers blijven cheats uit.
 - Bijbanen: de slotregel van een dienst kijkt naar het aantal betaalde klussen, niet naar de reeks. Vijf klussen met een aanrijding halverwege is nu een goede dienst in plaats van een magere. Samen spelen: de slotregel is van wie de dienst draait; geen nieuw bericht.
 - Instellingen › Moeilijkheid: de kiezer voor het niveau staat bovenaan, met daaronder alleen de uitleg van het gekozen niveau. De drie niveaus naast elkaar staan in het zijpaneel, de regel over Samen spelen is een label in plaats van een alinea. Samen spelen: ongewijzigd; politie en verkeer kies je samen, de rest is van jezelf.
+- Moeilijkheidskaart bij een nieuw spel: elk niveau toont met een icoon, een woord en blokjes hoe het zit met tijd, politie en verkeer (Ontspannen: ruim, rustig, rustig; Uitdagend: krap, scherp, druk). Samen spelen: de kaart is van wie een nieuw spel begint; er gaat niets over het net.
 
 ## [0.65.0] - 2026-11-22
 

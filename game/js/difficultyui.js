@@ -7,11 +7,17 @@ import { icoon } from './icons.js';
 import { trapTabInCard } from './listnav.js';
 import { DIFFICULTY_DEFAULT, cleanProfile, setActiveDifficulty, difficultySummary } from './difficulty.js';
 import {
-  CARD_TEXT, OPTION_DEFS, OPTION_GROUPS, levelCards, levelKeyAction, optionsKeyAction, stepDraft, draftLabel, draftLevel, difficultyPlan, needsDifficultyCard,
+  CARD_TEXT, OPTION_DEFS, OPTION_GROUPS, levelCards, levelMeters, levelKeyAction, optionsKeyAction, stepDraft, draftLabel, draftLevel, difficultyPlan, needsDifficultyCard,
 } from './difficultycard.js';
 
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const helpHtml = (lijst) => `<p class="sk-hulp">${lijst.map((h) => `<span>${keyTextHtml(esc(h))}</span>`).join('')}</p>`;
+
+// #1227: tijd, politie en verkeer per niveau als icoon, woord en blokjes (vorm en woord naast kleur; het woord leest de schermlezer)
+function metersHtml(level) {
+  const rij = (m) => `<span class="dk-meter" data-n="${m.n}">${icoon(m.icoon)}<span class="dk-meter-l">${esc(m.label)}</span><span class="dk-blok" aria-hidden="true"><i></i><i></i><i></i></span><span class="dk-meter-w">${esc(m.woord)}</span></span>`;
+  return `<span class="dk-meters">${levelMeters(level).map(rij).join('')}</span>`;
+}
 
 // De niveau-weergave: drie knoppen met een korte beschrijving en daaronder "Aanpassen".
 export function levelViewHtml(profile) {
@@ -21,6 +27,7 @@ export function levelViewHtml(profile) {
       <span class="sk-label">${esc(c.label)}</span>
       ${c.aanbevolen ? `<span class="dk-tag">${esc(CARD_TEXT.aanbevolen)}</span>` : ''}
       <span class="sk-uitleg" id="dk-u-${c.id}">${esc(c.uitleg)}</span>
+      ${metersHtml(c.id)}
     </button>`).join('');
   return `<section class="os-kaart sk-kaart dk-kaart" role="dialog" aria-modal="true" aria-labelledby="dk-titel" aria-describedby="dk-intro">
     <p class="os-eb">${esc(CARD_TEXT.eyebrow)}</p>
