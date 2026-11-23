@@ -39,7 +39,7 @@ import { syncAutoStuur } from './autointerieur.js';
 import { syncVoertuigBediening } from './voertuigbediening.js';
 import { syncHaltefiguren } from './haltefiguren3d.js';
 import { seatedOf } from './occupants.js';
-import { vehicleSeat, placeSeated, makeSeatTracker, trackSeat, drawTransition, syncBoatCrew } from './seating3d.js';
+import { vehicleSeat, placeSeated, placeSeatedLocal, makeSeatTracker, trackSeat, drawTransition, syncBoatCrew } from './seating3d.js';
 import { vehicleHeight } from './vaultkit.js';
 // #497: de pure camera-meetkunde (volgcam buiten de wagen, prop- en boomray, ellipsoïde) staat in cammath.js.
 import { camClearOfVehicle, rayCylinder, segHitsEllipsoid, vehicleCamRig } from './cammath.js';
@@ -761,12 +761,12 @@ function ensurePassengerFigure(mesh, v, dist, deadline) {
 function detachPlayerRider(mesh) {
   if (playerRider && mesh && playerRider.parent === mesh) mesh.remove(playerRider);
 }
-function syncPlayerRider(pv, pvMesh, hide) {  const want = pv && (pv.isBike || pv.isScooter) && pv._mount !== 'horse' && pvMesh && !pv.riderOff && !pv.sinking;
+function syncPlayerRider(pv, pvMesh, hide, t = 0) {  const want = pv && (pv.isBike || pv.isScooter) && pv._mount !== 'horse' && pvMesh && !pv.riderOff && !pv.sinking;
   if (!want) {
     if (playerRider && playerRider.parent) playerRider.parent.remove(playerRider);
     return;
   }
-  if (!playerRider || playerRiderChar !== playerCharacter) {
+  if (!playerRider || playerRiderChar !== playerCharacter || !!playerRider.userData.qRig !== (mensenFase(FLAGS.mensen) >= 3 && modularReady())) {
     if (playerRider) {
       if (playerRider.parent) playerRider.parent.remove(playerRider);
       disposeObject(playerRider); // #788: de oude look geeft zijn gedeelde rompgeometrie terug
@@ -777,6 +777,16 @@ function syncPlayerRider(pv, pvMesh, hide) {  const want = pv && (pv.isBike || p
   }
   const ud = playerRider.userData;
   if (playerRider.parent !== pvMesh) pvMesh.add(playerRider);
+  if (ud.qRig) {
+    // spelerfase (?mensen=q3): de modulaire mens zit op het zadel met de rijclip, handen aan het stuur en voeten bij de trappers
+    // (seating3d.js placeSeatedLocal); de ingebouwde procedurele fietser van het model wordt verborgen, zoals hieronder
+    placeSeatedLocal(playerRider, vehicleSeat(pv, true), t);
+    const figQ = pvMesh.userData.riderFig || pvMesh.children.find((c) => c !== playerRider && c.userData && (c.userData.legL || c.userData.qRig));
+    if (figQ && figQ !== playerRider) figQ.visible = false;
+    if (pvMesh.userData.riderMesh && pvMesh.userData.riderMesh !== playerRider) pvMesh.userData.riderMesh.visible = false;
+    playerRider.visible = !hide;
+    return;
+  }
   const seat = pv.isScooter ? riderSeatFor(pv.model) : null;
   if (seat) {
     playerRider.position.set(seat.x, seat.y - 0.93 * playerRider.scale.y, 0);

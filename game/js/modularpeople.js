@@ -63,6 +63,13 @@ export function registerModularRig(name, man, buf) {
     b.parent.getWorldQuaternion(q);
     rig.lookAxis[n] = up.set(0, 1, 0).applyQuaternion(q.invert()).normalize().toArray();
   }
+  // de zij-as (+z van de mens) in de assen van de ouder van armen en hoofd: om die as zwaait een arm naar voren en knikt het hoofd
+  rig.sideAxis = {};
+  for (const n of ['UpperArmL', 'UpperArmR', 'LowerArmL', 'LowerArmR', 'Head', 'Neck']) {
+    const bb = tmp.bones[man.bones.findIndex((x) => x.name === n)];
+    bb.parent.getWorldQuaternion(q);
+    rig.sideAxis[n] = up.set(0, 0, 1).applyQuaternion(q.invert()).normalize().toArray();
+  }
   rigs.set(name, rig);
   return rig;
 }
@@ -131,7 +138,7 @@ const HAIR_DYED = [0x2f6f8a, 0x8a2f6f, 0xc9694a];
 // Hoe vaak een deel voorkomt op een Groningse straat (correctie coördinator 23-11): gewone kapsels en kleding het meest, opvallende
 // stijlen (hanenkam, cowboyhoed, punkleer, tuinbroek) zeldzaam (1 tot 3%). Sleutel = deel-id; wat niet genoemd is telt 1.
 export const PART_WEIGHT = {
-  Punk_Head: 0.03, Farmer_Head: 0.03, Worker_Head: 0.12, Beach_Head: 0.5, Adventurer_Head: 0.6,
+  Punk_Head: 0.02, Farmer_Head: 0.02, Worker_Head: 0.12, Beach_Head: 0.5, Adventurer_Head: 0.6,
   Punk_Body: 0.04, Farmer_Body: 0.05, Worker_Body: 0.08, Adventurer_Body: 0.12, Beach_Body: 0.45, Suit_Body: 0.45, Formal_Body: 0.6,
   Punk_Legs: 0.08, Farmer_Pants: 0.05, Worker_Legs: 0.2, Adventurer_Legs: 0.15, Suit_Legs: 0.55, Beach_Legs: 0.5, Formal_Legs: 0.5,
   Punk_Feet: 0.3, Farmer_Feet: 0.08, Worker_Feet: 0.4,
@@ -411,6 +418,7 @@ export function buildModularPerson(seed, opts = {}) {
   ud.qState = { t: hashf(seed, 31) * 10, phase: hashf(seed, 32), walk: 0, run: 0, gaze: 0 };
   ud.qSM = createAnimState('idle');   // de gedeelde state-machine (animstate.js, ADR 0051)
   const bi = (n) => rig.man.bones.findIndex((b) => b.name === n);
+  ud.qIdxBy = Object.fromEntries(rig.man.bones.map((b, i) => [b.name, i]));
   ud.qIdx = { neck: bi('Neck'), head: bi('Head'), body: bi('Body'), root: bi('Root'), upL: bi('UpperLegL'), loL: bi('LowerLegL'), upR: bi('UpperLegR'), loR: bi('LowerLegR'), footL: bi('FootL'), footR: bi('FootR') };
   return group;
 }
@@ -445,6 +453,20 @@ function accumulate(rig, c, u, w) {
 
 const _qa = new THREE.Quaternion(), _axis = new THREE.Vector3();
 const SP0 = { ..._sp };
+// Gebaren bij praten (ADR 0051 bovenlijflaag 'talk'): om de zij-as van de mens; w = gewicht 0..1. Geen allocaties.
+const _ax = new THREE.Vector3(), _gq = new THREE.Quaternion();
+function talkGestures(ud, rig, t, w) {
+  const B = ud.qBones, ax = rig.sideAxis, o = ud.animOffset || 0;
+  const turn = (name, a) => { const bi = ud.qIdxBy[name]; if (bi >= 0 && Math.abs(a) > 1e-4) B[bi].quaternion.premultiply(_gq.setFromAxisAngle(_ax.fromArray(ax[name]), a)); };
+  // om en om een hand naar voren, de onderarm omhoog (een uitleggend gebaar), met een rustpauze ertussen
+  const ph = (t * 0.55 + o * 0.13) % 2, k = ph < 1 ? ph : ph - 1, side = ph < 1 ? 'L' : 'R';
+  const g = Math.sin(Math.min(1, k * 1.3) * Math.PI) * w;
+  turn('UpperArm' + side, 0.35 * g);
+  turn('LowerArm' + side, 0.9 * g);
+  turn('LowerArm' + (side === 'L' ? 'R' : 'L'), 0.25 * w);
+  // het hoofd rechtop (naar de luisteraar) met een kleine knik op het ritme van de zin
+  turn('Head', (0.06 + 0.05 * Math.sin(t * 4.1 + o)) * w);   // + = neus omhoog
+}
 // Welke clip(s) bij welke state (ADR 0051). De pack-clips voor idle/lopen/rennen/zwaaien, de Universal Animation Library voor de rest
 // (UAL_*); ontbreekt een clip, dan valt de state terug op idle. Wat geen clip heeft (klimmen, fietsen, opstaan) staat hier met de
 // beste benadering tot er een eigen clip is.
@@ -463,7 +485,7 @@ function evalState(ud, rig, st, si, t, w, talk, walkC, runC, idleC, runOff) {
     const wIdle = (1 - st.walk) * w;
     // hurken (ud.crouch, zoals bij het eigen model): de hurkclips in plaats van stilstaan en lopen
     const crouch = ud.crouch && rig.clips.UAL_Crouch_Idle_Loop;
-    const idleClip = crouch ? rig.clips.UAL_Crouch_Idle_Loop : talk && rig.clips.UAL_Idle_Talking_Loop ? rig.clips.UAL_Idle_Talking_Loop : idleC;
+    const idleClip = crouch ? rig.clips.UAL_Crouch_Idle_Loop : idleC;
     accumulate(rig, idleClip, (st.t + ud.animOffset) / idleClip.dur, wIdle);
     if (crouch) accumulate(rig, rig.clips.UAL_Crouch_Fwd_Loop, st.phase, st.walk * w);
     else accumulate(rig, walkC, st.phase, st.walk * (1 - st.run) * w);
@@ -475,7 +497,7 @@ function evalState(ud, rig, st, si, t, w, talk, walkC, runC, idleC, runOff) {
   const list = STATE_CLIPS[name];
   const spec = STATES[name];
   let c = null;
-  if (list) c = rig.clips[list[name === 'swim' ? (ud.qSM.speed > 0.4 ? 1 : 0) : talk && list[1] ? 1 : 0]] || rig.clips[list[0]];
+  if (list) c = rig.clips[list[name === 'swim' ? (ud.qSM.speed > 0.4 ? 1 : 0) : 0]] || rig.clips[list[0]];
   if (!c) { accumulate(rig, idleC, (st.t + ud.animOffset) / idleC.dur, w); return; }
   const u = spec.loop ? t / c.dur : Math.min(0.999, t / Math.max(c.dur, spec.dur || 0));
   accumulate(rig, c, u, w);
@@ -545,6 +567,9 @@ export function animateModular(mesh, speed, dt) {
   evalState(ud, rig, st, sm.s, st.stateT, k, talk, walkC, runC, idleC, runOff);
   if (k < 1) evalState(ud, rig, st, st.prevS, st.prevT, 1 - k, talk, walkC, runC, idleC, runOff);
   writeBones(ud, rig);
+  // praten: gebaren met de armen (om en om een onderarm omhoog, een open hand) en het hoofd rechtop met een kleine knik
+  st.talkW = crossfade(st.talkW || 0, ud.qParams && ud.qParams.talk ? 1 : 0, step, 0.3);
+  if (st.talkW > 0.01) talkGestures(ud, rig, st.t, st.talkW);
   // knipperen (gait.js blinkAmount, zelfde ritme als het eigen model)
   if (ud.lids) { const bl = blinkAmount(st.t + ud.animOffset, ud.animOffset); if (ud.lids.scale.y !== bl) ud.lids.scale.y = bl; }
   // blik (gait.js glanceAt zet ud.gazeT, + = rechts): hoofd en nek draaien om de verticale as van de persoon, 40/60 verdeeld
@@ -617,55 +642,85 @@ function kneeOut(mesh, up, lo, footWorld, side) {
 // in meters, zoals seatPose van het eigen model), en bij sturen de handen aan het stuur (ud.steer: -1..1, actorlife.js wheelGrip).
 // Werkt op de pose die de clip net gaf; alleen dichtbij nodig.
 const _sv = new THREE.Vector3(), _sw = new THREE.Vector3(), _sg = { x: 0, y: 0, z: 0 };
+const SPINE = ['Abdomen', 'Torso', 'Chest', 'Neck', 'Head'];
+// Zet alleen de genoemde botten op hun stand in een clip (tijd u 0..1), zonder menging: de rug rechtop uit de staande idle.
+function poseBonesFromClip(ud, rig, clipName, u, names) {
+  const c = rig.clips[clipName];
+  if (!c) return;
+  const nb = rig.man.bones.length, f = Math.max(0, Math.min(c.frames - 1, Math.round(u * (c.frames - 1))));
+  for (const n of names) {
+    const bi = rig.man.bones.findIndex((x) => x.name === n);
+    if (bi < 0) continue;
+    const o = (f * nb + bi) * 4, q = c.quats;
+    ud.qBones[bi].quaternion.set(q[o], q[o + 1], q[o + 2], q[o + 3]).normalize();
+  }
+}
 function seatIK(mesh, seat) {
-  const ud = mesh.userData, I = ud.qIdx, B = ud.qBones, pose = seat && seat.pose;
+  const ud = mesh.userData, I = ud.qIdx, B = ud.qBones, pose = seat && seat.pose, rig = ud.qRig;
   const rider = !!(seat && seat.rider);
   if ((!pose && !rider) || (seat.stand && !rider)) return;
+  const bn = (n) => B[rig.man.bones.findIndex((x) => x.name === n)];
+  const drive = rider || (pose && (pose.arms === 'wheel' || pose.arms === 'helm' || pose.arms === 'tiller'));
+  const astride = !!(pose && pose.splay);
+  // 1. de rug rechtop (de zitclip van de bibliotheek leunt voorover) en tegen de rugleuning (pose.recline), alleen de romp
+  if (!astride) {
+    poseBonesFromClip(ud, rig, 'Idle', 0.25, SPINE);
+    const rec = rider ? -0.12 : Math.max(-0.2, Math.min(0.45, (pose && pose.recline) || 0)) * 0.45;   // een beetje tegen de leuning, niet achterover
+    mesh.updateMatrixWorld(true);
+    _kd.set(0, 0, 1).transformDirection(mesh.matrixWorld);
+    if (Math.abs(rec) > 1e-3) rotateWorld(bn('Abdomen'), _iq.setFromAxisAngle(_kd, rec));
+  }
   mesh.updateMatrixWorld(true);
   const s = mesh.scale.y || 1;
-  const bn = (n) => B[ud.qRig.man.bones.findIndex((b) => b.name === n)];
-  // op de fiets: de voeten bij de trappers (onder en iets voor het zadel), anders de voeten van de stoel
-  const fx = rider ? 0.25 : pose.footX ?? 0.6, fy = rider ? -0.7 : pose.footY ?? -0.3;
+  // 2. benen: knie rond 105 graden (voet op 0,8 x de beenlengte van de heup), de voeten op de vloer: pose.footY (van het eigen model)
+  // min 0,17 m, niet dieper dan het onderbeen reikt. Een fietser zet zijn voeten bij de trappers; schrijlings houdt de maten van de stoel.
+  const l1 = B[I.upL].getWorldPosition(_sv).distanceTo(B[I.loL].getWorldPosition(_sw)) / s, l2 = B[I.loL].getWorldPosition(_sv).distanceTo(B[I.footL].getWorldPosition(_sw)) / s;
+  let fx, fy;
+  if (rider) { fx = 0.25; fy = -0.7; }
+  else if (astride) { fx = pose.footX ?? 0.3; fy = pose.footY ?? -0.6; }
+  else {
+    fy = Math.max(-0.95 * l2, Math.min(-0.08, (pose.footY ?? -0.3)));
+    const d = 0.8 * (l1 + l2);
+    fx = Math.sqrt(Math.max(0.01, d * d - fy * fy));
+  }
   for (let k = 0; k < 2; k++) {
     const up = B[k ? I.upR : I.upL], lo = B[k ? I.loR : I.loL], foot = B[k ? I.footR : I.footL];
     const side = k ? 1 : -1;   // L zit bij deze mensen aan -z
     up.getWorldPosition(_sv); mesh.worldToLocal(_sv);
     _sv.x += fx / s; _sv.y += fy / s;
-    // schrijlings (paard, quad): de voeten wijken uit naar opzij, zoals seatPose met pose.splay
-    if (pose && pose.splay) _sv.z += side * Math.sin(pose.splay) * Math.abs(fy) / s;
+    if (astride) _sv.z += side * Math.sin(pose.splay) * Math.abs(fy) / s;
     mesh.localToWorld(_sv);
     foot.getWorldPosition(_sw);
     ikTo(up, lo, _sw, _sv);
-    if (pose && pose.splay) kneeOut(mesh, up, lo, _sv, side);
+    if (astride) kneeOut(mesh, up, lo, _sv, side);
     foot.parent.worldToLocal(_sv); foot.position.copy(_sv); foot.updateMatrixWorld(true);
   }
-  if (rider) {
-    // de handvatten van het fietsstuur: 0,43 m voor de heup, op heuphoogte, 0,28 m opzij (bikeStuurOnderdelen)
-    const hips = bn('Hips');
-    hips.getWorldPosition(_sv); mesh.worldToLocal(_sv);
-    const hx = _sv.x, hy = _sv.y, hz = _sv.z;
-    for (let k = 0; k < 2; k++) {
-      _sv.set(hx + 0.43 / s, hy + 0.03 / s, hz + (k ? 0.28 : -0.28) / s);
-      mesh.localToWorld(_sv);
-      const up = bn(k ? 'UpperArmR' : 'UpperArmL'), lo = bn(k ? 'LowerArmR' : 'LowerArmL'), wr = bn(k ? 'WristR' : 'WristL');
-      wr.getWorldPosition(_sw);
-      ikTo(up, lo, _sw, _sv);
-    }
-    return;
-  }
-  if (!pose || pose.arms !== 'wheel') return;
-  // het stuur: voor de heup (0,42 m naar voren, 0,5 m omhoog), gekanteld naar de bestuurder; de grepen draaien met de stuurhoek
+  // 3. handen
   const hips = bn('Hips');
   hips.getWorldPosition(_sv); mesh.worldToLocal(_sv);
-  const cx = _sv.x + 0.42 / s, cy = _sv.y + 0.5 / s, cz = _sv.z;
-  const ang = -Math.max(-1, Math.min(1, ud.steer || 0)) * STEER_TURN;
-  for (let k = 0; k < 2; k++) {
-    wheelGrip(cx, cy, 0.19 / s, 0.5, ang, k ? 1 : -1, _sg);   // L zit bij deze mensen aan -z
-    _sv.set(_sg.x, _sg.y, cz + _sg.z);
-    mesh.localToWorld(_sv);
+  const hx = _sv.x, hy = _sv.y, hz = _sv.z;
+  const reach = (k, x, y, z) => {
+    _sv.set(x, y, z); mesh.localToWorld(_sv);
     const up = bn(k ? 'UpperArmR' : 'UpperArmL'), lo = bn(k ? 'LowerArmR' : 'LowerArmL'), wr = bn(k ? 'WristR' : 'WristL');
     wr.getWorldPosition(_sw);
     ikTo(up, lo, _sw, _sv);
+  };
+  if (rider) { for (let k = 0; k < 2; k++) reach(k, hx + 0.43 / s, hy + 0.12 / s, hz + (k ? 0.28 : -0.28) / s); return; }
+  if (pose && pose.arms === 'wheel') {
+    // het stuur op 9 en 3 voor de borst (0,4 m voor en 0,45 m boven de heup), gekanteld naar de bestuurder; draait met ud.steer
+    const ang = -Math.max(-1, Math.min(1, ud.steer || 0)) * STEER_TURN;
+    for (let k = 0; k < 2; k++) {
+      wheelGrip(hx + 0.4 / s, hy + 0.45 / s, 0.19 / s, 0.5, ang, k ? 1 : -1, _sg);
+      reach(k, _sg.x, _sg.y, hz + _sg.z);
+    }
+    return;
+  }
+  if (drive) return;   // helm, roer: de clip van het rijden
+  // passagier: de handen op schoot, op de dijen een stukje voor de heup
+  for (let k = 0; k < 2; k++) {
+    const lo = B[k ? I.loR : I.loL];
+    lo.getWorldPosition(_sw); mesh.worldToLocal(_sw);
+    reach(k, hx + (_sw.x - hx) * 0.55, hy + 0.1 / s, hz + (k ? 0.11 : -0.11) / s);
   }
 }
 

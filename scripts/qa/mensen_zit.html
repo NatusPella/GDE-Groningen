@@ -36,6 +36,7 @@ CASES.forEach(([label, v], i) => {
   for (const driver of [true, false]) {
     const mesh = V.buildVehicleMesh(v);
     mesh.traverse((o) => { if (o.isMesh && !o.isSkinnedMesh) { const ms = Array.isArray(o.material) ? o.material : [o.material]; o.material = ms.map((m) => { const c = m.clone(); c.transparent = true; c.opacity = 0.35; c.depthWrite = false; return c; }); if (o.material.length === 1) o.material = o.material[0]; } });
+    if (mesh.userData.riderMesh) mesh.userData.riderMesh.visible = false; // zoals het spel bij de modulaire vlag (scene3d.js syncPlayerRider)
     const seat = S.vehicleSeat(v, driver);
     const p = M.buildModularPerson(500 + n, { female: n++ % 2 === 1 });
     p.userData.steer = 0.5;
@@ -45,7 +46,7 @@ CASES.forEach(([label, v], i) => {
     const len = v.model.len || 2;
     const cam = new THREE.PerspectiveCamera(30, W / H, 0.1, 100);
     const sx = seat.x;
-    cam.position.set(sx + 1.2, 1.8, (driver ? -1 : 1) * Math.max(3.5, len * 0.6)); cam.lookAt(sx, 1.0, seat.z);
+    cam.position.set(sx + 0.4, (seat.y || 0) + 1.3, (seat.z || 0) + (driver ? -1 : 1) * 3.2); cam.lookAt(sx + 0.2, (seat.y || 0) + 0.45, seat.z || 0);
     const x = i * W, y = driver ? 500 : 0;
     renderer.setViewport(x, y, W, H); renderer.setScissor(x, y, W, H);
     renderer.render(scene, cam);

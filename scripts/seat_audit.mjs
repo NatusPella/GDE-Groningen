@@ -23,12 +23,12 @@ const { TRAFFIC_MODELS, MOPED_MODEL } = await import('../game/js/vehicle.js');
 const { BOAT_KINDS } = await import('../game/js/boattypes.js');
 const VERBOSE = process.argv.includes('--verbose');
 const MODULAR = process.argv.includes('--modulair');
-let M = null, placeSeatedLocal = null;
+let M = null, placeSeatedLocal = null, SADDLE_BELOW_HIP = 0.17;
 if (MODULAR) {
   const fs = await import('node:fs');
   M = await import('../game/js/modularpeople.js');
   for (const r of ['man', 'vrouw']) M.registerModularRig(r, JSON.parse(fs.readFileSync(new URL(`../game/models/mensen/${r}.json`, import.meta.url))), fs.readFileSync(new URL(`../game/models/mensen/${r}.bin`, import.meta.url)));
-  ({ placeSeatedLocal } = await import('../game/js/seating3d.js'));
+  ({ placeSeatedLocal, SADDLE_BELOW_HIP } = await import('../game/js/seating3d.js'));
 }
 let modN = 0;
 
@@ -125,8 +125,21 @@ function seatFigureModular(mesh, v, seat) {
   const w = (b, dy = 0) => { const q = new THREE.Vector3(); b.getWorldPosition(q); q.y += dy; return q; };
   const head = w(B[I.head], 0.09), headTop = w(B[I.head], 0.24), hip = w(bn('Hips'));
   const hands = [w(bn('WristL')), w(bn('WristR'))], feet = [w(B[I.footL]), w(B[I.footR])], knees = [w(B[I.loL]), w(B[I.loR])];
+  // het zitvlak: het laagste punt van het lijf binnen 15 cm (in het grondvlak) van de heup en onder de heup; de zitting: seat.y
+  // in de assen van het voertuig (een fietser: het zadel, SADDLE_BELOW_HIP onder de heup van het eigen model)
+  const body = p.userData.body, g = body.geometry, v3 = new THREE.Vector3();
+  let butt = Infinity;
+  for (let i = 0; i < g.attributes.position.count; i++) {
+    v3.fromBufferAttribute(g.attributes.position, i); body.applyBoneTransform(i, v3); v3.applyMatrix4(body.matrixWorld);
+    // alleen het zitvlak: onder en achter de heup (de dijen lopen naar voren), het voertuig staat recht (hoek 0)
+    // voor of achter in de assen van de mens zelf (een passagier kan achteruit zitten)
+    const lv = p.worldToLocal(v3.clone()), lh = p.worldToLocal(hip.clone());
+    if (lv.y < lh.y && lv.y > lh.y - 0.2 / (p.scale.y || 1) && lv.x < lh.x + 0.03 && Math.abs(lv.z - lh.z) < 0.15) butt = Math.min(butt, v3.y);
+  }
+  const seatY = worldOf(mesh.userData.body || mesh, seat.x, seat.rider ? seat.y + PERSON_RIG.HIP_Y - SADDLE_BELOW_HIP : seat.y, seat.z).y;
+  const knee = (k) => { const a = w(B[k ? I.upR : I.upL]), b = w(B[k ? I.loR : I.loL]), c = feet[k]; return a.sub(b).angleTo(c.clone().sub(b)) * 180 / Math.PI; };
   p.removeFromParent();
-  return { head, headTop, hip, hands, feet, knees };
+  return { head, headTop, hip, hands, feet, knees, butt, seatY, kneeDeg: [knee(0), knee(1)], modular: true };
 }
 
 function seatFigure(mesh, v, seat) {
@@ -188,6 +201,12 @@ function check(label, v, driver) {
       if (ft.y < (v.isBoat ? -0.3 : 0.25)) issues.push(`foot y ${ft.y.toFixed(2)} below the floor`);
       if (ft.x > body.max.x - 0.05 || ft.x < body.min.x) issues.push(`foot x ${ft.x.toFixed(2)} outside the body`);
     }
+  }
+  if (f.modular && !seat.stand || (f.modular && seat.rider)) {
+    // eis 23-11: zitvlak op de zitting (minder dan 5 cm ertussen), rug rechtop (hoofd boven de heup), knieën gebogen bij een stoel
+    if (Math.abs(f.butt - f.seatY) > 0.05) issues.push(`zitvlak ${f.butt.toFixed(2)} niet op de zitting ${f.seatY.toFixed(2)} (${((f.butt - f.seatY) * 100).toFixed(0)} cm)`);
+    if (f.head.y - f.hip.y < 0.5 || Math.abs(f.head.x - f.hip.x) > 0.3) issues.push(`rug niet rechtop (hoofd ${(f.head.y - f.hip.y).toFixed(2)} m boven en ${(f.head.x - f.hip.x).toFixed(2)} m voor de heup)`);
+    if (!seat.horse && !seat.rider && seat.pose && !seat.pose.splay && (seat.pose.arms === 'wheel' || seat.pose.arms === 'lap') && f.kneeDeg.some((a) => a < 80 || a > 150)) issues.push(`knie ${f.kneeDeg.map((a) => a.toFixed(0)).join('/')} graden (80-150 verwacht)`);
   }
   if (!seat.horse && (f.hip.x > body.max.x || f.hip.x < body.min.x || Math.abs(f.hip.z) > Math.max(body.max.z, -body.min.z))) issues.push('hip outside the body');
   problems += issues.length ? 1 : 0;
