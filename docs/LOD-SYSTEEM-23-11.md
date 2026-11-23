@@ -10,9 +10,9 @@
 | Modelsoort | Voor deze tak | Nu |
 |---|---|---|
 | Landmarks | mesh-LOD's (tak `landmarks-aaa-23-11`) | ongewijzigd, niet in dit register |
-| Gebouwen | detail tot de detailring, daarna de verre laag (`farlod.js`), harde wissel | ongewijzigd; soort `building` staat in het register, **dither-overgang nog niet gebouwd** (zie 4) |
+| Gebouwen | detail tot de detailring, daarna de verre laag (`farlod.js`), harde wissel | dither-overgang op het gebouwmiddelpunt in beide lagen (`buildingfade.js`, zie 2) |
 | Straatmeubilair | één InstancedMesh per soort, eigen tekenafstand | `makeLodInstanced`: LOD-niveaus per soort, dither-crossfade, `prop` (klein, weg op 150 m) of `propfar` (vangrails, schermen, portalen: eigen tekenafstand tot 700 m) |
-| Bomen | hele boom tot de nabije straal, daarna een kroon (80 driehoeken) | daarbij een grove kroon voorbij 170 m (20 driehoeken) met dither-crossfade (`treecrown`) |
+| Bomen | hele boom tot de nabije straal, daarna een kroon (80 driehoeken), niets voorbij 260 m | grove kroon voorbij 170 m (20 driehoeken), voorbij 260 m billboards (2 driehoeken, naar de camera, ronde kroon) voor de bossen en parken tot de zichtafstand (hoogstens 700 m, meeschalend met de stand); alle overgangen met dither (`treecrown`) |
 | Boten | geen | `makeLodObject` in `buildBoatMesh`: 2 lichtere niveaus per romp (per materiaalgroep: glas blijft glas), weg op 600 m |
 | Treinen | alleen LOD-interieurs (#847) | `makeLodObject` per wagen: lichtere niveaus per mesh, weg op 820 m (de railzichtafstand is hoogstens 800 m) |
 | Personen, dieren | alleen een animatie-afstandstrap | **nog niet gekoppeld**: API hieronder voor de agent personages en dieren (`lodForSkinned`) |
@@ -28,6 +28,12 @@
 - **Overgangen**: de dither van `lod3d.js` (Bayer 4x4, aanvullend: elke pixel komt van precies één niveau), in de band rond elke grens.
   Bij instancing staat een exemplaar in de band in beide niveaus; de shader kiest per pixel op afstand tot de camera. De CPU deelt in met
   12 m marge (afstand tot de speler tegen afstand tot de camera), dus er flikkert niets op een grens (`lodLevelsForFade`).
+- **Gebouwen** (`buildingfade.js`): beide lagen krijgen hetzelfde middelpunt per gebouw (verre laag: het bestaande attribuut `lodCenter`;
+  detailgebouw: het nieuwe attribuut `lodC`, alleen op de eigen geometrie van het gebouw) en dezelfde uniforms (`uLodPlayer`, `uLodDetailR`,
+  `uLodBand` van farlod.js). In de 12 m binnen de ring loopt t van 0 naar 1; het detail houdt bayer < 1 - t, de verre kopie bayer >= 1 - t.
+  Een gebouw zonder eigen mesh (`uLodKeep`) houdt zijn volle kopie. Zonder verre laag (Laag, kort) is de band 0: de oude wissel.
+  `scripts/buildingfade_test.mjs` controleert voor elke afstand en elke pixel van het patroon dat er minstens één laag staat en waar
+  beide bestaan precies één. A/B: `?perfoff=gebouwfade` (en `?perfoff=boombillboard` voor de billboards).
 - **Stand**: de grenzen schalen mee (Laag 0,6, Midden 0,8, Hoog 0,9, Ultra 1; `setLodPreset` vanuit `scene3d.js`).
 
 ## 3. API voor de andere agents
@@ -48,8 +54,7 @@ dan faalt de test als het geen LOD's heeft of als LOD1/LOD2 te weinig scheelt.
 
 ## 4. Open
 
-- **Gebouwen: dither-overgang detail naar verre laag.** De detailgebouwen zitten samengevoegd in batches zonder middelpunt per gebouw, en
-  de verre laag klapt een gebouw in de vertexshader in op afstand van het middelpunt tot de speler. Een overgang zonder gat vraagt per
-  vertex het middelpunt van het gebouw in beide lagen (een attribuut in de batches) en dezelfde afstand (speler, niet camera). Niet gebouwd.
-- Impostors/billboards voor heel ver: niet gebouwd; de bomen hebben een grove kroon, de rest verdwijnt op de weg-afstand.
+- Windmolens en landmarks: geen eigen impostor. De windmolens staan al als één instanced laag tot 5,2 km (farprops.js) en de
+  landmarks hebben hun eigen verre laag (landmarklayer3d.js, en de mesh-LOD's op landmarks-aaa-23-11); een billboard voegt daar niets toe.
+- Het attribuut `lodC` kost 8 bytes per hoekpunt van elk detailgebouw; niet gemeten hoeveel geheugen dat in de stad is.
 - Meting in beeld: zie het commitbericht en het rapport; de driehoeken in de drukke routes vallen binnen de ruis van de machine.
