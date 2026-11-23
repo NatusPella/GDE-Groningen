@@ -364,5 +364,10 @@ ok(A.planModeFor('ov', 'lopen') === 'ov' && A.planModeFor('boot', 'auto') === 'b
   ok(/getViewAnchor/.test(mv) && !/const ik = hoofdspeler\(world\)/.test(mv), 'de grote kaart gebruikt de kijkanker voor je marker en je plek');
 }
 
+// UX-audit 23-11 (S6): de routeregel onder het verhaaldoel alleen de eerste keren
+ok(R.storySubLine('Volg de gele route naar de marker', 1) === 'Volg de gele route naar de marker', 'S6: de eerste keer staat de routeregel er');
+ok(R.storySubLine('Volg de gele route naar de marker', R.ROUTE_HINTS + 1) === '', 'S6: daarna zegt de minimap het');
+ok(R.storySubLine('Loop of rij de gele marker in', 9) === 'Loop of rij de gele marker in', 'S6: een regel die iets anders zegt blijft');
+ok(R.storySubLine('Volg de gele route · of kies: X, op de kaart', 9).length > 0, 'S6: een keuze blijft staan');
 console.log(`${n} checks, ${fails} failed`);
 process.exit(fails ? 1 : 0);

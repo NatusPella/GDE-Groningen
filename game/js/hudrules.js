@@ -45,6 +45,15 @@ export const ZONES = {
 
 export const HUD_MODES = ['slim', 'alles', 'minimaal'];
 
+// UX-audit 23-11 (S6): "Volg de gele route ..." onder het doel herhaalt wat de minimap en de marker al tonen. De eerste
+// ROUTE_HINTS verhaaldoelen staat hij er (je leert de gele route kennen), daarna alleen nog regels die iets anders zeggen
+// (Je bent er, loop naar binnen, stap uit de marker).
+export const ROUTE_HINTS = 3;
+export function storySubLine(sub, shown) {
+  if (shown > ROUTE_HINTS && /^Volg de gele route\b/.test(String(sub || '')) && !/ · /.test(sub)) return '';
+  return sub || '';
+}
+
 // card categories on the P scale and their zones: the table is in hudbus.js
 
 // #995: wat bij behoefte verschijnt, blijft 4 s staan na de laatste verandering
