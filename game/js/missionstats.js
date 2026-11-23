@@ -32,3 +32,13 @@ export function missionStats(def, ctx = {}) {
   if (r.racePos) stats.push(['Positie', `${r.racePos}/${r.raceTotal}`]);
   return stats;
 }
+
+// 23-11 (akte 1 op eindniveau, beelden M01-M06): onder de eindkaart stonden tot zeven cijferchips, te klein en te vol om op 1080p te
+// lezen. De kaart toont hoogstens KERN_MAX kernwaarden, in deze volgorde van belang; de rest staat in Overzicht (de missiestatistiek).
+export const KERN_MAX = 3;
+const KERN_VOLGORDE = ['Positie', 'Medaille', 'Punten', 'Tijd', 'Verlies'];
+export function kernCijfers(stats, max = KERN_MAX) {
+  const rows = Array.isArray(stats) ? stats.filter((r) => Array.isArray(r) && r.length >= 2) : [];
+  const rang = (label) => { const i = KERN_VOLGORDE.findIndex((k) => String(label).startsWith(k)); return i < 0 ? KERN_VOLGORDE.length : i; };
+  return rows.map((r, i) => ({ r, i, k: rang(r[0]) })).sort((a, b) => a.k - b.k || a.i - b.i).slice(0, max).map((x) => x.r);
+}

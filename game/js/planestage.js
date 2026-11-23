@@ -155,7 +155,7 @@ export function enterPlaneStage(world, st, S) {
   if (st.kind === 'plane') {
     const v = placePlane(world);
     S.target = { x: v.x, y: v.y, label: st.label };
-    world.addMessage('Gas met {W}, trek op met {SPACE} bij 30 m/s.', 5, { kind: 'tip', key: 'plane-help' });
+    world.addMessage('Gas met {W}, trek op met {SPACE} bij 30 m/s.', 5, { kind: 'tip', missie: true, key: 'plane-help' });
   } else if (st.kind === 'airgates') {
     const scene = getScene();
     S.air = { i: 0, state: { closest: Infinity, agl: 0 }, rings: [], marker: null };

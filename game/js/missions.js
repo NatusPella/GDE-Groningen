@@ -63,6 +63,7 @@ import { maakMissielus, zetGroep, actieveGroepen, tik as tikMissielus } from './
 import { openGroepKeten, sluitGroepKeten, groepKeten, groepKetens, isGroepSleutel, groepIdVanSleutel } from './missiegroepen.js'; // #492: de keten van een gastgroep
 import { startStunt, updateStunt, stopStunt, stuntStatus } from './stuntavond.js';
 import { armStuntHud } from './stunthud.js';
+import { registerNoticeHold, MISSIE_HOLD } from './notifyqueue.js';
 import { startHierarchie } from './missiestart.js'; // 23-11: de visuele hiërarchie bij elke missiestart (klok en panelen pas na het instappen)
 import { storyLines, talkLines, storyDataReady, readingTime } from './storytext.js';
 import { playTalk, stopTalk } from './storytalk.js';
@@ -651,6 +652,7 @@ export function isMissionActive() {
   return !!chainState() && chainState().phase === 'active';
 }
 registerBusyProbe('mission', isMissionActive);
+registerNoticeHold(MISSIE_HOLD, isMissionActive); // notifyqueue.js: tips en andere meldingen die niet bij de missie horen wachten (23-11)
 registerBusyProbe('activeRace', () => !!getActiveRace());
 registerMissionQueries({
   isMissionActive, getActiveRace, isMissionCompleted, getMissionDefs, getMissionProgress, missionIndexById, getMissionList,
@@ -3141,7 +3143,7 @@ function updateEggs(dt, world, def) {
   if (eggSpeedWarning(eggKmh, eggLimit)) {
     if (!chainState().eggFast) {
       chainState().eggFast = true;
-      world.addMessage(`Te snel: boven ${eggLimit} km/u breken de eieren. Rem rustig.`, 3.5, { kind: 'tip', key: 'egg-speed' });
+      world.addMessage(`Te snel: boven ${eggLimit} km/u breken de eieren. Rem rustig.`, 3.5, { kind: 'tip', missie: true, key: 'egg-speed' });
     }
   } else if (eggKmh < eggLimit - 6) chainState().eggFast = false;
   // #663: twee waarschuwingen vóór de faalgrens (75, 60, 45; M09 faalt onder 38%)

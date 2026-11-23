@@ -1,5 +1,6 @@
 import { hapticEvent } from './haptics.js';
 import { screenFx } from './postfx3d.js';
+import { kernCijfers } from './missionstats.js'; // 23-11: hoogstens drie cijfers onder de eindkaart
 import { gridItems } from './spatialgrid.js';
 import { isOverlayHeld } from './overlayhold.js';
 import { cutsceneTakesSpace } from './spacegate.js';
@@ -1475,7 +1476,9 @@ export function showBanner({ kind = 'pass', title, reason = '', reward = 0, stat
   // #514: de beloning telt op in plaats van in één keer te verschijnen; de
   // waarde staat meteen op nul en updateBanner loopt hem in 0,7 s op.
   els.bReward.textContent = rewardDoel ? '+ €0' : '';
-  els.bStats.innerHTML = stats.map(([k, v], i) => `<div style="--i:${i}"><span>${esc(k)}</span><b>${esc(v)}</b></div>`).join('');
+  // onder de grote kaart hoogstens drie kernwaarden (missionstats.js kernCijfers); het oude scherm houdt alle cijfers
+  const toon = moment ? kernCijfers(stats) : stats;
+  els.bStats.innerHTML = toon.map(([k, v], i) => `<div style="--i:${i}"><span>${esc(k)}</span><b>${esc(v)}</b></div>`).join('');
   b.hidden = false;
   b.classList.remove('in', 'out');
   void b.offsetWidth;

@@ -9,6 +9,10 @@ const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 // icon and label grow with the distance (capped): about the same size on screen
 export const iconScale = (d) => clamp(d / 40, 1, 4.5);
 export const iconLift = (d) => (iconScale(d) - 1) * 0.9;
+// 23-11 (akte 1 op eindniveau, beelden M02): dichtbij hing het icoon op 5,5 m en stond het bij de volgcamera half buiten beeld
+// (bovenrand). Binnen ICON_NEAR_M zakt het naar ICON_Y_NEAR, zodat het in de veilige rand van het beeld blijft; verder weg 5,5 m.
+export const ICON_Y = 5.5, ICON_Y_NEAR = 2.9, ICON_NEAR_M = 22;
+export const iconY = (d) => (Number.isFinite(d) && d < ICON_NEAR_M ? ICON_Y_NEAR + (ICON_Y - ICON_Y_NEAR) * clamp(d / ICON_NEAR_M, 0, 1) : ICON_Y);
 // the column gets wider far off so it never turns into a hair
 // (op 400 m stond de kolom als haar achter de gebouwen: breder en hoger naarmate je verder weg bent)
 export const columnWidth = (d) => clamp(d / 25, 1, 14);

@@ -24,10 +24,12 @@ ok(akte1.length >= 8, 'akte 1 heeft zijn stappen', akte1.length);
 for (const s of akte1) {
   const d = stepDoel(s);
   ok(!!d && d.length <= MAX_DOEL, `${s.id}: kort doel in de balk`, d);
+  // 23-11 (beeldcontrole coördinator): een doel is één werkwoordelijke zin, geen 'X: bijzin'
+  if (s.id !== 'M00') ok(!/:/.test(d), `${s.id}: doel zonder dubbele punt met bijzin`, d);
 }
 
 // Een doel begint met wat je doet of waar je heen gaat (Ga, Rij, Stap, Naar, Haal, ...): geen titel, geen grap.
-const WERKWOORD = /^(Ga|Rij|Stap|Naar|Haal|Wacht|Schrijf|Spot|Lever|Breng|Volg|Zoek|Loop|Fiets|Vaar|Vlieg|Kijk|Praat|Houd|Pak|Duw|Ren|Klim|Spring|Glip|Lees|Terug|Kies|Betaal|Pin|Trek|Help|Blijf|Land|Sluip|Wees|Verwissel|Verdedig|Draag|Laat|Overtuig|Hoor|Luister|Maak|Zet|Open|Sla|Til|Win|Ontwijk|Bezorg|Rijd|Drijf|Vang|Door|Peuter|Kraak|Rol|Weg|Alarm)\b/;
+const WERKWOORD = /^(Ga|Rij|Stap|Naar|Haal|Wacht|Schrijf|Spot|Lever|Breng|Volg|Zoek|Loop|Fiets|Vaar|Vlieg|Kijk|Praat|Houd|Pak|Duw|Ren|Klim|Spring|Glip|Lees|Terug|Kies|Betaal|Pin|Trek|Help|Blijf|Land|Sluip|Wees|Verwissel|Verdedig|Draag|Laat|Overtuig|Hoor|Luister|Maak|Zet|Open|Sla|Til|Win|Ontwijk|Bezorg|Rijd|Drijf|Vang|Proef|Door|Peuter|Kraak|Rol|Weg|Alarm)\b/;
 const missies = akte1.filter((s) => s.kind === 'mission');
 // M06 (museumkraak) staat nog in missions.js (zie missions_defs.js): de stappen uit de bron gelezen, zonder het spel te laden.
 import fs from 'node:fs';
@@ -55,6 +57,7 @@ for (const s of missies) {
     const label = String(st.label || '');
     ok(label.length > 0 && label.length <= MAX_DOEL, `${s.id} stap ${i} (${st.kind}): doelregel hoogstens ${MAX_DOEL} tekens`, `${label.length}: ${label}`);
     ok(WERKWOORD.test(label), `${s.id} stap ${i}: doelregel begint met wat je doet`, label);
+    ok(!/: /.test(label), `${s.id} stap ${i}: doelregel zonder dubbele punt met bijzin`, label);
     ok(label !== s.title, `${s.id} stap ${i}: doelregel is niet de titel`, label);
     const w = String(st.say || '').split(/\s+/).filter(Boolean).length;
     ok(w <= 25, `${s.id} stap ${i}: wat erbij gezegd wordt is kort (hoogstens 25 woorden)`, w);
