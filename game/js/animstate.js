@@ -32,7 +32,7 @@ export const STATES = {
   ride: { loop: true, ik: { hands: 'bars', feet: 'pedals' }, layers: { look: true, blink: true, breath: true, lips: true } },
   enter: { loop: false, dur: 0.8, ik: {}, layers: { blink: true, breath: true } },
   exit: { loop: false, dur: 0.8, ik: { feet: true }, layers: { blink: true, breath: true } },
-  knockdown: { loop: false, dur: 1.0, ik: {}, layers: { blink: true } },
+  knockdown: { loop: false, dur: 2.4, ik: {}, layers: {} },   // de val (UAL Death01, zonder bloed; besluit eigenaar 23-11)
   getup: { loop: false, dur: 1.2, ik: { feet: true }, layers: { blink: true, breath: true } },
   emote: { loop: false, dur: 1.8, ik: { feet: true }, layers: { ...ALL } },
   cutscene: { loop: true, ik: { feet: true }, layers: { upper: true, ...ALL } },
@@ -50,7 +50,7 @@ export const TRANSITIONS = [
   T('*', 'cutscene', (p) => p.cutscene, 0),
   T('cutscene', 'idle', (p) => !p.cutscene, 0.3),
   T('*', 'knockdown', (p) => p.knocked && !p.down, 0.12),
-  T('knockdown', 'getup', (p, s) => s.done, 0.25),
+  T('knockdown', 'getup', (p, s) => s.done && !p.knocked, 0.3),   // wie uitgeschakeld blijft (dood, opgepakt) blijft liggen
   T('getup', 'idle', (p, s) => s.done, 0.3),
   T('*', 'enter', (p, s) => p.vehicle && !s.inVehicle && !p.seated, 0.2),
   T('enter', 'drive', (p, s) => s.done && p.vehicle === 'car', 0.25),

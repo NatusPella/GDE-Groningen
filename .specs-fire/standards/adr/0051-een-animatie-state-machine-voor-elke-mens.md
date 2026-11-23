@@ -19,6 +19,7 @@ Elke mens (speler, voorbijganger, cutscene-acteur, medespeler) heeft één gedee
 - **IK als nabewerking** (`actorlife.js` en de modulaire IK): per state vastgelegd: voeten op de grond bij idle en lopen, handen aan stuur of stang bij drive en ride, zit-IK bij sit, niets bij fall en swim.
 - **Afstandstrap:** dichtbij alles; middel zonder lipsync en IK; ver alleen de basislaag, met een lagere frequentie.
 - **Netwerk:** alleen state-id, snelheid, richting en genormaliseerde tijd (vier bytes); de rest leidt elke speler lokaal af.
+- **Val en ineenzakken** (besluit eigenaar 23-11): de state knockdown gebruikt de val uit de Universal Animation Library (Death01) voor de bestaande DOOD- en OPGEPAKT-afloop van de speler, voor NPC's die in het spel uitgeschakeld raken en in PvP. Buiten PvP zonder bloed, gore of getoonde verwonding: alleen de val, met de bestaande afloop (scherm, geldverlies). Wie uitgeschakeld blijft, blijft liggen (geen getup zolang `knocked`). Hit_Chest en Hit_Head mogen als reactie op klappen en botsingen. Constitutie 6 in AGENTS.md zegt dit in één zin.
 - **Cutscenes** sturen states en triggers aan in plaats van eigen animatiecode. De clips van het pack worden aan de states gekoppeld; wat het pack niet heeft (zitten, rijden, fietsen, zwemmen, klimmen, dragen, telefoon) komt uit de bestaande procedurele houdingen, als bron voor dezelfde state.
 
 ## Afgewezen
@@ -26,6 +27,7 @@ Elke mens (speler, voorbijganger, cutscene-acteur, medespeler) heeft één gedee
 - **Losse animatiecode per systeem** (zoals het was): vier keer dezelfde overgang, en een gast ziet iets anders dan de host.
 - **Alleen procedureel:** goedkoop, maar de clips van het pack zijn beter in silhouet en timing, en een state-machine maakt bron (clip of formule) een detail.
 - **three.js AnimationMixer als machine:** maakt per mens acties en interpolanten aan (allocaties), kent geen overgangsconditie, lagen of IK-regels, en is niet te serialiseren voor het netwerk.
+- **Geen val, alleen een gekantelde mesh** (zoals het was): leest als een plank die omvalt; de eigenaar koos voor de val zonder bloed.
 - **Volledige pose over het netwerk:** tientallen bytes per mens per snapshot; vier bytes zijn genoeg omdat de rest deterministisch volgt.
 
 ## Gevolgen

@@ -29,7 +29,8 @@ for (const female of [false, true]) {
     const m = M.buildModularPerson(seed, { female, skin: 0xa8754f, shirt: 0x3f6ea8 });
     const ud = m.userData;
     let meshes = 0; m.traverse((o) => { if (o.isMesh) meshes++; });
-    ok(meshes === 1 && ud.body.isSkinnedMesh && ud.body.skeleton.bones.length === 22, `${rig} ${seed}: één SkinnedMesh met 22 botten`);
+    ok(meshes === 1 && ud.body.isSkinnedMesh && ud.body.skeleton.bones.length === 24 && ud.qBones.length === 22, `${rig} ${seed}: één SkinnedMesh met 22 botten plus mond en ooglid`);
+    ok(ud.mouth && ud.lids && ud.mouth.scale.y === 0 && ud.lids.scale.y === 0, `${rig} ${seed}: mond dicht en ogen open bij het bouwen`);
     const rest = inBox(m);
     ok(rest && rest.max.y > 1.55 && rest.max.y < 2.05 && rest.min.y > -0.05 && Math.max(-rest.min.x, rest.max.x, -rest.min.z, rest.max.z) < 0.8, `${rig} ${seed}: in rust binnen de doos (${rest && rest.max.y.toFixed(2)} m hoog)`);
     for (let f = 0; f < 90; f++) P.animatePersonWalk(m, f < 45 ? 1.4 : 5, 1 / 60);
@@ -121,6 +122,35 @@ for (const female of [false, true]) {
     ok(knee > 0.4 && knee < 0.6, `${rig}: kniehoogte ${knee.toFixed(2)} m past bij een zitting van 0,45 m`);
     ok(hi < 2.05 - 0.1, `${rig}: past onder een deur van 2,05 m`);
     ok(sh > 0.38 && sh < 0.6, `${rig}: schouders ${sh.toFixed(2)} m`);
+  }
+}
+
+// de clips uit de Universal Animation Library: elke clip van elke state bestaat en houdt de mens heel (geen ledemaat de wereld in)
+{
+  for (const female of [false, true]) {
+    const m = M.buildModularPerson(31, { female });
+    for (const [state, list] of Object.entries(M.STATE_CLIPS)) {
+      if (!list) continue;
+      for (const c of list) {
+        const who = female ? 'vrouw' : 'man';
+        ok(M.modularClipNames(m).includes(c), `${who}: clip ${c} voor ${state}`);
+        for (const u of [0, 0.33, 0.66, 0.99]) {
+          M.poseModularClip(m, c, u);
+          const bb = inBox(m);
+          ok(bb && bb.max.y < 2.2 && bb.min.y > (state === 'swim' ? -1.5 : -0.4) && Math.max(-bb.min.x, bb.max.x, -bb.min.z, bb.max.z) < 2.2, `${who}: ${c} op ${u} binnen de doos`);
+        }
+      }
+    }
+    // states via de machine: zitten, rijden, zwemmen en een val, elk met een clip en eindig
+    const { stateName } = await import('../game/js/animstate.js');
+    for (const [params, want] of [[{ seated: true }, 'sit'], [{ vehicle: 'car' }, 'drive'], [{ water: true }, 'swim'], [{ knocked: true }, 'knockdown']]) {
+      const p2 = M.buildModularPerson(77, { female });
+      p2.userData.qParams = params;
+      for (let f = 0; f < 150; f++) P.animatePersonWalk(p2, 0, 1 / 60);
+      const name = stateName(p2.userData.qSM);
+      ok(name === want, `${female ? 'vrouw' : 'man'}: ${JSON.stringify(params)} wordt ${want} (${name})`);
+      ok(inBox(p2) !== null, `${want}: eindig`);
+    }
   }
 }
 

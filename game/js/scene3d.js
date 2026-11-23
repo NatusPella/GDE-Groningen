@@ -2402,6 +2402,7 @@ const PED_TIER_2 = 55, PED_TIER_4 = 130;
 // Voeten op de grond (actorlife.js, plantFeet): één hoogtevraag per voet op de laag waar de mens op staat (map.surfaceAt), alleen
 // dichtbij (lifeTier 0) en alleen waar de kaart hoogte heeft. Geen allocaties: de vraag hergebruikt één toestand.
 const _footSt = { z: 0, ribbon: null, kind: 'ground' };
+const Q_KNOCKED = Object.freeze({ knocked: true }); // parameters voor de state-machine van een uitgeschakelde modulaire mens
 let _footMap = null, _footEnt = null;
 function footGround(x, y) {
   _footSt.z = _footEnt.gz || 0;
@@ -2496,6 +2497,14 @@ function syncPedestrianMeshes(world, player, animDt) {
     if (p.gibbed) { mesh.visible = false; continue; }
     if (p.hideMesh) { mesh.visible = false; ud.fadeLevel = -1; continue; } // fierljep.js draws its own actor
     if (driveRagdoll(p, mesh, world, animDt)) continue;
+    if (p.state === 'dead' && ud.qRig) {
+      // een modulaire mens zakt in met de val uit de state-machine (knockdown, zonder bloed; ADR 0051) en blijft liggen
+      mesh.position.set(p.x, p.gz || 0, p.y);
+      mesh.rotation.set(0, -p.angle, 0);
+      ud.qParams = Q_KNOCKED;
+      animatePersonWalk(mesh, 0, animDt);
+      continue;
+    }
     if (p.state === 'dead') {
       // topple backwards over ~0.3s, then lie flat until the ped is removed
       const fall = Math.min(1, (world.time - (p.deadUntil - DEAD_DURATION)) / 0.3);

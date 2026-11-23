@@ -29,8 +29,8 @@ const ONLY = (process.argv.find((a) => a.startsWith('--rig=')) || '').slice(6) |
 // (CharacterArmature schaal 100 op centimeters). Man in rust 1,80 m tot de kruin, oog 1,66 m: schaal 1. Vrouw 1,75 m: schaal 0,965
 // geeft 1,69 m. Per zaad komt daar hooguit 2,5% (man) of 2% (vrouw) bij of af: man 1,75-1,85 m, vrouw 1,65-1,72 m.
 export const RIGS = {
-  man: { schaal: 1, variatie: 0.025, dir: path.join(ASSETS, 'ultimate-modular-men', 'glb'), figures: ['Casual Character', 'Hoodie Character', 'Business Man', 'Worker', 'Farmer', 'Punk', 'Beach Character'] },
-  vrouw: { schaal: 0.965, variatie: 0.02, dir: path.join(ASSETS, 'ultimate-modular-women', 'pack'), figures: ['Animated Woman', 'Animated Woman-nIItLV9nxS', 'Suit', 'Worker', 'Punk', 'Adventurer'] },
+  man: { schaal: 1, variatie: 0.025, oog: 'Eye', dir: path.join(ASSETS, 'ultimate-modular-men', 'glb'), figures: ['Casual Character', 'Hoodie Character', 'Business Man', 'Worker', 'Farmer', 'Punk', 'Beach Character'] },
+  vrouw: { schaal: 0.965, variatie: 0.02, oog: 'Brown', dir: path.join(ASSETS, 'ultimate-modular-women', 'pack'), figures: ['Animated Woman', 'Animated Woman-nIItLV9nxS', 'Suit', 'Worker', 'Punk', 'Adventurer'] },
 };
 export const KEEP = ['Root', 'Body', 'Hips', 'Abdomen', 'Torso', 'Chest', 'Neck', 'Head', 'ShoulderL', 'UpperArmL', 'LowerArmL', 'WristL', 'ShoulderR', 'UpperArmR', 'LowerArmR', 'WristR', 'UpperLegL', 'LowerLegL', 'UpperLegR', 'LowerLegR', 'FootL', 'FootR'];
 export const CLIPS = ['Idle', 'Idle_Neutral', 'Walk', 'Run', 'Wave', 'Interact'];
@@ -112,6 +112,31 @@ async function importRig(rigName) {
     }
     return { vStart: nv0, vCount: acc.length, iStart: i0, iCount: idx.length - i0, tris: (idx.length - i0) / 3 };
   };
+  // Gezichtspunten van een hoofd (voor de mond en de oogleden die modularpeople.js erbij zet, cutscene-fase): de ogen zijn het
+  // materiaal `oogMat` (man 'Eye', vrouw 'Brown': twee plaatjes van 8 vertices), links en rechts gesplitst op z; de mond ligt 8,5 cm
+  // onder de ogen op de voorkant van de huid.
+  const faceOf = (part, oogMat) => {
+    const eye = [];
+    for (let v = part.vStart; v < part.vStart + part.vCount; v++) if (palette[col[v]].mat === oogMat) eye.push(v);
+    if (eye.length < 4) return null;
+    const zc = eye.reduce((a, v) => a + pos[v * 3 + 2], 0) / eye.length;
+    const side = (sgn) => {
+      const vs = eye.filter((v) => (pos[v * 3 + 2] - zc) * sgn > 0);
+      const c = [0, 1, 2].map((k) => vs.reduce((a, v) => a + pos[v * 3 + k], 0) / vs.length);
+      const h = Math.max(...vs.map((v) => pos[v * 3 + 1])) - Math.min(...vs.map((v) => pos[v * 3 + 1]));
+      const w = Math.max(...vs.map((v) => pos[v * 3 + 2])) - Math.min(...vs.map((v) => pos[v * 3 + 2]));
+      const x = Math.max(...vs.map((v) => pos[v * 3]));
+      return { c: c.map((x2) => +x2.toFixed(4)), x: +x.toFixed(4), h: +h.toFixed(4), w: +w.toFixed(4) };
+    };
+    const L = side(1), R = side(-1);
+    const my = (L.c[1] + R.c[1]) / 2 - 0.085;
+    let mx = -9;
+    for (let v = part.vStart; v < part.vStart + part.vCount; v++) {
+      if (!/^skin/i.test(palette[col[v]].mat)) continue;
+      if (Math.abs(pos[v * 3 + 1] - my) < 0.015 && Math.abs(pos[v * 3 + 2] - zc) < 0.025) mx = Math.max(mx, pos[v * 3]);
+    }
+    return { eyes: [L, R], mouth: [+mx.toFixed(4), +my.toFixed(4), +zc.toFixed(4)] };
+  };
   let rest = null, clips = null, heightRef = 0;
   for (const fig of spec.figures) {
     const gltf = await load(path.join(spec.dir, `${fig}.glb`));
@@ -177,6 +202,7 @@ async function importRig(rigName) {
       // de indices in idx zijn lokaal per deel (0 = eerste vertex van het deel); lodOf werkt met die lokale nummers
       part.lods = LOD_CELLS[slot].map((cell) => lodOf(part.vStart, part.vCount, part.iStart, part.iCount, cell))
 
+      if (slot === 'hoofd') part.face = faceOf(part, spec.oog);
       parts.push(part);
     }
   }
@@ -189,51 +215,140 @@ async function importRig(rigName) {
     const bones = {};
     sc.traverse((o) => { if (o.isBone) bones[o.name] = o; });
     clips = sampleClips(gltf, sc, bones);
+    // een verse lading in rust (de mixer liet de botten in de laatste stand) voor het retargeten van de UAL-clips
+    const fresh = await load(path.join(spec.dir, `${spec.figures[0]}.glb`));
+    fresh.scene.rotation.y = Math.PI / 2;
+    fresh.scene.updateMatrixWorld(true);
+    const fb = {};
+    fresh.scene.traverse((o) => { if (o.isBone) fb[o.name] = o; });
+    clips.push(...await retargetUAL(fresh.scene, fb));
   }
   return { rest, clips, parts, palette, pos, col, si, sw, idx, heightRef };
 }
 
-// Elke clip op 30 beelden per seconde, voor de bewaarde botten: quaternion (Int16) en, als het bot echt verschuift, positie (Float32).
+// Neemt een clip op: setFrame(t) zet de doelbotten op tijd t, daarna leest record de bewaarde botten op 30 beelden per seconde:
+// quaternion (Int16) en, als het bot echt verschuift, positie (Float32), plus de hielcontacten bij lopen en rennen.
+function record(name, dur, sc, bones, setFrame) {
+  const frames = Math.max(2, Math.round(dur * FPS) + 1);
+  const quats = new Int16Array(frames * KEEP.length * 4);
+  const posAll = KEEP.map(() => new Float32Array(frames * 3));
+  const footL = new Float32Array(frames), footR = new Float32Array(frames);
+  const tmp = new THREE.Vector3();
+  for (let f = 0; f < frames; f++) {
+    setFrame(Math.min(dur, (f / (frames - 1)) * dur));
+    sc.updateMatrixWorld(true);
+    KEEP.forEach((n, b) => {
+      const bone = bones[n];
+      const q = bone.quaternion.clone().normalize();
+      const o = (f * KEEP.length + b) * 4;
+      quats[o] = Math.round(q.x * 32767); quats[o + 1] = Math.round(q.y * 32767); quats[o + 2] = Math.round(q.z * 32767); quats[o + 3] = Math.round(q.w * 32767);
+      posAll[b].set(bone.position.toArray(), f * 3);
+    });
+    footL[f] = tmp.setFromMatrixPosition(bones.FootL.matrixWorld).x;
+    footR[f] = tmp.setFromMatrixPosition(bones.FootR.matrixWorld).x;
+  }
+  const moving = [];
+  posAll.forEach((p, b) => {
+    let span = 0;
+    for (let f = 1; f < frames; f++) span = Math.max(span, Math.abs(p[f * 3] - p[0]), Math.abs(p[f * 3 + 1] - p[1]), Math.abs(p[f * 3 + 2] - p[2]));
+    if (span > 1e-5) moving.push(b);
+  });
+  const argmax = (a) => { let m = 0; for (let i = 1; i < a.length; i++) if (a[i] > a[m]) m = i; return m / (frames - 1); };
+  return { name, dur, frames, quats, moving, pos: moving.map((b) => posAll[b]), contact: /Walk|Run|Jog|Sprint/.test(name) ? [argmax(footL), argmax(footR)] : null };
+}
+
+// ---- Universal Animation Library (CC0, zelfde maker, ander skelet met de UE-namen) ------------------------------------------
+// Retarget per beeld: romp, nek, hoofd, schouders, polsen en voeten nemen hun draaiing ten opzichte van de rust over (wereld-delta;
+// beide rusthoudingen staan rechtop); bovenarm, onderarm, dij en scheen volgen de richting van het bronbot, zodat elleboog, hand,
+// knie en enkel kloppen ook als de armen in rust anders staan. Het lijf schuift mee met het bekken, geschaald op de heuphoogte. De
+// voeten hangen bij Quaternius aan de wortel: ze komen op het einde van de scheen.
+const UAL_FILE = path.join(ASSETS, 'universal-animation-library', 'pack', 'Universal Animation Library[Standard]', 'Unreal-Godot', 'UAL1_Standard.glb');
+// Alleen wat het spel gebruikt; geen spreuken of zwaarden. Death01 mag (besluit eigenaar 23-11, ADR 0051): een val zonder bloed.
+export const UAL_CLIPS = ['Idle_Talking_Loop', 'Sprint_Loop', 'Jog_Fwd_Loop', 'Walk_Formal_Loop', 'Crouch_Idle_Loop', 'Crouch_Fwd_Loop', 'Jump_Start', 'Jump_Loop', 'Jump_Land',
+  'Sitting_Enter', 'Sitting_Idle_Loop', 'Sitting_Talking_Loop', 'Sitting_Exit', 'Driving_Loop', 'Swim_Fwd_Loop', 'Swim_Idle_Loop', 'PickUp_Table', 'Push_Loop',
+  'Hit_Chest', 'Hit_Head', 'Death01', 'Dance_Loop', 'Interact', 'Punch_Jab', 'Punch_Cross', 'Pistol_Idle_Loop', 'Pistol_Shoot'];
+const UAL_DELTA = { Body: 'pelvis', Abdomen: 'spine_01', Torso: 'spine_02', Chest: 'spine_03', Neck: 'neck_01', Head: 'Head', ShoulderL: 'clavicle_l', ShoulderR: 'clavicle_r', WristL: 'hand_l', WristR: 'hand_r' };
+const UAL_DIR = { UpperArmL: ['LowerArmL', 'upperarm_l', 'lowerarm_l'], LowerArmL: ['WristL', 'lowerarm_l', 'hand_l'], UpperArmR: ['LowerArmR', 'upperarm_r', 'lowerarm_r'], LowerArmR: ['WristR', 'lowerarm_r', 'hand_r'],
+  UpperLegL: ['LowerLegL', 'thigh_l', 'calf_l'], LowerLegL: [null, 'calf_l', 'foot_l'], UpperLegR: ['LowerLegR', 'thigh_r', 'calf_r'], LowerLegR: [null, 'calf_r', 'foot_r'] };
+const ORDER = ['Body', 'Abdomen', 'Torso', 'Chest', 'Neck', 'Head', 'ShoulderL', 'ShoulderR', 'UpperArmL', 'LowerArmL', 'WristL', 'UpperArmR', 'LowerArmR', 'WristR', 'UpperLegL', 'LowerLegL', 'UpperLegR', 'LowerLegR'];
+
+async function retargetUAL(tgtScene, tgtBones) {
+  if (!fs.existsSync(UAL_FILE)) { console.warn('UAL niet gevonden, overgeslagen:', UAL_FILE); return []; }
+  const src = await load(UAL_FILE);
+  const ss = src.scene;
+  ss.rotation.y = Math.PI / 2;
+  ss.updateMatrixWorld(true);
+  const sb = {};
+  ss.traverse((o) => { if (o.isBone) sb[o.name] = o; });
+  const restQ = (b) => b.getWorldQuaternion(new THREE.Quaternion());
+  const wp = (b) => b.getWorldPosition(new THREE.Vector3());
+  const srcRest = Object.fromEntries(Object.keys(sb).map((n) => [n, restQ(sb[n])]));
+  const tgtRest = Object.fromEntries(Object.keys(tgtBones).map((n) => [n, restQ(tgtBones[n])]));
+  const tgtRestLocal = Object.fromEntries(Object.keys(tgtBones).map((n) => [n, { p: tgtBones[n].position.clone(), q: tgtBones[n].quaternion.clone() }]));
+  const srcPelvis0 = wp(sb.pelvis), tgtBody0 = wp(tgtBones.Body);
+  const scale = wp(tgtBones.UpperLegL).y / wp(sb.thigh_l).y;
+  const shin = { L: wp(tgtBones.LowerLegL).distanceTo(wp(tgtBones.FootL)), R: wp(tgtBones.LowerLegR).distanceTo(wp(tgtBones.FootR)) };
+  // de as van de scheen in de assen van het onderbeen (de voet is geen kind): in rust van knie naar enkel
+  const shinAxis = Object.fromEntries(['L', 'R'].map((k) => [k, wp(tgtBones['Foot' + k]).sub(wp(tgtBones['LowerLeg' + k])).normalize().applyQuaternion(tgtRest['LowerLeg' + k].clone().invert())]));
+  const q = new THREE.Quaternion(), qp = new THREE.Quaternion(), v = new THREE.Vector3(), d = new THREE.Vector3(), t = new THREE.Vector3();
+  const setWorldQuat = (bone, wq) => { bone.parent.getWorldQuaternion(qp); bone.quaternion.copy(qp.invert().multiply(wq)); bone.updateMatrixWorld(true); };
+  const delta = (srcName, tgtName) => q.copy(restQ(sb[srcName])).multiply(srcRest[srcName].clone().invert()).multiply(tgtRest[tgtName]);
+  const out = [];
+  for (const name of UAL_CLIPS) {
+    const clip = src.animations.find((a) => a.name === name);
+    if (!clip) { console.warn('UAL-clip ontbreekt', name); continue; }
+    const mixer = new THREE.AnimationMixer(ss);
+    mixer.clipAction(clip).play();
+    const frame = (time) => {
+      mixer.setTime(time);
+      ss.updateMatrixWorld(true);
+      for (const n of Object.keys(tgtRestLocal)) { tgtBones[n].position.copy(tgtRestLocal[n].p); tgtBones[n].quaternion.copy(tgtRestLocal[n].q); }
+      tgtScene.updateMatrixWorld(true);
+      // alleen de hoogte van het bekken: de clips staan op hun plek (het spel zet de mens neer), zwemmen ligt dan ook in beeld
+      v.copy(wp(sb.pelvis)).sub(srcPelvis0).multiplyScalar(scale); v.x = 0; v.z = 0; v.add(tgtBody0);
+      tgtBones.Body.parent.worldToLocal(v);
+      tgtBones.Body.position.copy(v);
+      tgtBones.Body.updateMatrixWorld(true);
+      for (const n of ORDER) {
+        if (UAL_DELTA[n]) { setWorldQuat(tgtBones[n], delta(UAL_DELTA[n], n)); continue; }
+        const [tc, sa, sbn] = UAL_DIR[n];
+        const side = n.endsWith('L') ? 'L' : 'R';
+        d.copy(wp(sb[sbn])).sub(wp(sb[sa])).normalize();
+        const a = wp(tgtBones[n]);
+        if (tc) t.copy(wp(tgtBones[tc])).sub(a).normalize();
+        else t.copy(shinAxis[side]).applyQuaternion(restQ(tgtBones[n]));
+        const rot = new THREE.Quaternion().setFromUnitVectors(t, d);
+        setWorldQuat(tgtBones[n], rot.multiply(restQ(tgtBones[n])));
+        if (!tc) {
+          const foot = tgtBones['Foot' + side];
+          const end = a.clone().addScaledVector(d, shin[side]);
+          foot.parent.worldToLocal(end);
+          foot.position.copy(end);
+          foot.updateMatrixWorld(true);
+          setWorldQuat(foot, delta('foot_' + side.toLowerCase(), 'Foot' + side));
+        }
+      }
+    };
+    out.push(record('UAL_' + name, clip.duration, tgtScene, tgtBones, frame));
+    mixer.stopAllAction();
+    mixer.uncacheRoot(ss);
+  }
+  for (const n of Object.keys(tgtRestLocal)) { tgtBones[n].position.copy(tgtRestLocal[n].p); tgtBones[n].quaternion.copy(tgtRestLocal[n].q); }
+  return out;
+}
+
+// De clips van het pack zelf (zelfde skelet): gewoon afspelen en opnemen.
 function sampleClips(gltf, sc, bones) {
   const out = [];
   for (const want of CLIPS) {
     const clip = gltf.animations.find((a) => a.name.split('|').pop() === want);
     if (!clip) continue;
     const mixer = new THREE.AnimationMixer(sc);
-    const act = mixer.clipAction(clip);
-    act.play();
-    const frames = Math.max(2, Math.round(clip.duration * FPS) + 1);
-    const quats = new Int16Array(frames * KEEP.length * 4);
-    const posAll = KEEP.map(() => new Float32Array(frames * 3));
-    const footL = new Float32Array(frames), footR = new Float32Array(frames);
-    const tmp = new THREE.Vector3();
-    for (let f = 0; f < frames; f++) {
-      mixer.setTime(Math.min(clip.duration, (f / (frames - 1)) * clip.duration));
-      sc.updateMatrixWorld(true);
-      KEEP.forEach((n, b) => {
-        const bone = bones[n];
-        const q = bone.quaternion;
-        const o = (f * KEEP.length + b) * 4;
-        quats[o] = Math.round(q.x * 32767); quats[o + 1] = Math.round(q.y * 32767); quats[o + 2] = Math.round(q.z * 32767); quats[o + 3] = Math.round(q.w * 32767);
-        posAll[b].set(bone.position.toArray(), f * 3);
-      });
-      footL[f] = tmp.setFromMatrixPosition(bones.FootL.matrixWorld).x;
-      footR[f] = tmp.setFromMatrixPosition(bones.FootR.matrixWorld).x;
-    }
-    // welke botten verschuiven (wortel, heup, voeten): alleen die krijgen posities mee
-    const moving = [];
-    posAll.forEach((p, b) => {
-      let span = 0;
-      for (let f = 1; f < frames; f++) span = Math.max(span, Math.abs(p[f * 3] - p[0]), Math.abs(p[f * 3 + 1] - p[1]), Math.abs(p[f * 3 + 2] - p[2]));
-      if (span > 1e-5) moving.push(b);
-    });
-    // hielcontact: de voet het verst naar voren (fase 0..1)
-    const argmax = (a) => { let m = 0; for (let i = 1; i < a.length; i++) if (a[i] > a[m]) m = i; return m / (frames - 1); };
-    out.push({ name: want, dur: clip.duration, frames, quats, moving, pos: moving.map((b) => posAll[b]), contact: /Walk|Run/.test(want) ? [argmax(footL), argmax(footR)] : null });
+    mixer.clipAction(clip).play();
+    out.push(record(want, clip.duration, sc, bones, (t) => mixer.setTime(t)));
     mixer.stopAllAction();
     mixer.uncacheRoot(sc);
   }
-  // terug in rust (de mixer liet de botten in de laatste stand)
   return out;
 }
 

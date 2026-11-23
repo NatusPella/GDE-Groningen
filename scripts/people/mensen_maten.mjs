@@ -49,8 +49,9 @@ export function measure(m) {
     v.fromBufferAttribute(g.attributes.position, i);
     b.applyBoneTransform(i, v);
     v.applyMatrix4(m.matrixWorld);
-    minY = Math.min(minY, v.y);
     const slot = order.find((s) => i >= ranges[s][0] && i < ranges[s][1]);
+    if (!slot) continue;   // mond en oogleden (achteraan) tellen niet mee
+    minY = Math.min(minY, v.y);
     const pi = rig.col[parts[slot].vStart + (i - ranges[slot][0])];
     const mat = pal[pi].mat;
     if (slot === 'hoofd' && /^Eye$/i.test(mat)) { eyeY += v.y; eyeN++; }

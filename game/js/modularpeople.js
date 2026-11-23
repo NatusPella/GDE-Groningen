@@ -9,7 +9,8 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { vcMaterial, markShared } from './pixelart3d.js';
 import { crossfade, footPlant } from './actorlife.js';
-import { createAnimState, stepAnimState } from './animstate.js';
+import { createAnimState, stepAnimState, stateName, STATES, STATE_IDS } from './animstate.js';
+import { blinkAmount } from './gait.js';
 
 const rigs = new Map();               // 'man' | 'vrouw' -> gedecodeerde rig
 const loading = new Map();
@@ -162,7 +163,10 @@ function geometryFor(rig, look, lod = 0) {
   if (g) { rig.geoCache.delete(key); rig.geoCache.set(key, g); return g; }
   // per deel het bereik van dit LOD-niveau (0 = het origineel, 1 en 2 uit de importpijplijn, LOD_CELLS)
   const parts = MODULAR_SLOTS.map((s) => { const p = rig.man.parts.find((q) => q.id === look.parts[s]); return lod > 0 && p.lods && p.lods[lod - 1] ? { ...p.lods[lod - 1], id: p.id, slot: p.slot, main: p.main } : p; });
-  const nV = parts.reduce((s, p) => s + p.vCount, 0), nI = parts.reduce((s, p) => s + p.iCount, 0);
+  // gezicht (cutscene-fase): een mondopening en twee oogleden als plaatjes op twee extra botten (dicht = schaal 0, dus onzichtbaar)
+  const face = rig.man.parts.find((q) => q.id === look.parts.hoofd).face;
+  const FV = face ? 12 : 0, FI = face ? 18 : 0;
+  const nV = parts.reduce((s, p) => s + p.vCount, 0) + FV, nI = parts.reduce((s, p) => s + p.iCount, 0) + FI;
   const P = new Float32Array(nV * 3), C = new Float32Array(nV * 3), SI = new Uint8Array(nV * 4), SW = new Uint8Array(nV * 4);
   const I = nV < 65536 ? new Uint16Array(nI) : new Uint32Array(nI);
   let v0 = 0, i0 = 0;
@@ -179,6 +183,24 @@ function geometryFor(rig, look, lod = 0) {
     }
     for (let i = 0; i < p.iCount; i++) I[i0 + i] = rig.idx[p.iStart + i] + v0;
     v0 += p.vCount; i0 += p.iCount;
+  }
+  if (face) {
+    const nb = rig.man.bones.length, MOUTH = nb, LIDS = nb + 1;
+    colorFor(rig, { slot: 'hoofd', main: null }, rig.man.palette.findIndex((x) => x.mat === 'Skin'), look, _c);
+    const skin = [_c.r * 0.93, _c.g * 0.93, _c.b * 0.93], dark = [0.035, 0.012, 0.01];
+    const quad = (x, y0, y1, z0, z1, c, bone) => {
+      const base = v0;
+      for (const [y, z] of [[y1, z0], [y1, z1], [y0, z1], [y0, z0]]) {
+        P[v0 * 3] = x; P[v0 * 3 + 1] = y; P[v0 * 3 + 2] = z;
+        C[v0 * 3] = c[0]; C[v0 * 3 + 1] = c[1]; C[v0 * 3 + 2] = c[2];
+        SI[v0 * 4] = bone; SW[v0 * 4] = 255;
+        v0++;
+      }
+      for (const k of [0, 1, 2, 0, 2, 3]) I[i0++] = base + k;
+    };
+    const [mx, my, mz] = face.mouth;
+    quad(mx + 0.0025, my - 0.016, my, mz - 0.014, mz + 0.014, dark, MOUTH);
+    for (const e of face.eyes) quad(e.x + 0.003, e.c[1] - e.h / 2 - 0.002, e.c[1] + e.h / 2 + 0.002, e.c[2] - e.w / 2 - 0.003, e.c[2] + e.w / 2 + 0.003, skin, LIDS);
   }
   g = new THREE.BufferGeometry();
   g.setAttribute('position', new THREE.BufferAttribute(P, 3));
@@ -241,7 +263,34 @@ export function buildModularPerson(seed, opts = {}) {
   group.add(mesh);
   group.updateMatrixWorld(true);
   const inverses = rig.man.bones.map((b) => new THREE.Matrix4().fromArray(b.inv));
-  mesh.bind(new THREE.Skeleton(sk.bones, inverses), new THREE.Matrix4());
+  // mond- en ooglidbot: hangen (via een vaste basis) aan het hoofd, staan in rust zonder draaiing op hun punt, zodat schaal y
+  // de plaatjes van boven naar beneden opent of sluit
+  const face = rig.man.parts.find((q) => q.id === look.parts.hoofd).face;
+  const extra = [];
+  if (face) {
+    const head = sk.bones[rig.man.bones.findIndex((b) => b.name === 'Head')];
+    const headWorld = new THREE.Matrix4().fromArray(rig.man.bones.find((b) => b.name === 'Head').inv).invert();
+    const at = (x, y, z) => {
+      const base = new THREE.Object3D();
+      base.matrixAutoUpdate = false;
+      base.matrix.copy(headWorld).invert().multiply(new THREE.Matrix4().makeTranslation(x, y, z));
+      head.add(base);
+      const b = new THREE.Bone();
+      base.add(b);
+      extra.push(b);
+      inverses.push(new THREE.Matrix4().makeTranslation(-x, -y, -z));
+      return b;
+    };
+    const [mx, my, mz] = face.mouth;
+    const mouth = at(mx, my, mz);
+    const lidY = Math.max(face.eyes[0].c[1] + face.eyes[0].h / 2, face.eyes[1].c[1] + face.eyes[1].h / 2) + 0.002;
+    const lids = at(face.eyes[0].x, lidY, (face.eyes[0].c[2] + face.eyes[1].c[2]) / 2);
+    group.userData.mouth = mouth;
+    group.userData.lids = lids;
+  }
+  group.updateMatrixWorld(true);
+  mesh.bind(new THREE.Skeleton([...sk.bones, ...extra], inverses), new THREE.Matrix4());
+  for (const b of extra) b.scale.y = 0;   // pas na het binden (de inverse van schaal 0 bestaat niet): mond dicht, ogen open
   group.scale.setScalar(look.scale);
   const ud = group.userData;
   ud.qRig = rig;
@@ -289,8 +338,65 @@ function accumulate(rig, c, u, w) {
 }
 
 const _qa = new THREE.Quaternion(), _axis = new THREE.Vector3();
+const SP0 = { ..._sp };
+// Welke clip(s) bij welke state (ADR 0051). De pack-clips voor idle/lopen/rennen/zwaaien, de Universal Animation Library voor de rest
+// (UAL_*); ontbreekt een clip, dan valt de state terug op idle. Wat geen clip heeft (klimmen, fietsen, opstaan) staat hier met de
+// beste benadering tot er een eigen clip is.
+export const STATE_CLIPS = {
+  sit: ['UAL_Sitting_Idle_Loop', 'UAL_Sitting_Talking_Loop'], enter: ['UAL_Sitting_Enter'], exit: ['UAL_Sitting_Exit'],
+  drive: ['UAL_Driving_Loop'], ride: ['UAL_Driving_Loop'], swim: ['UAL_Swim_Idle_Loop', 'UAL_Swim_Fwd_Loop'],
+  jump: ['UAL_Jump_Start'], fall: ['UAL_Jump_Loop'], land: ['UAL_Jump_Land'], climb: ['UAL_Push_Loop'],
+  knockdown: ['UAL_Death01'], getup: ['UAL_Sitting_Exit'], emote: ['Wave'], cutscene: null,
+};
+const LOCO = new Set(['idle', 'locomotion', 'sprint', 'start', 'stop', 'turn', 'cutscene']);
+// Telt de pose van state si (tijd t in die state) met gewicht w op bij de accumulatoren.
+function evalState(ud, rig, st, si, t, w, talk, walkC, runC, idleC, runOff) {
+  if (w <= 0) return;
+  const name = STATE_IDS[si] || 'idle';
+  if (LOCO.has(name)) {
+    const wIdle = (1 - st.walk) * w;
+    const idleClip = talk && rig.clips.UAL_Idle_Talking_Loop ? rig.clips.UAL_Idle_Talking_Loop : idleC;
+    accumulate(rig, idleClip, (st.t + ud.animOffset) / idleClip.dur, wIdle);
+    accumulate(rig, walkC, st.phase, st.walk * (1 - st.run) * w);
+    const sprint = ud.qSM.blend.sprint, sprintC = rig.clips.UAL_Sprint_Loop;
+    accumulate(rig, runC, st.phase + runOff, st.walk * st.run * (1 - (sprintC ? sprint : 0)) * w);
+    if (sprintC && sprint > 0) accumulate(rig, sprintC, st.phase, st.walk * st.run * sprint * w);
+    return;
+  }
+  const list = STATE_CLIPS[name];
+  const spec = STATES[name];
+  let c = null;
+  if (list) c = rig.clips[list[name === 'swim' ? (ud.qSM.speed > 0.4 ? 1 : 0) : talk && list[1] ? 1 : 0]] || rig.clips[list[0]];
+  if (!c) { accumulate(rig, idleC, (st.t + ud.animOffset) / idleC.dur, w); return; }
+  const u = spec.loop ? t / c.dur : Math.min(0.999, t / Math.max(c.dur, spec.dur || 0));
+  accumulate(rig, c, u, w);
+}
 // Elke frame voor een modulaire mens (vanuit animatePersonWalk): idle, lopen en rennen gemengd op snelheid (overgangen van 0,25 s),
 // de cyclus synchroon met de afgelegde weg, de hielcontacten voor de stapgeluiden (ud.footN/footSide) en de blik (ud.gazeT).
+// Zet een mens op tijd u (0..1) van één clip (vergelijkingspagina's, tests en de states die een vaste clip zijn). Geeft false
+// als de clip niet bestaat.
+export function poseModularClip(mesh, name, u) {
+  const ud = mesh && mesh.userData, rig = ud && ud.qRig;
+  const c = rig && rig.clips[name];
+  if (!c) return false;
+  _acc.fill(0); _pacc.fill(0); _pw.fill(0);
+  accumulate(rig, c, u, 1);
+  writeBones(ud, rig);
+  return true;
+}
+export const modularClipNames = (mesh) => (mesh && mesh.userData.qRig ? Object.keys(mesh.userData.qRig.clips) : []);
+
+function writeBones(ud, rig) {
+  const bones = ud.qBones, restB = rig.man.bones;
+  for (let b = 0; b < bones.length; b++) {
+    const a = b * 4, l = Math.hypot(_acc[a], _acc[a + 1], _acc[a + 2], _acc[a + 3]);
+    if (l > 1e-6) bones[b].quaternion.set(_acc[a] / l, _acc[a + 1] / l, _acc[a + 2] / l, _acc[a + 3] / l);
+    const pw = _pw[b], rp = restB[b].pos, k = Math.min(1, pw);
+    if (pw > 1e-6) bones[b].position.set(_pacc[b * 3] / pw * k + rp[0] * (1 - k), _pacc[b * 3 + 1] / pw * k + rp[1] * (1 - k), _pacc[b * 3 + 2] / pw * k + rp[2] * (1 - k));
+    else bones[b].position.set(rp[0], rp[1], rp[2]);
+  }
+}
+
 export function animateModular(mesh, speed, dt) {
   const ud = mesh.userData, rig = ud.qRig, st = ud.qState;
   if (!rig) return;
@@ -299,6 +405,9 @@ export function animateModular(mesh, speed, dt) {
   // de state-machine (animstate.js) kiest de toestand en geeft de loopruimte; de clipgewichten volgen die met een overgang
   const sm = ud.qSM;
   sm.tier = ud.qLod || 0;
+  // parameters van de state-machine: snelheid altijd, de rest (water, zitten, voertuig, val, cutscene, ...) uit ud.qParams van de beller
+  const qp = ud.qParams;
+  for (const k in _sp) _sp[k] = qp && qp[k] !== undefined ? qp[k] : SP0[k];
   _sp.speed = s;
   stepAnimState(sm, _sp, step);
   const b = sm.blend, moving = 1 - b.idle, fast = moving > 0 ? (b.run + b.sprint) / moving : st.run;
@@ -319,18 +428,16 @@ export function animateModular(mesh, speed, dt) {
   }
   const runOff = runC.contact && walkC.contact ? runC.contact[0] - walkC.contact[0] : 0;
   _acc.fill(0); _pacc.fill(0); _pw.fill(0);
-  const wIdle = 1 - st.walk;
-  accumulate(rig, idleC, (st.t + ud.animOffset) / idleC.dur, wIdle);
-  accumulate(rig, walkC, st.phase, st.walk * (1 - st.run));
-  accumulate(rig, runC, st.phase + runOff, st.walk * st.run);
-  const bones = ud.qBones, restB = rig.man.bones;
-  for (let b = 0; b < bones.length; b++) {
-    const a = b * 4, l = Math.hypot(_acc[a], _acc[a + 1], _acc[a + 2], _acc[a + 3]);
-    if (l > 1e-6) bones[b].quaternion.set(_acc[a] / l, _acc[a + 1] / l, _acc[a + 2] / l, _acc[a + 3] / l);
-    const pw = _pw[b], rp = restB[b].pos;
-    if (pw > 1e-6) bones[b].position.set(_pacc[b * 3] / pw * Math.min(1, pw) + rp[0] * (1 - Math.min(1, pw)), _pacc[b * 3 + 1] / pw * Math.min(1, pw) + rp[1] * (1 - Math.min(1, pw)), _pacc[b * 3 + 2] / pw * Math.min(1, pw) + rp[2] * (1 - Math.min(1, pw)));
-    else bones[b].position.set(rp[0], rp[1], rp[2]);
-  }
+  // huidige en vorige state, gemengd met de mengfactor van de overgang (sm.k): geen sprong bij een wissel
+  const talk = !!(qp && qp.talk);
+  if (sm.s !== st.lastS) { st.prevS = st.lastS ?? sm.s; st.prevT = st.stateT || 0; st.lastS = sm.s; st.stateT = 0; }
+  st.stateT += step;
+  const k = sm.k;
+  evalState(ud, rig, st, sm.s, st.stateT, k, talk, walkC, runC, idleC, runOff);
+  if (k < 1) evalState(ud, rig, st, st.prevS, st.prevT, 1 - k, talk, walkC, runC, idleC, runOff);
+  writeBones(ud, rig);
+  // knipperen (gait.js blinkAmount, zelfde ritme als het eigen model)
+  if (ud.lids) { const bl = blinkAmount(st.t + ud.animOffset, ud.animOffset); if (ud.lids.scale.y !== bl) ud.lids.scale.y = bl; }
   // blik (gait.js glanceAt zet ud.gazeT, + = rechts): hoofd en nek draaien om de verticale as van de persoon, 40/60 verdeeld
   const gz = ud.gazeT;
   st.gaze += ((gz === undefined || gz !== gz ? 0 : gz) - st.gaze) * Math.min(1, step * 6);
