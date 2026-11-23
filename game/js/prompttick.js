@@ -15,3 +15,10 @@ export function makePromptClock(interval = PRIMARY_INTERVAL) {
     reset() { t = 0; },
   };
 }
+
+// UX-audit 23-11 (S4): tijdens een achtervolging leidt een prompt die toch niet kan ("Fluit een duif", grijs met "Niet nu: eerst
+// de politie kwijt") alleen af: de sterren en de kaart zeggen al wat er speelt. Zo'n prompt valt dan weg; buiten een achtervolging
+// blijft de grijze prompt met zijn reden staan (anders mist de speler waarom E niets doet).
+export function blockedInChase(c, wanted) {
+  return !!(c && c.dim && wanted > 0);
+}

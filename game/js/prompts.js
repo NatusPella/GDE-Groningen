@@ -47,7 +47,7 @@ import { viewpointPrompt } from './explorationlive.js';
 import { wrakduikPrompt } from './wrakduikenlive.js'; // #839
 import { onderdeelPrompt } from './onderdelenlive.js'; // #837
 import { streekuitdagingPrompt } from './streekuitdaginglive.js'; // #835
-import { makePromptClock } from './prompttick.js';
+import { makePromptClock, blockedInChase } from './prompttick.js';
 import { labelDy, anchorCovered } from './promptclear.js';
 import { setBubbleObstacles } from './hudrules.js';
 import { readCounters } from './opslaglezen.js';
@@ -199,7 +199,7 @@ export function updatePrompts(dt, world) {
   }
   hiddenT = 0;
 
-  if (primaryClock.due(dt)) primary = findPrimary(world);
+  if (primaryClock.due(dt)) { primary = findPrimary(world); if (blockedInChase(primary, world.wanted)) primary = null; }
   secondaryTimer -= dt;
   if (secondaryTimer <= 0) {
     secondaryTimer = SECONDARY_INTERVAL;
