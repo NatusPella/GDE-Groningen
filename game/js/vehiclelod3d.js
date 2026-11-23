@@ -55,8 +55,11 @@ function silhouet(tris, kleur) {
   // de hoogste punten per stuk lengte, van opzij gezien; dat profiel geëxtrudeerd over 92 % van de breedte
   let x0 = Infinity, x1 = -Infinity, z0 = Infinity, z1 = -Infinity;
   for (const t of tris) for (const q of t.pts) { x0 = Math.min(x0, q[0]); x1 = Math.max(x1, q[0]); z0 = Math.min(z0, q[2]); z1 = Math.max(z1, q[2]); }
-  const N = 10, top = new Array(N).fill(0.3);
-  for (const t of tris) for (const q of t.pts) { const i = Math.min(N - 1, Math.max(0, Math.floor(((q[0] - x0) / (x1 - x0)) * N))); top[i] = Math.max(top[i], q[1]); }
+  const N = 10, top = new Array(N).fill(0.3), zmax = new Array(N).fill(0);
+  for (const t of tris) for (const q of t.pts) { const i = Math.min(N - 1, Math.max(0, Math.floor(((q[0] - x0) / (x1 - x0)) * N))); top[i] = Math.max(top[i], q[1]); zmax[i] = Math.max(zmax[i], Math.abs(q[2] - (z0 + z1) / 2)); }
+  // de breedte van de romp: de mediaan van de breedste plek per stuk lengte, zodat spiegels (een bus) het blok niet breder maken
+  const half = zmax.slice().sort((p, q) => p - q)[Math.floor(N / 2)];
+  z0 = (z0 + z1) / 2 - half; z1 = z0 + half * 2;
   const shape = new THREE.Shape();
   shape.moveTo(x0, 0.3);
   for (let i = 0; i < N; i++) shape.lineTo(x0 + ((i + 0.5) / N) * (x1 - x0), top[i]);
@@ -128,8 +131,11 @@ class VoertuigLOD extends DitherLOD {
     if (this.delen) this.syncDelen();
   }
   syncDelen() {
+    // alleen wat deze LOD zelf verborg komt terug (een wieldop die bij eigen velgen al weg was, blijft weg)
     const c = this.choice, l0 = !c || c.a === 0 || c.b === 0;
-    for (const d of this.delen) d.visible = l0;
+    for (const d of this.delen) {
+      if (l0) { if (d.userData.lodVerborgen) { d.visible = true; d.userData.lodVerborgen = false; } } else if (d.visible) { d.visible = false; d.userData.lodVerborgen = true; }
+    }
   }
 }
 

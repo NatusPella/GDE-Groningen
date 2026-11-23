@@ -56,7 +56,11 @@ const ANDERE = [
 for (const [naam, spec, norm] of ANDERE) {
   const m = buildVehicleMesh({ id: 'ander-' + naam, health: 100, ...spec });
   const box = new THREE.Box3().setFromObject(m), s = box.getSize(new THREE.Vector3());
-  console.log(`melding ${naam}: ${r2(s.x)} x ${r2(s.z)} x ${r2(s.y)} m (norm: ${norm})`);
+  // de romp zonder spiegels: de breedte op de middelste helft van de lengte, alleen van de romp zelf
+  const body = m.userData.body || m.children.find((c) => c.isMesh), p = body.geometry.attributes.position;
+  let romp = 0;
+  for (let i = 0; i < p.count; i++) if (Math.abs(p.getX(i) - (box.min.x + box.max.x) / 2) < s.x / 4) romp = Math.max(romp, Math.abs(p.getZ(i)) * 2);
+  console.log(`melding ${naam}: ${r2(s.x)} x ${r2(s.z)} x ${r2(s.y)} m met uitsteeksels, romp ${r2(romp)} breed (norm: ${norm})`);
 }
 console.log(bad ? `voertuigschaal_test: ${bad} mislukt` : 'voertuigschaal_test: ok');
 process.exit(bad ? 1 : 0);

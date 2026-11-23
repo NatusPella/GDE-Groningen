@@ -72,4 +72,13 @@ export const VOERTUIG_REGISTER = {
   hybrideTaxi: { nl: 'Taxi (hybride)', model: { name: 'taxi', len: 4.6, wid: 1.8, color: '#e8c93a' }, isTaxi: true, hybride: 'taxi', schaal: { len: 4.5, wid: 1.8, hoog: 1.45 }, norm: HYB_NORM },
   hybridePolitie: { nl: 'Politieauto (hybride)', model: { name: 'police', len: 4.3, wid: 1.8, color: '#1c1c1c' }, isPolice: true, hybride: 'police', schaal: { len: 4.3, wid: 1.8, hoog: 1.45 }, norm: HYB_NORM },
 };
+// De botsmaat volgt de getekende maat (23-11): een gewone personenauto die als hybride getekend wordt (hybridKey in
+// models3d_vehicles.js: geen roest, elektrisch, tokkie, belettering of model.hybride === false), botst met de lengte en breedte uit het
+// register. Puur, zodat vehicle.js het bij het bouwen van een Vehicle kan toepassen. null: de maat van het model blijft.
+const HYB_PER_NAAM = { sedan: 'sedan', hatch: 'hatch', suv: 'suv', sport: 'sport', taxi: 'taxi', police: 'police' };
+export function getekendeMaat(model) {
+  if (!model || model.hybride === false || model.rusty || model.electric || model.tokkie || model.livery) return null;
+  const key = model.qcar || HYB_PER_NAAM[model.name];
+  return key ? hybrideSchaal(key) : null;
+}
 export const VOERTUIG_IDS = Object.keys(VOERTUIG_REGISTER);
