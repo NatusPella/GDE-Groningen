@@ -13,6 +13,8 @@ import { buildWeaponMesh, TAMMO_APPEARANCE, ANITA_APPEARANCE } from './models3d_
 import { getCombatEffect } from './combateffect.js';
 import { isRangedWeapon, WEAPONS } from './weapons.js';
 import { blokActief } from './blockregels.js';
+import { FLAGS } from './devflags.js';
+import { mensenFase, modularReady, bakeModularForearm, modularLookFromAppearance } from './modularpeople.js';
 
 // De camera kijkt in three.js langs -z; x is rechts, y omhoog. Alles hier is in die
 // cameraruimte, in meters. De ruststand houdt de vuisten onder in beeld, net als bij het
@@ -222,6 +224,7 @@ function buildArm(mats, mirror) {
   thumb.position.set(-0.06 * s, 0.03, -0.14);
   // overlay: geen dieptetest, dus volgorde via renderOrder (mouw, arm, [wapen 32], vuist, duim)
   [sleeve, arm, fist, thumb].forEach((m, i) => {
+    m.userData.box = true;
     m.castShadow = false;
     m.receiveShadow = false;
     m.frustumCulled = false;
@@ -262,6 +265,36 @@ function buildFirstPersonHands(character = 'tammo') {
   root.userData.weapons = {};
   root.userData.weaponKey = null;
   return root;
+}
+
+// Het nieuwe model (ADR 0050, ?mensen=q3): de echte onderarm met mouw en gesloten hand van de speler (modularpeople.js
+// bakeModularForearm) in plaats van de blokjes. De pols staat 8 cm voor de as van de arm, zodat de vuist waar het blokje zat uitkomt.
+// character null zet de blokjes terug.
+const Q_WRIST_Z = -0.08;
+function applyModularHands(h, character) {
+  const ud = h.userData;
+  if (ud.qKey === character) return;
+  ud.qKey = character;
+  for (const side of ['right', 'left']) {
+    const arm = ud[side];
+    const old = arm.userData.qArm;
+    if (old) { arm.remove(old); old.geometry.dispose(); arm.userData.qArm = null; }
+    let mesh = null;
+    if (character) {
+      const look = modularLookFromAppearance(character === 'anita' ? ANITA_APPEARANCE : TAMMO_APPEARANCE);
+      const g = look && bakeModularForearm(look, side === 'right' ? 'R' : 'L');
+      if (g && g.attributes.position.count) {
+        if (!ud.qMat) ud.qMat = new THREE.MeshLambertMaterial({ vertexColors: true, flatShading: true, depthTest: false, depthWrite: false, emissive: 0x1c1a18 });
+        mesh = new THREE.Mesh(g, ud.qMat);
+        mesh.position.set(0, 0, Q_WRIST_Z);
+        mesh.renderOrder = 33; mesh.frustumCulled = false; mesh.castShadow = false; mesh.receiveShadow = false;
+        mesh.name = 'onderarm-' + side;
+        arm.add(mesh);
+        arm.userData.qArm = mesh;
+      }
+    }
+    for (const c of arm.children) if (c.userData.box) c.visible = !mesh;
+  }
 }
 
 // Laat het wapen in de rechterhand zien; null (of 'fists') houdt de handen leeg. De geometrie
@@ -344,6 +377,8 @@ export function syncFirstPersonHands(scene, cam, world, player) {
   hands.userData.character = (player && player.character) === 'anita' ? 'anita' : 'tammo';
   hands.userData.mats.skin.color.setHex(app.skin);
   hands.userData.mats.shirt.color.setHex(app.shirt);
+  // spelerfase van de modulaire mensen: de echte onderarmen (alleen als de rigs er zijn; anders de blokjes)
+  applyModularHands(hands, mensenFase(FLAGS.mensen) >= 3 && modularReady() ? hands.userData.character : null);
   if (hands.parent !== cam) {
     cam.add(hands);
     // een kind van de camera wordt alleen getekend als de camera zelf in de scène hangt

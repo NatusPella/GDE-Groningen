@@ -113,7 +113,8 @@ import { fadeBand, loadRadius } from './popinrules.js';
 import { VIEW_DISTANCES, viewDistanceFor, detailDistanceFor, DETAIL_BASE } from './viewdist.js';
 import { glanceAt, shareFeet } from './gait.js';
 import { lifeTier } from './actorlife.js';
-import { loadModularPeople, buildModularPerson, buildModularFromAppearance, modularReady, setModularLod, lodForDistance, mensenFase } from './modularpeople.js';
+import { createFarCrowd, FAR_CROWD_FROM, FAR_CROWD_BACK } from './farcrowd3d.js';
+import { loadModularPeople, buildModularPerson, buildModularFromAppearance, modularReady, setModularLod, lodForDistance, setModularLodPreset, mensenFase } from './modularpeople.js';
 import { NEAR_MIN, cameraNearTarget, stepNear, parseNearFlag, parseFarFlag } from './cameranear.js';
 import { compareOpaque } from './drawpool.js';
 import { buildingBatcher, roadBatcher, facadeBatcher, shoreBatcher, drawHub } from './staticbatch3d.js';
@@ -1087,6 +1088,7 @@ function applyViewSettings(st, key) {
   wantRatio = renderPixelRatio(st, preset);
   resize3D();
   setNightLightQuality(level);
+  setModularLodPreset(level); // LOD-afstanden van de modulaire mensen schalen met de stand (lodregistry.js)
   starShare = STAR_SHARE[level] ?? 1;
   if (skyDome) setStarShare(skyDome, starShare);
   setCountryFacadeLevel(level);
@@ -2338,6 +2340,10 @@ function syncActors(list, cache, builder, idOf, seen = new Set()) {
 // Peds never pop: they spawn out of sight (pedestrians.js asks world.pedView),
 // fade in/out with a screen-door dither, thin out towards DRAW_DIST, and
 // their meshes (~2 ms each) are built a few per frame instead of in bursts.
+// verre menigte (farcrowd3d.js): gewone voorbijgangers voorbij FAR_CROWD_FROM m als instances met een gebakken pose (alleen modulaire mensen)
+let farCrowd = null;
+const _pedFar = new Set();
+const farCrowdOk = (p) => !p.isCop && !p.look && !p.carry && !p.pose && !p.heldWeapon && !p.ragdoll && !p.hideMesh && !p.gibbed && p.state !== 'dead' && !p.attackFx && !p.hitReact;
 const _wildlifeNear = [], _wildlifeSeen = new Set(), _pedSeen = new Set(), _bubbleSeen = new Set(), _fireSeen = new Set();
 const PED_FADE_TIME = 0.6;
 const PED_EDGE_FADE = 14;
@@ -2397,10 +2403,10 @@ function buildPedActor(p, world) {
   if (p._lookSeed === undefined) p._lookSeed = Math.random() * 1000;
   const outfit = pedOutfitOpts(p, world);
   // fase 1 (ADR 0050, ?mensen=q): een gewone voorbijganger wordt een modulaire mens zodra de rigs geladen zijn; agenten,
-  // verhaalfiguren en wie iets draagt blijven procedureel (die houdingen zitten nog alleen op het eigen rig)
-  if (mensenFase(FLAGS.mensen) >= 1 && modularReady() && !p.isCop && !p.look && !p.carry && !p.pose && !p.heldWeapon) {
+  // verhaalfiguren met een eigen look en wie een vaste houding heeft blijven procedureel; dragen en wapens kan het nieuwe model ook
+  if (mensenFase(FLAGS.mensen) >= 1 && modularReady() && !p.isCop && !p.look && !p.pose) {
     const q = buildModularPerson(p._lookSeed, { skin: p.skin ? colorFromHex(p.skin) : 0xe0b48a, shirt: p.clothing ? colorFromHex(p.clothing) : null });
-    if (q) { addBlobShadow(q, 0.85, 0.85); return enableShadows(q, false); }
+    if (q) { addBlobShadow(q, 0.85, 0.85); if (p.carry) attachCarry(q, p.carry); return enableShadows(q, false); }   // dragen en wapens: modularpeople.js modularHoldPose, modularHandSocket
   }
   const mesh = buildPersonActor(p.clothing ? colorFromHex(p.clothing) : 0xcaa46a, p.skin ? colorFromHex(p.skin) : 0xe0b48a, p.look ? { seed: p._lookSeed, look: p.look } : outfit ? { seed: p._lookSeed, ...outfit } : { seed: p._lookSeed });
   if (p.carry) attachCarry(mesh, p.carry);
@@ -2472,8 +2478,19 @@ function syncPedestrianMeshes(world, player, animDt) {
   const pedRange = perfOff('persoonsbereik') ? DRAW_DIST : Math.max(Math.min(DRAW_DIST, PED_RANGE_FAST), DRAW_DIST - Math.max(0, focusSpeed - PED_RANGE_FROM) * PED_RANGE_SLOPE);
   const seen = _pedSeen; seen.clear(); const pt0 = performance.now(), deadline = pt0 + plan.grant('actors', PED_BUILD_BUDGET_MS);
   let built = 0;
+  if (!farCrowd && mensenFase(FLAGS.mensen) >= 1) farCrowd = createFarCrowd(scene);
+  const farOn = !!(farCrowd && modularReady() && !perfOff('verremenigte') && farCrowd.ready);
+  if (farOn) farCrowd.begin();
+  _pedFar.clear();
   for (const p of world.pedestrians) {
-    { const dx = p.x - player.x, dy = p.y - player.y; if (dx * dx + dy * dy >= (pedRange > 0 ? pedRange * pedRange : 0)) continue; } // #985: kwadraten, Math.hypot is ~12x trager
+    const dx = p.x - player.x, dy = p.y - player.y, d2 = dx * dx + dy * dy;
+    if (d2 >= (pedRange > 0 ? pedRange * pedRange : 0)) continue; // #985: kwadraten, Math.hypot is ~12x trager
+    // ver weg: een plek in de verre menigte in plaats van een eigen gehuide mens (met hysterese: wie al een mens heeft, houdt hem tot FAR_CROWD_FROM)
+    if (farOn && d2 > (pedMeshes.has(p) ? FAR_CROWD_FROM * FAR_CROWD_FROM : FAR_CROWD_BACK * FAR_CROWD_BACK) && farCrowdOk(p)) {
+      if (p._lookSeed === undefined) p._lookSeed = Math.random() * 1000;
+      const sd = Math.floor(p._lookSeed * 7);
+      if (farCrowd.add(p.x, p.gz || 0, p.y, p.angle || 0, sd, (sd & 1) === 1)) { _pedFar.add(p); continue; }
+    }
     seen.add(p);
     if (pedMeshes.has(p)) continue;
     const over = built > 0 && performance.now() > deadline;
@@ -2485,10 +2502,11 @@ function syncPedestrianMeshes(world, player, animDt) {
     built++;
   }
   plan.spend('actors', performance.now() - pt0);
+  if (farOn) farCrowd.end(world.time || 0);
   for (const [p, mesh] of pedMeshes) {
     if (seen.has(p)) continue;
     pedMeshes.delete(p);
-    if (instant || !mesh.visible) disposePedMesh(mesh);
+    if (instant || !mesh.visible || _pedFar.has(p)) disposePedMesh(mesh);   // naar de verre menigte: meteen weg, anders staat hij er dubbel
     else pedFadingOut.push(mesh);
   }
 

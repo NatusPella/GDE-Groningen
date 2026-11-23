@@ -79,7 +79,12 @@ for (const female of [false, true]) {
   M.setModularLod(m, 1);
   ok(g0.userData.personRefs === r0 - 1 && m.userData.body.geometry.userData.personRefs >= 1, 'LOD-wissel telt af en op');
   ok(!M.setModularLod(m, 1), 'hetzelfde niveau doet niets');
-  ok(M.lodForDistance(20, 0) === 0 && M.lodForDistance(30, 0) === 1 && M.lodForDistance(70, 1) === 2 && M.lodForDistance(24.5, 1) === 1 && M.lodForDistance(22, 1) === 0, 'LOD op afstand met marge (25 en 60 m, de soort person van het centrale register)');
+  ok(M.lodForDistance(20, 0) === 0 && M.lodForDistance(30, 0) === 1 && M.lodForDistance(70, 1) === 2 && M.lodForDistance(24.5, 1) === 1 && M.lodForDistance(22, 1) === 1 && M.lodForDistance(20, 1) === 0 && M.lodForDistance(200, 2) === 2, 'LOD op afstand met 4 m hysterese (25 en 60 m, de soort person van het centrale register lodregistry.js)');
+  const LR = await import('../game/js/lodregistry.js');
+  M.registerModularLods(LR.registerLodModel);
+  const mine = LR.lodModels().filter((x) => /^modulair:/.test(x.name));
+  ok(mine.length === 8 && LR.auditLod(mine).length === 0, `het centrale register keurt de 8 modulaire mensen (${JSON.stringify(LR.auditLod(mine)).slice(0, 120)})`);
+  M.setModularLodPreset('laag'); ok(M.lodForDistance(20, 0) === 1 && M.lodForDistance(40, 1) === 2, 'een lichtere grafische stand wisselt eerder (laag: 15 en 36 m)'); M.setModularLodPreset('hoog');
   const reg = []; ok(M.registerModularLods((k, nm, t) => reg.push({ k, nm, t })) === 8 && reg.every((r) => r.k === 'person' && 1 - r.t[1] / r.t[0] >= 0.35 && 1 - r.t[2] / r.t[0] >= 0.6), 'registerModularLods: 8 mensen, elk binnen de minCut van de soort person (35% en 60%)');
   M.setModularLodPolicy((d) => (d > 100 ? 2 : 0)); ok(M.lodForDistance(120, 0) === 2 && M.lodForDistance(30, 0) === 0, 'een beleid van het centrale register wint'); M.setModularLodPolicy(null);
 }
@@ -124,6 +129,72 @@ for (const female of [false, true]) {
   ok(ud.qGrip === false, 'uitgestapt en lopen: handen open');
   M.seatModular(m, { x: 0, y: 0.5, z: 0, pose: { arms: 'lap' } }, 2);
   ok(!ud.qGrip, 'passagier: handen open');
+}
+
+// verre menigte: gebakken poses (lichtste LOD, geen huid) in instances; een draw call per variant en fase
+{
+  const g = M.bakeModularPose(7000, { female: false }, 'Walk', 0.1, 2);
+  g.computeBoundingBox();
+  const bb = g.boundingBox, pos = g.attributes.position.array;
+  ok(!g.attributes.skinIndex && pos.every(Number.isFinite) && bb.max.y > 1.6 && bb.max.y < 2 && bb.min.y > -0.08 && bb.min.y < 0.08, `gebakken pose: vast, zonder huid, een mens van ${bb.max.y.toFixed(2)} m op de grond`);
+  const g2 = M.bakeModularPose(7000, { female: false }, 'Walk', 0.6, 2);
+  let diff = 0; for (let i = 0; i < pos.length; i++) diff = Math.max(diff, Math.abs(pos[i] - g2.attributes.position.array[i]));
+  ok(diff > 0.1, `twee loopfasen verschillen (benen ${diff.toFixed(2)} m)`);
+  const FC = await import('../game/js/farcrowd3d.js');
+  const scene = new THREE.Scene(), fc = FC.createFarCrowd(scene);
+  ok(fc.ready && FC.FAR_CROWD_FROM === 75 && FC.FAR_CROWD_BACK < FC.FAR_CROWD_FROM, `verre menigte klaar, vanaf ${FC.FAR_CROWD_FROM} m (de tweede LOD-grens van person plus 15 m)`);
+  fc.begin(); for (let i = 0; i < 300; i++) fc.add(i, 0, 0, i * 0.1, i * 13, i % 2 === 1); fc.end(0.3);
+  let ims = 0, drawn = 0; scene.traverse((o) => { if (o.isInstancedMesh) { ims++; drawn += o.count; } });
+  ok(ims === 2 * FC.VARIANTS * 2 && drawn === 300 && fc.total() === 300, `300 verre lopers in ${ims} instanced meshes (${drawn} getekend)`);
+  fc.dispose(); let left = 0; scene.traverse((o) => { if (o.isInstancedMesh) left++; }); ok(left === 0, 'opruimen haalt alles uit de scène');
+}
+
+// wapens en aanvallen op het nieuwe model: het wapen in de rechterhand (vuist), richten tilt de hand naar voren op schouderhoogte, een
+// schot en een stoot bewegen de arm; dragen brengt beide handen naar de last
+{
+  const m = M.buildModularPerson(321, { female: false });
+  const ud = m.userData, wr = (n) => ud.qBones[ud.qIdxBy[n]].getWorldPosition(new THREE.Vector3());
+  for (let f = 0; f < 30; f++) P.animatePersonWalk(m, 0, 1 / 60);
+  m.updateMatrixWorld(true);
+  const rest = wr('WristR');
+  P.setHeldWeapon(m, 'pistol');
+  m.updateMatrixWorld(true);
+  const gun = ud.guns && ud.guns.pistol, gp = gun && gun.getWorldPosition(new THREE.Vector3()), gs = gun && gun.getWorldScale(new THREE.Vector3());
+  ok(gun && ud.muzzle && gp.distanceTo(rest) < 0.15 && Math.abs(gs.x - m.scale.x) < 0.02 && ud.qGrip, `pistool in de rechterhand (${gp && (gp.distanceTo(rest) * 100).toFixed(0)} cm van de pols, schaal ${gs && gs.x.toFixed(2)}), hand dicht`);
+  for (let f = 0; f < 3; f++) P.animatePersonWalk(m, 0, 1 / 60);
+  ok(ud.qGrip, 'met een wapen blijft de hand dicht (ook bij lopen)');
+  P.applyAttackPose(m, null, 10, 'pistol');
+  const aim = wr('WristR'), tip = ud.muzzle.getWorldPosition(new THREE.Vector3());
+  ok(aim.y > 1.25 && aim.x > rest.x + 0.25 && tip.x > aim.x, `richten: pols naar voren en omhoog (${aim.x.toFixed(2)}, ${aim.y.toFixed(2)}), de loop wijst vooruit (${tip.x.toFixed(2)})`);
+  for (let f = 0; f < 2; f++) P.animatePersonWalk(m, 0, 1 / 60);
+  const before = wr('WristR');
+  P.applyAttackPose(m, { type: 'melee', start: 10, side: 1 }, 10.1, null);
+  ok(wr('WristR').distanceTo(before) > 0.08, 'een stoot beweegt de hand');
+  P.setHeldWeapon(m, null);
+  ok(!ud.guns.pistol.visible, 'wapen weg');
+  P.animatePersonWalk(m, 0, 1 / 60);
+  ok(!ud.qGrip, 'zonder wapen gaat de hand weer open');
+  P.carryOverlay(m);
+  const L = wr('WristL'), R = wr('WristR');
+  ok(L.x > 0.25 && R.x > 0.25 && L.y > 0.85 && R.y > 0.85 && L.z < 0 && R.z > 0, `dragen: beide handen voor de borst (L ${L.x.toFixed(2)},${L.y.toFixed(2)} R ${R.x.toFixed(2)},${R.y.toFixed(2)})`);
+}
+
+// eerste-persoonhanden: de echte onderarm met gesloten hand van Tammo en Anita, van ver naar dichtbij gesorteerd
+{
+  const { TAMMO_APPEARANCE, ANITA_APPEARANCE } = P;
+  for (const [nm, app] of [['Tammo', TAMMO_APPEARANCE], ['Anita', ANITA_APPEARANCE]]) {
+    const look = M.modularLookFromAppearance(app);
+    for (const side of ['R', 'L']) {
+      const g = look && M.bakeModularForearm(look, side);
+      const p = g && g.attributes.position.array;
+      if (!p) { ok(false, `${nm} ${side}: onderarm gebakken`); continue; }
+      g.computeBoundingBox();
+      const bb = g.boundingBox, n = p.length / 9;
+      let sorted = true; for (let t = 1; t < n; t++) if (p[t * 9 + 2] + p[t * 9 + 5] + p[t * 9 + 8] < p[t * 9 - 7] + p[t * 9 - 4] + p[t * 9 - 1] - 1e-6) { sorted = false; break; }
+      ok(n > 60 && p.every(Number.isFinite) && bb.min.z < -0.06 && bb.min.z > -0.2 && bb.max.z > 0.15 && bb.max.z < 0.4 && bb.max.x - bb.min.x < 0.16 && sorted,
+        `${nm} ${side}: onderarm met vuist (${n} drh, vingers tot ${(-bb.min.z * 100).toFixed(0)} cm voor de pols, arm ${(bb.max.z * 100).toFixed(0)} cm erachter, ${((bb.max.x - bb.min.x) * 100).toFixed(0)} cm breed, gesorteerd ${sorted})`);
+    }
+  }
 }
 
 // voeten op de grond: de voet op de tree komt mee omhoog, het been blijft heel (knie-enkel even lang)

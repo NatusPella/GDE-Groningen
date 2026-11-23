@@ -9,11 +9,12 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { vcMaterial, markShared } from './pixelart3d.js';
 import { crossfade, footPlant, wheelGrip, STEER_TURN } from './actorlife.js';
-import { createAnimState, stepAnimState, stateName, STATES, STATE_IDS } from './animstate.js';
+import { createAnimState, stepAnimState, stateName, STATES, STATE_IDS, UPPER_MASK } from './animstate.js';
 import { blinkAmount } from './gait.js';
 import { lookFromAppearance } from './modularlooks.js';
 import { BODY_TYPES } from './clothinghair.js';
 import { setModularActorHook } from './actoranim.js';
+import { lodLevel, lodScaleFor, registerLodModel } from './lodregistry.js';
 
 const rigs = new Map();               // 'man' | 'vrouw' -> gedecodeerde rig
 const loading = new Map();
@@ -100,7 +101,7 @@ export function loadModularPeople(base = new URL('../models/mensen/', import.met
   for (const name of ['man', 'vrouw']) {
     if (rigs.has(name) || loading.has(name)) { all.push(loading.get(name)); continue; }
     const p = Promise.all([fetch(base + name + '.json').then((r) => r.json()), fetch(base + name + '.bin').then((r) => r.arrayBuffer())])
-      .then(([man, buf]) => registerModularRig(name, man, buf))
+      .then(([man, buf]) => { registerModularRig(name, man, buf); if (rigs.size === 2) registerModularLods(registerLodModel); })
       .catch((e) => { console.warn('[mensen] rig niet geladen', name, e && e.message); return null; });
     loading.set(name, p);
     all.push(p);
@@ -339,13 +340,14 @@ function geometryFor(rig, look, lod = 0, grip = false) {
 }
 
 // LOD-niveaus (eis eigenaar 23-11): 0 dichtbij, 1 vanaf LOD_NEAR m (~49% minder driehoeken), 2 vanaf LOD_FAR m (~77% minder).
-// De standaard is de soort 'person' van het centrale LOD-register (perf-ultra-23-11, lodregistry.js LOD_KINDS.person: grenzen 25 en 60 m
-// bij Ultra). Anders dan lodForSkinned (LOD1+ als bevroren pose) blijven onze lichtere niveaus gehuid en geanimeerd: zelfde skelet,
-// minder driehoeken. Koppelen na het samenvoegen van die tak (scene3d.js):
-//   setModularLodPolicy((d, cur) => lodLevel('person', d, { levels: 3, prev: cur, scale }));
-//   registerModularLods(registerLodModel);   // het register en scripts/lod_audit_test.mjs zien de mensen dan ook
+// Gekoppeld aan het centrale LOD-register (lodregistry.js, soort 'person': grenzen 25 en 60 m bij Ultra, 4 m hysterese, en korter bij een
+// lichtere grafische stand via setModularLodPreset). Anders dan lodForSkinned (LOD1+ als bevroren pose) blijven onze lichtere niveaus
+// gehuid en geanimeerd: zelfde skelet, minder driehoeken. Na het laden staan vier mensen per rig in het register (registerModularLods),
+// zodat scripts/lod_audit_test.mjs ze ook keurt.
 export const LOD_NEAR = 25, LOD_FAR = 60;
-let lodPolicy = null;
+let lodPolicy = null, lodScale = 1;
+// De grafische stand (de sleutels van gfxprofile.js, zoals setAnimalLodPreset): een lichtere stand wisselt eerder naar een lichter niveau.
+export function setModularLodPreset(preset) { lodScale = lodScaleFor(preset); }
 export function setModularLodPolicy(fn) { lodPolicy = typeof fn === 'function' ? fn : null; }
 export function modularLodLevels(mesh) {
   const ud = mesh && mesh.userData;
@@ -392,11 +394,8 @@ function swapGeometry(ud) {
 }
 // Het niveau voor een afstand d (m) met een kleine marge, zodat iemand op de grens niet heen en weer springt.
 export function lodForDistance(d, cur = 0) {
-  if (lodPolicy) { const L = lodPolicy(d, cur); return L >= 0 && L <= 2 ? L : 2; }
-  const m = 1.5;
-  if (cur === 0) return d > LOD_NEAR + m ? (d > LOD_FAR + m ? 2 : 1) : 0;
-  if (cur === 1) return d < LOD_NEAR - m ? 0 : d > LOD_FAR + m ? 2 : 1;
-  return d < LOD_NEAR - m ? 0 : d < LOD_FAR - m ? 1 : 2;
+  const L = lodPolicy ? lodPolicy(d, cur) : lodLevel('person', d, { levels: 3, prev: cur, scale: lodScale });
+  return L >= 0 && L <= 2 ? L : 2;   // 3 = voorbij de weg-afstand: dat ruimt scene3d.js zelf op
 }
 
 // Een modulaire mens als groep (zelfde contract als buildPersonMesh: oorsprong tussen de voeten, kijkt langs +X, userData.body is
@@ -556,6 +555,29 @@ export function poseModularClip(mesh, name, u) {
 }
 export const modularClipNames = (mesh) => (mesh && mesh.userData.qRig ? Object.keys(mesh.userData.qRig.clips) : []);
 
+// Een gebakken pose (verre menigte, farcrowd3d.js): een mens op LOD-niveau `lod` in clip `clip` op fase u (0..1), als vaste geometrie
+// zonder huid (position + color + index, in meters met de lengte van het zaad, oorsprong tussen de voeten, kijkt langs +X).
+// Daarmee tekent een InstancedMesh honderden verre voorbijgangers in één draw call. Null als de rig niet geladen is.
+export function bakeModularPose(seed, opts = {}, clip = 'Walk', u = 0, lod = 2) {
+  const m = buildModularPerson(seed, opts);
+  if (!m) return null;
+  const ud = m.userData;
+  setModularLod(m, lod);
+  poseModularClip(m, clip, u);
+  m.updateMatrixWorld(true);
+  const body = ud.body, src = body.geometry, n = src.attributes.position.count;
+  const P = new Float32Array(n * 3), v = new THREE.Vector3();
+  for (let i = 0; i < n; i++) { v.fromBufferAttribute(src.attributes.position, i); body.applyBoneTransform(i, v); P[i * 3] = v.x; P[i * 3 + 1] = v.y; P[i * 3 + 2] = v.z; }
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.BufferAttribute(P, 3));
+  g.setAttribute('color', src.attributes.color.clone());
+  g.setIndex(src.index.clone());
+  g.computeBoundingSphere();
+  src.userData.personRefs--;   // de mens zelf is alleen een mal
+  if (src.userData.personRefs <= 0 && src.userData.personRetired) src.dispose();
+  return g;
+}
+
 function writeBones(ud, rig) {
   const bones = ud.qBones, restB = rig.man.bones;
   for (let b = 0; b < bones.length; b++) {
@@ -568,7 +590,7 @@ function writeBones(ud, rig) {
 }
 
 export function animateModular(mesh, speed, dt) {
-  if (mesh && mesh.userData.qGrip && !mesh.userData.qInSeat) setModularGrip(mesh, false);   // uitgestapt: handen weer open
+  if (mesh && mesh.userData.qGrip && !mesh.userData.qInSeat && !mesh.userData.gunKey) setModularGrip(mesh, false);   // uitgestapt (en geen wapen): handen weer open
   const ud = mesh.userData, rig = ud.qRig, st = ud.qState;
   if (!rig) return;
   const s = Number.isFinite(speed) ? Math.max(0, speed) : 0;
@@ -1030,3 +1052,127 @@ export function animateModularActor(mesh, anim, speed, gaze, dt, jaw = 0, seated
 
 // cutscenes, decorsets en menigtes (actoranim.js animateActor) sturen een modulaire mens via deze haak
 setModularActorHook(animateModularActor);
+
+
+// ---- handen: wapen, aanvallen en dragen (eis coördinator 23-11: de speler op het nieuwe model) ---------------------------------
+// De wapens van models3d_people.js (setHeldWeapon) hangen in een houder op de rechterpols (aan de onderarm). De botten dragen de packschaal (~100):
+// de houder schaalt dat terug, zodat een wapen zijn eigen maat houdt (en met de lengte van de mens meeschaalt), en draait een halve
+// slag om z: dan is -y van de houder de richting van de vingers en +x voor, net als de onderarm van het eigen model.
+const _sp3 = new THREE.Vector3(), _sq3 = new THREE.Quaternion(), _ss = new THREE.Vector3();
+export function modularHandSocket(mesh) {
+  const ud = mesh && mesh.userData;
+  if (!ud || !ud.qRig) return null;
+  if (ud.qSocketR) return ud.qSocketR;
+  // aan de onderarm, op de pols: de loop volgt de onderarm (zoals bij het eigen model), niet de knik van de pols in de clip
+  const lo = ud.qBones[ud.qIdxBy.LowerArmR], wr = ud.qBones[ud.qIdxBy.WristR];
+  mesh.updateMatrixWorld(true);
+  lo.matrixWorld.decompose(_sp3, _sq3, _ss);
+  const sock = new THREE.Object3D();
+  sock.name = 'handR';
+  sock.scale.setScalar(mesh.scale.x / _ss.x);
+  sock.position.copy(wr.position);
+  sock.rotation.z = Math.PI;
+  lo.add(sock);
+  ud.qSocketR = sock;
+  return sock;
+}
+// waar de handpalm in de houder zit (m): de greep van een wapen komt hier
+export const MODULAR_GRIP_AT = [0.01, -0.075, 0];
+
+// Een clip alleen op het bovenlijf (animstate.js UPPER_MASK: borst, armen, nek, hoofd) met gewicht w over de pose die er al staat.
+let _upperIdx = null;
+export function overlayModularClip(mesh, name, u, w = 1) {
+  const ud = mesh && mesh.userData, rig = ud && ud.qRig;
+  const c = rig && rig.clips[name];
+  if (!c || !(w > 0)) return false;
+  if (!_upperIdx || _upperIdx.rig !== rig.man) _upperIdx = { rig: rig.man, idx: UPPER_MASK.map((n) => rig.man.bones.findIndex((b) => b.name === n)).filter((i) => i >= 0) };
+  _acc.fill(0); _pacc.fill(0); _pw.fill(0);
+  accumulate(rig, c, u, 1);
+  for (const b of _upperIdx.idx) {
+    const a = b * 4, l = Math.hypot(_acc[a], _acc[a + 1], _acc[a + 2], _acc[a + 3]);
+    if (l < 1e-6) continue;
+    _qa.set(_acc[a] / l, _acc[a + 1] / l, _acc[a + 2] / l, _acc[a + 3] / l);
+    ud.qBones[b].quaternion.slerp(_qa, Math.min(1, w));
+  }
+  return true;
+}
+
+// Aanvallen (models3d_people.js applyAttackPose kiest): 'aim' richt het pistool (UAL Pistol_Idle_Loop), 'shoot' de terugslag van
+// een schot (Pistol_Shoot, u = 0..1), 'jab' en 'cross' een stoot (Punch_Jab, Punch_Cross; ook voor een zwaai met een slagwapen).
+const ATTACK_CLIP = { aim: 'UAL_Pistol_Idle_Loop', shoot: 'UAL_Pistol_Shoot', jab: 'UAL_Punch_Jab', cross: 'UAL_Punch_Cross' };
+export function modularAttackPose(mesh, kind, u, w = 1) {
+  const ud = mesh && mesh.userData;
+  if (!ud || !ud.qRig || !ATTACK_CLIP[kind]) return false;
+  const c = ud.qRig.clips[ATTACK_CLIP[kind]];
+  if (!c) return false;
+  // de lus (richten) loopt op de eigen klok, een eenmalige beweging op u
+  const uu = kind === 'aim' ? ((ud.qState.t || 0) / c.dur) % 1 : Math.max(0, Math.min(0.999, u));
+  const ok = overlayModularClip(mesh, ATTACK_CLIP[kind], uu, w);
+  if (ok) mesh.updateMatrixWorld(true);
+  return ok;
+}
+
+// Dragen (streetlife3d.js carryPose, models3d_people.js carryOverlay): beide handen naar de last. 'front' een bank, plant of doos voor
+// de borst; 'up' een matras boven het hoofd; 'low' een tas of krat laag voor de buik. Hand en elleboog met de IK van het zitten.
+const HOLD_AT = { front: [0.42, 1.02, 0.2], up: [0.08, 1.98, 0.24], low: [0.3, 0.86, 0.18] };
+export function modularHoldPose(mesh, mode = 'front') {
+  const ud = mesh && mesh.userData, at = HOLD_AT[mode];
+  if (!ud || !ud.qRig || !at) return false;
+  const B = ud.qBones, bn = (n) => B[ud.qIdxBy[n]];
+  mesh.updateMatrixWorld(true);
+  const s = mesh.scale.x || 1;
+  for (let k = 0; k < 2; k++) {
+    const up = bn(k ? 'UpperArmR' : 'UpperArmL'), lo = bn(k ? 'LowerArmR' : 'LowerArmL'), wr = bn(k ? 'WristR' : 'WristL');
+    mesh.localToWorld(_c0.set(at[0], at[1], (k ? 1 : -1) * at[2]));
+    for (let it = 0; it < 2; it++) {
+      wr.getWorldPosition(_ft);
+      _tg.copy(_c0);
+      if (it) { lo.getWorldPosition(_bv); _ax1.subVectors(_ft, _bv).normalize(); _tg.addScaledVector(_ax1, -HAND_PALM * s); }
+      ikTo(up, lo, _ft, _tg);
+      poleTo(mesh, up, lo, _tg, 0, -1, (k ? 1 : -1) * 0.6);
+    }
+  }
+  mesh.updateMatrixWorld(true);
+  return true;
+}
+
+
+// Eerste-persoonhanden (firstpersonhands.js) op het nieuwe model: de onderarm met de gesloten hand (grijpvariant) van een look als vaste
+// geometrie (position + color) in het assenstelsel van de arm in die module: oorsprong in de pols, -z naar de vingers, +x naar rechts
+// van de mens, +y de kant van de duim. De driehoeken staan van ver naar dichtbij (de handen tekenen zonder dieptetest, als overlay).
+export function bakeModularForearm(look, side = 'R') {
+  const rig = look && rigs.get(look.rig);
+  if (!rig) return null;
+  const g = geometryFor(rig, look, 0, true);
+  const bones = rig.man.bones, bi = (n) => bones.findIndex((b) => b.name === n);
+  const lo = bi('LowerArm' + side), wr = bi('Wrist' + side);
+  const at = (i) => new THREE.Vector3().setFromMatrixPosition(new THREE.Matrix4().fromArray(bones[i].inv).invert());
+  const W = at(wr), f = W.clone().sub(at(lo)).normalize();
+  const x = new THREE.Vector3(0, 0, 1).addScaledVector(f, -f.z).normalize(), z = f.clone().negate(), y = new THREE.Vector3().crossVectors(z, x);
+  const P = g.attributes.position.array, C = g.attributes.color.array, SI = g.attributes.skinIndex.array, SW = g.attributes.skinWeight.array, I = g.index.array;
+  const ok = (v) => { let b = SI[v * 4], w = SW[v * 4]; for (let k = 1; k < 4; k++) if (SW[v * 4 + k] > w) { w = SW[v * 4 + k]; b = SI[v * 4 + k]; } return b === lo || b === wr; };
+  const s = look.scale || 1, tris = [], d = new THREE.Vector3();
+  const loc = (v) => { d.set(P[v * 3] - W.x, P[v * 3 + 1] - W.y, P[v * 3 + 2] - W.z); return [d.dot(x) * s, d.dot(y) * s, d.dot(z) * s]; };
+  for (let t = 0; t < I.length; t += 3) {
+    const a = I[t], b = I[t + 1], c = I[t + 2];
+    if (!ok(a) || !ok(b) || !ok(c)) continue;
+    const pa = loc(a), pb = loc(b), pc = loc(c);
+    tris.push({ z: pa[2] + pb[2] + pc[2], v: [a, b, c], p: [pa, pb, pc] });
+  }
+  tris.sort((A, B) => A.z - B.z);
+  const pos = new Float32Array(tris.length * 9), col = new Float32Array(tris.length * 9);
+  tris.forEach((t2, k) => { for (let j = 0; j < 3; j++) { pos.set(t2.p[j], k * 9 + j * 3); col.set(C.subarray(t2.v[j] * 3, t2.v[j] * 3 + 3), k * 9 + j * 3); } });
+  const out = new THREE.BufferGeometry();
+  out.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+  out.setAttribute('color', new THREE.BufferAttribute(col, 3));
+  out.computeVertexNormals();
+  return out;
+}
+// De look van een verhaalfiguur (TAMMO_APPEARANCE, ANITA_APPEARANCE) zoals buildModularFromAppearance hem kiest; null zonder rigs.
+export function modularLookFromAppearance(a) {
+  const m = rigs.size === 2 ? buildModularFromAppearance(a) : null;
+  if (!m) return null;
+  const look = m.userData.qLook, g = m.userData.body.geometry;
+  g.userData.personRefs--;
+  return { ...look, scale: m.scale.y };
+}

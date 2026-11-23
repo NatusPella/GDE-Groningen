@@ -4,7 +4,7 @@ import { hash2 } from './rng.js';
 import { weaponLayers } from './models3d_weapons.js';
 import { footContact, turnLean, approachTo, wrapPi, fidgetAt, blinkAmount } from './gait.js';
 import { twoBoneIK, twoBoneFK, armIK, armFK, footPlant, wheelGrip, mouthShape, STEER_TURN } from './actorlife.js';
-import { animateModular, plantFeetModular, modularSeatContact, buildModularFromAppearance, modularReady } from './modularpeople.js';
+import { animateModular, plantFeetModular, modularSeatContact, buildModularFromAppearance, modularReady, modularHandSocket, MODULAR_GRIP_AT, modularAttackPose, modularHoldPose, setModularGrip } from './modularpeople.js';
 import { idlePose } from './idleclips.js';
 import { attachAccessories } from './models3d_clothing.js';
 import { buildHairStyle } from './models3d_hair.js';
@@ -1840,6 +1840,7 @@ export function juichOverlay(mesh, t, links, rechts, spring, k = 1) {
 // Arms forward under a load (side-job boxes).
 export function carryOverlay(mesh) {
   const ud = mesh.userData;
+  if (ud.qRig) { modularHoldPose(mesh, 'front'); return; }
   if (!ud.armL) return;
   setArm(ud.armL, ud.elbowL, 0.75, 1.15, 0.12);
   setArm(ud.armR, ud.elbowR, 0.75, 1.15, -0.12);
@@ -2015,10 +2016,11 @@ export function buildWeaponMesh(key) {
 // Shows the held weapon (null / 'fists' hides it).
 export function setHeldWeapon(mesh, weapon) {
   const ud = mesh && mesh.userData;
-  if (!ud || !ud.elbowR) return;
+  if (!ud || !(ud.elbowR || ud.qRig)) return;
   const key = GUN_SPECS[weapon] ? weapon : null;
   if (ud.gunKey === key) return;
   ud.gunKey = key;
+  if (ud.qRig) setModularGrip(mesh, !!key);   // modulaire mens (ADR 0050): de hand sluit zich om de greep
   if (!ud.guns) ud.guns = {};
   for (const k in ud.guns) ud.guns[k].visible = false;
   ud.muzzle = null;
@@ -2028,13 +2030,13 @@ export function setHeldWeapon(mesh, weapon) {
     g = new THREE.Group();
     const spec = GUN_SPECS[key];
     for (const l of weaponLayers(key)) { const m = new THREE.Mesh(l.geometry, l.material); m.castShadow = true; g.add(m); }
-    // pivot in the palm, so the gun can tilt forward while the arm hangs
-    g.position.set(0.01, HAND_Y, 0);
+    // pivot in the palm, so the gun can tilt forward while the arm hangs (modulair: in de houder aan de pols, modularpeople.js)
+    if (ud.qRig) g.position.fromArray(MODULAR_GRIP_AT); else g.position.set(0.01, HAND_Y, 0);
     const tip = new THREE.Object3D();
     tip.position.set(0.035, -spec.tip, 0);
     g.add(tip);
     g.userData.tip = tip;
-    ud.elbowR.add(g);
+    (ud.qRig ? modularHandSocket(mesh) : ud.elbowR).add(g);
     ud.guns[key] = g;
   }
   g.visible = true;
@@ -2116,6 +2118,7 @@ function swingPose(ud, swing, u, gun) {
 
 export function applyAttackPose(mesh, fx, now, aiming = null) {
   const ud = mesh && mesh.userData;
+  if (ud && ud.qRig) { modularAttack(mesh, ud, fx, now, aiming); return; }
   if (!ud || !ud.armR || !ud.armL) return;
   const spec = ud.gunKey ? GUN_SPECS[ud.gunKey] : null;
   const gun = spec && ud.guns ? ud.guns[ud.gunKey] : null;
@@ -2166,6 +2169,20 @@ export function applyAttackPose(mesh, fx, now, aiming = null) {
     if (ud.chest) ud.chest.rotation.z += chestK * kick * hold;
     if (ud.head) ud.head.rotation.z += chestK * 0.6 * kick * hold;
   }
+}
+
+// Aanvallen op een modulaire mens (modularpeople.js modularAttackPose): dezelfde tijden als hierboven, de bewegingen uit de UAL-clips.
+function modularAttack(mesh, ud, fx, now, aiming) {
+  const spec = ud.gunKey ? GUN_SPECS[ud.gunKey] : null;
+  const gun = spec && ud.guns ? ud.guns[ud.gunKey] : null;
+  const shot = fx && (fx.type === 'muzzle' || fx.type === 'squirt');
+  if (gun) gun.rotation.z = (aiming || (shot && now - fx.start < AIM_HOLD_S)) && !spec.melee ? 0 : spec.rest ?? 0.95;
+  const dt = fx && fx.start !== undefined ? now - fx.start : -1;
+  const swing = fx && dt >= 0 && (fx.type === 'throw' ? 'throw' : fx.type === 'melee' && fx.swing !== 'jab' ? fx.swing : null);
+  if (swing && SWING_S[swing] && dt < SWING_S[swing]) { modularAttackPose(mesh, 'cross', dt / SWING_S[swing]); return; }
+  if (fx && fx.type === 'melee' && dt >= 0 && dt < PUNCH_S) { modularAttackPose(mesh, fx.side > 0 ? 'cross' : 'jab', dt / PUNCH_S); return; }
+  if (shot && dt >= 0 && dt < AIM_HOLD_S) { modularAttackPose(mesh, 'shoot', dt / AIM_HOLD_S, aiming ? 1 : 1 - smoothstep(AIM_HOLD_S - 0.2, AIM_HOLD_S, dt)); return; }
+  if (aiming) modularAttackPose(mesh, 'aim', 0, 1);
 }
 
 // Hit reaction for someone shot but still standing: the torso snaps away
