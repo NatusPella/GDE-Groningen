@@ -132,7 +132,7 @@ export function updateHostScene(world) {
     el = document.createElement('div');
     el.id = 'coop-scene';
     el.setAttribute('role', 'status'); el.setAttribute('aria-live', 'polite');
-    el.style.cssText = 'position:fixed;inset:0;z-index:7000;pointer-events:none;font-family:\'Arial Narrow\',Arial,sans-serif;color:var(--hud-fg);';
+    el.style.cssText = 'position:fixed;inset:0;z-index:7000;pointer-events:none;font-family:var(--ds-font-kop);color:var(--hud-fg);';
     document.body.appendChild(el);
   }
   const naam = openerNaam(world && world.coopRoster, true);

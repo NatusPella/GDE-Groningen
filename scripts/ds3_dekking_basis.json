@@ -1,15 +1,4 @@
 {
- "desktop/vendor-fonts.css": {
-  "kleur": 0,
-  "glas": 0,
-  "oud": 0,
-  "font": 11,
-  "klein": 0,
-  "lus": 0,
-  "lang": 0,
-  "emoji": 0,
-  "svg": 0
- },
  "game/index.html": {
   "kleur": 1,
   "glas": 5,
@@ -164,17 +153,6 @@
   "emoji": 0,
   "svg": 0
  },
- "game/js/coopscene.js": {
-  "kleur": 0,
-  "glas": 0,
-  "oud": 0,
-  "font": 1,
-  "klein": 0,
-  "lus": 0,
-  "lang": 0,
-  "emoji": 0,
-  "svg": 0
- },
  "game/js/drunk.js": {
   "kleur": 0,
   "glas": 1,
@@ -286,7 +264,7 @@
   "svg": 0
  },
  "game/js/hud_panel.css": {
-  "kleur": 11,
+  "kleur": 0,
   "glas": 11,
   "oud": 0,
   "font": 0,
