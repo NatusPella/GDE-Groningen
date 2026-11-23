@@ -701,6 +701,12 @@ function updateDog(a, dt, world) {
     const ang = Math.random() * Math.PI * 2;
     a.wanderTarget = { x: a.x + Math.cos(ang) * 30, y: a.y + Math.sin(ang) * 30 };
   }
+  if (a.state === 'loose') {
+    // losgebroken (straatgebeurtenis, streeteventlive.js): rent naar looseTarget, het baasje erachteraan; daarna weer aan de riem
+    a.speed += ((a.looseSpeed || 4.2) - a.speed) * Math.min(1, dt * 4);
+    if (a.looseTarget) steer(a, a.looseTarget.x, a.looseTarget.y, 5, dt);
+    return;
+  }
   if (a.state === 'stray') {
     a.speed = 3.5;
     steer(a, a.wanderTarget.x, a.wanderTarget.y, 4, dt);
@@ -2338,7 +2344,7 @@ function updateLeash(mesh, a) {
   const leash = mesh.userData.leash;
   if (!leash) return;
   const o = a.owner;
-  if (!o || a.state === 'stray') { leash.visible = false; return; }
+  if (!o || a.state === 'stray' || a.state === 'loose') { leash.visible = false; return; }
   leash.visible = true;
   const ca = Math.cos(o.angle), sa = Math.sin(o.angle);
   const hx = o.x + ca * 0.2 + sa * 0.3, hy = o.y + sa * 0.2 - ca * 0.3;

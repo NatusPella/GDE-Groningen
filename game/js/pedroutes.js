@@ -82,7 +82,8 @@ function destPool(map) {
 // De klok van de dagritmes: pedestrians.js zet hem één keer per beeld (speluur, weekdag van de kalender, nat 0..1).
 const clock = { hour: 12, weekday: 3, wet: 0 };
 export function setRhythmClock(hour, weekday, wet = 0) { clock.hour = hour; clock.weekday = weekday; clock.wet = wet; }
-export const rhythmClock = () => clock;
+// wat de dagritmes opleveren (scripts/levendestad_wereld_test.mjs): per soort bestemming, terras, bank, fiets, praten
+export const pedRhythmStats = () => pedNavStats;
 
 // halte: de haltes rond de speler (bushalte.js meldt ze via boarding.js), op de plek van de paal
 const _haltes = [];

@@ -250,6 +250,8 @@ import { updateCinematics, isCinematicActive, sinceCinematic, setCinematicLinks 
 import { getGrenzen } from './gebiedenbronnen.js';
 import { initFlavour, updateFlavour } from './flavour.js';
 import { initFlavour3D, updateFlavour3D } from './flavour3d.js';
+import { updateStreetEvents } from './streeteventlive.js';
+import { updateStreetEvents3D } from './streetevents3d.js';
 import { prepareHomeMap, initHome, updateHome, updateHomeExterior, tryHomeInteract, homeSpawnPoint, parkHeroAtHome, garagePoortToestand } from './home.js';
 import { updateDrunk } from './drunk.js';
 import { updateHelis } from './heliflight.js';
@@ -1273,6 +1275,7 @@ try { const slot = ensureLatestSlot(); const info = slot ? readSaveInfo() : null
     updateCityProps(animDt, world, getScene());
     updateMonumentDecor(animDt, world, getScene()); // de aankleding van Vesting Bourtange (monumentdecor3d.js, #953)
     updateFlavour3D(animDt, world);
+    updateStreetEvents3D(world, getScene()); // de props van de actieve straatgebeurtenis (streetevents3d.js)
     probe.mark('cityprops');
     updatePigeonAfterglow(animDt);
     // cutscenes keep running (and end) while you're a pigeon; its camera wins
@@ -1545,6 +1548,7 @@ try { const slot = ensureLatestSlot(); const info = slot ? readSaveInfo() : null
     tickActivityKinds(dt, world, 'late');
     frameGuard.run('updateWeather', updateWeather, dt, world);
     updateWorldEvents(dt, world);
+    frameGuard.run('updateStreetEvents', updateStreetEvents, dt, world); // straatgebeurtenissen (#1316): alleen de host, een gast ziet ze via snapshot en rekwisieten
     updateMuggings(dt, world);
     updateRoadRage(dt, world);
     updateClearZones(dt, world);
