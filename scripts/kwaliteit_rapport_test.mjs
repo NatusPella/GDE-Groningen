@@ -53,5 +53,23 @@ try {
   ok(!/https?:\/\//.test(html), 'het rapport haalt niets van buiten');
 } finally { fs.rmSync(werk, { recursive: true, force: true }); }
 
+// ---------- releasegate-stap 'beeldregressie bekeken' (waarschuwt, blokkeert niet) ----------
+const { checkBeeldregressieBekeken, BEELDREGRESSIE_FILE, MAX_DAGEN } = await import('./release/beeldregressiebekeken.mjs');
+const vandaag = '2026-11-23';
+const goed = { datum: '2026-11-22', status: 'akkoord', afwijkend: 0, rapport: 'x/rapport.html' };
+ok(BEELDREGRESSIE_FILE === 'release/beeldregressie-bekeken.json', 'het bewijsbestand staat waar de documentatie zegt');
+ok(checkBeeldregressieBekeken(goed, { vandaag }).ok, 'een vers bewijs is in orde');
+const geen = checkBeeldregressieBekeken(null, { vandaag });
+ok(!geen.ok && /blokkeert niet/.test(geen.samenvatting) && geen.waarschuwingen.length === 1, 'zonder bewijs: een waarschuwing die zegt dat hij niet blokkeert');
+ok(!checkBeeldregressieBekeken({ ...goed, datum: '2026-10-01' }, { vandaag }).ok, `ouder dan ${MAX_DAGEN} dagen: waarschuwing`);
+ok(!checkBeeldregressieBekeken({ ...goed, afwijkend: 2 }, { vandaag }).ok, 'akkoord met open afwijkingen: waarschuwing');
+ok(checkBeeldregressieBekeken({ ...goed, afwijkend: 2, status: 'afwijkingen verwerkt' }, { vandaag }).ok, 'afwijkingen verwerkt mag met afwijkingen');
+ok(!checkBeeldregressieBekeken({ ...goed, status: 'gezien' }, { vandaag }).ok, 'een onbekende status: waarschuwing');
+const gate = fs.readFileSync(path.join(ROOT, 'scripts', 'release_gate.mjs'), 'utf8');
+ok(/checkBeeldregressieBekeken\(/.test(gate) && /v\.waarschuwingen = \[/.test(gate), 'release_gate.mjs --verify toont de stap als waarschuwing');
+const docRg = fs.readFileSync(path.join(ROOT, 'docs', 'RELEASEGATE.md'), 'utf8');
+ok(/beeldregressie-bekeken\.json/.test(docRg) && /KWALITEITSMACHINE\.md/.test(docRg), 'RELEASEGATE.md beschrijft de stap en verwijst naar de kwaliteitsmachine');
+ok(/KWALITEITSMACHINE\.md/.test(fs.readFileSync(path.join(ROOT, 'docs', 'TESTEN.md'), 'utf8')), 'TESTEN.md verwijst naar de kwaliteitsmachine');
+
 console.log(fails ? `kwaliteit_rapport_test: ${fails} mislukt` : 'kwaliteit_rapport_test: ok');
 process.exit(fails ? 1 : 0);

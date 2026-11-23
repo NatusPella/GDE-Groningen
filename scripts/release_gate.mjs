@@ -22,6 +22,7 @@ import {
   STAGES, STAGE_NAAM, planStages, requiredStages, mergeVerdict, verifyGate, beschrijfPlan,
 } from './release/stages.mjs';
 import { checkOwnerReview, OWNER_REVIEW_FILE } from './release/ownerreview.mjs';
+import { checkBeeldregressieBekeken, BEELDREGRESSIE_FILE } from './release/beeldregressiebekeken.mjs';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(HERE, '..');
@@ -433,10 +434,16 @@ function main() {
     const or = checkOwnerReview(bewijs, { skip: process.env.GDE_RELEASE_SKIP_OWNERREVIEW === '1' });
     if (!or.ok) { v.ok = false; v.code = v.code || 1; v.problemen = [...(v.problemen || []), ...or.problemen]; }
     const orRegel = or.samenvatting;
+    // Stap 'beeldregressie bekeken' (kwaliteitsmachine): alleen een waarschuwing, blokkeert niet (scripts/release/beeldregressiebekeken.mjs).
+    let brBewijs = null;
+    try { brBewijs = JSON.parse(fs.readFileSync(path.join(ROOT, BEELDREGRESSIE_FILE), 'utf8')); } catch { /* geen bewijs */ }
+    const br = checkBeeldregressieBekeken(brBewijs);
+    if (!br.ok) v.waarschuwingen = [...(v.waarschuwingen || []), ...br.waarschuwingen];
     console.log(`Releasegate ${v.ok ? 'GROEN' : 'NIET GROEN'} (${bestand})`);
     for (const w of v.waarschuwingen || []) console.log('  let op: ' + w);
     if (!v.ok) for (const p of v.problemen) console.log('  - ' + p);
     console.log('  '+orRegel);
+    console.log('  ' + br.samenvatting);
     if (v.ok) console.log(`  commit ${commit.slice(0, 10)}, ${gate.verdict.status}, ${gate.stages ? Object.values(gate.stages).filter((s) => s && s.status === 'PASS').length : 0} fase(n) groen`);
     return v.code;
   }

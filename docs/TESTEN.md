@@ -407,3 +407,7 @@ Aandachtspunten:
 ## Beeldregressie (#994)
 
 `node scripts/ui/beeldregressie.mjs --lijst|--run|--vergelijk|--ververs` vergelijkt per scherm een beeld met een referentie in `docs/beeldreferentie/` in 1024x600, 1280x720 en 1920x1080; puur getest met `node scripts/beeldregressie_test.mjs`. Draaiboek: docs/RELEASEGATE.md.
+
+## Kwaliteitsmachine (beeldregressie op camerapunten, video-QA, eindrapport)
+
+Eén runnerbibliotheek voor alle beeldscripts (`scripts/lib/electronrunner.cjs`: slot met stale-detectie, hartslag, profiel in de uitvoermap, standaard `--no-sandbox`, nooit een dialoogvenster, stille-machinepoort vóór fps-metingen), de beeldregressie op vaste camerapunten met perceptuele diff en referenties buiten git (`node scripts/kwaliteit/beeldregressie.mjs --run --out=<map>`), de video-QA als één hervatbaar commando (`node scripts/videoqa/run.mjs --minuten=30`) en een eindrapport in één pagina (`node scripts/kwaliteit/eindrapport.mjs`). Pure tests: `electronrunner_test`, `kwaliteit_beeldregressie_test`, `kwaliteit_rapport_test`. Alles in [KWALITEITSMACHINE.md](KWALITEITSMACHINE.md).

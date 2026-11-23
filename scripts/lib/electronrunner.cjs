@@ -349,7 +349,7 @@ async function runElectron({ electron, args = [], cwd, env = process.env, out, l
       stopBeat = startHeartbeat(log, { everyMs: heartbeatMs, slot: handle, status: () => `pid ${child.pid}, ${regels} regels, laatste: ${laatste}${status ? ' | ' + status() : ''}` });
       child.on('close', (code, signal) => resolve({ code, signal, timedOut }));
     });
-    elog.end();
+    await new Promise((r) => elog.end(r)); // electron.log is compleet als runElectron terugkomt
     const minutes = +((Date.now() - t0) / 60000).toFixed(2);
     log(`klaar: exit ${res.code}${res.signal ? ' ' + res.signal : ''}${res.timedOut ? ' (tijdslimiet)' : ''} na ${minutes} min`);
     const sandbox = res.code === 3 && minutes * 60 < EARLY_EXIT_S;
