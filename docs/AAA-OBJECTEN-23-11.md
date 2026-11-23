@@ -75,6 +75,25 @@ Het straatmeubilair blijft instanced of per cel samengevoegd; de bank kostte 4 d
 rek 370, het bushokje 502. Bij de caps van `streetfurniture3d.js` (120 banken, 120 bakken, 120 rekken, 40 hokjes) is dat in het slechtste
 geval circa 150.000 driehoeken, alleen binnen 90 tot 140 m en alleen als ze alle in beeld zijn. Niet in het spel gemeten (fps).
 
+## Tweede ronde (na de beoordeling van de coördinator)
+
+- **Open deuren:** de opening toont nu altijd interieur in vertexkleuren (dorpel met instaplijst, vloer in stofgrijs, zitting en
+  leuning met zijwang, binnenkant van de B-stijl, bij een voordeur de dashboardrand met rooster, bij een achterdeur de rug van de
+  voorstoel), ook voor auto's met een echte cabine: de stencil-opening tekent dit interieur in plaats van een zwarte kleur, en de
+  cabine van cabin3d.js tekent er dichtbij overheen. Het deurblad heeft een binnenpaneel met armsteun, opbergvak en trekgreep, en bij
+  een lage deur een raamlijst met ruit. Alle portieren scharnieren aan de voorkant van de opening (ook de achterdeuren, die eerst
+  achter scharnierden) en gaan 63 graden open (was 60 en 72).
+- **Trekker-limo:** dak 9 cm lager als extrusie met afgeronde randen en een glazen schuifdakstrook met chromen lijst; het glazen
+  bovenhuis is één extrusie met een schuine achterruit en een brede C-stijl; kofferdeksel in lak met chromen strip; geel kenteken met
+  een blauwe band en streepjes in plaats van tekens; de rode loper ligt nu op de treeplanken onder de achterdeuren; een schuine,
+  glazen nek in lak loopt van de trekkercabine naar het limodak; hoogglanslak met een blanke laklaag (MeshPhysicalMaterial,
+  alleen dit voertuig).
+- **Bakwagen:** laadbak met verticale ribbels, aluminium randen boven en onder, hoekstijlen, twee achterdeuren met drie scharnieren,
+  vier sluitstangen met hendels en nokken, onderrijbeveiliging achter (met reflectiestroken) en opzij.
+- **Register:** `VOERTUIG_REGISTER` in `propregister.js` legt de norm voor de trekker-limo en de bakwagen vast (driehoeken, kleuren,
+  eisen); `propregister_test.mjs` bouwt ze en houdt ze eraan. Gemeten: trekker-limo 5.970 driehoeken en 27 kleuren, bakwagen 1.936 en 17.
+- Nieuwe beelden: `na-limo.png`, `na-limo-achter.png`, `na-limo-zij-open.png`, `na-deur1-zij-open.png`, `na-deur-zij-open.png`, `na-bak.png`.
+
 ## Niet in beeld gezien
 
 - Geen enkel model is in het echte spel bekeken (geen Electron-run; de perf-agent had het slot). Alleen het contactblad is gezien.

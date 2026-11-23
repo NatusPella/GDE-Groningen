@@ -64,7 +64,7 @@ const CAR_SEATS = {
 // De trekker-limo (models3d_vehicles.js trekkerLimoMaten): achterin twee banken tegenover elkaar, de voorbank kijkt naar achteren
 // (face PI, rug tegen de cabine), de achterbank naar voren. Maten staan daar; hier alleen de zitplaatsen van de passagiers 0 tot 3.
 export function limoStoel(len, i) {
-  const hl = len / 2, tx0 = hl - 2.2, rowA = tx0 + 0.05 - 0.37, rowB = -hl + 0.9;
+  const hl = len / 2, tx0 = hl - 2.2, rowA = tx0 + 0.05 - 0.37, rowB = -hl + 0.98;
   return i < 2 ? { x: rowA, y: 0.5, z: i ? 0.5 : -0.5, face: Math.PI } : { x: rowB, y: 0.5, z: i === 3 ? 0.5 : -0.5, face: 0 };
 }
 

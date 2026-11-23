@@ -32,25 +32,40 @@ const lowerGeo = (w, h) => {
   if (!g) { g = markShared(new THREE.BoxGeometry(w, h, 0.05)); geoCache.set(key, g); }
   return g;
 };
-// Wat je door een open portier ziet bij een voertuig zonder echte cabine (cabin3d.js): geen zwart vlak maar een kijkje in het
-// interieur, met een drempel, een zitting en een rugleuning in vertexkleuren. Eén gedeelde geometrie per maat en kant (zij).
+// Wat je door een open portier ziet bij een voertuig zonder echte cabine (cabin3d.js): geen zwart vlak maar het interieur in
+// vertexkleuren, in voertuigcoördinaten (+x is voor): de dorpel met instaplijst, de vloer in stofgrijs, de zitting en de leuning
+// van de stoel met zijwangen, de binnenkant van de B-stijl achter en de A-stijl of de rug van de voorstoel voor, en bij een
+// voordeur de rand van het dashboard met een ventilatierooster. Eén gedeelde geometrie per maat, kant en soort deur.
 const INTERIEUR_MAT = (() => { const m = new THREE.MeshBasicMaterial({ vertexColors: true, side: THREE.DoubleSide }); m.userData.shared = true; return m; })();
-const interieurGeo = (w, h, side) => {
-  const key = 'i' + w.toFixed(2) + 'x' + h.toFixed(2) + side;
+const interieurGeo = (w, h, side, voor) => {
+  const key = 'i' + w.toFixed(2) + 'x' + h.toFixed(2) + side + (voor ? 'v' : 'a');
   let g = geoCache.get(key);
   if (g) return g;
   const pos = [], col = [];
   const c = new THREE.Color();
-  const quad = (x0, y0, x1, y1, z, hex) => {
+  // fracties: fx -0.5..0.5 over de breedte (voor = +), fy 0..1 van onder naar boven
+  const quad = (fx0, fy0, fx1, fy1, laag, hex) => {
     c.setHex(hex);
-    for (const [x, y] of [[x0, y0], [x1, y0], [x1, y1], [x0, y0], [x1, y1], [x0, y1]]) { pos.push(x, y, z * side); col.push(c.r, c.g, c.b); }
+    const x0 = fx0 * w, x1 = fx1 * w, y0 = -h / 2 + fy0 * h, y1 = -h / 2 + fy1 * h, z = laag * 0.0007 * side;
+    for (const [x, y] of [[x0, y0], [x1, y0], [x1, y1], [x0, y0], [x1, y1], [x0, y1]]) { pos.push(x, y, z); col.push(c.r, c.g, c.b); }
   };
-  const hw2 = w / 2, hh = h / 2, e = 0.0006;
-  quad(-hw2, -hh, hw2, hh, 0, 0x1c1e23);                                          // donkere ruimte
-  quad(-hw2, -hh, hw2, -hh + h * 0.12, e, 0x6a6d74);                              // de drempel
-  quad(-hw2 * 0.15, -hh + h * 0.12, hw2 * 0.85, -hh + h * 0.42, 2 * e, 0x4d515c); // de zitting
-  quad(hw2 * 0.5, -hh + h * 0.42, hw2 * 0.9, hh * 0.85, 3 * e, 0x5b606c);         // de rugleuning
-  quad(-hw2, hh - h * 0.1, hw2, hh, e, 0x30333a);                                 // de dakrand
+  quad(-0.5, 0, 0.5, 1, 0, 0x34363c);                 // diepte: de andere kant van de cabine, donkergrijs
+  quad(-0.5, 0.14, 0.5, 0.3, 1, 0x4a4b4e);            // vloer, stofgrijs
+  quad(-0.5, 0, 0.5, 0.14, 2, 0x7d8086);              // dorpel
+  quad(-0.5, 0.115, 0.5, 0.14, 3, 0xa9adb3);          // instaplijst
+  const s0 = voor ? -0.42 : -0.38, s1 = voor ? 0.22 : 0.3;
+  quad(s0, 0.3, s1, 0.52, 2, 0x5b5f69);               // zitting
+  quad(s0, 0.5, s1, 0.55, 3, 0x70747f);               // voorrand van de zitting (licht)
+  quad(s0, 0.55, s0 + 0.24, 1, 2, 0x535761);          // rugleuning
+  quad(s0 + 0.2, 0.55, s0 + 0.26, 1, 3, 0x656a75);    // zijwang van de leuning
+  quad(-0.5, 0, -0.44, 1, 4, 0x45474d);               // binnenkant van de B-stijl (achter)
+  if (voor) {
+    quad(0.3, 0.62, 0.5, 1, 3, 0x26282c);             // dashboardrand
+    quad(0.33, 0.78, 0.47, 0.86, 4, 0x3d4046);        // ventilatierooster
+    quad(0.44, 0, 0.5, 0.62, 4, 0x3a3c41);            // A-stijl en schopplaat
+  } else {
+    quad(0.3, 0.3, 0.5, 1, 3, 0x4d515a);              // rug van de voorstoel
+  }
   g = markShared(new THREE.BufferGeometry());
   g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
   g.setAttribute('color', new THREE.Float32BufferAttribute(col, 3));
@@ -83,9 +98,11 @@ const CABIN_MARK_MAT = (() => {
 })();
 const CABIN_HOLE_MAT = (() => {
   const m = new THREE.ShaderMaterial({
-    uniforms: { c: { value: new THREE.Color(0x121214) } },
-    vertexShader: 'void main() { gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }',
-    fragmentShader: 'uniform vec3 c; void main() { gl_FragColor = vec4(c, 1.0); gl_FragDepth = 1.0; }',
+    // 23-11: het interieur in vertexkleuren (interieurGeo) in plaats van één zwarte kleur; zolang de cabine er niet is (verder weg,
+    // of buiten het LOD van cabin3d.js) zie je dus stoel, dorpel en dashboard, en de echte cabine tekent er daarna overheen
+    vertexColors: true,
+    vertexShader: 'varying vec3 vC; void main() { vC = color; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }',
+    fragmentShader: 'varying vec3 vC; void main() { gl_FragColor = vec4(pow(vC, vec3(0.4545)), 1.0); gl_FragDepth = 1.0; }',
     fog: false, toneMapped: false, depthFunc: THREE.AlwaysDepth,
     stencilWrite: true, stencilRef: 1, stencilFunc: THREE.EqualStencilFunc, stencilFail: THREE.KeepStencilOp, stencilZFail: THREE.KeepStencilOp, stencilZPass: THREE.KeepStencilOp,
   });
@@ -153,14 +170,35 @@ function buildRig(mesh, v, defs) {
         panel = new THREE.Mesh(panelGeo(d.w, d.h), panelMat(paint, glas));
       }
       if (d.soort !== 'schuif') {
-        // de binnenkant van het deurblad: een donker bekleding met een armleuning, zichtbaar als de deur open staat
-        const liner = new THREE.Mesh(panelGeo(d.w * 0.88, Math.min(d.h, 0.62) * 0.8), panelMat(LINER_HEX, false));
-        liner.position.set(0, -d.h / 2 + Math.min(d.h, 0.62) * 0.5 - panel.position.y, -d.side * 0.03);
-        panel.add(liner);
+        // de binnenkant van het deurblad (zichtbaar als de deur open staat): bekleding, armsteun met trekgreep, opbergvak en
+        // bij een lage deur de raamlijst erboven met de ruit, zodat een open deur een portier is en geen gekleurde plaat
+        const ph = Math.min(d.h, 0.62), yb = -d.h / 2 - panel.position.y, zi = -d.side * 0.03;
+        const liner = new THREE.Mesh(panelGeo(d.w * 0.9, ph * 0.84), panelMat(LINER_HEX, false));
+        liner.position.set(0, yb + ph * 0.5, zi);
+        const arm = new THREE.Mesh(boxGeo(d.w * 0.55, 0.05, 0.07), panelMat(0x45474d, false));
+        arm.position.set(0, yb + ph * 0.62, zi - d.side * 0.035);
+        const vak = new THREE.Mesh(boxGeo(d.w * 0.6, 0.08, 0.03), panelMat(0x1f2023, false));
+        vak.position.set(0, yb + ph * 0.2, zi - d.side * 0.02);
+        const greep = new THREE.Mesh(boxGeo(0.1, 0.03, 0.02), panelMat(0xb9bcbf, false));
+        greep.position.set((d.soort === 'scharnier' ? -1 : 1) * d.w * 0.32, yb + ph * 0.78, zi - d.side * 0.02);
+        panel.add(liner, arm, vak, greep);
+        if (!glas) {
+          const rh = 0.42, top = yb + d.h + rh;
+          for (const sx of [-1, 1]) {
+            const stijl = new THREE.Mesh(boxGeo(0.04, rh, 0.04), panelMat(paint, false));
+            stijl.position.set(sx * (d.w / 2 - 0.02), yb + d.h + rh / 2, 0);
+            panel.add(stijl);
+          }
+          const boven = new THREE.Mesh(boxGeo(d.w, 0.04, 0.04), panelMat(paint, false));
+          boven.position.set(0, top - 0.02, 0);
+          const ruit = new THREE.Mesh(boxGeo(d.w - 0.08, rh - 0.04, 0.012), panelMat(paint, true));
+          ruit.position.set(0, yb + d.h + rh / 2 - 0.02, 0);
+          panel.add(boven, ruit);
+        }
       }
       panel.position.x = d.soort === 'scharnier' ? -d.w / 2 : d.soort === 'achterscharnier' ? d.w / 2 : 0;
       const cabine = !v.isBus && (d.soort === 'scharnier' || d.soort === 'achterscharnier') && wantsCabin(v);
-      hole = new THREE.Mesh(v.isBus || cabine ? panelGeo(d.w * 0.92, d.h * 0.92) : interieurGeo(d.w * 0.94, d.h * 0.94, d.side), v.isBus ? BUS_HOLE_MAT : cabine ? CABIN_HOLE_MAT : INTERIEUR_MAT);
+      hole = new THREE.Mesh(v.isBus ? panelGeo(d.w * 0.92, d.h * 0.92) : interieurGeo(d.w * 0.94, d.h * 0.94, d.side, d.seat !== 'achter'), v.isBus ? BUS_HOLE_MAT : cabine ? CABIN_HOLE_MAT : INTERIEUR_MAT);
       if (cabine) {
         hole.renderOrder = 10;
         // de merkplaat: hetzelfde vlak, een stap eerder (renderOrder 9), volgt de zichtbaarheid van de opening

@@ -18,8 +18,8 @@ const car2 = (x = 0.08, w = 1.0) => [
 const car4 = (xf = 0.15, xa = -0.14, w = 0.8) => [
   { id: 'vl', side: -1, x: xf, w, y0: 0.32, h: 0.62, soort: 'scharnier', seat: 'bestuurder' },
   { id: 'vr', side: 1, x: xf, w, y0: 0.32, h: 0.62, soort: 'scharnier', seat: 'bijrijder' },
-  { id: 'al', side: -1, x: xa, w, y0: 0.32, h: 0.62, soort: 'achterscharnier', seat: 'achter' },
-  { id: 'ar', side: 1, x: xa, w, y0: 0.32, h: 0.62, soort: 'achterscharnier', seat: 'achter' },
+  { id: 'al', side: -1, x: xa, w, y0: 0.32, h: 0.62, soort: 'scharnier', seat: 'achter' },
+  { id: 'ar', side: 1, x: xa, w, y0: 0.32, h: 0.62, soort: 'scharnier', seat: 'achter' },
 ];
 const cab = (x, w, y0, h) => [
   { id: 'vl', side: -1, x, w, y0, h, soort: 'scharnier', seat: 'bestuurder' },
@@ -68,8 +68,8 @@ export const DEUR_DEFS = {
   trekkerlimo: [
     { id: 'vl', side: -1, x: 0.205, w: 0.9, y0: 1.0, h: 1.3, soort: 'scharnier', seat: 'bestuurder', zij: 0.435 },
     { id: 'vr', side: 1, x: 0.205, w: 0.9, y0: 1.0, h: 1.3, soort: 'scharnier', seat: 'bijrijder', zij: 0.435 },
-    { id: 'al', side: -1, x: -0.098, w: 0.95, y0: 0.36, h: 0.62, soort: 'achterscharnier', seat: 'achter', zij: 0.425 },
-    { id: 'ar', side: 1, x: -0.098, w: 0.95, y0: 0.36, h: 0.62, soort: 'achterscharnier', seat: 'achter', zij: 0.425 },
+    { id: 'al', side: -1, x: -0.098, w: 0.95, y0: 0.36, h: 0.62, soort: 'scharnier', seat: 'achter', zij: 0.425 },
+    { id: 'ar', side: 1, x: -0.098, w: 0.95, y0: 0.36, h: 0.62, soort: 'scharnier', seat: 'achter', zij: 0.425 },
   ],
   bus: [...busDeur('d1', 0.406, 11.2), ...busDeur('d2', -0.04, 11.2)],
   midibus: busDeur('d1', 0.375, 8.4),
@@ -310,7 +310,8 @@ export function deurStand(def, open, dmg = null) {
   if (def.soort === 'schuif') return e * (def.w * 0.95);
   if (def.soort === 'achterdeur') return Math.max(dmg === 'scheef' ? 0.3 : 0, e * 1.6);
   if (def.soort === 'kap' || def.soort === 'klep') return Math.max(dmg === 'scheef' ? 0.22 : 0, e * 1.0); // scheef: staat op een kier
-  const max = def.soort === 'achterscharnier' ? 1.25 : 1.05;
+  // scharnier aan de voorkant van de deuropening, 60 tot 65 graden open (23-11: verder open hing de deur er als een losse plaat bij)
+  const max = def.soort === 'achterscharnier' ? 1.15 : 1.1;
   const scheef = dmg === 'scheef' ? 0.14 : 0; // een scheve deur sluit niet meer helemaal
   return Math.max(scheef, e * max);
 }

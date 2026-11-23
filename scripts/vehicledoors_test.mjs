@@ -105,7 +105,7 @@ const s2 = D.makeDoorState(); D.wantDoor(s2, 'vl', true, 0.3);
 for (let i = 0; i < 60; i++) D.stepDoors(s2, 1 / 60);
 check('houdtijd sluit vanzelf', !s2.open.vl);
 check('dt 0 doet niets', D.stepDoors(D.makeDoorState(), 0) === false);
-check('hoeken binnen grenzen', Math.abs(D.deurStand(sed[0], 1) - 1.05) < 1e-9 && D.deurStand(sed[0], -3) === 0 && D.deurStand(sed[0], 7) <= 1.25);
+check('hoeken binnen grenzen (scharnier voor, 63 graden)', Math.abs(D.deurStand(sed[0], 1) - 1.1) < 1e-9 && D.deurStand(sed[0], -3) === 0 && D.deurStand(sed[0], 7) <= 1.25);
 check('scheve deur sluit niet helemaal', D.deurStand(sed[0], 0, 'scheef') > 0);
 check('schuifdeur in meters', D.deurStand(bus[0], 1) > 0.4 && D.deurStand(bus[0], 1) < bus[0].w);
 

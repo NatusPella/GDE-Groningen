@@ -5,7 +5,7 @@ import './node3d.mjs';
 import fs from 'node:fs';
 
 await import('three');
-const { PROP_REGISTER, PROP_IDS, CUTSCENE_PROPS, propNorm, isRegisteredProp } = await import('../game/js/propregister.js');
+const { PROP_REGISTER, PROP_IDS, CUTSCENE_PROPS, propNorm, isRegisteredProp, VOERTUIG_REGISTER, VOERTUIG_IDS } = await import('../game/js/propregister.js');
 const { propGeometry, PROP_MODEL_IDS } = await import('../game/js/propmodels3d.js');
 
 let bad = 0;
@@ -47,6 +47,22 @@ ok('streetfurniture3d gebruikt propGeometry', ['bank', 'afvalbak', 'fietsenrek',
 // de cutscenes bouwen dezelfde soorten als decor
 const cm = await import('../game/js/cutscenemodels.js');
 for (const id of CUTSCENE_PROPS) ok('cutscene-decor ' + id + ' staat in DECOR_KINDS', cm.DECOR_KINDS.includes(id));
+
+// de voertuigen uit het register halen hun norm
+await import('../game/js/player.js');
+const { buildVehicleMesh } = await import('../game/js/models3d_vehicles.js');
+for (const id of VOERTUIG_IDS) {
+  const e = VOERTUIG_REGISTER[id], n = e.norm;
+  const mesh = buildVehicleMesh({ id: 'reg-' + id, model: { ...e.model }, health: 100 });
+  let tris = 0;
+  mesh.traverse((o) => { if (o.isMesh) tris += (o.geometry.index ? o.geometry.index.count : o.geometry.attributes.position.count) / 3; });
+  const col = (mesh.userData.body || mesh).geometry.attributes.color, kleuren = new Set();
+  for (let i = 0; i < col.count; i++) kleuren.add(col.getX(i) + ',' + col.getY(i) + ',' + col.getZ(i));
+  ok('voertuig ' + id + ': driehoeken binnen de norm', tris >= n.tris[0] && tris <= n.tris[1], tris + ' niet in ' + n.tris);
+  ok('voertuig ' + id + ': genoeg kleuren', kleuren.size >= n.kleuren, String(kleuren.size));
+  ok('voertuig ' + id + ': eisen beschreven', n.eisen.length >= 3);
+  if (process.argv.includes('--meet')) console.log(id, Math.round(tris) + ' tris', kleuren.size + ' kleuren');
+}
 
 console.log(bad ? 'propregister_test: ' + bad + ' mislukt' : 'propregister_test: ok');
 process.exit(bad ? 1 : 0);
