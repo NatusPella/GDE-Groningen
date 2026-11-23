@@ -12,6 +12,9 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 - Voertuigen: elk voertuig met openende deuren heeft nu een zichtbare naad rond het deurpaneel en een handvat, ook als de deur dicht is. Een open deur heeft dikte en een bekleding aan de binnenkant, en je kijkt in het interieur in plaats van in een zwart vlak. Hoge cabinedeuren (vrachtwagen, trekker) hebben een dicht onderpaneel met de ruit erboven.
 - Trekker-limo van Jelle: opnieuw gebouwd met een echte trekkerkop (kap, grille, ronde koplampen, noppenbanden), een limousine met wielkasten, witte flanken, glanzende lak, chroom, een rode loper over de kofferklep en achterin twee banken met een barkastje en gouden glazen. De voorwielen sturen, de wielen draaien met de juiste snelheid en er zijn deuren om in en uit te stappen.
 - Helikopter: afgeronde motorkap, interieur met stoelen en dashboard, schuifdeur met naad en raampje, bladen met gele tippen.
+- Auto's: de gewone personenauto's, de politieauto en de taxi hebben een nieuwe, rondere carrosserie (uit een vrij te gebruiken modelpakket) met alles wat het spel al had: deuren, interieur, sturende wielen, lichten, schade en kleuren. Ze zijn op echte maten gebracht (hoogte 1,42 tot 1,50 m, SUV 1,70) en botsen nu precies zo groot als ze eruitzien.
+- Deuren: de carrosserie heeft een echte opening waar de deur zit. Open kijk je de auto in (stoelen, vloer, dashboard), dicht vult de deur het gat. Ook bij de vrachtwagen, de trekker en de trekker-limo. Alle portieren scharnieren aan de voorkant.
+- Voertuigen worden op afstand eenvoudiger getekend (twee niveaus, met een zachte overgang), zodat drukke straten lichter zijn.
 - Straatmeubilair: parkbank met latten en gietijzer, afvalbak met deksel en klep, fietsenrek met beugels, bushokje met glas, bank en lijnkaart, paaltje met reflectiebanden. Ze komen uit één register (`propregister.js`) en staan in de stad, het buitengebied en de cutscenes.
 
 ## [0.65.0] - 2026-11-22
