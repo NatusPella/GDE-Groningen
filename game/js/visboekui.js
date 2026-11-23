@@ -46,6 +46,13 @@ const CSS = `${SFEER_BAND_CSS}
 .vb-soorten .z { font-size: max(13px, var(--menu-min, 13px)); letter-spacing: 0.08em; text-transform: uppercase; opacity: 0.8; align-self: center; }
 .vb-soorten .z1 { opacity: 0.55; } .vb-soorten .z3 { color: var(--ds-c-ink-geel); } .vb-soorten .z4 { color: var(--ds-c-amber-glas-tx); }
 .vb-soorten .rec { grid-column: 1 / -1; font-size: max(14px, var(--menu-min, 14px)); color: var(--g, #3fc97a); }
+/* #1270 (hertest 24-11): de kop "Per water" als groepskop van het menu, en het detail als drie getallen en twee korte regels */
+.vb-groep { margin: var(--ds-s-4) 0 var(--ds-s-1); }
+.vb-feiten { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--ds-s-2); margin: var(--ds-s-2) 0; }
+.vb-feit { display: flex; flex-direction: column; gap: 2px; padding: var(--ds-s-2) var(--ds-s-3); border: var(--ds-lijn) solid var(--ds-c-ink-inkt); border-radius: var(--ds-r); }
+.vb-feit b { font-family: var(--ds-font-zeef-kop); font-size: 26px; line-height: 1; }
+.vb-feit span { font-size: max(14px, var(--menu-min, 14px)); color: var(--mut); }
+.vb-pane p.vb-regel { margin: 2px 0; font-size: max(15px, var(--menu-min, 15px)); }
 `;
 let cssAan = false;
 function zetCss() {
@@ -90,15 +97,18 @@ function detailHtml(boek, id) {
   const prof = getProfiel();
   const niv = L.volgendDoel(prof, 'hengelen');
   const factor = L.loonFactor(prof, 'hengelen');
-  const kopLoopbaan = `<p class="mut">Vak Hengelen: <b>${esc(niv.titel)}</b>, niveau ${niv.niveau} van ${L.MAX_NIVEAU}${factor > 1 ? `, ${L.percentage(factor)}% meer loon` : ''}. ` +
-    `${niv.volgend ? `Nog ${nl(niv.nodig)} punten tot ${esc(niv.volgend)}.` : 'Hoogste niveau bereikt.'}</p>`;
+  // #1270 (hertest 24-11): korte regels in plaats van een blok lopende tekst
+  const kopLoopbaan = `<p class="mut vb-regel">Hengelen: <b>${esc(niv.titel)}</b> · niveau ${niv.niveau} van ${L.MAX_NIVEAU}${factor > 1 ? ` · ${L.percentage(factor)}% meer loon` : ''}` +
+    `${niv.volgend ? ` · nog ${nl(niv.nodig)} punten` : ''}</p>`;
   if (id === 'alles') {
     const lijst = SOORTEN.map((s) => soortRij(boek, s)).join('');
     const t = getTuig();
-    const tuigRegel = `<p class="mut">Je tuig: <b>${esc(hengelNaam(t))}</b>, ${esc(aasNaam(t))}, lijnsterkte ${Math.round(lijnsterkte(t) * 100)}%. Meer hengels, aas en een sterkere lijn bij de Avondwinkel en de botenverhuur aan de steiger.</p>`;
+    const tuigRegel = `<p class="mut vb-regel">Tuig: <b>${esc(hengelNaam(t))}</b> · ${esc(aasNaam(t))} · lijn ${Math.round(lijnsterkte(t) * 100)}% <span class="mut">(beter tuig: Avondwinkel, botenverhuur)</span></p>`;
+    const feit = (n, wat) => `<span class="vb-feit"><b>${n}</b><span>${wat}</span></span>`;
+    const feiten = `<div class="vb-feiten">${feit(sam.plekken, 'wateren')}${feit(nl(boek.totaal.n), 'vissen')}${feit(kg(boek.totaal.kg), 'in totaal')}</div>`;
     return band() + `<div class="pm-pane-top"><span class="m-eb">Visboek</span><h2 class="m-h2 td-h2">${icoon('pa-ico big')}Alle vis</h2></div>` +
       `<div class="lb-kop"><p class="lb-titel"><b>${sam.gevangen} van ${sam.totaal}</b> <span class="mut">soorten gevangen</span></p>` +
-      `<p class="mut">${sam.plekken} verschillende wateren · ${nl(boek.totaal.n)} vissen · ${kg(boek.totaal.kg)} in totaal. Hoe meer soorten en wateren, hoe meer elke vis opbrengt.</p>${tuigRegel}${kopLoopbaan}</div>` +
+      `${feiten}${tuigRegel}${kopLoopbaan}</div>` +
       `<ul class="vb-soorten">${lijst}</ul>`;
   }
   const t = watertype(id);
@@ -116,7 +126,7 @@ export function renderVisboekPanel(el) {
   const boek = getBoek();
   const sam = voortgang(boek);
   const lijst = rij('alles', 'Alle vis', { gevangen: sam.gevangen, totaal: sam.totaal, deel: sam.gevangen / sam.totaal }) +
-    '<div class="lb-groep"><span>Per water</span></div>' + WATERTYPEN.map((t) => rij(t.id, t.naam, typeRegel(boek, t.id))).join('');
+    `<div class="m-gh vb-groep"><span>Per water</span><span>${WATERTYPEN.length} wateren</span></div>` + WATERTYPEN.map((t) => rij(t.id, t.naam, typeRegel(boek, t.id))).join('');
   el.innerHTML = `<div class="m-tabs"><span class="m-grow"></span><span class="pa-total"><span class="lb-sfeer-chip" style="${sfeerStijl(SFEER)}" aria-hidden="true"></span><span class="mut">${esc(sfeerVan(SFEER).naam)}</span><span class="m-num">${sam.gevangen}</span><span class="mut">van ${sam.totaal} soorten</span></span></div>` +
     `<div class="m-main"><div class="m-list pa-list lb-list">${lijst}</div><aside class="m-pane pa-pane lb-pane vb-pane" aria-live="polite">${detailHtml(boek, gekozen)}</aside></div>`;
   fillBars(el, bars);

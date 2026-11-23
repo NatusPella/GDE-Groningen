@@ -71,6 +71,9 @@ t('#1270: elk watertype heeft een eigen pictogram in het Visboek en "Per water" 
   for (const w of WATERTYPEN) assert.ok(new RegExp('\\b' + w.id + ': ').test(blok), 'geen icoon voor ' + w.id);
   const paden = [...blok.matchAll(/: '(<path[^']*)'/g)].map((m) => m[1]);
   assert.equal(new Set(paden).size, paden.length, 'twee watertypen delen een icoon');
-  assert.ok(src.includes('<div class="lb-groep"><span>Per water</span></div>'));
+  // hertest 24-11: lb-groep hoort bij de CSS van Loopbanen (die het Visboek niet laadt): de groepskop van het menu (m-gh) is overal gestijld
+  assert.ok(src.includes('<div class="m-gh vb-groep"><span>Per water</span>'));
+  // en het detail is geen blok lopende tekst meer: drie getallen en korte regels
+  assert.ok(/class="vb-feiten"/.test(src) && !/Hoe meer soorten en wateren, hoe meer elke vis opbrengt/.test(src) && !/Meer hengels, aas en een sterkere lijn/.test(src));
 });
 console.log(`menu_accolades_test: ${n}/${n} ok`);
