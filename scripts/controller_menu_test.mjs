@@ -17,6 +17,7 @@ const lees = (f) => fs.readFileSync(f, 'utf8');
 const UITZONDERINGEN = [
   ['pauze-rail', 'vasthouden', 'pausemenu.js', 'Handmatig schakelen met koppeling: de koppelingstoets tijdens het rijden (voertuigbesturing, #495), geen menuactie; de tikstand (Instellingen) dekt rennen en richten, de koppeling blijft een rijtoets'],
   ['pauze-rail', 'focusring', 'pausemenu.css', 'Een tab die niet gekozen is toont bewust geen focusring (oogtest 20-11): de ring hoort bij de gekozen tab, de focus is dan nog zichtbaar op het tabblad zelf'],
+  ['instellingen', 'focusring', 'a11y.css', 'De kaart in het pauzemenu is een focusbare canvas over het hele scherm: daar bewust geen ring; de controllerring voor alle andere knoppen staat op de regel erboven (#809). Sinds de oude .ds-papier-ring weg is (audit UX 23-11) is er geen :focus-visible-regel meer in dit bestand die dat maskeerde'],
   ['kaart', 'onbereikbaar-sjabloon', 'mapview.js', 'mapview-card is het omhulsel van de plekkaart (closest-zoeker); de knoppen erin (Zet routepunt, Reis erheen, Info, Sluiten) zijn buttons'],
   ['kaart', 'onbereikbaar-js', 'mapview.js', 'zoekresultaten van de kaart: een combobox, de pijlen en Enter in het zoekveld kiezen een resultaat (A opent het schermtoetsenbord op het veld)'],
   ['tuning', 'onbereikbaar-sjabloon', 'tuningworkshopui.js', 'Eigen kleur: een OS-kleurkiezer; de werkplaats loopt met eigen rijen (moveRow) en het palet is het alternatief met de D-pad'],

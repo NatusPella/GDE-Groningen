@@ -2855,7 +2855,7 @@ function syncKaartUitleg(world, opnieuw = false) {
 }
 // De tip bij het zoekveld (UX-audit 23-11): één keer, bij de eerste focus, onder het veld; geen focusdief en geen venster. Hij gaat weg
 // bij blur of na ZOEKTIP_MS, en daarmee is de uitleg gezien (dezelfde sleutel als de popup).
-export const ZOEKTIP = 'Zoek een plek, missie of minigame. Klik op de kaart voor een waypoint of een reis.';
+export const ZOEKTIP = 'Zoek een plek, missie of minigame. Kies een punt op de kaart voor een routepunt of een reis.';
 const ZOEKTIP_MS = 8000;
 function wachtOpZoekTip() {
   const veld = state.overlay && state.overlay.querySelector('.mapview-search input');
