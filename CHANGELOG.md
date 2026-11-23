@@ -9,6 +9,7 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ## [Unreleased]
 - Doelbalk en herinnering: een verhaalstap toont nu een korte opdracht met de plek erin ("Praat met Berend bij het Martinikerkhof", "Ga naar het museum: pak de bal") in plaats van de grappige titel van de stap ("Ga naar: Het museum stond er al zo"). Het lange appje blijft zoals het was.
+- Uitleg: "De weg kwijt?" komt nu bij elke verhaalstap, niet alleen bij het eerste doel: wie 200 m van het doel afdwaalt of anderhalve minuut niet opschiet krijgt één korte kaart per stap (de eerste stap houdt er twee), ook als alle uitlegkaarten al gezien zijn. Staat uit met de schakelaar Uitleg-tips.
 
 ## [0.65.0] - 2026-11-22
 

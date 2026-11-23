@@ -186,11 +186,13 @@ t('bedrading: de HUD meet alleen bij het verhaaldoel en geeft de meting mee', ()
   assert.match(hud, /controlHint\(world, speler, \{ eerstedoel: kind === 'story', practice \}\)/);
 });
 
-t('bedrading: de herinnering komt na de doelkaart, één tegelijk, alleen op weg naar het eerste doel', () => {
+t('bedrading: de herinnering komt na de doelkaart, één tegelijk, ook bij latere stappen, met een eigen budget per stap', () => {
   const ob = lees('game/js/onboarding.js');
-  assert.match(ob, /if \(lost && seen\.has\('doel'\)\) \{\s*if \(!quiet\(\) \|\| cardsBusy\(\) \|\| !mayStart\('card'\)\) return;/, 'dezelfde stilte-regel als de kaarten');
+  assert.match(ob, /if \(lost && \(seen\.has\('doel'\) \|\| allSeen\)\) \{\s*if \(!quiet\(\) \|\| cardsBusy\(\) \|\| !mayStart\('card'\)\) return;/, 'dezelfde stilte-regel als de kaarten');
   assert.match(ob, /courseNudged\(course, courseDist\);\s*lastAt = playT;/, 'telt mee voor de tussenruimte van de kaarten');
-  assert.match(ob, /w\.stats\.missionsDone !== 0 \|\| busy\(w\) \|\| w\.goal\) return NaN/, 'niet na de eerste missie, niet tijdens een missie of spel, niet met een eigen doel');
+  assert.match(ob, /w\.storyFreePlay \|\| busy\(w\) \|\| w\.goal\) return NaN/, 'niet tijdens een missie of spel, niet met een eigen doel');
+  assert.match(ob, /course\.count = Math\.min\(course\.count, NUDGE\.max - 1\)/, 'een latere stap krijgt één herinnering van zichzelf (audit speelbaarheid 23-11)');
+  assert.doesNotMatch(ob, /lessonsAllSeen\(seen\)\) return;/, 'de herinnering werkt ook als alle kaarten gezien zijn');
   assert.match(ob, /hoofdspeler\(w\)/, 'de speler van dit apparaat, niet world.player');
   assert.doesNotMatch(ob, /world\.player|w\.player\b/, 'geen nieuwe enkelspeler-aanname');
   // geen opslag: de herinnering hoort bij de sessie

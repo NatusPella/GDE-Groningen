@@ -23,7 +23,7 @@ import { hintUses, glyphHtml } from './prompts.js';
 import { KEYS } from './storagekeys.js';
 import { playerBusy } from './busy.js';
 import { lessonsAllSeen, goalHandled } from './onboardinglogic.js';
-import { createCourse, trackCourse, courseNudged, pauseCourse, NUDGE_CARD } from './firststeps.js';
+import { createCourse, trackCourse, courseNudged, pauseCourse, NUDGE, NUDGE_CARD } from './firststeps.js';
 import { hoofdspeler } from './players.js';
 
 const STORE_KEY = KEYS.onboarding;
@@ -91,12 +91,14 @@ let startDone = -1;
 // the reminder for a new player who drifts away from the first goal (firststeps.js): per session, never saved
 const course = createCourse();
 let courseDist = NaN;
+let courseStep = '';
 
-// The distance to the first story goal while the player is simply on his way to it, NaN otherwise: an own goal, a
-// mission, a job or game, or a later point in the story means he is not lost.
-function firstGoalDistance(w) {
+// The distance to the current story goal while the player is simply on his way to it, NaN otherwise: an own goal, a
+// mission, a job or game means he is not lost. Audit speelbaarheid 23-11: not only the first goal: a later step has the
+// same player who drifts off or stands still; the time reminder (storyremind.js) only fires after 5 minutes.
+function storyGoalDistance(w) {
   const g = w.storyGuide;
-  if (!g || w.storyFreePlay || w.stats.missionsDone !== 0 || busy(w) || w.goal) return NaN;
+  if (!g || w.storyFreePlay || busy(w) || w.goal) return NaN;
   const p = hoofdspeler(w);
   return p ? Math.hypot(g.x - p.x, g.y - p.y) : NaN;
 }
@@ -130,25 +132,30 @@ export function resetOnboarding() {
 
 export function updateOnboarding(dt, w) {
   if (!document.body.classList.contains('game-started') || w.paused || isPauseMenuOpen()) return;
-  if (getSettings().onboardingTips === false || lessonsAllSeen(seen)) return;
+  if (getSettings().onboardingTips === false) return;
+  const allSeen = lessonsAllSeen(seen);   // the five cards are done; the "lost" reminder keeps working for every step
   if (startDone < 0) startDone = w.stats.missionsDone;
   const on = missionOn(w);
   if (wasMission && !on) missionEndT = playT;
   wasMission = on;
   if (isCinematicActive() || sinceCinematic() < AFTER_SCENE) return;
   playT += dt;
-  courseDist = firstGoalDistance(w);
+  courseDist = storyGoalDistance(w);
+  // the first goal keeps its two reminders per session; every later step gets one of its own
+  const stepNow = w.storyGuide ? w.storyGuide.step || 'doel' : '';
+  if (stepNow !== courseStep) { courseStep = stepNow; if (stepNow && w.stats.missionsDone > 0) course.count = Math.min(course.count, NUDGE.max - 1); }
   const lost = Number.isFinite(courseDist) ? trackCourse(course, w.storyGuide.step || 'doel', courseDist, dt) : (pauseCourse(course), '');
   if (playT < FIRST_AFTER || playT - lastAt < GAP || playT - missionEndT < AFTER_MISSION) return;
   if (w.health <= 0 || w.pendingRespawn || w.wanted > 0) return;
   // after the goal card, and only when nothing else speaks: the same one-at-a-time rule as the lessons
-  if (lost && seen.has('doel')) {
+  if (lost && (seen.has('doel') || allSeen)) {
     if (!quiet() || cardsBusy() || !mayStart('card')) return;
     showCard(w, { kind: 'tip', kicker: 'Uitleg', title: NUDGE_CARD.title, body: NUDGE_CARD.body, key: 'uitleg-route', important: true, voice: false, duration: 8 });
     courseNudged(course, courseDist);
     lastAt = playT;
     return;
   }
+  if (allSeen) return;
   for (const l of LESSONS) {
     if (seen.has(l.id)) continue;
     if (l.known && l.known()) { markSeen(l.id); continue; }
