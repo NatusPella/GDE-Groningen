@@ -36,8 +36,8 @@ export const LEVEL_METERS = Object.freeze([
 ]);
 export function levelMeters(level) {
   return LEVEL_METERS.map((m) => {
-    const waarden = [...new Set(DIFFICULTY_MODES.map((l) => presetValue(l, m.key)))].sort((a, b) => (a - b) * m.richting);
-    const i = Math.max(0, waarden.indexOf(presetValue(level, m.key)));
+    const values = [...new Set(DIFFICULTY_MODES.map((l) => presetValue(l, m.key)))].sort((a, b) => (a - b) * m.richting);
+    const i = Math.max(0, values.indexOf(presetValue(level, m.key)));
     const n = Math.min(3, i + 1);
     return { id: m.id, icoon: m.icoon, label: m.label, n, woord: m.woorden[n - 1] };
   });
