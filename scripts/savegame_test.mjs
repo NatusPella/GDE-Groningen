@@ -102,7 +102,11 @@ const stand = {
   // eten (#502) staat sinds de QoL-ronde ook in de signatuur; zonder deze nep-functie
   // gooit stateSignature en blijft de oude signatuur staan
   etenSave: () => etenStand,
+  // #1295: kalenderdag en moeilijkheid staan ook in de signatuur
+  getCalendarSave: (w) => ({ day: w.kalenderDag || 1 }),
+  getDifficultyProfile: () => moeilijkheid,
 };
+let moeilijkheid = { level: 'standaard' };
 let etenStand = {};
 let kasboek = { day: 0, total: { in: {}, out: {} }, days: [] };
 let wijken = [];
@@ -416,6 +420,20 @@ ok(() => {
   assert.equal(thumbLift(0), 1, 'een zwart vlak blijft zwart (geen ruis oprekken)');
   assert.ok(sg.includes('g.filter = `brightness('),'het kaartje wordt lichter getekend');
 }, '#985: donkere savekaartjes worden lichter');
+
+// --- #1295: een nieuwe kalenderdag of een andere moeilijkheid maakt de autosave vuil ----------------
+ok(() => {
+  const a = stateSignature(wereld(100, { kalenderDag: 3 }));
+  const b = stateSignature(wereld(100, { kalenderDag: 4 }));
+  assert.notEqual(a, b);
+}, 'een nieuwe kalenderdag verandert de signatuur');
+ok(() => {
+  const a = stateSignature(wereld(100));
+  moeilijkheid = { level: 'makkelijk' };
+  const b = stateSignature(wereld(100));
+  moeilijkheid = { level: 'standaard' };
+  assert.notEqual(a, b);
+}, 'een andere moeilijkheid verandert de signatuur');
 
 console.log(`savegame_test: ${n - fails}/${n}`);
 process.exit(fails ? 1 : 0);

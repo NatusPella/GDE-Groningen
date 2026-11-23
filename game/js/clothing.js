@@ -641,14 +641,24 @@ export function shopPrice(piece, shopKey, day) {
 // Eén blok in de save van de winkels (shops.js getShopSave, onder 'kleding'): bij het laden van een slot dat ook de nieuwe versie
 // kent komt alles in één keer binnen; een oude save zonder dit blok wordt gemigreerd uit de oude sets (ownedOutfits en outfit).
 const arr = (a) => (Array.isArray(a) ? a : []);
+// The worn slots in one fixed order (that of cleanWorn, which loading uses): save, load, save gave the same outfit in
+// another key order, and stateSignature took that for a change and wrote a needless autosave after every load (#1295).
+function slotOrder(worn) {
+  const out = {};
+  if (!worn || typeof worn !== 'object') return out;
+  for (const k of [...SLOT_IDS, 'hair', 'body']) if (k in worn) out[k] = worn[k];
+  for (const k of Object.keys(worn)) if (!(k in out)) out[k] = worn[k];
+  return out;
+}
+
 export function getClothingSave() {
   const per = {};
   for (const c of CHARS) {
     const w = store[c];
     per[c] = {
       o: [...w.owned].sort(),
-      w: { ...w.worn },
-      p: w.presets.map((p) => (p ? { n: p.name, w: { ...p.worn } } : null)),
+      w: slotOrder(w.worn),
+      p: w.presets.map((p) => (p ? { n: p.name, w: slotOrder(p.worn) } : null)),
       s: [...w.seen].sort(),
       h: w.hair,
       b: w.body,
