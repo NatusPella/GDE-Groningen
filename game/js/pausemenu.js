@@ -2275,7 +2275,7 @@ function runAction(a) {
       if (world && world.pigeonMode && world.pigeonActions) world.pigeonActions.stop();
       // 22-11: eerst bewaren en dit spel de stay-vlag geven, zodat de boot na de benchmark precies deze save opent (benchmarkreturn.js);
       // lukt het bewaren niet, dan start de benchmark niet en blijft alles zoals het was
-      const prep = world ? prepareBenchmarkReload({ save: () => saveGame(world), slot: () => currentSlot(), markStay: (n) => markStay(null, n) }) : { ok: true };
+      const prep = world ? prepareBenchmarkReload({ save: () => saveGameEchtBewaard(world), slot: () => currentSlot(), markStay: (n) => markStay(null, n) }) : { ok: true };
       if (!prep.ok) { status(prep.reason === 'opslaan' ? BENCH_SAVE_FIRST_TEXT : BENCH_RELOAD_FAIL_TEXT); return; }
       benchmarkViaReload();
     }
