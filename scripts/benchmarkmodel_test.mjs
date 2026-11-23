@@ -138,3 +138,10 @@ console.log(`benchmarkmodel_test: ok (film ${filmSec.toFixed(1)} s, kort ${kortS
   assert.ok(!/tr-keys/.test(html), 'geen voetregel met toetsen: ze staan in de knoppen');
   assert.ok(/bm-meta, #bench-choice \.bm-duur \{ white-space: nowrap/.test(css), 'de duurchips breken niet over twee regels');
 }
+
+// #1230: ook de rij in Instellingen > Beeld en de bevestiging heten Prestatietest, niet Benchmark
+{
+  const pm = fs.readFileSync(new URL('../game/js/pausemenu.js', import.meta.url), 'utf8');
+  assert.ok(/rowName\('Prestatietest', /.test(pm), 'de rij in Beeld heet Prestatietest');
+  assert.ok(!/rowName\('Benchmark'/.test(pm) && !/>Benchmark draaien</.test(pm) && !/'Benchmark starten\?/.test(pm), 'geen Engels woord Benchmark in de rij of de bevestiging');
+}

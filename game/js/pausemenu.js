@@ -745,7 +745,7 @@ function settingsHtml() {
       <!-- De benchmark hoort bij de beeldinstellingen, niet verstopt onder "Meer opties": hij
            beantwoordt juist de vraag welke stand bij deze computer past (spelersfeedback 15-11). -->
       <div class="m-li pm-row">${rowName('Automatisch kiezen', 'Meet een paar seconden hoe soepel Grunn hier loopt en kies de mooiste stand die 60 fps haalt')}<button type="button" class="m-bg" data-action="gfx-remeasure">Opnieuw meten</button></div>
-      <div class="m-li pm-row">${rowName('Benchmark', 'Meet hoe soepel Grunn op deze computer draait en welke stand daarbij past (±1 min)')}<button type="button" class="m-bg" data-action="bench">Benchmark draaien</button></div>
+      <div class="m-li pm-row">${rowName('Prestatietest', 'Meet hoe soepel Grunn op deze computer draait en welke stand daarbij past (±1 min)')}<button type="button" class="m-bg" data-action="bench">Test starten</button></div>
       <div class="pm-confirm" data-bench-confirm hidden>
         <p data-bench-text></p>
         <div class="m-acts"><button type="button" class="m-bp" data-action="bench-go">Starten</button><button type="button" class="m-bt" data-action="bench-cancel">Annuleren</button></div>
@@ -2280,8 +2280,8 @@ function runAction(a) {
     const box = root.querySelector('[data-bench-confirm]');
     box.hidden = a === 'bench-cancel';
     box.querySelector('[data-bench-text]').innerHTML = braceKeysHtml(prestart
-      ? 'Benchmark starten? Duurt ongeveer een minuut. {ESC} stopt.'
-      : 'Benchmark starten? Je spel wordt eerst opgeslagen. {ESC} stopt.');
+      ? 'Prestatietest starten? Duurt ongeveer een minuut. {ESC} stopt.'
+      : 'Prestatietest starten? Je spel wordt eerst opgeslagen. {ESC} stopt.');
     if (!box.hidden) box.querySelector('[data-action="bench-go"]').focus();
     else root.querySelector('[data-action="bench"]').focus();
   } else if (a === 'bench-go') {

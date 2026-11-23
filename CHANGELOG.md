@@ -69,6 +69,7 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 - De tuningwerkplaats houdt de wereld stil zolang hij open is (de pauze duurde één beeld).
 - Spraakbubbels staan boven het hoofd van de spreker, ook op een dijk of in een kuil; duiven bij een voerplek staan op de stoep in plaats van half in de stenen.
 - HUD: de toetsregel in de doelkaart schuift niet meer in de doelregel. Instellingen: de kop Hulp heeft lucht, de uitleg onder een rij is beter leesbaar en de focusrand om een tab is dunner.
+- Instellingen › Beeld: de rij Benchmark heet nu Prestatietest, net als het scherm erachter, met de knop Test starten. Samen spelen: lokaal in je eigen menu; de test zelf kan tijdens Samen spelen nog steeds niet.
 
 ## [0.65.0] - 2026-11-22
 
