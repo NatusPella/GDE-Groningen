@@ -16,7 +16,7 @@ for (const k of PROP_KINDS) ok(PROP_SOURCES[k] || DECOR_KINDS.includes(k) || k =
 // de scan ziet de bekende schuld (anders zou hij niets bewaken) en de schuld wordt niet groter dan de baseline
 const raw = scan();
 const totaal = Object.values(raw).reduce((s, h) => s + h.reduce((a, b) => a + b.n, 0), 0);
-ok(totaal > 0, 'de scan vindt de bestaande primitieven in scènecode', String(totaal));
+ok(totaal === 0 && Object.keys(BASELINE).length === 0, 'geen losse primitieven meer in scènecode en geen baseline (schuld weggewerkt 23-11)', String(totaal));
 for (const [f, hits] of Object.entries(raw)) ok(hits.reduce((s, h) => s + h.n, 0) <= (BASELINE[f] ?? 0), `${f}: niet meer primitieven dan de baseline`);
 // een nieuw bestand met een eigen mannetje of auto valt door: de regex herkent de constructors
 const probe = 'const m = new THREE.Mesh(new THREE.BoxGeometry(1, 2, 1), mat); const w = new THREE.CylinderGeometry(0.3, 0.3, 0.2, 8);';

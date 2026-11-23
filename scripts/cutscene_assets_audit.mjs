@@ -18,7 +18,7 @@ const SCENE_FILES = readdirSync(JS).filter((f) => /^(cutscene.*|cutscript|cutdir
 const PRIMITIVE = /new THREE\.(Box|Cylinder|Sphere|Cone|Circle|Plane|Torus|Capsule|Ring|Icosahedron|Octahedron|Tetrahedron|Dodecahedron)Geometry\(/g;
 // De bestaande schuld per bestand (het aantal losse primitieven): alleen te verlagen. Schaduwcirkels (CircleGeometry onder een figuur) en
 // de bal van de voetbalscène staan hier mee; wie een voorwerp naar storyprops.js verplaatst verlaagt het getal.
-export const BASELINE = { 'intromontage.js': 4, 'missionstory.js': 9, 'cutscenehost.js': 1 };
+export const BASELINE = {};
 
 export function scan() {
   const out = {};

@@ -39,7 +39,8 @@ export const PROP_KINDS = [
   'tankwagen', 'limo', 'klomp', 'stempel', 'pinpas', 'map', 'bierviltje', 'fotolijst',
   'statief', 'krat', 'pan', 'vuurwerk', 'koelbox', 'jas', 'aktetas', 'hesjes',
   'container', 'scherm', 'prikbord', 'broodtrommel', 'kantoorwagen', 'frituuraanhanger', 'friteuse', 'deken',
-  'soepketel', 'mosterdpot', 'kaart', 'hek',
+  'soepketel', 'mosterdpot', 'kaart', 'hek', 'pinautomaat', 'jerrycan', 'goudbal', 'polsstok',
+  'bierglas', 'jeneverglas', 'wijnglas', 'kiosk', 'sticker',
 ];
 const VERBS = ['walk', 'anim', 'face', 'gaze', 'carry', 'drop', 'move', 'path', 'spin', 'bob', 'show', 'hide', 'sit'];
 export const SHOTS = ['cut', 'dolly', 'orbit', 'follow', 'close', 'reaction', 'ots', 'insert', 'tracking', 'crane', 'handheld', 'push'];

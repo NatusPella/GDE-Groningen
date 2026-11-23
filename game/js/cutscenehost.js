@@ -21,7 +21,7 @@ import { buildWildlifeMesh3D } from './wildlife.js';
 import { HERO_CAR_MODEL, TRACTOR_MODEL, POLICE_MODEL, FOODTRUCK_MODEL, TRAFFIC_MODELS } from './vehicle.js';
 import { carModel } from './trafficfleet.js';
 import { propSource, TABLE_SIT, CARRY_LOW } from './cutscenemodels.js';
-import { DECOR_MAKERS } from './storyprops.js';
+import { DECOR_MAKERS, shadowDisc } from './storyprops.js';
 import { compileScene, fitAnchor, resolveTime, shotPoints, roadPathDef } from './cutscript.js';
 import { jumpsFromScene } from './cutscenewarm.js';
 import { sceneSamples, isRealSet } from './realsets.js';
@@ -71,14 +71,12 @@ function handOf(mesh) {
   return HAND_V;
 }
 
-const SHADOW_GEO = new THREE.CircleGeometry(0.42, 16).rotateX(-Math.PI / 2);
-const SHADOW_MAT = new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.35, depthWrite: false });
 
 function makeActor(spec) {
   const look = spec === 'tammo' ? TAMMO_APPEARANCE : spec === 'anita' ? ANITA_APPEARANCE : spec;
   const m = buildPersonMesh(look.shirt, look.skin, look);
   m.traverse((o) => { if (o.isMesh) o.castShadow = true; });
-  const sh = new THREE.Mesh(SHADOW_GEO, SHADOW_MAT);
+  const sh = shadowDisc(); // de gedeelde schaduwvlek (storyprops.js)
   sh.position.y = 0.03;
   m.add(sh);
   m.userData.shadow = sh;
@@ -121,7 +119,7 @@ function disposeTree(o) {
       if (c.isSkinnedMesh && c.skeleton) c.skeleton.dispose();
       return;
     }
-    if (g === SHADOW_GEO || c.userData.shared || (g.userData && g.userData.shared)) return;
+    if (c.userData.shared || (g.userData && g.userData.shared)) return;
     g.dispose();
   });
 }

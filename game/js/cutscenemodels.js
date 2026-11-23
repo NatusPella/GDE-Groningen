@@ -33,6 +33,7 @@ export const DECOR_KINDS = [
   'map', 'bierviltje', 'fotolijst', 'statief', 'krat', 'pan', 'vuurwerk', 'koelbox',
   'jas', 'aktetas', 'hesjes', 'container', 'scherm', 'prikbord', 'broodtrommel', 'kantoorwagen',
   'frituuraanhanger', 'friteuse', 'deken', 'soepketel', 'mosterdpot', 'kaart', 'hek',
+  'pinautomaat', 'jerrycan', 'goudbal', 'polsstok', 'bierglas', 'jeneverglas', 'wijnglas', 'kiosk', 'sticker',
 ];
 
 // De kwaliteitsnorm voor elk voorwerp in een cutscene (eigenaar, 23-11): nieuwe voorwerpen mogen, maar alleen in de gedeelde bibliotheek

@@ -28,6 +28,7 @@ import { KITCHEN, buildKitchen, buildAtmTrailer, buildWetBike, buildFrikandel, b
 import { logoHtml } from './logo.js';
 import { PARTS, partNumber } from './storyarc.js';
 import { homeSpawnPoint } from './home.js';
+import { DECOR_MAKERS, shadowDisc, disposeModel } from './storyprops.js';
 import { jumpsFromStops } from './cutscenewarm.js';
 import { KEYS } from './storagekeys.js';
 import { TABLE_SIT } from './cutscenemodels.js';
@@ -210,17 +211,13 @@ function showCard(html, dur) {
 
 // --- props -------------------------------------------------------------------
 
-const SHADOW_GEO = new THREE.CircleGeometry(0.42, 16).rotateX(-Math.PI / 2);
-const SHADOW_MAT = new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.35, depthWrite: false });
-// one shadow under every montage actor: the scene's cleaner must keep them when
-// a single actor is removed (disposeObject checks this flag)
-SHADOW_GEO.userData.shared = true;
-SHADOW_MAT.userData.shared = true;
+// one shadow under every montage actor, from the shared factory (storyprops.js shadowDisc): its geometry and material are flagged
+// as shared, so the scene's cleaner keeps them when a single actor is removed (disposeObject checks this flag)
 
 export function makeActor(app) {
   const m = buildPersonMesh(app.shirt, app.skin, app);
   m.traverse((o) => { if (o.isMesh) o.castShadow = true; });
-  const sh = new THREE.Mesh(SHADOW_GEO, SHADOW_MAT);
+  const sh = shadowDisc();
   sh.position.y = 0.03;
   sh.renderOrder = 1;
   m.add(sh);
@@ -1086,8 +1083,6 @@ function buildShots(w, film = false) {
   const lobby = homeSpawnPoint();
   const kerb = street(map, lobby.x + Math.cos(lobby.angle) * 10, lobby.y + Math.sin(lobby.angle) * 10);
   const kf = { x: Math.cos(kerb.a), y: Math.sin(kerb.a) };
-  const BOX_MAT = new THREE.MeshStandardMaterial({ color: 0xb08850, roughness: 0.95 });
-  const BED_MAT = new THREE.MeshStandardMaterial({ color: 0xe8e2d4, roughness: 1 });
   const verhuis = {
     minDur: 6.5, clock: 10.6, stamp: '10:36', focus: lobby,
     caption: ['PADDEPOEL', 'House of Groningen. Elf hoog, de huur door twee.'], capAt: 0.6,
@@ -1099,25 +1094,21 @@ function buildShots(w, film = false) {
     enter(r, s) {
       const at = { x: lobby.x + (kerb.x - lobby.x) * 0.85, y: lobby.y + (kerb.y - lobby.y) * 0.85 };
       s.car = tempCar(r, at.x, at.y, kerb.a);
-      const geo = new THREE.BoxGeometry(1, 1, 1);
-      s.geo = geo;
-      s.bed = new THREE.Mesh(geo, BED_MAT);
-      s.bed.scale.set(2.0, 0.22, 1.35);
-      s.box = new THREE.Mesh(geo, BOX_MAT);
-      s.box.scale.set(0.5, 0.38, 0.42);
-      s.boxes = [0, 1, 2].map(() => new THREE.Mesh(geo, BOX_MAT));
-      for (const m of [s.bed, s.box, ...s.boxes]) { m.castShadow = true; r.group.add(m); }
+      // de matras en de verhuisdozen uit het register (storyprops.js): oorsprong op de grond, niet in het midden
+      s.bed = DECOR_MAKERS.matras();
+      s.box = DECOR_MAKERS.doos();
+      s.boxes = [0, 1, 2].map(() => DECOR_MAKERS.doos());
+      for (const m of [s.bed, s.box, ...s.boxes]) r.group.add(m);
     },
-    exit(r, s) { if (s.geo) s.geo.dispose(); },
+    exit(r, s) { for (const m of [s.bed, s.box, ...(s.boxes || [])]) if (m) disposeModel(m); },
     tick(r, s, t, dt) {
       const c = s.car;
       if (c) {
-        s.bed.position.set(c.x, (c.z || 0) + 1.62, c.y);
+        s.bed.position.set(c.x, (c.z || 0) + 1.51, c.y);
         s.bed.rotation.set(0, -c.angle, 0.05);
         // a stack of boxes on the pavement behind the car
         s.boxes.forEach((b, k) => {
-          b.scale.set(0.55, 0.42, 0.45);
-          b.position.set(c.x - kf.x * 3.4 + (lobby.x - c.x) * 0.25, (c.z || 0) + 0.21 + (k === 2 ? 0.42 : 0), c.y - kf.y * 3.4 + (lobby.y - c.y) * 0.25 + (k === 1 ? 0.6 : 0));
+          b.position.set(c.x - kf.x * 3.4 + (lobby.x - c.x) * 0.25, (c.z || 0) + (k === 2 ? 0.42 : 0), c.y - kf.y * 3.4 + (lobby.y - c.y) * 0.25 + (k === 1 ? 0.6 : 0));
           b.rotation.y = k * 0.4;
         });
       }
@@ -1128,7 +1119,7 @@ function buildShots(w, film = false) {
       const ty = lerp(lobby.y + Math.sin(lobby.angle) * 5, lobby.y + Math.sin(lobby.angle) * 1.6, k);
       const z = r.w.map.spawnZ ? r.w.map.spawnZ(tx, ty) : 0;
       stage(r.tammo, tx, ty, a, { h: z, speed: k < 1 ? 1 : 0, pose: 'cups', dt, t });
-      s.box.position.set(tx + Math.cos(a) * 0.38, z + 1.08, ty + Math.sin(a) * 0.38);
+      s.box.position.set(tx + Math.cos(a) * 0.38, z + 0.89, ty + Math.sin(a) * 0.38);
       s.box.rotation.set(0, -a, 0);
       const ax = lobby.x + Math.cos(lobby.angle) * 4.2 + Math.cos(lobby.angle + Math.PI / 2) * 1.6;
       const ay = lobby.y + Math.sin(lobby.angle) * 4.2 + Math.sin(lobby.angle + Math.PI / 2) * 1.6;
@@ -1376,28 +1367,21 @@ function buildShots(w, film = false) {
     return self;
   })();
   // the Fries in a blue blazer, seen from the attic window: a sticker VERKOCHT on the chip shop across the street
-  const KIOSK_GEO = new THREE.BoxGeometry(1, 1, 1);
   const kp = (d, off) => sd(d, -off);
   const fKiosk = withDawn({
     ...base('c2-raam'), clock: 7.5, focus: home,
     enter(r, s) {
       s.car = tempCar(r, car.x, car.y, home.a) || tempCar(r, car.x, car.y, home.a, { model: { ...MODELS[0], color: ESCAPADE_RED } });
-      const o = kp(3, 6.4), own = [];
-      const box = (w2, h2, d2, color, x, y, z) => { const mat = new THREE.MeshStandardMaterial({ color, roughness: 0.8 }); own.push(mat); const m = new THREE.Mesh(KIOSK_GEO, mat); m.scale.set(w2, h2, d2); m.position.set(x, y, z); m.rotation.y = -home.a; m.castShadow = true; r.group.add(m); return m; };
+      const o = kp(3, 6.4);
       const gz = zAt(o.x, o.y);
-      box(2.6, 2.3, 2.0, 0xe0b04a, o.x, gz + 1.15, o.y);
-      box(2.9, 0.12, 2.4, 0xb4492f, o.x, gz + 2.36, o.y);
-      s.own = own;
+      // de kiosk uit het register (storyprops.js kiosk): kast, dak, luik met toonbank
+      s.kiosk = DECOR_MAKERS.kiosk();
+      s.kiosk.position.set(o.x, gz, o.y);
+      r.group.add(s.kiosk);
       s.o = o; s.gz = gz;
-      // the sticker: a red plane with the word, which grows when he sticks it on
-      const cv = document.createElement('canvas');
-      cv.width = 256; cv.height = 96;
-      const g = cv.getContext('2d');
-      g.fillStyle = new THREE.Color(0xc8261e).getStyle(); g.fillRect(0, 0, 256, 96);
-      g.fillStyle = new THREE.Color(0xffffff).getStyle(); g.font = '700 40px sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText('VERKOCHT', 128, 50);
-      s.tex = new THREE.CanvasTexture(cv);
-      s.sticker = new THREE.Mesh(new THREE.PlaneGeometry(1.5, 0.56), new THREE.MeshBasicMaterial({ map: s.tex }));
-      s.sticker.position.set(o.x + hn.x * 1.02, gz + 1.45, o.y + hn.y * 1.02);
+      // the sticker VERKOCHT from the register (storyprops.js sticker), which grows when he sticks it on
+      s.sticker = DECOR_MAKERS.sticker();
+      s.sticker.position.set(o.x + hn.x * 1.02, gz + 1.14, o.y + hn.y * 1.02); // oorsprong onderaan de sticker
       s.sticker.lookAt(s.sticker.position.x + hn.x, s.sticker.position.y, s.sticker.position.z + hn.y);
       s.sticker.scale.setScalar(0.001);
       r.group.add(s.sticker);
@@ -1410,9 +1394,8 @@ function buildShots(w, film = false) {
       r.group.add(s.bird);
     },
     exit(r, s) {
-      for (const m of s.own || []) m.dispose();
-      if (s.tex) s.tex.dispose();
-      if (s.sticker) { s.sticker.geometry.dispose(); s.sticker.material.dispose(); }
+      if (s.kiosk) disposeModel(s.kiosk);
+      if (s.sticker) disposeModel(s.sticker);
       if (s.man) disposeObject(s.man);
       if (s.bird) disposeGeometry(s.bird);
     },
