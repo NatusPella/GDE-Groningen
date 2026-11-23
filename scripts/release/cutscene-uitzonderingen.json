@@ -120,13 +120,6 @@
       "regel": "CS-T04",
       "reden": "Vijf sprekers in het Loket: de wachtrij met Jelle, de bewaarder van de wisselprijs en de loketbediende is de grap van de scène (de rij is gekocht). Jelle praat alleen in de eerste helft, de loketbediende en Mevrouw Hoving pas na zijn vertrek. Splitsen in twee scènes vraagt een nieuwe snee in de missie.",
       "akkoord": "agent akte1-eindniveau-23-11 (23-11), ter goedkeuring van de coördinator; nog niet door de eigenaar gezien"
-    },
-    {
-      "cutscene": "M06.intro",
-      "regel": "CS-T01",
-      "regelNr": 3,
-      "reden": "Regel 3 (\"En daarna brengen we hem terug.\") is 20,4 tekens per seconde: de ingesproken clip duurt 1,27 s. De ondertitel volgt de stem woordelijk; inkorten laat ondertitel en stem uit elkaar lopen en een langzamere opname vraagt een nieuwe TTS-ronde.",
-      "akkoord": "agent akte1-eindniveau-23-11 (23-11), ter goedkeuring van de coördinator; nog niet door de eigenaar gezien"
     }
   ]
 }

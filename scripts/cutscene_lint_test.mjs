@@ -63,6 +63,9 @@ const CTX = { speakers: { T: {}, A: {}, berend: {}, rikus: {} }, npc: {} };
   ok(heeft(checkText(tekstEenheid([['Tammo', 'Dit is een vrij lange regel van ruim honderdveertig tekens die in twee en een halve seconde gesproken wordt en dus onleesbaar is voor iedereen.', { voiceDur: 3 }]]), CTX), 'CS-T01'), 'T01: te snelle ondertitel wordt gemeld');
   ok(heeft(checkText(tekstEenheid([['Tammo', 'Honderdveertig tekens in een halve seconde, dat leest niemand ooit, ook geen snelle lezer met veel oefening hoor, echt niet.', { voiceDur: 0.5 }]]), CTX), 'CS-T01', 'blokkerend'), 'T01: boven 28 tekens per seconde is blokkerend');
   ok(!heeft(checkText(tekstEenheid([['Tammo', 'Kort.', { voiceDur: 0.6 }]]), CTX), 'CS-T01'), 'T01: een korte regel is geen probleem');
+  // 23-11 (M06.intro): een korte stem in een geënsceneerde tijdlijn staat zo lang als de tijdlijn hem geeft, een kortere voorbeeldduur telt niet
+  ok(!heeft(checkText(tekstEenheid([['Tammo', 'En daarna brengen we hem terug.', { voiceDur: 1.27, dur: 3.1 }]]), CTX), 'CS-T01'), 'T01: de duur uit de tijdlijn telt als de ondertitel langer staat dan de stem');
+  ok(heeft(checkText(tekstEenheid([['Tammo', 'En daarna brengen we hem terug.', { voiceDur: 1.27, dur: 1.0 }]]), CTX), 'CS-T01'), 'T01: een kortere tijdlijnduur maakt de stemduur niet korter');
   ok(heeft(checkText(tekstEenheid([['Tammo', 'A.'], ['Tammo', 'B.'], ['Tammo', 'C.'], ['Tammo', 'D.']]), CTX), 'CS-T09'), 'T09: een toespraak van één spreker wordt gemeld');
   ok(!heeft(checkText(tekstEenheid([['Rikus', 'A.', { key: 'rikus', channel: 'radio' }], ['Rikus', 'B.', { key: 'rikus', channel: 'radio' }], ['Rikus', 'C.', { key: 'rikus', channel: 'radio' }], ['Rikus', 'D.', { key: 'rikus', channel: 'radio' }]]), CTX), 'CS-T09'), 'T09: een radio-uitzending is geen toespraak');
   ok(heeft(checkText(tekstEenheid([['Tammo', 'Hoi.', { hasVoice: false }]]), CTX), 'CS-T10'), 'T10: een regel zonder stemclip wordt gemeld');
