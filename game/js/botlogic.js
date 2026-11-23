@@ -409,6 +409,9 @@ export function jitterOffset(n, r = 3) {
 //   enter   vehicle walk to the vehicle and press the enter key
 //   goto    mode    'drive' | 'walk' to s.target
 //   press   key     one key
+// prompts that belong to what stands next to the marker, not to the marker itself (prompts.js: boarding, a parked bike, a passer-by)
+export const ASIDE_PROMPT = /^(Instappen|Opstappen|Fiets jatten|Scooter jatten|Slaan)/;
+
 export function decide(s, mem = {}) {
   const b = s.blocking || {};
   if (b.pauseMenu) return { type: 'closemenu' };
@@ -471,7 +474,9 @@ export function decide(s, mem = {}) {
     if (/Binnenlopen|Bootje huren|Helikopters bekijken/.test(prompt) && (mem.shopPress || 0) < 6) { mem.shopPress = (mem.shopPress || 0) + 1; return { type: 'press', key: 'e', why: 'winkel', interact: true }; }
     return { type: 'goto', mode: 'walk', close: true };
   }
-  if (!veh && prompt && t.distance <= Math.max(4, ((s.mission && s.mission.triggerRadius) || 0) + 1) && (mem.pressTries || 0) < 4) {
+  // a vehicle or a passer-by next to the marker is not the action (spelbot 23-11, M06: 'Instappen', 'Fiets jatten' and 'Slaan' used up the
+  // four presses, and at the fuse box with 'Houd E ingedrukt' none were left: the camera's came back on, the attempt failed)
+  if (!veh && prompt && !ASIDE_PROMPT.test(prompt) && t.distance <= Math.max(4,((s.mission && s.mission.triggerRadius) || 0) + 1) && (mem.pressTries || 0) < 4) {
     return { type: 'press', key: 'e', why: 'handeling', interact: true };
   }
   // the plan panel of a heist (M06 'Kies met A of S'): take the first way in

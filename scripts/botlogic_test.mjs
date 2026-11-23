@@ -193,6 +193,10 @@ const near = (a, b, e = 1e-6) => Math.abs(a - b) < e;
     ok(jat.type === 'goto' && jat.mode === 'walk', 'winkel: een fietsprompt voor de deur is geen reden om E te drukken, eerst dichterbij');
     const binnen = L.decide({ ...base(), target: { ...wT, distance: 1.2 }, hud: { messages: [], prompt: 'BinnenlopenTrap & Toeter: fietsenwinkel' } }, {});
     ok(binnen.type === 'press' && binnen.key === 'e', 'winkel: de eigen prompt van de winkel: E');
+    // M06: een auto of een voorbijganger naast de stroomkast is niet de handeling; de vier drukken blijven over voor 'Houd E ingedrukt'
+    const kast = { ...base(), mission: { active: true, stage: 'fuse' }, target: { x: 2, y: 0, distance: 2, source: 'missie' } };
+    for (const p of ['InstappenBij de bestuurdersdeur', 'Fiets jattenFiets', 'Slaan om uit te delen']) ok(L.decide({ ...kast, hud: { messages: [], prompt: p } }, {}).type !== 'press', `naast het doel: '${p}' telt niet als handeling`);
+    ok(L.decide({ ...kast, hud: { messages: [], prompt: 'Houd E ingedrukt: de stroomkast' } }, {}).type === 'press', 'de stroomkast zelf: E');
   }
   const mvT = { x: 6, y: 0, distance: 6, source: 'missie', vehicle: true }, mvNear = [{ x: 6, y: 0, distance: 6, free: true, drivable: true, kind: 'auto' }, { x: 2, y: 3, distance: 3.6, free: true, drivable: true, kind: 'auto' }];
   const mvFoot = L.decide({ ...base(), mission: { active: true, stage: 'board' }, target: mvT, nearby: { vehicles: mvNear } }, {});
