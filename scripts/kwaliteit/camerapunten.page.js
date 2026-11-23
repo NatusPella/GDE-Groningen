@@ -109,7 +109,8 @@ async function kpMain() {
         const ls = M.load.startLoadScreen(world, { kind: 'travel', x: d.x, y: d.y });
         for (let k = 0; k < (p.beelden || 60); k++) await advance({ capture: false });
         await png(p.id);
-        if (ls && ls.done) ls.done();
+        // startLoadScreen geeft { done: Promise, el }: het scherm sluit zelf als het streamen klaar is
+        if (ls && typeof ls.done === 'function') ls.done();
         for (let k = 0; k < 40; k++) await advance({ capture: false });
         meld(p.id, { ok: true, ms: Math.round(rt.now() - t0) });
         continue;
