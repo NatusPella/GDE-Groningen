@@ -8,6 +8,7 @@
 import { OV_HINT_LINES } from './ovhintlines.js';
 
 export const FAR_M = 4000;                  // m hemelsbreed: pas daarboven is het doel echt ver
+export const HEEL_VER_M = 20000;            // audit speelbaarheid 23-11: een missiestart zo ver weg (tot 59 km) krijgt altijd één hint per doel
 export const GAP_S = 600;                   // spelseconden tussen twee hints
 export const MAX_UNUSED_SHOWS = 4;        // zo vaak getoond zonder dat de speler OV/taxi pakte, daarna zwijgt de hint
 export const GENOEG_GEBRUIKT = 3;           // wie het OV of de taxi zo vaak pakte, weet het
@@ -73,14 +74,15 @@ export function beslis(i, s, sessie, opties = {}) {
   if (SILENT_TRANSPORT.includes(i.vervoer)) return null;
   const d = Math.hypot(i.goal.x - i.speler.x, i.goal.y - i.speler.y);
   if (!(d >= FAR_M)) return null;
-  if (s.gebruikt >= GENOEG_GEBRUIKT) return null;
-  if (s.gebruikt === 0 && s.getoond >= MAX_UNUSED_SHOWS) return null;
+  const heelVer = d >= HEEL_VER_M; // een heel eind: de tellers en de wachttijd gelden niet, één keer per doel en sessie wel
+  if (!heelVer && s.gebruikt >= GENOEG_GEBRUIKT) return null;
+  if (!heelVer && s.gebruikt === 0 && s.getoond >= MAX_UNUSED_SHOWS) return null;
   // een tijd in de toekomst (systeemklok teruggezet) telt als verlopen, anders zweeg de hint voor altijd
   const sindsGebruik = i.nuMs - s.gebruiktOp;
   if (s.gebruiktOp && sindsGebruik >= 0 && sindsGebruik < STIL_NA_GEBRUIK_MS) return null;
   // na het laden van een oudere save loopt de spelklok terug: dan begint de wachttijd opnieuw
   if (i.nu < sessie.laatsteAt) sessie.laatsteAt = -Infinity;
-  if (i.nu - sessie.laatsteAt < GAP_S) return null;
+  if (!heelVer && i.nu - sessie.laatsteAt < GAP_S) return null;
   const sleutel = goalKey(i.goal);
   if (sessie.doelen.has(sleutel)) return null;
   const halteNabij = !!i.halteNabij;
@@ -88,6 +90,15 @@ export function beslis(i, s, sessie, opties = {}) {
   const kinds = kindsFor({ halteNabij });
   const line = pickLine(kinds, s.laatsteId, opties.rnd);
   return line ? { regel: line, soorten: kinds, doel: sleutel } : null;
+}
+
+// Welk doel telt (audit speelbaarheid 23-11): het eigen doel van de speler, anders de start van de volgende verhaalmissie. Tot
+// 23-11 keek de hint alleen naar het eigen doel, dus een missiestart op 40 km kreeg nooit een hint. Een reis-stap van het verhaal
+// heeft zijn eigen reiskeuze (storytravel.js) en telt hier niet. storyGuide: world.storyGuide; soort: 'mission' of 'activity'.
+export function hintDoel(eigen, storyGuide, soort, vrijSpel = false) {
+  if (eigen && Number.isFinite(eigen.x) && Number.isFinite(eigen.y)) return { x: eigen.x, y: eigen.y };
+  if (vrijSpel || !storyGuide || soort !== 'mission' || !Number.isFinite(storyGuide.x) || !Number.isFinite(storyGuide.y)) return null;
+  return { x: storyGuide.x, y: storyGuide.y };
 }
 
 // Na het tonen: de stand (opslaan) en de sessie (in het geheugen) bijwerken.

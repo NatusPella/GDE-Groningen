@@ -1633,14 +1633,18 @@ function currentObjective(world) {
       : g.buy ? (near ? 'Voor het verhaal: loop naar binnen (E)' : 'Volg de gele route naar de winkel')
       : inside ? 'Stap even uit de marker en weer terug'
       : atMarker ? (near ? 'Loop of rij de gele marker in' : 'Volg de gele route naar de marker') : 'Volg de gele route';
+    // audit speelbaarheid 23-11: hoe ver het nog is (tot 59 km tussen twee missies), zodat de speler zelf kiest: rijden, OV of taxi
+    const sr = getActiveRoute(), afst = sr && sr.kind === 'mission' && Number.isFinite(sr.remaining) ? sr.remaining : Math.hypot(g.x - hoofdspeler(world).x, g.y - hoofdspeler(world).y);
+    const subAfst = !near && !inside && afst >= STORY_AFSTAND_M ? `${sub} · ${formatDistance(afst)}` : sub;
     // in de lucht staat de bestemming op de routekaart (plaatsnaam, #1038): de balk toont alleen de naam van de opdracht, zonder "Vlieg naar:"
     const lucht = travelModeOf(world) === 'lucht';
-    return { kind: 'story', raw: g.name, title: lucht ? cutTitle(g.name) : goalTitle('story', g.name, modus), sub, timer: '' };
+    return { kind: 'story', raw: g.name, title: lucht ? cutTitle(g.name) : goalTitle('story', g.name, modus), sub: subAfst, timer: '' };
   }
   return null;
 }
 
 const OBJ_HINT_TIME = 6;
+const STORY_AFSTAND_M = 300; // vanaf hier zegt de doelbalk van het verhaal hoe ver het nog is (audit speelbaarheid 23-11)
 const QUIET_AFTER = 9;
 const GOAL_HINTS = 3;
 let goalHints = 0;

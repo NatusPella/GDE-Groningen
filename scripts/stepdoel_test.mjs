@@ -1,5 +1,6 @@
 // Test van stepdoel.js: elke verhaalstap met een plek heeft een kort, werkwoordelijk doel (audit speelbaarheid 23-11).
 //   node scripts/stepdoel_test.mjs
+import fs from 'node:fs';
 import { STEPS } from '../game/js/storyarc.js';
 import { STEP_DOEL, MAX_DOEL, stepDoel, doelInZin } from '../game/js/stepdoel.js';
 import { destinationTitle } from '../game/js/goaltext.js';
@@ -31,6 +32,12 @@ ok(stepDoel({ id: 'ONBEKEND', title: 'Een titel' }) === 'Een titel', 'een stap z
 ok(stepDoel(null) === '', 'geen stap geeft een lege tekst');
 ok(doelInZin('Praat met Berend') === 'praat met Berend', 'doelInZin zet een kleine beginletter');
 ok(remindText(0, doelInZin(STEP_DOEL.M01)) === 'Nog even dit: praat met Berend bij het Martinikerkhof. Staat op je kaart, als je zin hebt.', 'de herinnering noemt het korte doel');
+
+// bedrading: de balk zegt hoe ver de volgende stap is, en de OV-hint kijkt ook naar de start van de volgende verhaalmissie
+const hud = fs.readFileSync(new URL('../game/js/hud_panel.js', import.meta.url), 'utf8');
+ok(/const subAfst = !near && !inside && afst >= STORY_AFSTAND_M \? `\$\{sub\} · \$\{formatDistance\(afst\)\}` : sub;/.test(hud), 'de verhaalbalk toont de afstand');
+ok(/kind: 'story'[^\n]*sub: subAfst/.test(hud), 'de verhaalbalk gebruikt de regel met afstand');
+ok(/hintDoel\(getGoal\(\), sg, stap \? stap\.kind : ''/.test(fs.readFileSync(new URL('../game/js/ovhintlive.js', import.meta.url), 'utf8')), 'de OV-hint kijkt ook naar de verhaalmissie');
 
 if (fout) { console.log(`stepdoel_test: ${fout} fout(en)`); process.exit(1); }
 console.log(`stepdoel_test: ok (${Object.keys(STEP_DOEL).length} doelen voor ${STEPS.length} stappen)`);
