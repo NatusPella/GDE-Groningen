@@ -2,7 +2,7 @@
 // lijn (game/world, provincie-bus.json), remt bij elke halte af, staat stil aan de stoeprand met open deuren en de
 // wachttijd, knippert rechts erheen en links weer weg, en rijdt door. Een auto erachter haalt de staande bus in of
 // wacht. Deterministisch (vaste rng, virtuele klok). Zonder game/world: SKIP.
-//   node scripts/halteren_wereld_test.mjs [--lijnen=N] [--verbose]
+//   node scripts/busstop_world_test.mjs [--lijnen=N] [--verbose]
 import './node3d.mjs';
 import fs from 'node:fs';
 let seed = 4242;
@@ -11,13 +11,13 @@ await import('../game/js/player.js');
 const { loadGameWorld } = await import('./worldload.mjs');
 const T = await loadGameWorld();
 const busFile = new URL('../game/world/provincie-bus.json', import.meta.url);
-if (!T || !fs.existsSync(busFile)) { console.log('SKIP halteren_wereld_test: geen game/world'); process.exit(0); }
+if (!T || !fs.existsSync(busFile)) { console.log('SKIP busstop_world_test: geen game/world'); process.exit(0); }
 const map = T.world;
 const B = await import('../game/js/busroutes.js');
 const V = await import('../game/js/vehicle.js');
 const TL = await import('../game/js/trafficlights.js');
 const { stilstandDeurOpen } = await import('../game/js/vehicledoors.js');
-const { HALTE } = await import('../game/js/halteren.js');
+const { HALTE } = await import('../game/js/busstop.js');
 
 const arg = (k, d) => { const a = process.argv.find((x) => x.startsWith(`--${k}=`)); return a ? +a.slice(k.length + 3) : d; };
 const VERBOSE = process.argv.includes('--verbose');
@@ -84,7 +84,7 @@ for (const l of lines) {
   if (sawRight) knipperRechts++;
   if (sawLeftAfter) knipperLinks++;
 }
-console.log(`halteren_wereld: ${ritten} ritten, ${aankomsten} keer gehalteerd, ${gemist} gemist`);
+console.log(`busstop_world: ${ritten} ritten, ${aankomsten} keer gehalteerd, ${gemist} gemist`);
 ok(ritten >= 3, 'genoeg lijnen om te rijden', ritten);
 ok(aankomsten >= Math.ceil(ritten * 0.6), 'de meeste bussen halteren bij hun halte', `${aankomsten}/${ritten}`);
 ok(stopAfstanden.every((d) => d < 12), 'stilstand bij het stoppunt (langs de lijn)', stopAfstanden.map((d) => d.toFixed(1)).join(' '));
@@ -129,5 +129,5 @@ ok(world.haltefx.length <= 16, 'de wachtrij van uitwisselingen blijft begrensd z
   }
 }
 
-console.log(fails ? `halteren_wereld_test: ${fails} van ${n} mislukt` : `halteren_wereld_test: ${n}/${n} ok`);
+console.log(fails ? `busstop_world_test: ${fails} van ${n} mislukt` : `busstop_world_test: ${n}/${n} ok`);
 process.exit(fails ? 1 : 0);

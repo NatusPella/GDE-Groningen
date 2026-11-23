@@ -1,6 +1,6 @@
-// Het gedeelde in- en uitstapsysteem van bus en trein (instappen.js, wens eigenaar 23-11): deuren, perronkant,
+// Het gedeelde in- en uitstapsysteem van bus en trein (boarding.js, wens eigenaar 23-11): deuren, perronkant,
 // wachtplekken, planning met wachtenden, stand per tijd, stilstand bij een halte. Deterministisch.
-import { INSTAP, zaad, maakRng, busDeurenWereld, treinDeuren, deurenLokaalRijtuig, perronKanten, wachtAantal, wachtplekken, planInstappen, figuurStand, treinBijHalte, makeStilteWacht, dichtsteDeur } from '../game/js/instappen.js';
+import { INSTAP, zaad, maakRng, busDeurenWereld, treinDeuren, deurenLokaalRijtuig, perronKanten, wachtAantal, wachtplekken, planInstappen, figuurStand, treinBijHalte, makeStilteWacht, dichtsteDeur } from '../game/js/boarding.js';
 import { haltedeuren } from '../game/js/haltefiguren.js';
 // de rijtuigindeling van railway.js TRAIN_TYPES (dat bestand laadt three.js, dus hier overgenomen)
 const TRAIN_TYPES = {
@@ -101,5 +101,5 @@ check('na rijden opnieuw', n === 2);
 for (let i = 0; i < 5; i++) sw.ruim();
 check('niet meer gezien: opgeruimd', sw.grootte === 0);
 
-console.log(fail ? `instappen_test: ${fail} fout` : 'instappen_test ok');
+console.log(fail ? `boarding_test: ${fail} fout` : 'boarding_test ok');
 process.exit(fail ? 1 : 0);

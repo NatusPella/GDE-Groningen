@@ -229,7 +229,7 @@ export { nextStop };
 
 // Per beeld: waar is de bus nu (x, y), hoeveel tijd is er om (dt). Geeft
 // { goal, hold, atStop } terug: goal voor de AI, hold = seconden wachten bij de halte.
-// zacht (de lijnbussen in het verkeer, halteren.js): geen eigen haltetijd hier; de rit geeft alleen de volgende
+// zacht (de lijnbussen in het verkeer, busstop.js): geen eigen haltetijd hier; de rit geeft alleen de volgende
 // halte terug (stop) en de AI remt, haltert en meldt de halte zelf als gehaald (halteGehaald).
 export function stepRunner(r, x, y, dt, zacht = false) {
   const L = r.line;

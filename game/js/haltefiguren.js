@@ -1,9 +1,9 @@
 // Reizigers bij de bushalte (#225): wie instapt loopt naar de deur, wie uitstapt komt uit de
 // deur en loopt weg. Alleen beeld: gameplay telt reizigers al (busride.js). Pure planning,
 // geen THREE (scripts/haltefiguren_test.mjs); de planning zelf is het gedeelde systeem van bus en
-// trein (instappen.js), instappen3d.js tekent de mensen.
+// trein (boarding.js), boarding3d.js tekent de mensen.
 import { doorsFor } from './vehicledoors.js';
-import { INSTAP, busDeurenWereld, planInstappen, figuurStand } from './instappen.js';
+import { INSTAP, busDeurenWereld, planInstappen, figuurStand } from './boarding.js';
 
 export const MAX_FIGUREN = INSTAP.MAX_BUS;      // zoveel mensen per halte-uitwisseling in beeld
 const MAX_HALTEFX = 16;                         // wachtrij van uitwisselingen (een spel zonder beeld leest hem nooit)

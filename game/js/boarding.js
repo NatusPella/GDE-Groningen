@@ -1,7 +1,7 @@
 // In- en uitstappen bij halte en perron, één systeem voor bus en trein (wens eigenaar 23-11). Wachtenden staan bij
 // de halte of op het perron; komt er een bus of trein, dan lopen zij naar de dichtstbijzijnde deur en verdwijnen
 // erin, en uitstappers komen uit de deur en lopen weg. Alleen beeld: de gameplay telt reizigers zelf (busride.js,
-// machinistrules.js). Puur: geen THREE, geen wereld (scripts/instappen_test.mjs); instappen3d.js tekent het, met
+// machinistrules.js). Puur: geen THREE, geen wereld (scripts/boarding_test.mjs); boarding3d.js tekent het, met
 // mensen uit het bestaande mensen- en kledingsysteem.
 //
 // Een deur is { id, x, y, nx, ny }: de plek in de wereld aan de buitenkant van het voertuig en de richting naar buiten
@@ -39,7 +39,7 @@ export function maakRng(seed) {
 }
 
 // De bushaltes in de buurt van de speler: bushalte.js meldt hier zijn lijst en de plek van de paal ({ x, y, ang }),
-// instappen3d.js leest ze. Zonder bron (een test, een spel zonder haltes): geen haltes.
+// boarding3d.js leest ze. Zonder bron (een test, een spel zonder haltes): geen haltes.
 let bronLijst = () => [], bronPlek = () => null;
 export function zetHalteBron(lijst, plek) { bronLijst = lijst; bronPlek = plek; }
 export const haltesInBeeld = () => bronLijst() || [];

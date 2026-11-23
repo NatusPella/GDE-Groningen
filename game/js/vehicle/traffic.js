@@ -6,7 +6,7 @@ import { normalizeAngle, clamp, lerp, closestPointOnSegment } from '../util.js';
 import { turnArc, facadeClearance, nearestOnArc, ARC_PTS } from './turnarcs.js';
 import { roadIndexOf } from '../roadindex.js';
 import { busMagWeg, stepRunner, pointAt as linePointAt } from '../busroutes.js';
-import { stapBusHalte, wisBusHalte } from './halteai.js';
+import { stapBusHalte, wisBusHalte } from './busstopai.js';
 import { trafficSignalsNear, trafficLightPhaseMove } from '../trafficlights.js';
 import { roadPriority, junctionArm } from '../junctions.js';
 import { sirenYield, zebraSpeedLimit } from '../trafficyield.js';
@@ -953,7 +953,7 @@ function resolveDeadlocks(v, dt, world, follow, lightV) {
     v.laneMode = 'squeeze'; v.laneModeUntil = now + 3;
   }
   if (!held || v.laneMode === 'squeeze') return;
-  // een lijnbus die bij de halte staat (halteren.js) is ook een obstakel: wie erlangs kan, haalt in; de rest wacht
+  // een lijnbus die bij de halte staat (busstop.js) is ook een obstakel: wie erlangs kan, haalt in; de rest wacht
   const obstacle = o.wrecked || !o.road || (o.driver === 'player' && Math.abs(o.speed) < 0.3) || (o.stuckFor || 0) > 3 || o.halteFase === 'staan';
   if (!obstacle || Math.cos(o.angle - v.angle) < -0.5 && !o.wrecked) return;
   // #653: alleen de buren uit de index (was een scan over alle voertuigen).
@@ -992,7 +992,7 @@ export function updateTrafficAI(v, dt, map, world, rng = Math.random, opts = nul
   // Een lijnbus die de speler als dienst rijdt (#396) blijft staan zodra hij uitstapt: de bus-AI neemt de dienst
   // niet over. Na de dienst valt rideLine weg (sidejob_lijn.js stop) en rijdt de bus weer zijn eigen lijn.
   if (v.busRun && v.driver !== 'player' && !v.rideLine) {
-    // zacht: de bus remt, haltert en voegt in via halteren.js (halteai.js), niet met een harde wachttijd
+    // zacht: de bus remt, haltert en voegt in via busstop.js (busstopai.js), niet met een harde wachttijd
     const out = stepRunner(v.busRun, v.x, v.y, dt, true);
     opts = { goal: out.goal };
     const lp = v.liveId && host.liveBussen ? host.liveBussen.positie(v.liveId) : null;
@@ -1071,7 +1071,7 @@ export function updateTrafficAI(v, dt, map, world, rng = Math.random, opts = nul
   if (!chase) resolveDeadlocks(v, dt, world, follow, lightV);
   if (Math.abs(alpha) > 1) vTarget = Math.min(vTarget, 3.5);
   if (v.waitTimer > 0) { v.waitTimer -= dt; vTarget = 0; }
-  if (v.halteVmax != null && v.busRun) vTarget = Math.min(vTarget, v.halteVmax); // halteren.js: naar de halte toe remmen en er staan
+  if (v.halteVmax != null && v.busRun) vTarget = Math.min(vTarget, v.halteVmax); // busstop.js: naar de halte toe remmen en er staan
   if (goal && v.routeEnd) {
     const end = path.find((p) => p.r === v.routeEnd.road && p.i === v.routeEnd.idx);
     if (end) vTarget = Math.min(vTarget, Math.sqrt(2 * decel * Math.max(0, end.s - 3)));

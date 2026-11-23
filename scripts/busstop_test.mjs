@@ -1,6 +1,6 @@
 // Halteren van een lijnbus in het verkeer (wens eigenaar 23-11): afremmen, stoeprand, deuren, wachten, knipperen,
 // invoegen; gemist, file voor de halte, live bus, ronde lijn. Deterministisch: een eendimensionale bus.
-import { HALTE, makeHalteStaat, stapHalte, halteAfstand, remSnelheid } from '../game/js/halteren.js';
+import { HALTE, makeHalteStaat, stapHalte, halteAfstand, remSnelheid } from '../game/js/busstop.js';
 
 let fail = 0;
 const check = (n, ok, x = '') => { if (!ok) { fail++; console.log('FAIL', n, x); } };
@@ -119,5 +119,5 @@ check('stoppunt bij de eindhalte blijft voor het keren', halteAfstand({ line: li
   check('stapHalte geeft dezelfde staat terug', stapHalte(st, { stop: null, afstand: 0, speed: 0, dt: DT }) === st);
 }
 
-console.log(fail ? `halteren_test: ${fail} fout` : 'halteren_test ok');
+console.log(fail ? `busstop_test: ${fail} fout` : 'busstop_test ok');
 process.exit(fail ? 1 : 0);

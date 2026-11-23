@@ -1,7 +1,7 @@
 // Halteren van een lijnbus in het verkeer (wens eigenaar 23-11): afremmen, aan de stoeprand bij de halte stoppen,
 // deuren open, wachten, knipperen en weer invoegen. Puur: geen THREE, geen wereld; de verkeers-AI (vehicle/traffic.js)
 // geeft per beeld de afstand tot de halte en de snelheid, en leest terug wat de bus moet doen (maximale snelheid,
-// naar de stoeprand, richtingaanwijzer, deuren, aankomst). Tests: scripts/halteren_test.mjs.
+// naar de stoeprand, richtingaanwijzer, deuren, aankomst). Tests: scripts/busstop_test.mjs.
 //
 // Fasen: rijden -> nadering (remt af, schuift naar de stoeprand, knippert rechts) -> staan (deuren open, wachttijd)
 // -> invoegen (knippert links, terug in de rijstrook) -> rijden. Een bus die de halte voorbij schiet of te lang in de

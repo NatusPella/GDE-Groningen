@@ -1,15 +1,15 @@
-// Lijm tussen de verkeers-AI (traffic.js) en het halteren van een lijnbus (halteren.js, wens eigenaar 23-11).
+// Lijm tussen de verkeers-AI (traffic.js) en het halteren van een lijnbus (busstop.js, wens eigenaar 23-11).
 // Per beeld, alleen voor een bus met een rit (v.busRun) die niet door een speler wordt gereden. Zet op de bus:
 // halteVmax (remmen naar de halte), laneMode 'halte' (naar de stoeprand, vehicle.js lanePoint), indForce (de
 // richtingaanwijzer, indicators.js), deurenDicht (vehicledoors.js: alleen open bij de halte) en halteFase (een
 // staande bus is een obstakel waar ander verkeer omheen mag, traffic.js resolveDeadlocks). Bij aankomst gaat er een
-// uitwisseling naar het beeld (haltefiguren.js queueHalte; instappen3d.js tekent hem). Geen allocaties per beeld.
+// uitwisseling naar het beeld (haltefiguren.js queueHalte; boarding3d.js tekent hem). Geen allocaties per beeld.
 //
 // Samen spelen: het verkeer is van de host; dit draait alleen waar de verkeers-AI draait. Een gast ziet de bus
 // stoppen, knipperen en de deuren openen uit de snapshot (snelheid en richtingaanwijzer), en tekent de reizigers
-// zelf (instappen3d.js, uit de stilstand van de bus bij een halte).
+// zelf (boarding3d.js, uit de stilstand van de bus bij een halte).
 
-import { makeHalteStaat, stapHalte, halteAfstand, HALTE } from '../halteren.js';
+import { makeHalteStaat, stapHalte, halteAfstand, HALTE } from '../busstop.js';
 import { halteGehaald, DWELL } from '../busroutes.js';
 import { queueHalte } from '../haltefiguren.js';
 

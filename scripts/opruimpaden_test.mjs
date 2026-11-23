@@ -54,7 +54,7 @@ const guards = [
   ['heist.js', /releasePersonGeometry\(o\)/, 'heist geeft de rompref van de wachters terug'],
   ['kermis.js', /disposeObject\(c\.mesh\)/, 'kermis-publiek gaat via disposeObject'],
   ['kermis.js', /disposeObject\(car\.rider\)/, 'kermis-botsautorijder gaat via disposeObject'],
-  ['instappen3d.js', /function laat\(m\) \{ if \(m\) \{ m\.visible = false; vrij\.push\(m\); \} \}/, 'reizigers bij halte en perron gaan terug in de pool'],
+  ['boarding3d.js', /function laat\(m\) \{ if \(m\) \{ m\.visible = false; vrij\.push\(m\); \} \}/, 'reizigers bij halte en perron gaan terug in de pool'],
   ['fierljep.js', /releasePersonGeometry\(o\)/, 'fierljep geeft de rompref terug'],
   ['kartbaan.js', /releasePersonGeometry\(o\)/, 'kartbaan geeft de rompref van de rijders terug'],
   ['pg_koe.js', /releasePersonGeometry\(o\)/, 'pg_koe geeft de rompref terug'],

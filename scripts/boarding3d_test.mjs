@@ -1,10 +1,10 @@
-// De lijm van het in- en uitstappen (instappen3d.js, wens eigenaar 23-11), headless: wachtenden bij een bushalte uit
+// De lijm van het in- en uitstappen (boarding3d.js, wens eigenaar 23-11), headless: wachtenden bij een bushalte uit
 // de pool, een bus die zich meldt (host) en een bus van de host die bij een gast stilstaat; de wachtenden stappen in,
 // alles gaat terug in de pool en de halte loopt later weer vol. Deterministisch (vaste rng).
 import './node3d.mjs';
 const P = await import('../game/js/models3d_people.js');
-const { syncInstappen, instapStats, resetInstappen } = await import('../game/js/instappen3d.js');
-const { zetHalteBron, wachtAantal, zaad } = await import('../game/js/instappen.js');
+const { syncInstappen, instapStats, resetInstappen } = await import('../game/js/boarding3d.js');
+const { zetHalteBron, wachtAantal, zaad } = await import('../game/js/boarding.js');
 
 let n = 0, fails = 0;
 const ok = (c, name, info = '') => { n++; if (!c) { fails++; console.log(`FAIL ${name}${info !== '' ? ` (${info})` : ''}`); } };
@@ -66,5 +66,5 @@ ok(gebouwd <= 28, 'de pool blijft binnen zijn grens', gebouwd);
 
 resetInstappen();
 ok(instapStats().groepen === 0 && instapStats().vrij === instapStats().gebouwd, 'reset: alles terug in de pool');
-console.log(fails ? `instappen3d_test: ${fails} van ${n} mislukt` : `instappen3d_test: ${n}/${n} ok`);
+console.log(fails ? `boarding3d_test: ${fails} van ${n} mislukt` : `boarding3d_test: ${n}/${n} ok`);
 process.exit(fails ? 1 : 0);

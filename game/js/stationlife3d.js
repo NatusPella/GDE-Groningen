@@ -16,7 +16,7 @@ function build(scene) {
 
 export function updateStationCrowd3D(scene, world, surfaceZ) {
   const cur = currentStation();
-  // Met perronvloeren in de wereld staan er echte mensen die in- en uitstappen (instappen3d.js, 23-11), met dezelfde
+  // Met perronvloeren in de wereld staan er echte mensen die in- en uitstappen (boarding3d.js, 23-11), met dezelfde
   // drukte; deze blokfiguren zijn dan alleen nog de terugval voor een wereld zonder perrons.
   const P = world && world.map && world.map.elev && world.map.elev.perrons;
   if (!cur || cur.d > CROWD_R || (P && P.items)) { if (body) body.count = head.count = 0, shownName = ''; return; }

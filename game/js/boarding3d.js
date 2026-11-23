@@ -1,11 +1,11 @@
 // Wachtenden en in- en uitstappers bij bushaltes en perrons, getekend (wens eigenaar 23-11). Eén systeem voor bus en
-// trein: de planning staat in instappen.js (puur, getest), dit is de lijm met de scène.
+// trein: de planning staat in boarding.js (puur, getest), dit is de lijm met de scène.
 //
 // - Wachtgroepen: bij de haltes binnen BUS_R en de stations binnen TREIN_R van de speler staan een paar mensen
 //   (bescheiden, vast per halte en kwartier). Verder weg: niemand in beeld; de bussen en treinen rijden en halteren
-//   daar gewoon (halteren.js, railway.js), alleen zonder poppetjes.
+//   daar gewoon (busstop.js, railway.js), alleen zonder poppetjes.
 // - Uitwisselingen: een bus meldt zich bij de halte (world.haltefx: de lijnbussen in het verkeer via
-//   vehicle/halteai.js, de bijbaan via sidejob_lijn.js), een trein die bij een halte stilstaat wordt hier gezien. De
+//   vehicle/busstopai.js, de bijbaan via sidejob_lijn.js), een trein die bij een halte stilstaat wordt hier gezien. De
 //   wachtenden lopen naar de dichtstbijzijnde deur en verdwijnen erin; uitstappers komen uit de deur en lopen weg.
 //   Na een uitwisseling loopt de halte na een tijdje weer vol.
 // - Mensen komen uit een vaste pool (POOL_MAX) van gewone NPC-figuren met kleding uit de rolpools (clothing.js), via
@@ -26,7 +26,7 @@ import { haltedeuren } from './haltefiguren.js';
 import {
   INSTAP, zaad, maakRng, busDeurenWereld, treinDeuren, perronKanten, wachtAantal, wachtplekken, planInstappen,
   figuurStand, treinBijHalte, makeStilteWacht, haltesInBeeld, halteplek,
-} from './instappen.js';
+} from './boarding.js';
 
 const POOL_MAX = 28;          // mensen tegelijk (wachtend en lopend samen)
 const RESERVE = 8;            // daarvan blijven er zoveel vrij voor uitstappers
