@@ -22,6 +22,11 @@ function hexOf(c, fallback) {
   return fallback;
 }
 
+function shadeHex2(hex, f = 0.85) {
+  const r = Math.min(255, Math.round(((hex >> 16) & 0xff) * f)), g = Math.min(255, Math.round(((hex >> 8) & 0xff) * f)), b = Math.min(255, Math.round((hex & 0xff) * f));
+  return (r << 16) | (g << 8) | b;
+}
+
 function bodyGeometry(paint, wrecked) {
   const key = paint + '|' + wrecked;
   let g = geoCache.get(key);
@@ -34,8 +39,25 @@ function bodyGeometry(paint, wrecked) {
   B.geo(new THREE.SphereGeometry(1, 12, 8, 0, Math.PI * 2, 0, Math.PI * 0.52), composeMatrix(0.55, 1.2, 0, 0, 0, 0, 1.55, 0.95, 0.92), wrecked ? 0x3a3a3a : GLASS, G_GLASS);
   B.box(0.35, 1.02, 0, 2.6, 0.12, 1.86, C, G_BODY);
   B.box(-0.55, 1.62, 0, 1.2, 1.0, 1.5, P, G_BODY);
+  // interieur door het glas: twee stoelen, dashboard met meters, stuurknuppel en collectiefhendel, dwarsbalk onder de ruit
+  const SEAT = wrecked ? 0x2a2826 : 0x2b2e33;
+  for (const s of [1, -1]) {
+    B.box(0.55, 1.15, s * 0.4, 0.46, 0.08, 0.42, SEAT, G_BODY);
+    B.box(0.33, 1.42, s * 0.4, 0.09, 0.5, 0.4, SEAT, G_BODY, 0, 0, 0.12);
+    B.box(0.3, 1.72, s * 0.4, 0.07, 0.14, 0.22, SEAT, G_BODY);
+    B.geo(new THREE.CylinderGeometry(0.014, 0.014, 0.4, 5), composeMatrix(1.05, 1.34, s * 0.4, 0, 0, 0.14), TRIM, G_BODY);   // stuurknuppel
+    B.box(1.02, 1.55, s * 0.4, 0.05, 0.06, 0.07, 0x15161a, G_BODY);
+  }
+  B.box(1.5, 1.4, 0, 0.42, 0.22, 1.5, TRIM, G_BODY);
+  B.box(1.5, 1.52, 0, 0.5, 0.04, 1.54, 0x15161a, G_BODY);
+  for (const z of [-0.5, -0.25, 0.25, 0.5]) B.geo(new THREE.CylinderGeometry(0.06, 0.06, 0.02, 8), composeMatrix(1.29, 1.42, z, 0, 0, Math.PI / 2), 0xd9d6c6, G_BODY);
+  B.box(1.29, 1.42, 0, 0.02, 0.1, 0.22, 0x2a4a68, G_BODY);
+  B.box(0.55, 1.1, 0, 0.1, 0.16, 0.3, TRIM, G_BODY);                                    // middenconsole met collectiefhendel
   // engine hump, mast and the hub
-  B.box(-0.55, 2.3, 0, 1.5, 0.42, 0.9, P, G_BODY);
+  B.geo(new THREE.SphereGeometry(1, 12, 7, 0, Math.PI * 2, 0, Math.PI / 2), composeMatrix(-0.55, 2.1, 0, 0, 0, 0, 0.82, 0.5, 0.46), P, G_BODY);   // afgeronde motorkap
+  B.box(0.2, 2.2, 0, 0.05, 0.18, 0.5, TRIM, G_BODY);                                     // luchtinlaat vooraan
+  B.geo(new THREE.CylinderGeometry(0.07, 0.09, 0.34, 8), composeMatrix(-1.32, 2.28, 0.22, 0, 0, Math.PI / 2 - 0.35), 0x3a3836, G_BODY); // uitlaat, schuin naar achteren
+  B.box(-0.9, 2.05, 0, 0.5, 0.025, 0.7, shadeHex2(P), G_BODY);                            // paneelnaad en ventilatieroosters in de motorkap
   B.geo(new THREE.CylinderGeometry(0.1, 0.13, 0.5, 8), composeMatrix(-0.2, 2.6, 0), TRIM, G_BODY);
   // tail boom (tapered), fin, stabiliser, tail rotor guard
   B.geo(new THREE.CylinderGeometry(0.1, 0.24, 3.7, 8), composeMatrix(-2.95, 1.62, 0, 0, 0, Math.PI / 2), P, G_BODY);
@@ -52,6 +74,20 @@ function bodyGeometry(paint, wrecked) {
     B.box(0.2, 1.3, s * 0.9, 1.6, 0.08, 0.02, C, G_BODY);
     B.box(-0.6, 1.95, s * 0.76, 0.12, 0.08, 0.04, s > 0 ? 0x2fd05a : 0xd83a2a, G_LAMP);
   }
+  // de achterdeur in de zijkant van de romp (schuifdeur): een naad om het paneel en een handgreep
+  const SEAM = wrecked ? 0x0c0b0a : shadeHex2(P, 0.3);
+  for (const s of [1, -1]) {
+    const z = s * 0.762;
+    B.box(-0.55, 1.2, z, 1.0, 0.012, 0.01, SEAM, G_BODY);
+    B.box(-0.55, 2.02, z, 1.0, 0.012, 0.01, SEAM, G_BODY);
+    for (const x of [-1.05, -0.05]) B.box(x, 1.61, z, 0.012, 0.82, 0.01, SEAM, G_BODY);
+    B.box(-0.18, 1.55, s * 0.77, 0.14, 0.025, 0.02, 0xb9bcbf, G_BODY);
+    B.box(-0.55, 1.72, s * 0.764, 0.5, 0.3, 0.012, wrecked ? 0x3a3a3a : GLASS, G_GLASS); // raampje in de schuifdeur
+  }
+  B.box(2.0, 0.98, 0, 0.5, 0.04, 0.04, 0xb9bcbf, G_BODY);                                 // pitotbuis
+  B.box(0.4, 0.9, 0, 0.18, 0.06, 0.18, 0xf2efe4, G_LAMP);                                 // witte flitser onder de buik
+  B.box(TAIL_X + 0.35, 1.5, 0, 0.22, 0.16, 0.2, TRIM, G_BODY);                            // staartrotorkast
+  B.box(TAIL_X + 0.1, 1.05, 0, 0.5, 0.03, 0.03, TRIM, G_BODY);                            // staartsteun
   B.box(TAIL_X - 0.05, 2.56, 0, 0.12, 0.1, 0.1, 0xd83a2a, G_LAMP);
   B.box(2.05, 0.8, 0, 0.06, 0.14, 0.3, 0xf2efe4, G_LAMP);
   g = markShared(B.build());
@@ -62,7 +98,15 @@ function bodyGeometry(paint, wrecked) {
 let bladeGeo = null, tailBladeGeo = null, discGeo = null;
 function sharedRotorGeos() {
   if (bladeGeo) return;
-  bladeGeo = markShared(new THREE.BoxGeometry(ROTOR_R * 2, 0.045, 0.26));
+  // twee bladen met gele tippen, bladgrepen en een naaf (vertexkleuren, één draw)
+  const BB = new GeoBuilder(1);
+  BB.box(0, 0, 0, ROTOR_R * 2, 0.045, 0.26, 0x1c1d20);
+  for (const s of [1, -1]) {
+    BB.box(s * (ROTOR_R - 0.3), 0.003, 0, 0.6, 0.047, 0.262, 0xe8c93a);
+    BB.box(s * 0.62, 0.02, 0, 0.5, 0.05, 0.2, 0x3a3d42);
+  }
+  BB.geo(new THREE.CylinderGeometry(0.16, 0.2, 0.14, 8), composeMatrix(0, 0.06, 0), 0x2a2c30);
+  bladeGeo = markShared(BB.build());
   tailBladeGeo = markShared(new THREE.BoxGeometry(0.07, 1.1, 0.03));
   discGeo = markShared(new THREE.CircleGeometry(ROTOR_R, 36).rotateX(-Math.PI / 2));
 }
@@ -80,12 +124,13 @@ export function buildHeliMesh(v) {
   const group = new THREE.Group();
   group.add(new THREE.Mesh(bodyGeometry(paint, wrecked), mats));
   const bladeMat = new THREE.MeshLambertMaterial({ color: wrecked ? 0x151515 : 0x1c1d20 });
+  const rotorMat = new THREE.MeshLambertMaterial({ vertexColors: true, color: wrecked ? 0x555555 : 0xffffff });
   const rotor = new THREE.Group();
   rotor.position.set(-0.2, ROTOR_Y, 0);
   if (!wrecked) {
-    rotor.add(new THREE.Mesh(bladeGeo, bladeMat));
+    rotor.add(new THREE.Mesh(bladeGeo, rotorMat));
   } else {
-    const stub = new THREE.Mesh(bladeGeo, bladeMat);
+    const stub = new THREE.Mesh(bladeGeo, rotorMat);
     stub.scale.set(0.35, 1, 1);
     stub.position.x = ROTOR_R * 0.3;
     stub.rotation.z = -0.25;
