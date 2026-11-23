@@ -139,8 +139,7 @@ for (const [id, A] of Object.entries(ANIMALS)) {
       const a = map[idx[i]], b = map[idx[i + 1]], c = map[idx[i + 2]];
       if (a !== b && b !== c && a !== c) out.push(a, b, c);
     }
-    lods.push(b64(Uint16Array.from(out)));
-    lodTris.push(out.length / 3);
+    lodTris.push(out.length / 3);   // only reported: the game makes its own LODs (meshlod.js animalLods)
   }
   const data = {
     id, bron: path.basename(A.src), licentie: 'CC0 1.0 (Quaternius)', len: A.len,
@@ -150,7 +149,7 @@ for (const [id, A] of Object.entries(ANIMALS)) {
     palette, box: { min: mn.map(r5), max: mx.map(r5) },
     position: b64(q16), material: b64(Uint8Array.from(mi)), skinIndex: b64(Uint8Array.from(si)), skinWeight: b64(wq),
     index: b64(base < 65536 ? Uint16Array.from(idx) : Uint32Array.from(idx)), index32: base >= 65536,
-    lods, bones, inverses: b64(inv), clips,
+    bones, inverses: b64(inv), clips,
   };
   // the real size: build the model as the game does, measure the shoulder height (scripts/lib/diermaat.mjs) and scale it to
   // the register's maat.schoft (the length above only gave the first guess)

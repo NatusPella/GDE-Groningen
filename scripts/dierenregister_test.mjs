@@ -104,6 +104,15 @@ for (const d of R.DIEREN) {
   }
 }
 
+// het centrale LOD-register (lodregistry.js, perf-ultra-23-11): elk gebouwd diermodel staat erin en haalt de minCut van 'animal'
+{
+  const LR = await import('../game/js/lodregistry.js');
+  const dieren = LR.lodModels().filter((m) => m.kind === 'animal');
+  check('de diermodellen staan in het centrale LOD-register', dieren.length >= R.DIEREN.length, String(dieren.length));
+  const fouten = LR.auditLod(dieren);
+  check('de centrale LOD-audit keurt elk diermodel goed', fouten.length === 0, fouten.join('; '));
+}
+
 // --- 5. kopen, houden en uitrusten ---
 for (const d of R.DIEREN) {
   if (d.kopen) {

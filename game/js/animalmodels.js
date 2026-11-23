@@ -1,13 +1,13 @@
 // The province animals from the Quaternius packs (CC0, see game/models/dieren/LICENTIE.txt): roe deer, fox, wolf, donkey,
 // alpaca and pig. scripts/dieren_converteer.mjs turns each .glb into game/models/dieren/<id>.json: one merged skinned
-// geometry with a colour per vertex (one draw call, the world palette on top), the bone tree, two cluster LODs that share
-// the vertex buffer, and only the clips the game plays. This module loads them, shares geometry, material and clips per
+// geometry with a colour per vertex (one draw call, the world palette on top), the bone tree and only the clips the game plays;
+// the mesh LODs are made here, like those of every other animal (meshlod.js). This module loads them, shares geometry, material and clips per
 // species, and gives every animal its own bones and AnimationMixer. Until a model has loaded, its group stays empty
 // (nothing pops: it appears with the first frame after loading).
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { dsWereld } from './worldpalette.js';
 import { vcMaterial, markShared } from './pixelart3d.js';
-import { setupSkinnedLods, updateSkinnedLod, makeDitherable } from './meshlod.js';
+import { setupSkinnedLods, updateSkinnedLod, makeDitherable, animalLods, triCount } from './meshlod.js';
 
 export const ANIMAL_MODEL_IDS = ['ree', 'vos', 'wolf', 'ezel', 'alpaca', 'varken'];
 const MAT = markShared(makeDitherable(vcMaterial({ roughness: 0.9 })));
@@ -60,8 +60,11 @@ function template(id) {
     // flat shading: no normals needed (the material derives them per face)
     return markShared(g);
   };
-  const geos = [geoWith(d.index), ...(d.lods || []).map(geoWith)];
+  // the LODs: the same clustering as every animal (meshlod.js: per bone part, legs keep their thickness), made once per species
+  // and registered in the central LOD register (lodregistry.js) under the species id
   const box = new THREE.Box3().setFromBufferAttribute(attrs.position);
+  const bs = box.getSize(new THREE.Vector3());
+  const geos = animalLods(geoWith(d.index), Math.max(bs.x, bs.y, bs.z), id).map((g) => markShared(g));
   const sphere = box.getBoundingSphere(new THREE.Sphere());
   const inverses = [];
   const iv = typed(d.inverses, Float32Array);
@@ -87,7 +90,7 @@ function template(id) {
 // Triangles per LOD of a loaded model (tests, the measuring page).
 export function animalModelTris(id) {
   const t = template(id);
-  return t ? t.geos.map((g) => g.index.count / 3) : null;
+  return t ? t.geos.map(triCount) : null;
 }
 
 // The outer group is what the world moves and turns (facing +x like every animal); the model hangs in an inner group with

@@ -965,6 +965,7 @@ function cachedGeo(key, build) {
   let g = geoCache.get(key);
   if (!g) {
     g = markShared(build());
+    g.name = key;   // the LOD register (lodregistry.js) knows the model by this name
     geoCache.set(key, g);
   }
   return g;
@@ -1016,7 +1017,7 @@ export function withLods(skinned) {
     const g = skinned.geometry;
     if (!g.boundingBox) g.computeBoundingBox();
     const sz = g.boundingBox.getSize(new THREE.Vector3());
-    geos = animalLods(g, Math.max(sz.x, sz.y, sz.z));
+    geos = animalLods(g, Math.max(sz.x, sz.y, sz.z), g.name || 'dier');
     for (const x of geos) markShared(x);
     lodCache.set(g, geos);
   }
