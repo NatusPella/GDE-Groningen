@@ -70,5 +70,21 @@ t('de knoptekst heeft een spatie tussen label en prijs (#1256)', () => {
   const h = C.offerCardHtml(L.parcelOffer('pbbbbbbbbbbb2'), { money: w.money });
   assert.ok(!/<\/span><small>/.test(h), 'geen span direct tegen small');
 });
+t('#1233: de echte omtrek als plaatje bovenaan, noorden boven; zonder omtrek geen plaatje; de drie kernregels eerst', () => {
+  const svg = C.parcelShapeSvg([[0, 0], [100, 0], [100, 50]]);
+  assert.ok(/^<svg class="mv-perceel" viewBox="0 0 160 96"/.test(svg) && /aria-hidden="true"/.test(svg), svg);
+  const pts = svg.match(/points="([^"]+)"/)[1].split(' ').map((q) => q.split(',').map(Number));
+  assert.ok(pts[0][1] > pts[2][1], 'y naar het noorden staat boven in het plaatje');
+  assert.ok(pts.every(([x, y]) => x >= 0 && x <= 160 && y >= 0 && y <= 96), 'binnen het vak');
+  assert.equal(C.parcelShapeSvg(null), '');
+  assert.equal(C.parcelShapeSvg([[0, 0], [1, 1]]), '', 'twee punten is geen vorm');
+  assert.equal(C.parcelShapeSvg([[0, 0], [NaN, 1], [2, 2]]), '', 'geen NaN in het plaatje');
+  const offer = L.parcelOffer('pbbbbbbbbbbb2');
+  const zonder = C.offerCardHtml({ ...offer, shape: null }, { money: w.money });
+  const met = C.offerCardHtml({ ...offer, shape: [[0, 0], [100, 0], [100, 80], [0, 80]] }, { money: w.money });
+  assert.ok(!zonder.includes('mv-perceel') && met.includes('<svg class="mv-perceel"'), 'alleen met een echte omtrek');
+  const kern = [...met.matchAll(/<div class="mv-kern"><dt>([^<]+)<\/dt>/g)].map((m) => m[1]);
+  assert.deepEqual(kern, ['Oppervlakte', 'Bodem', 'Verwacht']);
+});
 console.log(`forsalecard_test: ${n - fails}/${n} ok`);
 process.exit(fails ? 1 : 0);

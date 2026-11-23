@@ -161,6 +161,7 @@ export function parcelOffer(id) {
   const rec = mine ? b.parcels[id] : null;
   return {
     neighbours: neigh, mode: rec ? rec.m : null, insured: !!(rec && Number.isFinite(rec.ins)),
+    shape: index.parcels.shapeOf ? index.parcels.shapeOf(id) : null, // #1233: de echte omtrek voor het plaatje bovenaan de kaart (null: nog niet geladen)
     id, parcel: p, region: district, place, name: P.parcelName(p, place), seller: P.sellerName(p), kindName: P.KIND_NAME[p.kind],
     ha: p.ha, soil, soilWord: P.soilWord(soil), access: p.access, price, basePrice: P.basePrice(p, district),
     scaleNote: P.scaleFactor(Z.ownedCount(b)) > 1 ? `Schaalprijs x${P.scaleFactor(Z.ownedCount(b)).toFixed(2).replace('.', ',')}: wie veel land heeft, betaalt meer voor het volgende perceel.` : '',

@@ -85,6 +85,10 @@
 .mv-bezit div { display: flex; gap: var(--ds-s-3); }
 .mv-bezit dt { min-width: calc(var(--ds-s-8) * 1.4); color: var(--ds-tx-2); }
 .mv-bezit dd { margin: 0; }
+/* #1233: het perceel als plaatje bovenaan (echte omtrek, noorden boven) en de drie kernregels iets zwaarder */
+.mv-perceel { display: block; width: 100%; max-width: 160px; height: auto; margin: 0 0 var(--ds-s-2); background: var(--ds-c-ink-papier); border: 2px solid var(--ds-c-ink-inkt); }
+.mv-perceel polygon { fill: color-mix(in srgb, var(--ds-c-ink-bord) 30%, transparent); stroke: var(--ds-c-ink-inkt); stroke-width: 2; stroke-linejoin: round; }
+.mv-bezit .mv-kern dd { font-weight: 700; }
 .mv-bodem { display: inline-flex; width: calc(var(--ds-s-8) * 2); vertical-align: middle; margin-left: var(--ds-s-2); }
 
 /* De knoppen van Land en bedrijf (bezitui.js, snackui.js) als DS3-knop: omlijnd, de hoofdactie geel (#1248). Een uitgeschakelde knop is gestippeld, niet vervaagd. */
