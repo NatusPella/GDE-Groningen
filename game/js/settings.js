@@ -95,11 +95,10 @@ const BASE_DEFAULTS = {
   terugkeerScene: true,
   gore: true,
   // Cheats in het menu (settingsrules.js cheatsVisible, 22-11): uit tot de speler het zelf aanzet (Spelregels); in dev altijd. Lokaal per speler.
-  // Zichtafstand (viewdist.js): 'kort' hoort bij de voorinstelling die de speler als Hoog ziet
-  // (de sleutel heet nog 'vlot': de look van de zwaarste stand met de afstand van Laag, #893).
-  // Op een iGPU-laptop als de M1 is dat de speelbare stand; de speler kan in de instellingen
-  // naar 'ver' of 'heelver'.
-  drawDistance: 'kort',
+  // Zichtafstand (viewdist.js): 'ver' (600 m, met de goedkope verre laag en zachte mist) hoort bij de voorinstelling die de speler
+  // als Hoog ziet (de sleutel heet nog 'vlot'). De adaptieve kwaliteit zakt op een zwakke machine zelf terug (viewDistanceFor);
+  // de speler kan in de instellingen naar 'heelver' (Ultra) of terug naar 'kort'.
+  drawDistance: 'ver',
   // render scale (1 = full); autoResolution lowers it and some detail while
   // frames are slow (gfxprofile.js)
   resolution: 1,

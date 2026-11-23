@@ -34,13 +34,14 @@ for (let i = 1; i < PRESET_ORDER.length; i++) {
   ok(b.shadowSize >= a.shadowSize, `${b.label}: schaduwkaart niet kleiner dan ${a.label}`);
 }
 // de budgetten zelf
-ok(vlot.ring === DETAIL_BASE && vlot.ringArea === 1, 'Hoog: de detailring blijft 140 m (de 60-fps-stand)');
+ok(vlot.ring <= hoog.ring && vlot.ringArea <= 1.5, 'Hoog: de detailring is nooit groter dan die van Ultra (24-11: Hoog kreeg zichtafstand ver, ring 170 m)');
 ok(hoog.ringArea <= 1.5, `Ultra: de detailring is hoogstens 1,5x de oppervlakte van 140 m (${hoog.ringArea})`);
 ok(hoog.ringArea <= DETAIL_AREA_MAX, 'Ultra: binnen het oude plafond van de ringoppervlakte');
 ok(vlot.shadowSize <= 2048 && middel.shadowSize <= 2048 && laag.shadowSize <= 1024, 'alleen Ultra heeft een schaduwkaart van 4096');
 ok(hoog.view >= middel.view && hoog.ring >= middel.ring, 'Ultra: zichtafstand en ring niet onder Midden');
 ok(hoog.shadowSize === 4096 && hoog.shadowMB > 60, 'Ultra: 4096');
-ok(vlot.view === VIEW_DISTANCES.kort && hoog.view === VIEW_DISTANCES.heelver, 'Hoog kort, Ultra heel ver');
+ok(vlot.view === VIEW_DISTANCES.ver && hoog.view === VIEW_DISTANCES.heelver, 'Hoog ver, Ultra heel ver');
+ok(vlot.view > middel.view && vlot.view < hoog.view, 'Hoog: zichtafstand tussen Midden en Ultra (ruim, maar goedkoper dan Ultra)');
 ok(laag.msaa === 4 && middel.msaa === 2 && vlot.msaa === 2 && hoog.msaa === 2, 'MSAA: Laag 4 (alleen de uitvoerpas), de rest 2 samples');
 ok(hoog.bloom && vlot.bloom && !middel.bloom && !laag.bloom, 'bloom op Hoog en Ultra');
 ok(laag.pixelRatioCap < 1 && vlot.pixelRatioCap <= 1.5, 'pixelratio per preset begrensd');

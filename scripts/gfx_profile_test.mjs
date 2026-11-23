@@ -46,7 +46,7 @@ eq('strong GPU, smooth', adviseFromSample('hoog', 16, 'hoog'), null);
 eq('strong GPU, busy machine', adviseFromSample('hoog', 25, 'hoog'), 'middel');
 eq('strong GPU, just short of 60 fps', adviseFromSample('hoog', 19, 'hoog'), 'vlot');
 eq('vlot stays on vlot', adviseFromSample('hoog', 19, 'vlot'), null);
-eq('describe vlot', describePreset('vlot'), 'schaduwen aan · resolutie 100%, automatisch · zichtafstand kort');
+eq('describe vlot', describePreset('vlot'), 'schaduwen aan · resolutie 100%, automatisch · zichtafstand ver');
 eq('already laag', adviseFromSample('laag', 45, 'laag'), null);
 eq('sample: strong machine keeps hoog', presetFromSample('hoog', Array(12).fill(16), 'hoog'), null);
 eq('sample: weak gpu, slow frames -> laag', presetFromSample('laag', Array(12).fill(45), 'hoog'), 'laag');
@@ -71,7 +71,7 @@ eq('rec: one measured', recommendPreset({ hoog: 40 }, 'hoog'), null);
 
 eq('describe laag', describePreset('laag'), 'schaduwen uit · resolutie 75%, automatisch · zichtafstand kort');
 eq('describe hoog', describePreset('hoog'), 'schaduwen aan · resolutie 100%, automatisch · zichtafstand heel ver');
-const OLD_HOOG = { quality: 'hoog', shadows: true, drawDistance: 'kort', resolution: 1, autoResolution: true };
+const OLD_HOOG = { quality: 'hoog', shadows: true, drawDistance: 'ver', resolution: 1, autoResolution: true };
 eq('default is de preset Vlot', currentPreset(OLD_HOOG), 'vlot');
 eq('default is the default', isDefaultGfx(OLD_HOOG), true);
 eq('hoog is hoog', currentPreset({ ...OLD_HOOG, drawDistance: 'heelver' }), 'hoog');
@@ -88,7 +88,7 @@ eq('ver stays ver when scaled', viewDistanceFor('ver', 0.6, 2), 600);
 eq('unknown -> normaal', viewDistanceFor('reuzever'), 350);
 eq('prop radius per setting', Object.values(VIEW_DISTANCES).map(propRadius), [260, 410, 620, 855]);
 
-eq('changes vlot->laag', describeChanges('laag', OLD_HOOG), 'kwaliteit laag · schaduwen uit · resolutie 75%');
+eq('changes vlot->laag', describeChanges('laag', OLD_HOOG), 'kwaliteit laag · schaduwen uit · zichtafstand kort · resolutie 75%');
 
 // adaptive resolution: frames(i) -> [interval ms, main-thread ms]; the scale
 // steps taken over `secs` seconds of play

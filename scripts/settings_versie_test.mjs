@@ -67,6 +67,21 @@ t('een ouder bestand migreert gewoon en schrijft de huidige versie', async () =>
   assert.equal(bewaard().masterVolume, 0.9);
 });
 
+t('de oude Hoog (zichtafstand kort) gaat mee naar de nieuwe Hoog (ver); een eigen keuze blijft', async () => {
+  zetBestand({ v: 11, quality: 'hoog', shadows: true, resolution: 1, autoResolution: true, drawDistance: 'kort' });
+  let S = await laad();
+  assert.equal(S.getSettings().drawDistance, 'ver', 'de oude Hoog wordt de nieuwe Hoog');
+  zetBestand({ v: 11, quality: 'hoog', shadows: true, resolution: 0.75, autoResolution: true, drawDistance: 'kort' });
+  S = await laad();
+  assert.equal(S.getSettings().drawDistance, 'kort', 'een eigen resolutie is een eigen keuze');
+  zetBestand({ v: 11, quality: 'laag', shadows: false, resolution: 0.75, autoResolution: true, drawDistance: 'kort' });
+  S = await laad();
+  assert.equal(S.getSettings().drawDistance, 'kort', 'Laag blijft Laag');
+  zetBestand({ v: 11, quality: 'hoog', shadows: true, resolution: 1, autoResolution: true, drawDistance: 'heelver' });
+  S = await laad();
+  assert.equal(S.getSettings().drawDistance, 'heelver', 'Ultra blijft Ultra');
+});
+
 t('een nieuwer bestand dat niet wijzigt blijft ongemoeid', async () => {
   const tekst = JSON.stringify({ v: SETTINGS_VERSION + 1, toekomstInstelling: 'x' });
   zetBestand(JSON.parse(tekst));
