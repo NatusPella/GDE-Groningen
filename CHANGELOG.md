@@ -79,6 +79,7 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 - Moeilijkheidskaart bij een nieuw spel: elk niveau toont met een icoon, een woord en blokjes hoe het zit met tijd, politie en verkeer (Ontspannen: ruim, rustig, rustig; Uitdagend: krap, scherp, druk). Samen spelen: de kaart is van wie een nieuw spel begint; er gaat niets over het net.
 - Instellingen › Geluid: Geluid in één keer uit is één schakelaar, met de toets U in de uitleg in plaats van een losse luidspreker en letter ernaast. Het ondertitelvoorbeeld staat op een plaatje van de Vismarkt in plaats van op een groene vlek. Samen spelen: lokaal in je eigen menu.
 - Kaartlaag Te koop: de perceelkaart toont bovenaan de vorm van het perceel zelf (noorden boven) en zet oppervlakte, bodem en verwachte opbrengst voorop. Zonder bekende omtrek komt er geen plaatje. Samen spelen: lokaal; een perceel van een medespeler toont dezelfde vorm.
+- Winkels: de toetsbalk onderin gebruikt dezelfde toetsplaatjes als het pauzemenu (gevulde pijlen, een Enter-plaatje in plaats van het woord), en de toetshint in de gele koopknop is groter. Samen spelen: lokaal in je eigen scherm.
 
 ## [0.65.0] - 2026-11-22
 

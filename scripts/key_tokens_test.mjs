@@ -5,7 +5,7 @@
 import { readFileSync, readdirSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { jsStrings } from './text_audit.mjs';
-import { keyTextHtml, plainKeyText, BRACE_KEY_RE, keyLabelHtml, keyLabelIcon } from '../game/js/keycap.js';
+import { keyTextHtml, plainKeyText, BRACE_KEY_RE, keyLabelHtml, keyLabelIcon, hintCapHtml } from '../game/js/keycap.js';
 
 const JS = fileURLToPath(new URL('../game/js/', import.meta.url));
 let failed = 0;
@@ -56,6 +56,14 @@ for (const f of readdirSync(JS)) {
     BRACE_KEY_RE.lastIndex = 0;
     ok(!BRACE_KEY_RE.test(p), `${f}: plainKeyText laat een toets-token staan in "${t.slice(0, 60)}"`);
   }
+}
+// #1258: één toetsplaatje voor elke hintbalk (pauzemenu en winkels): gevulde glyph, geen omlijnde pijl of het woord Enter
+{
+  for (const k of ['↑', '↓', 'Enter', 'Esc', 'Q']) ok(/^<span class="m-kc is-kbg"><span class="pad-g/.test(hintCapHtml(k)), `hintCapHtml(${k}) is een glyph in een gevuld plaatje`);
+  ok(hintCapHtml('[').startsWith('<span class="m-kc is-kbg"><span class="hud-key"'), 'een toets zonder glyph wordt een nette teksttoets');
+  const shop = readFileSync(new URL('../game/js/shopui.js', import.meta.url), 'utf8');
+  const pm = readFileSync(new URL('../game/js/pausemenu.js', import.meta.url), 'utf8');
+  ok(/const cap = \(t\) => hintCapHtml\(t\);/.test(shop) && /return hintCapHtml\(k\);/.test(pm), 'winkels en pauzemenu gebruiken hetzelfde toetsplaatje');
 }
 ok(zinnen > 100, `genoeg zinnen met toetsen gecontroleerd (${zinnen})`);
 console.log(failed ? `key_tokens_test: ${failed} fouten` : `key_tokens_test: ok (${zinnen} zinnen)`);

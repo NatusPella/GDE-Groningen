@@ -82,6 +82,11 @@ export function keyLabelHtml(label) {
   if (g) return labelToken(l) ? g : `<span class="hud-key is-kbg" data-gk="${esc(l.toUpperCase())}">${g}</span>`;
   return `<span class="hud-key" data-gk="${esc(l.toUpperCase())}">${esc(l)}</span>`;
 }
+// #1258: one keycap for every footer hint bar (pause menu, shops): the glyph in a filled cap, or the neat text cap.
+export function hintCapHtml(label) {
+  const kg = keyLabelGlyph(label);
+  return `<span class="m-kc is-kbg">${kg || keyLabelHtml(label)}</span>`;
+}
 const keyInner = (phys) => keyGlyphInner(phys) || esc(keyName(phys));
 
 // Running text (already HTML-escaped) with keys as keycaps: {E}, {SPACE}, {LMB}, [E], (E), and the
