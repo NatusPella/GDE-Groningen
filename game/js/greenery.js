@@ -150,7 +150,23 @@ export function treeColor(t, out) {
   const s = SPECIES[sp] || SPECIES[0];
   const v = 0.9 + 0.2 * hash2(t[1] * 1.7, t[0] * 0.3);
   out.setHex(s.color).multiplyScalar(v);
+  // 23-11: ook de tint verschilt per boom (geelgroener of blauwgroener), zodat een rij of bos niet uit één kleur bestaat
+  const hue = hash2(t[0] * 0.7 + 3.1, t[1] * 1.3 - 1.7) - 0.5;
+  out.r *= 1 + 0.18 * hue;
+  out.b *= 1 - 0.28 * hue;
   return out;
+}
+
+// 23-11: de kroon is geen glad bolletje meer. Eén gedeelde geometrie (scene3d.js) krijgt per hoekpunt een
+// straalfactor uit drie sinussen van de positie (continu, dus nooit een barst tussen driehoeken) en een
+// schaduwfactor: lichter boven, donkerder onder (ambient occlusion in de vertexkleur, gratis op de GPU).
+export function crownBump(x, y, z) {
+  return 1 + 0.085 * Math.sin(3.7 * x + 1.3 * z + 0.4) + 0.075 * Math.sin(4.9 * y - 2.1 * x + 1.1)
+    + 0.06 * Math.sin(5.3 * z + 2.9 * y - 0.7);
+}
+export function crownShade(y) {
+  const u = Math.max(0, Math.min(1, y * 0.5 + 0.5));
+  return 0.72 + 0.4 * Math.sqrt(u);
 }
 
 // --------------------------------------------------------------- filling

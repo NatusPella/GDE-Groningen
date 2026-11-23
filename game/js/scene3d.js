@@ -154,7 +154,7 @@ import { chamberLiftAt } from './sluizen.js';
 import { surfaceLift, surfaceLiftAt } from './waterlevels.js';
 import { updateSluizen3D } from './sluizen3d.js';
 import { initStreetFurniture3D, updateStreetFurniture3D } from './streetfurniture3d.js';
-import { treeDims, treeColor, SPECIES, TREE_FLAG } from './greenery.js';
+import { treeDims, treeColor, crownBump, crownShade, SPECIES, TREE_FLAG } from './greenery.js';
 import { buildCanopies, streamCanopies } from './canopies3d.js';
 import { buildPerrons3D } from './perrons3d.js';
 import { initGrass, updateGrass, grassFarColor, grassFarRank } from './grass.js';
@@ -1465,11 +1465,25 @@ function limitActorShadows(cache, px, py) {
 // does not dim, so applyTimeOfDay fades it with nightrules.foliageGlow (#463):
 // in the dark a crown is as dark as the street, never a green glow.
 const TREE_TRUNK_MAT = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.9, flatShading: true });
-const TREE_CANOPY_MAT = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.85, flatShading: true, emissive: new THREE.Color(0x56844a).multiplyScalar(0.09) });
+const TREE_CANOPY_MAT = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.85, flatShading: true, vertexColors: true, emissive: new THREE.Color(0x56844a).multiplyScalar(0.09) });
 const TREE_TRUNK_GEO = new THREE.CylinderGeometry(0.14, 0.22, 1, 6).translate(0, 0.5, 0);
 const TREE_CANOPY_GEO = new THREE.IcosahedronGeometry(1, 1);
 // a conifer: a cone of radius 1 from y -1 to 1
 const TREE_CONE_GEO = new THREE.ConeGeometry(1, 2, 7);
+// 23-11: een kroon met bobbels en een donkerder onderkant (greenery.js crownBump/crownShade); eenmalig, geen kosten per frame
+function shapeCrown(geo, bumpy) {
+  const p = geo.attributes.position, c = new Float32Array(p.count * 3);
+  for (let i = 0; i < p.count; i++) {
+    let x = p.getX(i), y = p.getY(i), z = p.getZ(i);
+    if (bumpy) { const k = crownBump(x, y, z); x *= k; y *= k; z *= k; p.setXYZ(i, x, y, z); }
+    c[i * 3] = c[i * 3 + 1] = c[i * 3 + 2] = crownShade(y);
+  }
+  geo.setAttribute('color', new THREE.BufferAttribute(c, 3));
+  geo.computeBoundingSphere();
+  return geo;
+}
+shapeCrown(TREE_CANOPY_GEO, true);
+shapeCrown(TREE_CONE_GEO, false);
 for (const g of [TREE_TRUNK_GEO, TREE_CANOPY_GEO, TREE_CONE_GEO]) SHARED_GEOMETRIES.add(g);
 // a tree filled into a wood or park outline is drawn out to TREE_FAR, as its crown only
 const TREE_FAR = 260;
