@@ -1033,8 +1033,9 @@ while (true) {
       continue;
     }
   }
-  // a home step (N2, W1, J1, J6): the guide stands at the lobby door of the tower; out of the car, then E ("Naar binnen") and the lift takes you up
-  if (!s.mission.active && guide && guide.name === 'Thuis' && s.target && s.target.distance < 4 && !s.blocking.cinematic && !s.blocking.banner && !s.blocking.talk && !s.blocking.pauseMenu && !s.blocking.paused && !s.blocking.respawn && !s.blocking.loading && !s.blocking.shop && (s.t - (mem.thuisT ?? -9)) > 2.5) {
+  // a home step (N2, W1, J1, J6): the guide stands at the lobby door of the tower; out of the car, then E ("Naar binnen") and the lift takes you up.
+  // 23-11: herkend aan guide.goal (story.js); de naam is sinds stepdoel.js een zin ('Ga naar de duif op de gang thuis'), niet meer 'Thuis'
+  if (!s.mission.active && guide && (guide.goal === 'home' || guide.goal === 'night' || guide.name === 'Thuis') && s.target && s.target.distance < 4 && !s.blocking.cinematic && !s.blocking.banner && !s.blocking.talk && !s.blocking.pauseMenu && !s.blocking.paused && !s.blocking.respawn && !s.blocking.loading && !s.blocking.shop && (s.t - (mem.thuisT ?? -9)) > 2.5) {
     mem.thuisT = s.t;
     B.log('thuis', { stap: s.story.id, afstand: s.target.distance, voertuig: !!s.player.vehicle });
     B.stick(0, 0);

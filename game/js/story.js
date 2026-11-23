@@ -427,7 +427,7 @@ function refreshGuide() {
     why = `Onderduiken: ${place.name.charAt(0).toLowerCase()}${place.name.slice(1)}`;
     alt = hideoutChoices(step).filter((c) => c.id !== place.id).map((c) => c.short).join(' of ');
   }
-  world.storyGuide = place ? { x: place.x, y: place.y, name: why, step: step.id, shopId, buy: !!shopId && isPurchase(step, rt.gate), alt } : null;
+  world.storyGuide = place ? { x: place.x, y: place.y, name: why, step: step.id, goal: step.goal ? step.goal.type : null, shopId, buy: !!shopId && isPurchase(step, rt.gate), alt } : null; // goal: het soort doel (de spelbot herkent er een thuisstap aan)
 }
 
 function isPurchase(step, gate) {
