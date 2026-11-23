@@ -194,6 +194,80 @@ export function presetFromSample(gpuTier, times, current) {
   return adviseFromSample(gpuTier, sorted[sorted.length >> 1], current || 'hoog');
 }
 
+// --- automatic choice on the first start (besluit eigenaar 23-11) ---------
+// A new player gets the best preset that runs at 60 fps on this computer, without a question. The measurement runs on ULTRA (preset
+// 'hoog'): the frame interval at 60 Hz only shows how much is left over when the heaviest setting is drawn, so measuring the default
+// (Hoog) could never reach Ultra. The steps have a margin: Ultra needs a median under 17.5 ms (60 fps plus vsync jitter) AND a 90th
+// percentile under 22 ms (not too many dropped frames); each lighter preset takes over where the one above misses. The GPU's own tier
+// caps the pick (a basic iGPU that happened to draw a quiet frame does not get Ultra).
+export const AUTO_GFX_VERSION = 1;
+export const AUTO_GFX = { ultraMedianMs: 17.5, ultraP90Ms: 22, hoogMedianMs: 22, middelMedianMs: 30, minFrames: 10 };
+// Pure: frame intervals (ms) measured on Ultra -> the preset to use; null without a measurement (fewer than minFrames frames).
+export function autoPresetFromSample(gpuTier, times, p = AUTO_GFX) {
+  const v = Array.isArray(times) ? times.filter((x) => Number.isFinite(x) && x > 0) : [];
+  if (v.length < p.minFrames) return v.length ? 'laag' : null; // a visible machine too slow for ten frames gets the lightest preset
+  const s = [...v].sort((a, b) => a - b);
+  const median = s[s.length >> 1], p90 = s[Math.min(s.length - 1, Math.floor(s.length * 0.9))];
+  const measured = median <= p.ultraMedianMs && p90 <= p.ultraP90Ms ? 'hoog' : median <= p.hoogMedianMs ? 'vlot' : median <= p.middelMedianMs ? 'middel' : 'laag';
+  let pick = lower(gpuTier || 'hoog', measured);
+  // a weak GPU that still renders Ultra smoothly here only drops to Midden, not further
+  if (measured === 'hoog' && pick === 'laag') pick = 'middel';
+  return pick;
+}
+// What the settings remember (gde-settings, key gfxAuto): '<version>:<preset>', or '' when the player never had an automatic choice.
+export const autoGfxValue = (preset) => `${AUTO_GFX_VERSION}:${preset}`;
+export function parseAutoGfx(v) {
+  const m = /^(\d+):([a-z]+)$/.exec(typeof v === 'string' ? v : '');
+  return m && GFX_PRESETS[m[2]] ? { version: Number(m[1]), preset: m[2] } : null;
+}
+// The line in Instellingen > Beeld: only while the current settings are still the preset that was chosen automatically.
+export function autoGfxNote(st = getSettings()) {
+  const a = parseAutoGfx(st.gfxAuto);
+  return a && currentPreset(st) === a.preset ? `Gekozen op basis van je pc: ${presetLabel(a.preset)}` : '';
+}
+
+// Measures `ms` of real frames on Ultra and applies the pick. render(): draws a frame when the caller drives the loop itself (the boot
+// screen); in a running game the game loop draws and this only listens to the frame times. Resolves with { pick, median, frames } or null
+// (aborted: the old settings are back). The first FIRST_SKIP_MS (shaders, the first stream burst of the longer view) are not counted.
+const AUTO_SKIP_MS = 500;
+export function measureAutoPreset({ ms = 3500, render = null, signal = null } = {}) {
+  const before = { ...getSettings() };
+  let gpu = { tier: 'hoog' };
+  try { gpu = classifyGpu(readGpu(window.__scene3d && window.__scene3d.renderer ? window.__scene3d.renderer.getContext() : null)); } catch (e) { /* geen WebGL: standaard */ }
+  applyPreset('hoog');
+  return new Promise((resolve) => {
+    const times = [];
+    let last = 0, t0 = 0, done = false;
+    const finish = (aborted) => {
+      if (done) return;
+      done = true;
+      if (aborted) {
+        for (const k of Object.keys(GFX_PRESETS.hoog)) setSetting(k, before[k]);
+        resolve(null);
+        return;
+      }
+      const pick = autoPresetFromSample(gpu.tier, times) || 'vlot';
+      applyPreset(pick);
+      setSetting('gfxAuto', autoGfxValue(pick));
+      const s = [...times].sort((a, b) => a - b);
+      resolve({ pick, median: s.length ? +s[s.length >> 1].toFixed(1) : null, frames: times.length, gpu: gpu.tier });
+    };
+    const step = (now) => {
+      if (done) return;
+      if (signal && signal.aborted) { finish(true); return; }
+      if (typeof document !== 'undefined' && document.hidden) { last = 0; requestAnimationFrame(step); return; }
+      if (!t0) t0 = now;
+      if (last && now - t0 > AUTO_SKIP_MS) times.push(now - last);
+      last = now;
+      if (render) { try { render(); } catch (e) { /* renderer nog niet klaar */ } }
+      if (now - t0 < ms + AUTO_SKIP_MS || times.length < AUTO_GFX.minFrames) requestAnimationFrame(step);
+      else finish(false);
+    };
+    if (signal) signal.onabort = () => finish(true);
+    requestAnimationFrame(step);
+  });
+}
+
 // --- first-run advice ----------------------------------------------------
 
 const ADVICE_KEY = KEYS.gfxAdvice;

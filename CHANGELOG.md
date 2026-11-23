@@ -8,6 +8,7 @@ versies staan op datum op volgorde. Er zijn geen aparte kopstijlen per sectie:
 elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ## [Unreleased]
+- Beeld bij de eerste start: het spel meet een paar seconden op Ultra en kiest zelf de mooiste stand die op jouw pc 60 fps haalt (Laag, Midden, Hoog of Ultra, met marge). In Instellingen › Beeld staat dan "Gekozen op basis van je pc", met een knop Opnieuw meten. Wie al eigen instellingen had, houdt die. Samen spelen: de meting en de keuze zijn alleen van je eigen spel; niets wordt gedeeld.
 - Hoog: een veel ruimere zichtafstand (600 m in plaats van 150 m) met de goedkope verre laag, en zachte mist die pas ver weg begint in plaats van een muur die het landschap wegsnijdt. Ultra heeft dezelfde zachtere mist. Hoog houdt een schaduwkaart van 2048, dus het blijft lichter dan Ultra. Wie nog op de oude Hoog stond, gaat vanzelf mee; eigen keuzes blijven.
 - Benchmark en cutscenes: de camera van een cutscene rekent niet meer door elke gebouwdriehoek (een groot deel van het frame in de benchmark, vooral bij vlucht- en vaarshots), en de benchmark wacht onder zwart tot de plek van het volgende shot geladen is (tegels, gebouwen, wegen) voordat de klok doorloopt: geen pop-in meer in beeld; de wachttijd telt niet mee in de fps.
 

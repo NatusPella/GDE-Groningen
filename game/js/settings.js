@@ -99,6 +99,9 @@ const BASE_DEFAULTS = {
   // als Hoog ziet (de sleutel heet nog 'vlot'). De adaptieve kwaliteit zakt op een zwakke machine zelf terug (viewDistanceFor);
   // de speler kan in de instellingen naar 'heelver' (Ultra) of terug naar 'kort'.
   drawDistance: 'ver',
+  // Automatisch gekozen stand (gfxprofile.js measureAutoPreset, besluit eigenaar 23-11): '<versie>:<preset>' na de meting bij de eerste
+  // start of na Opnieuw meten; '' voor wie nooit automatisch gekozen kreeg (bestaande spelers houden zo hun eigen keuze)
+  gfxAuto: '',
   // render scale (1 = full); autoResolution lowers it and some detail while
   // frames are slow (gfxprofile.js)
   resolution: 1,
@@ -233,6 +236,7 @@ function load() {
     Object.assign(out, normalizeVolumes(raw, DEFAULTS));
     if (!hasKey(QUALITY_PRESETS, out.quality)) out.quality = DEFAULTS.quality;
     if (!hasKey(VIEW_DISTANCES, out.drawDistance)) out.drawDistance = DEFAULTS.drawDistance;
+    if (!isValidSetting('gfxAuto', out.gfxAuto)) out.gfxAuto = DEFAULTS.gfxAuto;
     if (!(out.resolution >= 0.5 && out.resolution <= 1)) out.resolution = DEFAULTS.resolution;
     out.keyBinds = normalizeKeyBinds(out.keyBinds);
     out.padBinds = normalizePadBinds(out.padBinds);
@@ -389,6 +393,7 @@ const RANGES = {
 };
 export function isValidSetting(key, value) {
   if (key === 'helpTime' || key === 'helpDamage' || key === 'helpGates') return cleanHelpSetting(key, value) === value;
+  if (key === 'gfxAuto') return typeof value === 'string' && (value === '' || /^\d+:[a-z]+$/.test(value));
   // een instelling met een object als standaard (radioVehicle: de zender per soort voertuig) blijft een gewoon object (22-11, na het samenvoegen met de radio per voertuig)
   if (hasKey(DEFAULTS, key) && DEFAULTS[key] && typeof DEFAULTS[key] === 'object' && !Array.isArray(DEFAULTS[key])) return !!value && typeof value === 'object' && !Array.isArray(value);
   if (hasKey(CHOICES, key)) return CHOICES[key].includes(value);

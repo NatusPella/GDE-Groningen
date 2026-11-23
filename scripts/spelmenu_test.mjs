@@ -277,7 +277,7 @@ ok(pcss.includes('.ra.pm-exit::after'), 'Afsluiten staat met een scheidingslijn 
 ok(pm.includes("setN('todo', '');") && !pm.includes("setN('todo', fresh"), "'nieuw' van een verhaal-aanwijzing staat niet meer op Activiteiten (#435)");
 // #435: Beeld > Voorinstelling zijn knoppen, met de stand van nu gemarkeerd
 ok(pm.includes('data-preset-btn="${n}" aria-pressed="false"') && pm.includes("setAttribute('aria-pressed'") && !pm.includes('data-preset-pick'), 'de voorinstellingen zijn knoppen en de oude kiezer is weg');
-ok(pm.includes('[data-preset-now]') && pm.includes("cur ? '' : 'Eigen instellingen'"), 'de huidige stand is zichtbaar, ook als je zelf aan de schuiven zat');
+ok(pm.includes('[data-preset-now]') && pm.includes("cur ? autoGfxNote(st) : 'Eigen instellingen'"), 'de huidige stand is zichtbaar, ook als je zelf aan de schuiven zat (en of hij automatisch gekozen is, 23-11)');
 ok(pcss.includes('.pm-chips .m-chip[aria-pressed="true"]'), 'de gekozen voorinstelling staat in het groen met een vinkje');
 // #586: een lopende toetsen-/controller-rebind mag niet blijven hangen als het pauzemenu sluit
 const setOpenSrc = pm.slice(pm.indexOf('function setOpen('));
