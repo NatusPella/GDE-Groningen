@@ -225,10 +225,11 @@ const COLOR = `
 #endif
 
 #ifdef SURF_MARKING
+  // #1197 (hertest 24-11): de slijtage gooide pixels weg onder een ruisdrempel, met een ruis op 31 per meter: gaten en rafelige,
+  // gestippelde randen in zebrapaden die op afstand flikkerden. Nu blijft de verf heel en verschilt alleen de tint rustig over een paar meter.
   if (dot(diffuseColor.rgb, vec3(0.333)) > 0.5) {
-    float mw = sNoise(wp * 2.3) * 0.55 + sNoise(wp * 9.0) * 0.3 + sNoise(wp * 31.0) * 0.15;
-    if (mw < 0.33) discard;
-    diffuseColor.rgb *= 0.78 + 0.22 * smoothstep(0.33, 0.7, mw);
+    float mw = sNoise(wp * 1.7) * 0.65 + sNoise(wp * 5.0) * 0.35;
+    diffuseColor.rgb *= 0.88 + 0.12 * smoothstep(0.25, 0.75, mw);
   }
 #endif
   // soepele overgang naar het dek van de buur aan begin en einde van de weg (surfaceblend.js)
