@@ -65,7 +65,7 @@ Vaste cast, stem uit `scripts/tts_cast.mjs` en `scripts/tts_lines_list.mjs`
 | Tessa (intern `anita`) | heldin, de snackwagen | Callirrhoe; **standaard Nederlands** (#134) |
 | Rikus | nacht-dj Nachtstreek | Schedar, warm en droog |
 | Jelle Terpstra | tegenstander, Us Mem Snacks | Fenrir, Nederlands met Friese woorden |
-| Mem (Gerda) Terpstra | Jelles moeder | Gacrux, Nederlands met Friese woorden |
+| Mem (Gerda) Terpstra | Jelles oma (91; hij zegt Mem) | Gacrux, Nederlands met Friese woorden |
 | Oma Trijntje | mentor, won in 1953 | Sulafat, Gronings, stellig |
 | Berend Bos | Bommen Berend, jurylid | Charon, nors |
 | Durk en Douwe | Jelles tweeling | Algieba en Algenib, traag |

@@ -121,7 +121,7 @@ export const SPECS_AKTE2 = {};
       foto: { kind: 'fotolijst', at: [4.8, -2.8, 0], face: 180 },
       lijstje: { kind: 'klembord', at: [2.7, 0.2, 1.0] },
       brij: { kind: 'pan', at: [1.6, 0.5, 0.85] },
-      // het prikbord waar de vijf namen aan komen (Tessa: "Vijf namen aan ons prikbord"); hangt naast de foto van 1953
+      // het prikbord waar de vijf namen aan komen (Tessa: "Vijf namen voor het prikbord"); hangt naast de foto van 1953
       prikbord: { kind: 'prikbord', at: [4.8, 1.7, 0], face: 180 },
     },
     // #741: Oma's naamkaart hoort bij haar eerste zichtbare scène (haar kamer, M08.3); de regie van de
@@ -144,10 +144,10 @@ export const SPECS_AKTE2 = {};
       { on: 'Het recept van 1953', dt: 0.2, actor: 'trijntje', walk: [[1.3, -0.3]], speed: 0.9 },
       { on: 'Het recept van 1953', dt: 4.4, actor: 'trijntje', drop: 'lijstje' },
       { on: 'Het recept van 1953', dt: 4.6, actor: 'tessa', carry: 'lijstje' },
-      { on: 'Vijf vrienden, vijf', actor: 'tessa', anim: 'nod' },
+      { on: 'Dan doen we mee', actor: 'tessa', anim: 'nod' },
       { on: 'Eerst Geesje', actor: 'trijntje', anim: 'point' },
       { on: 'Klaas in Zoutkamp', actor: 'trijntje', anim: 'shrug' },
-      { on: 'Vijf namen aan ons prikbord', actor: 'tessa', anim: 'nod' },
+      { on: 'Vijf namen voor het prikbord', actor: 'tessa', anim: 'nod' },
       { on: 'Die bal is gien geld', actor: 'trijntje', walk: [[1.5, 0.6]], speed: 0.9 },
       { on: 'Die bal is gien geld', dt: 0.5, actor: 'trijntje', face: 'actor:tammo' },
       { on: 'Ik zeg wel wat', actor: 'tammo', anim: 'nod' },

@@ -599,8 +599,8 @@ S['M22.4'] = {
     // WP6: de jas uit O4 komt terug; het enige wat elke zomer hetzelfde bleef
     { on: 'En die jas in augustus', actor: 'tammo', anim: 'point' },
     { on: 'Mem zegt elke zomer jas', actor: 'tessa', anim: 'shrug' },
-    { on: 'De snackwagen is een thuis', actor: 'tessa', face: 'prop:escapade' },
-    { on: 'De snackwagen is een thuis', dt: 0.3, actor: 'tessa', anim: 'point' },
+    { on: 'Een wagen is het enige huis', actor: 'tessa', face: 'prop:escapade' },
+    { on: 'Een wagen is het enige huis', dt: 0.3, actor: 'tessa', anim: 'point' },
     { on: 'Ik ging niet weg', actor: 'tessa', walk: [[2.2, -0.2]], speed: 0.6 },
     { on: 'Ik ging niet weg', dt: 0.4, actor: 'tessa', face: 'actor:tammo' },
     // de omhelzing: Tammo loopt naar haar toe, ze leunen in elkaar en de trekker ratelt door

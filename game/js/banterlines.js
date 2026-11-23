@@ -163,7 +163,7 @@ export const BANTER = [
     ['T', 'Of je een krentenbol wilde. Ik durfde niet.', 'sheepish']] },
   { id: 'pl-academie', trigger: 'place:Academiegebouw', lines: [
     ['A', 'Het Academiegebouw. Jouw oude school.', 'teasing'],
-    ['T', 'Drie weken. Ik heb er nog een kluisje.', 'nostalgic'],
+    ['T', 'Vijf jaar. Ik heb er nog een kluisje.', 'nostalgic'],
     ['A', 'Met wat erin?', 'curious'],
     ['T', 'Een boterham. Oud inmiddels.', 'deadpan']] },
   { id: 'pl-goudkantoor', trigger: 'place:Goudkantoor', until: 'H6', lines: [

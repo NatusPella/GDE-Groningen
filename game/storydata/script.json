@@ -1792,7 +1792,7 @@
     {
      "speaker": "Tammo",
      "key": "T",
-     "text": "Dan eerst het Loket. Nummer 4140 wacht op niemand.",
+     "text": "Dan eerst het Loket. Nummer 4117 schuift niet vanzelf op.",
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": true,
@@ -2775,11 +2775,10 @@
     {
      "speaker": "Tessa",
      "key": "A",
-     "text": "Wij zijn ingeschreven. Op 28 augustus op de Grote Markt.",
+     "text": "Wij zijn ingeschreven. Nu nog een wagen.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": false,
-     "rec": "lines",
+     "textOnly": true,
      "voice": "Anita"
     },
     {
@@ -2807,11 +2806,10 @@
     {
      "speaker": "Tessa",
      "key": "A",
-     "text": "Wie de bal heeft, zit de jury voor. Dat wil Jelle.",
+     "text": "Wie de bal heeft, zit de jury voor. Zo wint hij zonder te bakken.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": false,
-     "rec": "lines",
+     "textOnly": true,
      "voice": "Anita"
     },
     {
@@ -3000,12 +2998,11 @@
     {
      "speaker": "Rikus",
      "key": "rikus",
-     "text": "Dat is een helder plan. Ik zeg niks. Ik draai een plaat.",
+     "text": "Dat is een helder plan. Ik draai een plaat.",
      "tag": "NIEUW",
      "channel": "radio",
-     "textOnly": false,
-     "humor": "H07",
-     "rec": "lines"
+     "textOnly": true,
+     "humor": "H07"
     }
    ]
   },
@@ -3240,20 +3237,18 @@
     {
      "speaker": "Tammo",
      "key": "T",
-     "text": "En die trekker-limo. Vlaggetjes met rode blaadjes. En een man in een blauw colbert die de alarmen telt.",
-     "tag": "BEHOUDEN",
+     "text": "En die trekker-limo. Vlaggetjes met rode blaadjes.",
+     "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": false,
-     "rec": "lines"
+     "textOnly": true
     },
     {
      "speaker": "Tessa",
      "key": "A",
-     "text": "Pompeblêden. Een Fries. Hij telt de alarmen alsof hij iets controleert. Of voorbereidt.",
+     "text": "Pompeblêden. Een Fries. En hij telt die alarmen alsof ze van hem zijn.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": false,
-     "rec": "lines",
+     "textOnly": true,
      "voice": "Anita"
     },
     {
@@ -3576,21 +3571,19 @@
     {
      "speaker": "Tessa",
      "key": "A",
-     "text": "Tammo heeft hier nog gestudeerd. Twee weken.",
-     "tag": "BEHOUDEN",
+     "text": "Tammo heeft hier nog gestudeerd. Vijf jaar.",
+     "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": false,
-     "rec": "story",
+     "textOnly": true,
      "voice": "Anita"
     },
     {
      "speaker": "Tammo",
      "key": "T",
-     "text": "Drie. De derde was ik ziek.",
-     "tag": "BEHOUDEN",
+     "text": "Zes. Het laatste jaar was ik ziek.",
+     "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": false,
-     "rec": "story"
+     "textOnly": true
     },
     {
      "speaker": "Tessa",
@@ -3992,12 +3985,11 @@
     {
      "speaker": "Meneer Veldkamp",
      "key": "veldkamp",
-     "text": "Mijn duiven doen dat bij niemand. Hij wil naar Tammo.",
+     "text": "Mijn duiven slapen al. Die ene niet. Hij wil naar Tammo.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": false,
-     "humor": "HI-01",
-     "rec": "lines"
+     "textOnly": true,
+     "humor": "HI-01"
     }
    ]
   },
@@ -4545,11 +4537,10 @@
     {
      "speaker": "Tessa",
      "key": "A",
-     "text": "Ik ben Nederlandse, Tammo. Ik ken Grunn van de achterbank van jouw auto.",
+     "text": "Ik ken Grunn van de passagiersstoel van jouw auto, Tammo.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": false,
-     "rec": "lines",
+     "textOnly": true,
      "voice": "Anita"
     },
     {
@@ -5762,14 +5753,13 @@
     {
      "speaker": "Tessa",
      "key": "A",
-     "text": "Vijf vrienden, vijf ingrediënten. Dan doen we mee, ook als Jelle de rest opkoopt.",
+     "text": "Dan doen we mee, ook als Jelle de rest opkoopt.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": false,
+     "textOnly": true,
      "form": {
       "ov": 0.3
      },
-     "rec": "lines",
      "voice": "Anita"
     },
     {
@@ -5802,11 +5792,10 @@
     {
      "speaker": "Tessa",
      "key": "A",
-     "text": "Vijf namen aan ons prikbord. Dat wordt ons menu.",
+     "text": "Vijf namen voor het prikbord. Die lopen we af.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": false,
-     "rec": "lines",
+     "textOnly": true,
      "voice": "Anita"
     },
     {
@@ -7569,7 +7558,7 @@
     {
      "speaker": "Tammo",
      "key": "T",
-     "text": "Of hij mist haar. Dat is ook een soort dom.",
+     "text": "Of hij mist haar. Dat staat niet in zijn contract.",
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": true,
@@ -8663,11 +8652,10 @@
     {
      "speaker": "Rikus",
      "key": "rikus",
-     "text": "Het festival heeft een hoofdsponsor: Oldenhuis Bakt, de keten met de eenenveertig snackbars. Bij elke frikandel hoort een bonnetje voor een tweede. Ik zeg niks.",
+     "text": "Het festival heeft een hoofdsponsor: Oldenhuis Bakt, de keten met de eenenveertig snackbars. Bij elke frikandel hoort een bonnetje voor een tweede.",
      "tag": "NIEUW",
      "channel": "radio",
-     "textOnly": false,
-     "rec": "lines"
+     "textOnly": true
     },
     {
      "speaker": "Jelle Terpstra",
@@ -8816,20 +8804,18 @@
     {
      "speaker": "Tammo",
      "key": "T",
-     "text": "En je bent Nederlandse.",
+     "text": "Tijdens het rijden?",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": false,
-     "rec": "lines"
+     "textOnly": true
     },
     {
      "speaker": "Tessa",
      "key": "A",
-     "text": "Dat helpt niet.",
+     "text": "Jij rijdt, ik lees. Zo hebben we het verdeeld.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": false,
-     "rec": "lines",
+     "textOnly": true,
      "voice": "Anita"
     },
     {
@@ -9406,11 +9392,10 @@
     {
      "speaker": "Rikus",
      "key": "rikus",
-     "text": "Vrijdag 21 augustus. Een beller meldt dat hij vanmiddag opstijgt. Ik zeg niks.",
+     "text": "Vrijdag 21 augustus. Een beller meldt dat hij vanmiddag opstijgt. Ik kijk alvast omhoog.",
      "tag": "NIEUW",
      "channel": "radio",
-     "textOnly": false,
-     "rec": "lines"
+     "textOnly": true
     },
     {
      "speaker": "Jelle Terpstra",
@@ -9433,12 +9418,11 @@
     {
      "speaker": "Jelle Terpstra",
      "key": "jelle",
-     "text": "Sinds vanochtend wel. Mijn juristen hebben het geregeld.",
+     "text": "Sinds vanochtend wel. Ik heb een vergunning.",
      "tag": "NIEUW",
      "channel": "radio",
-     "textOnly": false,
-     "humor": "H3-01",
-     "rec": "lines"
+     "textOnly": true,
+     "humor": "H3-01"
     },
     {
      "speaker": "Rikus",
@@ -10969,11 +10953,10 @@
     {
      "speaker": "Rikus",
      "key": "rikus",
-     "text": "Voor twee Stadjers die elk een kant van het refrein zingen. Ik zeg niks.",
+     "text": "Voor twee Stadjers die elk een kant van het refrein zingen. Ik noem geen namen.",
      "tag": "NIEUW",
      "channel": "radio",
-     "textOnly": false,
-     "rec": "lines"
+     "textOnly": true
     }
    ]
   },
@@ -11991,11 +11974,10 @@
     {
      "speaker": "Jelle Terpstra",
      "key": "jelle",
-     "text": "Durk. Mijn juristen willen een rapport. Waar zijn jullie?",
+     "text": "Durk. Ik wil een rapport. Waar zijn jullie?",
      "tag": "NIEUW",
      "channel": "telefoon",
-     "textOnly": false,
-     "rec": "lines"
+     "textOnly": true
     },
     {
      "speaker": "Durk",
@@ -12199,11 +12181,10 @@
     {
      "speaker": "Durk",
      "key": "durk",
-     "text": "Gelijkspel is ook een antwoord. Vraag maar, famke.",
+     "text": "Gelijkspel telt ook. Vraag maar, famke.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": false,
-     "rec": "lines"
+     "textOnly": true
     },
     {
      "speaker": "Tessa",
@@ -12274,22 +12255,20 @@
     {
      "speaker": "Tessa",
      "key": "A",
-     "text": "Heel goed. Maandag.",
+     "text": "Je kunt dus nog rekenen.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": false,
+     "textOnly": true,
      "humor": "H3-09",
-     "rec": "lines",
      "voice": "Anita"
     },
     {
      "speaker": "Tammo",
      "key": "T",
-     "text": "Goed.",
+     "text": "Tot drie tenten. Daarna wordt het gokken.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": false,
-     "rec": "banter"
+     "textOnly": true
     },
     {
      "speaker": "Durk",
@@ -13415,11 +13394,10 @@
     {
      "speaker": "Rikus",
      "key": "rikus",
-     "text": "Maandag 24 augustus. In de chat zeggen ze dat twee Stadjers het museum leegroofden. Ik zeg niks.",
+     "text": "Maandag 24 augustus. In de chat zeggen ze dat twee Stadjers het museum leegroofden. Ik lees het alleen voor.",
      "tag": "NIEUW",
      "channel": "radio",
-     "textOnly": false,
-     "rec": "lines"
+     "textOnly": true
     },
     {
      "speaker": "Jelle Terpstra",
@@ -13793,11 +13771,10 @@
     {
      "speaker": "Jelle Terpstra",
      "key": "jelle",
-     "text": "Mevrouw Tessa. Mijn schip staat vast voor een brug. Mijn juristen noemen dat een overtreding.",
+     "text": "Mevrouw Tessa. Mijn schip staat vast voor een brug. Dat is een overtreding, mevrouw. Van de brug.",
      "tag": "NIEUW",
      "channel": "telefoon",
-     "textOnly": false,
-     "rec": "lines"
+     "textOnly": true
     },
     {
      "speaker": "Wubbo",
@@ -14022,11 +13999,10 @@
     {
      "speaker": "Rikus",
      "key": "rikus",
-     "text": "Ik zeg niks.",
+     "text": "Ik zit hier alleen voor de kaars.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": false,
-     "rec": "lines"
+     "textOnly": true
     },
     {
      "speaker": "Tammo",
@@ -14078,11 +14054,10 @@
     {
      "speaker": "Rikus",
      "key": "rikus",
-     "text": "Ik zeg niks. Dat is ook een antwoord.",
+     "text": "Mijn mond zit vol brood.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": false,
-     "rec": "lines"
+     "textOnly": true
     }
    ]
   },
@@ -14468,11 +14443,10 @@
     {
      "speaker": "Tessa",
      "key": "A",
-     "text": "Zodat zij niets merkte. Dat is vier dagen vóór onze kraak. Hij had hem toen al.",
+     "text": "Zodat zij niets merkte. Dat is vijf dagen vóór onze kraak. Hij had hem toen al.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": false,
-     "rec": "lines",
+     "textOnly": true,
      "voice": "Anita"
     },
     {
@@ -14759,11 +14733,10 @@
     {
      "speaker": "Rikus",
      "key": "rikus",
-     "text": "Moi, Nachtstreek. Voor wie vannacht niet thuis slaapt: de sterren zijn gratis. Ik zeg niks.",
+     "text": "Moi, Nachtstreek. Voor wie vannacht niet thuis slaapt: de sterren zijn gratis.",
      "tag": "NIEUW",
      "channel": "radio",
-     "textOnly": false,
-     "rec": "lines"
+     "textOnly": true
     },
     {
      "speaker": "Tessa",
@@ -17762,12 +17735,11 @@
     {
      "speaker": "Henk",
      "key": "henk",
-     "text": "Ik zeg niks. Eén koekje.",
+     "text": "Dat rijmt. Eén koekje.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": false,
-     "humor": "H5-10",
-     "rec": "lines"
+     "textOnly": true,
+     "humor": "H5-10"
     },
     {
      "speaker": "Henk",
@@ -18089,11 +18061,10 @@
     {
      "speaker": "Tessa",
      "key": "A",
-     "text": "De snackwagen is een thuis op wielen. Een thuis dat je kunt meenemen.",
+     "text": "Een wagen is het enige huis dat meeverhuist.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": false,
-     "rec": "lines",
+     "textOnly": true,
      "voice": "Anita"
     },
     {
@@ -19764,12 +19735,11 @@
     {
      "speaker": "Lieke",
      "key": "lieke",
-     "text": "Jullie zijn al samen. Jullie weten het alleen niet.",
+     "text": "Jullie eten van één bord. Dat is meer dan samenwonen.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": false,
-     "humor": "HI-17",
-     "rec": "lines"
+     "textOnly": true,
+     "humor": "HI-17"
     },
     {
      "speaker": "Oma Trijntje",
@@ -22022,11 +21992,10 @@
     {
      "speaker": "Tessa",
      "key": "A",
-     "text": "Hij is Gronings, ik ben Fries. Wij zijn de verzoening.",
+     "text": "Hij is Gronings, ik ben een beetje Fries. Wij zijn de verzoening.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": false,
-     "rec": "lines",
+     "textOnly": true,
      "voice": "Anita"
     },
     {
@@ -23368,11 +23337,10 @@
     {
      "speaker": "Tinus",
      "key": "tinus",
-     "text": "De trekker heeft een toren. Zonder motor ging het niet. Met motor wel.",
+     "text": "De trekker trekt de toren. In 1672 hadden ze daar paarden voor. Ik heb er driehonderd.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": false,
-     "rec": "lines"
+     "textOnly": true
     },
     {
      "speaker": "Geesje",
@@ -23493,11 +23461,10 @@
     {
      "speaker": "Jelle Terpstra",
      "key": "jelle",
-     "text": "Jelle springt. Altijd. Met polsstok.",
+     "text": "Ik spring. Altijd. Met polsstok.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": false,
-     "rec": "lines"
+     "textOnly": true
     },
     {
      "speaker": "Jelle Terpstra",
@@ -23882,11 +23849,10 @@
     {
      "speaker": "Tessa",
      "key": "A",
-     "text": "Elke zomer één ronde langs de plekken waar vrienden wonen. Dan kan ik groeien en jij thuisblijven.",
+     "text": "Elke zomer één ronde langs de plekken waar vrienden wonen. Ik bak overal, jij hoeft nergens te wennen.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": false,
-     "rec": "lines",
+     "textOnly": true,
      "voice": "Anita"
     },
     {
