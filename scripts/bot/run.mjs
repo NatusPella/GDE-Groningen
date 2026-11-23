@@ -22,7 +22,8 @@
 //        --weer=regenbui|onweer|mist, --scherm=<B>x<H> (venstergrootte), --invoer=controller (prompts), --chaos=<sterf|voertuig-uit|gebied-uit|save-load|snelreis>:<s>, --flikker=<n> (a/b/c-beelden bij stilstand)
 //   --stage-vehicle=<naam>   kies bij een board-stage dat voertuig (quad, limo, frituur) in plaats van de dichtstbijzijnde
 //   node scripts/bot/run.mjs --replay=<events.jsonl> [--out=<map>]   (invoer terugspelen)
-// GDE_ELECTRON_FLAGS="--no-sandbox --in-process-gpu" geeft extra Electron-vlaggen mee (nodig na een pc-herstart).
+// GDE_ELECTRON_FLAGS="--in-process-gpu" geeft extra Electron-vlaggen mee. Sinds 23-11 start Electron via scripts/lib/electronrunner.cjs
+// (slot in ~/gde-locks, --no-sandbox, TEMP in de uitvoermap, runner.log met hartslag); --slot neemt het slot zelf zoals vroeger.
 // ELECTRON_EXE=<pad> als desktop/node_modules/electron/dist ontbreekt. Vereist
 // `cd desktop && npm run stage` (game/world; stage opnieuw na elke wijziging aan game/js, de app draait de gestagede kopie). Geen netwerkpoorten: de pagina wordt
 // aangestuurd via --perf-script (executeJavaScript) en de uitvoer loopt via
@@ -42,7 +43,7 @@ const ROOT = path.resolve(HERE, '..', '..');
 const arg = (k, d) => { const a = process.argv.find((v) => v.startsWith(`--${k}=`)); return a ? a.slice(k.length + 3) : d; };
 const flag = (k) => process.argv.includes(`--${k}`);
 const stamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
-const OUT = path.resolve(arg('out', path.join(os.tmpdir(), 'gde-spelbot', stamp)));
+const OUT = path.resolve(arg('out', path.join(ROOT, '.tmp-qa', 'spelbot', stamp))); // binnen de worktree: de runner weigert de systeem-temp
 const L = await import(pathToFileURL(path.join(ROOT, 'game', 'js', 'botlogic.js')).href);
 
 // #186: `--mode=cheatsweep` is code-only: geen Electron, geen stage. Het print het sweep-plan per missie
@@ -91,7 +92,7 @@ if (arg('report')) {
 }
 
 // één Electron-instantie tegelijk (AGENTS.md)
-if (!flag('force') && !flag('slot') && process.platform === 'win32') {
+if (flag('oude-check') && !flag('force') && !flag('slot') && process.platform === 'win32') { // vervangen door het slot van de runner (23-11)
   const t = spawnSync('tasklist', ['/FI', 'IMAGENAME eq electron.exe', '/FO', 'CSV', '/NH'], { encoding: 'utf8' });
   if (/electron\.exe/i.test(t.stdout || '')) { console.error('Er draait al een Electron-instantie; de bot wacht niet. Sluit hem of gebruik --force.'); process.exit(3); }
 }
@@ -183,13 +184,24 @@ delete env.ELECTRON_RUN_AS_NODE;
 const t0 = Date.now();
 // uitvoer rechtstreeks naar run.log: wordt de run afgebroken (time-out, kill, de testrun zelf onderbroken), dan blijven de details staan (#255)
 // op een overvolle machine start het spel soms niet binnen de tijd ('Failed to fetch dynamically imported module': de pagina was er nog niet): dan één keer opnieuw
+// 23-11: Electron start via de veilige runner (scripts/lib/electronrunner.cjs): een slot in ~/gde-locks (tenzij --slot er al een nam),
+// altijd --no-sandbox, TEMP in de uitvoermap, een logboek met hartslag (runner.log), en bij een time-out stopt alleen het eigen kind.
+const R = (await import(pathToFileURL(path.join(ROOT, 'scripts', 'lib', 'electronrunner.cjs')).href)).default;
+const rdirs = R.prepareRunDir(OUT);
+const rlog = R.makeLog(OUT, 'runner.log', { echo: false });
+const electronExe = fs.existsSync(electron) ? electron : R.findElectron(ROOT);
+const botArgs = ['.', ...(process.env.GDE_ELECTRON_FLAGS ? process.env.GDE_ELECTRON_FLAGS.split(' ').filter(Boolean) : []), '--windowed', '--stil', '--force-device-scale-factor=1', `--window-size=${/^\d{3,4}x\d{3,4}$/.test(arg('scherm', '')) ? arg('scherm') : '1280x720'}`, '--disable-renderer-backgrounding', '--disable-backgrounding-occluded-windows', '--disable-features=CalculateNativeWinOcclusion', `--autoplay=${seed}`, ...(flag('audio') ? ['--audio-graph'] : []), ...(flag('reizen') ? ['--reizen'] : []),
+  `--smoke-test=${path.join(OUT, 'shots.png')}`, `--perf-script=${script}`, `--bot-events=${events}`];
 let r;
 for (let poging = 1; poging <= 2; poging++) {
-  const logFd = fs.openSync(path.join(OUT, 'run.log'), 'w');
-  r = spawnSync(electron, ['.', ...(process.env.GDE_ELECTRON_FLAGS ? process.env.GDE_ELECTRON_FLAGS.split(' ').filter(Boolean) : []), '--windowed', '--stil', '--force-device-scale-factor=1', `--window-size=${/^\d{3,4}x\d{3,4}$/.test(arg('scherm', '')) ? arg('scherm') : '1280x720'}`, '--disable-renderer-backgrounding', '--disable-backgrounding-occluded-windows', '--disable-features=CalculateNativeWinOcclusion', `--autoplay=${seed}`, ...(flag('audio') ? ['--audio-graph'] : []), ...(flag('reizen') ? ['--reizen'] : []),
-    `--smoke-test=${path.join(OUT, 'shots.png')}`, `--perf-script=${script}`, `--bot-events=${events}`],
-  { cwd: path.join(ROOT, 'desktop'), env, stdio: ['ignore', logFd, logFd], timeout: (cfg.maxWallS + 240) * 1000, killSignal: 'SIGKILL' });
-  fs.closeSync(logFd);
+  fs.rmSync(path.join(OUT, 'electron.log'), { force: true });
+  let res;
+  try {
+    res = await R.runElectron({ electron: electronExe, args: botArgs, cwd: path.join(ROOT, 'desktop'), env: R.electronEnv({ base: env, tmp: rdirs.tmp }), out: OUT, log: rlog, slot: slot ? null : { label: 'spelbot', maxOthers: 2 }, timeoutMin: (cfg.maxWallS + 240) / 60 });
+  } catch (e) { res = { code: null, signal: null, timedOut: false, fout: e }; }
+  if (fs.existsSync(path.join(OUT, 'electron.log'))) fs.copyFileSync(path.join(OUT, 'electron.log'), path.join(OUT, 'run.log'));
+  else fs.writeFileSync(path.join(OUT, 'run.log'), res.fout ? String(res.fout.message || res.fout) : '');
+  r = { status: res.code, signal: res.signal, error: res.timedOut ? { code: 'ETIMEDOUT' } : res.fout ? { code: res.fout.code || 'START', message: res.fout.message } : null };
   const boot = fs.readFileSync(path.join(OUT, 'run.log'), 'utf8');
   if (poging === 1 && /Failed to fetch dynamically imported module/.test(boot) && !/\[perf-script\]/.test(boot)) {
     console.error('het spel startte niet (overvolle machine?): nog een poging');
@@ -199,6 +211,7 @@ for (let poging = 1; poging <= 2; poging++) {
   }
   break;
 }
+R.removeProfile(rdirs.profile);
 if (r.error && r.error.code !== 'ETIMEDOUT') console.error('Electron starten mislukt (niet geïnstalleerd? zet ELECTRON_EXE):', r.error.message);
 r.stdout = fs.readFileSync(path.join(OUT, 'run.log'), 'utf8');
 fs.rmSync(profile, { recursive: true, force: true });
