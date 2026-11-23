@@ -74,6 +74,15 @@ export class Quaternion {
   setFromUnitVectors(a, b) { let r = a.dot(b) + 1; const v = new Vector3(); if (r < 1e-6) { r = 0; if (Math.abs(a.x) > Math.abs(a.z)) v.set(-a.y, a.x, 0); else v.set(0, -a.z, a.y); } else v.crossVectors(a, b); this.x = v.x; this.y = v.y; this.z = v.z; this.w = r; const l = Math.hypot(this.x, this.y, this.z, this.w) || 1; this.x /= l; this.y /= l; this.z /= l; this.w /= l; return this; }
   normalize() { return this; }
   slerp() { return this; }
+  invert() { this.x = -this.x; this.y = -this.y; this.z = -this.z; return this; }   // conjugaat, zoals three (eenheidsquaternion)
+  setFromRotationMatrix(m) {   // zoals three: m is een zuivere rotatie
+    const e = m.elements, m11 = e[0], m12 = e[4], m13 = e[8], m21 = e[1], m22 = e[5], m23 = e[9], m31 = e[2], m32 = e[6], m33 = e[10], t = m11 + m22 + m33;
+    if (t > 0) { const s = 0.5 / Math.sqrt(t + 1); this.w = 0.25 / s; this.x = (m32 - m23) * s; this.y = (m13 - m31) * s; this.z = (m21 - m12) * s; }
+    else if (m11 > m22 && m11 > m33) { const s = 2 * Math.sqrt(1 + m11 - m22 - m33); this.w = (m32 - m23) / s; this.x = 0.25 * s; this.y = (m12 + m21) / s; this.z = (m13 + m31) / s; }
+    else if (m22 > m33) { const s = 2 * Math.sqrt(1 + m22 - m11 - m33); this.w = (m13 - m31) / s; this.x = (m12 + m21) / s; this.y = 0.25 * s; this.z = (m23 + m32) / s; }
+    else { const s = 2 * Math.sqrt(1 + m33 - m11 - m22); this.w = (m21 - m12) / s; this.x = (m13 + m31) / s; this.y = (m23 + m32) / s; this.z = 0.25 * s; }
+    return this;
+  }
 }
 export class Matrix4 {
   constructor() { this.elements = [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]; }
@@ -86,6 +95,7 @@ export class Matrix4 {
     e[0] = (1 - (yy + zz)) * s.x; e[1] = (xy + wz) * s.x; e[2] = (xz - wy) * s.x; e[3] = 0; e[4] = (xy - wz) * s.y; e[5] = (1 - (xx + zz)) * s.y; e[6] = (yz + wx) * s.y; e[7] = 0;
     e[8] = (xz + wy) * s.z; e[9] = (yz - wx) * s.z; e[10] = (1 - (xx + yy)) * s.z; e[11] = 0; e[12] = p.x; e[13] = p.y; e[14] = p.z; e[15] = 1; return this;
   }
+  makeBasis(x, y, z) { return this.set(x.x, y.x, z.x, 0, x.y, y.y, z.y, 0, x.z, y.z, z.z, 0, 0, 0, 0, 1); }   // de assen als kolommen, zoals three
   makeTranslation(x, y, z) { this.identity(); this.elements[12] = x; this.elements[13] = y; this.elements[14] = z; return this; }
   makeScale(x, y, z) { this.identity(); this.elements[0] = x; this.elements[5] = y; this.elements[10] = z; return this; }
   makeRotationX(a) { const c = Math.cos(a), s = Math.sin(a); return this.set(1, 0, 0, 0, 0, c, -s, 0, 0, s, c, 0, 0, 0, 0, 1); }
