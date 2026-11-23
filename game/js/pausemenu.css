@@ -1009,7 +1009,7 @@ html.touch-device #pause-menu .sp-tabkey { display: none; }
 .coop-profiel-label, .coop-wachtwoord-label { display: flex; gap: 8px; align-items: center; }
 .coop-profiel-naam { min-width: 0; flex: 1; max-width: 260px; }
 .coop-kleuren { display: flex; flex-wrap: wrap; gap: 6px; }
-.coop-kleuren .coop-kleur { min-height: 44px; }
+.coop-kleuren .coop-kleur { min-height: 44px; min-width: 44px; padding-inline: var(--ds-s-2); } /* #1223: een stip, geen naam */
 .coop-profiel-hint { margin: 0; }
 .coop-wachtwoord-veld .coop-wachtwoord-label { max-width: 560px; } /* #1011: het veld mag naar een eigen regel, anders kapte de plaatshouder af */
 .coop-wachtwoord { min-width: 13em; flex: 1 1 16em; text-overflow: ellipsis; }
