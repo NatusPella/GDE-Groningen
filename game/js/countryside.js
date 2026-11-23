@@ -7,7 +7,7 @@ import {
   chash, countryWeight, countryRect, edgeDistance, countryFiction, parcelAt, parcelUse, blockToWorld, edgeRoad, villageOf,
 } from './countryfield.js';
 import { SkinBuilder, vcMaterial, tubeGeometry, loftGeometry, markShared, composeMatrix } from './pixelart3d.js';
-import { buildCowMesh3D, buildSheepMesh3D, sheepVariantOf, buildDuckMesh3D, animateWildlifeMesh3D, runOverAnimal, poseDeadAnimal, zetBlik } from './wildlife.js';
+import { buildCowMesh3D, buildSheepMesh3D, sheepVariantOf, buildDuckMesh3D, buildGooseMesh3D, animateWildlifeMesh3D, runOverAnimal, poseDeadAnimal, zetBlik } from './wildlife.js';
 import { distToVehicleBody } from './vehicle.js';
 import * as M3 from './countrymodels.js';
 import {
@@ -188,23 +188,12 @@ function animalKey(a) {
   return a.kind;
 }
 
-const GOOSE_LEG = new THREE.MeshStandardMaterial({ color: 0xd9803a, roughness: 0.8, flatShading: true });
-const GOOSE_LEG_GEO = new THREE.BoxGeometry(0.02, 0.1, 0.02).translate(0, -0.05, 0);
-
 function buildAnimalMesh(a) {
   switch (a.kind) {
     case 'cow': return buildCowMesh3D(a.bobSeed, a.variant === 'red');
     case 'sheep': return buildSheepMesh3D(sheepVariantOf(a.bobSeed));
     case 'horse': return buildHorseMesh(a.variant);
-    case 'goose': {
-      const g = buildDuckMesh3D('goose');
-      for (const s of [1, -1]) {
-        const leg = new THREE.Mesh(GOOSE_LEG_GEO, GOOSE_LEG);
-        leg.position.set(0, 0.0, s * 0.03);
-        g.add(leg);
-      }
-      return g;
-    }
+    case 'goose': return buildGooseMesh3D();   // one skinned mesh with legs and wings (wildlife.js)
     default: return buildDuckMesh3D(chash(Math.floor(a.bobSeed * 1e5), 1) < 0.5 ? 'drake' : 'hen');
   }
 }
@@ -979,7 +968,7 @@ function simAnimal(a, dt, th, time, world) {
     S.animalDirty = true;
     return;
   }
-  if (a.kind !== 'duck' && a.kind !== 'goose') zetBlik(a, th.v ? null : th, 12);   // de kop volgt wie er aankomt
+  if (a.kind !== 'duck') zetBlik(a, th.v ? null : th, 12);   // de kop volgt wie er aankomt
   const scareR = th.rel ? K.scare * th.r : th.r * (a.kind === 'cow' ? 0.8 : 1);
   if (d < scareR && a.flee <= 0.5) {
     a.flee = 2.5 + Math.random() * 2;
@@ -1049,17 +1038,6 @@ function lerpAngle(a, b, t) {
   return a + d * t;
 }
 
-function animateGoose(mesh, a, time) {
-  const b = mesh.userData.bones;
-  const moving = a.speed > 0.05;
-  const s = a.stride * (a.speed > 1 ? 9 : 14);
-  mesh.position.y = 0.2 + (moving ? Math.abs(Math.sin(s)) * 0.015 : 0);
-  const graze = moving ? 0 : Math.max(0, Math.sin(time * 0.7 + a.bobSeed * 9)) ** 0.5;
-  b.body.rotation.set(moving ? Math.sin(s) * 0.08 : 0, 0, -0.1 - graze * 0.35);
-  b.head.rotation.set(0, moving ? 0 : Math.sin(time * 0.5 + a.bobSeed * 4) * 0.4, -graze * 0.9 + (graze > 0.5 ? Math.sin(time * 7) * 0.08 : 0));
-  b.tail.rotation.set(0, Math.sin(time * 3 + a.bobSeed) * 0.15, 0);
-}
-
 function updateAnimals(dt, world, time, simulate) {
   const p = hoofdspeler(world);
   const th = threatOf(world);
@@ -1092,7 +1070,6 @@ function updateAnimals(dt, world, time, simulate) {
     mesh.rotation.x = 0;
     mesh.userData.ver = a._d2 > 45 * 45;   // ver weg alleen stap en grazen (animateGrazer)
     if (a.dead) poseDeadAnimal(mesh, a);
-    else if (a.kind === 'goose') animateGoose(mesh, a, time);
     else if (a.kind === 'duck') {
       animateWildlifeMesh3D(mesh, a, time);
       mesh.position.y = -0.06 + Math.sin(time * 1.7 + a.bobSeed * 6) * 0.008;

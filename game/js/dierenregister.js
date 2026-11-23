@@ -48,7 +48,7 @@ export const DIEREN = [
   },
   {
     id: 'gans', naam: 'Gans', soort: 'vee', kind: 'gans', alias: ['goose'], plan: 'gans', biotoop: ['weide'], uren: [5, 22],
-    model: { module: 'wildlife', fn: 'buildDuckMesh3D', args: ['goose'] },
+    model: { module: 'wildlife', fn: 'buildGooseMesh3D', args: [] },
     boek: 'Grazende kudde. Ze vinden zichzelf eigenlijk de baas van het weiland.',
     kopen: { prijs: 60, houden: 'erf' }, cutscene: null,
     upgrades: [{ id: 'verzorgen', label: 'Verzorgen', prijs: 8, effect: 'Een waakzame gans' }],

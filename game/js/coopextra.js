@@ -86,7 +86,9 @@ function dierVar(a) {
 // of op een dak zit (#428). Zo gaat de echte hoogte mee zonder het record te verlengen: een oudere gast leest hem als 0.
 // De reiger vliegt er ook vandoor (wildlife.js updateReiger, tot 8 m): zonder zijn hoogte zette de gast hem op de grond.
 export const VOGEL_HOOGTE = new Set(['seagull', 'pigeon', 'reiger']);
-function dierAux(a) { return a.kind === 'dog' ? u8((Number.isFinite(a.color) ? a.color : 0) * 255) : VOGEL_HOOGTE.has(a.kind) ? u8((Number(a.z) || 0) * 10) : 0; }
+// The seal: 1 = lying on the shore, 2 = crawling to the water (else in the water); an older guest reads 0 and keeps it in the water.
+export const SEAL_STATES = ['rust', 'kant', 'naarWater'];
+function dierAux(a) { if (a.kind === 'zeehond') return Math.max(0, SEAL_STATES.indexOf(a.state)); return a.kind === 'dog' ? u8((Number.isFinite(a.color) ? a.color : 0) * 255) : VOGEL_HOOGTE.has(a.kind) ? u8((Number(a.z) || 0) * 10) : 0; }
 
 // ----------------------------------------------------------- de host: verzamelen en coderen
 export const nieuwGeheugen = () => ({ looks: new Map(), kapotHash: '', kapotAt: -99, n: 0 });

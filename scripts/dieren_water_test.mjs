@@ -39,6 +39,26 @@ for (const kind of ['reiger', 'zeehond', 'vis']) {
   for (let i = 0; i < 40; i++) W.updateWildlife(0.1, w);
   check('zeehond is na het duiken weg', a.gone === true);
 }
+// zeehond op de kant: blijft liggen tot er iets aankomt, kruipt dan naar het water en duikt daar; de animatie houdt hem op de grond
+{
+  const smal = { pts: [[-50, -50], [0, -50], [0, 50], [-50, 50]] };   // water links van x = 0, de kant rechts
+  const w = world(30, 0);
+  const a = { kind: 'zeehond', x: 2, y: 0, angle: 0, speed: 0, state: 'kant', bobSeed: 0, poly: smal, wanderTarget: { x: -2, y: 0 }, waypointTimer: 0 };
+  w.wildlife.push(a);
+  W.updateWildlife(0.1, w);
+  check('zeehond op de kant blijft liggen als niemand in de buurt is', a.state === 'kant' && a.speed === 0);
+  const mesh = W.buildWildlifeMesh3D(a);
+  for (const st of ['kant', 'naarWater']) {
+    W.animateWildlifeMesh3D(mesh, { ...a, state: st, stride: 0.7 }, 3.3);
+    check(`zeehond ${st}: ligt op de grond, niet in het water`, mesh.position.y > 0 && mesh.position.y < 0.2, String(mesh.position.y));
+  }
+  w.player.inVehicle = { speed: 8 };
+  w.player.x = 12;
+  W.updateWildlife(0.1, w);
+  check('zeehond op de kant kruipt naar het water bij schrik', a.state === 'naarWater');
+  for (let i = 0; i < 60 && a.state === 'naarWater'; i++) W.updateWildlife(0.1, w);
+  check('zeehond duikt zodra hij in het water is', a.state === 'duik' && a.x <= 0.6, `${a.state} ${a.x.toFixed(2)}`);
+}
 // vis schiet weg en blijft in het water
 {
   const w = world(0, 0);
