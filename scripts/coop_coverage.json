@@ -1911,6 +1911,10 @@
    "reden": "Alleen beeld: elke client bouwt zijn eigen decor."
   },
   {
+   "glob": "facadefront",
+   "reden": "Alleen beeld (AI-tells beeld 23-11): de voorgevel van winkelpanden (deur, pui, markies); elke client bouwt zijn eigen gevels."
+  },
+  {
    "glob": "propregister",
    "reden": "Alleen beeld (objecten 23-11): het register van propmodellen voor wereld en cutscenes; elke client bouwt zijn eigen props."
   },
