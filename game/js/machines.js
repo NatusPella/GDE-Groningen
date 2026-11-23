@@ -128,11 +128,18 @@ export function terugOfVerkoop(bd, uid) {
 export const verkoopWaarde = (m) => (m.bezit === 'gehuurd' ? 0 : Math.round((catalogus(m).koop * VERKOOP_MACHINE * (1 - 0.4 * clamp(m.slijtage / 100, 0, 1))) / 5) * 5);
 
 // De huur loopt per speldag. Genoeg geld betaalt de dag; anders staat hij open (achterstand); bij MAX_ACHTERSTAND gaat de machine terug. Geeft de uitgave en de gebeurtenissen.
+const GEEN_MACHINEHUUR = Object.freeze({ uitgave: 0, events: Object.freeze([]) });   // niets verschuldigd: geen nieuwe objecten per beeld
 export function verwerkMachineHuur(bd, nu, geld = Infinity) {
-  const events = [];
+  let events = null;
   let uitgave = 0, over = geld;
-  for (const m of alle(bd)) {
-    if (m.bezit !== 'gehuurd') continue;
+  const park = bd.machinepark;
+  for (let lijst = 0; lijst < 2; lijst++) {
+    const rij = lijst ? park.werktuigen : park.machines;
+    // weg() maakt een nieuwe rij (filter): de rij hier blijft heel, zoals de kopie van alle() eerder
+    for (let i = 0; i < rij.length; i++) {
+    const m = rij[i];
+    if (m.bezit !== 'gehuurd' || nu < m.volgende) continue;
+    if (!events) events = [];
     const c = catalogus(m);
     let n = 0;
     while (nu >= m.volgende && n++ < 60) {
@@ -144,8 +151,9 @@ export function verwerkMachineHuur(bd, nu, geld = Infinity) {
       }
       m.volgende += DAG_UREN;
     }
+    }
   }
-  return { uitgave, events };
+  return events ? { uitgave, events } : GEEN_MACHINEHUUR;
 }
 
 export const huurPerDagMachines = (bd) => alle(bd).filter((m) => m.bezit === 'gehuurd').reduce((s, m) => s + catalogus(m).huurDag, 0);
