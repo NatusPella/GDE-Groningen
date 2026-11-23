@@ -16,7 +16,7 @@ const matCache = new Map();
 const panelGeo = (w, h) => {
   const key = w.toFixed(2) + 'x' + h.toFixed(2);
   let g = geoCache.get(key);
-  if (!g) { g = markShared(new THREE.BoxGeometry(w, h, 0.035)); geoCache.set(key, g); }
+  if (!g) { g = markShared(new THREE.BoxGeometry(w, h, 0.05)); geoCache.set(key, g); }
   return g;
 };
 const boxGeo = (x, y, z) => {
@@ -25,6 +25,39 @@ const boxGeo = (x, y, z) => {
   if (!g) { g = markShared(new THREE.BoxGeometry(x, y, z)); geoCache.set(key, g); }
   return g;
 };
+// Het onderste, dichte deel van een hoge deur (cabine van vrachtwagen of trekker): paneel in lak, de ruit erboven is een apart blok.
+const lowerGeo = (w, h) => {
+  const key = 'l' + w.toFixed(2) + 'x' + h.toFixed(2);
+  let g = geoCache.get(key);
+  if (!g) { g = markShared(new THREE.BoxGeometry(w, h, 0.05)); geoCache.set(key, g); }
+  return g;
+};
+// Wat je door een open portier ziet bij een voertuig zonder echte cabine (cabin3d.js): geen zwart vlak maar een kijkje in het
+// interieur, met een drempel, een zitting en een rugleuning in vertexkleuren. Eén gedeelde geometrie per maat en kant (zij).
+const INTERIEUR_MAT = (() => { const m = new THREE.MeshBasicMaterial({ vertexColors: true, side: THREE.DoubleSide }); m.userData.shared = true; return m; })();
+const interieurGeo = (w, h, side) => {
+  const key = 'i' + w.toFixed(2) + 'x' + h.toFixed(2) + side;
+  let g = geoCache.get(key);
+  if (g) return g;
+  const pos = [], col = [];
+  const c = new THREE.Color();
+  const quad = (x0, y0, x1, y1, z, hex) => {
+    c.setHex(hex);
+    for (const [x, y] of [[x0, y0], [x1, y0], [x1, y1], [x0, y0], [x1, y1], [x0, y1]]) { pos.push(x, y, z * side); col.push(c.r, c.g, c.b); }
+  };
+  const hw2 = w / 2, hh = h / 2, e = 0.0006;
+  quad(-hw2, -hh, hw2, hh, 0, 0x1c1e23);                                          // donkere ruimte
+  quad(-hw2, -hh, hw2, -hh + h * 0.12, e, 0x6a6d74);                              // de drempel
+  quad(-hw2 * 0.15, -hh + h * 0.12, hw2 * 0.85, -hh + h * 0.42, 2 * e, 0x4d515c); // de zitting
+  quad(hw2 * 0.5, -hh + h * 0.42, hw2 * 0.9, hh * 0.85, 3 * e, 0x5b606c);         // de rugleuning
+  quad(-hw2, hh - h * 0.1, hw2, hh, e, 0x30333a);                                 // de dakrand
+  g = markShared(new THREE.BufferGeometry());
+  g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+  g.setAttribute('color', new THREE.Float32BufferAttribute(col, 3));
+  geoCache.set(key, g);
+  return g;
+};
+const LINER_HEX = 0x2a2c30;
 const panelMat = (hex, glas) => {
   const key = hex + (glas ? 'g' : '');
   let m = matCache.get(key);
@@ -82,6 +115,7 @@ function buildRig(mesh, v, defs) {
   const paint = paintOf(v);
   for (const d of defs) {
     const cx = d.x * len;
+    const hwD = d.zij ? d.zij * v.model.wid : hw; // smalle cabine of limousine: de deur zit op zijn eigen zijkant (d.zij)
     const pivot = new THREE.Group();
     let panel, hole, baseX, baseZ = 0;
     if (d.soort === 'kap' || d.soort === 'klep') {
@@ -105,12 +139,28 @@ function buildRig(mesh, v, defs) {
     } else {
       const glas = d.h > 1.05;
       baseX = d.soort === 'scharnier' ? cx + d.w / 2 : d.soort === 'achterscharnier' ? cx - d.w / 2 : cx;
-      baseZ = d.side * (hw + 0.02);
+      baseZ = d.side * (hwD + 0.02);
       pivot.position.set(baseX, d.y0 + d.h / 2, baseZ);
-      panel = new THREE.Mesh(panelGeo(d.w, d.h), panelMat(paint, glas));
+      if (glas && d.soort !== 'schuif') {
+        // hoge cabinedeur: een dicht onderpaneel in lak en erboven de ruit, samen één deur die om de scharnier draait
+        const hl2 = d.h * 0.42;
+        panel = new THREE.Mesh(lowerGeo(d.w, hl2), panelMat(paint, false));
+        panel.position.y = -d.h / 2 + hl2 / 2;
+        const ruit = new THREE.Mesh(panelGeo(d.w, d.h - hl2), panelMat(paint, true));
+        ruit.position.y = d.h / 2; // het onderpaneel zit op -h/2 + hl2/2, de ruit erboven
+        panel.add(ruit);
+      } else {
+        panel = new THREE.Mesh(panelGeo(d.w, d.h), panelMat(paint, glas));
+      }
+      if (d.soort !== 'schuif') {
+        // de binnenkant van het deurblad: een donker bekleding met een armleuning, zichtbaar als de deur open staat
+        const liner = new THREE.Mesh(panelGeo(d.w * 0.88, Math.min(d.h, 0.62) * 0.8), panelMat(LINER_HEX, false));
+        liner.position.set(0, -d.h / 2 + Math.min(d.h, 0.62) * 0.5 - panel.position.y, -d.side * 0.03);
+        panel.add(liner);
+      }
       panel.position.x = d.soort === 'scharnier' ? -d.w / 2 : d.soort === 'achterscharnier' ? d.w / 2 : 0;
       const cabine = !v.isBus && (d.soort === 'scharnier' || d.soort === 'achterscharnier') && wantsCabin(v);
-      hole = new THREE.Mesh(panelGeo(d.w * 0.92, d.h * 0.92), v.isBus ? BUS_HOLE_MAT : cabine ? CABIN_HOLE_MAT : HOLE_MAT);
+      hole = new THREE.Mesh(v.isBus || cabine ? panelGeo(d.w * 0.92, d.h * 0.92) : interieurGeo(d.w * 0.94, d.h * 0.94, d.side), v.isBus ? BUS_HOLE_MAT : cabine ? CABIN_HOLE_MAT : INTERIEUR_MAT);
       if (cabine) {
         hole.renderOrder = 10;
         // de merkplaat: hetzelfde vlak, een stap eerder (renderOrder 9), volgt de zichtbaarheid van de opening
@@ -121,7 +171,7 @@ function buildRig(mesh, v, defs) {
         hole.userData.merk = merk;
       }
       // schuifdeuren (bus): het deurblad zit al in het model op hw+0.014, de opening moet daar vóór liggen
-      hole.position.set(cx, d.y0 + d.h / 2, d.side * (hw + (d.soort === 'schuif' ? 0.02 : 0.006)));
+      hole.position.set(cx, d.y0 + d.h / 2, d.side * (hwD + (d.soort === 'schuif' ? 0.02 : 0.006)));
       if (hole.userData.merk) hole.userData.merk.position.copy(hole.position);
     }
     pivot.add(panel);
