@@ -9,6 +9,7 @@
 import { readFileSync, readdirSync } from 'node:fs';
 import { PROP_KINDS } from '../game/js/cutscript.js';
 import { PROP_SOURCES, DECOR_KINDS, PLACEHOLDER_KINDS, PROP_NORM } from '../game/js/cutscenemodels.js';
+import { CUTSCENE_PROPS } from '../game/js/propregister.js';
 
 const JS = new URL('../game/js/', import.meta.url);
 const src = (f) => readFileSync(new URL(f, JS), 'utf8');
@@ -34,7 +35,8 @@ export function scan() {
 export function audit() {
   const problems = [];
   const decorSrc = src('storyprops.js');
-  const makers = [...decorSrc.matchAll(/^ {2}([a-z]+): (?:\(\) =>|function)/gm)].map((m) => m[1]);
+  // de bouwers in storyprops.js, plus het straatmeubilair uit het propregister (objecten 23-11: DECOR_MAKERS spreidt CUTSCENE_PROPS)
+  const makers = [...[...decorSrc.matchAll(/^ {2}([a-z]+): (?:\(\) =>|function)/gm)].map((m) => m[1]), ...CUTSCENE_PROPS];
   const budgetKeys = [...(decorSrc.match(/export const DECOR_BUDGET = \{([\s\S]*?)\n\};/) || [, ''])[1].matchAll(/^ {2}([a-z]+):/gm)].map((m) => m[1]);
   for (const k of PROP_KINDS) {
     const reg = PROP_SOURCES[k] ? 'wereld' : DECOR_KINDS.includes(k) || PLACEHOLDER_KINDS.includes(k) ? 'bibliotheek' : null; // een placeholder valt in de validatie (propKindIssue)
