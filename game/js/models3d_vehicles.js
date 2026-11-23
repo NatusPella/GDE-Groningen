@@ -682,14 +682,37 @@ function addPropGeo(B, geo, m) {
     B._push(0, pts[0], pts[1], pts[2], [c.getX(i), c.getY(i), c.getZ(i)], null);
   }
 }
-function addInterieur(B, { xA, xD, belt, vloerY, vloerW, stoelY, sx, zs, dashW }) {
-  B.box((xA + xD) / 2, vloerY, 0, xA - xD - 0.2, 0.02, vloerW, 0x45474c);
+// ruimte(x0, x1, y0, y1): de halve binnenbreedte die over dat hele stuk vrij is (de smalste plek van de flank, min een marge); zonder
+// ruimte-functie gelden de vaste maten (zs, dashW). Elke stoel schuift dan naar binnen en het dashboard wordt smaller waar de romp
+// inloopt (wielkast, A-stijl, voorruit), zodat geen interieurdeel door de carrosserie steekt.
+function addInterieur(B, { xA, xD, belt, vloerY, vloerW, stoelY, sx, zs, dashW, ruimte = null }) {
+  const vw = ruimte ? Math.min(vloerW, 2 * ruimte(xD + 0.1, xA - 0.1, vloerY - 0.01, vloerY + 0.01)) : vloerW;
+  B.box((xA + xD) / 2, vloerY, 0, xA - xD - 0.2, 0.02, vw, 0x45474c);
   const stoel = propGeometry('autostoel'), dash = propGeometry('dashboard');
+  if (!stoel.boundingBox) stoel.computeBoundingBox();
+  if (!dash.boundingBox) dash.computeBoundingBox();
+  const sb = stoel.boundingBox, db = dash.boundingBox, sHalf = Math.max(-sb.min.z, sb.max.z);
+  // de achterbank staat iets verder naar voren dan bij de procedurele auto: daar lopen het dak en de achterruit al in
+  let ax = ruimte ? sx - 0.78 : sx - 0.85, ay = stoelY;
+  // past de hoofdsteun niet onder de achterruit (de flank houdt daar op), dan schuift de bank naar voren
+  if (ruimte) for (let i = 0; i < 12 && ruimte(ax + sb.min.x, ax + sb.min.x + 0.12, ay + sb.max.y - 0.14, ay + sb.max.y) < zs * 0.92 + 0.14; i++) ax += 0.03;
+  const stoelZ = (x, y, z) => {
+    if (!ruimte) return z;
+    const vrij = ruimte(x + sb.min.x, x + sb.max.x, y + sb.min.y, y + sb.max.y) - sHalf;
+    return Math.sign(z) * Math.max(sHalf + 0.01, Math.min(Math.abs(z), vrij));
+  };
   for (const z of [-zs, zs]) {
-    addPropGeo(B, stoel, composeMatrix(sx, stoelY, z));
-    addPropGeo(B, stoel, composeMatrix(sx - 0.85, stoelY, z * 0.92));
+    addPropGeo(B, stoel, composeMatrix(sx, stoelY, stoelZ(sx, stoelY, z)));
+    addPropGeo(B, stoel, composeMatrix(ax, ay, stoelZ(ax, ay, z * 0.92)));
   }
-  addPropGeo(B, dash, composeMatrix(xA - 0.2, belt - 0.5, 0, 0, 0, 0, 1, 1, Math.min(1, dashW / 1.42)));
+  // het dashboard staat achter de onderrand van de voorruit: schuift naar achteren tot de romp minstens 85 % van zijn breedte vrij laat
+  // (de voorruit en de A-stijlen lopen naar voren in), en wordt dan smal genoeg gemaakt dat het nergens door de flank steekt
+  let dx = xA - 0.26;
+  const dy = belt - 0.5, dHalf = Math.max(-db.min.z, db.max.z);
+  const dashVrij = (x) => ruimte(x + db.min.x, x + db.max.x, dy + db.min.y, dy + db.max.y);
+  if (ruimte) for (let i = 0; i < 12 && dashVrij(dx) < dHalf * 0.85; i++) dx -= 0.03;
+  const dz = ruimte ? Math.max(0.5, Math.min(1, dashVrij(dx) / dHalf)) : Math.min(1, dashW / 1.42);
+  addPropGeo(B, dash, composeMatrix(dx, dy, 0, 0, 0, 0, 1, 1, dz));
 }
 
 // De echte deuropeningen (eis eigenaar 23-11): de dichte deuren als één statische mesh in het gat (buitenkant in lak, binnenkant
@@ -994,7 +1017,7 @@ export function hybridFit(key, L, W) {
   }).userData.fit;
 }
 function hybridBody(key, L, W, paint, doorName, police) {
-  return cached(`hybride3|${key}|${L}|${W}|${paint}|${doorName}|${police}`, () => {
+  return cached(`hybride4|${key}|${L}|${W}|${paint}|${doorName}|${police}`, () => {
     const hl = L / 2, hw = W / 2;
     const tris = hybridTris(key, L, W);
     const fit = hybridFit(key, L, W);
@@ -1003,13 +1026,33 @@ function hybridBody(key, L, W, paint, doorName, police) {
     const lakTris = tris.filter((t) => t.r === 0).map((t) => t.v);
     // de deuren die een echt gat krijgen: hun uitgeknipte stuk romp (met ruit) wordt de deur
     const defs = (DEUR_DEFS_REF[doorName] || []).filter((d) => d.soort === 'scharnier' || d.soort === 'achterscharnier');
-    const vlak = {}, deurZ = {}, rects = {};
+    const vlak = {}, deurZ = {}, rects = {}, deurMaat = {};
+    // de wielkasten: een portier begint achter de voorste wielkast en eindigt vóór de achterste (anders opent de deur een stuk
+    // spatbord en zie je door het gat het wiel met zijn wieldop)
+    const { auto } = hybridData(key), sc = hybridScale(auto, L, W, key), wr = auto.wielen[0].r * sc.sy;
+    const kasten = [...new Set(auto.wielen.map((w) => +(w.x * sc.sx).toFixed(3)))];
     for (const d of defs) {
       const z = hybridSurface(lakTris, d.x * L, d.y0 + d.h / 2, d.side);
       if (z === null) continue;
       deurZ[d.id] = Math.abs(z);
       // bovenkant: de bovenkant van de zijruit boven deze deur plus de raamlijst (niet het dak of de C-stijl: die zitten niet aan de deur)
-      const x0 = d.x * L - d.w / 2, x1 = d.x * L + d.w / 2;
+      let x0 = d.x * L - d.w / 2, x1 = d.x * L + d.w / 2;
+      // de deur schuift weg van de wielkast en houdt zijn breedte, tot op 7 cm van het midden van de stijl naar de buurdeur
+      const buren = defs.filter((q) => q !== d && q.side === d.side);
+      for (const kx of kasten) {
+        if (kx > x1 + wr + 0.04 || kx < x0 - wr - 0.04) continue;
+        if (kx > (x0 + x1) / 2) {
+          x1 = Math.min(x1, kx - wr - 0.04);
+          const achter = buren.filter((q) => q.x < d.x).map((q) => (q.x * L + q.w / 2 + d.x * L - d.w / 2) / 2 + 0.07);
+          x0 = Math.max(x1 - d.w, ...achter, -Infinity) > x0 ? x0 : Math.max(x1 - d.w, ...achter);
+        } else {
+          x0 = Math.max(x0, kx + wr + 0.04);
+          const voor = buren.filter((q) => q.x > d.x).map((q) => (q.x * L - q.w / 2 + d.x * L + d.w / 2) / 2 - 0.07);
+          x1 = Math.min(x0 + d.w, ...voor, Infinity) < x1 ? x1 : Math.min(x0 + d.w, ...voor);
+        }
+      }
+      if (x1 - x0 < 0.6) { x0 = d.x * L - d.w / 2; x1 = d.x * L + d.w / 2; } // te smal: dan de oude maat
+      if (x0 !== d.x * L - d.w / 2 || x1 !== d.x * L + d.w / 2) deurMaat[d.id] = { x: (x0 + x1) / 2 / L, w: x1 - x0 };
       let ruitTop = 0;
       for (const t of tris) if (t.r === 1) { const cx = (t.v[0][0] + t.v[1][0] + t.v[2][0]) / 3, cz = (t.v[0][2] + t.v[1][2] + t.v[2][2]) / 3; if (cx > x0 && cx < x1 && cz * d.side > 0.3) ruitTop = Math.max(ruitTop, ...t.v.map((p) => p[1])); }
       rects[d.id] = [x0, d.y0, x1, Math.min(fit.roof - 0.07, ruitTop ? ruitTop + 0.035 : fit.roof - 0.07)];
@@ -1068,7 +1111,8 @@ function hybridBody(key, L, W, paint, doorName, police) {
       const u = [0, 1, 2].map((k) => t.v[1][k] - t.v[0][k]), w = [0, 1, 2].map((k) => t.v[2][k] - t.v[0][k]);
       const n = [u[1] * w[2] - u[2] * w[1], u[2] * w[0] - u[0] * w[2], u[0] * w[1] - u[1] * w[0]], nl = Math.hypot(...n) || 1;
       const ruitOpzij = t.r !== 1 || (n[2] / nl) * (c[2] < 0 ? -1 : 1) > 0.6; // van de ruiten alleen de zijruit, niet de hoek van de voor- of achterruit
-      const d = (t.r === 2 || t.r === 3 || !ruitOpzij) ? null : defs.find((q) => rects[q.id] && ((n[2] / nl) * q.side > (c[1] > fit.belt ? 0.5 : 0.15) && c[2] * q.side >= deurZ[q.id] * 0.55 || c[1] <= fit.belt && (n[2] / nl) * q.side > -0.3 && c[2] * q.side >= deurZ[q.id] * 0.8)
+      // zwarte sierlijsten op de flank (de raamlijst, met een bovenvlak dat niet opzij kijkt) gaan altijd mee met de deur
+      const d = (t.r === 2 || t.r === 3 || !ruitOpzij) ? null : defs.find((q) => rects[q.id] && ((n[2] / nl) * q.side > (c[1] > fit.belt ? 0.5 : 0.15) && c[2] * q.side >= deurZ[q.id] * 0.55 || (c[1] <= fit.belt && (n[2] / nl) * q.side > -0.3 || t.r === 4) && c[2] * q.side >= deurZ[q.id] * 0.8)
         && Math.max(...t.v.map((p) => p[0])) > rects[q.id][0] && Math.min(...t.v.map((p) => p[0])) < rects[q.id][2] && Math.max(...t.v.map((p) => p[1])) > rects[q.id][1] && Math.min(...t.v.map((p) => p[1])) < rects[q.id][3]);
       if (!d) {
         // een klein deel dat helemaal binnen de contour aan de buitenkant zit maar niet opzij kijkt (een spiegel, een sierrand op de deur):
@@ -1148,6 +1192,7 @@ function hybridBody(key, L, W, paint, doorName, police) {
     geo.userData.parts = { hl, hw, hood: fit.hood, bumperColor: paint, front: { start: f0, end: f1, y: 0.4, x: hl - 0.1 }, rear: { start: f1, end: r1, y: 0.42, x: -hl + 0.1 } };
     geo.userData.deurZ = deurZ;
     geo.userData.gatRects = rects;
+    geo.userData.deurMaat = deurMaat;
     geo.userData.naden = markShared(D.build());
     // de deurbladen: het uitgeknipte stuk romp, met een binnenkant 3,5 cm naar binnen (omgekeerd, in bekleding) en een handvat
     const panelen = {}, decals = {};
@@ -1200,6 +1245,7 @@ function buildHybridCar(v, key, paint) {
   group.userData.deurLen = L;
   group.userData.deurWid = W;
   group.userData.gatRects = geo.userData.gatRects;
+  group.userData.deurMaat = geo.userData.deurMaat; // de deuren die voor de wielkast korter zijn geworden (vehicledoors3d.js)
   // dichte deuren: één statische mesh in de gaten tot er een deur-rig is
   const dm = new THREE.Mesh(geo.userData.deurenDicht, mats);
   dm.name = 'deurenDicht';
@@ -1217,11 +1263,18 @@ function buildHybridCar(v, key, paint) {
   // de breedte van elk interieurdeel volgt de flank op die plek (de romp loopt in naar voren, achteren en boven): niets steekt erdoor
   const flankTris = hybridTris(key, L, W).filter((t) => t.r === 0).map((t) => t.v);
   const binnen = (x, y, marge = 0.1) => { const z = hybridSurface(flankTris, x, y, 1); return Math.max(0.3, 2 * ((z === null ? W / 2 : z) - marge)); };
-  const ig = cached(`hybInterieur3|${key}|${L}|${W}`, () => {
+  const ig = cached(`hybInterieur4|${key}|${L}|${W}`, () => {
     const B = new GeoBuilder(1);
     const sx = -L / 2 * 0.06;
-    addInterieur(B, { xA: fit.xA, xD: fit.xD, belt: fit.belt, vloerY: 0.36, vloerW: Math.min(binnen(fit.xA - 0.3, 0.45), binnen(fit.xD + 0.3, 0.45)),
-      stoelY: 0.24, sx, zs: Math.min(binnen(sx, 0.6) / 2 - 0.26, 0.42), dashW: binnen(fit.xA - 0.2, fit.belt - 0.1, 0.12) });
+    // de smalste plek van de flank (lak en ruit, de romp vóór het knippen) over een stuk, op een rooster van 6 x 6 punten
+    const schil = hybridTris(key, L, W).filter((t) => t.r === 0 || t.r === 1).map((t) => t.v);
+    const ruimte = (x0, x1, y0, y1) => {
+      let m = Infinity;
+      for (let i = 0; i <= 5; i++) for (let j = 0; j <= 5; j++) { const z = hybridSurface(schil, x0 + (x1 - x0) * i / 5, y0 + (y1 - y0) * j / 5, 1); m = Math.min(m, z === null ? 0 : z); }
+      return m - 0.03;
+    };
+    addInterieur(B, { xA: fit.xA, xD: fit.xD, belt: fit.belt, vloerY: 0.36, vloerW: Math.min(binnen(fit.xA - 0.3, 0.45), binnen(fit.xD + 0.3, 0.45)), ruimte,
+      stoelY: 0.33, sx, zs: Math.min(binnen(sx, 0.6) / 2 - 0.26, 0.42), dashW: binnen(fit.xA - 0.2, fit.belt - 0.1, 0.12) });
     return B.build();
   });
   const im = new THREE.Mesh(ig, cabinFallbackMaterial());

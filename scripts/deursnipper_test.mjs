@@ -74,6 +74,41 @@ function losseEilanden(geo, rects, flankZ) {
   }
   return fout;
 }
+// Het interieur (vloer, stoelen, dashboard) blijft binnen de romp: voor elk punt de buitenste flank op dezelfde x en y (romp en dichte
+// deuren samen, een straal langs z van buiten naar binnen); het punt ligt minstens 5 mm binnen die flank. Geen flank daar (boven het
+// dak of voor de neus) telt ook als buiten.
+function interieurBuiten(interieur, schillen) {
+  const tris = [];
+  for (const g of schillen) {
+    const p = g.attributes.position;
+    for (let i = 0; i + 2 < p.count; i += 3) tris.push([0, 1, 2].map((k) => [p.getX(i + k), p.getY(i + k), p.getZ(i + k)]));
+  }
+  const flank = (x, y, side) => {
+    let best = null;
+    for (const [a, b, c] of tris) {
+      if (Math.max(a[0], b[0], c[0]) < x || Math.min(a[0], b[0], c[0]) > x || Math.max(a[1], b[1], c[1]) < y || Math.min(a[1], b[1], c[1]) > y) continue;
+      const d = (b[1] - c[1]) * (a[0] - c[0]) + (c[0] - b[0]) * (a[1] - c[1]);
+      if (Math.abs(d) < 1e-12) continue;
+      const l1 = ((b[1] - c[1]) * (x - c[0]) + (c[0] - b[0]) * (y - c[1])) / d, l2 = ((c[1] - a[1]) * (x - c[0]) + (a[0] - c[0]) * (y - c[1])) / d, l3 = 1 - l1 - l2;
+      if (l1 < -1e-6 || l2 < -1e-6 || l3 < -1e-6) continue;
+      const z = l1 * a[2] + l2 * b[2] + l3 * c[2];
+      if (z * side > 0 && (best === null || z * side > best * side)) best = z;
+    }
+    return best;
+  };
+  const p = interieur.attributes.position, fout = [];
+  const gezien = new Set();
+  for (let i = 0; i < p.count; i++) {
+    const x = p.getX(i), y = p.getY(i), z = p.getZ(i), k = `${x.toFixed(3)},${y.toFixed(3)},${z.toFixed(3)}`;
+    if (gezien.has(k)) continue;
+    gezien.add(k);
+    // de buitenste flank in een kruisje van 1 cm rond het punt: een kier van 4 mm of een naad tussen twee strips telt niet als gat
+    const side = z < 0 ? -1 : 1, fs = [[0, 0], [0.01, 0], [-0.01, 0], [0, 0.01], [0, -0.01]].map(([a2, b2]) => flank(x + a2, y + b2, side)).filter((q) => q !== null);
+    const f = fs.length ? fs.reduce((a2, b2) => (Math.abs(b2) > Math.abs(a2) ? b2 : a2)) : null;
+    if (f === null || Math.abs(z) > Math.abs(f) - 0.005) fout.push(`${x.toFixed(2)},${y.toFixed(2)},${z.toFixed(2)} (flank ${f === null ? 'geen' : f.toFixed(2)})`);
+  }
+  return fout;
+}
 const lijst = [
   ...Object.entries(VOERTUIG_REGISTER).filter(([, e]) => e.hybride).map(([id, e]) => [id, { ...e.model }, { isTaxi: !!e.isTaxi, isPolice: !!e.isPolice }]),
   ['bakwagen', { name: 'truck', len: 8.5, wid: 2.5, color: 0xe8e6e0 }],
@@ -91,6 +126,12 @@ for (const [naam, model, extra = {}] of lijst) {
   const flank = Math.min(...Object.values(mesh.userData.deurZ || { a: v.model.wid / 2 }));
   const rompE = losseEilanden(mesh.userData.body.geometry, rects, flank);
   check(naam + ': geen losse eilanden in de romp langs de opening', rompE === 0, `${rompE} eilanden`);
+  const im = mesh.userData.interieurSimpel;
+  if (im) {
+    const schillen = [mesh.userData.body.geometry, ...(mesh.userData.deurenDicht ? [mesh.userData.deurenDicht.geometry] : [])];
+    const buiten = interieurBuiten(im.geometry, schillen);
+    check(naam + ': interieur (vloer, stoelen, dashboard) binnen de romp', buiten.length === 0, `${buiten.length} punten buiten, o.a. ${buiten.slice(0, 3).join(' ; ')}`);
+  }
   for (const [id, g] of Object.entries(mesh.userData.deurPanelen || {})) {
     const s = snippers(g, rects);
     check(`${naam}.${id}: geen losse snippers aan het deurblad`, s === 0, `${s} snippers`);

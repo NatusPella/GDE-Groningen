@@ -137,7 +137,9 @@ function buildRig(mesh, v, defs) {
   const wid = mesh.userData.deurWid || v.model.wid, hw = wid / 2, len = mesh.userData.deurLen || v.model.len;
   const doors = {};
   const paint = paintOf(v);
-  for (const d of defs) {
+  for (const d0 of defs) {
+    // een hybride romp kan een deur korter maken voor de wielkast (models3d_vehicles.js userData.deurMaat): de rig volgt dat gat
+    const d = mesh.userData.deurMaat && mesh.userData.deurMaat[d0.id] ? { ...d0, ...mesh.userData.deurMaat[d0.id] } : d0;
     const cx = d.x * len;
     // smalle cabine of limousine: de deur zit op zijn eigen zijkant (d.zij); bij een romp met een gebogen flank (de hybride proef-auto)
     // geeft het model zelf de flank per deur (userData.deurZ)

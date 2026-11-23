@@ -228,6 +228,24 @@ verwacht 63 graden; `voertuigmodel_test`, `vehicledoorcuts_test` en `vehicle_int
   donkere lijn langs de dorpel in de bovenaanzicht (vermoedelijk de 6 cm rand van de opening, op de kant gezien) en de bovenkant
   van het open achterportier (raamlijst van hun romp die meegaat met de deur).
 
+### Na de beoordeling: dashboard, wielkast en interieur binnen de romp
+
+- Het "donkere blok met grijze kast" naast de open voordeur was het voorwiel met zijn wieldop: de voordeur liep over de achterkant
+  van de voorste wielkast door, dus het gat liet het wiel zien. Een portier van een hybride begint nu achter de voorste wielkast en
+  eindigt voor de achterste (wielstraal plus 4 cm), houdt zijn breedte van 0,8 m en schuift daarvoor naar de B-stijl (minstens 14 cm
+  stijl). De rig volgt via `userData.deurMaat` (vehicledoors3d.js).
+- Het dashboard was op 27 % van zijn breedte samengeknepen (de flank loopt bij de voorruit in) en stond te ver naar voren. Nu schuift
+  het naar achteren tot de romp minstens 85 % van zijn breedte vrij laat (achter de onderrand van de voorruit) en wordt het alleen
+  zo smal als de flank daar toelaat. Stoelen en vloer volgen dezelfde vrije breedte per plek (`ruimte` in `addInterieur`); de
+  achterbank schuift naar voren tot de hoofdsteun onder de achterruit past.
+- Test: `deursnipper_test` eist dat elk punt van het interieur (vloer, stoelen, dashboard) minstens 5 mm binnen de buitenste flank
+  ligt (romp en dichte deuren, een straal langs z op dezelfde x en y); geen flank daar (boven het dak of achter de ruit) telt als buiten.
+- De zwarte raamlijst op de flank gaat nu altijd mee met de deur (ook zijn bovenvlak), anders bleef een reepje in de opening.
+- Het rode blokje boven de A-stijl was ons losse spiegelblok aan de overkant; dat is weg (zie de vijfde ronde). Wat daar nu zit is
+  de spiegel van het pakket, vast aan de voordeur.
+- Gezien op het contactblad: dicht van opzij (naden achter de wielkasten), open schuin en van boven. Niet zeker: een dun licht
+  lijntje op de raamlijn tussen de B-stijl en de voordeur in het zijaanzicht.
+
 ## Niet in beeld gezien
 
 - Vierde ronde: niets in het spel bekeken; geen fps gemeten (alleen driehoeken). De echte cabine van `cabin3d.js` in de hybride (die volgt

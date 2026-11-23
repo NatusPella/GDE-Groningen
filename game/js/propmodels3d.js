@@ -127,7 +127,7 @@ function paaltje() {
 function autostoel() {
   const B = new GeoBuilder(1);
   const STOF = 0x4a4f5a, WANG = 0x3c414b, NAAD = 0x2a2d33, STAAL = 0x6b6e70;
-  for (const z of [-0.16, 0.16]) B.box(0.02, 0.02, z, 0.46, 0.03, 0.04, STAAL);                       // rails
+  for (const z of [-0.15, 0.15]) B.box(0.02, 0.02, z, 0.46, 0.03, 0.04, STAAL);                       // rails
   B.box(0.02, 0.07, 0, 0.42, 0.06, 0.38, NAAD);                                                         // onderstel
   B.box(0.04, 0.14, 0, 0.44, 0.08, 0.36, STOF, 0, 0, 0, -0.06);                                         // zitting, achter iets lager
   for (const z of [-0.205, 0.205]) B.box(0.04, 0.17, z, 0.46, 0.1, 0.07, WANG, 0, 0, 0, -0.06);       // zijwangen van de zitting (iets langer: geen gedeeld voorvlak)
@@ -152,13 +152,13 @@ function dashboard() {
   }
   for (const z of [-0.62, -0.05, 0.05, 0.62]) B.box(-0.162, 0.03, z, 0.01, 0.06, 0.12, ROOSTER);       // roosters
   B.box(-0.12, -0.18, 0, 0.3, 0.28, 0.22, DASH);                                                        // middenconsole
-  B.box(-0.165, -0.08, 0, 0.012, 0.07, 0.16, METER);                                                    // radio
+  B.box(-0.17, -0.08, 0, 0.012, 0.07, 0.16, METER);                                                     // radio
   B.geo(new THREE.CylinderGeometry(0.018, 0.022, 0.16, 6), composeMatrix(-0.3, -0.26, 0, 0, 0, 0.5), STUUR); // pook
   // stuur op een kolom, schuin naar de bestuurder
   B.geo(new THREE.CylinderGeometry(0.03, 0.035, 0.32, 6).rotateZ(Math.PI / 2 + 0.45), composeMatrix(-0.26, -0.02, -0.34), STUUR);
   B.geo(new THREE.TorusGeometry(0.17, 0.018, 5, 14).rotateY(Math.PI / 2).rotateZ(0.45), composeMatrix(-0.4, -0.08, -0.34), STUUR);
   B.box(-0.4, -0.08, -0.34, 0.03, 0.05, 0.3, STUUR, 0, 0, 0, 0.45);                                     // spaak
-  B.geo(new THREE.CylinderGeometry(0.045, 0.045, 0.04, 8).rotateZ(Math.PI / 2 + 0.45), composeMatrix(-0.39, -0.08, -0.34), ZACHT); // naaf
+  B.geo(new THREE.CylinderGeometry(0.045, 0.045, 0.056, 8).rotateZ(Math.PI / 2 + 0.45), composeMatrix(-0.39, -0.08, -0.34), ZACHT); // naaf
   return B.build().translate(0, 0.34, 0); // oorsprong onder de middenconsole (de bovenkant zit dan op 0,46 m)
 }
 
