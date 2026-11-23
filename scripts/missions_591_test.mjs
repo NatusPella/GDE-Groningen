@@ -186,9 +186,12 @@ const heistRun = () => {
 };
 
 t('punt 5: een overgeslagen heiststap betaalt de halve beloning, niet de volle', () => {
+  // de beloning komt uit de definitie (de balans van 23-11 zette M06 van €400 op €550), de regel is de helft daarvan
+  const volBedrag = M.getMissionDefs()[M.missionIndexById('museumkraak')].reward;
+  const halfBedrag = M.skipReward(volBedrag);
   const vol = heistRun();
   assert.equal(M.missionDebug.win(vol), true);
-  assert.equal(vol.money, 400, 'zonder skip de volle beloning');
+  assert.equal(vol.money, volBedrag, 'zonder skip de volle beloning');
 
   const half = heistRun();
   const voor = M.missionDebug.state().stage;
@@ -197,8 +200,8 @@ t('punt 5: een overgeslagen heiststap betaalt de halve beloning, niet de volle',
   assert.equal(M.missionDebug.state().heistSkip, true);
   assert.ok(heeft(half, /halve beloning/), 'de speler hoort de regel');
   assert.equal(M.missionDebug.win(half), true);
-  assert.equal(half.money, 200, 'met de skip de halve beloning');
-  assert.ok(heeft(half, /\+€200/), 'de uitslag noemt het halve bedrag');
+  assert.equal(half.money, halfBedrag, 'met de skip de halve beloning');
+  assert.ok(heeft(half, new RegExp('\\+€' + halfBedrag)), 'de uitslag noemt het halve bedrag');
 });
 
 t('punt 5: een nieuwe poging begint zonder de skip van de vorige', () => {
