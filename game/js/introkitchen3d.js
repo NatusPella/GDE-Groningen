@@ -14,6 +14,7 @@ export const KITCHEN = {
   anitaSeat: { u: -0.82, v: 0 },
   tammoSeat: { u: 0.82, v: 0 },
   door: { u: 1.3, v: 1.62 },
+  hallStart: 2.45, // v where Tammo starts in the hall behind the door (the hall runs to v = 4.0), so he walks in instead of appearing in the doorway
   radio: { u: -2.06, v: 0.62, h: 1.1 },
   drawing: { u: -0.28, v: 0.06 },
   phone: { u: -0.46, v: -0.3 },
@@ -143,7 +144,27 @@ export function buildKitchen(x, y, z) {
 
   // the room, seen from inside, and its floor
   const wall = keep(wallTex());
-  add(geoBox(4.4, 2.6, 3.6), keep(new THREE.MeshBasicMaterial({ map: wall, side: THREE.BackSide, color: 0xd8c8b0 })), 0, 1.3, 0);
+  const wallMat = keep(new THREE.MeshBasicMaterial({ map: wall, color: 0xd8c8b0 }));
+  // 23-11: the room is four walls and a ceiling, with a real opening for the door (the closed box drew its v = +1.8 wall in
+  // front of everything behind the door: Tammo walked in through the wall and came out of a black hole in pieces)
+  const panel = (w, h, u, hh, v, ry) => { const m = add(keep(new THREE.PlaneGeometry(w, h)), wallMat, u, hh, v); m.rotation.y = ry; return m; };
+  panel(3.6, 2.6, -2.2, 1.3, 0, Math.PI / 2);
+  panel(3.6, 2.6, 2.2, 1.3, 0, -Math.PI / 2);
+  panel(4.4, 2.6, 0, 1.3, -1.8, 0);
+  const D0 = KITCHEN.door.u - 0.45, D1 = KITCHEN.door.u + 0.45, DH = 2.06; // the doorway in the v = +1.8 wall
+  panel(D0 + 2.2, 2.6, (-2.2 + D0) / 2, 1.3, 1.8, Math.PI);
+  panel(2.2 - D1, 2.6, (D1 + 2.2) / 2, 1.3, 1.8, Math.PI);
+  panel(D1 - D0, 2.6 - DH, KITCHEN.door.u, (DH + 2.6) / 2, 1.8, Math.PI);
+  const ceil = add(keep(new THREE.PlaneGeometry(4.4, 3.6)), wallMat, 0, 2.6, 0);
+  ceil.rotation.x = Math.PI / 2;
+  // behind the door: a short lit hall (walls, floor, a coat rack, a lamp), so the open door shows a corridor and not a void
+  const hallW = 1.3, hallD = 2.2, hallMid = { u: KITCHEN.door.u, v: 1.8 + hallD / 2 };
+  add(geoBox(hallW, 2.5, hallD), keep(new THREE.MeshBasicMaterial({ color: 0xcdbb98, side: THREE.BackSide })), hallMid.u, 1.25, hallMid.v);
+  const hfl = add(keep(new THREE.PlaneGeometry(hallW - 0.02, hallD - 0.02)), keep(new THREE.MeshBasicMaterial({ color: 0x8a6f52 })), hallMid.u, 0.006, hallMid.v);
+  hfl.rotation.x = -Math.PI / 2;
+  add(geoBox(0.05, 0.05, 0.9), std(0x5a4030), hallMid.u + hallW / 2 - 0.08, 1.7, hallMid.v + 0.3);
+  add(geoBox(0.3, 0.75, 0.12), std(0x3c4f6b), hallMid.u + hallW / 2 - 0.12, 1.3, hallMid.v + 0.1);
+  add(geoBox(0.22, 0.05, 0.22), keep(new THREE.MeshBasicMaterial({ color: 0xfff1cc })), hallMid.u, 2.47, hallMid.v);
   const floor = keep(floorTex());
   const fl = add(keep(new THREE.PlaneGeometry(4.38, 3.58)), keep(new THREE.MeshStandardMaterial({ map: floor, roughness: 0.9 })), 0, 0.005, 0);
   fl.rotation.x = -Math.PI / 2;
@@ -181,7 +202,7 @@ export function buildKitchen(x, y, z) {
 
   // the door to the hall, standing open into the room
   const hall = keep(hallTex());
-  const hp = add(keep(new THREE.PlaneGeometry(0.9, 2.05)), keep(new THREE.MeshBasicMaterial({ map: hall })), 1.3, 1.025, 1.79);
+  const hp = add(keep(new THREE.PlaneGeometry(0.8, 2.0)), keep(new THREE.MeshBasicMaterial({ map: hall })), 1.3, 1.0, 1.8 + 2.2 - 0.02); // the next door, at the end of the hall
   hp.rotation.y = Math.PI;
   const dframe = std(0xe9e3d6);
   box(0.07, 2.12, 0.1, dframe, 0.82, 1.06, 1.77);

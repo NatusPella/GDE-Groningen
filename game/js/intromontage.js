@@ -735,7 +735,7 @@ function buildShots(w, film = false) {
     },
     tick(r, s, t, dt) {
       s.kit.hinge.rotation.y = lerp(-0.25, -1.25, smooth(t / 0.7));
-      stageK(r.tammo, door.u, lerp(1.95, door.v, smooth(t / 0.9)), -Math.PI / 2, { speed: t < 0.9 ? 0.9 : 0, pose: 'door', dt, t });
+      stageK(r.tammo, door.u, lerp(KITCHEN.hallStart, door.v, smooth(t / 1.1)), -Math.PI / 2, { speed: t < 1.1 ? 0.9 : 0, pose: 'door', dt, t });
     },
     cams: [[0, (u, t) => pose(K(door.u - 0.05, lerp(0.3, 0.55, u), 1.6), K(door.u, door.v, 1.56), 34, t, 0.004)]],
   };
@@ -938,8 +938,8 @@ function buildShots(w, film = false) {
       const L = kitchenIn.timed;
       s.kit.hinge.rotation.y = lerp(-0.3, -1.25, smooth(t / 0.8));
       const k = clamp01((t - 0.3) / 1.4);
-      const u = lerp(door.u, tStand.u, k), v = lerp(1.95, tStand.v, k);
-      const walkA = Math.atan2(tStand.v - 1.95, tStand.u - door.u);
+      const u = lerp(door.u, tStand.u, k), v = lerp(KITCHEN.hallStart, tStand.v, k);
+      const walkA = Math.atan2(tStand.v - KITCHEN.hallStart, tStand.u - door.u);
       stageK(r.tammo, u, v, k < 1 ? walkA : tFace, { speed: k > 0 && k < 1 ? 1 : 0, pose: 'cups', dt, t });
       // reading until he speaks, then up at him
       const up = L[0] && t > L[0].at;
@@ -1272,8 +1272,8 @@ function buildShots(w, film = false) {
         const L = self.timed;
         s.kit.hinge.rotation.y = lerp(-0.3, -1.25, smooth(t / 0.8));
         const k = clamp01((t - 0.3) / 1.4);
-        const u = lerp(door.u, tStand.u, k), v = lerp(1.95, tStand.v, k);
-        const walkA = Math.atan2(tStand.v - 1.95, tStand.u - door.u);
+        const u = lerp(door.u, tStand.u, k), v = lerp(KITCHEN.hallStart, tStand.v, k);
+        const walkA = Math.atan2(tStand.v - KITCHEN.hallStart, tStand.u - door.u);
         stageK(r.tammo, u, v, k < 1 ? walkA : tFace, { speed: k > 0 && k < 1 ? 1 : 0, pose: 'cups', dt, t });
         const up = said(L, 0, t);
         sitK(r.anita, KITCHEN.anitaSeat, 0, up ? 0.06 : -0.32, up ? -0.42 : 0);

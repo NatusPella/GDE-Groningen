@@ -3718,13 +3718,14 @@ function applyCameraOverride(dt, world, lx, ly, lz) {
   if (valid) {
     // 23-11: begint een scène ver van de spelcamera (de volgcamera van de rondvaartboot hangt 16 m hoog), dan is het eerste beeld
     // een harde snee: zacht invliegen duurde zes seconden waarin de speler niet zag wie er praatte. Dichtbij blijft het zachte invliegen.
+    // Ook als het vorige filmpje nog aan het uitblenden is (overrideBlend < 1: skip of einde, en meteen de volgende scène).
     let entrySnap = false;
-    if (!overrideActive) {
+    if (!overrideActive || overrideBlend < 1) {
+      if (!overrideActive) { overridePos.copy(cam.position); overrideLook.copy(_camLook); }
       overrideActive = true;
-      overridePos.copy(cam.position);
-      overrideLook.copy(_camLook);
       entrySnap = cameraSnapNeeded(cam.position, _camTmp.set(o.position.x, o.position.z ?? 10, o.position.y), CINE_ENTRY_SNAP_GAP);
     }
+    if (entrySnap) guardLift = 0; // de lift van de vorige plek (guardCinematicCamera) geldt niet voor de nieuwe
     const snap = o.cut || entrySnap;
     const k = snap ? 1 : Math.min(1, dt * 3);
     overridePos.lerp(_camTmp.set(o.position.x, o.position.z ?? 10, o.position.y), k);

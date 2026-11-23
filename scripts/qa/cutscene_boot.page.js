@@ -39,7 +39,7 @@ const play = async (key, fn) => {
   for (let k = 0; k < (CS.n || 7); k++) {
     await sleep(every * 1000);
     if (!cine.isCinematicActive()) break;
-    const cm = window.__scene3d.cam; (out.scenes[key].cam ||= []).push([cm.position.x, cm.position.z, cm.position.y].map((v) => +v.toFixed(2)).join(','));
+    const cm = window.__scene3d.cam; (out.scenes[key].cam ||= []).push([cm.position.x, cm.position.z, cm.position.y].map((v) => +v.toFixed(2)).join(',') + (cine.isCinematicActive('mission-scene') ? ' scene' : ' ander') + (document.body.className.includes('has-card') ? ' kaart' : ''));
     await window.__cap('boot-' + key + '-' + String(k).padStart(2, '0'));
     out.scenes[key].stills++;
   }
