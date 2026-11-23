@@ -19,7 +19,7 @@ const ms = performance.now() - t0;
 const files = new Set(hits.map((h) => h.file));
 console.log(`meetpunt: ${hits.length} lussen in ${files.size} bestanden (scan ${ms.toFixed(0)} ms)`);
 ok('de scan vindt de bekende gevallen', hits.length > 5 && files.has('game/js/models3d_vehicles.js'));
-ok('stadslussen met losse meshes: bovengrens 54 (nu 54; hoger kan alleen met reden; 48 -> 53 door de samenvoeging van ca. 40 branches op 22-11, zie docs/MAIN-GEZOND-22-11.md; 53 -> 54 gate 0.65: eenmalige bouwlussen van verhaalrekwisieten in storyprops.js (5) en monumentkits3d.js (2), geen per-beeld-kosten)', hits.length <= 54);
+ok('stadslussen met losse meshes: bovengrens 58 (nu 58; hoger kan alleen met reden; 48 -> 53 door de samenvoeging van ca. 40 branches op 22-11, zie docs/MAIN-GEZOND-22-11.md; 53 -> 54 gate 0.65: eenmalige bouwlussen van verhaalrekwisieten in storyprops.js (5) en monumentkits3d.js (2), geen per-beeld-kosten; 54 -> 58 integratie 0.66: eenmalige bouwlussen van 2 tot 4 stuks in de tankwagen (vettruck: wielen, spiegels, LOD-niveaus), de heli en de deuren (objecten-aaa) en de LOD-niveaus van registerprops in storyprops.js, allemaal bij het bouwen en gecachet)', hits.length <= 58);
 ok('de scan is snel (onder 3 s)', ms < 3000);
 console.log(fail ? `${fail} FAILED` : 'all ok');
 process.exit(fail ? 1 : 0);
