@@ -88,11 +88,13 @@ Object.assign(SPECS, SPECS_AKTE2);
     // as-sprongen hersteld (180-gradenregel): deze shots vervangen de gegenereerde (missionScene, spec.shotFix)
     shotFix: [
       { t: 'L6', shot: 'ots', from: 'berend', target: 'tammo', dist: 1.7, side: -0.5, fov: 34 },
-      { t: 'L9', shot: 'cut', at: [0.32, -4.69, 2.8], look: 'speaker', fov: 44 },
-      { t: 'L13', shot: 'cut', at: [-1.5, 0, 1.55], look: 'speaker', fov: 38 },
-      { t: 'L14', shot: 'dolly', look: 'speaker', fov: 44, from: [-5.01, 0.42, 2.8], to: [-4.49, 0.39, 2.72] },
-      { t: 'L17+5.46', shot: 'cut', at: [4.21, -0.14, 2.8], look: 'speaker', fov: 44 },
-      { t: 'L19+2.92', shot: 'dolly', from: [-3, 1.23, 2.9], to: [-1.27, 1.07, 3.8], look: 'mid:berend,bakkie@1', fov: 48 },
+      { t: 'L8', shot: 'ots', from: 'berend', target: 'tessa', dist: 1.7, side: -0.5, fov: 34 },
+      { t: 'L12', shot: 'dolly', from: [3.87, -0.08, 1.5], to: [2.6, -0.27, 1.55], look: 'speaker', fov: 34 },
+      { t: 'L13', shot: 'cut', at: [1.85, -1.42, 1.55], look: 'speaker', fov: 38 },
+      { t: 'L17', shot: 'cut', at: [4.33, 2.42, 2], look: 'mid:tammo,tessa@1.3', fov: 40 },
+      { t: 'L17+4.05', shot: 'cut', at: [3.79, 3.42, 1.6], look: 'mid:tammo,tessa@1.3', fov: 40 },
+      { t: 'L18', shot: 'cut', at: [3.81, 2.06, 1.7], look: 'mid:tammo,tessa@1.3', fov: 40 },
+      { t: 'L21', shot: 'cut', at: [3.81, 2.06, 1.7], look: 'mid:tammo,tessa@1.3', fov: 40 },
     ],
     // R-13: Berend krijgt een naamkaart bij zijn eerste verschijning (#1124, #1138)
     fx: [{ t: 1.0, fx: 'naam', text: 'Berend Bos, Bommen Berend', dur: 2.8 }],
