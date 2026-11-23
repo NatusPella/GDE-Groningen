@@ -41,6 +41,7 @@ import { failSceneMode } from './missioncheckpoint.js';
 let sceneMod = null;
 import('./scene3d.js').then((m) => { sceneMod = m; }).catch(() => {});
 import { bridgeWithin } from './vaultkit.js';
+import { warpGasten } from './groepwarp.js'; // Samen spelen: na de fierljepsprong staan de gasten mee aan de overkant
 let fjMod = null;
 import('./fierljep.js').then((m) => { fjMod = m; }).catch(() => {});
 
@@ -2491,7 +2492,7 @@ export function playDuelJump(w, { at, fail = false } = {}) {
     w.cinematicHidePlayers = false;
     // De landing schrijft de eigen plek terug: dat is opslag van het eigen lichaam (zie players.js), geen
     // leesvraag aan het spelersregister, en hier telt juist dat het object zelf blijft staan. Daarom blijft w.player.
-    if (res && res.result === 'landed' && Number.isFinite(res.x)) { w.player.x = res.x; w.player.y = res.y; }
+    if (res && res.result === 'landed' && Number.isFinite(res.x)) { w.player.x = res.x; w.player.y = res.y; warpGasten(w, res); } // de gasten staan mee aan de overkant (groepwarp.js)
     setTimeout(() => h.dispose(), 1500);
     return res;
   });

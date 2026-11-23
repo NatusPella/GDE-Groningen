@@ -10,7 +10,7 @@
 // Puur op de haken na: missions.js zet ze (gastLichamen en bestuurLos uit coopbestuur.js), de test vervangt ze.
 // Test: scripts/groepwarp_test.mjs.
 
-const haken = { lichamen: null, los: null };
+const haken = { lichamen: null, los: null, inBoot: null };
 export function zetGroepWarpHaken(h) { Object.assign(haken, h || {}); }
 
 export const WARP_RINGEN = Object.freeze([2.2, 3.4, 4.8, 6.5]);
@@ -45,6 +45,22 @@ export function warpGasten(world, dest, { meeVoertuig = null, alleen = null } = 
     l.x = p.x; l.y = p.y; l.vx = 0; l.vy = 0; l.z = 0; l.vz = 0; l.gz = 0;
     l.water = null; l.swimming = false;
     if (typeof world.coopMeld === 'function') { try { world.coopMeld(slot, WARP_MELDING); } catch (e) { /* melding is bijzaak */ } }
+    n++;
+  }
+  return n;
+}
+
+// De gastheer stapt in een boot die meteen wegvaart (M06: de vluchtboot bij het museum). Elke gast die nog niet in een voertuig
+// zit gaat mee aan boord (coopnet.js zetInBoot: dezelfde stoelen als bij de band). Is de boot vol, dan haalt de band hem later bij.
+// Geeft het aantal gasten dat meeging.
+export const BOOT_MELDING = 'Je zit mee in de boot.';
+export function gastenMeeAanBoord(world) {
+  if (!world || world.coopRole === 'client' || typeof haken.lichamen !== 'function' || typeof haken.inBoot !== 'function') return 0;
+  let n = 0;
+  for (const [slot, l] of haken.lichamen(world) || []) {
+    if (!l || !(slot >= 1) || l.inVeh) continue;
+    if (!haken.inBoot(world, l)) continue;
+    if (typeof world.coopMeld === 'function') { try { world.coopMeld(slot, BOOT_MELDING); } catch (e) { /* bijzaak */ } }
     n++;
   }
   return n;

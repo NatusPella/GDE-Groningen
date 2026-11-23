@@ -42,6 +42,7 @@ import { hoofdspeler } from './players.js'; // de speler van dit apparaat (#500)
 import { getSettings } from './settings.js';
 import { qteStandVan, heistHulp, heistBreedte } from './qte.js'; // #962: Normaal / Makkelijk / Overslaan: ruimere zone en eerder hulp van de metgezel
 import { timingGrace } from './timingassist.js'; // #957: de zekering- en slotbalk zijn ruimer per stand en hulp
+import { gastenMeeAanBoord } from './groepwarp.js'; // Samen spelen: de gasten gaan mee in de vluchtboot
 
 const SPOTS_BEFORE_HELP = 3;
 const MISSES_BEFORE_HELP = 5;
@@ -1472,6 +1473,7 @@ export function updateGetaway(dt, world, st, S) {
   const d = p.inVehicle === boat ? 0 : dist(p.x, p.y, boat.x, boat.y);
   if (d > BOARD_REACH || isCinematicActive()) return false;
   boardBoat(world, boat);
+  gastenMeeAanBoord(world); // Samen spelen: wie meedoet zit mee in de vluchtboot (groepwarp.js)
   S.cine = true;
   if (!playLaunch(world, st, boat, () => { S.cineDone = true; })) S.cineDone = true;
   return false;
@@ -1492,7 +1494,7 @@ export function heistSkipGetaway(world, board) {
   if (!H) return;
   if (isCinematicActive('heist-getaway')) skipCinematic();
   const boat = H.boat && world.vehicles.includes(H.boat) ? H.boat : spawnBoat(world);
-  if (boat && board) boardBoat(world, boat);
+  if (boat && board) { boardBoat(world, boat); gastenMeeAanBoord(world); }
   world.companionHold = null;
 }
 

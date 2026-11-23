@@ -1,7 +1,7 @@
 // Test van groepwarp.js: een warp, reisscène of finale neemt de gasten van de sessie mee (audit speelbaarheid 23-11).
 //   node scripts/groepwarp_test.mjs
 import fs from 'node:fs';
-import { warpGasten, zetGroepWarpHaken, plekVoor, WARP_RINGEN, WARP_MELDING } from '../game/js/groepwarp.js';
+import { warpGasten, gastenMeeAanBoord, zetGroepWarpHaken, plekVoor, WARP_RINGEN, WARP_MELDING } from '../game/js/groepwarp.js';
 
 let n = 0, fout = 0;
 const ok = (c, m) => { n++; if (!c) { fout++; console.log('FOUT: ' + m); } };
@@ -64,6 +64,20 @@ function wereld({ rol = 'host', vrij = null } = {}) {
   ok(Number.isFinite(p.x) && Math.abs(Math.hypot(p.x, p.y) - WARP_RINGEN[0]) < 1e-6, 'zonder vrije plek de eerste ring');
 }
 
+{
+  // de vluchtboot van M06: wie niet in een voertuig zit gaat aan boord; een volle boot laat hem staan (de band haalt hem later)
+  const { w, figs } = wereld();
+  let plaatsen = 1;
+  const aanBoord = [];
+  zetGroepWarpHaken({ lichamen: (ww) => Object.values(ww.coopFigures).map((f) => [f.slot, f]), inBoot: (ww, l) => { if (plaatsen <= 0) return false; plaatsen--; l.inVeh = 'vluchtboot'; aanBoord.push(l.slot); return true; } });
+  const k = gastenMeeAanBoord(w);
+  ok(k === 1 && aanBoord[0] === 1 && figs[1].inVeh === 'vluchtboot', 'een gast te voet gaat mee aan boord');
+  ok(figs[2].inVeh !== 'vluchtboot' && figs[3].inVeh !== 'vluchtboot', 'wie al in een voertuig zit blijft zitten');
+  ok(gastenMeeAanBoord({ ...w, coopRole: 'client' }) === 0, 'bij een gast (client) gebeurt niets');
+  zetGroepWarpHaken({ inBoot: null });
+  ok(gastenMeeAanBoord(w) === 0, 'zonder boothaak (geen sessie) gebeurt niets');
+}
+
 // bedrading: elke echte verplaatsing van de speler in het spel neemt de gasten mee
 const missions = lees('game/js/missions.js');
 ok(/zetGroepWarpHaken\(\{ lichamen: gastLichamen, los: bestuurLos \}\)/.test(missions), 'missions.js zet de haken');
@@ -77,6 +91,11 @@ for (const f of fs.readdirSync(new URL('../game/js/', import.meta.url)).filter((
   if (/\bwarp: \{/.test(src)) ok(/st\.warp\) warpPlayer\(world, st\.warp\)/.test(missions), `${f}: een warp gaat via warpPlayer`);
 }
 ok(/warp/i.test(lees('docs/COOP-GAST.md')), 'COOP-GAST.md noemt de regel');
+const heist = lees('game/js/heist.js');
+ok(/boardBoat\(world, boat\);\s*gastenMeeAanBoord\(world\)/.test(heist), 'de vluchtboot (updateGetaway) neemt de gasten mee');
+ok(/boardBoat\(world, boat\); gastenMeeAanBoord\(world\);/.test(heist), 'ook als de vlucht wordt overgeslagen');
+ok(/zetGroepWarpHaken\(\{ inBoot: zetInBoot \}\)/.test(lees('game/js/coopnet.js')), 'coopnet.js geeft zetInBoot als haak');
+ok(/w\.player\.x = res\.x; w\.player\.y = res\.y; warpGasten\(w, res\)/.test(lees('game/js/missionstory.js')), 'na de fierljepsprong (M20) staan de gasten mee aan de overkant');
 
 if (fout) { console.log(`groepwarp_test: ${fout} van ${n} fout`); process.exit(1); }
 console.log(`groepwarp_test: ${n}/${n} ok`);
