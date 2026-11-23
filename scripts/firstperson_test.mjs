@@ -225,7 +225,7 @@ ok((bits & FP_HIDE_BIT) !== 0 && (bits & FP_VIEW_BIT) === 0,
 
 // --- het interieur van de eigen auto: draw-objecten en driehoeken ---------------------------
 await import('../game/js/player.js');
-const { buildVehicleMesh } = await import('../game/js/models3d_vehicles.js');
+const { buildVehicleMesh, hybridKey } = await import('../game/js/models3d_vehicles.js');
 const { Vehicle, TRAFFIC_MODELS } = await import('../game/js/vehicle.js');
 const { updateCarInterior, interiorEyePose } = await import('../game/js/carinterior.js');
 const { doorTrims, interiorLayout, klasseStijl, interiorKlasse } = await import('../game/js/carinteriorlayout.js');
@@ -328,7 +328,9 @@ for (const [naam, model, flags] of gevallen) {
   const materialen = new Set(meshes.map((m) => m.material));
   ok(materialen.size === 1 && meshes[0].material.userData.shared === true, `${naam}: één gedeeld materiaal voor het hele interieur`);
   ok(meshes.every((m) => m.material.vertexColors === true), `${naam}: de kleuren zitten in de geometrie (vertexColors)`);
-  const v2 = new Vehicle(0, 0, 0, Object.assign({}, model));
+  // dezelfde hybride romp: een sportauto wisselt per id tussen twee Quaternius-rompen (objecten 23-11)
+  const hk = model.name === 'sport' ? hybridKey(v) : null;
+  const v2 = new Vehicle(0, 0, 0, Object.assign({}, model, hk ? { qcar: hk } : {}));
   Object.assign(v2, flags);
   const tweede = interieurVan(v2);
   ok(tweede.g && meshesVan(tweede.g)[0].geometry === meshes[0].geometry, `${naam}: geometrie gedeeld met een tweede auto van hetzelfde model`);
