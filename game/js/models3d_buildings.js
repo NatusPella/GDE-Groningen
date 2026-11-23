@@ -112,7 +112,9 @@ const roofMatCache = new Map();
 function roofMaterial(hex) {
   let m = roofMatCache.get(hex);
   if (!m) {
-    m = applyPortalCut(habboMaterial(shade(hex, 1.08), { map: tileTexture, side: THREE.DoubleSide }));
+    m = habboMaterial(shade(hex, 1.08), { map: tileTexture, side: THREE.DoubleSide });
+    m.onBeforeCompile = roofWeatherOnBeforeCompile;
+    applyPortalCut(m);
     roofMatCache.set(hex, m);
   }
   return m;
@@ -188,6 +190,16 @@ function wallContactOnBeforeCompile(shader) {
   shader.fragmentShader = shader.fragmentShader
     .replace('#include <common>', '#include <common>\nvarying vec3 vWallP;')
     .replace('#include <color_fragment>', '#include <color_fragment>\nfloat wN = sin(vWallP.x * 0.83 + vWallP.y * 0.41) * sin(vWallP.z * 0.71 - vWallP.y * 0.37) + 0.5 * sin(vWallP.x * 2.3 + vWallP.z * 1.9 + vWallP.y * 0.6);\ndiffuseColor.rgb *= (1.0 + 0.075 * wN) * mix(0.62, 1.0, smoothstep(0.0, 1.3, vWallP.y));');
+}
+
+// 23-11: dakpannen verkleuren per dakvlak (zon, mos, vuil) in vlakken van enkele meters; zelfde idee als de gevel, zonder contactschaduw
+function roofWeatherOnBeforeCompile(shader) {
+  shader.vertexShader = shader.vertexShader
+    .replace('#include <common>', '#include <common>\nvarying vec3 vRoofP;')
+    .replace('#include <begin_vertex>', '#include <begin_vertex>\nvRoofP = (modelMatrix * vec4(transformed, 1.0)).xyz;');
+  shader.fragmentShader = shader.fragmentShader
+    .replace('#include <common>', '#include <common>\nvarying vec3 vRoofP;')
+    .replace('#include <color_fragment>', '#include <color_fragment>\ndiffuseColor.rgb *= 1.0 + 0.09 * (sin(vRoofP.x * 0.47 + vRoofP.z * 0.29) * sin(vRoofP.z * 0.53 - vRoofP.x * 0.21 + vRoofP.y * 0.7) + 0.4 * sin(vRoofP.x * 1.9 - vRoofP.z * 1.4));');
 }
 
 const landmarkMaterials = Object.fromEntries(Object.entries(LANDMARK_COLOR3D).map(([k, key]) => [k, habboMaterial(P[key], { side: THREE.DoubleSide })]));
