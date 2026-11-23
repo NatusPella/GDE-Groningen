@@ -41,6 +41,16 @@ applyCheckpointProgress(makeCheckpoint({ missionIndex: 1, stageIndex: 1, timeLef
 ok(zonderKlok.timeLeft === Infinity, 'zonder tijdslimiet blijft oneindig');
 ok(makeCheckpoint({ missionIndex: 1, stageIndex: 1, timeLeft: NaN, chain: {} }).timeLeft === null, 'NaN wordt null');
 ok(makeCheckpoint({ missionIndex: 1, stageIndex: 1, timeLeft: 9, chain: {} }).vehicle === null, 'geen voertuig');
+// #1294: de missietijd tot het hervatpunt gaat mee, anders was de medailletijd ('snel') makkelijker na een bewuste mislukking
+const cpTijd = makeCheckpoint({ missionIndex: 1, stageIndex: 2, timeLeft: 100, chain: { run: { elapsed: 140 } } });
+ok(cpTijd.elapsed === 140, 'het hervatpunt onthoudt de verstreken missietijd');
+const hervat = { timeLeft: 300, run: { elapsed: 0 } };
+applyCheckpointProgress(cpTijd, hervat);
+ok(hervat.run.elapsed === 140, 'na hervatten loopt de missietijd door vanaf het hervatpunt', String(hervat.run.elapsed));
+const zonderRun = { timeLeft: 300 };
+applyCheckpointProgress(cpTijd, zonderRun);
+ok(zonderRun.run === undefined, 'zonder run-object geen nieuw veld');
+ok(makeCheckpoint({ missionIndex: 1, stageIndex: 1, timeLeft: 9, chain: { run: { elapsed: NaN } } }).elapsed === null, 'NaN-tijd wordt null');
 
 // --- opslag: nooit terug naar een eerdere stage
 const store = new Map();
@@ -117,6 +127,12 @@ ok(/retryBeschikbaar\(\)\) return \{ title: .*herstart: true \}/.test(pmSrc), 'O
 ok(/a === 'mission-retry'/.test(pmSrc) && /herstartMissie\(world\)/.test(pmSrc), 'en de knop roept die functie aan');
 const todui = fs.readFileSync(new URL('../game/js/todoui.js', import.meta.url), 'utf8');
 ok(/extra\.stop\.herstart/.test(todui) && /data-action="mission-retry"/.test(todui), 'de rij heet "Opnieuw beginnen", niet "Missie stoppen"');
+{
+  // #1294: na de fade van Opnieuw beginnen opnieuw de bewakers; begon er intussen iets, dan geen verplaatsing en de herkansing blijft
+  const ur = m.slice(m.indexOf('function updateRetry('), m.indexOf('function updateRetry(') + 900);
+  const bewaker = ur.indexOf('if (herstartBlokkade(world)) { r.fade = null;'), plaats = ur.indexOf('placeParty(world, def.start)');
+  ok(bewaker > 0 && plaats > bewaker, 'updateRetry kijkt na de fade nog eens naar herstartBlokkade, vóór placeParty');
+}
 ok(/kind: 'getaway', checkpoint: true/.test(m), 'M06: checkpoint bij de vlucht na de lege vitrine');
 const saves = read('savegame.js') + read('savemigrate.js');
 ok(!/checkpoints/.test(saves), 'checkpoints staan niet in de save (tijdelijk, save/laad breekt niets)');

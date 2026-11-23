@@ -7,7 +7,7 @@ import { fileURLToPath } from 'node:url';
 import {
   day, weekdayOf, formatDay, STEP_DAY, storyBounds, clampDay, dayForSavedStep, sunDeclinationDeg, SPECIAL_DAYS,
   specialsOn, specialDay, cardFor, upcomingSpecials, isSpecial, ONTZET_DAY, LAST_SUMMER_DAY, EPILOGUE_DAY, partStartDay, CAL_ICONS, ontzetCountdown,
-  isLastMissionOfDay,
+  isLastMissionOfDay, sleepAddsDay,
 } from '../game/js/calendar.js';
 import { STEPS, PARTS, ARC_ID } from '../game/js/storyarc.js';
 
@@ -133,6 +133,17 @@ ok(sunDeclinationDeg(EPILOGUE_DAY) === sunDeclinationDeg(LAST_SUMMER_DAY) && sun
 // #665: de aftelling naar het Gronings Ontzet in de laatste week (voor de HUD)
 ok(ontzetCountdown(ONTZET_DAY - 3) === 'Ontzet over 3 dagen' && ontzetCountdown(ONTZET_DAY - 1) === 'Ontzet over 1 dag', 'de teller telt de laatste dagen af');
 ok(ontzetCountdown(ONTZET_DAY) === '' && ontzetCountdown(ONTZET_DAY + 1) === '' && ontzetCountdown(1) === '', 'op de dag zelf en ver ervoor niets');
+
+// #1299: slapen tot de volgende ochtend schuift de datum, ook bij een korte sprong terug
+ok(sleepAddsDay(8, 7.5, 4) && sleepAddsDay(11.5, 7.5, 4), 'middagdutje van 08:00 of 11:30 tot 07:30: volgende dag');
+ok(sleepAddsDay(22, 21.4, 4), 'van 22:00 tot de avond van morgen (21:24): volgende dag');
+ok(!sleepAddsDay(23, 7.5, 4), 'een lange sprong terug telt updateCalendar zelf (niet dubbel)');
+ok(!sleepAddsDay(2, 7.5, 4) && !sleepAddsDay(15, 21.4, 4), 'vooruit slapen blijft dezelfde dag');
+ok(!sleepAddsDay(NaN, 7.5, 4) && !sleepAddsDay(8, undefined, 4), 'geen getal: geen dag erbij');
+{
+  const home = fs.readFileSync(path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'game', 'js', 'home.js'), 'utf8');
+  ok(/noteSleep\(w, hour, w\.clock\)/.test(home), 'home.js meldt de slaap aan de kalender');
+}
 
 console.log(`${n - fails}/${n} calendar checks passed`);
 process.exit(fails ? 1 : 0);

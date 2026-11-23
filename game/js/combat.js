@@ -380,7 +380,7 @@ export function updateBullets(dt, world) {
     remaining.push(b);
   }
   world.bullets = remaining;
-  world.particles = world.particles.filter((p) => p.until === undefined || p.until > world.time);
+  if (world.particles.length) world.particles = world.particles.filter((p) => p.until === undefined || p.until > world.time); // no new array per frame for an empty list (#1287)
   updateThrowables(dt, world);
 }
 

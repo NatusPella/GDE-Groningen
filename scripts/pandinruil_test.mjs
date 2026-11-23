@@ -44,5 +44,31 @@ t('rare invoer geeft nooit NaN of een negatief bedrag', () => {
   for (const v of [M.gunResale({ gun: 25, ammoPrice: 5, ammo: 150 }, NaN), M.gunResale({ gun: 25, ammoPrice: 5, ammo: 150 }, -5), M.gunResale({}, 10), M.gunResale(null, 10), M.gunResale({ gun: 25, ammoPrice: 5, ammo: 150 }, Infinity)]) assert.ok(Number.isFinite(v) && v >= 0, String(v));
 });
 
+// #1296: de grote blauwe tas (1 euro voor +10 pantser) wordt niet ingeruild; tien tassen leverden 60 euro op
+t('vestResale bestaat en shops.js gebruikt hem', () => {
+  assert.equal(typeof M.vestResale, 'function');
+  assert.match(src, /vestResale\(world\.armor, bagArmor\(world\)\)/);
+  assert.match(src, /world\.armorBag = bag \+ \(world\.armor - before\)/);
+});
+t('tien tassen opkopen en verkopen levert niets op', () => {
+  let armor = 0, bag = 0, geld = 0;
+  for (let i = 0; i < 10; i++) { const voor = armor; bag = Math.min(bag, armor); armor = Math.min(100, armor + 10); bag += armor - voor; geld -= 1; }
+  const r = M.vestResale(armor, bag);
+  geld += r.income;
+  assert.ok(geld <= 0, 'winst ' + geld);
+  assert.equal(r.keep, 100, 'de tassen blijven om je heen');
+});
+t('een echt vest houdt zijn inruilprijs, ook met tassen erbij', () => {
+  assert.equal(M.vestResale(100, 0).income, 60);
+  assert.equal(M.vestResale(60, 10).income, 30);
+  assert.equal(M.vestResale(9, 0).income, 0);
+  assert.equal(M.vestResale(30, 0).income, 18);
+  assert.ok(M.vestResale(30, 0).income < 20, 'vestje kost 20');
+});
+t('tassen-deel nooit meer dan het pantser dat over is; rare invoer geeft geen NaN', () => {
+  assert.deepEqual(M.vestResale(5, 30), { vest: 0, keep: 5, income: 0 });
+  for (const r of [M.vestResale(NaN, 3), M.vestResale(50, NaN), M.vestResale(-4, -4)]) assert.ok(Number.isFinite(r.income) && r.income >= 0 && Number.isFinite(r.keep));
+});
+
 console.log(fails ? `${fails} van ${n} mislukt` : `pandinruil_test: ${n} van ${n} goed`);
 process.exit(fails ? 1 : 0);

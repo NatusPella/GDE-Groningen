@@ -54,3 +54,13 @@ export function gunResale(w, n) {
   const perRound = Math.min(0.4, Math.max(0, Number(w && w.ammoPrice) || 0) / pack);
   return Math.round(gun * 0.3 + Math.max(0, Number.isFinite(n) ? n : 0) * perRound);
 }
+
+// What the pawn shop pays for your armour (#1296). Armour from the big blue bag (1 euro for +10) is no vest: it is not
+// bought back, or ten bags for 10 euro sold for 60 and every round between the two shops made 50 euro. The bag part
+// stays on you (keep); a sale needs at least 10 points of real vest. bagArmor is clamped to the armour you still have.
+export function vestResale(armor, bagArmor) {
+  const a = Math.max(0, Number.isFinite(armor) ? armor : 0);
+  const keep = Math.min(a, Math.max(0, Number.isFinite(bagArmor) ? bagArmor : 0));
+  const vest = a - keep;
+  return { vest, keep, income: vest >= 10 ? Math.round(vest * 0.6) : 0 };
+}

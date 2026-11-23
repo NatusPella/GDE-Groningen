@@ -155,7 +155,11 @@ export function getPigeonSaveData() {
   return { ...store, ach: [...store.ach] };
 }
 
+// Loading a save starts from the old standalone key only, not from what is in memory: the records of slot A leaked into
+// slot B (max-merge with the store of the save loaded before, #1295). The one-time carry-over of the old key stays.
 export function applyPigeonSaveData(d) {
+  store = { best: 0, total: 0, ach: [], home: false };
+  loadLegacyStore();
   if (!d || typeof d !== 'object') return;
   const s = sanitizeStore(d);
   store = { best: Math.max(store.best, s.best), total: Math.max(store.total, s.total), ach: [...new Set([...store.ach, ...s.ach])], home: store.home || s.home };

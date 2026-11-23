@@ -44,7 +44,7 @@ import { saveFailText, newSlotName, takenNames, readSlot, writeSlotRaw, writeThu
 import { readOwner as readScopeOwner } from './savescope.js'; // 22-11: voortgang per save
 import { isLegacyStorySave, legacyCardNeeded } from './legacysave.js'; // 22-11: de kaart "Nieuw verhaal" bij een oude save
 import { logError } from './errorlog.js';
-import { makeSafe, healthForSave } from './saveveilig.js';
+import { makeSafe, healthForSave, moneyForSave } from './saveveilig.js';
 import { maakCheckpoint } from './coopcheckpoint.js';
 import { registerSaveGame, registerSaveTimers, registerGastVerhaal, registerGastBoek } from './savehook.js';
 import { karakterVoorSave, clearActivity } from './karakterbonus.js';
@@ -298,10 +298,12 @@ function serialize(w) {
     arc: ARC_ID,
     savedAt: Date.now(),
     speeltijd: Math.round(playSeconds),
-    money: Math.max(0, Math.floor(num(w.money, num(w._goodMoney, 0)))),
-    moneyBackup: Math.max(0, Math.floor(num(w._goodMoney, num(w.money, 0)))),
+    // walletInFlight: a thief still running with your wallet (muggings.js); the save keeps it, closing the game is no escape (#1296)
+    money: Math.max(0, Math.floor(moneyForSave(num(w.money, num(w._goodMoney, 0)) + Math.max(0, num(w.walletInFlight, 0)), w.pendingRespawn))),
+    moneyBackup: Math.max(0, Math.floor(moneyForSave(num(w._goodMoney, num(w.money, 0)) + Math.max(0, num(w.walletInFlight, 0)), w.pendingRespawn))),
     health: healthForSave(w.health, !!w.pendingRespawn),
     armor: clamp(num(w.armor, 0), 0, 100),
+    armorBag: clamp(Math.min(num(w.armorBag, 0), num(w.armor, 0)), 0, 100), // blue-bag armour, not bought back by the pawn shop (#1296)
     weapon: w.weapon,
     ammo,
     // eten (#502): gekochte snacks en zelf gevangen vis, net als ammo een gewoon veld
@@ -558,14 +560,16 @@ function stateSignature(w) {
     const vehicles = (sh.vehicles || []).map((o) => [o.key, o.color, o.upgrades, !!o.lost]);
     return JSON.stringify([sh.outfit, sh.ownedOutfits, sh.hair, sh.heroColor, sh.heroUpgrades, vehicles,
       getMissionProgress(), getStorySave(), getAchievementSaveData(), getPigeonSaveData(), getSideJobSave(), getPostgameSave(), getFurnitureSave(), getGoalSave(), getHomeSave(), getCheatSave(), getRadioSave(),
-      w.money, getFinanceSave(),
+      w.money, w.walletInFlight || 0, getFinanceSave(), // walletInFlight: the money in a save changes when a thief gets away (#1296)
       // eten (#502): een gevangen vis of een opgegeten snack is een echte wijziging; zonder dit
       // bleef de autosave stil tot de volgende aankoop of missie
       etenSave(w),
       w.visitedLandmarks instanceof Set ? w.visitedLandmarks.size : 0, w.stats.missionsDone,
       // #790: een nieuwe wijkkaart (#726) staat in de save; zonder deze teller bleef de autosave
       // stil tot een volgende wijziging en was de kaart na een crash/force-kill weer ongezien.
-      getWijkenSeen().length]);
+      getWijkenSeen().length,
+      // a new calendar day and a changed difficulty are in the save too; alone they never made the autosave dirty (#1295)
+      getCalendarSave(w), getDifficultyProfile()]);
   } catch (e) {
     return lastSig;
   }
@@ -684,6 +688,7 @@ function applySaveRaw(w, d) {
     w._goodMoney = w.money;
     w.health = clamp(num(d.health, 100), 1, 100);
     w.armor = clamp(num(d.armor, 0), 0, 100);
+    w.armorBag = Math.min(w.armor, clamp(num(d.armorBag, 0), 0, 100));
     const ammo = {};
     for (const [k, v] of Object.entries(d.ammo || {})) {
       if (!WEAPONS[k]) continue;
@@ -692,7 +697,8 @@ function applySaveRaw(w, d) {
     w.ammo = ammo;
     // eten (#502): een save van vóór dit veld begint met een lege maag, zonder fout
     applyEtenSave(w, d.eten);
-    w.weapon = WEAPONS[d.weapon] && (WEAPONS[d.weapon].ammo === Infinity || Number.isFinite(ammo[d.weapon])) ? d.weapon : 'fists';
+    // a weapon with unlimited rounds ('inf' in the save) is kept too, not swapped for fists (#1295)
+    w.weapon = WEAPONS[d.weapon] && (WEAPONS[d.weapon].ammo === Infinity || Number.isFinite(ammo[d.weapon]) || ammo[d.weapon] === Infinity) ? d.weapon : 'fists';
     for (const k of Object.keys(w.stats)) delete w.stats[k];
     Object.assign(w.stats, statsFromSave(d.stats));
     clearActivity(w);

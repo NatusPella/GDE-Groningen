@@ -150,6 +150,13 @@ const near = (a, b, m = 0.01) => Math.abs(a - b) <= m;
   ok(/#hud \.hud-location \{ translate: 0 var\(--hud-loc-y, 0px\)/.test(hud), '#1079: de verschuiving van de locatiekaart is één variabele (--hud-loc-y), met translate zodat hud-rise niet botst');
   ok(/watchLocatie\(root, fcol, location, topLeft\)/.test(read('hud_panel.js')) && /locatieLift/.test(read('hudlinks.js')), '#1079: hud_panel.js bedraadt hudlinks.js (scripts/hudlinks_test.mjs dekt de regels)');
 }
+// #1075: de toetsregel van het doel is zo hoog als zijn toetsplaatjes (vloer 26 px, regelhoogte 0), dus hij schuift niet in de doelregel
+{
+  const hud = read('hud_panel.css'), kc = read('ds-keycap.css');
+  ok(/#hud \.hud-obj-key \{[^}]*min-height: var\(--ds-kc-floor\)/.test(hud), '#1075: een toetsgroep in de doelregel is minstens zo hoog als zijn plaatje');
+  ok(/#hud [^{]*\.hud-obj-key \{ --ds-kc-floor: 26px; \}/.test(kc), '#1075: de vloer van die plaatjes is 26 px (ds-keycap.css)');
+  ok(/#hud \.hud-obj-keys \{[^}]*gap: (\d+)px/.test(hud) && +hud.match(/#hud \.hud-obj-keys \{[^}]*gap: (\d+)px/)[1] >= 4, '#1075: een omgeslagen toetsgroep ligt niet over de eerste rij');
+}
 
 console.log(fail ? `${fail} van ${n} HUD-layoutchecks mislukt` : `hud_layout_issues_test: ${n} checks ok`);
 process.exit(fail ? 1 : 0);

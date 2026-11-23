@@ -40,7 +40,11 @@ export function makeCheckpoint(snap) {
   for (const key of PROGRESS_KEYS) if (snap.chain && snap.chain[key] !== undefined) progress[key] = snap.chain[key];
   // the choices made before this stage (a copy: tags of later stages must not leak back into the checkpoint)
   if (snap.chain && snap.chain.tags) progress.tags = new Set(snap.chain.tags);
+  // the mission time so far (run.elapsed): a resumed attempt went on from 0, so failing on purpose after the
+  // checkpoint made the medal time (tag 'snel', bonus) easier to get (#1294)
+  const elapsed = snap.chain && snap.chain.run && Number.isFinite(snap.chain.run.elapsed) ? snap.chain.run.elapsed : null;
   return {
+    elapsed,
     missionIndex: snap.missionIndex,
     stageIndex: snap.stageIndex,
     timeLeft: Number.isFinite(snap.timeLeft) ? snap.timeLeft : null,
@@ -56,6 +60,7 @@ export function applyCheckpointProgress(cp, chain, minTime = 45) {
   Object.assign(chain, cp.progress);
   if (cp.progress && cp.progress.tags) chain.tags = new Set(cp.progress.tags);
   if (cp.timeLeft != null && Number.isFinite(chain.timeLeft)) chain.timeLeft = Math.max(cp.timeLeft, minTime);
+  if (Number.isFinite(cp.elapsed) && chain.run) chain.run.elapsed = Math.max(chain.run.elapsed || 0, cp.elapsed);
   return chain;
 }
 

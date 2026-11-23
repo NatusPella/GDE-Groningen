@@ -33,3 +33,11 @@ export function healthForSave(health, down = false) {
   if (down || h <= 0) return 100;
   return Math.max(1, Math.min(100, h));
 }
+
+// The money a save stores while a respawn is pending (#1295): the fine of DOOD or OPGEPAKT (respawnPlayer takes it
+// only after the scene) is taken here too, so closing the game on that screen no longer skips the fine.
+export function moneyForSave(money, pending = null) {
+  const m = typeof money === 'number' && Number.isFinite(money) ? money : 0;
+  const fine = pending && Number.isFinite(pending.moneyPenalty) ? Math.max(0, pending.moneyPenalty) : 0;
+  return Math.max(0, m - fine);
+}

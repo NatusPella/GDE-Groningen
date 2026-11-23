@@ -3,7 +3,7 @@ import { euro } from './geldtekst.js';
 // Geldwagen overvallen: a Poen Express van from traffic that is blown open
 // (wrecked) drops a money bag. Pick it up for cash; the police see the blast
 // and follow. Both the van and the bag are shown on minimap and map.
-import { reportCrime, cashVanBlownOpts } from './crime.js';
+import { reportCrime, cashVanBlownOpts, cashVanHasCulprit } from './crime.js';
 import { showCard } from './hudcards.js';
 
 const LOOT_RADIUS = 4;
@@ -26,7 +26,8 @@ export function updateCashVan(dt, w) {
     if (!v.isCashVan || !v.wrecked || v._cashDone || v.playerOwned || v.missionCar) continue;
     v._cashDone = true;
     loot.push({ x: v.x, y: v.y, until: now + LOOT_LIFE });
-    reportCrime(w, 'cashVanBlown', cashVanBlownOpts(v));
+    // only a star when a player blew it open (#1296): a van wrecked by traffic on its own is nobody's crime
+    if (cashVanHasCulprit(v)) reportCrime(w, 'cashVanBlown', cashVanBlownOpts(v));
     showCard(w, { kind: 'tip', kicker: 'Geldwagen', title: 'De Poen Express is opengeblazen', body: 'Pak de geldzak voordat de politie er is.', duration: 5, key: 'cashvan-blown-' + v.id, voice: false });
   }
   const p = hoofdspeler(w);

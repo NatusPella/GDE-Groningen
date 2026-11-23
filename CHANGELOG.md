@@ -62,6 +62,13 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 - Deuren en markiezen op mensenmaat: geen voordeur meer van 1,65 m (een verdieping is nooit lager dan 2,6 m), winkeldeuren zijn minstens 2,05 m en de onderkant van een markies hangt minstens 2,1 m boven de stoep, zodat je er niet meer met je hoofd tegenaan loopt.
 - Winkelborden: de letters worden niet meer uitgerekt of samengeperst; het bord krijgt een canvas in zijn eigen verhouding en een smal bord toont hele woorden in plaats van een afgekapt woord.
 - Bomen in een laan met een gemapte hoogte verschillen een paar procent in hoogte, zodat een rij niet meer als gekopieerd oogt.
+- Geld en politie: de grote blauwe tas telt nog steeds als pantser, maar het pandjeshuis koopt hem niet meer als vest terug (tien tassen voor een tientje leverden zestig euro op). Een geldwagen die vanzelf in het verkeer verongelukt geeft je geen ster meer, na DOOD of OPGEPAKT begin je zonder opgebouwde warmte van kleine overtredingen, en sluit je het spel terwijl een zakkenroller met je portemonnee wegrent, dan ben je dat geld niet kwijt. Samen spelen: per speler.
+- Opslaan: wie het spel sluit op het DOOD- of OPGEPAKT-scherm betaalt de boete toch; een wapen met oneindige munitie blijft na het laden in je hand; een nieuwe kalenderdag of een andere moeilijkheid wordt meteen bewaard; de duifrecords van de ene saveplek lekken niet meer naar een andere.
+- Missies: na hervatten bij een hervatpunt loopt de medailletijd door (bewust mislukken maakte 'snel' makkelijker), en Opnieuw beginnen verplaatst je niet meer als er tijdens het overvloeien een bijbaan, activiteit of filmpje begon.
+- Slapen: een middagdutje tot de volgende ochtend schuift nu ook de datum op.
+- De tuningwerkplaats houdt de wereld stil zolang hij open is (de pauze duurde één beeld).
+- Spraakbubbels staan boven het hoofd van de spreker, ook op een dijk of in een kuil; duiven bij een voerplek staan op de stoep in plaats van half in de stenen.
+- HUD: de toetsregel in de doelkaart schuift niet meer in de doelregel. Instellingen: de kop Hulp heeft lucht, de uitleg onder een rij is beter leesbaar en de focusrand om een tab is dunner.
 
 ## [0.65.0] - 2026-11-22
 

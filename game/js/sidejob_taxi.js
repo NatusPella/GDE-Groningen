@@ -88,9 +88,10 @@ function roofSign() {
   return m;
 }
 
-function kerbFor(map, place) {
+export function kerbFor(map, place) {
   const rp = map.nearestRoadPoint(place.x, place.y, 250, true);
-  if (!rp) return null;
+  // no road within 250 m (a tile not streamed in yet): the place itself, not null; round() read d.to.road and threw (#1299)
+  if (!rp || !rp.road || !rp.road.pts || rp.road.pts.length < 2) return { road: { x: place.x, y: place.y }, walk: { x: place.x, y: place.y } };
   const pts = rp.road.pts;
   let bi = 0, bd = Infinity;
   for (let i = 0; i < pts.length - 1; i++) {

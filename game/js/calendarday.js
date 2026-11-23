@@ -5,7 +5,7 @@
 // as `kalender` (savegame.js). Sets the sun's declination for the day, and
 // shows the "Vandaag in Grunn" card on the first morning of a special day.
 import { getStoryView } from './storyquery.js';
-import { formatDay, specialsOn, specialDay, cardFor, clampDay, storyBounds, sunDeclinationDeg, isSpecial, upcomingSpecials, STEP_DAY } from './calendar.js';
+import { formatDay, specialsOn, specialDay, cardFor, clampDay, storyBounds, sunDeclinationDeg, isSpecial, upcomingSpecials, STEP_DAY, sleepAddsDay } from './calendar.js';
 import { setSunDeclination } from './daynight.js';
 import { showCard, cardsBusy } from './hudcards.js';
 import { narrativeBusy } from './narrative.js';
@@ -60,6 +60,16 @@ export function updateCalendar(dt, w) {
   if (c.day !== was) dayChanged(c.day, was);
   if (c.day !== lastDecl) { setSunDeclination(sunDeclinationDeg(c.day)); lastDecl = c.day; }
   maybeCard(w, c, h);
+}
+
+// home.js after a sleep: a short jump back of the clock (a nap from 07:30 to 11:30 until the next morning) is the next
+// day too; a longer one is already counted by updateCalendar (#1299).
+export function noteSleep(w, fromHour, toHour) {
+  const c = state(w);
+  if (!sleepAddsDay(fromHour, toHour, NIGHT_JUMP)) return;
+  const was = c.day;
+  c.day = clampDay(c.day + 1, bounds());
+  if (c.day !== was) dayChanged(c.day, was);
 }
 
 function maybeCard(w, c, h) {

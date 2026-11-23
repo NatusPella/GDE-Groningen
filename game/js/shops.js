@@ -55,7 +55,7 @@ import { shopSections, wardrobeSections, fittingSections, outfitMessageFor } fro
 import { clothingSfx } from './clothingsfx.js';
 import { sfxEvent } from './sfx/haken.js';
 import { wantedClearCooldownLeft, markWantedCleared } from './heatcooldown.js'; // #838: spuiterij-cooldown
-import { munitieWinst, munitiePrijs, gunResale } from './ammorules.js'; // een bijna vol magazijn kost evenredig
+import { munitieWinst, munitiePrijs, gunResale, vestResale } from './ammorules.js'; // een bijna vol magazijn kost evenredig
 
 export const SHOP_USE_RADIUS = 2.6;
 const OUTFIT_WANTED_COOLDOWN = 60;
@@ -763,6 +763,8 @@ const clamp01 = (x) => Math.max(0, Math.min(1, x || 0));
 const productPreview = (id) => { const k = productKey(id); return k ? { kind: 'product', product: k } : null; };
 const barStat = (label, now, after, max, unit = '') => ({ label, v: clamp01(now / max), to: after == null ? null : clamp01(after / max), text: after == null || Math.round(after) === Math.round(now) ? `${Math.round(now)}${unit}` : `${Math.round(now)} → ${Math.round(after)}${unit}` });
 const healthStat = (world, hp) => barStat('Gezondheid', world.health, Math.min(100, world.health + hp), 100);
+// The part of your armour that came from blue bags, never more than the armour left (damage eats it, #1296).
+const bagArmor = (world) => (world.armorBag = Math.min(world.armorBag || 0, world.armor || 0));
 const armorStat = (world, amount) => barStat('Pantser', world.armor, Math.min(100, world.armor + amount), 100);
 
 function weaponStats(key, entry) {
@@ -1114,10 +1116,11 @@ export function pandSections(world, shop) {
       },
     });
   }
-  if (world.armor >= 10) {
-    const income = Math.round(world.armor * 0.6);
-    sell.push({ id: 's-armor', preview: productPreview('vest'), stats: [barStat('Pantser', world.armor, 0, 100)], label: 'Vest verkopen', desc: `Pantser ${Math.round(world.armor)}, bijna niet gebruikt`, price: 0, income,
-      buy() { world.armor = 0; noteMoney('Verkoop'); world.money += income; verkoopGeluid(world); return `+${euro(income)} voor je vest`; } });
+  const vestSale = vestResale(world.armor, bagArmor(world)); // blue-bag armour is not bought back (ammorules.js, #1296)
+  if (vestSale.income > 0) {
+    const income = vestSale.income, keep = vestSale.keep;
+    sell.push({ id: 's-armor', preview: productPreview('vest'), stats: [barStat('Pantser', world.armor, keep, 100)], label: 'Vest verkopen', desc: `Pantser ${Math.round(vestSale.vest)}, bijna niet gebruikt`, price: 0, income,
+      buy() { world.armor = keep; world.armorBag = keep; noteMoney('Verkoop'); world.money += income; verkoopGeluid(world); return `+${euro(income)} voor je vest`; } });
   }
   for (const v of world.vehicles) {
     if (!v.stolenByPlayer || v.playerOwned || v.isHeroCar || v.missionCar || v.wrecked || v.isBoat || v.driver) continue;
@@ -1138,7 +1141,7 @@ export function pandSections(world, shop) {
   const buy = [
     { id: 'b-vest', label: 'Gebruikt vestje', desc: '+30 pantser, klein gaatje', price: 20, preview: productPreview('vest'), stats: [armorStat(world, 30)], effect: '+30 pantser',
       disabled: world.armor >= 100 ? 'Pantser is al vol' : broke(world, 20),
-      buy() { if (!pay(world, 20)) return null; world.armor = Math.min(100, world.armor + 30); return 'Vestje aan. Past bijna'; } },
+      buy() { if (!pay(world, 20)) return null; bagArmor(world); world.armor = Math.min(100, world.armor + 30); return 'Vestje aan. Past bijna'; } },
     { id: 'b-pistol', label: 'Pistool uit de achterkamer', desc: 'Met 12 patronen, geen bonnetje', price: 80,
       preview: { kind: 'weapon', weapon: 'pistol' }, stats: weaponStats('pistol', { ammo: 12, cap: 250 }),
       disabled: (world.ammo.pistol || 0) >= 250 ? 'Zak zit vol' : broke(world, 80),
@@ -1268,6 +1271,7 @@ export function weaponSections(world) {
     disabled: world.armor >= 100 ? 'Pantser is al vol' : broke(world, price),
     buy() {
       if (!pay(world, price)) return null;
+      bagArmor(world);
       world.armor = Math.min(100, world.armor + amount);
       return `${label} aangetrokken`;
     },
@@ -1666,7 +1670,9 @@ function eikeaSections(world) {
         disabled: world.armor >= 100 ? 'Pantser is al vol' : broke(world, 1),
         buy() {
           if (!pay(world, 1)) return null;
+          const before = world.armor, bag = bagArmor(world);
           world.armor = Math.min(100, world.armor + 10);
+          world.armorBag = bag + (world.armor - before); // the pawn shop does not buy bags (vestResale, #1296)
           return 'Blauwe tas om je heen: je voelt je onoverwinnelijk';
         },
       },

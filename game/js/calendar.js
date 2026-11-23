@@ -110,6 +110,13 @@ export function storyBounds(view) {
   return { min, max: Math.max(min, min <= ONTZET_DAY ? Math.min(next, ONTZET_DAY) : next) };
 }
 
+// Sleeping (home.js) from fromHour to toHour: is the wake-up on the next day? Waking at or before the hour you went to bed
+// is the next day. updateCalendar (calendarday.js) only counts a jump back of more than nightJump hours, so a nap from
+// 07:30 to 11:30 to the next morning kept the date (#1299); this tells which sleeps it must add itself.
+export function sleepAddsDay(fromHour, toHour, nightJump) {
+  if (!Number.isFinite(fromHour) || !Number.isFinite(toHour)) return false;
+  return toHour <= fromHour && fromHour - toHour <= nightJump;
+}
 export const clampDay = (n, b) => Math.max(b.min, Math.min(b.max, Math.max(1, Math.floor(n) || 1)));
 
 // Is this step the last mission of its calendar day? (#935) The day closing

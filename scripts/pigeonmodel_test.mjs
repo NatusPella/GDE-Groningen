@@ -244,5 +244,10 @@ t('de oude blokvogels zijn weg: geen BoxGeometry-vogel in de zwerm, geen bol als
   assert.ok(/pigeonBoneParts\(lod/.test(wi) && /seagullGeometry\(lod\)/.test(wi), 'wildlife.js bouwt duif en meeuw uit het model');
 });
 
+// #1195: een duif bij een voerplek staat op de grond daar (stoep, plein), niet half in de stenen op hoogte 0
+t('voerplek-duiven staan op de grondhoogte (pigeonspots.js)', () => {
+  assert.match(src('pigeonspots.js'), /mesh\.position\.set\(p\[0\], \(map\.groundHeightAt && map\.groundHeightAt\(p\[0\], p\[1\], 0\)\) \|\| 0, p\[1\]\)/);
+});
+
 console.log(`\npigeonmodel_test: ${n - fails}/${n} ok`);
 process.exit(fails ? 1 : 0);

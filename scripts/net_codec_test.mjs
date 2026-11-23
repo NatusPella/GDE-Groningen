@@ -66,10 +66,14 @@ t('afwijzen: korte, afgeknotte, verkeerde magic/versie, te lange data', () => {
   assert.equal(K.decodeSnapshot('tekst'), null);
 });
 t('afwijzen: onmogelijke waarden', () => {
-  const nan = K.encodeSnapshot(1, 1, 1, { ...SNAP, players: [{ ...SNAP.players[0], x: NaN }] });
+  // de ontvanger wijst bytes met een onmogelijke spelerpositie af (met de hand in de bytes gezet: de encoder slaat zo'n speler sinds #1293 over)
+  const nan = K.encodeSnapshot(1, 1, 1, SNAP); new DataView(nan.buffer, nan.byteOffset).setFloat32(13, NaN);
   assert.equal(K.decodeSnapshot(nan), null);
-  const far = K.encodeSnapshot(1, 1, 1, { ...SNAP, players: [{ ...SNAP.players[0], x: 1e9 }] });
+  const far = K.encodeSnapshot(1, 1, 1, SNAP); new DataView(far.buffer, far.byteOffset).setFloat32(13, 1e9);
   assert.equal(K.decodeSnapshot(far), null);
+  // de encoder stuurt zo'n speler niet mee; de rest van de snapshot komt aan (#1293)
+  const zonder = K.decodeSnapshot(K.encodeSnapshot(1, 1, 1, { ...SNAP, players: [{ ...SNAP.players[0], x: NaN }, SNAP.players[1]] }));
+  assert.deepEqual(zonder.players.map((p) => p.slot), [SNAP.players[1].slot]);
   const g = K.encodeSnapshot(1, 1, 1, SNAP); g[11] = 200; assert.equal(K.decodeSnapshot(g), null, 'te veel spelers');
 });
 t('fuzz: willekeurige bytes crashen niet', () => {

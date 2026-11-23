@@ -77,7 +77,7 @@ function abort(w, silent = false) {
     else { S.ped.state = 'wander'; S.ped.mugger = false; }
   }
   S.phase = null; S.ped = null;
-  w.muggerChase = null;
+  w.muggerChase = null; w.walletInFlight = 0;
   if (!silent) S.since = 0;
 }
 
@@ -117,6 +117,7 @@ function snatch(w) {
   const lost = stolenAmount(w.money);
   if (!(lost > 0)) { abort(w); return; }
   w.money -= lost;
+  w.walletInFlight = lost; // a save during the chase keeps this money (savegame.js): closing the game is not an escape (#1296)
   S.lost = lost;
   S.phase = 'chase';
   S.t = 0;
@@ -145,7 +146,7 @@ function warn(w, wijk, hour, own, level, time) {
 export function updateMuggings(dt, w) {
   if (!dt || w.paused || !hoofdspeler(w) || !w.map) return;
   world = w;
-  if (G.spot) { w.money += G.lost; G.spot = null; w.muggerChase = null; } // a guest who became the opener (host change) gets his wallet back
+  if (G.spot) { w.money += G.lost; G.spot = null; w.muggerChase = null; w.walletInFlight = 0; } // a guest who became the opener (host change) gets his wallet back
   S.since += dt;
   const p = hoofdspeler(w);
   const hour = hourOf(w);
@@ -165,21 +166,21 @@ export function updateMuggings(dt, w) {
   if (S.phase === 'chase') {
     const ped = S.ped;
     S.t += dt;
-    if (!ped || !w.pedestrians.includes(ped)) { w.addMessage(MUG_TEXT.gone(S.lost), 5); S.phase = null; S.ped = null; S.since = 0; w.muggerChase = null; return; }
+    if (!ped || !w.pedestrians.includes(ped)) { w.addMessage(MUG_TEXT.gone(S.lost), 5); S.phase = null; S.ped = null; S.since = 0; w.muggerChase = null; w.walletInFlight = 0; return; }
     w.muggerChase = { x: ped.x, y: ped.y };
     const d = dist(p, ped);
     if (ped.state === 'dead' || caught(d, S.t)) {
       w.money += S.lost;
       w.addMessage(MUG_TEXT.back(S.lost), 5, { kind: 'geld', key: 'beroving-terug' });
       if (ped.state !== 'dead') { ped.state = 'wander'; ped.mugger = false; ped.speechText = 'Au! Hier, pak maar.'; ped.speechUntil = w.time + 2.4; }
-      S.phase = null; S.ped = null; S.since = 0; w.muggerChase = null;
+      S.phase = null; S.ped = null; S.since = 0; w.muggerChase = null; w.walletInFlight = 0;
       return;
     }
     if (escaped(d, S.t)) {
       const i = w.pedestrians.indexOf(ped);
       if (i >= 0) w.pedestrians.splice(i, 1);
       w.addMessage(MUG_TEXT.gone(S.lost), 5);
-      S.phase = null; S.ped = null; S.since = 0; w.muggerChase = null;
+      S.phase = null; S.ped = null; S.since = 0; w.muggerChase = null; w.walletInFlight = 0;
     }
     return;
   }
@@ -199,6 +200,7 @@ function snatchGuest(w) {
     const [x, y] = map.escapeBuilding(p.x + Math.cos(a) * r, p.y + Math.sin(a) * r, 0.4);
     if (isInsideBuilding(map, x, y) || isInWater(map, x, y) || dist({ x, y }, p) < 6) continue;
     w.money -= lost;
+    w.walletInFlight = lost; // see snatch
     G.spot = { x, y }; G.lost = lost; G.t = 0;
     S.since = 0; w.__forceMug = false;
     w.addMessage(MUG_TEXT.guestSnatch(lost), 6, { kind: 'gevaar', key: 'beroving' });
@@ -225,10 +227,10 @@ export function updateMuggingsGast(dt, w) {
     if (lootReached(dist(p, G.spot))) {
       w.money += G.lost;
       w.addMessage(MUG_TEXT.guestBack(G.lost), 5, { kind: 'geld', key: 'beroving-terug' });
-      G.spot = null; w.muggerChase = null; S.since = 0;
+      G.spot = null; w.muggerChase = null; w.walletInFlight = 0; S.since = 0;
     } else if (lootGone(G.t)) {
       w.addMessage(MUG_TEXT.guestGone(G.lost), 5);
-      G.spot = null; w.muggerChase = null; S.since = 0;
+      G.spot = null; w.muggerChase = null; w.walletInFlight = 0; S.since = 0;
     }
     return;
   }

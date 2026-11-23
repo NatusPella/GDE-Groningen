@@ -116,6 +116,8 @@ export function respawnPlayer(world, { busted = false, moneyPenalty = 0, announc
   world.armor = 0;
   world.wanted = 0;
   world.wantedDecayTimer = 0;
+  world.armorBag = 0;
+  world.crimeHeat = null; // after DOOD or OPGEPAKT the heat of small offences starts clean too (crime.js, #1296)
   world.money = Math.max(0, world.money - moneyPenalty);
   if (!announced) world.addMessage(busted ? 'OPGEPAKT' : 'DOOD', 3.5);
   if (pick.name) world.addMessage(at && at.message ? at.message : `Je respawnt bij ${pick.name}`, 4);
