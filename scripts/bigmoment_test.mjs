@@ -185,5 +185,16 @@ ok(/\.bm-band > \.bm-klein \{ margin-bottom: var\(--ds-s-2\); \}/.test(css), 'he
   ok(/body\.bm-eindkaart #hud \.hud-mission \{ opacity: 0/.test(code), 'de doelbalk is onzichtbaar achter de eindkaart');
   ok(/b\.contains\('bm-eindkaart'\)/.test(pr), 'de sleutelhints (duifprompt) zwijgen achter de eindkaart');
 }
+// #1207, #1217: met de missienaam is die naam de titel, het label de uitkomst en de regel de reden
+{
+  const g = bouwMoment(momentVanBanner({ kind: 'pass', title: 'MISSIE GESLAAGD', reason: 'Jelle was jullie voor.', reward: 550, missie: 'Het museum stond er al zo' }));
+  ok(g.kop === 'Het museum stond er al zo' && g.klein === STANDAARD.geslaagd.klein && g.regelNl === 'Jelle was jullie voor.' && g.beloning === '€ 550', 'de missienaam is de titel, de beloning blijft', JSON.stringify(g));
+  ok(g.lang === true && !g.aria.includes(STANDAARD.geslaagd.kop), 'een lange titel krijgt de kleinere letter en de Groningse standaardkop vervalt');
+  const f = bouwMoment(momentVanBanner({ kind: 'fail', title: 'Sikkom.', reason: 'Geleend van de Friezen', reward: 300, missie: 'Geleend van de Friezen' }));
+  ok(f.kop === 'Geleend van de Friezen' && f.klein === STANDAARD.mislukt.klein && f.regelNl === STANDAARD.mislukt.regelNl && f.beloning === '', 'mislukt: geen naam twee keer, geen beloning', JSON.stringify(f));
+  ok(bouwMoment(momentVanBanner({ kind: 'fail', title: 'Sikkom.' })).lang === false, 'een korte uitroep blijft groot');
+  const ms = fs.readFileSync(new URL('../game/js/missions.js', import.meta.url), 'utf8');
+  ok(/stats, reason, missie: def\.label \}\);/.test(ms) && /failureStats\(runStats\(world, def\)\), missie: def\.label \}/.test(ms), 'missions.js geeft de missienaam mee bij geslaagd en mislukt');
+}
 console.log(`${n - fails}/${n} bigmoment`);
 process.exit(fails ? 1 : 0);

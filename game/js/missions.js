@@ -1254,7 +1254,7 @@ function succeed(world, def) {
       stats.push(['Oordeel', PERFECT_VERDICT]);
       world.lastPerfectRun = world.time;
     }
-    playStoryOutro(world, i, { stage: storyStage(i), short: chainState().completed.has(i), reward: tegen ? hostDeel : reward, stats, reason });
+    playStoryOutro(world, i, { stage: storyStage(i), short: chainState().completed.has(i), reward: tegen ? hostDeel : reward, stats, reason, missie: def.label });
   } else {
     // de gastheer keek toe: de opdracht is klaar, maar zijn eigen verhaal, geld en vakpunten blijven waar ze waren (#452)
     world.addMessage(`${def.label} geklaard, zonder jou. Geen beloning of voortgang voor jou.`, 4);
@@ -1311,7 +1311,7 @@ function fail(world, def, reason) {
   const pretty = reason ? reason[0].toUpperCase() + reason.slice(1) : def.label;
   const i = chainState().index;
   const mee = gastStartMee(world); // een opdracht van een gast die de gastheer niet meespeelt: geen verhaalgevolg voor hem (#452)
-  if (mee) playStoryFail(world, i, { reason: pretty, stats: failureStats(runStats(world, def)) });
+  if (mee) playStoryFail(world, i, { reason: pretty, stats: failureStats(runStats(world, def)), missie: def.label });
   if (world.coopUitslag) world.coopUitslag(false, def.label, pretty); // samen spelen (#371): de gasten horen het
   endInFailure(world, `${def.label} mislukt${reason ? ': ' + reason : ''}`);
   sluitGastStart(world, mee);
