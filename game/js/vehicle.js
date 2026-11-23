@@ -20,6 +20,7 @@ import { stuckClearable } from './vehicle/trafficstuck.js';
 import { setBusPopHost, manageBusPopulation, setBusLines, getBusLines, setLiveBussen, busSpawnStats, busSpawnPoint, getLiveBussen, detachLiveBus } from './vehicle/buspop.js';
 export { manageBusPopulation, setBusLines, getBusLines, setLiveBussen, busSpawnStats, detachLiveBus };
 import { playerTune, playerTopSpeed, speedCap, coastDrag, lateralGrip, maxYawRate, maxCurvature } from './vehicle/tuning.js';
+import { zwareLading } from './vehicle/heavyload.js';
 export { playerTopSpeed, speedCap, maxYawRate, maxCurvature };
 import { pushBusTrail, sampleBusTrail, stepBusTrailerAngle, busTrailerPose, TRAILER_MAX_ANGLE } from './vehicle/trailer.js';
 export { sampleBusTrail, stepBusTrailerAngle, busTrailerPose, TRAILER_MAX_ANGLE };
@@ -276,7 +277,7 @@ export class Vehicle {
     const target = clamp(steerInput + pull, -1, 1);
     if (isPlayer) {
       const returning = Math.abs(target) < Math.abs(this.steer) || target * this.steer < 0;
-      const rate = (returning ? PLAYER_STEER_RETURN : PLAYER_STEER_RATE) * (this.isBus ? 0.7 : 1) * dt;
+      const rate = (returning ? PLAYER_STEER_RETURN : PLAYER_STEER_RATE) * (this.isBus || zwareLading(m) ? 0.7 : 1) * dt;
       this.steer += clamp(target - this.steer, -rate, rate);
     } else {
       this.steer = target;
@@ -1120,7 +1121,8 @@ function closestPointsBetweenSegments(s1, s2) {
 // Footprint area as a mass proxy: a bus barely budges for a bike while the
 // bike gets thrown clear.
 function vehicleMass(v) {
-  return Math.max(0.3, v.model.len * v.model.wid);
+  const zwaar = zwareLading(v.model); // vettruck 23-11: een volle tankwagen weegt meer dan zijn grondvlak zegt
+  return Math.max(0.3, v.model.len * v.model.wid) * (zwaar ? zwaar.botsmassa : 1);
 }
 
 function inverseInertia(v) {
@@ -1598,10 +1600,12 @@ function updateSuspension(v, dt) {
   if (v.parked && !sp && !v.susPitch && !v.susRoll && !v.susHeave) return;
   const aLong = clamp((sp - prev) / dt, -28, 28);
   const aLat = clamp(sp * normalizeAngle(v.angle - prevA) / dt, -22, 22);
-  const soft = v.isBus ? 1.7 : v.model.name === 'van' ? 1.35 : v.model.name === 'sport' ? 0.6 : 1;
+  const zwaar = zwareLading(v.model); // vettruck 23-11: de volle tankwagen duikt, hurkt en helt meer over (vehicle/heavyload.js)
+  const soft = zwaar ? zwaar.vering : v.isBus ? 1.7 : v.model.name === 'van' ? 1.35 : v.model.name === 'sport' ? 0.6 : 1;
   const air = v.airborne ? 0 : 1;
   const tPitch = clamp(aLong * 0.0042 * soft, -0.065, 0.05) * air;
-  const tRoll = clamp(-aLat * 0.0048 * soft, -0.085, 0.085) * air;
+  const rollMax = 0.085 * (zwaar ? zwaar.overhel : 1);
+  const tRoll = clamp(-aLat * 0.0048 * soft, -rollMax, rollMax) * air;
   const k = SUS_K / soft, c = SUS_DAMP / Math.sqrt(soft);
   v.susPitchV = (v.susPitchV || 0) + ((tPitch - (v.susPitch || 0)) * k - (v.susPitchV || 0) * c) * dt;
   v.susRollV = (v.susRollV || 0) + ((tRoll - (v.susRoll || 0)) * k - (v.susRollV || 0) * c) * dt;
