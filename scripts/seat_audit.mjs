@@ -23,12 +23,18 @@ const { TRAFFIC_MODELS, MOPED_MODEL } = await import('../game/js/vehicle.js');
 const { BOAT_KINDS } = await import('../game/js/boattypes.js');
 const VERBOSE = process.argv.includes('--verbose');
 const MODULAR = process.argv.includes('--modulair');
-let M = null, placeSeatedLocal = null, SADDLE_BELOW_HIP = 0.17;
+let M = null, placeSeatedLocal = null, SADDLE_BELOW_HIP = 0.17, wheelPoseFor = null;
 if (MODULAR) {
   const fs = await import('node:fs');
   M = await import('../game/js/modularpeople.js');
   for (const r of ['man', 'vrouw']) M.registerModularRig(r, JSON.parse(fs.readFileSync(new URL(`../game/models/mensen/${r}.json`, import.meta.url))), fs.readFileSync(new URL(`../game/models/mensen/${r}.bin`, import.meta.url)));
   ({ placeSeatedLocal, SADDLE_BELOW_HIP } = await import('../game/js/seating3d.js'));
+  await import('../game/js/autointerieur.js');   // registreert het stuur voor placeSeatedLocal
+  const { cabinWheelPose } = await import('../game/js/cabin3d.js');
+  const { interiorKlasse } = await import('../game/js/carinteriorlayout.js');
+  const { isCockpitKlasse } = await import('../game/js/cockpitlayout.js');
+  const { carBodyFit } = await import('../game/js/models3d_vehicles.js');
+  wheelPoseFor = (v, seat) => { const k = interiorKlasse(v); if (k === 'heli' || k === 'vliegtuig') return null; return cabinWheelPose(seat, v.model.len, v.model.wid, k, isCockpitKlasse(k) ? null : carBodyFit(v), v.model.name || ''); };
 }
 let modN = 0;
 
@@ -118,7 +124,9 @@ function seatFigureModular(mesh, v, seat) {
   const p = M.buildModularPerson(100 + modN, { female: modN++ % 2 === 1 });
   p.userData.isPerson = true;
   p.traverse((o) => { o.userData.person = true; });
-  (mesh.userData.body || mesh).add(p);
+  const host = mesh.userData.body || mesh;
+  host.userData.vehicleRef = v;   // zodat placeSeatedLocal het echte stuur van dit voertuig vindt (autointerieur.js)
+  host.add(p);
   for (let i = 0; i < 90; i++) placeSeatedLocal(p, seat, i / 60);
   mesh.updateMatrixWorld(true);
   const B = p.userData.qBones, I = p.userData.qIdx, bn = (n) => B[p.userData.qRig.man.bones.findIndex((b) => b.name === n)];
@@ -136,10 +144,36 @@ function seatFigureModular(mesh, v, seat) {
     const lv = p.worldToLocal(v3.clone()), lh = p.worldToLocal(hip.clone());
     if (lv.y < lh.y && lv.y > lh.y - 0.2 / (p.scale.y || 1) && lv.x < lh.x + 0.03 && Math.abs(lv.z - lh.z) < 0.15) butt = Math.min(butt, v3.y);
   }
-  const seatY = worldOf(mesh.userData.body || mesh, seat.x, seat.rider ? seat.y + PERSON_RIG.HIP_Y - SADDLE_BELOW_HIP : seat.y, seat.z).y;
-  const knee = (k) => { const a = w(B[k ? I.upR : I.upL]), b = w(B[k ? I.loR : I.loL]), c = feet[k]; return a.sub(b).angleTo(c.clone().sub(b)) * 180 / Math.PI; };
+  const seatW = worldOf(mesh.userData.body || mesh, seat.x, seat.rider ? seat.y + PERSON_RIG.HIP_Y - SADDLE_BELOW_HIP : seat.y, seat.z), seatY = seatW.y;
+  const deg = (x) => x * 180 / Math.PI;
+  const ang3 = (a, b, c) => deg(a.clone().sub(b).angleTo(c.clone().sub(b)));   // hoek bij b
+  const knee = (k) => ang3(w(B[k ? I.upR : I.upL]), w(B[k ? I.loR : I.loL]), feet[k]);
+  // in de assen van de mens: x voor, y op
+  const loc = (q) => p.worldToLocal(q.clone());
+  const hipL = loc(hip), neckL = loc(w(bn('Neck')));
+  const backDeg = deg(Math.atan2(-(neckL.x - hipL.x), neckL.y - hipL.y));   // + = achterover
+  const thigh = (k) => { const a = loc(w(B[k ? I.upR : I.upL])), b = loc(w(B[k ? I.loR : I.loL])); return deg(Math.atan2(b.y - a.y, Math.abs(b.x - a.x))); };
+  // heuphoek in het zijaanzicht (de assen van de mens, z weggelaten): tussen rug (heup naar nek) en dij
+  const flat = (q) => { const l = loc(q); l.z = 0; return l; };
+  const hipAng = (k) => ang3(flat(w(bn('Neck'))), flat(w(B[k ? I.upR : I.upL])), flat(w(B[k ? I.loR : I.loL])));
+  const elbow = (k) => ang3(w(bn(k ? 'UpperArmR' : 'UpperArmL')), w(bn(k ? 'LowerArmR' : 'LowerArmL')), w(bn(k ? 'WristR' : 'WristL')));
+  // de handpalm (7,5 cm voorbij de pols) tegen de rand van het echte stuur
+  let wheelGap = null;
+  if (seat.pose && seat.pose.arms === 'wheel' && wheelPoseFor) {
+    const wp = wheelPoseFor(v, seat);
+    if (wp) {
+      const c = worldOf(host, wp.x, wp.y, wp.z);
+      const n = new THREE.Vector3(Math.cos(wp.tilt || 0), Math.sin(wp.tilt || 0), 0).transformDirection(host.matrixWorld);   // as van het wiel
+      wheelGap = [0, 1].map((k) => {
+        const wr = w(bn(k ? 'WristR' : 'WristL')), lo = w(bn(k ? 'LowerArmR' : 'LowerArmL'));
+        const palm = wr.clone().add(wr.clone().sub(lo).normalize().multiplyScalar(0.075));
+        const d = palm.clone().sub(c), axial = d.dot(n), radial = d.clone().addScaledVector(n, -axial).length();
+        return Math.hypot(axial, radial - (wp.r || 0.19));
+      });
+    }
+  }
   p.removeFromParent();
-  return { head, headTop, hip, hands, feet, knees, butt, seatY, kneeDeg: [knee(0), knee(1)], modular: true };
+  return { head, headTop, hip, hands, feet, knees, butt, seatY, seatX: seatW.x, kneeDeg: [knee(0), knee(1)], backDeg, thighDeg: [thigh(0), thigh(1)], hipDeg: [hipAng(0), hipAng(1)], elbowDeg: [elbow(0), elbow(1)], wheelGap, modular: true };
 }
 
 function seatFigure(mesh, v, seat) {
@@ -205,8 +239,28 @@ function check(label, v, driver) {
   if (f.modular && !seat.stand || (f.modular && seat.rider)) {
     // eis 23-11: zitvlak op de zitting (minder dan 5 cm ertussen), rug rechtop (hoofd boven de heup), knieën gebogen bij een stoel
     if (Math.abs(f.butt - f.seatY) > 0.05) issues.push(`zitvlak ${f.butt.toFixed(2)} niet op de zitting ${f.seatY.toFixed(2)} (${((f.butt - f.seatY) * 100).toFixed(0)} cm)`);
+    if (!seat.rider && Math.abs(f.hip.x - f.seatX) > 0.15) issues.push(`heup ${((f.hip.x - f.seatX) * 100).toFixed(0)} cm voor de zitting (de stoel en het stuur van dit voertuig passen niet bij elkaar)`);
     if (f.head.y - f.hip.y < 0.5 || Math.abs(f.head.x - f.hip.x) > 0.3) issues.push(`rug niet rechtop (hoofd ${(f.head.y - f.hip.y).toFixed(2)} m boven en ${(f.head.x - f.hip.x).toFixed(2)} m voor de heup)`);
-    if (!seat.horse && !seat.rider && seat.pose && !seat.pose.splay && (seat.pose.arms === 'wheel' || seat.pose.arms === 'lap') && f.kneeDeg.some((a) => a < 80 || a > 150)) issues.push(`knie ${f.kneeDeg.map((a) => a.toFixed(0)).join('/')} graden (80-150 verwacht)`);
+    // eis 23-11 (referentie autozit): rug 15-30 graden achterover, heuphoek 90-115, dijen -5 tot 35 graden, knie 105-135, ellebogen
+    // 115-150 met de handpalm minder dan 3 cm van de rand van het echte stuur; fiets: romp voorover, knie onderaan 140-170
+    const r0 = (a) => a.map((x) => x.toFixed(0)).join('/');
+    const out = (arr, lo, hi) => arr.some((a) => a < lo || a > hi);
+    const carSeat = !seat.horse && !seat.rider && seat.pose && !seat.pose.splay && (seat.pose.arms === 'wheel' || seat.pose.arms === 'lap');
+    if (carSeat) {
+      if (f.backDeg < 15 || f.backDeg > 30) issues.push(`rug ${f.backDeg.toFixed(0)} graden achterover (15-30)`);
+      if (out(f.hipDeg, 90, 115)) issues.push(`heuphoek ${r0(f.hipDeg)} graden (90-115)`);
+      if (out(f.thighDeg, -5, 35)) issues.push(`dij ${r0(f.thighDeg)} graden boven horizontaal (-5 tot 35)`);
+      if (out(f.kneeDeg, 105, 135)) issues.push(`knie ${r0(f.kneeDeg)} graden (105-135)`);
+      if (seat.pose.arms === 'wheel') {
+        if (out(f.elbowDeg, 115, 150)) issues.push(`elleboog ${r0(f.elbowDeg)} graden (115-150)`);
+        if (f.wheelGap && f.wheelGap.some((g2) => g2 > 0.03)) issues.push(`hand ${f.wheelGap.map((g2) => (g2 * 100).toFixed(0)).join('/')} cm van het stuur (< 3)`);
+      }
+    }
+    if (seat.rider) {
+      if (f.backDeg > -8 || f.backDeg < -50) issues.push(`fietser: romp ${(-f.backDeg).toFixed(0)} graden voorover (8-50)`);
+      if (out(f.kneeDeg, 135, 172)) issues.push(`fietser: knie onderaan ${r0(f.kneeDeg)} graden (135-172)`);
+    }
+    if (seat.pose && seat.pose.arms === 'rail' && !seat.stand && out(f.kneeDeg, 70, 120)) issues.push(`achterop: knie ${r0(f.kneeDeg)} graden (70-120)`);
   }
   if (!seat.horse && (f.hip.x > body.max.x || f.hip.x < body.min.x || Math.abs(f.hip.z) > Math.max(body.max.z, -body.min.z))) issues.push('hip outside the body');
   problems += issues.length ? 1 : 0;

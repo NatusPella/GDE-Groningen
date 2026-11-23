@@ -625,6 +625,19 @@ function ikTo(up, lo, end, target) {
 
 // De knie naar buiten (schrijlings zitten): draai het hele been om de as heup-voet tot de knie opzij wijst (de voet blijft staan).
 const _ka = new THREE.Vector3(), _kk = new THREE.Vector3(), _kd = new THREE.Vector3(), _kx = new THREE.Vector3();
+// Draai een lid om de as van zijn begin naar zijn doel tot het gewricht (knie, elleboog) zo goed mogelijk de kant (x, y, z in de assen
+// van de mens) op wijst. Het doel blijft staan.
+function poleTo(mesh, up, lo, endWorld, x, y, z) {
+  up.getWorldPosition(_ka); lo.getWorldPosition(_kk);
+  const axis = _kx.subVectors(endWorld, _ka).normalize();
+  _kk.sub(_ka); _kk.addScaledVector(axis, -_kk.dot(axis));
+  _kd.set(x, y, z).transformDirection(mesh.matrixWorld);
+  _kd.addScaledVector(axis, -_kd.dot(axis));
+  if (_kk.lengthSq() < 1e-8 || _kd.lengthSq() < 1e-8) return;
+  _kk.normalize(); _kd.normalize();
+  const ang = Math.atan2(_iu.crossVectors(_kk, _kd).dot(axis), _kk.dot(_kd));
+  rotateWorld(up, _iq.setFromAxisAngle(axis, ang));
+}
 function kneeOut(mesh, up, lo, footWorld, side) {
   up.getWorldPosition(_ka); lo.getWorldPosition(_kk);
   const axis = _kx.subVectors(footWorld, _ka).normalize();
@@ -655,72 +668,195 @@ function poseBonesFromClip(ud, rig, clipName, u, names) {
     ud.qBones[bi].quaternion.set(q[o], q[o + 1], q[o + 2], q[o + 3]).normalize();
   }
 }
-function seatIK(mesh, seat) {
+// Zithouding van een modulaire mens (spelerfase, eis coördinator 23-11): op de basis van de rij- of zitclip legt deze stap de
+// houding vast met getallen in plaats van de clip te vertrouwen. Doelen (referentie autozit): rugleuning 20-25 graden achterover,
+// heuphoek 95-110, dijen bijna horizontaal, kniehoek 110-130 met de schenen schuin naar voren, voeten plat op de vloer of de pedalen,
+// ellebogen 120-140 graden met de handen om het stuur (de echte stuurpositie van het voertuig als die bekend is), hoofd rechtop.
+// Passagier: zelfde, handen op de dijen. Fiets: romp licht voorover, knie bijna gestrekt onderaan, handen op de handvatten.
+// Achterop: zijzit, knieën gebogen, voeten hangend. ctx.wheel = { c: [x,y,z], r, tilt } in de assen van het voertuig en
+// ctx.toWorld(x, y, z, out) zet een punt van het voertuig om naar de wereld.
+export const HAND_PALM = 0.075;
+export const SEAT_SLIDE = 0.12;   // m: hooguit zo ver schuift een bestuurder naar voren op de zitting (meer zou van de stoel af zijn; seat_audit meldt de rest)
+export const SEAT_SLIDE_BACK = 0.2;   // m: hooguit zo ver naar achteren als het stuur te dichtbij is
+export const SEAT_TARGETS = {
+  car: { back: 0.42, knee: 2.18, elbow: 2.27 },         // passagier: 24 graden, knie 125 graden
+  drive: { back: 0.36, knee: 2.18, elbow: 2.27 },       // bestuurder: 21 graden
+  bike: { back: -0.3, knee: 2.7 },                      // 17 graden voorover, knie 155 graden onderaan de slag
+  rail: { back: 0.0, knee: 1.6 },                       // achterop: rechtop, knie 90 graden
+};
+const _bv = new THREE.Vector3(), _bw = new THREE.Vector3(), _bx = new THREE.Vector3(), _bq = new THREE.Quaternion();
+// richt bot `bone` zo dat de wereldrichting van `from` naar `to` (twee botten) `dir` wordt (alleen zwaai, geen draaiing om de as)
+function aimBone(bone, from, to, dir) {
+  from.getWorldPosition(_bv); to.getWorldPosition(_bw);
+  _bx.subVectors(_bw, _bv).normalize();
+  rotateWorld(bone, _bq.setFromUnitVectors(_bx, dir));
+}
+const _dir = new THREE.Vector3(), _hp = new THREE.Vector3(), _tg = new THREE.Vector3(), _ft = new THREE.Vector3(), _c0 = new THREE.Vector3(), _ax1 = new THREE.Vector3(), _ax2 = new THREE.Vector3();
+function seatIK(mesh, seat, ctx = null) {
   const ud = mesh.userData, I = ud.qIdx, B = ud.qBones, pose = seat && seat.pose, rig = ud.qRig;
   const rider = !!(seat && seat.rider);
   if ((!pose && !rider) || (seat.stand && !rider)) return;
-  const bn = (n) => B[rig.man.bones.findIndex((x) => x.name === n)];
-  const drive = rider || (pose && (pose.arms === 'wheel' || pose.arms === 'helm' || pose.arms === 'tiller'));
+  const bn = (n) => B[ud.qIdxBy[n]];
   const astride = !!(pose && pose.splay);
-  // 1. de rug rechtop (de zitclip van de bibliotheek leunt voorover) en tegen de rugleuning (pose.recline), alleen de romp
-  if (!astride) {
-    poseBonesFromClip(ud, rig, 'Idle', 0.25, SPINE);
-    const rec = rider ? -0.12 : Math.max(-0.2, Math.min(0.45, (pose && pose.recline) || 0)) * 0.45;   // een beetje tegen de leuning, niet achterover
-    mesh.updateMatrixWorld(true);
-    _kd.set(0, 0, 1).transformDirection(mesh.matrixWorld);
-    if (Math.abs(rec) > 1e-3) rotateWorld(bn('Abdomen'), _iq.setFromAxisAngle(_kd, rec));
-  }
+  const railSit = !!(pose && pose.arms === 'rail');
+  const T = rider ? SEAT_TARGETS.bike : railSit ? SEAT_TARGETS.rail : pose && pose.arms === 'wheel' ? SEAT_TARGETS.drive : SEAT_TARGETS.car;
   mesh.updateMatrixWorld(true);
   const s = mesh.scale.y || 1;
-  // 2. benen: knie rond 105 graden (voet op 0,8 x de beenlengte van de heup), de voeten op de vloer: pose.footY (van het eigen model)
-  // min 0,17 m, niet dieper dan het onderbeen reikt. Een fietser zet zijn voeten bij de trappers; schrijlings houdt de maten van de stoel.
-  const l1 = B[I.upL].getWorldPosition(_sv).distanceTo(B[I.loL].getWorldPosition(_sw)) / s, l2 = B[I.loL].getWorldPosition(_sv).distanceTo(B[I.footL].getWorldPosition(_sw)) / s;
-  let fx, fy;
-  if (rider) { fx = 0.25; fy = -0.7; }
-  else if (astride) { fx = pose.footX ?? 0.3; fy = pose.footY ?? -0.6; }
-  else {
-    fy = Math.max(-0.95 * l2, Math.min(-0.08, (pose.footY ?? -0.3)));
-    const d = 0.8 * (l1 + l2);
-    fx = Math.sqrt(Math.max(0.01, d * d - fy * fy));
+  const toW = (x, y, z, out) => { out.set(x, y, z); return mesh.localToWorld(out); };
+  const dirW = (x, y, z, out) => out.set(x, y, z).transformDirection(mesh.matrixWorld);
+  // 0. het bekken recht (de clip draait en kantelt het; dan staan de heupgewrichten scheef en zijn de benen ongelijk)
+  if (!astride) { B[I.root].quaternion.fromArray(rig.man.bones[I.root].quat); B[I.body].quaternion.fromArray(rig.man.bones[I.body].quat); bn('Hips').quaternion.fromArray(rig.man.bones[ud.qIdxBy.Hips].quat); mesh.updateMatrixWorld(true); }
+  // 0b. de heupen haaks op de rijrichting: de lijn tussen de heupgewrichten langs de zij-as van de mens (de rust van het pack staat
+  // iets gedraaid), alleen om de verticaal
+  if (!astride) {
+    B[I.upL].getWorldPosition(_bv); B[I.upR].getWorldPosition(_bw);
+    _bx.subVectors(_bw, _bv); dirW(0, 1, 0, _dir); _bx.addScaledVector(_dir, -_bx.dot(_dir)).normalize();
+    dirW(0, 0, 1, _ax2); _ax2.addScaledVector(_dir, -_ax2.dot(_dir)).normalize();
+    if (_bx.lengthSq() > 0.5) { rotateWorld(B[I.body], _bq.setFromUnitVectors(_bx, _ax2)); mesh.updateMatrixWorld(true); }
   }
+  // 1. de rug onder de rughoek (+ = achterover) en het hoofd rechtop
+  if (!astride) {
+    dirW(-Math.sin(T.back), Math.cos(T.back), 0, _dir);
+    // de buik draait om zijn eigen oorsprong, niet om de heup: drie keer richten convergeert
+    for (let it = 0; it < 3; it++) aimBone(bn('Abdomen'), bn('Hips'), bn('Neck'), _dir);
+    // de schouders haaks (de draai van het bekken zat ook in de rug), dan het hoofd rechtop
+    bn('UpperArmL').getWorldPosition(_bv); bn('UpperArmR').getWorldPosition(_bw);
+    _bx.subVectors(_bw, _bv); dirW(0, 1, 0, _dir); _bx.addScaledVector(_dir, -_bx.dot(_dir)).normalize();
+    dirW(0, 0, 1, _ax2); _ax2.addScaledVector(_dir, -_ax2.dot(_dir)).normalize();
+    if (_bx.lengthSq() > 0.5) rotateWorld(bn('Chest'), _bq.setFromUnitVectors(_bx, _ax2));
+    dirW(Math.sin(0.08), Math.cos(0.08), 0, _dir);   // hoofd rechtop, een tikje voorover (kijkt door de voorruit)
+    aimBone(bn('Neck'), bn('Neck'), bn('Head'), _dir);
+  }
+  // 1b. een bestuurder schuift naar voren tot de handen het echte stuur halen met de ellebogen op de gewenste hoek (de stoelen staan
+  // voor het eigen model, de stuurwielen voor de binnenin-camera; hooguit SEAT_SLIDE naar voren, de rest meldt seat_audit)
+  if (pose && pose.arms === 'wheel' && ctx && ctx.wheel && ctx.toWorld) {
+    mesh.updateMatrixWorld(true);
+    const w = ctx.wheel;
+    ctx.toWorld(w.c[0], w.c[1], w.c[2], _c0);
+    bn('Hips').getWorldPosition(_bv); dirW(1, 0, 0, _dir);
+    const ahead = _c0.clone().sub(_bv).dot(_dir);
+    if (ahead < 0.02 || ahead > 1.2) ctx = null;   // het stuur ligt niet voor de heup: de bestuurder gebruikt het stuur voor zijn schouders
+  }
+  if (pose && pose.arms === 'wheel' && ctx && ctx.wheel && ctx.toWorld) {
+    const w = ctx.wheel;
+    ctx.toWorld(w.c[0], w.c[1], w.c[2], _c0);
+    bn('UpperArmL').getWorldPosition(_bv); bn('UpperArmR').getWorldPosition(_bw);
+    _bv.add(_bw).multiplyScalar(0.5);
+    const ua = bn('UpperArmL').getWorldPosition(_bw).distanceTo(bn('LowerArmL').getWorldPosition(_ft)) / s;
+    const la = bn('LowerArmL').getWorldPosition(_bw).distanceTo(bn('WristL').getWorldPosition(_ft)) / s;
+    const want = (Math.sqrt(ua * ua + la * la - 2 * ua * la * Math.cos(T.elbow)) + HAND_PALM) * s;
+    // schouder tot greep: de greep ligt een straal opzij van het midden, de schouders ook ongeveer
+    dirW(1, 0, 0, _dir);
+    let slide = 0;
+    for (let k = 0; k < 2; k++) {
+      const sd = k ? 1 : -1, ct = Math.cos(w.tilt || 0);
+      ctx.toWorld(w.c[0], w.c[1], w.c[2] + w.r * sd, _tg);   // de greep op 9 of 3 uur
+      bn(k ? 'UpperArmR' : 'UpperArmL').getWorldPosition(_bw);
+      const rel = _tg.clone().sub(_bw), dx = rel.dot(_dir), dperp = rel.addScaledVector(_dir, -dx).length();
+      slide = Math.max(slide, dx - Math.sqrt(Math.max(0, want * want - dperp * dperp)));
+      void ct;
+    }
+    slide = Math.max(-SEAT_SLIDE_BACK, Math.min(SEAT_SLIDE, slide));   // ook iets naar achteren als het stuur te dichtbij is
+    if (slide !== 0) { mesh.position.addScaledVector(mesh.parent ? _dir.transformDirection(mesh.parent.matrixWorld.clone().invert()) : _dir, slide); mesh.updateMatrixWorld(true); }
+  }
+  // 2. benen. Het heupgewricht (bovenbeen) in de assen van de mens; de voet: op de vloer voor de stoel (pose.footY = enkel ten opzichte
+  // van het heupgewricht bij het eigen model) of bij de pedalen; afstand heup-enkel uit de gewenste kniehoek.
+  const l1 = B[I.upL].getWorldPosition(_bv).distanceTo(B[I.loL].getWorldPosition(_bw));   // in meters, zoals fx en fy (die worden bij het omzetten door s gedeeld)
+  const l2 = B[I.loL].getWorldPosition(_bv).distanceTo(B[I.footL].getWorldPosition(_bw));
+  const reachFor = (kneeAng) => Math.sqrt(l1 * l1 + l2 * l2 - 2 * l1 * l2 * Math.cos(kneeAng));
   for (let k = 0; k < 2; k++) {
     const up = B[k ? I.upR : I.upL], lo = B[k ? I.loR : I.loL], foot = B[k ? I.footR : I.footL];
-    const side = k ? 1 : -1;   // L zit bij deze mensen aan -z
-    up.getWorldPosition(_sv); mesh.worldToLocal(_sv);
-    _sv.x += fx / s; _sv.y += fy / s;
-    if (astride) _sv.z += side * Math.sin(pose.splay) * Math.abs(fy) / s;
-    mesh.localToWorld(_sv);
-    foot.getWorldPosition(_sw);
-    ikTo(up, lo, _sw, _sv);
-    if (astride) kneeOut(mesh, up, lo, _sv, side);
-    foot.parent.worldToLocal(_sv); foot.position.copy(_sv); foot.updateMatrixWorld(true);
+    const side = k ? 1 : -1;
+    up.getWorldPosition(_hp); mesh.worldToLocal(_hp);
+    let fx, fy, fz = 0;
+    if (astride) { fx = pose.footX ?? 0.3; fy = pose.footY ?? -0.6; fz = side * Math.sin(pose.splay) * Math.abs(fy); }
+    else if (rider) { const d = reachFor(T.knee); fy = -Math.min(d, 0.92 * d); fx = Math.sqrt(Math.max(0, d * d - fy * fy)) + 0.05; }
+    else if (railSit) { const d = reachFor(T.knee); fy = -0.82 * d; fx = Math.sqrt(d * d - fy * fy); }
+    else {
+      // de vloer: 14 cm onder de enkel van het eigen model (pose.footY), en de dij zo schuin (0 tot 25 graden omhoog) dat de knie zo dicht
+      // mogelijk bij de gewenste kniehoek uitkomt met de voet op die vloer
+      const fyFloor = Math.max(-0.95 * (l1 + l2), (pose.footY ?? -0.3) - 0.12);
+      let best = null;
+      for (let th = -10; th <= 25; th += 1) {
+        const t = th * Math.PI / 180, kx = l1 * Math.cos(t), ky = l1 * Math.sin(t);
+        const dy = ky - fyFloor;
+        if (dy > l2 || dy < 0) continue;
+        const phi = Math.asin(dy / l2), kneeA = Math.PI - t - phi;
+        // de knie dicht bij de gewenste hoek, en liefst een bijna vlakke dij (rond 10 graden) voor een open heuphoek
+        // een dij die omlaag loopt telt zwaar (dan liever de knie iets meer open)
+        const err = Math.abs(kneeA - T.knee) + 0.8 * Math.abs(t - 0.12) + (t < 0.05 ? 12 * (0.05 - t) : 0);
+        if (!best || err < best.err) best = { err, fx: kx + l2 * Math.cos(phi), fy: fyFloor };
+      }
+      if (best) { fx = best.fx; fy = best.fy; }
+      else { const d = reachFor(T.knee); fy = Math.max(-0.97 * d, fyFloor); fx = Math.sqrt(Math.max(0.01, d * d - fy * fy)); }
+    }
+    toW(_hp.x + fx / s, _hp.y + fy / s, _hp.z + fz / s, _tg);
+    foot.getWorldPosition(_ft);
+    ikTo(up, lo, _ft, _tg);
+    if (astride) kneeOut(mesh, up, lo, _tg, side);
+    else poleTo(mesh, up, lo, _tg, 0, 1, 0);
+    foot.parent.worldToLocal(_ft.copy(_tg)); foot.position.copy(_ft);
+    // de voet plat (zijn rusthouding ten opzichte van de wortel)
+    foot.quaternion.fromArray(rig.man.bones[k ? I.footR : I.footL].quat);
+    foot.updateMatrixWorld(true);
   }
   // 3. handen
-  const hips = bn('Hips');
-  hips.getWorldPosition(_sv); mesh.worldToLocal(_sv);
-  const hx = _sv.x, hy = _sv.y, hz = _sv.z;
-  const reach = (k, x, y, z) => {
-    _sv.set(x, y, z); mesh.localToWorld(_sv);
+  // de handpalm (HAND_PALM voorbij de pols, in het verlengde van de onderarm) op het doel: eerst de pols erheen, dan de pols de
+  // palmlengte terug langs de onderarm en nog eens (twee stappen is genoeg; de onderarm draait bij de tweede nog maar weinig)
+  const reach = (k, tgt) => {
     const up = bn(k ? 'UpperArmR' : 'UpperArmL'), lo = bn(k ? 'LowerArmR' : 'LowerArmL'), wr = bn(k ? 'WristR' : 'WristL');
-    wr.getWorldPosition(_sw);
-    ikTo(up, lo, _sw, _sv);
+    _c0.copy(tgt);
+    for (let it = 0; it < 2; it++) {
+      wr.getWorldPosition(_ft);
+      _tg.copy(_c0);
+      if (it) { lo.getWorldPosition(_bv); _ax1.subVectors(_ft, _bv).normalize(); _tg.addScaledVector(_ax1, -HAND_PALM * s); }
+      ikTo(up, lo, _ft, _tg);
+      poleTo(mesh, up, lo, _tg, 0, -1, (k ? 1 : -1) * 0.6);   // elleboog omlaag en iets naar buiten
+    }
   };
-  if (rider) { for (let k = 0; k < 2; k++) reach(k, hx + 0.43 / s, hy + 0.12 / s, hz + (k ? 0.28 : -0.28) / s); return; }
-  if (pose && pose.arms === 'wheel') {
-    // het stuur op 9 en 3 voor de borst (0,4 m voor en 0,45 m boven de heup), gekanteld naar de bestuurder; draait met ud.steer
+  const driver = pose && pose.arms === 'wheel';
+  if (rider) {
+    // handvatten: 0,43 m voor en 0,12 m boven de heup van het eigen model op het zadel, 0,28 m opzij
+    bn('Hips').getWorldPosition(_hp); mesh.worldToLocal(_hp);
+    for (let k = 0; k < 2; k++) reach(k, toW(_hp.x + 0.47 / s, _hp.y + 0.2 / s, _hp.z + (k ? 0.28 : -0.28) / s, _tg));
+    return;
+  }
+  if (driver) {
     const ang = -Math.max(-1, Math.min(1, ud.steer || 0)) * STEER_TURN;
+    if (ctx && ctx.wheel && ctx.toWorld) {
+      // het echte stuur van het voertuig (cabin3d.js cabinWheelPose): grepen op 9 en 3, in het vlak van het wiel
+      const w = ctx.wheel, ct = Math.cos(w.tilt || 0), st = Math.sin(w.tilt || 0);
+      for (let k = 0; k < 2; k++) {
+        const sd = k ? 1 : -1, c = Math.cos(ang), sn = Math.sin(ang);
+        // in het voertuig: zij-as z, de bovenas van het wiel gekanteld om z (tilt): (-sin, cos, 0)
+        const lz = w.r * sd * c, lu = w.r * sd * sn;
+        ctx.toWorld(w.c[0] - st * lu, w.c[1] + ct * lu, w.c[2] + lz, _tg);
+        reach(k, _tg);
+      }
+      return;
+    }
+    // zonder stuurpositie: het stuur zo voor de schouders dat de ellebogen op de gewenste hoek uitkomen
+    const ua = bn('UpperArmL').getWorldPosition(_bv).distanceTo(bn('LowerArmL').getWorldPosition(_bw)) / s;
+    const la = bn('LowerArmL').getWorldPosition(_bv).distanceTo(bn('WristL').getWorldPosition(_bw)) / s;
+    const d = Math.sqrt(ua * ua + la * la - 2 * ua * la * Math.cos(T.elbow));
+    bn('UpperArmL').getWorldPosition(_hp); mesh.worldToLocal(_hp);
+    const shx = _hp.x, shy = _hp.y;
+    const dy = -0.2, dx = Math.sqrt(Math.max(0.01, d * d - dy * dy));
     for (let k = 0; k < 2; k++) {
-      wheelGrip(hx + 0.4 / s, hy + 0.45 / s, 0.19 / s, 0.5, ang, k ? 1 : -1, _sg);
-      reach(k, _sg.x, _sg.y, hz + _sg.z);
+      bn(k ? 'UpperArmR' : 'UpperArmL').getWorldPosition(_hp); mesh.worldToLocal(_hp);
+      const shz = _hp.z;
+      reach(k, toW(shx + dx / s, shy + dy / s, shz, _bx));
     }
     return;
   }
-  if (drive) return;   // helm, roer: de clip van het rijden
-  // passagier: de handen op schoot, op de dijen een stukje voor de heup
+  if (pose && (pose.arms === 'helm' || pose.arms === 'tiller' || pose.arms === 'paddle' || pose.arms === 'row')) return;
+  // passagier: de handen op de dijen, halverwege heup en knie
   for (let k = 0; k < 2; k++) {
-    const lo = B[k ? I.loR : I.loL];
-    lo.getWorldPosition(_sw); mesh.worldToLocal(_sw);
-    reach(k, hx + (_sw.x - hx) * 0.55, hy + 0.1 / s, hz + (k ? 0.11 : -0.11) / s);
+    const up = B[k ? I.upR : I.upL], lo = B[k ? I.loR : I.loL];
+    up.getWorldPosition(_bv); lo.getWorldPosition(_bw);
+    _tg.copy(_bv).lerp(_bw, 0.6);
+    dirW(0, 1, 0, _dir); _tg.addScaledVector(_dir, 0.07 * s);
+    reach(k, _tg);
   }
 }
 
@@ -788,7 +924,7 @@ const EMOTES = new Set(['wave', 'cheer', 'clap']);
 // In een voertuig of op een stoel (seating3d.js placeSeated, spelerfase): zit- of rijclip uit de state-machine. seat = de stoel van
 // seating3d.js (pose.arms 'wheel' = sturen); t = wereldtijd (de stap volgt uit het verschil). Staan (fiets, step, achterop) is idle.
 const _seatP = { ...SP0 };
-export function seatModular(mesh, seat, t) {
+export function seatModular(mesh, seat, t, ctx = null) {
   const ud = mesh && mesh.userData;
   if (!ud || !ud.qRig) return false;
   const dt = Math.max(0, Math.min(0.1, t - (ud.qSeatT ?? t)));
@@ -802,7 +938,7 @@ export function seatModular(mesh, seat, t) {
   p.seated = !drive && !(seat && seat.stand);
   ud.qParams = p;
   animateModular(mesh, 0, dt);
-  if (!(ud.qLod > 0)) seatIK(mesh, seat);
+  if (!(ud.qLod > 0)) seatIK(mesh, seat, ctx);
   return true;
 }
 

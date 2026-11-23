@@ -13,6 +13,28 @@ window.addEventListener('unhandledrejection', (e) => fetch('/__klaar', { method:
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 await import('/game/js/player.js');
 const V = await import('/game/js/models3d_vehicles.js');
+const AI = await import('/game/js/autointerieur.js');   // registreert ook het stuur voor de handen (seating3d.js)
+const CAB = await import('/game/js/cabin3d.js');
+const CIL = await import('/game/js/carinteriorlayout.js');
+const CPL = await import('/game/js/cockpitlayout.js');
+// het echte stuur van het voertuig (cabin3d.js cabinWheelPose) en een zitting en pedalen, zodat de houding te beoordelen is
+function props(host, v, seat, driver) {
+  const mat = new THREE.MeshStandardMaterial({ color: 0x6b4a2a });
+  if (!seat.stand && !seat.rider) {
+    const cushion = new THREE.Mesh(new THREE.BoxGeometry(0.48, 0.08, 0.46), mat); cushion.position.set(seat.x, seat.y - 0.04, seat.z);
+    const back = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.6, 0.46), mat); back.position.set(seat.x - 0.28 * Math.cos(seat.face || 0), seat.y + 0.3, seat.z - 0.28 * Math.sin(-(seat.face || 0))); back.rotation.z = -0.38;
+    host.add(cushion, back);
+  }
+  if (driver && seat.pose && seat.pose.arms === 'wheel') {
+    const k = CIL.interiorKlasse(v);
+    const wp = CAB.cabinWheelPose(seat, v.model.len, v.model.wid, k, CPL.isCockpitKlasse(k) ? null : V.carBodyFit(v), v.model.name || '');
+    const w = AI.bouwStuurwiel(wp, new THREE.MeshStandardMaterial({ color: 0x23262b }));
+    AI.draaiStuurwiel(w, 0.5, 1);
+    host.add(w);
+    const ped = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.02, 0.1), new THREE.MeshStandardMaterial({ color: 0x999999 }));
+    ped.position.set(seat.x + 0.78, seat.y + (seat.pose.footY ?? -0.3) - 0.03, seat.z); host.add(ped);
+  }
+}
 const S = await import('/game/js/seating3d.js');
 const M = await import('/game/js/modularpeople.js');
 const { TRAFFIC_MODELS } = await import('/game/js/vehicle.js');
@@ -40,7 +62,10 @@ CASES.forEach(([label, v], i) => {
     const seat = S.vehicleSeat(v, driver);
     const p = M.buildModularPerson(500 + n, { female: n++ % 2 === 1 });
     p.userData.steer = 0.5;
-    (mesh.userData.body || mesh).add(p);
+    const host = mesh.userData.body || mesh;
+    host.userData.vehicleRef = v;
+    props(host, v, seat, driver);
+    host.add(p);
     for (let f = 0; f < 90; f++) S.placeSeatedLocal(p, seat, f / 60);
     scene.add(mesh);
     const len = v.model.len || 2;
