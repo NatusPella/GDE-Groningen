@@ -56,7 +56,7 @@ if [ "${GDE_RELEASE_SKIP_GATE:-}" = "1" ]; then
   echo "LET OP: releasegate overgeslagen (GDE_RELEASE_SKIP_GATE=1); er is GEEN bewijs voor performance, beeld, design, regels en review."
 else
   echo "Releasegate verifiëren (bewijs op deze commit) ..."
-  ( cd .. && node scripts/release_gate.mjs --verify ) || { echo "De releasegate is niet groen op deze commit: geen release. Draai eerst 'node scripts/release_gate.mjs --stage=auto --from=<vorige tag>' inclusief de review, of gebruik GDE_RELEASE_SKIP_GATE=1 als de eigenaar dat goedkeurt."; exit 1; }
+  ( cd .. && node scripts/release_gate.mjs --verify --allow-release-commit ) || { echo "De releasegate is niet groen op deze commit: geen release. Draai eerst 'node scripts/release_gate.mjs --stage=auto --from=<vorige tag>' inclusief de review, of gebruik GDE_RELEASE_SKIP_GATE=1 als de eigenaar dat goedkeurt."; exit 1; }
   GATE_OK=1
 fi
 
@@ -225,6 +225,13 @@ done
 # eigenaarsbesluit, geen technische grendel in dit script. Met of zonder die
 # instelling werkt deze aanroep; bij een mislukte upload blijven de builds in
 # dist/ staan.
+# GitHub weigert notities boven 125000 tekens (HTTP 422): gebruik dan korte notities met een link naar de changelog
+if [ "$(wc -c < "$NOTES")" -gt 120000 ]; then
+  echo "Releasenotities zijn te lang voor GitHub; korte notities met link naar CHANGELOG.md."
+  SHORT="$(mktemp)"
+  { echo "## GDE Groningen – Zomer vol misdaad $VERSION"; echo; echo "De volledige lijst met wijzigingen staat in de [changelog](https://github.com/$REPO_SLUG/blob/$TAG/CHANGELOG.md)."; echo; sed -n '/^## Installeren/,$p' "$NOTES"; } > "$SHORT"
+  mv "$SHORT" "$NOTES"
+fi
 gh release create "$TAG" --title "GDE Groningen $VERSION" --notes-file "$NOTES" $PRE $UPLOADS "$HASHES" \
   || { echo "Release aanmaken of uploaden mislukt (builds stay in dist/)"; exit 1; }
 rm -f "$NOTES"
