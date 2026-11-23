@@ -253,7 +253,10 @@ const blokVan = (naam) => naam.split('__')[0].split('--')[0];
   // een lijst met kaarten heeft omlijnde knoppen: de gele hoofdknop staat in het detail (todoui.js) of in de ene volgende stap
   const todo = rd('game/js/todoui.js');
   const kaart = todo.slice(todo.indexOf('function beginCard('), todo.indexOf('function beginHierHtml('));
-  ok(kaart.includes('data-todo-goal') && !/class="ds-knop(?:"|\$\{)[^>]*data-todo-goal/.test(kaart), 'Begin-hier-kaarten: "Zet als doel" is omlijnd (secundair)');
+  // #1267 (hertest 24-11): "Zet als doel" en "Op de kaart" staan op één plek, het detail; de lijstkaart zelf heeft geen knoppen meer
+  ok(!kaart.includes('data-todo-goal') && !kaart.includes('data-todo-map') && !kaart.includes('td-card-acts'), 'Begin-hier-kaarten: geen eigen "Zet als doel" of "Op de kaart" (alleen in het detail)');
+  const detail = todo.slice(todo.indexOf('function detailHtml('));
+  ok(detail.includes('data-todo-goal') && detail.includes('data-todo-map'), 'het detail houdt "Zet als doel" en "Op de kaart"');
   ok(!/td-next-acts[^`]*class="ds-knop"/.test(todo), 'de knop in de kaart "Waar je nu bent" is omlijnd');
   ok(!/class="ds-knop sm-oplossing"/.test(rd('game/js/shopui.js')), 'de winkel: de oplossing in de callout is omlijnd naast de gele koopknop');
 }

@@ -97,10 +97,6 @@ const TDOU_CSS = `
 #pause-menu .td-begin-nr { font-family: var(--ds-font-zeef-kop); font-size: var(--ds-t-subkop); line-height: 1; text-align: center; color: var(--ds-c-inkt-zacht); }
 #pause-menu .td-card-chips { display: flex; flex-wrap: wrap; align-items: center; gap: var(--ds-s-2); }
 #pause-menu .td-card-chips .ds-z-chip { min-height: 28px; padding: 0 var(--ds-s-3); }
-#pause-menu .td-card-acts { display: flex; flex-wrap: wrap; gap: var(--ds-s-2); }
-#pause-menu .td-card-acts .ds-z-knop { flex-direction: row; gap: var(--ds-s-2); min-height: var(--ds-doel-aanraken); padding: var(--ds-s-1) var(--ds-s-4); font-size: var(--ds-t-label); }
-#pause-menu .td-card-acts .ds-z-knop svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
-#pause-menu .td-card-acts .ds-z-knop:first-child:not(.ds-z-knop--secundair) { flex: 1 1 auto; }
 #pause-menu .td-card .ds-z-balk { margin-top: 0; }
 #pause-menu .ds-zeef.ds-z-chip { font-size: var(--ds-t-label); }
 #pause-menu .td-begin-lead { padding: 0 0 8px; font-size: max(16px, var(--menu-min, 16px)); line-height: 1.35; }
@@ -507,16 +503,14 @@ function beginCard(it, i) {
   const ts = tijdStreep(it.tijd);
   if (ts) chips.push(chip(it.tijd.loopt ? 'waarschuwing' : '', 'klok', ts.chip));
   chips.push(chip('', null, GROUP_LABEL[it.group] || it.where || 'In Grunn'));
-  const why = first && !it.isGoal ? 'Deze is het dichtstbij en kan nu.' : '';
-  const doel = it.goal && !it.isGoal ? `<button type="button" class="ds-z-knop ds-z-knop--secundair" data-todo-goal="${esc(it.key)}">${svg(ICON.flag)}Zet als doel</button>`
-    : it.isGoal ? '<button type="button" class="ds-z-knop ds-z-knop--secundair" data-todo-clear>Doel wissen</button>' : '';
+  // #1267 (hertest 24-11): de kaart zelf heeft geen knoppen meer. "Zet als doel" en "Op de kaart" staan op één plek, in het detail
+  // rechts (de kaart kiezen toont het detail; Enter op een kaart zet hem meteen als doel). Zo zie je ze niet per kaart en nog eens in het detail.
   return `<div class="td-card ds-zeef ds-z-kaart${first ? ' td-card-next' : ''}" data-status="${it.status || ''}">` +
     `<button type="button" class="td-card-main" data-todo="${esc(it.key)}" data-status="${it.status || ''}"${it.isGoal ? ' data-goal' : ''}${ui.sel === it.key ? ' aria-current="true"' : ''}>` +
     `<span class="td-begin-nr" aria-hidden="true">${i + 1}</span>${ico}` +
     `<span class="td-card-nm"><b>${esc(it.title)}</b></span>` +
     `<span class="td-card-dist">${it.dist != null ? formatDistance(it.dist) : ''}</span></button>` +
-    `<div class="td-card-chips">${chips.join('')}</div>${tijdStreepHtml(it.tijd)}` +
-    `<div class="td-card-acts">${doel}<button type="button" class="ds-z-knop ds-z-knop--secundair" data-todo-map="${esc(it.key)}" aria-label="${esc(`Op de kaart: ${it.title}`)}${why ? ` · ${esc(why)}` : ''}">${svg(ICON.pin)}Op de kaart</button></div></div>`;
+    `<div class="td-card-chips">${chips.join('')}</div>${tijdStreepHtml(it.tijd)}</div>`;
 }
 
 function beginHierHtml() {
