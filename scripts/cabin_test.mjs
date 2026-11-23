@@ -6,7 +6,7 @@
 import './node3d.mjs';
 const THREE = await import('three');
 await import('../game/js/player.js');
-const { buildVehicleMesh, carBodyFit } = await import('../game/js/models3d_vehicles.js');
+const { buildVehicleMesh, carBodyFit, hybridKey } = await import('../game/js/models3d_vehicles.js');
 const { Vehicle, TRAFFIC_MODELS } = await import('../game/js/vehicle.js');
 const C = await import('../game/js/cabin3d.js');
 const { vehicleSeat } = await import('../game/js/seating3d.js');
@@ -60,8 +60,9 @@ for (const [name, model, flags] of cases) {
   check(name + ': gedeeld en één groep', g.userData.shared === true && g.groups.length === 1);
   check(name + ': één mesh per voertuig', cab === mesh.userData.cabin && cab.name === 'cabine');
   check(name + ': geen schaduwkosten', cab.castShadow === false);
-  // een tweede voertuig van dezelfde soort hergebruikt de geometrie
-  const v2 = Object.assign(new Vehicle(0, 0, 0, model), flags);
+  // een tweede voertuig van dezelfde soort (en dezelfde hybride romp: een sportauto wisselt per id tussen twee rompen, objecten 23-11) hergebruikt de geometrie
+  const hk = hybridKey(v);
+  const v2 = Object.assign(new Vehicle(0, 0, 0, model.name === 'sport' && hk ? { ...model, qcar: hk } : model), flags);
   const mesh2 = buildVehicleMesh(v2);
   C.syncCabins({ vehicles: [v2] }, new Map([[v2.id, mesh2]]), 0, 0);
   check(name + ': geometrie gedeeld met een tweede voertuig', mesh2.userData.cabin && mesh2.userData.cabin.geometry === g);
