@@ -2,7 +2,7 @@
 
 Gegenereerd door `node scripts/verhaal_props_audit.mjs --write` (#1121). De audit haalt uit alle scène- en missiedata (cutscene-specs, aankleding, wachtstappen, sets, cast) de gebruikte soorten en controleert dat elk bestaat in de modelbouwers, binnen zijn polygoonbudget valt (2 tot 6 materialen, geen NaN, op de grond, niet dubbel), dat de verwijzingen kloppen en dat geen figuur aan het begin in een voertuig of groot voorwerp staat. Alle modellen zijn procedureel laag-poly (`game/js/storyprops.js`); voertuigen en dieren komen uit de wereld. Niets is in beeld gezien: dat blijft "nog niet bekeken" tot de Electron-sweep van de coördinator.
 
-Telling: 102 scènes, 155 props, 49 soorten in gebruik, 27 aankledingsplannen, 51 figuren in de NPC-tabel. Fouten: 0, waarschuwingen: 0.
+Telling: 102 scènes, 163 props, 51 soorten in gebruik, 27 aankledingsplannen, 51 figuren in de NPC-tabel. Fouten: 0, waarschuwingen: 0.
 
 ## Decor (storyprops.js)
 
@@ -30,6 +30,7 @@ Telling: 102 scènes, 155 props, 49 soorten in gebruik, 27 aankledingsplannen, 5
 | hek | decor | 48 | 400 | 2 | 2.5 x 1.1 x 0.1 | 1 |
 | hesjes | decor | 48 | 400 | 2 | 0.5 x 0.2 x 0.4 | 1 |
 | jas | decor | 48 | 400 | 3 | 0.44 x 0.13 x 0.49 | 1 |
+| jerrycan | decor | 152 | 260 | 1 | 0.183 x 0.502 x 0.33 | 4 |
 | kaart | decor | 516 | 600 | 3 | 0.9 x 0.025 x 0.65 | 1 |
 | kantoorwagen | decor | 352 | 400 | 8 | 5.9 x 3.05 x 2.49 | 1 |
 | klembord | decor | 60 | 400 | 4 | 0.3 x 0.055 x 0.4 | 6 |
@@ -50,6 +51,7 @@ Telling: 102 scènes, 155 props, 49 soorten in gebruik, 27 aankledingsplannen, 5
 | statief | decor | 200 | 400 | 4 | 0.524 x 1.541 x 0.6 | 1 |
 | stempel | decor | 168 | 400 | 4 | 0.18 x 0.19 x 0.26 | 2 |
 | tas | decor | 48 | 400 | 4 | 0.42 x 0.355 x 0.23 | 2 |
+| vetvat | decor | 324 | 480 | 1 | 0.57 x 0.9 x 0.584 | 4 |
 | vuurwerk | decor | 150 | 400 | 3 | 0.52 x 0.675 x 0.36 | 1 |
 | zuil | decor | 36 | 400 | 3 | 0.4 x 1.305 x 0.42 | 1 |
 
@@ -64,10 +66,10 @@ Telling: 102 scènes, 155 props, 49 soorten in gebruik, 27 aankledingsplannen, 5
 | fiets | voertuig (wereld) |  |  |  | 1.9 x 0.7 x 1.15 | 12 |
 | kat | dier (wereld) |  |  |  |  | 4 |
 | koe | dier (wereld) |  |  |  |  | 0 |
-| limo | voertuig (wereld) | 5792 |  |  | 5.84 x 2.667 x 2.24 | 6 |
+| limo | voertuig (wereld) | 5970 |  |  | 5.84 x 2.667 x 2.24 | 6 |
 | politie | voertuig (wereld) |  |  |  | 4.8 x 1.95 x 1.75 | 1 |
-| snackwagen | voertuig (wereld) | 2314 |  |  | 5.681 x 2.964 x 3.073 | 5 |
-| tankwagen | voertuig (wereld) | 1148 |  |  | 8.611 x 3.61 x 3 | 2 |
+| snackwagen | voertuig (wereld) | 2838 |  |  | 5.681 x 2.964 x 3.073 | 5 |
+| tankwagen | voertuig (wereld) | 5350 |  |  | 8.667 x 3.28 x 3.11 | 2 |
 | trekker | voertuig (wereld) |  |  |  | 4.5 x 2.4 x 3 | 4 |
 
 ## Aankleding van missies (missiedecor.js) en wachtstappen (wachtprops.js)

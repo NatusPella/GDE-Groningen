@@ -41,6 +41,12 @@ export const SPECS_AKTE2 = {};
       wacht1: { kind: 'auto', at: [14, 4.2, 0], face: 20 },
       wacht2: { kind: 'auto', at: [18.5, -3.2, 0], face: -20 },
       pannen: { kind: 'pan', at: [-3.4, 7.0, 0], face: 0 },
+      // vettruck 23-11: het vet van de groothandel staat als vaten naast de tankwagen, de rij heeft lege jerrycans bij zich
+      vat1: { kind: 'vetvat', at: [13.4, -2.6, 0], face: 0 },
+      vat2: { kind: 'vetvat', at: [12.8, -3.2, 0], face: 40 },
+      vat3: { kind: 'vetvat', at: [14.0, -3.3, 0], face: 75 },
+      jerry1: { kind: 'jerrycan', at: [-2.6, 8.0, 0], face: 90 },
+      jerry2: { kind: 'jerrycan', at: [-4.7, 8.1, 0], face: 110 },
     },
     open: [{ actor: 'tessa', face: 'prop:tank' }, { actor: 'tammo', face: 'prop:tank' }, { actor: 'pan1', walk: [[-3.2, 4.5]], speed: 0.3 }],
     beats: [
@@ -72,7 +78,12 @@ export const SPECS_AKTE2 = {};
       bar2: { key: 'harm', at: [4.2, 2.4], face: 200, anim: 'cheer', bg: true, gest: ['cheer', 'wave'] },
       bar3: { key: 'toerist', at: [4.6, -2.0], face: 160, anim: 'cheer', bg: true, gest: ['cheer', 'laugh'] },
     },
-    props: { tank: { kind: 'tankwagen', at: [9, 0.4, 0], face: 180 }, pannen: { kind: 'pan', at: [3.0, 1.4, 0], face: 0 } },
+    // vettruck 23-11: bij de tankwagen staan de eerste gevulde jerrycans en een vat, op de grond
+    props: {
+      tank: { kind: 'tankwagen', at: [9, 0.4, 0], face: 180 }, pannen: { kind: 'pan', at: [3.0, 1.4, 0], face: 0 },
+      jerry1: { kind: 'jerrycan', at: [5.5, 2.2, 0], face: 80 }, jerry2: { kind: 'jerrycan', at: [5.8, 2.6, 0], face: 100 },
+      vat1: { kind: 'vetvat', at: [6.2, -2.3, 0], face: 0 },
+    },
     open: [{ actor: 'tessa', face: 'actor:snackbar' }, { actor: 'tammo', face: 'actor:snackbar' }, { actor: 'bar2', walk: [[2.6, 1.6]], speed: 1.4 }, { actor: 'bar3', walk: [[2.8, -1.4]], speed: 1.4 }],
     beats: [
       { on: 'Vet! Valt mie nait of', actor: 'snackbar', anim: 'cheer' },
