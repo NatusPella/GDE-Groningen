@@ -8,6 +8,10 @@ export const MM_MIN_INTERVAL_MS = 33;
 // #804: op een dure kaart (spoor/uitgezoomd: ~6 ms per tekenbeurt) 20 fps in plaats van 30.
 export const MM_HEAVY_INTERVAL_MS = 50;
 export const MM_HEAVY_COST_MS = 4;
+// 23-11: met de gecachete landlaag (hud_panel.js, minimapstyle.js) kost een tekenbeurt meestal onder 1 ms; dan draait en zoomt de
+// bewegende kaart even vloeiend als de wereld (60 fps). De kostenbegroting hieronder (10%) blijft de grens.
+export const MM_LIGHT_INTERVAL_MS = 16;
+export const MM_LIGHT_COST_MS = 1;
 // stilstaande kaart: alleen de animaties (pulsen, treinen, routes) lopen nog
 export const MM_IDLE_INTERVAL_MS = 100;
 // een tekenbeurt mag hooguit 10% van de tijd (was 1/16: 5 ms tekenen gaf 80 ms, 12 fps) kosten (kostenproportionele cadans, #804)
@@ -27,7 +31,7 @@ export function minimapMoved(prev, cur, settling = false) {
 
 // Het minimale aantal ms tussen twee tekenbeurten.
 export function minimapIntervalMs(costMs, moved) {
-  const basis = costMs > MM_HEAVY_COST_MS ? MM_HEAVY_INTERVAL_MS : MM_MIN_INTERVAL_MS;
+  const basis = costMs > MM_HEAVY_COST_MS ? MM_HEAVY_INTERVAL_MS : Number.isFinite(costMs) && costMs < MM_LIGHT_COST_MS ? MM_LIGHT_INTERVAL_MS : MM_MIN_INTERVAL_MS;
   const rustig = moved ? basis : Math.max(basis, MM_IDLE_INTERVAL_MS);
   return Math.max(rustig, (costMs || 0) * MM_COST_FACTOR);
 }
