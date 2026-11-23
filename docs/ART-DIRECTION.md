@@ -407,7 +407,7 @@ export const detailMaterial = vcMaterial({
 
 **Besluit eigenaar 23-11** (assets-centraal-echte-modellen.md, animatiesets-licentie.md):
 - **Quaternius-mensen als basis**: Ultimate Animated Characters CC0, herkenbare low-poly-stijl
-- **Centrale registers en kwaliteitsnormen**: propregister.js, animalregister.js, voertuiglijst
+- **Centrale registers en kwaliteitsnormen**: propregister.js, dierenregister.js, voertuiglijst
 - **Geen willekeur**: elk nieuw model door centraal register, controle op kwaliteit en stijl
 
 ### 5.2 Personages
@@ -427,7 +427,7 @@ export const detailMaterial = vcMaterial({
 
 ### 5.3 Dieren
 
-**Bron:** animalregister.js, birds.js, cattle.js.
+**Bron:** dierenregister.js, birds.js, cattle.js.
 
 - **Stijl**: zelfde low-poly-lijn als personages (Quaternius Animals CC0)
 - **Soorten**: vogels (duif, meeuw, kraai, eend), vee (koe, schaap, paard), hond, kat
@@ -442,7 +442,7 @@ export const detailMaterial = vcMaterial({
 
 ### 5.4 Voertuigen
 
-**Bron:** vehicleregister.js, voertuigen.js, propregister (fiets, brommer).
+**Bron:** models3d_vehicles.js, voertuigen.js, propregister (fiets, brommer).
 
 - **Stijl**: low-poly, herkenbare Nederlandse modellen (bakfiets, Stint, DAF, stadsbus)
 - **Kleur**: realistische autokleur (rood `0xb93a32`, blauw `0x1d4f9c`, zilver `0x90b0d1`, zwart `0x23262a`)
@@ -490,11 +490,11 @@ export const detailMaterial = vcMaterial({
 
 Zie `scripts/artdirection_audit.mjs` (nieuw):
 
-1. **Kleurgebruik in registers**: models3d_buildings.js, greenery.js, propregister.js, animalregister.js, vehicleregister.js
+1. **Kleurgebruik in registers**: models3d_buildings.js, greenery.js, propregister.js, dierenregister.js, models3d_vehicles.js
 2. **Uitschieters**:
-   - Verzadiging buiten range per kleurgroep
-   - Luma (helderheid) buiten spreiding
-   - Verboden kleuren (neon, koud wit, winter-blauw)
+   - Verzadiging buiten range per kleurgroep (neonkleuren: S>0,75 bij L>50)
+   - Luma (helderheid) buiten spreiding per palet
+   - Koud wit (te licht + blauwige tint, L>220 bij S<0,05)
 3. **Materiaalregels**:
    - Roughness binnen norm
    - Metalness alleen waar het hoort
@@ -541,7 +541,7 @@ Zie `scripts/artdirection_audit.mjs` (nieuw):
 - pixelart3d.js – Gedeelde materialen (habboMaterial, vcMaterial, GeoBuilder)
 - models3d_buildings.js – Gebouwprocedurals (PALETTE_FAMILIES, BRICKS, daken)
 - greenery.js – Vegetatie (bomen, gras, struiken)
-- propregister.js, animalregister.js, vehicleregister.js – Objectenregisters
+- propregister.js, dierenregister.js, models3d_vehicles.js – Objectenregisters
 - ADR 0040 – Zomerse zeefdruk als designsysteem (21-11)
 - docs/WERELDKLEUREN-21-11.md – Wereldpalet besluit en meting
 - docs/PERSONAGES-21-11.md – Personagestijl

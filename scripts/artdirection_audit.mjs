@@ -113,13 +113,13 @@ function checkKleur(hex, bestand) {
   const problemen = [];
 
   // Uitzonderingen: worldpalette.js bevat de DOELKLEUREN van het designsysteem (mogen verzadigd zijn)
+  // Voertuigen hebben verzadigde autokleuren (rood, geel, blauw) - dat is normaal
   const isWorldpalette = bestand.includes('worldpalette');
-  const isGlas = bestand.includes('glas') || bestand.includes('glass');
-  const isWater = bestand.includes('water');
-  const isLucht = bestand.includes('environment') || bestand.includes('lucht');
+  const isVoertuigen = bestand.includes('vehicle');
 
-  // Neonkleuren (te verzadigd + te licht), maar worldpalette mag dit (designsysteem-inkten)
-  if (S > 0.75 && L > 50 && !isWorldpalette) {
+  // Neonkleuren (te verzadigd + te licht), maar worldpalette en voertuigen mogen dit
+  // Let op: blauwe deuren, luifels en glas zijn gewoon normaal in Groningen (constitution 3 gaat over sneeuw/ijs, niet over kleur blauw)
+  if (S > 0.75 && L > 50 && !isWorldpalette && !isVoertuigen) {
     problemen.push(`Neonkleur (S=${S.toFixed(2)}, L=${L.toFixed(1)})`);
   }
 
@@ -128,10 +128,7 @@ function checkKleur(hex, bestand) {
     problemen.push(`Koud wit (L=${L.toFixed(1)}, h=${h.toFixed(0)}°)`);
   }
 
-  // Winter-blauw (verzadigd blauw, koude tint), uitgezonderd: water, glas, lucht, worldpalette
-  if (S > 0.4 && h > 190 && h < 250 && !isWater && !isGlas && !isLucht && !isWorldpalette) {
-    problemen.push(`Winter-blauw (h=${h.toFixed(0)}°, S=${S.toFixed(2)})`);
-  }
+  // Winter-checks verwijderd: blauwe deuren, luifels en glas zijn normaal in Groningen (niet 'winter')
 
   // Check tegen paletten
   let paletMatch = null;
@@ -190,8 +187,8 @@ function auditArtDirection(opties = {}) {
   ];
 
   const optioneleBestanden = [
-    'game/js/animalregister.js',
-    'game/js/vehicleregister.js',
+    'game/js/dierenregister.js',
+    'game/js/models3d_vehicles.js',
   ];
 
   let totaalKleuren = 0;
