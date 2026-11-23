@@ -10,7 +10,7 @@ import { juichHoek } from './vrijgezellen.js';
 import { buildWildlifeMesh3D, animateWildlifeMesh3D } from './wildlife.js';
 import { getTrafficControllers, updateTrafficLights } from './trafficlights.js';
 import { breakPropByKey, restorePropByKey, isPropBroken } from './breakables.js';
-import { DIER_MAX_SCHAAL, veiligeDierSchaal, VOGEL_HOOGTE, SEAL_STATES, V_GROET, V_FEEST, V_WAPEN, V_AANVAL, V_GERAAKT, V_LIGT, lichtVerschil, standVers, MISC_KERMIS, MISC_STUNT, MISC_PUNTEN, MISC_PEDS, MISC_WERELD, MISC_SPREKERS, leesStunt, leesPunten, leesPeds, leesWereld, leesSprekers, WERELD_BRUG, WERELD_SLUIS, WERELD_GARAGE, standRekwisieten, standDuif } from './coopextra.js';
+import { DIER_MAX_SCHAAL, veiligeDierSchaal, VOGEL_HOOGTE, SEAL_STATES, WOLF_STATES_NET, V_GROET, V_FEEST, V_WAPEN, V_AANVAL, V_GERAAKT, V_LIGT, lichtVerschil, standVers, MISC_KERMIS, MISC_STUNT, MISC_PUNTEN, MISC_PEDS, MISC_WERELD, MISC_SPREKERS, leesStunt, leesPunten, leesPeds, leesWereld, leesSprekers, WERELD_BRUG, WERELD_SLUIS, WERELD_GARAGE, standRekwisieten, standDuif } from './coopextra.js';
 import { SPIKE_SPAN, SPIKE_DEPTH } from './roadshards.js';
 import { getMovableBridges, BRIDGE_TIMING } from './movablebridges.js';
 import { getSluizen, signalOf } from './sluizen.js';
@@ -21,6 +21,8 @@ import { buildPigeonBird, posePigeonBird } from './pigeonmode.js';
 import { stuntPropMesh } from './stuntavond.js';
 import { buildWaypointDotMesh3D } from './missionmarker3d.js';
 import { gastOverwegen } from './railway.js';
+import { queueAnimalHit, WOLF_BITE } from './provinceanimals.js';
+import { hoofdspeler } from './spelersregister.js';
 
 const EEND = ['drake', 'hen', 'swan', 'goose'];
 const hex = (s) => parseInt(String(s).replace('#', ''), 16);
@@ -180,6 +182,13 @@ export function syncGastDieren(world, dt) {
     a.z = y;
     if (vogel) a.state = a.lift > 0.3 ? 'fly' : 'ground'; // een vogel op de grond vouwt zijn vleugels, net als bij de host
     else if (d.soort === 'zeehond') a.state = SEAL_STATES[d.aux] || 'rust'; // on the shore or in the water, as on the host
+    else if (d.soort === 'wolf') {
+      // the host's wolf attacks: if it is right next to this guest, the guest takes the bite in its own game (ADR 0042)
+      a.state = WOLF_STATES_NET[d.aux] || 'zwerf';
+      const me = hoofdspeler(world);
+      e.biteT = Math.max(0, (e.biteT || 0) - dt);
+      if (a.state === 'aanval' && me && Math.hypot(me.x - a.x, me.y - a.y) < 1.7 && e.biteT <= 0) { e.biteT = 1.1; queueAnimalHit(world, WOLF_BITE); }
+    }
     m.position.set(a.x, y, a.y); m.rotation.y = -a.angle;
     try { animateWildlifeMesh3D(m, a, nu); } catch (er) { /* zonder animatie */ }
   }

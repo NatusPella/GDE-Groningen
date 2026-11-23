@@ -73,7 +73,8 @@ import { PATH_BUILDS_PER_FRAME } from './pathbudget.js';
 import { createPopStagger, POP_SLOTS } from './popstagger.js';
 import { setSpawnBudget, updateTrafficAI, resolveVehicleBuildingCollision, resolveVehicleVehicleCollisions, manageTrafficPopulation, manageBikePopulation, manageBusPopulation, manageScooterPopulation, manageMotorPopulation, manageBoatPopulation, updateBoatAI, recordContact, checkVehicleWater, spawnHeroCarNear, tickBurningVehicles, setGroundMap } from './vehicle.js';
 import { spawnPedestriansNear, updatePedestrians, CITY_CENTRE, ejectPassenger } from './pedestrians.js';
-import { updateCombat, updateBullets, gastAanvalUitvoeren, gastSlagLanding } from './combat.js';
+import { updateCombat, updateBullets, gastAanvalUitvoeren, gastSlagLanding, damagePlayer } from './combat.js';
+import { takeAnimalHits } from './provinceanimals.js';
 import { setCombatEffect } from './combateffect.js';
 import { zetWapenHaken, zetGastWapenHaken } from './coopwapen.js';
 import { WEAPONS } from './weapons.js';
@@ -1302,7 +1303,7 @@ try { const slot = ensureLatestSlot(); const info = slot ? readSaveInfo() : null
     if (world.coopNet || world.coopPartner !== undefined) updatePartnerChip(world);
     if (world.coopNet || hasFigureMeshes()) syncFigures(world, dt); // de figuren van de andere spelers (#95)
     if (world.coopNet || hasPingMeshes()) syncPings(world); // de roepjes van de spelers (#367)
-    if (world.coopRole === 'client') { syncHostEntities(world, dt); syncExtra(world, dt); } else { if (hasHostEntities()) clearHostEntities(); if (hasExtra()) clearExtra(); if (world.coopSirenUnits) world.coopSirenUnits = null; } // voertuigen, doel, voetgangers, dieren, lichten en kapotte objecten van de host bij een gast (#428)
+    if (world.coopRole === 'client') { syncHostEntities(world, dt); syncExtra(world, dt); takeAnimalHits(world, damagePlayer); } else { if (hasHostEntities()) clearHostEntities(); if (hasExtra()) clearExtra(); if (world.coopSirenUnits) world.coopSirenUnits = null; } // voertuigen, doel, voetgangers, dieren, lichten en kapotte objecten van de host bij een gast (#428)
     if (world.coopScene || hasHostScene()) updateHostScene(world); // filmpje, regel en keuze van de host bij een gast
     probe.mark('phone+save');
     frameGuard.run('updateSafety', updateSafety, dt, world);
@@ -1512,6 +1513,7 @@ try { const slot = ensureLatestSlot(); const info = slot ? readSaveInfo() : null
     frameGuard.run('updatePedestrians', updatePedestrians, dt, world);
     probe.mark('peds');
     frameGuard.run('updateWildlife', updateWildlife, dt, world);
+    takeAnimalHits(world, damagePlayer);   // a wolf bite on this device's player (provinceanimals.js; a guest queues its own in coopextra3d.js)
     tickSchaapontvoering(dt, world);
     frameGuard.run('updateStreetLife', updateStreetLife, dt, world);
     updateSkyProps(dt, world);

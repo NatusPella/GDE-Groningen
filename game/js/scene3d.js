@@ -98,7 +98,8 @@ import { VOLUME_KEYS } from './sfx/volume.js';
 import { makeLean, stepCamFeel } from './camlean.js';
 import { effectsFor, shakeAmount } from './a11ylogic.js';
 import { reducedMotion } from './motion.js';
-import { dynamicScale, cpuLevel } from './gfxprofile.js';
+import { dynamicScale, cpuLevel, currentPreset } from './gfxprofile.js';
+import { setAnimalLodPreset } from './meshlod.js';
 import { adaptedShadowLevel } from './shadowlevel.js';
 import { treeSyncDue } from './treesync.js';
 import { roadBuildAllowed, createHeavyRoadGate, ROAD_BUILD_MAX_PER_FRAME } from './roadbudget.js';
@@ -1087,6 +1088,7 @@ function applyViewSettings(st, key) {
   shadowBaseLevel = level;
   applyShadowLevel(adaptedShadowLevel(level, dynamicScale(), cpuLevel(), st.drawDistance), levelChanged);
   applyViewDistance(st);
+  setAnimalLodPreset(currentPreset(st) || st.quality); // de dier-LOD's: afstanden schalen met de stand (lodregistry.js, zoals setLodPreset op perf-ultra-23-11)
   cam.fov = baseFov = cameraVerticalFov(st.fov);
   cam.updateProjectionMatrix();
   orbitRadius = ORBIT_RADIUS * st.cameraDistance;
@@ -2901,7 +2903,7 @@ export function update3D(dt, world) {
           if (mesh.userData.pigeonScale !== want) { mesh.scale.setScalar(want); mesh.userData.pigeonScale = want; }   // Reuzenduif (cheat)
         } else if (!(Math.abs(mesh.scale.x - baseScale) < 1e-4 && Math.abs(mesh.scale.y - baseScale) < 1e-4 && Math.abs(mesh.scale.z - baseScale) < 1e-4)) mesh.scale.setScalar(baseScale);
         mesh.rotation.y = -a.angle - (a.draai || 0);   // a.lift en a.draai: een schaap in de straal van een schotel (#333)
-        { const fx = a.x - focus.x, fy = a.y - focus.y; mesh.userData.ver = fx * fx + fy * fy > 45 * 45; }   // ver weg: de lichte animatie
+        { const fx = a.x - focus.x, fy = a.y - focus.y; mesh.userData.lodD2 = fx * fx + fy * fy; mesh.userData.ver = mesh.userData.lodD2 > 45 * 45; }   // ver weg: de lichte animatie
         animateWildlifeMesh3D(mesh, a, world.time);
       }
     }

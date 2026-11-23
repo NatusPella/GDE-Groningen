@@ -63,6 +63,7 @@ const SOORT = {
   eend: { kind: 'duck', bouw: (i) => W.buildDuckMesh3D(['drake', 'hen'][i % 2]), span: 0.7, hoog: 0.35, grond: 0.1 },
   reiger: { kind: 'reiger', bouw: () => W.buildDuckMesh3D('reiger'), span: 2.0, hoog: 2.4 },
   hond: { kind: 'dog', bouw: (i) => W.buildDogMesh3D(i, 0.3), span: 1.4, hoog: 0.9 },
+  haas: { kind: 'haas', bouw: (i) => W.buildHareMesh3D(i), span: 0.75, hoog: 0.55, schuin: true },
   duif: { kind: 'pigeon', bouw: () => W.buildWildlifeMesh3D({ kind: 'pigeon', bobSeed: 0.37 }), span: 0.55, hoog: 0.85, poses: VOGEL, schuin: true },
   meeuw: { kind: 'seagull', bouw: () => W.buildWildlifeMesh3D({ kind: 'seagull', bobSeed: 0.37 }), span: 1.3, hoog: 1.1, poses: VOGEL, schuin: true },
   gans: { kind: 'gans', bouw: () => W.buildWildlifeMesh3D({ kind: 'gans', bobSeed: 0.37 }), span: 1.0, hoog: 0.9, poses: GANS, schuin: true },

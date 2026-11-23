@@ -6,17 +6,22 @@
 import './node3d.mjs';
 import { pathToFileURL } from 'node:url';
 import path from 'node:path';
+import { readFileSync } from 'node:fs';
 const bronnen = process.argv.slice(2);
 if (!bronnen.length) bronnen.push(path.resolve(import.meta.dirname, '..'));
 const laad = async (src) => {
   const imp = (f) => import(pathToFileURL(path.join(src, 'game/js', f)).href);
-  return { W: await imp('wildlife.js'), C: await imp('countryside.js') };
+  const W = await imp('wildlife.js'), C = await imp('countryside.js');
+  // the province animals (23-11) load their converted models; older sources do not have them
+  let AM = null;
+  try { AM = await imp('animalmodels.js'); for (const id of [...AM.ANIMAL_MODEL_IDS, ...(AM.FISH_MODEL_IDS || [])]) AM.primeAnimalModel(id, JSON.parse(readFileSync(path.join(src, 'game/models/dieren', id + '.json'), 'utf8'))); } catch (e) { AM = null; }
+  return { W, C, AM };
 };
 const kanten = [];
 for (const b of bronnen) kanten.push(await laad(b));
 const tel = (g) => {
   let t = 0, dc = 0;
-  g.traverse((o) => { if (o.isMesh) { dc++; t += (o.geometry.index ? o.geometry.index.count : o.geometry.attributes.position.count) / 3; } });
+  g.traverse((o) => { if (o.isMesh && o.visible) { dc++; t += (o.geometry.index ? o.geometry.index.count : o.geometry.attributes.position.count) / 3; } });
   return [Math.round(t), dc];
 };
 const wl = (kind) => ({ W }) => W.buildWildlifeMesh3D({ kind, bobSeed: 0.4 });
@@ -31,6 +36,7 @@ const rows = {
   'meeuw-v': [wl('seagull'), { kind: 'seagull', state: 'fly', speed: 6, z: 8, cruise: 8, bank: 0.2, flapSeed: 1 }],
   gans: [wl('gans'), { kind: 'gans', speed: 0.6 }],
   zeehond: [wl('zeehond'), { kind: 'zeehond', state: 'rust', speed: 0.3 }],
+  ree: [wl('ree'), { kind: 'ree', speed: 0.7 }], wolf: [wl('wolf'), { kind: 'wolf', speed: 1.3 }], varken: [wl('varken'), { kind: 'varken', speed: 0 }],
 };
 const N = 100000;
 function ronde(K, g, a) {
@@ -41,6 +47,7 @@ function ronde(K, g, a) {
 }
 const med = (l) => l.slice().sort((p, q) => p - q)[l.length >> 1];
 for (const [n, [f, s]] of Object.entries(rows)) {
+  if (['ree', 'wolf', 'varken'].includes(n) && kanten.some((K) => !K.AM)) continue;   // not in this source
   const per = kanten.map((K) => { const g = f(K); return { K, g, a: { bobSeed: 0.4, angle: 0, stride: 0, watch: 0.3, ...s }, tijden: [] }; });
   for (let r = 0; r < (kanten.length > 1 ? 5 : 1); r++) for (const p of per) p.tijden.push(ronde(p.K, p.g, p.a));
   console.log(n.padEnd(8), per.map((p) => { const [t, dc] = tel(p.g); return `${String(t).padStart(4)} tri ${String(dc).padStart(2)} dc ${med(p.tijden).toFixed(2)} us`; }).join('   |   '));

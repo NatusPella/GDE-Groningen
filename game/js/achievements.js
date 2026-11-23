@@ -200,7 +200,7 @@ export const ACHIEVEMENTS = [
   { id: 'streek_verzameld', cat: 'verzamelen', title: 'Streekverzamelaar', desc: 'Vind alle vierentwintig streekvondsten van de provincie', set: 'streekverzamel', goal: 24 },
   { id: 'onderdelen_5', cat: 'verzamelen', title: 'Eigen Maaksel', desc: 'Vind alle vijf onderdelen voor de Knutselwagen', set: 'autodelen', goal: 5 },
   { id: 'wrakduiken_3', cat: 'verzamelen', title: 'Waddengeheimen', desc: 'Duik bij alle drie de wrakken in de Wadden en het Lauwersmeer', set: 'wrakvondsten', goal: 3 },
-  { id: 'dierenboek', cat: 'verzamelen', title: 'Dierenvriend', desc: 'Zie alle dertien dieren van de provincie en schrijf ze op in je dierenboek', set: 'dierenboek', goal: 13 },
+  { id: 'dierenboek', cat: 'verzamelen', title: 'Dierenvriend', desc: 'Zie alle twintig dieren van de provincie en schrijf ze op in je dierenboek', set: 'dierenboek', goal: 20 },
   { id: 'aaien_5', cat: 'verzamelen', title: 'Zachte hand', desc: 'Aai 5 keer een kat of een hond', stat: 'aaien', goal: 5 },
   { id: 'aaien_25', cat: 'verzamelen', title: 'Poezenpraatje', desc: 'Aai 25 keer een kat of een hond', stat: 'aaien', goal: 25 },
   { id: 'aaien_100', cat: 'verzamelen', title: 'Knuffelkampioen', desc: 'Aai 100 keer een kat of een hond', stat: 'aaien', goal: 100 },

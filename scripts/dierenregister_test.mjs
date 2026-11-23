@@ -10,6 +10,9 @@ const P = await import('../game/js/dierenplan.js');
 const A = await import('../game/js/achievements.js');
 const W = await import('../game/js/wildlife.js');
 const C = await import('../game/js/countryside.js');
+const AM = await import('../game/js/animalmodels.js');
+// the province animals load their converted models (game/models/dieren); in the game by fetch, here straight from disk
+for (const id of [...AM.ANIMAL_MODEL_IDS, ...AM.FISH_MODEL_IDS]) AM.primeAnimalModel(id, JSON.parse(fs.readFileSync(new URL(`../game/models/dieren/${id}.json`, import.meta.url), 'utf8')));
 let n = 0, bad = 0;
 const check = (name, c, extra = '') => { n++; if (!c) { bad++; console.log('FAIL', name, extra); } };
 const read = (p) => fs.readFileSync(new URL('../' + p, import.meta.url), 'utf8');
@@ -17,7 +20,7 @@ const read = (p) => fs.readFileSync(new URL('../' + p, import.meta.url), 'utf8')
 // --- 1. het register zelf ---
 const ids = R.DIEREN.map((d) => d.id);
 check('ids zijn uniek', new Set(ids).size === ids.length);
-check('dertien dieren', R.DIEREN.length === 13, String(R.DIEREN.length));
+check('twintig dieren (dertien plus de zeven provinciedieren van 23-11)', R.DIEREN.length === 20, String(R.DIEREN.length));
 const BIOTOPEN = ['weide', 'dijk', 'water', 'kust', 'wad', 'stad', 'erf'];
 for (const d of R.DIEREN) {
   const t = `${d.id}: `;
@@ -79,6 +82,11 @@ for (const d of R.DIEREN) {
     }
   });
   check(`${d.id}: model heeft echte geometrie (${verts} punten)`, verts >= 120, String(verts));
+  // mesh-LOD's (meshlod.js, eis eigenaar 23-11): drie niveaus, elk duidelijk lichter dan het vorige
+  {
+    const lod = mesh.userData.lod, tris = lod ? lod.geos.map((x) => Math.round((x.index ? x.index.count : x.attributes.position.count) / 3)) : [];
+    check(`${d.id}: LOD's met duidelijk minder driehoeken (${tris.join('/')})`, tris.length === 3 && tris[1] <= tris[0] * 0.8 && tris[2] <= tris[0] * 0.55, tris.join('/'));
+  }
   check(`${d.id}: geen NaN in de vorm`, !nan);
   const sleutel = geo ? geo.uuid : d.id;
   check(`${d.id}: eigen model, niet gedeeld met een ander dier`, !gezienGeo.has(sleutel), `${d.id} = ${gezienGeo.get(sleutel)}`);
@@ -94,6 +102,15 @@ for (const d of R.DIEREN) {
       check(`${d.id}: animatie in toestand ${st}`, ok);
     }
   }
+}
+
+// het centrale LOD-register (lodregistry.js, perf-ultra-23-11): elk gebouwd diermodel staat erin en haalt de minCut van 'animal'
+{
+  const LR = await import('../game/js/lodregistry.js');
+  const dieren = LR.lodModels().filter((m) => m.kind === 'animal');
+  check('de diermodellen staan in het centrale LOD-register', dieren.length >= R.DIEREN.length, String(dieren.length));
+  const fouten = LR.auditLod(dieren);
+  check('de centrale LOD-audit keurt elk diermodel goed', fouten.length === 0, fouten.join('; '));
 }
 
 // --- 5. kopen, houden en uitrusten ---

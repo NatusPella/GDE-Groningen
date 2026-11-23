@@ -12,7 +12,7 @@ function meet(g) {
   g.updateMatrixWorld(true);
   const v = new THREE.Vector3(); let lo = Infinity, hi = -Infinity, xlo = Infinity, xhi = -Infinity, bad = 0, tris = 0;
   g.traverse((o) => {
-    if (!o.isSkinnedMesh) return;
+    if (!o.isSkinnedMesh || !o.visible) return;   // the hidden LOD twin (meshlod.js) is not drawn
     const p = o.geometry.attributes.position; tris += (o.geometry.index ? o.geometry.index.count : p.count) / 3;
     for (let i = 0; i < p.count; i++) {
       o.getVertexPosition(i, v); v.applyMatrix4(o.matrixWorld);

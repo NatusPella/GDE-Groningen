@@ -7,7 +7,7 @@ import {
   chash, countryWeight, countryRect, edgeDistance, countryFiction, parcelAt, parcelUse, blockToWorld, edgeRoad, villageOf,
 } from './countryfield.js';
 import { SkinBuilder, vcMaterial, tubeGeometry, loftGeometry, markShared, composeMatrix } from './pixelart3d.js';
-import { buildCowMesh3D, buildSheepMesh3D, sheepVariantOf, buildDuckMesh3D, buildGooseMesh3D, animateWildlifeMesh3D, runOverAnimal, poseDeadAnimal, zetBlik } from './wildlife.js';
+import { buildCowMesh3D, buildSheepMesh3D, sheepVariantOf, buildDuckMesh3D, buildGooseMesh3D, animateWildlifeMesh3D, runOverAnimal, poseDeadAnimal, zetBlik, withLods, gooseBodyY } from './wildlife.js';
 import { distToVehicleBody } from './vehicle.js';
 import * as M3 from './countrymodels.js';
 import {
@@ -149,6 +149,7 @@ export function buildHorseMesh(v) {
   const bones = [], byName = {}, abs = {};
   for (const [name, parent, x, y, z] of HORSE_SPEC) {
     const b = new THREE.Bone();
+    b.name = name;
     abs[name] = [x, y, z];
     if (parent) {
       const p = abs[parent];
@@ -165,6 +166,7 @@ export function buildHorseMesh(v) {
   group.updateMatrixWorld(true);
   mesh.bind(new THREE.Skeleton(bones));
   for (const b of bones) b.userData.rest = b.position.clone();
+  group.userData.lod = withLods(mesh);
   Object.assign(group.userData, {
     bones: byName, head: byName.head, headBaseRotZ: 0, legs: [byName.legFL, byName.legFR, byName.legBL, byName.legBR], tail: byName.tail, mane: byName.mane, grazeDip: 0.95, earMode: 'op',
   });
@@ -208,6 +210,8 @@ function templateGeometry(key) {
   const m = buildAnimalMesh(probe);
   let geo = null, mat = null;
   m.traverse((o) => { if (o.isSkinnedMesh && !geo) { geo = o.geometry; mat = o.material; } });
+  // the instanced herd beyond the skinned animals is the low variant: mesh LOD 1 (meshlod.js), about half the triangles
+  if (m.userData.lod) geo = m.userData.lod.geos[1];
   return { geo, mat, scale: m.scale.x };
 }
 
@@ -1069,6 +1073,7 @@ function updateAnimals(dt, world, time, simulate) {
     mesh.rotation.y = -a.angle;
     mesh.rotation.x = 0;
     mesh.userData.ver = a._d2 > 45 * 45;   // ver weg alleen stap en grazen (animateGrazer)
+    mesh.userData.lodD2 = a._d2;   // mesh LOD (meshlod.js)
     if (a.dead) poseDeadAnimal(mesh, a);
     else if (a.kind === 'duck') {
       animateWildlifeMesh3D(mesh, a, time);
@@ -1104,7 +1109,7 @@ function updateAnimals(dt, world, time, simulate) {
       if (a.dead) _e.set(a.deadSide * 1.42, -a.angle, 0, 'YXZ');
       else _e.set(0, -a.angle, 0, 'XYZ');
       _q.setFromEuler(_e);
-      _m4.compose(_p.set(a.x, a.dead ? 0.2 * (a.size || 1) : a.kind === 'goose' ? 0.2 : a.kind === 'duck' ? -0.06 : 0, a.y), _q, _s.set(sc, sc, sc));
+      _m4.compose(_p.set(a.x, a.dead ? 0.2 * (a.size || 1) : a.kind === 'goose' ? gooseBodyY() : a.kind === 'duck' ? -0.06 : 0, a.y), _q, _s.set(sc, sc, sc));
       _m4.toArray(pool.instanceMatrix.array, n * 16);
       pool.instanceColor.array[n * 3] = pool.instanceColor.array[n * 3 + 1] = pool.instanceColor.array[n * 3 + 2] = 1;
       counts.set(key, n + 1);

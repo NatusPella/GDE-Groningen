@@ -23,6 +23,12 @@ export const SPECIES = {
   eend: { habitat: 'water', density: 3, group: [2, 5], flee: 6, speed: 4, move: 'zwemmen', sound: 'duck' },
   vis: { habitat: 'water', density: 6, group: [4, 10], flee: 5, speed: 3, move: 'duiken', sound: 'fish' },
   zeehond: { habitat: 'wad', density: 2, group: [2, 6], flee: 18, speed: 3.5, move: 'duiken', sound: 'seal' },
+  // de provinciedieren (23-11, Quaternius CC0, animalmodels.js): ree en vos op de akkerranden, de wolf zeldzaam in de
+  // grensstreek (flee: de afstand waarop een voertuig of een schreeuwende speler hem verjaagt, zie provinceanimals.js)
+  ree: { habitat: 'weide', density: 0.12, group: [1, 3], flee: 32, speed: 9, move: 'lopen', sound: null },
+  vos: { habitat: 'weide', density: 0.08, group: [1, 1], flee: 16, speed: 7, move: 'lopen', sound: null },
+  wolf: { habitat: 'weide', density: 0.01, group: [1, 1], flee: 10, speed: 8, move: 'lopen', sound: null },
+  haas: { habitat: 'weide', density: 0.1, group: [1, 2], flee: 14, speed: 10, move: 'lopen', sound: null },
 };
 export const SPECIES_IDS = Object.keys(SPECIES);
 
@@ -35,15 +41,15 @@ export const DESPAWN_M = 220;
 // Per streek (regioleven.js-id's plus stad en wadden): factor op density per soort; ontbrekend = 0.
 export const STREEK_MIX = {
   stad: { eend: 1, meeuw: 0.5, reiger: 0.6, vis: 0.8 },
-  hogeland: { schaap: 1.4, gans: 1.2, koe: 0.5, meeuw: 0.5, reiger: 0.4 },
+  hogeland: { schaap: 1.4, gans: 1.2, koe: 0.5, meeuw: 0.5, reiger: 0.4, ree: 0.5, vos: 0.6, haas: 1.4 },
   eemsdelta: { meeuw: 1.3, eend: 0.8, reiger: 0.8, vis: 1, schaap: 0.5 },
   wadden: { zeehond: 1.5, meeuw: 1.6, schaap: 0.6, vis: 0.6 },
-  westerkwartier: { koe: 1.4, schaap: 0.6, gans: 0.8, reiger: 0.7, eend: 0.8, vis: 0.8 },
-  oldambt: { koe: 0.6, gans: 1.4, schaap: 0.5, reiger: 0.4 },
-  veenkolonien: { gans: 1, eend: 1.2, reiger: 0.9, vis: 1.2, koe: 0.3 },
-  westerwolde: { koe: 1.2, schaap: 0.8, reiger: 0.9, eend: 1, vis: 1, gans: 0.6 },
+  westerkwartier: { koe: 1.4, schaap: 0.6, gans: 0.8, reiger: 0.7, eend: 0.8, vis: 0.8, ree: 1.1, vos: 0.8, haas: 1.2 },
+  oldambt: { koe: 0.6, gans: 1.4, schaap: 0.5, reiger: 0.4, ree: 0.6, vos: 0.6, wolf: 0.05, haas: 1.3 },
+  veenkolonien: { gans: 1, eend: 1.2, reiger: 0.9, vis: 1.2, koe: 0.3, ree: 1, vos: 0.9, wolf: 0.15, haas: 1 },
+  westerwolde: { koe: 1.2, schaap: 0.8, reiger: 0.9, eend: 1, vis: 1, gans: 0.6, ree: 1.4, vos: 1, wolf: 0.35, haas: 1 },
   lauwerskust: { gans: 1.5, meeuw: 1.2, reiger: 1, eend: 0.8, zeehond: 0.4, vis: 0.8, schaap: 0.7 },
-  hunsingo: { schaap: 1.2, gans: 1.1, koe: 0.7, meeuw: 0.6, reiger: 0.5 },
+  hunsingo: { schaap: 1.2, gans: 1.1, koe: 0.7, meeuw: 0.6, reiger: 0.5, ree: 0.6, vos: 0.6, haas: 1.2 },
 };
 export const STREKEN_PLAN = Object.keys(STREEK_MIX);
 

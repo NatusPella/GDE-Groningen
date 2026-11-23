@@ -27,19 +27,20 @@ export const ZELDZAAM = [
 ];
 export const zeldzaamheid = (soort) => ZELDZAAM[(soort && soort.zeldzaam ? soort.zeldzaam : 1) - 1];
 
+// lengte: de echte lengte (m) van een gemiddelde vangst, waar het model in de hand en in het water op geschaald is (fishmodels.js);
 // kg: gewicht van de vangst; venster: hoe lang het dobbertje zakt (s), kleiner is lastiger; tijd: wanneer hij vooral bijt
 // ('nacht' of 'schemer'; zonder tijd bijt hij de hele dag); regen: bijt vaker als het regent. Het gewicht is een gemiddelde.
 export const SOORTEN = [
-  { id: 'voorn', naam: 'Blankvoorn', kg: 0.3, venster: 1.1, zeldzaam: 1, wat: 'Zilveren visje met rode vinnen, in elke gracht.' },
-  { id: 'baars', naam: 'Baars', kg: 0.6, venster: 0.9, zeldzaam: 1, wat: 'Gestreept en stekelig, jaagt in groepjes.' },
-  { id: 'brasem', naam: 'Brasem', kg: 1.2, venster: 0.8, zeldzaam: 1, wat: 'Hoge, platte vis die langs de bodem zoekt.', regen: true },
-  { id: 'snoek', naam: 'Snoek', kg: 2.4, venster: 0.65, zeldzaam: 2, wat: 'De roofvis van het riet, met een bek vol tanden.' },
-  { id: 'karper', naam: 'Karper', kg: 4.0, venster: 0.55, zeldzaam: 2, wat: 'Zwaar en slim; neemt zijn tijd.' },
+  { id: 'voorn', naam: 'Blankvoorn', lengte: 0.22, kg: 0.3, venster: 1.1, zeldzaam: 1, wat: 'Zilveren visje met rode vinnen, in elke gracht.' },
+  { id: 'baars', naam: 'Baars', lengte: 0.27, kg: 0.6, venster: 0.9, zeldzaam: 1, wat: 'Gestreept en stekelig, jaagt in groepjes.' },
+  { id: 'brasem', naam: 'Brasem', lengte: 0.42, kg: 1.2, venster: 0.8, zeldzaam: 1, wat: 'Hoge, platte vis die langs de bodem zoekt.', regen: true },
+  { id: 'snoek', naam: 'Snoek', lengte: 0.7, kg: 2.4, venster: 0.65, zeldzaam: 2, wat: 'De roofvis van het riet, met een bek vol tanden.' },
+  { id: 'karper', naam: 'Karper', lengte: 0.55, kg: 4.0, venster: 0.55, zeldzaam: 2, wat: 'Zwaar en slim; neemt zijn tijd.' },
   { id: 'zeelt', naam: 'Zeelt', kg: 1.0, venster: 0.75, zeldzaam: 2, wat: 'Groenig en slijmerig, houdt van stil water met planten.' },
   { id: 'ruisvoorn', naam: 'Ruisvoorn', kg: 0.4, venster: 1.0, zeldzaam: 1, wat: 'Goudkleurig, zwemt vlak onder het oppervlak.' },
   { id: 'kolblei', naam: 'Kolblei', kg: 0.5, venster: 0.95, zeldzaam: 1, wat: 'Zilver en plat, in scholen in open water.' },
   { id: 'snoekbaars', naam: 'Snoekbaars', kg: 2.0, venster: 0.6, zeldzaam: 3, tijd: 'schemer', wat: 'Glasachtig oog, jaagt in de schemer.' },
-  { id: 'paling', naam: 'Paling', kg: 0.8, venster: 0.7, zeldzaam: 2, tijd: 'nacht', wat: 'Een slangachtige zwemmer die \'s nachts rondgaat.' },
+  { id: 'paling', naam: 'Paling', lengte: 0.6, kg: 0.8, venster: 0.7, zeldzaam: 2, tijd: 'nacht', wat: 'Een slangachtige zwemmer die \'s nachts rondgaat.' },
   { id: 'winde', naam: 'Winde', kg: 1.4, venster: 0.7, zeldzaam: 2, wat: 'Oranje vinnen, houdt van stromend water.' },
   { id: 'giebel', naam: 'Giebel', kg: 0.4, venster: 1.0, zeldzaam: 1, wat: 'Taaie visser in elke modderige sloot.' },
   { id: 'kroeskarper', naam: 'Kroeskarper', kg: 0.5, venster: 0.9, zeldzaam: 1, wat: 'Bruin en rond, overleeft bijna alles.' },
