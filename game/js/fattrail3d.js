@@ -4,8 +4,8 @@
 // met een kleine marge en polygonOffset tegen z-fighting. Eén InstancedMesh, één drawcall, geen werk per frame als er niets bijkomt.
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 
-export const TRAIL_MAX = 160;
-export const TRAIL_LIFT = 0.015; // m boven het wegdek
+const TRAIL_MAX = 160;
+const TRAIL_LIFT = 0.015; // m boven het wegdek
 
 export function buildFatTrail() {
   const geo = new THREE.CircleGeometry(1, 14).rotateX(-Math.PI / 2);

@@ -53,7 +53,7 @@ export function warpGasten(world, dest, { meeVoertuig = null, alleen = null } = 
 // De gastheer stapt in een boot die meteen wegvaart (M06: de vluchtboot bij het museum). Elke gast die nog niet in een voertuig
 // zit gaat mee aan boord (coopnet.js zetInBoot: dezelfde stoelen als bij de band). Is de boot vol, dan haalt de band hem later bij.
 // Geeft het aantal gasten dat meeging.
-export const BOOT_MELDING = 'Je zit mee in de boot.';
+const BOOT_MELDING = 'Je zit mee in de boot.';
 export function gastenMeeAanBoord(world) {
   if (!world || world.coopRole === 'client' || typeof haken.lichamen !== 'function' || typeof haken.inBoot !== 'function') return 0;
   let n = 0;

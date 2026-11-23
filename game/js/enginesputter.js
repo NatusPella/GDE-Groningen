@@ -3,7 +3,7 @@
 // Samen spelen: lokaal geluid van het voertuig dat jij bestuurt (de gast hoort het via het gewone motorgeluid niet apart).
 
 export const SPUTTER_BELOW = 40;       // gezondheid waaronder het begint (dezelfde grens als de rook uit de motorkap)
-export const SPUTTER_MIN_SPEED = 3;    // m/s: stilstaand gas geven hoest niet
+const SPUTTER_MIN_SPEED = 3;    // m/s: stilstaand gas geven hoest niet
 const GAP_FAR = 6.5, GAP_NEAR = 2.4;   // s tussen hoesten bij 39% en bij bijna kapot
 
 export function sputterGap(health) {
