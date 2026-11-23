@@ -91,7 +91,7 @@ for (const [naam, plan] of Object.entries({ nieuw: bootPlan(), opgeslagen: bootP
   ok(!/ld-tick|buildTicks/.test(html + ss), 'bootbalk: geen tikken of segmenten');
   ok(!/ls-seg|ls-tick|ld-seg/.test(css + ls + html), 'laadbalk: geen segmenten');
   ok(/#load-screen \.ls-bar i \{[^}]*var\(--ds-c-ink-bord\)/.test(css) && /#loading \.ld-fill \{[^}]*var\(--ds-c-ink-bord\)/.test(html), 'bordgroene vulling');
-  ok(/#load-screen \.ls-step \{[^}]*font: 400 max\(13px, 1em\)/.test(css), 'de statusregel volgt de stage en blijft op de 13 px-vloer of erboven');
+  ok(/#load-screen \.ls-step \{[^}]*font-size: max\(13px, /.test(css), /* wensen-s 23-11 (#1002): groter op een groot scherm, nooit onder 13 px */'de statusregel volgt de stage en blijft op de 13 px-vloer of erboven');
   ok(!/ls-skip|ls-note|keyTextHtml|gatePress|isSkipKey|keydown/.test(ls + css), 'laadscherm: geen Enter-prompt, geen toetsafhandeling meer');
   ok(!/bt-key/.test(html), 'bootscherm: geen leeg Enter-vak meer');
   ok(/fadeMs\(reduced\(\)\)/.test(ls) && /gv\.actie === 'door'/.test(ls), 'het scherm sluit op de actie van de poort, met de fade');
