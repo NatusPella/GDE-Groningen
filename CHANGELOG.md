@@ -9,6 +9,7 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ## [Unreleased]
 
+- Laadschermen bewegen: net als het opstartscherm stempelen logo en bestemming binnen, het beeld drijft traag, er loopt een glans over de balk en een nieuwe statusregel schuift vloeiend in. Bij Beweging beperken of Rustig drukwerk staat alles stil.
 - Minder ruis in HUD en menu's: tijdens een achtervolging verdwijnt een knophint die toch niet kan; de regel Volg de gele route staat alleen bij de eerste drie verhaaldoelen; het verhaaloverzicht heeft één gele Doorgaan (in de rail).
 - De kaart opent de eerste keer zonder uitlegvenster: de tip komt pas als je in het zoekveld klikt. De Hulp-knop toont de hele uitleg.
 - Besturing > Controller toont per knop kolommen Te voet, Rijden en Menu. Standaard herstellen staat onderaan Instellingen.

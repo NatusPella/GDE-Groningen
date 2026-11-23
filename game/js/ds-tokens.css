@@ -173,6 +173,13 @@
   --ds-moment-duur: 400ms;                          /* één onderdeel van een hoogtepunt */
   --ds-moment-max: 1600ms;                          /* het hele hoogtepunt, vlak tot en met de glans */
   --ds-moment-leven: 2000ms;                        /* één trage ademhaling van de live-stip (het enige dat mag blijven lopen) */
+  /* Laadschermen (ds-laad.css, 23-11): een wachtmoment mag doorlopend bewegen; Beweging beperken zet ze op nul en de set stil. */
+  --ds-laad-stempel: 700ms;                         /* een onderdeel stempelt binnen (zoals het logo op het opstartscherm) */
+  --ds-laad-staffel: 140ms;                         /* tussentijd tussen de onderdelen */
+  --ds-laad-wissel: 250ms;                          /* een nieuwe statusregel komt binnen */
+  --ds-laad-adem: 2000ms;                           /* de bestemming ademt op en neer */
+  --ds-laad-glans: 2200ms;                          /* de glans over de balk */
+  --ds-laad-drift: 24s;                             /* het beeld zoomt en schuift heel traag */
 }
 /* het wit toetsplaatje en de identiteit van medespelers als rollen (de tabel zelf: coopidentiteit.js) */
 :root {
@@ -267,9 +274,9 @@
 
 /* Beweging beperken: de tokens zelf worden nul, zodat elke component meebeweegt zonder eigen regel. */
 @media (prefers-reduced-motion: reduce) {
-  :root { --ds-m-snel: 0ms; --ds-m: 0ms; --ds-m-max: 0ms; --ds-m-kort: 0ms; --ds-m-midden: 0ms; --ds-m-lang: 0ms; --ds-m-staffel: 0ms; --ds-moment-stap: 0ms; --ds-moment-duur: 0ms; --ds-moment-max: 0ms; --ds-moment-leven: 0ms; }
+  :root { --ds-m-snel: 0ms; --ds-m: 0ms; --ds-m-max: 0ms; --ds-m-kort: 0ms; --ds-m-midden: 0ms; --ds-m-lang: 0ms; --ds-m-staffel: 0ms; --ds-moment-stap: 0ms; --ds-moment-duur: 0ms; --ds-moment-max: 0ms; --ds-moment-leven: 0ms; --ds-laad-stempel: 0ms; --ds-laad-staffel: 0ms; --ds-laad-wissel: 0ms; }
 }
-html.reduce-motion { --ds-m-snel: 0ms; --ds-m: 0ms; --ds-m-max: 0ms; --ds-m-kort: 0ms; --ds-m-midden: 0ms; --ds-m-lang: 0ms; --ds-m-staffel: 0ms; --ds-moment-stap: 0ms; --ds-moment-duur: 0ms; --ds-moment-max: 0ms; --ds-moment-leven: 0ms; }
+html.reduce-motion { --ds-m-snel: 0ms; --ds-m: 0ms; --ds-m-max: 0ms; --ds-m-kort: 0ms; --ds-m-midden: 0ms; --ds-m-lang: 0ms; --ds-m-staffel: 0ms; --ds-moment-stap: 0ms; --ds-moment-duur: 0ms; --ds-moment-max: 0ms; --ds-moment-leven: 0ms; --ds-laad-stempel: 0ms; --ds-laad-staffel: 0ms; --ds-laad-wissel: 0ms; }
 
 /* ===== Zomerse zeefdruk (ADR 0040, issue 991). Additief: de oudere rollen blijven werken tot
    elk scherm is omgebouwd. De waarden zijn voorlopig tot de HUD-proef (issue 993) is gekeurd. ===== */
