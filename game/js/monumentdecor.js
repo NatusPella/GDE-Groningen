@@ -70,9 +70,11 @@ export function monumentDecorItems(zoneId = 'bourtange') {
   }
   // het Marktplein: veertien lindebomen in een kring (zoveel staan er echt), vier banken en een paar tonnen
   const [mx, my] = ANKERS.plein;
+  // #1203: op de rand van het plein (heritagearea.js plein.ring), niet half in het midden: het monument blijft vrij in beeld
+  const ring = (area.plein && area.plein.ring) || 15;
   for (let i = 0; i < 14; i++) {
     const a = (i / 14) * Math.PI * 2 + 0.2;
-    add('linde', mx + Math.cos(a) * 15, my + Math.sin(a) * 15, a);
+    add('linde', mx + Math.cos(a) * ring, my + Math.sin(a) * ring, a);
   }
   for (let i = 0; i < 4; i++) {
     const a = (i / 4) * Math.PI * 2 + 0.78;

@@ -9,6 +9,7 @@ import { dryPavedIndices, pavedTester, waterTester } from './greenwater.js';
 import { dsWereld } from './worldpalette.js';
 import { streamPlanner } from './streamplanner.js';
 import { createCooler } from './lodstable.js';
+import { monumentPleinAt } from './heritagearea.js';
 
 // Green areas: merged per-chunk lawn surfaces with a procedural world-space
 // grass shader, translucent kerb/path wear strips along their borders, and
@@ -680,7 +681,10 @@ export function generateCell(map, ci, cj, Q, full) {
   // (het water van een gestroomde tegel staat niet in de stadsindex: per punt vragen, #918)
   const inWater = waterTester(map, cx, cy, CELL) || (() => false);
 
+  // #1203: op een bestraat monumentplein groeit geen gras (de klinkers liggen erover, monumentdecor3d.js)
+  const plein = monumentPleinAt(cx, cy, CELL);
   const classify = (x, y) => {
+    if (plein && monumentPleinAt(x, y)) return null;
     for (const g of greens) if (inPolyRow(x, y, g)) return g;
     return null;
   };

@@ -235,6 +235,24 @@ for (const z of Z.HERITAGE_AREAS) {
   }
 }
 
+// --- 10b. #1203 (hertest 24-11): het Marktplein is een bestraat plein, de linden staan op de rand met hoge kruinen ------------
+{
+  const bt = Z.heritageAreaById('bourtange');
+  ok(bt.plein && bt.plein.radius >= 18 && bt.plein.ring <= bt.plein.radius && bt.plein.ring > 15, 'het plein heeft een straal en een lindenring aan de rand', JSON.stringify(bt.plein));
+  ok(Z.monumentPleinAt(bt.plein.at[0] + 5, bt.plein.at[1] - 5) === bt.plein && Z.monumentPleinAt(bt.plein.at[0] + 40, bt.plein.at[1]) === null, 'monumentPleinAt: binnen ja, erbuiten nee');
+  ok(Z.monumentPleinAt(0, 0) === null && Z.monumentPleinAt(bt.plein.at[0] + bt.plein.radius + 5, bt.plein.at[1], 6) === bt.plein, 'met een marge telt de rand mee');
+  const lind = D.monumentDecorItems('bourtange').filter((o) => o.kind === 'linde');
+  const r = lind.map((o) => Math.hypot(o.x - D.ANKERS.plein[0], o.y - D.ANKERS.plein[1]));
+  ok(lind.length === 14 && r.every((d) => Math.abs(d - bt.plein.ring) < 0.3), 'veertien linden op de ring aan de rand, niet midden op het plein', r.map((d) => d.toFixed(1)).join(','));
+  const kits = fs.readFileSync(new URL('../game/js/monumentkits3d.js', import.meta.url), 'utf8');
+  const onder = Number((kits.match(/LINDE_KRUIN_ONDER = ([\d.]+)/) || [])[1]);
+  ok(onder >= 5, 'de kruin van een plein-linde begint op 5 m of hoger (boven het beeld van wie op het plein staat)', String(onder));
+  const src = (f) => fs.readFileSync(new URL('../game/js/' + f, import.meta.url), 'utf8');
+  ok(/monumentPleinAt\(t\[0\], t\[1\]\) \? null/.test(src('tilegreenery.js')), 'geen kaartbomen op het plein');
+  ok(/if \(plein && monumentPleinAt\(x, y\)\) return null;/.test(src('grass.js')), 'geen grasplukken op het plein');
+  ok(/export function buildPleinFloor/.test(src('monumentdecor3d.js')) && /scene\.add\(vloer\)/.test(src('monumentdecor3d.js')) && /dropFloor\(e\)/.test(src('monumentdecor3d.js')), 'de klinkervloer komt en gaat met de aankleding');
+}
+
 // --- 11. het gebied naast de tegels (zonder game/world: SKIP) -----------------------------------------------------------
 const root = new URL('../game/world/', import.meta.url);
 if (!fs.existsSync(new URL('index-provincie.json', root))) {
