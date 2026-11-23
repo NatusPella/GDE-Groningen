@@ -2293,9 +2293,13 @@ export function animatePersonWalk(mesh, speed, dt) {
   const bob = (0.018 + 0.03 * r) * w;
   pelvis.position.set(0, HIP_Y - 0.035 * r * w + bob * Math.cos(2 * phase), 0.022 * shift);
   pelvis.rotation.set(0.035 * shift, 0.1 * w * Math.sin(phase), 0);
-  const lean = -(ud.stoop || 0) - 0.03 * w - 0.2 * r * w;
-  chest.position.set(0, CHEST_Y - HIP_Y + 0.004 * breath * idle, 0);
-  chest.rotation.set(-0.03 * shift, -0.2 * w * Math.sin(phase), lean - 0.012 * breath * idle);
+  // gewicht bij het optrekken en afremmen: wie begint te lopen duikt kort naar voren, wie stopt wiegt even terug (dw = hoe snel de loopmix verandert)
+  const dw = step > 0 ? (w - (ud.wPrev === undefined ? w : ud.wPrev)) / step : 0;
+  ud.wPrev = w;
+  const weight = dw > 0 ? -Math.min(0.07, dw * 0.012) : Math.min(0.06, -dw * 0.01);
+  const lean = -(ud.stoop || 0) - 0.03 * w - 0.2 * r * w + weight;
+  chest.position.set(0, CHEST_Y - HIP_Y + 0.006 * breath * idle, 0);
+  chest.rotation.set(-0.03 * shift, -0.2 * w * Math.sin(phase), lean - 0.02 * breath * idle);
   const gazeW = Math.min(1, Math.abs(ud.gazeS) * 4);
   head.rotation.set(0.02 * shift, look * (1 - 0.6 * w) * (1 - gazeW) - chest.rotation.y - pelvis.rotation.y - ud.turnHead - ud.gazeS, -lean * 0.6 + 0.02 * w * Math.cos(2 * phase));
   chest.rotation.x += ud.turnLean;

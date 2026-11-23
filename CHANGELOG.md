@@ -8,6 +8,9 @@ versies staan op datum op volgorde. Er zijn geen aparte kopstijlen per sectie:
 elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ## [Unreleased]
+- Personages: mensen knipperen nu met hun ogen (elk in eigen ritme, soms twee keer kort na elkaar, ook in cutscenes), hebben handen met vingers, blosjes op de wangen en een eigen gezicht in rust (neutraal, vriendelijk of nors, met lachlijnen bij ouderen). Elke voorbijganger heeft een tikje andere kleuren in shirt, broek en huid, een breder bereik in lengte en postuur en soms een geverfd kapsel, zodat twee mensen in hetzelfde shirt niet meer als kopieën naast elkaar lopen.
+- Lopen: wie begint te lopen duikt kort naar voren en wie stopt wiegt even terug; de ademhaling bij stilstaan is beter te zien.
+- Samen spelen: niets hiervan staat in een snapshot of bericht; elke speler rekent het lokaal uit hetzelfde zaad en dezelfde loopsnelheid, dus iedereen ziet dezelfde looks. Het knipperen is puur visueel en per scherm eigen.
 
 ## [0.65.0] - 2026-11-22
 
