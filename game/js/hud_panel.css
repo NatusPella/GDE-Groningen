@@ -472,9 +472,10 @@ body.cine-tint-bust:not(.gpu-screenfx) #game3d { filter: grayscale(1) brightness
 /* wie de spatie al voor de hint vasthoudt, ziet de ring meteen: anders loopt het vasthouden af zonder dat er iets te zien was */
 #cine.show-skip.active .cine-skip.holding { opacity: 1; transition: opacity 0.1s; } /* ds3-film: scene */
 /* a scene that keeps the HUD up (death, busted): bottom centre, clear of the minimap */
-body:not(.cine-hide-hud) #cine .cine-skip { right: 50%; bottom: calc(14px * var(--ui, 1)); transform: translateX(50%); }
+/* alleen zolang de scène loopt: bij het einde verdwijnt cine-hide-hud meteen en sprong de uitfadende hint anders naar het midden, over de ondertitel (video-QA 23-11) */
+body:not(.cine-hide-hud) #cine.active .cine-skip { right: 50%; bottom: calc(14px * var(--ui, 1)); transform: translateX(50%); }
 #cine.has-sub .cine-skip { bottom: calc(var(--bar) * 0.5 + 64px * var(--ui, 1)); } /* niet over de ondertitel (#463) */
-body:not(.cine-hide-hud) #cine.has-sub .cine-skip { bottom: calc(14px * var(--ui, 1) + 64px * var(--ui, 1)); }
+body:not(.cine-hide-hud) #cine.active.has-sub .cine-skip { bottom: calc(14px * var(--ui, 1) + 64px * var(--ui, 1)); }
 #cine .cine-skip { font-family: var(--ds-font-tekst); font-size: calc(14px * var(--ui, 1)); letter-spacing: 0.3px; }
 #cine .cine-skip .hud-key { margin-right: 0; font-family: var(--ds-font-kop); letter-spacing: 1px; }
 #cine .cine-skip-ring { display: inline-block; width: 1.4em; height: 1.4em; margin-right: 0.4em; transform: rotate(-90deg); }
