@@ -199,8 +199,8 @@ function xform(geo, m) {
 // --- de duif per niveau ------------------------------------------------------------------------------------------------
 
 const DETAIL = {
-  hi: { sides: 12, headSides: 10, headStacks: 7, eye: [6, 4], pupil: [6, 3], coverts: [10, 5], wingBars: true, secondaries: 6, primaries: 5, featherSegs: 2, tailFeathers: 7, legSides: 6, toes: 3, hindToe: true, cere: true, neckSides: 12, torsoRings: 9 },
-  mid: { sides: 8, headSides: 6, headStacks: 4, eye: null, pupil: null, coverts: [6, 4], wingBars: false, secondaries: 4, primaries: 4, featherSegs: 1, tailFeathers: 5, legSides: 4, toes: 0, hindToe: false, cere: false, neckSides: 6, torsoRings: 7 },
+  hi: { sides: 12, headSides: 10, headStacks: 7, eye: [6, 4], pupil: [6, 3], coverts: [10, 5], wingBars: true, secondaries: 0, armPlate: [8, 3], primaries: 4, handW: 0.04, handSpread: 0.5, featherSegs: 3, handCovert: [8, 4], tailFeathers: 7, tailW: 0.045, legSides: 6, toes: 3, hindToe: true, cere: true, neckSides: 12, torsoRings: 9 },
+  mid: { sides: 8, headSides: 6, headStacks: 4, eye: null, pupil: null, coverts: [6, 3], wingBars: false, secondaries: 0, armPlate: [5, 3], primaries: 3, featherSegs: 2, handCovert: [5, 3], tailFeathers: 0, tailBlade: true, legSides: 4, toes: 0, hindToe: false, cere: false, neckSides: 6, torsoRings: 7 },
   far: { sides: 8, headSides: 7, headStacks: 3, blade: true, eye: null, pupil: null, coverts: [0, 0], wingBars: false, secondaries: 0, primaries: 0, featherSegs: 1, tailFeathers: 0, legSides: 0, toes: 0, hindToe: false, cere: false, neckSides: 0, torsoRings: 5 },
 };
 
@@ -236,6 +236,9 @@ function addWingParts(out, D, c, side, kind, sp) {
     out.push({ g: 'wing', side, geo: f });
     return;
   }
+  // middle level: the trailing edge as one smooth plate instead of separate secondaries (those read as a saw blade on a
+  // folded wing at this size)
+  if (D.armPlate) out.push({ g: 'wing', side, geo: setColors(ellip(0.045, 0.006, 0.085 * big, D.armPlate[0], D.armPlate[1], -0.07, -0.002, 0.1 * big * s), shade(wingHex, 0.85), sp) });
   // armpennen aan de achterrand van de vleugel
   for (let i = 0; i < D.secondaries; i++) {
     const t = D.secondaries > 1 ? i / (D.secondaries - 1) : 0;
@@ -244,14 +247,15 @@ function addWingParts(out, D, c, side, kind, sp) {
     out.push({ g: 'wing', side, geo: f });
   }
   // handpennen aan de buitenvleugel: waaiert naar buiten en wijst iets naar achteren
+  const spreadHand = D.handSpread ?? (D.armPlate ? 0.42 : 0.62), wHand = D.handW ?? (D.armPlate ? 0.034 : 0.027);   // a few broad, rounded primaries at the middle level
   for (let i = 0; i < D.primaries; i++) {
     const t = D.primaries > 1 ? i / (D.primaries - 1) : 0;
-    const f = feather((0.17 - t * 0.065) * big, 0.027, D.featherSegs, -0.018, 0.4, wingHex, c.tip);
-    const psi = 0.04 + t * 0.62; // hoek vanaf +z (naar buiten) naar -x
+    const f = feather((0.17 - t * 0.065) * big, wHand, D.featherSegs, -0.018, 0.4, wingHex, c.tip);
+    const psi = 0.04 + t * spreadHand; // hoek vanaf +z (naar buiten) naar -x
     xform(f, place(-0.02 - t * 0.01, 0, 0.012 * s, 0, -s * (Math.PI / 2 + psi), 0));
     out.push({ g: 'wingOut', side, geo: f });
   }
-  if (D.primaries) out.push({ g: 'wingOut', side, geo: setColors(ellip(0.055, 0.009, 0.075 * big, Math.max(6, cov[0] - 2), 4, -0.03, 0, 0.065 * big * s), wingHex, sp) });
+  if (D.primaries) out.push({ g: 'wingOut', side, geo: setColors(ellip(0.055, 0.009, (D.handCovert ? 0.088 : 0.075) * big, D.handCovert ? D.handCovert[0] : Math.max(6, cov[0] - 2), D.handCovert ? D.handCovert[1] : 4, -0.03, 0, (D.handCovert ? 0.05 : 0.065) * big * s), wingHex, sp) });
 }
 
 // De onderdelen van één duif per groep, in de lokale ruimte van die groep. Zie de kop van dit bestand.
@@ -289,12 +293,13 @@ export function pigeonParts(lod = 'hi', { kind = 'pigeon', variant = null, map =
     const n = D.tailFeathers;
     for (let i = 0; i < n; i++) {
       const t = n > 1 ? i / (n - 1) - 0.5 : 0;
-      const f = feather(0.15, 0.03, D.featherSegs, -0.01, 0.25, c.tail, c.band);
+      const f = feather(0.15, D.tailW ?? 0.03, Math.min(2, D.featherSegs), -0.01, 0.25, c.tail, c.band);   // broad feathers overlap into a closed fan
       xform(f, place(0, 0, 0, 0, Math.PI + t * 0.5, 0.04 - Math.abs(t) * 0.05));
       out.push({ g: 'tail', geo: f });
     }
   }
-  if (D.blade) { const f = feather(0.16, 0.055, 2, -0.01, 0.3, c.tail, c.band); xform(f, place(0, 0, 0, 0, Math.PI, 0)); out.push({ g: 'tail', geo: f }); }
+  // one closed tail (far, and the middle level)
+  if (D.blade || D.tailBlade) { const f = feather(0.16, 0.055, 2, -0.01, 0.3, c.tail, c.band); xform(f, place(0, 0, 0, 0, Math.PI, 0)); out.push({ g: 'tail', geo: f }); }
   for (const side of [1, -1]) addWingParts(out, D, c, side, kind, sp);
   // poten met tenen; bij 'mid' alleen de poot zelf
   if (D.legSides) {
@@ -319,7 +324,12 @@ export function pigeonMaterial() {
   return _mat;
 }
 export function pigeonShinyMaterial() {
-  if (!_shiny) { _shiny = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.35, metalness: 0.2, emissive: 0x120a1c }); _shiny.userData.shared = true; }
+  // feather sheen: a city pigeon's neck shifts from green to purple with the viewing angle, a thin-film layer (iridescence) over
+  // the vertex colours. Only the neck of the highest level (player, pigeon-mode flock, cutscenes), a small piece per bird.
+  if (!_shiny) {
+    _shiny = new THREE.MeshPhysicalMaterial({ vertexColors: true, roughness: 0.35, metalness: 0.2, emissive: 0x120a1c, iridescence: 0.8, iridescenceIOR: 1.6, iridescenceThicknessRange: [260, 620] });
+    _shiny.userData.shared = true;
+  }
   return _shiny;
 }
 
@@ -358,10 +368,11 @@ export function mergePigeonGeometries(geos) {
 }
 
 // De onderdelen in het absolute lichaamsframe (verschaald met k), gegroepeerd per bot voor een skelet (wildlife.js):
-// body (romp, staart), leg (poten), head, wingL/wingR (zijde +1/-1, dekveren en armpennen) en wingOutL/wingOutR (handpennen).
+// body (romp), tail (staart; een skelet zonder staartbot hangt hem aan de romp), leg (poten), head, wingL/wingR (zijde +1/-1, dekveren
+// en armpennen) en wingOutL/wingOutR (handpennen).
 export function pigeonBoneParts(lod = 'mid', opts = {}, k = 1) {
   return pigeonParts(lod, opts).map((p) => {
-    const bone = p.g === 'leg' ? 'leg' : p.g === 'wing' ? (p.side > 0 ? 'wingL' : 'wingR') : p.g === 'wingOut' ? (p.side > 0 ? 'wingOutL' : 'wingOutR') : p.g === 'head' ? 'head' : 'body';
+    const bone = p.g === 'leg' ? 'leg' : p.g === 'wing' ? (p.side > 0 ? 'wingL' : 'wingR') : p.g === 'wingOut' ? (p.side > 0 ? 'wingOutL' : 'wingOutR') : p.g === 'head' ? 'head' : p.g === 'tail' ? 'tail' : 'body';
     p.geo.applyMatrix4(groupMatrix(p, p.side));
     if (k !== 1) p.geo.scale(k, k, k);
     return { bone, geo: p.geo };

@@ -10,7 +10,7 @@ import { juichHoek } from './vrijgezellen.js';
 import { buildWildlifeMesh3D, animateWildlifeMesh3D } from './wildlife.js';
 import { getTrafficControllers, updateTrafficLights } from './trafficlights.js';
 import { breakPropByKey, restorePropByKey, isPropBroken } from './breakables.js';
-import { DIER_MAX_SCHAAL, veiligeDierSchaal, VOGEL_HOOGTE, V_GROET, V_FEEST, V_WAPEN, V_AANVAL, V_GERAAKT, V_LIGT, lichtVerschil, standVers, MISC_KERMIS, MISC_STUNT, MISC_PUNTEN, MISC_PEDS, MISC_WERELD, MISC_SPREKERS, leesStunt, leesPunten, leesPeds, leesWereld, leesSprekers, WERELD_BRUG, WERELD_SLUIS, WERELD_GARAGE, standRekwisieten, standDuif } from './coopextra.js';
+import { DIER_MAX_SCHAAL, veiligeDierSchaal, VOGEL_HOOGTE, SEAL_STATES, V_GROET, V_FEEST, V_WAPEN, V_AANVAL, V_GERAAKT, V_LIGT, lichtVerschil, standVers, MISC_KERMIS, MISC_STUNT, MISC_PUNTEN, MISC_PEDS, MISC_WERELD, MISC_SPREKERS, leesStunt, leesPunten, leesPeds, leesWereld, leesSprekers, WERELD_BRUG, WERELD_SLUIS, WERELD_GARAGE, standRekwisieten, standDuif } from './coopextra.js';
 import { SPIKE_SPAN, SPIKE_DEPTH } from './roadshards.js';
 import { getMovableBridges, BRIDGE_TIMING } from './movablebridges.js';
 import { getSluizen, signalOf } from './sluizen.js';
@@ -179,6 +179,7 @@ export function syncGastDieren(world, dt) {
     const y = vogel && a.lift > 0.3 ? a.lift : grond(world, a.x, a.y);
     a.z = y;
     if (vogel) a.state = a.lift > 0.3 ? 'fly' : 'ground'; // een vogel op de grond vouwt zijn vleugels, net als bij de host
+    else if (d.soort === 'zeehond') a.state = SEAL_STATES[d.aux] || 'rust'; // on the shore or in the water, as on the host
     m.position.set(a.x, y, a.y); m.rotation.y = -a.angle;
     try { animateWildlifeMesh3D(m, a, nu); } catch (er) { /* zonder animatie */ }
   }

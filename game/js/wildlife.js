@@ -174,7 +174,10 @@ function spawnWaterLife(map, player, streekId, count, quality, rng) {
       for (let i = 0; i < n; i++) {
         const x = spot.x + (rng() - 0.5) * 4, y = spot.y + (rng() - 0.5) * 4;
         if (!pointInPolygon(x, y, spot.poly.pts)) continue;
-        out.push({ kind: 'zeehond', x, y, angle: rng() * Math.PI * 2, speed: 0, poly: spot.poly, state: 'rust', bobSeed: rng() * Math.PI * 2, wanderTarget: { x, y }, waypointTimer: 3 + rng() * 6 });
+        // one in three lies on the shore (close to the water) and crawls back into the water when scared
+        const land = rng() < 0.34 && randomOpenPointNear(map, spot.x, spot.y, 1.5, 5, rng);
+        if (land) out.push({ kind: 'zeehond', x: land[0], y: land[1], angle: Math.atan2(y - land[1], x - land[0]) + Math.PI + (rng() - 0.5), speed: 0, poly: spot.poly, state: 'kant', bobSeed: rng() * Math.PI * 2, wanderTarget: { x, y }, waypointTimer: 0 });
+        else out.push({ kind: 'zeehond', x, y, angle: rng() * Math.PI * 2, speed: 0, poly: spot.poly, state: 'rust', bobSeed: rng() * Math.PI * 2, wanderTarget: { x, y }, waypointTimer: 3 + rng() * 6 });
       }
     }
   }
@@ -438,9 +441,21 @@ function updateReiger(a, dt, world) {
   if (a.flyT > 7) a.gone = true;
 }
 
-// Zeehond: rust in het water; schrikt hij, dan duikt hij weg (een tijd onzichtbaar, daarna weg).
+// Seal: rests in the water or lies on the shore; when scared it dives away (invisible for a while, then gone). On the shore it
+// first crawls to the water (wanderTarget is a point in the water) and dives there.
 function updateZeehond(a, dt, world) {
   if (a.state === 'duik') { a.diveT += dt; if (a.diveT > 2.5) a.gone = true; return; }
+  if (a.state === 'naarWater') {
+    a.speed = 1.1;
+    steer(a, a.wanderTarget.x, a.wanderTarget.y, 3, dt);
+    if (pointInPolygon(a.x, a.y, a.poly.pts) || dist(a.x, a.y, a.wanderTarget.x, a.wanderTarget.y) < 0.5) { a.state = 'duik'; a.diveT = 0; a.speed = 0; }
+    return;
+  }
+  if (a.state === 'kant') {
+    a.speed = 0;
+    if (fleeFrom('zeehond', a.x, a.y, moverOf(naasteLichaam(world, a.x, a.y)))) a.state = 'naarWater';
+    return;
+  }
   const f = fleeFrom('zeehond', a.x, a.y, moverOf(naasteLichaam(world, a.x, a.y)));
   if (f) { a.state = 'duik'; a.diveT = 0; a.speed = 0; return; }
   a.waypointTimer -= dt;
@@ -759,11 +774,13 @@ export function updateWildlife(dt, world) {
 
 // Een dier dat de speler van dichtbij ziet draait zijn kop mee (animatie): a.watch is de hoek van de speler ten opzichte van de neus
 // van het dier, of null als er niemand in de buurt is. Per dier een paar vermenigvuldigingen, geen nieuwe objecten.
-const WATCH_KINDS = new Set(['cow', 'sheep', 'cat', 'dog']);
+const WATCH_KINDS = new Set(['cow', 'sheep', 'cat', 'dog', 'pigeon', 'seagull', 'gans', 'zeehond']);
 export function zetBlik(a, p, straal = 11) {
   if (!p || a.dead) { a.watch = null; return; }
   const dx = p.x - a.x, dy = p.y - a.y;
-  if (dx * dx + dy * dy > straal * straal) { a.watch = null; return; }
+  const d2 = dx * dx + dy * dy;
+  if (d2 > straal * straal) { a.watch = null; return; }
+  a.watchD2 = d2;
   let w = Math.atan2(dy, dx) - a.angle;
   w -= Math.PI * 2 * Math.round(w / (Math.PI * 2));
   a.watch = w;
@@ -1006,6 +1023,7 @@ const GULL_SPEC = [
   ['wingRi', 'body', 0.035 * GULL_K, 0.055 * GULL_K, -0.055 * GULL_K],
   ['wingRo', 'wingRi', 0.035 * GULL_K, 0.055 * GULL_K, -0.245 * GULL_K],
   ['legs', 'body', 0.02 * GULL_K, -0.075 * GULL_K, 0],
+  ['tail', 'body', -0.15 * GULL_K, 0.012 * GULL_K, 0],
 ];
 
 // het skelet van een duiventype: de botnamen van de delen van pigeonBoneParts vertaald naar de botten van de spec
@@ -1311,27 +1329,63 @@ export function buildDuckMesh3D(variant = 'drake') {
   return group;
 }
 
-// --- zeehond en vis (#193): eenvoudige low-poly figuren op dezelfde romp als de eend ---
+// --- seal (harbour seal, #193) ---
+// Its own rig: torso, neck with head, hind flippers and two fore flippers. Grey with dark spots (in the vertex colour, no extra
+// triangles), a light belly, big dark eyes, a muzzle with nostrils and whiskers. Built lying down: belly at y = -0.06, nose to +x.
+const SEAL_SPEC = [
+  ['body', null, 0, 0.1, 0],
+  ['head', 'body', 0.4, 0.16, 0],
+  ['tail', 'body', -0.38, 0.09, 0],
+  ['flipL', 'body', 0.22, 0.03, 0.15],
+  ['flipR', 'body', 0.22, 0.03, -0.15],
+];
+const SEAL_GREY = 0x7d8085;
+
 function sealGeometry() {
-  const I = boneIndex(DUCK_SPEC);
+  const I = boneIndex(SEAL_SPEC);
   const B = new SkinBuilder(1);
+  const flip = 0x5c5f64;
   B.bone = I.body;
-  B.geo(ellipsoid(8, 6, 0.5, 0.16, 0.2), composeMatrix(0, 0.1, 0), 0x7d8085);
-  B.geo(ellipsoid(8, 3, 0.46, 0.1, 0.17), composeMatrix(0.0, 0.06, 0), 0xbfc0b8);
+  B.geo(ellipsoid(10, 6, 0.46, 0.16, 0.2), composeMatrix(0.02, 0.1, 0), SEAL_GREY);
+  B.geo(ellipsoid(8, 3, 0.42, 0.1, 0.17, Math.PI * 0.55, Math.PI * 0.45), composeMatrix(0.02, 0.085, 0), 0xb9bab2);   // light belly
+  for (const s of [1, -1]) {
+    B.bone = I[s > 0 ? 'flipL' : 'flipR'];
+    B.geo(ellipsoid(5, 3, 0.085, 0.016, 0.042), composeMatrix(0.25, 0.01, s * 0.17, 0, s * 0.5, -0.25), flip);
+  }
   B.bone = I.tail;
-  for (const s of [1, -1]) B.box(-0.55, 0.06, s * 0.07, 0.12, 0.02, 0.07, 0x5f6266, 0, s * 0.4, 0);
+  B.geo(ellipsoid(8, 4, 0.2, 0.1, 0.12), composeMatrix(-0.4, 0.09, 0), SEAL_GREY);   // the hips taper off
+  for (const s of [1, -1]) B.geo(ellipsoid(5, 3, 0.1, 0.014, 0.055), composeMatrix(-0.64, 0.08, s * 0.045, 0, s * 0.35, 0), flip);   // hind flippers
   B.bone = I.head;
-  B.geo(ellipsoid(6, 5, 0.13, 0.11, 0.11), composeMatrix(0.5, 0.2, 0), 0x868a8e);
-  B.box(0.62, 0.17, 0, 0.05, 0.05, 0.08, 0x9a9d9f);
-  B.box(0.64, 0.19, 0, 0.02, 0.02, 0.03, 0x1a1a1a);
-  for (const s of [1, -1]) B.box(0.57, 0.24, s * 0.06, 0.016, 0.016, 0.016, 0x111111);
-  return B.build();
+  B.geo(ellipsoid(6, 4, 0.13, 0.115, 0.13), composeMatrix(0.42, 0.17, 0), SEAL_GREY);   // neck
+  B.geo(ellipsoid(8, 6, 0.125, 0.11, 0.115), composeMatrix(0.53, 0.22, 0), 0x868a8e);   // round head
+  B.geo(ellipsoid(6, 4, 0.065, 0.05, 0.07), composeMatrix(0.63, 0.195, 0), 0x9fa29f);    // muzzle
+  B.box(0.69, 0.215, 0, 0.02, 0.022, 0.035, 0x1a1a1a);                                    // nose
+  for (const s of [1, -1]) {
+    B.box(0.698, 0.21, s * 0.012, 0.008, 0.012, 0.008, 0x0c0c0c, 0, 0, s * 0.5, 0);      // nostrils in a V
+    B.geo(ellipsoid(5, 3, 0.018, 0.022, 0.012), composeMatrix(0.6, 0.255, s * 0.068), 0x0e0e10);   // big dark eyes
+    B.box(0.65, 0.19, s * 0.09, 0.002, 0.026, 0.07, 0xd8d6cc, 0, 0, s * 0.45, 0);        // whiskers: one thin fan per side
+  }
+  const g = B.build();
+  // spots: dark patches on the grey coat (the most common colour after the world palette) from a fixed noise over the
+  // vertices; no extra triangles
+  const p = g.attributes.position, c = g.attributes.color, counts = new Map();
+  for (let i = 0; i < c.count; i++) { const k = c.getX(i) + ',' + c.getY(i) + ',' + c.getZ(i); counts.set(k, (counts.get(k) || 0) + 1); }
+  const coat = [...counts].sort((u, v) => v[1] - u[1])[0][0];
+  for (let i = 0; i < p.count; i++) {
+    if (c.getX(i) + ',' + c.getY(i) + ',' + c.getZ(i) !== coat) continue;
+    const x = p.getX(i), y = p.getY(i), z = p.getZ(i);
+    if (y < 0.1) continue;
+    const n = Math.sin(x * 41.3 + z * 23.7) * Math.sin(z * 37.1 - x * 17.9 + y * 29.3);
+    if (n > 0.12) c.setXYZ(i, c.getX(i) * 0.42, c.getY(i) * 0.42, c.getZ(i) * 0.46);
+  }
+  return g;
 }
 export function buildSealMesh3D() {
-  const group = assemble(cachedGeo('zeehond', sealGeometry), DUCK_SPEC, 0.8, 0.15);
+  const group = assemble(cachedGeo('zeehond', sealGeometry), SEAL_SPEC, 0.8, 0.15);
   group.userData.head = group.userData.bones.head;
   return group;
 }
+// --- fish (#193): a simple low-poly figure on the duck rig ---
 function fishGeometry() {
   const I = boneIndex(DUCK_SPEC);
   const B = new SkinBuilder(1);
@@ -1360,10 +1414,12 @@ const PIGEON_SPEC = [
   ['wingOutL', 'wingL', 0.035 * PIGEON_K, 0.055 * PIGEON_K, 0.245 * PIGEON_K],
   ['wingR', 'body', 0.035 * PIGEON_K, 0.055 * PIGEON_K, -0.055 * PIGEON_K],
   ['wingOutR', 'wingR', 0.035 * PIGEON_K, 0.055 * PIGEON_K, -0.245 * PIGEON_K],
+  ['legs', 'body', 0.02 * PIGEON_K, -0.075 * PIGEON_K, 0],
+  ['tail', 'body', -0.15 * PIGEON_K, 0.012 * PIGEON_K, 0],
 ];
 
 function pigeonGeometry(tone, lod) {
-  return pigeonSkinGeometry(PIGEON_SPEC, { variant: PIGEON_VARIANTS[tone % PIGEON_VARIANTS.length] }, PIGEON_K, { wingL: 'wingL', wingOutL: 'wingOutL', wingR: 'wingR', wingOutR: 'wingOutR' }, lod);
+  return pigeonSkinGeometry(PIGEON_SPEC, { variant: PIGEON_VARIANTS[tone % PIGEON_VARIANTS.length] }, PIGEON_K, { wingL: 'wingL', wingOutL: 'wingOutL', wingR: 'wingR', wingOutR: 'wingOutR', leg: 'legs' }, lod);
 }
 
 export function buildPigeonMesh3D(tone = 0, lod = 'mid') {
@@ -1611,28 +1667,71 @@ export function buildDogMesh3D(breed = 0, colorT = 0) {
   return group;
 }
 
-// Een gans op het land: de eendenromp met twee oranje poten, anders zweeft hij een handbreed boven het gras (#436); de romp staat 0,2 m hoog (animateGans).
-const GANS_LEG = markShared(new THREE.MeshStandardMaterial({ color: 0xd9803a, roughness: 0.8, flatShading: true }));
-const GANS_LEG_GEO = markShared(new THREE.BoxGeometry(0.02, 0.1, 0.02).translate(0, -0.05, 0));
-const GANS_WING = markShared(new THREE.MeshStandardMaterial({ color: 0x6e6658, roughness: 0.9, flatShading: true, side: THREE.DoubleSide }));
-const GANS_WING_GEO_R = markShared(new THREE.BoxGeometry(0.16, 0.012, 0.3).translate(0, 0, 0.15));
-const GANS_WING_GEO_L = markShared(new THREE.BoxGeometry(0.16, 0.012, 0.3).translate(0, 0, -0.15));
-function buildGansMesh3D() {
-  const g = buildDuckMesh3D('goose');
+// --- goose (greylag goose, #436) ---
+// Its own rig in one SkinnedMesh (it used to be the duck body plus four loose meshes for legs and wings): torso, neck with head,
+// tail, two webbed legs and two wings. In the bind pose the wings lie folded along the flank, so the goose looks the same in the
+// herd instancing (countryside.js); animateGans opens them with one quaternion per wing. Body 0.2 m above the ground.
+const GOOSE_SPEC = [
+  ['body', null, 0, 0, 0],
+  ['head', 'body', 0.11, 0.07, 0],
+  ['tail', 'body', -0.13, 0.04, 0],
+  ['legL', 'body', 0, -0.03, 0.035],
+  ['legR', 'body', 0, -0.03, -0.035],
+  ['wingL', 'body', 0.06, 0.065, 0.075],
+  ['wingR', 'body', 0.06, 0.065, -0.075],
+];
+const GOOSE_COLORS = { body: 0x8a8274, back: 0x6e6658, edge: 0xb8b0a0, chest: 0x9e968a, belly: 0xd8d2c6, head: 0x7e776a, bill: 0xe8893a, nail: 0xece4d4, undertail: 0xeeeae0, foot: 0xe3a08e, primaries: 0x504a42 };
+// The fold: a wing that points along +z (left) or -z (right) when spread, chord along x and flat, lies folded with its leading
+// edge on top along the flank and its tip pointing back. GOOSE_UNFOLD: the rotation back to spread (the bone quaternion fully open).
+const _bx = new THREE.Vector3(0, 1, 0);
+const GOOSE_FOLD = [
+  new THREE.Matrix4().makeBasis(_bx, new THREE.Vector3(0, 0, -1), new THREE.Vector3(-1, 0, 0)),
+  new THREE.Matrix4().makeBasis(_bx, new THREE.Vector3(0, 0, 1), new THREE.Vector3(1, 0, 0)),
+];
+const GOOSE_UNFOLD = GOOSE_FOLD.map((m) => new THREE.Quaternion().setFromRotationMatrix(m).invert());
+
+function gooseGeometry() {
+  const L = GOOSE_COLORS;
+  const I = boneIndex(GOOSE_SPEC);
+  const B = new SkinBuilder(1);
+  B.bone = I.body;
+  B.geo(ellipsoid(8, 5, 0.17, 0.075, 0.095), composeMatrix(0, 0.02, 0), L.body);
+  B.geo(ellipsoid(8, 2, 0.15, 0.078, 0.085, 0, Math.PI * 0.32), composeMatrix(-0.015, 0.024, 0), L.back);
+  B.geo(ellipsoid(6, 4, 0.07, 0.065, 0.075), composeMatrix(0.1, 0.04, 0), L.chest);
+  B.geo(ellipsoid(6, 3, 0.1, 0.03, 0.06), composeMatrix(-0.06, -0.035, 0), L.belly);   // light belly towards the tail
   for (const s of [1, -1]) {
-    const leg = new THREE.Mesh(GANS_LEG_GEO, GANS_LEG);
-    leg.position.set(0, 0, s * 0.03);
-    g.add(leg);
+    B.bone = I[s > 0 ? 'legL' : 'legR'];
+    const z = s * 0.035;
+    B.geo(tubeGeometry([0, -0.03, z], [0.004, -0.106, z], 0.009, 0.007, 4), null, L.foot);
+    B.geo(new THREE.BoxGeometry(0.045, 0.006, 0.034), composeMatrix(0.018, -0.107, z), L.foot);   // webbed foot
+    // the wing: built in the spread frame (pointing along z), then folded onto the flank
+    B.bone = I[s > 0 ? 'wingL' : 'wingR'];
+    const V = composeMatrix(0.06, 0.065, s * 0.075).multiply(GOOSE_FOLD[s > 0 ? 0 : 1]);
+    const at = (x, y, zz) => V.clone().multiply(composeMatrix(x, y, zz * s));
+    B.geo(ellipsoid(6, 4, 0.042, 0.012, 0.115), at(-0.015, -0.011, 0.11), L.back);       // coverts
+    B.geo(ellipsoid(5, 3, 0.012, 0.014, 0.095), at(-0.05, -0.012, 0.105), L.edge);       // light trailing edge
+    B.geo(ellipsoid(5, 3, 0.032, 0.01, 0.075), at(-0.022, -0.013, 0.21), L.primaries);   // dark primaries
   }
-  // twee vleugels die alleen te zien zijn als de gans opschrikt en wegvlucht (animateGans)
-  g.userData.gansWings = [1, -1].map((side) => {
-    const w = new THREE.Mesh(side > 0 ? GANS_WING_GEO_R : GANS_WING_GEO_L, GANS_WING);
-    w.position.set(-0.01, 0.11, side * 0.045);
-    w.visible = false;
-    g.add(w);
-    return w;
-  });
-  return g;
+  B.bone = I.tail;
+  slab(B, [[-0.13, 0.03], [-0.21, 0.02], [-0.22, -0.02], [-0.13, -0.03]], 0.035, 0.05, L.back, L.undertail, L.undertail);
+  B.bone = I.head;
+  const nk = 0.11;
+  B.geo(tubeGeometry([0.1, 0.05, 0], [0.13, 0.1 + nk, 0], 0.03, 0.022, 6), null, L.head);
+  B.geo(ellipsoid(6, 5, 0.05, 0.042, 0.038), composeMatrix(0.145, 0.13 + nk, 0), L.head);
+  B.geo(new THREE.BoxGeometry(0.064, 0.02, 0.034), composeMatrix(0.205, 0.118 + nk, 0, 0, 0, -0.15), L.bill);
+  B.box(0.238, 0.112 + nk, 0, 0.01, 0.012, 0.022, L.nail);   // light nail on the bill tip
+  for (const s of [1, -1]) B.box(0.165, 0.142 + nk, s * 0.03, 0.01, 0.01, 0.008, 0x111111);
+  return B.build();
+}
+
+export function buildGooseMesh3D() {
+  const group = assemble(cachedGeo('gans', gooseGeometry), GOOSE_SPEC, 0.6, 0.05);
+  group.scale.setScalar(DUCK_LOOKS.goose.scale);
+  const b = group.userData.bones;
+  group.userData.head = b.head;
+  b.wingL.userData.side = 0;
+  b.wingR.userData.side = 1;
+  return group;
 }
 
 function bouwWildlifeMesh3D(a) {
@@ -1640,7 +1739,7 @@ function bouwWildlifeMesh3D(a) {
     case 'seagull': return buildSeagullMesh3D(a.lod);
     case 'sheep': return buildSheepMesh3D(sheepVariantOf(a.bobSeed));
     case 'duck': return buildDuckMesh3D(a.variant);
-    case 'gans': return buildGansMesh3D();
+    case 'gans': return buildGooseMesh3D();
     case 'reiger': return buildDuckMesh3D('reiger');
     case 'zeehond': return buildSealMesh3D();
     case 'vis': return buildFishMesh3D();
@@ -1676,13 +1775,15 @@ export function wildlifeShadowSize(kind) {
 const _v = new THREE.Vector3();
 const _up = new THREE.Vector3(0, 1, 0);
 
+// Folded (fold 1) exactly like poseBird in pigeonmode.js: the arm wing swings back along the flank and the hand wing folds over
+// it (2.9 rad), so no primaries stick out as spikes. A negative fold (landing flare) sweeps the wing forward.
 function setWings(ud, sign, inner, outer, fold = 0) {
   for (const w of ud.wings) {
     const s = w.userData.sign;
-    w.rotation.set(-s * inner, -s * fold * 1.45, 0);
+    w.rotation.set(-s * inner, -s * fold * 1.55, 0);
     w.position.set(w.userData.rest.x + fold * (ud.foldShift || 0), w.userData.rest.y + fold * (ud.foldLift || 0), w.userData.rest.z * (1 - fold * (ud.foldZ ?? 0.3)));
     const o = w.children[0];
-    if (o) o.rotation.set(-s * outer, -s * fold * 0.15, 0);
+    if (o) o.rotation.set(-s * outer, fold > 0 ? s * fold * 2.9 : -s * fold * 0.15, 0);
   }
 }
 
@@ -1730,74 +1831,172 @@ function animateEars(ud, seed, time, stand, phase = 0, run = 0) {
   }
 }
 
-function animateSeagull(mesh, a, time) {
-  const ud = mesh.userData, b = ud.bones;
-  const seed = a.flapSeed || 0;
-  const standing = a.state === 'ground';
-  mesh.position.y = a.z ?? 6 + Math.sin(time * 2 + seed) * 1.2;
-  if (standing) {
-    setWings(ud, 1, -0.5, 0.05, 1);
-    b.legs.rotation.z = 0;
-    b.body.rotation.set(0, 0, 0.15);
-    const step = a.speed > 0.05 ? Math.sin((a.stride || 0) * 14) : 0;
-    b.body.position.y = step * 0.01;
-    b.head.rotation.set(0, Math.sin(time * 0.9 + seed) * 0.6, a.speed > 0.05 ? step * 0.12 : Math.sin(time * 0.5 + seed) * 0.1);
-    return;
-  }
-  b.body.position.y = 0;
-  const landing = a.state === 'land';
-  const sinceTakeoff = a.takeoffAt ? performance.now() / 1000 - a.takeoffAt : 99;
-  const glide = landing ? 0.4 : sinceTakeoff < 2 ? 0 : Math.max(0, Math.sin(time * 0.45 + seed)) ** 0.6;
-  const rate = sinceTakeoff < 2 ? 13 : 9;
-  const ph = time * rate + seed;
-  const flap = Math.sin(ph) * 0.75 * (1 - glide);
-  const lag = Math.sin(ph - 0.9) * 0.55 * (1 - glide);
-  setWings(ud, 1, 0.15 + flap, -0.12 * glide + lag * 0.6 - 0.05);
-  b.legs.rotation.z = landing ? -0.2 : -1.35;
-  b.body.rotation.set(-(a.bank || 0), 0, landing ? 0.25 : Math.max(-0.2, Math.min(0.2, (a.cruise - (a.z || 0)) * -0.05)));
-  b.head.rotation.set(a.bank * 0.5, Math.sin(time * 0.3 + seed) * 0.25, 0);
+// --- birds: pigeon and gull ---------------------------------------------------
+// One flight cycle for both, tuned per species: a faster downstroke than upstroke, the hand wing half folding on the upstroke,
+// gliding (the pigeon in a V, the gull with its crooked wing and small trim corrections), a tail that steers in turns and
+// fans out when landing, legs tucked in flight that swing forward to land, and a head that stays level. On the ground: head
+// bobbing while walking (hold and thrust), pecking, jerky glances, breathing, and the pigeon coos (neck puffed, bowing and
+// turning, tail spread) while the gull calls or stretches its wings. Far away (ud.ver) only wings, body and legs.
+// Everything on the existing bones, no new objects per frame.
+const fract = (x) => x - Math.floor(x);
+const clamp01 = (x) => (x < 0 ? 0 : x > 1 ? 1 : x);
+const PIGEON_ANIM = {
+  rate: 18, start: 22, amp: 0.9, nod: 0.026, stepRate: 22, restPitch: 0.1, foldOuter: 0, dihedral: 0.42, crook: 0, coos: true, standY: PIGEON_STAND_Y,
+  glideOf: (time, seed) => clamp01((Math.sin(time * 0.5 + seed) - 0.35) * 2.5),
+};
+const GULL_ANIM = {
+  rate: 9, start: 13, amp: 0.75, nod: 0.014, stepRate: 14, restPitch: 0.15, foldOuter: 0.05, dihedral: 0.06, crook: 0.3, coos: false, standY: SEAGULL_STAND_Y,
+  glideOf: (time, seed) => Math.max(0, Math.sin(time * 0.45 + seed)) ** 0.6,
+};
+
+// A bird's turn rate from the change of its heading (the gull already has a.bank from its simulation): the body banks into the turn.
+function birdBank(ud, a, time) {
+  if (Number.isFinite(a.bank)) return a.bank;
+  const dt = time - (ud.bankT ?? time);
+  let d = (a.angle || 0) - (ud.bankA ?? (a.angle || 0));
+  d -= Math.PI * 2 * Math.round(d / (Math.PI * 2));
+  ud.bankT = time;
+  ud.bankA = a.angle || 0;
+  if (dt > 1e-4 && dt < 0.5) ud.bank = (ud.bank || 0) + (Math.max(-0.7, Math.min(0.7, (d / dt) * 0.35)) - (ud.bank || 0)) * Math.min(1, dt * 4);
+  return ud.bank || 0;
 }
 
-function animatePigeon(mesh, a, time) {
+// A bird looks around in jerks: a new direction every ~1.1 s and a fast turn towards it; with a.watch it looks at the player.
+function birdGlance(ud, a, time, seed, spread) {
+  const w = a.watch;
+  const target = w !== undefined && w !== null ? Math.max(-1.2, Math.min(1.2, -w)) : (fract(Math.sin(Math.floor(time * 0.9 + seed * 5) * 12.9898 + seed) * 43758.5453) - 0.5) * spread;
+  ud.kijkY = (ud.kijkY || 0) + (target - (ud.kijkY || 0)) * Math.min(1, Math.max(0, time - (ud.kijkT ?? time)) * 14);
+  ud.kijkT = time;
+  return ud.kijkY;
+}
+
+function animateBird(mesh, a, time, C) {
   const ud = mesh.userData, b = ud.bones;
-  mesh.position.y = a.z ?? PIGEON_STAND_Y;
+  const gull = C === GULL_ANIM;
+  const seed = gull ? a.flapSeed || 0 : (a.bobSeed || 0) * 5;
+  mesh.position.y = a.z ?? (gull ? 6 + Math.sin(time * 2 + seed) * 1.2 : PIGEON_STAND_Y);
+  const bank = birdBank(ud, a, time);
+  const hr = b.head.userData.rest;
   if (a.state === 'ground') {
-    setWings(ud, 1, -0.5, 0, 1); // gevouwen: de vleugel ligt langs de flank
     const walking = a.speed > 0.05;
-    const s = (a.stride || 0) * 22;
-    b.head.position.x = b.head.userData.rest.x + (walking ? Math.max(0, Math.sin(s)) * 0.025 : 0);
-    b.head.rotation.z = -(a.peck || 0) * 0.9;
-    b.body.rotation.set(0, 0, walking ? 0.1 : -(a.peck || 0) * 0.35 + 0.1);
+    const s = (a.stride || 0) * C.stepRate;
+    const peck = a.peck || 0;
+    // cooing (pigeon) or calling (gull): now and then, only standing still and close by (a.coo forces it, for pictures)
+    const show = walking || peck > 0.05 || ud.ver ? 0 : a.coo ?? puls(time, seed, gull ? 17 : 9, gull ? 1.6 : 2.4);
+    const coo = C.coos ? show : 0;
+    const bow = Math.max(0, Math.sin(time * 5.5)) * coo;
+    const call = C.coos ? 0 : show;
+    const stretch = gull && !walking && !ud.ver ? puls(time, seed * 2, 31, 1.4) : 0;   // the gull stretches its wings now and then
+    setWings(ud, 1, -0.5 + stretch * 1.3, C.foldOuter + stretch * 0.2, 1 - stretch * 0.85);
+    if (b.legs) b.legs.rotation.z = 0;
+    // hold and thrust: the head stays put while the body walks on beneath it, then shoots forward
+    const u = fract(s / (Math.PI * 2));
+    const nod = walking ? (u < 0.7 ? 1 - (u / 0.7) * 2 : -1 + ((u - 0.7) / 0.3) * 2) * C.nod : 0;
+    b.head.position.set(hr.x + nod + peck * C.nod * 0.8, hr.y - peck * C.nod * 1.2 + bow * C.nod * 0.4, hr.z);
+    const breath = Math.sin(time * 4.2 + seed) * 0.012;
+    b.body.scale.set(1, 1 + breath + 0.07 * coo, 1 + breath + 0.09 * coo);   // the cock pigeon puffs up his neck
     b.body.position.y = walking ? Math.abs(Math.sin(s)) * 0.008 : 0;
+    b.body.rotation.set(walking ? Math.sin(s) * 0.04 : 0, Math.sin(time * 1.3) * 0.6 * coo, C.restPitch - (walking ? 0 : peck * 0.35) - bow * 0.3 - call * 0.15);
+    if (ud.ver) {
+      b.head.rotation.set(0, 0, -peck * 0.9);
+      return;
+    }
+    const glance = walking || peck > 0.3 || show > 0.2 ? 0 : birdGlance(ud, a, time, seed, 1.8);
+    b.head.rotation.set(0, glance, -peck * 0.9 - bow * 0.6 + call * 1.15 + (walking ? 0 : Math.sin(time * 0.5 + seed) * 0.05));
+    // the tail flicks up when pecking and drags, spread, while cooing
+    b.tail.rotation.set(0, walking ? Math.sin(s) * 0.12 : 0, -peck * 0.25 + bow * 0.2 + coo * 0.25);
+    b.tail.scale.set(1, 1, 1 + 0.6 * coo);
     return;
   }
-  b.head.position.x = b.head.userData.rest.x;
-  b.head.rotation.z = 0;
-  b.body.position.y = 0;
-  const f = Math.sin(time * 18 + a.bobSeed * 5);
-  const glide = a.state === 'land' && a.z < 1.5 ? 0.5 : 0;
-  setWings(ud, 1, f * 0.9 * (1 - glide) + 0.1, Math.sin(time * 18 + a.bobSeed * 5 - 0.8) * 0.4 * (1 - glide));
-  b.body.rotation.set(0, 0, a.state === 'land' ? 0.3 : 0.05);
+  b.head.position.set(hr.x, hr.y, hr.z);
+  b.body.scale.set(1, 1, 1);
+  const landing = a.state === 'land';
+  const flare = landing ? clamp01(1 - ((a.z ?? 1) - C.standY) / 1.2) : 0;   // just above the ground: brake with wings and tail
+  const climb = !landing && a.cruise !== undefined && a.z < a.cruise - 0.6 ? 1 : 0;
+  const justUp = gull && a.takeoffAt ? performance.now() / 1000 - a.takeoffAt < 2 : false;
+  const glide = a.glide ?? (landing ? 0.45 * (1 - flare) : climb || justUp ? 0 : C.glideOf(time, seed));
+  const rate = flare > 0 ? C.start * 1.15 : climb || justUp ? C.start : C.rate;
+  const ph = time * rate + seed;
+  const w = ph - 0.5 * Math.sin(ph);   // the downstroke is faster than the upstroke
+  const amp = (1 - glide) * (C.amp + flare * 0.25);
+  const f = Math.sin(w);
+  const upstroke = Math.max(0, Math.cos(w)) * (1 - glide);   // the hand wing half folds and sweeps back
+  const trim = Math.sin(time * 3.1 + seed) * 0.04 * glide;
+  setWings(ud, 1, 0.12 + f * amp + glide * C.dihedral + trim, Math.sin(w - 0.9) * amp * 0.4 - glide * C.crook - 0.05, upstroke * 0.15 - flare * 0.15);
+  const pitch = landing ? 0.25 + flare * 0.45 : climb ? 0.3 : Math.max(-0.2, Math.min(0.2, ((a.cruise ?? a.z ?? 0) - (a.z ?? 0)) * 0.08));
+  b.body.position.y = Math.sin(w - 1.2) * 0.008 * amp;
+  b.body.rotation.set(-bank, 0, pitch);
+  if (b.legs) b.legs.rotation.z = flare > 0 ? -1.3 + flare * 1.6 : -1.3;   // tucked; forward and down when landing
+  if (ud.ver) return;
+  // the head stays level in turns and climbs; the tail steers along and fans out when braking
+  b.head.rotation.set(bank * 0.85, bank * 0.35 + Math.sin(time * 0.3 + seed) * 0.15, -pitch * 0.8);
+  b.tail.rotation.set(-bank * 0.7, bank * 0.45, flare * 0.45 + f * amp * 0.06);
+  b.tail.scale.set(1, 1, 1 + flare * 0.7 + Math.abs(bank) * 0.5 + glide * 0.15);
+}
+
+function animateSeagull(mesh, a, time) { animateBird(mesh, a, time, GULL_ANIM); }
+function animatePigeon(mesh, a, time) { animateBird(mesh, a, time, PIGEON_ANIM); }
+
+// The goose: waddling (the body rolls from foot to foot, the swinging foot leaves the ground), grazing with a tug at the grass,
+// neck low and forward when someone comes too close (hissing), the head following you, a wing flap now and then, and on the run
+// with beating wings. Far away (ud.ver) only the step, the grazing and the flight. No new objects per frame.
+const _gq = new THREE.Quaternion(), _gx = new THREE.Vector3(1, 0, 0);
+function setGooseWing(w, open, beat, stretch) {
+  if (open <= 0) {   // closed: the bind pose, which only needs setting once
+    if (!w.userData.closed) { w.quaternion.identity(); w.scale.set(1, 1, 1); w.userData.closed = true; }
+    return;
+  }
+  w.userData.closed = false;
+  const s = w.userData.side ? -1 : 1;
+  _gq.setFromAxisAngle(_gx, -s * beat).multiply(GOOSE_UNFOLD[w.userData.side]);
+  w.quaternion.identity().slerp(_gq, open);
+  w.scale.set(1 + stretch * open, 1, 1);
 }
 
 function animateGans(mesh, a, time) {
-  const b = mesh.userData.bones;
+  const ud = mesh.userData, b = ud.bones;
   const seed = a.bobSeed || 0;
-  const walking = a.speed > 0.05;
+  const speed = a.speed || 0;
+  const walking = speed > 0.05;
+  const flee = a.fleeT > 0 || a.flee > 0;
   mesh.visible = true;
-  mesh.position.y = 0.2 + (walking ? Math.abs(Math.sin(time * (a.fleeT > 0 ? 9 : 4) + seed)) * 0.02 : 0);   // op zijn poten: de romp 0,2 m hoog (buildGansMesh3D)
-  const graze = walking ? 0 : Math.max(0, Math.sin(time * 0.3 + seed * 3)) ** 0.5;
-  b.head.rotation.set(0, (1 - graze) * Math.sin(time * 0.5 + seed) * 0.5, -0.9 * graze);
-  b.tail.rotation.set(0, walking ? Math.sin(time * 6 + seed) * 0.2 : 0, 0);
-  b.body.rotation.set(0, 0, walking ? 0 : -0.15 * graze);
-  // een opgeschrikte gans slaat met zijn vleugels terwijl hij wegrent (#436)
-  const wings = mesh.userData.gansWings;
-  if (wings) {
-    const flee = a.fleeT > 0;
-    const up = 0.35 + Math.sin(time * 20 + seed * 7) * 0.8;
-    wings[0].visible = wings[1].visible = flee;
-    if (flee) { wings[0].rotation.x = -up; wings[1].rotation.x = up; }
+  const s = (a.stride || time * speed * 1.5) * (speed > 1 ? 9 : 14);
+  const graze = walking || flee ? 0 : Math.max(0, Math.sin(time * 0.3 + seed * 3)) ** 0.5;
+  const tug = graze > 0.6 ? puls(time, seed, 1.7, 0.25) : 0;   // a tug at the grass
+  const w = a.watch;
+  const near = w !== undefined && w !== null;
+  const hiss = !walking && !flee && !ud.ver ? a.hiss ?? (near && a.watchD2 < 16 && graze < 0.3 ? 1 : 0) : 0;   // within 4 m
+  mesh.position.y = 0.2 + (walking ? Math.abs(Math.sin(s)) * (flee ? 0.025 : 0.012) : 0) - hiss * 0.015;   // on its legs: body 0.2 m up
+  // waddle: the body rolls towards the standing foot
+  b.body.rotation.set(walking ? Math.sin(s) * (flee ? 0.06 : 0.1) : 0, 0, -0.04 - graze * 0.3 - (flee ? 0.18 : 0) - hiss * 0.12);
+  for (let i = 0; i < 2; i++) {
+    const l = i === 0 ? b.legL : b.legR, k = i === 0 ? Math.sin(s) : -Math.sin(s);
+    l.rotation.z = walking ? k * (flee ? 0.7 : 0.45) : 0;
+    l.position.y = l.userData.rest.y + (walking ? Math.max(0, i === 0 ? Math.cos(s) : -Math.cos(s)) * 0.014 : 0);
   }
+  if (ud.ver) {
+    const beat = Math.sin(time * 20 + seed * 7) * 0.6 + 0.5;
+    b.body.scale.set(1, 1, 1);
+    b.head.rotation.set(0, 0, -0.95 * graze);
+    setGooseWing(b.wingL, flee ? 1 : 0, beat, 0.8);
+    setGooseWing(b.wingR, flee ? 1 : 0, beat, 0.8);
+    return;
+  }
+  const breath = Math.sin(time * 2.2 + seed * 4);
+  b.body.scale.set(1, 1 + breath * 0.012, 1 + breath * 0.015);
+  // the head: grazing, tugging, hissing with the neck low and forward, watching whoever comes near, nodding while walking
+  const target = near && graze < 0.3 ? Math.max(-1, Math.min(1, -w)) : (1 - graze) * Math.sin(time * 0.5 + seed) * 0.5;
+  ud.kijkY = (ud.kijkY || 0) + (target - (ud.kijkY || 0)) * Math.min(1, Math.max(0, time - (ud.kijkT ?? time)) * 4);
+  ud.kijkT = time;
+  b.head.rotation.set(hiss * Math.sin(time * 3.1) * 0.12, walking ? 0 : ud.kijkY, -0.95 * graze + tug * 0.25 - hiss * 0.7 + (walking ? Math.sin(s * 2) * 0.07 : 0) + (flee ? 0.25 : 0));
+  // wings: closed; a flap now and then; wide open and beating on the run
+  const stretch = !walking && !flee && graze < 0.3 && !hiss ? puls(time, seed * 2, 37, 1.6) : 0;
+  const open = flee ? 1 : stretch;
+  const beat = flee ? 0.5 + Math.sin(time * 20 + seed * 7) * 0.6 : stretch ? 0.45 + Math.sin(time * 11) * 0.55 : 0.1;
+  setGooseWing(b.wingL, open, beat, 0.8);
+  setGooseWing(b.wingR, open, beat, 0.8);
+  // the tail wags after walking and after a wing flap
+  b.tail.rotation.set(0, walking ? Math.sin(s) * 0.2 : puls(time, seed * 3, 13, 0.6) * Math.sin(time * 26) * 0.3 + stretch * Math.sin(time * 20) * 0.2, hiss ? -0.25 : 0);
 }
 
 function animateReiger(mesh, a, time) {
@@ -1817,15 +2016,64 @@ function animateReiger(mesh, a, time) {
   b.tail.rotation.set(0, 0, 0);
 }
 
+// The seal: in the water it swims with sideways strokes of its hind flippers (the body undulates along, fore flippers against the
+// body, head above water); lying still in the water it now and then raises its head high and looks around or at the player. On
+// the shore it lies like a banana (head and hind flippers up), breathes, scratches with a fore flipper and rolls a little; when
+// scared it crawls to the water in undulating hops. Diving: head first. Far away (ud.ver) only the posture and the stroke.
 function animateZeehond(mesh, a, time) {
-  const b = mesh.userData.bones;
+  const ud = mesh.userData, b = ud.bones;
   const seed = a.bobSeed || 0;
+  const speed = a.speed || 0;
+  const ashore = a.state === 'kant' || a.state === 'naarWater';
   const dive = a.state === 'duik' ? Math.min(1, (a.diveT || 0) * 1.5) : 0;
   mesh.visible = dive < 0.95;
-  mesh.position.y = CANAL_Y - 0.06 + Math.sin(time * 1.3 + seed) * 0.01 - 0.35 * dive;
-  b.body.rotation.set(0, 0, -0.5 * dive);
-  b.head.rotation.set(0, Math.sin(time * 0.5 + seed) * 0.5, 0.15 + Math.sin(time * 0.9 + seed) * 0.08);
-  b.tail.rotation.set(0, Math.sin(time * 1.5 + seed) * 0.2, 0);
+  b.body.position.copy(b.body.userData.rest);
+  b.body.scale.set(1, 1, 1);
+  b.flipL.rotation.set(0, 0, 0);
+  b.flipR.rotation.set(0, 0, 0);
+  if (ashore) {
+    mesh.position.y = 0.06;   // belly on the ground
+    if (a.state === 'naarWater') {
+      // undulating crawl: the chest lifts and the fore flippers push off, then the hind body follows
+      const s = (a.stride || 0) * 9;
+      b.body.position.y += Math.max(0, Math.sin(s)) * 0.05;
+      b.body.rotation.set(0, 0, Math.sin(s) * 0.12);
+      b.flipL.rotation.z = b.flipR.rotation.z = -0.4 + Math.sin(s + 0.6) * 0.6;
+      b.head.rotation.set(0, 0, 0.2 - Math.sin(s) * 0.15);
+      b.tail.rotation.set(0, Math.sin(s * 0.5) * 0.1, -0.3 + Math.sin(s) * 0.1);
+      return;
+    }
+    // the banana: head and hind flippers up, now and then on its side
+    const roll = puls(time, seed, 19, 6) * 0.45;
+    b.body.rotation.set(roll, 0, 0);
+    b.tail.rotation.set(0, Math.sin(time * 0.6 + seed) * 0.08, -0.35 + Math.sin(time * 0.9 + seed) * 0.06);
+    if (ud.ver) { b.head.rotation.set(0, 0, 0.25); return; }
+    const breath = Math.sin(time * 1.1 + seed);
+    b.body.scale.set(1, 1 + breath * 0.02, 1 + breath * 0.025);
+    const scratch = puls(time, seed * 2, 11, 1.4);
+    b.flipL.rotation.set(scratch * 0.9, 0, scratch * Math.sin(time * 14) * 0.35);
+    const w = a.watch;
+    const target = w !== undefined && w !== null ? Math.max(-1, Math.min(1, -w)) : Math.sin(time * 0.35 + seed) * 0.4;
+    ud.kijkY = (ud.kijkY || 0) + (target - (ud.kijkY || 0)) * Math.min(1, Math.max(0, time - (ud.kijkT ?? time)) * 3);
+    ud.kijkT = time;
+    b.head.rotation.set(-roll * 0.8, ud.kijkY, 0.25 + Math.sin(time * 0.5 + seed) * 0.05);
+    return;
+  }
+  const swimming = speed > 0.05;
+  // head up: lying still in the water it raises head and chest high now and then (and when someone approaches)
+  const w = a.watch;
+  const headUp = swimming || dive ? 0 : a.headUp ?? Math.max(puls(time, seed, 14, 5), w !== undefined && w !== null ? 0.7 : 0);
+  mesh.position.y = CANAL_Y - 0.06 - (swimming ? 0.05 : 0) + Math.sin(time * 1.3 + seed) * 0.01 - 0.35 * dive + headUp * 0.04;
+  const stroke = Math.sin(time * 3 + seed);
+  b.body.rotation.set(swimming ? stroke * 0.06 : 0, swimming ? -stroke * 0.08 : 0, -0.5 * dive + headUp * 0.35 + (swimming ? 0.08 : 0));
+  b.tail.rotation.set(0, swimming ? stroke * 0.4 : Math.sin(time * 1.5 + seed) * 0.15, headUp * 0.4);
+  b.flipL.rotation.set(0, 0, swimming ? -0.5 : Math.sin(time * 1.2 + seed) * 0.2);
+  b.flipR.rotation.set(0, 0, swimming ? -0.5 : Math.sin(time * 1.2 + seed + 1) * 0.2);
+  if (ud.ver) { b.head.rotation.set(0, 0, 0.15); return; }
+  const target = w !== undefined && w !== null ? Math.max(-1, Math.min(1, -w)) : Math.sin(time * 0.5 + seed) * 0.5 * (1 - headUp * 0.4);
+  ud.kijkY = (ud.kijkY || 0) + (target - (ud.kijkY || 0)) * Math.min(1, Math.max(0, time - (ud.kijkT ?? time)) * 3);
+  ud.kijkT = time;
+  b.head.rotation.set(0, swimming ? 0 : ud.kijkY, 0.15 + Math.sin(time * 0.9 + seed) * 0.08 - headUp * 0.2 - dive * 0.4);
 }
 
 function animateVis(mesh, a, time) {
@@ -1949,7 +2197,7 @@ export function animateWildlifeMesh3D(mesh, a, time) {
     case 'seagull': animateSeagull(mesh, a, time); return;
     case 'pigeon': animatePigeon(mesh, a, time); return;
     case 'duck': animateDuck(mesh, a, time); return;
-    case 'gans': animateGans(mesh, a, time); return;
+    case 'gans': case 'goose': animateGans(mesh, a, time); return;
     case 'reiger': animateReiger(mesh, a, time); return;
     case 'zeehond': animateZeehond(mesh, a, time); return;
     case 'vis': animateVis(mesh, a, time); return;
