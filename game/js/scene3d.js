@@ -113,7 +113,7 @@ import { fadeBand, loadRadius } from './popinrules.js';
 import { VIEW_DISTANCES, viewDistanceFor, detailDistanceFor, DETAIL_BASE } from './viewdist.js';
 import { glanceAt, shareFeet } from './gait.js';
 import { lifeTier } from './actorlife.js';
-import { loadModularPeople, buildModularPerson, modularReady, setModularLod, lodForDistance, mensenFase } from './modularpeople.js';
+import { loadModularPeople, buildModularPerson, buildModularFromAppearance, modularReady, setModularLod, lodForDistance, mensenFase } from './modularpeople.js';
 import { NEAR_MIN, cameraNearTarget, stepNear, parseNearFlag, parseFarFlag } from './cameranear.js';
 import { compareOpaque } from './drawpool.js';
 import { buildingBatcher, roadBatcher, facadeBatcher, shoreBatcher, drawHub } from './staticbatch3d.js';
@@ -3059,12 +3059,16 @@ export function update3D(dt, world) {
   plan.spend('far', performance.now() - flt0);
   probe.mark('3d:farlod');
 
-  if (player.character !== playerCharacter) {
+  // spelerfase (?mensen=q3, ADR 0050): de speler wordt een modulaire mens zodra de rigs geladen zijn
+  const playerQ = mensenFase(FLAGS.mensen) >= 3 && modularReady();
+  if (player.character !== playerCharacter || (playerQ && !playerMesh.userData.qRig)) {
     playerCharacter = player.character;
     scene.remove(playerMesh);
     disposeObject(playerMesh); // #788: de oude look geeft zijn gedeelde rompgeometrie terug
     const appearance = playerCharacter === 'anita' ? ANITA_APPEARANCE : TAMMO_APPEARANCE;
-    playerMesh = buildPersonActor(appearance.shirt, appearance.skin, appearance);
+    const q = playerQ ? buildModularFromAppearance(appearance) : null;
+    if (q) addBlobShadow(q, 0.85, 0.85);
+    playerMesh = q ? enableShadows(q, false) : buildPersonActor(appearance.shirt, appearance.skin, appearance);
     scene.add(playerMesh);
   }
 
@@ -3112,6 +3116,11 @@ export function update3D(dt, world) {
       playerMesh.rotation.y = -player.angle;
       playerMesh.scale.y = 1;
       playerMesh.userData.crouch = !!player.crouching;
+      if (playerMesh.userData.qRig) { // de parameters van de state-machine (ADR 0051): water, in de lucht, op de bank
+        const qp = playerMesh.userData.qPlayerP || (playerMesh.userData.qPlayerP = {});
+        qp.water = !!player.swimming; qp.grounded = !(player.z > 0.25) && !player.vault; qp.vy = player.vz || 0; qp.jump = player.z > 0.05 && player.vz > 0; qp.seated = player.sofaSeat != null; qp.climbing = player.water === 'climb';
+        playerMesh.userData.qParams = qp;
+      }
       playerMesh.userData.air = player.vault ? player.airPose || 0 : !player.perch && !player.swimming && player.z > 0.25 ? 0.45 : 0;
       playerMesh.userData.shadow.position.y = 0.02 - (player.z || 0) / playerMesh.scale.y;
       animatePersonWalk(playerMesh, Math.hypot(player.vx, player.vy), animDt); shareFeet(player, playerMesh.userData, world.time); // gait.js: the heel contact for sfx/foley.js

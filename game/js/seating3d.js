@@ -4,6 +4,7 @@ import { boatSeats, boatCrewCount, boatKind } from './boattypes.js';
 import { busInterieur, midibusInterieur, coopPlek, VLOER } from './businterieur.js';
 import { WATER_Y } from './util.js';
 import { tractorCab } from './models3d_vehicles.js';
+import { seatModular, modularSeatContact } from './modularpeople.js';
 import { hash2 as hash } from './rng.js';
 import { deurVoorStoel, instapKant, doorsFor, stapAnimatieAan } from './vehicledoors.js';
 import { getSettings } from './settings.js';
@@ -205,8 +206,12 @@ export function vehicleSeatAt(v, stoel = 0) {
 // peddelt (supPose), een roeier roeit en een passagier van de waterfiets trapt mee (t).
 export function placeSeatedLocal(person, seat, t = 0) {
   const sy = person.scale.y || 1;
-  person.position.set(seat.x, seat.stand ? seat.y : seat.y - SEAT_CONTACT * sy, seat.z);
+  const contact = person.userData.qRig ? modularSeatContact(person) : SEAT_CONTACT * sy;
+  // een modulaire fietser zit (rijclip): het zitvlak op het zadel (seat.y is waar het eigen model zijn voeten zet, de heup 0,93 m hoger)
+  const qRider = person.userData.qRig && seat.rider;
+  person.position.set(seat.x, qRider ? seat.y + PERSON_RIG.HIP_Y * sy - contact : seat.stand ? seat.y : seat.y - contact, seat.z);
   person.rotation.set(0, seat.face || 0, 0);
+  if (person.userData.qRig) { seatModular(person, seat, t); return; } // modulaire mens: zit- of rijclip (ADR 0051)
   if (seat.stand && seat.pose && seat.pose.arms === 'sup') supPose(person, t);
   else if (seat.stand) standBehindPose(person);
   else seatPose(person, seat.pose, t);
@@ -289,9 +294,12 @@ function vehicleQuat(vehMesh, v, out) {
 // Puts `person` on `seat` of v and poses it (t drives paddling/pedalling).
 export function placeSeated(person, vehMesh, v, seat, t = 0) {
   const sy = person.scale.y || 1;
-  localToWorld(vehMesh, v, seat.x, seat.stand ? seat.y : seat.y - SEAT_CONTACT * sy, seat.z, person.position);
+  const contact = person.userData.qRig ? modularSeatContact(person) : SEAT_CONTACT * sy;
+  const qRider = person.userData.qRig && seat.rider;
+  localToWorld(vehMesh, v, seat.x, qRider ? seat.y + PERSON_RIG.HIP_Y * sy - contact : seat.stand ? seat.y : seat.y - contact, seat.z, person.position);
   vehicleQuat(vehMesh, v, person.quaternion);
   if (seat.face) person.quaternion.multiply(_qy.setFromAxisAngle(_up, seat.face));
+  if (person.userData.qRig) { seatModular(person, seat, t); return; } // modulaire mens: zit- of rijclip (ADR 0051)
   if (seat.stand && seat.pose && seat.pose.arms === 'sup') supPose(person, t);
   else if (seat.stand) standBehindPose(person);
   else seatPose(person, seat.pose, t);

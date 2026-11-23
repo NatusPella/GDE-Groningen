@@ -6,7 +6,9 @@
 //   reach    the hands are ahead of the hip (on the wheel, not behind it)
 //   floor    the feet stay above the sill and inside the body
 // Bikes, scooters and boats are checked against the saddle / deck height.
-//   node scripts/seat_audit.mjs [--verbose]
+//   node scripts/seat_audit.mjs [--verbose] [--modulair]
+// --modulair: dezelfde controles met een modulaire mens (Quaternius, ADR 0050; man en vrouw om en om) op de stoel via
+// seating3d.js placeSeatedLocal, zoals de spelerfase (?mensen=q3) hem neerzet: zit- of rijclip, zitvlak op de zitting.
 // Needs the vendored three.js once: cd desktop && npm run stage
 import './node3d.mjs';
 
@@ -20,6 +22,15 @@ const { buildPersonMesh, seatPose, seatedY, standBehindPose, supPose, PERSON_RIG
 const { TRAFFIC_MODELS, MOPED_MODEL } = await import('../game/js/vehicle.js');
 const { BOAT_KINDS } = await import('../game/js/boattypes.js');
 const VERBOSE = process.argv.includes('--verbose');
+const MODULAR = process.argv.includes('--modulair');
+let M = null, placeSeatedLocal = null;
+if (MODULAR) {
+  const fs = await import('node:fs');
+  M = await import('../game/js/modularpeople.js');
+  for (const r of ['man', 'vrouw']) M.registerModularRig(r, JSON.parse(fs.readFileSync(new URL(`../game/models/mensen/${r}.json`, import.meta.url))), fs.readFileSync(new URL(`../game/models/mensen/${r}.bin`, import.meta.url)));
+  ({ placeSeatedLocal } = await import('../game/js/seating3d.js'));
+}
+let modN = 0;
 
 const car = (name, len, wid, extra = {}) => ({ model: { name, len, wid, color: '#888888', ...extra.model }, ...extra.v });
 const CASES = [
@@ -101,7 +112,25 @@ function bodyBox(root) {
   return box;
 }
 
+// Een modulaire mens op de stoel: placeSeatedLocal speelt een tijdje de zit- of rijclip, dan dezelfde punten als hieronder uit
+// zijn eigen botten (hoofd 9 cm boven het hoofdbot, handen = polsen, voeten = voetbotten, knieën = onderbeen).
+function seatFigureModular(mesh, v, seat) {
+  const p = M.buildModularPerson(100 + modN, { female: modN++ % 2 === 1 });
+  p.userData.isPerson = true;
+  p.traverse((o) => { o.userData.person = true; });
+  (mesh.userData.body || mesh).add(p);
+  for (let i = 0; i < 90; i++) placeSeatedLocal(p, seat, i / 60);
+  mesh.updateMatrixWorld(true);
+  const B = p.userData.qBones, I = p.userData.qIdx, bn = (n) => B[p.userData.qRig.man.bones.findIndex((b) => b.name === n)];
+  const w = (b, dy = 0) => { const q = new THREE.Vector3(); b.getWorldPosition(q); q.y += dy; return q; };
+  const head = w(B[I.head], 0.09), headTop = w(B[I.head], 0.24), hip = w(bn('Hips'));
+  const hands = [w(bn('WristL')), w(bn('WristR'))], feet = [w(B[I.footL]), w(B[I.footR])], knees = [w(B[I.loL]), w(B[I.loR])];
+  p.removeFromParent();
+  return { head, headTop, hip, hands, feet, knees };
+}
+
 function seatFigure(mesh, v, seat) {
+  if (MODULAR) return seatFigureModular(mesh, v, seat);
   const p = buildPersonMesh(0x5a6470, 0xd9aa82, { seed: 3 });
   p.userData.isPerson = true;
   p.traverse((o) => { o.userData.person = true; });

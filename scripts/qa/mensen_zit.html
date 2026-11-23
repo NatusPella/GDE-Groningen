@@ -1,0 +1,59 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Mensen fase 3: zitten en rijden (modulair)</title>
+<script type="importmap">{ "imports": { "https://cdn.jsdelivr.net/npm/": "/cdn/", "three": "/cdn/three@0.160.0/build/three.module.js", "three/addons/": "/cdn/three@0.160.0/examples/jsm/" } }</script>
+<style>html,body{margin:0;background:#222;color:#eee;font:13px system-ui,sans-serif}canvas{display:block}#info{position:absolute;left:8px;top:4px;white-space:pre;text-shadow:0 1px 2px #000}</style>
+<canvas id="c" width="1600" height="1000"></canvas>
+<div id="info">laden...</div>
+<script>window.addEventListener('error', (e) => fetch('/__klaar', { method: 'POST', body: JSON.stringify({ fout: e.message }) }));
+window.addEventListener('unhandledrejection', (e) => fetch('/__klaar', { method: 'POST', body: JSON.stringify({ fout: String(e.reason && e.reason.stack || e.reason) }) }));</script>
+<script type="module">
+// Spelerfase (?mensen=q3): modulaire mensen op hun stoel via seating3d.js placeSeatedLocal (zoals het spel), met de carrosserie half
+// doorzichtig. Bovenste rij bestuurders (handen aan het stuur, stuur half naar rechts), onderste rij passagiers en achterop.
+import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
+await import('/game/js/player.js');
+const V = await import('/game/js/models3d_vehicles.js');
+const S = await import('/game/js/seating3d.js');
+const M = await import('/game/js/modularpeople.js');
+const { TRAFFIC_MODELS } = await import('/game/js/vehicle.js');
+await M.loadModularPeople('/game/models/mensen/');
+const canvas = document.getElementById('c');
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, preserveDrawingBuffer: true });
+renderer.setPixelRatio(1); renderer.setScissorTest(true);
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0xa9c7de);
+scene.add(new THREE.HemisphereLight(0xdfeaff, 0x7a6f5c, 1.5));
+const sun = new THREE.DirectionalLight(0xfff0d8, 2.2); sun.position.set(2, 4, 3); scene.add(sun);
+const ground = new THREE.Mesh(new THREE.PlaneGeometry(80, 80), new THREE.MeshStandardMaterial({ color: 0x8a8f86, roughness: 1 }));
+ground.rotation.x = -Math.PI / 2; scene.add(ground);
+const car = (name, len, wid, v = {}) => ({ id: 1, x: 0, y: 0, angle: 0, model: { name, len, wid, color: '#888888' }, ...v });
+const bike = TRAFFIC_MODELS().find((m) => m.name === 'bike' && !m.fat);
+const CASES = [['hatch', car('hatch', 3.8, 1.7)], ['van', car('van', 5.0, 2.0)], ['sport', car('sport', 4.1, 1.85)], ['bus', car('bus', 11.2, 2.55, { isBus: true })], ['fiets', { id: 2, x: 0, y: 0, angle: 0, model: { ...bike }, isBike: true }]];
+const W = 1600 / CASES.length, H = 500;
+let n = 0;
+renderer.setClearColor(0x222222); renderer.setScissor(0, 0, 1600, 1000); renderer.setViewport(0, 0, 1600, 1000); renderer.clear();
+CASES.forEach(([label, v], i) => {
+  for (const driver of [true, false]) {
+    const mesh = V.buildVehicleMesh(v);
+    mesh.traverse((o) => { if (o.isMesh && !o.isSkinnedMesh) { const ms = Array.isArray(o.material) ? o.material : [o.material]; o.material = ms.map((m) => { const c = m.clone(); c.transparent = true; c.opacity = 0.35; c.depthWrite = false; return c; }); if (o.material.length === 1) o.material = o.material[0]; } });
+    const seat = S.vehicleSeat(v, driver);
+    const p = M.buildModularPerson(500 + n, { female: n++ % 2 === 1 });
+    p.userData.steer = 0.5;
+    (mesh.userData.body || mesh).add(p);
+    for (let f = 0; f < 90; f++) S.placeSeatedLocal(p, seat, f / 60);
+    scene.add(mesh);
+    const len = v.model.len || 2;
+    const cam = new THREE.PerspectiveCamera(30, W / H, 0.1, 100);
+    const sx = seat.x;
+    cam.position.set(sx + 1.2, 1.8, (driver ? -1 : 1) * Math.max(3.5, len * 0.6)); cam.lookAt(sx, 1.0, seat.z);
+    const x = i * W, y = driver ? 500 : 0;
+    renderer.setViewport(x, y, W, H); renderer.setScissor(x, y, W, H);
+    renderer.render(scene, cam);
+    scene.remove(mesh);
+  }
+});
+renderer.setScissor(0, 0, 1600, 1000); renderer.setViewport(0, 0, 1600, 1000);
+document.getElementById('info').textContent = 'boven: bestuurder (stuur half naar rechts); onder: passagier. ' + CASES.map((c) => c[0]).join(', ');
+window.__klaar = true;
+fetch('/__klaar', { method: 'POST', body: JSON.stringify({ ok: true }) }).catch(() => {});
+</script>

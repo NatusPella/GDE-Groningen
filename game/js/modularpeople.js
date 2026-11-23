@@ -8,7 +8,7 @@
 // Zolang de rig niet geladen is (of ?mensen=q ontbreekt) bouwt het spel de procedurele mens: niets breekt als het bestand er niet is.
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { vcMaterial, markShared } from './pixelart3d.js';
-import { crossfade, footPlant } from './actorlife.js';
+import { crossfade, footPlant, wheelGrip, STEER_TURN } from './actorlife.js';
 import { createAnimState, stepAnimState, stateName, STATES, STATE_IDS } from './animstate.js';
 import { blinkAmount } from './gait.js';
 import { lookFromAppearance } from './modularlooks.js';
@@ -436,9 +436,12 @@ function evalState(ud, rig, st, si, t, w, talk, walkC, runC, idleC, runOff) {
   const name = STATE_IDS[si] || 'idle';
   if (LOCO.has(name)) {
     const wIdle = (1 - st.walk) * w;
-    const idleClip = talk && rig.clips.UAL_Idle_Talking_Loop ? rig.clips.UAL_Idle_Talking_Loop : idleC;
+    // hurken (ud.crouch, zoals bij het eigen model): de hurkclips in plaats van stilstaan en lopen
+    const crouch = ud.crouch && rig.clips.UAL_Crouch_Idle_Loop;
+    const idleClip = crouch ? rig.clips.UAL_Crouch_Idle_Loop : talk && rig.clips.UAL_Idle_Talking_Loop ? rig.clips.UAL_Idle_Talking_Loop : idleC;
     accumulate(rig, idleClip, (st.t + ud.animOffset) / idleClip.dur, wIdle);
-    accumulate(rig, walkC, st.phase, st.walk * (1 - st.run) * w);
+    if (crouch) accumulate(rig, rig.clips.UAL_Crouch_Fwd_Loop, st.phase, st.walk * w);
+    else accumulate(rig, walkC, st.phase, st.walk * (1 - st.run) * w);
     const sprint = ud.qSM.blend.sprint, sprintC = rig.clips.UAL_Sprint_Loop;
     accumulate(rig, runC, st.phase + runOff, st.walk * st.run * (1 - (sprintC ? sprint : 0)) * w);
     if (sprintC && sprint > 0) accumulate(rig, sprintC, st.phase, st.walk * st.run * sprint * w);
@@ -545,6 +548,102 @@ function rotateWorld(bone, r) {
   bone.updateMatrixWorld(true);
 }
 
+// Analytische twee-bot-IK in wereldruimte: bot `up` (oorsprong a) en `lo` (oorsprong b) met het einde nu op `end` worden zo gedraaid
+// dat het einde op `target` komt (of zo ver als het gestrekte lid reikt; target wordt dan ingekort). De knik blijft in het vlak waarin
+// hij nu staat (de knie of elleboog buigt de kant op die de clip al gaf). Geen allocaties.
+const _ia = new THREE.Vector3(), _ib = new THREE.Vector3(), _ic = new THREE.Vector3(), _iu = new THREE.Vector3(), _iv = new THREE.Vector3(), _in = new THREE.Vector3(), _iq = new THREE.Quaternion();
+function ikTo(up, lo, end, target) {
+  up.getWorldPosition(_ia); lo.getWorldPosition(_ib); _ic.copy(end);
+  const l1 = _ia.distanceTo(_ib), l2 = _ib.distanceTo(_ic);
+  const d = Math.min(l1 + l2 - 1e-4, Math.max(Math.abs(l1 - l2) + 1e-4, _ia.distanceTo(target)));
+  if (Math.abs(_ia.distanceTo(target) - d) > 1e-4) target.sub(_ia).setLength(d).add(_ia);
+  const cur = _iu.subVectors(_ia, _ib).angleTo(_iv.subVectors(_ic, _ib));
+  const want = Math.acos(Math.max(-1, Math.min(1, (l1 * l1 + l2 * l2 - d * d) / (2 * l1 * l2))));
+  _in.crossVectors(_iu, _iv);
+  const bend = _in.lengthSq() > 1e-10 && Math.abs(want - cur) > 1e-5;
+  if (bend) { _in.normalize(); rotateWorld(lo, _iq.setFromAxisAngle(_in, want - cur)); }
+  // het einde na de knik: draait mee met het onderste bot om zijn oorsprong
+  _iv.subVectors(_ic, _ib);
+  if (bend) _iv.applyAxisAngle(_in, want - cur);
+  up.getWorldPosition(_ia); lo.getWorldPosition(_ib);
+  _ic.copy(_ib).add(_iv);
+  _iu.subVectors(_ic, _ia).normalize();
+  _iv.subVectors(target, _ia).normalize();
+  rotateWorld(up, _iq.setFromUnitVectors(_iu, _iv));
+  return target;
+}
+
+// De knie naar buiten (schrijlings zitten): draai het hele been om de as heup-voet tot de knie opzij wijst (de voet blijft staan).
+const _ka = new THREE.Vector3(), _kk = new THREE.Vector3(), _kd = new THREE.Vector3(), _kx = new THREE.Vector3();
+function kneeOut(mesh, up, lo, footWorld, side) {
+  up.getWorldPosition(_ka); lo.getWorldPosition(_kk);
+  const axis = _kx.subVectors(footWorld, _ka).normalize();
+  _kk.sub(_ka); _kk.addScaledVector(axis, -_kk.dot(axis));
+  // opzij in de wereld: de z-as van de mens
+  _kd.set(0, 0, side).transformDirection(mesh.matrixWorld);
+  _kd.addScaledVector(axis, -_kd.dot(axis));
+  if (_kk.lengthSq() < 1e-8 || _kd.lengthSq() < 1e-8) return;
+  _kk.normalize(); _kd.normalize();
+  const ang = Math.atan2(_iu.crossVectors(_kk, _kd).dot(axis), _kk.dot(_kd));
+  rotateWorld(up, _iq.setFromAxisAngle(axis, ang));
+}
+
+// Zitten in een voertuig (spelerfase): de voeten naar de vloer voor de stoel (seat.pose.footX/footY: ten opzichte van het heupgewricht,
+// in meters, zoals seatPose van het eigen model), en bij sturen de handen aan het stuur (ud.steer: -1..1, actorlife.js wheelGrip).
+// Werkt op de pose die de clip net gaf; alleen dichtbij nodig.
+const _sv = new THREE.Vector3(), _sw = new THREE.Vector3(), _sg = { x: 0, y: 0, z: 0 };
+function seatIK(mesh, seat) {
+  const ud = mesh.userData, I = ud.qIdx, B = ud.qBones, pose = seat && seat.pose;
+  const rider = !!(seat && seat.rider);
+  if ((!pose && !rider) || (seat.stand && !rider)) return;
+  mesh.updateMatrixWorld(true);
+  const s = mesh.scale.y || 1;
+  const bn = (n) => B[ud.qRig.man.bones.findIndex((b) => b.name === n)];
+  // op de fiets: de voeten bij de trappers (onder en iets voor het zadel), anders de voeten van de stoel
+  const fx = rider ? 0.25 : pose.footX ?? 0.6, fy = rider ? -0.7 : pose.footY ?? -0.3;
+  for (let k = 0; k < 2; k++) {
+    const up = B[k ? I.upR : I.upL], lo = B[k ? I.loR : I.loL], foot = B[k ? I.footR : I.footL];
+    const side = k ? 1 : -1;   // L zit bij deze mensen aan -z
+    up.getWorldPosition(_sv); mesh.worldToLocal(_sv);
+    _sv.x += fx / s; _sv.y += fy / s;
+    // schrijlings (paard, quad): de voeten wijken uit naar opzij, zoals seatPose met pose.splay
+    if (pose && pose.splay) _sv.z += side * Math.sin(pose.splay) * Math.abs(fy) / s;
+    mesh.localToWorld(_sv);
+    foot.getWorldPosition(_sw);
+    ikTo(up, lo, _sw, _sv);
+    if (pose && pose.splay) kneeOut(mesh, up, lo, _sv, side);
+    foot.parent.worldToLocal(_sv); foot.position.copy(_sv); foot.updateMatrixWorld(true);
+  }
+  if (rider) {
+    // de handvatten van het fietsstuur: 0,43 m voor de heup, op heuphoogte, 0,28 m opzij (bikeStuurOnderdelen)
+    const hips = bn('Hips');
+    hips.getWorldPosition(_sv); mesh.worldToLocal(_sv);
+    const hx = _sv.x, hy = _sv.y, hz = _sv.z;
+    for (let k = 0; k < 2; k++) {
+      _sv.set(hx + 0.43 / s, hy + 0.03 / s, hz + (k ? 0.28 : -0.28) / s);
+      mesh.localToWorld(_sv);
+      const up = bn(k ? 'UpperArmR' : 'UpperArmL'), lo = bn(k ? 'LowerArmR' : 'LowerArmL'), wr = bn(k ? 'WristR' : 'WristL');
+      wr.getWorldPosition(_sw);
+      ikTo(up, lo, _sw, _sv);
+    }
+    return;
+  }
+  if (!pose || pose.arms !== 'wheel') return;
+  // het stuur: voor de heup (0,42 m naar voren, 0,5 m omhoog), gekanteld naar de bestuurder; de grepen draaien met de stuurhoek
+  const hips = bn('Hips');
+  hips.getWorldPosition(_sv); mesh.worldToLocal(_sv);
+  const cx = _sv.x + 0.42 / s, cy = _sv.y + 0.5 / s, cz = _sv.z;
+  const ang = -Math.max(-1, Math.min(1, ud.steer || 0)) * STEER_TURN;
+  for (let k = 0; k < 2; k++) {
+    wheelGrip(cx, cy, 0.19 / s, 0.5, ang, k ? 1 : -1, _sg);   // L zit bij deze mensen aan -z
+    _sv.set(_sg.x, _sg.y, cz + _sg.z);
+    mesh.localToWorld(_sv);
+    const up = bn(k ? 'UpperArmR' : 'UpperArmL'), lo = bn(k ? 'LowerArmR' : 'LowerArmL'), wr = bn(k ? 'WristR' : 'WristL');
+    wr.getWorldPosition(_sw);
+    ikTo(up, lo, _sw, _sv);
+  }
+}
+
 export function plantFeetModular(mesh, ground, w = 1) {
   const ud = mesh && mesh.userData, I = ud && ud.qIdx;
   if (!I || typeof ground !== 'function' || !(w > 0)) return false;
@@ -606,6 +705,27 @@ export function plantFeetModular(mesh, ground, w = 1) {
 // Een anim uit de regietaal (idle, walk, run, talk, wave, ride, zwem, klim, sprong, ...) wordt parameters voor dezelfde
 // state-machine: geen eigen animatiecode voor cutscenes. jaw = kaak 0..1 (lipsync, actoranim.js), gaze = hoofddraai (+ = rechts).
 const EMOTES = new Set(['wave', 'cheer', 'clap']);
+// In een voertuig of op een stoel (seating3d.js placeSeated, spelerfase): zit- of rijclip uit de state-machine. seat = de stoel van
+// seating3d.js (pose.arms 'wheel' = sturen); t = wereldtijd (de stap volgt uit het verschil). Staan (fiets, step, achterop) is idle.
+const _seatP = { ...SP0 };
+export function seatModular(mesh, seat, t) {
+  const ud = mesh && mesh.userData;
+  if (!ud || !ud.qRig) return false;
+  const dt = Math.max(0, Math.min(0.1, t - (ud.qSeatT ?? t)));
+  ud.qSeatT = t;
+  const p = ud.qSeatP || (ud.qSeatP = { ..._seatP });
+  const arms = seat && seat.pose && seat.pose.arms;
+  // bestuurder: instappen en rijden (vehicle); passagier: zitten (seated); staand (fiets, step, achterop): idle
+  const rider = !!(seat && seat.rider);
+  const drive = rider || (!(seat && seat.stand) && (arms === 'wheel' || arms === 'helm' || arms === 'tiller'));
+  p.vehicle = drive ? (rider ? 'bike' : 'car') : null;
+  p.seated = !drive && !(seat && seat.stand);
+  ud.qParams = p;
+  animateModular(mesh, 0, dt);
+  if (!(ud.qLod > 0)) seatIK(mesh, seat);
+  return true;
+}
+
 export function animateModularActor(mesh, anim, speed, gaze, dt, jaw = 0, seated = false) {
   const ud = mesh && mesh.userData;
   if (!ud || !ud.qRig) return false;

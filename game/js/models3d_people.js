@@ -4,7 +4,7 @@ import { hash2 } from './rng.js';
 import { weaponLayers } from './models3d_weapons.js';
 import { footContact, turnLean, approachTo, wrapPi, fidgetAt, blinkAmount } from './gait.js';
 import { twoBoneIK, twoBoneFK, armIK, armFK, footPlant, wheelGrip, mouthShape, STEER_TURN } from './actorlife.js';
-import { animateModular, plantFeetModular } from './modularpeople.js';
+import { animateModular, plantFeetModular, modularSeatContact } from './modularpeople.js';
 import { idlePose } from './idleclips.js';
 import { attachAccessories } from './models3d_clothing.js';
 import { buildHairStyle } from './models3d_hair.js';
@@ -1526,6 +1526,7 @@ export const SEAT_CONTACT = HIP_Y - 0.09;
 export const SEAT_CAR = { recline: 0.26, footX: 0.74, footY: -0.07, arms: 'lap' };
 
 export function seatedY(mesh, seatTop) {
+  if (mesh.userData && mesh.userData.qRig) return seatTop - modularSeatContact(mesh); // modulaire mens: het zitvlak van de zit-clip
   return seatTop - SEAT_CONTACT * (mesh.scale.y || 1);
 }
 
