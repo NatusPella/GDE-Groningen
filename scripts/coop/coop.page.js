@@ -294,6 +294,7 @@ async function connect() {
     await until(() => title() === 'Je speelt samen', CFG.waitS ? CFG.waitS * 1000 : 120000, 'een gast');
   } else {
     if (buttons().includes('kies-gast')) await act('kies-gast');
+    await wizard(CFG.lijst ? 'lijst' : 'code'); // (#1059) eerst 'Wie ben jij?' (wie-verder): zonder die klik is er geen kamercodeveld
     log('scherm', { titel: title(), knoppen: buttons(), tekst: panel().innerText.slice(0, 500) });
     if (CFG.lijst) { // #983: via de openbare sessielijst in plaats van de kamercode in te typen
       await act('lijst');
@@ -1537,7 +1538,7 @@ const PHASES = {
     // een nieuw spel van de gast zonder opening: na het verlaten speelt zijn eigen verhaal de opening (de gast speelde hem niet, de gastheer wel); een speler wacht of slaat hem over, anders weigert canJoin
     try { const c = await import('/js/cinematics.js'); if (c.isCinematicActive()) { log('opnieuw-opening-over', { id: c.cinematicState().id }); c.skipAllCinematics(); await until(() => !W().cameraOverride && !c.isCinematicActive(), 8000, 'eigen opening overgeslagen'); } } catch (e) { log('opnieuw-opening-fout', { msg: String(e && e.message) }); }
     await openSamen();
-    await act('kies-gast');
+    await act('kies-gast'); await wizard('code'); // (#1059) ook bij opnieuw aansluiten staat 'Wie ben jij?' ertussen
     const input = await until(() => panel().querySelector('.coop-input'), 5000, 'invoerveld');
     input.value = CFG.code; input.dispatchEvent(new Event('input', { bubbles: true }));
     await act('koppel'); await act('akkoord');
@@ -1852,7 +1853,7 @@ const PHASES = {
 };
 
 // extra fasen van de playtest-simulatie (scripts/coop/playtest.phases.js, alleen als de coördinator die voor dit bestand zet)
-if (window.__coopPhases) Object.assign(PHASES, window.__coopPhases({ CFG, sleep, log, W, key, until, act, shot, esc, openSamen, closeMenu, imp, net, PHASES, panel, title, buttons }));
+if (window.__coopPhases) Object.assign(PHASES, window.__coopPhases({ CFG, sleep, log, W, key, until, act, shot, esc, openSamen, closeMenu, imp, net, PHASES, panel, title, buttons, wizard }));
 
 // ---------------------------------------------------------------- hoofdprogramma
 try {
