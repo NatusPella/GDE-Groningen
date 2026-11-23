@@ -56,7 +56,8 @@ function eenheid(wid, doors, xFront, xRear) {
   // staanplaatsen: in het gangpad en bij de deuren
   let k = 0;
   for (let x = xFront - 0.4; x >= xRear + 0.2; x -= 0.75, k++) stand.push({ x, z: (k % 2 ? 1 : -1) * 0.18 });
-  for (const d of doors) stand.push({ x: d, z: GANG + 0.5 });
+  // bij de deur, maar nooit in de wand: in de smalle midibus (2,3 m) stond de reiziger met een schouder door de zijwand (23-11)
+  for (const d of doors) stand.push({ x: d, z: Math.min(GANG + 0.5, hw - 0.25) });
   const rail = { x0: xFront + 0.4, x1: xRear - 0.2, y: 2.35, z: [-GANG, GANG] };
   return { wid, floor: VLOER, seats, poles, stand, rail, doors };
 }

@@ -5,7 +5,7 @@ import { applyVehicleLook } from './vehiclelook3d.js'; // epic Autotuning (#1155
 import { HABBO_PALETTE, habboMaterial, GeoBuilder, vcMaterial, markShared, composeMatrix, tubeGeometry } from './pixelart3d.js';
 import { buildPersonMesh, PERSON_RIG, holdPhoneRiding } from './models3d_people.js';
 import { boatKind, boatHasCabin } from './boattypes.js';
-import { CANOPY } from './boatdeck.js';
+import { CANOPY, RAIL } from './boatdeck.js';
 import { midibusDeurXs } from './businterieur.js';
 import { ZEESCHIP_SHAPE, SLEPER_SHAPE, zeeschipFit, sleperFit } from './zeeschip3d.js';
 import { buildHeliMesh } from './heli3d.js';
@@ -2285,6 +2285,24 @@ function rondvaartFit(B, st, L, W, hull, cabin) {
   }
   B.box((rx0 + rx1) / 2, roofY + 0.06, 0, rx1 - rx0 + 0.1, 0.04, W - 0.12, GLASS, G_GLASS);
   for (const x of [rx0, rx1]) B.box(x, roofY + 0.02, 0, 0.08, 0.08, W - 0.12, cabin);
+  // the bow rail on the open foredeck (boatdeck.js RAIL, one source with the deck moment where the pair leans on it): slim
+  // stanchions along the gunwale from the canopy to the bow and a rounded top rail that meets at the stem
+  {
+    const x0 = rx1 + 0.05, x1 = hl - RAIL.stemBack, steps = 5, pts = [];
+    for (let i = 0; i <= steps; i++) {
+      const x = x0 + ((x1 - x0) * i) / steps, h = hullAt(st, x);
+      pts.push({ x, z: Math.max(0.06, h.hw - RAIL.inset), top: h.top });
+    }
+    for (const s of [1, -1]) {
+      for (let i = 0; i < pts.length; i++) {
+        const p = pts[i];
+        B.geo(tubeGeometry([p.x, p.top, s * p.z], [p.x, RAIL.y, s * p.z], 0.014, 0.014, 5), null, RAIL.color);
+        if (i) { const q = pts[i - 1]; B.geo(tubeGeometry([q.x, RAIL.y, s * q.z], [p.x, RAIL.y, s * p.z], 0.02, 0.02, 6), null, RAIL.color); }
+      }
+    }
+    const tip = pts[pts.length - 1];
+    B.geo(tubeGeometry([tip.x, RAIL.y, tip.z], [tip.x, RAIL.y, -tip.z], 0.02, 0.02, 6), null, RAIL.color);
+  }
   // skipper's stool and wheel at the stern
   B.box(-hl + 0.75, 0.38, 0, 0.3, 0.48, 0.3, 0x2a2a2b);
   B.box(-hl + 0.75, 0.6, 0, 0.34, 0.04, 0.34, WOOD);

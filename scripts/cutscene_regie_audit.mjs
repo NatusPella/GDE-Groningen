@@ -136,6 +136,38 @@ for (const [kind, model] of Object.entries(BOAT_KINDS)) {
   }
   for (const m of issues) boatFound.push({ kind, issue: m });
 }
+// bus en boot van binnen (businterieur.js, bootinterieur.js, boattypes.js boatSeats): elke zit- en staanplek onder het dak en binnen de romp.
+// De trein- en taxirit (reisrit3d.js, ritcabine.js) zetten geen figuren neer: de camera is het oog van de passagier achter een raam.
+{
+  const { busInterieur, midibusInterieur, VLOER } = await import('../game/js/businterieur.js');
+  const { bootInterieur } = await import('../game/js/bootinterieur.js');
+  const { boatSeats } = await import('../game/js/boattypes.js');
+  const { PERSON_H, SEATED_HEAD } = await import('../game/js/boatdeck.js');
+  const ZIT = 0.46;
+  for (const [naam, lay] of [['gelede bus', busInterieur(18, 2.55, { trailer: 0 })], ['midibus', midibusInterieur(8.5, 2.3)]]) {
+    const hw = lay.wid / 2;
+    for (const s of lay.seats) {
+      if (VLOER + ZIT + SEATED_HEAD > lay.rail.y + 0.3) boatFound.push({ kind: naam, issue: `stoel op x=${s.x.toFixed(1)}: kruin boven het plafond` });
+      if (Math.abs(s.z) > hw - 0.15) boatFound.push({ kind: naam, issue: `stoel op x=${s.x.toFixed(1)}, z=${s.z.toFixed(2)} valt buiten de wand` });
+    }
+    for (const s of lay.stand) {
+      if (VLOER + PERSON_H > lay.rail.y + 0.3) boatFound.push({ kind: naam, issue: 'een staande reiziger steekt door het dak' });
+      if (Math.abs(s.z) > hw - 0.2) boatFound.push({ kind: naam, issue: `staanplek op x=${s.x.toFixed(1)} valt buiten de wand` });
+    }
+  }
+  for (const [kind, model] of Object.entries(BOAT_KINDS)) {
+    const v = { model: { ...model }, x: 0, y: 0, angle: 0 };
+    const roof = canopyOf(model);
+    const lay = bootInterieur(v);
+    for (const s of boatSeats(v)) {
+      const top = (s.stand ? PERSON_H : SEATED_HEAD) + s.y;
+      if (roof && s.x > roof.x0 && s.x < roof.x1 && top > roof.y - 0.02) boatFound.push({ kind, issue: `zitplaats op x=${s.x.toFixed(1)}: kruin ${top.toFixed(2)} m door het dak (${roof.y} m)` });
+      if (lay && lay.dak > 0 && s.x > lay.x0 && s.x < lay.x1 && Math.abs(s.z) < lay.halfW && top > lay.dak + 0.05) boatFound.push({ kind, issue: `zitplaats op x=${s.x.toFixed(1)} in de roef: kruin ${top.toFixed(2)} m boven het plafond (${lay.dak} m)` });
+      if (Math.abs(s.x) > model.len / 2 || Math.abs(s.z) > model.wid / 2) boatFound.push({ kind, issue: `zitplaats op x=${s.x.toFixed(1)}, z=${s.z.toFixed(2)} buiten de romp` });
+    }
+  }
+}
+
 const bad = found.filter((f) => !ALLOW[`${f.id}|${f.kind}`]);
 bad.sort((a, b) => b.severity - a.severity || a.id.localeCompare(b.id));
 if (args.includes('--json')) console.log(JSON.stringify({ found: bad, boat: boatFound }, null, 1));

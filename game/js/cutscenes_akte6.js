@@ -299,6 +299,14 @@ S['M30.outro'] = {
     { on: 'Kon minder.', actor: 'tammo', anim: 'shrug' },
     { on: 'Kon veel minder', actor: 'tessa', anim: 'cheer' },
   ],
-  shots: [],
+  // het slot: de laatste beurten van Tammo en Tessa van achter het paar, met de snackwagen Tam & Tes achter hen in beeld (eerst keek
+  // de dekking van de wagen af naar het Stadhuis en verdween de wagen na de opening uit beeld); alle camera's aan de kant van de opening
+  shots: [
+    { on: 'Elke zomer één ronde', shot: 'dolly', from: [-3.4, 1.7, 1.55], to: [-2.7, 1.2, 1.5], look: 'speaker', fov: 36 },
+    { on: 'Thuis is waar de kar staat', shot: 'cut', at: [-2.5, -1.3, 1.5], look: 'speaker', fov: 32 },
+    { on: 'Zes.', shot: 'cut', at: [-2.3, 1.4, 1.55], look: 'speaker', fov: 30 },
+    { on: 'Kon minder.', shot: 'cut', at: [-2.6, -1.2, 1.5], look: 'speaker', fov: 34 },
+    { on: 'Kon veel minder', shot: 'cut', at: [-2.3, 1.4, 1.55], look: 'speaker', fov: 32 },
+  ],
   wide: WIDE([-5, 4.2, 3.2], [-3, 3, 2.4], 'mid:tammo,tessa@1'),
 };

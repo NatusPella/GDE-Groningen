@@ -10,6 +10,9 @@ import { boatSeats } from './boattypes.js';
 
 // het dak van de rondvaartboot: één bron voor het model (models3d_vehicles.js rondvaartFit) en voor de plaatsing
 export const CANOPY = { back: 1.25, front: 1.35, roofY: 1.6, glassThick: 0.07 };
+// de reling op het open voordek (models3d_vehicles.js rondvaartFit): bovenregel op 1,0 m boven de waterlijn (0,86 m boven de vloer,
+// heuphoogte), 0,08 m binnen de boord, eindigt 0,3 m voor de steven; het dekmoment (missionstory.js playDeckMoment) leunt erop
+export const RAIL = { y: 1.0, inset: 0.08, stemBack: 0.3, color: 0xd8d4c8 };
 export const PERSON_H = 1.78;   // een staand figuur (buildPersonMesh), met kapsel
 export const SEATED_HEAD = 0.9; // zithoogte tot kruin (zitvlak tot hoofdtop)
 export const HULL_FLOOR = 0.14; // de vloer van de romp boven de waterlijn (HULL_SHAPES.rondvaart.floor)
