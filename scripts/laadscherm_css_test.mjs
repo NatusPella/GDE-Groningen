@@ -59,7 +59,7 @@ ok(!/backdrop-filter/.test(css.replace(/\/\*[\s\S]*?\*\//g, '')), 'geen backdrop
   ok(!/ls-badge/.test(loadScreenHtml({ name: 'Drenthe' })), 'zonder bijzondere dag geen tag');
   ok(/&lt;b&gt;/.test(loadScreenHtml({ name: '<b>' })) && /Grunn/.test(loadScreenHtml({})), 'de naam is geescaped, leeg wordt Grunn');
 }
-ok(/loadScreenHtml\(\{ kind, name: place\.name, special: date\.special, img \}\)/.test(ls), 'loadscreen.js bouwt het DOM met loadScreenHtml (dezelfde markup als de meting)');
+ok(/loadScreenHtml\(\{ kind, name: place\.name, special: date\.special, icon: date\.icon, img \}\)/.test(ls), 'loadscreen.js bouwt het DOM met loadScreenHtml (dezelfde markup als de meting)');
 
 // 6. het bootscherm: het logo schaalt met de hoogte, de balk blijft boven de voetregel, de statusregel is begrensd
 const boot = html.split('\n').filter((l) => /#loading /.test(l)).join('\n');
