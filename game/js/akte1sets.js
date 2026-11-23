@@ -11,6 +11,9 @@
 //   op      waar hij op staat als hij niet op de vloer staat ('wandplank', 'nachtkastje', 'aanrecht', 'plafond', 'wand', 'kast')
 //   in      'deur': hangt in het scharnier van de keukendeur; 'gang': in de gang achter de deur
 //   kleuren een andere kleur voor een materiaal van de glb ({ Couch_Blue: 0xd9c9a6 }), zie interiorprops3d.js
+//   prop    true: een prop uit het propregister (PROP_REGISTER, gebruik 'interieur': tv, frituurpan, boekenkast, droogrek, dozen,
+//           prints, laptop), geplaatst met interiorprops3d.js registeredProp
+//   op      'wand': hangt aan of staat tegen een wand (telt niet mee in de vloercontrole); 'vloer': ligt op de vloerbedekking
 // Samen spelen: de keuken is een lokale filmset (de opening is per speler, openingfilm.js MULTIPLAYER); de flat is het huis van wie
 // het spel opende en elke speler bouwt zijn eigen kopie. Niets hiervan gaat over het net of in een save.
 
@@ -52,18 +55,34 @@ export const KITCHEN_DRESSING = [
 // kamer Tessa achterin, z 5,2-9). `vervangt`: het stuk dat een EIKEA-meubel vervangt (furniture.js; buildFlat3D slaat het dan over).
 // De plekken uit flatplan.js spots blijven gelden (gebruik, botsing, spawn): de meubels staan op of rond die plekken.
 export const FLAT_DRESSING = [
-  // woonkamer: bank met de rug naar de gang, een bijzettafel op een kleed, het tv-meubel tegen de gevel, een staande lamp, planten.
+  // woonkamer van twee net-afgestudeerden met weinig geld (23-11, na beeldcontrole coördinator): de bank recht tegenover de tv, beide
+  // op een groot kleed met de bijzettafel ertussen; een boekenkast en een bureau met laptop tegen de westwand, een stapel dozen die nog
+  // niet uitgepakt is, een droogrek in het licht bij het raam, prints en een poster, planten, een staande lamp. Geen gordijnen: in de
+  // cutaway zakt de glasgevel tot heuphoogte als de camera erbuiten staat, en een gordijn van 2,4 m zou dan los in de lucht hangen. Looproutes blijven vrij: van de gangdeur (x 1,0-2,4) naar het raam, en langs het raam naar de keuken.
   // Geen hanglampen: de flat is een cutaway (wanden tot heuphoogte, de camera erboven), een lamp aan het plafond zou zweven.
   { id: 'zitbank', u: 3.7, h: 0, v: 3.95, rot: Q, vervangt: 'bank' },
-  { id: 'vloerkleed', u: 3.7, h: 0, v: 2.5, rot: 0, fit: { b: 3.0, h: 0.012, d: 2.0 } },
+  { id: 'vloerkleed', u: 3.7, h: 0.021, v: 2.75, rot: 0, fit: { b: 3.2, h: 0.012, d: 2.6 }, op: 'vloer' }, // op het laminaat (2 cm)
   { id: 'salontafel', u: 3.7, h: 0, v: 2.5, rot: 0, fit: { b: 0.8, h: 0.45, d: 0.8 } },
   { id: 'ladekast', u: 3.7, h: 0, v: 1.0, rot: -Q, vervangt: 'tv' },
-  { id: 'vloerlamp', u: 2.5, h: 0, v: 4.35, rot: 0 },
-  { id: 'kamerplant', u: 0.6, h: 0, v: 0.6, rot: 0, scale: 1.2 },
-  { id: 'kamerplant', u: 6.3, h: 0, v: 0.55, rot: 1.9 },
+  { id: 'tv', prop: true, u: 3.7, h: 0.74, v: 1.0, rot: -Q, op: 'ladekast', vervangt: 'tv' },
+  { id: 'lijst', prop: true, u: 4.3, h: 0.74, v: 0.85, rot: -Q, op: 'ladekast' },
+  { id: 'vloerlamp', u: 2.55, h: 0, v: 4.35, rot: 0 },
+  { id: 'boekenkast', prop: true, u: 0.24, h: 0, v: 3.3, rot: 0 },
+  { id: 'bureau', u: 0.45, h: 0, v: 1.75, rot: 0 },
+  { id: 'laptop', prop: true, u: 0.49, h: 0.78, v: 1.95, rot: 0, op: 'bureau' },
+  { id: 'tafellamp', u: 0.32, h: 0.78, v: 1.2, rot: 0, op: 'bureau' },
+  { id: 'keukenstoel', u: 1.07, h: 0, v: 1.8, rot: Math.PI },
+  { id: 'verhuisdozen', prop: true, u: 0.42, h: 0, v: 4.7, rot: 0 },
+  { id: 'poster', prop: true, u: 0.075, h: 0.3, v: 4.1, rot: 0, op: 'wand' },
+  { id: 'lijst', prop: true, u: 2.9, h: 0.42, v: 5.12, rot: Q, op: 'wand' },
+  { id: 'droogrek', prop: true, u: 5.15, h: 0, v: 0.55, rot: Q },
+  { id: 'kamerplant', u: 0.45, h: 0, v: 0.45, rot: 0 },
+  { id: 'kamerplant', u: 6.3, h: 0, v: 0.55, rot: 0 },
+  { id: 'cactus', u: 4.05, h: 0.74, v: 1.12, rot: 0, op: 'ladekast' },
   // keuken: aanrecht langs de gevel (spoelkast, fornuis met de frituurpan erop, wasmachine), koelkast aan het eind, tafel en stoelen
   { id: 'keukenkast', u: 7.76, h: 0, v: 0.55, rot: -Q },
   { id: 'fornuis', u: 8.4, h: 0, v: 0.55, rot: -Q },
+  { id: 'frituurpan', prop: true, u: 8.4, h: 0.876, v: 0.55, rot: -Q, op: 'fornuis', vervangt: 'frituur' },
   { id: 'wasmachine', u: 9.09, h: 0, v: 0.6, rot: -Q },
   { id: 'koelkast', u: 10.5, h: 0, v: 1.6, rot: Math.PI },
   { id: 'prullenbak', u: 7.2, h: 0, v: 0.4, rot: -Q },
@@ -82,6 +101,7 @@ export const FLAT_DRESSING = [
   { id: 'kledingkast', u: 10.65, h: 0, v: 6.2, rot: Math.PI, scale: [1, 1, 1.35] },
   { id: 'bureau', u: 9.9, h: 0, v: 8.6, rot: Q },
   { id: 'keukenstoel', u: 9.9, h: 0, v: 7.98, rot: -Q },
+  { id: 'laptop', prop: true, u: 10.05, h: 0.78, v: 8.55, rot: -Q, op: 'bureau' },
   // gang: een plant bij de voordeur
   { id: 'kamerplant', u: 0.55, h: 0, v: 8.45, rot: 0.9, scale: 0.9 },
 ];

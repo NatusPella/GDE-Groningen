@@ -433,14 +433,11 @@ export function buildFlat3D(flat, skip = new Set()) {
   }
   // the furniture (23-11, akte 1 op eindniveau): registered props from the Quaternius packs (akte1sets.js FLAT_DRESSING, one LOD
   // each), on the spots of flatplan.js. A piece an EIKEA one replaces (furniture.js) is skipped.
-  const s = flat.spots;
   for (const e of FLAT_DRESSING) {
     if (e.vervangt && skip.has(e.vervangt)) continue;
-    g.add(interiorProp(e.id, { x: e.u, y: e.h, z: e.v, rot: e.rot, fit: e.fit, scale: e.scale, kleuren: e.kleuren }));
+    // a prop from the prop register (the tv, the fryer, the books, the laundry, the prints) or a piece from the interior register
+    g.add(e.prop ? registeredProp(e.id, { x: e.u, y: e.h, z: e.v, rot: e.rot, scale: e.scale || 1 }) : interiorProp(e.id, { x: e.u, y: e.h, z: e.v, rot: e.rot, fit: e.fit, scale: e.scale, kleuren: e.kleuren }));
   }
-  // the tv on the drawer cabinet and the snack fryer on the cooker: registered props (propregister.js 'tv', 'frituurpan'), front to the room
-  if (!skip.has('tv')) g.add(registeredProp('tv', { x: s.tv.x, y: 0.74, z: s.tv.z, rot: -Math.PI / 2 }));
-  if (!skip.has('frituur')) g.add(registeredProp('frituurpan', { x: s.fryer.x, y: 0.876, z: s.fryer.z, rot: -Math.PI / 2 }));
   // light per room: warm lamps borrowed from the night rig (setlights.js), no fixtures floating over the cutaway walls
   for (const [x, y, z, i] of [[3.4, 2.3, 2.6, 7], [8.9, 2.3, 2.2, 6], [7.2, 2.3, 7.3, 7]]) {
     const l = adoptSetLight(new THREE.PointLight(0xffdcb0, i, 7.5, 1.5));

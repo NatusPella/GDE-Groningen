@@ -13,19 +13,21 @@ import { makeFlatPlan } from '../game/js/flatplan.js';
 
 let bad = 0, n = 0;
 const ok = (name, c, info = '') => { n++; if (!c) { bad++; console.log('FAIL', name, info); } };
-const maatVan = (id) => { const d = INTERIOR_PROP_DATA[id]; return d ? [d.box[3], d.box[4], d.box[5]] : null; };
+// de maat van een regel: uit de omgezette meubeldata, of voor een prop uit het propregister uit zijn norm
+const maatVan = (id, prop = false) => { if (prop) return PROP_REGISTER[id] ? PROP_REGISTER[id].norm.maat : null; const d = INTERIOR_PROP_DATA[id]; return d ? [d.box[3], d.box[4], d.box[5]] : null; };
+const geregistreerd = (e) => (e.prop ? !!PROP_REGISTER[e.id] && PROP_REGISTER[e.id].gebruik.includes('interieur') : isInterieurProp(e.id));
 const binnen = (fp, r, marge = 0.02) => fp.u0 >= r.u0 - marge && fp.u1 <= r.u1 + marge && fp.v0 >= r.v0 - marge && fp.v1 <= r.v1 + marge;
 const overlap = (a, b, marge = 0.02) => a.u0 < b.u1 - marge && b.u0 < a.u1 - marge && a.v0 < b.v1 - marge && b.v0 < a.v1 - marge;
 const vlak = (id) => id === 'vloerkleed';
 const MAG_OVERLAP = new Set(['keukenstoel|keukentafel', 'keukenstoel|bureau']);
-const magOverlap = (a, b) => vlak(a.id) || vlak(b.id) || MAG_OVERLAP.has(a.id + '|' + b.id) || MAG_OVERLAP.has(b.id + '|' + a.id) || (a.op && b.id === a.op) || (b.op && a.id === b.op);
+const magOverlap = (a, b) => vlak(a.id) || vlak(b.id) || MAG_OVERLAP.has(a.id + '|' + b.id) || MAG_OVERLAP.has(b.id + '|' + a.id) || (a.op && b.id === a.op) || (b.op && a.id === b.op) || a.op === 'wand' || b.op === 'wand';
 
 // De regels van één ruimte: geregistreerd, binnen, niet in elkaar, niet zwevend, vrije plekken vrij.
 function keur(naam, lijst, ruimte, vrij) {
   const fps = [];
   for (const e of lijst) {
-    ok(`${naam}: ${e.id} staat in het interieurregister`, isInterieurProp(e.id));
-    const maat = maatVan(e.id);
+    ok(`${naam}: ${e.id} staat in het interieur- of propregister`, geregistreerd(e));
+    const maat = maatVan(e.id, e.prop);
     if (!maat) continue;
     const fp = footprint(e, maat);
     fps.push({ e, fp });
@@ -36,8 +38,8 @@ function keur(naam, lijst, ruimte, vrij) {
   }
   // wat op een ander meubel staat, staat op de bovenkant ervan
   for (const { e, fp } of fps) {
-    if (!e.op || ['wand', 'plafond'].includes(e.op)) continue;
-    const onder = fps.find((o) => o.e.id === e.op && Math.abs(o.e.u - e.u) < 0.5 && Math.abs(o.e.v - e.v) < 0.5);
+    if (!e.op || ['wand', 'plafond', 'vloer'].includes(e.op)) continue;
+    const onder = fps.find((o) => o.e.id === e.op && e.u >= o.fp.u0 - 0.05 && e.u <= o.fp.u1 + 0.05 && e.v >= o.fp.v0 - 0.05 && e.v <= o.fp.v1 + 0.05);
     ok(`${naam}: ${e.id} staat op ${e.op}`, !!onder && Math.abs(onder.fp.top - e.h) < 0.04 && fp.u0 >= onder.fp.u0 - 0.1 && fp.u1 <= onder.fp.u1 + 0.1, onder ? `bovenkant ${onder.fp.top.toFixed(2)}, h ${e.h}` : 'niet gevonden');
   }
   // niet in elkaar (alleen meubels op dezelfde laag: vloer met vloer)
@@ -83,14 +85,48 @@ for (const r of FP.rooms) {
 ok('flat: geen hanglampen boven de cutaway (die zweven in beeld)', !FLAT_DRESSING.some((e) => e.op === 'plafond'));
 // een meubel staat niet dwars door een binnenwand (de cutaway-wanden van flatplan.js, 0,14 m dik)
 for (const { e, fp } of flat) {
-  if (vlak(e.id)) continue;
+  if (vlak(e.id) || e.op === 'wand') continue; // wat aan een wand hangt, raakt hem
   for (const [x1, z1, x2, z2] of FP.walls) {
     const wfp = { u0: Math.min(x1, x2) - 0.07, u1: Math.max(x1, x2) + 0.07, v0: Math.min(z1, z2) - 0.07, v1: Math.max(z1, z2) + 0.07 };
     ok(`flat: ${e.id} op (${e.u}, ${e.v}) niet door de wand ${[x1, z1, x2, z2]}`, !overlap(fp, wfp, 0.03));
   }
 }
 // wat de EIKEA-meubels vervangen (furniture.js) heet in de flat zoals in de skip-lijst van home.js
-ok('flat: vervangt alleen bank, tv en bed', FLAT_DRESSING.every((e) => !e.vervangt || ['bank', 'tv', 'bed'].includes(e.vervangt)));
+ok('flat: vervangt alleen bank, tv, bed en frituur', FLAT_DRESSING.every((e) => !e.vervangt || ['bank', 'tv', 'bed', 'frituur'].includes(e.vervangt)));
+
+// --- zitmeubels kijken naar wat ze moeten zien (23-11, beeldcontrole coördinator: de bank en de tv keken langs elkaar) ------------
+// De voorkant van een zitmeubel (rot 0 = +u, three-zin: richting (cos rot, -sin rot)) wijst binnen 35 graden naar zijn focus: de bank
+// naar de tv, een stoel naar de dichtstbijzijnde tafel of het dichtstbijzijnde bureau (hoogstens 1,5 m).
+const FOCUS = { zitbank: { ids: ['tv'], max: 4 }, keukenstoel: { ids: ['keukentafel', 'bureau'], max: 1.5 } };
+for (const [naam, lijst] of [['keuken', KITCHEN_DRESSING], ['flat', FLAT_DRESSING]]) {
+  for (const e of lijst) {
+    const f = FOCUS[e.id];
+    if (!f) continue;
+    const doelen = lijst.filter((o) => o !== e && f.ids.includes(o.id) && (o.in || '') === (e.in || '')).map((o) => ({ o, d: Math.hypot(o.u - e.u, o.v - e.v) })).sort((a, b) => a.d - b.d);
+    const doel = doelen[0];
+    ok(`${naam}: ${e.id} op (${e.u}, ${e.v}) heeft een focus (${f.ids.join('/')}) binnen ${f.max} m`, !!doel && doel.d <= f.max, doel && doel.d.toFixed(2));
+    if (!doel) continue;
+    const fu = Math.cos(e.rot || 0), fv = -Math.sin(e.rot || 0);
+    const du = (doel.o.u - e.u) / doel.d, dv = (doel.o.v - e.v) / doel.d;
+    const hoek = Math.acos(Math.max(-1, Math.min(1, fu * du + fv * dv))) * 180 / Math.PI;
+    ok(`${naam}: ${e.id} op (${e.u}, ${e.v}) kijkt naar ${doel.o.id}`, hoek <= 35, hoek.toFixed(0) + ' graden');
+  }
+}
+// en wat er tegenover elkaar staat, kijkt ook terug: de tv wijst naar de bank
+for (const tv of FLAT_DRESSING.filter((e) => e.id === 'tv')) {
+  const bank = FLAT_DRESSING.find((e) => e.id === 'zitbank');
+  const d = Math.hypot(bank.u - tv.u, bank.v - tv.v);
+  const hoek = Math.acos(Math.cos(tv.rot) * (bank.u - tv.u) / d + -Math.sin(tv.rot) * (bank.v - tv.v) / d) * 180 / Math.PI;
+  ok('flat: de tv kijkt naar de bank', hoek <= 20, hoek.toFixed(0) + ' graden');
+}
+// de woonkamer van twee net-afgestudeerden: wat er minstens staat
+const woon = FLAT_DRESSING.filter((e) => e.u < 6.8 && e.v < 5.2);
+for (const id of ['zitbank', 'tv', 'salontafel', 'vloerkleed', 'boekenkast', 'bureau', 'laptop', 'vloerlamp', 'kamerplant', 'verhuisdozen', 'droogrek']) ok(`flat: de woonkamer heeft een ${id}`, woon.some((e) => e.id === id));
+ok('flat: prints of posters aan de muur (verzonnen, uit het propregister)', woon.filter((e) => e.id === 'lijst' || e.id === 'poster').length >= 2);
+// looproutes: van de gangdeur naar het raam (x 1,4-2,3) en langs het raam naar de keuken (z 1,4-1,9 tussen het tv-meubel en de tafel)
+const vrijeStrook = (u0, u1, v0, v1) => !woon.some((e) => { if (vlak(e.id) || e.op === 'wand' || (e.h || 0) > 0) return false; const m = maatVan(e.id, e.prop); const fp = m && footprint(e, m); return fp && overlap(fp, { u0, u1, v0, v1 }, 0.01); });
+ok('flat: looproute van de gangdeur naar het raam vrij', vrijeStrook(1.4, 2.3, 0.3, 5.1));
+ok('flat: looproute tussen tv-meubel en bijzettafel vrij', vrijeStrook(2.5, 4.9, 1.4, 2.0));
 
 // --- het register volgt het gebruik -----------------------------------------------------------------------------------------------
 for (const id of INTERIEUR_IDS) {
@@ -116,7 +152,7 @@ ok('flat: geen bank, bed, kast of tafel meer als doos', !/M\.sofa|M\.duvet|M\.fr
 ok('flat: geen zwevende lampvlakken boven de kamers', !/M\.lamp/.test(flatBody));
 ok('flat: licht per kamer (geleend van de nachtrig)', (flatBody.match(/adoptSetLight/g) || []).length >= 1);
 // tv, frituurpan en radio: echte props uit het propregister (de packs hebben ze niet), geen dozen meer
-ok('flat: tv en frituurpan uit het propregister', /registeredProp\('tv'/.test(flatBody) && /registeredProp\('frituurpan'/.test(flatBody) && !/M\.tvScreen|M\.oil/.test(flatBody));
+ok('flat: tv en frituurpan uit het propregister', ['tv', 'frituurpan'].every((id) => FLAT_DRESSING.some((e) => e.id === id && e.prop)) && /registeredProp\(/.test(flatBody) && !/M\.tvScreen|M\.oil/.test(flatBody));
 ok('keuken: de radio uit het propregister, zonder canvasfront', /registeredProp\('buisradio'/.test(body) && !/radioTex/.test(keukenBron));
 for (const id of ['tv', 'frituurpan', 'buisradio']) ok(`propregister: ${id} staat erin met gebruik interieur`, !!PROP_REGISTER[id] && PROP_REGISTER[id].gebruik.includes('interieur'));
 

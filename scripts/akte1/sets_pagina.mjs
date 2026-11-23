@@ -22,7 +22,7 @@ const SCENES = [
   ] },
   { kop: 'De flat van Tammo en Tessa (Paddepoel)', items: [
     ['flat-overzicht', 'Overzicht (cutaway)', 'Elke kamer ingericht; de zwevende lampvlakken boven de cutaway zijn weg, drie warme lampen per kamergroep.'],
-    ['flat-woonkamer', 'Woonkamer', 'Bank, bijzettafel op kleed, tv op een ladekast (tv uit het propregister), staande lamp, planten.'],
+    ['flat-woonkamer', 'Woonkamer', 'Woonkamer van twee net-afgestudeerden: de bank recht tegenover de tv, beide op een groot kleed met de bijzettafel ertussen; boekenkast, bureau met laptop en lamp, een stapel verhuisdozen, een droogrek met was, een verzonnen print en poster, planten, een staande lamp. Looproutes van de gangdeur naar het raam en tussen tv en tafel blijven vrij (akte1_sets_test). Geen gordijnen: in de cutaway zakt de glasgevel tot heuphoogte en een gordijn van 2,4 m zou los in de lucht hangen.'],
     ['flat-keuken', 'Keuken', 'Spoelkast, fornuis met de frituurpan (propregister), wasmachine, koelkast, tafel met twee stoelen.'],
     ['flat-slaapkamers', 'Slaapkamers', 'Twee bedden met nachtkastje en lamp, kledingkasten, bureau met stoel bij Tessa.'],
   ] },

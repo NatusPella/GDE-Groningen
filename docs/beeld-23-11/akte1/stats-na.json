@@ -24,19 +24,19 @@
   "tris": 0
  },
  "flat-overzicht": {
-  "calls": 75,
-  "tris": 20357
+  "calls": 87,
+  "tris": 26699
  },
  "flat-woonkamer": {
-  "calls": 57,
-  "tris": 10092
+  "calls": 68,
+  "tris": 16350
  },
  "flat-keuken": {
-  "calls": 39,
-  "tris": 8581
+  "calls": 41,
+  "tris": 8883
  },
  "flat-slaapkamers": {
-  "calls": 49,
-  "tris": 13049
+  "calls": 50,
+  "tris": 13133
  }
 }

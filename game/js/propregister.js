@@ -40,6 +40,31 @@ export const PROP_REGISTER = {
     nl: 'Frituurpan', bouwer: 'frituurpan', gebruik: ['interieur'],
     norm: { tris: [220, 520], kleuren: 7, maat: [0.42, 0.42, 0.44], eisen: ['rvs-bak met donkere randen en voetrand', 'olie met twee manden en gaas', 'grepen naar voren', 'schuin open deksel met venster', 'draaiknop en lampje'] },
   },
+  // de woonkamer van twee net-afgestudeerden (23-11, na beeldcontrole coördinator): boeken, was, dozen, prints, een laptop
+  boekenkast: {
+    nl: 'Boekenkast met boeken', bouwer: 'boekenkast', gebruik: ['interieur'],
+    norm: { tris: [600, 2000], kleuren: 10, maat: [0.3, 1.8, 0.9], eisen: ['grenen kast met achterwand, plint en vijf planken', 'rijen boeken van wisselende dikte, hoogte en kleur met titelstreepjes', 'een liggend boek en gaten in de rij', 'doos, plantje en tijdschriften'] },
+  },
+  droogrek: {
+    nl: 'Droogrek met was', bouwer: 'droogrek', gebruik: ['interieur'],
+    norm: { tris: [150, 500], kleuren: 6, maat: [0.66, 0.92, 1.24], eisen: ['twee paar schuine poten', 'zeven stangen', 'handdoek, shirts en sokken in verschillende kleuren'] },
+  },
+  verhuisdozen: {
+    nl: 'Stapel verhuisdozen', bouwer: 'verhuisdozen', gebruik: ['interieur'],
+    norm: { tris: [150, 400], kleuren: 6, maat: [0.6, 1.1, 0.6], eisen: ['drie dozen van verschillende maat', 'plakband, etiket met regel, handgrepen', 'bovenste doos met open flappen'] },
+  },
+  lijst: {
+    nl: 'Ingelijste print', bouwer: 'lijst', gebruik: ['interieur'],
+    norm: { tris: [80, 200], kleuren: 7, maat: [0.03, 0.56, 0.42], eisen: ['donkere lijst met passe-partout', 'verzonnen illustratie: toren en daken in een avondlucht', 'geen tekst of merk'] },
+  },
+  poster: {
+    nl: 'Poster', bouwer: 'poster', gebruik: ['interieur'],
+    norm: { tris: [150, 400], kleuren: 6, maat: [0.01, 0.7, 0.5], eisen: ['verzonnen ontwerp met vlakken en een fiets in lijnen', 'plakband op de hoeken', 'geen tekst of merk'] },
+  },
+  laptop: {
+    nl: 'Laptop', bouwer: 'laptop', gebruik: ['interieur'],
+    norm: { tris: [50, 140], kleuren: 5, maat: [0.29, 0.22, 0.33], eisen: ['onderkant met toetsenbord en trackpad', 'scherm schuin achterover met een licht beeld', 'scharnier en camerapuntje'] },
+  },
   buisradio: {
     nl: 'Buisradio', bouwer: 'buisradio', gebruik: ['interieur'],
     norm: { tris: [160, 420], kleuren: 7, maat: [0.17, 0.38, 0.31], eisen: ['houten kast met gewelfd dak en plint', 'luidsprekerstof met lijsten en messing bies', 'groen afstemvenster met naald', 'twee knoppen', 'antenne'] },
@@ -97,7 +122,7 @@ export const INTERIEUR_REGISTER = {
   raam: { nl: 'Raamkozijn met glas', bron: Q('home', 'Window Large.glb'), gebruik: ['keuken'], norm: N([300, 450], 2, [0.08, 0.95, 1.02]) },
   hanglamp: { nl: 'Hanglamp', bron: Q('home', 'Light Ceiling.glb'), gebruik: ['keuken'], norm: N([210, 330], 3, [0.3, 0.4, 0.3]) },
   kamerplant: { nl: 'Kamerplant in een pot', bron: Q('home', 'Houseplant-bfLOqIV5uP.glb'), gebruik: ['keuken', 'flat'], norm: N([360, 540], 3, [0.68, 0.49, 0.66]) },
-  cactus: { nl: 'Cactus in een pot', bron: Q('home', 'Cactus.glb'), gebruik: ['keuken'], norm: N([330, 500], 4, [0.19, 0.47, 0.19]) },
+  cactus: { nl: 'Cactus in een pot', bron: Q('home', 'Cactus.glb'), gebruik: ['keuken', 'flat'], norm: N([330, 500], 4, [0.19, 0.47, 0.19]) },
   wandplank: { nl: 'Wandplank', bron: Q('home', 'Shelf Small.glb'), gebruik: ['keuken'], norm: N([100, 160], 1, [0.31, 0.32, 1.09]) },
   prullenbak: { nl: 'Pedaalemmer', bron: Q('home', 'Trashcan Small.glb'), gebruik: ['keuken', 'flat'], norm: N([200, 320], 2, [0.17, 0.4, 0.28]) },
   vloerkleed: { nl: 'Vloerkleed', bron: Q('home', 'Rug.glb'), gebruik: ['keuken', 'flat'], norm: N([80, 140], 2, [1.73, 0.02, 1.19]) },
