@@ -1436,3 +1436,9 @@ html.pad-active #pause-menu.gm :is(.ra, .m-li, .m-tab, .m-bp, .m-bg, .m-bt, .m-c
 #pause-menu .pm-settab .pm-slist .m-gh:not(:first-child) { margin-top: 12px; padding-top: 14px; border-top: var(--ds-lijn-zeef, 2px) solid color-mix(in srgb, var(--ds-c-ink-inkt) 18%, transparent); }
 #pause-menu.gm .pm-settab .pm-slist .m-li .nm > .mut { color: var(--ds-c-inkt-zacht); }
 html.pad-active #pause-menu.gm [data-panel="settings"] .m-tablist .m-tab:focus { outline-width: 2px; outline-offset: -2px; }
+/* #1200 (hertest 24-11): de tien tabbladen van Instellingen stonden krap en klein (16 px) op een regel. Op een breed scherm is er ruimte:
+   groter en met meer lucht ertussen; op een smaller scherm blijft de compacte rij. */
+@media (min-width: 1600px) and (min-height: 900px) {
+  #pause-menu.gm [data-panel="settings"] .pm-inner.pm-settings > .m-tabs .m-tablist { gap: 0 22px; }
+  #pause-menu.gm [data-panel="settings"] .m-tablist .m-tab { height: 50px; font-size: max(18px, var(--menu-min)); }
+}
