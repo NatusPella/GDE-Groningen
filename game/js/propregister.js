@@ -7,7 +7,7 @@
 //   norm    tris [min, max] driehoeken, kleuren (minimaal aantal verschillende vertexkleuren), maat [b, h, d] in m (+- 25 %),
 //           en `eisen`: wat er aan detail aan moet zitten, zodat een kale doos of cilinder de test niet haalt
 //   gebruik waar hij staat: 'stad' (cityprops.js), 'buiten' (streetfurniture3d.js), 'cutscene' (storyprops.js DECOR_MAKERS)
-//   lod     (vettruck 23-11, eis eigenaar: elk model 2-3 LOD-niveaus) { grenzen: [m, ...], band, weg }: lodniveau.js legt de
+//   lod     (vettruck 23-11, eis eigenaar: elk model 2-3 LOD-niveaus) { grenzen: [m, ...], band, weg }: lodlevels.js legt de
 //           vorm uit; propGeometry(id, niveau) bouwt de lichtere niveaus, lod3d.js DitherLOD dithert de overgang
 // Kwaliteitsnorm voor iedere prop: zichtbaar materiaalverschil (hout tegen staal, glas tegen kader), echte onderdelen
 // (voet, rand, bevestiging) in plaats van één primitief, en een driehoekenbudget dat per cel samen te voegen of te instancen blijft.
@@ -45,7 +45,7 @@ export const PROP_REGISTER = {
 };
 
 export const PROP_IDS = Object.keys(PROP_REGISTER);
-export const propLod = (id) => (PROP_REGISTER[id] && PROP_REGISTER[id].lod) || null;
+export const propLodSpec = (id) => (PROP_REGISTER[id] && PROP_REGISTER[id].lod) || null;
 export const propNorm = (id) => (PROP_REGISTER[id] ? PROP_REGISTER[id].norm : null);
 export const isRegisteredProp = (id) => Object.prototype.hasOwnProperty.call(PROP_REGISTER, id);
 // De soorten die een cutscene als decor mag noemen en uit dit register komen (cutscenemodels.js DECOR_KINDS neemt ze over).

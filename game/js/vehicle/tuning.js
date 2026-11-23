@@ -4,7 +4,7 @@
 import { MODS } from '../cheatmods.js';
 import { MOPED_LEGAL_SPEED } from '../motomodels.js';
 import { setSpeedCap } from '../breakables.js';
-import { zwareLading } from './heavyload.js';
+import { heavyLoad } from './heavyload.js';
 
 // Two-wheelers and boats are tuned for the player separately from the AI
 // fleet's cruising speeds (m/s): a bike does a brisk 25 km/h (Shift: ~33),
@@ -46,8 +46,8 @@ export function playerTune(v) {
   if (v.isBike) return m.fat ? { top: 13.9 * up * sprint, accel: 6 * upA * sprintA, brake: 9 } : { top: 7 * up * sprint, accel: 3.6 * upA * sprintA, brake: 8.5 };
   if (MODS.turbo && v.isHeroCar) return { top: Math.min(m.maxSpeed * 1.6, MAX_CAR_SPEED + 12), accel: m.accel * 1.9 * PLAYER_CAR_ACCEL, brake: m.brake * 1.2 };
   // vettruck 23-11: een volle tankwagen trekt traag op en remt lang (vehicle/heavyload.js)
-  const zwaar = zwareLading(m);
-  if (zwaar) return { top: Math.min(m.maxSpeed, MAX_CAR_SPEED), accel: m.accel * PLAYER_CAR_ACCEL * zwaar.optrek, brake: m.brake * zwaar.rem };
+  const heavy = heavyLoad(m);
+  if (heavy) return { top: Math.min(m.maxSpeed, MAX_CAR_SPEED), accel: m.accel * PLAYER_CAR_ACCEL * heavy.accel, brake: m.brake * heavy.brake };
   return { top: Math.min(m.maxSpeed, MAX_CAR_SPEED), accel: m.accel * PLAYER_CAR_ACCEL, brake: m.brake };
 }
 
@@ -74,8 +74,8 @@ export function coastDrag(v, isPlayer, s) {
   if (v.isBike || v.isScooter) return 0.8 + 0.06 * s;
   if (v.isBus) return 1.1 + 0.05 * s;
   if (v.disabled) return 0.8 + 0.04 * s;
-  const zwaar = zwareLading(v.model);
-  return (1.6 + 0.09 * s) * (zwaar ? zwaar.uitrol : 1);
+  const heavy = heavyLoad(v.model);
+  return (1.6 + 0.09 * s) * (heavy ? heavy.coast : 1);
 }
 
 function minTurnRadius(m, player = false) {
@@ -100,8 +100,8 @@ export function lateralGrip(m, player = false) {
   if (m.name === 'motor') return player ? 17 : 8;
   if (m.name === 'boat') return player ? 5.5 : 2.5;
   // vettruck 23-11: de volle tankwagen van de speler neemt bij snelheid wijde bochten (vehicle/heavyload.js); de AI houdt 16
-  const zwaar = zwareLading(m);
-  if (zwaar && player) return 23 * zwaar.grip;
+  const heavy = heavyLoad(m);
+  if (heavy && player) return 23 * heavy.grip;
   return player ? 23 : 16;
 }
 

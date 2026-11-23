@@ -46,7 +46,7 @@ Alle beelden komen uit <code>sheet.html</code> in deze map, headless gerenderd m
 <h2>Detailniveaus (LOD)</h2>
 <div class="een"><figure><img src="na-lod.png"><figcaption>Niveau 0 (achter, tot 60 m), 1 (midden, tot 160 m) en 2 (voor, daarna), hier vastgezet naast elkaar. Romp: 3.910, 552 en 184 driehoeken; op niveau 2 staan de losse wielen uit (wielblokken in de romp). Rond elke grens 8 m overgang met een schermdeur-dither (aanvullende patronen, geen toestand).</figcaption></figure></div>
 <div class="een"><figure><img src="na-vaten.png"><figcaption>Vat (324 / 72 / 24 driehoeken; 18 en 50 m, weg na 140 m) en jerrycan (152 / 36 / 12; 12 en 35 m, weg na 90 m), niveau 0, 1 en 2 van links naar rechts.</figcaption></figure></div>
-<p>De opgave staat per model in het register (<code>lod: { grenzen, band, weg }</code>); de regels zijn puur in <code>lodniveau.js</code>, de three-kant in <code>lod3d.js</code> (<code>DitherLOD</code>, een <code>THREE.LOD</code> die de renderer zelf bijwerkt). Bedoeld als centrale vorm voor het LOD-systeem van <code>perf-ultra-23-11</code>, dat er nog niet was.</p>
+<p>De opgave staat per model in het register (<code>lod: { grenzen, band, weg }</code>); de regels zijn puur in <code>lodlevels.js</code>, de three-kant in <code>lod3d.js</code> (<code>DitherLOD</code>, een <code>THREE.LOD</code> die de renderer zelf bijwerkt). Bedoeld als centrale vorm voor het LOD-systeem van <code>perf-ultra-23-11</code>, dat er nog niet was.</p>
 
 <h2>De bollen vet: trailer en benchmark</h2>
 <div class="paar">

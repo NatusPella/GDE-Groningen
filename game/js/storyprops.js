@@ -6,9 +6,9 @@
 // als "doos" of "bord" werden getekend (klomp, stempel, statief, krat, ...), #1121.
 import * as THREE from 'three';
 import { propGeometry } from './propmodels3d.js';
-import { PROP_REGISTER, CUTSCENE_PROPS, propLod } from './propregister.js';
+import { PROP_REGISTER, CUTSCENE_PROPS, propLodSpec } from './propregister.js';
 import { DitherLOD } from './lod3d.js';
-import { lodNiveaus } from './lodniveau.js';
+import { lodLevelCount } from './lodlevels.js';
 
 const MATS = {};
 const mat = (c, o = {}) => (MATS[c + JSON.stringify(o)] ||= new THREE.MeshStandardMaterial({ color: c, roughness: 0.8, ...o }));
@@ -24,10 +24,10 @@ const VERTEXKLEUR = new THREE.MeshStandardMaterial({ vertexColors: true, roughne
 // Een prop met een LOD-opgave (vetvat, jerrycan) krijgt per niveau een mesh met een eigen kopie van het materiaal (de dither-
 // uniform hoort bij het exemplaar; het programma is gedeeld) en een DitherLOD die de overgang regelt (lod3d.js).
 const registerProp = (id) => () => {
-  const lod = propLod(id);
+  const lod = propLodSpec(id);
   if (!lod) { const m = new THREE.Mesh(propGeometry(id), VERTEXKLEUR); m.castShadow = true; return grp(m); }
   const g = new THREE.Group(), niveaus = [];
-  for (let n = 0; n < lodNiveaus(lod); n++) {
+  for (let n = 0; n < lodLevelCount(lod); n++) {
     const mat = VERTEXKLEUR.clone();
     const m = new THREE.Mesh(propGeometry(id, n), mat);
     m.castShadow = true;

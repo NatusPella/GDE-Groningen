@@ -48,19 +48,19 @@
     // de shot van de trailer: de tankwagen glijdt, de kamera laag op de weg ervoor
     truck.rotation.y = -0.45;
     let spoor = null;
-    try { spoor = oud ? null : await import(root + 'game/js/vetspoor3d.js'); } catch { spoor = null; }
+    try { spoor = oud ? null : await import(root + 'game/js/fattrail3d.js'); } catch { spoor = null; }
     if (spoor) {
       // na: een plas en een spoor frituurvet op het asfalt achter de aftapkraan, plat op de weg
-      const s = spoor.buildVetSpoor();
+      const s = spoor.buildFatTrail();
       scene.add(s);
       // achter de aftapkraan, over de buitenkant van de slip (zoals trailer.js het per frame neerlegt)
       const th = truck.rotation.y;
       let rnd = 11; const R = () => { rnd = (rnd * 16807) % 2147483647; return rnd / 2147483647; };
       for (let i = 0; i <= 40; i++) {
         const d = 4.3 + i * 0.5, side = -0.35 + i * i * 0.004;
-        spoor.spoorPunt(s, -Math.cos(th) * d + Math.sin(th) * side, Math.sin(th) * d + Math.cos(th) * side, 0, 0.25 + R() * 0.3 + Math.min(0.35, i * 0.015), 1.4, -th);
+        spoor.addTrailPuddle(s, -Math.cos(th) * d + Math.sin(th) * side, Math.sin(th) * d + Math.cos(th) * side, 0, 0.25 + R() * 0.3 + Math.min(0.35, i * 0.015), 1.4, -th);
       }
-      spoor.spoorKlaar(s);
+      spoor.commitTrail(s);
       extra = ' spoor=' + s.userData.n;
     } else {
       // voor: de gele bollen van trailer.js (buildDrops/emitDrops), 0,9 s gesimuleerd zoals in de shot

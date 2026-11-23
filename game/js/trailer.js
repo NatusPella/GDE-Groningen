@@ -38,7 +38,7 @@ import { buildPigeonBird, posePigeonBird } from './pigeonmode.js';
 import { hidePigeonSpots } from './pigeonspots.js';
 import { setPoliceHeliRender } from './police.js';
 import { roofAt } from './camerapath.js';
-import { buildVetSpoor, spoorPunt, spoorKlaar, spoorLeeg } from './vetspoor3d.js';
+import { buildFatTrail, addTrailPuddle, commitTrail, clearTrail } from './fattrail3d.js';
 import { kickTheme, setThemeDuck } from './theme.js';
 import { probe } from './hitchprobe.js';
 import { flashScreen } from './postfx3d.js';
@@ -1095,8 +1095,8 @@ function buildShots(w) {
       const q = lane(euro, s.d, 1.5);
       s.truck = tempCar(r, q.x, q.y, q.a, { model: TANKER });
       for (let d = 95; d <= 185; d += 15) clearAround(r, lane(euro, d, 0), 26, s.truck);
-      s.spoor = r.prop('vetspoor', buildVetSpoor);
-      spoorLeeg(s.spoor);
+      s.spoor = r.prop('vetspoor', buildFatTrail);
+      clearTrail(s.spoor);
       s.lekD = null;
     },
     tick(r, s, t, dt) {
@@ -1110,8 +1110,8 @@ function buildShots(w) {
       if (t > 0.5 && (s.lekD === null || s.d - s.lekD > 0.5)) {
         s.lekD = s.d;
         const px = q.x - Math.cos(a) * 4.22, py = q.y - Math.sin(a) * 4.22;
-        spoorPunt(s.spoor, px, py, gz(px, py), 0.28 + Math.random() * 0.3 + Math.min(0.3, (t - 0.5) * 0.12), 1.5, a);
-        spoorKlaar(s.spoor);
+        addTrailPuddle(s.spoor, px, py, gz(px, py), 0.28 + Math.random() * 0.3 + Math.min(0.3, (t - 0.5) * 0.12), 1.5, a);
+        commitTrail(s.spoor);
       }
       s.q = q; s.a = a;
     },

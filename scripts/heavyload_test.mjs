@@ -5,7 +5,7 @@
 import './node3d.mjs';
 import fs from 'node:fs';
 
-const { TANKWAGEN_RIJGEDRAG: Z, zwareLading, remweg } = await import('../game/js/vehicle/heavyload.js');
+const { TANKER_HANDLING: Z, heavyLoad, brakingDistance } = await import('../game/js/vehicle/heavyload.js');
 const { playerTune, coastDrag, lateralGrip, maxYawRate } = await import('../game/js/vehicle/tuning.js');
 const { vehicleCamRig } = await import('../game/js/cammath.js');
 const { buildDefsNaMuseum } = await import('../game/js/missions_defs.js');
@@ -20,19 +20,19 @@ const bakModel = { ...tankModel, tank: false, livery: undefined };
 const auto = (model, extra = {}) => ({ model, driver: 'player', speed: 0, angle: 0, ...extra });
 const tank = auto(tankModel), bak = auto(bakModel);
 
-ok('alleen een vrachtwagen met tank is zwaar', zwareLading(tankModel) === Z && zwareLading(bakModel) === null && zwareLading({ name: 'van', tank: true }) === null && zwareLading(null) === null);
+ok('alleen een vrachtwagen met tank is zwaar', heavyLoad(tankModel) === Z && heavyLoad(bakModel) === null && heavyLoad({ name: 'van', tank: true }) === null && heavyLoad(null) === null);
 ok('de factoren liggen vast (bevroren)', Object.isFrozen(Z));
-for (const k of ['optrek', 'rem', 'uitrol', 'grip']) ok(`${k} maakt hem zwaarder (0 < f < 1)`, Z[k] > 0 && Z[k] < 1, String(Z[k]));
-for (const k of ['vering', 'overhel', 'camera', 'botsmassa']) ok(`${k} is groter dan bij een gewone auto`, Z[k] > 1, String(Z[k]));
-ok('de vering is zachter dan die van de bus (1,7)', Z.vering > 1.7);
-ok('massa is die van een volle tankwagen (15-30 t)', Z.massa >= 15000 && Z.massa <= 30000, String(Z.massa));
+for (const k of ['accel', 'brake', 'coast', 'grip']) ok(`${k} maakt hem zwaarder (0 < f < 1)`, Z[k] > 0 && Z[k] < 1, String(Z[k]));
+for (const k of ['suspension', 'roll', 'camera', 'collisionMass']) ok(`${k} is groter dan bij een gewone auto`, Z[k] > 1, String(Z[k]));
+ok('de vering is zachter dan die van de bus (1,7)', Z.suspension > 1.7);
+ok('massa is die van een volle tankwagen (15-30 t)', Z.mass >= 15000 && Z.mass <= 30000, String(Z.mass));
 
 // optrekken en remmen (speler)
 const tt = playerTune(tank), tb = playerTune(bak);
 ok('zelfde topsnelheid als de bakwagen', tt.top === tb.top, `${tt.top} / ${tb.top}`);
-ok('trekt trager op', Math.abs(tt.accel / tb.accel - Z.optrek) < 1e-9, `${tt.accel.toFixed(2)} tegen ${tb.accel.toFixed(2)}`);
+ok('trekt trager op', Math.abs(tt.accel / tb.accel - Z.accel) < 1e-9, `${tt.accel.toFixed(2)} tegen ${tb.accel.toFixed(2)}`);
 const v80 = 80 / 3.6;
-const rwT = remweg(v80, tt.brake), rwB = remweg(v80, tb.brake);
+const rwT = brakingDistance(v80, tt.brake), rwB = brakingDistance(v80, tb.brake);
 ok('remweg uit 80 km/u is minstens 2x die van de bakwagen', rwT >= 2 * rwB, `${rwT.toFixed(1)} m tegen ${rwB.toFixed(1)} m`);
 ok('remweg uit 80 km/u tussen 30 en 60 m (een volle tankwagen, droog)', rwT >= 30 && rwT <= 60, rwT.toFixed(1) + ' m');
 // 0 naar 50 km/u met de vloer van de speler-acceleratie (vehicle.js: floor 0,2 plus sqrt(headroom)), stap 1/60 s
@@ -52,8 +52,8 @@ ok('bij 72 km/u een wijde bocht (straal > 35 m)', straal > 35 && yaw(tank) < yaw
 // camera, vering, motor
 ok('de volgcamera staat verder weg', vehicleCamRig(tank).scale > vehicleCamRig(bak).scale * 1.1, `${vehicleCamRig(tank).scale.toFixed(2)} tegen ${vehicleCamRig(bak).scale.toFixed(2)}`);
 const vsrc = fs.readFileSync(new URL('../game/js/vehicle.js', import.meta.url), 'utf8');
-ok('vehicle.js leest vering, overhellen en botsmassa uit heavyload', /zwaar\.vering/.test(vsrc) && /zwaar\.overhel/.test(vsrc) && /zwaar\.botsmassa/.test(vsrc));
-ok('de grens van het overhellen blijft binnen de klem van de vering (0,14)', 0.085 * Z.overhel <= 0.14, String(0.085 * Z.overhel));
+ok('vehicle.js leest vering, overhellen en botsmassa uit heavyload', /heavy\.suspension/.test(vsrc) && /heavy\.roll/.test(vsrc) && /heavy\.collisionMass/.test(vsrc));
+ok('de grens van het overhellen blijft binnen de klem van de vering (0,14)', 0.085 * Z.roll <= 0.14, String(0.085 * Z.roll));
 const asrc = fs.readFileSync(new URL('../game/js/audio.js', import.meta.url), 'utf8');
 ok('een vrachtwagen klinkt als de lage diesel (motorsoort 2)', /if \(name === 'truck'\) return 2;/.test(asrc));
 

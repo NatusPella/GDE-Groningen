@@ -30,7 +30,7 @@ Telling: 102 scènes, 163 props, 51 soorten in gebruik, 27 aankledingsplannen, 5
 | hek | decor | 48 | 400 | 2 | 2.5 x 1.1 x 0.1 | 1 |
 | hesjes | decor | 48 | 400 | 2 | 0.5 x 0.2 x 0.4 | 1 |
 | jas | decor | 48 | 400 | 3 | 0.44 x 0.13 x 0.49 | 1 |
-| jerrycan | decor | 152 | 260 | 1 | 0.183 x 0.502 x 0.33 | 4 |
+| jerrycan | decor | 152 | 260 | 1 | 0.191 x 0.502 x 0.33 | 4 |
 | kaart | decor | 516 | 600 | 3 | 0.9 x 0.025 x 0.65 | 1 |
 | kantoorwagen | decor | 352 | 400 | 8 | 5.9 x 3.05 x 2.49 | 1 |
 | klembord | decor | 60 | 400 | 4 | 0.3 x 0.055 x 0.4 | 6 |

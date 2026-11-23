@@ -713,8 +713,8 @@ function buildCarMesh(v) {
 
 // Bakwagen: cab-over front with a box body.
 function buildTruckMesh(v) {
-  // de tankwagen (model.tank: Us Mem Vet, de stuntavond) heeft een eigen opbouw en cabine, zie buildTankwagenMesh
-  if (v.model.tank) return buildTankwagenMesh(v);
+  // de tankwagen (model.tank: Us Mem Vet, de stuntavond) heeft een eigen opbouw en cabine, zie buildTankerMesh
+  if (v.model.tank) return buildTankerMesh(v);
   const L = v.model.len, W = v.model.wid, hl = L / 2, hw = W / 2;
   const paint = v.wrecked ? WRECKED_COLOR : toHex(v.model.color, 0xe8e6e0);
   const r = 0.52;
@@ -794,19 +794,19 @@ function buildTruckMesh(v) {
 // aftapkraan, slangkokers, een pompkast, de dieseltank, dubbellucht achter en een onderrijbeveiliging. De belettering van Us Mem Vet
 // (Jelle's frituurvet, verzonnen merk) ligt als gebogen strook op de tankwand. Alle maten volgen len en wid: dezelfde bouwer dient de
 // missiewagen (8,5 m), de winkelversie (7,2 m) en de stuntavond (6,2 m). Kwaliteitsnorm: propregister.js VOERTUIG_REGISTER.tankwagen.
-function tankwagenMaat(L, W) {
+function tankerDims(L, W) {
   const hl = L / 2, hw = W / 2, cabL = 2.0, kop = 0.3;
   // band en strook: hoe ver de spanbanden en de belettering buiten de tankwand liggen (minstens 2 cm uit elkaar: geen z-fighting)
   return { cabL, kop, x0: -hl + 0.1 + kop, x1: hl - cabL - 0.2 - kop, y: 2.08, ry: 0.9, rz: hw - 0.04, band: 0.025, strook: 0.05 };
 }
 
-function buildTankwagenMesh(v) {
+function buildTankerMesh(v) {
   const L = v.model.len, W = v.model.wid, hl = L / 2, hw = W / 2;
   const wrecked = !!v.wrecked;
   const paint = wrecked ? WRECKED_COLOR : toHex(v.model.color, 0x1d4f9c);
   const r = 0.52;
   const fx = hl - 1.25, rx = -hl + 1.7; // voor- en achteras (dezelfde plek als de bakwagen)
-  const T = tankwagenMaat(L, W);
+  const T = tankerDims(L, W);
   const top = T.y + T.ry;
   const geo = cached(`tankwagen|${L}|${W}|${paint}`, () => {
     const B = new GeoBuilder(3);
@@ -988,7 +988,7 @@ function buildTankwagenMesh(v) {
   }
   group.userData.wheels = wheels;
   group.userData.wheelRadius = r;
-  // de aftapkraan achter: daar lekt het vet uit (trailer.js, vetspoor3d.js)
+  // de aftapkraan achter: daar lekt het vet uit (trailer.js, fattrail3d.js)
   group.userData.aftap = { x: -hl + 0.03, y: 1.02, z: -0.35 };
   const lod0 = [...mats, wheelMat], lod1 = [wheelMat];
   if (v.model.livery === 'usmemvet' && !wrecked) {
@@ -1005,7 +1005,7 @@ function buildTankwagenMesh(v) {
   // zodat ze meeveren; DitherLOD zet per niveau de materialen aan en dithert de overgang
   const m1 = vehicleMaterials(wrecked), m2 = vehicleMaterials(wrecked);
   for (const [n, mm] of [[1, m1], [2, m2]]) {
-    const lm = new THREE.Mesh(tankwagenLodGeometry(L, W, paint, n), mm);
+    const lm = new THREE.Mesh(tankerLodGeometry(L, W, paint, n), mm);
     lm.userData.lodNiveau = n;
     body.add(lm);
   }
@@ -1018,11 +1018,11 @@ function buildTankwagenMesh(v) {
 
 // De lichtere niveaus van de tankwagen: 1 (tot de tweede grens: tank, cabine, lampen en belettering, geen kleine onderdelen)
 // en 2 (silhouet: tank, cabine, ruiten, lampen en vier wielblokken; de echte wielen staan dan uit). Zelfde maten als niveau 0.
-function tankwagenLodGeometry(L, W, paint, n) {
+function tankerLodGeometry(L, W, paint, n) {
   return cached(`tankwagen-lod${n}|${L}|${W}|${paint}`, () => {
     const hl = L / 2, hw = W / 2, wrecked = paint === WRECKED_COLOR;
     const K = (c) => (wrecked ? WRECKED_COLOR : c);
-    const T = tankwagenMaat(L, W), top = T.y + T.ry, tl = T.x1 - T.x0, tc = (T.x0 + T.x1) / 2;
+    const T = tankerDims(L, W), top = T.y + T.ry, tl = T.x1 - T.x0, tc = (T.x0 + T.x1) / 2;
     const fx = hl - 1.25, rx = -hl + 1.7, cx = hl - T.cabL / 2, cx0 = hl - T.cabL;
     const STEEL = K(0xc9ced3), FRAME = K(0x26282b), DARK = K(0x3a3d40);
     const B = new GeoBuilder(3);
