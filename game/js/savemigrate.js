@@ -222,11 +222,11 @@ const SETTINGS_MIGRATIONS = {
   9(s) { delete s.verhaal; delete s.nieuwverhaal; return s; },
   // 11: the Cheats switch in the settings is gone: the story unlocks the section (save v11)
   10(s) { delete s.toonCheats; return s; },
-  // 12: Hoog kreeg een ruime zichtafstand ('ver' in plaats van 'kort', met de goedkope verre laag en zachte mist). Een bestand dat nog
+  // 12: Hoog kreeg een grotere zichtafstand ('normaal' in plaats van 'kort', met de goedkope verre laag en zachte mist). Een bestand dat nog
   // precies de oude Hoog is (ook de standaard) gaat mee; een eigen keuze (andere kwaliteit, resolutie of schaduwen) blijft zoals ze is.
   11(s) {
     const oudeHoog = s.drawDistance === 'kort' && (s.quality ?? 'hoog') === 'hoog' && s.shadows !== false && (s.resolution ?? 1) === 1 && s.autoResolution !== false;
-    if (oudeHoog) s.drawDistance = 'ver';
+    if (oudeHoog) s.drawDistance = 'normaal';
     return s;
   },
 };

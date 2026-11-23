@@ -34,19 +34,19 @@ for (let i = 1; i < PRESET_ORDER.length; i++) {
   ok(b.shadowSize >= a.shadowSize, `${b.label}: schaduwkaart niet kleiner dan ${a.label}`);
 }
 // de budgetten zelf
-ok(vlot.ring <= hoog.ring && vlot.ringArea <= 1.5, 'Hoog: de detailring is nooit groter dan die van Ultra (24-11: Hoog kreeg zichtafstand ver, ring 170 m)');
+ok(vlot.ring <= hoog.ring && vlot.ringArea <= 1.5, 'Hoog: de detailring is nooit groter dan die van Ultra (23-11: Hoog kreeg zichtafstand normaal)');
 ok(hoog.ringArea <= 1.5, `Ultra: de detailring is hoogstens 1,5x de oppervlakte van 140 m (${hoog.ringArea})`);
 ok(hoog.ringArea <= DETAIL_AREA_MAX, 'Ultra: binnen het oude plafond van de ringoppervlakte');
 ok(vlot.shadowSize <= 2048 && middel.shadowSize <= 2048 && laag.shadowSize <= 1024, 'alleen Ultra heeft een schaduwkaart van 4096');
 ok(hoog.view >= middel.view && hoog.ring >= middel.ring, 'Ultra: zichtafstand en ring niet onder Midden');
 ok(hoog.shadowSize === 4096 && hoog.shadowMB > 60, 'Ultra: 4096');
-ok(vlot.view === VIEW_DISTANCES.ver && hoog.view === VIEW_DISTANCES.heelver, 'Hoog ver, Ultra heel ver');
-ok(vlot.view > middel.view && vlot.view < hoog.view, 'Hoog: zichtafstand tussen Midden en Ultra (ruim, maar goedkoper dan Ultra)');
+ok(vlot.view === VIEW_DISTANCES.normaal && hoog.view === VIEW_DISTANCES.heelver, 'Hoog normaal, Ultra heel ver');
+ok(vlot.view >= middel.view && vlot.view < hoog.view, 'Hoog: zichtafstand minstens die van Midden en korter dan Ultra (duidelijk goedkoper)');
 ok(laag.msaa === 4 && middel.msaa === 2 && vlot.msaa === 2 && hoog.msaa === 2, 'MSAA: Laag 4 (alleen de uitvoerpas), de rest 2 samples');
 ok(hoog.bloom && vlot.bloom && !middel.bloom && !laag.bloom, 'bloom op Hoog en Ultra');
 ok(laag.pixelRatioCap < 1 && vlot.pixelRatioCap <= 1.5, 'pixelratio per preset begrensd');
 // de adaptieve trap neemt de zware dingen als eerste weg: heel ver zakt naar ver bij schaal < 0,9, de schaduwkaart naar 2048
-ok(viewDistanceFor('heelver', 0.85, 0) === VIEW_DISTANCES.ver && adaptedShadowLevel('hoog', 0.85, 0, 'heelver') === 'hoog2048', 'adaptief: kijkafstand en schaduwkaart eerst, geen presetwissel');
+ok(viewDistanceFor('heelver', 0.85, 0) === VIEW_DISTANCES.heelver && viewDistanceFor('heelver', 1, 2) === VIEW_DISTANCES.ver && adaptedShadowLevel('hoog', 0.85, 0, 'heelver') === 'hoog2048', 'adaptief: bij een lagere renderschaal blijft Ultra heel ver (de schaduwkaart en de resolutie zakken); alleen een CPU die het niet bijhoudt geeft ver');
 ok(detailDistanceFor('hoog', 900, 3) < DETAIL_BASE, 'cpuLevel 3 verkleint de ring');
 
 // de schaduwhaak (16 aanroepen per frame van de postketen, 2 tot 5 ms) blijft: render() zonder scène, zonder licht of zonder nieuwe kaart gaat meteen naar three

@@ -5,15 +5,14 @@
 export const VIEW_DISTANCES = { kort: 150, normaal: 350, ver: 600, heelver: 900 };
 export const DRAW_DISTANCE_LABELS = { kort: 'kort', normaal: 'normaal', ver: 'ver', heelver: 'heel ver' };
 
-// The view distance in use. 'heel ver' drops back to 'ver' while adaptive
-// quality has stepped down (render scale under 90% or cpuLevel > 0), so a
-// machine that cannot carry it loses the extra distance before more detail.
+// The view distance in use. 'heel ver' drops back to 'ver' only when the CPU cannot keep up (cpuLevel 2 or more); a lower render scale
+// (GPU-bound) keeps the view: Ultra stays Ultra and the resolution takes the hit (decision 23-11).
 export function viewDistanceFor(setting, scale = 1, cpuLvl = 0) {
   // cpuLevel 3 (a machine that cannot even carry level 2, scripts/perf/zwak.mjs): the shortest view
   if (cpuLvl >= 3) return VIEW_DISTANCES.kort;
-  // 'heel ver' zakt alleen naar 'ver' als adaptive quality al heeft ingegrepen; verdere
-  // stappen veranderen de kwaliteit en dat doen we niet stil (#554).
-  if (setting === 'heelver' && (scale < 0.9 || cpuLvl > 0)) setting = 'ver';
+  // 'heel ver' zakt alleen naar 'ver' als de CPU het echt niet bijhoudt (cpuLevel 2+): een lagere renderschaal helpt daar niet. Tot 23-11
+  // gaf al 90% renderschaal 'ver', zodat Ultra onder belasting stil een Hoog werd.
+  if (setting === 'heelver' && cpuLvl >= 2) setting = 'ver';
   return VIEW_DISTANCES[setting] || VIEW_DISTANCES.normaal;
 }
 
