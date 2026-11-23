@@ -18,7 +18,7 @@ import { getSettings } from './settings.js';
 import { firstPersonOn } from './firstperson.js';
 import { makeJumpAssist, jumpStep } from './gamefeel.js';
 import { steerScale } from './steerscale.js';
-import { pedalThrottle } from './pedalfeel.js';
+import { pedalThrottle, isAnalogSteer } from './pedalfeel.js';
 import { assistDamage } from './assistlive.js';
 import { ALGAE } from './eventrules.js';
 import { knockDown, isKnockedDown } from './ragdoll.js';
@@ -1169,6 +1169,7 @@ export class Player {
     const st = getSettings();
     // #801: Stuurgevoeligheid onder Besturing; geldt voor de speler, niet voor bots of gasten
     const steerS = steerScale(steerIn, st.steerSensitivity);
+    v.steerAnalog = isAnalogSteer(ax, input.padAxis ? input.padAxis[0] : 0); // #1288: the wheel follows a stick more directly than a key (pedalfeel.js)
     v.shiftMode = st.shiftMode;
     v.driftAssist = toggleChoice('driveAssist', st.driftAssist);
     v.bikeAssist = toggleChoice('driveAssist', st.bikeAssist);

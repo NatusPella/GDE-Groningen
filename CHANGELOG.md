@@ -72,6 +72,7 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 - Instellingen › Beeld: de rij Benchmark heet nu Prestatietest, net als het scherm erachter, met de knop Test starten. Samen spelen: lokaal in je eigen menu; de test zelf kan tijdens Samen spelen nog steeds niet.
 - Pauzemenu › Overzicht: één bron per cijfer. Het voortgangsblok zegt "nog niets van 71" in plaats van "0 van 71 · 0%", en de tegel Prestaties staat er niet meer naast als het blok de prestaties al telt. Samen spelen: lokaal in je eigen menu, met je eigen voortgang.
 - Einde van een missie: de kaart heeft de naam van de missie als titel ("Het museum stond er al zo"), met Missie geslaagd of Missie mislukt als label en de reden en de beloning eronder. Een minigame houdt zijn eigen uitroep. Samen spelen: de kaart is van wie de missie speelt; een gast leest de uitslag zoals voorheen in zijn eigen melding met de missienaam.
+- Rijden met een controller: het stuur volgt de stick nu directer (volle uitslag in een tiende seconde in plaats van een vijfde); met het toetsenbord stuurt het wiel zoals voorheen. Samen spelen: lokaal per speler; een gast aan het stuur stuurt zijn stickwaarde mee en de gastheer past dezelfde regel toe, zonder nieuw bericht.
 
 ## [0.65.0] - 2026-11-22
 

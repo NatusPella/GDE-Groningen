@@ -33,6 +33,24 @@ export function stickSteerCurve(x, expo = STEER_EXPO) {
   return c * (1 - expo) + c * c * c * expo;
 }
 
+// How fast the steering wheel follows the input (#1288). A digital key jumps from 0 to full lock, so the
+// wheel eases after it (vehicle.js PLAYER_STEER_RATE, 5/s). A stick already gives a smooth value: the wheel
+// may follow it more directly, otherwise a quick flick of the thumb arrives a quarter of a second late.
+export const STICK_STEER_RATE = 10; // 1/s: full lock from the centre in 0.1 s
+
+// Is this steering input analog? A pad stick that is in use (padX not 0), or a value that a key never
+// gives (a guest at the wheel sends his stick over the net as a fraction). A key is exactly -1, 0 or 1.
+export function isAnalogSteer(ax, padX = 0) {
+  if (Number.isFinite(padX) && padX !== 0) return true;
+  return Number.isFinite(ax) && ax !== 0 && Math.abs(ax) !== 1;
+}
+
+// The follow rate for the wheel: a stick never follows slower than a key.
+export function steerFollowRate(analog, digitalRate) {
+  const d = Number.isFinite(digitalRate) ? digitalRate : 0;
+  return analog ? Math.max(d, STICK_STEER_RATE) : d;
+}
+
 // --- feathering the throttle ---------------------------------------------------------------
 const FEATHER_BAND = 0.12; // the last part of the cruising speed over which the gas eases off
 const FULL_PEDAL = 0.98;   // a pedal that arrives rounded over the net (a guest at the wheel) still counts as full

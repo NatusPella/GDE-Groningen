@@ -61,6 +61,7 @@ import { SMOKE_HEALTH, kapRookt, schadeSnelheidFactor, valtOm, valOm } from './v
 import { rideFiets, rideMotorbike } from './vehicle/twowheeler.js';
 import { hoofdspeler } from './players.js';
 import { monumentTrafficAllowed } from './heritagearea.js';
+import { steerFollowRate } from './pedalfeel.js';
 export { MOTORBIKE_MODELS, GEARED_MOPED_MODEL, MOPED_LEGAL_SPEED } from './motomodels.js';
 
 // every traffic model, for warming their meshes before they first spawn
@@ -277,7 +278,8 @@ export class Vehicle {
     const target = clamp(steerInput + pull, -1, 1);
     if (isPlayer) {
       const returning = Math.abs(target) < Math.abs(this.steer) || target * this.steer < 0;
-      const rate = (returning ? PLAYER_STEER_RETURN : PLAYER_STEER_RATE) * (this.isBus ? 0.7 : 1) * dt;
+      // #1288: a stick (steerAnalog, set by player.js) is followed more directly than a key
+      const rate = (returning ? PLAYER_STEER_RETURN : steerFollowRate(!!this.steerAnalog, PLAYER_STEER_RATE)) * (this.isBus ? 0.7 : 1) * dt;
       this.steer += clamp(target - this.steer, -rate, rate);
     } else {
       this.steer = target;
