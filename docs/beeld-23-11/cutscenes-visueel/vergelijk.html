@@ -6,8 +6,9 @@
 <style>
   body { font: 15px/1.45 system-ui, sans-serif; margin: 24px auto; max-width: 1300px; padding: 0 16px; background: #f4f0e6; color: #1c1b18; }
   h1 { margin: 0 0 4px; } p.sub { margin: 0 0 24px; color: #4a463c; }
+  h2.deel { margin: 40px 0 16px; border-bottom: 2px solid #1c1b18; }
   .paar { margin: 0 0 36px; }
-  .paar h2 { margin: 0 0 2px; font-size: 18px; }
+  .paar h3 { margin: 0 0 2px; font-size: 18px; }
   .paar p { margin: 0 0 8px; color: #4a463c; }
   .rij { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
   figure { margin: 0; }
@@ -19,11 +20,13 @@
 </head>
 <body>
 <h1>Cutscenes visueel: voor en na</h1>
-<p class="sub">Branch <code>cutscenes-visueel-23-11</code>, stills uit een headless Chrome tegen de gestagede game (zelfde wereld, zelfde scènes; geen Electron). Ondertitels en "TEST" in de titelkaart horen bij het testscript.</p>
-<div class="let">Bekeken: de rondvaartboot (gesprek, mislukscène, dekmoment) en <code>M10.intro</code>. Niet bekeken: de zitplaatsen op kleine boten, <code>M30.outro</code>, <code>M01.intro</code>, <code>M01.outro</code>, <code>M15.outro</code> en <code>carriere-bezit-start</code> (alleen de data is gemeten).</div>
+<p class="sub">Branch <code>cutscenes-visueel-23-11</code>. Stills uit een eigen headless Chrome tegen de gestagede game (dezelfde wereld en scènes; geen Electron). De scènes staan op een vaste testplek (Grote Markt) of in de echte rondvaartboot bij de Spilsluizen. Een kaart "TEST" in een voor-beeld komt uit het oude testscript, niet uit het spel.</p>
+<div class="let">Bekeken in beeld: de rondvaartboot (gesprek, mislukscène, dekmoment met reling, intro), <code>M10.intro</code>, <code>M30.outro</code> en de keuken van de opening (deur en "Moi. De bank?"). Niet bekeken: de zitplaatsen op kleine boten, <code>M01.intro</code>, <code>M01.outro</code>, <code>M15.outro</code>, <code>carriere-bezit-start</code> en de bus. Details: <a href="../../CUTSCENE-ISSUES-23-11.md">CUTSCENE-ISSUES-23-11.md</a>.</div>
+
+<h2 class="deel">De rondvaartboot</h2>
 
 <section class="paar">
-  <h2>Rondvaartboot: een gesprek in de boot</h2>
+  <h3>Een gesprek in de boot</h3>
   <p>Voor: het paar stond dwars op het dak-eind, hoofden door het glas, blik opzij. Na: zittend op de bank onder het dak, lijven naar de boeg, alleen het hoofd draait naar de spreker.</p>
   <div class="rij">
     <figure class="voor"><figcaption>Voor</figcaption><img src="rondvaart-gesprek-voor.png" alt="Voor: Tammo en Tessa staan bij het glazen dak"></figure>
@@ -32,7 +35,16 @@
 </section>
 
 <section class="paar">
-  <h2>Rondvaartboot: de mislukscène</h2>
+  <h3>Het begin van een intro in de boot</h3>
+  <p>Voor: de scène begon op de hoogte van de volgcamera (16 m) en zakte seconden lang naar het paar. Na: het eerste beeld is meteen het paar op de bank (harde snee).</p>
+  <div class="rij">
+    <figure class="voor"><figcaption>Voor</figcaption><img src="rondvaart-intro-voor.png" alt="Voor: luchtbeeld van de boot"></figure>
+    <figure class="na"><figcaption>Na</figcaption><img src="rondvaart-intro-na.png" alt="Na: het paar op de bank"></figure>
+  </div>
+</section>
+
+<section class="paar">
+  <h3>De mislukscène</h3>
   <p>Voor: een hoge opname waarop het paar op de punt van de boeg staat (half in het water). Na: op de bank, camera onder het dak.</p>
   <div class="rij">
     <figure class="voor"><figcaption>Voor</figcaption><img src="rondvaart-mislukt-voor.png" alt="Voor: het paar op de boeg"></figure>
@@ -41,20 +53,51 @@
 </section>
 
 <section class="paar">
-  <h2>Rondvaartboot: het dekmoment (opbouw naar de kus)</h2>
-  <p>Voor: de camera stond op 1,5 m en kapte de hoofden af. Na: ruimer en iets hoger, hoofden en schouders in beeld, het paar net voor het dak. De reling uit de regie bestaat nog niet in het bootmodel (open punt 2 in <a href="../../CUTSCENE-ISSUES-23-11.md">CUTSCENE-ISSUES-23-11.md</a>).</p>
+  <h3>Het dekmoment (opbouw naar de kus)</h3>
+  <p>Voor: de camera op 1,5 m kapte de hoofden af en er was geen reling. Na: hoofden in beeld en een reling langs het voordek; de handen liggen erop.</p>
   <div class="rij">
     <figure class="voor"><figcaption>Voor</figcaption><img src="rondvaart-dek-voor.png" alt="Voor: hoofden afgekapt"></figure>
-    <figure class="na"><figcaption>Na</figcaption><img src="rondvaart-dek-na.png" alt="Na: hoofden in beeld"></figure>
+    <figure class="na"><figcaption>Na</figcaption><img src="rondvaart-dek-na.png" alt="Na: hoofden in beeld, reling"></figure>
+  </div>
+</section>
+
+<h2 class="deel">Verhaalscènes</h2>
+
+<section class="paar">
+  <h3>M10.intro: Jelle, Durk en Douwe stappen uit de limo</h3>
+  <p>Voor: ze begonnen midden in de limo, alleen hun voeten kwamen eronder uit. Na: ze stappen aan de zijkant uit. (Het groene vlak op straat linksonder en het zwarte bord met paal horen bij de testplek en het pand, niet bij de scène.)</p>
+  <div class="rij">
+    <figure class="voor"><figcaption>Voor</figcaption><img src="m10-intro-voor.png" alt="Voor: alleen voeten onder de limo"></figure>
+    <figure class="na"><figcaption>Na</figcaption><img src="m10-intro-na.png" alt="Na: drie figuren naast de limo"></figure>
   </div>
 </section>
 
 <section class="paar">
-  <h2>M10.intro: Jelle, Durk en Douwe stappen uit de limo</h2>
-  <p>Voor: ze begonnen midden in de limo, alleen hun voeten kwamen eronder uit. Na: ze stappen aan de zijkant uit en lopen om de neus heen.</p>
+  <h3>M30.outro: "Thuis is waar de kar staat"</h3>
+  <p>Voor: de camera keek van de snackwagen af naar het Stadhuis; de wagen verdween na de opening uit beeld. Na: van achter het paar, met de wagen Tam &amp; Tes achter Tammo.</p>
   <div class="rij">
-    <figure class="voor"><figcaption>Voor</figcaption><img src="m10-intro-voor.png" alt="Voor: alleen voeten onder de limo"></figure>
-    <figure class="na"><figcaption>Na</figcaption><img src="m10-intro-na.png" alt="Na: drie figuren naast de limo"></figure>
+    <figure class="voor"><figcaption>Voor</figcaption><img src="m30-outro-voor.png" alt="Voor: geen snackwagen in beeld"></figure>
+    <figure class="na"><figcaption>Na</figcaption><img src="m30-outro-na.png" alt="Na: snackwagen achter Tammo"></figure>
+  </div>
+</section>
+
+<h2 class="deel">De opening (keuken)</h2>
+
+<section class="paar">
+  <h3>De keukendeur</h3>
+  <p>Voor: achter de open deur een zwart vlak; Tammo kwam door de wand in losse delen. Na: een echte deuropening met een verlichte gang (vloer, kapstok met jas, lamp).</p>
+  <div class="rij">
+    <figure class="voor"><figcaption>Voor</figcaption><img src="opening-deur-voor.png" alt="Voor: zwart achter de deur"></figure>
+    <figure class="na"><figcaption>Na</figcaption><img src="opening-deur-na.png" alt="Na: verlichte gang achter de deur"></figure>
+  </div>
+</section>
+
+<section class="paar">
+  <h3>"Moi. De bank?"</h3>
+  <p>Voor: laag en dichtbij, het beeld richtte op de borst. Na: op ooghoogte en iets verder weg, het hele hoofd met ruimte erboven, en de gang achter hem. (De grijze strook in de gang is de straat onder de testplek; in het spel hangt de keuken hoog in de flat.)</p>
+  <div class="rij">
+    <figure class="voor"><figcaption>Voor</figcaption><img src="opening-bank-voor.png" alt="Voor: dichtbij, hoofd aan de rand"></figure>
+    <figure class="na"><figcaption>Na</figcaption><img src="opening-bank-na.png" alt="Na: hoofd met ruimte erboven"></figure>
   </div>
 </section>
 </body>
