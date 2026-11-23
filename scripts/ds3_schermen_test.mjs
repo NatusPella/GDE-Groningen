@@ -73,8 +73,9 @@ for (const act of ['again', 'settings', 'diag']) ok(new RegExp(`class="ds-z-knop
 ok(/data-act="back">Terug \{ESC\}/.test(kaart) && /ds-z-knop\$\{card\.advice\.apply && !card\.busy \? ' ds-z-knop--secundair' : ''\}" data-act="back"/.test(kaart), 'Terug is alleen de hoofdknop als Toepassen er niet is');
 ok(/\{ARROWS\} kiezen · \{ENTER\} ok · \{ESC\} terug/.test(kaart), 'de hints zijn toetsplaatjes ({TOKEN})');
 for (const t of ['Toepassen', 'Nog een keer', 'Instellingen', 'Technische info kopiëren', 'Terug']) ok(kaart.includes(t), `knoptekst "${t}" blijft`);
-ok(/body\.tr-result-open[^{]*#cine/.test(schermen) && /#banter-sub/.test(schermen), 'ondertitels zwijgen tijdens het resultaat');
-ok(/body\.trailer-on[^{]*#banter-sub/.test(schermen), 'ondertitels zwijgen tijdens de meting');
+const subCss = lees('game/js/subtitle.css');
+ok(/body\.tr-result-open[^{]*#cine/.test(schermen) && /body\.tr-result-open \.ds-sub/.test(subCss), 'ondertitels zwijgen tijdens het resultaat');
+ok(/body\.trailer-on \.ds-sub/.test(subCss), 'ondertitels zwijgen tijdens de meting');
 ok(/#trailer-result \{[^}]*z-index: 95/.test(schermen), 'het resultaat ligt boven de ondertitel-lagen (z-index 95)');
 // de metingen zelf blijven ongewijzigd: de rekenfuncties worden nog aangeroepen op dezelfde plek
 for (const stuk of ['computeStats(r)', 'setBenchResult(stats, res.preset', 'writeLastRun(packRun(', 'basis']) ok(trailer.includes(stuk), `meting ongewijzigd: ${stuk}`);

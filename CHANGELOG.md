@@ -9,6 +9,8 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ## [Unreleased]
 
+- Ondertitels: overal dezelfde. Films, het verhaalgesprek, de rondvaart, de autopraat, de radio, de introfilm en de trailer gebruiken nu één ondertitelvak: een papieren plaatje met inktrand, onderaan het midden, met het sprekerlabel vooraan. Het verhaalgesprek stond nog als losse witte tekst; dat is nu hetzelfde vak. De instellingen Grootte, Donker vlak, Contrast hoog en Ondertitels uit werken op alle vakken, en het vak blijft binnen de veilige rand van het scherm.
+
 ## [0.65.0] - 2026-11-22
 
 Samen spelen met vier echte vensters getest, een ronde zeefdruk-menu's (Spullen, Loopbanen, Boerderij, zoeken), echte voetstappen en weergeluid, AAA-aankleding van de missies van akte 1 tot en met 4 en een snellere start. Pre-release voor de speeltest.

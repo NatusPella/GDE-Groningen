@@ -188,9 +188,10 @@ for (const [mode, p] of Object.entries(PALETTES)) {
     '#850: alle paneellabels staan in de 12px-vloer');
 
   const hull = fs.readFileSync(path.join(dir, 'hud_panel.css'), 'utf8');
-  ok(/body\.plane-flying #banter-sub, body\.plane-flying #radio-sub \{\s*bottom: calc\(500px \* var\(--ui, 1\)\) !important;/.test(hull),
-    '#855: de radio-ondertitel wijkt in de vlucht boven het vliegpaneel');
-  ok(/@media \(max-height: 640px\) \{[\s\S]*?body\.plane-flying #banter-sub, body\.plane-flying #radio-sub \{ display: none; \}/.test(hull),
+  const subCss = fs.readFileSync(path.join(dir, 'subtitle.css'), 'utf8'); // het ene ondertitelcomponent (23-11)
+  ok(/body\.plane-flying \{ --ds-sub-bottom: calc\(500px \* var\(--ui, 1\)\); \}/.test(subCss),
+    '#855: de ondertitel wijkt in de vlucht boven het vliegpaneel');
+  ok(/@media \(max-height: 640px\)[^{]*\{ body\.plane-flying \.ds-sub:not\(#cine \.ds-sub\) \{ display: none; \}/.test(subCss),
     '#855: op een korte telefoon verdwijnt de ondertitel tijdens het vliegen (radio speelt door)');
 
   const mg = fs.readFileSync(path.join(dir, 'minigamekit.js'), 'utf8');
