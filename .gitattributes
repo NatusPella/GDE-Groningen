@@ -6,3 +6,5 @@ scripts/windows/*.txt text eol=crlf
 *.mjs text eol=lf
 *.js text eol=lf
 game/stad.json text eol=lf
+# gegenereerde cheatsheet: controller_ingame_test vergelijkt hem byte voor byte met de bron (LF), ook op Windows
+docs/CONTROLLER-CHEATSHEET-*.html text eol=lf
