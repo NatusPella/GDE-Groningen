@@ -39,7 +39,7 @@ t('#924: elke banterregel van het verhaal vindt zijn eigen opname (rec, niet all
   const banterLines = data.scenes.filter((s) => s.kind === 'banter')
     .flatMap((s) => s.lines.filter((l) => l.key === 'T' || l.key === 'A'))
     .filter((l) => !l.textOnly);
-  assert.equal(banterLines.length, 130, 'de autogesprekken van het verhaal');
+  assert.equal(banterLines.length, 134, 'de autogesprekken van het verhaal'); // 23-11: 4 autoritregels kregen een opname (eerder 130)
   for (const l of banterLines) {
     const key = (l.voice || l.speaker) + '|' + l.text;
     assert.ok(['story', 'lines', 'banter'].includes(l.rec), `${l.text.slice(0, 40)}: rec`);
@@ -47,11 +47,11 @@ t('#924: elke banterregel van het verhaal vindt zijn eigen opname (rec, niet all
   }
   // en banter.js vindt ze via dezelfde resolver; de meeste zitten in lines (de oude bug)
   const found = banterExchanges().flatMap((ex) => ex.lines).filter((l) => l[3]).map((l) => ({ l, v: banterLineVoice(l) }));
-  assert.equal(found.length, 130);
+  assert.equal(found.length, 134);
   assert.ok(found.every((x) => x.v), 'elke gesproken banterregel heeft een opname');
   const fromLines = found.filter((x) => x.l[3] === 'lines').length;
   assert.ok(fromLines >= 60, `de meeste banterregels staan in lines (nu ${fromLines}); een lookup die alleen banter leest laat ze stil`);
-  assert.equal(found.filter((x) => x.l[3] === 'banter').length, 16);
+  assert.equal(found.filter((x) => x.l[3] === 'banter').length, 14); // 23-11: eerder 16, de TTS-ronde nam er opnames bij in lines
   // de korte reacties (geen rec) komen uit de banterbank, via dezelfde resolver
   for (const list of Object.values(REACTIONS)) for (const l of list) assert.ok(banterLineVoice(l), `reactie zonder opname: ${l[1]}`);
 });
