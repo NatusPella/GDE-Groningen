@@ -1194,6 +1194,29 @@
    "prio": "-"
   },
   {
+   "id": "provinciedieren",
+   "naam": "Provinciedieren en de wolf (Quaternius, ADR 0053)",
+   "groep": "Wereld",
+   "modules": [
+    "provinceanimals",
+    "animalmodels"
+   ],
+   "eigenaar": "wereld",
+   "gast": "Ree, vos, erfdieren en de wolf leven in de wereld van de host en komen bij de gast uit de dierenlijst van de snapshot; de stand van de wolf gaat mee in het aux-veld en een gast neemt een beet in zijn eigen spel.",
+   "beloning": "Het dierenboek per speler; een wolfsbeet is schade voor de speler die gebeten wordt.",
+   "wegval": "De dieren blijven in de wereld van de host; een oudere gast ziet de wolf maar krijgt geen beet.",
+   "test": [
+    "scripts/provinciedieren_test.mjs",
+    "scripts/coopextra_test.mjs"
+   ],
+   "regel": {
+    "doc": "docs/COOP-GAST.md",
+    "zoek": "## Provinciedieren en de wolf (dieren-vervolg-23-11, ADR 0053)"
+   },
+   "status": "OK",
+   "prio": "-"
+  },
+  {
    "id": "straatreactie",
    "naam": "Straat reageert op toeter en rijgedrag",
    "groep": "Verkeer en reizen",
@@ -1939,6 +1962,10 @@
   {
    "glob": "saveveilig",
    "reden": "Veilig schrijven van de eigen opslag op dit apparaat; lokaal."
+  },
+  {
+   "glob": "meshlod",
+   "reden": "Alleen beeld: mesh-LOD per client, geen spelstaat en geen netwerk."
   }
  ],
  "opslag": {
