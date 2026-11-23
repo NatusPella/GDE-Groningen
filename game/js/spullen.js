@@ -150,6 +150,8 @@ const SP_CSS = `<style data-spul-css>
 #pause-menu .sp-tile__s{font-size:13px;line-height:1.2;color:var(--mut);max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 #pause-menu .sp-badge{position:absolute;top:5px;right:5px;min-width:26px;height:24px;padding:0 7px;display:inline-grid;place-items:center;border-radius:12px;background:var(--ink);color:var(--ds-zeef-bg,#fff);font-size:14px;font-weight:700;letter-spacing:.02em}
 #pause-menu .sp-pip{position:absolute;top:5px;left:5px;max-width:calc(100% - 52px);padding:1px 7px;border-radius:10px;background:var(--ds-zeef-bg,#fff);border:1.5px solid var(--g);color:var(--g);font-size:13px;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#pause-menu .sp-pip--ic{padding:1px var(--ds-s-1);display:inline-flex}
+#pause-menu .sp-pip--ic svg{width:1em;height:1em}
 #pause-menu .sp-soort{position:absolute;left:5px;bottom:5px;max-width:calc(100% - 10px);padding:0 7px;border-radius:9px;background:color-mix(in srgb,var(--ink) 80%,transparent);color:var(--ds-zeef-bg,#fff);font-size:13px;line-height:1.35;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 #pause-menu .pm-spulchips .m-chip .pm-ic{width:1.1em;height:1.1em;margin-right:6px;vertical-align:-0.18em;flex:none}
 #pause-menu .sp-leeg{padding:var(--ds-s-4,16px) 8px;max-width:420px;font-size:max(16px,var(--menu-min));color:var(--mut)}
@@ -334,7 +336,7 @@ function tegel(it, i) {
   const soort = deel === 'alles' && it.cat !== 'geld' ? catLabel(it) : '';
   const ph = it.viewer ? '<span class="sp-ph" data-state="laden"></span>' : `<span class="sp-ph" data-state="icoon">${svg(it)}</span>`;
   return `<button type="button" class="sp-tile" data-spul="${esc(it.key)}" data-i="${i}" data-cat="${catVan(it)}" aria-label="${esc(tegelNaam(it))}" title="${esc(it.title)}"${sel === it.key ? ' aria-current="true"' : ''}>` +
-    `<span class="sp-pw${it.tint ? ' sp-tint' : ''}"${it.tint ? ` style="--sp-tint:${it.tint}"` : ''}>${ph}${it.side ? `<span class="sp-pip">${esc(it.side)}</span>` : ''}${badge ? `<span class="sp-badge" aria-hidden="true">${badge}</span>` : ''}${soort ? `<span class="sp-soort" aria-hidden="true">${esc(soort)}</span>` : ''}</span>` +
+    `<span class="sp-pw${it.tint ? ' sp-tint' : ''}"${it.tint ? ` style="--sp-tint:${it.tint}"` : ''}>${ph}${it.side ? (it.side === 'Aan' ? `<span class="sp-pip sp-pip--ic" title="Aan">${icoon('vinkje')}</span>` : `<span class="sp-pip">${esc(it.side)}</span>`) : ''}${badge ? `<span class="sp-badge" aria-hidden="true">${badge}</span>` : ''}${soort ? `<span class="sp-soort" aria-hidden="true">${esc(soort)}</span>` : ''}</span>` +
     `<span class="sp-tile__t">${esc(it.title)}</span><span class="sp-tile__s">${esc(it.sub || '')}</span></button>`;
 }
 

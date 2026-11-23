@@ -39,7 +39,7 @@ export function sorteer(items, sort = 'soort') {
   const rest = items.filter((it) => it.cat !== 'geld');
   if (sort === 'naam') rest.sort(naam);
   else if (sort === 'aantal') rest.sort((a, b) => (b.aantal || 0) - (a.aantal || 0) || naam(a, b));
-  return [...geld, ...rest];
+  return [...rest, ...geld]; // UX-audit 23-11 (S14): het geld staat al in de kop; de tegel (met het kasboek) sluit de rij af
 }
 
 // Het getal op de tegel: een aantal boven nul, "99+" als het groot is. Leeg zonder aantal.

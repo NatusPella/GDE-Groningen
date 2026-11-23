@@ -30,13 +30,14 @@ t('elke categorie van het raster komt uit een bestaande groep; geen gewicht, sle
   for (const [id] of M.CATS) assert.ok(M.LEEG[id], `lege staat voor ${id}`);
 });
 
-t('sorteren: geld blijft vooraan; naam is A tot Z; aantal zet de grootste stapel voorop', () => {
-  assert.deepEqual(M.sorteer(items).map((i) => i.key), items.map((i) => i.key), 'standaard houdt de volgorde');
+t('sorteren: geld sluit de rij af (het staat al in de kop, UX-audit 23-11); naam is A tot Z; aantal zet de grootste stapel voorop', () => {
+  const zonderGeld = items.filter((i) => i.cat !== 'geld').map((i) => i.key);
+  assert.deepEqual(M.sorteer(items).map((i) => i.key), [...zonderGeld, 'geld'], 'standaard houdt de volgorde, geld achteraan');
   const naam = M.sorteer(items, 'naam').map((i) => i.title);
-  assert.equal(naam[0], '€120');
-  assert.deepEqual(naam.slice(1), ['Bank', 'Bierfles', 'Buks', 'Kroket', 'Spaarkaart', 'Stadjer', 'Turbo', 'Waterpistool']);
+  assert.equal(naam[naam.length - 1], '€120');
+  assert.deepEqual(naam.slice(0, -1), ['Bank', 'Bierfles', 'Buks', 'Kroket', 'Spaarkaart', 'Stadjer', 'Turbo', 'Waterpistool']);
   const aantal = M.sorteer(items, 'aantal').map((i) => i.title);
-  assert.deepEqual(aantal.slice(0, 4), ['€120', 'Bierfles', 'Buks', 'Kroket']);
+  assert.deepEqual(aantal.slice(0, 3), ['Bierfles', 'Buks', 'Kroket']);
   assert.equal(M.cycleSort('soort'), 'naam');
   assert.equal(M.cycleSort('aantal'), 'soort', 'de cyclus sluit');
 });
