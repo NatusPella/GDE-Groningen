@@ -142,6 +142,19 @@ for (let k = 0; k < snaps.length; k++) {
   if ((snaps[j].t - a.t) >= 12) { add('speler-stilstand', a.i, snaps[j].t - a.t, `speler staat ${(snaps[j].t - a.t).toFixed(0)} s stil buiten filmpje/gesprek (${a.story || '?'} ${a.stage || ''} ${a.msg || ''})`); k = j; }
 }
 
+// tekst-overlap: de momentopnamen met een ovScan-meting (elke 2 s); een reeks aaneengesloten metingen met hetzelfde eerste geval is één kandidaat
+let ovMetingen = 0;
+for (let k = 0; k < snaps.length; k++) {
+  const a = snaps[k];
+  if (a.ov === undefined) continue;
+  ovMetingen++;
+  const n = (a.ov || 0) + (a.afgekapt || 0) + (a.filmHud || 0);
+  if (!n) continue;
+  let j = k; while (j + 1 < snaps.length && (snaps[j + 1].ov === undefined || ((snaps[j + 1].ovEerste || '') === (a.ovEerste || '') && (snaps[j + 1].ov || 0) + (snaps[j + 1].afgekapt || 0) + (snaps[j + 1].filmHud || 0) > 0))) j++;
+  add('tekst-overlap', a.i, n + (snaps[j].t - a.t) / 10, `${a.ov || 0} overlap, ${a.afgekapt || 0} afgekapt, ${a.filmHud || 0} HUD onder een filmpje, ${(snaps[j].t - a.t).toFixed(0)} s: ${a.ovEerste || '?'}`, { len: Math.round((snaps[j].t - a.t) * FPS) });
+  k = j;
+}
+
 cand.sort((a, b) => a.frame - b.frame);
 const stat = {
   frames: F, fps: FPS, seconds: +(F / FPS).toFixed(1), segments: segs.length,
@@ -150,6 +163,7 @@ const stat = {
   rekentijdMs: { mediaan: +medUpd.toFixed(1), p99: +p99Upd.toFixed(1), max: +Math.max(...upd).toFixed(1) }, wallMsPerBeeld: { mediaan: +pct(wallv, 0.5).toFixed(0), p99: +pct(wallv, 0.99).toFixed(0), max: +Math.max(...wallv).toFixed(0) },
   streamWacht: { beeldenMetWachten: stallFrames, reeksen: nStall, maxTussenbeelden: maxExtra, aandeel: +(stallFrames / Math.max(1, tele.length)).toFixed(4) },
   driehoekenMediaan: Math.round(trisMed), nanRegels: nan.length, consoleGroepen: consoleCounts,
+  tekstOverlap: { metingen: ovMetingen, kandidaten: cand.filter((c) => c.kind === 'tekst-overlap').length },
 };
 fs.writeFileSync(path.join(dir, 'analyse.json'), JSON.stringify({ stat, kandidaten: cand }, null, 1));
 fs.writeFileSync(path.join(dir, 'lumaseries.json'), JSON.stringify({ fps: FPS, mean: Array.from(mean, (v) => Math.round(v * 10) / 10) }));

@@ -44,6 +44,15 @@ async function qaMain() {
           goal: s.target ? Math.round(s.target.distance) : null, msg: s.hud && s.hud.messages && s.hud.messages[0] ? String(s.hud.messages[0]).slice(0, 80) : null, wanted: s.wanted || 0 });
       }
       if (sc && sc.renderer) { const inf = sc.renderer.info; row.tris = inf.render.triangles; row.calls = inf.render.calls; row.geo = inf.memory.geometries; }
+      // tekst-overlap (scripts/qa/overlap.page.js, door opname.mjs ervoor geplakt): elke 2 s het aantal overlappende of afgekapte vlakken en het eerste geval
+      if (typeof ovScan === 'function' && snaps.length % 4 === 0) {
+        try {
+          const o = ovScan();
+          row.ov = o.overlap.length; row.afgekapt = o.afgekapt.length; row.filmHud = o.filmHud.length;
+          if (o.overlap[0]) row.ovEerste = (o.overlap[0].boven + ' over ' + o.overlap[0].onder).slice(0, 160);
+          else if (o.afgekapt[0]) row.ovEerste = ('afgekapt ' + o.afgekapt[0].el).slice(0, 160);
+        } catch (e) { row.ovFout = String(e && e.message).slice(0, 80); }
+      }
       snaps.push(row);
     } catch (e) { /* geen momentopname */ }
   }
