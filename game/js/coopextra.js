@@ -552,7 +552,7 @@ export function maakMisc(bronnen, geheugen, now) {
 // Modules melden wat ze tijdelijk in de wereld zetten met registreerRekwisieten(naam, (bij) => [{ x, y, z, hoek, staat, klein, kleur, id, soort }]);
 // die modules zelf blijven zoals ze zijn. De host kiest per gast de MAX_REKWISIETEN dichtstbijzijnde binnen REKW_RADIUS van wie dan ook (de
 // foci van coopfoci.js zitten al in bij: de lichamen van alle spelers) en pakt ze in twee stukken van hoogstens 255 bytes.
-export const REKW_SOORTEN = ['laser', 'zekering', 'kluis', 'vlag', 'carbid', 'raket', 'wapendrop', 'spijkermat'];
+export const REKW_SOORTEN = ['laser', 'zekering', 'kluis', 'vlag', 'carbid', 'raket', 'wapendrop', 'spijkermat', 'kraampje', 'ijscokar', 'gitaarkoffer']; // achteraan toevoegen: de index gaat over de draad (de laatste drie: straatgebeurtenissen, streeteventlive.js)
 export const MAX_REKWISIETEN = 40;
 export const REKW_RADIUS = 200;
 const REKW_KOP = 9, REKW_ITEM = 11, REKW_MAX_BYTES = 255;

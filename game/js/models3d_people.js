@@ -10,6 +10,7 @@ import { attachAccessories } from './models3d_clothing.js';
 import { buildHairStyle } from './models3d_hair.js';
 import { BODY_TYPES } from './clothinghair.js';
 import { npcLook } from './clothing.js';
+import { propGeometry } from './propmodels3d.js'; // de gitaar van de straatmuzikant: één geometrie uit het propregister
 
 // Low-poly humanoid for the on-foot player, every pedestrian, drivers and
 // bike/scooter riders: one SkinnedMesh (one draw call, one shared material)
@@ -1620,6 +1621,7 @@ export function seatPose(mesh, spec = SEAT_CAR, t = 0) {
   if (ud.umbrella) ud.umbrella.visible = false;
   setPropVisible(ud, 'phoneProp', false);
   setPropVisible(ud, 'rodProp', false);
+  setPropVisible(ud, 'guitarProp', false);
   if (spec.arms !== 'paddle') setPropVisible(ud, 'paddleProp', false);
   setPropVisible(ud, 'supPaddle', false);
   ud.seated = true;
@@ -1829,6 +1831,16 @@ export function waveOverlay(mesh, t, k = 1) {
   if (ud.head) ud.head.rotation.z += 0.12 * k;
 }
 
+// Een boze vuist in de lucht achter het stuur (trafficreact.js, #1315): de rechterarm omhoog, schuddend, het hoofd iets opzij.
+// Absolute stand per beeld (geen opstapeling); seatPose zet hem daarna terug.
+export function fistOverlay(mesh, t) {
+  const ud = mesh.userData;
+  if (!ud.armR) return;
+  const shake = Math.sin(t * 15);
+  setArm(ud.armR, ud.elbowR, 1.65 + shake * 0.12, 1.55 + shake * 0.25, 0.2);   // vooruit en omhoog tot gezichtshoogte: niet door het dak
+  if (ud.head) ud.head.rotation.set(0, 0.25, 0.08);
+}
+
 // Juichen (vrijgezellenfeest, vrijgezellen.js): beide armen om en om de lucht in, een beetje op en neer. k 0..1.
 export function juichOverlay(mesh, t, links, rechts, spring, k = 1) {
   const ud = mesh.userData;
@@ -1924,6 +1936,7 @@ const ROD_GEO = markShared((() => {
   return g;
 })());
 const ROD_MAT = markShared(new THREE.MeshStandardMaterial({ color: 0x3a2c1f, roughness: 0.8 }));
+const GUITAR_MAT = markShared(vcMaterial({ roughness: 0.6 }));
 // double-bladed paddle across the body, shaft along z
 const PADDLE_GEO = markShared((() => {
   const shaft = new THREE.CylinderGeometry(0.016, 0.016, 2.0, 5).rotateX(Math.PI / 2);
@@ -2272,6 +2285,7 @@ function applyPose(mesh, pose, t) {
   const hipH = HIP_Y - drop / sy;
   setPropVisible(ud, 'phoneProp', pose === 'phone' || pose === 'call');
   setPropVisible(ud, 'rodProp', pose === 'fish');
+  setPropVisible(ud, 'guitarProp', pose === 'muziek');
   if (ud.umbrella) ud.umbrella.visible = !pose;
   if (pose === 'crouch' || pose === 'sit' || pose === 'fish' || pose === 'haul' || /^hengel/.test(pose || '')) {
     ud.pelvis.position.set(0, HIP_Y, 0);
@@ -2350,6 +2364,30 @@ function applyPose(mesh, pose, t) {
       setArm(ud.armL, ud.elbowL, 0.4 + Math.sin(t * 1.1) * 0.25, 0.9 + Math.sin(t * 1.1) * 0.3);
       setArm(ud.armR, ud.elbowR, 0.4 + Math.sin(t * 1.7 + 2) * 0.35, 1.0 + Math.sin(t * 1.7 + 2) * 0.35);
       break;
+    case 'talk': {
+      // praten in een groepje (dailyrhythm.js 'praten', #1314): handen op borsthoogte die om en om iets uitleggen, af en toe knikken
+      const a = Math.sin(t * 2.3 + (ud.animOffset || 0)), b = Math.sin(t * 1.7 + 1.3 + (ud.animOffset || 0));
+      setArm(ud.armL, ud.elbowL, 0.45 + Math.max(0, a) * 0.45, 1.35 + a * 0.25, -0.1);
+      setArm(ud.armR, ud.elbowR, 0.4 + Math.max(0, b) * 0.5, 1.4 + b * 0.25, 0.1);
+      ud.head.rotation.set(0, Math.sin(t * 0.6) * 0.15, Math.sin(t * 3.1) * 0.05);
+      break;
+    }
+    case 'muziek': {
+      // straatmuzikant (streetevents.js): de gitaar uit het propregister schuin voor de buik, rechts tokkelen, links op de hals
+      if (!ud.guitarProp && ud.chest) {
+        const g = new THREE.Mesh(propGeometry('gitaar'), GUITAR_MAT);
+        g.position.set(0.17, -0.42, 0.02);
+        g.rotation.set(1.05, 0, 0);
+        ud.chest.add(g);
+        ud.guitarProp = g;
+      }
+      if (ud.guitarProp) ud.guitarProp.visible = true;
+      const strum = Math.sin(t * 9);
+      setArm(ud.armR, ud.elbowR, 0.55 + strum * 0.12, 1.45, 0.25);
+      setArm(ud.armL, ud.elbowL, 1.15, 1.2, -0.55);
+      ud.head.rotation.set(0, 0, 0.18 + Math.sin(t * 1.9) * 0.06);
+      break;
+    }
   }
 }
 
@@ -2366,6 +2404,7 @@ function updatePose(mesh) {
     if (ud.shadow && ud.shadowBaseY !== undefined) ud.shadow.position.y = ud.shadowBaseY;
     setPropVisible(ud, 'phoneProp', false);
     setPropVisible(ud, 'rodProp', false);
+    setPropVisible(ud, 'guitarProp', false);
     if (ud.umbrella) ud.umbrella.visible = true;
   }
 }

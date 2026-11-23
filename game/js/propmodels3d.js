@@ -215,7 +215,129 @@ function shade(hex, f = 0.88) {
   return (Math.round(r) << 16) | (Math.round(g) << 8) | Math.round(b);
 }
 
-const MAKERS = { bank, afvalbak, fietsenrek: () => fietsenrek(4), bushokje, paaltje, autostoel, dashboard, vetvat, jerrycan };
+// --- straatgebeurtenissen (#1316) -------------------------------------------------------------------
+// Een kraampje op de stoep (limonade, tweedehands boeken): schraagtafel met een kleed dat aan de voorkant (+x) afhangt,
+// twee palen met een gestreepte luifel, een handgeschreven bordje en spullen op tafel. Breedte langs z.
+function kraampje() {
+  const B = new GeoBuilder(1);
+  const W = 1.6, D = 0.8;
+  const wood = 0x9a7046, woodD = 0x7a5634, cloth = 0xe8e1cc, stripeA = 0xc8433a, stripeB = 0xf2eee4;
+  B.box(0, 0.76, 0, D, 0.04, W, wood);                                                         // tafelblad
+  B.box(0.02, 0.785, 0, D - 0.02, 0.012, W - 0.04, cloth);                                     // kleed op het blad
+  B.box(D / 2 + 0.005, 0.5, 0, 0.012, 0.5, W - 0.04, cloth);                                   // kleed hangt voor af
+  for (let i = 0; i < 4; i++) B.box(D / 2 + 0.012, 0.5, -W / 2 + 0.2 + i * 0.4, 0.004, 0.48, 0.05, 0xd6cdb2); // plooien
+  for (const sz of [-1, 1]) for (const sx of [-1, 1]) B.box(sx * (D / 2 - 0.08), 0.37, sz * (W / 2 - 0.08), 0.05, 0.74, 0.05, woodD, 0, 0, 0, sx * 0.06); // schragen
+  for (const sz of [-1, 1]) B.box(0, 0.25, sz * (W / 2 - 0.08), D - 0.2, 0.03, 0.03, woodD);   // dwarslat tussen de poten
+  for (const sz of [-1, 1]) B.geo(tubeGeometry([-D / 2 + 0.05, 0.76, sz * (W / 2 - 0.04)], [-D / 2 + 0.05, 2.05, sz * (W / 2 - 0.04)], 0.022), null, STEEL); // luifelpalen
+  // luifel: vijf banen om en om, licht hellend naar voren, met een geschulpte rand
+  for (let i = 0; i < 5; i++) {
+    const z = -W / 2 + (i + 0.5) * (W / 5);
+    B.box(0.05, 2.0, z, D + 0.3, 0.025, W / 5, i % 2 ? stripeB : stripeA, 0, 0, 0, -0.18);
+    B.box(D / 2 + 0.2, 1.88, z, 0.01, 0.12, W / 5 - 0.02, i % 2 ? stripeB : stripeA);
+  }
+  B.box(-D / 2 + 0.05, 2.06, 0, 0.04, 0.04, W, STEEL);                                          // ligger achter
+  // bordje met krijt op een paaltje (de tekst is een vlak met een lichte rand)
+  B.box(D / 2 + 0.1, 1.05, W / 2 - 0.2, 0.02, 0.32, 0.42, 0x2c3a33);
+  B.box(D / 2 + 0.112, 1.05, W / 2 - 0.2, 0.004, 0.26, 0.36, 0x3a4a42);
+  for (let i = 0; i < 3; i++) B.box(D / 2 + 0.116, 1.13 - i * 0.07, W / 2 - 0.2, 0.002, 0.018, 0.26 - i * 0.05, 0xe9e6dc);
+  // spullen: een kan limonade met glazen, een stapel boeken, een geldkistje
+  B.geo(new THREE.CylinderGeometry(0.07, 0.08, 0.24, 8), composeMatrix(0.05, 0.91, -0.45), 0xf2d64a);
+  B.geo(new THREE.CylinderGeometry(0.075, 0.075, 0.03, 8), composeMatrix(0.05, 1.04, -0.45), 0xdedad0);
+  for (let i = 0; i < 4; i++) B.geo(new THREE.CylinderGeometry(0.032, 0.028, 0.09, 6), composeMatrix(0.2, 0.84, -0.6 + i * 0.1), 0xcfe3e8);
+  for (let i = 0; i < 4; i++) B.box(0.0, 0.81 + i * 0.045, 0.3, 0.22, 0.04, 0.3, [0x3a5a8a, 0x8a3a3a, 0x3a6a4a, 0xc9a227][i], 0, 0.1 * i);
+  B.box(-0.15, 0.84, 0.6, 0.18, 0.09, 0.24, 0x5a4a3a);
+  B.box(-0.15, 0.89, 0.6, 0.185, 0.012, 0.245, 0x9aa0a4);                                       // deksel van het kistje
+  return B.build();
+}
+
+// Een ijscokar (zomer!): een witte koelbak op twee wielen met deksels, een duwbeugel, een steunpoot, een parasol
+// en een ijshoorntje als uithangbord. +x is de verkoopkant, breedte langs z.
+function ijscokar() {
+  const B = new GeoBuilder(1);
+  const body = 0xf1efe8, trim = 0x4aa6c8, lidC = 0xdfe9ee;
+  B.box(0, 0.62, 0, 0.75, 0.62, 1.3, body);                                                    // koelbak
+  B.box(0.38, 0.62, 0, 0.012, 0.5, 1.2, trim);                                                 // blauwe band voor
+  B.box(0.385, 0.66, 0, 0.004, 0.16, 0.9, 0xf7f3e9);                                           // het vlak waar het menu op staat
+  for (let i = 0; i < 4; i++) B.box(0.388, 0.67, -0.32 + i * 0.21, 0.003, 0.08, 0.14, [0xe48aa6, 0xf2d27a, 0x9bd08f, 0x8b5a3c][i]); // de smaken
+  B.box(0, 0.94, 0, 0.78, 0.03, 1.34, trim);                                                   // rand
+  for (const z of [-0.33, 0.33]) {
+    B.box(0, 0.965, z, 0.66, 0.025, 0.6, lidC);                                                // twee deksels
+    B.box(0.12, 0.99, z, 0.04, 0.02, 0.22, STEEL);                                             // handgreep
+  }
+  for (const z of [-0.72, 0.72]) {
+    B.geo(new THREE.CylinderGeometry(0.24, 0.24, 0.06, 14).rotateX(Math.PI / 2), composeMatrix(-0.05, 0.24, z), 0x222426);  // band
+    B.geo(new THREE.CylinderGeometry(0.15, 0.15, 0.065, 10).rotateX(Math.PI / 2), composeMatrix(-0.05, 0.24, z), 0xb9bcc0); // velg
+    B.box(-0.05, 0.45, z * 0.95, 0.05, 0.3, 0.03, STEEL);                                      // ophanging
+  }
+  B.geo(tubeGeometry([-0.05, 0.24, -0.75], [-0.05, 0.24, 0.75], 0.02), null, STEEL);           // as
+  B.geo(tubeGeometry([-0.38, 0.9, -0.5], [-0.75, 1.0, -0.5], 0.02), null, STEEL);              // duwbeugel
+  B.geo(tubeGeometry([-0.38, 0.9, 0.5], [-0.75, 1.0, 0.5], 0.02), null, STEEL);
+  B.geo(tubeGeometry([-0.75, 1.0, -0.5], [-0.75, 1.0, 0.5], 0.024), null, 0x2b2f33);
+  B.geo(tubeGeometry([0.3, 0.32, 0.5], [0.3, 0.0, 0.5], 0.02), null, STEEL);                   // steunpoot
+  B.geo(tubeGeometry([0.3, 0.32, -0.5], [0.3, 0.0, -0.5], 0.02), null, STEEL);
+  // parasol: stok, acht banen om en om, een knop
+  B.geo(tubeGeometry([-0.25, 0.95, 0], [-0.25, 2.15, 0], 0.02), null, 0xd8d4c8);
+  for (let i = 0; i < 8; i++) {
+    const a = (i / 8) * Math.PI * 2;
+    B.geo(new THREE.ConeGeometry(0.8, 0.28, 3, 1, true, a, Math.PI / 4), composeMatrix(-0.25, 2.06, 0), i % 2 ? 0xf2eee4 : trim);
+  }
+  B.geo(new THREE.SphereGeometry(0.04, 6, 4), composeMatrix(-0.25, 2.22, 0), 0xc8433a);
+  // het uithangbord: een hoorntje met twee bollen op een stang
+  B.geo(tubeGeometry([0.3, 0.95, -0.6], [0.3, 1.45, -0.6], 0.015), null, STEEL);
+  B.geo(new THREE.ConeGeometry(0.07, 0.2, 8).rotateX(Math.PI), composeMatrix(0.3, 1.55, -0.6), 0xc99a5a);
+  B.geo(new THREE.SphereGeometry(0.075, 8, 6), composeMatrix(0.3, 1.68, -0.6), 0xe48aa6);
+  B.geo(new THREE.SphereGeometry(0.06, 8, 6), composeMatrix(0.3, 1.78, -0.6), 0xf7f0d0);
+  return B.build();
+}
+
+// Een open gitaarkoffer op de stoep voor een straatmuzikant: de bak met afgeronde boven- en onderkant (twee lagen),
+// rood fluweel binnenin, het deksel open tegen de achterkant, een paar munten en een briefje. Lengte langs z.
+function gitaarkoffer() {
+  const B = new GeoBuilder(1);
+  const shell = 0x22201e, plush = 0x8e2433, edge = 0x3a3632;
+  B.box(0, 0.05, -0.18, 0.36, 0.1, 0.5, shell);                                                // brede onderkant
+  B.box(0, 0.05, 0.3, 0.26, 0.1, 0.46, shell);                                                 // smalle hals
+  B.box(0, 0.102, -0.18, 0.31, 0.006, 0.45, plush);                                            // fluweel
+  B.box(0, 0.102, 0.3, 0.21, 0.006, 0.42, plush);
+  B.box(0, 0.104, 0.1, 0.12, 0.004, 0.1, 0x6e1a26);                                            // vakje
+  B.box(-0.2, 0.2, -0.18, 0.04, 0.36, 0.5, shell, 0, 0, 0, 0.35);                              // deksel, open naar achteren
+  B.box(-0.2, 0.2, 0.3, 0.04, 0.26, 0.46, shell, 0, 0, 0, 0.35);
+  B.box(-0.18, 0.2, -0.18, 0.004, 0.3, 0.44, plush, 0, 0, 0, 0.35);                            // binnenkant deksel
+  for (const z of [-0.43, 0.53]) B.box(0, 0.05, z, 0.3, 0.1, 0.012, edge);                     // randen
+  B.box(0.181, 0.06, -0.18, 0.006, 0.04, 0.1, 0x9aa0a4);                                       // slotjes
+  B.box(0.131, 0.06, 0.3, 0.006, 0.04, 0.08, 0x9aa0a4);
+  const coins = [[0.05, -0.25], [-0.04, -0.12], [0.08, -0.05], [-0.07, -0.3], [0.02, 0.2], [0.1, -0.33]];
+  coins.forEach(([x, z], i) => B.geo(new THREE.CylinderGeometry(0.013, 0.013, 0.004, 8), composeMatrix(x, 0.108, z, 0.1 * i, 0, 0.05 * i), i % 3 ? 0xc9a43a : 0xb8bcc0));
+  B.box(-0.05, 0.107, -0.02, 0.06, 0.002, 0.12, 0xe9e6dc, 0, 0.3);                             // een briefje
+  return B.build();
+}
+
+// Een akoestische gitaar, rechtop op de grond (de muzikant houdt hem in zijn armen, models3d_people.js 'muziek'):
+// klankkast met twee rondingen, klankgat, kam, hals met fretten, kop met stemmechanieken en zes snaren. Voorkant +x.
+function gitaar() {
+  const B = new GeoBuilder(1);
+  const top = 0xd9a85e, side = 0x7a4a26, dark = 0x1c1410, neck = 0x5a3a20;
+  const bout = (y, r) => {
+    B.geo(new THREE.CylinderGeometry(r, r, 0.1, 14).rotateZ(Math.PI / 2), composeMatrix(0, y, 0), side);
+    B.geo(new THREE.CylinderGeometry(r - 0.006, r - 0.006, 0.006, 14).rotateZ(Math.PI / 2), composeMatrix(0.052, y, 0), top);
+  };
+  bout(0.19, 0.19);                                                                             // onderste ronding
+  bout(0.42, 0.14);                                                                             // bovenste ronding
+  B.box(0, 0.3, 0, 0.1, 0.12, 0.22, side);                                                     // taille
+  B.box(0.052, 0.3, 0, 0.006, 0.12, 0.2, top);
+  B.geo(new THREE.CylinderGeometry(0.045, 0.045, 0.004, 12).rotateZ(Math.PI / 2), composeMatrix(0.056, 0.36, 0), dark); // klankgat
+  B.geo(new THREE.CylinderGeometry(0.055, 0.055, 0.003, 12).rotateZ(Math.PI / 2), composeMatrix(0.0555, 0.36, 0), 0x3a2414); // rozet
+  B.box(0.058, 0.13, 0, 0.012, 0.025, 0.12, dark);                                             // kam
+  B.box(0.04, 0.73, 0, 0.035, 0.5, 0.05, neck);                                                // hals
+  B.box(0.058, 0.73, 0, 0.004, 0.5, 0.046, 0x2a1a10);                                          // toets
+  for (let i = 1; i < 8; i++) B.box(0.061, 0.5 + i * 0.06, 0, 0.003, 0.004, 0.048, 0xc0c4c8); // fretten
+  B.box(0.035, 1.03, 0, 0.03, 0.14, 0.075, neck, 0, 0, 0, -0.15);                              // kop
+  for (const s of [-1, 1]) for (let i = 0; i < 3; i++) B.box(0.03, 0.99 + i * 0.04, s * 0.05, 0.015, 0.015, 0.03, 0xc0c4c8); // stemmechanieken
+  for (let i = 0; i < 6; i++) B.box(0.062, 0.6, -0.018 + i * 0.0072, 0.002, 0.94, 0.0016, 0xe8e2d0); // snaren
+  return B.build();
+}
+
+const MAKERS = { bank, afvalbak, fietsenrek: () => fietsenrek(4), bushokje, paaltje, autostoel, dashboard, vetvat, jerrycan, kraampje, ijscokar, gitaarkoffer, gitaar };
 // de props met lichtere LOD-niveaus (de opgave staat in propregister.js PROP_REGISTER[id].lod)
 const LOD_MAKERS = new Set(['vetvat', 'jerrycan']);
 const cache = new Map();

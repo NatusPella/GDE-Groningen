@@ -30,7 +30,7 @@ import {
 } from './vehicle.js';
 import { DEAD_DURATION } from './pedconst.js';
 import { attachCarry, carryPose } from './streetlife3d.js';
-import { buildPersonMesh, setModularPlayerLooks, releasePersonGeometry, animatePersonWalk, plantFeet, applyAttackPose, applyHitReaction, setHeldWeapon, seatPose, seatedY, waveOverlay, juichOverlay, carryOverlay, TAMMO_APPEARANCE, ANITA_APPEARANCE } from './models3d_people.js';
+import { buildPersonMesh, setModularPlayerLooks, releasePersonGeometry, animatePersonWalk, plantFeet, applyAttackPose, applyHitReaction, setHeldWeapon, seatPose, seatedY, waveOverlay, juichOverlay, carryOverlay, TAMMO_APPEARANCE, ANITA_APPEARANCE, fistOverlay } from './models3d_people.js';
 import { syncDoorsNear, vraagVoorAnim } from './vehicledoors3d.js';
 import { syncCabins } from './cabin3d.js';
 import { updateRitCabine, syncTreinKader } from './ritcabine3d.js';
@@ -2853,6 +2853,9 @@ export function update3D(dt, world) {
       ensureDriverFigure(mesh, v, driverDist, driverDeadline);
       const df = mesh.userData.driverFigure;
       if (df) df.visible = hasAiDriver(v) && hystVisible(df.visible, driverDist, DRIVER_FIGURE_DIST);   // met hysterese: een auto die rond 70 m rijdt laat zijn bestuurder niet aan en uit knipperen
+      // een boos gebaar achter het stuur als de speler sneed of rakelings langs scheurde (trafficreact.js, #1315)
+      if (df && df.visible && v.gestureUntil > world.time && world.time >= v.gestureFrom) { fistOverlay(df, world.time); df.userData.gesturing = true; }
+      else if (df && df.userData.gesturing) { df.userData.gesturing = false; seatPose(df, vehicleSeat(v, true).pose); }
       ensurePassengerFigure(mesh, v, driverDist, driverDeadline);
       const pf = mesh.userData.passengerFigure;
       if (pf) pf.visible = df ? df.visible && seatedOf(v).passengers.length > 0 : false;

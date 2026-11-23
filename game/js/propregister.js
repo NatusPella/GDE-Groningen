@@ -6,7 +6,8 @@
 //   bouwer  de sleutel in propmodels3d.js (propGeometry(id)): één vertexkleur-geometrie, oorsprong op de grond, +x voorkant
 //   norm    tris [min, max] driehoeken, kleuren (minimaal aantal verschillende vertexkleuren), maat [b, h, d] in m (+- 25 %),
 //           en `eisen`: wat er aan detail aan moet zitten, zodat een kale doos of cilinder de test niet haalt
-//   gebruik waar hij staat: 'stad' (cityprops.js), 'buiten' (streetfurniture3d.js), 'cutscene' (storyprops.js DECOR_MAKERS)
+//   gebruik waar hij staat: 'stad' (cityprops.js), 'buiten' (streetfurniture3d.js), 'cutscene' (storyprops.js DECOR_MAKERS),
+//           'straat' (de tijdelijke straatgebeurtenissen van streetevents3d.js en de gitaar van models3d_people.js)
 //   lod     (vettruck 23-11, eis eigenaar: elk model 2-3 LOD-niveaus) { grenzen: [m, ...], band, weg }: lodlevels.js legt de
 //           vorm uit; propGeometry(id, niveau) bouwt de lichtere niveaus, lod3d.js DitherLOD dithert de overgang
 // Kwaliteitsnorm voor iedere prop: zichtbaar materiaalverschil (hout tegen staal, glas tegen kader), echte onderdelen
@@ -51,6 +52,23 @@ export const PROP_REGISTER = {
   jerrycan: {
     nl: 'Jerrycan frituurvet (20 l)', bouwer: 'jerrycan', gebruik: ['cutscene'], lod: { grenzen: [12, 35], band: 3, weg: 90 },
     norm: { tris: [80, 260], kleuren: 5, maat: [0.18, 0.51, 0.33], eisen: ['kunststof romp waar het vet doorheen schemert', 'verdiepte zijpanelen', 'greep op twee pootjes', 'schroefdop en etiket'] },
+  },
+  // de straatgebeurtenissen (#1316, streetevents.js): tijdelijk, één tegelijk, dichtbij de speler
+  kraampje: {
+    nl: 'Kraampje op de stoep', bouwer: 'kraampje', gebruik: ['straat'],
+    norm: { tris: [450, 800], kleuren: 14, maat: [1.1, 2.11, 1.61], eisen: ['schraagtafel met een kleed dat voor afhangt, met plooien', 'twee palen met een gestreepte luifel en een geschulpte rand', 'krijtbordje met regels', 'spullen op tafel: kan met glazen, boeken, geldkistje'] },
+  },
+  ijscokar: {
+    nl: 'IJscokar', bouwer: 'ijscokar', gebruik: ['straat'],
+    norm: { tris: [550, 900], kleuren: 13, maat: [1.6, 2.26, 1.6], eisen: ['koelbak met band, menuvlak en vier smaken', 'twee deksels met handgreep', 'wielen met band en velg aan een as, duwbeugel, steunpoten', 'gestreepte parasol en een hoorntje als uithangbord'] },
+  },
+  gitaarkoffer: {
+    nl: 'Open gitaarkoffer', bouwer: 'gitaarkoffer', gebruik: ['straat'],
+    norm: { tris: [260, 460], kleuren: 7, maat: [0.46, 0.38, 0.97], eisen: ['bak met brede onderkant en smalle hals', 'rood fluweel binnenin en in het open deksel', 'slotjes en randen', 'munten en een briefje'] },
+  },
+  gitaar: {
+    nl: 'Akoestische gitaar', bouwer: 'gitaar', gebruik: ['straat'],
+    norm: { tris: [480, 800], kleuren: 7, maat: [0.11, 1.1, 0.38], eisen: ['klankkast met twee rondingen en een taille', 'klankgat met rozet en een kam', 'hals met toets en fretten', 'kop met stemmechanieken en zes snaren'] },
   },
 };
 

@@ -22,6 +22,8 @@ import { stuntPropMesh } from './stuntavond.js';
 import { buildWaypointDotMesh3D } from './missionmarker3d.js';
 import { gastOverwegen } from './railway.js';
 import { queueAnimalHit, WOLF_BITE } from './provinceanimals.js';
+import { vcMaterial, markShared } from './pixelart3d.js';
+import { propGeometry } from './propmodels3d.js';
 import { hoofdspeler } from './spelersregister.js';
 
 const EEND = ['drake', 'hen', 'swan', 'goose'];
@@ -346,8 +348,19 @@ const REKW_BOUW = {
     for (let i = 0; i < 12; i++) for (const rij of [-0.2, 0.2]) { const t = new THREE.Mesh(rekwGeo().tand, rekwMat(0xc9ced4)); t.position.set(-SPIKE_SPAN / 2 + 0.3 + (i / 11) * (SPIKE_SPAN - 0.6), 0.1, rij); g.add(t); }
     return g;
   },
+  // de props van een straatgebeurtenis van de host (streeteventlive.js, #1316): dezelfde geometrie uit het propregister
+  kraampje: () => propRekwisiet('kraampje'),
+  ijscokar: () => propRekwisiet('ijscokar'),
+  gitaarkoffer: () => propRekwisiet('gitaarkoffer'),
 };
-const REKW_OP_GROND = new Set(['wapendrop', 'spijkermat']); // de rest meldt zijn eigen hoogte (binnen, in de lucht)
+let propRekwMat = null;
+function propRekwisiet(id) {
+  const g = new THREE.Group();
+  if (!propRekwMat) propRekwMat = markShared(vcMaterial({ roughness: 0.75 }));
+  g.add(new THREE.Mesh(propGeometry(id), propRekwMat));
+  return g;
+}
+const REKW_OP_GROND = new Set(['wapendrop', 'spijkermat', 'kraampje', 'ijscokar', 'gitaarkoffer']); // de rest meldt zijn eigen hoogte (binnen, in de lucht)
 const rekw = new Map(); // soort|id -> { groep, soort }
 export function syncGastRekwisieten(world) {
   const scene = getScene(); if (!scene) return 0;
