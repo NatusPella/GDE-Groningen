@@ -8,6 +8,13 @@ versies staan op datum op volgorde. Er zijn geen aparte kopstijlen per sectie:
 elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ## [Unreleased]
+- Doelbalk en herinnering: een verhaalstap toont nu een korte opdracht met de plek erin ("Praat met Berend bij het Martinikerkhof", "Ga naar het museum: pak de bal") in plaats van de grappige titel van de stap ("Ga naar: Het museum stond er al zo"). Het lange appje blijft zoals het was.
+- Uitleg: "De weg kwijt?" komt nu bij elke verhaalstap, niet alleen bij het eerste doel: wie 200 m van het doel afdwaalt of anderhalve minuut niet opschiet krijgt één korte kaart per stap (de eerste stap houdt er twee), ook als alle uitlegkaarten al gezien zijn. Staat uit met de schakelaar Uitleg-tips.
+- Open, dicht (M17): de regelkaart zei zeven minuten voor alle elf bruggen, terwijl elk deel een eigen klok heeft (190, 130, 130 en 100 s). De kaart noemt nu die eigen klok en de eerste klok staat goed.
+- Samen spelen: als het spel jou verplaatst (de oversteek naar Noordpolderzijl in M11, een reisscène, opnieuw beginnen na een mislukte missie, afmeren, de finale op de Grote Markt), reizen de andere spelers mee naar een vrije plek naast je. Eerder bleef een medespeler in Zoutkamp achter.
+- Samen spelen: de vluchtboot na de museumkraak (M06) neemt je medespelers mee aan boord, en na de fierljepsprong in Bourtange (M20) staan ze mee aan de overkant.
+- Lange ritten: de doelbalk van het verhaal zegt hoe ver de volgende stap is (vanaf 300 m), en de korte OV- of taxihint van je metgezel geldt nu ook voor de start van de volgende verhaalmissie. Ligt die meer dan 20 km weg (tot bijna 60 km), dan hoor je de hint altijd één keer.
+- Balans: Het museum stond er al zo (M06) betaalt nu €550 en Een luik erin (M22) €500, passend bij hun vele stappen; Het staat niet in het rooster (M12) betaalt €1.200. In Te doen staat zodra de boerderij open is een spaardoel: het eerstvolgende stuk uit de machinecatalogus dat je nog niet kunt betalen.
 
 - Ondertitels: overal dezelfde. Films, het verhaalgesprek, de rondvaart, de autopraat, de radio, de introfilm en de trailer gebruiken nu één ondertitelvak: een papieren plaatje met inktrand, onderaan het midden, met het sprekerlabel vooraan. Het verhaalgesprek stond nog als losse witte tekst; dat is nu hetzelfde vak. De instellingen Grootte, Donker vlak, Contrast hoog en Ondertitels uit werken op alle vakken, en het vak blijft binnen de veilige rand van het scherm.
 - Game feel: een landing na een sprong voelt nu als een landing. Je voeten stuiven op (bruin stof op gras, grijs op straat), het beeld zakt even mee en de controller geeft een klein tikje. Opstijgen, aanzetten tot rennen en rennen over gras laten ook een lichte stofsliert achter.

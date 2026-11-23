@@ -101,5 +101,27 @@ ok(H.sprekerVoor('anita') === 'Tammo' && H.sprekerVoor('tammo') === 'Anita' && H
   ok(flags.has('reis:T1'), 'zonder ask: de reisstap is afgehandeld zonder scherm');
 }
 
+// audit speelbaarheid 23-11: een heel ver doel (een missiestart tot 59 km) krijgt altijd één hint per doel en sessie
+{
+  const ver = { ...basis(), goal: { x: H.HEEL_VER_M, y: 0 } };
+  let g = H.freshState(); for (let k = 0; k < H.GENOEG_GEBRUIKT; k++) g = H.noteGebruikt(g, 1);
+  ok(H.beslis(ver, g, H.verseSessie()) !== null, 'heel ver: ook wie het OV al kent hoort het één keer');
+  ok(H.beslis(ver, { ...H.freshState(), getoond: H.MAX_UNUSED_SHOWS }, H.verseSessie()) !== null, 'heel ver: ook na vier keer getoond');
+  const sessie = { laatsteAt: 999, doelen: new Set() };
+  const b1 = H.beslis(ver, H.freshState(), sessie);
+  ok(b1 !== null, 'heel ver: de wachttijd tussen twee hints geldt niet');
+  H.gaToond(H.freshState(), sessie, b1, 1000);
+  ok(H.beslis(ver, H.freshState(), sessie) === null, 'heel ver: maar één keer per doel en sessie');
+  ok(H.beslis({ ...ver, nuMs: 1e12 }, H.noteGebruikt(H.freshState(), 1e12 - 1000), H.verseSessie()) === null, 'heel ver: net een rit gemaakt blijft stil');
+  ok(H.beslis({ ...ver, rol: 'gast' }, H.freshState(), H.verseSessie()) === null, 'heel ver: een gast kan niet reizen');
+  // het doel: eigen doel eerst, anders de start van de volgende verhaalmissie, nooit een reis-stap of na het verhaal
+  const sg = { x: 5, y: 6, step: 'M13' };
+  ok(JSON.stringify(H.hintDoel({ x: 1, y: 2 }, sg, 'mission')) === '{"x":1,"y":2}', 'het eigen doel gaat voor');
+  ok(JSON.stringify(H.hintDoel(null, sg, 'mission')) === '{"x":5,"y":6}', 'zonder eigen doel: de start van de verhaalmissie');
+  ok(H.hintDoel(null, sg, 'activity') === null, 'een reis-stap heeft zijn eigen reiskeuze');
+  ok(H.hintDoel(null, sg, 'mission', true) === null, 'na het verhaal niets');
+  ok(H.hintDoel(null, null, 'mission') === null && H.hintDoel(null, { x: NaN, y: 0 }, 'mission') === null, 'rommel geeft niets');
+}
+
 console.log(fails ? `${fails} van ${n} mislukt` : `ok: ${n} controles`);
 process.exit(fails ? 1 : 0);

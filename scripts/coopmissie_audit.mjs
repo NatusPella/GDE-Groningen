@@ -175,7 +175,13 @@ function typeSource(type) {
   return { text, helpers };
 }
 
-const GROUP_READ = /\b(doelStand|teamActor|iedereenOk|opdrachtSpelers|afstandMeespeler|meespelerInVoertuig|groepKlaar|groepsActeurs)\s*\(|\bst\.iedereen\b/;
+// warpGasten en gastenMeeAanBoord (groepwarp.js) verplaatsen de hele groep; neemPaneelDruk en neemTimingDruk (coopgast.js) lezen de
+// druk van elke gast (#525): ook dat is de groep (audit speelbaarheid 23-11).
+const GROUP_READ = /\b(doelStand|teamActor|iedereenOk|opdrachtSpelers|afstandMeespeler|meespelerInVoertuig|groepKlaar|groepsActeurs|warpGasten|gastenMeeAanBoord|neemPaneelDruk|neemTimingDruk)\s*\(|\bst\.iedereen\b/;
+// Hulpfuncties die één lichaam alleen lezen voor het beeld of de eigen toets van dit apparaat, nagelopen op 23-11:
+// playStageScene en playEndingShot (camera en opstelling van de scène; de regels gaan als scène naar de gasten, verhaal.md regel 8),
+// tryBoardPlane (de terugval voor de eigen E van de gastheer, #940; een gast stapt in via coopbestuur.js).
+const LOKAAL_BEELD = new Set(['playStageScene', 'playEndingShot', 'tryBoardPlane']);
 // "The player" of one device: hoofdspeler(world), or the bare world.player singleton (#500).
 const ONE_BODY = /\bhoofdspeler\s*\(|\b(?:world|w)\.player\b|\bp\.(?:x|y|z|inVehicle|enterVehicle|exitVehicle|speed|health)\b/;
 const OWN_KEYS = /\bworld\.input\b|\binp\.wasPressed\b|\bwasPressed\s*\(/;
@@ -230,6 +236,8 @@ function why(verdict, ev) {
     if (ev.groep) return { code: 'G', text: `de motor kijkt naar de groep (doelStand/teamActor), dus elke meespeler telt${note}` };
     if (ev.eenLichaam) return { code: 'L', text: `het register noemt deze stap samen, maar de handler leest een lichaam (hoofdspeler/world.player)${note}; of de tweede speler echt meedoet is uit de bron niet vast te stellen` };
     if (ev.helpers.length) {
+      // elke hulpfunctie die een lichaam leest, volgt ook de groep of leest alleen het beeld of de eigen toets van dit apparaat
+      if (ev.helpers.every((h) => h.groep || LOKAAL_BEELD.has(h.naam))) return { code: 'Vg', text: `de handler vraagt niets van een speler en de hulpcode volgt de groep (of leest alleen het beeld van dit apparaat)${note}` };
       return { code: 'V?', text: `het register noemt deze stap samen en de handler zelf vraagt niets van een speler, maar de hulpcode verplaatst wel een lichaam${note}; of de tweede speler meegaat is uit de bron niet vast te stellen` };
     }
     return { code: 'V', text: 'de motor kijkt niet naar een lichaam; iedereen kan dit doen' };
@@ -378,7 +386,7 @@ if (asJson) {
   console.log('');
   if (withDetail) {
     console.log('per stap');
-    console.log('  legenda: G = de motor leest de groep | G+ = groep en daarnaast een lichaam | L = de motor leest een lichaam | T = de toetsen van dit apparaat | R = verdeelde heistrol (heistrollen.js) | V = geen lichaam nodig | V? = register zegt samen, hulpcode verplaatst een lichaam | ? = niet vast te stellen');
+    console.log('  legenda: G = de motor leest de groep | G+ = groep en daarnaast een lichaam | L = de motor leest een lichaam | T = de toetsen van dit apparaat | R = verdeelde heistrol (heistrollen.js) | V = geen lichaam nodig | Vg = hulpcode volgt de groep of alleen het eigen beeld | V? = register zegt samen, hulpcode verplaatst een lichaam | ? = niet vast te stellen');
     for (const m of inStory) {
       if (!m.stages.length) continue;
       console.log(`${m.step}  ${m.label}  (${m.mission}, ${m.type}) - ${LABEL[m.verdict]}`);

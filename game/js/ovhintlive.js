@@ -14,7 +14,8 @@ import { playerBusy } from './busy.js';
 import { getGoal } from './goal.js';
 import { getBusLines } from './vehicle.js';
 import { dichtsteHalte } from './ovmissie.js';
-import { readState, state2json, noteGebruikt, beslis, gaToond, verseSessie, sprekerVoor, HALTE_NABIJ_M } from './ovhint.js';
+import { readState, state2json, noteGebruikt, beslis, gaToond, verseSessie, sprekerVoor, hintDoel, HALTE_NABIJ_M } from './ovhint.js';
+import { STEP_BY_ID } from './storyarc.js';
 
 const KEY_TOKEN = /\{(\w+)\}/g;
 const escHtml = (s) => s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -78,7 +79,8 @@ export function tickOvHint(w, dt) {
   acc += dt;
   if (acc < CHECK_EVERY_S) return;
   acc = 0;
-  const goal = getGoal();
+  const sg = w.storyGuide, stap = sg && STEP_BY_ID.get(sg.step);
+  const goal = hintDoel(getGoal(), sg, stap ? stap.kind : '', !!w.storyFreePlay); // ook de start van de volgende verhaalmissie
   if (!goal) return;
   const p = hoofdspeler(w);
   if (!p) return;

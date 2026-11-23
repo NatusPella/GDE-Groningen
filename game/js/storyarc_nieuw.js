@@ -288,7 +288,7 @@ export const STEPS = [
   M('M05', 'kop', 'Wind tegen, beide kanten op', 'kei', { built: true, reward: 550, loopbanen: ['padel'],
     story: { intro: ['M05.1'], outro: ['M05.3'], replay: ['M05.4'] }, scenes: ['M05.1', 'M05.2', 'M05.3', 'M05.4'],
     lead: ['A', 'Sjoerd wacht bij het Academiegebouw. Het is een fietsrace: een eigen fiets heb je nodig, de fietsenwinkel staat op je kaart.'] }),
-  M('M06', 'kop', 'Het museum stond er al zo', 'museumkraak', { built: true, reward: 400, loopbanen: ['taxi'],
+  M('M06', 'kop', 'Het museum stond er al zo', 'museumkraak', { built: true, reward: 550, loopbanen: ['taxi'],
     // Henk's call while they wait (M06.0) plays at home; the escape and the radio are stage scenes of the mission (missions.js)
     homeScene: { id: 'M06.0', big: 'Wachten tot middernacht…' },
     story: { intro: ['M06.1'], outro: null, replay: ['M06.4'] }, scenes: ['M06.0', 'M06.1', 'M06.2', 'M06.3', 'M06.4'],
@@ -338,7 +338,7 @@ export const STEPS = [
   A('K2', 'romp', 'De kade in de ochtend', { type: 'reis', to: 'de haven van Zoutkamp', at: [53.3377, 6.2986], r: 300, scene: 'K2' }, { built: true, added: true, scenes: ['K2'], lead: ['T', 'Ik zit op de kade in Zoutkamp. Ik heb koffie. Twee. Kom maar als je wakker bent.'] }),
 
   // --- Akte 3: Aan de Eems (Eemsdelta en Oldambt, vr 21 - zo 23 augustus) ----------------
-  M('M12', 'staart', 'Het staat niet in het rooster', 'traumaduif', { built: true, reward: 1500, loopbanen: ['lucht'],
+  M('M12', 'staart', 'Het staat niet in het rooster', 'traumaduif', { built: true, reward: 1200, loopbanen: ['lucht'],
     story: { intro: ['M12.1'], outro: ['M12.4'], replay: ['M12.5'] }, scenes: ['M12.1', 'M12.2', 'M12.3', 'M12.4', 'M12.5'],
     lead: ['A', 'Dokter Dijkstra wacht in Lauwersoog met een heli. Eerst eten voor de nachtdienst, dan naar Jelles ballon boven de Dollard, voor het koopboek.'] }),
   // ronde 5 (Jelle en de romance, J1 tot en met J6): activiteiten zonder beloning, met migratie zoals N1-N8 (storyarc.js ADDED_STEPS)
@@ -407,7 +407,7 @@ export const STEPS = [
   // het slot (verhaal-eind, 21-11): de wagen ontdekken en samen bouwen (F1, F2), de verzoening, Jelle achteraan de rij en de eerste avond als stel (F3 tot en met F5), de kaart (F6, na M30);
   // activiteiten zonder beloning, met migratie voor oude saves (added: true, zie storyarc.js ADDED_STEPS)
   A('F1', 'ontzet', 'Een wagen langs de weg', { type: 'reis', to: 'een zandweg bij Zuidhorn', at: [53.2490, 6.4150], r: 500, scene: 'F1' }, { built: true, added: true, scenes: ['F1'], lead: ['A', 'Langs een zandweg bij Zuidhorn staat een aanhanger met een luik en een bordje: te koop. Ik wil hem zien. Even.'] }),
-  M('M22', 'ontzet', 'Een luik erin', 'luik', { built: true, reward: 300, loopbanen: ['race'],
+  M('M22', 'ontzet', 'Een luik erin', 'luik', { built: true, reward: 500, loopbanen: ['race'],
     story: { intro: ['M22.1'], outro: null, replay: ['M22.5'] }, scenes: ['M22.1', 'M22.2', 'M22.3', 'M22.4', 'M22.5'],
     lead: ['T', "Tinus' schuur bij Zuidhorn. Henk bouwt een luik in de Escapade: dan is het de snackwagen. Eerst de modder in, om de as te testen."] }),
   A('F2', 'ontzet', 'De eerste bak', { type: 'reis', to: 'een loods in Hoogkerk', at: [53.2158, 6.4850], r: 450, scene: 'F2' }, { built: true, added: true, scenes: ['F2'], lead: ['T', "Het luik zit erin. Nu de eerste bak: een loods in Hoogkerk, een friteuse en Oma's beslag. Jij bakt, ik sleutel."] }),

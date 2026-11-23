@@ -12,6 +12,7 @@ import { needsBeat } from './reistijd.js';
 import { arrival, travelOptions, RIDES } from './reiskeuze.js';
 import { reisPlace } from './storyreis.js';
 import { klokSprongMag, meerSpelers } from './coopgroep.js';
+import { warpGasten } from './groepwarp.js';
 import { sfxEvent } from './sfx/haken.js';
 
 // where the trip ends: the travel step's own place; the guide can point somewhere else for a moment ("first to your garage", #311)
@@ -54,6 +55,7 @@ export function placeParty(w, dest) {
   if (p.inVehicle) { p.inVehicle.x = dest.x; p.inVehicle.y = dest.y; p.inVehicle.speed = 0; }
   const c = w.companion;
   if (c && c.state !== 'dead' && !meerSpelers(w)) { c.x = dest.x + 1.5; c.y = dest.y; c.vx = 0; c.vy = 0; }
+  warpGasten(w, dest, { meeVoertuig: p.inVehicle || null }); // Samen spelen: de gasten reizen mee; wie in het voertuig zit, zit al goed
 }
 
 // reward for driving yourself is paid on arrival (within `AT_M` of the start)

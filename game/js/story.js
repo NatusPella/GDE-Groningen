@@ -33,6 +33,7 @@ import { getPigeonFlight, stopPigeonMode } from './pigeonmode.js';
 import { isHeliRunActive, abortHeliRun } from './helirun.js';
 import { jumpPrep, jumpSpot, openRond } from './storyjump.js';
 import { remindDue, remindText } from './storyremind.js';
+import { stepDoel, doelInZin } from './stepdoel.js'; import { warpGasten } from './groepwarp.js';
 import { isLoopbaanGestart } from './loopbaanlive.js';
 import { maybeCareerCards } from './loopbaankaarten.js';
 import { JUMP_M } from './loadlogic.js';
@@ -385,7 +386,7 @@ function refreshGuide() {
   const step = rt.cur;
   if (!step || step.end || isMissionActive()) { world.storyGuide = null; return; }
   let place = null;
-  let why = step.title;
+  let why = stepDoel(step);   // een korte opdracht, niet de titel van de stap (stepdoel.js)
   if (step.kind === 'mission') {
     const defs = getMissionDefs();
     const def = defs[missionIdx(step)];
@@ -770,6 +771,7 @@ function playFinale(part) {
   if ('swimming' in p) p.swimming = false;
   const c = world.companion;
   if (c && !c.inVehicle) { c.x = p.x + 1.2; c.y = p.y + 0.6; }
+  warpGasten(world, spot); // de gasten staan mee op de Markt (groepwarp.js)
   flash(); // zwarte doof over de sprong; fade't uit over de Markt
   let at = 3.2;
   const card = P.card || [];
@@ -1321,7 +1323,7 @@ export function updateStory(dt, w) {
     if (step.kind === 'activity' && k === 0) rt.skipUntil = w.time + 60;
     const from = step.lead ? who(step.lead[0]) : 'Anita';
     const remind = from === 'Tammo' ? SMS_SAY.remindT : from === 'Anita' ? SMS_SAY.remindA : null;
-    phone(from, remindText(k, step.title), 6, k === 0 && remind ? remind.lines[0] : undefined, !!step.silent); // alleen de eerste heeft een opname
+    phone(from, remindText(k, doelInZin(stepDoel(step))), 6, k === 0 && remind ? remind.lines[0] : undefined, !!step.silent); // alleen de eerste heeft een opname
   }
 }
 

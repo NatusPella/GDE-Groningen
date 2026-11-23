@@ -25,9 +25,9 @@ const wijzer = (label, afstand, tekst, extra = {}) => ({ type: 'wijzer', inv: { 
 export const KAARTEN = {
   // M17 Open, dicht: de regel stond alleen in de tekst (toeter, wacht op de fanfare); elf bruggen, één per deel.
   M17: [
-    { doel: 'Vaar de eerste vier bruggen door: toeter, Wubbo opent', druk: 'zeven minuten voor alle elf', afloop: 'is het mosterdschip eerder, dan begin je opnieuw',
+    { doel: 'Vaar de eerste vier bruggen door: toeter, Wubbo opent', druk: 'per deel een eigen klok, samen ruim negen minuten', afloop: 'is het mosterdschip eerder, dan begin je opnieuw',
       regels: [stappen('Zo gaat een brug', 0, [stap('pijl', 'Vaar op de brug af'), stap('hand', 'Toeter met {H}'), stap('hart', 'Wacht tot hij open is')], { na: 6, duur: 9 }),
-        teller('Tijd', 420, { na: 20, duur: 6 })] },
+        teller('Tijd', 190, { na: 20, duur: 6 })] },
     { doel: 'Brug 5, 6 en 7: Wubbo fluit, zonder fanfare',
       regels: [stappen('Wubbo\'s fluit', 0, [stap('hart', 'Eén keer: open'), stap('hand', 'Twee keer: dicht'), stap('pijl', 'Niet te vroeg')], { na: 5, duur: 9 })] },
     { doel: 'Brug 8, 9 en 10: een dichte brug is dicht',

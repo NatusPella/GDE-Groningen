@@ -35,7 +35,7 @@ export function buildAkte5Defs({ map, walk, drive }) {
       intro: ['Tinus\' schuur bij Zuidhorn. Henk heeft een luik en een koekje. Eén.', 'Doel: bouw een luik in de Escapade. Rij hem de modder in om te laten zien dat de achteras het houdt. Tinus trekt hem er daarna uit.'],
       outro: 'De Escapade is de snackwagen. Nog geen bal. Mem en Oma hebben de vrienden gebeld: samen naar de Grote Markt.',
       timeLimit: null,
-      reward: 300,
+      reward: 500, // audit speelbaarheid 23-11: zeven speelbare stappen, was 300
       costRow: ['Gevolg', 'Het luik is betaald met het horloge van Tammo\'s opa'],
       vehicle: 'car',
       heroCar: true,

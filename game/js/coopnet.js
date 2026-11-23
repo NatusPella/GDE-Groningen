@@ -73,7 +73,7 @@ import { lichaamVan, startPlek, isKoploos } from './net/koploos.js'; // een gast
 import { heistRolGebruik, heistGastTik } from './heistrollen.js'; // de rolstap van de inbraak in Samen spelen (#438)
 import { activeStage, getMissionDefs } from './missionquery.js'; // de lopende stap van de opdracht (#438)
 import { hoofdspeler } from './players.js'; // de speler van dit apparaat (#500)
-import { localOutfitCode, cleanOutfitCode, onLocalOutfitChange } from './clothing.js';
+import { localOutfitCode, cleanOutfitCode, onLocalOutfitChange } from './clothing.js'; import { zetGroepWarpHaken } from './groepwarp.js'; // een warp of de vluchtboot neemt de gasten mee (audit speelbaarheid 23-11)
 
 // (#684) De positieve "samen kan"-kaart naast de eerste "Meedoen?" is HUD-werk (samenplan.js →
 // hudcards.js) en dat laadt niet in elke Node-test. main.js zet de haak, net als bij de bestuurhaken;
@@ -751,7 +751,7 @@ export function zetInBoot(world, lichaam) {
   lichaam.inVeh = v; lichaam.coopVoertuig = true; lichaam.stoel = stoel; lichaam.x = v.x; lichaam.y = v.y; lichaam.vx = 0; lichaam.vy = 0;
   return true;
 }
-const BOOT_MELD = 'Je zit weer in de boot.';
+const BOOT_MELD = 'Je zit weer in de boot.'; zetGroepWarpHaken({ inBoot: zetInBoot }); // groepwarp.js: de vluchtboot van M06 neemt de gasten mee
 
 // Heeft deze figuur een eigen interessegebied (coopfoci.js), dus een groep ver van de gastheer? Dan loopt hij vrij, zoals
 // elke speler die uit elkaar gaat (#429). Zit hij in de groep van de gastheer zelf (binnen de samenvoegafstand van 150 m),
