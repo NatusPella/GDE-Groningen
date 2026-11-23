@@ -79,6 +79,9 @@ function titleCase(t) {
 // identieke zinnen: dezelfde zin van zes woorden of meer op meerdere plekken (sjabloon-gevoel)
 const zinSleutel = (t) => t.replace(/\s+/g, ' ').trim();
 
+// een ondertitel die op een werkwoord eindigt ('de politie komt', 'de dienst stopt') is een statusregel, geen titel
+const VERB_EIND = / (?:komt|stopt|zag het|gaat open|remt vanzelf|groeit|volgt|klapt|begint|is open|staat|blijft)$|^(?:de|het|een) \p{L}+ (?:\p{Ll}+t|\p{Ll}+en)$/u;
+
 export const KENMERKEN = [
   { id: 'gedachtestreepje', uitleg: 'gedachtestreepje (— of een los –) midden in een zin; Nederlands schrijft een komma, punt of dubbele punt',
     test: (t) => { const u = t.replace(/\s–\s\p{Lu}\.?\s*["”)]?$/u, '').replace(/GDE Groningen – Zomer vol misdaad/g, 'GDE').replace(/\d\s–\s\d/g, '0'); return /—|\s–\s/.test(u) ? (u.match(/—|\s–\s/g) || []).join('') : null; } },
@@ -103,12 +106,14 @@ export const KENMERKEN = [
   // Een HUD-regel 'Status: wat je doet' ('Te hoog: een stukje zakken') is een vaste UI-vorm en telt niet; alleen een titel
   // met een naamwoordelijke ondertitel ('Discgolf: de volle ronde', 'Het proefbeleg: de gracht') is de modelformule.
   { id: 'titel-dubbelepunt', uitleg: "titel met dubbele punt en een ondertitel 'de/het/een ...' ('Groningen: een reis door de tijd')",
-    test: (t) => { const s = t.trim(); if (s.length > 60 || /[.!?]$/.test(s) || /\d/.test(s)) return null; const m = /^(\p{Lu}[\p{L}' -]{2,30}): ((?:de|het|een) [\p{L}' -]{2,30})$/u.exec(s); return m && m[1].split(' ').length <= 4 && m[2].split(' ').length <= 4 ? s : null; } },
+    test: (t) => { const s = t.trim(); if (s.length > 60 || /[.!?]$/.test(s) || /\d/.test(s)) return null; const m = /^(\p{Lu}[\p{L}' -]{2,30}): ((?:de|het|een) [\p{L}'-]+(?: [\p{L}'-]+)?)$/u.exec(s); return m && m[1].split(' ').length <= 4 && !VERB_EIND.test(m[2]) ? s : null; } },
   { id: 'title-case', uitleg: 'kop of label in Engelse Title Case (Nieuw Spel Starten); Nederlands: alleen het eerste woord en namen',
     test: titleCase },
   { id: 'emoji', uitleg: 'emoji in speltekst', test: (t) => { const m = t.match(/\p{Extended_Pictographic}/gu); const e = m && m.filter((c) => !/[★☆✓✔✗✕✖©®™↑↓←→↔⇄⏸▶◀⏵⏴⏹⌛⏳☀☁☂⚠⚡❤♥✦✧✪⬆⬇⬅➡]/u.test(c)); return e && e.length ? e.join('') : null; } },
   { id: 'engels-woord', uitleg: 'Engels woord in Nederlandse speltekst (naast de ANGLICISMEN van text_audit)',
     test: (t) => { const m = ENGELS_RE.exec(t); return m ? m[0] : null; } },
+  { id: 'staccato-drietal', uitleg: "drie zinnetjes van hooguit drie woorden op rij ('Twee vrienden. Eén zomer. Geen plan.'): de trailerformule",
+    test: (t) => { const z = t.split(/(?<=[.!?…])\s+/).map((x) => x.trim()).filter(Boolean); for (let i = 0; i + 2 < z.length; i++) if (z.slice(i, i + 3).every((x) => /[.]$/.test(x) && x.split(/\s+/).length <= 3)) return z.slice(i, i + 3).join(' '); return null; } },
   { id: 'uitroep-stapel', uitleg: 'drie of meer uitroeptekens in één korte tekst: schreeuwerig, alles even belangrijk',
     test: (t) => (t.match(/!/g) || []).length >= 3 && t.length < 200 ? '!!!' : null },
   { id: 'dubbele-spatie', uitleg: 'twee spaties achter elkaar midden in een zin', raw: true,

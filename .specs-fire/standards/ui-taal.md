@@ -181,6 +181,12 @@ groep en de plek ("Spelen · 2 van 5"). De tabs uit `SUBTABS`:
   (`WORD_BUDGET.cardBody`, `hudtext.js:18`); het doel zelf 6, de regel eronder 3, een
   hint 3, een prompt 8, een ondertitel 18.
 - Toon: kort en rustig; een weigering zegt waarom, een afkoeling hoe lang.
+- Geen modeltekst (23-11): geen gedachtestreepje midden in een zin, geen "niet X, maar Y" als formule, geen
+  verkoopwoorden (naadloos, cruciaal, duik in, episch, jouw reis), geen drietal of staccato-drietal als vaste
+  vorm, geen Title Case ("Rood licht is een mening", niet "Rood Licht Is Een Mening"), geen emoji, '…' in plaats
+  van '...', en een samenstelling aan elkaar (Politieboot). `scripts/ai_tells_scan.mjs` telt het per kenmerk en
+  `scripts/ai_tells_scan_test.mjs` houdt de telling onder `scripts/ai_tells_baseline.json` (mag alleen dalen). Bronnen
+  en uitleg: [docs/AI-TELLS-23-11.md](../../docs/AI-TELLS-23-11.md).
 
 ## Inclusieve taal
 

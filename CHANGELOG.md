@@ -9,6 +9,8 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ## [Unreleased]
 
+- Tekst: minder zinnen die als machinetaal lezen. Liedtitels op de radio krijgen alleen een hoofdletter waar het hoort ("Rood licht is een mening"), de Politieboot is één woord, twee Engelse prestatienamen zijn Nederlands (Even lachen, Opgepimpt), drie puntjes zijn overal één teken, meldingen hebben geen gedachtestreepjes meer en een paar winkel- en personageteksten zeggen iets concreets ("Weegt meer dan jij en gaat langer mee").
+
 ## [0.65.0] - 2026-11-22
 
 Samen spelen met vier echte vensters getest, een ronde zeefdruk-menu's (Spullen, Loopbanen, Boerderij, zoeken), echte voetstappen en weergeluid, AAA-aankleding van de missies van akte 1 tot en met 4 en een snellere start. Pre-release voor de speeltest.

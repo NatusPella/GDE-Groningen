@@ -1,0 +1,27 @@
+{
+  "v": 1,
+  "op": "2026-11-23",
+  "uitleg": "Bovengrens per AI-kenmerk in speltekst (scripts/ai_tells_scan.mjs). Mag alleen dalen.",
+  "per": {
+    "gedachtestreepje": 8,
+    "niet-x-maar-y": 19,
+    "ai-woord": 7,
+    "drietal": 77,
+    "laten-we": 3,
+    "afsluitzin": 0,
+    "vraag-antwoord": 1,
+    "nadruk-accent": 1,
+    "uitroep-enthousiasme": 6,
+    "nep-statistiek": 0,
+    "titel-dubbelepunt": 42,
+    "title-case": 2,
+    "emoji": 0,
+    "engels-woord": 15,
+    "staccato-drietal": 74,
+    "uitroep-stapel": 19,
+    "dubbele-spatie": 6,
+    "drie-puntjes": 11,
+    "placeholder-debug": 1,
+    "identieke-zin": 233
+  }
+}
