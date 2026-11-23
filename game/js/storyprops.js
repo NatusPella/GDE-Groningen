@@ -1,7 +1,8 @@
 // De losse voorwerpen van de verhaalscènes (cutscenes): één bouwer per soort, laag-poly, met een eigen
 // polygoonbudget (DECOR_BUDGET). Voertuigen en dieren komen uit de wereld (cutscenemodels.js), alleen
 // "decor" wordt hier gebouwd. Elk model heeft zijn oorsprong op de grond en +x als voorkant; 2 tot 6
-// materialen, een herkenbaar silhouet en geen NaN (scripts/verhaal_props_audit.mjs meet dat).
+// materialen, een herkenbaar silhouet en geen NaN (scripts/verhaal_props_audit.mjs meet dat). De kwaliteitsnorm per voorwerp staat in
+// PROP_NORM (cutscenemodels.js); een nieuw voorwerp komt hier en nergens anders (scripts/cutscene_assets_audit.mjs).
 // Verplaatst uit cutscenehost.js (PROP_MAKERS) en uitgebreid met de voorwerpen die scènes noemden maar
 // als "doos" of "bord" werden getekend (klomp, stempel, statief, krat, ...), #1121.
 import * as THREE from 'three';

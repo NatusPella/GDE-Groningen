@@ -9,6 +9,10 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ## [Unreleased]
 
+- Rondvaartboot: Tammo en Tessa staan niet meer bovenop het glazen dak. Een gesprek of scène in de boot speelt nu zittend op de bank onder het dak, met de camera op zithoogte onder het glas; het dekmoment aan de reling staat verder naar voren en de camera houdt de hoofden in beeld. Zittend kijken ze naar elkaar met alleen hun hoofd (geen hand in hand).
+- Kleine boten (kano, kajak, SUP, roeiboot, skiff, acht): een scène zet het paar op hun eigen zitplaatsen in plaats van naast de boot in het water.
+- Cutscenes: niemand loopt of staat meer in een voertuig. Berend loopt langs de bakkie (begin en einde van Berend), Tinus loopt om de snackwagen heen, Jelle, Durk en Douwe stappen aan de zijkant uit de limo, de jurylid loopt voor de limo langs en buurman Aldert haalt koffie naast zijn trekker.
+
 ## [0.65.0] - 2026-11-22
 
 Samen spelen met vier echte vensters getest, een ronde zeefdruk-menu's (Spullen, Loopbanen, Boerderij, zoeken), echte voetstappen en weergeluid, AAA-aankleding van de missies van akte 1 tot en met 4 en een snellere start. Pre-release voor de speeltest.

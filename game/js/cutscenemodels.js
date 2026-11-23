@@ -35,6 +35,18 @@ export const DECOR_KINDS = [
   'frituuraanhanger', 'friteuse', 'deken', 'soepketel', 'mosterdpot', 'kaart', 'hek',
 ];
 
+// De kwaliteitsnorm voor elk voorwerp in een cutscene (eigenaar, 23-11): nieuwe voorwerpen mogen, maar alleen in de gedeelde bibliotheek
+// (storyprops.js DECOR_MAKERS, één register voor spel en scènes) en op het detailniveau van de beste wereldmodellen. De checklist hoort bij
+// elke nieuwe bouwer; scripts/cutscene_assets_audit.mjs bewaakt het register, scripts/verhaal_props_audit.mjs de budgetten.
+export const PROP_NORM = [
+  'Eén bouwer per soort in het register (storyprops.js DECOR_MAKERS); geen losse geometrie in scènecode of montagecode.',
+  'Oorsprong op de grond, +x is de voorkant; de afmeting klopt met wat het ding in de wereld is (een doos is geen kubus van een meter).',
+  'Een herkenbaar silhouet van dichtbij: een greep, bies, rand, opdruk of scharnier; geen kaal blok of kale cilinder (de camera komt op 1,5 m).',
+  'Twee tot zes materialen uit het wereldpalet, laag-poly binnen het budget van DECOR_BUDGET, geen NaN en geen overlappende vlakken.',
+  'De soort staat in PROP_KINDS (cutscript.js) én in DECOR_KINDS (hier); voertuigen en dieren komen uit de wereld (PROP_SOURCES), niet uit de bibliotheek.',
+  'Een scène heeft het voorwerp nodig voor het verhaal of de grap; de cue (draag, leg neer, wijs) laat het zien, het ligt niet voor de sier in beeld.',
+];
+
 // geen spelobject: er is geen register voor, dus niet in een cutscene
 export const PLACEHOLDER_KINDS = ['aanhanger'];
 
