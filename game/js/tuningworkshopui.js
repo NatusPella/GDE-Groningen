@@ -104,6 +104,7 @@ function openTuningWorkshop(w, v, s = {}) {
   if (document.pointerLockElement) document.exitPointerLock();
   if (world.input) world.input.reset();
   world.uiPaused = true;
+  (world.pauseHolds || (world.pauseHolds = new Set())).add('tuning'); // phone.js refreshPause rewrites uiPaused every frame (#1292)
   open = true;
   root.classList.add('visible');
   document.body.classList.add('shop-open');
@@ -121,7 +122,7 @@ function closeTuningWorkshop() {
   if (showroom) showroom.clear();
   root.classList.remove('visible');
   document.body.classList.remove('shop-open');
-  if (world) { world.uiPaused = false; if (world.input) world.input.reset(); }
+  if (world) { if (world.pauseHolds) world.pauseHolds.delete('tuning'); world.uiPaused = false; if (world.input) world.input.reset(); }
   if (world) saveGame(world);
   if (document.activeElement && root.contains(document.activeElement)) document.activeElement.blur();
 }

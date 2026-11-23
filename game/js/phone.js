@@ -365,7 +365,8 @@ function refreshPause() {
   world.uiHard = hard;
   zachtePauze(world, 'afspeelvooruit', isPlayAheadOpen());
   zachtePauze(world, 'hulpaanbod', isHelpOfferOpen());
-  world.uiPaused = hard || isPlayAheadOpen() || isHelpOfferOpen() || isRecapOpen() || loadHeld(world); // loadHeld: the load screen and the travel scene (loadlogic.js)
+  // pauseHolds: screens that pause the world for as long as they are open (the tuning workshop); without it the pause lasted one frame (#1292)
+  world.uiPaused = hard || isPlayAheadOpen() || isHelpOfferOpen() || isRecapOpen() || loadHeld(world) || !!(world.pauseHolds && world.pauseHolds.size); // loadHeld: the load screen and the travel scene (loadlogic.js)
 }
 
 let phoneWasOpen = false;
