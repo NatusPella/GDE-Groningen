@@ -600,7 +600,8 @@ function runBootScreen(world, opts, pending = null) {
     // #581: testruns start like the player: no menu, straight on to the world. A fresh profile
     // first gets a short graphics measurement; everything else starts at once. A benchmark that was
     // asked for (--benchmark, or Instellingen > Beeld via a reload) runs first, on this same world.
-    const firstRun = !save && !AUTO && !FLAGS.autoplay && !document.hidden && isDefaultGfx() && !readAdvice();
+    // --gfx-advice (FLAGS.gfxadvies): de automatische meting ook in een testrun (wegwerpprofiel), om hem in Electron te controleren
+    const firstRun = !save && (!AUTO || FLAGS.gfxadvies) && !FLAGS.autoplay && !document.hidden && isDefaultGfx() && !readAdvice();
     const begin = () => {
       if (firstRun) benchmarkFirstRun(opts, () => startNew());
       else if (save) continueGame(); else startNew();
