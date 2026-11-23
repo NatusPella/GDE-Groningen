@@ -1811,6 +1811,8 @@ function updateRetry(dt, world, def) {
   if (r.fade != null) {
     r.fade -= dt;
     if (r.fade > 0) return;
+    // a side job, activity, scene or respawn that started during the fade: no restart and no move of the party; the offer stays (#1294)
+    if (herstartBlokkade(world)) { r.fade = null; respawnFade(0, 300); return; }
     chainState().retry = null;
     recordStat(world, 'missionRetries');
     placeParty(world, def.start);
