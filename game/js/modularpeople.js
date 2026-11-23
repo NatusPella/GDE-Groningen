@@ -8,7 +8,8 @@
 // Zolang de rig niet geladen is (of ?mensen=q ontbreekt) bouwt het spel de procedurele mens: niets breekt als het bestand er niet is.
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { vcMaterial, markShared } from './pixelart3d.js';
-import { gaitWeights, crossfade, footPlant } from './actorlife.js';
+import { crossfade, footPlant } from './actorlife.js';
+import { createAnimState, stepAnimState } from './animstate.js';
 
 const rigs = new Map();               // 'man' | 'vrouw' -> gedecodeerde rig
 const loading = new Map();
@@ -229,6 +230,7 @@ export function buildModularPerson(seed, opts = {}) {
   ud.female = look.rig === 'vrouw';
   ud.qIdle = rig.clips[hashf(seed, 30) < 0.5 ? 'Idle' : 'Idle_Neutral'] ? (hashf(seed, 30) < 0.5 ? 'Idle' : 'Idle_Neutral') : 'Idle';
   ud.qState = { t: hashf(seed, 31) * 10, phase: hashf(seed, 32), walk: 0, run: 0, gaze: 0 };
+  ud.qSM = createAnimState('idle');   // de gedeelde state-machine (animstate.js, ADR 0051)
   const bi = (n) => rig.man.bones.findIndex((b) => b.name === n);
   ud.qIdx = { neck: bi('Neck'), head: bi('Head'), body: bi('Body'), root: bi('Root'), upL: bi('UpperLegL'), loL: bi('LowerLegL'), upR: bi('UpperLegR'), loR: bi('LowerLegR'), footL: bi('FootL'), footR: bi('FootR') };
   return group;
@@ -238,7 +240,7 @@ export function buildModularPerson(seed, opts = {}) {
 
 const NB = 22;
 const _acc = new Float32Array(NB * 4), _pacc = new Float32Array(NB * 3), _pw = new Float32Array(NB);
-const _gw = { idle: 1, walk: 0, run: 0 };
+const _sp = { speed: 0, dir: 0, turn: 0, grounded: true, vy: 0, jump: false, water: false, climbing: false, seated: false, vehicle: null, cutscene: false, knocked: false, emote: null };
 
 // Telt clip `c` op tijd u (0..1 van de cyclus) met gewicht w op bij de accumulatoren (quaternion met tekencorrectie, positie).
 function accumulate(rig, c, u, w) {
@@ -270,9 +272,14 @@ export function animateModular(mesh, speed, dt) {
   if (!rig) return;
   const s = Number.isFinite(speed) ? Math.max(0, speed) : 0;
   const step = Number.isFinite(dt) ? Math.max(0, Math.min(0.1, dt)) : 0;
-  gaitWeights(s, _gw);
-  st.walk = crossfade(st.walk, 1 - _gw.idle, step, 0.25);
-  st.run = crossfade(st.run, _gw.walk + _gw.run > 0 ? _gw.run / (_gw.walk + _gw.run) : st.run, step, 0.3);
+  // de state-machine (animstate.js) kiest de toestand en geeft de loopruimte; de clipgewichten volgen die met een overgang
+  const sm = ud.qSM;
+  sm.tier = ud.qLod || 0;
+  _sp.speed = s;
+  stepAnimState(sm, _sp, step);
+  const b = sm.blend, moving = 1 - b.idle, fast = moving > 0 ? (b.run + b.sprint) / moving : st.run;
+  st.walk = crossfade(st.walk, moving, step, 0.25);
+  st.run = crossfade(st.run, fast, step, 0.3);
   st.t += step;
   const walkC = rig.clips.Walk, runC = rig.clips.Run, idleC = rig.clips[ud.qIdle] || rig.clips.Idle;
   // één fase voor lopen en rennen: de looptijd volgt de snelheid, zodat de voeten niet glijden
