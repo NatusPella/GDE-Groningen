@@ -106,10 +106,13 @@ export function kaartLand(m = wereldMeng()) {
     road: IZ, major: I, minor: meng(IZ, P, 0.3), cycle: meng(R, I, 0.12), foot: meng(IZ, P, 0.35), rail: I, railTie: P, turbine: I,
     building: hexA(meng(P2, IZ, 0.5), 0.92), church: hexA(meng(R, P2, 0.45), 0.95),
   };
-  // de minikaart is klein en wordt in één blik gelezen: iets sterkere wegen, gebouwen als gedekte vlakken in vijf tinten
+  // de minikaart is klein en wordt in één blik gelezen: iets sterkere wegen, gebouwen als gedekte vlakken in vijf tinten.
+  // 23-11 (strakker en mooier): de vijf tinten liggen dicht bij elkaar (grijs papier met een zweem roze, blauw of groen), zodat het
+  // land rustig is en de route en de doelen eruit springen; de kerk houdt zijn eigen kleur als herkenningspunt.
+  const GB = meng(P2, IZ, 0.42);
   const mini = {
     ...kaart, meadow: meng(P, P2, 0.2), road: meng(IZ, I, 0.4), minor: meng(IZ, P, 0.2), foot: meng(IZ, P, 0.34),
-    building: meng(P2, IZ, 0.4), buildings: [meng(P2, IZ, 0.4), meng(P2, IZ, 0.48), meng(P2, R, 0.3), meng(P2, WA, 0.25), meng(P2, B, 0.25)], church: meng(R, P2, 0.45),
+    building: meng(P2, IZ, 0.4), buildings: [meng(P2, IZ, 0.4), meng(P2, IZ, 0.46), meng(GB, R, 0.1), meng(GB, WA, 0.1), meng(GB, B, 0.08)], church: meng(R, P2, 0.45),
   };
   return { kaart, mini };
 }
