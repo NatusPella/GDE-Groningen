@@ -1649,9 +1649,11 @@ function quadGeometry(P, spec) {
     B.bone = I[s > 0 ? 'earL' : 'earR'];
     if (P.floppy) B.geo(new THREE.BoxGeometry(P.head * 0.35, P.head * 0.6, 0.02), hm(P.head * 0.3, P.hh * 0.3 + P.head * 0.05, s * P.head * 0.5, s * 0.15, 0, 0.1), P.ear);
     else if (P.earLen) {   // the hare: long spoon ears with a black tip
+      // a spoon: wide in the middle, rounded at the tip, leaning back; the black tip sits on the ear in the ear's own frame
       const L = P.head * P.earLen;
-      B.geo(new THREE.ConeGeometry(P.head * 0.17, L, 4).scale(1, 1, 0.45), hm(P.head * 0.1, P.hh * 0.3 + P.head * 0.3 + L / 2, s * P.head * 0.24, s * -0.18, 0, 0.35), P.ear);
-      B.geo(new THREE.ConeGeometry(P.head * 0.09, L * 0.22, 4).scale(1, 1, 0.45), hm(P.head * 0.1 - Math.sin(0.35) * L * 0.9, P.hh * 0.3 + P.head * 0.3 + L * 0.98, s * (P.head * 0.24 + Math.sin(0.18) * L * 0.4), s * -0.18, 0, 0.35), P.earTip);
+      const E = hm(P.head * 0.05, P.hh * 0.3 + P.head * 0.35, s * P.head * 0.22, s * -0.2, 0, 0.45).multiply(composeMatrix(0, L / 2, 0));
+      B.geo(ellipsoid(5, 4, P.head * 0.2, L / 2, P.head * 0.07, 0, Math.PI).rotateZ(Math.PI / 2).rotateZ(-Math.PI / 2), E, P.ear);
+      B.geo(ellipsoid(5, 3, P.head * 0.13, L * 0.14, P.head * 0.075), E.clone().multiply(composeMatrix(0, L * 0.38, 0)), P.earTip);
     } else B.geo(new THREE.ConeGeometry(P.head * 0.2, P.head * 0.45, 3), hm(P.head * 0.3, P.hh * 0.3 + P.head * 0.6, s * P.head * 0.28, s * -0.25, 0, 0.1), P.ear);
     B.bone = I.head;
   }
@@ -1693,9 +1695,9 @@ function hareParams(v) {
   const c = HARE_LOOKS[v % HARE_LOOKS.length];
   const coat = (x, y, z) => (y < 0.17 && Math.abs(z) < 0.05 ? c.belly : (Math.floor((x + z) * 22) & 3) === 0 ? c.dark : c.base);
   return {
-    len: 0.5, leg: 0.12, hh: 0.085, hw: 0.075, legR: 0.019, head: 0.095, snout: 0.035,
-    tail: 0.04, tailR: 0.026, tailUp: 1, coat, legCoat: c.base, paw: c.belly, face: c.base,
-    nose: 0x3a2a24, eye: 0xc8902a, ear: c.base, earTip: 0x1a1714, earLen: 1.7, scut: 0xf2efe6, floppy: false,
+    len: 0.4, leg: 0.1, hh: 0.1, hw: 0.08, legR: 0.017, head: 0.09, snout: 0.03, deepChest: 1.15,
+    tail: 0.04, tailR: 0.028, tailUp: 1, coat, legCoat: c.base, paw: c.base, face: c.base,
+    nose: 0x3a2a24, eye: 0xc8902a, ear: c.base, earTip: 0x1a1714, earLen: 1.5, scut: 0xf2efe6, floppy: false,
   };
 }
 export function buildHareMesh3D(variant = 0) {

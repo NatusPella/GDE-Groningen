@@ -58,6 +58,19 @@ const ctx = (world) => ({
   check('een ezel blijft op zijn erf, ook met een speler dichtbij', Math.hypot(ezel.x - 3, ezel.y) < 3.5 && !(ezel.fleeT > 0));
 }
 {
+  // de haas (eigen model): vlucht en huppelt met voor- en achterpoten samen, met LOD's
+  const w = mkWorld(0, 0);
+  w.player.vx = 2;
+  const haas = { kind: 'haas', x: 8, y: 0, angle: 0, speed: 0, wanderTarget: { x: 8, y: 0 }, homeX: 8, homeY: 0, homeRadius: 15, waypointTimer: 5 };
+  P.updateProvinceAnimal(haas, 0.1, ctx(w));
+  check('een haas vlucht voor een lopende speler', haas.fleeT > 0 && haas.speed > 5);
+  const g = W.buildWildlifeMesh3D({ kind: 'haas', bobSeed: 0.3 });
+  W.animateWildlifeMesh3D(g, { ...haas, stride: 0.37 }, 1);
+  const L = g.userData.legs;
+  check('de haas huppelt: voorpoten samen en achterpoten samen', Math.abs(L[0].rotation.z - L[1].rotation.z) < 0.35 && Math.abs(L[2].rotation.z - L[3].rotation.z) < 0.35);
+  check('de haas heeft drie LOD-niveaus', !!g.userData.lod && g.userData.lod.geos.length === 3);
+}
+{
   // de wolf: sporen, loeren, aanvallen en bijten
   const w = mkWorld(0, 0);
   const wolf = { kind: 'wolf', x: 45, y: 0, angle: Math.PI, speed: 0, wanderTarget: { x: 45, y: 0 }, homeX: 45, homeY: 0, homeRadius: 40, waypointTimer: 5, state: 'zwerf', bites: 0, biteT: 0 };
