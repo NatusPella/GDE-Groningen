@@ -35,6 +35,7 @@ export const RIGS = {
 export const KEEP = ['Root', 'Body', 'Hips', 'Abdomen', 'Torso', 'Chest', 'Neck', 'Head', 'ShoulderL', 'UpperArmL', 'LowerArmL', 'WristL', 'ShoulderR', 'UpperArmR', 'LowerArmR', 'WristR', 'UpperLegL', 'LowerLegL', 'UpperLegR', 'LowerLegR', 'FootL', 'FootR'];
 export const CLIPS = ['Idle', 'Idle_Neutral', 'Walk', 'Run', 'Wave', 'Interact'];
 const FPS = 30;
+let REST_POS = [];   // rustposities (lokaal) van de bewaarde botten van de rig die nu omgezet wordt
 // m: LOD 1 en LOD 2 per vak (LOD 0 = het gelaste origineel); het hoofd fijner, anders verdwijnen haar en gezicht als eerste
 export const LOD_CELLS = { hoofd: [0.017, 0.036], romp: [0.05, 0.1], benen: [0.05, 0.1], voeten: [0.04, 0.085] };
 const POS_Q = 1 / 8192;          // m per eenheid (Int16: +-4 m)
@@ -156,6 +157,7 @@ async function importRig(rigName) {
         }),
       };
       heightRef = new THREE.Vector3().setFromMatrixPosition(bones.Head.matrixWorld).y;
+      REST_POS = rest.bones.map((b) => b.pos);
     }
     const v = new THREE.Vector3(), c = new THREE.Color();
     const byPart = new Map();
@@ -247,10 +249,13 @@ function record(name, dur, sc, bones, setFrame) {
     footL[f] = tmp.setFromMatrixPosition(bones.FootL.matrixWorld).x;
     footR[f] = tmp.setFromMatrixPosition(bones.FootR.matrixWorld).x;
   }
+  // welke botten verschuiven: ten opzichte van de rust (REST_POS), niet alleen binnen de clip; een zit-clip houdt het lijf de hele
+  // tijd op dezelfde (lagere) plek en moet die plek wel meenemen
   const moving = [];
   posAll.forEach((p, b) => {
+    const r = REST_POS[b] || [p[0], p[1], p[2]];
     let span = 0;
-    for (let f = 1; f < frames; f++) span = Math.max(span, Math.abs(p[f * 3] - p[0]), Math.abs(p[f * 3 + 1] - p[1]), Math.abs(p[f * 3 + 2] - p[2]));
+    for (let f = 0; f < frames; f++) span = Math.max(span, Math.abs(p[f * 3] - r[0]), Math.abs(p[f * 3 + 1] - r[1]), Math.abs(p[f * 3 + 2] - r[2]));
     if (span > 1e-5) moving.push(b);
   });
   const argmax = (a) => { let m = 0; for (let i = 1; i < a.length; i++) if (a[i] > a[m]) m = i; return m / (frames - 1); };

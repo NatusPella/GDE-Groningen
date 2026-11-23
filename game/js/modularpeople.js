@@ -11,6 +11,7 @@ import { vcMaterial, markShared } from './pixelart3d.js';
 import { crossfade, footPlant } from './actorlife.js';
 import { createAnimState, stepAnimState, stateName, STATES, STATE_IDS } from './animstate.js';
 import { blinkAmount } from './gait.js';
+import { lookFromAppearance } from './modularlooks.js';
 
 const rigs = new Map();               // 'man' | 'vrouw' -> gedecodeerde rig
 const loading = new Map();
@@ -78,6 +79,21 @@ export function loadModularPeople(base = new URL('../models/mensen/', import.met
   return Promise.all(all);
 }
 export const modularReady = (rig) => (rig ? rigs.has(rig) : rigs.size === 2);
+// De deel-id's per rig (voor modularlooks.js).
+export function modularPartIds() {
+  const out = {};
+  for (const [name, rig] of rigs) out[name] = new Set(rig.man.parts.map((p) => p.id));
+  return out;
+}
+// Een vaste look (Tammo, Tessa, Jelle, bijrollen: de opties van buildPersonMesh) als modulaire mens met dezelfde kleding-identiteit,
+// of null als de rig niet geladen is of de look niet te mappen is (dan blijft het de procedurele mens).
+export function buildModularFromAppearance(a) {
+  const look = lookFromAppearance(a, modularPartIds());
+  if (!look) return null;
+  const rig = rigs.get(look.rig);
+  look.scale = (rig.man.schaal || 1) * Math.max(0.92, Math.min(1.08, (a.look && a.look.heightScale) || 1)) * (look.old ? 0.985 : 1);
+  return buildModularPerson(look.seed, { look });
+}
 
 // ---- bouwen ------------------------------------------------------------------------------------
 
@@ -156,16 +172,50 @@ export function modularLook(seed, opts = {}) {
   };
 }
 
+// Een pet (Tammo, agent, pet of muts): een lage koepel van CAP_SEG x 3 vlakjes op de schedel en, bij een pet, een klep naar voren,
+// op het hoofdbot. Maten uit de gezichtspunten (ogen) van het hoofd; het haar eronder wordt bedekt door een iets ruimere koepel.
+const CAP_SEG = 10, CAP_RINGS = 3;
+const CAP_V = CAP_SEG * CAP_RINGS + 1 + 4, CAP_I = (CAP_SEG * (CAP_RINGS - 1) * 2 + CAP_SEG) * 3 + 6 + CAP_SEG * 0;
+function capGeometry(face, kind, P, C, SI, SW, I, v0, i0, col, headBone) {
+  const e0 = face.eyes[0], e1 = face.eyes[1];
+  const eyeY = (e0.c[1] + e1.c[1]) / 2, zc = (e0.c[2] + e1.c[2]) / 2, front = Math.max(e0.x, e1.x);
+  const cx = front - 0.1, cy = eyeY + 0.035, rx = 0.128, ry = kind === 'beanie' ? 0.15 : 0.13, rz = 0.122;
+  const base = v0;
+  const put = (x, y, z) => { P[v0 * 3] = x; P[v0 * 3 + 1] = y; P[v0 * 3 + 2] = z; C[v0 * 3] = col[0]; C[v0 * 3 + 1] = col[1]; C[v0 * 3 + 2] = col[2]; SI[v0 * 4] = headBone; SW[v0 * 4] = 255; return v0++; };
+  // ringen van de rand (licht schuin: achter lager dan voor) naar boven, dan de top
+  for (let r = 0; r < CAP_RINGS; r++) {
+    const a = (r / CAP_RINGS) * (Math.PI / 2);
+    for (let s = 0; s < CAP_SEG; s++) {
+      const t = (s / CAP_SEG) * Math.PI * 2, cxs = Math.cos(t), szs = Math.sin(t);
+      const tilt = r === 0 ? -0.02 * cxs : 0;
+      put(cx + rx * Math.cos(a) * cxs, cy + ry * Math.sin(a) + tilt, zc + rz * Math.cos(a) * szs);
+    }
+  }
+  const top = put(cx, cy + ry, zc);
+  const tri = (a, b, c) => { I[i0++] = a; I[i0++] = b; I[i0++] = c; };
+  for (let r = 0; r < CAP_RINGS - 1; r++) for (let s = 0; s < CAP_SEG; s++) {
+    const a = base + r * CAP_SEG + s, b = base + r * CAP_SEG + ((s + 1) % CAP_SEG), c = a + CAP_SEG, d = b + CAP_SEG;
+    tri(a, c, b); tri(b, c, d);
+  }
+  for (let s = 0; s < CAP_SEG; s++) tri(base + (CAP_RINGS - 1) * CAP_SEG + s, top, base + (CAP_RINGS - 1) * CAP_SEG + ((s + 1) % CAP_SEG));
+  // klep (alleen een pet): een plat vlak naar voren, iets omlaag
+  const k0 = v0, y = cy - 0.012, w = kind === 'cap' || kind === 'tammo' || kind === 'police' ? 0.085 : 0;
+  put(cx + rx * 0.85, y, zc - w); put(cx + rx * 0.85, y, zc + w); put(cx + rx + 0.075, y - 0.02 * (w > 0 ? 1 : 0), zc + w * 0.8); put(cx + rx + 0.075, y - 0.02 * (w > 0 ? 1 : 0), zc - w * 0.8);
+  tri(k0, k0 + 1, k0 + 2); tri(k0, k0 + 2, k0 + 3);
+  return { v: v0, i: i0 };
+}
+
 const GEO_CACHE_MAX = 120;
 function geometryFor(rig, look, lod = 0) {
-  const key = `${lod}|${look.parts.hoofd}|${look.parts.romp}|${look.parts.benen}|${look.parts.voeten}|${look.skin}|${look.shirt}|${look.hair}|${look.pants}|${Math.floor(hashf(look.seed, 3) * 8)}`;
+  const key = `${lod}|${look.cap || ''}|${look.capColor || ''}|${look.parts.hoofd}|${look.parts.romp}|${look.parts.benen}|${look.parts.voeten}|${look.skin}|${look.shirt}|${look.hair}|${look.pants}|${Math.floor(hashf(look.seed, 3) * 8)}`;
   let g = rig.geoCache.get(key);
   if (g) { rig.geoCache.delete(key); rig.geoCache.set(key, g); return g; }
   // per deel het bereik van dit LOD-niveau (0 = het origineel, 1 en 2 uit de importpijplijn, LOD_CELLS)
   const parts = MODULAR_SLOTS.map((s) => { const p = rig.man.parts.find((q) => q.id === look.parts[s]); return lod > 0 && p.lods && p.lods[lod - 1] ? { ...p.lods[lod - 1], id: p.id, slot: p.slot, main: p.main } : p; });
   // gezicht (cutscene-fase): een mondopening en twee oogleden als plaatjes op twee extra botten (dicht = schaal 0, dus onzichtbaar)
   const face = rig.man.parts.find((q) => q.id === look.parts.hoofd).face;
-  const FV = face ? 12 : 0, FI = face ? 18 : 0;
+  const capOn = !!(face && look.cap);
+  const FV = (face ? 12 : 0) + (capOn ? CAP_V : 0), FI = (face ? 18 : 0) + (capOn ? CAP_I : 0);
   const nV = parts.reduce((s, p) => s + p.vCount, 0) + FV, nI = parts.reduce((s, p) => s + p.iCount, 0) + FI;
   const P = new Float32Array(nV * 3), C = new Float32Array(nV * 3), SI = new Uint8Array(nV * 4), SW = new Uint8Array(nV * 4);
   const I = nV < 65536 ? new Uint16Array(nI) : new Uint32Array(nI);
@@ -201,6 +251,11 @@ function geometryFor(rig, look, lod = 0) {
     const [mx, my, mz] = face.mouth;
     quad(mx + 0.0025, my - 0.016, my, mz - 0.014, mz + 0.014, dark, MOUTH);
     for (const e of face.eyes) quad(e.x + 0.003, e.c[1] - e.h / 2 - 0.002, e.c[1] + e.h / 2 + 0.002, e.c[2] - e.w / 2 - 0.003, e.c[2] + e.w / 2 + 0.003, skin, LIDS);
+    if (capOn) {
+      _base.setHex(look.capColor ?? 0x2b2f36);
+      const res = capGeometry(face, look.cap, P, C, SI, SW, I, v0, i0, [_base.r, _base.g, _base.b], rig.man.bones.findIndex((b) => b.name === 'Head'));
+      v0 = res.v; i0 = res.i;
+    }
   }
   g = new THREE.BufferGeometry();
   g.setAttribute('position', new THREE.BufferAttribute(P, 3));
