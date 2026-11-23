@@ -50,4 +50,17 @@ t('niet-eindige klok: snapshot komt aan met een veilige klok', () => {
     assert.deepEqual(ids(d), [1, 2, 3]);
   }
 });
+t('speler met een niet-eindige positie: de rest van de snapshot komt aan (#1293)', () => {
+  const twee = { ...SNAP, players: [SNAP.players[0], { slot: 1, x: 5, y: 6, z: 0, angle: 0, alive: true, health: 90, vehicle: null }] };
+  for (const patch of [{ x: NaN }, { y: Infinity }, { z: NaN, x: 1e39 }, { x: undefined }, { slot: 200 }]) {
+    const kapot = { ...twee, players: [{ ...twee.players[0], ...patch }, twee.players[1]] };
+    const d = K.decodeSnapshot(K.encodeSnapshot(1, 2, 3, kapot));
+    assert.ok(d, `snapshot met een kapotte speler (${JSON.stringify(patch)}) wordt niet afgewezen`);
+    assert.deepEqual(d.players.map((p) => p.slot), [1], 'alleen de kapotte speler ontbreekt');
+    assert.equal(d.players[0].health, 90);
+    assert.deepEqual(ids(d), [1, 2, 3], 'de entiteiten staan nog op hun plek');
+  }
+  const d = K.decodeSnapshot(K.encodeSnapshot(1, 2, 3, twee));
+  assert.deepEqual(d.players.map((p) => p.slot), [0, 1], 'gezonde spelers komen allebei aan');
+});
 console.log(`net_codec_nan_test: ${n}/${n} ok`);

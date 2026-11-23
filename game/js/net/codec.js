@@ -141,8 +141,12 @@ export function encodeSnapshot(seq, tick, ackInput, snap) {
   const size = 11 + 1 + players.length * 22 + 9 + 3 + 1 + ents.length * 20 + 1 + looks.length * (3 + LOOK_MAX);
   const b = new Uint8Array(size); const v = new DataView(b.buffer);
   let o = header(v, T.SNAP, seq, tick, ackInput);
-  v.setUint8(o++, players.length);
+  // a player with a non-finite or out-of-world position is skipped like an entity below (#1293): the receiver rejected the
+  // whole snapshot for him; applyHostState (coopclient.js) already skips a missing body for one tick
+  const playersAt = o++; let sentPlayers = 0;
   for (const p of players) {
+    if (!((p.slot & 0xff) < MAX_PLAYERS) || !inWorld(Math.fround(p.x)) || !inWorld(Math.fround(p.y)) || !inWorld(Math.fround(p.z || 0))) continue;
+    sentPlayers++;
     v.setUint8(o++, p.slot & 0xff);
     v.setFloat32(o, p.x); o += 4; v.setFloat32(o, p.y); o += 4; v.setFloat32(o, p.z || 0); o += 4;
     v.setUint16(o, quantAngle(p.angle || 0)); o += 2;
@@ -152,6 +156,7 @@ export function encodeSnapshot(seq, tick, ackInput, snap) {
     // de drie gereserveerde bytes (#434, zelfde wireversie: een oudere ontvanger slaat ze over): stoel in het voertuig, wapen in de hand, aanval
     v.setUint8(o++, clamp(p.seat | 0, 0, 255)); v.setUint8(o++, clamp(p.weapon | 0, 0, 255)); v.setUint8(o++, clamp(p.attack | 0, 0, 255));
   }
+  v.setUint8(playersAt, sentPlayers);
   const sh = snap.shared || {};
   v.setUint32(o, clamp(Math.floor(sh.money || 0), 0, 0xffffffff)); o += 4;
   v.setUint8(o++, clamp(sh.wanted | 0, 0, 5));
