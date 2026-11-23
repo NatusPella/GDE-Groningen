@@ -96,6 +96,24 @@ if (!${JSON.stringify(process.argv.includes('--alleen-blad'))}) {
   await shot(scene, 'keuken-aanrecht', [-0.4, 1.55, 1.5], [0.4, 0.95, -1.6], 58);
   await shot(scene, 'keuken-deur', [-1.7, 1.55, -0.9], [1.3, 1.1, 1.75], 55);
   await shot(scene, 'keuken-raam', [1.6, 1.45, -0.3], [-2.2, 1.35, 0.1], 55);
+  // het deurshot van de naamkaart (intromontage.js tammoCard) met een maatpop van 1,78 m in de deur (romp, hoofd op 1,66 m ooghoogte);
+  // de balken geven de letterbox van 2,39:1 aan
+  const pop = new THREE.Group();
+  const huid = new THREE.MeshStandardMaterial({ color: 0xd9a77e }), jas = new THREE.MeshStandardMaterial({ color: 0x3d6fa8 });
+  const romp = new THREE.Mesh(new THREE.CapsuleGeometry(0.2, 0.8, 4, 10), jas); romp.position.y = 1.0; pop.add(romp);
+  const hoofd = new THREE.Mesh(new THREE.SphereGeometry(0.12, 14, 10), huid); hoofd.scale.y = 1.15; hoofd.position.y = 1.64; pop.add(hoofd);
+  pop.position.set(1.3, 0, 1.62); scene.add(pop);
+  kit.hinge.rotation.y = -1.25;
+  const tag = '${TAG}';
+  const camZ = tag === 'voor' ? [0.3, 1.6, 1.56] : [0.02, 1.66, 1.62];
+  const cam = new THREE.PerspectiveCamera(34, W / H, 0.05, 200);
+  cam.position.set(1.25, camZ[1], camZ[0]); cam.lookAt(1.3, camZ[2], 1.62);
+  renderer.render(scene, cam);
+  const lb = document.createElement('canvas'); lb.width = W; lb.height = H;
+  const lg = lb.getContext('2d'); lg.drawImage(renderer.domElement, 0, 0);
+  const bar = Math.round((H - W / 2.39) / 2); lg.fillStyle = '#000'; lg.fillRect(0, 0, W, bar); lg.fillRect(0, H - bar, W, bar);
+  await post('/jpg?name=keuken-deurshot&calls=0&tris=0', lb.toDataURL('image/jpeg', 0.86).split(',')[1]);
+  scene.remove(pop);
   kit.dispose();
 }
 
