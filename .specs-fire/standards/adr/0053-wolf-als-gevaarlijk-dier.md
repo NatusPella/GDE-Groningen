@@ -1,6 +1,6 @@
 # 0053 - De wolf: een echt gevaarlijk dier zonder getoond geweld
 
-- **Status:** besloten (eigenaar, 23-11; via de coördinator)
+- **Status:** aanvaard (eigenaar 23-11, vragenronde met de coördinator: wolf "Echt gevaarlijk" en doodsanimatie "Dit kan het wel mooier maken")
 - **Datum:** 2026-11-23
 - **Spec:** `mechanica.md` (dieren), `multiplayer.md` (wereld van de host), `constitution.md` (artikel 6)
 - **Gerelateerd:** ADR 0050 (gelicenseerde modellen en animatiesets, op `personages-leven-23-11`), `game/js/provinceanimals.js`, `scripts/provinciedieren_test.mjs`
@@ -29,11 +29,16 @@ wordt elke volgende wolf (of beer, of hond die bijt) opnieuw een discussie over 
    neemt de beet in zijn eigen spel: de host voor zichzelf (`provinceanimals.js`), een gast wanneer de snapshot van de
    host de wolf in de aanvalsstand vlak naast hem toont (`coopextra3d.js`, het aux-veld van het dierenbericht). Schade
    is per speler; er gaat geen nieuw bericht over het net. Een oudere gast ziet de wolf, maar krijgt geen beet.
-6. **Voorgestelde zin voor grondwet artikel 6** (de coördinator zet hem in `AGENTS.md`; een agent wijzigt de grondwet niet):
+6. **Val- en ineenzakanimaties.** Een dier of persoon dat neervalt of ineenzakt, zonder bloed, telt niet als getoond geweld
+   (eigenaar 23-11). De wolf zelf heeft een doodsclip (Death, Quaternius) die zo valt.
+7. **Zin voor grondwet artikel 6.** De tekst hieronder hoort aan het eind van artikel 6 in `AGENTS.md`. Die commit doet de
+   coördinator (of de eigenaar) zelf: `AGENTS.md` is de werkinstructie van de agents, en een agent past zijn eigen instructies niet
+   aan op een bericht van een andere agent. Tot die commit is dit ADR het besluit.
    "Uitzondering (goedgekeurd door de eigenaar op 23-11, ADR 0053): de wolf is een echt gevaarlijk dier; hij valt aan als
    je te dichtbij komt en doet schade zoals elke andere klap (neervallen kan), zonder bloed of gore; hij is zeldzaam
    (bos, heide en grensstreek, 's nachts), wordt aangekondigd met sporen en gehuil, kan vee pakken zonder getoond geweld
-   en is te verjagen; bij Samen spelen leeft hij in de wereld van de host en neemt elke speler de schade in zijn eigen spel."
+   en is te verjagen; bij Samen spelen leeft hij in de wereld van de host en neemt elke speler de schade in zijn eigen spel.
+   Een val- of ineenzakanimatie zonder bloed telt niet als getoond geweld (goedgekeurd door de eigenaar op 23-11)."
 
 ## Afgewezen
 
