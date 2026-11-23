@@ -9,7 +9,7 @@ import { getSettings } from './settings.js';
 import { EERSTE_START, SCHAKELAAR, ONLINE_INSTELLING, kiesNaam, wijzigNaam, zetMeedoen } from './onlineconsent.js';
 import { magOnline } from './settings.js';
 import { bewaarFocus } from './listnav.js';
-import { keyLabelHtml } from './keycap.js';
+import { keyTextHtml } from './keycap.js';
 
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
@@ -28,8 +28,8 @@ export function onlineStartHtml({ naam = '', fout = '', consent = false, terug =
     ${meerInfoHtml(EERSTE_START.meerInfo, EERSTE_START.info)}
     ${fout ? `<p class="os-fout" role="alert">${esc(fout)}</p>` : '<p class="os-fout" role="alert" hidden></p>'}
     <div class="os-knoppen">
-      <button type="button" class="os-knop os-doorgaan" data-doorgaan aria-keyshortcuts="Enter">${esc(EERSTE_START.doorgaan)} <span class="sk-toets-in">${keyLabelHtml('Enter')}</span></button>
-      ${terug ? `<button type="button" class="os-knop os-alleen" data-terug>${esc(EERSTE_START.terug)} <span class="sk-toets-in">${keyLabelHtml('Esc')}</span></button>` : ''}
+      <button type="button" class="os-knop os-doorgaan" data-doorgaan aria-keyshortcuts="Enter">${esc(EERSTE_START.doorgaan)} <span class="sk-toets-in">${keyTextHtml('{ENTER}')}</span></button>
+      ${terug ? `<button type="button" class="os-knop os-alleen" data-terug>${esc(EERSTE_START.terug)} <span class="sk-toets-in">${keyTextHtml('{ESC}')}</span></button>` : ''}
     </div>
   </section>`;
 }
