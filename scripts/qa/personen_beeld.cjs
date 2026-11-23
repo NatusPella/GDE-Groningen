@@ -1,5 +1,5 @@
 // Voor/na-beeld van de personages in één pagina (scripts/qa/personen_beeld.html) met een wegwerpprofiel.
-//   <electron.exe> scripts/qa/personen_beeld.cjs --out=<map> [--wait=<minuten>]
+//   <electron.exe> scripts/qa/personen_beeld.cjs --out=<map> [--wait=<minuten>] [--page=personen_vergelijk]
 // Neemt een Electron-slot (<GDE_LOCKS of ~/gde-locks>/electron-1..3, mkdir) en geeft het altijd vrij. Dient de pagina zelf over http op een
 // vrije poort (de worktree, plus de vendor-cache voor three.js); raakt poort 9000 en de geïnstalleerde app niet.
 // Nooit een dialoogvenster: fouten in het hoofdproces worden gelogd (stderr en <out>/run.log) en het proces stopt met code 1.
@@ -18,6 +18,8 @@ const arg = (k, d) => { const a = process.argv.find((x) => x.startsWith(`--${k}=
 const ROOT = path.resolve(__dirname, '..', '..');
 const OUT = path.resolve(arg('out', path.join(ROOT, 'personen-beeld')));
 const WAIT_MIN = Number(arg('wait', 20));
+// welke pagina in scripts/qa/ (zonder .html): personen_beeld (voor/na) of personen_vergelijk (eigen model naast Quaternius, ADR 0050)
+const PAGE = /^[a-z_]+$/.test(arg('page', '')) ? arg('page') : 'personen_beeld';
 const LOCKS = process.env.GDE_LOCKS || path.join(os.homedir(), 'gde-locks');
 const VENDOR = (process.env.GDE_VENDOR_CACHE || path.resolve(ROOT, '..', '..', '..', 'desktop', 'vendor-cache')).replace(/[\\/]npm$/, '');
 const CDN = '/cdn/';
@@ -88,13 +90,13 @@ app.whenReady().then(async () => {
     });
     const win = new BrowserWindow({ show: false, width: 1600, height: 1000, webPreferences: { backgroundThrottling: false } });
     win.webContents.on('console-message', (_e, _l, m) => log('[pagina]', m));
-    await win.loadURL(`http://127.0.0.1:${port}/scripts/qa/personen_beeld.html`);
+    await win.loadURL(`http://127.0.0.1:${port}/scripts/qa/${PAGE}.html`);
     const t0 = Date.now();
     while (Date.now() - t0 < 90000 && !(await win.webContents.executeJavaScript('window.__klaar === true'))) await sleep(500);
     const info = await win.webContents.executeJavaScript('window.__info');
     fs.mkdirSync(OUT, { recursive: true });
     const img = await win.webContents.capturePage();
-    fs.writeFileSync(path.join(OUT, 'voor-na.png'), img.toPNG());
+    fs.writeFileSync(path.join(OUT, PAGE === 'personen_beeld' ? 'voor-na.png' : `${PAGE}.png`), img.toPNG());
     fs.writeFileSync(path.join(OUT, 'cijfers.json'), JSON.stringify(info, null, 1));
     log('cijfers', JSON.stringify(info));
     srv.close();
