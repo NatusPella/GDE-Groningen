@@ -53,7 +53,7 @@ await import('../game/js/player.js');
 const { buildVehicleMesh } = await import('../game/js/models3d_vehicles.js');
 for (const id of VOERTUIG_IDS) {
   const e = VOERTUIG_REGISTER[id], n = e.norm;
-  const mesh = buildVehicleMesh({ id: 'reg-' + id, model: { ...e.model }, health: 100 });
+  const mesh = buildVehicleMesh({ id: 'reg-' + id, model: { ...e.model }, health: 100, isTaxi: !!e.isTaxi, isPolice: !!e.isPolice });
   let tris = 0;
   mesh.traverse((o) => { if (o.isMesh) tris += (o.geometry.index ? o.geometry.index.count : o.geometry.attributes.position.count) / 3; });
   const col = (mesh.userData.body || mesh).geometry.attributes.color, kleuren = new Set();

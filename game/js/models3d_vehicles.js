@@ -14,7 +14,9 @@ import { zoneTotals, losseOnderdelen, fietsStaat } from './vehicledamage.js';
 import { staatSleutel } from './studentenfiets.js';
 import { naadStroken } from './vehicledoorcuts.js';
 import { DEUR_DEFS as DEUR_DEFS_REF } from './vehicledoors.js';
-import { QCAR } from './models/qcar_sedan.js';
+import { QCARS } from './models/qcars.js';
+import { hybrideSchaal } from './propregister.js';
+import { attachVehicleLods } from './vehiclelod3d.js';
 
 // Low-poly vehicles. Group origin = vehicle centre at ground level (y=0),
 // facing local +X, right-hand side on +Z; sized off v.model.len/wid.
@@ -178,10 +180,16 @@ function addWheel(group, geo, mat, x, y, z, wheels) {
 
 // --- generic helpers ------------------------------------------------------------
 
-function extrudeProfile(pts, depth, bevel = 0.04, segments = 1) {
+function extrudeProfile(pts, depth, bevel = 0.04, segments = 1, gaten = []) {
   const shape = new THREE.Shape();
   shape.moveTo(pts[0][0], pts[0][1]);
   for (let i = 1; i < pts.length; i++) shape.lineTo(pts[i][0], pts[i][1]);
+  // gaten [x0, y0, x1, y1]: echte deuropeningen dwars door de romp (de deuren links en rechts staan op dezelfde plek)
+  for (const [x0, y0, x1, y1] of gaten) {
+    const h = new THREE.Path();
+    h.moveTo(x0, y0); h.lineTo(x0, y1); h.lineTo(x1, y1); h.lineTo(x1, y0); h.lineTo(x0, y0);
+    shape.holes.push(h);
+  }
   const geo = new THREE.ExtrudeGeometry(shape, {
     depth: Math.max(0.01, depth - bevel * 2),
     bevelEnabled: bevel > 0,
@@ -262,9 +270,52 @@ function archLiners(B, arches, W) {
 
 // Deurnaden en handvatten uit de ene deurtabel (vehicledoorcuts.js): de romp is dicht, dus de naad om het paneel is wat
 // een gesloten deur zichtbaar maakt en een open deur een plek geeft waar hij uit komt. Gedeelde, gecachete geometrie.
-function addDoorCuts(B, doorName, len, hw, paint, handle = CHROME) {
+function addDoorCuts(B, doorName, len, hw, paint, handle = CHROME, zonderHandvat = false) {
   const naad = shadeHex(paint, 0.32);
-  for (const s of naadStroken(doorName, len, hw)) B.box(s.x, s.y, s.z, s.sx, s.sy, s.sz, s.soort === 'handvat' ? handle : naad);
+  for (const s of naadStroken(doorName, len, hw)) {
+    if (s.soort === 'handvat' && zonderHandvat) continue; // bij een echt gat zit het handvat op het deurblad zelf
+    B.box(s.x, s.y, s.z, s.sx, s.sy, s.sz, s.soort === 'handvat' ? handle : naad);
+  }
+}
+// Een lange strook langs de flank (sierlijn, dorpelstrip, politiestreep), in stukken die bij een echt deurgat ophouden; het stuk
+// op de deur gaat mee naar het deurblad (moveDoorDecor), zodat de strook doorloopt als de deur dicht is.
+function hboxSplit(B, cx, cy, z, sx, sy, sz, color, gaten) {
+  let segs = [[cx - sx / 2, cx + sx / 2]];
+  for (const g of gaten) {
+    const [x0, y0, x1, y1] = g.rect;
+    if (cy + sy / 2 < y0 || cy - sy / 2 > y1) continue;
+    const uit = [];
+    for (const [a, b] of segs) {
+      if (b <= x0 || a >= x1) { uit.push([a, b]); continue; }
+      if (a < x0) uit.push([a, x0]);
+      uit.push([Math.max(a, x0), Math.min(b, x1)]);
+      if (b > x1) uit.push([x1, b]);
+    }
+    segs = uit;
+  }
+  for (const [a, b] of segs) if (b - a > 0.005) B.box((a + b) / 2, cy, z, b - a, sy, sz, color);
+}
+// Haalt uit de lakgroep van B alle driehoeken (vanaf vertex `vanaf`) die in een echt deurgat op de buitenkant van de flank liggen,
+// en geeft ze per deur terug: die versiering hoort bij het deurblad. { deurId: [[a, b, c, kleur], ...] }
+function moveDoorDecor(B, vanaf, gaten, hw) {
+  const G = B.groups[G_BODY], p = G.p, c = G.c, uv = G.uv;
+  const per = {}, kp = [], kc = [], ku = [];
+  for (let t = vanaf; t < p.length / 9; t++) {
+    const o = t * 9;
+    const cx = (p[o] + p[o + 3] + p[o + 6]) / 3, cy = (p[o + 1] + p[o + 4] + p[o + 7]) / 3, cz = (p[o + 2] + p[o + 5] + p[o + 8]) / 3;
+    const g = Math.abs(cz) > hw * 0.75 ? gaten.find((q) => cx > q.rect[0] && cx < q.rect[2] && cy > q.rect[1] && cy < q.rect[3]) : null;
+    if (g) {
+      const id = g.ids[cz < 0 ? 0 : 1];
+      (per[id] || (per[id] = [])).push([[p[o], p[o + 1], p[o + 2]], [p[o + 3], p[o + 4], p[o + 5]], [p[o + 6], p[o + 7], p[o + 8]], [c[o], c[o + 1], c[o + 2]]]);
+    } else {
+      for (let k = 0; k < 9; k++) { kp.push(p[o + k]); kc.push(c[o + k]); }
+      for (let k = 0; k < 6; k++) ku.push(uv[t * 6 + k]);
+    }
+  }
+  p.length = vanaf * 9; c.length = vanaf * 9; uv.length = vanaf * 6;
+  for (let k = 0; k < kp.length; k++) { p.push(kp[k]); c.push(kc[k]); }
+  for (let k = 0; k < ku.length; k++) uv.push(ku[k]);
+  return per;
 }
 
 // --- cars -------------------------------------------------------------------------
@@ -280,6 +331,26 @@ function carProfile(type, hl) {
     case 'suv': return { nose: 0.78, hood: 1.02, belt: 1.12, roof: 1.74, xA: hl - 1.2, xB: hl - 1.9, xC: -hl + 0.32, xD: -hl + 0.1, deck: 1.14, tail: 1.08, fw: hl - 0.95, rw: -hl + 1.0, boxy: true };
     default: return { nose: 0.58, hood: 0.82, belt: 0.93, roof: 1.47, xA: hl - 1.0, xB: hl - 1.75, xC: -hl + 0.5, xD: -hl + 0.12, deck: 0.98, tail: 0.94, fw: hl - 0.75, rw: -hl + 0.7 };
   }
+}
+
+// De echte deuropeningen van een romp: alleen deuren die links en rechts op dezelfde plek zitten (het gat loopt dwars door de
+// extrusie), van de wielkasten af gehouden. [{ ids, rect: [x0, y0, x1, y1] }]
+function doorHoles(doorName, L, arches, beltY = Infinity) {
+  const defs = (DEUR_DEFS_REF[doorName] || []).filter((d) => d.soort === 'scharnier' || d.soort === 'achterscharnier');
+  const uit = [];
+  for (const d of defs) {
+    if (d.side !== -1) continue;
+    const ander = defs.find((o) => o.side === 1 && Math.abs(o.x - d.x) < 1e-6 && Math.abs(o.y0 - d.y0) < 1e-6);
+    if (!ander) continue;
+    let x0 = d.x * L - d.w / 2 + 0.03, x1 = d.x * L + d.w / 2 - 0.03;
+    const y0 = d.y0 + 0.03, y1 = Math.min(d.y0 + d.h - 0.02, beltY - 0.04); // het gat blijft onder de raamlijn (de bovenkant van de romp)
+    for (const a of arches) {
+      const l = a.x - a.r - 0.04, r = a.x + a.r + 0.04;
+      if (r > x0 && l < x1) { if (a.x < (x0 + x1) / 2) x0 = Math.max(x0, r); else x1 = Math.min(x1, l); }
+    }
+    if (x1 - x0 > 0.3) uit.push({ ids: [d.id, ander.id], rect: [x0, y0, x1, y1] });
+  }
+  return uit;
 }
 
 function buildCarGeometry(type, L, W, paint, opts) {
@@ -308,11 +379,16 @@ function buildCarGeometry(type, L, W, paint, opts) {
   // 23-11 (inspiratie: Quaternius' CC0-autopakket): een ronder koetswerk met een bredere afronding in twee stappen, zodat de
   // flanken naar het dak en de bodem toe inlopen in plaats van als een kist te eindigen
   const bevel = P.boxy ? 0.035 : 0.075;
-  const body = P.van
-    ? extrudeProfile(outline, W, bevel)
-    : withoutBeltPlate(extrudeProfile(outline, W, bevel), P.belt, P.xD, P.xA);
+  // echte deuropeningen (eis eigenaar 23-11): de romp krijgt een gat waar een deur zit, zodat je bij een open deur de auto in
+  // kijkt; de dichte deur vult het gat (vehicledoors3d.js, userData.deurenDicht). De opening blijft van de wielkasten af.
+  const gaten = doorHoles(opts.doorName, L, arches, P.belt);
+  let rompGeo = extrudeProfile(outline, W, bevel, 1, gaten.map((g) => g.rect));
+  // het plafond van de tunnel (de bovenkant van het gat) gaat eruit: daar kijk je door de ruiten in de auto
+  for (const g of gaten) rompGeo = withoutBeltPlate(rompGeo, g.rect[3], g.rect[0], g.rect[2], 0.001);
+  const body = P.van ? rompGeo : withoutBeltPlate(rompGeo, P.belt, P.xD, P.xA);
   B.geo(body, null, paint);
   archLiners(B, arches, W);
+  const decorVanaf = B.groups[G_BODY].p.length / 9;
 
   if (P.van) {
     const gh = [[P.xA + 0.03, P.belt - 0.03], [P.xB, P.roof - 0.12], [P.xB - 0.3, P.roof - 0.03], [xK + 0.01, P.roof - 0.03], [xK + 0.01, P.belt - 0.03]];
@@ -371,7 +447,7 @@ function buildCarGeometry(type, L, W, paint, opts) {
   B.box(-hl - 0.035, 0.31, 0, 0.1, 0.045, W - 0.12, lip);
   const r1 = vcount();
   // een lichte karakterlijn in de flank (de wielkastlijsten van de vorige ronde waren op afstand niet te zien en zijn eruit)
-  for (const s of [1, -1]) B.box((P.fw + P.rw) / 2, P.belt - 0.15, s * (hw + 0.002), P.fw - P.rw - 0.2, 0.014, 0.008, shadeHex(paint, 1.15));
+  for (const s of [1, -1]) hboxSplit(B, (P.fw + P.rw) / 2, P.belt - 0.15, s * (hw + 0.002), P.fw - P.rw - 0.2, 0.014, 0.008, shadeHex(paint, 1.15), gaten);
   B.box(-hl - 0.008, P.van ? 0.62 : Math.min(0.6, P.tail - 0.22), 0, 0.012, 0.1, 0.48, PLATE);
   const lampY = P.nose - (P.boxy || P.van ? 0.06 : 0.13); // de ronde neus (23-11) loopt boven de lampen in
   for (const s of [1, -1]) {
@@ -379,15 +455,15 @@ function buildCarGeometry(type, L, W, paint, opts) {
     B.box(hl + 0.006, lampY - (P.boxy ? 0.1 : 0.09), s * (hw - 0.1), 0.03, 0.05, 0.1, INDICATOR, G_LAMP);
     const tailY = P.van ? 0.95 : P.tail - (P.boxy ? 0.1 : 0.19);
     B.box(-hl - 0.006, tailY, s * (hw - 0.18), 0.03, P.van ? 0.3 : 0.12, P.van ? 0.14 : 0.3, TAIL, G_LAMP);
-    B.box((P.fw + P.rw) / 2, sill + 0.08, s * (hw + 0.005), (P.fw - P.rw) - R * 2 - 0.1, 0.1, 0.02, TRIM);
+    hboxSplit(B, (P.fw + P.rw) / 2, sill + 0.08, s * (hw + 0.005), (P.fw - P.rw) - R * 2 - 0.1, 0.1, 0.02, TRIM, gaten);
   }
-  addDoorCuts(B, opts.doorName, L, hw, paint);
+  addDoorCuts(B, opts.doorName, L, hw, paint, CHROME, gaten.length > 0);
 
   if (opts.police) {
     for (const s of [1, -1]) {
       const z = s * (hw + 0.007);
-      B.box(0, 0.84, z, L - 0.3, 0.13, 0.012, 0x1f3f8f);
-      B.box(0, 0.755, z, L - 0.3, 0.025, 0.012, 0xd9772b);
+      hboxSplit(B, 0, 0.84, z, L - 0.3, 0.13, 0.012, 0x1f3f8f, gaten);
+      hboxSplit(B, 0, 0.755, z, L - 0.3, 0.025, 0.012, 0xd9772b, gaten);
     }
     B.box((P.xB + P.xC) / 2, P.roof + 0.075, 0, 0.3, 0.07, W * 0.72, TRIM);
   }
@@ -442,7 +518,7 @@ function buildCarGeometry(type, L, W, paint, opts) {
     B.box(hl + 0.012, P.nose - 0.2, 0, 0.02, 0.16, W * 0.5, 0x1a1b1d);
     B.box(hl + 0.016, lampY, 0, 0.02, 0.025, W - 0.5, HEADLAMP, G_LAMP);
     for (const s of [1, -1]) {
-      B.box((P.xB + P.xC) / 2, P.belt - 0.12, s * (hw + 0.008), 1.4, 0.04, 0.012, 0x3fc6d4);
+      hboxSplit(B, (P.xB + P.xC) / 2, P.belt - 0.12, s * (hw + 0.008), 1.4, 0.04, 0.012, 0x3fc6d4, gaten);
     }
     B.box(-hl + 0.5, sill + 0.4, hw + 0.01, 0.16, 0.12, 0.012, 0x3fa66a);
   } else if (variant === 'tokkie') {
@@ -523,7 +599,10 @@ function buildCarGeometry(type, L, W, paint, opts) {
   if (type === 'wagon' && !opts.police) {
     for (const s of [1, -1]) B.box((P.xB + P.xC) / 2, P.roof + 0.065, s * W * 0.36, (P.xB - P.xC) * 0.8, 0.04, 0.04, TRIM); // boven het bolle dak
   }
+  const deurDecor = gaten.length ? moveDoorDecor(B, decorVanaf, gaten, hw) : {};
   const geo = B.build();
+  geo.userData.gaten = gaten;
+  geo.userData.deurDecor = deurDecor;
   // 23-11 (vormtaal van het Quaternius-autopakket): van boven gezien lopen neus en kont rond in. De laatste halve meter aan
   // beide kanten wordt smaller (tot 13 % van de halve breedte, kwadratisch), het hele model mee: lak, bumpers, lampen en glas. Geen extra driehoeken;
   // de deuren liggen daarbuiten, dus hun naden en de deurtabel blijven kloppen. De materialen tekenen platte normalen (flatShading).
@@ -565,6 +644,7 @@ function assembleCar(type, L, W, paint, { police = false, ambulance = false, wre
   const P = carProfile(type, L / 2);
   // grille and mirrors are their own meshes, so they can come off in a crash (#205)
   group.userData.loose = looseCarParts(type, L, W, color, P, mats, group);
+  addRealDoors(group, body, geo.userData.gaten || [], doorName, L, W, color, P, type);
   const wgeo = carWheelGeometry(wheelR, WHEEL_W);
   const wheels = [];
   for (const x of [P.fw, P.rw]) for (const s of [1, -1]) addWheel(group, wgeo, mats[0], x, wheelR, s * (W / 2 - WHEEL_W / 2 - 0.04), wheels);
@@ -591,6 +671,66 @@ function assembleCar(type, L, W, paint, { police = false, ambulance = false, wre
   if (ambulance && !wrecked) ambulanceOpschrift(group, P, L, W);
   return group;
 }
+
+// De echte deuropeningen (eis eigenaar 23-11): de dichte deuren als één statische mesh in het gat (buitenkant in lak, binnenkant
+// bekleding) zolang er geen deur-rig is, en een eenvoudig interieur (vloer, stoelen, dashboard) dat je door de open deur ziet zolang
+// de echte cabine (cabin3d.js) er niet is. Beide gedeelde geometrie per model.
+function addRealDoors(group, body, gaten, doorName, L, W, paint, P, type) {
+  if (!gaten.length) return;
+  const ids = new Set(gaten.flatMap((g) => g.ids));
+  const defs = (DEUR_DEFS_REF[doorName] || []).filter((d) => ids.has(d.id));
+  const hw = W / 2, hl = L / 2;
+  // het deurblad per deur: precies het gat (de dichte deur ligt vlak in de flank zonder over het plaatwerk ernaast te vallen), met
+  // een bekleding aan de binnenkant, de versiering die op de deur hoort (strepen, sierlijn) en het handvat; samen de dichte deuren
+  const decor = (body.geometry.userData && body.geometry.userData.deurDecor) || {};
+  const panelen = {};
+  const bouwPaneel = (Bx, g, side, id) => {
+    const [x0, y0, x1, y1] = g.rect, cx = (x0 + x1) / 2, cy = (y0 + y1) / 2;
+    Bx.box(cx, cy, side * (hw - 0.012), x1 - x0, y1 - y0, 0.024, paint);
+    Bx.box(cx, cy, side * (hw - 0.06), x1 - x0 - 0.02, y1 - y0 - 0.02, 0.024, 0x2a2c30);
+    for (const [a, b, c, rgb] of decor[id] || []) Bx._push(G_BODY, a, b, c, rgb, null);
+    const d = defs.find((q) => q.id === id);
+    if (d) Bx.box(d.x * L + (d.soort === 'scharnier' ? -1 : 1) * d.w * 0.36, d.y0 + d.h - Math.min(0.12, d.h * 0.2), side * (hw + 0.008), 0.13, 0.022, 0.016, CHROME);
+  };
+  for (const g of gaten) g.ids.forEach((id, k) => {
+    panelen[id] = cached(`deurpaneel|${body.geometry.uuid}|${id}`, () => { const Bx = new GeoBuilder(3); bouwPaneel(Bx, g, k ? 1 : -1, id); return Bx.build(); });
+  });
+  const dicht = cached(`deurendicht3|${body.geometry.uuid}`, () => {
+    const B = new GeoBuilder(3);
+    for (const g of gaten) g.ids.forEach((id, k) => bouwPaneel(B, g, k ? 1 : -1, id));
+    return B.build();
+  });
+  group.userData.deurPanelen = panelen;
+  const dm = new THREE.Mesh(dicht, body.material);
+  dm.name = 'deurenDicht';
+  body.add(dm);
+  group.userData.deurenDicht = dm;
+  group.userData.echtGat = ids;
+  group.userData.gatRects = Object.fromEntries(gaten.flatMap((g) => g.ids.map((id) => [id, g.rect])));
+  if (P) {
+    const ig = cached(`interieurSimpel|${type}|${L}|${W}`, () => {
+      const B = new GeoBuilder(1);
+      const SEAT = 0x4d515c, DONKER = 0x2b2d32;
+      B.box((P.xA + P.xD) / 2, 0.335, 0, P.xA - P.xD, 0.02, W - 0.2, 0x45474c);                           // vloer
+      const sx = -hl * 0.06;
+      for (const z of [-1, 1]) {
+        B.box(sx, 0.39, z * hw * 0.34, 0.48, 0.1, 0.46, SEAT);                                            // zitting voor
+        B.box(sx - 0.27, 0.68, z * hw * 0.34, 0.1, 0.56, 0.46, SEAT, 0, 0, 0, 0.12);                      // leuning voor
+      }
+      B.box(sx - 0.85, 0.39, 0, 0.46, 0.1, W - 0.36, SEAT);                                               // achterbank
+      B.box(sx - 1.1, 0.68, 0, 0.1, 0.52, W - 0.36, SEAT, 0, 0, 0, 0.12);
+      B.box(P.xA - 0.2, P.belt - 0.06, 0, 0.34, 0.24, W - 0.3, DONKER);                                   // dashboard
+      return B.build();
+    });
+    const im = new THREE.Mesh(ig, cabinFallbackMaterial());
+    im.name = 'interieurSimpel';
+    body.add(im);
+    group.userData.interieurSimpel = im;
+  }
+}
+const NADEN_MAT = markShared(vcMaterial({ roughness: 0.6, polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -4 }));
+let cabinFallbackMat = null;
+function cabinFallbackMaterial() { return cabinFallbackMat || (cabinFallbackMat = markShared(vcMaterial({ roughness: 0.9 }))); }
 
 // Het opschrift van de ambulance (#407), Nederlands en zonder regionamen of logo's: AMBULANCE in spiegelschrift op de
 // voorkant (leesbaar in de spiegel van de auto ervoor), AMBULANCE langs beide zijkanten van de laadruimte, 112 en
@@ -701,6 +841,8 @@ export function carBodyFit(v) {
   if (!v || !v.model || v.wrecked) return null;
   const n = v.model.name;
   if (v.isBus || n === 'truck' || n === 'trekkerlimo' || n === 'tractor' || n === 'quad' || n === 'foodtruck' || n === 'maaidorser' || n === 'laadmachine') return null;
+  const hk = hybridKey(v);
+  if (hk) { const m = hybrideSchaal(hk); return { ...hybridFit(hk, m.len, m.wid) }; }
   const P = carProfile(carType(v), v.model.len / 2);
   return { belt: P.belt, roof: P.roof, xA: P.xA, xB: P.xB, xC: P.xC, xD: P.xD, hood: P.hood, deck: P.deck, nose: P.nose, tail: P.tail, fw: P.fw, rw: P.rw };
 }
@@ -728,31 +870,67 @@ function buildCarMesh(v) {
   const police = !!v.isPolice && !v._commandeered && !v.model.resprayed;
   const paint = police ? 0xeceae4 : toHex(v.model.color, HABBO_PALETTE.metalGrey);
   const type = carType(v);
-  if (v.model.hybride && (type === 'sedan' || type === 'wagon')) return buildHybridCar(v, paint); // proef 23-11, zie hieronder
+  const hk = hybridKey(v);
+  if (hk) return buildHybridCar(v, hk, paint); // de hybride auto's (23-11), zie hieronder
   const wheelR = type === 'van' ? 0.34 : type === 'suv' ? 0.38 : WHEEL_R;
   return assembleCar(type, v.model.len, v.model.wid, paint, { police, wrecked: v.wrecked, wheelR, variant: carVariant(v) });
 }
 
-// --- proef: hybride auto (23-11) ---------------------------------------------------
-// De carrosserie van de Quaternius-sedan (CC0, game/js/models/qcar_sedan.js, omgezet door scripts/convert_quaternius_car.mjs)
-// met onze eigen functies erop: vertexkleuren en onze drie materialen (lak in de kleur van het voertuig, glas, lampen), onze
-// wielen op hun plekken (draaien en sturen), deurnaden die op hun gebogen flank liggen, de deur-rig op die flank (userData.deurZ),
-// schade (de romp is een gewone GeoBuilder-geometrie met parts) en lichten (koplampen en achterlichten in de lampgroep).
-// Alleen als v.model.hybride is gezet (contactblad en proef); het verkeer gebruikt het nog niet.
-const HYB_Y = 1.17; // hun auto is laag (1,18 m); iets hoger, zodat een inzittende onder het dak past
-function hybridDecode() {
-  const raw = typeof atob === 'function' ? Uint8Array.from(atob(QCAR.posities), (c) => c.charCodeAt(0)) : new Uint8Array(Buffer.from(QCAR.posities, 'base64'));
-  const pos = new Int16Array(raw.buffer, raw.byteOffset, raw.byteLength / 2);
-  const rol = typeof atob === 'function' ? Uint8Array.from(atob(QCAR.rol), (c) => c.charCodeAt(0)) : new Uint8Array(Buffer.from(QCAR.rol, 'base64'));
-  return { pos, rol };
+// --- hybride auto's (23-11) ---------------------------------------------------------
+// De carrosserieën van het Quaternius-autopakket (CC0, game/js/models/qcars.js, omgezet door scripts/convert_quaternius_car.mjs) met
+// onze functies erop: onze drie materialen (lak in de kleur van het voertuig, glas, lampen), onze wielen op hun plekken (draaien en
+// sturen), een ECHT gat in de flank waar een deur zit met het uitgeknipte stuk romp als deur (dikte, binnenkant), deurstijlen en
+// een dorpel, een eenvoudig interieur achter de opening, deurnaden op de gebogen flank, schade (deuken, hangende bumpers, losse
+// grille, spiegels en wieldoppen), politielampen en strepen. Standaard voor de gewone personenauto's, politie en taxi; een auto met
+// een andere uitvoering (roest, tokkie, elektrisch, belettering), tuning of model.hybride === false houdt onze eigen bouwer.
+// De maat komt uit het register (propregister.js, VOERTUIG_REGISTER[..].schaal, getoetst aan VOERTUIG_NORM): hun auto's zijn te laag
+// (1,15 tot 1,24 m), dus de hoogte wordt per model op de norm gezet, zodat een volwassene van 1,78 m erin past. De getekende lengte
+// en breedte kunnen van de botsmaat (v.model.len, wid) afwijken; de deuren rekenen met de getekende maat (userData.deurLen, deurWid).
+const hybData = new Map();
+function b64Bytes(s) { return typeof atob === 'function' ? Uint8Array.from(atob(s), (c) => c.charCodeAt(0)) : new Uint8Array(Buffer.from(s, 'base64')); }
+function hybridData(key) {
+  let d = hybData.get(key);
+  if (d) return d;
+  const auto = QCARS[key];
+  const pb = b64Bytes(auto.posities), ib = b64Bytes(auto.index);
+  d = { auto, pos: new Int16Array(pb.buffer, pb.byteOffset, pb.byteLength / 2), idx: new Uint16Array(ib.buffer, ib.byteOffset, ib.byteLength / 2), rol: b64Bytes(auto.rol) };
+  hybData.set(key, d);
+  return d;
 }
-function hybridScale(L, W) { const sx = L / QCAR.maat.len; return { sx, sy: sx * HYB_Y, sz: W / QCAR.maat.wid }; }
+// De dakhoogte van hun romp (ongeschaald): de bovenkant van de ruiten plus de dikte van het dak. Een daklicht of taxibord telt
+// niet mee (die steken boven het dak uit).
+const DAK = 0.06;
+function hybridRoofU(key) {
+  const d = hybridData(key);
+  let top = 0;
+  for (let t = 0; t < d.rol.length; t++) if (d.rol[t] === 1) for (let k = 0; k < 3; k++) top = Math.max(top, d.pos[d.idx[t * 3 + k] * 3 + 1] / 1000);
+  return top + DAK;
+}
+function hybridScale(auto, L, W, key) {
+  const schaal = hybrideSchaal(key);
+  return { sx: L / auto.maat.len, sy: (schaal ? schaal.hoog : 1.45) / hybridRoofU(key), sz: W / auto.maat.wid };
+}
+// Welke hybride bij dit voertuig hoort, of null (dan onze eigen bouwer).
+export function hybridKey(v) {
+  if (!v || !v.model || v.model.hybride === false || v.isAmbulance || v.isHeroCar || v.look) return null;
+  if (v.model.qcar && QCARS[v.model.qcar]) return v.model.qcar; // een vaste keuze (register, contactblad)
+  if (v.model.name === 'police' || (v.isPolice && !v._commandeered)) return 'police';
+  const variant = carVariant(v);
+  if (variant === 'taxi') return 'taxi';
+  if (variant) return null;
+  const n = v.model.name;
+  if (n === 'sedan') return 'sedan';
+  if (n === 'hatch') return 'hatch';
+  if (n === 'suv') return 'suv';
+  if (n === 'sport') return hash2(typeof v.id === 'number' ? v.id : String(v.id).length, 3.7) < 0.5 ? 'sport' : 'sport2';
+  return null;
+}
+const HYB_DOORS = { sedan: 'sedan', hatch: 'hatch', suv: 'suv', sport: 'sport', sport2: 'sport', taxi: 'taxi', police: 'police' };
 // De flank: waar een straal van buiten naar binnen (langs z) de romp raakt, op hoogte y en lengte x.
 function hybridSurface(tris, x, y, side) {
   let best = null;
   for (const t of tris) {
     const [a, b, c] = t;
-    // zwaartepuntcoördinaten in het xy-vlak
     const d = (b[1] - c[1]) * (a[0] - c[0]) + (c[0] - b[0]) * (a[1] - c[1]);
     if (Math.abs(d) < 1e-9) continue;
     const l1 = ((b[1] - c[1]) * (x - c[0]) + (c[0] - b[0]) * (y - c[1])) / d;
@@ -764,74 +942,267 @@ function hybridSurface(tris, x, y, side) {
   }
   return best;
 }
-function hybridBody(L, W, paint, doorName) {
-  return cached(`hybride|${L}|${W}|${paint}|${doorName}`, () => {
-    const { pos, rol } = hybridDecode();
-    const { sx, sy, sz } = hybridScale(L, W);
+// De geschaalde driehoeken met hun rol, in onze assen.
+function hybridTris(key, L, W) {
+  const { auto, pos, idx, rol } = hybridData(key);
+  const { sx, sy, sz } = hybridScale(auto, L, W, key);
+  const out = [];
+  for (let t = 0; t < rol.length; t++) {
+    const v = [0, 1, 2].map((k) => { const i = idx[t * 3 + k] * 3; return [pos[i] / 1000 * sx, pos[i + 1] / 1000 * sy, pos[i + 2] / 1000 * sz]; });
+    out.push({ v, r: rol[t] });
+  }
+  return out;
+}
+// Maten van de hybride romp voor cabine, stoelen, spiegels en tuning (zoals carProfile voor onze bouwer).
+export function hybridFit(key, L, W) {
+  return cached(`hybfit|${key}|${L}|${W}`, () => {
+    const tris = hybridTris(key, L, W), glas = [], lak = [];
+    for (const t of tris) (t.r === 1 ? glas : t.r === 0 ? lak : []).push(...t.v);
+    const ys = (a) => a.map((p) => p[1]), xs = (a) => a.map((p) => p[0]);
+    const { sy } = hybridScale(QCARS[key], L, W, key);
+    const roof = Math.max(...ys(glas)) + DAK * sy, belt = Math.min(...ys(glas));
+    const xA = Math.max(...glas.filter((p) => p[1] < belt + 0.08).map((p) => p[0])), xD = Math.min(...glas.filter((p) => p[1] < belt + 0.08).map((p) => p[0]));
+    const hoog = glas.filter((p) => p[1] > roof - 0.12);
+    const xB = hoog.length ? Math.max(...xs(hoog)) : xA - 0.6, xC = hoog.length ? Math.min(...xs(hoog)) : xD + 0.5;
+    const voor = lak.filter((p) => p[0] > xA + 0.1);
+    const hood = voor.length ? Math.max(...ys(voor)) : belt - 0.1;
+    const kop = tris.filter((t) => t.r === 2).flatMap((t) => t.v);
+    const nose = kop.length ? Math.max(...ys(kop)) + 0.08 : hood - 0.2;
+    const g = new THREE.BufferGeometry(); // de vorm hoort bij cached(): een lege geometrie met de maten in userData
+    g.userData.fit = { belt, roof, xA, xB, xC, xD, hood, deck: belt, nose, tail: belt - 0.1, fw: L / 2 - 0.85, rw: -L / 2 + 0.95 };
+    return g;
+  }).userData.fit;
+}
+function hybridBody(key, L, W, paint, doorName, police) {
+  return cached(`hybride2|${key}|${L}|${W}|${paint}|${doorName}|${police}`, () => {
+    const hl = L / 2, hw = W / 2;
+    const tris = hybridTris(key, L, W);
+    const fit = hybridFit(key, L, W);
     const kleur = [paint, GLASS, HEADLAMP, TAIL, 0x1b1b1b, 0x707070, shadeHex(paint, 0.72)];
     const groep = [G_BODY, G_GLASS, G_LAMP, G_LAMP, G_BODY, G_BODY, G_BODY];
-    const B = new GeoBuilder(3);
-    const tris = [];
-    for (let i = 0, t = 0; i < pos.length; i += 9, t++) {
-      const v = [0, 1, 2].map((k) => [pos[i + k * 3] / 1000 * sx, pos[i + k * 3 + 1] / 1000 * sy, pos[i + k * 3 + 2] / 1000 * sz]);
-      const r = rol[t * 3];
-      B.tri(v[0], v[1], v[2], kleur[r], groep[r]);
-      if (r === 0) tris.push(v);
+    const lakTris = tris.filter((t) => t.r === 0).map((t) => t.v);
+    // de deuren die een echt gat krijgen: hun uitgeknipte stuk romp (met ruit) wordt de deur
+    const defs = (DEUR_DEFS_REF[doorName] || []).filter((d) => d.soort === 'scharnier' || d.soort === 'achterscharnier');
+    const vlak = {}, deurZ = {}, rects = {};
+    for (const d of defs) {
+      const z = hybridSurface(lakTris, d.x * L, d.y0 + d.h / 2, d.side);
+      if (z === null) continue;
+      deurZ[d.id] = Math.abs(z);
+      rects[d.id] = [d.x * L - d.w / 2, d.y0, d.x * L + d.w / 2, fit.roof - 0.07];
+      vlak[d.id] = [];
     }
-    // deurnaden op de gebogen flank: elke strook in stukjes van 12 cm die de flank volgen
-    const deurZ = {};
-    for (const d of (DEUR_DEFS_REF[doorName] || [])) {
-      if (d.soort !== 'scharnier' && d.soort !== 'achterscharnier') continue;
-      const z = hybridSurface(tris, d.x * L, d.y0 + d.h / 2, d.side);
-      if (z !== null) deurZ[d.id] = Math.abs(z);
-    }
-    // de naden als dunne vlakjes (2 driehoeken) in stukjes van ongeveer 30 cm die de flank volgen; het handvat een klein blokje
-    for (const s of naadStroken(doorName, L, W / 2)) {
-      const side = Math.sign(s.z), langs = s.sx > s.sy ? 'x' : 'y';
-      if (s.soort === 'handvat') {
-        const z = hybridSurface(tris, s.x, s.y, side);
-        if (z !== null) B.box(s.x, s.y, z + side * 0.008, s.sx, s.sy, 0.016, CHROME);
-        continue;
+    const inDeur = (t) => {
+      if (t.r === 2 || t.r === 3) return null;
+      const c = [0, 1, 2].map((k) => (t.v[0][k] + t.v[1][k] + t.v[2][k]) / 3);
+      for (const d of defs) {
+        const r = rects[d.id];
+        if (!r || c[2] * d.side < deurZ[d.id] * 0.55) continue;
+        if (c[0] > r[0] && c[0] < r[2] && c[1] > r[1] && c[1] < r[3]) return d.id;
       }
+      return null;
+    };
+    // volgorde: voorbumper, achterbumper, de rest (schade laat de bumpers als deel hangen, zie userData.parts)
+    const isVoor = (t) => t.r !== 1 && t.v.every((p) => p[0] > hl - 0.3 && p[1] < fit.nose - 0.05);
+    const isAchter = (t) => t.r !== 1 && t.v.every((p) => p[0] < -hl + 0.3 && p[1] < fit.belt - 0.1);
+    const B = new GeoBuilder(3);
+    const vcount = () => B.groups[G_BODY].p.length / 3;
+    const rest = [];
+    // een rechte snede langs de deurcontour: een driehoek op de flank die de rand kruist wordt geknipt (Sutherland-Hodgman in x en
+    // y, z volgt lineair), het stuk binnen gaat naar de deur en de stukken erbuiten blijven romp; geen zaagtand langs de opening
+    const knip = (poly, as, c, binnen) => {
+      const uit = [];
+      for (let i = 0; i < poly.length; i++) {
+        const a = poly[i], b = poly[(i + 1) % poly.length], ia = binnen(a[as], c), ib = binnen(b[as], c);
+        if (ia) uit.push(a);
+        if (ia !== ib) { const t2 = (c - a[as]) / (b[as] - a[as]); uit.push(a.map((v2, k) => v2 + (b[k] - v2) * t2)); }
+      }
+      return uit;
+    };
+    const fan = (poly, r) => { const o = []; for (let i = 1; i + 1 < poly.length; i++) o.push({ v: [poly[0], poly[i], poly[i + 1]], r }); return o; };
+    const kleiner = (x, c) => x <= c, groter = (x, c) => x >= c;
+    for (const t of tris) {
+      const c = [0, 1, 2].map((k) => (t.v[0][k] + t.v[1][k] + t.v[2][k]) / 3);
+      const d = (t.r === 2 || t.r === 3) ? null : defs.find((q) => rects[q.id] && c[2] * q.side >= deurZ[q.id] * 0.55 && Math.max(...t.v.map((p) => p[0])) > rects[q.id][0] && Math.min(...t.v.map((p) => p[0])) < rects[q.id][2] && Math.max(...t.v.map((p) => p[1])) > rects[q.id][1] && Math.min(...t.v.map((p) => p[1])) < rects[q.id][3]);
+      if (!d) { rest.push(t); continue; }
+      const [x0, y0, x1, y1] = rects[d.id];
+      let p0 = t.v;
+      // binnen: x0 <= x <= x1 en y0 <= y <= y1
+      let inn = knip(knip(knip(knip(p0, 0, x0, groter), 0, x1, kleiner), 1, y0, groter), 1, y1, kleiner);
+      if (inn.length < 3) { rest.push(t); continue; } // raakt de opening niet: heel laten
+      if (p0.every((p) => p[0] >= x0 && p[0] <= x1 && p[1] >= y0 && p[1] <= y1)) { vlak[d.id].push(t); continue; } // helemaal binnen
+      vlak[d.id].push(...fan(inn, t.r));
+      // buiten: links, rechts, en in de middenstrook onder en boven
+      rest.push(...fan(knip(p0, 0, x0, kleiner), t.r), ...fan(knip(p0, 0, x1, groter), t.r));
+      const mid = knip(knip(p0, 0, x0, groter), 0, x1, kleiner);
+      rest.push(...fan(knip(mid, 1, y0, kleiner), t.r), ...fan(knip(mid, 1, y1, groter), t.r));
+    }
+    const f0 = vcount();
+    for (const t of rest) if (isVoor(t)) B.tri(t.v[0], t.v[1], t.v[2], kleur[t.r], groep[t.r]);
+    const f1 = vcount();
+    for (const t of rest) if (!isVoor(t) && isAchter(t)) B.tri(t.v[0], t.v[1], t.v[2], kleur[t.r], groep[t.r]);
+    const r1 = vcount();
+    for (const t of rest) if (!isVoor(t) && !isAchter(t)) B.tri(t.v[0], t.v[1], t.v[2], kleur[t.r], groep[t.r]);
+    // de rand van elke opening: deurstijlen voor en achter en een dorpel, met diepte naar binnen
+    for (const d of defs) {
+      const r = rects[d.id];
+      if (!r) continue;
+      const z = deurZ[d.id], top = fit.belt;
+      // achter de dikte van het deurblad (3,5 cm), zodat stijl en dorpel niet in het vlak van de dichte deur liggen
+      for (const x of [r[0], r[2]]) B.box(x, (r[1] + top) / 2, d.side * (z - 0.1), 0.035, top - r[1], 0.1, 0x2f3136);
+      B.box((r[0] + r[2]) / 2, r[1] - 0.025, d.side * (z - 0.11), r[2] - r[0], 0.03, 0.12, 0x6a6d74);
+    }
+    // deurnaden en politiestrepen: dunne vlakjes die de gebogen flank volgen, in een eigen mesh met polygonOffset (NADEN_MAT),
+    // zodat ze vlak op het plaatwerk kunnen liggen zonder ermee te vechten
+    const D = new GeoBuilder(1);
+    for (const s of naadStroken(doorName, L, hw)) {
+      const side = Math.sign(s.z), langs = s.sx > s.sy ? 'x' : 'y';
+      if (s.soort === 'handvat') continue; // het handvat zit op het deurblad (de schil), zie hieronder
       const lengte = langs === 'x' ? s.sx : s.sy, n = Math.max(1, Math.round(lengte / 0.3)), half = (langs === 'x' ? s.sy : s.sx) / 2;
       for (let k = 0; k < n; k++) {
-        const f0 = k / n - 0.5, f1 = (k + 1) / n - 0.5;
-        const p0 = langs === 'x' ? [s.x + f0 * s.sx, s.y] : [s.x, s.y + f0 * s.sy];
-        const p1 = langs === 'x' ? [s.x + f1 * s.sx, s.y] : [s.x, s.y + f1 * s.sy];
-        const z0 = hybridSurface(tris, p0[0], p0[1], side), z1 = hybridSurface(tris, p1[0], p1[1], side);
+        const g0 = k / n - 0.5, g1 = (k + 1) / n - 0.5;
+        const p0 = langs === 'x' ? [s.x + g0 * s.sx, s.y] : [s.x, s.y + g0 * s.sy];
+        const p1 = langs === 'x' ? [s.x + g1 * s.sx, s.y] : [s.x, s.y + g1 * s.sy];
+        const z0 = hybridSurface(lakTris, p0[0], p0[1], side), z1 = hybridSurface(lakTris, p1[0], p1[1], side);
         if (z0 === null || z1 === null) continue;
-        const o = side * 0.005, e = langs === 'x' ? [0, half] : [half, 0];
-        B.quadOut([p0[0] - e[0], p0[1] - e[1], z0 + o], [p1[0] - e[0], p1[1] - e[1], z1 + o], [p1[0] + e[0], p1[1] + e[1], z1 + o], [p0[0] + e[0], p0[1] + e[1], z0 + o], [0, 0, side], shadeHex(paint, 0.32));
+        const o = side * 0.006, e = langs === 'x' ? [0, half] : [half, 0];
+        D.quadOut([p0[0] - e[0], p0[1] - e[1], z0 + o], [p1[0] - e[0], p1[1] - e[1], z1 + o], [p1[0] + e[0], p1[1] + e[1], z1 + o], [p0[0] + e[0], p0[1] + e[1], z0 + o], [0, 0, side], shadeHex(paint, 0.32));
+      }
+    }
+    const streepOpDeur = {};
+    if (police) {
+      // Nederlandse politiestrepen langs de flank (blauw met een oranje lijn), de lijn volgt de flank; geen echte opschriften
+      for (const side of [1, -1]) {
+        for (let x = -hl + 0.4; x < hl - 0.5; x += 0.3) {
+          const z0 = hybridSurface(lakTris, x, 0.66, side), z1 = hybridSurface(lakTris, x + 0.3, 0.66, side);
+          if (z0 === null || z1 === null) continue;
+          const o = side * 0.009;
+          // een stuk op een deur gaat mee met het deurblad (zie de schil hieronder), anders zweeft het in de open opening
+          const deur = defs.find((d) => d.side === side && rects[d.id] && x + 0.15 > rects[d.id][0] && x + 0.15 < rects[d.id][2]);
+          const doel = deur ? (streepOpDeur[deur.id] || (streepOpDeur[deur.id] = [])) : null;
+          const q = (a, b, c, d2, kl) => (doel ? doel.push([a, b, c, d2, side, kl]) : D.quadOut(a, b, c, d2, [0, 0, side], kl));
+          q([x, 0.6, z0 + o], [x + 0.3, 0.6, z1 + o], [x + 0.3, 0.72, z1 + o], [x, 0.72, z0 + o], 0x1f3f8f);
+          q([x, 0.555, z0 + o], [x + 0.3, 0.555, z1 + o], [x + 0.3, 0.58, z1 + o], [x, 0.58, z0 + o], 0xd9772b);
+        }
       }
     }
     const geo = B.build();
-    geo.userData.parts = { hl: L / 2, hw: W / 2, hood: 0.8, bumperColor: paint, front: { start: 0, end: 0, y: 0.38, x: L / 2 }, rear: { start: 0, end: 0, y: 0.4, x: -L / 2 } };
+    geo.userData.parts = { hl, hw, hood: fit.hood, bumperColor: paint, front: { start: f0, end: f1, y: 0.4, x: hl - 0.1 }, rear: { start: f1, end: r1, y: 0.42, x: -hl + 0.1 } };
     geo.userData.deurZ = deurZ;
+    geo.userData.gatRects = rects;
+    geo.userData.naden = markShared(D.build());
+    // de deurbladen: het uitgeknipte stuk romp, met een binnenkant 3,5 cm naar binnen (omgekeerd, in bekleding) en een handvat
+    const panelen = {}, decals = {};
+    const alle = new GeoBuilder(3), DA = new GeoBuilder(1);
+    for (const d of defs) {
+      if (!vlak[d.id] || !vlak[d.id].length) continue;
+      const P2 = new GeoBuilder(3);
+      for (const Bx of [P2, alle]) {
+        for (const t of vlak[d.id]) {
+          Bx.tri(t.v[0], t.v[1], t.v[2], kleur[t.r], groep[t.r]);
+          const inn = t.v.map((p) => [p[0], p[1], p[2] - d.side * 0.035]);
+          Bx.tri(inn[0], inn[2], inn[1], t.r === 1 ? GLASS : 0x2a2c30, t.r === 1 ? G_GLASS : G_BODY);
+        }
+        const hx = d.x * L + (d.soort === 'scharnier' ? -1 : 1) * d.w * 0.36, hy = d.y0 + d.h - 0.12;
+        const hz = hybridSurface(vlak[d.id].map((t) => t.v), hx, hy, d.side);
+        if (hz !== null) Bx.box(hx, hy, hz + d.side * 0.008, 0.13, 0.022, 0.016, CHROME);
+      }
+      panelen[d.id] = markShared(P2.build());
+      // de strepen op dit deurblad: eigen mesh met polygonOffset (NADEN_MAT), net als de naden op de romp
+      if (streepOpDeur[d.id]) {
+        const DD = new GeoBuilder(1);
+        for (const [a, b, c, d2, side, kl] of streepOpDeur[d.id]) { DD.quadOut(a, b, c, d2, [0, 0, side], kl); DA.quadOut(a, b, c, d2, [0, 0, side], kl); }
+        decals[d.id] = markShared(DD.build());
+      }
+    }
+    geo.userData.deurPanelen = panelen;
+    geo.userData.deurDecals = decals;
+    geo.userData.deurenDicht = markShared(alle.build());
+    geo.userData.deurenDichtDecals = Object.keys(decals).length ? markShared(DA.build()) : null;
+    geo.userData.fit = fit;
     return geo;
   });
 }
-function buildHybridCar(v, paint) {
-  const L = v.model.len, W = v.model.wid;
-  const doorName = v.isPolice ? 'police' : v.isTaxi ? 'taxi' : 'sedan';
-  const geo = hybridBody(L, W, v.wrecked ? WRECKED_COLOR : paint, doorName);
+function buildHybridCar(v, key, paint) {
+  const schaal = hybrideSchaal(key), L = schaal.len, W = schaal.wid;
+  const auto = QCARS[key];
+  const police = key === 'police' && !!v.isPolice && !v._commandeered && !v.model.resprayed;
+  const doorName = HYB_DOORS[key];
+  const color = v.wrecked ? WRECKED_COLOR : paint;
+  const geo = hybridBody(key, L, W, color, doorName, police);
   const mats = vehicleMaterials(v.wrecked);
   const group = new THREE.Group();
   const body = new THREE.Mesh(geo, mats);
   group.add(body);
   group.userData.body = body;
+  group.userData.hybride = key;
   group.userData.deurZ = geo.userData.deurZ;
-  const { sx, sy, sz } = hybridScale(L, W);
-  const r = QCAR.wielen[0].r * sy;
-  const wgeo = carWheelGeometry(+r.toFixed(3), WHEEL_W);
+  group.userData.deurPanelen = geo.userData.deurPanelen;
+  group.userData.deurLen = L;
+  group.userData.deurWid = W;
+  group.userData.gatRects = geo.userData.gatRects;
+  // dichte deuren: één statische mesh in de gaten tot er een deur-rig is
+  const dm = new THREE.Mesh(geo.userData.deurenDicht, mats);
+  dm.name = 'deurenDicht';
+  body.add(dm);
+  group.userData.deurenDicht = dm;
+  if (geo.userData.deurenDichtDecals) dm.add(new THREE.Mesh(geo.userData.deurenDichtDecals, NADEN_MAT));
+  group.userData.deurDecals = geo.userData.deurDecals;
+  group.userData.nadenMat = NADEN_MAT;
+  group.userData.echtGat = new Set(Object.keys(geo.userData.deurPanelen));
+  const naden = new THREE.Mesh(geo.userData.naden, NADEN_MAT);
+  naden.name = 'naden';
+  body.add(naden);
+  const fit = geo.userData.fit;
+  // eenvoudig interieur achter de opening (tot cabin3d.js de echte cabine laat zien)
+  const ig = cached(`hybInterieur|${key}|${L}|${W}`, () => {
+    const B = new GeoBuilder(1);
+    const SEAT = 0x4d515c, hw = W / 2, sx = -L / 2 * 0.06;
+    B.box((fit.xA + fit.xD) / 2, 0.36, 0, fit.xA - fit.xD, 0.02, W - 0.3, 0x45474c);
+    for (const z of [-1, 1]) {
+      B.box(sx, 0.42, z * hw * 0.34, 0.48, 0.1, 0.44, SEAT);
+      B.box(sx - 0.27, 0.7, z * hw * 0.34, 0.1, 0.54, 0.44, SEAT, 0, 0, 0, 0.12);
+    }
+    B.box(sx - 0.85, 0.42, 0, 0.46, 0.1, W - 0.45, SEAT);
+    B.box(sx - 1.1, 0.7, 0, 0.1, 0.5, W - 0.45, SEAT, 0, 0, 0, 0.12);
+    B.box(fit.xA - 0.15, fit.belt - 0.06, 0, 0.3, 0.22, W - 0.4, 0x2b2d32);
+    return B.build();
+  });
+  const im = new THREE.Mesh(ig, cabinFallbackMaterial());
+  im.name = 'interieurSimpel';
+  body.add(im);
+  group.userData.interieurSimpel = im;
+  // losse delen bij schade: grille, spiegels, uitlaat (zoals onze bouwer), op de maten van deze romp
+  const lakTris = hybridTris(key, L, W).filter((t) => t.r === 0).map((t) => t.v);
+  const zSp = hybridSurface(lakTris, fit.xA - 0.08, fit.belt - 0.02, 1);
+  const P = { ...fit, van: false };
+  group.userData.loose = looseCarParts('hyb-' + key, L, zSp ? zSp * 2 : W, color, P, mats, group);
+  // wielen: onze wielgeometrie op hun plekken
+  const { sx, sy, sz } = hybridScale(auto, L, W, key);
+  const r = +(auto.wielen[0].r * sy).toFixed(3);
+  const wgeo = carWheelGeometry(r, WHEEL_W);
   const wheels = [], front = [];
-  for (const w of QCAR.wielen) {
+  for (const w of auto.wielen) {
     const m = addWheel(group, wgeo, mats[0], w.x * sx, r, w.z * sz * 0.97, wheels);
     if (w.voor) front.push(m);
   }
   group.userData.wheels = wheels;
   group.userData.frontWheels = front;
   group.userData.wheelRadius = r;
-  group.userData.hybride = true;
+  group.userData.loose.sierdoppen = hubcaps(wheels, r);
+  if (police && auto.lichtbalk) {
+    const lamps = [];
+    const bx = auto.lichtbalk.x * sx, by = auto.lichtbalk.y * sy;
+    const bar = new THREE.Mesh(cached(`hybbalk|${W}`, () => new THREE.BoxGeometry(0.3, 0.06, W * 0.62)), new THREE.MeshLambertMaterial({ color: TRIM }));
+    bar.position.set(bx, by - 0.02, 0);
+    body.add(bar);
+    for (const s of [1, -1]) {
+      const lamp = new THREE.Mesh(new THREE.BoxGeometry(0.24, 0.1, W * 0.26), lampMaterial(0x2f6bff, 0.25));
+      lamp.position.set(bx, by + 0.05, s * W * 0.17);
+      body.add(lamp);
+      lamps.push(lamp);
+    }
+    group.userData.policeLamps = lamps;
+  }
   return group;
 }
 
@@ -3160,6 +3531,8 @@ export function buildVehicleMesh(v) {
   else if (v.dentLog && v.dentLog.length && !v.wrecked) replayDents(group, v);
   if (v.dentLog && v.dentLog.length) syncLooseParts(group, v);
   if ((v.look || (v.model && (v.model.name === 'foodtruck' || v.model.name === 'snackwagen'))) && !v.wrecked) applyVehicleLook(group, v, carBodyFit(v)); // de snackwagen draagt altijd zijn belettering
+  // LOD's (vehiclelod3d.js): niet voor fietsen, steps en het paard (de berijder hoort bij het model)
+  if (!v.isBike && !v.isScooter && v._mount !== 'horse') attachVehicleLods(group);
   return group;
 }
 

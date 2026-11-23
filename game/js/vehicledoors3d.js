@@ -124,18 +124,26 @@ function paintOf(v) {
 const loseDeuren = [];
 const wereld = { n: 0 };
 
+// Een romp met echte deuropeningen (models3d_vehicles.js zet userData.echtGat): geen vlak in de opening, de dichte deuren staan
+// zolang er geen rig is in één statische mesh (userData.deurenDicht) en daarna in de rig zelf.
+const LEEG_GEO = (() => { const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute([], 3)); g.userData.shared = true; return g; })();
+const DRAGER_MAT = (() => { const m = new THREE.MeshBasicMaterial({ colorWrite: false, depthWrite: false }); m.userData.shared = true; return m; })();
+
 function buildRig(mesh, v, defs) {
+  const echtSet = mesh.userData.echtGat; // de deuren (id) die een echte opening in de romp hebben
   const group = new THREE.Group();
   group.name = 'deuren';
-  const hw = v.model.wid / 2, len = v.model.len;
+  // de getekende maat (een hybride romp kan van de botsmaat afwijken, models3d_vehicles.js userData.deurLen)
+  const wid = mesh.userData.deurWid || v.model.wid, hw = wid / 2, len = mesh.userData.deurLen || v.model.len;
   const doors = {};
   const paint = paintOf(v);
   for (const d of defs) {
     const cx = d.x * len;
     // smalle cabine of limousine: de deur zit op zijn eigen zijkant (d.zij); bij een romp met een gebogen flank (de hybride proef-auto)
     // geeft het model zelf de flank per deur (userData.deurZ)
-    const hwD = (mesh.userData.deurZ && mesh.userData.deurZ[d.id]) || (d.zij ? d.zij * v.model.wid : hw);
+    const hwD = (mesh.userData.deurZ && mesh.userData.deurZ[d.id]) || (d.zij ? d.zij * wid : hw);
     const pivot = new THREE.Group();
+    const echt = !!(echtSet && echtSet.has(d.id));
     let panel, hole, baseX, baseZ = 0;
     if (d.soort === 'kap' || d.soort === 'klep') {
       // horizontaal plaatwerk: scharnier achter (kap) of voor (kofferbak), klapt omhoog
@@ -158,9 +166,21 @@ function buildRig(mesh, v, defs) {
     } else {
       const glas = d.h > 1.05;
       baseX = d.soort === 'scharnier' ? cx + d.w / 2 : d.soort === 'achterscharnier' ? cx - d.w / 2 : cx;
-      baseZ = d.side * (hwD + 0.02);
+      // echt gat (23-11, eis eigenaar): de romp heeft een opening en de dichte deur vult die, dus het deurblad ligt in de flank
+      // (buitenkant gelijk met het plaatwerk) in plaats van ervoor
+      baseZ = d.side * (hwD + (echt ? -0.025 : 0.02));
       pivot.position.set(baseX, d.y0 + d.h / 2, baseZ);
-      if (glas && d.soort !== 'schuif') {
+      const schil = echt && mesh.userData.deurPanelen && mesh.userData.deurPanelen[d.id];
+      if (schil) {
+        // de hybride: het deurblad is het stuk van hun gebogen romp dat uit de flank geknipt is (met binnenkant en dikte);
+        // het blokje eronder is alleen de drager (onzichtbaar) waar de bekleding aan hangt
+        panel = new THREE.Mesh(panelGeo(d.w, d.h), DRAGER_MAT);
+        const s2 = new THREE.Mesh(schil, mesh.userData.body.material);
+        s2.position.set(-(baseX + (d.soort === 'scharnier' ? -d.w / 2 : d.w / 2)), -(d.y0 + d.h / 2), -baseZ);
+        const dec = mesh.userData.deurDecals && mesh.userData.deurDecals[d.id];
+        if (dec) s2.add(new THREE.Mesh(dec, mesh.userData.nadenMat)); // strepen op het deurblad (politie)
+        panel.add(s2);
+      } else if (glas && d.soort !== 'schuif') {
         // hoge cabinedeur: een dicht onderpaneel in lak en erboven de ruit, samen één deur die om de scharnier draait
         const hl2 = d.h * 0.42;
         panel = new THREE.Mesh(lowerGeo(d.w, hl2), panelMat(paint, false));
@@ -184,7 +204,7 @@ function buildRig(mesh, v, defs) {
         const greep = new THREE.Mesh(boxGeo(0.1, 0.03, 0.02), panelMat(0xb9bcbf, false));
         greep.position.set((d.soort === 'scharnier' ? -1 : 1) * d.w * 0.32, yb + ph * 0.78, zi - d.side * 0.02);
         panel.add(liner, arm, vak, greep);
-        if (!glas) {
+        if (!glas && !schil) {
           const rh = 0.42, top = yb + d.h + rh;
           for (const sx of [-1, 1]) {
             const stijl = new THREE.Mesh(boxGeo(0.04, rh, 0.04), panelMat(paint, false));
@@ -196,12 +216,14 @@ function buildRig(mesh, v, defs) {
           const ruit = new THREE.Mesh(boxGeo(d.w - 0.08, rh - 0.04, 0.012), panelMat(paint, true));
           ruit.position.set(0, yb + d.h + rh / 2 - 0.02, 0);
           panel.add(boven, ruit);
+          // bij een echt gat zit de zijruit dicht in het bovenhuis; de raamlijst komt pas mee als de deur open gaat
+          if (echt) panel.userData.raam = [boven, ruit, ...panel.children.filter((c) => c.geometry === boxGeo(0.04, rh, 0.04))];
         }
       }
       panel.position.x = d.soort === 'scharnier' ? -d.w / 2 : d.soort === 'achterscharnier' ? d.w / 2 : 0;
       const cabine = !v.isBus && (d.soort === 'scharnier' || d.soort === 'achterscharnier') && wantsCabin(v);
-      hole = new THREE.Mesh(v.isBus ? panelGeo(d.w * 0.92, d.h * 0.92) : interieurGeo(d.w * 0.94, d.h * 0.94, d.side, d.seat !== 'achter'), v.isBus ? BUS_HOLE_MAT : cabine ? CABIN_HOLE_MAT : INTERIEUR_MAT);
-      if (cabine) {
+      hole = echt ? new THREE.Mesh(LEEG_GEO, HOLE_MAT) : new THREE.Mesh(v.isBus ? panelGeo(d.w * 0.92, d.h * 0.92) : interieurGeo(d.w * 0.94, d.h * 0.94, d.side, d.seat !== 'achter'), v.isBus ? BUS_HOLE_MAT : cabine ? CABIN_HOLE_MAT : INTERIEUR_MAT);
+      if (cabine && !echt) {
         hole.renderOrder = 10;
         // de merkplaat: hetzelfde vlak, een stap eerder (renderOrder 9), volgt de zichtbaarheid van de opening
         const merk = new THREE.Mesh(hole.geometry, CABIN_MARK_MAT);
@@ -218,10 +240,11 @@ function buildRig(mesh, v, defs) {
     hole.visible = false;
     pivot.visible = false;
     group.add(pivot, hole);
-    doors[d.id] = { def: d, pivot, panel, hole, baseX, baseZ, home: panel.position.clone() };
+    doors[d.id] = { def: d, pivot, panel, hole, baseX, baseZ, echt, home: panel.position.clone() };
   }
   const body = mesh.userData.body || mesh;
   body.add(group);
+  if (mesh.userData.deurenDicht) mesh.userData.deurenDicht.visible = false; // vanaf nu tekent de rig alle deuren, ook de dichte
   mesh.userData.doorRig = { group, doors, paint, bus: !!v.isBus };
   return mesh.userData.doorRig;
 }
@@ -230,8 +253,9 @@ function pose(rig, id, open, dmg) {
   const e = rig.doors[id];
   if (!e) return;
   const d = e.def, a = deurStand(d, open, dmg);
-  e.pivot.visible = a > 0.002;
-  e.hole.visible = e.pivot.visible || !!e.lost;
+  e.pivot.visible = e.echt || a > 0.002;
+  if (e.panel.userData.raam) for (const r of e.panel.userData.raam) r.visible = a > 0.05;
+  e.hole.visible = !e.echt && (a > 0.002 || !!e.lost);
   if (e.hole.userData.merk) e.hole.userData.merk.visible = e.hole.visible;
   if (!e.pivot.visible) return;
   if (d.soort === 'schuif') {

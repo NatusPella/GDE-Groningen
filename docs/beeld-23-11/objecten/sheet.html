@@ -20,6 +20,7 @@
   const { buildVehicleMesh } = await import(root + (location.hash.includes('oud') ? 'game/js/_oud_voertuigen_tmp.js' : 'game/js/models3d_vehicles.js'));
   const { BOAT_KINDS } = await import(root + 'game/js/boattypes.js');
   const { syncVehicleDoors } = await import(root + 'game/js/vehicledoors3d.js');
+  const { zetLodNiveau } = await import(root + 'game/js/vehiclelod3d.js');
   const mode = (location.hash || '#auto').slice(1);
   const night = mode.includes('nacht') ? 1 : 0;
   const achter = mode.includes('achter');
@@ -51,6 +52,9 @@
     limo: [car('trekkerlimo', 5.6, 2, '#141414')],
     // hyb: het Quaternius-origineel (glb, buiten git), onze sedan en de hybride proef-auto (hun romp, onze functies)
     hyb: [{ glb: 'Car.glb' }, { model: { name: 'sedan', len: 4.3, wid: 1.8, color: '#90b0d1' } }, { model: { name: 'sedan', len: 4.3, wid: 1.8, color: '#90b0d1', hybride: true } }],
+    // gat: de echte deuropening, de hybride sedan en onze eigen stationwagen; lod: dezelfde sedan op niveau 0, 1 en 2
+    gat: [{ model: { name: 'sedan', len: 4.3, wid: 1.8, color: '#a3473f' } }, { model: { name: 'wagon', len: 4.5, wid: 1.8, color: '#6e937c' } }],
+    lod: [0, 1, 2].map((n) => ({ model: { name: 'sedan', len: 4.3, wid: 1.8, color: '#a3473f' }, lodNiveau: n })),
     vgl: [car('sedan', 4.3, 1.8, '#a3473f'), car('hatch', 3.8, 1.7, '#5a7392'), car('wagon', 4.5, 1.8, '#6e937c')],
     auto1: [car('sedan', 4.3, 1.8, '#7a1f1f'), car('hatch', 3.8, 1.7, '#c7c9cc')],
     deur1: [car('sedan', 4.3, 1.8, '#7a1f1f'), car('taxi', 4.3, 1.8, '#e8c93a', { isTaxi: true })],
@@ -58,7 +62,7 @@
     heli: [{ model: { name: 'heli', len: 9, wid: 2.4, color: '#c23b2e' }, isHeli: true }],
   };
   const specs = SETS[set];
-  const gapV = set === 'vgl' || set === 'hyb' ? 5.6 : 0; const cols = set === 'bus' || set === 'heli' || set === 'limo' ? 1 : set === 'deur1' || set === 'auto1' ? 2 : set === 'vgl' ? 3 : 3, vehicles = [];
+  const gapV = set === 'vgl' || set === 'hyb' || set === 'lod' ? 5.6 : set === 'gat' ? 5.4 : 0; const cols = set === 'bus' || set === 'heli' || set === 'limo' ? 1 : set === 'deur1' || set === 'auto1' || set === 'gat' ? 2 : set === 'vgl' ? 3 : 3, vehicles = [];
   const gap = set === 'boot' ? 12 : gapV || 7;
   let GLTF = null;
   if (set === 'hyb') GLTF = (await import('https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/loaders/GLTFLoader.js')).GLTFLoader;
@@ -68,17 +72,23 @@
     let m;
     if (s.glb) { m = new THREE.Group(); if (glbs[i]) { glbs[i].rotation.y = Math.PI / 2; m.add(glbs[i]); } } // hun +z voor -> onze +x voor
     else m = buildVehicleMesh(v);
+    if (s.lodNiveau !== undefined) zetLodNiveau(m, s.lodNiveau);
     m.position.set((i % cols - (cols - 1) / 2) * gap, 0, (Math.floor(i / cols) - (Math.ceil(specs.length / cols) - 1) / 2) * (set === 'boot' ? 11 : set === 'bus' ? 10 : 8));
-    m.rotation.y = (zij ? 0.22 : 0.7) + (achter ? Math.PI : 0);
+    m.rotation.y = (mode.includes('opzij') ? 0 : zij ? 0.22 : 0.7) + (achter ? Math.PI : 0);
     scene.add(m); vehicles.push(m);
     if (open && !s.glb) {
       m.userData.__v = v;
-      for (let k = 0; k < 40; k++) for (const rol of ['bestuurder', 'bijrijder', 'achter']) for (const side of [-1, 1]) syncVehicleDoors(m, v, 0.05, { rol, open: true, side });
+      // alleen de deuren aan de kant van de camera (+z): zo kijk je door de opening naar de dichte deuren aan de overkant
+      const rollen = mode.includes('eenkant') ? ['bijrijder', 'achter'] : ['bestuurder', 'bijrijder', 'achter'];
+      for (let k = 0; k < 40; k++) for (const rol of rollen) for (const side of (mode.includes('eenkant') ? [1] : [-1, 1])) syncVehicleDoors(m, v, 0.05, { rol, open: true, side });
     }
   });
-  const dist = set === 'vgl' || set === 'hyb' ? (mode.includes('ver') ? 20 : set === 'hyb' ? 13 : 11) : set === 'limo' || set === 'deur1' || set === 'auto1' ? 9 : set === 'deur' ? 17 : set === 'limo' ? 16 : set === 'boot' ? 36 : set === 'bus' ? 24 : set === 'bak' ? 24 : set === 'fiets' ? 12 : set === 'heli' ? 18 : 20;
+  const dist = set === 'gat' ? 7.5 : set === 'lod' ? 12 : set === 'vgl' || set === 'hyb' ? (mode.includes('ver') ? 20 : set === 'hyb' ? 13 : 11) : set === 'limo' || set === 'deur1' || set === 'auto1' ? 9 : set === 'deur' ? 17 : set === 'limo' ? 16 : set === 'boot' ? 36 : set === 'bus' ? 24 : set === 'bak' ? 24 : set === 'fiets' ? 12 : set === 'heli' ? 18 : 20;
   const cam = new THREE.PerspectiveCamera(36, W / H, 0.1, 400);
-  cam.position.set(0, dist * 0.5, dist); cam.lookAt(0, set === 'fiets' ? 0.5 : 0.8, 0);
+  if (mode.includes('boven')) cam.position.set(0, dist * 1.1, dist * 0.55);
+  else if (mode.includes('opzij')) cam.position.set(0, 1.0, dist);
+  else cam.position.set(0, dist * 0.5, dist);
+  cam.lookAt(0, set === 'fiets' ? 0.5 : 0.8, 0);
   renderer.render(scene, cam);
   document.title = 'klaar:' + vehicles.length + ' draws=' + renderer.info.render.calls + ' tris=' + renderer.info.render.triangles;
 </script>

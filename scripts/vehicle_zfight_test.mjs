@@ -15,12 +15,16 @@ const rep = JSON.parse(r.stdout);
 // 21-11 (epic Kleding, NPC-rollen): de berijder draagt nu kledinglagen (models3d_clothing.js); alleen 'close' (< 0,02 m2), geen flush. Vroeger 11 en 15.
 // 22-11 (samenvoeging kleding-clipping: haar, pet en accessoires op de berijder): de scooter telt 44 'close'-paren (0,026 m2, flush 0), de fiets blijft op 21.
 const RIDER_MAX = { 'vehicle:bike': 21, 'vehicle:scooter': 44 };
+const HYBRIDE = new Set(['vehicle:sedan', 'vehicle:hatch', 'vehicle:suv', 'vehicle:sport', 'vehicle:taxi', 'vehicle:police']);
 let bad = 0;
 const check = (name, ok, info = '') => { if (!ok) { bad++; console.log('FAIL', name, info); } };
 const mods = Object.entries(rep.modules);
 check('voertuigen gebouwd', mods.length >= 20, 'modules ' + mods.length);
 for (const [m, s] of mods) {
   const max = RIDER_MAX[m] ?? 0;
+  // 23-11: de hybride auto's (Quaternius-romp) houden langs de knipranden van de deuren een paar snippers die bijna evenwijdig
+  // en dicht bij elkaar liggen; geen flush, en samen minder dan 50 cm2 (één handpalm) per auto
+  if (HYBRIDE.has(m)) { check(`${m}: geen flush, restjes onder 50 cm2`, s.flush === 0 && s.close + s.near < 0.005, `${s.pairs} paren (flush ${s.flush.toFixed(3)} m2, close ${s.close.toFixed(3)} m2, near ${s.near.toFixed(3)} m2)`); continue; }
   check(`${m}: coplanaire paren <= ${max}`, s.pairs <= max, `${s.pairs} paren (flush ${s.flush.toFixed(3)} m2, close ${s.close.toFixed(3)} m2)`);
 }
 check('de bus met borden is erbij', mods.some(([m]) => m === 'vehicle:bus+borden'));

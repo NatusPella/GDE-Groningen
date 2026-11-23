@@ -15,7 +15,9 @@ let bad = 0;
 const ok = (naam, voorwaarde, info = '') => { if (!voorwaarde) { bad++; console.log('FAIL', naam, info); } };
 const modellen = new Map();
 for (const m of TRAFFIC_MODELS()) if (!modellen.has(m.name)) modellen.set(m.name, m);
-const bouw = (model, extra = {}) => buildVehicleMesh(Object.assign(new Vehicle(0, 0, 0, { ...model }), extra));
+// 23-11: de gewone personenauto's zijn standaard hybride (Quaternius-romp, zie hybridecar_test.mjs); deze test keurt onze eigen bouwer,
+// die er is voor de bijzondere uitvoeringen en met model.hybride === false
+const bouw = (model, extra = {}) => buildVehicleMesh(Object.assign(new Vehicle(0, 0, 0, { ...model, hybride: false }), extra));
 
 // --- 1. glas in de cabine -----------------------------------------------------------
 // De Knakker is de hatch uit de garage (shopdata.js: CAR_M('hatch', 3,8, 1,7)) met de carrosserie
