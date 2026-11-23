@@ -9,6 +9,8 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ## [Unreleased]
 
+- Minimap: strakker en scherper. De kaart wordt niet meer door het scherm verkleind (de lijnen waren wazig), de route die je volgt springt eruit met een papieren rand en chevrons, andere plekken worden stil zodra je een doel hebt en het zijn er minder als je hard gaat. Een strakke spelerpijl, een papieren N met een puntje naar noord, rustigere gebouwen en een smallere lijst. Zoomen en draaien gaan vloeiend; met Beweging beperken springt de zoom in twee standen. Samen spelen: alles is lokaal in je eigen spel, er wordt niets verstuurd.
+
 ## [0.65.0] - 2026-11-22
 
 Samen spelen met vier echte vensters getest, een ronde zeefdruk-menu's (Spullen, Loopbanen, Boerderij, zoeken), echte voetstappen en weergeluid, AAA-aankleding van de missies van akte 1 tot en met 4 en een snellere start. Pre-release voor de speeltest.

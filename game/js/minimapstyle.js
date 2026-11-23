@@ -25,7 +25,7 @@ export const routeLook = (actief) => (actief ? ROUTE_ACTIEF : ROUTE_ANDER);
 export const CHEVRON_STAP = 26;
 export const CHEVRON_MAAT = 2.6;
 // Met een doel in beeld of aan de rand zijn de plekken stil: ze blijven leesbaar (vorm en kleur), maar stappen een tree terug.
-export const PLEK_STIL = 0.72;
+export const PLEK_STIL = 0.86;
 export const plekAlpha = (heeftDoel) => (heeftDoel ? PLEK_STIL : 1);
 
 // ------------------------------------------------------------------ niet te veel tegelijk
@@ -113,4 +113,4 @@ export function landVerouderd(c, q) {
 export const SPELER_PIJL = [[9, 0], [-6.5, 6.2], [-3.2, 0], [-6.5, -6.2]];
 export const SPELER_SCHADUW = 1.4; // px, naar rechtsonder, zoals de harde schaduw van de papieren kaart
 // De noordbadge: een papieren schijfje met inktrand en een inkt-N, met een klein inktpuntje naar buiten (waar noord ligt).
-export const NOORD = { r: 10, rand: 1.5, punt: 4.2, inset: 17 };
+export const NOORD = { r: 10, rand: 1.5, punt: 5, inset: 17 };

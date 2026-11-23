@@ -57,5 +57,21 @@ for (const [tag, name, clock, wpt] of SCENES) {
   clearInterval(keep);
 }
 R.clearUserWaypoint();
+// 'meet' (alleen met --flags=hitch=1): wat de minimap per beeld kost terwijl je 8 s door de binnenstad schuift (hitchprobe, hud:minimap)
+if (want('meet') && window.__hitch) {
+  window.__perfHudMarks = true;
+  const [x0, y0] = P(100, 77);
+  teleport(x0, y0);
+  await sleep(1500);
+  await loaded();
+  await sleep(2000);
+  window.__hitch.reset();
+  const t0 = performance.now();
+  const mover = setInterval(() => { p.x = x0 + ((performance.now() - t0) / 1000) * 8; p.y = y0; p.vx = p.vy = 0; }, 16);
+  await sleep(8000);
+  clearInterval(mover);
+  const s = window.__hitch.summary();
+  done.push('meet ' + JSON.stringify({ minimapMsPerBeeld: s.sections['hud:minimap'], hudBasis: s.sections['hud:base'], frame: s.sections.frame, p50: s.p50, p95: s.p95, piekMinimap: s.peaks['hud:minimap'] || null, beelden: s.frames }));
+}
 clearInterval(skipper);
 return done;

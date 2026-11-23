@@ -3528,8 +3528,8 @@ function drawNorthIndicator(ctx, cx, cy, screenAngle, k = 1) {
   ctx.rotate(screenAngle);
   ctx.beginPath();
   ctx.moveTo(r + NOORD.punt + 0.6, 0);
-  ctx.lineTo(r - 0.4, -3.4);
-  ctx.lineTo(r - 0.4, 3.4);
+  ctx.lineTo(r - 0.4, -4);
+  ctx.lineTo(r - 0.4, 4);
   ctx.closePath();
   ctx.fillStyle = NOORD_INKT.inkt;
   ctx.fill();
