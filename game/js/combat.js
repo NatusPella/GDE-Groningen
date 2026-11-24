@@ -112,6 +112,8 @@ export function updateCombat(dt, world) {
   }
   cycleWeaponByWheel(dt, world, input);
   const p = hoofdspeler(world);
+  // Cancel pending swing if player died or entered a vehicle (#1285)
+  if (pendingSwing && (world.health <= 0 || p.inVehicle)) pendingSwing = null;
   const weapon = WEAPONS[world.weapon];
   world.scoped = !!weapon.scope && !p.inVehicle && !p.swimming && !!input.mouse.rightDown && !world.paused;
   // De blokstand (#492): met een slagwapen in de hand blokkeert de rechtermuisknop; met een vuurwapen blijft rechts richten.
