@@ -1829,7 +1829,7 @@ const PHASES = {
       if (g) { g.x = p.x + 3.2; g.y = p.y + 0.4; g.vx = 0; g.vy = 0; g.verTijd = 0; g.vastTijd = 0; }
       await tot(3); if (g) qaKijk(g.x, g.y);
       await tot(5);
-      const labels = []; // het naamlabel boven de figuur van de gast (coopfigures3d.js makeLabel): waar en hoe groot in de wereld
+      const labels = []; // het naamlabel boven de figuur van de gast (avatarlabel3d.js makeLabel): waar en hoe groot in de wereld
       try { const SC = (await imp('scene3d')).getScene(); if (SC) SC.traverse((o) => { if (o.isSprite && o.renderOrder === 10 && o.parent) { const THREE = o.constructor; const wp = o.getWorldPosition(new o.position.constructor()), ws = o.getWorldScale(new o.position.constructor()), pw = o.parent.getWorldScale(new o.position.constructor()); labels.push({ pos: [qaR(wp.x), qaR(wp.y), qaR(wp.z)], schaal: [qaR(ws.x * 100) / 100, qaR(ws.y * 100) / 100], ouderSchaal: qaR(pw.x * 100) / 100, ouder: o.parent.type, gastXY: g ? [qaR(g.x), qaR(g.y)] : null }); } }); } catch (e) { labels.push({ fout: e.message }); }
       log('qa-mensen-label', { labels: labels.slice(0, 4) });
       log('qa-mensen-host', { gast: g ? { char: g.char || null, outfit: !!(g.avatar && g.avatar.outfit) } : null, roster: (w.coopRoster || []).map((r) => ({ slot: r.slot, char: r.char, outfit: r.avatar && r.avatar.outfit ? String(r.avatar.outfit).slice(0, 40) : null })) });

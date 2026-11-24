@@ -13,28 +13,11 @@ import { shareFeet } from './gait.js';
 import { avatarVan, avatarLook, avatarLabel } from './coopspeler.js';
 import { ruimMeshOp } from './coopruim.js';
 import { syncBezig, hasBezigMeshes } from './coopbezig3d.js';
-import { planFigures, walkSpeed, LABEL_Y } from './coopfigures.js';
+import { planFigures, walkSpeed } from './coopfigures.js';
 import { cutsceneSpeelt } from './coopcut.js';
-import { pasLabel } from './multiplayerlabels.js';
+import { makeLabel } from './avatarlabel3d.js';
 
 const meshes = new Map(); // plek -> { mesh, char, label, prev }
-
-// #872: het naamlabel past op de vaste kaart. Een online-naam mag 16 tekens zijn en de
-// spelerslijst leest er 24; zonder meten viel een lange naam buiten het tekstvlak.
-const LABEL_B = 256, LABEL_H = 64, LABEL_VLAK = 236;
-export function makeLabel(spec) { // ook voor de gastheer bij een gast (scene3d.js, world.companion)
-  const c = document.createElement('canvas'); c.width = LABEL_B; c.height = LABEL_H;
-  const g = c.getContext('2d');
-  const font = (px) => `bold ${px}px "Arial Narrow", Arial, sans-serif`;
-  const past = pasLabel(spec.tekst, { maxBreedte: LABEL_VLAK, px: 34, minPx: 18, meet: (tekst, px) => { g.font = font(px); return g.measureText(tekst).width; } });
-  g.font = font(past.px); g.textAlign = 'center'; g.textBaseline = 'middle';
-  g.fillStyle = 'rgba(8,16,10,0.65)'; g.fillRect(8, 8, LABEL_B - 16, 48);
-  g.fillStyle = spec.kleur; g.fillText(past.tekst, LABEL_B / 2, 33);
-  const tex = new THREE.CanvasTexture(c);
-  const spr = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, transparent: true, depthWrite: false }));
-  spr.scale.set(1.8, 0.45, 1); spr.position.y = LABEL_Y; spr.renderOrder = 10;
-  return spr;
-}
 
 function build(scene, fig) {
   const av = avatarVan(fig, fig.slot); // (#455) altijd de online-avatar, nooit Tammo of Tessa

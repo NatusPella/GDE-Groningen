@@ -30,7 +30,7 @@ import {
 } from './vehicle.js';
 import { DEAD_DURATION } from './pedconst.js';
 import { attachCarry, carryPose } from './streetlife3d.js';
-import { gastheerAvatar, metgezelSleutel } from './coopclient.js'; import { avatarLook, avatarLabel } from './coopspeler.js'; import { makeLabel } from './coopfigures3d.js'; // de gastheer bij een gast als zijn online-avatar (#455)
+import { gastheerAvatar, metgezelSleutel } from './coopclient.js'; import { avatarLook, avatarLabel } from './coopspeler.js'; import { makeLabel } from './avatarlabel3d.js'; // de gastheer bij een gast als zijn online-avatar (#455)
 import { buildPersonMesh, setModularPlayerLooks, releasePersonGeometry, animatePersonWalk, plantFeet, applyAttackPose, applyHitReaction, setHeldWeapon, seatPose, seatedY, waveOverlay, juichOverlay, carryOverlay, TAMMO_APPEARANCE, ANITA_APPEARANCE, fistOverlay } from './models3d_people.js';
 import { syncDoorsNear, vraagVoorAnim } from './vehicledoors3d.js';
 import { syncCabins } from './cabin3d.js';
