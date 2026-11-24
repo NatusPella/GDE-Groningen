@@ -513,14 +513,14 @@ function dienstItems(w, here) {
   // een gast draait de wereld niet (coopRole 'client'): de trein is van wie het spel opende, dus geen dienst starten
   const items = (w.coopRole === 'client' ? [] : stationOpties(here)).map((o) => ({
     id: 'dienst-' + o.key, label: o.tekst, desc: stationRegel(o),
-    cols: [`${o.haltes} haltes`], verb: 'Rijden ·', price: 0, swatch: ['#ffc917'],
+    cols: [`${o.haltes} haltes`], verb: 'Rijden ·', price: 0, swatch: ['#2f7d46'],
     buy() {
       if (!dienstStarter) return 'Loop naar een stilstaande trein, druk E en daarna G';
       closeShopMenu();
       return dienstStarter(w, here, o) ? 'Instappen: je rijdt de dienst' : 'De trein staat nu niet klaar';
     },
   }));
-  items.push({ id: 'zelf-besturen', label: 'Zelf een stilstaande trein besturen', desc: 'Loop naar een stilstaande trein, druk E en daarna G', cols: [], verb: 'Zo werkt het', price: 0, swatch: ['#ffc917'], buy() { return 'Loop naar een stilstaande trein, druk E en daarna G'; } });
+  items.push({ id: 'zelf-besturen', label: 'Zelf een stilstaande trein besturen', desc: 'Loop naar een stilstaande trein, druk E en daarna G', cols: [], verb: 'Zo werkt het', price: 0, swatch: ['#2f7d46'], buy() { return 'Loop naar een stilstaande trein, druk E en daarna G'; } });
   return items;
 }
 
@@ -543,7 +543,7 @@ function menuFor(w, here) {
           desc: `${lineLabel(legs[0])} · ${spoor(here, legs[0])}${via}${VILLAGES[dest.name] ? ` · Te doen: ${VILLAGES[dest.name].teaser.toLowerCase()}` : ''}`,
           cols: [`${info.minutes} min`], verb: 'Snel reizen ·',
           route: { from: here.short, to: dest.short, minutes: info.minutes, text: `${lineLabel(legs[0])}, ${spoor(here, legs[0])}${via}.`, teaser: VILLAGES[dest.name] ? `Te doen: ${VILLAGES[dest.name].teaser.toLowerCase()}` : '', board },
-          price: info.price, swatch: [legs[0].train.type === 'virm' ? '#ffc917' : '#00a3ad'],
+          price: info.price, swatch: [legs[0].train.type === 'virm' ? '#2f7d46' : '#e36a1d'],
           disabled: w.money < info.price ? 'Te weinig geld' : null,
           buy() {
             if (w.money < info.price) return null;
@@ -741,7 +741,7 @@ function rideItems(w, here) {
       desc: `${lineLabel(leg)} · ${spoor(here, leg)} · de hele rit, ongeveer ${min} min`,
       cols: [`${min} min`], verb: 'Meegaan ·',
       route: { from: here.short, to: dest.short, minutes: min, text: `${lineLabel(leg)}, ${spoor(here, leg)}. Houd {SPATIE} ingedrukt om naar ${dest.short} te springen.`, teaser: '', board: '' },
-      price: info.price, swatch: [leg.train.type === 'virm' ? '#ffc917' : '#00a3ad'],
+      price: info.price, swatch: [leg.train.type === 'virm' ? '#2f7d46' : '#e36a1d'],
       disabled: w.money < info.price ? 'Te weinig geld' : null,
       buy() {
         if (w.money < info.price) return null;

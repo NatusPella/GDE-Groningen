@@ -40,7 +40,8 @@
     bromfiets: { model: { name: 'scooter', moped: true, len: 1.7, wid: 0.62, color: '#e6e1d6', rider: '#2f5c8a' }, isScooter: true },
     sloep: { model: { ...BOAT_KINDS.sloep }, isBoat: true }, rondvaart: { model: { ...BOAT_KINDS.rondvaart }, isBoat: true },
   };
-  const spec = SPECS[naam] || SPECS.escapade;
+  const TRAINS = { gtw: 40, wink: 44, virm: 110 };
+  const spec = TRAINS[naam] ? { model: { name: naam, len: TRAINS[naam], wid: 3 } } : (SPECS[naam] || SPECS.escapade);
   const W = 1920, H = 1080;
   const renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
   renderer.setSize(W, H);
@@ -52,7 +53,20 @@
   const ground = new THREE.Mesh(new THREE.PlaneGeometry(120, 120), new THREE.MeshLambertMaterial({ color: spec.isBoat ? 0x2b5566 : 0x6b7a66 }));
   ground.rotation.x = -Math.PI / 2; scene.add(ground);
   const v = { id: 700, health: 100, ...spec };
-  const m = buildVehicleMesh(v);
+  let m;
+  if (TRAINS[naam]) {
+    const { TRAIN_TYPES } = await import(root + 'game/js/railway.js');
+    const { buildCar } = await import(root + 'game/js/railway3d.js');
+    const cfg = TRAIN_TYPES[naam];
+    m = new THREE.Group();
+    const total = cfg.segments.reduce((a, g) => a + g.len, 0) + (cfg.segments.length - 1) * cfg.gap;
+    let run = total / 2;
+    for (const seg of cfg.segments) { const c = buildCar(cfg, seg); c.position.set(run - seg.len / 2, 0.26, 0); run -= seg.len + cfg.gap; m.add(c); }
+    m.userData.train = cfg; m.userData.total = total;
+    const rails = new THREE.Mesh(new THREE.BoxGeometry(total + 20, 0.1, 0.12), new THREE.MeshLambertMaterial({ color: 0x777b80 }));
+    for (const z of [-0.7175, 0.7175]) { const r = rails.clone(); r.position.set(0, 0.2, z); m.add(r); }
+    const bed = new THREE.Mesh(new THREE.BoxGeometry(total + 20, 0.2, 3.2), new THREE.MeshLambertMaterial({ color: 0x8e8a83 })); bed.position.y = 0.08; m.add(bed);
+  } else m = buildVehicleMesh(v);
   scene.add(m);
   m.userData.__v = v;
   if (spec.isBus) {
@@ -66,6 +80,8 @@
   // de camerapunten hangen aan de opgegeven maat en een vaste hoogte per soort, niet aan het gebouwde model: voor en na zijn zo gelijk
   const HOOG = { escapade: 1.5, sedan: 1.5, hatch: 1.5, wagon: 1.55, van: 2.3, ambulance: 2.6, tractor: 2.9, quad: 1.3, foodtruck: 3.1, truck: 3.5, maaidorser: 3.8, laadmachine: 2.5, bus: 3.2, midibus: 3.0, fiets: 1.9, fatbike: 1.9, step: 1.9, bromfiets: 1.9, sloep: 1.5, rondvaart: 2.5 };
   const size = new THREE.Vector3(spec.model.len, HOOG[naam] || 1.6, spec.model.wid), mid = new THREE.Vector3(0, 0, 0);
+  // treinen: de camera kijkt op het deel dat wordt getoond (kop op x = totaal/2)
+  const tr = TRAINS[naam] ? m.userData.total / 2 : 0;
   const R = Math.max(size.x, size.z) * 0.5 + 1.2;
   const cam = new THREE.PerspectiveCamera(34, W / H, 0.05, 400);
   const open = (rollen) => { if (spec.isBus) { for (let k = 0; k < 60; k++) syncVehicleDoors(m, v, 0.05); return; } for (let k = 0; k < 40; k++) for (const rol of rollen) for (const side of [1, -1]) syncVehicleDoors(m, v, 0.05, { rol, open: true, side }); };
@@ -76,6 +92,11 @@
     schuin: () => ({ p: [R * 1.35, size.y * 0.95 + 0.3, R * 1.5], t: [0, size.y * 0.4, 0] }),
     achter: () => ({ p: [-R * 1.35, size.y * 0.95 + 0.3, R * 1.5], t: [0, size.y * 0.4, 0] }),
     open: () => ({ p: [R * 0.5, size.y * 1.6 + 0.4, R * 1.5], t: [0, size.y * 0.3, 0], doors: true }),
+    kop: () => ({ p: [tr + 6.5, 3.2, 6.5], t: [tr - 1.5, 2.0, 0], fov: 38 }),
+    deur: () => ({ p: [tr - 11, 2.4, 8.5], t: [tr - 11, 2.0, 0], fov: 36 }),
+    dak: () => ({ p: [tr - 3, 9.5, 8], t: [tr - 8, 3.8, 0], fov: 40 }),
+    wielen: () => ({ p: [tr - 3.2, 0.7, 6.2], t: [tr - 3.2, 0.55, 0], fov: 34 }),
+    lang: () => ({ p: [0, 7, size.x * 0.55], t: [0, 2, 0], fov: 40 }),
     cabine: () => ({ maaidorser: { p: [5.2, 4.2, 3.6], t: [1.8, 2.7, 0], fov: 26 }, laadmachine: { p: [1.9, 2.5, 1.9], t: [-0.1, 1.4, 0], fov: 30 } }[naam] || { p: [3, 2, 3], t: [0, 1, 0] }),
     binnen: () => ({ p: [-size.x * 0.2, Math.min(size.y * 0.78, 1.2), 0], t: [size.x * 0.35, Math.min(size.y * 0.5, 0.8), 0], fov: 72, doors: true }),
   };

@@ -17,7 +17,7 @@ export const STOP_NEAR_M = 600;     // zo ver lopen we naar een halte
 export const CHANGE_NEAR_M = 150;    // haltes zo dicht bij elkaar zijn een overstap
 
 // lijnkleuren per soort; bussen krijgen een vaste kleur uit het palet per lijnnummer
-export const KLEUR = { taxi: '#d8c548', trein: '#ffc917', boot: '#2f8fd8', auto: '#e8b04a', lopen: '#9aa3ad' };
+export const KLEUR = { taxi: '#d8c548', trein: '#2f7d46', boot: '#2f8fd8', auto: '#e8b04a', lopen: '#9aa3ad' };
 const BUS_PALET = ['#d6452f', '#2f9e6a', '#8a5fd0', '#e07a1f', '#1f8fa8', '#c23a8c', '#6a9a2a', '#b5651d'];
 
 export function busColor(ref) {
