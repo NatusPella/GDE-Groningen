@@ -5554,6 +5554,17 @@
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-11-21"
 },
+"Anita|Ik bak. Jij rijdt.": {
+"src": "anita/ik_bak_jij_rijdt_400084ec.mp3",
+"model": "google/gemini-3.8-flash-lite-tts",
+"via": "litellm",
+"lang": "own",
+"voice": "Callirrhoe",
+"input": "Ik bak. Jij rijdt.",
+"style": "spoken in standard Dutch, clear and light, without a regional accent; Nederlandse vrouw, lacherig en ad rem. Tone: enthousiast, snel.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-11-24"
+},
 "Anita|Ik bedoel in Oma's recept.": {
 "src": "anita/ik_bedoel_in_oma_s_recept_0c88d287.mp3",
 "model": "google/gemini-3.8-flash-lite-tts",
@@ -12994,6 +13005,17 @@
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-11-23"
 },
+"Durk|Gewoon in de rij, baas.": {
+"src": "durk/gewoon_in_de_rij_baas_4e11aeaa.mp3",
+"model": "google/gemini-3.8-flash-lite-tts",
+"via": "litellm",
+"lang": "own",
+"voice": "Algieba",
+"input": "Gewoon in de rij, baas.",
+"style": "spoken in Dutch with a heavy Frisian accent, slow; grote, trage Friese handlanger, spreekt Nederlands met een zwaar Fries accent. Tone: dronken, lallend, samenzweerderig.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-11-24"
+},
 "Durk|Hebbe! Bijna!": {
 "src": "durk/hebbe_bijna_4e36d550.mp3",
 "model": "google/gemini-3.8-flash-tts",
@@ -15970,6 +15992,17 @@
 "style": "spoken in Dutch with a proud Frisian accent, the Frisian words said in Frisian (Frysk); ijdele, charmante Friese ondernemer, spreekt Nederlands met Friese woorden. Tone: vragend, nieuwsgierig.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-11-22"
+},
+"Jelle Terpstra|...Ik heb nog nooit de vraagprijs betaald.": {
+"src": "jelle_terpstra/ik_heb_nog_nooit_de_vraagprijs_b_c59048c7.mp3",
+"model": "google/gemini-3.8-flash-lite-tts",
+"via": "litellm",
+"lang": "own",
+"voice": "Fenrir",
+"input": "...Ik heb nog nooit de vraagprijs betaald.",
+"style": "spoken in Dutch with a proud Frisian accent, the Frisian words said in Frisian (Frysk); ijdele, charmante Friese ondernemer, spreekt Nederlands met Friese woorden. Tone: charmant, opschepperig.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-11-24"
 },
 "Jelle Terpstra|...Ze houdt hem altijd warm.": {
 "src": "jelle_terpstra/ze_houdt_hem_altijd_warm_df6e79f3.mp3",

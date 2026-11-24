@@ -22018,7 +22018,8 @@
      "text": "Ik bak. Jij rijdt.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true,
+     "textOnly": false,
+     "rec": "lines",
      "voice": "Anita"
     },
     {
@@ -22234,7 +22235,8 @@
      "text": "Gewoon in de rij, baas.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true
+     "textOnly": false,
+     "rec": "lines"
     },
     {
      "speaker": "Douwe",
@@ -22317,8 +22319,9 @@
      "text": "...Ik heb nog nooit de vraagprijs betaald.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true,
-     "humor": "HE-05"
+     "textOnly": false,
+     "humor": "HE-05",
+     "rec": "lines"
     }
    ]
   },

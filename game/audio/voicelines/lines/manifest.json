@@ -2015,6 +2015,10 @@
 "src": "anita/iemand_die_alle_regels_kent_beha_ca79c038.mp3",
 "dur": 4.46
 },
+"Anita|Ik bak. Jij rijdt.": {
+"src": "anita/ik_bak_jij_rijdt_400084ec.mp3",
+"dur": 1.73
+},
 "Anita|Ik bedoel in Oma's recept.": {
 "src": "anita/ik_bedoel_in_oma_s_recept_0c88d287.mp3",
 "dur": 1.94
@@ -4719,6 +4723,10 @@
 "src": "durk/gelijkspel_telt_ook_vraag_maar_f_9d774d6d.mp3",
 "dur": 3.08
 },
+"Durk|Gewoon in de rij, baas.": {
+"src": "durk/gewoon_in_de_rij_baas_4e11aeaa.mp3",
+"dur": 1.55
+},
 "Durk|Hebbe! Bijna!": {
 "src": "durk/hebbe_bijna_4e36d550.mp3",
 "dur": 1.98
@@ -5814,6 +5822,10 @@
 "Jelle Terpstra|...Een prijs zonder bijlage. Wie doet dat?": {
 "src": "jelle_terpstra/een_prijs_zonder_bijlage_wie_doe_33f41f1b.mp3",
 "dur": 3.33
+},
+"Jelle Terpstra|...Ik heb nog nooit de vraagprijs betaald.": {
+"src": "jelle_terpstra/ik_heb_nog_nooit_de_vraagprijs_b_c59048c7.mp3",
+"dur": 2.07
 },
 "Jelle Terpstra|...Ze houdt hem altijd warm.": {
 "src": "jelle_terpstra/ze_houdt_hem_altijd_warm_df6e79f3.mp3",
