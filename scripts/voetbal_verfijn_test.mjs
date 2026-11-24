@@ -73,7 +73,7 @@ t('de selectielijst toont iedereen (tot 22) met het echte aantal, ook als je spe
   const sq = C.squadOf(c, c.club, getClub);
   const sel = viewHtml(c, 'selectie', env);
   assert.ok(sel.includes(`Selectie van ${sq.length}<`), 'het echte aantal');
-  const lijst = (sel.split('vb-selectie">')[1] || '');
+  const lijst = (sel.split(/vb-selectie[^"]*">/)[1] || ''); // #1110 (voetbal 24-11): de lijst heeft nu ook de klasse 'on'
   assert.equal((lijst.match(/<li /g) || []).length, sq.length, 'elke speler staat erin');
   const man = viewHtml(c, 'manager', env);
   const eigen = (man.split('Jouw selectie')[1] || '').split('<p class="ds-z-kaart__voet">')[0];
