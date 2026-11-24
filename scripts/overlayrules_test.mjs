@@ -36,4 +36,16 @@ assert.ok(!mayStartOverlay('wijkkaart', ['scherm']) && mayStartOverlay('prestati
   assert.match(oh, /wijkkaart: '#wijk-card, \.bm\.bm-v-plaats'/, 'de stempel wordt verborgen als de wijkkaart moet wachten');
   assert.match(oh, /for \(const el of document\.querySelectorAll\(sel\)\) el\.classList\.toggle\('ov-hold', held\.has\(name\)\)/, 'alle elementen per overlay wijken, niet alleen het eerste');
 }
+// #1182 (hertest 22-11): de plaatsstempel lag over het vertrekbord van het station. Dat bord is een minigamebord
+// (createBoard in minigamekit.js, .mg-board in #hud) en telt dus als duelbalk, die de stempel tegenhoudt.
+{
+  const fs = await import('node:fs');
+  const oh = fs.readFileSync(new URL('../game/js/overlayhold.js', import.meta.url), 'utf8');
+  const kit = fs.readFileSync(new URL('../game/js/minigamekit.js', import.meta.url), 'utf8');
+  const st = fs.readFileSync(new URL('../game/js/stationlife.js', import.meta.url), 'utf8');
+  assert.match(st, /board = createBoard\('station'\)/, 'het vertrekbord is een createBoard-bord');
+  assert.ok(/root\.className = 'mg-board'/.test(kit) && /getElementById\('hud'\)/.test(kit), 'createBoard hangt een .mg-board in #hud');
+  assert.match(oh, /duelbalk: '#hud \.mg-board:not\(\[hidden\]\)'/, 'een zichtbaar bord telt als duelbalk');
+  assert.ok(h(['duelbalk', 'wijkkaart']).includes('wijkkaart'), 'en houdt de stempel tegen');
+}
 console.log('overlayrules_test ok');
