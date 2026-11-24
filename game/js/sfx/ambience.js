@@ -11,7 +11,7 @@ import { streekNiveaus } from './streekklank.js';import { stepContext } from './
 import { SFX_MAP, sfxClips } from './sfxmap.js';
 import { havenNiveau, HAVEN_PEAK, HAVEN_LP, spoorNiveau, treinHoornPauze, verkeerDagNiveau, scheepshoornPauze, occlusie, bedWobble, bedStartRate } from './lagenplan.js';
 import { RAIN_KEYS, rainTargets, summerTargets, thunderPick } from './weermap.js';
-import { roomTone } from './binnenklank.js';
+import { roomTone, ROOM_TONES } from './binnenklank.js';
 import { breezeTargets } from './sfxfeel.js';
 import { monumentAudioScale } from '../heritagearea.js';
 
@@ -209,6 +209,12 @@ export function rijdtIn(world) {
   return z ? (GAST_VOERTUIG[z] || {}) : null;
 }
 
+// De wereld staat stil voor het geluid van de omgeving: het pauzemenu wel, een cutscene die de wereld stilzet (cinematics.js
+// cinematicPause) niet. Daar klinkt dezelfde omgeving als in het spel; de stemmen gaan erboven door de gewone spraakduik (audio.js).
+export function stil(world) {
+  return !!world.paused && !(world.cinematicPause && !world.menuMuffle);
+}
+
 function scan(world) {
   const map = world.map;
   const p = hoofdspeler(world);
@@ -375,7 +381,7 @@ function setTargets(world) {
   const v = rijdtIn(world);
   const closed = !!v && !v.isBike && !v.isScooter && !v.isBoat;
   const evening = smooth01(16, 19, hour) * (1 - smooth01(23.5, 24, hour)) + (hour < 2 ? 0.6 : 0);
-  const paused = K.muted() ? 0 : world.paused ? 0.45 : 1;
+  const paused = K.muted() ? 0 : stil(world) ? 0.45 : 1;
   const cabin = closed ? 0.45 : 1;
 
   beds.city.target = (0.07 + place.traffic * 0.1 + place.density * 0.04 - place.green * 0.04) * (0.55 + 0.45 * day) * (1 - 0.9 * place.rural) * cabin * paused;
@@ -385,7 +391,9 @@ function setTargets(world) {
   beds.wind.target = breezeTargets(windIn, windOut).level;
   // regen: de opnames (motregen, bui, plensbui, kruisend op de intensiteit; dak en auto binnen) zodra ze geladen zijn, anders de procedurele lagen
   const S = K.samples, recRain = !!S && RAIN_KEYS.every((k) => S.has(k)) && S.has('regen_dak') && S.has('regen_auto');
-  const indoors = stepContext.indoors && !closed;
+  // een cutscene binnen (cutscenesfx.js, cutscenehost.js zet world.cutsceneAmb): de set is binnen, ook als de speler buiten staat
+  const sa = world.cutsceneAmb || null;
+  const indoors = (sa ? !!sa.binnen : stepContext.indoors) && !closed;
   if (recRain) {
     const rt = rainTargets(rain, { closed, indoors }, paused, rainOut);
     beds.rain.target = 0;
@@ -409,8 +417,8 @@ function setTargets(world) {
   beds.binnen.target = indoors ? 0.25 * paused : 0;
   // in a pand (interiors.js, #1150, #1164): the room tone per kind (sfx/binnenklank.js): a bar and a station hall have people in them, a library and a church do not, a garage hums
   let roomMachine = 0;
-  if (indoors && world.insideKind) {
-    const rt = roomTone(world.insideKind, world.insideSub);
+  if (indoors && (sa ? sa.room : world.insideKind)) {
+    const rt = sa ? (ROOM_TONES[sa.room] || roomTone(null)) : roomTone(world.insideKind, world.insideSub);
     if (rt.crowd) beds.crowd.target = Math.max(beds.crowd.target, rt.crowd * paused);
     beds.binnen.target = rt.room * paused;
     roomMachine = rt.machine;
@@ -481,7 +489,7 @@ function ambientEvents(dt, world) {
     const dawn = dn.hour > 4.5 && dn.hour < 8 ? 1.8 : 1;
     const act = daylight * (0.12 + place.green + place.trees * 0.8) * (1 - rain * 0.9) * dawn;
     timers.bird = act > 0.05 ? rnd(1.2, 5) / Math.min(2.5, act) : rnd(4, 8);
-    if (act > 0.05 && !world.paused) {
+    if (act > 0.05 && !stil(world)) {
       const tr = place.treePts.length ? pick(place.treePts) : null;
       const a = Math.random() * Math.PI * 2, r = rnd(8, 25);
       const x = tr ? tr[0] : lx + Math.cos(a) * r, y = tr ? tr[1] : ly + Math.sin(a) * r;
@@ -498,7 +506,7 @@ function ambientEvents(dt, world) {
     timers.nat = rnd(9, 24);
     const night = dn.night || 0, roll = Math.random();
     // SFX ronde 6: bij regen soms druppels van een dak of in een plas (rain_drips), dichtbij; bij droog weer de zomerdieren en wind
-    const ev = rain > 0.15 && !world.paused && K.samples && roll < 0.5 ? 'rain_drips' : rain > 0.6 || world.paused || !K.samples ? null : night > 0.6 && place.waterD < 60 && roll < 0.55 ? 'frog_croak' : night > 0.6 && (place.trees > 0.3 || place.rural > 0.3) && roll < 0.8 ? 'owl_hoot' : night < 0.6 && place.trees > 0.35 && roll < 0.45 ? 'wind_gust' : null;
+    const ev = rain > 0.15 && !stil(world) && K.samples && roll < 0.5 ? 'rain_drips' : rain > 0.6 || stil(world) || !K.samples ? null : night > 0.6 && place.waterD < 60 && roll < 0.55 ? 'frog_croak' : night > 0.6 && (place.trees > 0.3 || place.rural > 0.3) && roll < 0.8 ? 'owl_hoot' : night < 0.6 && place.trees > 0.35 && roll < 0.45 ? 'wind_gust' : null;
     const rec = ev ? dierOpname(sfxClips(ev), K.samples) : null;
     if (rec) {
       const e = SFX_MAP[ev], a = Math.random() * Math.PI * 2, r = rnd(10, 40);
@@ -511,7 +519,7 @@ function ambientEvents(dt, world) {
     const vis = landmarks.vismarkt ? clamp(1 - Math.hypot(landmarks.vismarkt.x - lx, landmarks.vismarkt.y - ly) / 180, 0, 1) : 0;
     const act = Math.max(clamp(1 - place.waterD / 70, 0, 1), vis) * (0.3 + daylight * 0.7) * (1 - rain * 0.6);
     timers.gull = act > 0.05 ? rnd(5, 14) / act : rnd(6, 12);
-    if (act > 0.05 && !world.paused) {
+    if (act > 0.05 && !stil(world)) {
       const a = Math.random() * Math.PI * 2, r = rnd(15, 45);
       playAt('gull_' + (Math.random() < 0.5 ? 0 : 1), lx + Math.cos(a) * r, ly + Math.sin(a) * r, rnd(12, 25), { gain: rnd(0.12, 0.22), rate: rnd(0.9, 1.1), ref: 10, rolloff: 1, range: 120 });
     }
@@ -522,7 +530,7 @@ function ambientEvents(dt, world) {
   if (timers.trein <= 0) {
     timers.trein = treinHoornPauze(place.railD, dn.night || 0, rain, Math.random());
     const S = K.samples, key = Math.random() < 0.7 ? 'trein_hoorn_kort' : 'trein_hoorn_lang';
-    if (S && spoorNiveau(place.railD) > 0.1 && rain < 0.7 && !world.paused && S.has(key)) {
+    if (S && spoorNiveau(place.railD) > 0.1 && rain < 0.7 && !stil(world) && S.has(key)) {
       const a = Math.random() * Math.PI * 2, r = rnd(60, 200);
       playAt(key, place.railX + Math.cos(a) * r, place.railY + Math.sin(a) * r, 2, { gain: rnd(0.07, 0.12), rate: rnd(0.97, 1.03), ref: 20, rolloff: 1, range: 400, lp: 2200, buffer: S.buffer(key), cat: 'spoor' });
     }
@@ -532,7 +540,7 @@ function ambientEvents(dt, world) {
     const hv = havenNiveau({ industrial: place.industrial, waterD: place.waterD, streek: place.streek, sea: place.sea, closed: false });
     timers.hoorn = scheepshoornPauze(hv, Math.random());
     const S = K.samples;
-    if (S && hv >= 0.3 && !world.paused && S.has('scheepshoorn_op')) {
+    if (S && hv >= 0.3 && !stil(world) && S.has('scheepshoorn_op')) {
       const a = Math.random() * Math.PI * 2, r = rnd(120, 300);
       playAt('scheepshoorn_op', place.waterX + Math.cos(a) * r, place.waterY + Math.sin(a) * r, 3, { gain: rnd(0.1, 0.16), rate: rnd(0.96, 1.04), ref: 30, rolloff: 1, range: 600, lp: 1600, buffer: S.buffer('scheepshoorn_op'), cat: 'water' });
     }
@@ -543,7 +551,7 @@ function ambientEvents(dt, world) {
     const evening = dn.hour > 16 || dn.hour < 1.5 ? 1 : 0.3;
     const act = place.horeca * evening * (1 - rain);
     timers.clink = act > 0.1 ? rnd(2.5, 7) / act : rnd(5, 9);
-    if (act > 0.1 && place.horecaPts.length && !world.paused) {
+    if (act > 0.1 && place.horecaPts.length && !stil(world)) {
       const h = pick(place.horecaPts);
       playAt('clink', h.x + rnd(-3, 3), h.y + rnd(-3, 3), 1, { gain: rnd(0.06, 0.12), rate: rnd(0.92, 1.1), ref: 4, rolloff: 1.4, range: 50 });
     }
@@ -688,7 +696,7 @@ function animals(dt, world) {
   timers.animals -= dt;
   const extra = world.countryAudible;
   const list = extra && extra.length ? (world.wildlife || []).concat(extra) : world.wildlife;
-  if (!list || !list.length || world.paused) return;
+  if (!list || !list.length || stil(world)) return;
   const check = timers.animals <= 0;
   if (check) timers.animals = 0.4;
   const t = now();
@@ -720,6 +728,21 @@ function animals(dt, world) {
     playAt(buf, a.x, a.y, h, { gain: def.gain, rate, ref: 4, rolloff: 1.2, range: def.range, cat: 'dier' });
     if (def.double && Math.random() < 0.5) later(rnd(0.25, 0.4), () => playAt(buf, a.x, a.y, h, { gain: def.gain * 0.9, rate: rate * 1.03, ref: 4, rolloff: 1.2, range: def.range, cat: 'dier' }));
   }
+}
+
+// Een losse roep van een dier van de omgeving (een meeuw of eend in een cutscene, cutscenesfx.js): dezelfde opname en procedurele
+// terugval als de dieren in de wereld hierboven. kind: een sleutel of alias van ANIMALS. false = geen dier of nog niet klaar.
+export function playAnimalCall(kind, x, y) {
+  if (!K) return false;
+  const def = animalDef(kind);
+  if (!def) return false;
+  const rate = rnd(def.rate[0], def.rate[1]);
+  const rec = K.samples && def.rec ? dierOpname(def.rec, K.samples) : null;
+  if (rec) { playAt(rec.key, x, y, def.h, { gain: def.gain * 0.8, rate, ref: 4, rolloff: 1.2, range: def.range, buffer: rec.buffer }); return true; }
+  const buf = def.buf === 'gull' ? 'gull_' + (Math.random() < 0.5 ? 0 : 1) : def.buf;
+  if (!buf) return false;
+  playAt(buf, x, y, def.h, { gain: def.gain, rate, ref: 4, rolloff: 1.2, range: def.range, cat: 'dier' });
+  return true;
 }
 
 export function updateAmbience(dt, world) {

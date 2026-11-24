@@ -9,6 +9,7 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ## [Unreleased]
 
+- Cutscenes klinken meer zoals het spel zelf: een portier, motor en gordel als ze instappen, een telefoon die gaat of trilt, voetstappen op klinkers, grind, gras of een steiger, applaus van het terras, een stempel aan het Loket, de frituur, een kat, de klok van de Martinitoren. Het zijn dezelfde geluiden die het spel bij die momenten speelt, en elke scène heeft de omgeving van zijn plek (stad, haven, weiland of binnen) onder de stemmen, die er zoals in het spel bovenuit komen. Samen spelen: een gast hoort dezelfde geluiden, want hij speelt dezelfde scène lokaal na; er gaat geen geluid over het net.
 - Snackwagen: Jelles bedrijf heet overal Us Mem Snacks (op het tabblad Snackwagen, de kaartlaag Standplaatsen, de prestatie en het bord op zijn wagens stond nog Usmem). Samen spelen: alleen tekst, per speler.
 - Land en bedrijf: het icoon van een lege staat (Overzicht, Te koop) heeft een vaste maat en vult niet meer het hele paneel; Te koop toont een wegwijzerbord in plaats van een gestippeld vakje. Samen spelen: per speler.
 - Visboek: de wateren staan in één kolom met hun volle naam in plaats van drie smalle kolommen met afgekapte namen. Samen spelen: per speler.

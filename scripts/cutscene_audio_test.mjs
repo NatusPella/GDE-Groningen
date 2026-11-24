@@ -22,7 +22,7 @@ for (const name of ['siren_pass', 'car_pass', 'tyre_screech']) {
   for (const v of d) { peak = Math.max(peak, Math.abs(v)); if (!Number.isFinite(v)) bad = true; }
   ok(!bad && peak > 0.2 && peak <= 1, name + ' audible, finite, no clipping', String(peak));
 }
-ok(/audioPlan\(/.test(hostSrc) && /sfx\(f\.kind, f\.name\)/.test(hostSrc), 'the cutscene host fires the plan');
+ok(/audioPlan\(/.test(hostSrc) && /sfx\(f\)/.test(hostSrc) && /planEvent\(f\.plan, anchor\)/.test(hostSrc), 'the cutscene host fires the plan');
 
 // event kinds the plan may emit are handled by audio.js
 for (const kinds of Object.values(PROP_SOUND)) for (const s of kinds) {
