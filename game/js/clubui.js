@@ -34,9 +34,17 @@ export function crestOf(c, getClub, id, maat = 'm') {
   return crestSvg(club, ids.map((x) => getClub(x)).filter(Boolean), maat);
 }
 
+// Het 2D-shirt: de terugval als het 3D-voorbeeld niet komt (WebGL faalt, een kapot voorbeeld, een leeg plaatje). Een shirtvorm in de clubkleuren met het patroon en het rugnummer; clubkleuren zijn gegevens (inline fill).
+const SHIRT_D = 'M60 20 L84 8 Q100 26 116 8 L140 20 L190 52 L168 92 L148 82 L148 205 Q100 214 52 205 L52 82 L32 92 L10 52 Z';
+export function shirt2dSvg(club, nr) {
+  const shirt = hexOf(club && club.shirt), accent = hexOf(club && club.accent != null ? club.accent : club && club.broek);
+  const pat = { 'brede-streep': `<rect x="70" y="0" width="60" height="220" fill="${accent}"/>`, helften: `<rect x="100" y="0" width="100" height="220" fill="${accent}"/>`, 'smalle-streep': [55, 90, 125].map((x) => `<rect x="${x}" y="0" width="14" height="220" fill="${accent}"/>`).join('') }[club && club.patroon] || '';
+  return `<svg class="vb-shirt2d" viewBox="0 0 200 220" role="img" aria-label="Shirt met rugnummer ${esc(nr)}"><defs><clipPath id="vbsh"><path d="${SHIRT_D}"/></clipPath></defs><g clip-path="url(#vbsh)"><rect width="200" height="220" fill="${shirt}"/>${pat}</g><path d="${SHIRT_D}" class="vb-shirt2d__rand"/><text x="100" y="128" text-anchor="middle" class="vb-shirt2d__nr">${esc(nr)}</text></svg>`;
+}
+
 // Het tenue (voetbalkleding 22-11, docs/VOETBALKLEDING-22-11.md): het huidige clubtenue met een 3D-voorbeeld van het SHIRT, het niveau, de keuze thuis, uit of derde en een rugnummer.
 // De toetsen 1, 2 en 3 kiezen het tenue, - en + het nummer (ook met de knoppen op een controller). kit = footballkit.kitView(); zonder carrière is er geen tenue.
-export function kitHtml(kit) {
+export function kitHtml(kit, club = null) {
   if (!kit) return '';
   const names = { thuis: 'Thuis', uit: 'Uit', derde: 'Derde' };
   const vars = ['thuis', 'uit', 'derde'].map((v, i) => {
@@ -45,7 +53,7 @@ export function kitHtml(kit) {
   }).join('');
   const spons = kit.sponsor ? `Op het shirt: ${esc(kit.sponsor.name)}${kit.sponsor.lokaal ? ' (een lokaal bedrijf)' : ''}` : 'Nog geen sponsor op het shirt';
   return `<article class="ds-z-kaart ds-z-kaart--recht"><div class="ds-z-kaart__kop"><h3 class="ds-z-kaart__titel">Tenue</h3><span>Niveau: ${esc(kit.naam)}</span></div>` +
-    `<div class="vb-shirtvak"><img class="kit-shirt" alt="Voorbeeld van het shirt: ${esc(kit.shirtLabel)}" width="320" height="320" data-kit-shirt="${esc(kit.shirt)}"></div>` +
+    `<div class="vb-shirtvak">${shirt2dSvg(club, kit.number)}<img class="kit-shirt" alt="Voorbeeld van het shirt: ${esc(kit.shirtLabel)}" width="320" height="320" data-kit-shirt="${esc(kit.shirt)}" hidden></div>` +
     `<div class="vb-veldrij"><span class="vb-veldrij__l">Tenue</span><div class="ds-z-segment" role="radiogroup" aria-label="Kies je tenue">${vars}</div></div>` +
     `<div class="vb-veldrij"><span class="vb-veldrij__l">Rugnummer</span><div class="ds-z-stapper" role="group" aria-label="Kies je rugnummer"><button type="button" data-cl="kitnum" data-id="-1" aria-label="Nummer lager">−</button><output class="kit-nr" aria-live="polite">${kit.number}</output><button type="button" data-cl="kitnum" data-id="1" aria-label="Nummer hoger">+</button></div></div>` +
     `<div class="vb-veldrij"><span class="vb-veldrij__l">Sponsor</span><span>${spons}</span></div>` +
@@ -103,7 +111,7 @@ export function clubBodyHtml(view) {
   const c = view && view.career, getClub = (view && view.getClub) || (() => null), money = Math.max(0, Math.floor((view && view.money) || 0));
   if (!C.hasCareer(c)) return '<div class="ds-z-leeg"><p class="ds-z-leeg__kop">Nog geen voetbalcarrière</p><p class="ds-z-leeg__tekst">Zodra je bij een club speelt en genoeg verdiend hebt, kun je hier een aandeel in een club kopen. Begin klein: het eerste aandeel komt na je eerste verdiensten uit het voetbal.</p></div>';
   const msg = (view && view.msg) || '';
-  return `${msg ? `<p class="vb-tip" role="status">${esc(msg)}</p>` : ''}<div class="vb-clubraster">${kitHtml(view && view.kit)}<div class="vb-kolom" style="gap:var(--ds-s-5)">${profielHtml(c, getClub)}${aandeelHtml(c, money, getClub)}</div>${sponsorsHtml(c)}</div>`;
+  return `${msg ? `<p class="vb-tip" role="status">${esc(msg)}</p>` : ''}<div class="vb-clubraster">${kitHtml(view && view.kit, getClub(c.club))}<div class="vb-kolom" style="gap:var(--ds-s-5)">${profielHtml(c, getClub)}${aandeelHtml(c, money, getClub)}</div>${sponsorsHtml(c)}</div>`;
 }
 // view = { career, money, getClub, msg, confirm, kit }: zo is de HTML een pure functie van de stand.
 export function clubHtml(view) {
@@ -143,7 +151,19 @@ export function kitPhotos(el) {
   const img = el.querySelector && el.querySelector('img[data-kit-shirt]');
   if (!img || typeof document === 'undefined') return;
   const piece = img.getAttribute('data-kit-shirt');
-  import('./vehiclepreview.js').then((m) => { m.renderSnapshot({ kind: 'piece', piece }, 320, 320, (url) => { if (url && img.isConnected) img.src = url; }, { angle: 0.6 }); }).catch(() => { /* zonder voorbeeld blijft het vak leeg: de tekst zegt wat er staat */ });
+  // het 2D-shirt staat er al; het 3D-voorbeeld vervangt hem pas als het een echt, niet-leeg plaatje is (zonder WebGL of bij 'too many errors' blijft het 2D-shirt staan)
+  const toon = (url) => { if (!url || !img.isConnected) return; const t = new Image(); t.onload = () => { if (img.isConnected && plaatjeHeeftInhoud(t)) { img.src = url; img.hidden = false; const d = el.querySelector('.vb-shirt2d'); if (d) d.hidden = true; } }; t.src = url; };
+  import('./vehiclepreview.js').then((m) => { m.renderSnapshot({ kind: 'piece', piece }, 320, 320, toon, { angle: 0.6 }); }).catch(() => { /* het 2D-shirt blijft */ });
+}
+// Een plaatje is leeg als geen enkele pixel iets heeft (een mislukte WebGL-render geeft een doorzichtig vlak).
+export function plaatjeHeeftInhoud(im) {
+  try {
+    const c = document.createElement('canvas'); c.width = c.height = 24;
+    const g = c.getContext('2d'); g.drawImage(im, 0, 0, 24, 24);
+    const d = g.getImageData(0, 0, 24, 24).data;
+    for (let i = 3; i < d.length; i += 4) if (d[i] > 8) return true;
+    return false;
+  } catch (e) { return true; }   // kan het niet gemeten worden, dan vertrouwen we het plaatje
 }
 export function clubAct(world, d) {
   const a = d.cl, id = d.id || '', ok = d.ok === '1';

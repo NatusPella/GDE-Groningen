@@ -343,3 +343,8 @@
 @media (max-height: 800px) {
   .lijst11 > .h, .lijst11 li { height: calc(var(--ds-s-6) * 1.12); }
 }
+/* ---- Het 2D-shirt onder het 3D-voorbeeld: de terugval als WebGL faalt ---- */
+.vb-shirt2d[hidden], .vb-shirtvak img[hidden] { display: none; }
+.vb-shirt2d__rand { fill: none; stroke: var(--ds-c-ink-inkt); stroke-width: 5; stroke-linejoin: round; }
+.vb-shirt2d__nr { fill: var(--ds-c-ink-papier); stroke: var(--ds-c-ink-inkt); stroke-width: 2.5; paint-order: stroke; font-family: var(--ds-font-zeef-kop); font-weight: 800; font-size: 70px; }
+.vb-shirtvak img { height: calc(var(--ds-s-8) * 3.6); width: auto; }
