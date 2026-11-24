@@ -32,7 +32,8 @@ for (const k of ['zeeVracht', 'zeeContainer', 'zeeTanker', 'zeeSleper', 'zeeNieu
   const g = M.buildVehicleMesh(v);
   const box = new THREE.Box3().setFromObject(g);
   let tris = 0, nan = false;
-  g.traverse((o) => { if (o.geometry) { tris += (o.geometry.index ? o.geometry.index.count : o.geometry.attributes.position.count) / 3; for (const x of o.geometry.attributes.position.array) if (!Number.isFinite(x)) nan = true; } });
+  // niveau 0: de lichtere LOD-niveaus van het centrale systeem (perf-ultra 23-11, namen lod:...) staan er nooit naast
+  g.traverse((o) => { if (o.geometry && !(o.name || '').startsWith('lod:') && !(o.userData.lodNiveau > 0)) { tris += (o.geometry.index ? o.geometry.index.count : o.geometry.attributes.position.count) / 3; for (const x of o.geometry.attributes.position.array) if (!Number.isFinite(x)) nan = true; } });
   const lengte = box.max.x - box.min.x, breedte = box.max.z - box.min.z;
   check(`${k}: geen NaN in de geometrie`, !nan && [...box.min.toArray(), ...box.max.toArray()].every(Number.isFinite));
   check(`${k}: de lengte klopt met het model (${model.len} m)`, Math.abs(lengte - model.len) < 0.6, lengte.toFixed(1));
