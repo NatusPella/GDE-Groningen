@@ -394,8 +394,6 @@ html.reduce-motion .cp-meedoen-tijd b { transition: none; }
 .ss-stappen + .ss-hulp { margin: 0; }
 
 .ss-detail .ds-z-segment > button { padding: 0 var(--ds-s-2); min-width: 0; font-size: var(--ds-t-hulp); letter-spacing: 0; }
-.ss-detail .ds-z-segment { max-width: 100
-.ss-detail .ds-z-segment > button { padding: 0 var(--ds-s-2); min-width: 0; font-size: var(--ds-t-hulp); letter-spacing: 0; }
 .ss-detail .ds-z-segment { max-width: 100%; }
 
 /* de tabbladen van Spel in een sessie: volle breedte van het paneel, en een verborgen tabblad blijft weg (Samen spelen in een sessie) */
