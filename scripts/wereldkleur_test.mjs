@@ -26,7 +26,9 @@ ok(tab.stijl.every((r, i) => r[1] === WK.WINKEL[WK.SHOP_KINDS[i]].kast[0] && r[2
 const ig = lees('interiorglass.js');
 const glsl = ig.slice(ig.indexOf('const INTERIOR ='), ig.indexOf('glassMaterial.onBeforeCompile'));
 ok(/vec3 igShopWall\(/.test(glsl) && /vec3 igShopUnit\(/.test(glsl) && /vec3 igBike\(/.test(glsl), 'de winkelwand, het meubel en de fiets hebben een eigen functie');
-ok((glsl.match(/if \(shop\) alb = igShopWall\(/g) || []).length === 2, 'achterwand en zijwanden van een winkel gaan door igShopWall');
+ok(/else if \(shop && \(n\.z < -0\.5 \|\| abs\(n\.x\) > 0\.5\)\)/.test(glsl) && (glsl.match(/alb = igShopWall\(/g) || []).length === 1, 'achterwand en zijwanden van een winkel gaan door een igShopWall');
+// 24-11: de D3D-compiler plakt elke aanroep in; met acht kopieen van igProducts tekende het glas op een losse mesh niets meer
+ok((glsl.match(/igProducts\(/g) || []).length === 2, 'igProducts staat een keer in de shader en wordt een keer per pixel aangeroepen', (glsl.match(/igProducts\(/g) || []).length);
 ok(!/if \(shop\) \{ vec3 pr = igProducts\(c/.test(glsl), 'geen winkelwand meer die van vloer tot plafond uit igProducts bestaat');
 ok(/hitF = 3/.test(glsl) && /igShopUnit\(vec2\(hp\.x - k0\.x/.test(glsl), 'het meubel tegen de achterwand is een eigen doos met diepte');
 ok(/float pand = fract\(shopStyle/.test(glsl), 'de inrichting hangt af van een seed per pand');

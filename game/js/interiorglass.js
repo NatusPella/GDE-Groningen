@@ -340,14 +340,16 @@ vec3 igBike(vec2 l, vec3 frame, vec3 bg) {
 // A shop wall in bays of 1 to 1.6 m (#1333): per bay a shelving unit, a rail, something hung on the wall, or a bare piece of wall with
 // now and then a poster. The bay width, the height of the units and which bays stay bare come from the seed of the building, so every
 // shop is furnished differently, and a wall is never one pattern from floor to ceiling. c: (along the wall, height above the floor) in m;
-// returns linear albedo.
-vec3 igShopWall(vec2 c, vec3 wallC, float detail, float seed, int st, float ceilH) {
+// returns linear albedo. Where the goods of the shop show, it fills prq (xy: the spot for igProducts, z: the shade) instead of
+// calling igProducts itself: igInterior calls igProducts once per pixel (the D3D shader compiler inlines every call, and a glass
+// shader with eight copies of igProducts drew nothing on a plain mesh, 24-11).
+vec3 igShopWall(vec2 c, vec3 wallC, float detail, float seed, int st, float ceilH, inout vec4 prq) {
   vec4 sty = uShopSty[st];
   int pat = int(sty.x + 0.5);
   vec3 acc = uShopAccent[st].rgb, acc2 = acc * acc;
   if (c.y < 0.1) return wallC * 0.45;                                                           // plint
   if (c.y > ceilH - 0.42 && c.y < ceilH - 0.3) return mix(wallC, acc2, 0.75);                    // fries in de kleur van de winkel
-  if (pat == 12) { vec3 pr = igProducts(c, detail, seed, st); return pr * pr; }                  // de kermiskraam is zijn zeildoek
+  if (pat == 12) { prq = vec4(c, 1.0, 0.0); return wallC; }                                     // de kermiskraam is zijn zeildoek
   float bw = (pat == 5 || pat == 8 ? 1.2 : 1.0) + 0.6 * fract(seed * 7.31);
   float u = c.x / bw + seed * 5.3;
   float bay = floor(u), bx = fract(u) * bw;
@@ -436,14 +438,14 @@ vec3 igShopWall(vec2 c, vec3 wallC, float detail, float seed, int st, float ceil
     // a shelving unit: uprights, a top board, the goods of the shop on the shelves, and a plinth
     if (c.y > top + 0.04) return col;
     if (c.y > top || edge < 0.035 || c.y < 0.18) col = wood * (c.y < 0.18 ? 0.6 : 1.0);
-    else { vec3 pr = igProducts(c, detail, seed, st); col = pr * pr * (0.7 + 0.3 * smoothstep(0.035, 0.22, edge)); }
+    else prq = vec4(c, 0.7 + 0.3 * smoothstep(0.035, 0.22, edge), 0.0);
   }
   return mix(wallC, col, detail);
 }
 
 // The front of the furniture against the back wall (winkelkit.js STIJL.kast): a shelving unit with goods, a refrigerated counter,
 // a fryer, a workbench, a dressing table or a display case; c in m from the box's left bottom corner; linear albedo.
-vec3 igShopUnit(vec2 c, float kw, float kh, float detail, float seed, int st) {
+vec3 igShopUnit(vec2 c, float kh, float seed, int st, inout vec4 prq) {
   int pat = int(uShopSty[st].x + 0.5);
   vec3 acc = uShopAccent[st].rgb;
   vec3 wood = mix(vec3(0.36, 0.25, 0.15), vec3(0.62, 0.62, 0.6), step(0.5, fract(seed * 3.3))); wood *= wood;
@@ -451,8 +453,9 @@ vec3 igShopUnit(vec2 c, float kw, float kh, float detail, float seed, int st) {
   vec3 col;
   if (pat == 2) {
     // koeltoonbank: een stalen voet, daarboven glas met het vlees erachter
-    col = c.y < 0.55 ? vec3(0.72, 0.73, 0.74) : igProducts(c * vec2(1.0, 1.0) + vec2(3.0, -0.55), detail, seed, st);
-    if (c.y > 0.55 && c.y < 0.6) col = vec3(0.3);
+    col = vec3(0.72, 0.73, 0.74);
+    if (c.y > 0.6) prq = vec4(c + vec2(3.0, -0.55), 1.0, 0.0);
+    else if (c.y > 0.55) col = vec3(0.3);
     col *= col;
   } else if (pat == 3) {
     col = vec3(0.6, 0.61, 0.62);                                                                  // frituurkast in rvs
@@ -479,7 +482,7 @@ vec3 igShopUnit(vec2 c, float kw, float kh, float detail, float seed, int st) {
   } else {
     // schappen: staanders per meter, een bovenblad en de waar van de winkel
     if (c.y > kh - 0.04 || edge < 0.025 || c.y < 0.15) col = wood * (c.y < 0.15 ? 0.6 : 1.0);
-    else { vec3 pr = igProducts(c + vec2(seed * 7.0, 0.0), detail, seed, st); col = pr * pr * (0.72 + 0.28 * smoothstep(0.025, 0.2, edge)); }
+    else { col = wood; prq = vec4(c + vec2(seed * 7.0, 0.0), 0.72 + 0.28 * smoothstep(0.025, 0.2, edge), 0.0); }
   }
   return col;
 }
@@ -582,6 +585,8 @@ vec3 igInterior(IgPane q, vec3 N, vec3 V, float dist, out float fres) {
 
   vec3 alb;
   vec3 emit = vec3(0.0);
+  vec4 prq = vec4(0.0);      // the one igProducts call of this pixel (xy spot, z shade; 0 = none)
+  float prSeed = pand, shadeF = 1.0;
   if (hitF > 0) {
     vec3 fab = IG_FABRIC[int(s4 * 7.99)]; fab *= fab;
     vec3 wood = IG_WOOD[int(s5 * 3.99)]; wood *= wood;
@@ -601,21 +606,29 @@ vec3 igInterior(IgPane q, vec3 N, vec3 V, float dist, out float fres) {
       // the back-wall furniture: its front shows what the shop has, the top is a worktop or the top shelf, the sides a panel
       float kh = k1.y - k0.y;
       int kp = int(uShopSty[st].x + 0.5);
-      if (n.z < -0.5) alb = igShopUnit(vec2(hp.x - k0.x, hp.y - fY), k1.x - k0.x, kh, detail, pand, st);
+      if (n.z < -0.5) alb = igShopUnit(vec2(hp.x - k0.x, hp.y - fY), kh, pand, st, prq);
       else if (n.y > 0.5) {
-        vec3 tp = kp == 2 || kp == 3 ? vec3(0.7, 0.71, 0.72) : (kp == 5 ? vec3(0.55, 0.4, 0.24) : (kp == 7 ? vec3(0.9) : (kp == 8 ? vec3(0.15) : igProducts(hp.xz * 2.0, detail, pand, st))));
+        vec3 tp = kp == 2 || kp == 3 ? vec3(0.7, 0.71, 0.72) : (kp == 5 ? vec3(0.55, 0.4, 0.24) : (kp == 7 ? vec3(0.9) : vec3(0.15)));
         alb = tp * tp;
+        if (kp != 2 && kp != 3 && kp != 5 && kp != 7 && kp != 8) prq = vec4(hp.xz * 2.0, 1.0, 0.0);
       } else alb = (kp == 5 || kp == 8 ? vec3(0.03) : vec3(0.25, 0.2, 0.15));
     }
-    else if (ft == 10) alb = hitF == 1 ? (n.y > 0.5 ? mix(vec3(0.5), uShopAccent[st].rgb, 0.5) : uShopAccent[st].rgb * vec3(0.25, 0.27, 0.3)) : (n.y > 0.5 ? igProducts(hp.xz * 2.0, detail, shopStyle, st) : vec3(0.74, 0.67, 0.59));
+    else if (ft == 10) {
+      alb = hitF == 1 ? (n.y > 0.5 ? mix(vec3(0.5), uShopAccent[st].rgb, 0.5) : uShopAccent[st].rgb * vec3(0.25, 0.27, 0.3)) : vec3(0.74, 0.67, 0.59);
+      if (hitF == 2 && n.y > 0.5) { prq = vec4(hp.xz * 2.0, 1.0, 0.0); prSeed = shopStyle; }
+    }
     else if (ft == 11) alb = hitF == 1 ? vec3(0.6, 0.6, 0.62) : vec3(0.18);
-    if (ft == 10 && hitF == 2 && n.y > 0.5) alb *= alb;
-    alb *= n.y > 0.5 ? 1.0 : (abs(n.x) > 0.5 ? 0.75 : 0.88);
+    shadeF = n.y > 0.5 ? 1.0 : (abs(n.x) > 0.5 ? 0.75 : 0.88);
+  } else if (shop && (n.z < -0.5 || abs(n.x) > 0.5)) {
+    // a shop wall, back or side: one igShopWall for both (each call is inlined)
+    bool back = n.z < -0.5;
+    vec2 c = back ? vec2(hp.x + 10.0, hp.y - fY) : vec2(hp.z + (hp.x > 0.0 ? 31.0 : 57.0), hp.y - fY);
+    prSeed = back ? pand : fract(pand + (hp.x > 0.0 ? 0.37 : 0.71));
+    alb = igShopWall(c, wallC, detail, prSeed, st, cY - fY, prq);
   } else if (n.z < -0.5) {
     alb = wallC;
     vec2 c = vec2(hp.x, hp.y - fY);
-    if (shop) alb = igShopWall(c + vec2(10.0, 0.0), wallC, detail, pand, st, cY - fY);
-    else if (!office) {
+    if (!office) {
       vec2 pc = vec2((s4 - 0.5) * RW * 0.5, 1.55);
       vec2 d = abs(c - pc) - vec2(0.3 + 0.2 * s2, 0.24);
       if (max(d.x, d.y) < 0.0) {
@@ -626,8 +639,7 @@ vec3 igInterior(IgPane q, vec3 N, vec3 V, float dist, out float fres) {
   } else if (abs(n.x) > 0.5) {
     alb = wallC * 0.95;
     vec2 c = vec2(hp.z, hp.y - fY);
-    if (shop) alb = igShopWall(c + vec2(hp.x > 0.0 ? 31.0 : 57.0, 0.0), wallC, detail, fract(pand + (hp.x > 0.0 ? 0.37 : 0.71)), st, cY - fY);
-    else if (sign(hp.x) == (s5 < 0.5 ? 1.0 : -1.0) && abs(c.x - D * 0.62) < 0.45 && c.y < 2.05) alb = s3 < 0.5 ? vec3(0.8, 0.79, 0.76) : vec3(0.05);
+    if (sign(hp.x) == (s5 < 0.5 ? 1.0 : -1.0) && abs(c.x - D * 0.62) < 0.45 && c.y < 2.05) alb = s3 < 0.5 ? vec3(0.8, 0.79, 0.76) : vec3(0.05);
   } else if (n.y > 0.5) {
     if (shop) {
       vec4 fl = uShopFloor[st];
@@ -656,6 +668,9 @@ vec3 igInterior(IgPane q, vec3 N, vec3 V, float dist, out float fres) {
     else if (office) emit += lampCol * lampI * 1.0 * step(abs(fract(hp.z / 1.2) - 0.5), 0.2) * step(abs(fract(hp.x / 1.2 + 0.5) - 0.5), 0.2);
     else emit += lampCol * lampI * (1.5 * smoothstep(0.17, 0.12, length(lp)) + 0.35 * exp(-dot(lp, lp) * 3.0));
   }
+
+  if (prq.z > 0.0) { vec3 pr = igProducts(prq.xy, detail, prSeed, st); alb = pr * pr * prq.z; }
+  alb *= shadeF;
 
   vec3 lampP = vec3(0.0, cY - 0.35, D * 0.45);
   vec3 L = lampP - hp;
