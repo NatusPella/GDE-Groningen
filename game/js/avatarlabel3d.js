@@ -4,6 +4,7 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { LABEL_Y } from './coopfigures.js';
 import { pasLabel } from './multiplayerlabels.js';
+import { VORM_TEKEN } from './coopspelers.js';
 
 // #872: het naamlabel past op de vaste kaart. Een online-naam mag 16 tekens zijn en de
 // spelerslijst leest er 24; zonder meten viel een lange naam buiten het tekstvlak.
@@ -13,7 +14,8 @@ export function makeLabel(spec) {
   const c = document.createElement('canvas'); c.width = LABEL_B; c.height = LABEL_H;
   const g = c.getContext('2d');
   const font = (px) => `bold ${px}px "Arial Narrow", Arial, sans-serif`;
-  const past = pasLabel(spec.tekst, { maxBreedte: LABEL_VLAK, px: 34, minPx: 18, meet: (tekst, px) => { g.font = font(px); return g.measureText(tekst).width; } });
+  const glyph = spec.vorm && VORM_TEKEN[spec.vorm] ? VORM_TEKEN[spec.vorm] + ' ' : ''; // de vorm van de speler staat voor de naam (ontwerp 24-11)
+  const past = pasLabel(glyph + spec.tekst, { maxBreedte: LABEL_VLAK, px: 34, minPx: 18, meet: (tekst, px) => { g.font = font(px); return g.measureText(tekst).width; } });
   g.font = font(past.px); g.textAlign = 'center'; g.textBaseline = 'middle';
   g.fillStyle = KAARTJE; g.fillRect(8, 8, LABEL_B - 16, 48);
   g.fillStyle = spec.kleur; g.fillText(past.tekst, LABEL_B / 2, 33);
