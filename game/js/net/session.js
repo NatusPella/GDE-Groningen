@@ -156,6 +156,10 @@ export class HostSession extends Base {
       const hervat = this._herverbonden; this._herverbonden = false;
       const resumed = this.status === 'lost' || hervat;
       this.lastRecv = this.now; this.lostAt = null; this.badHellos = 0; this._setStatus('ok');
+      // (#1293) zonder hervatting hoogstens één welkom per seconde: een gast die zijn welkom kwijtraakte krijgt het zo snel weer,
+      // maar twaalf herhaalde HELLO's kostten twaalf WELCOME's (de gast nam ze ook allemaal opnieuw op)
+      if (!resumed && this.now - (this._welkomOp ?? -Infinity) < 1) return;
+      this._welkomOp = this.now;
       reply(this._welkom({ ok: true, slot: this.slot, token: this.guest.token, seed: this.cfg.seed, resumed, caps: this.caps, ...this.extra }));
       // De overflow-teller begint opnieuw bij een hervatting: de wachtrij is net geleegd, dus een
       // oude teller zou de gast meteen weer laten verbreken terwijl hij net terug is.

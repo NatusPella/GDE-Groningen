@@ -8,7 +8,7 @@ import assert from 'node:assert/strict';
 import { createLink, makeRng } from '../game/js/net/memtransport.js';
 import { HostHub } from '../game/js/net/hub.js';
 import { ClientSession, SLUIT_NA_MS, REJECTED_MAX, OVERFLOW_MAX_S, LOST_AFTER } from '../game/js/net/session.js';
-import { T, encodeJson } from '../game/js/net/codec.js';
+import { T, encodeJson, readHeader } from '../game/js/net/codec.js';
 
 let n = 0, fails = 0;
 const t = async (name, f) => {
@@ -85,8 +85,10 @@ await t('een spelende gast die blijft HELLO-en kost geen WELCOME en groeit rejec
   const r = room(); const c = r.add(); r.step(2);
   const ses = [...r.hub.sessions.values()][0];
   const voor = ses.rejected.length;
+  let welkom = 0; const send0 = ses.link.send.bind(ses.link); ses.link.send = (b) => { const h = readHeader(b); if (h && h.type === T.WELCOME) welkom++; return send0(b); };
   for (let i = 0; i < 12; i++) r.links[0].b.send(hello({ ...INFO, caps: [], token: c.token }));
   r.step(0.5);
+  assert.ok(welkom <= 1, 'hoogstens één WELCOME op twaalf herhaalde HELLO-berichten (#589, #1293), kreeg ' + welkom);
   assert.equal(ses.rejected.length, voor, 'geen nieuwe afwijzingen');
   assert.equal(ses.badHellos, 0);
   assert.equal(c.status, 'ok');
