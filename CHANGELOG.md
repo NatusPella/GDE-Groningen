@@ -9,6 +9,7 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ## [Unreleased]
 
+- Voetbalcarrière: in het Voetbal-scherm staan de lijsten weer in beeld (je vaardigheden, de selectie, de stand, de kalender, de sponsors en de trainingskaarten); ze bleven onzichtbaar omdat hun intro-animatie nooit startte. Samen spelen: alleen beeld, per speler.
 - Voetbal: het publiek langs de lijn van een sportpark en de trainende ploegen op de velden van je club zijn echte mensen (in rust, juichend bij een doelpunt, joggend in het clubshirt) in plaats van gekleurde paaltjes; de trainende ploeg loopt nu een ruime ronde in plaats van als bosje op de middenstip te staan. Samen spelen: lokaal decor, per speler.
 - Voetbalcarrière: een trainingsoefening speel je op het trainingsveld van je club; eerder lag ze naast je, ook op straat of in huis, met hoepels door de gevel. Samen spelen: lokaal en per speler, zoals de training al was.
 - Voetbal: de balk bovenin noemt bij een carrièrewedstrijd de plaats van het sportpark en het formaat (11 tegen 11) in plaats van "Voetbal Euroborg, vijf tegen vijf". Samen spelen: alleen beeld.

@@ -140,6 +140,18 @@ await scene('club', async (ev) => {
   await shot('bezit-club', 800);
 });
 
+// 3b. De rollen Trainer en Manager (#1111) en de clubaandelen (#1113): een carrière in seizoen 4 met beide rollen (alleen in deze run)
+await scene('rollen', async (ev) => {
+  open(); const c = start(); w.money = Math.max(w.money || 0, 60000);
+  CL.replaceCareer({ ...c, seasonNr: 4, roles: { ...c.roles, trainer: true, manager: true }, flags: { ...c.flags, captain: true, trainerSince: 3 } });
+  await menu('voetbal', 1500);
+  for (const t of ['trainer', 'manager']) { ev[t] = await klik(`[data-vb="tab:${t}"]`, 1200); await shot(t, 600); }
+  await menu('boerderij', 1500);
+  const k = [...document.querySelectorAll('[data-panel] button, [role="tab"]')].find((b) => /^club$/i.test((b.textContent || '').trim()) && b.offsetParent);
+  if (k) { k.click(); await sleep(1500); }
+  await shot('club-manager', 600);
+});
+
 // 4. Trainende teams op het thuispark (#1115) en het veld van de sim op de plek van het echte park (#1117)
 await scene('park', async (ev) => {
   open(); const c = start(); const club = CL.getClub(c.club);

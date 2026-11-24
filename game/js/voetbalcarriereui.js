@@ -65,7 +65,7 @@ function viewVandaag(c, env) {
   const stat = `<p class="vb-stat">${chip(`energie ${O.energy(c.fatigue)}%`, O.isTired(c.fatigue) ? 'probleem' : '')} ${c.injury ? chip(c.injury.text, 'probleem') : ''} ${chip(`rating ${ov.rating}`)}</p>`;
   const reg = voorstel ? `<article class="ds-z-kaart ds-z-kaart--bord ds-m-binnen on"><p class="ds-z-kaart__tekst"><strong>${esc(voorstel.wie)}</strong>: ${esc(voorstel.tekst)}</p></article>` : '';
   const bod = c.offer ? `<article class="ds-z-kaart ds-z-kaart--bord ds-m-binnen on"><h3 class="ds-z-kaart__titel">Een club biedt</h3><p class="ds-z-kaart__tekst"><strong>${esc(C.nameOf(env.getClub, c.offer.club))}</strong> biedt een contract van ${c.offer.seasons} seizoen${c.offer.seasons === 1 ? '' : 'en'}. Jij kiest, geen druk.</p><p class="vb-acties">${knop('offer:accept', 'Bod aannemen', { uit: c.evDone === 0 ? '' : 'Alleen aan het begin van een seizoen' })} ${knop('offer:decline', 'Blijven', { ghost: true })}</p></article>` : '';
-  const spons = c.sponsors && c.sponsors.slots.length ? `<h3 class="ds-z-kaart__titel">Sponsors dit seizoen</h3><ul class="ds-z-lijst vb-selectie">${c.sponsors.slots.map((x, i) => `<li class="ds-z-rij ds-m-rij" ${rij(i)}><span class="ds-z-rij__naam">${esc(x.naam)}</span><span class="ds-z-rij__sub">${esc(Sp.SORTS[x.sort].naam)} · ${esc(Sp.GOALS[x.goal].tekst)}</span><span class="ds-z-rij__waarde">${euro(x.amount)} ${x.paid ? chip('Betaald', 'succes') : x.accepted ? chip('Aangenomen') : knop(`sponsor:${x.id}`, 'Neem aan', { ghost: true })}</span></li>`).join('')}</ul>` : '';
+  const spons = c.sponsors && c.sponsors.slots.length ? `<h3 class="ds-z-kaart__titel">Sponsors dit seizoen</h3><ul class="ds-z-lijst vb-selectie on">${c.sponsors.slots.map((x, i) => `<li class="ds-z-rij ds-m-rij" ${rij(i)}><span class="ds-z-rij__naam">${esc(x.naam)}</span><span class="ds-z-rij__sub">${esc(Sp.SORTS[x.sort].naam)} · ${esc(Sp.GOALS[x.goal].tekst)}</span><span class="ds-z-rij__waarde">${euro(x.amount)} ${x.paid ? chip('Betaald', 'succes') : x.accepted ? chip('Aangenomen') : knop(`sponsor:${x.id}`, 'Neem aan', { ghost: true })}</span></li>`).join('')}</ul>` : '';
   return `${bod}${card}${stat}<p class="vb-acties">${knop('play', 'Speel de wedstrijd', { primair: true, uit: speel ? '' : reden })} ${knop('sim', 'Laat uitrekenen', { uit: m && (m.status === 'open' || m.status === 'missed') ? '' : reden || 'Nog niet aan de beurt' })} ${knop('tab:training', 'Naar training', { ghost: true })}</p>${reg}${spons}`;
 }
 const bal = (naam, v, cap) => `<li class="ds-z-rij ds-m-rij"><span class="ds-z-rij__naam">${esc(naam)}</span><span class="ds-z-rij__waarde">${bar(`${v} van ${cap}`, v / 100)}</span></li>`;
@@ -75,9 +75,9 @@ function viewSelectie(c, env) {
   const talenten = p.talents.length ? p.talents.map((t) => chip(TALENTS[t].naam)).join(' ') : chip('Nog geen talent');
   const squad = C.squadOf(c, c.club, env.getClub).slice().sort((a, b) => playerRating(b) - playerRating(a));
   const sq = squad.map((q, i) => `<li class="ds-z-rij ds-m-rij${q.protagonist ? ' ds-z-rij--selectie' : ''}" ${rij(i)}${q.id === p.id ? ' aria-current="true"' : ''}><span class="ds-z-rij__naam">${esc(q.name)}</span><span class="ds-z-rij__sub">${esc(ROLE_NAMES[q.role])} · ${q.num}</span><span class="ds-z-rij__waarde">${playerRating(q)}</span></li>`).join('');
-  return `<article class="ds-z-kaart ds-m-binnen on"><h3 class="ds-z-kaart__titel">${esc(p.name)} · ${esc(ROLE_NAMES[p.role])}</h3><p>${chip(`rating ${playerRating(p)}`)} ${talenten}</p><ul class="ds-z-lijst vb-vaardig">${attrList}</ul>` +
+  return `<article class="ds-z-kaart ds-m-binnen on"><h3 class="ds-z-kaart__titel">${esc(p.name)} · ${esc(ROLE_NAMES[p.role])}</h3><p>${chip(`rating ${playerRating(p)}`)} ${talenten}</p><ul class="ds-z-lijst vb-vaardig on">${attrList}</ul>` +
     `<p class="ds-z-kaart__voet">${esc(mate.name)} speelt mee als teamgenoot en groeit mee, wat langzamer.</p></article>` +
-    `<h3 class="ds-z-kaart__titel">Selectie van ${squad.length}</h3><ul class="ds-z-lijst vb-selectie">${sq}</ul>`;
+    `<h3 class="ds-z-kaart__titel">Selectie van ${squad.length}</h3><ul class="ds-z-lijst vb-selectie on">${sq}</ul>`;
 }
 function viewTable(c, env) {
   const st = C.leagueTable(c);
@@ -90,7 +90,7 @@ function viewTable(c, env) {
   }).join('');
   const extra = c.cup ? `<p>${chip(`Dijkbeker: ${c.cup.done ? (c.cup.winner === c.club ? 'gewonnen' : 'afgelopen') : c.cup.alive.includes(c.club) ? 'nog in de race' : 'uitgeschakeld'}`)}</p>` : '';
   const eu = c.europe ? `<p>${chip(`Waddenbeker: ${c.europe.winner === c.club ? 'gewonnen' : c.europe.alive.includes(c.club) ? 'nog in de race' : 'uitgeschakeld'}`)}</p>` : '';
-  return `<h3 class="ds-z-kaart__titel">${esc(DIV[st.division])} · ronde ${st.round} van ${ROUNDS}</h3><ol class="ds-z-lijst vb-stand">${rows}</ol>${extra}${eu}`;
+  return `<h3 class="ds-z-kaart__titel">${esc(DIV[st.division])} · ronde ${st.round} van ${ROUNDS}</h3><ol class="ds-z-lijst vb-stand on">${rows}</ol>${extra}${eu}`;
 }
 function viewKalender(c, env) {
   const div = C.divisionOfMyClub(c) || 'talent';
@@ -107,7 +107,7 @@ function viewKalender(c, env) {
     return `<li class="ds-z-rij ds-m-rij${i === c.evDone ? ' ds-z-rij--selectie' : ''}" ${rij(i)}><span class="ds-z-rij__naam">${esc(KIND[ev.kind])} ${ev.kind === 'league' ? `ronde ${ev.n}` : ev.n}</span><span class="ds-z-rij__sub">${esc(sub)} · ${isDone ? 'gespeeld' : i === c.evDone ? 'volgende' : 'komt'}</span><span class="ds-z-rij__waarde">${esc(tekst)}</span></li>`;
   }).join('');
   const res = c.result ? `<article class="ds-z-kaart ds-z-kaart--bord ds-m-binnen on"><p class="ds-z-kaart__tekst">Vorig seizoen (${c.result.nr}): ${esc(DIV[c.result.division])} plek ${c.result.rank}, ${esc(c.result.outcome.replace('-', ' en '))}.</p></article>` : '';
-  return `<h3 class="ds-z-kaart__titel">Seizoen ${c.seasonNr}</h3><ol class="ds-z-lijst vb-kalender">${items}</ol>${res}<p class="ds-z-kaart__voet">Een ronde elke 3 speldagen. Pauze tussen de seizoenen: ${A.BREAK_DAYS} speldagen.</p>`;
+  return `<h3 class="ds-z-kaart__titel">Seizoen ${c.seasonNr}</h3><ol class="ds-z-lijst vb-kalender on">${items}</ol>${res}<p class="ds-z-kaart__voet">Een ronde elke 3 speldagen. Pauze tussen de seizoenen: ${A.BREAK_DAYS} speldagen.</p>`;
 }
 function viewTraining(c) {
   const done = !O.canTrain(c, c.day - c.seasonStart);
@@ -119,7 +119,7 @@ function viewTraining(c) {
   const dr = drillFor(c.focus);
   const oef = dr ? `<p class="ds-z-kaart__tekst">Oefening: ${esc(dr.naam)}. ${esc(dr.kort)}</p>` : '';
   const hoofd = dsButtonKey({ label: `Train: ${dr ? dr.naam : O.FOCUS_NAMES[c.focus]}`, toets: 'ENTER', klasse: 'ds-z-knop ds-m-knop', attrs: `data-vb="train"${reden ? ` aria-disabled="true" title="${esc(reden)}"` : ''}` });
-  return `<p>${chip('Een training per speldag')} ${chip('kost 15% energie')} ${chip(`energie nu ${O.energy(c.fatigue)}%`, O.isTired(c.fatigue) ? 'probleem' : '')} ${chip('score 0,5 tot 1,5')}</p><div class="vb-foci">${focusCards}</div>${oef}<p class="vb-acties">${hoofd} ${knop('train:snel', 'Snel trainen (zonder oefening)', { ghost: true, uit: reden })}</p>` +
+  return `<p>${chip('Een training per speldag')} ${chip('kost 15% energie')} ${chip(`energie nu ${O.energy(c.fatigue)}%`, O.isTired(c.fatigue) ? 'probleem' : '')} ${chip('score 0,5 tot 1,5')}</p><div class="vb-foci on">${focusCards}</div>${oef}<p class="vb-acties">${hoofd} ${knop('train:snel', 'Snel trainen (zonder oefening)', { ghost: true, uit: reden })}</p>` +
     `<p class="ds-z-kaart__voet">Een wedstrijd telt als de training van die dag. Hoe dichter bij je plafond, hoe langzamer het gaat. Een goede oefening geeft meer groei dan snel trainen.</p>`;
 }
 // De uitnodiging of de dichte staat: voor wie de carrière nog niet begon.
@@ -134,7 +134,7 @@ function lineupHtml(c, env) {
     return `<li class="ds-z-rij ds-m-rij" ${rij(k + i)}><span class="ds-z-rij__naam">${esc(q.name)}${vast ? ` ${chip('vast')}` : bank ? ` ${chip('bank')}` : ''}</span><span class="ds-z-rij__sub">${esc(ROLE_NAMES[q.role])}</span><span class="ds-z-rij__waarde">${playerRating(q)} ${wissel} ${auto}</span></li>`;
   }).join('');
   const nog = pins.start.length || pins.bench.length ? `<p class="vb-acties">${knop('pin:all', 'Laat het spel de beste elf kiezen', { ghost: true })}</p>` : '';
-  return `<h3 class="ds-z-kaart__titel">Basis (${lu.basis.length})</h3><ul class="ds-z-lijst vb-selectie">${li(lu.basis, 0, true)}</ul><h3 class="ds-z-kaart__titel">Bank (${lu.bank.length})</h3><ul class="ds-z-lijst vb-selectie">${li(lu.bank, 8, false)}</ul>${nog}<p class="ds-z-kaart__voet">Een vaste speler staat in de basis op zijn eigen plek (hooguit ${C.MAX_PINS}); wie op de bank blijft speelt alleen als er niemand anders is.</p>`;
+  return `<h3 class="ds-z-kaart__titel">Basis (${lu.basis.length})</h3><ul class="ds-z-lijst vb-selectie on">${li(lu.basis, 0, true)}</ul><h3 class="ds-z-kaart__titel">Bank (${lu.bank.length})</h3><ul class="ds-z-lijst vb-selectie on">${li(lu.bank, 8, false)}</ul>${nog}<p class="ds-z-kaart__voet">Een vaste speler staat in de basis op zijn eigen plek (hooguit ${C.MAX_PINS}); wie op de bank blijft speelt alleen als er niemand anders is.</p>`;
 }
 function viewTrainer(c, env) {
   const vm = C.TACTICS.formations.map((f) => `<button type="button" class="ds-z-tab" data-vb="tactic:formation:${f}" aria-pressed="${c.tactic.formation === f}">${f}</button>`).join('');
@@ -151,8 +151,8 @@ function viewManager(c, env) {
   const tip = C.managerAdvice(c, env.getClub);
   const tammo = tip ? `<article class="ds-z-kaart ds-z-kaart--bord ds-m-binnen on"><h3 class="ds-z-kaart__titel">Tammo, je zaakwaarnemer</h3><p class="ds-z-kaart__tekst">${esc(`Jullie zijn zwak op de plek van ${ROLE_NAMES[tip.role].toLowerCase()}. ${tip.player.name} (rating ${playerRating(tip.player)}) is transfervrij voor ${euro(tip.price)} en maakt je team ${tip.better} punten sterker daar.`)}</p></article>` : '';
   return `${tammo}<p>${chip(`Clubkas ${euro(cash)}`)} ${chip(venster ? 'Transferperiode: nu' : 'Transferperiode: in de pauze')} ${chip('De kas is van de club, niet van jou')}</p>` +
-    `<h3 class="ds-z-kaart__titel">Transfervrije spelers</h3>${marketRows ? `<ul class="ds-z-lijst vb-selectie">${marketRows}</ul>` : '<div class="ds-z-leeg"><p class="ds-z-leeg__kop">Niemand op de markt</p><p class="ds-z-leeg__tekst">Na elk seizoen komen er nieuwe spelers vrij.</p></div>'}` +
-    `<h3 class="ds-z-kaart__titel">Jouw selectie</h3><ul class="ds-z-lijst vb-selectie">${eigen}</ul><p class="ds-z-kaart__voet">Verkopen levert hooguit 80% min 10% belasting op: een koop en verkoop kost altijd geld.</p>` + `<h3 class="ds-z-kaart__titel">Opstelling</h3>${lineupHtml(c, env)}` + viewShares(c, env);
+    `<h3 class="ds-z-kaart__titel">Transfervrije spelers</h3>${marketRows ? `<ul class="ds-z-lijst vb-selectie on">${marketRows}</ul>` : '<div class="ds-z-leeg"><p class="ds-z-leeg__kop">Niemand op de markt</p><p class="ds-z-leeg__tekst">Na elk seizoen komen er nieuwe spelers vrij.</p></div>'}` +
+    `<h3 class="ds-z-kaart__titel">Jouw selectie</h3><ul class="ds-z-lijst vb-selectie on">${eigen}</ul><p class="ds-z-kaart__voet">Verkopen levert hooguit 80% min 10% belasting op: een koop en verkoop kost altijd geld.</p>` + `<h3 class="ds-z-kaart__titel">Opstelling</h3>${lineupHtml(c, env)}` + viewShares(c, env);
 }
 // Clubaandelen (#1113): pas zichtbaar na het eerste aandeel of de manager-ontgrendeling; je koopt nooit je spaargeld leeg (een kwart blijft over).
 function viewShares(c, env) {
@@ -160,7 +160,7 @@ function viewShares(c, env) {
   const div = C.divisionOfMyClub(c) || 'talent', have = (c.bezit.clubs[c.club] || {}).aandeel || 0, money = Math.floor((env && env.money) || 0);
   const buy = B.SHARES.filter((x) => have + x <= 1 + 1e-9).map((x) => { const r = B.canBuy(c, c.club, div, x, money); return knop(`share:buy:${c.club}:${x}`, `${Math.round(x * 100)}% voor ${euro(B.priceOf(div, x, B.ownedCount(c.bezit)))}`, { uit: r.ok ? '' : r.reason }); }).join(' ');
   const rows = C.clubSharesOf(c).map((h, i) => `<li class="ds-z-rij ds-m-rij" ${rij(i)}><span class="ds-z-rij__naam">${esc(C.nameOf(env.getClub, h.club))}</span><span class="ds-z-rij__sub">${Math.round(h.aandeel * 100)}% sinds speldag ${h.sinds}</span><span class="ds-z-rij__waarde">${knop(`share:sell:${h.club}`, `Verkoop ${euro(Math.round(h.prijs * B.VERKOOP_FACTOR))}`, { ghost: true })}</span></li>`).join('');
-  return `<h3 class="ds-z-kaart__titel">Clubaandelen</h3><p>${chip('Rustig inkomen per ronde')} ${chip('Verkopen levert 75% op')}</p>${rows ? `<ul class="ds-z-lijst vb-selectie">${rows}</ul>` : ''}<p class="vb-acties">${buy}</p>`;
+  return `<h3 class="ds-z-kaart__titel">Clubaandelen</h3><p>${chip('Rustig inkomen per ronde')} ${chip('Verkopen levert 75% op')}</p>${rows ? `<ul class="ds-z-lijst vb-selectie on">${rows}</ul>` : ''}<p class="vb-acties">${buy}</p>`;
 }
 function viewUitnodiging(c, env) {
   if (!env.unlocked) return `<div class="ds-z-leeg"><p class="ds-z-leeg__kop">De voetbalcarrière komt later</p><p class="ds-z-leeg__tekst">${esc(env.hint || 'Dit komt later in het verhaal.')} De Euroborg en de penaltyserie kun je nu al spelen.</p></div>`;
