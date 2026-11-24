@@ -512,7 +512,9 @@ export class Player {
     // #1023: de snelheid van een beeld eerder en de draaisnelheid voor de worprregel
     const prevSp = P.prevSpeed ?? v.speed; P.prevSpeed = v.speed;
     const yawRate = normalizeAngle(v.angle - (P.prevAngle ?? v.angle)) / Math.max(1e-3, dt); P.prevAngle = v.angle;
-    if (perchThrown({ speed: v.speed, yawRate }, prevSp, dt)) {
+    // het snelheidsverlies van de laatste ~0,3 s (vervalt): een stop vanaf een paar m/s gooit je er niet af
+    P.lost = (P.lost || 0) * Math.exp(-dt / 0.3) + Math.max(0, Math.abs(prevSp) - Math.abs(v.speed));
+    if (perchThrown({ speed: v.speed, yawRate }, prevSp, dt, P.lost)) {
       // thrown off sideways by a car (or a boat) pulling away or braking hard
       const side = P.ly >= 0 ? 1 : -1;
       const [ox, oy] = localToWorld(v, Math.max(-v.halfLen, Math.min(v.halfLen, P.lx)), side * (v.halfWid + this.radius + 0.15));

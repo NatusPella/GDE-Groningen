@@ -172,11 +172,16 @@ export function bridgeWithin(map, x, y, r) {
 }
 
 // Gooit het voertuig je van het dak? prevSpeed is zijn snelheid een beeld eerder, dt de beeldtijd.
-export function perchThrown(v, prevSpeed, dt) {
+// lostRecent (optioneel): hoeveel snelheid het voertuig de laatste ~0,3 s verloor. Een AI-auto die bij een rij of een licht
+// in een paar beelden van 3 m/s naar stilstand gaat, remt per beeld 'hard', maar daar glijdt niemand van een dak af
+// (beeldcheck 24-11, #1023: een ambulance op 3 m/s gooide je er na 1 s af). Alleen met minstens PERCH_BRAKE_MIN_LOSS
+// verlies telt een harde rem dan als worp.
+export const PERCH_BRAKE_MIN_LOSS = 4; // m/s
+export function perchThrown(v, prevSpeed, dt, lostRecent) {
   const sp = Math.abs(v.speed || 0);
   if (sp > PERCH_RIDE_MAX) return true;
   const decel = dt > 0 ? (Math.abs(prevSpeed || 0) - sp) / dt : 0;
-  if (decel > PERCH_BRAKE_LIMIT) return true;
+  if (decel > PERCH_BRAKE_LIMIT && (lostRecent === undefined || lostRecent >= PERCH_BRAKE_MIN_LOSS)) return true;
   if (sp > 8 && Math.abs(v.yawRate || 0) > PERCH_TURN_LIMIT) return true;
   return false;
 }
