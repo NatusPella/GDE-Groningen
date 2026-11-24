@@ -76,6 +76,7 @@
     schuin: () => ({ p: [R * 1.35, size.y * 0.95 + 0.3, R * 1.5], t: [0, size.y * 0.4, 0] }),
     achter: () => ({ p: [-R * 1.35, size.y * 0.95 + 0.3, R * 1.5], t: [0, size.y * 0.4, 0] }),
     open: () => ({ p: [R * 0.5, size.y * 1.6 + 0.4, R * 1.5], t: [0, size.y * 0.3, 0], doors: true }),
+    cabine: () => ({ maaidorser: { p: [5.2, 4.2, 3.6], t: [1.8, 2.7, 0], fov: 26 }, laadmachine: { p: [1.9, 2.5, 1.9], t: [-0.1, 1.4, 0], fov: 30 } }[naam] || { p: [3, 2, 3], t: [0, 1, 0] }),
     binnen: () => ({ p: [-size.x * 0.2, Math.min(size.y * 0.78, 1.2), 0], t: [size.x * 0.35, Math.min(size.y * 0.5, 0.8), 0], fov: 72, doors: true }),
   };
   window.neem = (weergave) => {
