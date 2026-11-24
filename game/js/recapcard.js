@@ -21,6 +21,9 @@ export const RECAP_REPEAT_MS = 10 * 60 * 1000;
 export const RECAP_WAIT_MAX_S = 20;
 export const RECAP_KEY = 'gde-recap-v1';
 
+// de spreker van de verhaalregel eraf (dezelfde regel als spelstatus.js zonderSpreker; dit bestand blijft zonder imports)
+const zonderSpreker = (lead) => String(lead || '').replace(/^\s*(Tammo|Anita|Tessa)\s*:\s*/, '').trim();
+
 const countWords = (t) => String(t || '').trim().split(/\s+/).filter(Boolean).length;
 // Perfect-ronde (22-11): as many whole sentences from the front as fit the budget (at least the first one). The first sentence alone
 // often is not the goal ("Eerst de mosterd." without "vaar voor het schip uit"), so more sentences stay while there is room.
@@ -51,12 +54,13 @@ const sentencesWithin = (t, budget) => {
 //   { step: { id, part, title, lead: 'Name: text' } | null, ended: bool, last: 'title of the last finished step' | '',
 //     partTitle: 'Akte 2: Het Noorden is groot', why: 'Waar het om draait' }
 // Returns null when there is nothing to say (story over, no current step, or no lead to name the goal).
+// De verhaalregel komt als "Anita: tekst" (het voorvoegsel is de dialoogmarkering van de stap); de kaart noemt de gekozen hoofdpersoon zelf (wie).
 export function recapContent(input) {
   if (!input || input.ended || !input.step || !input.step.id) return null;
   const s = input.step;
-  const now = String(s.lead || '').trim();
+  const now = zonderSpreker(s.lead);
   if (!now) return null;
-  let card = { part: String(input.partTitle || '').trim(), why: String(input.why || '').trim(), last: String(input.last || '').trim(), now, stepId: s.id };
+  let card = { wie: String(input.wie || '').trim(), part: String(input.partTitle || '').trim(), why: String(input.why || '').trim(), last: String(input.last || '').trim(), now, stepId: s.id };
   const size = (c) => countWords(c.why) + countWords(c.last) + countWords(c.now);
   // too long: first cut the lead to its first sentence, then drop the "waar het om draait"
   if (size(card) > RECAP_MAX_WORDS) {

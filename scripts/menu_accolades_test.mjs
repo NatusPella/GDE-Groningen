@@ -21,14 +21,12 @@ t('de rijbouwers van het menu en de fototips sturen tekst door braceKeysHtml', (
   const fm = fs.readFileSync(new URL('../game/js/fotomodusui.js', import.meta.url), 'utf8');
   assert.match(fm, /const FOTO_TIPS = braceKeysHtml\(/);
 });
-t('Overzicht: geen "Stap 0 van n" en geen tegel "0/0 Missies klaar"', () => {
+t('Overzicht: geen "Stap 0 van n" en geen nullen in een nieuw spel', () => {
   const td = fs.readFileSync(new URL('../game/js/todoui.js', import.meta.url), 'utf8');
   assert.match(td, /const stapNu = Math\.min\(done \+ 1, steps\.length\)/);
-  assert.match(td, /\(ms\.length \? \(mDone \? tile\(ICON\.flag, 'Missies klaar'/);
-  // #1259 (hertest 24-11): ook geen "0/31" of "0/38": zonder iets af zegt de tegel hoeveel er te doen of te vinden is
-  assert.match(td, /tile\(ICON\.flag, 'Missies te doen', String\(ms\.length\)/);
-  assert.match(td, /\(found \? tile\(ICON\.pin, 'Gevonden'/);
-  assert.match(td, /tile\(ICON\.pin, 'Te vinden', String\(all\)/);
+  // #1259 (hertest 24-11): geen "0 van 71 · 0%" in het voortgangsblok: zonder iets af zegt de regel "nog niets van n" (Spel-UI 24-11: de tegels zijn weg)
+  assert.match(td, /progressPartText\(/);
+  assert.ok(!/tile\(ICON/.test(td), 'geen tegels meer');
 });
 t('#1263: de brede kopkaarten (Prestaties, Fotos, Voetbal) staan recht en schuiven niet over tabs of titel', () => {
   for (const [f, k] of [['achievementsui.js', 'pa-hero'], ['fotomodusui.js', 'foto-hero'], ['voetbalcarriereui.js', 'ds-z-kaart--recht ds-m-binnen']]) {

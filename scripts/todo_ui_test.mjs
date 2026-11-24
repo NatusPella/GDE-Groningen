@@ -59,19 +59,14 @@ t('de opmaak ervoor staat in de menustijlen', () => {
   assert.match(css, /#pause-menu \.m-li \.td-ico \{/);
 });
 
-t('#821: één blok "Je voortgang" met de drie lussen uit de bestaande systemen', () => {
+t('#821 (Spel-UI 24-11): het voortgangsblok van Overzicht is één percentage met vier regels; de drie lussen staan bij Loopbanen en Veroverd', () => {
   const td = lees('todoui.js');
-  for (const bron of ['loopbaanSamenvatting', 'getSideJobList', 'getOverzicht', 'gebiedenSamenvatting']) assert.match(td, new RegExp(bron), 'bron: ' + bron);
-  assert.match(td, /function voortgangHtml\(/, 'de functie bestaat');
-  assert.match(td, /disc\('voortgang', 'Je voortgang'/, 'het blok is een inklapbaar disc-blok');
-  assert.match(td, /rij\('Loopbaan'/, 'regel Loopbaan');
-  assert.match(td, /rij\('Bijbanen'/, 'regel Bijbanen');
-  assert.match(td, /rij\('Veroverd'/, 'regel Veroverd');
-  assert.match(td, /Herhalen maakt één baan beter, variëren maakt je loopbaan breder, en alles in een gebied maakt je wijkheld\./, 'de zin onderscheidt de drie lussen');
-  assert.match(td, /tilesHtml\(world, extra\) \+ voortgangHtml\(world\)/, 'het blok staat in Overzicht');
-  const blok = td.slice(td.indexOf('function voortgangHtml'), td.indexOf('function disc('));
+  assert.match(td, /function voortgangBlokHtml\(/, 'de functie bestaat');
+  assert.match(td, /gameProgress\(\)/, 'één bron voor het cijfer');
+  assert.match(td, /sp-voortgang__pct/, 'één groot percentage');
+  assert.ok(!/function voortgangHtml\(|loopbaanSamenvatting|rij\('Loopbaan'/.test(td), 'de drie lussen staan niet meer in Overzicht');
+  const blok = td.slice(td.indexOf('function voortgangBlokHtml'), td.indexOf('function voetHtml'));
   assert.ok(!/localStorage|sessionStorage/.test(blok), 'geen nieuwe opslag in het blok');
-  assert.ok(!/data-bar=/.test(blok), 'geen vierde progressiebalk');
 });
 
 t('#907: Activiteiten begint met een kop en houdt de tellingen bij elkaar', () => {

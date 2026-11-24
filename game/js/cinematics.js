@@ -1271,7 +1271,7 @@ function playDeath(w, pending) {
   ];
   const DUR = 3.2;
   const shot = pathShot(clearKeys(w, keys), easeOut);
-  const moment = showBigMoment({ ...momentVanOpgepakt({ busted: opts.busted, geld: opts.moneyPenalty }), gast: isGast(w), eigen: true });
+  const moment = showBigMoment({ ...momentVanOpgepakt({ busted: opts.busted, geld: opts.moneyPenalty, money: w.money, missie: (w.mission && w.mission.label) || '' }), gast: isGast(w), eigen: true });
   playCinematic({
     id: 'death', priority: 5, duration: DUR, letterbox: true, timeScale: 0.25, skippable: true,
     tint: opts.busted ? 'bust' : 'death', big: moment ? '' : opts.busted ? 'OPGEPAKT' : 'DOOD',
