@@ -89,7 +89,7 @@ Deze lijst komt uit dezelfde telling als de ratel en `node scripts/ds3_dekkingli
 
 <!-- ds3-dekkinglijst:begin -->
 
-Totaal nog te doen: kleur 5, glas 113, oud 0, font 15, klein 1, lus 0, lang 1, emoji 0, svg 33 in 58 bestanden (bewust buiten de telling: 21).
+Totaal nog te doen: kleur 5, glas 113, oud 0, font 15, klein 1, lus 0, lang 0, emoji 0, svg 31 in 56 bestanden (bewust buiten de telling: 21).
 
 | bestand | kleur | glas | oud | font | klein | lus | lang | emoji | svg |
 |---|---|---|---|---|---|---|---|---|---|
@@ -108,7 +108,6 @@ Totaal nog te doen: kleur 5, glas 113, oud 0, font 15, klein 1, lus 0, lang 1, e
 | `game/js/onlineconsent.css` |  | 3 |  |  |  |  |  |  |  |
 | `game/js/startscreen.css` |  | 3 |  |  |  |  |  |  |  |
 | `game/js/storycontact.js` |  | 2 |  | 1 |  |  |  |  |  |
-| `game/js/bezitkaart.js` |  |  |  |  |  |  |  |  | 2 |
 | `game/js/loopbaanui.js` |  |  |  |  |  |  |  |  | 2 |
 | `game/js/lowhealth.js` |  | 2 |  |  |  |  |  |  |  |
 | `game/js/main.js` | 2 |  |  |  |  |  |  |  |  |
@@ -129,7 +128,6 @@ Totaal nog te doen: kleur 5, glas 113, oud 0, font 15, klein 1, lus 0, lang 1, e
 | `game/js/choicepanel.js` |  | 1 |  |  |  |  |  |  |  |
 | `game/js/coopoverlay.js` |  | 1 |  |  |  |  |  |  |  |
 | `game/js/drunk.js` |  | 1 |  |  |  |  |  |  |  |
-| `game/js/ds-bezit.css` |  |  |  |  |  |  | 1 |  |  |
 | `game/js/ds-menu-zeef.css` |  | 1 |  |  |  |  |  |  |  |
 | `game/js/farmcards.js` |  |  |  |  |  |  |  |  | 1 |
 | `game/js/garageui.js` |  |  |  |  |  |  |  |  | 1 |
