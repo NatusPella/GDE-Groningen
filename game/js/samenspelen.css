@@ -397,6 +397,6 @@ html.reduce-motion .cp-meedoen-tijd b { transition: none; }
 .ss-detail .ds-z-segment { max-width: 100%; }
 
 /* de tabbladen van Spel in een sessie: volle breedte van het paneel, en een verborgen tabblad blijft weg (Samen spelen in een sessie) */
-#pause-menu [data-of="spel"].pm-samen-spelers { max-width: none; padding: var(--ds-s-3) 0 var(--ds-s-5); }
+#pause-menu [data-of="spel"].pm-samen-spelers { max-width: none; padding: var(--ds-s-3) var(--ds-s-8) var(--ds-s-5); }
 #pause-menu .m-tab[hidden] { display: none; }
 .ss-tabel .ds-z-tabel td, .ss-tabel .ds-z-tabel th { padding-inline: var(--ds-s-2); }
