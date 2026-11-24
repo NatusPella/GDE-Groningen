@@ -106,7 +106,8 @@ html.rustig-drukwerk #hud :is(.pf-callcard.ringing, .pf-callcard.ringing .pf-ava
 #hud .phonefeed.pf-held { opacity: 0; transition: opacity 0.2s; }
 
 /* de duif-HUD staat linksboven: de telefoonkaarten schuiven eronder (#239) */
-body.pigeon-mode #hud .phonefeed, body.heli-run #hud .phonefeed { top: 200px; }   /* #1053: zelfde zone als de missiekaart (hudcards.css) */
+body.pigeon-mode #hud .phonefeed { top: 200px; }   /* #1053: zelfde zone als de missiekaart (hudcards.css) */
+body.heli-run #hud .phonefeed { top: 256px; }   /* #1033: onder het heli-paneel (helirun.js .hh-panel), zoals de missiekaart */
 
 /* ---- Telefoon in het menu (phone.js): contactgesprek en laatste bericht ---- */
 .pt-titel { font-family: var(--ds-font-zeef-kop); font-weight: 800; font-size: var(--ds-t-subkop); letter-spacing: var(--ds-ls-label); text-transform: uppercase; margin: 0 0 var(--ds-s-2); }

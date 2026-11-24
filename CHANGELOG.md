@@ -9,6 +9,7 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ## [Unreleased]
 
+- Heli-opdrachten (Ballonjacht, Het staat niet in het rooster): de routekaart bovenin valt niet meer achter de heli-gids, en meldingen en de missiekaart staan onder het heli-paneel in plaats van erachter. Samen spelen: alleen beeld, per speler.
 - Samen spelen: jaagt de politie op een medespeler, dan raak je je eigen sterren kwijt als er geen politie bij jou in de buurt is; de afkoeltijd van de een schuift die van de ander niet meer door. Alleen bij wie het spel opende; een gast ziet de sterren van het doelwit zoals voorheen.
 - Safehuis: wie overdag gaat slapen tot de ochtend of de middag, wordt net als thuis de volgende dag wakker; de datum en de stek van de plant gaan mee. Samen spelen: slapen blijft een gezamenlijke keuze; de datum volgt de wereld van wie het spel opende.
 - Wapens: een slag met uithaal (knuppel, hockeystick, klomp) landt niet meer als je doodgaat, wordt opgepakt of in een voertuig stapt voordat de slag terechtkomt. Samen spelen: lokaal, geen invloed op andere spelers.

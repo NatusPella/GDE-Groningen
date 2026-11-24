@@ -116,6 +116,8 @@ body.hide-minimap #hud .hud-minimap-wrap { display: none; }
   background: var(--hud-card); box-shadow: var(--hud-card-ring); color: var(--ds-c-creme); text-shadow: none; white-space: nowrap;
 }
 #hud .hud-gps[hidden] { display: none; }
+/* #1033: tijdens een heli-run wijst de heli-gids (helirun.js .hh-guide) het doel aan op dezelfde plek; de routekaart viel eronder */
+body.heli-run #hud .hud-gps { display: none; }
 #hud .gps-arrow { width: 36px; height: 36px; color: var(--ds-c-licht-groen); fill: none; stroke: var(--ds-c-licht-groen); stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; flex: none; }
 #hud .gps-txt { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
 #hud .gps-txt b { font-weight: normal; font-size: 28px; line-height: 1; }

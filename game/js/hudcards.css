@@ -108,7 +108,9 @@ body.hud-call-on #hud .hud-nowplaying, body.hud-call-on #hud .hud-vehname, body.
 }
 /* #1053/#1058: in de duivenmodus en bij de heli-ronde staat het paneel van de minigame linksboven; de missiekaart, de prestatiekaart en de nieuwsregel delen één zone daaronder
    (hudstack.js LINKS_KAART_TOP = 200): de prestatiekaart wint (body.pg-melding), dan de missiekaart, dan de nieuwsregel. Past de kaart niet boven de minikaart, dan wordt hij afgekapt in plaats van eroverheen te liggen. */
-body.pigeon-mode #hud .hud-cards, body.heli-run #hud .hud-cards { top: 200px; max-height: calc(100vh / var(--ui, 1) - 200px - var(--mm-size, 250px) - var(--mm-bottom, 46px) - 12px); overflow: hidden; }
+body.pigeon-mode #hud .hud-cards { top: 200px; max-height: calc(100vh / var(--ui, 1) - 200px - var(--mm-size, 250px) - var(--mm-bottom, 46px) - 12px); overflow: hidden; }
+/* #1033: het heli-paneel (helirun.js .hh-panel) is met vijf regels ongeveer 240 px hoog; de kaarten en meldingen kwamen eronder */
+body.heli-run #hud .hud-cards { top: 256px; max-height: calc(100vh / var(--ui, 1) - 256px - var(--mm-size, 250px) - var(--mm-bottom, 46px) - 12px); overflow: hidden; }
 body.pg-melding #hud .hud-cards, body.pg-melding #hud .phonefeed { visibility: hidden; }
 body.pigeon-mode.hud-card-on #hud .phonefeed { visibility: hidden; }
 
