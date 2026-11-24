@@ -11,7 +11,7 @@
 //
 // Samen spelen: de intro speelt alleen op het scherm van wie de activiteit start (carbid is van wie het spel opende, coopstatus
 // 'nee'); er gaat geen bericht over het net. Een gast ziet geen intro; het erf zelf staat bij iedereen in de buurt (carbid.js
-// gastTick), dus de gast ziet de bussen, het hek en het publiek wel, en de knal van het spel zelf als geluid en vuur.
+// gastTick), dus de gast ziet de bussen, het hek en het publiek wel; het schot zelf gaat niet over het net.
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { playCinematic, isCinematicActive } from './cinematics.js';
 import { refreshDayNight } from './daynight.js';
