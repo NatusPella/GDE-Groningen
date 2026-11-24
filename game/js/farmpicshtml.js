@@ -47,5 +47,5 @@ export function getalHtml(iconNaam, waarde, label, toon = '') {
 
 // Uitleg op verzoek: een uitklapper met i-icoon; de tekst telt niet als zichtbare tekst (tekstdieet).
 export function meerHtml(tekst, label = 'Uitleg') {
-  return `<details class="bd-meer"><summary class="ds-z-knop ds-z-knop--secundair bd-meer__sum" aria-label="${esc(label)}">${icoon('info', { cls: 'ds-icoon' })}<span>${esc(label)}</span></summary><p>${esc(tekst)}</p></details>`;
+  return `<details class="bd-meer"><summary class="ds-z-link bd-meer__sum" aria-label="${esc(label)}">${icoon('info', { cls: 'ds-icoon' })}<span>${esc(label)}</span></summary><p>${esc(tekst)}</p></details>`;
 }

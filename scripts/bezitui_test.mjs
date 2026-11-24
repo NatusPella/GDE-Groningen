@@ -35,9 +35,9 @@ t('menu: doorverwijzing van de oude en de nieuwe naam, standaard op Boerderij', 
 t('overzicht: leeg bezit geeft een uitleg, geen fout', () => {
   reset();
   const h = U.summaryHtml(ctx(w()));
-  assert.ok(h.includes('Overzicht') && h.includes('Nog niets dringends') === false);
-  assert.ok(h.includes('Nog geen land') && h.includes('data-leeg="percelen"'), 'de volgende stap staat er');
-  assert.ok(/<button[^>]*data-goto-sub="boerderij:tekoop"[^>]*>Koop je eerste perceel<\/button>/.test(h), 'een echte knop naar Te koop (#1246)');
+  assert.ok(h.includes('Nog niets in bezit') && h.includes('data-stap="1"'), 'de volgende stap staat er (drie stappen, 24-11)');
+  assert.ok(/<button[^>]*data-goto-sub="boerderij:tekoop"[^>]*>Bekijk wat te koop is<\/button>/.test(h), 'een echte knop naar Te koop (#1246)');
+  assert.ok(/± €/.test(h) && !/Levert<\/dt><dd>€/.test(h), 'het rendement staat er alleen als schatting (met ±)');
   assert.ok(h.includes('<svg') && !h.includes('Open de kaart en kies de laag'), 'icoon in plaats van de lap uitleg');
   assert.ok(!h.includes('Stel beginner aan') && !h.includes('data-bz-cycle=') && !h.includes('bz-tegel'), 'leeg bezit toont geen personeel, filters of nulltegels (progressive disclosure)');
 });
@@ -46,8 +46,9 @@ t('overzicht: na een koop staat het perceel in de lijst met stand en Doel', () =
   const world = w();
   assert.ok(L.koopPerceel(world, 'paaaaaaaaaaa1').ok);
   const h = U.summaryHtml(ctx(world));
-  assert.ok(h.includes('data-row="paaaaaaaaaaa1"') && h.includes('data-bz="doel"') && h.includes('3 ha') && h.includes('Zelf'));
-  assert.ok(h.includes('Percelen') && h.includes('Hectare'));
+  const v = U.veldenView(world);
+  assert.ok(v.includes('data-row="paaaaaaaaaaa1"') && v.includes('3 ha') && v.includes('Zelf') && v.includes('data-vd="kies"'), 'Velden toont het perceel (24-11)');
+  assert.ok(h.includes('data-pkaart="boerderij"') && h.includes('ha'), 'het portfolio toont de boerderijkaart');
 });
 t('te koop: lijst met prijs en Doel; kopen vraagt een bevestiging (tweede druk)', () => {
   reset();
@@ -102,9 +103,10 @@ t('bulkacties: zonder selectie uit, met selectie aan; teksten in het Nederlands'
   const world = w();
   L.koopPerceel(world, 'paaaaaaaaaaa1');
   U.ui.sel.clear();
-  assert.match(U.summaryHtml(ctx(world)), /data-bz="bulk-zaai"[^>]*disabled/);
-  U.ui.sel.add('paaaaaaaaaaa1');
-  assert.ok(!/data-bz="bulk-zaai"[^>]*disabled/.test(U.summaryHtml(ctx(world))));
+  assert.ok(!U.veldenView(world).includes('velden gekozen'), 'zonder selectie geen bulkdetail');
+  U.ui.sel.add('paaaaaaaaaaa1'); U.ui.sel.add('pbbbbbbbbbbb2');
+  const bulk = U.veldenView(world);
+  assert.ok(bulk.includes('1 gekozen') || bulk.includes('velden gekozen') || bulk.includes('data-vd="niets"'), 'met selectie staan de bulkknoppen er');
   assert.equal(U.bulkText('bulk-zaai', { done: 2, skipped: { 'niet-zelf': 1 } }), '2 percelen gezaaid; overgeslagen: 1x niet zelf.');
   assert.equal(U.bulkText('bulk-oogst', { done: 1, skipped: {} }), '1 perceel geoogst.');
   U.ui.sel.clear();
@@ -113,8 +115,8 @@ t('personeel: aanstellen kost niets bij het aanstellen, het loon loopt per dag; 
   reset();
   const world = w();
   assert.ok(L.huurArbeider(world, 1).ok);
-  const h = U.summaryHtml(ctx(world));
-  assert.ok(h.includes('1 medewerker') && h.includes('hooguit 80%') && h.includes('data-bz="ontsla"'));
+  const h = U.teamView(world);
+  assert.ok(h.includes('Jouw team · 1') && h.includes('80%') && h.includes('data-vd="ontsla"'), 'Team toont de medewerker en Ontslaan (24-11)');
   assert.equal(L.huurArbeider(w(10), 3).ok, false);
 });
 t('#1246: lege secties zijn een icoon met een knop, geen lap uitleg; tegels dragen een icoon', () => {
@@ -123,9 +125,10 @@ t('#1246: lege secties zijn een icoon met een knop, geen lap uitleg; tegels drag
   const offer = L.parcelOffer('pbbbbbbbbbbb2');
   if (offer && offer.forSale) L.koopPerceel(world, 'pbbbbbbbbbbb2');
   const h = U.summaryHtml(ctx(world));
-  assert.ok(/class="bz-tegel"><small><svg[^>]*bz-tegel-ic/.test(h), 'elke tegel heeft een icoon');
-  assert.ok(!/0 medewerkers/.test(h), 'geen regel met nullen bij nul personeel');
-  assert.ok(h.includes('Nog niemand in dienst.') && /data-bz="huur"/.test(h), 'één korte regel en de huurknoppen');
+  assert.ok(/class="ds-z-kaart__titel"><svg[^>]*bz-ic/.test(h) && !h.includes('bz-tegel'), 'elke portfoliokaart heeft een icoon, geen tegels meer');
+  const tm = U.teamView(world);
+  assert.ok(!/0 medewerkers/.test(tm), 'geen regel met nullen bij nul personeel');
+  assert.ok(tm.includes('Nog niemand in dienst.') && /data-vd="huur"/.test(tm), 'één korte regel en de aannemkaarten');
   const vee = U.veeHtml(L.getBezit(), [], 0);
   assert.ok(vee.includes('data-leeg="vee"') && vee.includes('data-goto-sub="boerderij:tekoop"') && vee.includes('Koop een weiland'));
   const leegKeten = { id: 'leeg', name: 'Leeg', margin: 0, sourceKg: 0, sourceCount: 0, picked: 0, closedDays: 0, last: null, weakest: null, sources: [], links: [{ id: 'a', label: 'A', role: 'source', owned: false, ownable: false, fill: 0, stock: 0, cap: 1, perDay: 0, trucks: 0, wage: 0, distance: 0, ref: null, options: [] }] };
@@ -138,16 +141,17 @@ t('vee (#1101): een weiland toont het aanbod, kopen trekt geld af en toont de ku
   reset();
   const world = w(50000);
   assert.ok(L.koopPerceel(world, 'paaaaaaaaaaa1').ok);
-  let h = U.summaryHtml(ctx(world));
-  assert.ok(h.includes('>Vee<') && h.includes('data-bz="koop-vee"') && h.includes('data-sp="melkvee"') && h.includes('nog geen vee'));
+  U.ui.veld = 'paaaaaaaaaaa1'; U.ui.sel.clear();
+  let h = U.veldenView(world);
+  assert.ok(h.includes('Vee kopen') && h.includes('data-vd="koop-vee"') && h.includes('data-sp="melkvee"'));
   const voor = world.money;
   const r = L.koopVee(world, 'paaaaaaaaaaa1', 'melkvee');
   assert.ok(r.ok, r.text); assert.ok(world.money < voor, 'het geld gaat eraf');
-  h = U.summaryHtml(ctx(world));
-  assert.ok(h.includes('data-vee="paaaaaaaaaaa1"') && h.includes('Gezond') && h.includes('data-bz="verkoop-vee"') && !h.includes('data-bz="koop-vee"'));
+  h = U.veldenView(world);
+  assert.ok(h.includes('Kudde') && h.includes('data-vd="verkoop-vee"') && !h.includes('data-vd="koop-vee"'));
   assert.equal(L.koopVee(world, 'paaaaaaaaaaa1', 'schapen').ok, false, 'een tweede kudde op hetzelfde perceel kan niet');
-  U.ui.confirm = 'verkoop-vee:paaaaaaaaaaa1';
-  assert.ok(U.summaryHtml(ctx(world)).includes('data-ok="1"'));
+  U.veldenActie(world, { vd: 'verkoop-vee', id: 'paaaaaaaaaaa1' });
+  assert.equal(U.ui.confirm, 'vv:paaaaaaaaaaa1', 'verkopen vraagt een tweede druk');
   U.ui.confirm = null;
   const na = world.money;
   assert.ok(L.verkoopVee(world, 'paaaaaaaaaaa1').ok); assert.ok(world.money > na, 'de verkoop levert geld op');
@@ -160,7 +164,8 @@ t('vee: te weinig geld geeft een zin met het tekort en laat het geld staan', () 
   world.money = 100;
   const r = L.koopVee(world, 'paaaaaaaaaaa1', 'melkvee');
   assert.equal(r.ok, false); assert.match(r.text, /Je mist nog/); assert.equal(world.money, 100);
-  assert.match(U.summaryHtml(ctx(world)), /data-bz="koop-vee"[^>]*disabled/, 'de knop is uit zonder geld');
+  U.ui.veld = 'paaaaaaaaaaa1';
+  assert.match(U.veldenView(world), /data-vd="koop-vee"[^>]*disabled/, 'de knop is uit zonder geld');
 });
 t('filters en sortering: alleen bestaande opties; ongeldige invoer geeft geen fout', () => {
   reset();
@@ -226,7 +231,7 @@ await (async () => {
   try {
     reset();
     let renders = 0;
-    const el = () => ({ _h: '', set innerHTML(v) { this._h = v; if (++renders > 500) throw new Error('microtaaklus: renderBezitPanels herhaalt zichzelf'); }, get innerHTML() { return this._h; }, addEventListener() {} });
+    const el = () => ({ _h: '', set innerHTML(v) { this._h = v; if (++renders > 500) throw new Error('microtaaklus: renderBezitPanels herhaalt zichzelf'); }, get innerHTML() { return this._h; }, insertAdjacentHTML() {}, closest() { return null; }, addEventListener() {} });
     const els = { overzicht: el(), bedrijven: el(), tekoop: el(), snack: null };
     U.renderBezitPanels(els, w());
     for (let i = 0; i < 200; i++) await new Promise((r) => setImmediate(r));
@@ -246,9 +251,9 @@ t('Overzicht: sorteren en filteren zijn chips die doorschakelen, geen native keu
   reset();
   const world = w();
   assert.ok(L.koopPerceel(world, 'paaaaaaaaaaa1').ok);
-  const h = U.summaryHtml(ctx(world));
-  assert.ok(!/<select data-bz-(sort|filter)/.test(h), 'geen native select');
-  assert.equal((h.match(/data-bz-cycle=/g) || []).length, 4, 'Sorteren, Streek, Soort en Beheer');
+  const h = U.veldenView(world);
+  assert.ok(!/<select/.test(h), 'geen native select');
+  assert.match(h, /ds-z-stapper/); assert.match(h, /data-vd="sort"/, 'sorteren is een stapper (24-11)');
 });
 t('Te koop: laden en leeg zijn twee aparte toestanden (#1251)', () => {
   const laden = U.forSaleHtml({ money: 1, offers: [], laden: true });

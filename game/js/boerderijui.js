@@ -17,6 +17,8 @@ import { dagKeuze, dagKeuzeTekst } from './boerderijdag.js';
 import { koopVraag, tweedeDruk } from './tweedruk.js';
 import { kaartenBlok, zetUitlegGezien } from './farmcards.js';
 import { getBezit } from './bezitlive.js';
+import { frameView, frameHtml } from './bezitframe.js';
+import { veldenView, teamView, veldenActie } from './bezitui.js';
 import { fpHtml, leegHtml, meerHtml } from './farmpicshtml.js';
 import { vulPlaatjes, showLive, ruimLive, ruimPlaatjes } from './farmpics.js';
 
@@ -30,7 +32,7 @@ const ICOON = { perceel: 'oogst', gewas: 'gewas', machines: 'tractor', percelen:
 // Heeft de speler al op het land gewerkt? Zo nee, heet het rail-item "Begin je boerderij" en toont het eerste scherm hoe je begint (21-11).
 export const boerderijBegonnen = (b) => !!(b && (b.perceel || b.uren > 0));
 // de eerste tab heet Werk: het tabblad Overzicht staat al in de bovenste rij van Land en bedrijf (#1243)
-const ONDERDELEN = [['perceel', 'Werk'], ['percelen', 'Percelen'], ['erf', 'Erf'], ['gewas', 'Gewas'], ['machines', 'Machines'], ['kas', 'Kasboek'], ['bank', 'Bank']];
+const ONDERDELEN = [['velden', 'Velden'], ['team', 'Team'], ['machines', 'Machines'], ['erf', 'Erf en opslag'], ['kas', 'Kasboek']];
 const icoon = (n, cls = 'pa-ico') => `<span class="${cls}">${fIcoon(ICOON[n])}</span>`;
 
 // De boerderij hoort bij het vak Landbouw en draagt dezelfde sfeerband als Loopbanen (#492, #609).
@@ -88,7 +90,7 @@ function zetCss() {
   document.head.appendChild(el);
 }
 
-let gekozen = 'perceel';
+let gekozen = 'velden';
 let gast = false; // samen spelen: de klussen op het land (de trekker) doe je in je eigen spel (#429)
 let melding = '';
 const bars = new Map();
@@ -340,10 +342,19 @@ function bank(b, geld) {
     `<p class="bd-melding" aria-live="polite">${esc(melding)}</p>`;
 }
 
+let wereld = null;
 function detail(b, geld) {
-  const inhoud = gekozen === 'percelen' ? percelen(b, geld) : gekozen === 'erf' ? erf(b, geld) : gekozen === 'gewas' ? gewas(b) : gekozen === 'machines' ? machines(b, geld) : gekozen === 'kas' ? kas(b) : gekozen === 'bank' ? bank(b, geld) : perceel(b, geld);
-  // Elke subpagina van de boerderij draagt dezelfde sfeerband (#609).
-  return band() + inhoud;
+  if (gekozen === 'velden') {
+    // Velden: de kaart en lijst van al je land (bezitvelden.js); wie nog niets heeft ziet het begin van de boerderij. Het land van de Zonnehoek dat te koop of te huur is staat eronder.
+    const v = veldenView(wereld);
+    return (v || perceel(b, geld)) + `<details class="bz-uitklap"><summary class="ds-z-link">Land bij de Zonnehoek te koop of te huur</summary>${percelen(b, geld)}</details>`;
+  }
+  if (gekozen === 'team') return teamView(wereld);
+  // Elke andere subpagina van de boerderij draagt dezelfde sfeerband (#609).
+  // De oude pagina's (perceel, percelen, gewas, bank) blijven bereikbaar voor sneltoetsen en tests; het segment toont ze onder Velden en Kasboek.
+  const inhoud = gekozen === 'percelen' ? percelen(b, geld) : gekozen === 'erf' ? erf(b, geld) : gekozen === 'gewas' ? gewas(b) : gekozen === 'machines' ? machines(b, geld) : gekozen === 'kas' ? kas(b) + bank(b, geld) : gekozen === 'bank' ? bank(b, geld) : perceel(b, geld);
+  // De pagina's Machines, Erf en Kasboek (24-11) staan zonder sfeerband in het kader van Land en bedrijf; de oude pagina's perceel, percelen, gewas en bank houden hem.
+  return ['machines', 'erf', 'kas'].includes(gekozen) ? `<div class="bz-pagina">${inhoud}</div>` : band() + inhoud;
 }
 
 // QoL (#985): een aankoop van €1.000 of meer vraagt een tweede druk, zoals de gewone winkel.
@@ -432,14 +443,18 @@ export function renderBoerderijPanel(el, world, sluit = null) {
   const b = getBoerderij();
   gast = !!(world && world.coopRole === 'client');
   const geld = (world && world.money) || 0;
+  wereld = world;
+  if (!['velden', 'team', 'machines', 'erf', 'kas', 'perceel', 'percelen', 'gewas', 'bank'].includes(gekozen)) gekozen = 'velden';
+  const actiefSeg = { perceel: 'velden', percelen: 'velden', gewas: 'velden', bank: 'kas' }[gekozen] || gekozen;
   const s = B.samenvatting(b);
   // de onderdelen als tabs in het paneel zelf (panelmodel, DESIGN_SYSTEM.md > Panels): Q en E wisselen, de tab zegt het aantal waar dat helpt
   const tel = { percelen: Object.keys(b.bedrijf.percelen).length, machines: b.bedrijf.machinepark.machines.length + b.bedrijf.machinepark.werktuigen.length };
   // #1243: de onderdelen zijn een segmentbalk (ds-z-tabs), niet een tweede onderstreepte tabrij onder die van Land en bedrijf. Q en E werken op role="tab".
-  const tabs = ONDERDELEN.map(([id, naam]) => `<button type="button" role="tab" class="ds-z-tab bd-seg-tab${gekozen === id ? ' sel' : ''}" data-bd="${id}" aria-selected="${gekozen === id}">${esc(naam)}${tel[id] != null ? `<small>${tel[id]}</small>` : ''}</button>`).join('');
+  const tabs = ONDERDELEN.map(([id, naam]) => `<button type="button" role="radio" class="${actiefSeg === id ? 'sel' : ''}" data-bd="${id}" aria-checked="${actiefSeg === id}">${esc(naam)}</button>`).join('');
   // De sfeernaam staat al in de band; hier alleen de chip en het geld.
-  el.innerHTML = `<div class="bd-seg-rij"><nav class="ds-z-tabs bd-seg" role="tablist" aria-label="Boerderij">${tabs}</nav><span class="m-grow"></span><span class="pa-total"><span class="lb-sfeer-chip" style="${sfeerStijl(SFEER)}" aria-hidden="true"></span><span class="mut">Je geld</span><span class="m-num">${euro(geld)}</span></span></div>` +
-    dagKaart() +
+  let kader = ''; try { kader = frameHtml(frameView(world)); } catch (e) { /* het kader is een extra; de boerderij werkt ook zonder */ }
+  el.innerHTML = kader + `<div class="bd-seg-rij"><nav class="ds-z-segment ds-z-segment--klein" role="radiogroup" aria-label="Boerderij">${tabs}</nav></div>` +
+    (['velden', 'team', 'machines', 'erf', 'kas'].includes(gekozen) ? '' : dagKaart()) +
     `<div class="m-main bd-main"><aside class="m-pane pa-pane bd-pane" aria-live="polite">${detail(b, geld)}</aside></div>`;
   fillBars(el, bars);
   vulPlaatjes(el);
@@ -457,7 +472,9 @@ export function renderBoerderijPanel(el, world, sluit = null) {
       const uitleg = e.target.closest('[data-bd-uitleg]');
       const pc = e.target.closest('[data-pc]');
       const mc = e.target.closest('[data-mc]');
-      if (mc && !tweedeDrukStap(mc.dataset)) opnieuw();
+      const vd = e.target.closest('[data-vd]');
+      if (vd) { veldenActie(world, vd.dataset); opnieuw(); const nu = el.querySelector(`[data-vd="${vd.dataset.vd}"][data-id="${vd.dataset.id}"]`) || el.querySelector(`[data-vd="${vd.dataset.vd}"]`); if (nu && nu.focus) nu.focus({ preventScroll: true }); }
+      else if (mc && !tweedeDrukStap(mc.dataset)) opnieuw();
       else if (mc) { melding = machineActie(mc.dataset, world); opnieuw(); const nu = el.querySelector(`[data-mc="${mc.dataset.mc}"]:not([disabled])`) || el.querySelector(`[data-bd="${gekozen}"]`); if (nu) nu.focus({ preventScroll: true }); }
       else if (pc && !tweedeDrukStap(pc.dataset)) opnieuw();
       else if (pc) { melding = percelenActie(pc.dataset, world); opnieuw(); const nu = el.querySelector(`[data-pc="${pc.dataset.pc}"][data-id="${pc.dataset.id}"]:not([disabled])`) || el.querySelector(`[data-pc][data-id="${pc.dataset.id}"]:not([disabled])`) || el.querySelector(`[data-bd="${gekozen}"]`); if (nu) nu.focus({ preventScroll: true }); }

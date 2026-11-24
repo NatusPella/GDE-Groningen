@@ -16,6 +16,7 @@ const lees = (f) => fs.readFileSync(f, 'utf8');
 // Elke uitzondering: scherm | code | deel van bestand | reden. De reden zegt waarom het geen gebrek is of waar het alternatief zit.
 const UITZONDERINGEN = [
   ['pauze-rail', 'vasthouden', 'pausemenu.js', 'Handmatig schakelen met koppeling: de koppelingstoets tijdens het rijden (voertuigbesturing, #495), geen menuactie; de tikstand (Instellingen) dekt rennen en richten, de koppeling blijft een rijtoets'],
+  ['bezit', 'vasthouden', 'bezitui.js', 'Vasthouden om te kopen (24-11, boven €1.000): muis, Enter of Spatie (keydown tot keyup) en een controller-A die alleen een klik geeft telt als eerste van twee drukken binnen vier seconden; de bevestigingskaart legt het uit (bindVasthouden)'],
   ['pauze-rail', 'focusring', 'pausemenu.css', 'Een tab die niet gekozen is toont bewust geen focusring (oogtest 20-11): de ring hoort bij de gekozen tab, de focus is dan nog zichtbaar op het tabblad zelf'],
   ['instellingen', 'focusring', 'a11y.css', 'De kaart in het pauzemenu is een focusbare canvas over het hele scherm: daar bewust geen ring; de controllerring voor alle andere knoppen staat op de regel erboven (#809). Sinds de oude .ds-papier-ring weg is (audit UX 23-11) is er geen :focus-visible-regel meer in dit bestand die dat maskeerde'],
   ['kaart', 'onbereikbaar-sjabloon', 'mapview.js', 'mapview-card is het omhulsel van de plekkaart (closest-zoeker); de knoppen erin (Zet routepunt, Reis erheen, Info, Sluiten) zijn buttons'],

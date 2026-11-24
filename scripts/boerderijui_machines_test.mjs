@@ -18,7 +18,7 @@ const klik = (data) => handlers.click({ target: { closest: (sel) => { const k = 
 
 t('Machines toont het machinepark, de catalogus met kopen en huren, en de machines voor de bijbaan', () => {
   renderBoerderijPanel(el, world);
-  assert.match(el.innerHTML, /data-bd="machines"/); assert.match(el.innerHTML, /data-bd="bank"/);
+  assert.match(el.innerHTML, /data-bd="machines"/); assert.match(el.innerHTML, /data-bd="kas"/);
   klik({ bd: 'machines' });
   assert.match(el.innerHTML, /Wierdetrekker W60/); assert.match(el.innerHTML, /Korenwolf M3/); assert.match(el.innerHTML, /Laadkabouter L45/);
   assert.match(el.innerHTML, /data-mc="koop-cat" data-type="trekker-klein"/); assert.match(el.innerHTML, /data-mc="huur-cat" data-type="ploeg-3"/);
@@ -103,7 +103,7 @@ t('het kasboek toont per veld en per boekjaar met posten; de bank leent en lost 
   assert.match(el.innerHTML, /te weinig geld/);
   renderBoerderijPanel(el, world);
   assert.match(el.innerHTML, /Schuld<\/span><span>€/, 'de bank toont de schuld');
-  assert.match(el.innerHTML, /role="tab"[^>]*data-bd="bank"|data-bd="bank"[^>]*role="tab"/, 'de onderdelen zijn tabs in het paneel (21-11)');
+  assert.match(el.innerHTML, /role="radio"[^>]*data-bd="kas"|data-bd="kas"[^>]*role="radio"/, 'de onderdelen zijn een segment in het paneel (24-11)');
 });
 
 t('Gewas noemt graan en gras met hun soort', () => {

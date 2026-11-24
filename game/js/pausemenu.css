@@ -1439,7 +1439,6 @@ html.pad-active #pause-menu.gm [data-panel="settings"] .m-tablist .m-tab:focus {
 #pause-menu .pm-q-head { flex-direction: row; align-items: center; justify-content: space-between; gap: 8px; padding: 0 16px 12px 24px; }
 #pause-menu .pm-q-info { display: flex; flex-direction: column; align-items: flex-end; margin: 0; font-size: 15px; line-height: 1.15; text-align: right; white-space: normal; }
 #pause-menu .pm-q-info b.pm-q-tijd { font-family: var(--ds-font-kop); font-weight: 800; font-size: 26px; letter-spacing: 0.04em; color: var(--ink); }
-#pause-menu[data-eigen-knop] .pm-rail-go .pm-go { background: var(--ds-c-ink-papier); color: var(--ds-c-ink-inkt); box-shadow: var(--ds-schaduw-hard-klein); }
 #pause-menu .pm-sheet.pm-eigenkop .pm-sheet-head { display: none; }
 #pause-menu .sp-kop { flex: none; padding: 20px 64px 0; }
 #pause-menu [data-panel="spel"] .m-tabs { padding-left: 64px; padding-right: 64px; }
@@ -1447,3 +1446,6 @@ html.pad-active #pause-menu.gm [data-panel="settings"] .m-tablist .m-tab:focus {
 #pause-menu .pm-spelov { padding: 0; overflow-y: auto; }
 #pause-menu .sp-opslaan { padding: 12px 64px 0; overflow-y: auto; min-height: 0; flex: 1; }
 #pause-menu [data-panel="spel"] .pm-inner { display: flex; flex-direction: column; min-height: 0; }
+/* Doorgaan is secundair zodra het paneel zijn eigen gele knop heeft (24-11): omlijnd, zonder geel */
+#pause-menu.pm-eigen-primair .pm-rail-go .pm-go { background: var(--ds-zeef-bg); color: var(--ds-zeef-tx); border: var(--ds-lijn-dik) solid var(--ds-c-ink-inkt); box-shadow: none; }
+#pause-menu.pm-eigen-primair .pm-rail-go .pm-go:hover:not(:disabled) { background: var(--ds-c-sel-vlak); }

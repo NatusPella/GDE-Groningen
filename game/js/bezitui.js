@@ -7,6 +7,7 @@ import * as L from './bezitlive.js';
 import { keepFocus } from './focusbehoud.js';
 import * as H from './holdingsmodel.js';
 import * as Z from './bezit.js';
+import * as B from './boerderij.js';
 import * as P from './bezitprijs.js';
 import { getBoerderij } from './boerderijlive.js';
 import { staffOf, staffCapacity, wageOf, staffWages, SKILL_NAME } from './farmstaff.js';
@@ -24,13 +25,19 @@ import { SPECIES, herdOffers, herdSellValue, herdsOf } from './livestock.js';
 import { icoon } from './icons.js';
 import { setLayer } from './mapfilters.js';
 import { sectionCard, missReason, holdingButton, statusChip } from './holdingcards.js';
+import { frameView, frameHtml, zetTabs } from './bezitframe.js';
+import { portfolioHtml, leegHtml } from './bezitoverzicht.js';
+import { kaartSvg } from './bezitkaart.js';
+import { veldenHtml, teamHtml } from './bezitvelden.js';
+import { koopItems, koopHtml, SOORTEN, SORTEN, HOUD_MS } from './bezitkoop.js';
+import { bedrijvenHtml } from './bezitbedrijven.js';
 
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const ha = (n) => String(Math.round(n * 10) / 10).replace('.', ',');
 export const SORT_NAME = { ripe: 'Rijp eerst', name: 'Naam', ha: 'Grootte', income: 'Opbrengst', region: 'Streek' };
 const MAX_ROWS = 40;
 
-export const ui = { sort: 'ripe', filter: { region: '', soort: '', level: '' }, sel: H.newSelection(), confirm: null, msg: '', msgAt: 0, more: false, product: 'aardappelen' };
+export const ui = { veld: null, ontsla: null, bk: null, koop: { sel: null, soort: 'alles', sort: 'terug', bevestig: false }, sort: 'ripe', filter: { region: '', soort: '', level: '' }, sel: H.newSelection(), confirm: null, msg: '', msgAt: 0, more: false, product: 'aardappelen' };
 // Een melding onder aan een tabblad blijft niet eeuwig staan (en niet op een ander tabblad hangen): na MSG_TTL_MS is hij weg. msgAt 0 = geen klok (tests).
 export const MSG_TTL_MS = 20000;
 export const msgNow = () => (ui.msg && (!ui.msgAt || Date.now() - ui.msgAt < MSG_TTL_MS) ? ui.msg : '');
@@ -91,7 +98,8 @@ export function cycleChip(soort, label, opties, huidig, extra = '') {
 export const nextOption = (opties, huidig) => opties[(Math.max(0, opties.findIndex(([v]) => v === huidig)) + 1) % opties.length][0];
 
 // ---- Overzicht ----
-export function summaryHtml({ bezit, farm, money = 0, day = 0, news = null, chains = null, board = null, products = [] } = {}) {
+export function summaryHtml({ bezit, farm, money = 0, day = 0, news = null, chains = null, board = null, products = [], view = null } = {}) {
+  view = view || frameView({ money });
   const rows = H.holdingRows(bezit, farm, { regionOf: (id) => (L.parcelOffer(id) || {}).region });
   const own = rows.filter((r) => !((bezit.parcels[r.id] || {}).lg));
   const sum = H.summarize(rows);
@@ -100,8 +108,9 @@ export function summaryHtml({ bezit, farm, money = 0, day = 0, news = null, chai
   const shown = H.sortRows(H.filterRows(rows, { region: ui.filter.region || undefined, soort: ui.filter.soort || undefined, level: ui.filter.level || undefined }), ui.sort);
   const opt = H.filterOptions(rows);
   const sel = (key, label, items) => cycleChip('filter:' + key, label, [['', 'Alles'], ...items.map((v) => [v, v])], ui.filter[key] || '');
-  const tiles = [['Percelen', own.length], ['Hectare', ha(sum.ha)], ['Panden', bezit.buildings.size], ['Opbrengst per dag', euro(sum.incomeDay)], ...(staff.workers.length ? [['Loon per dag', euro(staffWages(staff))]] : [])].map(([k, v]) => `<span class="bz-tegel"><small>${TILE_ICON[k] ? icoon(TILE_ICON[k], { cls: 'bz-tegel-ic' }) : ''}${k}</small><b>${v}</b></span>`).join('');
-  const attention = points.length ? `<ul class="bz-lijst">${points.map((p) => `<li data-code="${p.code}">${esc(p.tekst)}</li>`).join('')}</ul>` : '<p class="mut">Niets dringends: alles loopt.</p>';
+  const tilesOud = [['Percelen', own.length], ['Hectare', ha(sum.ha)], ['Panden', bezit.buildings.size], ['Opbrengst per dag', euro(sum.incomeDay)], ...(staff.workers.length ? [['Loon per dag', euro(staffWages(staff))]] : [])].map(([k, v]) => `<span class="bz-tegel"><small>${TILE_ICON[k] ? icoon(TILE_ICON[k], { cls: 'bz-tegel-ic' }) : ''}${k}</small><b>${v}</b></span>`).join('');
+  const vlakken = rows.map((r) => { const o = L.parcelOffer(r.id); return o && o.parcel ? { id: r.id, shape: o.shape, x: o.parcel.x, y: o.parcel.y, statusId: r.statusId, level: r.level, naam: r.name } : null; }).filter(Boolean);
+  const portfolio = view ? portfolioHtml(view, { vlakken }) : '';
   const body = shown.slice(0, ui.more ? 200 : MAX_ROWS).map((r) => `<div class="bd-rij" data-row="${esc(r.id)}"><label class="bz-chk"><input type="checkbox" data-bz-sel="${esc(r.id)}"${ui.sel.has(r.id) ? ' checked' : ''} aria-label="Kies ${esc(r.name)}"></label>` +
     `<span class="bd-naam"><b>${esc(r.name)}</b><span class="bd-feiten"><span>${esc(r.soort)}</span><span>${ha(r.ha)} ha</span><span>${esc(r.stand)}</span><span>${H.LEVEL_NAME[r.level]}</span>${r.herd ? `<span>${r.herd.n} dieren</span>` : ''}${r.incomeDay ? `<span>${euro(r.incomeDay)} per dag</span>` : ''}</span></span>` +
     `<span class="bd-acties">${btn('doel', 'Route', ` data-id="${esc(r.id)}"`)}</span></div>`).join('');
@@ -120,13 +129,13 @@ export function summaryHtml({ bezit, farm, money = 0, day = 0, news = null, chai
   const empty = !own.length && !rows.length ? emptyState('gewas', 'Nog geen land', 'Een eerste perceel kost ongeveer twee uur werk.', ['boerderij:tekoop', 'Koop je eerste perceel'], 'percelen') : '';
   // Nog niets in bezit: één zin met de volgende stap. Nulltegels, filters, personeel, vee, ketens en markt zeggen nu niets (progressive disclosure).
   if (!rows.length && !own.length && !staff.workers.length && !bezit.buildings.size) {
-    return `<div class="pm-pane-top"><span class="m-eb">Land en bedrijf</span><h2 class="m-h2 td-h2">Overzicht</h2></div>${empty}${rapportHtml()}${newsHtml(news)}<p class="bd-melding" aria-live="polite">${esc(msgNow())}</p>`;
+    return `${leegHtml({ money, bedrijvenOpen: branchOpen('business'), snackOpen: branchOpen('snack') })}${rapportHtml()}<p class="bd-melding" aria-live="polite">${esc(msgNow())}</p>`;
   }
   const parcels = sectionCard('percelen', 'gewas', 'Percelen', `<div class="bz-filters" role="group" aria-label="Sorteren en filteren">${cycleChip('sort', 'Sorteren', H.SORTS.map((x) => [x, SORT_NAME[x]]), ui.sort)}` +
     `${sel('region', 'Streek', opt.regions || [])}${sel('soort', 'Soort', opt.soorten || [])}${sel('level', 'Beheer', H.LEVELS)}</div>` + bulk + `<div class="bz-rijen">${body}</div>` +
     (shown.length > MAX_ROWS && !ui.more ? `<p>${btn('meer', `Toon alle ${shown.length}`)}</p>` : ''), { count: shown.length });
-  return `<div class="pm-pane-top"><span class="m-eb">Land en bedrijf</span><h2 class="m-h2 td-h2">Overzicht</h2></div><div class="bz-tegels">${tiles}</div>${attention}${rapportHtml()}${newsHtml(news)}${empty}` +
-    (rows.length ? parcels : '') + staffHtml + veeHtml(bezit, rows, money) + chainsHtml(chains, money) + marketHtml(board, products) + `<p class="bd-melding" aria-live="polite">${esc(msgNow())}</p>`;
+  return `${portfolio}${rapportHtml()}${newsHtml(news)}` +
+    chainsHtml(chains, money) + marketHtml(board, products) + `<p class="bd-melding" aria-live="polite">${esc(msgNow())}</p>`;
 }
 
 // ---- Vee (#1101): kuddes op je weilanden, een kudde kopen (past op de grootte van het perceel) of verkopen; per speler (#429) ----
@@ -212,8 +221,7 @@ export function businessesHtml({ money = 0, mine = [], near = [], day = 0, mobil
   }).join('') : '<p class="mut">Nog geen bedrijf. Koop hieronder een pand in de buurt.</p>';
   const nearHtml = near.length ? near.map((o) => `<div class="bd-rij" data-osm="${o.osm}"><span class="bd-naam"><b>${esc(o.kind.type)} bij ${esc(o.town.name)}</b><span class="bd-feiten"><span>${Math.round(o.row.m2)} m2</span><span>${o.dist} m</span>${o.forSale ? `<span>${euro(o.price)}</span>` : `<span>${esc(o.reason)}</span>`}</span></span>` +
     `<span class="bd-acties">${o.mine ? '' : o.forSale ? buyAsk('koop-pand', o.osm, `Koop ${euro(o.price)}`, o.price, money) : ''}</span></div>`).join('') : '<p class="mut">Er staan geen koopbare bedrijfspanden binnen 250 meter van je.</p>';
-  return `<div class="pm-pane-top"><span class="m-eb">Land en bedrijf</span><h2 class="m-h2 td-h2">Bedrijven</h2></div>` +
-    sectionCard('bedrijven', 'winkel', 'Jouw bedrijven', mineHtml, { count: mine.length, info: 'Een winkel levert elke speldag omzet, ook als je er niet bent. Monumenten, ziekenhuizen, politie en verhaalgebouwen blijven van de wereld.' }) +
+  return sectionCard('bedrijven', 'winkel', 'Jouw bedrijven', mineHtml, { count: mine.length, info: 'Een winkel levert elke speldag omzet, ook als je er niet bent. Monumenten, ziekenhuizen, politie en verhaalgebouwen blijven van de wereld.' }) +
     snackVerwijsHtml(mobile) + sectionCard('buurt', 'gebouw', 'In de buurt', nearHtml, { count: near.length || null }) + homesHtml(homes, money) + `<p class="bd-melding" aria-live="polite">${esc(msgNow())}</p>`;
 }
 
@@ -252,8 +260,7 @@ export function forSaleHtml({ money = 0, offers = [], loading = false, laden = f
   if (!branchOpen('land')) return locked('land');
   const rows = offers.length ? offers.map((o) => `<div class="bd-rij" data-id="${esc(o.id)}"><span class="bd-naam"><b>${esc(o.name)}</b><span class="bd-feiten"><span>${esc(o.kindName)}</span><span>${ha(o.ha)} ha</span><span>bodem ${esc(o.soilWord)}</span><span>${o.dist} m</span><span>${euro(o.price)}</span></span></span>` +
     `<span class="bd-acties">${btn('doel-perceel', 'Route', ` data-id="${esc(o.id)}"`)} ${buyAsk('koop-perceel', o.id, `Koop ${euro(o.price)}`, o.price, money)}</span></div>`).join('') : leegTeKoop(loading || laden);
-  return `<div class="pm-pane-top"><span class="m-eb">Land en bedrijf</span><h2 class="m-h2 td-h2">Te koop</h2></div>` +
-    sectionCard('tekoop', 'kaart', 'Dichtbij', rows, { count: offers.length || null, info: 'Op de kaart zie je alle percelen met de laag Te koop. Wie veel land heeft, betaalt meer voor het volgende perceel.' }) + `<p class="bd-melding" aria-live="polite">${esc(msgNow())}</p>`;
+  return sectionCard('tekoop', 'kaart', 'Dichtbij', rows, { count: offers.length || null, info: 'Op de kaart zie je alle percelen met de laag Te koop. Wie veel land heeft, betaalt meer voor het volgende perceel.' }) + `<p class="bd-melding" aria-live="polite">${esc(msgNow())}</p>`;
 }
 
 // ---- de koppeling met de wereld ----
@@ -281,16 +288,20 @@ export function renderBezitPanels(els, world) {
   // Alleen wachten als de index er nog niet is: ensureIndex() geeft na het laden een al opgeloste belofte terug, en dan riep deze regel via rerender zichzelf
   // eindeloos aan in microtaken (het scherm Land en bedrijf bevroor de hele pagina).
   if (!L.getIndexNow()) L.ensureIndex().then(() => { if (els.rerender) els.rerender(); }).catch(() => {});
-  if (els.overzicht) els.overzicht.innerHTML = summaryHtml({ bezit, farm, money, day, news: L.newsView(world), chains: L.chainViews(), board: L.priceBoard(ui.product), products: L.marketProducts() });
-  if (els.bedrijven) { const p = playerPos(world); els.bedrijven.innerHTML = businessesHtml({ money, mine: L.myBusinesses(), near: L.buildingsNear(p.x, p.y), day, mobile: L.myMobile(), mobileOffers: L.mobileOffers(), homes: L.homesNear(p.x, p.y) }); }
-  if (els.tekoop) els.tekoop.innerHTML = forSaleHtml({ money, offers: nearbyOffers(world), loading: !L.getIndexNow() });
-  if (els.snack) renderSnackPanel(els.snack, world);
-  if (els.club) renderClubPanel(els.club, world);
+  const view = frameView(world), kader = frameHtml(view);
+  if (els.overzicht) els.overzicht.innerHTML = kader + summaryHtml({ bezit, farm, money, day, news: L.newsView(world), chains: L.chainViews(), board: L.priceBoard(ui.product), products: L.marketProducts(), view });
+  if (els.bedrijven) { const p = playerPos(world); els.bedrijven.innerHTML = businessesHtml({ money, mine: L.myBusinesses(), near: L.buildingsNear(p.x, p.y), day, mobile: L.myMobile(), mobileOffers: L.mobileOffers(), homes: L.homesNear(p.x, p.y) }); els.bedrijven.innerHTML = kader + bedrijvenView(world, view); }
+  const aanbod = nearbyOffers(world);
+  if (els.tekoop) { els.tekoop.innerHTML = kader + tekoopView(world, view); }
+  if (els.snack) { renderSnackPanel(els.snack, world); els.snack.insertAdjacentHTML('afterbegin', kader); }
+  if (els.club) { renderClubPanel(els.club, world); els.club.insertAdjacentHTML('afterbegin', kader); }
+  zetTabs(els.overzicht && els.overzicht.closest('[data-panel]'), view, { boerderij: view.rows.length, bedrijven: view.panden.length, tekoop: aanbod.length });
   restore();
   const redo = () => renderBezitPanels(els, world);
   els.rerender = redo;
   if (bound === world) return;
   bound = world;
+  if (els.tekoop) bindVasthouden(els.tekoop, world, () => els.rerender());
   for (const el of [els.overzicht, els.bedrijven, els.tekoop]) {
     if (!el) continue;
     el.addEventListener('change', (e) => {
@@ -313,6 +324,10 @@ export function renderBezitPanels(els, world) {
         els.rerender();
         return;
       }
+      const bk = e.target.closest('[data-bk]');
+      if (bk) { ui.bk = Number(bk.dataset.osm); ui.msg = ''; els.rerender(); return; }
+      const kp = e.target.closest('[data-kp]');
+      if (kp) { koopActie(world, kp.dataset); els.rerender(); return; }
       const b = e.target.closest('[data-bz]');
       if (!b) return;
       act(world, b.dataset, els);
@@ -372,4 +387,107 @@ export function bulkText(a, r) {
   const skipped = Object.entries(r.skipped || {}).map(([k, n]) => `${n}x ${k.replace(/-/g, ' ')}`).join(', ');
   const verb = { 'bulk-zaai': 'gezaaid', 'bulk-oogst': 'geoogst', 'bulk-zelf': 'op Zelf gezet', 'bulk-verpacht': 'verpacht', 'bulk-personeel': 'aan personeel gegeven', 'bulk-verzeker': 'verzekerd', 'bulk-onverzeker': 'van de verzekering gehaald', 'bulk-mieren': 'tegen mieren behandeld', 'bulk-wespen': 'van wespen ontdaan' }[a] || 'gedaan';
   return `${r.done || 0} ${(r.done || 0) === 1 ? 'perceel' : 'percelen'} ${verb}${r.cost > 0 ? ` voor ${euro(r.cost)}` : ''}${skipped ? `; overgeslagen: ${skipped}` : ''}.`;
+}
+
+// ---- Boerderij > Velden en Team (bezitvelden.js): de HTML en de knoppen (data-vd) ----
+const vlakkenVan = (rows) => rows.map((r) => { const o = L.parcelOffer(r.id); return o && o.parcel ? { id: r.id, shape: o.shape, x: o.parcel.x, y: o.parcel.y, statusId: r.statusId, level: r.level, naam: r.name } : null; }).filter(Boolean);
+const melding = () => `<p class="bd-melding" aria-live="polite">${esc(msgNow())}</p>`;
+export function veldenView(world) {
+  const bezit = L.getBezit(), farm = getBoerderij(), money = (world && world.money) || 0;
+  const rows = H.sortRows(H.holdingRows(bezit, farm, { regionOf: (id) => (L.parcelOffer(id) || {}).region }), ui.sort);
+  H.pruneSelection(ui.sel, bezit);
+  if (!rows.length) return '';
+  const sel = ui.veld && rows.some((r) => r.id === ui.veld) ? ui.veld : rows[0].id;
+  return veldenHtml({ rows, bezit, money, gast: !!(world && world.coopRole === 'client'), sel, ticked: ui.sel, sortNaam: ui.sort, vlakken: vlakkenVan(rows) }) + melding();
+}
+export const teamView = (world) => teamHtml({ bezit: L.getBezit(), money: (world && world.money) || 0, confirm: ui.confirm }) + melding();
+
+// Eén knop van Velden of Team. Geeft niets terug; de melding staat in ui.msg. De aanroeper tekent daarna opnieuw.
+export function veldenActie(world, d) {
+  const bezit = L.getBezit(), farm = getBoerderij();
+  const rows = H.holdingRows(bezit, farm, {});
+  const doel = () => (ui.sel.size ? [...ui.sel].filter((id) => rows.some((r) => r.id === id)) : [ui.veld || (rows[0] && rows[0].id)].filter(Boolean));
+  const metDoel = (bz, extra = {}) => { const keep = ui.sel; ui.sel = new Set(doel()); try { act(world, { bz, ok: '1', ...extra }, null); } finally { ui.sel = keep; } };
+  const a = d.vd;
+  if (a === 'kies') { ui.veld = d.id; ui.sel.clear(); ui.msg = ''; }
+  else if (a === 'vink') { H.toggleSelect(ui.sel, d.id); if (!ui.veld) ui.veld = d.id; ui.msg = ''; }
+  else if (a === 'alles') H.selectRows(ui.sel, rows);
+  else if (a === 'niets') H.clearSelection(ui.sel);
+  else if (a === 'sort') ui.sort = H.SORTS[(H.SORTS.indexOf(ui.sort) + (Number(d.dir) || 1) + H.SORTS.length) % H.SORTS.length];
+  else if (a === 'oogst') metDoel('bulk-oogst');
+  else if (a === 'zaai') metDoel('bulk-zaai');
+  else if (a === 'gebruik') metDoel({ self: 'bulk-zelf', staff: 'bulk-personeel', leased: 'bulk-verpacht' }[d.mode]);
+  else if (a === 'verzeker') metDoel(d.aan === '1' ? 'bulk-verzeker' : 'bulk-onverzeker');
+  else if (a === 'mieren') metDoel('bulk-mieren');
+  else if (a === 'wespen') metDoel('bulk-wespen');
+  else if (a === 'gewas') { const r = H.bulkSetCrop(farm, doel(), d.g); ui.msg = r.done ? `Volgend gewas: ${(B.GEWASSEN[d.g] || {}).naam}.` : 'Dat gewas past niet op dit veld.'; L.markeer(); }
+  else if (a === 'arts') ui.msg = L.belArts(world, d.id).text;
+  else if (a === 'koop-vee') { const r = L.koopVee(world, d.id, d.sp); ui.msg = r.text; if (r.ok && world.addMessage) world.addMessage(r.text, 3); }
+  else if (a === 'verkoop-vee') { if (ui.confirm !== 'vv:' + d.id) { ui.confirm = 'vv:' + d.id; ui.msg = 'Nog een keer drukken om de kudde te verkopen.'; } else { ui.confirm = null; ui.msg = L.verkoopVee(world, d.id).text; } }
+  else if (a === 'huur') ui.msg = L.huurArbeider(world, Number(d.skill)).text;
+  else if (a === 'ontsla') { if (d.ok === '1') { L.ontslaArbeider(d.id); ui.confirm = null; ui.msg = 'Ontslagen. De percelen van die arbeider staan weer op Zelf.'; } else ui.confirm = `ontsla:${d.id}`; }
+  else if (a === 'annuleer') ui.confirm = null;
+  else if (a === 'kaart') { const o = L.parcelOffer(d.id); if (o && o.parcel) { import('./routing.js').then((m) => m.setUserWaypoint(o.parcel.x, o.parcel.y, o.name)); ui.msg = `Doel gezet: ${o.name}. Het staat op je kaart.`; } }
+  ui.msgAt = ui.msg ? Date.now() : 0;
+}
+
+// ---- Bedrijven (bezitbedrijven.js) en Te koop (bezitkoop.js) ----
+export function bedrijvenView(world, view) {
+  if (!branchOpen('business')) return locked('business');
+  const money = (world && world.money) || 0, day = Math.floor(getBoerderij().uren / 24);
+  const mine = L.myBusinesses();
+  if (!mine.length) return emptyState('winkel', 'Nog geen bedrijf', 'Een pand levert elke speldag omzet of huur, ook als je er niet bent.', ['boerderij:tekoop', 'Bekijk panden te koop'], 'bedrijven') + `<p class="bd-melding" aria-live="polite">${esc(msgNow())}</p>`;
+  return bedrijvenHtml({ mine, sel: ui.bk, day, owned: view ? Object.keys(view.bezit.parcels).filter((k) => !view.bezit.parcels[k].lg).length + view.bezit.buildings.size : 0, rentView: L.rentView,
+    renoHtml: (m) => renoBtn('reno', m.osm, m.biz, money), verkoopHtml: (m) => askOr('verkoop-pand', m.osm, `Verkopen · ${euro(P.sellValue(m.biz.p))}`, 'Zeker?'), melding: msgNow() });
+}
+let koopLaatst = [];
+export function tekoopView(world, view) {
+  if (!branchOpen('land')) return locked('land');
+  if (!L.getIndexNow()) return leegTeKoop(true);
+  const money = (world && world.money) || 0, p = playerPos(world), bezit = L.getBezit();
+  const owned = Object.keys(bezit.parcels).filter((k) => !bezit.parcels[k].lg).length + bezit.buildings.size;
+  const alle = L.buildingsNear(p.x, p.y, 600, 20);
+  const items = koopItems({ offers: nearbyOffers(world, 30), panden: alle.filter((o) => o.kind && o.kind.type !== 'woning'), woningen: L.homesNear(p.x, p.y, 8), money, owned });
+  koopLaatst = items;
+  const rows = view ? view.rows : [];
+  const vlakken = rows.map((r) => { const o = L.parcelOffer(r.id); return o && o.parcel ? { id: r.id, shape: o.shape, x: o.parcel.x, y: o.parcel.y, statusId: 'eigen', level: 'self', naam: r.name } : null; }).filter(Boolean);
+  return koopHtml({ items, sel: ui.koop.sel, soort: ui.koop.soort, sort: ui.koop.sort, money, bevestig: ui.koop.bevestig, dagNu: view ? view.w.perDag : null, vlakken }) + `<p class="bd-melding" aria-live="polite">${esc(msgNow())}</p>`;
+}
+export function koopActie(world, d) {
+  const k = ui.koop, a = d.kp;
+  const wissel = (lijst, nu, dir) => lijst[(lijst.indexOf(nu) + (Number(dir) || 1) + lijst.length) % lijst.length];
+  if (a === 'kies') { k.sel = d.key; k.bevestig = false; ui.msg = ''; }
+  else if (a === 'soort') { k.soort = wissel(SOORTEN, k.soort, d.dir); k.bevestig = false; }
+  else if (a === 'sort') k.sort = wissel(SORTEN, k.sort, d.dir);
+  else if (a === 'koop') k.bevestig = true;
+  else if (a === 'terug') k.bevestig = false;
+  else if (a === 'koop-ok') {
+    const i = koopLaatst.find((x) => x.key === d.key);
+    k.bevestig = false;
+    if (i) { act(world, { bz: i.act, id: String(i.id), ok: '1' }, null); k.sel = null; }
+  }
+  ui.msgAt = ui.msg ? Date.now() : 0;
+}
+// Vasthouden om te kopen (HOUD_MS): muis, toets (Enter of Spatie) en controller (A is een toets). Een klik zonder vasthouden, zoals de controller die soms doet, telt als de eerste van twee drukken.
+export function bindVasthouden(el, world, rerender) {
+  if (!el || !el.dataset || el.dataset.houdGebonden) return;
+  el.dataset.houdGebonden = '1';
+  let timer = null, knop = null, gedaan = false, gewapend = 0;
+  const stop = () => { if (timer) clearTimeout(timer); timer = null; if (knop) { knop.classList.remove('is-vasthouden'); knop = null; } };
+  const start = (b) => {
+    if (timer) return;
+    knop = b; gedaan = false; b.classList.add('is-vasthouden');
+    timer = setTimeout(() => { timer = null; gedaan = true; const key = b.dataset.houd; stop(); koopActie(world, { kp: 'koop-ok', key }); rerender(); }, HOUD_MS);
+  };
+  const vind = (e) => (e.target && e.target.closest ? e.target.closest('[data-houd]') : null);
+  el.addEventListener('pointerdown', (e) => { const b = vind(e); if (b) { gewapend = 0; start(b); } });
+  for (const t of ['pointerup', 'pointerleave', 'pointercancel']) el.addEventListener(t, (e) => { if (knop) stop(); });
+  el.addEventListener('keydown', (e) => { const b = vind(e); if (b && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); if (!e.repeat) start(b); } });
+  el.addEventListener('keyup', (e) => { if (knop && (e.key === 'Enter' || e.key === ' ')) stop(); });
+  el.addEventListener('click', (e) => {
+    const b = vind(e); if (!b) return;
+    if (gedaan) { gedaan = false; return; }
+    // een klik zonder echte aanraking of toets (de controller): de tweede druk binnen vier seconden bevestigt
+    if (e.detail === 0) { const nu = Date.now(); if (gewapend && nu - gewapend < 4000) { gewapend = 0; koopActie(world, { kp: 'koop-ok', key: b.dataset.houd }); rerender(); } else { gewapend = nu; ui.msg = 'Druk nog een keer om te kopen.'; ui.msgAt = nu; rerender(); } }
+  });
 }

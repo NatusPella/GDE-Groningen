@@ -43,9 +43,9 @@ t('een koop vraagt een tweede druk; na Ja is de vergunning van jou en de plek to
 t('de wagen op een plek: voorspelling, voorraad, knoppen voor uren en prijs, het menu met koeling dicht', () => {
   reset(); const w = wereld(); SL.buyVan(w); SL.koopVergunning(w, 'park'); SL.placeVan('park'); L.snackState().own.stockDays = 3;
   const h = U.snackHtml(SL.snackView(w));
-  assert.match(h, /Noorderplantsoen/); assert.match(h, /voorraad voor 3 dagen/); assert.match(h, /vandaag ongeveer/);
+  assert.match(h, /Noorderplantsoen/); assert.match(h, /Voorraad<\/dt><dd>3 dagen/); assert.match(h, /Verwacht vandaag/);
   assert.match(h, /data-sn="open" data-patch="hours:9"/); assert.match(h, /data-sn="open" data-patch="pr:0\.95"/);
-  assert.match(h, /data-sn="menu" data-id="burger" data-on="0" disabled/); assert.match(h, /data-sn="vul"/);
+  assert.match(h, /data-sn="menu" data-id="burger" data-on="0"[^>]*disabled/); assert.match(h, /data-sn="vul"/);
   assert.match(h, /Koeling/); assert.match(h, /Grotere wagen/);
 });
 t('een wachtende gebeurtenis staat bovenaan met antwoorden en kosten', () => {
@@ -53,7 +53,7 @@ t('een wachtende gebeurtenis staat bovenaan met antwoorden en kosten', () => {
   L.snackState().ev.pending = { kind: 'storing', id: 1, wagon: 'own', spot: 'park', depth: 0, price: 0, text: 'Een frituurpan is net een vriendschap.', choices: [{ id: 'repareer', label: 'Direct laten repareren', cost: 350 }, { id: 'wacht', label: 'Wachten', cost: 0, def: true }], day: L.calToday(), deadline: L.calToday() + 3 };
   const h = U.snackHtml(SL.snackView(w));
   assert.match(h, /data-event="storing"/); assert.match(h, /Direct laten repareren \(€\s?350\)/); assert.match(h, /data-choice="wacht"/); assert.match(h, /Nog 4 dagen/);
-  assert.ok(h.indexOf('data-event') < h.indexOf('Jouw snackwagen'));
+  assert.ok(h.indexOf('data-event') < h.indexOf('data-blok="wagen"'));
 });
 t('de vloot, een prijzenoorlog en tekst-ontsnapping', () => {
   reset(); const w = wereld(); SL.koopVergunning(w, 'park'); SL.koopVloot(w, 'park', 'aandeel');
@@ -65,7 +65,7 @@ t('de vloot, een prijzenoorlog en tekst-ontsnapping', () => {
 t('de knoppen: renderSnackPanel bindt een klik en doet de actie (met een nepelement)', () => {
   reset(); const w = wereld(); SL.buyVan(w);
   let handler = null; const el = { innerHTML: '', addEventListener(ev, fn) { if (ev === 'click') handler = fn; } };
-  U.renderSnackPanel(el, w); assert.ok(handler); assert.match(el.innerHTML, /Snackwagen/);
+  U.renderSnackPanel(el, w); assert.ok(handler); assert.match(el.innerHTML, /Imperium/);
   const click = (d) => handler({ target: { closest: () => ({ dataset: d }) } });
   click({ sn: 'vergunning', id: 'dorp' });
   assert.equal(U.sui.confirm, 'vergunning:dorp'); assert.ok(!L.snackState().permits.dorp);
@@ -75,16 +75,16 @@ t('de knoppen: renderSnackPanel bindt een klik en doet de actie (met een nepelem
   click({ sn: 'open', patch: 'hours:12' }); assert.equal(L.snackState().own.hours, 12);
   click({ sn: 'vul' }); assert.equal(L.snackState().own.stockDays, 5);
   click({ sn: 'menu', id: 'souffle' }); assert.match(U.sui.msg, /vol/);
-  U.renderSnackPanel(el, w); assert.match(el.innerHTML, /Snackwagen/);
+  U.renderSnackPanel(el, w); assert.match(el.innerHTML, /Imperium/);
 });
 t('Tegels (#1273): "Reputatie" toont een getal van 100, geen "Naam" met een kaal getal; geen NaN, geen lege waarde; de plekknop heet "Op de kaart"', () => {
   reset(); const w = wereld(); SL.buyVan(w); SL.koopVergunning(w, 'park');
   const h = U.snackHtml(SL.snackView(w));
-  const tegels = [...h.matchAll(/<span class="bz-tegel"><small>([^<]*)<\/small><b>([^<]*)<\/b>/g)].map((m) => [m[1], m[2]]);
-  assert.ok(tegels.length >= 4);
-  for (const [k, x] of tegels) { assert.ok(k.trim() && String(x).trim(), 'lege tegel ' + k); assert.ok(!/NaN|undefined|null/.test(k + x), 'rommel in tegel ' + k); }
-  assert.ok(!tegels.some(([k]) => k === 'Naam'), 'een tegel "Naam" met een getal erin is de verkeerde bron');
-  assert.match(tegels.find(([k]) => k === 'Reputatie')[1], /^[0-9]+ van 100$/);
+  const balken = [...h.matchAll(/ds-z-balk__label">([^<]*)</g)].map((m) => m[1]);
+  assert.ok(balken.length >= 2);
+  for (const x of balken) assert.ok(!/NaN|undefined|null/.test(x), 'rommel in balk ' + x);
+  assert.ok(balken.some((x) => /^Reputatie: [0-9]+ van 100$/.test(x)), 'de reputatie is een balk met een getal van 100');
+  assert.ok(!/<small>Naam<\/small>/.test(h));
   assert.match(h, /data-sn="doel-plek"[^>]*>Op de kaart</); assert.ok(!/>Doel</.test(h));
 });
 t('Buurt en klanten: tevredenheid, goodwill, bondgenoten, vaste klanten met hulpknoppen met bevestiging, meewerken bij een medespeler, het geschil met zijn antwoorden', () => {
@@ -116,7 +116,7 @@ t('de bron: nederlands, geen merken, geen fetch, geen Math.random', async () => 
 t('de tegel toont de reputatie onder dat woord, de prijs staat een keer per plek en kopen is de gele knop (#1247, #1248, #1249)', () => {
   reset(); const w = wereld();
   const h = U.snackHtml(SL.snackView(w));
-  assert.match(h, /<small>Reputatie<\/small><b>\d+( van 100)?<\/b>/); assert.ok(!/<small>Naam<\/small>/.test(h));
+  assert.match(h, /Reputatie: \d+ van 100/); assert.ok(!/<small>Naam<\/small>/.test(h));
   const markt = h.slice(h.indexOf('data-spot="markt"'), h.indexOf('data-spot="markt"') + 4000);
   assert.equal((markt.match(/€25\.\d{3}|€\d+\.\d{3}/g) || []).length >= 1, true);
   assert.ok(!/<span>overnemen €/.test(h) && !/<span>vergunning €/.test(h), 'de prijs staat niet ook nog als feit naast de knop');
