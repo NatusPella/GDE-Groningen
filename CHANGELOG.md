@@ -9,6 +9,8 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ## [Unreleased]
 
+- De game staat nu op de hoofdpagina van de webversie (GitHub Pages); de marketingpagina is weggehaald. De oude link /play/ stuurt door naar de hoofdpagina.
+
 ## [0.66.0] - 2026-11-24
 
 - **Let op, pre-release:** deze versie is uitgebracht zonder de volledige releasegate, met akkoord van de eigenaar (24-11). Er is geen volledige serietest, geen AI-code-review, geen stille fps-meting en geen volledige beeldregressie gedraaid. Wel gedraaid: gerichte tests per onderdeel en een Electron-rooktest.

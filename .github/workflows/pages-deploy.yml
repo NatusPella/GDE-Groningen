@@ -1,10 +1,7 @@
-# De game-webversie op GitHub Pages zetten (#1090, #57), samen met de marketingpagina in een site:
-#   https://<eigenaar>.github.io/GDE-Groningen/        de marketingpagina (website/build.mjs)
-#   https://<eigenaar>.github.io/GDE-Groningen/play/   het spel (web/build.mjs, relatieve paden)
-# Een Pages-site per repo, dus deze workflow bouwt beide delen en uploadt ze in een artifact; de
-# oudere workflow "Pages (marketing)" (pages.yml) zet alleen de marketingpagina en zou /play/ weghalen.
-# Gebruik daarna dus deze workflow ook voor een nieuwe marketingpagina (zet 'speel' dan op false
-# alleen als /play/ bewust weg moet).
+# De game-webversie op GitHub Pages zetten (#1090, #57). Sinds 24-11 (besluit eigenaar) is de site alleen het spel:
+#   https://<eigenaar>.github.io/GDE-Groningen/        het spel (web/build.mjs, relatieve paden)
+#   https://<eigenaar>.github.io/GDE-Groningen/play/   verwijst door naar de hoofdpagina (oude link)
+# De marketingpagina is weggehaald; website/build.mjs blijft in de repo maar wordt niet meer gepubliceerd.
 #
 # Alleen met de hand te starten (workflow_dispatch) en alleen door de repository-eigenaar (constitutie 8):
 #   gh workflow run pages-deploy.yml -f ref=main -f tag=v0.64.0   (tag leeg = de nieuwste release; ref moet nieuwer zijn dan de Pages-bouw)
@@ -31,11 +28,6 @@ on:
         type: string
       opus_only:
         description: 'Alleen Opus-audio publiceren (ca. 300 MB minder; Safari vóór 18.4 krijgt geen geluid)'
-        required: false
-        default: true
-        type: boolean
-      speel:
-        description: 'Het spel onder /play/ meepubliceren (uit = alleen de marketingpagina)'
         required: false
         default: true
         type: boolean
@@ -67,7 +59,6 @@ jobs:
       # Een oude tag (bijv. v0.64.0) heeft de Pages-bouwstappen nog niet: de run faalde pas na de lange
       # audiobouw op 'Cannot find module scripts/pages_site_check.mjs'. Daarom hier meteen, met een duidelijke melding.
       - name: Ref bevat de Pages-bouw
-        if: ${{ inputs.speel }}
         env:
           REF: ${{ inputs.ref }}
         run: |
@@ -80,7 +71,6 @@ jobs:
           node-version: lts/*
 
       - name: De gestagede wereld van de release
-        if: ${{ inputs.speel }}
         env:
           WORLD_TAG: ${{ inputs.tag }}
         run: |
@@ -97,13 +87,11 @@ jobs:
       # three.js en de lettertypen haalt desktop/build.mjs zelf op (vastgezet in de vendor-lock); er is
       # geen npm ci nodig, want de webbuild gebruikt geen node_modules.
       - name: ffmpeg (Opus)
-        if: ${{ inputs.speel }}
         run: |
           command -v ffmpeg >/dev/null || { sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg; }
           ffmpeg -hide_banner -encoders 2>/dev/null | grep -q libopus
 
       - name: Opus-cache
-        if: ${{ inputs.speel }}
         uses: actions/cache@v4
         with:
           path: |
@@ -114,30 +102,23 @@ jobs:
             opus-
 
       - name: Webversie bouwen
-        if: ${{ inputs.speel }}
         env:
           GDE_PREBUILT_WORLD: ${{ runner.temp }}/gde-world/world
         run: node web/build.mjs
 
       - name: Webversie controleren
-        if: ${{ inputs.speel }}
         run: |
           if [ "$GDE_WEB_OPUS_ONLY" = "1" ]; then node scripts/pages_site_check.mjs web-dist --opus-only; else node scripts/pages_site_check.mjs web-dist; fi
           node scripts/web_shell_test.mjs
 
-      - name: Marketingpagina bouwen
-        run: node website/build.mjs
-
       - name: Site samenstellen
-        env:
-          SPEEL: ${{ inputs.speel }}
         run: |
+          # Het spel staat op de hoofdpagina; de marketingpagina is weg (besluit eigenaar 24-11).
           mkdir -p "$RUNNER_TEMP/site"
-          cp -a website/_site/. "$RUNNER_TEMP/site/"
-          if [ "$SPEEL" = "true" ]; then
-            mkdir -p "$RUNNER_TEMP/site/play"
-            mv web-dist/* "$RUNNER_TEMP/site/play/"
-          fi
+          cp -a web-dist/. "$RUNNER_TEMP/site/"
+          # De oude link /play/ blijft werken: een kleine doorverwijzing naar de hoofdpagina.
+          mkdir -p "$RUNNER_TEMP/site/play"
+          printf '<!doctype html><meta charset="utf-8"><meta http-equiv="refresh" content="0; url=../"><a href="../">GDE Groningen</a>' > "$RUNNER_TEMP/site/play/index.html"
           du -sh "$RUNNER_TEMP/site"
           find "$RUNNER_TEMP/site" -type f | wc -l
 
