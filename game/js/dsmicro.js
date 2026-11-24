@@ -39,11 +39,14 @@ export function staffelDuur(n, lang = 250) {
 }
 
 // De glijdende onderstreping: x (px vanaf de linkerrand van de tabrij) en de breedte van de actieve tab.
-// rects: [{ left, width }] van alle tabs, actief: index, kader: { left } van de tabrij.
-export function tabLine(rects, actief, kader = { left: 0 }) {
+// rects: [{ left, width }] van alle tabs, actief: index, kader: { left } van de tabrij. schaal: hoeveel schermpixels een CSS-pixel van de tabrij is
+// (het menu staat onder een CSS-zoom van de UI-schaal: getBoundingClientRect geeft schermpixels, de transform van de streep rekent in CSS-pixels;
+// zonder deling stond de streep bij een zoom van 0,92 onder Snackwagen terwijl Club gekozen was, beeld 24-11).
+export function tabLine(rects, actief, kader = { left: 0 }, schaal = 1) {
   const r = rects && rects[actief];
   if (!r) return { x: 0, w: 0 };
-  return { x: Math.round((r.left - (kader.left || 0)) * 10) / 10, w: Math.max(0, Math.round(r.width * 10) / 10) };
+  const s = Number.isFinite(schaal) && schaal > 0 ? schaal : 1;
+  return { x: Math.round(((r.left - (kader.left || 0)) / s) * 10) / 10, w: Math.max(0, Math.round((r.width / s) * 10) / 10) };
 }
 
 // De zoom van een kader: schermbreedte gedeeld door layoutbreedte; 1 als een van beide ontbreekt (verborgen, geen DOM).
@@ -110,12 +113,10 @@ export function applyTabLine(kader) {
   const actief = tabs.findIndex((t) => t.getAttribute('aria-selected') === 'true');
   if (actief < 0) return;
   const k = kader.getBoundingClientRect();
-  // #1200 (beeld 24-11): het menu staat in een stage met CSS-zoom (--mz, kleiner dan 1 onder 1920x1080). getBoundingClientRect
-  // meet op het scherm, maar de translate van de streep geldt binnen die zoom: op 1280x720 stond de streep onder Camera terwijl
-  // Toegankelijkheid open was. Terug naar de eigen px van het kader (schermbreedte gedeeld door de layoutbreedte).
-  const z = tabZoom(k.width, kader.offsetWidth);
-  const m = tabLine(tabs.map((t) => t.getBoundingClientRect()), actief, k);
-  const x = Math.round(m.x / z * 10) / 10, w = Math.round(m.w / z * 10) / 10;
+  // #1200 en #1113 (beeld 24-11): het menu staat in een stage met CSS-zoom (--mz, kleiner dan 1 onder 1920x1080). getBoundingClientRect
+  // meet op het scherm, maar de translate van de streep geldt binnen die zoom: op 1280x720 stond de streep onder de verkeerde tab.
+  // tabLine deelt door de zoom van het kader (schermbreedte gedeeld door de layoutbreedte, tabZoom); één keer, hier.
+  const { x, w } = tabLine(tabs.map((t) => t.getBoundingClientRect()), actief, k, tabZoom(k.width, kader.offsetWidth));
   if (!(w > 0)) { kader.classList.remove('ds-m-tabs--aan'); delete kader.dataset.lijn; return; } // verborgen: niets te meten
   const line = kader.querySelector('.ds-m-tabs__lijn');
   const eerste = !kader.dataset.lijn;

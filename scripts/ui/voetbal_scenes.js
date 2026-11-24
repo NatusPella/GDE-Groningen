@@ -152,6 +152,34 @@ await scene('rollen', async (ev) => {
   await shot('club-manager', 600);
 });
 
+// 3c. Controle 24-11 (coördinator): NaN in geometrie bij Land en bedrijf, de tabstreep onder Club en de gekozen vorming en stijl in Trainer.
+// Een sonde op computeBoundingBox/Sphere telt geometrieën met NaN (zoals de waarschuwing van three.js); het foutlog zegt of de bewaking van
+// vehiclepreview.js een voorbeeld weigerde. Daarna de plek van de tabstreep tegenover de gekozen tab.
+await scene('nan', async (ev) => {
+  open(); const c = start(); w.money = Math.max(w.money || 0, 60000);
+  CL.replaceCareer({ ...c, roles: { ...c.roles, trainer: true, manager: true }, tactic: { formation: '4-3-3', style: 'aanvallend' } });
+  const T = window.__scene3d.THREE, BG = T.BufferGeometry.prototype, oud = { box: BG.computeBoundingBox, bol: BG.computeBoundingSphere };
+  ev.nan = 0;
+  const kijk = (g) => { const a = g.attributes && g.attributes.position; if (!a || !a.array) return; for (let k = 0; k < a.array.length; k++) if (!Number.isFinite(a.array[k])) { ev.nan++; return; } };
+  BG.computeBoundingBox = function () { kijk(this); return oud.box.call(this); };
+  BG.computeBoundingSphere = function () { kijk(this); return oud.bol.call(this); };
+  await menu('boerderij', 1500);
+  { const bt = [...document.querySelectorAll('[role="tab"]')].find((b) => /^Boerderij$/.test((b.textContent || '').trim()) && b.offsetParent); if (bt) { bt.click(); await sleep(500); } }
+  await sleep(4000); await shot('boerderij-plaatjes', 300);   // de plaatjes (dier, gewas, trekker) komen lui in de rusttijd
+  ev.plaatjes = [...document.querySelectorAll('[data-fp]')].map((x) => x.dataset.fp + ':' + (x.querySelector('img') ? 'beeld' : 'icoon'));
+  const k = [...document.querySelectorAll('[data-panel] button, [role="tab"]')].find((b) => /^club$/i.test((b.textContent || '').trim()) && b.offsetParent);
+  if (k) { k.click(); await sleep(3000); }
+  const kader = k && k.closest('.ds-m-tabs'), lijn = kader && kader.querySelector('.ds-m-tabs__lijn');
+  if (k && lijn) { const a = k.getBoundingClientRect(), b = lijn.getBoundingClientRect(); ev.tab = { club: [Math.round(a.left), Math.round(a.right)], streep: [Math.round(b.left), Math.round(b.right)] }; }
+  if (kader && lijn) { const kr = kader.getBoundingClientRect(), cs = getComputedStyle(kader), ls = getComputedStyle(lijn); ev.meting = { kader: [Math.round(kr.left), Math.round(kr.width)], pos: cs.position, x: kader.style.getPropertyValue('--ds-m-tab-x'), w: kader.style.getPropertyValue('--ds-m-tab-w'), ouder: lijn.offsetParent && (lijn.offsetParent.tagName + '.' + String(lijn.offsetParent.className).slice(0, 40)), transform: ls.transform, overgang: ls.transition.slice(0, 60), kaderPad: cs.paddingLeft + '/' + cs.borderLeftWidth, scroll: kader.scrollLeft, lijnCss: ['left', 'right', 'width', 'margin-left', 'scale', 'translate', 'transform-origin', 'position', 'animation-name', 'display'].map((k2) => k2 + '=' + ls.getPropertyValue(k2)).join(' '), lijnKlasse: lijn.className, lijnOffset: [lijn.offsetLeft, lijn.offsetWidth] }; }
+  await shot('club-tab', 500);
+  BG.computeBoundingBox = oud.box; BG.computeBoundingSphere = oud.bol;
+  try { const EL = await imp('errorlog'); ev.geweigerd = (String(EL.errorReport()).match(/Voorbeeld van [^\n]*/g) || []).slice(0, 3); } catch (e) { ev.geweigerd = 'fout ' + e.message; }
+  await menu('voetbal', 1500); await klik('[data-vb="tab:trainer"]', 1200);
+  ev.actief = [...document.querySelectorAll('.ds-z-tab--actief[data-vb^="tactic:"]')].map((b) => b.dataset.vb);
+  await shot('trainer-keuze', 500);
+});
+
 // 4. Trainende teams op het thuispark (#1115) en het veld van de sim op de plek van het echte park (#1117)
 await scene('park', async (ev) => {
   open(); const c = start(); const club = CL.getClub(c.club);
