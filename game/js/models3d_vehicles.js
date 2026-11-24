@@ -2394,6 +2394,7 @@ function buildMaaidorserMesh(v) {
   }
   group.userData.wheels = wheels;
   group.userData.wheelRadius = 0.95;
+  group.userData.lodDoel = 1400;
   return group;
 }
 
@@ -2415,6 +2416,7 @@ function buildLaadmachineMesh(v) {
   }
   group.userData.wheels = wheels;
   group.userData.wheelRadius = 0.46;
+  group.userData.lodDoel = 1300;
   return group;
 }
 
@@ -3142,6 +3144,13 @@ function buildBusMesh(v) {
   group.add(frontMesh);
   group.userData.deurBody = frontMesh;
   koppelDeurgaten(group, frontMesh, frontGeo);
+  // niveau 1 van de lodkit (vehiclelod3d.js): een eigen, eenvoudig gebouwde romp in plaats van een vereenvoudiging van het volle model
+  group.userData.lodRomp = cached(key + '|fl', () => {
+    const B = new GeoBuilder(3);
+    busSectionQ(B, x0f, hl, wid, { front: true, rear: false, wheelXs: [fwX, mwX], doors: frontDoors, simple: true });
+    busBellows(B, jointX, wid, true);
+    return B.build();
+  });
 
   const rear = new THREE.Group();
   rear.position.x = jointX;
@@ -3151,18 +3160,31 @@ function buildBusMesh(v) {
     busSectionQ(B, -BUS_JOINT_GAP - rearLen, -BUS_JOINT_GAP, wid, { front: false, rear: true, wheelXs: [rwX], doors: [{ x: -BUS_JOINT_GAP - (trailer ? 1.4 : 1.2), id: null }] });
     return B.build();
   });
-  rear.add(new THREE.Mesh(rearGeo, mats));
+  // de achterwagen heeft eigen materialen en een eigen LOD: met de materialen van de voorwagen verdween hij mee met het niveau van de voorwagen
+  const rearMats = vehicleMaterials(!!v.wrecked);
+  rear.add(new THREE.Mesh(rearGeo, rearMats));
+  rear.userData.lodRomp = cached(key + '|rl', () => {
+    const B = new GeoBuilder(3);
+    busSectionQ(B, -BUS_JOINT_GAP - rearLen, -BUS_JOINT_GAP, wid, { front: false, rear: true, wheelXs: [rwX], doors: [{ x: -BUS_JOINT_GAP - (trailer ? 1.4 : 1.2), id: null }], simple: true });
+    return B.build();
+  });
+  rear.userData.lodDoel = 0;
 
   const wgeo = cached('buswheel2', () => busWheelGeometry(BUS_WHEEL_R, 0.3));
   const wheels = [];
   const wz = wid / 2 - 0.2;
   for (const x of [fwX, mwX]) for (const s of [1, -1]) addWheel(group, wgeo, mats[0], x, BUS_WHEEL_R, s * wz, wheels);
-  for (const s of [1, -1]) addWheel(rear, wgeo, mats[0], rwX, BUS_WHEEL_R, s * wz, wheels);
+  const rearWheels = [];
+  for (const s of [1, -1]) addWheel(rear, wgeo, rearMats[0], rwX, BUS_WHEEL_R, s * wz, rearWheels);
+  wheels.push(...rearWheels);
+  rear.userData.wheels = rearWheels;
 
   group.userData.wheels = wheels;
   group.userData.frontWheels = wheels.slice(0, 2);
   group.userData.wheelRadius = BUS_WHEEL_R;
   group.userData.busRear = rear;
+  attachVehicleLods(rear, 'busrear');
+  group.userData.lodDoel = 1800; // niveau 1 van de lodkit: bussen rijden in groten getale op 60 tot 150 m
   group.userData.busSections = { frontLen, frontX, rearLen, rearX };
 
   if (v.isPolice) {
@@ -4109,6 +4131,11 @@ function buildMidiBusMesh(v) {
   const bodyM = new THREE.Mesh(geo, mats);
   group.add(bodyM);
   group.userData.deurBody = bodyM;
+  group.userData.lodRomp = cached(`midibus2l|${len}|${wid}`, () => {
+    const B = new GeoBuilder(3);
+    busSectionQ(B, -hl, hl, wid, { front: true, rear: true, wheelXs: [fwX, rwX], doors: [{ x: mDoors[0], id: null }, { x: mDoors[1], id: null }], simple: true });
+    return B.build();
+  });
   koppelDeurgaten(group, bodyM, geo);
   const wgeo = cached('buswheel2', () => busWheelGeometry(BUS_WHEEL_R, 0.3));
   const wheels = [];

@@ -714,13 +714,15 @@ function splitGroups(geo) {
 function buildPassengerCar(cfg, seg) {
   const key = `${cfg.front}|${cfg.body}|${cfg.stripe}|${seg.kind}|${seg.len}|${seg.cab || 0}`;
   let e = carGeos.get(key);
-  if (!e) { e = buildCarGeometry(cfg, seg, TRAIN_HALF_WIDTH); e.parts = splitGroups(e.geo); for (const p of e.parts) if (p) p.userData.shared = true; carGeos.set(key, e); }
+  if (!e) { e = buildCarGeometry(cfg, seg, TRAIN_HALF_WIDTH); e.parts = splitGroups(e.geo); e.lod1 = splitGroups(buildCarGeometry(cfg, seg, TRAIN_HALF_WIDTH, true).geo)[0]; if (e.lod1) e.lod1.userData.shared = true; for (const p of e.parts) if (p) p.userData.shared = true; carGeos.set(key, e); }
   const g = new THREE.Group();
   // drie meshes (romp met vertexkleuren, doorzichtig salonglas, cabineglas): het glas heeft een eigen materiaal en volgorde
   [BODY_VC, SALOON_GLASS, GLASS_MAT].forEach((material, i) => {
     if (!e.parts[i]) return;
     const mesh = new THREE.Mesh(e.parts[i], material);
     mesh.castShadow = i === 0;
+    // niveau 1 van het centrale systeem: een eigen, eenvoudig gebouwde romp (vehicle_train.js, simple) van ca. 1000 tot 1500 driehoeken
+    if (i === 0 && e.lod1) mesh.userData.lodRomp = e.lod1;
     g.add(mesh);
   });
   const L = seg.len, H = cfg.height, W = TRAIN_HALF_WIDTH * 2, NOSE = cfg.front === 'virm' ? 1.9 : 1.6;
@@ -742,7 +744,7 @@ function buildTrainView(t) {
     const m = buildCar(t.cfg, car.seg);
     group.add(m);
     // centraal LOD-systeem (lodkit3d.js): per wagen lichtere niveaus naast elke mesh, gewisseld op afstand tot de camera
-    makeLodObject('train', 'wagen', m);
+    makeLodObject('train', `wagen-${t.cfg.front}-${car.seg.kind}-${car.seg.cab || 0}`, m); // de naam houdt een gespiegelde kopwagen uit dezelfde keten (anders kreeg wagen -1 de neus van wagen 1 op niveau 1)
     return m;
   });
   scene.add(group);

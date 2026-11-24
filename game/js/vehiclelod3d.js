@@ -14,7 +14,7 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
 import { DitherLOD } from './lod3d.js';
 import { lodSpec, registerLodModel, LOD_KINDS } from './lodregistry.js';
 import { lodScale } from './lodkit3d.js';
-import { buildLodChainGroups } from './lodsimplify.js';
+import { buildLodChainGroups, simplifyToTarget } from './lodsimplify.js';
 
 const lodGeos = new WeakMap(); // rompgeometrie -> { l1, l2, tris }
 
@@ -96,11 +96,26 @@ function grof(t) {
   return opp >= 0.0006 && opp / Math.max(...e) >= 0.01;
 }
 // haalt niveau 1 de minCut van de soort niet (een klein model als de heli), dan vereenvoudigt het centrale systeem hem verder
-function genoegMinder(l1, t0) {
-  const need = LOD_KINDS.vehicle.minCut[0];
-  if (1 - triCount(l1) / t0 >= need) return l1;
+// doel (24-11): een zwaar model (bus, maaidorser, trein) mag een eigen bovengrens voor niveau 1 opgeven (group.userData.lodDoel, in driehoeken);
+// de snede wordt dan zo groot dat niveau 1 daaronder blijft, met hetzelfde silhouetbehoud van lodsimplify.
+// Met een doel: lodsimplify.js simplifyToTarget (kleine stappen in de celgrootte, silhouet bewaakt).
+function totDoel(l1, doel) {
+  const r = simplifyToTarget(l1.attributes.position.array, l1.attributes.color.array, l1.groups, doel);
+  if (!r) return null;
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.Float32BufferAttribute(r.geom.position, 3));
+  g.setAttribute('color', new THREE.Float32BufferAttribute(r.geom.color, 3));
+  for (const x of r.groups) g.addGroup(x.start, x.count, x.materialIndex);
+  g.computeVertexNormals();
+  g.userData.shared = true;
+  return g;
+}
+function genoegMinder(l1, t0, doel = 0) {
+  if (doel && triCount(l1) > doel) { const g = totDoel(l1, doel); if (g) return g; }
+  const need = Math.max(LOD_KINDS.vehicle.minCut[0], doel ? 1 - doel / Math.max(1, triCount(l1)) : 0);
+  if (1 - triCount(l1) / t0 >= need && (!doel || triCount(l1) <= doel)) return l1;
   const P = l1.attributes.position.array, C = l1.attributes.color.array;
-  const { levels } = buildLodChainGroups({ position: P, color: C, index: null }, l1.groups, { minCut: [need, LOD_KINDS.vehicle.minCut[1]] });
+  const { levels } = buildLodChainGroups({ position: P, color: C, index: null }, l1.groups, { minCut: [need, Math.max(LOD_KINDS.vehicle.minCut[1], need)] });
   for (const lv of levels.slice(1)) {
     const flat = lv.geom;
     const g = new THREE.BufferGeometry();
@@ -109,7 +124,7 @@ function genoegMinder(l1, t0) {
     for (const gr of lv.groups) g.addGroup(gr.start, gr.count, gr.materialIndex);
     g.computeVertexNormals();
     g.userData.shared = true;
-    if (1 - triCount(g) / t0 >= need) return g;
+    if (1 - triCount(g) / t0 >= LOD_KINDS.vehicle.minCut[0] && (!doel || triCount(g) <= doel)) return g;
   }
   return l1;
 }
@@ -147,13 +162,15 @@ export function attachVehicleLods(group, naam = 'voertuig') {
   const inv = new THREE.Matrix4().copy(body.matrixWorld).invert();
   let set = lodGeos.get(body.geometry);
   if (!set) {
+    // een voertuig met een eigen eenvoudig gebouwde romp (userData.lodRomp: de bus) gebruikt die voor niveau 1; anders de vereenvoudigde romp
+    const eigen1 = group.userData.lodRomp ? trisOf(group.userData.lodRomp) : null;
     const romp = trisOf(body.geometry);
     const extra = group.userData.deurenDicht ? trisOf(group.userData.deurenDicht.geometry) : [];
     const wielen = [];
     for (const w of group.userData.wheels || []) wielen.push(...eenvoudigWiel(w, inv));
     let t0 = 0;
     group.traverse((o) => { if (o.isMesh && o.geometry && o.geometry.attributes.position && !o.name.startsWith('lod')) t0 += triCount(o.geometry); });
-    const l1 = genoegMinder(build([...romp, ...extra].filter(grof).concat(wielen)), t0);
+    const l1 = eigen1 ? build(eigen1.concat(wielen)) : genoegMinder(build([...romp, ...extra].filter(grof).concat(wielen)), t0, group.userData.lodDoel || 0);
     const l2 = build(silhouet([...romp, ...extra], hoofdkleur(romp)), 1);
     set = { l1, l2, tris: [Math.round(t0), triCount(l1), triCount(l2)] };
     lodGeos.set(body.geometry, set);

@@ -27,6 +27,13 @@ const REAR_LV = [[0.34, 0, 0], [0.44, 0.04, 0], [0.58, 0.04, 0], [0.64, 0, 0], [
 const REAR_ROOF = [[2.62, -0.1, 0], [2.78, -0.2, 0.1], [2.92, -0.4, 0.3], [3.0, -0.7, 0.55]];
 const FLAT_LV = [[0.34, 0, 0], [0.46, 0, 0], [0.58, 0, 0], [0.64, 0, 0], [0.85, 0, 0], [0.91, 0, 0], [1.0, 0, 0], [2.55, 0, 0], [2.62, 0, 0]];
 const FLAT_ROOF = [[2.62, 0, 0], [2.78, 0, 0.1], [2.92, 0, 0.3], [3.0, 0, 0.55]];
+// de grovere profielen van het eenvoudige niveau (simple)
+const FRONT_S = [[0.34, 0, 0], [0.64, 0, 0], [0.9, 0, 0], [1.0, 0, 0], [2.55, -0.17, 0], [2.62, -0.19, 0]];
+const REAR_S = [[0.34, 0, 0], [0.64, 0, 0], [0.9, 0, 0], [1.0, 0, 0], [2.55, -0.08, 0], [2.62, -0.1, 0]];
+const FLAT_S = [[0.34, 0, 0], [0.64, 0, 0], [0.9, 0, 0], [1.0, 0, 0], [2.55, 0, 0], [2.62, 0, 0]];
+const FRONT_ROOF_S = [[2.62, -0.19, 0], [2.85, -0.4, 0.25], [3.0, -0.8, 0.55]];
+const REAR_ROOF_S = [[2.62, -0.1, 0], [2.85, -0.3, 0.25], [3.0, -0.7, 0.55]];
+const FLAT_ROOF_S = [[2.62, 0, 0], [2.85, 0, 0.25], [3.0, 0, 0.55]];
 const NC = 4, NM = 5; // bochtstappen per hoek en tussenpunten op het vlak van de neus
 const N_END = 2 * (NC + 1) + NM - 1;
 
@@ -92,33 +99,35 @@ function freeSpans(a, b, banned) {
   return spans.filter(([s, e]) => e - s > 0.05);
 }
 
-function archPts(x, R, cy) {
+function archPts(x, R, cy, n = 9) {
   const pts = [[x - R, BUS_SILL], [x - R, cy]];
-  for (let k = 1; k < 9; k++) { const a = Math.PI - (k / 9) * Math.PI; pts.push([x + Math.cos(a) * R, cy + Math.sin(a) * R]); }
+  for (let k = 1; k < n; k++) { const a = Math.PI - (k / n) * Math.PI; pts.push([x + Math.cos(a) * R, cy + Math.sin(a) * R]); }
   pts.push([x + R, cy], [x + R, BUS_SILL]);
   return pts;
 }
 
 // De zijwand: een plaat met de wielkasten onderin, ruiten en deuropeningen als gaten. side = +1 of -1 (gespiegeld).
-function sideWall(B, S, side, arches, doors, wins) {
+function sideWall(B, S, side, arches, doors, wins, simple = false) {
   const ys = (tab) => tab.filter(([y]) => y > BUS_SILL && y <= RAIL);
   const xs1 = S.x1 - S.rF, xs0 = S.x0 + S.rR;
   const pts = [[xs0 + shiftAt(S.rt, BUS_SILL), BUS_SILL]];
-  for (const a of arches) pts.push(...archPts(a.x, a.r, a.cy));
+  for (const a of arches) pts.push(...archPts(a.x, a.r, a.cy, simple ? 4 : 9));
   pts.push([xs1 + shiftAt(S.ft, BUS_SILL), BUS_SILL]);
   for (const [y, sf] of ys(S.ft)) pts.push([xs1 + sf, y]);
   for (const [y, sr] of ys(S.rt).reverse()) pts.push([xs0 + sr, y]);
   const shape = new THREE.Shape(pts.map(([x, y]) => new THREE.Vector2(x, y)));
   for (const h of [...wins, ...doors]) shape.holes.push(new THREE.Path(h.map(([x, y]) => new THREE.Vector2(x, y))));
-  const g = new THREE.ExtrudeGeometry(shape, { depth: WALL_T, bevelEnabled: false, curveSegments: 1 }).translate(0, 0, S.hw - WALL_T);
+  // simple (niveau 1 van de lodkit): een vlakke plaat zonder dikte rond de gaten
+  const g = simple ? new THREE.ShapeGeometry(shape, 1).translate(0, 0, S.hw) : new THREE.ExtrudeGeometry(shape, { depth: WALL_T, bevelEnabled: false, curveSegments: 1 }).translate(0, 0, S.hw - WALL_T);
   B.geo(g, side > 0 ? null : composeMatrix(0, 0, 0, 0, 0, 0, 1, 1, -1), WHITE);
 }
 
 // Eén deurblad: onderpaneel in lak, glas, een zwarte rand. x0..x1 op de flank, absolute coordinaten.
-function leafBlad(L, x0, x1, hw) {
+function leafBlad(L, x0, x1, hw, simple = false) {
   const xm = (x0 + x1) / 2, w = x1 - x0, z = hw - 0.04;
   L.box(xm, (DOOR_Y0 + 1.1) / 2, z, w - 0.01, 1.1 - DOOR_Y0, 0.035, WHITE);
   L.box(xm, (1.1 + 2.52) / 2, z, w - 0.01, 2.52 - 1.1, 0.012, 0x5f8299, G_GLASS);
+  if (simple) { L.box(xm, 1.5, z + 0.004, 0.04, 2.1, 0.045, TRIM); return; }
   for (const e of [x0 + 0.02, x1 - 0.02]) L.box(e, (DOOR_Y0 + DOOR_Y1) / 2, z + 0.004, 0.04, DOOR_Y1 - DOOR_Y0, 0.045, TRIM);
   L.box(xm, DOOR_Y1 - 0.02, z + 0.004, w, 0.04, 0.045, TRIM);
   L.box(xm, 1.1, z + 0.004, w, 0.035, 0.045, TRIM);
@@ -175,11 +184,12 @@ function archFlare(B, a, hw) {
 
 // De sectie zelf. opts: { front, rear, wheelXs, doors: [{ x, id }] (id null = blad blijft in de romp), leafOut } (leafOut vult per id de bladen).
 export function busSection(B, x0, x1, W, opts) {
-  const { front = false, rear = false, wheelXs = [], doors = [], leafOut = null } = opts;
+  const { front = false, rear = false, wheelXs = [], doors = [], leafOut = null, simple = false } = opts; // simple: het eenvoudige niveau 1 van de lodkit (vehiclelod3d.js userData.lodRomp)
+  const rectOf = (x0_, y0_, x1_, y1_, c) => (simple ? [[x0_, y0_], [x1_, y0_], [x1_, y1_], [x0_, y1_]] : chamfRect(x0_, y0_, x1_, y1_, c));
   const hw = W / 2;
   const S = { x0, x1, hw, rF: front ? 0.2 : 0.08, rR: rear ? 0.5 : 0.08, bF: front ? 0.2 : 0, bR: rear ? 0.06 : 0 };
-  S.ft = front ? FRONT_LV : FLAT_LV; S.rt = rear ? REAR_LV : FLAT_LV;
-  const froof = front ? FRONT_ROOF : FLAT_ROOF, rroof = rear ? REAR_ROOF : FLAT_ROOF;
+  S.ft = simple ? (front ? FRONT_S : FLAT_S) : front ? FRONT_LV : FLAT_LV; S.rt = simple ? (rear ? REAR_S : FLAT_S) : rear ? REAR_LV : FLAT_LV;
+  const froof = simple ? (front ? FRONT_ROOF_S : FLAT_ROOF_S) : front ? FRONT_ROOF : FLAT_ROOF, rroof = simple ? (rear ? REAR_ROOF_S : FLAT_ROOF_S) : rear ? REAR_ROOF : FLAT_ROOF;
   const arches = wheelXs.slice().sort((a, b) => a - b).map((x) => ({ x, r: BUS_WHEEL_R + 0.1, cy: BUS_WHEEL_R }));
 
   // --- de zijwanden met ruiten en deuropeningen
@@ -188,20 +198,21 @@ export function busSection(B, x0, x1, W, opts) {
   const mkWins = (spans) => {
     const out = [];
     for (const [a, b] of spans) {
-      const n = Math.max(1, Math.round((b - a) / 1.55)), pw = (b - a - (n - 1) * 0.1) / n;
-      for (let i = 0; i < n; i++) { const xa = a + i * (pw + 0.1); out.push(chamfRect(xa, WIN_Y0, xa + pw, WIN_Y1, 0.09)); }
+      const n = Math.max(1, Math.round((b - a) / (simple ? 2.6 : 1.55))), pw = (b - a - (n - 1) * 0.1) / n;
+      for (let i = 0; i < n; i++) { const xa = a + i * (pw + 0.1); out.push(rectOf(xa, WIN_Y0, xa + pw, WIN_Y1, 0.09)); }
     }
     return out;
   };
   const winsR = mkWins(freeSpans(xs0 + 0.45, xs1 - (front ? 0.55 : 0.4), doorBan));
   const winsL = mkWins(freeSpans(xs0 + 0.45, xs1 - (front ? 0.55 : 0.4), []));
-  const doorHoles = doors.map((d) => chamfRect(d.x - DOOR_HALF - 0.02, DOOR_Y0, d.x + DOOR_HALF + 0.02, DOOR_Y1, 0.05));
-  sideWall(B, S, 1, arches, doorHoles, winsR);
-  sideWall(B, S, -1, arches, [], winsL);
+  const doorHoles = doors.map((d) => rectOf(d.x - DOOR_HALF - 0.02, DOOR_Y0, d.x + DOOR_HALF + 0.02, DOOR_Y1, 0.05));
+  sideWall(B, S, 1, arches, doorHoles, winsR, simple);
+  sideWall(B, S, -1, arches, [], winsL, simple);
   for (const [side, wins] of [[1, winsR], [-1, winsL]]) {
     const z = side * (hw - 0.045);
     for (const h of wins) {
       for (let i = 1; i + 1 < h.length; i++) B.triOut([h[0][0], h[0][1], z], [h[i][0], h[i][1], z], [h[i + 1][0], h[i + 1][1], z], [0, 0, side], GLASS, G_GLASS);
+      if (simple) continue;
       // een zwarte ruitrand om elk raam, op de buitenkant van de wand
       const n = h.length, zr = side * (hw + 0.004);
       const cxm = h.reduce((s, p) => s + p[0], 0) / n, cym = h.reduce((s, p) => s + p[1], 0) / n;
@@ -216,8 +227,8 @@ export function busSection(B, x0, x1, W, opts) {
   // --- uiteinden: bumper, lijn, voorruit of achterwand, en het koepeldak
   const loopF = (y, sf) => loopAt(S, y, sf, 0, 0);
   const loopR = (y, sr) => loopAt(S, y, 0, sr, 0);
-  const COL_F = [BUMPER, BUMPER, BUMPER, GREEN, LIME, WHITE, null, WHITE];
-  const COL_R = [BUMPER, BUMPER, BUMPER, GREEN, LIME, WHITE, WHITE, WHITE];
+  const COL_F = simple ? [BUMPER, GREEN, WHITE, null, WHITE] : [BUMPER, BUMPER, BUMPER, GREEN, LIME, WHITE, null, WHITE];
+  const COL_R = simple ? [BUMPER, GREEN, WHITE, WHITE, WHITE] : [BUMPER, BUMPER, BUMPER, GREEN, LIME, WHITE, WHITE, WHITE];
   for (let i = 0; i + 1 < S.ft.length; i++) {
     const A = loopF(S.ft[i][0], S.ft[i][1]), C = loopF(S.ft[i + 1][0], S.ft[i + 1][1]);
     if (front && COL_F[i] === null) strip(B, A, C, 0, N_END - 1, GLASS, G_GLASS);
@@ -232,18 +243,19 @@ export function busSection(B, x0, x1, W, opts) {
   const top = roofLoop(froof.length - 1), mid = top.reduce((s, p) => [s[0] + p[0] / top.length, s[1] + p[1] / top.length, s[2] + p[2] / top.length], [0, 0, 0]);
   for (let i = 0; i < top.length; i++) B.triOut(top[i], top[(i + 1) % top.length], mid, [0, 1, 0], WHITE);
   if (front) {
-    for (const idx of [0, NC, N_END - 1 - NC, N_END - 1]) {
+    for (const idx of (simple ? [0, N_END - 1] : [0, NC, N_END - 1 - NC, N_END - 1])) {
       const a = loopF(1.0, 0)[idx], b = loopF(2.55, -0.17)[idx];
       B.box((a[0] + b[0]) / 2, 1.78, (a[2] + b[2]) / 2, 0.07, 1.6, 0.07, WHITE, 0, 0, 0, Math.atan2(-(b[0] - a[0]), 1.55));
     }
     const face = (y) => x1 + shiftAt(FRONT_LV, y);
-    for (const z of [-0.5, 0.45]) B.box(face(1.3) + 0.2, 1.3, z, 0.02, 0.025, 0.7, TRIM, 0, 0, 0, 0.12);
+    if (!simple) for (const z of [-0.5, 0.45]) B.box(face(1.3) + 0.2, 1.3, z, 0.02, 0.025, 0.7, TRIM, 0, 0, 0, 0.12);
     // bestemmingsbord in de dakrand boven de voorruit en een lijnbord rechts
     B.box(face(2.5) - 0.1, 2.42, 0, 0.04, 0.2, W * 0.66, TRIM);
     B.box(face(2.5) - 0.075, 2.42, -W * 0.06, 0.012, 0.13, W * 0.5, 0xf0b33a, G_LAMP);
-    B.box(face(2.5) - 0.075, 2.42, W * 0.3, 0.012, 0.13, W * 0.12, 0xf5f3e8, G_LAMP);
+    if (!simple) B.box(face(2.5) - 0.075, 2.42, W * 0.3, 0.012, 0.13, W * 0.12, 0xf5f3e8, G_LAMP);
     // koplampen, richtingaanwijzers, mistlampen, spiegels, kenteken en rooster
     for (const s of [1, -1]) {
+      if (simple) { B.box(x1 + 0.055, 0.7, s * (hw - 0.34), 0.05, 0.3, 0.34, HEADLAMP, G_LAMP); B.box(x1 - 0.55, 2.05, s * (hw + 0.38), 0.1, 0.62, 0.18, TRIM); continue; }
       chamfBox(B, x1 + 0.055, 0.73, s * (hw - 0.34), 0.05, 0.16, 0.34, 0.03, HEADLAMP, G_LAMP);
       B.box(x1 + 0.052, 0.55, s * (hw - 0.34), 0.05, 0.07, 0.2, INDICATOR, G_LAMP);
       B.box(x1 + 0.066, 0.46, s * (hw - 0.45), 0.04, 0.07, 0.1, HEADLAMP, G_LAMP);
@@ -254,10 +266,12 @@ export function busSection(B, x0, x1, W, opts) {
       B.box(mx - 0.01, 1.5, s * (hw + 0.3), 0.04, 0.04, 0.3, TRIM);
       B.geo(new THREE.CylinderGeometry(0.1, 0.1, 0.05, 8).rotateX(Math.PI / 2), composeMatrix(mx + 0.02, 1.5, s * (hw + 0.46)), TRIM);
     }
-    chamfBox(B, x1 + 0.05, 0.4, 0, 0.04, 0.1, 0.52, 0.02, PLATE);
-    B.box(x1 + 0.06, 0.46, 0, 0.03, 0.02, 0.8, 0x1a1b1d);
-    for (let k = 0; k < 4; k++) B.box(x1 + 0.058, 0.52, (k - 1.5) * 0.17, 0.03, 0.09, 0.1, 0x1a1b1d);
-    driverCab(B, x1, hw);
+    B.box(x1 + 0.05, 0.4, 0, 0.04, 0.1, 0.52, PLATE);
+    if (!simple) {
+      B.box(x1 + 0.06, 0.46, 0, 0.03, 0.02, 0.8, 0x1a1b1d);
+      for (let k = 0; k < 4; k++) B.box(x1 + 0.058, 0.52, (k - 1.5) * 0.17, 0.03, 0.09, 0.1, 0x1a1b1d);
+      driverCab(B, x1, hw);
+    }
   }
   if (rear) {
     const xr = x0 + shiftAt(REAR_LV, 1.5);
@@ -268,29 +282,30 @@ export function busSection(B, x0, x1, W, opts) {
       B.box(x0 - 0.05, 0.5, s * (hw - 0.3), 0.04, 0.08, 0.22, 0xe8e8e2, G_LAMP);
     }
     chamfBox(B, x0 - 0.05, 0.42, 0, 0.04, 0.1, 0.52, 0.02, PLATE);
-    for (let k = 0; k < 6; k++) B.box(x0 - 0.045, 1.05 + k * 0.05, 0, 0.03, 0.025, 1.0, DARK);
+    if (!simple) for (let k = 0; k < 6; k++) B.box(x0 - 0.045, 1.05 + k * 0.05, 0, 0.03, 0.025, 1.0, DARK);
   }
 
   // --- wielkasten, onderstel en de lijn van groen en limoen op de flanken
-  for (const a of arches) archFlare(B, a, hw);
-  B.box((x0 + x1) / 2, BUS_SILL - 0.05, 0, x1 - x0 - 0.2, 0.08, W - 0.3, 0x1c1d1f);
-  for (const a of arches) B.geo(new THREE.CylinderGeometry(0.07, 0.07, W - 0.9, 8).rotateX(Math.PI / 2), composeMatrix(a.x, BUS_WHEEL_R, 0), 0x2a2b2e);
+  if (!simple) for (const a of arches) archFlare(B, a, hw);
+  if (!simple) B.box((x0 + x1) / 2, BUS_SILL - 0.05, 0, x1 - x0 - 0.2, 0.08, W - 0.3, 0x1c1d1f);
+  if (!simple) for (const a of arches) B.geo(new THREE.CylinderGeometry(0.07, 0.07, W - 0.9, 8).rotateX(Math.PI / 2), composeMatrix(a.x, BUS_WHEEL_R, 0), 0x2a2b2e);
   const archBan = arches.map((a) => [a.x - a.r - 0.1, a.x + a.r + 0.1]);
   const doorBand = doors.map((d) => [d.x - DOOR_HALF - 0.05, d.x + DOOR_HALF + 0.05]);
   for (const s of [1, -1]) {
     const z = s * (hw + 0.008);
     for (const [a, b] of freeSpans(xs0, xs1, s > 0 ? [...archBan, ...doorBand] : archBan)) {
       B.box((a + b) / 2, 0.58, z, b - a, 0.36, 0.014, GREEN);
-      B.box((a + b) / 2, 0.82, z, b - a, 0.07, 0.014, LIME);
-      B.box((a + b) / 2, 0.37, z, b - a, 0.06, 0.016, DARK);
+      if (!simple) B.box((a + b) / 2, 0.82, z, b - a, 0.07, 0.014, LIME);
+      if (!simple) B.box((a + b) / 2, 0.37, z, b - a, 0.06, 0.016, DARK);
     }
   }
-  B.box(x0 + (x1 - x0) * 0.32, 0.95, -(hw + 0.01), 0.5, 0.36, 0.014, 0xc9c9c3);
+  if (!simple) B.box(x0 + (x1 - x0) * 0.32, 0.95, -(hw + 0.01), 0.5, 0.36, 0.014, 0xc9c9c3);
 
   // --- de deuropeningen: drempel met gele rand, kader en de bladen
   for (const d of doors) {
     const x = d.x;
     const gb = (suffix) => (d.id === null || leafOut === null ? B : (leafOut[d.id + suffix] || (leafOut[d.id + suffix] = new GeoBuilder(3))));
+    if (simple) { leafBlad(B, x - DOOR_HALF, x + DOOR_HALF, hw, true); continue; }
     B.box(x, DOOR_Y0 - 0.03, hw - 0.18, 2 * DOOR_HALF + 0.04, 0.03, 0.34, 0x3b3f46);
     B.box(x, DOOR_Y0 + 0.011, hw - 0.04, 2 * DOOR_HALF + 0.04, 0.012, 0.1, STEP_Y);
     for (const e of [-1, 1]) {
@@ -305,6 +320,7 @@ export function busSection(B, x0, x1, W, opts) {
 
   // --- het dak: airco- en techniekblok, ventilatoren, luikjes en antenne
   const cxm = (x0 + x1) / 2 + (front ? 0.6 : -0.3), podLen = Math.min(4.2, (x1 - x0) * 0.48);
+  if (simple) { B.box(cxm, BUS_ROOF + 0.14, 0, podLen, 0.28, W * 0.5, UNIT); return; }
   chamfBox(B, cxm, BUS_ROOF + 0.14, 0, podLen, 0.28, W * 0.5, 0.08, UNIT);
   chamfBox(B, cxm + podLen * 0.14, BUS_ROOF + 0.3, 0, podLen * 0.66, 0.06, W * 0.4, 0.025, UNIT2);
   for (const dx of [-1, 1]) {
@@ -317,7 +333,7 @@ export function busSection(B, x0, x1, W, opts) {
 }
 
 // Het harmonicaschot tussen de twee delen van de gelede bus: een afgeronde balg met plooien en de draaitafel in de vloer.
-export function busBellows(B, jointX, W) {
+export function busBellows(B, jointX, W, simple = false) {
   const hwb = W / 2 * 0.95, y0 = 0.5, y1 = 2.9, rr = 0.3;
   const prof = (hz, ya, yb) => {
     const pts = [];
@@ -325,7 +341,7 @@ export function busBellows(B, jointX, W) {
     for (let k = 4; k >= 0; k--) { const t = (k / 4) * Math.PI / 2; pts.push([hz - rr * (1 - Math.cos(t)), ya + rr * (1 - Math.sin(t))]); }
     return pts;
   };
-  const folds = [[-0.17, 0.0], [-0.1, 0.07], [0.0, 0.0], [0.1, 0.07], [0.17, 0.0]];
+  const folds = simple ? [[-0.17, 0.0], [0.0, 0.07], [0.17, 0.0]] : [[-0.17, 0.0], [-0.1, 0.07], [0.0, 0.0], [0.1, 0.07], [0.17, 0.0]];
   const loopF = (dx, e) => {
     const r = prof(hwb - e, y0 + e, y1 - e);
     return [...r.map(([z, y]) => [jointX + dx, y, z]), ...r.slice().reverse().map(([z, y]) => [jointX + dx, y, -z])];

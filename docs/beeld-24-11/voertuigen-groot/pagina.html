@@ -57,11 +57,12 @@
   if (TRAINS[naam]) {
     const { TRAIN_TYPES } = await import(root + 'game/js/railway.js');
     const { buildCar } = await import(root + 'game/js/railway3d.js');
+    var LODK = await import(root + 'game/js/lodkit3d.js');
     const cfg = TRAIN_TYPES[naam];
     m = new THREE.Group();
     const total = cfg.segments.reduce((a, g) => a + g.len, 0) + (cfg.segments.length - 1) * cfg.gap;
     let run = total / 2;
-    for (const seg of cfg.segments) { const c = buildCar(cfg, seg); c.position.set(run - seg.len / 2, 0.26, 0); run -= seg.len + cfg.gap; m.add(c); }
+    for (const seg of cfg.segments) { const c = buildCar(cfg, seg); c.position.set(run - seg.len / 2, 0.26, 0); run -= seg.len + cfg.gap; m.add(c); LODK.makeLodObject('train', 'wagen-' + naam + '-' + seg.kind + '-' + (seg.cab || 0), c); }
     m.userData.train = cfg; m.userData.total = total;
     const rails = new THREE.Mesh(new THREE.BoxGeometry(total + 20, 0.1, 0.12), new THREE.MeshLambertMaterial({ color: 0x777b80 }));
     for (const z of [-0.7175, 0.7175]) { const r = rails.clone(); r.position.set(0, 0.2, z); m.add(r); }
@@ -100,7 +101,16 @@
     cabine: () => ({ maaidorser: { p: [5.2, 4.2, 3.6], t: [1.8, 2.7, 0], fov: 26 }, laadmachine: { p: [1.9, 2.5, 1.9], t: [-0.1, 1.4, 0], fov: 30 } }[naam] || { p: [3, 2, 3], t: [0, 1, 0] }),
     binnen: () => ({ p: [-size.x * 0.2, Math.min(size.y * 0.78, 1.2), 0], t: [size.x * 0.35, Math.min(size.y * 0.5, 0.8), 0], fov: 72, doors: true }),
   };
-  window.neem = (weergave) => {
+  let lodAan = false;
+  const zetLod1 = async () => {
+    if (lodAan) return; lodAan = true;
+    if (TRAINS[naam]) { // de lichtere geometrie van niveau 1 als gewone meshes (de crossfade van de lodkit heeft hier geen camera)
+      for (const c of m.children) { const lo = c.userData && c.userData.lod; if (!lo) continue; if (c.userData.interiorFiller) c.userData.interiorFiller.visible = false; lo.entries.forEach((lv) => { if (lv.length < 2) return; lv[0].visible = false; lv[1].visible = true; lv[1].material = new THREE.MeshStandardMaterial({ vertexColors: !!lv[1].geometry.attributes.color, color: lv[1].geometry.attributes.color ? 0xffffff : 0x20303c, roughness: 0.55, transparent: lv[0].material.transparent, opacity: lv[0].material.opacity || 1 }); }); }
+      return; }
+    const { zetLodAfstand } = await import(root + 'game/js/vehiclelod3d.js'); zetLodAfstand(m, 60); if (m.userData.busRear) zetLodAfstand(m.userData.busRear, 60);
+  };
+  window.neem = async (weergave) => {
+    if (weergave.startsWith('lod1_')) { weergave = weergave.slice(5); await zetLod1(); }
     const w = VIEWS[weergave]();
     if (w.doors && !isOpen) { open(['bestuurder', 'bijrijder', 'achter']); isOpen = true; }
     cam.fov = w.fov || 34; cam.updateProjectionMatrix();
