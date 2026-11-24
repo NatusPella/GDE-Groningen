@@ -46,6 +46,12 @@ export function tabLine(rects, actief, kader = { left: 0 }) {
   return { x: Math.round((r.left - (kader.left || 0)) * 10) / 10, w: Math.max(0, Math.round(r.width * 10) / 10) };
 }
 
+// De zoom van een kader: schermbreedte gedeeld door layoutbreedte; 1 als een van beide ontbreekt (verborgen, geen DOM).
+export function tabZoom(schermBreedte, layoutBreedte) {
+  const z = schermBreedte / layoutBreedte;
+  return Number.isFinite(z) && z > 0.05 ? z : 1;
+}
+
 // De randen van een scrollgebied: waar nog inhoud is, vervaagt de rand (data-boven en data-onder).
 export function scrollRanden({ scrollTop = 0, clientHeight = 0, scrollHeight = 0 } = {}, marge = 2) {
   const rest = scrollHeight - clientHeight;
@@ -104,7 +110,12 @@ export function applyTabLine(kader) {
   const actief = tabs.findIndex((t) => t.getAttribute('aria-selected') === 'true');
   if (actief < 0) return;
   const k = kader.getBoundingClientRect();
-  const { x, w } = tabLine(tabs.map((t) => t.getBoundingClientRect()), actief, k);
+  // #1200 (beeld 24-11): het menu staat in een stage met CSS-zoom (--mz, kleiner dan 1 onder 1920x1080). getBoundingClientRect
+  // meet op het scherm, maar de translate van de streep geldt binnen die zoom: op 1280x720 stond de streep onder Camera terwijl
+  // Toegankelijkheid open was. Terug naar de eigen px van het kader (schermbreedte gedeeld door de layoutbreedte).
+  const z = tabZoom(k.width, kader.offsetWidth);
+  const m = tabLine(tabs.map((t) => t.getBoundingClientRect()), actief, k);
+  const x = Math.round(m.x / z * 10) / 10, w = Math.round(m.w / z * 10) / 10;
   if (!(w > 0)) { kader.classList.remove('ds-m-tabs--aan'); delete kader.dataset.lijn; return; } // verborgen: niets te meten
   const line = kader.querySelector('.ds-m-tabs__lijn');
   const eerste = !kader.dataset.lijn;

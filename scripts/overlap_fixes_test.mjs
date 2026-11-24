@@ -34,7 +34,13 @@ ok(dy !== 0, 'labelDy: een tweede obstakel op de weg wordt meegenomen', dy);
 // geen ruimte (obstakel dat het hele venster vult): blijft staan
 ok(labelDy(chip(300, 300, 500, 340), [chip(0, 0, 1280, 720)], view) === 0, 'labelDy: geen ruimte, het label blijft staan');
 ok(labelDy(chip(300, 300, 500, 340), [chip(500, 300, 700, 340)], view) === 0, 'labelDy: tegen elkaar aan is geen overlap');
+// #1189: een label dat 1 px onder de doelbalk hangt (geen overlap, wel 'geplakt') schuift naar de vaste marge eronder
+dy = labelDy(chip(400, 121, 600, 160), [chip(380, 40, 880, 120)], view);
+ok(dy === 120 + CLEAR_GAP - 121, 'labelDy: een label vlak onder de doelbalk krijgt de vaste marge', dy);
+ok(CLEAR_GAP >= 8, 'labelDy: de marge is groter dan de harde schaduw van 4 px', CLEAR_GAP);
+ok(labelDy(chip(400, 120 + CLEAR_GAP, 600, 170), [chip(380, 40, 880, 120)], view) === 0, 'labelDy: op de marge blijft een label staan');
 ok(/labelDy\(/.test(src('game/js/prompts.js')), 'prompts.js past labelDy toe op elk wereldlabel');
+ok(/classList\.toggle\('wp-los', !!dy\)/.test(src('game/js/prompts.js')) && /\.wp\.wp-los \.wp-line \{ visibility: hidden; \}/.test(src('game/js/prompts.css')), '#1189: een opgeschoven label heeft geen lijn door zijn tekst');
 
 // klasse 4: het minigamebord loopt niet onder de klok (zone C) door: zijn maximale breedte houdt rekening met de gemeten kolom
 ok(/max-width: min\(760px, calc\(100vw \/ var\(--ui, 1\) - 2 \* max\(var\(--hud-edge, 46px\) \+ 310px, var\(--hud-c-right, 0px\) \+ 12px\)\)/.test(src('game/js/minigamekit.js')), 'mg-board: max-width volgt --hud-c-right');

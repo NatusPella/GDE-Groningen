@@ -196,6 +196,11 @@ html.touch-device :is(#pause-menu .pm-samen, .coop-hold, .cp-overlay) .coop-toet
 #pause-menu .pm-samen .sw .sw-kaarten--groot .sw-kaart-kol { align-items: center; gap: var(--ds-s-1); }
 #pause-menu .pm-samen .sw .sw-kaarten--groot .sw-kaart-t { font-size: var(--ds-t-subkop); }
 #pause-menu .pm-samen .sw .sw-kaarten--groot .sw-kaart-tekst { display: block; font-size: var(--ds-t-body); }
+/* #1222 (beeld 24-11): de twee tegels vulden de ruimte met een icoon van 24 px en een kleine kop: een groot leeg vlak zonder blikvanger.
+   Het icoon is nu het beeld van de tegel (64 px op een rond plaatje) en de kop is een echte kop, zoals de modustegels van een groot spel. */
+#pause-menu .pm-samen .sw .sw-kaarten--groot .sw-kaart-ico { display: grid; place-items: center; width: calc(var(--ds-s-8) * 1.75); height: calc(var(--ds-s-8) * 1.75); border-radius: var(--ds-r-pil); background: var(--ds-c-sel-vlak); box-shadow: inset 0 0 0 var(--ds-lijn-zeef) var(--ds-c-ink-inkt); color: var(--ds-zeef-tx); }
+#pause-menu .pm-samen .sw .sw-kaarten--groot .sw-kaart-ico svg { width: var(--ds-s-8); height: var(--ds-s-8); }
+#pause-menu .pm-samen .sw .sw-kaarten--groot .sw-kaart-t { font-size: var(--ds-t-kop); }
 
 /* velden onder de kaarten */
 #pause-menu .pm-samen .sw-paneel { flex: none; display: flex; flex-direction: column; gap: var(--ds-s-2); }

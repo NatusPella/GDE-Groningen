@@ -8,7 +8,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { bubblePlace } from '../game/js/hudrules.js';
+import { bubblePlace, BUBBLE_GAP } from '../game/js/hudrules.js';
 import { menuTextMin, MENU_READABLE_MIN, hudEdge, uiScaleFor, hudViewport } from '../game/js/hudlook.js';
 import { compactBoard } from '../game/js/minigamekit.js';
 
@@ -100,7 +100,18 @@ const near = (a, b, m = 0.01) => Math.abs(a - b) <= m;
   const boven = bubblePlace({ x: 100, y: 5 }, { w: 120, h: 30 }, { w: 800, h: 360 });
   ok(boven && boven.y === 34, '#870: een bel boven de rand zakt met zijn hoogte naar binnen', boven);
   ok(bubblePlace({ x: 10, y: 10 }, { w: 900, h: 30 }, { w: 800, h: 360 }) === null, '#870: een bel breder dan het scherm verdwijnt');
+  // #1198 (beeld 24-11): twee sprekers naast elkaar; de tweede bel lag over de eerste
+  const eerste = { left: 40, right: 160, top: 170, bottom: 200 };
+  const st = bubblePlace({ x: 110, y: 200 }, { w: 120, h: 30 }, { w: 800, h: 360 }, 4, [eerste]);
+  ok(st && st.y === 170 - BUBBLE_GAP, '#1198: een bel over een andere stapelt erboven', st);
+  const naast = bubblePlace({ x: 400, y: 200 }, { w: 120, h: 30 }, { w: 800, h: 360 }, 4, [eerste]);
+  ok(naast && naast.y === 200, '#1198: een bel ernaast blijft staan', naast);
+  const bovenrand = bubblePlace({ x: 110, y: 40 }, { w: 120, h: 30 }, { w: 800, h: 360 }, 4, [{ left: 40, right: 160, top: 10, bottom: 40 }]);
+  ok(bovenrand && bovenrand.y === 40 + BUBBLE_GAP + 30, '#1198: zonder ruimte erboven gaat de bel eronder', bovenrand);
+  const st3 = bubblePlace({ x: 100, y: 200 }, { w: 120, h: 30 }, { w: 800, h: 360 }, 4, [eerste, { left: 40, right: 160, top: 136, bottom: 166 }]);
+  ok(st3 && st3.y === 136 - BUBBLE_GAP, '#1198: drie bellen stapelen netjes', st3);
   const scene = read('scene3d.js');
+  ok(/placedRects\.push\(/.test(scene) && /bubblePlace\(scr, [^;]*placedRects\)/.test(scene), '#1198: scene3d geeft de bellen van dit beeld mee');
   ok(/bubblePlace\(scr, \{ w: el\._bw, h: el\._bh \}/.test(scene), '#870: scene3d gebruikt de pure belregel');
   ok(/el\.style\.fontSize = 'max\(13px, calc\(13px \/ var\(--ui, 1\)\)\)'/.test(scene), '#870: straatpraatbellen houden 13 px op een telefoon');
   ok(!/el\.style\.left = scr\.x/.test(scene), '#870: geen onbegrensde projectie meer');
@@ -154,6 +165,7 @@ const near = (a, b, m = 0.01) => Math.abs(a - b) <= m;
 {
   const hud = read('hud_panel.css'), kc = read('ds-keycap.css');
   ok(/#hud \.hud-obj-key \{[^}]*min-height: var\(--ds-kc-floor\)/.test(hud), '#1075: een toetsgroep in de doelregel is minstens zo hoog als zijn plaatje');
+  ok(/#hud \.hud-obj-key \{[^}]*line-height: var\(--ds-kc-floor\)/.test(hud), '#1075 (beeld 24-11): de tekstregel van een toetsgroep is zo hoog als het plaatje, zodat het niet in de regel erboven steekt');
   ok(/#hud [^{]*\.hud-obj-key \{ --ds-kc-floor: 26px; \}/.test(kc), '#1075: de vloer van die plaatjes is 26 px (ds-keycap.css)');
   ok(/#hud \.hud-obj-keys \{[^}]*gap: (\d+)px/.test(hud) && +hud.match(/#hud \.hud-obj-keys \{[^}]*gap: (\d+)px/)[1] >= 4, '#1075: een omgeslagen toetsgroep ligt niet over de eerste rij');
 }

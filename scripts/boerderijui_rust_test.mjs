@@ -52,7 +52,10 @@ t('#1243: één tabrij; de onderdelen zijn een segmentbalk en de band draagt de 
   assert.equal((html.match(/Boerenzakdoek/g) || []).length, 1, 'de sfeernaam staat één keer, in de band');
   assert.match(html, /lb-sfeer-klein">Boerderij De Zonnehoek, bij Hoogkerk</, 'de band draagt de naam: geen losse kop erboven');
   const css = fs.readFileSync(new URL('../game/js/farm.css', import.meta.url), 'utf8');
-  assert.match(css, /\.bd-pane \.lb-sfeer \{ min-height: var\(--ds-s-8\); \}/, 'de band is laag, de hoofdactie staat hoger');
+  assert.match(css, /\.bd-pane \.lb-sfeer \{ min-height: var\(--ds-s-8\);/, 'de band is laag, de hoofdactie staat hoger');
+  // hertest 24-11: in die lage band lagen de naam en de sfeernaam over elkaar; nu staan ze in de stroom onder elkaar
+  assert.match(css, /\.bd-pane \.lb-sfeer-klein, #pause-menu \.bd-pane \.lb-sfeer-groot \{ position: relative; left: auto; top: auto; transform: none; \}/, 'de naam en de sfeernaam liggen niet over elkaar');
+  assert.match(css, /\.bd-veld > \.ds-z-kaart__kop \{ flex-wrap: wrap;/, 'de kop van een veldkaart slaat om in plaats van de naam af te kappen');
 });
 
 t('de toetsen van het land staan als toetsplaatje', () => {

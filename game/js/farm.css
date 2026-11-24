@@ -31,7 +31,11 @@
 .bd-pane .ds-z-kaart p, .bd-pane .ds-z-kaart li { color: var(--ds-tx); max-width: none; }
 .bd-pane .ds-z-kaart .ds-t-hulp, .bd-pane .ds-z-kaart .ds-z-kaart__voet { color: var(--ds-tx-zacht); }
 .bd-pane .ds-z-kaart .bd-veld__nu { color: var(--ds-tx); }
-.bd-velden { display: grid; grid-template-columns: repeat(auto-fill, minmax(calc(var(--ds-s-8) * 4), 1fr)); gap: var(--ds-s-3); }
+.bd-velden { display: grid; grid-template-columns: repeat(auto-fill, minmax(calc(var(--ds-s-8) * 5), 1fr)); gap: var(--ds-s-3); }
+/* #1243 (hertest 24-11): foto, naam en standchip in een kop van 280 px; de naam werd afgekapt ('Akker De Zonnehoe') en de chip viel
+   buiten de kaart. De kop mag nu omslaan: de naam krijgt de ruimte naast het kleine gewasplaatje, de chip gaat zo nodig eronder. */
+.bd-veld > .ds-z-kaart__kop { flex-wrap: wrap; justify-content: flex-start; }
+.bd-veld > .ds-z-kaart__kop > .ds-z-kaart__titel { flex: 1 1 8em; min-width: 0; overflow-wrap: anywhere; }
 .bd-veld { gap: var(--ds-s-2); border-left-width: var(--ds-s-2); }   /* de statusrand links, zoals op de oude kaart */
 .bd-veld[data-status="rijp"] { border-left-color: var(--ds-succes); }
 .bd-veld[data-status="braak"], .bd-veld[data-status="stoppel"] { border-left-color: var(--ds-rand); }
@@ -133,7 +137,11 @@
 #pause-menu .bd-seg-rij { display: flex; flex-wrap: wrap; align-items: center; gap: var(--ds-s-2) var(--ds-s-4); margin: var(--ds-s-2) 0 var(--ds-s-3); }
 #pause-menu .bd-seg { gap: var(--ds-s-1); }
 #pause-menu .bd-seg-tab small { margin-left: var(--ds-s-1); font-family: var(--ds-font-zeef-tekst); }
-#pause-menu .bd-pane .lb-sfeer { min-height: var(--ds-s-8); }
+#pause-menu .bd-pane .lb-sfeer { min-height: var(--ds-s-8); display: flex; flex-direction: column; justify-content: center; gap: var(--ds-s-1); padding: var(--ds-s-2) var(--ds-s-4); box-sizing: border-box; }
+/* #1243 (hertest 24-11): in de lage band lagen de kleine regel (naam van de boerderij, top 9 px) en de sfeernaam (40 px rond het midden)
+   over elkaar. Hier staan ze in de stroom onder elkaar: eerst de naam, dan de sfeernaam, iets kleiner. */
+#pause-menu .bd-pane .lb-sfeer-klein, #pause-menu .bd-pane .lb-sfeer-groot { position: relative; left: auto; top: auto; transform: none; }
+#pause-menu .bd-pane .lb-sfeer-groot { font-size: var(--ds-s-6); }
 #pause-menu .bd-pane .lb-sfeer-ico { width: var(--ds-s-7); height: var(--ds-s-7); padding: var(--ds-s-2); }
 /* De kop in het paneel van de boerderij herhaalt de actieve tab (twee tabrijen, banner en vier koppen voor een knop, #1243): alleen nog voor schermlezers. */
 #pause-menu .bd-pane > .pm-pane-top { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0; }

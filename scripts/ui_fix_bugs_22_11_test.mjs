@@ -29,6 +29,7 @@ ok(/const padGeo = new THREE\.RingGeometry/.test(ps) && !/padMat = new THREE\.Me
     ok(badgeShown({ x: 2, y: 0, inVehicle: null }, s, 8) === true, 'duivenspot: te voet blijft het plaatje');
     ok(badgeShown({ x: 30, y: 0, inVehicle: {} }, s, 8) === true, 'duivenspot: verder weg blijft het plaatje ook in een voertuig');
   }
+  ok(/export const BADGE_SIZE_M = 0\.4;/.test(ps) && /badge\.scale\.set\(BADGE_SIZE_M, BADGE_SIZE_M, 1\)/.test(ps), 'duivenspot: het plaatje is 0,4 m, niet meer 0,52 m (#1189, beeld 24-11)');
   ok(/group\.userData\.badge = badge;/.test(ps) && /if \(badge\) badge\.visible = badgeShown\(p, s\);/.test(ps), 'duivenspot: de update-lus zet het plaatje per spot');
 }
 

@@ -47,7 +47,7 @@ export function veldKaartHtml(k) {
   const gewas = k.gewasNaam ? esc(k.gewasNaam) : k.planNaam ? esc(k.planNaam) : 'geen gewas';
   const v = k.verwachting;
   const verwacht = v && v.kg > 0 ? `<li>${getalHtml('oogst', `${nl(v.kg)} kg`, 'verwacht')}${getalHtml('geld', euroTekst(v.euro), 'ca.')}</li>` : '';
-  const fp = k.gewasId ? fpHtml(`gewas:${k.gewasId}`, k.gewasNaam || k.planNaam || '', 'm') : '';
+  const fp = k.gewasId ? fpHtml(`gewas:${k.gewasId}`, k.gewasNaam || k.planNaam || '', 's') : ''; // klein in de kop: de naam van het veld heeft de ruimte nodig (#1243)
   return `<article class="ds-z-kaart ds-z-kaart--recht bd-veld" data-status="${k.statusId}" data-stand="${k.stand}" data-veld="${esc(k.id)}">` +
     `<header class="ds-z-kaart__kop">${fp}<h3 class="ds-z-kaart__titel">${esc(k.naam)}</h3>${chip(k.statusId, k.standNaam)}</header>` +
     `<p class="ds-z-kaart__tekst">${gewas} · ${esc(String(k.ha).replace('.', ','))} ha${k.actief ? ' · werkt hier' : ''}</p>` +

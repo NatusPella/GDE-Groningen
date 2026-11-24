@@ -2817,6 +2817,7 @@ function speechBubbleEl() {
   return el;
 }
 
+const _bubblePlaced = [];
 function syncSpeechBubbles(world) {
   const seen = _bubbleSeen; seen.clear();
   // world.extraSpeakers: short-lived lines from boat crews and swimmers,
@@ -2831,6 +2832,7 @@ function syncSpeechBubbles(world) {
   }
   const ui = getUiScale();
   const vw = renderer.domElement.clientWidth / ui, vh = renderer.domElement.clientHeight / ui;
+  const placedRects = _bubblePlaced; placedRects.length = 0; // #1198: the bubbles set this frame; the next one stacks clear of them
   for (let n = 0; n < nPeds + nExtra; n++) {
     const p = n < nPeds ? peds[n] : extra[n - nPeds];
     if (!p.speechText || world.time >= p.speechUntil) { if (p._voicedText) p._voicedText = null; continue; }
@@ -2860,8 +2862,9 @@ function syncSpeechBubbles(world) {
     // randen (hudrules.js bubblePlace); de maat wordt alleen bij nieuwe tekst gemeten.
     el.style.display = 'block';
     if (!el._bw) { el._bw = el.offsetWidth || 140; el._bh = el.offsetHeight || 30; }
-    const placed = bubblePlace(scr, { w: el._bw, h: el._bh }, { w: vw, h: vh });
+    const placed = bubblePlace(scr, { w: el._bw, h: el._bh }, { w: vw, h: vh }, 4, placedRects);
     if (!placed) { el.style.display = 'none'; continue; }
+    placedRects.push({ left: placed.x - el._bw / 2, right: placed.x + el._bw / 2, top: placed.y - el._bh, bottom: placed.y });
     const tf = bubbleTransform(placed.x, placed.y);
     if (el._tf !== tf) { el._tf = tf; el.style.transform = tf; }
   }
