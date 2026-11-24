@@ -10,7 +10,7 @@ export const STAND_KAART = {
   braak: { vul: 'raster', letter: 'B' }, stoppel: { vul: 'raster', letter: 'S' }, geploegd: { vul: 'papier', letter: 'P' },
   zaailing: { vul: 'geel', letter: 'Z' }, groeiend: { vul: 'geel', letter: 'G' }, bijna: { vul: 'geel', letter: 'G' }, rijp: { vul: 'bord', letter: 'O' },
 };
-export const standKaart = (statusId, level) => (level === 'leased' ? { vul: 'papier', letter: 'V', streep: true } : STAND_KAART[statusId] || STAND_KAART.braak);
+export const standKaart = (statusId, level) => (statusId === 'aanbod' ? { vul: 'geel', letter: '' } : statusId === 'eigen' ? { vul: 'papier', letter: '' } : level === 'leased' ? { vul: 'papier', letter: 'V', streep: true } : STAND_KAART[statusId] || STAND_KAART.braak);
 
 // vlakken: [{ id, shape: [[x,y],...] | null, x, y, statusId, level, naam }]; w en h in px van het vak.
 export function kaartSvg(vlakken, { w = 250, h = 150, sel = null, label = 'Kaart van je velden' } = {}) {
@@ -25,12 +25,12 @@ export function kaartSvg(vlakken, { w = 250, h = 150, sel = null, label = 'Kaart
   const ox = (w - (x1 - x0) * s) / 2, oy = (h - (y1 - y0) * s) / 2;
   const px = (p) => `${(ox + (p[0] - x0) * s).toFixed(1)},${(oy + (y1 - p[1]) * s).toFixed(1)}`;   // wereld-y wijst naar het noorden: omkeren
   const body = lijst.map((v, i) => {
-    const k = standKaart(v.statusId, v.level), gekozen = v.id === sel;
+    const k0 = standKaart(v.statusId, v.level), k = v.letter !== undefined ? { ...k0, letter: v.letter } : k0, gekozen = v.id === sel;
     const pts = polys[i].map(px).join(' ');
     const mid = polys[i].reduce((a, p) => [a[0] + p[0] / polys[i].length, a[1] + p[1] / polys[i].length], [0, 0]);
     const [cx, cy] = px(mid).split(',').map(Number);
     return `<g data-veld="${esc(v.id)}"><title>${esc(v.naam || '')}</title><polygon points="${pts}" class="bzk-vlak bzk-${k.vul}${k.streep ? ' bzk-streep' : ''}${gekozen ? ' bzk-sel' : ''}"/>` +
-      `<g transform="translate(${cx.toFixed(1)},${cy.toFixed(1)})"><rect x="-10" y="-10" width="20" height="20" rx="3" class="bzk-letterplaat"/><text y="5" text-anchor="middle" class="bzk-letter">${k.letter}</text></g></g>`;
+      (k.letter ? `<g transform="translate(${cx.toFixed(1)},${cy.toFixed(1)})"><rect x="-10" y="-10" width="20" height="20" rx="3" class="bzk-letterplaat"/><text y="5" text-anchor="middle" class="bzk-letter">${k.letter}</text></g>` : '') + '</g>';
   }).join('');
   return `<svg class="bz-kaartvlak" viewBox="0 0 ${w} ${h}" role="img" aria-label="${esc(label)}">${defs}<rect width="${w}" height="${h}" class="bzk-grond"/>${body}</svg>`;
 }

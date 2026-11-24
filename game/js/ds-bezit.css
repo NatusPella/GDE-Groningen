@@ -157,3 +157,25 @@
 .bz-fasen .is-later i { border-style: dashed; color: var(--ds-c-inkt-zacht); }
 .bz-fasen b { font-family: var(--ds-font-zeef-kop); font-weight: 800; font-size: var(--ds-t-hulp); letter-spacing: var(--ds-ls-label); text-transform: uppercase; }
 .bz-fasen .is-later b, .bz-fasen .is-later small { color: var(--ds-c-inkt-zacht); }
+
+/* ---- Te koop en Bedrijven (bezitkoop.js, bezitbedrijven.js) ---- */
+.bz-md--koop { grid-template-columns: calc(var(--ds-s-8) * 8.8) minmax(0, 1fr); }
+.bz-md--bedrijven { grid-template-columns: calc(var(--ds-s-8) * 7.4) minmax(0, 1fr); }
+.bz-filters { display: flex; flex-wrap: wrap; align-items: center; gap: var(--ds-s-2) var(--ds-s-3); }
+.bz-rechts { margin-left: auto; }
+.bz-rij--uit .bz-rij__tekst b { color: var(--ds-c-inkt-zacht); }
+.bz-rij--uit { border-bottom-style: dashed; }
+.bz-rij__waarde small { display: block; font-family: var(--ds-font-zeef-tekst); font-weight: 400; font-size: var(--ds-t-hulp); color: var(--ds-c-inkt-zacht); }
+.bz-bon.ds-z-bon { padding: var(--ds-s-2) var(--ds-s-3); border-width: var(--ds-lijn-dik); }
+.bz-bon .ds-z-bon__totaal { font-size: var(--ds-t-subkop); }
+.bz-scherm { position: absolute; inset: 0; z-index: 5; display: grid; place-items: center; background: var(--ds-c-ink-inkt); background: color-mix(in srgb, var(--ds-c-ink-inkt) 55%, transparent); }
+.bz-bevestig { width: calc(var(--ds-s-8) * 10); max-width: 90%; gap: var(--ds-s-3); }
+.bz-bevestig > .ds-z-kaart__kop { margin: calc(var(--ds-s-4) * -1) calc(var(--ds-s-4) * -1) 0; }
+.bz-vasthoud { position: relative; overflow: hidden; }
+.bz-vasthoud::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 0; background: var(--ds-c-geel-druk); transition: width 600ms linear; z-index: 0; }
+.bz-vasthoud.is-vasthouden::before { width: 100%; }
+html.reduce-motion .bz-vasthoud::before, html.rustig-drukwerk .bz-vasthoud::before { transition: none; }
+.bz-vasthoud > * { position: relative; z-index: 1; }
+.bzk-i-eigen { background: var(--ds-c-ink-papier); }
+.bz-leeg { margin: var(--ds-s-4) 0; }
+.bz-leeg-beeld { display: grid; place-items: center; }

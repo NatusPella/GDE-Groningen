@@ -29,13 +29,15 @@ import { frameView, frameHtml, zetTabs } from './bezitframe.js';
 import { portfolioHtml, leegHtml } from './bezitoverzicht.js';
 import { kaartSvg } from './bezitkaart.js';
 import { veldenHtml, teamHtml } from './bezitvelden.js';
+import { koopItems, koopHtml, SOORTEN, SORTEN, HOUD_MS } from './bezitkoop.js';
+import { bedrijvenHtml } from './bezitbedrijven.js';
 
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const ha = (n) => String(Math.round(n * 10) / 10).replace('.', ',');
 export const SORT_NAME = { ripe: 'Rijp eerst', name: 'Naam', ha: 'Grootte', income: 'Opbrengst', region: 'Streek' };
 const MAX_ROWS = 40;
 
-export const ui = { veld: null, ontsla: null, sort: 'ripe', filter: { region: '', soort: '', level: '' }, sel: H.newSelection(), confirm: null, msg: '', msgAt: 0, more: false, product: 'aardappelen' };
+export const ui = { veld: null, ontsla: null, bk: null, koop: { sel: null, soort: 'alles', sort: 'terug', bevestig: false }, sort: 'ripe', filter: { region: '', soort: '', level: '' }, sel: H.newSelection(), confirm: null, msg: '', msgAt: 0, more: false, product: 'aardappelen' };
 // Een melding onder aan een tabblad blijft niet eeuwig staan (en niet op een ander tabblad hangen): na MSG_TTL_MS is hij weg. msgAt 0 = geen klok (tests).
 export const MSG_TTL_MS = 20000;
 export const msgNow = () => (ui.msg && (!ui.msgAt || Date.now() - ui.msgAt < MSG_TTL_MS) ? ui.msg : '');
@@ -288,9 +290,9 @@ export function renderBezitPanels(els, world) {
   if (!L.getIndexNow()) L.ensureIndex().then(() => { if (els.rerender) els.rerender(); }).catch(() => {});
   const view = frameView(world), kader = frameHtml(view);
   if (els.overzicht) els.overzicht.innerHTML = kader + summaryHtml({ bezit, farm, money, day, news: L.newsView(world), chains: L.chainViews(), board: L.priceBoard(ui.product), products: L.marketProducts(), view });
-  if (els.bedrijven) { const p = playerPos(world); els.bedrijven.innerHTML = businessesHtml({ money, mine: L.myBusinesses(), near: L.buildingsNear(p.x, p.y), day, mobile: L.myMobile(), mobileOffers: L.mobileOffers(), homes: L.homesNear(p.x, p.y) }); els.bedrijven.insertAdjacentHTML('afterbegin', kader); }
+  if (els.bedrijven) { const p = playerPos(world); els.bedrijven.innerHTML = businessesHtml({ money, mine: L.myBusinesses(), near: L.buildingsNear(p.x, p.y), day, mobile: L.myMobile(), mobileOffers: L.mobileOffers(), homes: L.homesNear(p.x, p.y) }); els.bedrijven.innerHTML = kader + bedrijvenView(world, view); }
   const aanbod = nearbyOffers(world);
-  if (els.tekoop) { els.tekoop.innerHTML = kader + forSaleHtml({ money, offers: aanbod, loading: !L.getIndexNow() }); }
+  if (els.tekoop) { els.tekoop.innerHTML = kader + tekoopView(world, view); }
   if (els.snack) { renderSnackPanel(els.snack, world); els.snack.insertAdjacentHTML('afterbegin', kader); }
   if (els.club) { renderClubPanel(els.club, world); els.club.insertAdjacentHTML('afterbegin', kader); }
   zetTabs(els.overzicht && els.overzicht.closest('[data-panel]'), view, { boerderij: view.rows.length, bedrijven: view.panden.length, tekoop: aanbod.length });
@@ -299,6 +301,7 @@ export function renderBezitPanels(els, world) {
   els.rerender = redo;
   if (bound === world) return;
   bound = world;
+  if (els.tekoop) bindVasthouden(els.tekoop, world, () => els.rerender());
   for (const el of [els.overzicht, els.bedrijven, els.tekoop]) {
     if (!el) continue;
     el.addEventListener('change', (e) => {
@@ -321,6 +324,10 @@ export function renderBezitPanels(els, world) {
         els.rerender();
         return;
       }
+      const bk = e.target.closest('[data-bk]');
+      if (bk) { ui.bk = Number(bk.dataset.osm); ui.msg = ''; els.rerender(); return; }
+      const kp = e.target.closest('[data-kp]');
+      if (kp) { koopActie(world, kp.dataset); els.rerender(); return; }
       const b = e.target.closest('[data-bz]');
       if (!b) return;
       act(world, b.dataset, els);
@@ -422,4 +429,65 @@ export function veldenActie(world, d) {
   else if (a === 'annuleer') ui.confirm = null;
   else if (a === 'kaart') { const o = L.parcelOffer(d.id); if (o && o.parcel) { import('./routing.js').then((m) => m.setUserWaypoint(o.parcel.x, o.parcel.y, o.name)); ui.msg = `Doel gezet: ${o.name}. Het staat op je kaart.`; } }
   ui.msgAt = ui.msg ? Date.now() : 0;
+}
+
+// ---- Bedrijven (bezitbedrijven.js) en Te koop (bezitkoop.js) ----
+export function bedrijvenView(world, view) {
+  if (!branchOpen('business')) return locked('business');
+  const money = (world && world.money) || 0, day = Math.floor(getBoerderij().uren / 24);
+  const mine = L.myBusinesses();
+  if (!mine.length) return emptyState('winkel', 'Nog geen bedrijf', 'Een pand levert elke speldag omzet of huur, ook als je er niet bent.', ['boerderij:tekoop', 'Bekijk panden te koop'], 'bedrijven') + `<p class="bd-melding" aria-live="polite">${esc(msgNow())}</p>`;
+  return bedrijvenHtml({ mine, sel: ui.bk, day, owned: view ? Object.keys(view.bezit.parcels).filter((k) => !view.bezit.parcels[k].lg).length + view.bezit.buildings.size : 0, rentView: L.rentView,
+    renoHtml: (m) => renoBtn('reno', m.osm, m.biz, money), verkoopHtml: (m) => askOr('verkoop-pand', m.osm, `Verkopen · ${euro(P.sellValue(m.biz.p))}`, 'Zeker?'), melding: msgNow() });
+}
+let koopLaatst = [];
+export function tekoopView(world, view) {
+  if (!branchOpen('land')) return locked('land');
+  if (!L.getIndexNow()) return leegTeKoop(true);
+  const money = (world && world.money) || 0, p = playerPos(world), bezit = L.getBezit();
+  const owned = Object.keys(bezit.parcels).filter((k) => !bezit.parcels[k].lg).length + bezit.buildings.size;
+  const alle = L.buildingsNear(p.x, p.y, 600, 20);
+  const items = koopItems({ offers: nearbyOffers(world, 30), panden: alle.filter((o) => o.kind && o.kind.type !== 'woning'), woningen: L.homesNear(p.x, p.y, 8), money, owned });
+  koopLaatst = items;
+  const rows = view ? view.rows : [];
+  const vlakken = rows.map((r) => { const o = L.parcelOffer(r.id); return o && o.parcel ? { id: r.id, shape: o.shape, x: o.parcel.x, y: o.parcel.y, statusId: 'eigen', level: 'self', naam: r.name } : null; }).filter(Boolean);
+  return koopHtml({ items, sel: ui.koop.sel, soort: ui.koop.soort, sort: ui.koop.sort, money, bevestig: ui.koop.bevestig, dagNu: view ? view.w.perDag : null, vlakken }) + `<p class="bd-melding" aria-live="polite">${esc(msgNow())}</p>`;
+}
+export function koopActie(world, d) {
+  const k = ui.koop, a = d.kp;
+  const wissel = (lijst, nu, dir) => lijst[(lijst.indexOf(nu) + (Number(dir) || 1) + lijst.length) % lijst.length];
+  if (a === 'kies') { k.sel = d.key; k.bevestig = false; ui.msg = ''; }
+  else if (a === 'soort') { k.soort = wissel(SOORTEN, k.soort, d.dir); k.bevestig = false; }
+  else if (a === 'sort') k.sort = wissel(SORTEN, k.sort, d.dir);
+  else if (a === 'koop') k.bevestig = true;
+  else if (a === 'terug') k.bevestig = false;
+  else if (a === 'koop-ok') {
+    const i = koopLaatst.find((x) => x.key === d.key);
+    k.bevestig = false;
+    if (i) { act(world, { bz: i.act, id: String(i.id), ok: '1' }, null); k.sel = null; }
+  }
+  ui.msgAt = ui.msg ? Date.now() : 0;
+}
+// Vasthouden om te kopen (HOUD_MS): muis, toets (Enter of Spatie) en controller (A is een toets). Een klik zonder vasthouden, zoals de controller die soms doet, telt als de eerste van twee drukken.
+export function bindVasthouden(el, world, rerender) {
+  if (!el || !el.dataset || el.dataset.houdGebonden) return;
+  el.dataset.houdGebonden = '1';
+  let timer = null, knop = null, gedaan = false, gewapend = 0;
+  const stop = () => { if (timer) clearTimeout(timer); timer = null; if (knop) { knop.classList.remove('is-vasthouden'); knop = null; } };
+  const start = (b) => {
+    if (timer) return;
+    knop = b; gedaan = false; b.classList.add('is-vasthouden');
+    timer = setTimeout(() => { timer = null; gedaan = true; const key = b.dataset.houd; stop(); koopActie(world, { kp: 'koop-ok', key }); rerender(); }, HOUD_MS);
+  };
+  const vind = (e) => (e.target && e.target.closest ? e.target.closest('[data-houd]') : null);
+  el.addEventListener('pointerdown', (e) => { const b = vind(e); if (b) { gewapend = 0; start(b); } });
+  for (const t of ['pointerup', 'pointerleave', 'pointercancel']) el.addEventListener(t, (e) => { if (knop) stop(); });
+  el.addEventListener('keydown', (e) => { const b = vind(e); if (b && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); if (!e.repeat) start(b); } });
+  el.addEventListener('keyup', (e) => { if (knop && (e.key === 'Enter' || e.key === ' ')) stop(); });
+  el.addEventListener('click', (e) => {
+    const b = vind(e); if (!b) return;
+    if (gedaan) { gedaan = false; return; }
+    // een klik zonder echte aanraking of toets (de controller): de tweede druk binnen vier seconden bevestigt
+    if (e.detail === 0) { const nu = Date.now(); if (gewapend && nu - gewapend < 4000) { gewapend = 0; koopActie(world, { kp: 'koop-ok', key: b.dataset.houd }); rerender(); } else { gewapend = nu; ui.msg = 'Druk nog een keer om te kopen.'; ui.msgAt = nu; rerender(); } }
+  });
 }
