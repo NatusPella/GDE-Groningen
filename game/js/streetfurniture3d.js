@@ -347,6 +347,9 @@ export function initStreetFurniture3D(sceneRef, mapRef) {
   tiles.clear();
   dirty = true;
   addPropStreamer(streamFurnitureProps);
+  // perf-r3 (24-11): alle soorten nu al, achter het laadscherm: hun LOD-ketens (lodsimplify.js) en shaders kostten na een
+  // camerasprong tot ~130 ms in één beeld (3d:roads:meubilair) bij de eerste keer dat een soort in beeld kwam
+  for (const k of Object.keys(GEOS)) setOf(k);
 }
 
 const _m = new THREE.Matrix4(), _q = new THREE.Quaternion(), _p = new THREE.Vector3(), _s = new THREE.Vector3(), _up = new THREE.Vector3(0, 1, 0);

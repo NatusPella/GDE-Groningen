@@ -226,6 +226,10 @@ const heelIndex = (ix) => !!ix && typeof ix.inWater === 'function';
 export function getWaterIndex(map, poly = null) {
   if (!map) return (LEGE_INDEX || (LEGE_INDEX = createWaterIndex([])));
   if (poly && map.waterNear && !staticWater(map).has(poly)) return polyWaterIndex(map, poly);
+  // perf-r3 (24-11, profiel start benchmark: createWaterIndex/inWater 30 tot 55% van de hoofdthread, ~2 s lang): elke tegel die vast
+  // water liet gaan of bracht, bouwde bij de volgende watermesh de index over AL het vaste water opnieuw. Voor de mesh van één vlak telt
+  // alleen het water eromheen (de oever wordt binnen 4 m beslist): een eigen index over het vaste water binnen 40 m, zoals bij de tegels
+  if (poly && map.waterNear) return staticPolyWaterIndex(map, poly);
   const st = staticWater(map);
   const ver = map._staticWaterVer || 0;
   if (heelIndex(map._waterIndex) && map._waterIndexSeen === ver) return map._waterIndex;
@@ -240,6 +244,15 @@ export function waterIndexAt(map, x, y) {
 }
 
 let LEGE_INDEX = null;
+function staticPolyWaterIndex(map, poly) {
+  const b = poly.bounds || [Infinity, Infinity, -Infinity, -Infinity];
+  const cx = (b[0] + b[2]) / 2, cy = (b[1] + b[3]) / 2, r = Math.max(b[2] - b[0], b[3] - b[1]) / 2 + 40;
+  const st = staticWater(map);
+  const near = new Set(map.waterNear(cx, cy, r).filter((w) => st.has(w)));
+  near.add(poly);
+  // dezelfde volgorde als de grote index (de volgorde van het vaste water), zodat gelijke oevers gelijk uitvallen
+  return createWaterIndex([...st].filter((w) => near.has(w)));
+}
 function polyWaterIndex(map, poly) {
   // (#1089) niet `_wi`: dat is de bouw-id (een getal) van de waterrij (mapdata.js); een rij met id > 0 gaf dat getal terug als index
   if (poly._polyIndex && typeof poly._polyIndex.inWater === 'function') return poly._polyIndex;

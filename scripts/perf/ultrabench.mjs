@@ -37,7 +37,7 @@ async function once(b, round) {
   let line = null;
   const args = ['.', '--benchmark=1', '--windowed', '--stil', '--force-device-scale-factor=1', '--window-size=1920x1080',
     '--disable-renderer-backgrounding', '--disable-backgrounding-occluded-windows', '--disable-features=CalculateNativeWinOcclusion',
-    `--preset=${STANDS[STAND] || STAND}`, `--url-flags=${[FLAGS, ...b.flags].join(',')}`, `--bench-eval=${path.join(HERE, 'ultrabench.hook.js')}`];
+    `--preset=${STANDS[STAND] || STAND}`, `--url-flags=${[FLAGS, ...b.flags].join(',')}`, `--bench-eval=${path.join(HERE, 'ultrabench.hook.js')}`, ...(process.env.UB_EXTRA_ARGS ? process.env.UB_EXTRA_ARGS.split(' ') : [])]; // UB_EXTRA_ARGS='--profile' met GDE_PROFILE_AT/_MS/_OUT: een CPU-profiel
   const env = runner.electronEnv({ profile, tmp, gameDir: b.dir });
   const res = await runner.runElectron({
     electron, args, cwd: path.join(ROOT, 'desktop'), env, out: dir, log, timeoutMin: 12, below: false,

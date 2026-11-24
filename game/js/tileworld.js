@@ -158,6 +158,7 @@ export const ROW_CHUNK = 300;
 // ... en hoogstens zoveel ms per stuk: 300 rijen met grote vlakken (gebouwen, wegen met veel punten) duurden tot 35 ms (scripts/perf/streamsteps.mjs),
 // een hapering die geen frame-budget kon knippen. De volgorde van de rijen blijft gelijk, alleen de yield komt eerder (de wereld is identiek).
 export const ROW_CHUNK_MS = 1.2;
+const TREE_TRIM_SLICE = 150; // bomen per stap bij het bijsnoeien van een nieuwe tegel (perf-r3)
 export const BUILDING_DELTA_MAX = 20000;
 const residentKey = (i, j, key) => (key && key[0] === 'o' ? 'o' : '') + `${i},${j}`;
 
@@ -561,9 +562,16 @@ export class TileWorld extends GameMap {
     // staan waar de weg in de buurtegel ligt, en de gemapte heggen liepen over de rijbaan. Met deze tegel erbij zijn
     // de eigen bomen en heggen te beoordelen, en met zijn wegen ook die van de buren binnen 12 m.
     const [ox, oy] = tileOrigin(tile.i, tile.j);
-    const trimmed = trimTileGreenery(this, [ox, oy, ox + TILE_M, oy + TILE_M], { trees: ownTrees, hedges: ownHedges, roads: hasRoads || newWater.length > 0 || ownBuildings.length > 0 });
+    // perf-r3 (24-11, profiel: retrimTree 101 ms in één stap voor een bostegel): de eigen bomen in stukken van TREE_TRIM_SLICE met een
+    // yield ertussen, daarna de heggen en de ring om de tegel; dezelfde volgorde en uitkomst als in één aanroep
     const gs = this.greeneryStats || (this.greeneryStats = { removed: 0, moved: 0, hedges: 0 });
-    gs.removed += trimmed.removed; gs.moved += trimmed.moved; gs.hedges += trimmed.hedges;
+    const tally = (t) => { gs.removed += t.removed; gs.moved += t.moved; gs.hedges += t.hedges; };
+    const trees = ownTrees || [];
+    for (let k = 0; k < trees.length; k += TREE_TRIM_SLICE) {
+      tally(trimTileGreenery(this, null, { trees: trees.length > TREE_TRIM_SLICE ? trees.slice(k, k + TREE_TRIM_SLICE) : trees }));
+      if (k + TREE_TRIM_SLICE < trees.length) yield;
+    }
+    tally(trimTileGreenery(this, [ox, oy, ox + TILE_M, oy + TILE_M], { hedges: ownHedges, roads: hasRoads || newWater.length > 0 || ownBuildings.length > 0 }));
     // #314 C2 (stap 4): één geo-versie voor de caches die uit de rasters/arrays bouwen
     // (farlod, scene3d, grass, routing, ...): per add/drop opgehoogd, zodat een cache zich
     // kan verversen. De pin houdt de stad nog vast; dit is de haak voor de volgende ronde.
