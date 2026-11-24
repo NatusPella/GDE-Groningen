@@ -15,7 +15,9 @@ const scenes = path.resolve(arg('scenes', path.join(root, 'scripts', 'ui', 'pers
 const flags = ['dynvast', ...arg('flags', '').split(',').filter(Boolean)].join(',');
 const run = R.prepareRunDir(out);
 const script = path.join(out, '_scenes.js');
-fs.writeFileSync(script, fs.readFileSync(scenes, 'utf8'));
+const only = arg('only', '');   // --only=voetbal: een scene met rijen (personages2_kleding.js) doet alleen de rijen met deze naam
+fs.writeFileSync(script, (only ? `window.__p2Only = ${JSON.stringify(only)};
+` : '') + fs.readFileSync(scenes, 'utf8'));
 const png = path.join(out, size + '.png');
 const args = ['.', '--windowed', '--stil', '--force-device-scale-factor=1', '--window-size=' + size, '--url-flags=' + flags, '--smoke-test=' + png, '--perf-script=' + script];
 const electron = process.env.ELECTRON_EXE || R.findElectron(root);

@@ -67,6 +67,7 @@ await (async () => {
     const hash = (a, b) => { const x = Math.sin(a * 12.9898 + b * 78.233) * 43758.5453; return x - Math.floor(x); };
     // een rij van n figuren op afstand dist, kijkend naar de camera; twee beelden: voor en (optioneel) achter
     const row = async (naam, builds, back = true, dist = 4.2) => {
+      if (window.__p2Only && !naam.includes(window.__p2Only)) return;
       clear();
       const n = builds.length, gap = 1.25;
       builds.forEach((b, i) => {

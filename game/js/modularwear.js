@@ -203,7 +203,9 @@ function voetbalshirt(ctx, spec) {
       const za = z0 + ((z1 - z0) * c) / nc, zb = z0 + ((z1 - z0) * (c + 1)) / nc;
       const xa0 = surfX(y0, za, back), xb0 = surfX(y0, zb, back), xa1 = surfX(y1, za, back), xb1 = surfX(y1, zb, back);
       if ([xa0, xb0, xa1, xb1].some((x) => x === null)) continue;
-      B.quadDir(B.v([xa0, y0, za], color, ch), B.v([xb0, y0, zb], color, ch), B.v([xb1, y1, zb], color, ch), B.v([xa1, y1, za], color, ch), [back ? -1 : 1, 0, 0]);
+      // één x voor de hele vierhoek (een vlak loodrecht op x): geen gedraaide vierhoek waarvan de helft de verkeerde kant op wijst
+      const xq = back ? Math.min(xa0, xb0, xa1, xb1) : Math.max(xa0, xb0, xa1, xb1);
+      B.quadDir(B.v([xq, y0, za], color, ch), B.v([xq, y0, zb], color, ch), B.v([xq, y1, zb], color, ch), B.v([xq, y1, za], color, ch), [back ? -1 : 1, 0, 0]);
     }
   };
   const color = col(spec.color, 0xffffff);
