@@ -1,0 +1,48 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Voertuigen 24-11: voor en na</title>
+<style>
+  body { margin: 0; padding: 24px; background: #17301f; color: #f0ede4; font: 15px/1.45 system-ui, sans-serif; max-width: 1500px; }
+  h1 { font-size: 22px; margin: 0 0 6px; } h2 { font-size: 17px; margin: 26px 0 6px; color: #3fc97a; }
+  .rij { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px; } .rij figure { margin: 0; }
+  img { width: 100%; display: block; border: 1px solid rgba(240,237,228,.16); } figcaption { font-size: 12px; opacity: .7; }
+  table { border-collapse: collapse; } td, th { border: 1px solid rgba(240,237,228,.2); padding: 4px 10px; text-align: left; vertical-align: top; }
+  .klein { opacity: .75; font-size: 13px; }
+</style>
+<h1>Voertuigen 24-11: voor (links) en na (rechts)</h1>
+<p class="klein">Headless Chrome met <code>pagina.html</code> (1920x1080, vaste camerapunten per voertuig, geen spelbelichting); niets hiervan is in het spel zelf bekeken.
+Weergaven: buiten (recht van opzij), schuin (voor), achter, open (deuren open), binnen (uit de achterbank, deuren open). Opnieuw maken: <code>node scripts/voertuigbeeld.mjs voor|na &lt;voertuig&gt;</code>.</p>
+
+<h2>Oordeel per voertuig (1-10, eerlijk; zonder externe bron haalt procedureel bouwen het niveau van de Quaternius-hybriden niet)</h2>
+<table>
+<tr><th>Voertuig</th><th>Voor</th><th>Na</th><th>Gedaan of niet</th></tr>
+<tr><td>Fjord Escapade</td><td>4</td><td>7,5</td><td>Hybride op de Quaternius-hatchback met karakter (roest, deuk, dakdrager, trekhaak, kenteken, plakband, kapot knipperlicht, wieldop kwijt, andere deur)</td></tr>
+<tr><td>Trekker</td><td>4</td><td>7</td><td>Opnieuw: afgeronde kap, grille, koplampen, spatborden, noppenbanden, spiegels, zwaailicht, hef</td></tr>
+<tr><td>Quad</td><td>3</td><td>6</td><td>Opnieuw: neus, tank, spatborden, zitting, stuur, rekken, demper</td></tr>
+<tr><td>Bestelbus</td><td>4</td><td>4</td><td>Niet gedaan: doosvorm met vlakke zijkant; vraagt een eigen romp met cabine</td></tr>
+<tr><td>Ambulance</td><td>5</td><td>5</td><td>Niet gedaan: valt of staat met de bestelbus</td></tr>
+<tr><td>Stationwagen</td><td>5,5</td><td>5,5</td><td>Niet gedaan (eigen bouwer, geen hybride)</td></tr>
+<tr><td>Stadsbus (geleed) en midibus</td><td>6,5</td><td>6,5</td><td>Niet gedaan: al ruitstijlen, deuren en interieur</td></tr>
+<tr><td>Foodtruck, vrachtwagen</td><td>5 en 5,5</td><td>idem</td><td>Niet gedaan</td></tr>
+<tr><td>Laadmachine, maaidorser</td><td>4,5</td><td>4,5</td><td>Niet gedaan (zelfde aanpak als de trekker past)</td></tr>
+<tr><td>Fiets, fatbike, step, bromfiets</td><td>7, 6, 6, 6</td><td>idem</td><td>Niet gedaan; fiets is al goed</td></tr>
+<tr><td>Sloep (boot)</td><td>3 (445 driehoeken)</td><td>3</td><td>Niet gedaan</td></tr>
+<tr><td>Trein, tram, heli</td><td colspan="3">Niet beoordeeld of aangeraakt in deze ronde (geen renders gemaakt)</td></tr>
+</table>
+<p class="klein">Driehoeken (niveau 0, 1, 2 van het centrale LOD-systeem): Escapade 5.142, 1.607, 92; trekker 4.162, 1.468, 92; quad 2.524, 1.024, 92. Body-materialen: 3 (lak, glas, lampen) plus de gedeelde nadenmaterialen.</p>
+
+<h2>Fjord Escapade</h2>
+<div class="rij"><figure><img src="voor-escapade-buiten.png"><figcaption>voor, buiten</figcaption></figure><figure><img src="na-escapade-buiten.png"><figcaption>na, buiten</figcaption></figure></div>
+<div class="rij"><figure><img src="voor-escapade-schuin.png"><figcaption>voor, schuin</figcaption></figure><figure><img src="na-escapade-schuin.png"><figcaption>na, schuin</figcaption></figure></div>
+<div class="rij"><figure><img src="voor-escapade-achter.png"><figcaption>voor, achter</figcaption></figure><figure><img src="na-escapade-achter.png"><figcaption>na, achter</figcaption></figure></div>
+<div class="rij"><figure><img src="voor-escapade-open.png"><figcaption>voor, open</figcaption></figure><figure><img src="na-escapade-open.png"><figcaption>na, open</figcaption></figure></div>
+<div class="rij"><figure><img src="voor-escapade-binnen.png"><figcaption>voor, binnen</figcaption></figure><figure><img src="na-escapade-binnen.png"><figcaption>na, binnen</figcaption></figure></div>
+<h2>Trekker</h2>
+<div class="rij"><figure><img src="voor-tractor-buiten.png"><figcaption>voor, buiten</figcaption></figure><figure><img src="na-tractor-buiten.png"><figcaption>na, buiten</figcaption></figure></div>
+<div class="rij"><figure><img src="voor-tractor-schuin.png"><figcaption>voor, schuin</figcaption></figure><figure><img src="na-tractor-schuin.png"><figcaption>na, schuin</figcaption></figure></div>
+<div class="rij"><figure><img src="voor-tractor-achter.png"><figcaption>voor, achter</figcaption></figure><figure><img src="na-tractor-achter.png"><figcaption>na, achter</figcaption></figure></div>
+<h2>Quad</h2>
+<div class="rij"><figure><img src="voor-quad-buiten.png"><figcaption>voor, buiten</figcaption></figure><figure><img src="na-quad-buiten.png"><figcaption>na, buiten</figcaption></figure></div>
+<div class="rij"><figure><img src="voor-quad-schuin.png"><figcaption>voor, schuin</figcaption></figure><figure><img src="na-quad-schuin.png"><figcaption>na, schuin</figcaption></figure></div>
+<div class="rij"><figure><img src="voor-quad-achter.png"><figcaption>voor, achter</figcaption></figure><figure><img src="na-quad-achter.png"><figcaption>na, achter</figcaption></figure></div>
+<h2>Niet aangepast (alleen de stand van voor)</h2><div class="rij"><figure><img src="voor-van-schuin.png"><figcaption>bestelbus</figcaption></figure><figure><img src="voor-ambulance-schuin.png"><figcaption>ambulance</figcaption></figure></div><div class="rij"><figure><img src="voor-bus-schuin.png"><figcaption>bus</figcaption></figure><figure><img src="voor-truck-schuin.png"><figcaption>vrachtwagen</figcaption></figure></div>
