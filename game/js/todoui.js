@@ -234,7 +234,7 @@ function miniKaartHtml(world, it, naam) {
   const gx = 180 + dx * s * 0.5, gy = 115 - dy * s * 0.5; // doel (noord boven)
   const x1 = 180 - (dx * s) / 2, y1 = 115 + (dy * s) / 2, x2 = 180 + (dx * s) / 2, y2 = 115 - (dy * s) / 2;
   void px; void py; void gx; void gy;
-  return `<div class="sp-held__kaart"><svg viewBox="0 0 360 230" preserveAspectRatio="xMidYMid slice" role="img" aria-label="Het doel ligt ${esc(formatDistance(Math.hypot(dx, dy)))} van je vandaan">` +
+  return `<div class="sp-held__kaart"><svg viewBox="0 0 360 230" preserveAspectRatio="xMidYMid slice" role="img" aria-label="Het doel ligt ${esc(formatDistance(Math.hypot(dx, dy)))} van je vandaan">` + // ds3-uitzondering: kaartminiatuur, een tekening van jij, doel en route (data), geen icoon
     '<rect width="360" height="230" fill="var(--ds-c-papier-2)"/><g fill="none" stroke="var(--ds-c-ink-inkt)" stroke-width="2" opacity=".3"><path d="M0 60H360M0 150H360M80 0V230M200 0V230M290 0V230"/></g>' +
     `<path d="M${x1.toFixed(1)} ${y1.toFixed(1)} L${x2.toFixed(1)} ${y2.toFixed(1)}" fill="none" stroke="var(--ds-c-ink-geel)" stroke-width="9" stroke-linecap="round"/>` +
     `<path d="M${x1.toFixed(1)} ${y1.toFixed(1)} L${x2.toFixed(1)} ${y2.toFixed(1)}" fill="none" stroke="var(--ds-c-ink-inkt)" stroke-width="2.5" stroke-dasharray="2 9" stroke-linecap="round"/>` +
