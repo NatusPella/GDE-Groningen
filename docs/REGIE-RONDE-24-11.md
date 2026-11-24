@@ -66,8 +66,8 @@ Er komt geen netwerkbericht bij. M16.outro kreeg één licht in plaats van drie 
 
 ## Nog niet bekeken
 
-- Electron-beeld van de `na`-run alleen als het slot vrij was (zie de pagina: zonder foto staan er schetsen). Licht per shot is dus
-  mogelijk alleen in de schets (kleurstalen) te zien, niet in het echte beeld.
+- Beide runs hebben echt Electron-beeld (een vaste plek in de wereld, 14:00, geen weer; de plek is niet de echte locatie van de scène). Bekeken door de agent: F1, F5, M22.4 en M30.outro voor en na (het licht per shot is zichtbaar: avond en warm-intiem). De andere scènes alleen via de lint en de schetsen.
+- In git staan alle schetsen en per scène drie echte beelden per run; de volledige set maakt het commando hierboven opnieuw.
 - De Quaternius-personages (branch `personages-leven-23-11`): de lint rekent met een mens van 1,78 m, de beelden zijn nog de oude figuren.
 - Akte 1-scènes: alleen het effect van de close-up-fix, geen regieronde (andere branch).
 - Gebaren via een animatie-state-machine: er is er geen; de gebaren blijven de bestaande pose-clips en `anim`-cues.
