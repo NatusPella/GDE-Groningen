@@ -9,6 +9,7 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ## [Unreleased]
 
+- Dorpskerken: de ramen zijn glas in lood (blauwgrijs met een middenstijl) in plaats van egaal zwarte gaten in de gevel. Samen spelen: alleen beeld, bij iedereen hetzelfde.
 - Snackwagen: Jelles bedrijf heet overal Us Mem Snacks (op het tabblad Snackwagen, de kaartlaag Standplaatsen, de prestatie en het bord op zijn wagens stond nog Usmem). Samen spelen: alleen tekst, per speler.
 - Land en bedrijf: het icoon van een lege staat (Overzicht, Te koop) heeft een vaste maat en vult niet meer het hele paneel; Te koop toont een wegwijzerbord in plaats van een gestippeld vakje. Samen spelen: per speler.
 - Visboek: de wateren staan in één kolom met hun volle naam in plaats van drie smalle kolommen met afgekapte namen. Samen spelen: per speler.

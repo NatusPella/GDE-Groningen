@@ -252,17 +252,20 @@ function saddleRoof(B, cx, hw, he, hr, color, wall) {
   B.triOut([cx - hw, he, -hw], [cx, hr, -hw], [cx + hw, he, -hw], [0, 0, -1], wall);
 }
 
+// Glas in lood: blauwgrijs met een middenstijl, geen egaal zwart gat in de gevel (#1193, hertest Usquert: "zwarte gaten")
+const LEAD_GLASS = 0x3a4855;
 function windowAt(B, x, z, nz, y0, w, hgt, kind, frame) {
-  // a dark opening a hand proud of the wall, rounded or pointed at the top
+  // a glass-in-lead opening a hand proud of the wall, rounded or pointed at the top, with a mullion in the frame colour
   const d = 0.06 * nz;
   if (kind === 'slot') {
-    B.box(x, y0 + hgt / 2, z + d, w * 0.35, hgt, 0.08, 0x1c2228, G_GLASS);
+    B.box(x, y0 + hgt / 2, z + d, w * 0.35, hgt, 0.08, LEAD_GLASS, G_GLASS);
     return;
   }
-  B.box(x, y0 + hgt * 0.42, z + d, w, hgt * 0.84, 0.08, 0x1c2228, G_GLASS);
+  B.box(x, y0 + hgt * 0.42, z + d, w, hgt * 0.84, 0.08, LEAD_GLASS, G_GLASS);
   const top = y0 + hgt * 0.84;
-  if (kind === 'pointed') B.triOut([x - w / 2, top, z + d + 0.04 * nz], [x + w / 2, top, z + d + 0.04 * nz], [x, top + w * 0.75, z + d + 0.04 * nz], [0, 0, nz], 0x1c2228, G_GLASS);
-  else B.geo(new THREE.CircleGeometry(w / 2, 8, 0, Math.PI), composeMatrix(x, top, z + d + 0.04 * nz, 0, nz > 0 ? 0 : Math.PI, 0), 0x1c2228, G_GLASS);
+  if (kind === 'pointed') B.triOut([x - w / 2, top, z + d + 0.04 * nz], [x + w / 2, top, z + d + 0.04 * nz], [x, top + w * 0.75, z + d + 0.04 * nz], [0, 0, nz], LEAD_GLASS, G_GLASS);
+  else B.geo(new THREE.CircleGeometry(w / 2, 8, 0, Math.PI), composeMatrix(x, top, z + d + 0.04 * nz, 0, nz > 0 ? 0 : Math.PI, 0), LEAD_GLASS, G_GLASS);
+  B.box(x, y0 + hgt * 0.42, z + d + 0.05 * nz, Math.max(0.07, w * 0.08), hgt * 0.84, 0.04, frame);
   B.box(x, y0 - 0.08, z + d, w + 0.3, 0.14, 0.12, frame);
 }
 
@@ -381,7 +384,7 @@ function church(B, p, lod) {
   if (!tw) {
     // the west front: a door and a round window
     B.box(x0 - 0.06, 1.4, 0, 0.14, 2.8, 1.8, 0x3a2a22);
-    B.geo(new THREE.CircleGeometry(Math.min(1.2, hw * 0.3), 12), composeMatrix(x0 - 0.08, eave * 0.75, 0, 0, -Math.PI / 2, 0), 0x1c2228, G_GLASS);
+    B.geo(new THREE.CircleGeometry(Math.min(1.2, hw * 0.3), 12), composeMatrix(x0 - 0.08, eave * 0.75, 0, 0, -Math.PI / 2, 0), LEAD_GLASS, G_GLASS);
     B.box(x0 - 0.3, 2.9, 0, 0.5, 0.25, 2.2, 0xf2ead4, G_GLOW);
   }
 }
