@@ -11,7 +11,7 @@ import { loopbaanVerdien } from './loopbaanlive.js';
 import { euro } from './geldtekst.js';
 import { voetbalOpen, progressFrom } from './voetbalpoort.js';
 import { nextBeat, inviteBeat, markBeat, hudLine, beatText } from './voetbalbeats.js';
-import { getStoryView } from './storyquery.js';
+import { getStoryView, storyGateProgress } from './storyquery.js';
 import { unlockAchievement } from './achievements.js';
 import { playerBusy } from './busy.js';
 import { narrativeBusy } from './narrative.js';
@@ -162,8 +162,13 @@ export function applyInjuries(on) { const c = getCareer(); if (!C.hasCareer(c)) 
 export function flush() { saveNow(); }
 
 // ---- de poort, de uitnodiging en de beats ----
-// De stand voor de poort uit het verhaal en de wereld (w.gate bestaat pas als de verhaal-epic gemerged is: zonder is alles open, de migratieregel van een bestaande save).
+// De stand voor de poort: die van het verhaal (storyGateProgress); zonder story.js (een losse test) de oude afleiding, waarin een ontbrekende poort alles opent.
 export function progressNow(w) {
+  // 24-11: de poort van het verhaal zelf (story.js state.gate). w.gate bestaat niet, dus de oude regel hieronder gaf altijd 'alles open': de uitnodiging
+  // van de club ('Ik heb jou opgegeven. Niet zeuren.') kwam in een nieuw spel al in akte 1, ook bij Samen spelen. Besluit eigenaar: het verhaal opent alles.
+  let sp = null;
+  try { sp = storyGateProgress(); } catch (e) { sp = null; }
+  if (sp) return { ...sp, dev: !!(w && w.devJump), begun: (id) => hasCareer() || (typeof sp.begun === 'function' && sp.begun(id)) };
   let sv = { end: false };
   try { sv = getStoryView() || sv; } catch (e) { sv = { end: false }; }
   return progressFrom({ stepId: sv.id || null, ended: !!sv.end, gate: w ? w.gate : undefined, dev: !!(w && w.devJump), begun: () => hasCareer() });

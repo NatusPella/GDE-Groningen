@@ -17,3 +17,5 @@ export const getStorySave = () => (impl.getStorySave
 // de ontgrendelpoort (unlockgate.js): zonder story.js is alles open, zoals een oude save
 export const storyWorldOpen = (id) => (impl.storyWorldOpen ? impl.storyWorldOpen(id) : true);
 export const storyGateHint = (id) => (impl.storyGateHint ? impl.storyGateHint(id) : null);
+// de stand van die poort (unlockgate.js progressFrom), met de poort van het verhaal zelf; null zonder story.js
+export const storyGateProgress = () => (impl.storyGateProgress ? impl.storyGateProgress() : null);

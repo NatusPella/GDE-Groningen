@@ -1352,7 +1352,11 @@ export function getStorySave() {
 // De stand voor de gedeelde poort (unlockgate.js): alleen de eigen voortgang van deze speler. Een gast heeft zijn eigen.
 export function storyGateProgress() {
   const c = currentStep();
-  return progressFrom({ stepId: c && !c.end ? c.id : null, ended: !!(c && c.end && c.finale), gate: state.gate, begun: (id) => isLoopbaanGestart(id) });
+  // een verhaal waar nog niets in gedaan is, is een nieuw spel: alles dicht tot het verhaal het opent (besluit eigenaar: het verhaal opent alles).
+  // Zonder dit gold 'geen poort = oude save = alles open' ook in de eerste seconden van een nieuw spel en bij een gast zonder eigen opening (24-11: de voetbaltip in akte 1).
+  // (alleen in akte 1: een oude save van voor 0.5.0 zonder verhaaldata leidt zijn stap af uit de missies en houdt daar zijn 'alles open'; wat een speler al begon, blijft open via begun)
+  const gate = state.gate || (state.done.size === 0 && (!c || c.part === 'kop') ? newGate() : undefined);
+  return progressFrom({ stepId: c && !c.end ? c.id : null, ended: !!(c && c.end && c.finale), gate, begun: (id) => isLoopbaanGestart(id) });
 }
 export const storyWorldOpen = (id) => worldOpen(id, storyGateProgress());
 export const storyGateHint = (id) => gateHint(id, storyGateProgress());
@@ -1485,7 +1489,7 @@ export function getStoryView() {
     done, total: avail.length,
   };
 }
-registerStoryQueries({ currentStep, storyFlag, getStoryView, getStorySteps, storyVoorschotInfo, prepareStoryShop, getStorySave, storyGateHint, storyWorldOpen });
+registerStoryQueries({ currentStep, storyFlag, getStoryView, getStorySteps, storyVoorschotInfo, prepareStoryShop, getStorySave, storyGateHint, storyWorldOpen, storyGateProgress });
 
 // Dev chapter select: rebuilds the progress, money and belongings a player
 // would have right before step `id` (worst case money from the timeline).
