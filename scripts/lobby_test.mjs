@@ -195,7 +195,7 @@ t('wegvallen: spel pauzeert en wacht; host kan Alleen verder, gast Stoppen; herv
   assert.match(L.view(h).lines.join(' '), /haperde/);
   h = L.reduce(h, { t: 'status', status: 'lost' });
   assert.match(L.view(h).lines[0], /staat stil/);
-  assert.deepEqual(L.view(h).buttons.map((b) => b.label), ['Opnieuw verbinden', 'Niet wachten', 'Verbinding testen']);
+  assert.deepEqual(L.view(h).buttons.map((b) => b.label), ['Opnieuw verbinden', 'Nu zonder de ander verder', 'Verbinding testen']);
   assert.equal(L.reduce(h, { t: 'hervat' }).step, 'host-maakt-code');
   const g = run(APP, { t: 'kies', rol: 'gast' }, { t: 'status', status: 'lost' });
   assert.deepEqual(L.view(g).buttons.map((b) => b.label), ['Opnieuw verbinden', 'Stoppen', 'Verbinding testen']);
@@ -203,7 +203,7 @@ t('wegvallen: spel pauzeert en wacht; host kan Alleen verder, gast Stoppen; herv
 });
 t('het wacht-scherm tijdens het spel start direct op "verbroken"', () => {
   const s = L.createLobby({ direct: true, start: 'verbroken', rol: 'host' });
-  assert.equal(L.view(s).buttons[1].label, 'Niet wachten');
+  assert.equal(L.view(s).buttons[1].label, 'Nu zonder de ander verder');
 });
 t('uit een lopende sessie ga je alleen met verbreken; de ander weg zet alles terug', () => {
   const s = run(APP, { t: 'kies', rol: 'host' }, { t: 'status', status: 'ok' });
@@ -274,7 +274,7 @@ t('N spelers: een verbroken speler staat in de lijst; de pauze noemt de naam', (
   assert.equal(v.lines[0], 'Spelers (3 van 4).');
   assert.equal(v.spelers.find((p) => p.slot === 2).verbinding, 'lost', 'de chips lezen de verbindingsstand per speler');
   const h = L.reduce(L.reduce(s, { t: 'hold', slot: 2, naam: 'Bram' }), { t: 'status', status: 'lost' });
-  assert.match(L.view(h).lines[0], /Bram is niet meer bereikbaar/); assert.match(L.view(h).lines[1], /verwijder je Bram/);
+  assert.match(L.view(h).lines[0], /Bram is niet meer bereikbaar/); assert.match(L.view(h).lines[1], /zonder Bram.*er wordt niemand verwijderd/);
 });
 t('N spelers: de gast ziet de lijst en kiest zijn eigen figuur; alleen figuren uit de lijst', () => {
   let s = run(APP, { t: 'kies', rol: 'gast' });

@@ -11,7 +11,7 @@ let overlay = null, view = null, focusWacht = null, opent = false, houder = null
 
 export function isHoldOpen() { return !!overlay; }
 // de sessie is voorbij terwijl het wachtscherm openstaat (de gastheer stopte, of je werd verwijderd): het scherm en de pauze gaan weg
-export function checkHold(world) { if (overlay && !world.coopNet) closeHold(world); }
+export function checkHold(world) { if (overlay && (!world.coopNet || world.coopHoldVerder)) { world.coopHoldVerder = false; closeHold(world); } }
 
 function closeHold(world) {
   if (focusWacht) { focusWacht.disconnect(); focusWacht = null; }
@@ -53,8 +53,9 @@ export async function openHold(world, role, slot = 1, reden = '') {
     laatsteCode: ls ? readSession(ls).laatsteCode : '', // de gast hoeft de code van de gastheer niet opnieuw te typen
     resumed: () => closeHold(world),
     disconnect: (a) => {
-      if (a !== 'verbreek') return; // 'Niet wachten' (host) of 'Stoppen' (gast)
-      if (host) removeGuest(world, slot); else stopCoopNet(world);
+      if (a !== 'verbreek') return; // 'Nu zonder ... verder' (host) of 'Stoppen' (gast)
+      // 24-11: verder zonder de ander is geen verwijderen. De wereld wacht niet meer; de speler houdt zijn plek en kan terugkomen (verwijderen is alleen aan wie het spel opende, bij Spelers).
+      if (!host) stopCoopNet(world);
       closeHold(world);
     },
   }, {

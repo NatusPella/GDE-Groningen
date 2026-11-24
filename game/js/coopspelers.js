@@ -4,6 +4,7 @@
 // Spelers van het pauzemenu (coopspelersui.js); er staat niets permanent in beeld.
 
 import { charInfo } from './coopplayers.js';
+import { verbindingNiveau } from './samensignaal.js';
 import { pvpInSpel, isPassief } from './cooppvp.js';
 import { groepen as groepenLijst } from './coopmissie.js';
 import { richtingVan } from './playerstatus.js';
@@ -68,7 +69,7 @@ export function spelersRijen({ mijnSlot = 0, roster = [], partners = [], mijn = 
     const g = (groepen || []).find((x) => x && (x.leider === r.slot || (x.deelnemers || []).includes(r.slot))) || null; // de groep van deze speler (#492)
     rijen.push({
       slot: r.slot, naam: av.naam || r.naam || c.naam || '?', kleur: veiligeKleur(av.kleur, veiligeKleur(r.kleur, veiligeKleur(c.kleur))), vorm: r.vorm || c.vorm || 'cirkel', jij,
-      verbinding: r.verbinding || 'ok', verbindingTekst: VERBINDING_TEKST[r.verbinding || 'ok'] || 'goed', ms: Number.isFinite(ms) ? Math.round(ms) : null,
+      verbinding: r.verbinding || 'ok', verbindingTekst: VERBINDING_TEKST[r.verbinding || 'ok'] || 'goed', ms: Number.isFinite(ms) ? Math.round(ms) : null, niveau: verbindingNiveau({ verbinding: r.verbinding || 'ok', ms }),
       passief: isPassief(pvp, r.slot), pvpInSpel: pvpInSpel(pvp), // #447: wie passief is; de stand telt als zichtbaar zodra iemand bewust op actief staat
       groep: groepTekstVoor(g, r.slot), leidt: !!(g && g.leider === r.slot), // "leidt <label>" of alleen de groep; een niet-deelnemer niets (#492)
       doet, afstand, afstandTekst: afstandTekst(afstand), richting: afstand != null ? richtingVan(mijn, p) : null, x: p && p.zichtbaar ? p.x : null, y: p && p.zichtbaar ? p.y : null,

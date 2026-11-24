@@ -23,6 +23,7 @@ import { keyLabelHtml } from './keycap.js';
 const CONFIRM_KEY = 'Enter'; // de toets in de knop Doorgaan (zoals bij de moeilijkheidskaart: een label voor keyLabelHtml, geen spelertekst)
 import { saveProgress } from './progress.js';
 import { stopCoopNet } from './coopnet.js';
+import { groepAkkoord, meerSpelers } from './coopgroep.js';
 import { coopLoadTekst, coopActieTekst, COOP_LOAD_FAIL, COOP_ACTIE_FAIL, runCoopLoad, runCoopStop } from './cooploadrules.js';
 
 const DESKTOP = typeof window !== 'undefined' && window.gdeDesktop && window.gdeDesktop.isDesktop ? window.gdeDesktop : null;
@@ -434,6 +435,13 @@ export function openSaveSlots(opts = {}) {
       return;
     }
     if (act === 'coop-load-ok' && cur) {
+      const gaLaden = () => {
+        const res = runCoopLoad(world, cur.n, { stop: stopCoopNet, save: saveGame, load: loadSlot });
+        if (res.ok) { close(() => { if (opts.onLoad) opts.onLoad(cur.n); }); return; }
+        over = null; message = COOP_LOAD_FAIL[res.reason] || 'Laden mislukt.'; render({ slot: cur.n });
+      };
+      // wie het laden de sessie voor iedereen laat stoppen, stelt het eerst voor (24-11); een gast verlaat alleen zelf de sessie
+      if (world.coopRole === 'host' && meerSpelers(world)) { over = null; message = 'Je stelt voor om te laden. Iedereen moet akkoord zijn.'; render({ slot: cur.n }); groepAkkoord(world, 'laden', null, gaLaden, () => { message = 'Niet iedereen is akkoord; er wordt niets geladen.'; render({ slot: cur.n }); }); return; }
       const res = runCoopLoad(world, cur.n, { stop: stopCoopNet, save: saveGame, load: loadSlot });
       if (res.ok) { close(() => { if (opts.onLoad) opts.onLoad(cur.n); }); return; }
       // ook bij een mislukte stap eerlijk opnieuw tekenen: na het stoppen is de sessie weg

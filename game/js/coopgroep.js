@@ -8,7 +8,12 @@
 // - Stemming: een tijdsprong vraagt akkoord van alle andere spelers (J of N, STEM_SEC seconden, geen antwoord is nee). Wie alleen is, beslist zelf.
 
 export const STEM_SEC = 10;
-export const STEM_SOORTEN = ['slapen', 'onderduiken', 'stoppen', 'keuze', 'moeilijkheid'];
+export const STEM_SOORTEN = ['slapen', 'onderduiken', 'stoppen', 'keuze', 'moeilijkheid', 'laden', 'cheats', 'reizen'];
+// Wat elke speler kan voorstellen (24-11, besluit coördinator): geen hostrecht. Een gast stuurt een `stemverzoek`, de host legt het de groep voor.
+export const VOORSTEL_SOORTEN = ['slapen', 'onderduiken', 'reizen', 'laden', 'cheats', 'stoppen'];
+// Achterwaarts compatibel: een oude client kent de nieuwe soorten niet en negeert dan het hele bericht. Daarom gaat een nieuwe soort over de draad
+// als een oude soort (de tekst staat er toch bij) met het echte woord in `wat`; een nieuwe client leest `wat`. Het protocol en CODEC_VERSION blijven gelijk.
+export const OUDE_SOORT = { laden: 'stoppen', cheats: 'moeilijkheid', reizen: 'slapen' };
 
 // ---- wie speelt er mee
 // Host: minstens een verbonden gast. Gast: altijd (hij zit in iemands sessie). Zonder sessie: nee.
@@ -65,6 +70,9 @@ export function stemVerval(st, slot) {
   beoordeel(st);
   return true;
 }
+// Wie op dit moment laadt of in een scène zit, kan niet antwoorden en telt niet mee (net als wie wegvalt).
+export const isAfwezig = (world) => !!(world && (world.coopCutBezig != null || world.coopLaadt));
+export const stemAfwezig = (st, slot) => stemVerval(st, slot);
 // Tijd: zonder antwoord is het nee.
 export function stemTik(st, dt) {
   if (!st || st.uitslag) return st ? st.uitslag : null;
@@ -82,6 +90,9 @@ export const STEM_TEKST = {
   stoppen: (naam) => `${naam} wil het spel voor iedereen stoppen.`,
   // moeilijkheid van de wereld (politie en verkeer) is een gezamenlijke keuze, geen hostrecht
   moeilijkheid: (naam) => `${naam} wil de moeilijkheid van de wereld aanpassen: politie en verkeer.`,
+  laden: (naam) => `${naam} wil een ander spel laden. De sessie stopt dan voor iedereen.`,
+  cheats: (naam) => `${naam} wil cheats aanzetten voor deze sessie. Iedereen moet ja zeggen.`,
+  reizen: (naam) => `${naam} wil reizen. De tijd springt dan voor iedereen vooruit.`,
 };
 export const stemVraagTekst = (tekst) => `${tekst} Akkoord? J = ja, N = nee (geen antwoord is nee).`;
 export const STEM_HOST = {
@@ -90,10 +101,13 @@ export const STEM_HOST = {
   nee: 'Niet iedereen is akkoord. De tijd blijft zoals hij is.',
   geenAntwoord: 'Niet iedereen antwoordde. De tijd blijft zoals hij is.',
   bezig: 'Er loopt al een stemming. Even geduld.',
-  gast: 'De tijd verspringt alleen als iedereen akkoord is. Vraag het aan wie het spel opende, of speel in je eigen spel.',
+  gast: 'Je voorstel is gedaan. De tijd verspringt alleen als iedereen akkoord is.',
+  geenReactie: 'Niemand reageerde op je voorstel. Misschien draait de ander een oudere versie van het spel.',
 };
 export const stemUitslagTekst = (ok, reden = '', soort = '') => {
   if (soort === 'stoppen') return ok ? 'Iedereen is akkoord: het spel stopt.' : (reden === 'geen antwoord' ? 'Niet iedereen antwoordde; het spel gaat door.' : 'Niet iedereen is akkoord; het spel gaat door.');
+  if (soort === 'laden') return ok ? 'Iedereen is akkoord: de sessie stopt zodat er een ander spel geladen kan worden.' : 'Niet iedereen is akkoord; er wordt niets geladen.';
+  if (soort === 'cheats') return ok ? 'Iedereen is akkoord: cheats staan aan voor deze sessie.' : 'Niet iedereen is akkoord; cheats blijven uit.';
   if (soort === 'moeilijkheid') return ok ? 'De groep is akkoord: de moeilijkheid van de wereld is aangepast.' : (reden === 'geen antwoord' ? 'Er kwam te weinig antwoord; de moeilijkheid van de wereld blijft zoals hij was.' : 'De groep is het niet eens; de moeilijkheid van de wereld blijft zoals hij was.');
   return ok ? STEM_HOST.ja : reden === 'geen antwoord' ? STEM_HOST.geenAntwoord : STEM_HOST.nee;
 };
@@ -154,8 +168,16 @@ export function stemKeuzeVerval(st, slot) {
 }
 
 
+// ---- een voorstel van een gast: elke speler kan een gezamenlijke keuze voorstellen (geen hostrecht)
+export const stemVerzoekEvent = (soort, p = {}) => ({ k: 'stemverzoek', soort, ...(Number.isFinite(p.uur) ? { uur: p.uur } : {}), ...(Number.isFinite(p.uren) ? { uren: p.uren } : {}) });
+export function leesStemVerzoek(b) {
+  if (!b || b.k !== 'stemverzoek' || !VOORSTEL_SOORTEN.includes(b.soort)) return null;
+  const uur = Number.isFinite(b.uur) ? ((b.uur % 24) + 24) % 24 : null, uren = Number.isFinite(b.uren) ? Math.min(24, Math.max(0, b.uren)) : null;
+  return { soort: b.soort, uur, uren };
+}
+
 // ---- het bericht naar de gasten en hun antwoord (gecontroleerd bij ontvangst)
-export const stemEvent = (st) => ({ k: 'stem', id: st.id, soort: st.soort, tekst: st.tekst, sec: Math.max(1, Math.ceil(st.rest)), ...(st.soort === 'keuze' ? { opties: st.opties } : {}) });
+export const stemEvent = (st, ik = false) => ({ k: 'stem', ...(ik ? { ik: true } : {}), id: st.id, soort: OUDE_SOORT[st.soort] || st.soort, ...(OUDE_SOORT[st.soort] ? { wat: st.soort } : {}), tekst: st.tekst, sec: Math.max(1, Math.ceil(st.rest)), ...(st.soort === 'keuze' ? { opties: st.opties } : {}) });
 export function leesStemEvent(b) {
   if (!b || b.k !== 'stem' || !Number.isInteger(b.id) || !STEM_SOORTEN.includes(b.soort)) return null;
   if (b.soort === 'keuze') { // #686: een keuze-stemming draagt de opties mee in plaats van een ja/nee-tekst
@@ -165,10 +187,10 @@ export function leesStemEvent(b) {
     return { id: b.id, soort: 'keuze', opties, tekst: typeof b.tekst === 'string' ? b.tekst.slice(0, 90) : '', rest: Number.isFinite(b.sec) ? Math.min(30, Math.max(1, b.sec)) : KEUZE_SEC };
   }
   if (typeof b.tekst !== 'string') return null;
-  return { id: b.id, soort: b.soort, tekst: b.tekst.slice(0, 90), rest: Number.isFinite(b.sec) ? Math.min(30, Math.max(1, b.sec)) : STEM_SEC };
+  return { ik: b.ik === true, id: b.id, soort: STEM_SOORTEN.includes(b.wat) && OUDE_SOORT[b.wat] === b.soort ? b.wat : b.soort, tekst: b.tekst.slice(0, 90), rest: Number.isFinite(b.sec) ? Math.min(30, Math.max(1, b.sec)) : STEM_SEC };
 }
-export const stemAntwoordEvent = (id, ja, keuze = null) => ({ k: 'stemantwoord', id, ja: !!ja, ...(Number.isInteger(keuze) && keuze >= 0 ? { keuze } : {}) });
-export function leesStemAntwoord(b) { return b && b.k === 'stemantwoord' && Number.isInteger(b.id) ? { id: b.id, ja: !!b.ja, ...(Number.isInteger(b.keuze) && b.keuze >= 0 ? { keuze: b.keuze } : {}) } : null; }
+export const stemAntwoordEvent = (id, ja, keuze = null, afwezig = false) => ({ k: 'stemantwoord', id, ja: !!ja, ...(afwezig ? { afwezig: true } : {}), ...(Number.isInteger(keuze) && keuze >= 0 ? { keuze } : {}) });
+export function leesStemAntwoord(b) { return b && b.k === 'stemantwoord' && Number.isInteger(b.id) ? { id: b.id, ja: !!b.ja, afwezig: b.afwezig === true, ...(Number.isInteger(b.keuze) && b.keuze >= 0 ? { keuze: b.keuze } : {}) } : null; }
 export const stemUitslagEvent = (id, ok, reden = '', keuze = null) => ({ k: 'stemuitslag', id, ok: !!ok, reden: reden === 'geen antwoord' ? 'geen antwoord' : '', ...(Number.isInteger(keuze) && keuze >= 0 ? { keuze } : {}) });
 export function leesStemUitslag(b) { return b && b.k === 'stemuitslag' && Number.isInteger(b.id) ? { id: b.id, ok: !!b.ok, reden: b.reden === 'geen antwoord' ? 'geen antwoord' : '', ...(Number.isInteger(b.keuze) && b.keuze >= 0 ? { keuze: b.keuze } : {}) } : null; }
 
@@ -181,8 +203,9 @@ export function eigenNaam(world) {
 // ---- de spelmodules vragen akkoord: groepAkkoord(world, 'slapen', 'Tammo', naAkkoord)
 // Alleen (of geen sessie): naAkkoord meteen, true. Host met anderen: stemming, naAkkoord alleen bij ja; true = de vraag loopt.
 // Gast: kan de tijd niet verzetten (de wereld loopt bij een ander): een melding, false.
-export function groepAkkoord(world, soort, naam, naAkkoord, naNee = null) {
+export function groepAkkoord(world, soort, naam, naAkkoord, naNee = null, params = {}) {
   if (!meerSpelers(world)) { naAkkoord(); return true; }
+  if (isGast(world) && typeof world.coopStemVerzoek === 'function') return world.coopStemVerzoek(soort, naAkkoord, naNee, params); // een gast stelt het zelf voor
   if (isGast(world) || typeof world.coopVraag !== 'function') {
     if (world.addMessage) world.addMessage(STEM_HOST.gast, 5);
     return false;
@@ -192,5 +215,5 @@ export function groepAkkoord(world, soort, naam, naAkkoord, naNee = null) {
 }
 
 // ---- cheats en testmenu: uit in een sessie met meer spelers
-export const CHEATS_UIT_TEKST = 'Cheats en het testmenu staan uit zolang je Samen spelen met anderen speelt.';
-export const cheatsUit = (world) => meerSpelers(world);
+export const CHEATS_UIT_TEKST = 'Cheats en het testmenu staan uit zolang je Samen spelen met anderen speelt. Stel voor ze aan te zetten: dan moet iedereen ja zeggen.';
+export const cheatsUit = (world) => meerSpelers(world) && !(world && world.coopCheatsOk); // aan alleen na een eenstemmig ja van de groep (soort 'cheats')

@@ -29,6 +29,7 @@ import { skipCurrent } from './story.js';
 import { saveGame, hasSave, loadLatestSave, startNewSlot, coopSessieLoopt, GAST_BEWAARD_TEKST, getSaveSummary, getPlaySeconds, loadSlot, currentSlot, saveGameEchtBewaard, preventCloseSave, saveFailReason } from './savegame.js';
 import { openSaveSlots, isSaveSlotsOpen } from './saveslotsui.js';
 import { stopCoopNet } from './coopnet.js';
+import { groepAkkoord, meerSpelers } from './coopgroep.js';
 import { coopLoadTekst, coopActieTekst, COOP_LOAD_FAIL, COOP_ACTIE_FAIL, runCoopLoad, runCoopStop } from './cooploadrules.js';
 import { getClockText } from './clocktext.js';
 import { openCardLog } from './hudcards.js';
@@ -2121,9 +2122,14 @@ function runAction(a) {
     if (b) b.focus();
   } else if (a === 'coop-load-go') {
     root.querySelector('[data-coop-load-confirm]').hidden = true;
-    const res = runCoopLoad(world, currentSlot(), { stop: stopCoopNet, save: saveGame, load: loadSlot });
-    if (res.ok) setOpen(false);
-    else status(COOP_LOAD_FAIL[res.reason] || 'Laden mislukt.');
+    const doe = () => {
+      const res = runCoopLoad(world, currentSlot(), { stop: stopCoopNet, save: saveGame, load: loadSlot });
+      if (res.ok) setOpen(false);
+      else status(COOP_LOAD_FAIL[res.reason] || 'Laden mislukt.');
+    };
+    // wie het laden de sessie voor iedereen laat stoppen, stelt het eerst voor: een gezamenlijke keuze (24-11); een gast verlaat alleen zelf de sessie
+    if (world.coopRole === 'host' && meerSpelers(world)) groepAkkoord(world, 'laden', null, doe, () => status('Niet iedereen is akkoord; er wordt niets geladen.'));
+    else doe();
   } else if (a === 'coop-new-cancel') {
     root.querySelector('[data-coop-new-confirm]').hidden = true;
     confirmEl.hidden = false;

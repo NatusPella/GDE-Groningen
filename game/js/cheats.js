@@ -36,7 +36,7 @@ import { edgeDistance } from './countryfield.js';
 import { roadNear, tilesIn, withTiles } from './tileplace.js';
 import { getGarageCatalog, deliverOwnedVehicle } from './ownedvehicles.js';
 import { playerBusy } from './busy.js';
-import { meerSpelers, cheatsUit, CHEATS_UIT_TEKST } from './coopgroep.js';
+import { meerSpelers, cheatsUit, CHEATS_UIT_TEKST, groepAkkoord } from './coopgroep.js';
 
 const CLOCK = { zomeravond: 20.5, nachtstad: 0.5 };
 const FAST_CLOCK = 4; // extra days per day: five times as fast in all
@@ -93,7 +93,13 @@ export function cheatsBusy(w = world) {
 export function setCheat(id, value) {
   const c = CHEAT_BY_ID.get(id);
   if (!c || (c.kind && c.kind !== 'toggle') || !isAvailable(id)) return false;
-  if (value && cheatsUit(world)) { if (world.addMessage) world.addMessage(CHEATS_UIT_TEKST, 4); return false; } // met meer spelers geen cheats (#452)
+  if (value && cheatsUit(world)) { // met meer spelers staan cheats uit tot de groep eenstemmig ja zegt (24-11: elke speler kan het voorstellen)
+    if (world.coopCheatsAanvraag) return false;
+    world.coopCheatsAanvraag = true;
+    const klaar = () => { world.coopCheatsAanvraag = false; };
+    if (!groepAkkoord(world, 'cheats', null, () => { world.coopCheatsOk = true; klaar(); setCheat(id, true); }, klaar)) { klaar(); if (world.addMessage) world.addMessage(CHEATS_UIT_TEKST, 4); }
+    return false;
+  }
   if (value) {
     if (c.group) for (const o of CHEATS) if (o.group === c.group) on.delete(o.id);
     on.add(id);

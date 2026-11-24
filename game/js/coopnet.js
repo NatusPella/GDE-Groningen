@@ -47,7 +47,7 @@ import { loopbaanGast } from './loopbaanlive.js';
 import { maakRegister, zetPlek, leegRegister, bouwFoci, losBesluit, FOCI_MAX, MAX_AFSTAND, ONGELADEN_S } from './coopfoci.js';
 import { tileIndexOf, tileKey } from './gdt.js';
 import { wisselEvent, wisselTik, zetCoopNet } from './coophostwisselnet.js'; // het spel overdragen (#439); die module importeert dit bestand terug, maar gebruikt het pas bij een aanroep
-import { zachtAlleen, stemBegin, stemAntwoord, stemVerval, stemTik, stemEvent, stemUitslagEvent, stemAntwoordEvent, leesStemEvent, leesStemAntwoord, leesStemUitslag, stemVraagTekst, stemUitslagTekst, STEM_HOST, STEM_TEKST, stemKeuzeBegin, stemKeuzeAntwoord, stemKeuzeTik, stemKeuzeVerval, KEUZE_TEKST, eigenNaam } from './coopgroep.js';
+import { isAfwezig, stemAfwezig, leesStemVerzoek, stemVerzoekEvent, zachtAlleen, stemBegin, stemAntwoord, stemVerval, stemTik, stemEvent, stemUitslagEvent, stemAntwoordEvent, leesStemEvent, leesStemAntwoord, leesStemUitslag, stemVraagTekst, stemUitslagTekst, STEM_HOST, STEM_TEKST, stemKeuzeBegin, stemKeuzeAntwoord, stemKeuzeTik, stemKeuzeVerval, KEUZE_TEKST, eigenNaam } from './coopgroep.js';
 import { zichtbaarWanted, GEZOCHT_TEKST, hudWanted } from './coopgezocht.js';
 import { bustFineIn } from './economy.js';
 import { gebeurtenisId, maakBoekhouding } from './coopbeloning.js'; // beloningen per gebeurtenis, één keer toegekend (#448)
@@ -277,7 +277,7 @@ function endCoop(world) {
   world.coopOpdrachtDoor = null; world.coopMeespelers = null; // (#452)
   world.coopMeld = null; world.coopRaak = null; world.coopDeel = null; world.coopBijbaanStart = null; world.coopBijbaanBeloning = null; world.coopBijbaanEind = null; world.coopBijbaanHostMee = null; world.coopHelpers = null; world.coopBijbaanHelpers = null; world.coopSideJobs = null; world.coopBijbaanStop = null; world.coopUitslag = null; world.coopPingMarks = []; world.coopSpelers = []; world.coopGebruik = false; world.coopWielSlot = null; world.coopWielVraag = null; world.coopWiel = false; world.coopInVoertuig = false; world.coopBestuurder = false; world.coopRadioGroep = null; // (#291, #434)
   world.coopTreinMeld = null; world.coopTrein = null; world.coopTreinDeur = false; world.coopTreinWaak = false; world.coopTreinWalk = null; world.coopTreinWalkMeld = null; // de treinpassagier-haak, -stand, de deuren/waak en de looppositie van de conducteur horen bij de sessie (#492)
-  world.coopVraag = null; world.coopStem = null; world.coopStemBeantwoord = null; world.coopKeuze = null; world.coopMoeilijkheidVoorstel = null; // gezamenlijke keuzes (#452, #686, #1169)
+  world.coopVraag = null; world.coopStem = null; world.coopStemBeantwoord = null; world.coopKeuze = null; world.coopMoeilijkheidVoorstel = null; world.coopVerzoek = null; world.coopCheatsOk = false; // gezamenlijke keuzes (#452, #686, #1169)
   world.coopBezit = null; world.coopBezitVraag = null; // eigen voertuigen meenemen en delen (#449)
   if (world.companion) { world.companion.coopUit = false; world.companion.coopBestuurt = false; world.companion.coopTrein = false; }
 }
@@ -515,6 +515,7 @@ export function startClient(world, transport, info, opts = {}) {
   koppelOutfit(world); // wie later andere kleding aandoet, meldt het aan de rest
   world.coopBijbaanStop = () => bijbaanGastStop(world); // Stoppen in het pausemenu stopt je eigen baan bij de host (#492)
   world.coopMoeilijkheidVoorstel = (opties) => vraagMoeilijkheid(world, opties); // #1169: politie en verkeer van de wereld voorstellen (difficultyvote.js)
+  world.coopStemVerzoek = (soort, naAkkoord, naNee, params) => stemVerzoek(world, soort, naAkkoord, naNee, params); // een gast stelt zelf voor (24-11)
   // de looppositie van de conducteur gaat met het bestaande trein-bericht naar de gastheer (#492): geen nieuw bericht
   world.coopTreinWalkMeld = (w, walk) => {
     try {
@@ -980,6 +981,16 @@ function bezigWeg(world, slot) { const n = world.coopNet; if (n && n.role === 'h
 // Geen antwoord binnen STEM_SEC seconden is nee. Wie weggaat tijdens de stemming telt niet meer mee. Vraagt de host het zelf, dan stemt hij niet:
 // wie het vraagt is akkoord. Een voorstel van een gast (`opts.vrager`, #1169) laat de host wel stemmen (`opts.metOpener`, J of N in zijn eigen scherm).
 const verbondenGasten = (n) => n.hub.roster.spelers.filter((s) => s.slot !== 0 && s.verbinding !== 'lost').map((s) => s.slot);
+// Wat de host doet als een voorstel is aangenomen (van een gast of van hemzelf): de klok, de sessie of de cheats zijn van de wereld.
+export function stemActieHost(world, v) {
+  return () => {
+    if (v.soort === 'slapen' || v.soort === 'reizen') { world.clock = v.uur != null ? v.uur : 7.5; }
+    else if (v.soort === 'onderduiken') { world.clock = (((world.clock + (v.uren != null ? v.uren : 6)) % 24) + 24) % 24; }
+    else if (v.soort === 'cheats') world.coopCheatsOk = true;
+    else if (v.soort === 'stoppen') stopCoopNet(world);
+    else if (v.soort === 'laden' && world.coopNet) world.coopNet.stopOver = 1.5; // de uitslag gaat eerst naar de gasten; de voorsteller laadt daarna zelf zijn spel
+  };
+}
 function stemStart(world, soort, tekst, naAkkoord, naNee, opts = {}) {
   const n = world.coopNet; if (!n || n.role !== 'host') return false;
   if (n.stem) { if (world.addMessage) world.addMessage(STEM_HOST.bezig, 3); return false; }
@@ -987,6 +998,8 @@ function stemStart(world, soort, tekst, naAkkoord, naNee, opts = {}) {
   if (st.uitslag === 'ja') { if (naAkkoord) naAkkoord(); return true; } // niemand meer te vragen
   n.stem = { st, ok: naAkkoord || null, nee: naNee || null };
   for (const slot of Object.keys(st.keuze).map(Number)) if (slot >= 1 && st.keuze[slot] === 'wacht') n.hub.announce(stemEvent(st), slot);
+  if (Number.isInteger(opts.vrager) && opts.vrager >= 1) n.hub.announce(stemEvent(st, true), opts.vrager); // de voorsteller telt als ja en hoort alleen de uitslag
+  if (st.keuze[0] === 'wacht' && isAfwezig(world)) stemAfwezig(st, 0); // de host zit zelf in een scène of laadt: hij telt niet mee
   if (st.keuze[0] === 'wacht') { // de host stemt mee: dezelfde J/N-vraag als bij een gast (controls.js coopVraag leest world.coopStem)
     world.coopStem = { id: st.id, soort, tekst: st.tekst, rest: st.rest, host: true };
     if (world.addMessage) world.addMessage(stemVraagTekst(st.tekst), Math.min(30, st.rest));
@@ -1045,7 +1058,7 @@ function keuzeStemTikHost(world, dt) {
 // De gast antwoordt op de tijdstemming (J of N).
 export function gastStem(world, ja) {
   const n = world.coopNet, q = world.coopStem; if (!n || n.role !== 'client' || !n.joined || !q) return false;
-  world.coopStem = null; world.coopStemBeantwoord = q.id;
+  world.coopStem = null; world.coopStemBeantwoord = q.id; world.coopStemSoort = q.soort;
   if (world.addMessage) world.addMessage(ja ? 'Je stemde ja.' : 'Je stemde nee.', 3);
   return n.session.sendEvent(stemAntwoordEvent(q.id, ja));
 }
@@ -1280,6 +1293,7 @@ export function tickCoopNet(world, dt) {
   meldNeer(world, n); // de gastheer of Tessa gaat neer of wordt gearresteerd (#369)
   for (const slot of meedoenTik(n.meedoen, dt)) world.coopMeld && world.coopMeld(slot, 'Je doet mee.');
   if (n.stem) stemTikHost(world, n, dt);
+  if (n.stopOver > 0 && (n.stopOver -= dt) <= 0) { n.stopOver = 0; stopCoopNet(world); return; } // laden: de uitslag is eerst naar de gasten gegaan
   // de computermetgezel hoort bij geen plek (#502); alleen de gasten staan in de lijst
   const players = [];
   for (const f of Object.values(figures(world))) if (f && f.slot >= 1) players.push({ slot: f.slot, x: f.x, y: f.y, angle: f.angle, alive: true, down: ligtNeer(f) || !!f.coopDown, inVeh: !!f.inVeh, naam: f.naam });
@@ -1427,12 +1441,15 @@ export function handleEvent(world, body, van = 0) {
         if (world.addMessage) world.addMessage(KEUZE_TEKST.stem(openerNaam(world.coopRoster, true), q.opties), Math.min(8, q.rest));
         return true;
       }
+      if (q.ik) { world.coopStem = null; world.coopStemBeantwoord = q.id; if (world.coopVerzoek) world.coopVerzoek.gezien = true; return true; } // mijn eigen voorstel: ik tel als ja
+      if (isAfwezig(world)) return !!n.session.sendEvent(stemAntwoordEvent(q.id, false, null, true)); // ik laad of zit in een scène: ik tel niet mee
       world.coopStem = q; world.coopUitnodiging = null;
       if (world.addMessage) world.addMessage(stemVraagTekst(q.tekst), Math.min(30, q.rest));
       return true;
     }
     case 'stemantwoord': { // de gast antwoordt (alleen de host luistert)
       const a = leesStemAntwoord(body); if (!a || !n || n.role !== 'host' || van < 1 || !n.stem || n.stem.st.id !== a.id) return false;
+      if (a.afwezig) return stemAfwezig(n.stem.st, van); // wie laadt of in een scène zit telt niet mee
       return stemAntwoord(n.stem.st, van, a.ja);
     }
     case 'stemuitslag': { // de stemming is klaar (van de host)
@@ -1444,8 +1461,12 @@ export function handleEvent(world, body, van = 0) {
         return true;
       }
       if (!((world.coopStem && world.coopStem.id === u.id) || world.coopStemBeantwoord === u.id)) return false; // ook wie al antwoordde hoort de uitslag
-      world.coopStem = null; world.coopStemBeantwoord = null;
-      if (world.addMessage) world.addMessage(stemUitslagTekst(u.ok, u.reden), 4);
+      const soort = (world.coopStem && world.coopStem.soort) || world.coopStemSoort, v = world.coopVerzoek;
+      world.coopStem = null; world.coopStemBeantwoord = null; world.coopStemSoort = null;
+      const wat = soort || (v && v.soort) || '';
+      if (u.ok && wat === 'cheats') world.coopCheatsOk = true; // eenstemmig ja: cheats aan voor iedereen in deze sessie
+      if (world.addMessage) world.addMessage(stemUitslagTekst(u.ok, u.reden, wat), 4);
+      if (v) { world.coopVerzoek = null; const f = u.ok ? v.ok : v.nee; if (f) { try { f(); } catch (e) { console.error('stemverzoek', e); } } } // mijn voorstel: nu uitvoeren (of loslaten)
       return true;
     }
     case 'meedoenantwoord': { // de gast kiest (alleen de host luistert)
@@ -1532,6 +1553,18 @@ export function handleEvent(world, body, van = 0) {
       if (!n || n.role !== 'host' || van < 1) return false;
       if (!gateOn() || !genoegSpelers(world)) return false;
       openHek(world);
+      return true;
+    }
+    case 'stemverzoek': { // 24-11: elke speler kan een gezamenlijke keuze voorstellen; de host legt het de groep voor en stemt zelf mee
+      if (!n || n.role !== 'host' || van < 1) return false;
+      const v = leesStemVerzoek(body); if (!v) return false;
+      const naam = gastNaam(world, van);
+      return stemStart(world, v.soort, STEM_TEKST[v.soort](naam), stemActieHost(world, v), null, { metOpener: true, vrager: van });
+    }
+    case 'wachtverder': { // 24-11: elke speler kan zeggen: nu zonder de weggevallen speler verder. Geen verwijdering: hij houdt zijn plek.
+      if (!n || n.role !== 'host' || van < 1 || !world.coopHold) return false;
+      world.coopHoldVerder = true;
+      if (world.addMessage) world.addMessage(gastNaam(world, van) + ' wil niet langer wachten: het spel gaat verder.', 5);
       return true;
     }
     case 'stopverzoek': { // #642: een gast wil het spel voor iedereen stoppen: de host vraagt de groep om akkoord
@@ -2006,6 +2039,27 @@ export function vraagMoeilijkheid(world, opties) {
   for (const k of WORLD_OPTIONS) if (Object.prototype.hasOwnProperty.call(opties, k) && Number.isFinite(opties[k])) schoon[k] = opties[k];
   if (!Object.keys(schoon).length) return false;
   try { return !!n.session.sendEvent({ k: 'moeilijkheidverzoek', opties: schoon }); } catch (e) { return false; }
+}
+// Een gast stelt een gezamenlijke keuze voor. De host legt het de groep voor; de gast voert zijn eigen deel uit als de uitslag ja is.
+// Reageert de host niet binnen 4 seconden (een oudere versie kent het bericht niet), dan zegt het spel dat.
+export function stemVerzoek(world, soort, naAkkoord, naNee, params = {}) {
+  const nt = world.coopNet; if (!nt || nt.role !== 'client' || !nt.session || world.coopVerzoek) return false;
+  let ok = false; try { ok = !!nt.session.sendEvent(stemVerzoekEvent(soort, params)); } catch (e) { ok = false; }
+  if (!ok) return false;
+  const v = world.coopVerzoek = { soort, ok: naAkkoord || null, nee: naNee || null, gezien: false };
+  if (world.addMessage) world.addMessage(STEM_HOST.gast, 5);
+  setTimeout(() => {
+    if (world.coopVerzoek !== v || v.gezien) return;
+    world.coopVerzoek = null;
+    if (world.addMessage) world.addMessage(STEM_HOST.geenReactie, 6);
+    if (v.nee) { try { v.nee(); } catch (e) { /* al weg */ } }
+  }, 4000);
+  return true;
+}
+// Een gast zegt: nu zonder de weggevallen speler verder (de host sluit het wachtscherm; niemand wordt verwijderd).
+export function vraagWachtVerder(world) {
+  const n = world.coopNet; if (!n || n.role !== 'client' || !n.session) return false;
+  try { return !!n.session.sendEvent({ k: 'wachtverder' }); } catch (e) { return false; }
 }
 export function vraagStop(world) {
   const n = world && world.coopNet;
