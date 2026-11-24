@@ -93,7 +93,7 @@ function spotsHtml(v) {
       acts += ' ' + askOr('vloot', s.id, `Extra wagen ${euro(v.wagonPrice)}`, `Voor ${euro(v.wagonPrice)} met een medewerker?`, '', why(v, v.wagonPrice, 'team') || (v.fleet.length >= SN.MAX_FLEET ? 'Je hebt al het maximum aan wagens' : false) || (v.fleet.length >= 1 && st(v, 'keten') ? 'Komt later in het verhaal' : false));
     }
     // #1249: een plaatje per standplaats (het pictogram van het soort plek)
-    return `<div class="bd-rij" data-spot="${esc(s.id)}" data-status="${s.status}"><span class="sn-plek-ic" aria-hidden="true">${icoon(spotIcon(s))}</span><span class="bd-naam"><b>${esc(s.name)}</b><span class="bd-feiten">${feiten}</span></span><span class="bd-acties">${acts}</span></div>`;
+    return `<div class="bd-rij" data-spot="${esc(s.id)}" data-status="${s.status}"><span class="sn-plek-ic" aria-hidden="true">${icoon(spotIcon(s), { maat: 'l' })}</span><span class="bd-naam"><b>${esc(s.name)}</b><span class="bd-feiten">${feiten}</span></span><span class="bd-acties">${acts}</span></div>`;
   }).join('');
   // #1249: de uitleg in één regel
   return sectionCard('standplaatsen', 'plek', 'Standplaatsen', `<p class="mut">Vergunning: ${PERMIT_DAYS} speldagen, verlengen kost een kwart.</p>${stNote(v, 'stek', 'standplaats', 'team', 'keten')}${rows}`,
