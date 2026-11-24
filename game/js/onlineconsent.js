@@ -47,7 +47,8 @@ export const EERSTE_START = {
   // Tekstdieet 21-11: op de kaart staat één korte zin bij het vinkje; de uitleg zit achter "Meer info" (een uitklapper, niet standaard in beeld).
   consent: 'Ik ga akkoord met online verbinden (mijn IP-adres wordt gedeeld).',
   meerInfo: 'Meer info',
-  info: `${CONSENT_TEXT} Het spel verbindt online met een STUN-server en openbare brokers. Andere spelers zien je onder je naam. Je kunt je naam en je akkoord later aanpassen of intrekken bij Instellingen, Samen spelen.`,
+  info: `${CONSENT_TEXT} Andere spelers zien je onder je naam. Je kunt je naam en je akkoord later aanpassen of intrekken bij Instellingen, Samen spelen.`,
+  wieZietWat: 'Wie ziet wat als je verbindt',
   doorgaan: 'Doorgaan',
   terug: 'Terug',
 };
@@ -58,7 +59,7 @@ export const ONLINE_INSTELLING = {
   naamLabel: 'Je naam voor Samen spelen',
   bewaar: 'Naam bewaren',
   bewaard: 'Naam bewaard.',
-  akkoordAan: 'Je akkoord staat aan: het spel mag online verbinden met een STUN-server en openbare brokers als je Samen spelen kiest.',
+  akkoordAan: 'Je akkoord staat aan: het spel mag online verbinden als je Samen spelen kiest. Wat er dan naar buiten gaat, staat hieronder.',
   akkoordUit: 'Je akkoord staat uit: het spel maakt geen verbinding. Bij Samen spelen vraagt het spel er opnieuw om.',
   intrekken: 'Akkoord intrekken',
   geven: 'Akkoord geven',
@@ -108,3 +109,15 @@ export function zetMeedoen(aan, { world = null, zet = setSetting, nu = magOnline
   return { ok: true, meedoen: false, veranderd: true, openbaarGesloten: openbaar, tekst };
 }
 
+
+// De tabel "Wie ziet wat" (ontwerp 24-11, hoofdstuk 5c): eerlijk per partij wat die ziet, in gewone woorden. Het zegt niet meer en niet minder dan constitutie 4 en 10:
+// medespelers zien je IP-adres (een rechtstreekse verbinding kan niet anders), de openbare hulpservers (STUN) en postbussen (brokers) zien het zoals elke server die je bereikt,
+// berichten voor het opzetten zijn versleuteld, de openbare lijst alleen als de speler het zelf kiest, en niets gaat naar een server van de makers.
+export const WIE_ZIET_WAT = Object.freeze([
+  { id: 'medespelers', wie: 'Je medespelers', klein: 'de mensen in jouw sessie', ziet: 'Je naam, je kleur en je IP-adres. Een rechtstreekse verbinding kan niet zonder.' },
+  { id: 'hulpservers', wie: 'Hulpservers', klein: 'openbaar, om elkaar te vinden', ziet: 'Je IP-adres en dat je een verbinding zoekt, zoals elke server die je bereikt.' },
+  { id: 'postbussen', wie: 'Postbussen', klein: 'openbaar, om de verbinding op te zetten', ziet: 'Alleen versleutelde berichten. Zij kunnen ze niet lezen.' },
+  { id: 'lijst', wie: 'De lijst met openbare sessies', klein: 'alleen als jij je sessie openbaar maakt', ziet: 'De naam van je sessie, het aantal spelers en de versie. Geen IP-adres, geen wachtwoord.' },
+  { id: 'wij', wie: 'Wij', klein: 'de makers van het spel', ziet: 'Niets. Er gaat niets naar een server van ons en er wordt niets bewaard.', niets: true },
+]);
+export const WIE_ZIET_WAT_VOET = 'Los hiervan haalt het spel openbare gegevens op, zoals de live bussen en treinen. Daar gaat niets over jou naartoe; je zet ze uit bij Instellingen.';

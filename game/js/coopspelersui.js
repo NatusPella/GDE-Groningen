@@ -24,6 +24,7 @@ import { getSettings, setSetting } from './settings.js';
 import { PROFIEL_KLEUREN, ONLINE_NAAM_MAX, profielNaam, profielKleur, profielTekst } from './lobby.js';
 import { meedoenSchakelaarHtml } from './onlineconsentui.js';
 import { oskKnop } from './oskview.js';
+import { signaalHtml, tabelHtml, detailHtml, jijStrookHtml, aandachtRegels, aandachtHtml } from './samenspelers.js';
 
 const netStand = (v) => (v === 'lag' || v === 'lost' ? v : 'ok');
 // Een sessie van één (#554, coopsolo.js) is geen samen-sessie: geen spelerslijst, geen "1 speler"-badge
@@ -41,7 +42,7 @@ function tabRijHtml(r, ctx = {}) {
   const klaar = t.klaar === null ? '' : `<span class="cs-tab-klaar">${icoon(t.klaar ? 'vinkje' : 'zandloper', { maat: 's' })}${t.klaar ? 'Klaar' : 'Weg'}</span>`;
   return `<li class="cs-tabrij${t.verbinding === 'lost' ? ' cs-rij-weg' : ''}" data-slot="${t.slot}"><span class="cs-vorm" style="color:${esc(veiligeKleur(t.kleur))}" aria-hidden="true">${VORM_TEKEN[t.vorm] || '●'}</span>` +
     `<span class="cs-tab-naam">${esc(t.naam)}${t.jij ? ' <small class="cs-jij">(jij)</small>' : ''}${t.passief === false ? ' <small class="cs-tab-actief">actief</small>' : ''}</span>` +
-    `<span class="cs-tab-ping cs-net-${netStand(t.verbinding)}">${icoon(t.verbinding === 'lost' ? 'wifi_uit' : 'wifi', { maat: 's' })}${esc(t.ping || 'goed')}</span>` +
+    `<span class="cs-tab-ping">${signaalHtml(r.niveau || (t.verbinding === 'lost' ? 'weg' : t.verbinding === 'lag' ? 'slecht' : 'goed'))}</span>` +
     `<span class="cs-tab-afstand"${t.afstandWoord ? ` title="${esc(t.afstandWoord)}"` : ''}>${esc(t.afstand)}</span>${klaar}` +
     `<span class="cs-tab-later">${t.jij ? '' : muteWord(t.slot)}</span></li>`;
 }
@@ -249,7 +250,7 @@ export function updateSpelersOverlay(world) {
 export const spelersOverlayZichtbaar = () => !!overlay && overlay.style.display !== 'none';
 
 // ---- het onderdeel Spelers in het pauzemenu
-let timer = null, bevestig = null, profielFout = '';
+let timer = null, bevestig = null, profielFout = '', gekozen = null; // gekozen: het slot waarvan het detail staat
 // Je online-avatar (#455): de naam en kleur die anderen van je zien. Bewaard in de
 // gewone instellingen (settings.js), dus per apparaat; de volgende keer dat je
 // meedoet gaan ze mee in de kennismaking en ziet iedereen ze bij je figuur.
@@ -291,11 +292,13 @@ export function renderSpelersPanel(root, world, sluit = () => {}, opts = {}) {
     const opener = (rijen.find((r) => r.slot === 0) || {}).naam || 'De ander';
     const kop = kopHtml({ aantal: rijen.length, rol, opener, versie: versieRegel(VERSION) });
     const restore = keepFocus(root); // dempen, blokkeren en de rest tekenen de lijst opnieuw: de focus blijft op dezelfde knop (22-11)
-    root.innerHTML = kop + (rijen.length
-      ? `<ul class="cs-lijst">${rijen.map((r) => rijHtml(r, true, rol, bevestig, ctx)).join('')}</ul>` +
-        pvpHtml(world) +
-        roepHtml(PING_TOETSEN)
-      : '') +
+    if (!rijen.some((r) => r.slot === gekozen)) gekozen = (rijen.find((r) => !r.jij) || rijen[0] || {}).slot ?? null; // standaard de eerste andere speler
+    const gekozenRij = rijen.find((r) => r.slot === gekozen) || null;
+    const muteStaat = (slot) => (muteWorld ? playerMuteState(muteWorld, slot) : 'gewoon');
+    root.innerHTML = (rijen.length
+      ? aandachtHtml(aandachtRegels(rijen)) +
+        `<div class="ss-md"><div class="ss-kol">${tabelHtml(rijen, { sel: gekozen, wachtkamer: ctx.wachtkamer })}${jijStrookHtml({ passief: passiefStandVan(world), kan: kanPassiefKiezen(world), tekstUitleg: PVP_TEKST.uitleg, roep: PING_TOETSEN })}</div>${detailHtml(gekozenRij, { rol, bevestig, muteStaat, openerNaam: opener })}</div>`
+      : kop) +
       profielHtml(world);
     const veld = root.querySelector('.cs-profiel-naam'); if (veld && veld.value !== naamInvoer) veld.value = naamInvoer;
     restore();
@@ -323,8 +326,14 @@ export function renderSpelersPanel(root, world, sluit = () => {}, opts = {}) {
       if (kk) { profielFout = ''; setSetting('onlineKleur', profielKleur(kk.getAttribute('data-kleur'))); root.dataset.klaar = ''; teken(); return; }
       const p = e.target.closest('[data-ping]');
       if (p && hoofdspeler(world)) { if (pingGebaar(world, p.getAttribute('data-ping'))) sluit(); return; }
+      const kies = e.target.closest('[data-kies]');
+      if (kies && !e.target.closest('button, a, input')) { gekozen = +kies.getAttribute('data-kies'); bevestig = null; root.dataset.klaar = ''; teken(); return; }
       const sk = e.target.closest('[data-stand]');
-      if (sk) { setPlayerMuteState(world, +sk.getAttribute('data-slot'), sk.getAttribute('data-stand')); root.dataset.klaar = ''; teken(); return; } // dempen of blokkeren, een tweede keer terugzetten (#1159)
+      if (sk) { // segment Gewoon | Gedempt | Geblokkeerd: de keuze zelf, niet een wissel (#1159)
+        const slot = +sk.getAttribute('data-slot'), doel = sk.getAttribute('data-stand'), nu = playerMuteState(world, slot);
+        if (doel === 'gewoon') { if (nu !== 'gewoon') setPlayerMuteState(world, slot, nu); } else if (nu !== doel) setPlayerMuteState(world, slot, doel);
+        root.dataset.klaar = ''; teken(); return;
+      } // dempen of blokkeren, een tweede keer terugzetten (#1159)
       const ps = e.target.closest('[data-passief]');
       if (ps) { zetPassiefGebaar(world, ps.getAttribute('data-passief') === '1'); root.dataset.klaar = ''; teken(); return; } // omschakelen met afkoeling; de gast ziet de stand zodra de host antwoordt (#447)
       if (e.target.closest('[data-eruit-nee]')) { bevestig = null; root.dataset.klaar = ''; teken(); return; }

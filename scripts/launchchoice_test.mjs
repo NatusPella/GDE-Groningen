@@ -277,10 +277,10 @@ await t('keuzekaart: twee grote knoppen met icoon, toets, uitleg, aria en geen l
   assert.ok(!/\b(Esc|Enter|pijltjes|Spatie)\b/.test(html.replace(/<[^>]*>/g, '')), 'toetsen zijn keycaps, geen woorden: ' + html.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' '));
   assert.ok(!/style="[^"]*font-size/.test(html), 'geen eigen maten in de markup');
 });
-await t('toestemmingskaart: de STUN- en brokertekst, een vinkje, Akkoord en Terug', () => {
+await t('toestemmingskaart: de tabel Wie ziet wat, een vinkje, Akkoord en Terug', () => {
   const html = UI.toestemmingHtml();
   assert.match(html, /gaat naar je medespeler en naar de openbare servers/);
-  assert.match(html, /STUN-server en openbare brokers/);
+  assert.match(html, /Wie ziet wat als je verbindt/); assert.match(html, /Hulpservers/); assert.match(html, /Niets\. Er gaat niets naar een server van ons/); assert.doesNotMatch(html, /STUN|broker/i, 'geen jargon in de tekst van de speler');
   assert.match(html, /class="m-sw os-consent-vink"/);
   assert.match(html, /data-geef/);
   assert.match(html, /data-terug/);

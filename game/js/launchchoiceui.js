@@ -6,7 +6,7 @@ import { icoon } from './icons.js';
 import { keyLabelHtml, keyTextHtml } from './keycap.js';
 import { KEUZES, LAUNCH_TEXT, TOESTEMMING_TEKST, toetsActie } from './launchchoice.js';
 import { geefToestemming, moetNaamVragen, moetToestemmingVragen } from './onlineconsent.js';
-import { openOnlineStart, meerInfoHtml } from './onlineconsentui.js';
+import { openOnlineStart, meerInfoHtml, wieZietWatHtml } from './onlineconsentui.js';
 import { getSettings } from './settings.js';
 import { trapTabInCard, bewaarFocus } from './listnav.js';
 
@@ -34,7 +34,7 @@ export function toestemmingHtml() {
     <p class="os-eb">${esc(T.eyebrow)}</p>
     <h2 id="st-titel">${esc(T.titel)}</h2>
     <label class="os-consent"><input type="checkbox" class="m-sw os-consent-vink"> <span>${esc(T.consent)}</span></label>
-    ${meerInfoHtml(T.meerInfo, T.info)}
+    <p class="os-lead">${esc(T.info)}</p>${wieZietWatHtml()}
     <p class="os-fout" role="alert" hidden>Vink eerst het akkoord aan om verder te gaan.</p>
     <div class="os-knoppen">
       <button type="button" class="os-knop os-doorgaan" data-geef aria-keyshortcuts="Enter">${esc(T.geef)} <span class="sk-toets-in">${keyTextHtml('{ENTER}')}</span></button>
