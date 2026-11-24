@@ -5,6 +5,7 @@
 //        [--out=.pb/ub] [--tag=r1] [--max-cpu=0.25] [--min-vrij-gb=3]
 // Env: ELECTRON_EXE (anders de Electron van de hoofdmap). Uitvoer: <out>/<tag>-<build>-<ronde>.json en een tabel per build (mediaan).
 import fs from 'node:fs';
+import os from 'node:os';
 import path from 'node:path';
 import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
@@ -39,6 +40,10 @@ async function once(b, round) {
     '--disable-renderer-backgrounding', '--disable-backgrounding-occluded-windows', '--disable-features=CalculateNativeWinOcclusion',
     `--preset=${STANDS[STAND] || STAND}`, `--url-flags=${[FLAGS, ...b.flags].join(',')}`, `--bench-eval=${path.join(HERE, 'ultrabench.hook.js')}`, ...(process.env.UB_EXTRA_ARGS ? process.env.UB_EXTRA_ARGS.split(' ') : [])]; // UB_EXTRA_ARGS='--profile' met GDE_PROFILE_AT/_MS/_OUT: een CPU-profiel
   const env = runner.electronEnv({ profile, tmp, gameDir: b.dir });
+  // de CPU-belasting van de hele machine TIJDENS de run (inclusief deze Electron), elke 2 s: de poort kijkt alleen bij de start
+  const cpuNow = () => os.cpus().reduce((a, c) => { const t = c.times; a.i += t.idle; a.t += t.user + t.nice + t.sys + t.idle + t.irq; return a; }, { i: 0, t: 0 });
+  const load = []; let prev = cpuNow();
+  const sampler = setInterval(() => { const c = cpuNow(); load.push(Math.round(100 * (1 - (c.i - prev.i) / Math.max(1, c.t - prev.t)))); prev = c; }, 2000);
   const res = await runner.runElectron({
     electron, args, cwd: path.join(ROOT, 'desktop'), env, out: dir, log, timeoutMin: 12, below: false,
     slot: { label: `ultrabench ${TAG}`, exclusive: true, waitMin: 240 }, quiet,
@@ -49,9 +54,12 @@ async function once(b, round) {
   let j = null;
   try { const l = fs.readFileSync(path.join(dir, 'electron.log'), 'utf8').split('\n').map((x) => x.replace(/\r$/, '')).find((x) => x.startsWith('[trailer] ubstats ')); if (l) j = JSON.parse(l.slice(18)); } catch (e) { j = null; }
   if (!j && line) { try { j = JSON.parse(line); } catch (e) { /* afgekapt */ } }
-  const rec = { build: b.name, round, stand: STAND, flags: [FLAGS, ...b.flags].join(','), machine: res && res.quiet ? res.quiet.last : null, error: res.error || (j ? null : 'geen ubstats'), ...(j || {}) };
+  clearInterval(sampler);
+  const sorted = load.slice().sort((x, y) => x - y);
+  const cpuRun = load.length ? { mean: Math.round(load.reduce((a, v) => a + v, 0) / load.length), p90: sorted[Math.floor(sorted.length * 0.9)], max: sorted[sorted.length - 1] } : null;
+  const rec = { cpuRun, build: b.name, round, stand: STAND, flags: [FLAGS, ...b.flags].join(','), machine: res && res.quiet ? res.quiet.last : null, error: res.error || (j ? null : 'geen ubstats'), ...(j || {}) };
   fs.writeFileSync(`${dir}.json`, JSON.stringify(rec));
-  log(`${b.name} ronde ${round}: ${j ? `gem ${j.avg.toFixed(1)} fps, 1%-low ${j.low1.toFixed(1)}, >50 ms ${j.spikes[0]}/min, grootste ${j.raf.max} ms, prog ${j.info && j.info.prog}` : rec.error}`);
+  log(`${b.name} ronde ${round}: ${j ? `gem ${j.avg.toFixed(1)} fps, 1%-low ${j.low1.toFixed(1)}, >50 ms ${j.spikes[0]}/min, grootste ${j.raf.max} ms, prog ${j.info && j.info.prog}, CPU tijdens run gem ${cpuRun && cpuRun.mean}% p90 ${cpuRun && cpuRun.p90}%` : rec.error}`);
   return rec;
 }
 // runElectron owns the child; the run ends on its own once the benchmark is done (BENCH_RUNS quits), so nothing to kill here
