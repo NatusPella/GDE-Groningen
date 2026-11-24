@@ -5,7 +5,7 @@
 //   team        -> medewerkers-wagens              (wagen:team, Berend, Tinus en Wubbo)
 //   naam        -> de wagenbelettering 'TAM & TES' (wagen:naam)
 //   standplaats -> je wagen zelf op een plek zetten (wagen:standplaats, de Vismarkt)
-//   keten       -> een tweede medewerkers-wagen en het opnemen tegen Usmem (overnemen) (wagen:keten)
+//   keten       -> een tweede medewerkers-wagen en het opnemen tegen Us Mem (overnemen) (wagen:keten)
 // Geen import van story.js (die is van de verhaal-epic): main.js geeft de stand mee via setSnackFlagProvider(() => ({ flags, gate, ended, dev })).
 // Migratieregel: zonder provider, zonder stand of bij een oude save (een gate-veld dat ontbreekt of 'legacy' is) staat alles open; een fase die dicht is,
 // geeft een hint van een personage en nooit een leeg scherm. Puur: geen DOM, geen wereld, geen opslag (scripts/snackstory_test.mjs).
@@ -18,7 +18,7 @@ export const STAGE_HINTS = {
   team: 'Je team is er nog niet: eerst Berend, Tinus en Wubbo erbij, dan kun je medewerkers-wagens neerzetten.',
   naam: 'Je wagen heeft nog geen eigen naam: dat gebeurt zodra het luik erin zit.',
   standplaats: 'Tessa zoekt nog een goede plek: eerst de Vismarkt, dan zet je de wagen zelf op een standplaats.',
-  keten: 'Een tweede wagen en de strijd met Usmem Snacks komen aan het eind van de zomer, als de wagen echt groeit.',
+  keten: 'Een tweede wagen en de strijd met Us Mem Snacks komen aan het eind van de zomer, als de wagen echt groeit.',
 };
 export const PLAIN_SIGN = 'SNACKWAGEN';                // de belettering voor wagen:naam
 

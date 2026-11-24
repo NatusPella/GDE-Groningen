@@ -12,7 +12,7 @@ const ctx = (day, o = {}) => ({ day, weekend: wk(day), money: 1e9, ownWagon: tru
 const give = (S, ids, until = 1e6) => { for (const id of ids) S.permits[id] = { until, paid: SP.permitPrice(id, 0) }; };
 const quiet = (S) => { S.rival.spots = []; S.rival.mood = 5; S.rival.lastEvent = 1e6; S.rival.lastOffer = 1e6; return S; };      // geen concurrent die ingrijpt
 
-t('een nieuwe toestand: leeg, niet actief, wagen zonder plek, menu van vier, naam 50, Usmem op zijn startplekken', () => {
+t('een nieuwe toestand: leeg, niet actief, wagen zonder plek, menu van vier, naam 50, Us Mem op zijn startplekken', () => {
   const S = SN.newSnack();
   assert.ok(!SN.isActive(S) && S.own.spot === null && S.own.menu.length === 4 && S.rep === 50);
   assert.deepEqual(S.rival.spots, RV.OPENING_SPOTS);
@@ -185,7 +185,7 @@ t('pech sluit de wagen: geen omzet, halve kosten; het antwoord sleepdienst bekor
   assert.equal(S.own.stockDays, 5);                          // een dichte dag verbruikt geen voorraad
   assert.equal(SN.settleDay(S, ctx(10)).own.closed, false);
 });
-t('een bod van Usmem: verkopen geeft het geld en de plek (de wagen staat leeg), weigeren geeft een goede naam; verloopt na drie dagen', () => {
+t('een bod van Us Mem: verkopen geeft het geld en de plek (de wagen staat leeg), weigeren geeft een goede naam; verloopt na drie dagen', () => {
   const S = quiet(SN.newSnack()); give(S, ['park']); S.own.spot = 'park'; S.rival.lastOffer = 0;
   const e = { kind: 'bod', id: 3, wagon: 'own', spot: 'park', depth: 0, price: 9000, text: 'Bod', choices: RV.CHOICES.bod, day: 40, deadline: 43 };
   S.ev.pending = { ...e };
@@ -212,7 +212,7 @@ t('een valse recensie drukt tijdelijk je naam, een gratis friet-dag herstelt sne
   const before = S.rep; SN.answerEvent(S, 'actie', 30, 500);
   assert.ok(SN.effRep(S, 31) > before - 3 && S.rep === before + 3);
 });
-t('overname van Usmem: kost zijn vraagprijs, geeft een vergunning van 40 dagen, telt als doel; een medespeler blokkeert', () => {
+t('overname van Us Mem: kost zijn vraagprijs, geeft een vergunning van 40 dagen, telt als doel; een medespeler blokkeert', () => {
   const S = quiet(SN.newSnack()); S.rival = RV.newRival(); S.rep = 50;
   assert.equal(SN.bidForSpot(S, 'markt', 5, 100).why, 'te-weinig-geld');
   assert.equal(SN.bidForSpot(S, 'markt', 5, 1e9, { taken: () => true }).why, 'bezet');
@@ -222,7 +222,7 @@ t('overname van Usmem: kost zijn vraagprijs, geeft een vergunning van 40 dagen, 
   assert.equal(SN.goalStatus(S, { day: 5 }).find((g) => g.id === 'overname').done, true);
   assert.equal(SN.goalStatus(S, { day: 5 }).find((g) => g.id === 'beste').done, true);
   assert.equal(SN.buyPermit(S, 'markt', 6, 1e9).why, 'al-van-jou');
-  assert.equal(SN.buyPermit(S, 'station', 6, 1e9).why, 'bezet');        // van Usmem: eerst overnemen
+  assert.equal(SN.buyPermit(S, 'station', 6, 1e9).why, 'bezet');        // van Us Mem: eerst overnemen
   assert.equal(SN.buyPermit(S, 'dorp', 6, 1e9, { taken: (x) => x === 'dorp' }).why, 'bezet');
 });
 t('de eindscore: aandeel, wagens, ketens, naam en het beste plekje; 0 tot 100', () => {
@@ -236,7 +236,7 @@ t('de eindscore: aandeel, wagens, ketens, naam en het beste plekje; 0 tot 100', 
   assert.ok(sc.share > 0.9 && sc.score >= 90 && sc.score <= 100, JSON.stringify(sc));
   assert.equal(SN.empireScore(S, 5, { chains: 9 }).parts.ketens, 10);
 });
-t('doelen: Usmem klein gekregen vraagt acht plekken en 75% aandeel; tien plekken is de prestatie', () => {
+t('doelen: Us Mem klein gekregen vraagt acht plekken en 75% aandeel; tien plekken is de prestatie', () => {
   const S = SN.newSnack(); give(S, SP.SPOT_IDS.slice(0, 10)); S.rival.spots = ['stadion'];
   const g = Object.fromEntries(SN.goalStatus(S, { day: 5 }).map((x) => [x.id, x.done]));
   assert.ok(g.tien && g.usmem && g.helft && g.drie && g.vergunning && !g.overname);

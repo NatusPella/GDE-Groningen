@@ -179,7 +179,7 @@ kost niets. De banen komen uit `game/vliegplekken.json`.
 
 ## Bezit en snackwagen (epic #1095)
 
-**Doel.** Percelen en panden in de hele provincie zijn te koop; wie ze heeft, laat ze draaien (land, vee, ketens, winkels, woningen) en eindigt met een eigen snackwagen tegenover de concurrent Usmem Snacks. Ontwerp en werkpakketten: docs/BEZIT-21-11.md; wat nog gecontroleerd moet worden: docs/BEZIT-VERIFICATIE-21-11.md.
+**Doel.** Percelen en panden in de hele provincie zijn te koop; wie ze heeft, laat ze draaien (land, vee, ketens, winkels, woningen) en eindigt met een eigen snackwagen tegenover de concurrent Us Mem Snacks. Ontwerp en werkpakketten: docs/BEZIT-21-11.md; wat nog gecontroleerd moet worden: docs/BEZIT-VERIFICATIE-21-11.md.
 
 **Regels.** Alles is een pure functie van de speldag (`bezithash.js`), zonder Math.random en zonder klok. Opslag per speler; een gast bouwt een eigen imperium (#429) en claims lopen over het netwerk (`bezitnet.js`, `bezitcoop.js`). Een sponsor van de voetbalcarrière krijgt een eigen pand (`sponsorpanden.js`). Het verhaal opent de wereld in fasen via `unlockgate.js` en de stille vlaggen `wagen:*`. De concurrent is satire: zakelijk pesten, nooit geweld, nooit een echt slachtoffer (constitutie 6); alle namen zijn verzonnen (constitutie 2).
 

@@ -86,7 +86,7 @@ t('een omkoping kan mislukken: de dienst weigert, jij wint en Jelle verliest 15 
   assert.ok(wonGood > wonNo * 2);
   assert.ok(wonNo > 0 && wonNo < 400 && wonGood === 400);      // beide uitkomsten komen voor bij een zwakke speler
 });
-t('een mislukte omkoping maakt Usmem goedkoper en voorzichtiger: de overnameprijs zakt tot 20%, de kans op gebeurtenissen tot 70%', () => {
+t('een mislukte omkoping maakt Us Mem goedkoper en voorzichtiger: de overnameprijs zakt tot 20%, de kans op gebeurtenissen tot 70%', () => {
   assert.equal(RV.askPrice('markt', 50, 60), RV.askPrice('markt', 50));
   assert.ok(RV.askPrice('markt', 50, 0) < 0.82 * RV.askPrice('markt', 50, 60) && RV.askPrice('markt', 50, 0) > 0.79 * RV.askPrice('markt', 50, 60));
   const r = RV.newRival();

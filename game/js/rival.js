@@ -1,21 +1,21 @@
-// De concurrent van de snackwagen (epic #1095, #1102): Jelle Terpstra's snackimperium "Usmem Snacks" (verzonnen; Jelle is een verhaalpersonage, vriendelijk-venijnig).
+// De concurrent van de snackwagen (epic #1095, #1102): Jelle Terpstra's snackimperium "Us Mem Snacks" (verzonnen; Jelle is een verhaalpersonage, vriendelijk-venijnig).
 // Hij bezit standplaatsen, panden en een eigen keten, breidt zelf uit en komt met overnames, een prijzenoorlog en sabotage als satire: een storing aan de frituurpan,
 // een pechdag, een valse recensie, een verkoper die hij wegkoopt. Nooit geweld, nooit een echt slachtoffer: het is zakelijk pesten met een glimlach (constitution 6).
 // Puur en deterministisch: alles uit de speldag en de plek (bezithash.js), nooit Math.random, geen klok, geen opslag (scripts/rival_test.mjs). Per speler: iedere speler heeft
-// zijn eigen Usmem en zijn eigen voortgang (#429); Samen spelen deelt alleen de claims op plekken (bezitcoop.js).
+// zijn eigen Us Mem en zijn eigen voortgang (#429); Samen spelen deelt alleen de claims op plekken (bezitcoop.js).
 
 import { hashUnit, hashPick, clamp, finite } from './bezithash.js';
 import { SPOTS, spotDef, permitPrice } from './pitch.js';
 
-export const RIVAL_NAME = 'Usmem Snacks';
+export const RIVAL_NAME = 'Us Mem Snacks';
 export const RIVAL_OWNER = 'Jelle Terpstra';
-export const OPENING_SPOTS = ['markt', 'station', 'oosterpoort', 'stadion'];     // wat Usmem heeft als jij begint: de beste plekken van de stad
+export const OPENING_SPOTS = ['markt', 'station', 'oosterpoort', 'stadion'];     // wat Us Mem heeft als jij begint: de beste plekken van de stad
 export const TARGET_SHARE = 0.4;                                              // hij breidt uit tot ongeveer 40% van de plekken (6 van 16) als jij hem niet voor bent
 export const EXPAND_MIN = 9, EXPAND_SPAN = 6;                                  // elke 9 tot 14 speldagen een nieuwe plek
 export const MAX_MOOD = 100;
 
 export const SERVICE = 'Gemeentelijke Vergunningsdienst Noord';             // verzonnen dienst (constitution 2): geen echte instantie, geen echte ambtenaar
-// rep: de naam van Usmem zelf (0 tot 100): een mislukte omkoping kost hem veel; zie resolveDispute.
+// rep: de naam van Us Mem zelf (0 tot 100): een mislukte omkoping kost hem veel; zie resolveDispute.
 export const newRival = () => ({ v: 1, spots: [...OPENING_SPOTS], pand: 3, chain: 1, mood: 20, lastExpand: 0, lastOffer: 0, lastEvent: 0, bought: 0, rep: 60 });
 
 // De ligging van een plek in de lijst van de concurrent.
@@ -25,7 +25,7 @@ export const holds = (r, id) => !!r && r.spots.includes(id);
 export const shareOf = (mine, r) => { const a = Math.max(0, mine | 0), b = r ? r.spots.length : 0; return a + b === 0 ? 0 : Math.round((a / (a + b)) * 1000) / 1000; };
 
 // Zijn prijs om een plek over te nemen: de vergunningsprijs maal 2,4 bij een naam van nul, maal 1,6 bij een naam van honderd. Je betaalt hem, hij is dan klein af.
-// Een slechte naam van Usmem zelf (rivalRep onder 60, na een mislukte omkoping) maakt hem tot 20% goedkoper: wie zijn naam kapot maakt, verliest zijn onderhandelingspositie.
+// Een slechte naam van Us Mem zelf (rivalRep onder 60, na een mislukte omkoping) maakt hem tot 20% goedkoper: wie zijn naam kapot maakt, verliest zijn onderhandelingspositie.
 export const RIVAL_REP_INITIAL = 60;
 export const askPrice = (id, rep = 50, rivalRep = RIVAL_REP_INITIAL) => Math.round((permitPrice(id, 0) * (2.4 - 0.8 * clamp(finite(rep, 50), 0, 100) / 100) * (1 - 0.2 * clamp((RIVAL_REP_INITIAL - finite(rivalRep, RIVAL_REP_INITIAL)) / RIVAL_REP_INITIAL, 0, 1))) / 50) * 50;
 
@@ -85,7 +85,7 @@ export const EVENT_KINDS = {
 export const LEGES_PAY = 400, LEGES_LOSS = 300;           // de leges bij betalen, en wat een verloren geschil kost (nooit fataal: de plek blijft van jou)
 export const EVENT_COOLDOWN = 3;                       // speldagen tussen twee gebeurtenissen
 // De kans per dag op een gebeurtenis: 5% plus zijn stemming (tot 12%) plus 4% als jij verder bent dan hij; hoogstens 22%. protect (0 tot 1): wat een upgrade of goede naam afvangt.
-// Een slechte naam van Usmem (rep onder 60) maakt hem voorzichtiger: de kans zakt tot 70%, en stijgt tot 120% bij een naam van honderd.
+// Een slechte naam van Us Mem (rep onder 60) maakt hem voorzichtiger: de kans zakt tot 70%, en stijgt tot 120% bij een naam van honderd.
 export function eventChance(r, { share = 0.5, protect = 0 } = {}) {
   const own = clamp(0.7 + 0.3 * finite(r.rep, RIVAL_REP_INITIAL) / RIVAL_REP_INITIAL, 0.7, 1.2);
   return Math.round(clamp((0.05 + 0.12 * clamp(r.mood, 0, MAX_MOOD) / MAX_MOOD + (share > 0.5 ? 0.04 : 0)) * (1 - clamp(protect, 0, 0.6)) * own, 0, 0.22) * 1000) / 1000;
@@ -94,13 +94,13 @@ export function eventChance(r, { share = 0.5, protect = 0 } = {}) {
 export const QUOTES = {
   storing: ['"Een frituurpan is net een vriendschap: ze gaat stuk als je er niet op let," zegt Jelle Terpstra.', '"Pech, hè? Niks persoonlijks, het is gewoon friet," appt Jelle.'],
   pech: ['"Ik hoorde dat je wagen niet wilde starten. Ik stuur gratis een folder over openbaar vervoer," zegt Jelle.', '"Een rustdag heeft nog niemand kwaad gedaan," zegt Jelle.'],
-  recensie: ['Er staat een recensie online: "Friet zonder ziel." De schrijver heet toevallig net als de neef van een Usmem-chauffeur.', '"Kritiek hoort erbij," zegt Jelle. "Vooral andermans."'],
-  oorlog: ['Usmem Snacks zet alle friet in de stad in de aanbieding. Jelle: "Voor de klant, natuurlijk."', '"Gratis saus bij elke friet!" Jelle zwaait vriendelijk vanaf zijn wagen.'],
+  recensie: ['Er staat een recensie online: "Friet zonder ziel." De schrijver heet toevallig net als de neef van een Us Mem-chauffeur.', '"Kritiek hoort erbij," zegt Jelle. "Vooral andermans."'],
+  oorlog: ['Us Mem Snacks zet alle friet in de stad in de aanbieding. Jelle: "Voor de klant, natuurlijk."', '"Gratis saus bij elke friet!" Jelle zwaait vriendelijk vanaf zijn wagen.'],
   overkoop: ['Jelle heeft je verkoper uitgenodigd voor een koffie. Met een hoger loon op tafel.', '"Goede mensen moet je koesteren," zegt Jelle, "liefst bij mij."'],
   bod: ['"Een mooi plekje. Het past beter bij mij," zegt Jelle.'],
   // Bureaucratie (Jelle speelt met regels): een extra formulier, een vergunning die "ter beoordeling" ligt, en (satire) een enveloppe voor de verzonnen Gemeentelijke Vergunningsdienst Noord.
   vergunning: ['De Gemeentelijke Vergunningsdienst Noord vraagt ineens om een extra formulier (model 7b) voor je standplaats. Jelle: "Regels zijn regels, dat weet jij ook."', 'Je vergunning ligt "ter beoordeling" bij de Gemeentelijke Vergunningsdienst Noord. Jelle: "Dat duurt soms even. Soms heel even niet voor een ander."'],
-  vergunningOmkoop: ['Op een bureau van de Gemeentelijke Vergunningsdienst Noord ligt een dikke enveloppe met een Usmem-sticker. Jelle: "Een kleine attentie, meer niet."', 'Bij de Gemeentelijke Vergunningsdienst Noord is plotseling de vergunning van een ander zoek. Jelle knipoogt: "Je weet hoe dat gaat."'],
+  vergunningOmkoop: ['Op een bureau van de Gemeentelijke Vergunningsdienst Noord ligt een dikke enveloppe met een Us Mem-sticker. Jelle: "Een kleine attentie, meer niet."', 'Bij de Gemeentelijke Vergunningsdienst Noord is plotseling de vergunning van een ander zoek. Jelle knipoogt: "Je weet hoe dat gaat."'],
 };
 // Het antwoord dat de speler kan kiezen, per soort: { id, label, cost } (cost in euro, 0 is gratis). Het eerste is het antwoord dat het meest kost en het best helpt.
 export const CHOICES = {
@@ -145,9 +145,9 @@ export function resolveDispute(p) {
   const his = 45 + 0.15 * clamp(finite(p.mood, 20), 0, MAX_MOOD) + (p.bribed && !bribeFailed ? 25 : 0) - (bribeFailed ? 10 : 0);
   const win = bribeFailed || yours >= his;
   const rivalRepDelta = bribeFailed ? -15 : win ? -8 : 2;
-  const text = bribeFailed ? `De ${SERVICE} weigert de enveloppe en beslist in jouw voordeel. Het komt in de krant: Usmem Snacks staat voor schut.`
+  const text = bribeFailed ? `De ${SERVICE} weigert de enveloppe en beslist in jouw voordeel. Het komt in de krant: Us Mem Snacks staat voor schut.`
     : win ? `De ${SERVICE} bevestigt je vergunning. De buurt staat achter je; Jelle Terpstra glimlacht een beetje minder.`
-      : `De ${SERVICE} beslist in het voordeel van de regels (en van Usmem). Je betaalt ${LEGES_LOSS} euro leges en een paar dagen gaat het langzamer, maar de plek blijft van jou.`;
+      : `De ${SERVICE} beslist in het voordeel van de regels (en van Us Mem). Je betaalt ${LEGES_LOSS} euro leges en een paar dagen gaat het langzamer, maar de plek blijft van jou.`;
   return { win, yours: Math.round(yours * 10) / 10, his: Math.round(his * 10) / 10, bribeFailed, rivalRepDelta, text };
 }
 export const noteEvent = (r, day) => ({ ...r, lastEvent: Math.floor(finite(day, 0)) });
@@ -174,7 +174,7 @@ export function outcome(ev, choiceId, day) {
     o.war = { until: d + 8, depth, matched: c.id === 'meeprijzen' };
     if (c.id === 'reclame') { o.war.softened = true; o.rep = 4; o.text = 'De reclame werkt: minder klanten lopen over.'; }
     else if (c.id === 'meeprijzen') o.text = 'Je prijst mee: klanten blijven, de marge is dun.';
-    else o.text = 'Je negeert het: klanten lopen een week naar Usmem.';
+    else o.text = 'Je negeert het: klanten lopen een week naar Us Mem.';
   } else if (ev.kind === 'overkoop') {
     if (c.id === 'loon') { o.wageUp = { wagon: ev.wagon, pct: 20 }; o.text = 'Je verkoper blijft voor 20% meer loon.'; }
     else { o.mods.push({ k: 'dicht', wagon: ev.wagon, until: d + 1 }); o.leave = ev.wagon; o.text = 'Je verkoper vertrekt; er komt twee dagen later een nieuwe.'; }

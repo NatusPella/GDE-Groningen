@@ -72,7 +72,7 @@ t('het menu: pas na wagen:menu', () => {
   nieuw('wagen:idee', 'wagen:menu');
   r = SL.offeringButton('kaassouffle'); assert.notEqual(r.why, 'verhaal');
 });
-t('standplaatsen kopen pas na wagen:stek; overnemen van Usmem en de wagen zelf zetten later', () => {
+t('standplaatsen kopen pas na wagen:stek; overnemen van Us Mem en de wagen zelf zetten later', () => {
   reset(); nieuw('wagen:menu'); const w = wereld();
   let r = SL.koopVergunning(w, 'dorp'); assert.equal(r.ok, false); assert.equal(r.why, 'verhaal'); assert.equal(w.money, 1e6); assert.match(r.text, /Lammert/);
   nieuw('wagen:menu', 'wagen:stek');
@@ -82,7 +82,7 @@ t('standplaatsen kopen pas na wagen:stek; overnemen van Usmem en de wagen zelf z
   nieuw('wagen:menu', 'wagen:stek', 'wagen:standplaats');
   assert.equal(SL.placeVan('dorp').ok, true);
   const S = L.snackState(); const usmem = S.rival.spots[0];
-  r = SL.acquireRivalSpot(w, usmem); assert.equal(r.why, 'verhaal'); assert.match(r.text, /Usmem/);
+  r = SL.acquireRivalSpot(w, usmem); assert.equal(r.why, 'verhaal'); assert.match(r.text, /Us Mem/);
   nieuw(...upTo(7));
   assert.notEqual(SL.acquireRivalSpot(w, usmem).why, 'verhaal');
 });
@@ -97,14 +97,14 @@ t('medewerkers-wagens na wagen:team; een tweede wagen pas na wagen:keten', () =>
   nieuw(...upTo(7));
   assert.equal(SL.koopVloot(w, 'park').ok, true);
 });
-t('de belettering: eerst SNACKWAGEN, na wagen:naam de eigen naam in beeld; Usmem houdt zijn bord', () => {
+t('de belettering: eerst SNACKWAGEN, na wagen:naam de eigen naam in beeld; Us Mem houdt zijn bord', () => {
   reset(); nieuw('wagen:team'); const w = wereld();
   assert.equal(SS.ownSignFor(), 'SNACKWAGEN');
   nieuw('wagen:team', 'wagen:naam');
   assert.equal(SS.ownSignFor(), 'TAM & TES'); assert.equal(SS.ownSignFor('KAS & KAAS'), 'KAS & KAAS');
   const plan = P.planWagons([{ spot: 'markt', kind: 'own', x: 0, y: 0, sign: 'SNACKWAGEN' }, { spot: 'park', kind: 'rival', x: 5, y: 0 }, { spot: 'dorp', kind: 'fleet', x: 9, y: 0 }], { x: 0, y: 0 });
   const by = Object.fromEntries(plan.map((q) => [q.kind, q.sign]));
-  assert.equal(by.own, 'SNACKWAGEN'); assert.equal(by.rival, 'USMEM SNACKS'); assert.equal(by.fleet, 'TAM & TES');
+  assert.equal(by.own, 'SNACKWAGEN'); assert.equal(by.rival, 'US MEM SNACKS'); assert.equal(by.fleet, 'TAM & TES');
   assert.equal(w.money, 1e6);
 });
 t('de view en de tab: een dichte fase geeft een hint en een uitgezette knop in plaats van een leeg scherm', () => {

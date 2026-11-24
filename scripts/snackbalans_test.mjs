@@ -1,5 +1,5 @@
 // De balans van de snackwagen (scripts/bezit_sim.mjs snackProfile): de beste wagen verdient meer per speldag en per geïnvesteerde euro dan winkels en percelen, maar blijft
-// binnen de remmen (compressOwn voor de eigen wagen, compressPassive voor medewerkers); Usmem en sabotage kosten geld; geen exploit.   node scripts/snackbalans_test.mjs
+// binnen de remmen (compressOwn voor de eigen wagen, compressPassive voor medewerkers); Us Mem en sabotage kosten geld; geen exploit.   node scripts/snackbalans_test.mjs
 import assert from 'node:assert/strict';
 import * as Sim from './bezit_sim.mjs';
 import * as SN from '../game/js/snackvan.js';
@@ -47,7 +47,7 @@ t('een medewerker-wagen levert minder dan jijzelf op dezelfde plek (zonder jou 8
   };
   assert.ok(day(false) < day(true) && day(false) > 0);
 });
-t('Usmem en sabotage kosten geld, maar breken je niet (tussen 2% en 25% van de opbrengst)', () => {
+t('Us Mem en sabotage kosten geld, maar breken je niet (tussen 2% en 25% van de opbrengst)', () => {
   for (const id of ['mid', 'best', 'imperium']) {
     const ratio = live[id].perDay / quiet[id].perDay;
     assert.ok(ratio < 0.995 && ratio > 0.75, `${id} ${ratio}`);
@@ -56,7 +56,7 @@ t('Usmem en sabotage kosten geld, maar breken je niet (tussen 2% en 25% van de o
 t('de eerste standplaats: de goedkoopste kost minder dan een eerste wagen; het beste plekje kost meer dan een derde van de hele wagen-investering', () => {
   assert.ok(SP.permitPrice('dorp') < 3000);
   assert.ok(SP.permitPrice('markt') > 8000 && SP.permitPrice('markt') < 15000);
-  assert.ok(RV.askPrice('markt', 50) > 2 * SP.permitPrice('markt') * 0.9);       // Usmem overnemen kost ruim het dubbele van een vrije plek
+  assert.ok(RV.askPrice('markt', 50) > 2 * SP.permitPrice('markt') * 0.9);       // Us Mem overnemen kost ruim het dubbele van een vrije plek
 });
 t('schaalprijs: de volgende vergunning en wagen worden duurder, begrensd op drie maal', () => {
   assert.ok(SP.permitPrice('park', 5) > SP.permitPrice('park', 0) * 1.7);
@@ -89,7 +89,7 @@ const campaign = (perDay) => {
   }
   return SN.empireScore(S, 301);
 };
-t('Usmem is te verslaan: met een gewone geldstroom (900 per speldag) neem je in 300 dagen de meeste plekken, met een goede wagen (1.800) ruim driekwart', () => {
+t('Us Mem is te verslaan: met een gewone geldstroom (900 per speldag) neem je in 300 dagen de meeste plekken, met een goede wagen (1.800) ruim driekwart', () => {
   const a = campaign(900), b = campaign(1800);
   assert.ok(a.share >= 0.55 && a.share < 1, JSON.stringify(a));
   assert.ok(b.share >= 0.75 && b.score > a.score, JSON.stringify(b));

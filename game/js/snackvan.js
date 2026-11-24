@@ -1,5 +1,5 @@
-// De snackwagen als eindgame van Bezit (epic #1095, #1102; ontwerp docs/BEZIT-21-11.md, sectie "Snackwagen en Usmem Snacks"): een bedrijf-light-sim met standplaatsen
-// (pitch.js), een menu uit je eigen keten, upgrades, medewerkers (loon of aandeel), een reputatie, de concurrent Usmem Snacks (rival.js) met sabotage als satire,
+// De snackwagen als eindgame van Bezit (epic #1095, #1102; ontwerp docs/BEZIT-21-11.md, sectie "Snackwagen en Us Mem Snacks"): een bedrijf-light-sim met standplaatsen
+// (pitch.js), een menu uit je eigen keten, upgrades, medewerkers (loon of aandeel), een reputatie, de concurrent Us Mem Snacks (rival.js) met sabotage als satire,
 // doelen en een eindscore "Snackimperium". Puur: geen DOM, geen THREE, geen klok, geen opslag en geen Math.random; alles uit de speldag (bezithash.js).
 // scripts/snackvan_test.mjs en scripts/snackbalans_test.mjs.
 //
@@ -223,7 +223,7 @@ export function answerEvent(S, choiceId, day, money) {
       delete S.permits[p.spot]; S.rival = RV.acquire(S.rival, p.spot); gain = p.price;
       if (S.own.spot === p.spot) S.own.spot = null;
       for (const w of S.fleet) if (w.spot === p.spot) w.spot = null;
-      text = `Verkocht aan Usmem Snacks voor ${p.price} euro. Je wagen staat zonder plek.`;
+      text = `Verkocht aan Us Mem Snacks voor ${p.price} euro. Je wagen staat zonder plek.`;
     } else { S.stats.refused++; S.rep = clamp(S.rep + 1, 0, 100); text = 'Je weigert het bod. Jelle haalt zijn schouders op: "Volgende keer."'; }
   } else {
     dropEvMods(S, p.id);
@@ -235,7 +235,7 @@ export function answerEvent(S, choiceId, day, money) {
   S.ev.pending = null;
   return { ok: true, cost: price, gain, text };
 }
-// Het vergunningsgeschil uitvoeren (rival.resolveDispute met je goodwill, vaste klanten, bondgenoten en naam): de uitkomst werkt door in goodwill, de naam van Usmem en de verkoop.
+// Het vergunningsgeschil uitvoeren (rival.resolveDispute met je goodwill, vaste klanten, bondgenoten en naam): de uitkomst werkt door in goodwill, de naam van Us Mem en de verkoop.
 // Verlies kost leges (hoogstens wat er is) en drie dagen halve verkoop op die wagen; de plek blijft van jou: nooit fataal. Geeft { win, text, cost }.
 function runDispute(S, p, day, allyCall, money) {
   const r = RV.resolveDispute({ spot: p.spot, day, bribed: p.bribed, goodwill: S.gw.goodwill, loyal: S.gw.loyal[p.spot] || 0, allies: S.gw.allies.length, allyCall, rep: S.rep, mood: S.rival.mood, rivalRep: S.rival.rep });
@@ -286,7 +286,7 @@ export function settleDay(S, ctx) {
   // 2. de concurrent
   const before = S.rival.spots.length;
   S.rival = RV.stepRival(S.rival, day, { taken: (id) => SP.permitHeld(S.permits, id, day) || !!(ctx.taken && ctx.taken(id)) });
-  if (S.rival.spots.length > before) rep.lines.push(`Usmem Snacks heeft een nieuwe standplaats: ${SP.spotDef(S.rival.expandedTo).short}.`);
+  if (S.rival.spots.length > before) rep.lines.push(`Us Mem Snacks heeft een nieuwe standplaats: ${SP.spotDef(S.rival.expandedTo).short}.`);
   // Jelle als eindbaas (jellebaas.js, #1139): aan het begin van elke akte een offerte; ctx.part is de akte (ontbreekt bij een oude save of zonder verhaal)
   if (ctx.part && BOSS_ACTS.includes(ctx.part) && S.offerPart !== ctx.part) { S.offerPart = ctx.part; rep.lines.push(jelleOffer(ctx.part)); }
   // 3. gebeurtenissen
@@ -493,18 +493,18 @@ export const GOALS = [
   { id: 'drie', label: 'Drie standplaatsen tegelijk', test: (S, ctx) => SP.heldIds(S.permits, ctx.day).length >= 3 },
   { id: 'menu', label: 'Zes producten op het menu', test: (S) => S.own.menu.length >= 6 },
   { id: 'beste', label: 'Het beste plekje van de stad', test: (S) => !!S.stats.had[BEST_SPOT] },
-  { id: 'overname', label: 'Een plek van Usmem overgenomen', test: (S) => S.stats.takeovers >= 1 },
+  { id: 'overname', label: 'Een plek van Us Mem overgenomen', test: (S) => S.stats.takeovers >= 1 },
   { id: 'vloot', label: 'Vijf wagens op de weg', test: (S) => S.fleet.length >= 4 },
   { id: 'naam', label: 'Een naam van 80 of meer', test: (S) => S.rep >= 80 },
   { id: 'buurt', label: 'Een goede band met de buurt (goodwill 50)', test: (S) => S.gw.goodwill >= 50 || S.gw.disputes.won >= 1 },
   { id: 'bondgenoot', label: 'Een bondgenoot in de buurt', test: (S) => S.gw.allies.length >= 1 },
   { id: 'tien', label: 'Tien standplaatsen tegelijk', test: (S, ctx) => SP.heldIds(S.permits, ctx.day).length >= 10 },
-  { id: 'helft', label: 'Meer plekken dan Usmem', test: (S, ctx) => RV.shareOf(SP.heldIds(S.permits, ctx.day).length, S.rival) > 0.5 },
-  { id: 'usmem', label: 'Usmem is klein gekregen', test: (S, ctx) => SP.heldIds(S.permits, ctx.day).length >= 8 && RV.shareOf(SP.heldIds(S.permits, ctx.day).length, S.rival) >= 0.75 },
+  { id: 'helft', label: 'Meer plekken dan Us Mem', test: (S, ctx) => RV.shareOf(SP.heldIds(S.permits, ctx.day).length, S.rival) > 0.5 },
+  { id: 'usmem', label: 'Us Mem is klein gekregen', test: (S, ctx) => SP.heldIds(S.permits, ctx.day).length >= 8 && RV.shareOf(SP.heldIds(S.permits, ctx.day).length, S.rival) >= 0.75 },
 ];
 export const goalStatus = (S, ctx = {}) => GOALS.map((g) => ({ id: g.id, label: g.label, done: !!g.test(S, { day: Math.floor(finite(ctx.day, 0)) }) }));
 
-// De eindscore "Snackimperium" (0 tot 100): aandeel plekken t.o.v. Usmem (60), wagens (15), eigen ketens (10), naam (10), het beste plekje (5).
+// De eindscore "Snackimperium" (0 tot 100): aandeel plekken t.o.v. Us Mem (60), wagens (15), eigen ketens (10), naam (10), het beste plekje (5).
 export function empireScore(S, day, { chains = 0 } = {}) {
   const held = SP.heldIds(S.permits, day).length;
   const share = RV.shareOf(held, S.rival);

@@ -1,7 +1,7 @@
-// De kaartlaag "Standplaatsen" (Snackimperium, epic #1095, #1102): welke standplaatsen er in beeld zijn, met stand (van jou, van Usmem Snacks, van een medespeler, vrij), prijs en
+// De kaartlaag "Standplaatsen" (Snackimperium, epic #1095, #1102): welke standplaatsen er in beeld zijn, met stand (van jou, van Us Mem Snacks, van een medespeler, vrij), prijs en
 // wagen. Puur: geen DOM, geen canvas, geen klok (scripts/pitchmap_test.mjs); mapview.js tekent wat dit teruggeeft (pitchdraw.js). Zelfde stijl als de laag Te koop (forsalemap.js).
 //
-// Kleurtaal (DS3): vrij = policeBlue met een streeplijn en een cirkel, van jou = greenLight vol, van Usmem Snacks = rood met een ruit, medespeler = zijn kleur met een vierkant.
+// Kleurtaal (DS3): vrij = policeBlue met een streeplijn en een cirkel, van jou = greenLight vol, van Us Mem Snacks = rood met een ruit, medespeler = zijn kleur met een vierkant.
 // Geel blijft gereserveerd voor 'volg dit'-doelen. Nooit alleen kleur: elke stand heeft een eigen vorm en lijnpatroon.
 
 export const MIN_SCALE = 0.004;          // daaronder (de hele provincie in beeld) zijn de plekken te klein om te lezen, maar de punten blijven: tot 16 stuks
@@ -11,7 +11,7 @@ export const PICK_PX = 16;               // zo ver (in pixels) van een punt telt
 export const STATES = {
   vrij: { shape: 'circle', dash: [6, 4], ink: 'policeBlue', label: 'Vrij: te koop als vergunning' },
   jij: { shape: 'disc', dash: [], ink: 'greenLight', label: 'Van jou' },
-  usmem: { shape: 'diamond', dash: [], ink: 'red', label: 'Van Usmem Snacks' },
+  usmem: { shape: 'diamond', dash: [], ink: 'red', label: 'Van Us Mem Snacks' },
   medespeler: { shape: 'square', dash: [3, 3], ink: 'routeUser', label: 'Van een medespeler' },
 };
 
@@ -43,6 +43,6 @@ export function pickMarker(markers, wx, wy, scale) {
 export const LEGEND = [
   { state: 'vrij', note: 'blauwe cirkel met streeplijn: een standplaats die nog vrij is, met de prijs van de vergunning' },
   { state: 'jij', note: 'groene schijf: een standplaats van jou' },
-  { state: 'usmem', note: 'rode ruit: een standplaats van Usmem Snacks, met de prijs om hem over te nemen' },
+  { state: 'usmem', note: 'rode ruit: een standplaats van Us Mem Snacks, met de prijs om hem over te nemen' },
   { state: 'medespeler', note: 'vierkant in een andere kleur: van een medespeler in deze sessie' },
 ];

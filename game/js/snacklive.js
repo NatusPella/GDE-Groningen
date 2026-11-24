@@ -1,7 +1,7 @@
 // De haken van het spel naar de snackwagen (Snackimperium, epic #1095, #1102): wat het menu en de kaart tonen (snackView) en elke actie met geld, tekst en
 // claim voor Samen spelen. Alles per speler (#429): de toestand zit in bezit.x.snack (bezitlive.snackState). Geen DOM en geen THREE (scripts/snacklive_test.mjs).
 //
-// Samen spelen: elke speler heeft zijn eigen imperium en zijn eigen Usmem; alleen de standplaats-claims ('sp:<id>', bezitcoop.js) zijn gedeeld: wat een medespeler
+// Samen spelen: elke speler heeft zijn eigen imperium en zijn eigen Us Mem; alleen de standplaats-claims ('sp:<id>', bezitcoop.js) zijn gedeeld: wat een medespeler
 // in deze sessie heeft is voor jou niet te koop. Een gast kan meewerken in een wagen (bezitcoop.snackShare).
 
 import { noteMoney } from './finance.js';
@@ -23,7 +23,7 @@ const spend = (w, n, post = 'Winkels') => { if (n > 0) { noteMoney(post); w.mone
 const earn = (w, n) => { if (n > 0) { noteMoney('Verkoop'); w.money += n; } };
 const WHY = {
   'te-weinig-geld': (r) => `Je mist nog ${euro(r.tekort || 0)}.`, 'al-van-jou': () => 'Dat is al van jou.', bezet: () => 'Die plek is bezet.', onbekend: () => 'Dat bestaat niet.',
-  'geen-vergunning': () => 'Daarvoor heb je eerst een vergunning nodig.', vol: () => 'Het is vol.', 'niet-van-hem': () => 'Dat is niet van Usmem Snacks.', 'al-het-grootst': () => 'Groter bestaat niet.',
+  'geen-vergunning': () => 'Daarvoor heb je eerst een vergunning nodig.', vol: () => 'Het is vol.', 'niet-van-hem': () => 'Dat is niet van Us Mem Snacks.', 'al-het-grootst': () => 'Groter bestaat niet.',
   'te-snel': (r) => `Dat heb je net gedaan: over ${r.wait || 1} dagen weer.`, 'geen-bondgenoten': () => 'Je hebt nog geen bondgenoten: help eerst de buurt.', 'geen-wagen': () => 'Daar staat geen wagen.', 'al-gedaan': () => 'Je hebt hier vandaag al meegewerkt.', 'geen-claim': () => 'Dat is niet van een medespeler.',
   leeg: () => 'Er moet minstens één product op het menu.', dicht: () => 'Daarvoor heb je koeling nodig.',
 };
@@ -33,7 +33,7 @@ const closed = () => (snackOpen() ? null : { ok: false, why: 'dicht', text: snac
 const stage = (s) => { const h = SS.stageHint(s); return h ? { ok: false, why: 'verhaal', text: h } : null; };
 const claim = (spot, action) => L.sendClaim && L.sendClaim({ id: SP.claimKey(spot), action });
 
-// Wie heeft de plek: van jou, van Usmem, van een medespeler of vrij.
+// Wie heeft de plek: van jou, van Us Mem, van een medespeler of vrij.
 export function spotStatus(S, id, day, claimOf = L.claimOfKey) {
   if (SP.permitHeld(S.permits, id, day)) return 'jij';
   if (RV.holds(S.rival, id)) return 'usmem';
@@ -41,7 +41,7 @@ export function spotStatus(S, id, day, claimOf = L.claimOfKey) {
   return 'vrij';
 }
 
-// Wat de wagen die je zelf runt vandaag zou doen (zonder dat Usmem ingrijpt): een proefdag op een kopie van de toestand. null zonder plek of wagen.
+// Wat de wagen die je zelf runt vandaag zou doen (zonder dat Us Mem ingrijpt): een proefdag op een kopie van de toestand. null zonder plek of wagen.
 export function forecastOwn() {
   const S = L.snackState(), day = L.calToday();
   if (!S.own.spot || !SP.permitHeld(S.permits, S.own.spot, day) || !L.myMobile().some((m) => m.id === 'frietwagen')) return null;
@@ -80,7 +80,7 @@ export function snackView(w) {
     wagonPrice: SN.wagonPrice(S.fleet.length), stats: S.stats, stages: SS.stageView(), reputatie: reputationNow(S.own.spot) };
 }
 
-// De wagens die in de wereld staan (voor snackvans3d.js; goedkoop, geen voorspelling): de jouwe, die van je medewerkers en die van Usmem Snacks op zijn plekken.
+// De wagens die in de wereld staan (voor snackvans3d.js; goedkoop, geen voorspelling): de jouwe, die van je medewerkers en die van Us Mem Snacks op zijn plekken.
 // Alleen als de poort open is.
 export function wagonSites() {
   if (!snackOpen()) return [];
@@ -106,7 +106,7 @@ export function acquireRivalSpot(w, spot) {
   const S = L.snackState(), r = SN.bidForSpot(S, spot, L.calToday(), money(w), { taken: (id) => !!L.claimOfKey(SP.claimKey(id)) });
   if (!r.ok) return fail(r);
   spend(w, r.cost); claim(spot, 'claim'); L.markeer();
-  return { ok: true, cost: r.cost, text: `Je hebt ${SP.spotDef(spot).short} overgenomen van Usmem Snacks voor ${euro(r.cost)}.` };
+  return { ok: true, cost: r.cost, text: `Je hebt ${SP.spotDef(spot).short} overgenomen van Us Mem Snacks voor ${euro(r.cost)}.` };
 }
 export function placeVan(spot) {
   const c = closed() || (spot !== null ? stage('standplaats') : null); if (c) return c;

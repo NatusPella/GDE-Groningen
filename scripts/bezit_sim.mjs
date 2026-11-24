@@ -83,8 +83,8 @@ export function exploitChecks() {
   return out;
 }
 
-// ---- de snackwagen (eindgame, docs/BEZIT-21-11.md "Snackwagen en Usmem Snacks") ----
-// Vier profielen over `days` speldagen met een speler die de wagen elke dag van voorraad voorziet (de beste wagenhouder). quiet: zonder dat Usmem ingrijpt;
+// ---- de snackwagen (eindgame, docs/BEZIT-21-11.md "Snackwagen en Us Mem Snacks") ----
+// Vier profielen over `days` speldagen met een speler die de wagen elke dag van voorraad voorziet (de beste wagenhouder). quiet: zonder dat Us Mem ingrijpt;
 // anders mét zijn uitbreiding, zijn bod en sabotage en een speler die elk antwoord gratis geeft (het goedkoopste). Geeft per profiel de winst per speldag
 // (eigen wagen met compressOwn, medewerkers met compressPassive), de investering en het rendement per speldag, tegenover de actieve speler (440 per speldag).
 const wkd = (cd) => { const wd = (cd + 4) % 7; return wd === 6 || wd === 0; };
@@ -144,7 +144,7 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   for (const quiet of [true, false]) {
     const sp = snackProfile({ days: 40, quiet });
-    console.log(`  snackwagen (${quiet ? 'zonder Usmem' : 'met Usmem en sabotage'}, 40 speldagen):`);
+    console.log(`  snackwagen (${quiet ? 'zonder Us Mem' : 'met Us Mem en sabotage'}, 40 speldagen):`);
     for (const [k, v] of Object.entries(sp)) console.log(`    ${k.padEnd(9)} per dag ${String(v.perDay).padStart(5)} (eigen ${v.ownC}, medewerkers ${v.passiveC}) = ${v.vsActive}x actief, ${v.wagons} wagen(s), investering ${v.invest}, rendement ${(v.roiPerDay * 100).toFixed(2)}% per speldag`);
   }
 }

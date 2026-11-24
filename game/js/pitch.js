@@ -1,4 +1,4 @@
-// Standplaatsen voor de snackwagen (epic #1095, #1102; ontwerp docs/BEZIT-21-11.md, sectie "Snackwagen en Usmem Snacks"): de plekken in de provincie waar
+// Standplaatsen voor de snackwagen (epic #1095, #1102; ontwerp docs/BEZIT-21-11.md, sectie "Snackwagen en Us Mem Snacks"): de plekken in de provincie waar
 // een snackwagen mag staan, met voetgangersdruk, uur- en weekeffect, een vergunning (kosten en geldigheid) en competitie. Puur: geen DOM, geen THREE, geen klok,
 // geen opslag en geen Math.random (alles uit de speldag en de plek; scripts/pitch_test.mjs).
 //
