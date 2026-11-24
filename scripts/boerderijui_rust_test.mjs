@@ -19,7 +19,7 @@ const handlers = {};
 const el = { innerHTML: '', dataset: {}, addEventListener: (k, f) => { handlers[k] = f; }, querySelector: () => null, querySelectorAll: () => [] };
 const world = { money: 50000, clock: 8, addMessage() {} };
 const klik = (data) => handlers.click({ target: { closest: (sel) => (sel === '[data-bd]' && data.bd ? { dataset: data } : null) } });
-const PAGINA = ['perceel', 'percelen', 'erf', 'gewas', 'machines', 'kas', 'bank'];
+const PAGINA = ['perceel', 'percelen', 'erf', 'gewas', 'machines', 'kas', 'bank'];   // de oude pagina's; Velden en Team hebben een eigen kader (24-11)
 const tekst = (html) => html.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
 
 renderBoerderijPanel(el, world);
@@ -46,9 +46,9 @@ t('elke subpagina opent met een sfeerband en zonder lange alinea', () => {
 t('#1243: één tabrij; de onderdelen zijn een segmentbalk en de band draagt de naam van de boerderij', () => {
   klik({ bd: 'perceel' });
   const html = el.innerHTML;
-  assert.match(html, /<nav class="ds-z-tabs bd-seg" role="tablist" aria-label="Boerderij">/, 'segmentbalk, nog steeds role=tablist voor Q en E');
+  assert.match(html, /<nav class="ds-z-segment ds-z-segment--klein" role="radiogroup" aria-label="Boerderij">/, 'segment (ds-z-segment, 24-11)');
   assert.ok(!/class="m-tablist"/.test(html), 'geen tweede onderstreepte tabrij');
-  assert.match(html, /role="tab" class="ds-z-tab bd-seg-tab sel" data-bd="perceel" aria-selected="true"/);
+  assert.match(html, /role="radio" class="sel" data-bd="velden" aria-checked="true"/);
   assert.equal((html.match(/Boerenzakdoek/g) || []).length, 1, 'de sfeernaam staat één keer, in de band');
   assert.match(html, /lb-sfeer-klein">Boerderij De Zonnehoek, bij Hoogkerk</, 'de band draagt de naam: geen losse kop erboven');
   const css = fs.readFileSync(new URL('../game/js/farm.css', import.meta.url), 'utf8');

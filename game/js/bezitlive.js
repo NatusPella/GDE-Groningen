@@ -33,7 +33,7 @@ import * as CH from './bezitchain.js';
 import * as SC from './supplychain.js';
 import * as NW from './bezitnews.js';
 import * as HS from './housing.js';
-import { herdsOf, infect, SPECIES, buyHerd, sellHerd, herdSellValue } from './livestock.js';
+import { herdsOf, infect, SPECIES, buyHerd, sellHerd, herdSellValue, cure } from './livestock.js';
 import { MACHINE_CATALOGUS } from './percelen.js';
 import { setAreaPrice, setYieldInfo } from './bezithooks.js';
 import { recordService } from './reputationlive.js';
@@ -347,6 +347,13 @@ export function koopVee(w, id, sp) {
   if (!r.ok) return { ok: false, text: r.why === 'te-weinig-geld' ? `Je mist nog ${euro(r.tekort)}.` : r.why === 'al-vee' ? 'Op dit perceel loopt al vee.' : r.why === 'niet-van-jou' ? 'Dit perceel is niet van jou.' : 'Dit vee past niet op dit perceel.' };
   noteMoney('Winkels'); w.money -= r.cost; markeer();
   return { ok: true, n: r.n, text: `${r.n} ${SPECIES[sp].naam.toLowerCase()} gekocht voor ${euro(r.cost)}.` };
+}
+// De dierenarts maakt een zieke kudde beter, tegen het bedrag van livestock.vetCost; per speler (#429).
+export function belArts(w, id) {
+  const r = cure(herdsOf(getBezit())[id], Number.isFinite(w && w.money) ? w.money : 0);
+  if (!r.ok) return { ok: false, text: r.why === 'te-weinig-geld' ? `Je mist nog ${euro(r.tekort)}.` : 'Deze kudde is niet ziek.' };
+  noteMoney('Winkels'); w.money -= r.cost; markeer();
+  return { ok: true, text: `De dierenarts was er: ${euro(r.cost)}. De kudde is beter.` };
 }
 export function verkoopVee(w, id) {
   const r = sellHerd(getBezit(), id);
