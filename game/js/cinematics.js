@@ -1,5 +1,6 @@
 import { hapticEvent } from './haptics.js';
 import { screenFx } from './postfx3d.js';
+import { kernCijfers } from './missionstats.js'; // 23-11: hoogstens drie cijfers onder de eindkaart
 import { gridItems } from './spatialgrid.js';
 import { isOverlayHeld } from './overlayhold.js';
 import { cutsceneTakesSpace } from './spacegate.js';
@@ -83,6 +84,11 @@ let started = false;
 let camMode = 0;
 let chipTimer = 0;
 let banner = null;
+// 23-11 (akte 1 op eindniveau, beelden M01-M06): de faalkaart zegt 'Opnieuw proberen [Enter]', maar zolang hij (onder een filmpje) in beeld
+// stond deed Enter niets: de missielus staat stil tijdens een scène en de toets ging verloren. Missions.js zet hier wat Enter op de kaart
+// doet (de nieuwe poging); de kaart en het filmpje gaan dan meteen weg.
+let opnieuwHaak = null;
+export function setOpnieuwHaak(fn) { opnieuwHaak = typeof fn === 'function' ? fn : null; }
 let prevWanted = 0;
 let lastImpactSeen = null;
 let lastCrashAt = -Infinity;
@@ -624,6 +630,10 @@ export function updateCinematics(dt, w) {
     updateSkipHold();
     if (started) checkTriggers(dt, w);
     updateBanner(dt);
+    if (banner && banner.opnieuw && opnieuwHaak && w && w.input && w.input.wasPressed('enter')) {
+      w.input.consume('enter');
+      try { opnieuwHaak(); } catch (e) { /* een nieuwe poging mag de scène nooit breken */ }
+    }
     if (chipTimer > 0 && (chipTimer -= dt) <= 0) els.chip.classList.remove('visible');
   } else if (gastKopie && !hold && menuOpen) {
     // alleen de scène van de gastheer loopt door; de rest van de wereld blijft stil staan onder het menu
@@ -1466,13 +1476,15 @@ export function showBanner({ kind = 'pass', title, reason = '', reward = 0, stat
   // #514: de beloning telt op in plaats van in één keer te verschijnen; de
   // waarde staat meteen op nul en updateBanner loopt hem in 0,7 s op.
   els.bReward.textContent = rewardDoel ? '+ €0' : '';
-  els.bStats.innerHTML = stats.map(([k, v], i) => `<div style="--i:${i}"><span>${esc(k)}</span><b>${esc(v)}</b></div>`).join('');
+  // onder de grote kaart hoogstens drie kernwaarden (missionstats.js kernCijfers); het oude scherm houdt alle cijfers
+  const toon = moment ? kernCijfers(stats) : stats;
+  els.bStats.innerHTML = toon.map(([k, v], i) => `<div style="--i:${i}"><span>${esc(k)}</span><b>${esc(v)}</b></div>`).join('');
   b.hidden = false;
   b.classList.remove('in', 'out');
   void b.offsetWidth;
   b.classList.add('in');
   // one banner at a time: a new one replaces whatever was up
-  banner = { t: 0, time: kind === 'fail' ? FAIL_BANNER_TIME : BANNER_TIME, out: -1, rewardDoel, rewardGetoond: 0 };
+  banner = { t: 0, time: kind === 'fail' ? FAIL_BANNER_TIME : BANNER_TIME, out: -1, rewardDoel, rewardGetoond: 0, opnieuw: !!opnieuw && kind === 'fail' };
 }
 
 const MOVE_KEYS = ['w', 'a', 's', 'd', 'arrowup', 'arrowdown', 'arrowleft', 'arrowright'];

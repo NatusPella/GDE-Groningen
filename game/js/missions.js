@@ -20,7 +20,7 @@ import { PERFECT_VERDICT } from './flavourlines.js';
 import { spawnVehicleOnRoad, Vehicle, makeTwoWheeler, spawnHeroCarNear, attachToNearestRoad, TRACTOR_MODEL, QUAD_MODEL } from './vehicle.js';
 import { placeOwnedVehicleNear } from './ownedvehicles.js';
 import { setGoal } from './goal.js';
-import { playMissionIntro, playMissionFailed, isCinematicActive, playCinematic, skipCinematic } from './cinematics.js';
+import { playMissionIntro, playMissionFailed, isCinematicActive, playCinematic, skipCinematic, setOpnieuwHaak } from './cinematics.js';
 import { playStoryIntro, playStoryOutro, playStoryFail, playVaultScene, playDuelJump, playCastScene, playEyeContact, playPigeonSwarm, playToast, storySpeakerName } from './missionstory.js';
 import { showTowerFlag, cutFlagRope, dropFlag, updateStoryProps, clearStoryProps, clearSkutsjeSail, hasTowerFlag, flagFocus, flagKnotsFocus } from './storyprops3d.js';
 import { RING_ROUTE, RING_CHECKPOINTS } from './ringroute.js';
@@ -62,6 +62,9 @@ import { metGroepsbonus, bonusDelen, GROEPSBONUS_UITLEG } from './groepsbonus.js
 import { maakMissielus, zetGroep, actieveGroepen, tik as tikMissielus } from './missielus.js'; // #492: de missielus per groep
 import { openGroepKeten, sluitGroepKeten, groepKeten, groepKetens, isGroepSleutel, groepIdVanSleutel } from './missiegroepen.js'; // #492: de keten van een gastgroep
 import { startStunt, updateStunt, stopStunt, stuntStatus } from './stuntavond.js';
+import { armStuntHud } from './stunthud.js';
+import { registerNoticeHold, MISSIE_HOLD } from './notifyqueue.js';
+import { startHierarchie } from './missiestart.js'; // 23-11: de visuele hiërarchie bij elke missiestart (klok en panelen pas na het instappen)
 import { storyLines, talkLines, storyDataReady, readingTime } from './storytext.js';
 import { playTalk, stopTalk } from './storytalk.js';
 import { buildNieuwDefs, applyNieuw } from './missions_nieuw.js';
@@ -536,6 +539,13 @@ export function getMissionList() {
   })).filter((m) => ARC_BUILT.has(m.index) || !!chainState().defs[m.index].side);
 }
 
+// What a start waited on (the ride and the open requirement): when it changes, the start is armed again without walking away (24-11).
+function startWaitKey(w, def) {
+  const v = hoofdspeler(w).inVehicle;
+  return (v ? 'v:' + (v.id != null ? v.id : v.kind || 'x') : 'te voet') + '|' + (unmetRequirement(w, def) || '-');
+}
+const startWaitChanged = (w, def, key) => startWaitKey(w, def) !== key;
+
 // False (with the companion's line, now and then) while the player is not in
 // the ride def needs.
 function checkRide(w, def) {
@@ -649,6 +659,7 @@ export function isMissionActive() {
   return !!chainState() && chainState().phase === 'active';
 }
 registerBusyProbe('mission', isMissionActive);
+registerNoticeHold(MISSIE_HOLD, isMissionActive); // notifyqueue.js: tips en andere meldingen die niet bij de missie horen wachten (23-11)
 registerBusyProbe('activeRace', () => !!getActiveRace());
 registerMissionQueries({
   isMissionActive, getActiveRace, isMissionCompleted, getMissionDefs, getMissionProgress, missionIndexById, getMissionList,
@@ -837,6 +848,14 @@ function vehicleToBoard(world, def) {
 // bij het pub-object zelf en niet bij dit bestand: een nieuw spel of een boot-load maakt een nieuwe
 // pub (en een gastgroep zijn eigen pub) en moet de statische velden meteen krijgen, ook als index,
 // fase en waypointstand toevallig gelijk zijn aan de vorige wereld. Een WeakMap houdt de sleutel
+// missiestart.js: de hiërarchie van de actieve missie op dit moment (eerst instappen: nog geen klok en geen panelen)
+function hierNu(world) {
+  const st = chainState();
+  const v = st.vehicle || null;
+  if (v && !st.ingestapt && groepsActeurs(world).some((a) => a.inVehicle === v)) st.ingestapt = true;
+  return startHierarchie({ voertuig: !!v, ingestapt: !!st.ingestapt, cinematic: isCinematicActive() });
+}
+
 // buiten de pub, zodat hij niet in snapshots of HUD-data belandt.
 const pubStaticSigs = new WeakMap();
 function syncPub(world) {
@@ -846,7 +865,7 @@ function syncPub(world) {
   pub.type = def.type;
   pub.label = def.label;
   pub.phase = st.phase;
-  pub.timeLeft = st.phase === 'active' && Number.isFinite(st.timeLeft) ? st.timeLeft : null;
+  pub.timeLeft = st.phase === 'active' && Number.isFinite(st.timeLeft) && (!st.vehicle || st.ingestapt) ? st.timeLeft : null; // missiestart.js: de klok pas in beeld na het instappen
   { const sg = st.phase === 'active' && def.stages ? def.stages[st.stageIndex] : null; pub.lateInstap = lateInstapVoor({ type: def.type, stageKind: sg && sg.kind, timer: pub.timeLeft != null, race: !!st.race }); } // mag een laatkomer nog meedoen? (samen spelen, #452)
   pub.code = missionCode(st.index);
   pub.index = st.index;
@@ -1473,6 +1492,7 @@ function startMission(world, def) {
   waarschuwVoorStart(world, 'missie', def.id, missieStatus(def)); // samen spelen: een melding als dit nog niet (helemaal) samen werkt; de start gaat door
   chainState().afoot = false;
   chainState().phase = 'active';
+  chainState().ingestapt = false; // missiestart.js: de klok wacht tot iemand van de groep in het missievoertuig zit
   chainState().timeLeft = storyModeOn() ? Infinity : (scaleTimeLimit(assistTime(def.timeLimit), cleanDifficulty(getSettings().difficulty)) ?? Infinity); // #800; #1169: verhaalmodus kent geen tijdslimiet
   chainState().wpIndex = 0;
   chainState().stopIndex = 0;
@@ -1810,6 +1830,16 @@ export function herstartMissie(world) {
   return true;
 }
 
+// Enter op de faalkaart (cinematics.js setOpnieuwHaak): de kaart en de scène weg, en dezelfde nieuwe poging als Enter na de kaart.
+setOpnieuwHaak(() => {
+  const st = chainState();
+  // vlak na het falen staat de keten nog op 'cooldown' (de kaart staat dan juist in beeld): ook dan geldt Enter
+  if (!st || !st.retry || !['idle', 'cooldown'].includes(st.phase) || st.retry.missionIndex !== st.index || st.retry.fade != null) return;
+  if (isCinematicActive()) skipCinematic();
+  st.retry.fade = RETRY_FADE_S;
+  respawnFade(1, 350);
+});
+
 function updateRetry(dt, world, def) {
   const r = chainState().retry;
   if (!r) return;
@@ -1933,14 +1963,17 @@ function updateMissionKern(dt, world) {
     }
     const R = def.triggerRadius || TRIGGER_RADIUS;
     const d = dist(p.x, p.y, def.start.x, def.start.y);
-    if (d > R + 2) chainState().armed = true;
-    else if (d < R && chainState().armed) {
+    // 24-11 (spelbot, M05): wie zonder fiets bij de start kwam en daar op zijn eigen fiets stapte, moest eerst 8 m weg en terug; nu zet een
+    // andere rit of een vervulde eis de start opnieuw op scherp (de melding herhaalt dan niet: die heeft zijn eigen pauze van 3 s)
+    if (d > R + 2) { chainState().armed = true; chainState().waitFor = null; }
+    else if (!chainState().armed && d < R && chainState().waitFor && startWaitChanged(world, def, chainState().waitFor)) chainState().armed = true;
+    if (d < R && chainState().armed) {
       // a running bijbaantje (sidejobs.js) first has to be finished or stopped
       if (world.sideJob && world.sideJob.active) {
         chainState().armed = false;
         world.addMessage('Eerst je bijbaantje afmaken of stoppen ({ESC} > Spel)', 3);
-      } else if (playerBusy(world, ['challenge', 'padel', 'activityGame']).busy) chainState().armed = false; else if (!checkRequirement(world, def, true)) chainState().armed = false;
-      else if (!checkRide(world, def)) chainState().armed = false;
+      } else if (playerBusy(world, ['challenge', 'padel', 'activityGame']).busy) chainState().armed = false; else if (!checkRequirement(world, def, true)) { chainState().armed = false; chainState().waitFor = startWaitKey(world, def); }
+      else if (!checkRide(world, def)) { chainState().armed = false; chainState().waitFor = startWaitKey(world, def); }
       else if (hooks.canStart(world, chainState().index)) startMission(world, def);
     }
     syncPub(world);
@@ -1949,7 +1982,9 @@ function updateMissionKern(dt, world) {
 
   trackRun(dt, world);
   // the clock starts at the race's GO, not while the grid waits
-  if ((!chainState().race || chainState().race.phase === 'race') && !isCinematicActive()) chainState().timeLeft -= dt * (chainState().clockRate || 1);
+  const hier = hierNu(world);
+  armStuntHud(hier.paneel); // het stuntpaneel en de introkaart pas als de stunt kan beginnen
+  if ((!chainState().race || chainState().race.phase === 'race') && hier.klokLoopt) chainState().timeLeft -= dt * (chainState().clockRate || 1);
   if (chainState().timeLeft <= 0) {
     fail(world, def, def.timeUp ? def.timeUp : def.type === 'boat' ? 'tijd op. De toeristen missen hun trein naar Zwolle' : def.type === 'stunt' || chainState().stuntPhase ?'tijd op. Chat is al naar een kattenfilmpje' : 'tijd op. Zelfs de bus was sneller');
     syncPub(world);
@@ -3120,7 +3155,7 @@ function updateEggs(dt, world, def) {
   if (eggSpeedWarning(eggKmh, eggLimit)) {
     if (!chainState().eggFast) {
       chainState().eggFast = true;
-      world.addMessage(`Te snel: boven ${eggLimit} km/u breken de eieren. Rem rustig.`, 3.5, { kind: 'tip', key: 'egg-speed' });
+      world.addMessage(`Te snel: boven ${eggLimit} km/u breken de eieren. Rem rustig.`, 3.5, { kind: 'tip', missie: true, key: 'egg-speed' });
     }
   } else if (eggKmh < eggLimit - 6) chainState().eggFast = false;
   // #663: twee waarschuwingen vóór de faalgrens (75, 60, 45; M09 faalt onder 38%)

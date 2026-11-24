@@ -117,7 +117,11 @@ export function checkText(unit, ctx = {}) {
     else if (w > 25) out.push(vondst(unit, 'CS-T02', `regel ${i} heeft ${w} woorden (max 25): splits met een reactie`, { regelNr: nr }));
     // leessnelheid: spreektijd voor een ingesproken regel (de ondertitel blijft die tijd en 0,25 s staan), anders de leestijd
     if (t.trim() && !(l.channel === 'app-stil')) {
-      const getoond = l.voiceDur ? l.voiceDur + 0.25 : Math.max(2.2, Math.min(8, 1.3 + t.length * 0.058));
+      // een ingesproken regel staat minstens zijn stem plus 0,25 s, en in een geënsceneerde scène zo lang als de tijdlijn hem geeft
+      // (missionstory.js timeline: de langste van leestijd en stem plus 0,25 s; cinesub.js toont hem precies zolang). 23-11, M06.intro
+      // regel 3: de stem duurt 1,27 s, de ondertitel staat 3,1 s. Een kortere duur (een voorbeeld-tijdlijn) telt niet: de stem houdt hem vast.
+      const stem = l.voiceDur ? l.voiceDur + 0.25 : 0;
+      const getoond = stem ? Math.max(stem, Number.isFinite(l.dur) ? l.dur : 0) : Math.max(2.2, Math.min(8, 1.3 + t.length * 0.058));
       const cps = t.length / getoond;
       if (cps > 28) out.push(vondst(unit, 'CS-T01', `regel ${i}: ${cps.toFixed(0)} tekens per seconde (onleesbaar boven 28)`, { regelNr: nr, ernst: 'blokkerend' }));
       else if (cps > 20) out.push(vondst(unit, 'CS-T01', `regel ${i}: ${cps.toFixed(0)} tekens per seconde (max 20)`, { regelNr: nr }));

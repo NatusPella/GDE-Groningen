@@ -100,6 +100,14 @@ html.rustig-drukwerk .bm-ster:not(.aan) { background-color: var(--ds-c-ink-papie
    figures the whole old screen steps aside. The same for the district card of a first visit. */
 #cine .cine-banner.bm-vervangen::before, #cine .cine-banner.bm-vervangen .cb-bar, #cine .cine-banner.bm-vervangen .cb-title, #cine .cine-banner.bm-vervangen .cb-reason, #cine .cine-banner.bm-vervangen .cb-fact, #cine .cine-banner.bm-vervangen .cb-reward { display: none; }
 #cine .cine-banner.bm-vervangen.bm-geen-cijfers { visibility: hidden; }
+/* 23-11 (akte 1 op eindniveau, beelden M01-M06): zonder de donkere achtergrond van het oude scherm stonden de cijfers als lichtgrijze
+   tekst los op de wereld, half onder de gele band ("Berend: nul krassen, zei ik..." viel weg achter de band). Onder de band, op een
+   rij, elk cijfer op papier met inkt: leesbaar op elke achtergrond en nooit onder de kaart. */
+#cine .cine-banner.bm-vervangen .cb-col { top: auto; bottom: 15%; width: auto; max-width: 56%; } /* links, ruim weg van de overslaanhint rechtsonder */
+#cine .cine-banner.bm-vervangen .cb-stats { flex-direction: row; flex-wrap: wrap; gap: 10px 14px; }
+#cine .cine-banner.bm-vervangen .cb-stats div { padding: 8px 18px; gap: 12px; background: var(--ds-c-ink-papier); color: var(--ds-c-ink-inkt); border: 2px solid var(--ds-c-ink-inkt); border-radius: 6px; box-shadow: var(--ds-schaduw-hard); }
+#cine .cine-banner.bm-vervangen .cb-stats span { max-width: none; font-size: 20px; color: var(--ds-c-inkt-zacht); }
+#cine .cine-banner.bm-vervangen .cb-stats b { flex: 0 1 auto; font-size: 30px; color: var(--ds-c-ink-inkt); text-align: left; }
 #wijk-card.bm-vervangen { visibility: hidden; }
 /* Achter de eindkaart (missie geslaagd of mislukt) staat geen doelbalk meer in beeld (#1188). */
 body.bm-eindkaart #hud .hud-mission { opacity: 0; transition: opacity var(--ds-m) var(--ds-ease); }

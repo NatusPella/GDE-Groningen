@@ -49,6 +49,7 @@ import { isMissionActive, isNight, getMissionDefs, setHomePlace } from './missio
 import { refreshDayNight } from './daynight.js';
 import { recordStat, unlockAchievement } from './achievements.js';
 import { clearDrunk } from './drunk.js';
+import { updateFlatGeluid } from './flatgeluid.js';
 import { buildHomeExterior3D, buildGarageShell, buildHomeDressing, setGarageCutaway, setGarageDoor, disposeHomeExterior, buildLowerTower3D, buildFlat3D, setFlatFacade, buildSafehouseMarker3D } from './home3d.js';
 import { gastPandVrij } from './safehuisplek.js';
 import { inPassage } from './passages.js';
@@ -1568,7 +1569,8 @@ export function updateHome(dt, w) {
     const away = lx < -1.5 || lx > f.w + 1.5 || lz < -1.5 || lz > f.d + 1.5;
     if (p.inVehicle || w.pigeonMode || away) dropFlat(w);
     else keepInFlat(dt, w);
-  }
+    updateFlatGeluid(!!inside, lx, lz); // flatgeluid.js: kamertoon, koelkast, de stad gedempt door het glas
+  } else updateFlatGeluid(false);
   tickT -= dt;
   if (tickT > 0) return;
   tickT = TICK_S;

@@ -127,9 +127,9 @@ export function buildDefsVoorMuseum({ map, walk, drive }) {
       vehicle: 'car',
       start: drive(235.26, 401.14),
       stages: [
-        { kind: 'board', label: 'Stap in de auto: de pinautomaat ligt achterin', say: 'Instappen: de automaat ligt achterin, met mijn pas erin. Hij piept een beetje.' },
+        { kind: 'board', label: 'Stap in de auto met de pinautomaat', say: 'Instappen: de automaat ligt achterin, met mijn pas erin. Hij piept een beetje.' },
         { kind: 'garage', stars: 1, target: { garage: true }, label: 'Naar Spuit & Klaar (automaat zit achterin)', say: 'Alarm! Eén ster. Rij een garage in: Spuit & Klaar spuit hem om en de pliesie is je kwijt.' },
-        { kind: 'goto', target: { shop: 'pand' }, mode: 'vehicle', radius: 14, stop: 1.2, label: 'Naar Pand & Poen: lever de automaat achterin af', say: 'Nieuwe kleur, nieuw leven. Door naar Pand & Poen, Sjabbe wacht achterom.' },
+        { kind: 'goto', target: { shop: 'pand' }, mode: 'vehicle', radius: 14, stop: 1.2, label: 'Breng de automaat naar Pand & Poen', say: 'Nieuwe kleur, nieuw leven. Door naar Pand & Poen, Sjabbe wacht achterom.' },
       ],
     },
     {

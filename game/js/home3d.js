@@ -3,6 +3,9 @@ import { canvasTex } from './canvastex.js';
 import { buildBuildingMesh } from './models3d_buildings.js';
 import { GeoBuilder } from './pixelart3d.js';
 import { LANDMARK_MATERIALS } from './landmarks3d.js';
+import { interiorProp, registeredProp } from './interiorprops3d.js';
+import { FLAT_DRESSING } from './akte1sets.js';
+import { adoptSetLight } from './setlights.js';
 
 // Meshes for Tammo and Tessa's home (home.js): the private garage in the
 // plinth of their flat, the lobby door with the bike rack, the flat's floor
@@ -428,52 +431,19 @@ export function buildFlat3D(flat, skip = new Set()) {
     sign.rotation.y = Math.PI / 2;
     g.add(sign);
   }
-  // living room: sofa, coffee table, rug, tv, a plant by the window
-  const s = flat.spots;
-  box(g, M.rug, s.sofa.x, 0.025, s.sofa.z - 1.4, 3.0, 0.01, 2.0);
-  if (!skip.has('bank')) {
-    box(g, M.sofa, s.sofa.x, 0.25, s.sofa.z, 2.4, 0.5, 0.95);
-    box(g, M.sofa, s.sofa.x, 0.65, s.sofa.z + 0.38, 2.4, 0.5, 0.22);
-    for (const e of [-1, 1]) box(g, M.sofa, s.sofa.x + e * 1.12, 0.45, s.sofa.z, 0.2, 0.6, 0.95);
+  // the furniture (23-11, akte 1 op eindniveau): registered props from the Quaternius packs (akte1sets.js FLAT_DRESSING, one LOD
+  // each), on the spots of flatplan.js. A piece an EIKEA one replaces (furniture.js) is skipped.
+  for (const e of FLAT_DRESSING) {
+    if (e.vervangt && skip.has(e.vervangt)) continue;
+    // a prop from the prop register (the tv, the fryer, the books, the laundry, the prints) or a piece from the interior register
+    g.add(e.prop ? registeredProp(e.id, { x: e.u, y: e.h, z: e.v, rot: e.rot, scale: e.scale || 1 }) : interiorProp(e.id, { x: e.u, y: e.h, z: e.v, rot: e.rot, fit: e.fit, scale: e.scale, kleuren: e.kleuren }));
   }
-  box(g, M.wood, s.sofa.x, 0.22, s.sofa.z - 1.4, 1.2, 0.08, 0.6);
-  for (const [ex, ez] of [[-0.5, -0.24], [0.5, -0.24], [-0.5, 0.24], [0.5, 0.24]]) box(g, M.wood, s.sofa.x + ex, 0.1, s.sofa.z - 1.4 + ez, 0.05, 0.2, 0.05);
-  if (!skip.has('tv')) {
-    box(g, M.black, s.tv.x, 0.3, s.tv.z, 1.6, 0.6, 0.45);
-    box(g, M.black, s.tv.x, 0.95, s.tv.z, 1.5, 0.85, 0.06);
-    box(g, M.tvScreen, s.tv.x, 0.95, s.tv.z + 0.035, 1.38, 0.74, 0.01);
+  // light per room: warm lamps borrowed from the night rig (setlights.js), no fixtures floating over the cutaway walls
+  for (const [x, y, z, i] of [[3.4, 2.3, 2.6, 7], [8.9, 2.3, 2.2, 6], [7.2, 2.3, 7.3, 7]]) {
+    const l = adoptSetLight(new THREE.PointLight(0xffdcb0, i, 7.5, 1.5));
+    l.position.set(x, y, z);
+    g.add(l);
   }
-  box(g, M.wood, 0.6, 0.2, 0.6, 0.45, 0.4, 0.45);
-  box(g, M.plant, 0.6, 0.75, 0.6, 0.6, 0.8, 0.6);
-  // kitchen: counter along the side wall with the snack fryer, fridge at the end
-  const k = flat.spots;
-  box(g, M.white, k.counter.x, 0.45, k.counter.z, k.counter.w, 0.9, 0.62);
-  box(g, M.black, k.counter.x, 0.92, k.counter.z, k.counter.w, 0.04, 0.64);
-  if (!skip.has('frituur')) {
-    box(g, M.steel, k.fryer.x, 1.08, k.fryer.z, 0.42, 0.3, 0.36);
-    box(g, M.oil, k.fryer.x, 1.235, k.fryer.z, 0.34, 0.01, 0.28);
-    box(g, M.steel, k.fryer.x, 1.3, k.fryer.z - 0.1, 0.3, 0.02, 0.14);
-  }
-  box(g, M.fridge, k.fridge.x, 0.95, k.fridge.z, 0.7, 1.9, 0.7);
-  box(g, M.steel, k.fridge.x - 0.2, 1.1, k.fridge.z - 0.36, 0.04, 0.5, 0.03);
-  box(g, M.wood, k.table.x, 0.75, k.table.z, 1.1, 0.05, 0.8);
-  for (const [ex, ez] of [[-0.48, -0.32], [0.48, -0.32], [-0.48, 0.32], [0.48, 0.32]]) box(g, M.wood, k.table.x + ex, 0.37, k.table.z + ez, 0.05, 0.74, 0.05);
-  // two small bedrooms: a single bed and a wardrobe each (the stock beds are an air mattress on a frame)
-  if (!skip.has('bed')) {
-    for (const b of [s.bed, s.bed2]) {
-      box(g, M.wood, b.x, 0.15, b.z, 0.95, 0.3, 2.0);
-      box(g, M.bed, b.x, 0.38, b.z, 0.9, 0.16, 1.92);
-      box(g, M.duvet, b.x, 0.48, b.z - 0.25, 0.92, 0.06, 1.3);
-      box(g, M.white, b.x, 0.52, b.z + 0.72, 0.6, 0.12, 0.34);
-    }
-  }
-  box(g, M.wood, s.wardrobe.x, 1.0, s.wardrobe.z, 1.6, 2.0, 0.6);
-  box(g, M.frame, s.wardrobe.x, 1.0, s.wardrobe.z - 0.31, 0.02, 1.8, 0.01);
-  const w2 = s.wardrobe2;
-  box(g, M.wood, w2.x, 1.0, w2.z, 0.6, 2.0, 1.6);
-  box(g, M.frame, w2.x - 0.31, 1.0, w2.z, 0.01, 1.8, 0.02);
-  // a lamp in every room: the flat reads at night too
-  for (const r of flat.rooms) box(g, M.lamp, (r.x0 + r.x1) / 2, 2.7, (r.z0 + r.z1) / 2, 0.4, 0.04, 0.4);
   g.position.set(flat.ox, flat.floorY, flat.oy);
   g.rotation.y = -flat.angle;
   return g;

@@ -78,3 +78,4 @@ desktop/out*.txt
 
 # Externe modelpacks ter evaluatie (Quaternius, CC0): alleen lokaal, niet in git zonder akkoord van de coördinator
 .tmp-quaternius/
+.tmp-qa/

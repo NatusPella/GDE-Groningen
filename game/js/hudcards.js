@@ -26,7 +26,7 @@ import { CARD_LINES } from './cardlines.js';
 import { cardSpoken, hintVoiceFor } from './smsvoice.js';
 import { CARD_PRIORITY, mayShowTip, noteTip } from './attention.js';
 import { mayStart, noteToast, heldBack } from './narrative.js';
-import { noticeHeld, enqueueNotice, noticeQueue, kindForCard, moreLabel } from './notifyqueue.js'; // alle kaarten langs de ene meldingenwachtrij: een tegelijk, nooit tijdens laden of film (22-11)
+import { noticeHeld, enqueueNotice, noticeQueue, kindForCard, moreLabel, MISSIE_HOLD } from './notifyqueue.js'; // alle kaarten langs de ene meldingenwachtrij: een tegelijk, nooit tijdens laden of film (22-11)
 import { missionIconInner } from './missionicons.js';
 import { zones, mayShow, cardPrio, cardZone, hudNow } from './hudrules.js';
 import { enqueueCard, leftColumnFits, LINE_PX, throttledRead, COLUMN_OPTS_MS } from './hudbus.js';
@@ -197,7 +197,7 @@ function fromMessage(text, dur, opts = {}) {
   const c = classify(text, opts);
   if (!c) return;
   if (!opts.exact && menuMelding(text)) return; // pauzemenu of kaart open: de melding staat direct in beeld, niet pas na Escape (#435)
-  showCard(world, { ...c, text, duration: dur, key: opts.key || text, say: opts.say, kicker: opts.kicker, important: opts.important });
+  showCard(world, { ...c, text, duration: dur, key: opts.key || text, say: opts.say, kicker: opts.kicker, important: opts.important, missie: opts.missie });
 }
 
 // spec: { kind, title, body | text, bodyHtml, duration, key, icon, kicker, voice: false }
@@ -231,6 +231,7 @@ function cardNotice(card) {
     // tips vervallen na TIP_WAIT s wachten (ook de belangrijke: TIP_WAIT_KEEP); `keep` telt voor een tip niet (notifyqueue: soft)
     maxAge: card.spec.kind !== 'tip' ? undefined : card.important ? TIP_WAIT_KEEP : TIP_WAIT,
     keep: card.important,
+    ignore: card.spec.missie ? [MISSIE_HOLD] : undefined, // een kaart van de missie zelf wacht niet op de missie (notifyqueue.js)
     summary: kindForCard(card.spec.kind) === 'achievement' ? achievementSummary : undefined,
     ready: () => cardReady(card),
     show: (it) => {

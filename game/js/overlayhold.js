@@ -50,7 +50,10 @@ const toonbaar = (el) => !!el && el.style.opacity !== '0' && el.style.display !=
 function tickSubtitles() {
   const laadt = !!document.querySelector('#load-screen:not(.out)');
   const zichtbaar = SUBTITLE_LAYERS.filter((id) => toonbaar(document.querySelector(SUBTITLE_EL[id])));
-  const weg = hiddenSubtitles(zichtbaar, schermOpen(document) || laadt);
+  // de eindkaart (bigmoment.js zet body.bm-eindkaart) telt als een open kaart: geen ondertitel van een regel die nog doorloopt
+  // tegelijk met de uitslag (23-11, M03: de loketbediende praatte onder de kaart door)
+  const eindkaart = document.body.classList.contains('bm-eindkaart');
+  const weg = hiddenSubtitles(zichtbaar, schermOpen(document) || laadt || eindkaart);
   for (const id of SUBTITLE_LAYERS) {
     const el = document.querySelector(SUBTITLE_EL[id]);
     if (el) el.classList.toggle('ov-hold', weg.has(id));

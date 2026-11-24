@@ -96,6 +96,30 @@
       "regel": "CS-T04",
       "reden": "Elf sprekers: de slotbespreking van het plan van Bourtange verzamelt het hele ensemble (Berend, Lammert, Klaas, Roelfien, Wubbo, Tinus, Geesje, Bert, Durk en Douwe) rond het duo; dat is de bedoeling van het slot van het verhaal. Terugbrengen tot drie sprekers kan niet zonder de scène te herschrijven.",
       "akkoord": "verhaal-lead (voorstel van de agent bij #1146, nog niet door de eigenaar gezien)"
+    },
+    {
+      "cutscene": "M01.5",
+      "regel": "CS-T04",
+      "reden": "Vier sprekers, maar de Terrasgast roept één woordgroep (\"Kon minder!\") uit het publiek rond de livestream; het gesprek zelf is het duo met de streamer (Jelmer). Terugbrengen tot drie vraagt een nieuwe opname zonder roep uit het publiek, en die roep is de lach van de scène.",
+      "akkoord": "agent akte1-eindniveau-23-11 (23-11), ter goedkeuring van de coördinator; nog niet door de eigenaar gezien"
+    },
+    {
+      "cutscene": "M01.5",
+      "regel": "CS-T08",
+      "reden": "De Terrasgast is een stem uit het publiek met één roep en komt nergens terug; een naamkaart voor een omstander zou meer aandacht vragen dan de roep zelf.",
+      "akkoord": "agent akte1-eindniveau-23-11 (23-11), ter goedkeuring van de coördinator; nog niet door de eigenaar gezien"
+    },
+    {
+      "cutscene": "M02.intro",
+      "regel": "CS-T04",
+      "reden": "Vier sprekers, maar Durk en Douwe zijn één duo dat elkaar napraat (Douwe herhaalt alleen \"...los.\"); voor de speler is het één stem van de straat naast Tammo en Tessa. Ze uit elkaar halen vraagt nieuwe tekst en opnames.",
+      "akkoord": "agent akte1-eindniveau-23-11 (23-11), ter goedkeuring van de coördinator; nog niet door de eigenaar gezien"
+    },
+    {
+      "cutscene": "M03.2",
+      "regel": "CS-T04",
+      "reden": "Vijf sprekers in het Loket: de wachtrij met Jelle, de bewaarder van de wisselprijs en de loketbediende is de grap van de scène (de rij is gekocht). Jelle praat alleen in de eerste helft, de loketbediende en Mevrouw Hoving pas na zijn vertrek. Splitsen in twee scènes vraagt een nieuwe snee in de missie.",
+      "akkoord": "agent akte1-eindniveau-23-11 (23-11), ter goedkeuring van de coördinator; nog niet door de eigenaar gezien"
     }
   ]
 }

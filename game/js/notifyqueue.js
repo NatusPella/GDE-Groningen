@@ -82,12 +82,18 @@ export const noticeHeld = (ignore = []) => noticeHeldBy(ignore).length > 0;
 export function ignoreFor(kind, extra = []) {
   const def = KINDS[kind] || {};
   const out = [...extra];
-  if (def.urgent) out.push('dialogue');
-  if (def.mission) out.push('mission', 'dialogue');
+  if (def.urgent) out.push('dialogue', MISSIE_HOLD);
+  if (def.mission) out.push('mission', 'dialogue', MISSIE_HOLD);
   return out;
 }
 
 export const moreLabel = (n) => `en ${n} meer`;
+
+// 23-11 (akte 1 op eindniveau, beelden M01-M06): bij de start van M01 stond een tip over de voetbalclub naast de doelbalk. Zolang er een
+// missie loopt (missions.js registreert de hold), wachten meldingen die niet bij de missie horen: tips, hints, prestaties, telefoon,
+// ontdekkingen. Gevaar, politie, wanted, missie- en bijbaanmeldingen gaan door (ignoreFor), en een kaart die zelf bij de missie hoort
+// (spec.missie: de regelkaart, een missietip) ook (hudcards.js geeft dan ignore mee). Tips vervallen (soft); prestaties wachten.
+export const MISSIE_HOLD = 'missie-actief';
 
 // opties: held(ignore) => namen die vasthouden (standaard het register), maxAge (s), maxWaiting.
 export function createNoticeQueue({ held = noticeHeldBy, maxAge = MAX_AGE_S, maxWaiting = MAX_WAITING, maxTotal = MAX_TOTAL, minGap = MIN_GAP_S, maxCollapse = MAX_COLLAPSE } = {}) {
