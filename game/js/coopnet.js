@@ -385,7 +385,7 @@ export function startHost(world, info, opts = {}) {
       // pauze per speler (#452): de rest speelt door; alleen als de lopende opdracht deze speler echt nodig heeft pauzeert het spel
       const nn = world.coopNet, regel = world.coopStapRegel ? world.coopStapRegel() : null;
       const beleid = holdBeleid(slot, { vereist: vereistVoor(!!(nn && nn.meedoen && nn.meedoen.opdracht), regel, world.coopVereist || []) });
-      if (beleid.pauze && onHold) onHold('host', slot, beleid.reden);
+      if (beleid.pauze && onHold) { onHold('host', slot, beleid.reden); try { for (const s of verbondenGasten(nn)) if (s !== slot) nn.hub.announce({ k: 'wacht', slot, naam: gastNaam(world, slot), aan: true }, s); } catch (e) { /* alleen een weergave */ } }
       else if (world.addMessage) world.addMessage(`${gastNaam(world, slot)} is weggevallen. ${beleid.reden}`, 5);
     },
     onEvent: (slot, body) => {
@@ -516,6 +516,7 @@ export function startClient(world, transport, info, opts = {}) {
   world.coopBijbaanStop = () => bijbaanGastStop(world); // Stoppen in het pausemenu stopt je eigen baan bij de host (#492)
   world.coopMoeilijkheidVoorstel = (opties) => vraagMoeilijkheid(world, opties); // #1169: politie en verkeer van de wereld voorstellen (difficultyvote.js)
   world.coopStemVerzoek = (soort, naAkkoord, naNee, params) => stemVerzoek(world, soort, naAkkoord, naNee, params); // een gast stelt zelf voor (24-11)
+  world.coopWachtVerder = () => vraagWachtVerder(world); // een gast zegt: nu zonder de weggevallen speler verder (24-11)
   // de looppositie van de conducteur gaat met het bestaande trein-bericht naar de gastheer (#492): geen nieuw bericht
   world.coopTreinWalkMeld = (w, walk) => {
     try {
@@ -1563,7 +1564,7 @@ export function handleEvent(world, body, van = 0) {
     }
     case 'wachtverder': { // 24-11: elke speler kan zeggen: nu zonder de weggevallen speler verder. Geen verwijdering: hij houdt zijn plek.
       if (!n || n.role !== 'host' || van < 1 || !world.coopHold) return false;
-      world.coopHoldVerder = true;
+      world.coopHoldVerder = true; // het wachtscherm van de host sluit; coophold.js zegt het de anderen
       if (world.addMessage) world.addMessage(gastNaam(world, van) + ' wil niet langer wachten: het spel gaat verder.', 5);
       return true;
     }
@@ -1607,6 +1608,17 @@ export function handleEvent(world, body, van = 0) {
       if (!n || n.role !== 'client') return false;
       const h = hitFromNet(body); if (!h) return false;
       markHit(world.hitMark || (world.hitMark = makeHitMark()), world.time, h.x, h.y, h.z, h.kind);
+      return true;
+    }
+    case 'wacht': { // de host wacht op een weggevallen speler: elke speler ziet het en kan zeggen "nu zonder hem verder" (24-11)
+      if (!n || n.role !== 'client') return false;
+      world.coopWachtOp = body.aan === false ? null : { slot: Number.isInteger(body.slot) ? body.slot : -1, naam: typeof body.naam === 'string' ? body.naam.slice(0, 24) : 'de ander' };
+      return true;
+    }
+    case 'beloningkaart': { // 24-11: de beloningskaart van een gast na een gezamenlijke activiteit: zijn eigen bedrag (al uitbetaald) en de plekken van de anderen
+      if (!n || n.role !== 'client' || !world.coopToonBeloning) return false;
+      const namen = (Array.isArray(body.namen) ? body.namen : []).slice(0, 8).filter((x) => x && Number.isInteger(x.slot)).map((x) => ({ slot: x.slot, naam: String(x.naam || '').slice(0, 24), kleur: x.kleur, vorm: x.vorm }));
+      try { world.coopToonBeloning({ titel: String(body.titel || 'Klaar').slice(0, 60), basis: Number(body.basis) || 0, aantal: Math.max(1, namen.length), punten: Number(body.punten) || 0, mijnSlot: n.session ? n.session.slot : -1, uitslag: namen }); } catch (e) { return false; }
       return true;
     }
     case 'melding': { // een korte melding van de host, alleen voor jou

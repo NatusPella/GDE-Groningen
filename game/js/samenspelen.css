@@ -348,7 +348,7 @@ html.touch-device :is(#pause-menu .pm-samen, .coop-hold, .cp-overlay) .coop-toet
 :root .cp-meedoen--vraag > :not(.cp-meedoen-kop) { margin-inline: var(--ds-s-4); }
 :root .cp-meedoen--vraag .cp-meedoen-uitleg { font-size: var(--ds-t-body); font-weight: 400; color: var(--ds-zeef-tx); }
 :root .cp-meedoen-tijd { height: 10px; border: 2px solid var(--ds-c-ink-inkt); border-radius: 3px; background: var(--ds-c-wit); overflow: hidden; }
-:root .cp-meedoen-tijd b { display: block; height: 100%; background: var(--ds-c-ink-geel); transition: width 0.4s linear; }
+:root .cp-meedoen-tijd b { display: block; height: 100%; background: var(--ds-c-ink-geel); transition: width var(--ds-m-snel) var(--ds-ease); }
 :root .cp-meedoen-knoppen { display: flex; gap: var(--ds-s-3); flex-wrap: nowrap; }
 html.reduce-motion .cp-meedoen-tijd b { transition: none; }
 

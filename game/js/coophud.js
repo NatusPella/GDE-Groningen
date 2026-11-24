@@ -23,7 +23,7 @@ export function fadeFlash(richting = 'in') {
 }
 
 // Elke frame vanuit main.js, alleen als er een sessie is: de lijst met spelers zolang Tab wordt ingedrukt.
-export function updatePartnerChip(world) { updateSpelersOverlay(world); updatePhrasesRadial(world); updateMeedoenChip(world); updateStemKaart(world); updateSamenHints(world); }
+export function updatePartnerChip(world) { updateSpelersOverlay(world); updatePhrasesRadial(world); updateMeedoenChip(world); updateStemKaart(world); updateWachtKaart(world); updateSamenHints(world); }
 
 // "Meedoen?" blijft in beeld tot de gast antwoordt of de opdracht voorbij is: geen antwoord is nee (#452)
 let meedoenEl = null;
@@ -124,5 +124,51 @@ export function toonBeloningKaart(gegevens) {
   document.body.appendChild(beloningEl);
   const b = beloningEl.querySelector('[data-beloning-door]'); if (b && b.focus) b.focus({ preventScroll: true });
   setTimeout(sluit, 20000);
+  return true;
+}
+
+// Wachten op een weggevallen speler (ontwerp 24-11): elke speler ziet het en kan zeggen "nu zonder hem verder". Geen verwijdering: de speler houdt zijn plek en kan terugkomen.
+let wachtEl = null, wachtSlot = null;
+function updateWachtKaart(world) {
+  if (typeof document === 'undefined') return;
+  const w = world && world.coopWachtOp;
+  if (!w) { if (wachtEl) wachtEl.style.display = 'none'; wachtSlot = null; return; }
+  if (!wachtEl) {
+    wachtEl = document.createElement('div');
+    wachtEl.className = 'cp-meedoen cp-meedoen--vraag cp-wacht';
+    wachtEl.setAttribute('role', 'status');
+    wachtEl.addEventListener('click', (e) => { if (e.target.closest && e.target.closest('[data-wacht-verder]') && world.coopWachtVerder) { world.coopWachtVerder(); wachtEl.style.display = 'none'; } });
+    document.body.appendChild(wachtEl);
+  }
+  if (wachtSlot !== w.slot) {
+    wachtSlot = w.slot;
+    wachtEl.textContent = '';
+    const kop = document.createElement('div'); kop.className = 'cp-meedoen-kop'; kop.textContent = `Wachten op ${w.naam}`;
+    const t = document.createElement('span'); t.className = 'cp-meedoen-tekst'; t.textContent = `${w.naam} is weggevallen. Het spel wacht even tot de verbinding terug is.`;
+    const u = document.createElement('span'); u.className = 'cp-meedoen-uitleg'; u.textContent = `${w.naam} blijft in de sessie en kan terugkomen. Niemand wordt verwijderd.`;
+    const rij = document.createElement('div'); rij.className = 'cp-meedoen-knoppen';
+    const b = document.createElement('button'); b.type = 'button'; b.className = 'ds-z-knop ds-z-knop--secundair cp-meedoen-knop'; b.dataset.wachtVerder = '1'; b.textContent = `Nu zonder ${w.naam} verder`; rij.appendChild(b);
+    wachtEl.append(kop, t, u, rij);
+  }
+  wachtEl.style.display = '';
+}
+
+// Het hervatvenster (ontwerp 24-11): je bent weer verbonden. Hoe lang je weg was, dat je eigen spel niet veranderde, en de gele Verder spelen.
+let hervatEl = null;
+export function toonHervatKaart({ seconden = 0, naam = 'de ander' } = {}) {
+  if (typeof document === 'undefined') return false;
+  if (hervatEl) hervatEl.remove();
+  const min = Math.floor(seconden / 60), sec = Math.round(seconden % 60);
+  const duur = min > 0 ? `${min} minuut en ${sec} seconden` : `${sec} seconden`;
+  hervatEl = document.createElement('div');
+  hervatEl.className = 'sb-scherm';
+  hervatEl.innerHTML = `<section class="sb-kaart" role="dialog" aria-modal="true" aria-label="Je bent weer verbonden"><div class="sb-kop">Je bent weer verbonden</div><div class="sb-kol" style="margin:0 var(--ds-s-5)"><h3 class="ds-z-tussenkop">Welkom terug in het spel van ${naam.replace(/[<>&"]/g, '')}</h3><p>Je was ${duur} weg. Je eigen spel is niet veranderd: je geld en je voortgang zijn bewaard. Wat de anderen deden, heb je gemist; waar je niet bij hoefde te zijn, kostte je niets.</p></div><div class="sb-acties"><button type="button" class="ds-z-knop" data-hervat-door>Verder spelen</button></div></section>`;
+  const sluit = () => { if (hervatEl) { hervatEl.remove(); hervatEl = null; } document.removeEventListener('keydown', toets, true); };
+  const toets = (e) => { if (e.key === 'Enter' || e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); sluit(); } };
+  hervatEl.addEventListener('click', (e) => { if (e.target.closest && e.target.closest('[data-hervat-door]')) sluit(); });
+  document.addEventListener('keydown', toets, true);
+  document.body.appendChild(hervatEl);
+  const b = hervatEl.querySelector('[data-hervat-door]'); if (b && b.focus) b.focus({ preventScroll: true });
+  setTimeout(sluit, 15000);
   return true;
 }

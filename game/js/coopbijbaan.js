@@ -261,7 +261,11 @@ export function bijbaanBeloning(world, id, basis, vak = null, xp = 0, ronde = nu
   if (!actief(st) || st.id !== id) return false;
   const betaald = beloningBijbaan(st, verbondenSet(world), { basis, vak, xp, ronde });
   for (const b of betaald) if (haken.betaalGast) haken.betaalGast(world, b.slot, b.geld, b.vak ? { vak: b.vak, xp: b.xp } : null, b.id);
-  if (betaald.length && world.coopToonBeloning) { try { world.coopToonBeloning({ titel: st.label, basis, aantal: betaald.length + 1, punten: xp, slots: [0, ...betaald.map((x) => x.slot)] }); } catch (e) { /* alleen een weergave */ } } // de kaart van wie het spel draait; gasten krijgen hun kaart later (open punt)
+  if (betaald.length && world.coopToonBeloning) { try { world.coopToonBeloning({ titel: st.label, basis, aantal: betaald.length + 1, punten: xp, slots: [0, ...betaald.map((x) => x.slot)] }); } catch (e) { /* alleen een weergave */ } } // de kaart van wie het spel draait
+  if (betaald.length && n.hub) { // en elke gast zijn eigen kaart (bericht 'beloningkaart'; een oude client negeert het): zijn eigen bedrag en de namen van wie meedeed
+    const namen = [0, ...betaald.map((x) => x.slot)].map((s) => { const r = (world.coopSpelers || []).find((x) => x.slot === s); return { slot: s, naam: r ? r.naam : '', kleur: r ? r.kleur : undefined, vorm: r ? r.vorm : undefined }; });
+    for (const b of betaald) { try { n.hub.announce({ k: 'beloningkaart', titel: st.label, namen, basis: b.geld, punten: b.xp }, b.slot); } catch (e) { /* weg */ } }
+  }
   return true;
 }
 

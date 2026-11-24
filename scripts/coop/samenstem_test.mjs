@@ -140,4 +140,22 @@ t('nu zonder de weggevallen speler verder: elke speler kan het vragen en niemand
   assert.equal(s.hw.coopNet.hub.roster.spelers.length, 3, 'de roster blijft ongewijzigd: niemand is verwijderd');
   const z = sessie(1); z.step(1); assert.equal(N.handleEvent(z.hw, { k: 'wachtverder' }, 1), false, 'zonder wachtscherm doet het niets');
 });
+t('een gast ziet dat het spel op een weggevallen speler wacht en kan zeggen nu zonder hem verder', () => {
+  const s = sessie(2); s.step(1);
+  const g = s.gs[0].gw;
+  assert.equal(N.handleEvent(g, { k: 'wacht', slot: 2, naam: 'Liv', aan: true }, 0), true);
+  assert.deepEqual(g.coopWachtOp, { slot: 2, naam: 'Liv' });
+  assert.equal(typeof g.coopWachtVerder, 'function', 'de gast heeft de knop');
+  s.hw.coopHold = true; g.coopWachtVerder(); s.step(0.3);
+  assert.equal(s.hw.coopHoldVerder, true, 'de host sluit het wachtscherm');
+  assert.equal(N.handleEvent(g, { k: 'wacht', aan: false }, 0), true); assert.equal(g.coopWachtOp, null);
+  assert.equal(N.handleEvent(s.hw, { k: 'wacht', aan: true }, 1), false, 'een host luistert hier niet naar');
+});
+t('de beloningskaart van een gast: zijn eigen bedrag, de namen gecontroleerd, de betaling zelf blijft apart (k beloning)', () => {
+  const s = sessie(1); s.step(1);
+  const g = s.gs[0].gw; let kaart = null; g.coopToonBeloning = (d) => { kaart = d; };
+  assert.equal(N.handleEvent(g, { k: 'beloningkaart', titel: 'Race', namen: [{ slot: 0, naam: 'Sem' }, { slot: 1, naam: 'Iris<img>' }], basis: 180, punten: 40 }, 0), true);
+  assert.equal(kaart.basis, 180); assert.equal(kaart.aantal, 2); assert.equal(kaart.mijnSlot, g.coopNet.session.slot);
+  assert.equal(N.handleEvent(s.hw, { k: 'beloningkaart', titel: 'x', namen: [], basis: 1 }, 1), false, 'een host luistert hier niet naar');
+});
 console.log(`samenstem_test: ${n} tests ok`);
