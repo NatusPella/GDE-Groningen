@@ -1,0 +1,89 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Kleine voertuigen: voor/na-weergave (headless Chrome, geen spel)</title>
+<style>html,body{margin:0;background:#17301f}canvas{display:block}</style>
+<script>
+  const root = location.href.replace(/docs\/beeld-24-11\/voertuigen-klein\/pagina\.html.*$/, '');
+  document.write('<script type="importmap">' + JSON.stringify({ imports: { 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js': root + 'desktop/vendor-cache/npm/three@0.160.0/build/three.module.js', three: root + 'desktop/vendor-cache/npm/three@0.160.0/build/three.module.js', 'three/addons/': root + 'desktop/vendor-cache/npm/three@0.160.0/examples/jsm/', 'https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/': root + 'desktop/vendor-cache/npm/three@0.160.0/examples/jsm/' } }) + '<\/script>');
+</script>
+<body>
+<script>
+  const toon = (t) => { const d = document.createElement('pre'); d.style.cssText = 'position:fixed;top:0;left:0;color:#fff;background:#900;margin:0;padding:8px;font:14px monospace;white-space:pre-wrap;z-index:9'; d.textContent = t; document.body.appendChild(d); document.title = 'FOUT'; };
+  window.addEventListener('error', (e) => toon('FOUT: ' + e.message));
+  window.addEventListener('unhandledrejection', (e) => toon('FOUT: ' + (e.reason && e.reason.stack || e.reason)));
+</script>
+<script type="module">
+  // Hash: #<voertuig>. De driver (scripts/voertuigklein_beeld.mjs) roept window.neem(weergave) aan en haalt de PNG op.
+  // Weergaven: buiten (recht van opzij), schuin (voor), achter (schuin van achter), dicht (de rijder en het stuur van dichtbij), hoog.
+  const root = location.href.replace(/docs\/beeld-24-11\/voertuigen-klein\/pagina\.html.*$/, '');
+  const THREE = await import('https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js');
+  const { buildVehicleMesh, updateVehicleWheelSpin } = await import(root + 'game/js/models3d_vehicles.js');
+  const { BOAT_KINDS } = await import(root + 'game/js/boattypes.js');
+  const { updateLodObjects } = await import(root + 'game/js/lodkit3d.js');
+  const naam = (location.hash || '#fiets').slice(1);
+  const bike = (extra, color = '#1c1c1c', rider = '#2f5c8a', id = 700) => ({ id, model: { name: 'bike', len: 1.75, wid: 0.5, color, rider, ...extra }, isBike: true });
+  const scoot = (extra, color, rider = '#2f5c8a', len = 1.1, wid = 0.4) => ({ id: 700, model: { name: 'scooter', len, wid, color, rider, ...extra }, isScooter: true });
+  const boot = (k, extra = {}) => ({ id: 700, model: { ...BOAT_KINDS[k], ...extra }, isBoat: true });
+  const SPECS = {
+    fiets: bike({}), fiets2: bike({}, '#2b3d6b', '#7a2e2e', 703), fietsoud: bike({ old: true }, '#6b2a24', '#3f6b3f', 705),
+    fietsrace: bike({ stijl: 'race' }, '#c43d2b', '#1f1f1f', 702), fietsmtb: bike({ stijl: 'mtb' }, '#2f7d46', '#8a3a1f', 702), fietsebike: bike({ stijl: 'ebike' }, '#e8e6e0', '#2f5c8a', 702),
+    fatbike: { id: 700, model: { name: 'bike', fat: true, len: 1.95, wid: 0.62, color: '#20221f', rider: '#8a3a1f' }, isBike: true },
+    bakfiets: bike({ cargo: true, len: 2.55, wid: 0.72 }, '#2f4a3a'), bezorger: bike({ delivery: 'x', bag: '#9bd630', bagTrim: '#2b3a12', len: 1.8 }, '#23262a', '#9bd630'),
+    deelfiets: bike({ share: true, tint: '#ff6a4d' }, '#c9ccd0'),
+    step: scoot({}, '#e8e6e0'), bromfiets: scoot({ moped: true }, '#e6e1d6', '#2f5c8a', 1.7, 0.62), snor: scoot({ moped: true, geared: true }, '#c9541e', '#2f5c8a', 1.7, 0.62),
+    motorsport: { id: 700, model: { name: 'scooter', len: 2.0, wid: 0.7, color: '#c43d2b', rider: '#1c3fae', motorbike: 'sport' }, isScooter: true },
+    sloep: boot('sloep'), sloepkap: { ...boot('sloep'), id: 705 }, rondvaart: boot('rondvaart'), kano: boot('kano'), kajak: boot('kajak'), waterfiets: boot('waterfiets'),
+    rubberboot: boot('rubberboot'), dinghy: boot('dinghy'), sup: boot('sup'), skiff: boot('skiff'), skutsje: boot('skutsje'), zeilboot: boot('zeilboot'), roeiboot: boot('roeiboot'),
+    heli: { id: 700, model: { name: 'heli', len: 8.8, wid: 2.1, color: '#b8322a' }, isHeli: true },
+  };
+  const spec = SPECS[naam] || SPECS.fiets;
+  const W = 1920, H = 1080;
+  const renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
+  renderer.setSize(W, H);
+  document.body.appendChild(renderer.domElement);
+  const scene = new THREE.Scene();
+  scene.background = new THREE.Color(0xbfe3f2);
+  scene.add(new THREE.HemisphereLight(0xf4f2ec, 0x2a3a2e, 1.7));
+  const sun = new THREE.DirectionalLight(0xffffff, 2.4); sun.position.set(4, 8, 5); scene.add(sun);
+  const ground = new THREE.Mesh(new THREE.PlaneGeometry(240, 240), new THREE.MeshLambertMaterial({ color: spec.isBoat ? 0x2b5566 : 0x6b7a66 }));
+  ground.rotation.x = -Math.PI / 2; scene.add(ground);
+  const v = { health: 100, ...spec };
+  const m = buildVehicleMesh(v);
+  scene.add(m);
+  m.userData.__v = v;
+  // een paar beelden rijden, zoals het spel: de benen zoeken de trappers, de krukken staan op de fase
+  for (let i = 0; i < 3; i++) updateVehicleWheelSpin(m, 0.2, 0.016, 0);
+  const HOOG = { fiets: 1.9, fatbike: 1.9, step: 1.9, bromfiets: 1.9, snor: 1.9, sloep: 1.9, rondvaart: 2.8, kano: 1.2, kajak: 1.2, waterfiets: 1.5, rubberboot: 1.3, dinghy: 1.4, sup: 1.8, skiff: 1.2, skutsje: 4, heli: 3.4 };
+  const hoog = HOOG[naam.replace(/\d+$/, '')] || (spec.isBike || spec.isScooter ? 1.9 : spec.isBoat ? 1.6 : 2);
+  const len = spec.model.len, wid = spec.model.wid;
+  const size = new THREE.Vector3(len, hoog, wid);
+  const R = spec.isBike || spec.isScooter ? Math.max(len, wid) * 0.5 + 0.9 : Math.max(len, wid) * 0.5 + 1.2;
+  const cam = new THREE.PerspectiveCamera(34, W / H, 0.05, 600);
+  const VIEWS = {
+    buiten: () => ({ p: [0, size.y * 0.55, R * 2.0], t: [0, size.y * 0.42, 0] }),
+    schuin: () => ({ p: [R * 1.35, size.y * 0.8 + 0.2, R * 1.5], t: [0, size.y * 0.4, 0] }),
+    achter: () => ({ p: [-R * 1.35, size.y * 0.8 + 0.2, R * 1.5], t: [0, size.y * 0.4, 0] }),
+    dicht: () => ({ p: [R * 0.7, size.y * 0.55, R * 0.75], t: [len * 0.12, size.y * 0.42, 0], fov: 38 }),
+    hoog: () => ({ p: [R * 0.4, size.y * 2.6 + 1, R * 1.2], t: [0, size.y * 0.2, 0] }),
+  };
+  window.neem = (weergave) => {
+    const w = VIEWS[weergave]();
+    cam.fov = w.fov || 34; cam.updateProjectionMatrix();
+    cam.position.set(w.p[0], w.p[1], w.p[2]);
+    cam.lookAt(w.t[0], w.t[1], w.t[2]);
+    cam.updateMatrixWorld(true);
+    updateLodObjects(cam);
+    renderer.render(scene, cam);
+    return renderer.domElement.toDataURL('image/png');
+  };
+  // driehoeken en tekenaanroepen per niveau van het centrale LOD-systeem (camera op 8, 60 en 140 m)
+  let zonder = false;
+  const tel = () => { let t = 0, c = 0; m.traverse((o) => { if (!o.isMesh || (zonder && o.isSkinnedMesh)) return; for (let p = o; p; p = p.parent) if (!p.visible) return; const g = o.geometry; t += (g.index ? g.index.count : g.attributes.position.count) / 3; c += Array.isArray(o.material) ? Math.max(1, g.groups.length) : 1; }); return [Math.round(t), c]; };
+  const lodTelling = [];
+  const stand = (d) => { cam.position.set(d, 1.5, 0); cam.lookAt(0, 0.5, 0); cam.updateMatrixWorld(true); scene.updateMatrixWorld(true); updateLodObjects(cam); return tel(); };
+  for (const d of [8, 60, 140]) lodTelling.push(stand(d));
+  zonder = true; const bare = stand(8); zonder = false;
+  window.info = { zonderRijder: bare,  tris: lodTelling[0][0], lod: lodTelling.map((x) => x[0]), draws: lodTelling.map((x) => x[1]), naam };
+  stand(8);
+  document.title = 'klaar:' + naam;
+</script>

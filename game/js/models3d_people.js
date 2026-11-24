@@ -1185,10 +1185,12 @@ function pedalIK(group, k) {
   const ud = group.userData;
   const ph = (bike.pedalPhase || 0) + (k === 0 ? 0 : Math.PI);
   const sx = group.scale.x || 1, sy = group.scale.y || 1, lean = group.rotation.z;
-  const px = BIKE_BB.x + Math.cos(ph) * CRANK - group.position.x;
-  const py = BIKE_BB.y + Math.sin(ph) * CRANK + 0.07 - group.position.y - HIP_Y * sy;
+  // de rijder kantelt om zijn voeten (rotation.z = lean): eerst het pedaal in zijn eigen assen, dan pas de heup eraf
+  const bb = bike.riderLegs.bb || BIKE_BB; // de bakfiets heeft zijn trapas verder naar achteren
+  const px = bb.x + Math.cos(ph) * CRANK - group.position.x;
+  const py = bb.y + Math.sin(ph) * CRANK + 0.07 - group.position.y;
   const c = Math.cos(-lean), s = Math.sin(-lean);
-  legIK(k === 0 ? ud.legL : ud.legR, k === 0 ? ud.kneeL : ud.kneeR, (px * c - py * s) / sx, (px * s + py * c) / sy);
+  legIK(k === 0 ? ud.legL : ud.legR, k === 0 ? ud.kneeL : ud.kneeR, (px * c - py * s) / sx, (px * s + py * c) / sy - HIP_Y);
   return true;
 }
 

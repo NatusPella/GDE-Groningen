@@ -21,6 +21,7 @@ import { QCARS } from './models/qcars.js';
 import { hybrideSchaal, VOERTUIG_REGISTER } from './propregister.js';
 import { attachVehicleLods } from './vehiclelod3d.js';
 import { DitherLOD } from './lod3d.js';
+import { bikeFrameParts, bikeSteerParts, bakfietsParts, bikeWheelRich, bikeCrankParts, bikeGripSpec, bikeStijlNaam, bikeLean, bikeHipX, bikeExtras, BIKE_BB } from './vehicle_bike.js';
 
 // Low-poly vehicles. Group origin = vehicle centre at ground level (y=0),
 // facing local +X, right-hand side on +Z; sized off v.model.len/wid.
@@ -2555,87 +2556,27 @@ function poseRider(rider, legBase, armAngle, lean) {
   ud.legR.rotation.z = legBase;
 }
 
-// st: de studentenstaat als sleutel (staatSleutel: S scheef voorspatbord, L geen voorlicht)
-function buildBikeGeometry(color, fat, stepThrough, st = '', zonderStuur = false) {
-  return cached(`bike|${color}|${fat}|${stepThrough}|${st}|${zonderStuur}`, () => {
+// Het frame, de vorken, spatborden, drager en zadel (vehicle_bike.js). o: { color, stijl, stepThrough, st (studentenstaat, staatSleutel),
+// old, noLight, extra, hash, zonderStuur } - zonderStuur: het stuur is dichtbij een eigen onderdeel (stuurOverlay, #442)
+function buildBikeGeometry(o) {
+  const key = `bike|${o.color}|${o.stijl}|${o.stepThrough}|${o.st || ''}|${o.zonderStuur ? 1 : 0}|${o.old ? 1 : 0}|${o.noLight ? 1 : 0}|${o.old ? Math.floor((o.hash || 0) * 3) : 0}|${o.extra && o.extra.mand ? 'm' + o.extra.mandKleur : ''}${o.extra && o.extra.tassen ? 't' + o.extra.tasKleur : ''}`;
+  return cached(key, () => {
     const B = new GeoBuilder(3);
-    const r = fat ? 0.3 : 0.34;
-    const wb = fat ? 0.52 : 0.56;
-    const t = fat ? 0.028 : 0.018;
-    const F = [wb, r, 0], R = [-wb, r, 0];
-    const BB = [-0.05, 0.3, 0];
-    const S = [-0.24, fat ? 0.72 : 0.84, 0];
-    const H1 = [0.4, fat ? 0.82 : 0.93, 0], H0 = [0.45, fat ? 0.66 : 0.72, 0];
-    const tube = (a, b, rr = t, c = color) => B.geo(tubeGeometry(a, b, rr, rr, 5), null, c);
-    tube(H0, H1, t * 1.3);
-    tube(S, BB);
-    for (const s of [1, -1]) {
-      tube([BB[0], BB[1], s * 0.04], [R[0], R[1], s * 0.05], t * 0.8);
-      tube([S[0], S[1], s * 0.02], [R[0], R[1], s * 0.05], t * 0.8);
-      tube([H0[0], H0[1], s * 0.04], [F[0], F[1], s * 0.05], t * 0.85);
-    }
-    if (stepThrough && !fat) {
-      tube([0.42, 0.86, 0], [0.05, 0.4, 0]);
-      tube([0.05, 0.4, 0], BB);
-      tube([0.44, 0.78, 0], [0.12, 0.36, 0], t * 0.8);
-      tube([0.12, 0.36, 0], [-0.02, 0.29, 0], t * 0.8);
-    } else {
-      tube(H1, [S[0] + 0.02, S[1] - 0.02, 0]);
-      tube(H0, BB, t * 1.1);
-    }
-    const saddle = [S[0] - 0.03, S[1] + (fat ? 0.2 : 0.14), 0];
-    tube(S, saddle, 0.013, 0x8a8e92);
-    B.box(saddle[0] - 0.02, saddle[1] + 0.03, 0, 0.27, 0.06, 0.16, 0x2a1d14);
-    // stem and bars: drawn on their own when the bike is near (stuurOverlay), so they turn with the steering (#442)
-    const stemTop = [H1[0] - 0.02, H1[1] + 0.14, 0];
-    if (!zonderStuur) bikeStuurOnderdelen(B, fat, 0);
-    for (const [x] of [F, R]) {
-      const guard = new THREE.TorusGeometry(r + 0.03, fat ? 0.05 : 0.028, 3, 9, Math.PI * 0.85);
-      guard.scale(1, 1, fat ? 1.2 : 1);
-      // een scheef voorspatbord: omhoog gebogen, een stukje opzij en iets weg van het wiel
-      if (st.includes('S') && x === F[0]) B.geo(guard, composeMatrix(x + 0.06, r + 0.09, 0.07, 0.3, 0.32, Math.PI * 0.08 + 0.5), color);
-      else B.geo(guard, composeMatrix(x, r, 0, 0, 0, Math.PI * 0.08), color);
-    }
-    if (!fat) {
-      B.box(-0.33, 0.44, 0.075, 0.62, 0.13, 0.03, color, 0, 0, 0, 0.07);
-      B.box(-0.5, 0.78, 0, 0.44, 0.02, 0.15, 0x2a2a2b);
-      for (const s of [1, -1]) tube([-0.66, 0.78, s * 0.07], [R[0], R[1], s * 0.06], 0.01, 0x2a2a2b);
-      // geen voorlicht: de dynamo en de lamp zijn eraf
-      if (!st.includes('L')) {
-        B.geo(new THREE.CylinderGeometry(0.045, 0.035, 0.07, 7).rotateZ(Math.PI / 2), composeMatrix(H0[0] + 0.07, H0[1] + 0.04, 0), 0x2a2a2b);
-        B.box(H0[0] + 0.11, H0[1] + 0.04, 0, 0.01, 0.06, 0.06, HEADLAMP, G_LAMP);
-      }
-      B.box(-0.73, 0.76, 0, 0.01, 0.04, 0.06, TAIL, G_LAMP);
-    }
-    for (const s of [1, -1]) B.box(BB[0], BB[1], s * 0.1, 0.1, 0.02, 0.08, 0x2a2a2b);
+    bikeFrameParts(B, o);
+    if (!o.zonderStuur) bikeSteerParts(B, o, 0);
     return B.build();
   });
 }
+function bikeWheelGeometryRich(r, tire, tireColor = TIRE, disc = false) {
+  return cached(`bwheelr|${r}|${tire}|${tireColor}|${disc}`, () => bikeWheelRich(new GeoBuilder(1), r, tire, tireColor, { disc }).build());
+}
+function bikeCrankGeometry(stijl) {
+  return cached(`bcrank|${stijl}`, () => { const B = new GeoBuilder(3); bikeCrankParts(B, stijl); return B.build(); });
+}
 
-// Bakfiets: long frame with a wooden box between the rider and a small front wheel.
+// Bakfiets: lang frame met een houten bak tussen de rijder en een klein voorwiel (vehicle_bike.js).
 function buildBakfietsGeometry(color) {
-  return cached(`bakfiets|${color}`, () => {
-    const B = new GeoBuilder(3);
-    const t = 0.02;
-    const tube = (a, b, rr = t, c = color) => B.geo(tubeGeometry(a, b, rr, rr, 5), null, c);
-    const R = [-0.85, 0.34, 0], BB = [-0.45, 0.3, 0], S = [-0.62, 0.86, 0], H = [-0.25, 0.96, 0];
-    tube(R, BB);
-    tube(R, S, t * 0.8);
-    tube(BB, S, t * 1.2);
-    tube(BB, [0.95, 0.22, 0], t * 1.3);
-    tube([-0.2, 0.28, 0], H, t * 1.1);
-    for (const s of [1, -1]) tube(H, [H[0] - 0.12, H[1] + 0.05, s * 0.26], 0.012, 0x8a8e92);
-    B.box(S[0] - 0.02, S[1] + 0.1, 0, 0.26, 0.06, 0.16, 0x2a1d14);
-    B.box(0.45, 0.62, 0, 0.9, 0.04, 0.66, 0x7a5a38);
-    for (const s of [1, -1]) B.box(0.45, 0.82, s * 0.33, 0.9, 0.4, 0.03, 0x9a7048);
-    B.box(0.9, 0.82, 0, 0.03, 0.4, 0.66, 0x9a7048);
-    B.box(0.0, 0.82, 0, 0.03, 0.4, 0.66, 0x9a7048);
-    B.box(0.45, 1.03, 0.33, 0.9, 0.03, 0.04, 0x6b4a2a);
-    B.box(0.45, 1.03, -0.33, 0.9, 0.03, 0.04, 0x6b4a2a);
-    B.box(-0.97, 0.76, 0, 0.01, 0.04, 0.06, TAIL, G_LAMP);
-    B.box(0.93, 0.7, 0, 0.01, 0.06, 0.06, HEADLAMP, G_LAMP);
-    return B.build();
-  });
+  return cached(`bakfiets|${color}`, () => { const B = new GeoBuilder(3); bakfietsParts(B, color); return B.build(); });
 }
 
 // Delivery rider's big cube bag (invented chain colours, streetlifedata.js).
@@ -2698,20 +2639,28 @@ function buildBakfietsMesh(v) {
   const mats = vehicleMaterials();
   group.add(new THREE.Mesh(buildBakfietsGeometry(color), mats));
   const wheels = [];
-  addWheel(group, bikeWheelGeometry(0.34, 0.022), mats[0], -0.85, 0.34, 0, wheels);
-  addWheel(group, bikeWheelGeometry(0.25, 0.022), mats[0], 1.0, 0.25, 0, wheels);
+  addWheel(group, bikeWheelGeometryRich(0.34, 0.026), mats[0], -0.85, 0.34, 0, wheels);
+  addWheel(group, bikeWheelGeometryRich(0.25, 0.024), mats[0], 1.0, 0.25, 0, wheels);
   group.userData.wheels = wheels;
   group.userData.wheelRadius = 0.32;
-  group.userData.spinStep = 0.26; // 8 spaken (45 graden), en het kleine voorwiel draait sneller (spinK)
+  group.userData.spinStep = 0.2; // 16 spaken, en het kleine voorwiel draait sneller (spinK)
   wheels[0].userData.spinK = 0.32 / 0.34;
   wheels[1].userData.spinK = 0.32 / 0.25;
   const rider = riderFor(v, toHex(v.model.rider, HABBO_PALETTE.roofBlue));
-  rider.position.set(-0.68, 1.02 - 0.93 * rider.scale.y, 0);
+  const crank = new THREE.Mesh(bikeCrankGeometry('stad'), mats);
+  crank.position.set(-0.45, 0.3, 0);
+  group.add(crank);
+  group.userData.crank = crank;
+  const hipDrop = PERSON_RIG.HIP_Y * rider.scale.y;
+  rider.position.set(-0.68 + hipDrop * Math.sin(-0.05), 1.02 - hipDrop * Math.cos(-0.05), 0);
   poseRider(rider, 0.33, 0.7, -0.05);
+  // handen aan de handvatten (x -0,43; hoogte 1,045; halve breedte 0,26) en de voeten op de trappers bij de trapas van de bakfiets
   group.add(rider);
-  group.userData.riderLegs = { legs: [rider.userData.legL, rider.userData.legR], base: 0.33, amp: 0.2 };
+  bikeHands(rider, { x: -0.43, y: 1.045, z: 0.26, px: -0.28 }, 0);
+  group.userData.riderLegs = { legs: [rider.userData.legL, rider.userData.legR], base: 0.33, amp: 0.2, bb: { x: -0.45, y: 0.3 } };
   if (v.model.load) {
     group.add(new THREE.Mesh(buildBikeLoadGeometry(v.model.load), mats));
+    makeLodObject('vehicle', 'bakfiets', group);
     return group;
   }
   // a kid (or two) in the box
@@ -2723,6 +2672,7 @@ function buildBakfietsMesh(v) {
     if (kid.userData.legR) kid.userData.legR.rotation.z = 1.4;
     group.add(kid);
   }
+  makeLodObject('vehicle', 'bakfiets', group);
   return group;
 }
 
@@ -2734,7 +2684,7 @@ export function updateBikeStaat(mesh, v) {
   if (mesh.userData.staatSleutel === undefined || mesh.userData.staatSleutel === sleutel) return false;
   const frame = mesh.children[0];
   if (!frame || !frame.isMesh) return false;
-  frame.geometry = buildBikeGeometry(toHex(v.model.color, HABBO_PALETTE.black), false, hash2(v.id || 0, 4.2) < 0.5, sleutel);
+  frame.geometry = buildBikeGeometry({ ...mesh.userData.bikeOpts, st: sleutel });
   mesh.userData.staatSleutel = sleutel;
   return true;
 }
@@ -2743,33 +2693,45 @@ function buildBikeMesh(v) {
   if (v.model.cargo) return buildBakfietsMesh(v);
   const group = new THREE.Group();
   const fat = !!v.model.fat;
+  const stijl = bikeStijlNaam(v.model);
   const color = v.wrecked ? WRECKED_COLOR : toHex(v.model.color, HABBO_PALETTE.black);
   const stepThrough = hash2(v.id || 0, 4.2) < 0.5;
   const mats = vehicleMaterials();
   // de studentenstaat (#402): scheef spatbord, geen voorlicht, blauwe banden (en een klap voorop maakt het spatbord ook scheef)
   const staat = !fat && v.isBike ? fietsStaat(v) : null;
   const sleutel = staat ? staatSleutel(staat) : '';
-  const bikeBody = new THREE.Mesh(buildBikeGeometry(color, fat, stepThrough, sleutel), mats);
+  const extra = v.wrecked ? {} : bikeExtras(hash2(v.id || 0, 9.1), { old: !!v.model.old, share: !!v.model.share, delivery: !!v.model.delivery, stijl });
+  const bikeOpts = { color, stijl, stepThrough, st: sleutel, old: !!v.model.old && !v.wrecked, noLight: !!v.model.noLight, extra, hash: hash2(v.id || 0, 3.3) };
+  const bikeBody = new THREE.Mesh(buildBikeGeometry(bikeOpts), mats);
   group.add(bikeBody);
   group.userData.staatSleutel = sleutel;
-  group.userData.stuurSpec = { soort: 'fiets', color, fat, stepThrough, sleutel, body: bikeBody };
+  group.userData.bikeOpts = bikeOpts;
+  group.userData.stuurSpec = { soort: 'fiets', opts: bikeOpts, body: bikeBody };
   const r = fat ? 0.3 : 0.34;
   const wb = fat ? 0.52 : 0.56;
-  const wgeo = bikeWheelGeometry(r, fat ? 0.07 : 0.022, true, staat && staat.blauw ? BLUE_TIRE : TIRE);
+  const tire = fat ? 0.07 : stijl === 'race' ? 0.016 : stijl === 'mtb' ? 0.03 : 0.024;
+  const wgeo = bikeWheelGeometryRich(r, tire, staat && staat.blauw ? BLUE_TIRE : TIRE, stijl === 'race' || stijl === 'mtb');
   const wheels = [];
   addWheel(group, wgeo, mats[0], wb, r, 0, wheels);
   addWheel(group, wgeo, mats[0], -wb, r, 0, wheels);
   group.userData.wheels = wheels;
   group.userData.wheelRadius = r;
-  group.userData.spinStep = 0.34; // 4 spoke bars: 45 deg symmetry
+  group.userData.spinStep = 0.2; // 16 spaken (22,5 graden): de getekende draai per beeld blijft onder de halve spaakafstand
+  // de krukken met het kettingblad draaien met de trapfase (updateVehicleWheelSpin)
+  const crank = new THREE.Mesh(bikeCrankGeometry(stijl), mats);
+  crank.position.set(BIKE_BB[0], BIKE_BB[1], 0);
+  group.add(crank);
+  group.userData.crank = crank;
 
   const rider = riderFor(v, toHex(v.model.rider, HABBO_PALETTE.roofBlue));
   const hipY = fat ? 0.93 : 1.02;
-  rider.position.set(fat ? -0.26 : -0.3, hipY - 0.93 * rider.scale.y, 0);
-  poseRider(rider, fat ? 0.55 : 0.33, fat ? 0.95 : 0.85, -0.08);
-  // handen aan het stuur (actorlife.js): de grepen van bikeStuurOnderdelen; dichtbij draaien ze mee met het stuur (voertuigbediening.js)
+  // de rijder kantelt om zijn voeten: zet de heup op het zadel, ook bij een voorovergebogen racer
+  const lean = bikeLean(stijl), hipDrop = PERSON_RIG.HIP_Y * rider.scale.y;
+  rider.position.set(bikeHipX(stijl) + hipDrop * Math.sin(lean), hipY - hipDrop * Math.cos(lean), 0);
+  poseRider(rider, fat ? 0.55 : 0.33, fat ? 0.95 : 0.85, lean);
+  // handen aan het stuur (actorlife.js): de grepen van bikeSteerParts (vehicle_bike.js); dichtbij draaien ze mee met het stuur (voertuigbediening.js)
   group.userData.riderMesh = rider;
-  group.userData.riderGrip = bikeGrip(fat);
+  group.userData.riderGrip = bikeGripSpec(stijl);
   bikeHands(rider, group.userData.riderGrip, 0);
   if (!fat && v.isBike && v.driver !== 'player' && !v.wrecked && hash2((v.id || 0) * 1.9, 7.3) < 0.18) holdPhoneRiding(rider);
   group.add(rider);
@@ -2781,6 +2743,8 @@ function buildBikeMesh(v) {
   } else if (v.model.share && !v.wrecked) {
     group.add(new THREE.Mesh(buildShareTintGeometry(toHex(v.model.tint, 0xff6a4d), wb, r), mats));
   }
+  // centraal LOD-systeem (lodkit3d.js): frame, wielen en krukken krijgen lichtere niveaus; de rijder (SkinnedMesh) blijft zoals hij is
+  makeLodObject('vehicle', 'fiets:' + stijl, group);
   return group;
 }
 
@@ -4079,11 +4043,7 @@ export const buildShipMesh = (v) => { const mesh = buildBoatMesh(v); retainCache
 // Stuurstang, stuurpen en handvatten van een fiets, step en brommer als eigen onderdeel: dichtbij vervangt
 // voertuigbediening.js de carrosseriegeometrie door de variant zonder stuur en tekent dit onderdeel draaiend
 // om de stuurpen. Geometrie wordt gedeeld (cached); px = de x van de stuurpen (het draaipunt).
-// Het midden van een handvat (bikeStuurOnderdelen): x, hoogte en halve breedte in de assen van de fiets; px = de stuuras.
-function bikeGrip(fat) {
-  const H1y = fat ? 0.82 : 0.93;
-  return { x: 0.13, y: H1y + 0.115, z: 0.28, px: 0.38 };
-}
+// Het midden van een handvat (bikeSteerParts): x, hoogte en halve breedte in de assen van de fiets; px = de stuuras.
 // Beide handen van de fietser op de handvatten, het stuur gedraaid over hoek a (rad, zoals stuurstang.rotation.y).
 export function bikeHands(rider, grip, a) {
   if (!rider || !grip) return;
@@ -4094,18 +4054,6 @@ export function bikeHands(rider, grip, a) {
   }
 }
 
-function bikeStuurOnderdelen(B, fat, px) {
-  const H1 = [0.4, fat ? 0.82 : 0.93, 0];
-  const stemTop = [H1[0] - 0.02, H1[1] + 0.14, 0];
-  const tube = (a, b, rr, c) => B.geo(tubeGeometry([a[0] - px, a[1], a[2]], [b[0] - px, b[1], b[2]], rr, rr, 5), null, c);
-  tube(H1, stemTop, 0.014, 0x8a8e92);
-  for (const s of [1, -1]) {
-    const grip = [stemTop[0] - 0.2, stemTop[1] - 0.02, s * 0.28];
-    tube(stemTop, [stemTop[0] - 0.02, stemTop[1], s * 0.12], 0.012, 0x8a8e92);
-    tube([stemTop[0] - 0.02, stemTop[1], s * 0.12], grip, 0.012, 0x8a8e92);
-    tube(grip, [grip[0] - 0.1, grip[1] - 0.01, grip[2]], 0.018, 0x1b1b1c);
-  }
-}
 function scooterStuurOnderdelen(B, px, color = null) {
   const tube = (a, b, r1, r2, sides, c) => B.geo(tubeGeometry([a[0] - px, a[1], a[2]], [b[0] - px, b[1], b[2]], r1, r2, sides), null, c);
   if (color !== null) tube([0.43, 0.1, 0], [0.37, 1.02, 0], 0.034, 0.028, 8, color);
@@ -4134,11 +4082,12 @@ export function stuurOverlay(spec) {
   const owner = spec.body && spec.body.parent;
   const hold = (g) => { retainCachedGeometry(owner, g); return g; };
   if (spec.soort === 'fiets') {
-    const px = 0.38;
+    const px = 0.38, o = spec.opts;
+    const sk = `${o.stijl}|${o.old ? 1 : 0}|${o.extra && o.extra.mand ? 'm' + o.extra.mandKleur : ''}`;
     return {
       px, sx: 1,
-      zonder: hold(buildBikeGeometry(spec.color, spec.fat, spec.stepThrough, spec.sleutel, true)),
-      stuur: hold(cached(`stuur|fiets|${spec.fat}`, () => { const B = new GeoBuilder(3); bikeStuurOnderdelen(B, spec.fat, px); return B.build(); })),
+      zonder: hold(buildBikeGeometry({ ...o, zonderStuur: true })),
+      stuur: hold(cached(`stuur|fiets|${sk}`, () => { const B = new GeoBuilder(3); bikeSteerParts(B, o, px); return B.build(); })),
     };
   }
   if (spec.soort === 'step') {
@@ -4205,6 +4154,7 @@ export function updateVehicleWheelSpin(mesh, speed, dt, steer = 0) {
     // de zwaai van dit beeld, voor een zitter van buiten dit model (coopzitten3d.js): zijn benen trappen mee (#434)
     ud.pedalSwing = sw;
   }
+  if (ud.crank) ud.crank.rotation.z = ud.pedalPhase || 0;
 }
 
 // Lekke band (#41): het wiel aan de trekkende kant wordt kleiner en zakt in; terug naar normaal na
