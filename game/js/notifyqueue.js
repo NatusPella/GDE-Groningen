@@ -18,7 +18,7 @@ import { noticeDuration, makeTimer, precedence } from './noticetiming.js';
 
 export const MAX_AGE_S = 20;
 export const MAX_WAITING = 4;      // meer dan dit wacht niet: het laagste vouwt samen tot "en N meer"
-export const SLOT_GRACE_S = 15;    // een slot met `until` valt na de duur plus dit vrij, ook als de bron nooit klaar meldt
+const SLOT_GRACE_S = 15;    // een slot met `until` valt na de duur plus dit vrij, ook als de bron nooit klaar meldt
 export const MAX_TOTAL = 12;       // harde bovengrens op de rij; boven dit valt het oudste van het laagste af (niet gevaar, politie, wanted, missie)
 export const MAX_COLLAPSE = 2;     // meer wachtende prestaties dan dit vouwen samen tot een samenvattingskaart
 export const MIN_GAP_S = 4;        // tussen twee meldingen zit minstens dit (gevaar, politie, wanted en missie slaan het over)
@@ -82,12 +82,18 @@ export const noticeHeld = (ignore = []) => noticeHeldBy(ignore).length > 0;
 export function ignoreFor(kind, extra = []) {
   const def = KINDS[kind] || {};
   const out = [...extra];
-  if (def.urgent) out.push('dialogue');
-  if (def.mission) out.push('mission', 'dialogue');
+  if (def.urgent) out.push('dialogue', MISSIE_HOLD);
+  if (def.mission) out.push('mission', 'dialogue', MISSIE_HOLD);
   return out;
 }
 
 export const moreLabel = (n) => `en ${n} meer`;
+
+// 23-11 (akte 1 op eindniveau, beelden M01-M06): bij de start van M01 stond een tip over de voetbalclub naast de doelbalk. Zolang er een
+// missie loopt (missions.js registreert de hold), wachten meldingen die niet bij de missie horen: tips, hints, prestaties, telefoon,
+// ontdekkingen. Gevaar, politie, wanted, missie- en bijbaanmeldingen gaan door (ignoreFor), en een kaart die zelf bij de missie hoort
+// (spec.missie: de regelkaart, een missietip) ook (hudcards.js geeft dan ignore mee). Tips vervallen (soft); prestaties wachten.
+export const MISSIE_HOLD = 'missie-actief';
 
 // opties: held(ignore) => namen die vasthouden (standaard het register), maxAge (s), maxWaiting.
 export function createNoticeQueue({ held = noticeHeldBy, maxAge = MAX_AGE_S, maxWaiting = MAX_WAITING, maxTotal = MAX_TOTAL, minGap = MIN_GAP_S, maxCollapse = MAX_COLLAPSE } = {}) {

@@ -5,6 +5,7 @@ import { resolveElevWalls } from './elevation.js';
 import { resolveBuildingCollisions, findExitSpot, stopVehicle, EXIT_RIGHT_FIRST, swimDepth, findClimbSpot, SWIM_SPEED, CLIMB_TIME, GRAVITY } from './player.js';
 import { findProps } from './breakables.js';
 import { pushCircleOutOfVehicle } from './vehicle.js';
+import { aanrijdingTelt, spelerAchterStuur } from './metgezelregels.js';
 import { doorsFor, deurVoorRol, DEUR_STAP, DEUR_BEREIK } from './vehicledoors.js';
 import { resolveRailings } from './bridgerails.js';
 import { waterClearance } from './waterindex.js';
@@ -36,7 +37,6 @@ export function passengerDoorPoint(v) {
   const c = Math.cos(v.angle || 0), s = Math.sin(v.angle || 0);
   return { x: v.x + c * px - s * pz, y: v.y + s * px + c * pz };
 }
-const VEHICLE_HIT_SPEED = 4;
 const DEAD_DURATION = 5;
 const RADIUS = 0.35;
 const TELEPORT_DIST = 60;
@@ -882,9 +882,9 @@ function stepCompanion(dt, world) {
     if (v.isHeli && Math.abs((v.z || 0) - (c.gz || 0)) > 2) continue;
     const push = pushCircleOutOfVehicle(c.x, c.y, c.radius, v);
     if (!push) continue;
-    // parked, slow or wrecked: a solid body to walk around; a bike only
-    // shoves, like it does the player
-    if (v.wrecked || Math.abs(v.speed) < VEHICLE_HIT_SPEED || v.isBike || v.isScooter) {
+    // parked, slow or wrecked: a solid body to walk around; a bike only shoves, like it does the player. City traffic only shoves too:
+    // a hit counts when a player drives (metgezelregels.js; it used to kill her at a crossing or a mission start, 23-11)
+    if (!aanrijdingTelt(v, spelerAchterStuur(v, hoofdspeler(world).inVehicle))) {
       [c.x, c.y] = resolveBuildingCollisions(push.x, push.y, c.radius, world.map);
       continue;
     }

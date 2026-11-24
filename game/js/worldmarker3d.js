@@ -11,7 +11,7 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
 import { markerColors } from './a11y.js';
 import { NAV_ROL } from './navtarget.js';
 import { FLAGS } from './devflags.js';
-import { iconScale, iconLift, columnWidth, columnHeight, columnOpacity, discOpacity, glyphPulse, showLabel, labelText, columnNormalBlend, DAY_COLUMN_DARKEN, dayColumnOpacity } from './markerlook.js';
+import { iconY, iconScale, iconLift, columnWidth, columnHeight, columnOpacity, discOpacity, glyphPulse, showLabel, labelText, columnNormalBlend, DAY_COLUMN_DARKEN, dayColumnOpacity } from './markerlook.js';
 
 const MARKER_SOLID = FLAGS.marker === 'vorm';
 
@@ -232,7 +232,7 @@ export function updateWorldMarker3D(group, time) {
   if (markerCam) d = Math.hypot(markerCam.position.x - group.position.x, markerCam.position.z - group.position.z);
   // 1 up close, up to 4.5 far off: the apparent size stays about the same (markerlook.js)
   wm.top.scale.setScalar(iconScale(d));
-  wm.top.position.y = ICON_Y + iconLift(d) + Math.sin(time * 2.2) * 0.2;
+  wm.top.position.y = iconY(d) + iconLift(d) + Math.sin(time * 2.2) * 0.2; // markerlook.js: dichtbij lager, binnen de veilige rand
   wm.column.scale.x = wm.column.scale.z = columnWidth(d);
   const ch = columnHeight(d);
   wm.column.scale.y = ch / COLUMN_H;

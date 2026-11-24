@@ -36,11 +36,16 @@ export function makeFlatPlan() {
       door: { x: 1.7, z: Dd - 0.05 }, roof: { x: 0.08, z: 6.6 },
       companion: { x: 3.15, z: 3.98, seat: 0.46 },
     },
-    // furniture as solid boxes for walking [x0, z0, x1, z1]
+    // furniture as solid boxes for walking [x0, z0, x1, z1]; 23-11 (akte 1 op eindniveau, akte1sets.js FLAT_DRESSING): the wardrobes
+    // follow the real cupboards, and the chairs, the desk, the night stands and the plant in the hall became solid too
     solids: [
       [2.4, 3.35, 5.0, 4.55], [3.0, 2.1, 4.4, 2.9], [0.2, 0.2, 0.9, 0.9],
       [7.1, 0.2, 10.9, 0.9], [10.1, 1.2, 10.9, 2.0], [7.6, 2.9, 8.8, 3.9],
-      [6.1, 6.9, 7.1, 8.95], [7.3, 6.9, 8.3, 8.95], [3.85, 8.25, 5.55, 8.95], [10.3, 5.35, 10.95, 7.05],
+      [6.1, 6.9, 7.1, 8.95], [7.3, 6.9, 8.3, 8.95], [3.95, 8.3, 5.45, 8.95], [10.3, 5.5, 10.95, 6.9],
+      [7.15, 3.15, 7.7, 3.65], [8.7, 3.15, 9.25, 3.65], [9.1, 7.7, 10.7, 8.95], [5.48, 8.38, 6.02, 8.95], [8.38, 8.38, 8.92, 8.95],
+      [0.25, 8.15, 0.85, 8.75], [6.0, 0.25, 6.6, 0.85],
+      // the living room of two graduates (23-11): bookcase, desk with its chair, the moving boxes, the drying rack
+      [0.05, 2.85, 0.42, 3.75], [0.05, 0.95, 0.85, 2.55], [0.8, 1.55, 1.35, 2.05], [0.1, 4.38, 0.75, 5.02], [4.5, 0.2, 5.8, 0.9],
     ],
     // the places where you stand to use something (the E prompt)
     use: {

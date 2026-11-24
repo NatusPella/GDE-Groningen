@@ -337,7 +337,184 @@ function gitaar() {
   return B.build();
 }
 
-const MAKERS = { bank, afvalbak, fietsenrek: () => fietsenrek(4), bushokje, paaltje, autostoel, dashboard, vetvat, jerrycan, kraampje, ijscokar, gitaarkoffer, gitaar };
+// --- huisraad voor de ruimtes van akte 1 (23-11): wat de CC0-packs niet hebben ------------------------------------------------
+// De tv in de flat: een plat scherm met een smalle rand, een spiegelend vlak met een lichtere schuine streep, een voet met een hals,
+// een aan-lampje en twee luidsprekerroosters onderin. Voorkant +x, breedte langs z.
+function tv() {
+  const B = new GeoBuilder(1);
+  const W = 1.42, H = 0.82, Y = 0.12;
+  const bezel = 0x16181b, glass = 0x1d2733, glassHi = 0x34465a, foot = 0x2a2d31;
+  B.box(0, Y + H / 2, 0, 0.05, H, W, bezel);                                                    // romp
+  B.box(-0.03, Y + H / 2, 0, 0.03, H * 0.7, W * 0.6, 0x202326);                                // achterkant: dikker midden
+  B.box(0.027, Y + H / 2 + 0.015, 0, 0.006, H - 0.07, W - 0.05, glass);                        // scherm
+  for (let i = 0; i < 3; i++) B.box(0.031, Y + 0.25 + i * 0.12, -0.25 + i * 0.12, 0.004, 0.36, 0.05, glassHi, 0, 0.5, 0, 0); // weerspiegeling
+  B.box(0.03, Y + 0.025, 0.5, 0.004, 0.012, 0.012, 0xd84a3a);                                  // aan-lampje
+  for (const z of [-0.45, 0.45]) B.box(0.028, Y + 0.022, z, 0.004, 0.018, 0.24, 0x2c3036);     // luidsprekerroosters
+  B.box(-0.01, Y / 2 + 0.01, 0, 0.06, Y, 0.08, foot);                                          // hals
+  B.box(0, 0.008, 0, 0.26, 0.016, 0.42, foot);                                                 // voet
+  B.box(0.0, 0.018, 0, 0.22, 0.006, 0.38, 0x3a3e43);                                           // rand van de voet
+  return B.build();
+}
+
+// De frituurpan van Tammo en Tessa: rvs-bak met afgeronde hoeken (geschuinde randen), olie, twee manden met een zwarte greep,
+// een deksel met een venster dat schuin openstaat, een draaiknop en een rood lampje. Voorkant +x.
+function frituurpan() {
+  const B = new GeoBuilder(1);
+  const rvs = 0xb9bec4, rvsD = 0x8d9399, zwart = 0x1c1d20, olie = 0xd9a53a, olieD = 0xb8862a;
+  B.box(0, 0.13, 0, 0.36, 0.24, 0.42, rvs);                                                    // bak
+  for (const s of [-1, 1]) { B.box(s * 0.18, 0.13, 0, 0.02, 0.22, 0.4, rvsD); B.box(0, 0.13, s * 0.21, 0.34, 0.22, 0.02, rvsD); } // randen
+  B.box(0, 0.012, 0, 0.38, 0.024, 0.44, zwart);                                                // voetrand
+  B.box(0, 0.252, 0, 0.3, 0.006, 0.36, olie);                                                  // olie
+  for (const z of [-0.085, 0.085]) {
+    B.box(0, 0.245, z, 0.24, 0.02, 0.15, 0x9ea4aa);                                            // mand (rand boven de olie)
+    for (let i = 0; i < 4; i++) B.box(-0.09 + i * 0.06, 0.256, z, 0.006, 0.004, 0.14, olieD);  // gaas
+    B.box(0.2, 0.25, z, 0.1, 0.022, 0.03, zwart);                                              // greep naar voren
+  }
+  B.box(-0.17, 0.33, 0, 0.03, 0.16, 0.4, rvs, 0, 0, 0, 0.35);                                  // deksel schuin open
+  B.box(-0.15, 0.34, 0, 0.012, 0.09, 0.22, 0x3b4a55, 0, 0, 0, 0.35);                           // venster in het deksel
+  B.box(0.181, 0.1, 0.12, 0.012, 0.05, 0.05, zwart);                                           // draaiknop
+  B.box(0.185, 0.1, 0.12, 0.006, 0.012, 0.035, 0xe0e0e0);                                      // streep op de knop
+  B.box(0.182, 0.1, -0.12, 0.008, 0.018, 0.018, 0xd8402a);                                     // lampje
+  B.box(0.181, 0.18, 0, 0.006, 0.02, 0.3, rvsD);                                               // naad onder de rand
+  return B.build();
+}
+
+// Een oude buisradio op de vensterbank: houten kast met een gewelfd dak, een stoffen luidsprekerfront met lijsten, een groen
+// afstemvenster, twee knoppen, een messing bies en een antenne. Voorkant +x.
+function buisradio() {
+  const B = new GeoBuilder(1);
+  const hout = 0x6b4526, houtD = 0x4f321b, stof = 0xd8c7a0, stofD = 0xb8a57c, messing = 0xc9a24a;
+  B.box(0, 0.085, 0, 0.16, 0.15, 0.3, hout);                                                   // kast
+  B.geo(new THREE.CylinderGeometry(0.08, 0.08, 0.3, 10, 1, false, 0, Math.PI).rotateX(Math.PI / 2).rotateZ(-Math.PI / 2), composeMatrix(0, 0.16, 0), hout); // gewelfd dak
+  B.box(0, 0.006, 0, 0.17, 0.012, 0.31, houtD);                                                // plint
+  B.box(0.081, 0.09, -0.06, 0.004, 0.12, 0.15, stof);                                          // luidsprekerstof
+  for (let i = 0; i < 6; i++) B.box(0.084, 0.04 + i * 0.02, -0.06, 0.003, 0.004, 0.15, stofD); // lijsten
+  B.box(0.082, 0.14, -0.06, 0.004, 0.006, 0.17, messing);                                      // bies
+  B.box(0.082, 0.12, 0.08, 0.004, 0.04, 0.1, 0x3fc97a);                                        // afstemvenster
+  B.box(0.083, 0.12, 0.08, 0.003, 0.03, 0.003, 0xc83a2a);                                      // naald
+  for (const z of [0.05, 0.11]) B.geo(new THREE.CylinderGeometry(0.016, 0.016, 0.02, 8).rotateZ(Math.PI / 2), composeMatrix(0.09, 0.055, z), houtD); // knoppen
+  B.geo(tubeGeometry([-0.04, 0.2, -0.1], [-0.08, 0.36, -0.14], 0.004), null, 0x9aa0a6);       // antenne
+  return B.build();
+}
+
+// Een vast pseudo-toeval (dezelfde kast is elke keer dezelfde kast).
+const seeded = (s) => () => { s = (s * 16807) % 2147483647; return s / 2147483647; };
+
+// Een boekenkast van twee net-afgestudeerden: grenen, vier planken, rijen boeken van wisselende hoogte en kleur (een paar scheef),
+// een doos en een plantje bovenop, een stapel tijdschriften onderin. Voorkant +x, breedte langs z.
+function boekenkast() {
+  const B = new GeoBuilder(1);
+  const hout = 0xc9a06a, houtD = 0xa9824f, W = 0.9, D = 0.3, H = 1.8;
+  const rnd = seeded(11);
+  for (const s of [-1, 1]) B.box(0, H / 2, s * (W / 2 - 0.01), D, H, 0.02, hout);         // zijkanten
+  B.box(-D / 2 + 0.005, H / 2, 0, 0.01, H, W, houtD);                                          // achterwand
+  const planken = [0.05, 0.47, 0.89, 1.31, 1.78];
+  for (const y of planken) B.box(0, y, 0, D, 0.025, W - 0.02, hout);
+  B.box(D / 2 - 0.01, 0.025, 0, 0.02, 0.05, W - 0.02, houtD);                                  // plint
+  const kleuren = [0x8e2f2a, 0x2f4f7a, 0xd8b45a, 0x3f6b4a, 0xe8e2d2, 0x6b4a7a, 0xc4602c, 0x22262b, 0x9aa7b0];
+  for (let p = 0; p < 3; p++) {
+    let z = -W / 2 + 0.03;
+    const y0 = planken[p] + 0.0125, maxH = planken[p + 1] - planken[p] - 0.06;
+    while (z < W / 2 - 0.08) {
+      const t = 0.025 + rnd() * 0.035, h = maxH * (0.62 + rnd() * 0.36), c = kleuren[Math.floor(rnd() * kleuren.length)];
+      if (rnd() < 0.08 && z > -W / 2 + 0.2) { B.box(0.02, y0 + h * 0.45, z + 0.05, D * 0.75, t, h, c, 0, 0.35, 0, 0); z += h * 0.6; continue; } // een liggend boek
+      B.box(0.01, y0 + h / 2, z + t / 2, D * 0.75, h, t, c);
+      B.box(D * 0.38 + 0.012, y0 + h * 0.72, z + t / 2, 0.003, 0.012, t * 0.8, 0xe8d9a8);      // titelstreepje op de rug
+      z += t + 0.003;
+      if (rnd() < 0.12) z += 0.06;                                                              // een gat in de rij
+    }
+  }
+  B.box(0.02, planken[3] + 0.13, -0.2, 0.24, 0.24, 0.3, 0xb98d56);                              // een doos op de bovenste plank
+  B.box(0.02, planken[3] + 0.255, -0.2, 0.25, 0.012, 0.08, 0xe8d3a8);
+  B.geo(new THREE.CylinderGeometry(0.06, 0.05, 0.11, 8), composeMatrix(0.03, planken[4] + 0.068, 0.25), 0xb8653a); // potje bovenop
+  B.geo(new THREE.IcosahedronGeometry(0.1, 0), composeMatrix(0.03, planken[4] + 0.2, 0.25), 0x4f8a40);
+  for (let i = 0; i < 4; i++) B.box(0.0, planken[0] + 0.02 + i * 0.012, 0.2, 0.22, 0.01, 0.28, [0xe8e2d2, 0xc4402c, 0x2f6fb0, 0xf2c94c][i]); // tijdschriften
+  return B.build();
+}
+
+// Een vouwbaar droogrek met was: twee schuine poten per kant, zes stangen, handdoeken en shirts over de stangen. Voorkant +x, lengte langs z.
+function droogrek() {
+  const B = new GeoBuilder(1);
+  const staal = 0xd9dcde, L = 1.2;
+  for (const s of [-1, 1]) {
+    B.geo(tubeGeometry([-0.32, 0, s * L / 2], [0.0, 0.9, s * L / 2], 0.012), null, staal);
+    B.geo(tubeGeometry([0.32, 0, s * L / 2], [0.0, 0.9, s * L / 2], 0.012), null, staal);
+  }
+  const stangen = [[-0.2, 0.55], [-0.1, 0.72], [0, 0.9], [0.1, 0.72], [0.2, 0.55]];
+  for (const [x, y] of stangen) B.geo(tubeGeometry([x, y, -L / 2], [x, y, L / 2], 0.008), null, staal);
+  B.geo(tubeGeometry([-0.31, 0.12, -L / 2], [-0.31, 0.12, L / 2], 0.008), null, staal);
+  B.geo(tubeGeometry([0.31, 0.12, -L / 2], [0.31, 0.12, L / 2], 0.008), null, staal);
+  // de was: een handdoek, twee shirts, sokken
+  B.box(-0.2, 0.36, -0.3, 0.012, 0.38, 0.42, 0xc4402c);
+  B.box(0.2, 0.33, 0.25, 0.012, 0.44, 0.5, 0x2f6fb0);
+  B.box(-0.1, 0.53, 0.25, 0.012, 0.38, 0.36, 0xe8e2d2);
+  B.box(0.1, 0.56, -0.25, 0.012, 0.32, 0.3, 0x3f6b4a);
+  for (const z of [0.0, 0.08, 0.16]) B.box(0.0, 0.8, z, 0.012, 0.18, 0.06, [0x22262b, 0xd8b45a, 0x22262b][Math.round(z / 0.08)]);
+  return B.build();
+}
+
+// Een stapel verhuisdozen die nog niet uitgepakt is: drie dozen, plakband, een etiket, handgrepen; de bovenste half open. Voorkant +x.
+function verhuisdozen() {
+  const B = new GeoBuilder(1);
+  const karton = 0xb98d56, kartonD = 0x9c7444, tape = 0xd9c8a0, gat = 0x3a2a1a;
+  const doos = (x, y, z, w, h, d, open = false) => {
+    B.box(x, y + h / 2, z, w, h, d, karton);
+    B.box(x, y + h + 0.002, z, w + 0.004, 0.004, 0.06, tape);                       // plakband over de naad
+    B.box(x + w / 2 + 0.002, y + h * 0.6, z, 0.003, 0.08, d * 0.45, 0xf2efe6);      // etiket
+    B.box(x + w / 2 + 0.003, y + h * 0.6, z, 0.003, 0.008, d * 0.35, 0x5b4a36);     // geschreven regel
+    for (const s of [-1, 1]) B.box(x, y + h * 0.75, z + s * (d / 2 + 0.002), w * 0.3, 0.035, 0.004, gat); // handgrepen
+    if (open) { B.box(x - w / 2 - 0.08, y + h + 0.06, z, 0.16, 0.012, d, kartonD, 0, 0, 0, 0.9); B.box(x + w / 2 + 0.08, y + h + 0.06, z, 0.16, 0.012, d, kartonD, 0, 0, 0, -0.9); }
+  };
+  doos(0, 0, 0, 0.5, 0.4, 0.6);
+  doos(0.02, 0.4, 0.03, 0.44, 0.34, 0.5);
+  doos(-0.03, 0.74, -0.02, 0.36, 0.3, 0.42, true);
+  return B.build();
+}
+
+// Een ingelijste print (verzonnen illustratie: een toren in een avondlucht boven daken): lijst, passe-partout, vlakken. Dun langs x,
+// voorkant +x, onderkant op y = 0 (hangt aan een wand of leunt ergens tegen).
+function lijst() {
+  const B = new GeoBuilder(1);
+  const Wd = 0.42, H = 0.56;
+  B.box(0, H / 2, 0, 0.025, H, Wd, 0x2a2622);                                                   // lijst
+  B.box(0.013, H / 2, 0, 0.004, H - 0.05, Wd - 0.05, 0xf2efe6);                                 // passe-partout
+  B.box(0.016, H / 2 + 0.03, 0, 0.004, H - 0.17, Wd - 0.13, 0xe9a35a);                          // avondlucht
+  B.box(0.017, H / 2 + 0.1, 0, 0.004, 0.12, Wd - 0.13, 0xd8645a);                               // band van de zon
+  B.box(0.018, 0.2, -0.06, 0.004, 0.17, 0.035, 0x3a2a28);                                       // toren
+  B.box(0.018, 0.31, -0.06, 0.004, 0.06, 0.02, 0x3a2a28);
+  for (let i = 0; i < 4; i++) B.box(0.018, 0.12 + (i % 2) * 0.02, -0.12 + i * 0.07, 0.004, 0.06 + (i % 2) * 0.04, 0.06, 0x4a3a34); // daken
+  B.box(0.018, 0.36, 0.08, 0.004, 0.05, 0.05, 0xf6e6b8);                                        // zon
+  return B.build();
+}
+
+// Een poster met plakband (verzonnen ontwerp: drie vlakken en een fiets in lijnen, geen tekst). Dun langs x, voorkant +x, onderkant op 0.
+function poster() {
+  const B = new GeoBuilder(1);
+  const W = 0.5, H = 0.7;
+  B.box(0, H / 2, 0, 0.004, H, W, 0xf2ead8);
+  B.box(0.003, H * 0.64, -0.08, 0.003, 0.3, 0.26, 0x2f6fb0);
+  B.box(0.004, H * 0.5, 0.09, 0.003, 0.22, 0.22, 0xe8742a);
+  B.box(0.005, H * 0.3, 0, 0.003, 0.06, 0.38, 0x3f6b4a);
+  for (const z of [-0.1, 0.1]) B.geo(new THREE.TorusGeometry(0.06, 0.006, 4, 12).rotateY(Math.PI / 2), composeMatrix(0.006, H * 0.18, z), 0x22262b); // fietswielen
+  B.box(0.006, H * 0.2, 0, 0.002, 0.006, 0.2, 0x22262b);
+  for (const [y, z] of [[H - 0.02, -W / 2 + 0.03], [H - 0.02, W / 2 - 0.03], [0.02, -W / 2 + 0.03], [0.02, W / 2 - 0.03]]) B.box(0.004, y, z, 0.003, 0.03, 0.05, 0xe8e0c4); // plakband
+  return B.build();
+}
+
+// Een laptop die openstaat: onderkant met toetsenbord en trackpad, scherm schuin achterover met een licht beeld. Voorkant +x.
+function laptop() {
+  const B = new GeoBuilder(1);
+  B.box(0, 0.009, 0, 0.23, 0.018, 0.33, 0x8f959b);                                              // onderkant
+  B.box(0.01, 0.0185, 0, 0.12, 0.002, 0.28, 0x2a2d31);                                           // toetsenbord
+  B.box(0.09, 0.0185, 0, 0.05, 0.002, 0.1, 0x6f757b);                                            // trackpad
+  B.box(-0.115, 0.11, 0, 0.012, 0.21, 0.33, 0x8f959b, 0, 0, 0, -0.25);                           // scherm, schuin
+  B.box(-0.108, 0.112, 0, 0.003, 0.18, 0.3, 0x9cc4dc, 0, 0, 0, -0.25);                           // het beeld
+  B.box(-0.112, 0.02, 0, 0.02, 0.012, 0.3, 0x55595e);                                              // scharnier
+  B.box(-0.137, 0.21, 0, 0.004, 0.008, 0.008, 0x111111, 0, 0, 0, -0.25);                          // camerapuntje
+  return B.build();
+}
+
+const MAKERS = { bank, afvalbak, fietsenrek: () => fietsenrek(4), bushokje, paaltje, autostoel, dashboard, vetvat, jerrycan, kraampje, ijscokar, gitaarkoffer, gitaar, tv, frituurpan, buisradio, boekenkast, droogrek, verhuisdozen, lijst, poster, laptop };
 // de props met lichtere LOD-niveaus (de opgave staat in propregister.js PROP_REGISTER[id].lod)
 const LOD_MAKERS = new Set(['vetvat', 'jerrycan']);
 const cache = new Map();

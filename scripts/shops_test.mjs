@@ -119,6 +119,16 @@ t('de hengelhoek staat in de Avondwinkel en aan de steiger, en een gast koopt er
   }
 });
 
+t('een inloopwinkel: de ingang (deur, toonbank) komt uit het interieur; een fout in de bron is geen ingang (spelbot 23-11, M05)', () => {
+  assert.equal(S.shopEntryOf({ x: 1, y: 2 }), null, 'zonder bron geen ingang');
+  S.setShopEntrySource((s) => ({ door: { x: s.x + 4, y: s.y }, counter: null, live: true, inside: false }));
+  assert.deepEqual(S.shopEntryOf({ x: 1, y: 2 }).door, { x: 5, y: 2 });
+  S.setShopEntrySource(() => { throw new Error('plan nog niet klaar'); });
+  assert.equal(S.shopEntryOf({ x: 1, y: 2 }), null, 'een fout in de bron is geen ingang');
+  S.setShopEntrySource(null);
+  assert.equal(S.SHOP_USE_RADIUS, 2.6, 'de straal van een gewone winkel blijft');
+});
+
 opnieuw();
 console.log(`shops_test: ${n - fails}/${n} ok`);
 process.exit(fails ? 1 : 0);

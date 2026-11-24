@@ -69,6 +69,7 @@
     "coopverhaal",
     "coopgroep",
     "groepwarp",
+    "metgezelregels",
     "stepdoel",
     "samenposten",
     "careerbeats*",
@@ -1960,6 +1961,10 @@
   {
    "glob": "monumentdecor",
    "reden": "Alleen beeld: elke client bouwt zijn eigen decor."
+  },
+  {
+   "glob": "flatgeluid",
+   "reden": "Alleen geluid (akte 1, #1306): de kamertoon en de koelkast in de flat, lokaal bij wie in de flat staat; niets over het net."
   },
   {
    "glob": "buildingfade",

@@ -1,6 +1,8 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { adoptSetLight } from './setlights.js';
 import { canvasTex as sharedCanvasTex } from './canvastex.js';
+import { interiorProp, registeredProp } from './interiorprops3d.js';
+import { KITCHEN_DRESSING, KITCHEN_ROOM, KITCHEN_HALL } from './akte1sets.js';
 
 // Tessa's kitchen in the Oosterparkwijk at dawn, for the opening of a new
 // game: a closed room staged high above the street (only its inside is ever
@@ -22,26 +24,63 @@ export const KITCHEN = {
 
 const canvasTex = (w, h, draw) => sharedCanvasTex(w, h, draw, { anisotropy: 4 });
 
-function wallTex() {
-  return canvasTex(256, 256, (g, w, h) => {
-    g.fillStyle = '#d9c8a6'; g.fillRect(0, 0, w, h);
-    g.fillStyle = 'rgba(150, 120, 80, 0.12)';
-    for (let x = 0; x < w; x += 32) g.fillRect(x, 0, 12, h);
-    const r = g.createLinearGradient(0, 0, 0, h);
-    r.addColorStop(0, 'rgba(40, 25, 10, 0.25)'); r.addColorStop(0.5, 'rgba(0, 0, 0, 0)'); r.addColorStop(1, 'rgba(40, 25, 10, 0.3)');
-    g.fillStyle = r; g.fillRect(0, 0, w, h);
-  });
-}
-
-function floorTex() {
+// gestuukte muur in gebroken wit: vlekkerig, geen strepen (23-11: de strepen lazen als behang uit een doos)
+function plasterTex(base = '#e6dcc8') {
   const t = canvasTex(256, 256, (g, w, h) => {
-    for (let i = 0; i < 8; i++) for (let j = 0; j < 8; j++) {
-      g.fillStyle = (i + j) % 2 ? '#8c7b62' : '#c9bb9c';
-      g.fillRect(i * 32, j * 32, 32, 32);
+    g.fillStyle = base; g.fillRect(0, 0, w, h);
+    let s = 7;
+    const rnd = () => { s = (s * 16807) % 2147483647; return s / 2147483647; };
+    for (let i = 0; i < 1400; i++) {
+      const a = 0.008 + rnd() * 0.014;
+      g.fillStyle = rnd() < 0.5 ? `rgba(120, 95, 60, ${a})` : `rgba(255, 250, 240, ${a * 1.5})`;
+      const r = 2 + rnd() * 9;
+      g.beginPath(); g.arc(rnd() * w, rnd() * h, r, 0, Math.PI * 2); g.fill();
     }
   });
   t.wrapS = t.wrapT = THREE.RepeatWrapping;
-  t.repeat.set(3, 3);
+  return t;
+}
+
+// zwart-wit geblokte vloer van een oude zolderkeuken, iets vergeeld, met voegen
+function floorTex() {
+  const t = canvasTex(256, 256, (g, w, h) => {
+    for (let i = 0; i < 8; i++) for (let j = 0; j < 8; j++) {
+      g.fillStyle = (i + j) % 2 ? '#5f5a52' : '#d8cfbd';
+      g.fillRect(i * 32, j * 32, 32, 32);
+    }
+    g.strokeStyle = 'rgba(40, 32, 24, 0.35)'; g.lineWidth = 1.5;
+    for (let i = 0; i <= 8; i++) { g.beginPath(); g.moveTo(i * 32, 0); g.lineTo(i * 32, h); g.stroke(); g.beginPath(); g.moveTo(0, i * 32); g.lineTo(w, i * 32); g.stroke(); }
+  });
+  t.wrapS = t.wrapT = THREE.RepeatWrapping;
+  t.repeat.set(3.3, 2.7);
+  return t;
+}
+
+// witte metrotegels achter het aanrecht
+function tileTex() {
+  const t = canvasTex(256, 128, (g, w, h) => {
+    g.fillStyle = '#b9b3a8'; g.fillRect(0, 0, w, h);
+    for (let r = 0; r < 8; r++) for (let c = -1; c < 9; c++) {
+      const x = c * 32 + (r % 2 ? 16 : 0), y = r * 16;
+      g.fillStyle = (r * 7 + c * 3) % 5 ? '#f1eee6' : '#e9e5da';
+      g.fillRect(x + 1, y + 1, 30, 14);
+    }
+  });
+  t.wrapS = t.wrapT = THREE.RepeatWrapping;
+  return t;
+}
+
+// houten planken in de gang
+function plankTex() {
+  const t = canvasTex(128, 256, (g, w, h) => {
+    for (let i = 0; i < 4; i++) {
+      g.fillStyle = ['#8a6a48', '#7d5f40', '#93714c', '#84653f'][i];
+      g.fillRect(i * 32, 0, 32, h);
+      g.fillStyle = 'rgba(40, 25, 10, 0.4)'; g.fillRect(i * 32, 0, 1.5, h);
+      g.fillRect(i * 32, (i * 97) % h, 32, 1.5);
+    }
+  });
+  t.wrapS = t.wrapT = THREE.RepeatWrapping;
   return t;
 }
 
@@ -67,29 +106,6 @@ function windowTex() {
       g.fillRect(x + rw * 0.7, top - 4, 7, 20);
       x += rw - 4;
     }
-  });
-}
-
-function hallTex() {
-  return canvasTex(64, 128, (g, w, h) => {
-    const r = g.createLinearGradient(0, 0, 0, h);
-    r.addColorStop(0, '#1c1612'); r.addColorStop(1, '#3a2c20');
-    g.fillStyle = r; g.fillRect(0, 0, w, h);
-  });
-}
-
-function radioTex() {
-  return canvasTex(256, 160, (g, w, h) => {
-    g.fillStyle = '#6b4526'; g.fillRect(0, 0, w, h);
-    g.fillStyle = '#d8c7a0'; g.fillRect(14, 14, 130, 132);
-    g.strokeStyle = '#6b5a3c'; g.lineWidth = 3;
-    for (let y = 22; y < 140; y += 9) { g.beginPath(); g.moveTo(18, y); g.lineTo(140, y); g.stroke(); }
-    g.fillStyle = '#20180f'; g.fillRect(156, 22, 86, 40);
-    g.fillStyle = '#3fc97a'; g.fillRect(160, 26, 78, 32);
-    g.fillStyle = '#0d2a18'; g.font = 'bold 15px Arial, sans-serif'; g.fillText('NACHT-', 168, 40); g.fillText('STREEK', 168, 55);
-    g.fillStyle = '#2a1c10';
-    g.beginPath(); g.arc(176, 110, 18, 0, Math.PI * 2); g.fill();
-    g.beginPath(); g.arc(222, 110, 18, 0, Math.PI * 2); g.fill();
   });
 }
 
@@ -142,89 +158,77 @@ export function buildKitchen(x, y, z) {
   const add = (geo, mat, u, h, v, parent = group) => { const m = new THREE.Mesh(geo, mat); m.position.set(u, h, v); parent.add(m); return m; };
   const box = (w, h, d, mat, u, hh, v, parent) => add(geoBox(w, h, d), mat, u, hh, v, parent);
 
-  // the room, seen from inside, and its floor
-  const wall = keep(wallTex());
-  const wallMat = keep(new THREE.MeshBasicMaterial({ map: wall, color: 0xd8c8b0 }));
-  // 23-11: the room is four walls and a ceiling, with a real opening for the door (the closed box drew its v = +1.8 wall in
-  // front of everything behind the door: Tammo walked in through the wall and came out of a black hole in pieces)
-  const panel = (w, h, u, hh, v, ry) => { const m = add(keep(new THREE.PlaneGeometry(w, h)), wallMat, u, hh, v); m.rotation.y = ry; return m; };
-  panel(3.6, 2.6, -2.2, 1.3, 0, Math.PI / 2);
-  panel(3.6, 2.6, 2.2, 1.3, 0, -Math.PI / 2);
-  panel(4.4, 2.6, 0, 1.3, -1.8, 0);
-  const D0 = KITCHEN.door.u - 0.45, D1 = KITCHEN.door.u + 0.45, DH = 2.06; // the doorway in the v = +1.8 wall
-  panel(D0 + 2.2, 2.6, (-2.2 + D0) / 2, 1.3, 1.8, Math.PI);
-  panel(2.2 - D1, 2.6, (D1 + 2.2) / 2, 1.3, 1.8, Math.PI);
-  panel(D1 - D0, 2.6 - DH, KITCHEN.door.u, (DH + 2.6) / 2, 1.8, Math.PI);
-  const ceil = add(keep(new THREE.PlaneGeometry(4.4, 3.6)), wallMat, 0, 2.6, 0);
+  // the room, seen from inside: plastered walls (lit, so the lamp and the dawn fall off across them), a ceiling, the tiled floor.
+  // The door wall has a real opening into the hall behind it (23-11: it used to be a black plane, VQA 23-11 #4).
+  const R = KITCHEN_ROOM, HL = KITCHEN_HALL, RH = R.h;
+  const plaster = keep(plasterTex()); plaster.repeat.set(2, 1.2);
+  const wallM = keep(new THREE.MeshStandardMaterial({ map: plaster, roughness: 0.95 }));
+  const ceilM = keep(new THREE.MeshStandardMaterial({ color: 0xf2ede2, roughness: 1 }));
+  // a wall piece from (u1, v1) to (u2, v2) between heights h0 and h1, facing into the room (normal: n = [nu, nv])
+  const wallPiece = (u1, v1, u2, v2, h0, h1, n, mat = wallM) => {
+    const len = Math.hypot(u2 - u1, v2 - v1);
+    const m = add(keep(new THREE.PlaneGeometry(len, h1 - h0)), mat, (u1 + u2) / 2, (h0 + h1) / 2, (v1 + v2) / 2);
+    m.rotation.y = Math.atan2(n[0], n[1]);
+    return m;
+  };
+  wallPiece(R.u0, R.v0, R.u1, R.v0, 0, RH, [0, 1]);              // the counter wall
+  wallPiece(R.u0, R.v0, R.u0, R.v1, 0, RH, [1, 0]);              // the window wall
+  wallPiece(R.u1, R.v0, R.u1, R.v1, 0, RH, [-1, 0]);             // the blind wall by the fridge
+  wallPiece(R.u0, R.v1, HL.u0, R.v1, 0, RH, [0, -1]);            // the door wall, left of the door
+  wallPiece(HL.u1, R.v1, R.u1, R.v1, 0, RH, [0, -1]);            // right of it
+  wallPiece(HL.u0, R.v1, HL.u1, R.v1, 2.14, RH, [0, -1]);        // above it
+  const ceil = add(keep(new THREE.PlaneGeometry(R.u1 - R.u0, R.v1 - R.v0)), ceilM, 0, RH, 0);
   ceil.rotation.x = Math.PI / 2;
-  // behind the door: a short lit hall (walls, floor, a coat rack, a lamp), so the open door shows a corridor and not a void
-  const hallW = 1.3, hallD = 2.2, hallMid = { u: KITCHEN.door.u, v: 1.8 + hallD / 2 };
-  add(geoBox(hallW, 2.5, hallD), keep(new THREE.MeshBasicMaterial({ color: 0xcdbb98, side: THREE.BackSide })), hallMid.u, 1.25, hallMid.v);
-  const hfl = add(keep(new THREE.PlaneGeometry(hallW - 0.02, hallD - 0.02)), keep(new THREE.MeshBasicMaterial({ color: 0x8a6f52 })), hallMid.u, 0.006, hallMid.v);
-  hfl.rotation.x = -Math.PI / 2;
-  add(geoBox(0.05, 0.05, 0.9), std(0x5a4030), hallMid.u + hallW / 2 - 0.08, 1.7, hallMid.v + 0.3);
-  add(geoBox(0.3, 0.75, 0.12), std(0x3c4f6b), hallMid.u + hallW / 2 - 0.12, 1.3, hallMid.v + 0.1);
-  add(geoBox(0.22, 0.05, 0.22), keep(new THREE.MeshBasicMaterial({ color: 0xfff1cc })), hallMid.u, 2.47, hallMid.v);
   const floor = keep(floorTex());
-  const fl = add(keep(new THREE.PlaneGeometry(4.38, 3.58)), keep(new THREE.MeshStandardMaterial({ map: floor, roughness: 0.9 })), 0, 0.005, 0);
+  const fl = add(keep(new THREE.PlaneGeometry(R.u1 - R.u0, R.v1 - R.v0)), keep(new THREE.MeshStandardMaterial({ map: floor, roughness: 0.85 })), 0, 0.002, 0);
   fl.rotation.x = -Math.PI / 2;
+  // skirting boards and the tiles behind the counter
+  const trim = std(0xe9e3d6);
+  box(R.u1 - R.u0, 0.08, 0.02, trim, 0, 0.04, R.v0 + 0.01);
+  box(0.02, 0.08, R.v1 - R.v0, trim, R.u0 + 0.01, 0.04, 0);
+  box(0.02, 0.08, R.v1 - R.v0, trim, R.u1 - 0.01, 0.04, 0);
+  const tiles = keep(tileTex()); tiles.repeat.set(3, 1.2);
+  wallPiece(-1.3, R.v0 + 0.004, 1.52, R.v0 + 0.004, 0.9, 1.5, [0, 1], keep(new THREE.MeshStandardMaterial({ map: tiles, roughness: 0.35 })));
 
-  // the window behind Tessa, its frame, the sill and the old radio
+  // the hall behind the door: plaster, planks, a lamp that is on and the door to the stairwell at its end
+  wallPiece(HL.u0, HL.v0, HL.u0, HL.v1, 0, RH, [1, 0]);
+  wallPiece(HL.u1, HL.v0, HL.u1, HL.v1, 0, RH, [-1, 0]);
+  wallPiece(HL.u0, HL.v1, HL.u1, HL.v1, 0, RH, [0, -1]);
+  const hc = add(keep(new THREE.PlaneGeometry(HL.u1 - HL.u0, HL.v1 - HL.v0)), ceilM, (HL.u0 + HL.u1) / 2, RH, (HL.v0 + HL.v1) / 2);
+  hc.rotation.x = Math.PI / 2;
+  const planks = keep(plankTex()); planks.repeat.set(1, 1.5);
+  const hf = add(keep(new THREE.PlaneGeometry(HL.u1 - HL.u0, HL.v1 - HL.v0)), keep(new THREE.MeshStandardMaterial({ map: planks, roughness: 0.8 })), (HL.u0 + HL.u1) / 2, 0.002, (HL.v0 + HL.v1) / 2);
+  hf.rotation.x = -Math.PI / 2;
+
+  // the furniture: registered props from the Quaternius packs (akte1sets.js KITCHEN_DRESSING), one LOD each
+  const hinge = new THREE.Group();
+  hinge.position.set(1.75, 0, 1.78);
+  const places = { deur: hinge, gang: group };
+  for (const e of KITCHEN_DRESSING) {
+    const p = interiorProp(e.id, { x: e.u, y: e.h, z: e.v, rot: e.rot, fit: e.fit, scale: e.scale, kleuren: e.kleuren });
+    (places[e.in] || group).add(p);
+  }
+
+  // the window behind Tessa: the dawn behind the frame, the sill and the old radio
   const win = keep(windowTex());
-  const wp = add(keep(new THREE.PlaneGeometry(1.5, 1.1)), keep(new THREE.MeshBasicMaterial({ map: win })), -2.19, 1.6, 0);
+  const wp = add(keep(new THREE.PlaneGeometry(1.56, 1.16)), keep(new THREE.MeshBasicMaterial({ map: win })), -2.195, 1.6, 0);
   wp.rotation.y = Math.PI / 2;
   const frame = std(0xece6da);
-  box(0.06, 1.2, 0.07, frame, -2.17, 1.6, 0);
-  box(0.06, 0.06, 1.6, frame, -2.17, 1.6, 0);
-  box(0.06, 1.22, 0.07, frame, -2.17, 1.6, -0.78);
-  box(0.06, 1.22, 0.07, frame, -2.17, 1.6, 0.78);
-  box(0.06, 0.07, 1.62, frame, -2.17, 2.18, 0);
-  box(0.28, 0.05, 1.7, frame, -2.07, 1.02, 0);
+  box(0.28, 0.05, 1.76, frame, -2.07, 0.985, 0);
   const radio = new THREE.Group();
   radio.position.set(KITCHEN.radio.u, KITCHEN.radio.h, KITCHEN.radio.v);
   group.add(radio);
-  const rt = keep(radioTex());
-  const wood = std(0x6b4526);
-  const front = keep(new THREE.MeshStandardMaterial({ map: rt, roughness: 0.7, emissive: 0x112211, emissiveMap: rt, emissiveIntensity: 0.6 }));
-  // +x face (towards the room) carries the front
-  add(geoBox(0.16, 0.18, 0.3), [front, wood, wood, wood, wood, wood], 0, 0, 0, radio);
-  box(0.01, 0.12, 0.01, std(0x222222), -0.02, 0.15, -0.1, radio).rotation.x = 0.4;
+  // the registered tube radio (propregister.js 'buisradio'), its front (+x) towards the room, standing on the sill
+  radio.add(registeredProp('buisradio', { y: -0.09 }));
 
-  // kitchen counter along the far wall, upper cupboards, a fridge
-  const counter = std(0x7c5a3a), top = std(0xcfc7b6), door = std(0x5d7d5a);
-  box(3.0, 0.88, 0.6, counter, 0.3, 0.44, -1.5);
-  box(3.04, 0.04, 0.64, top, 0.3, 0.9, -1.5);
-  for (let i = 0; i < 5; i++) box(0.56, 0.7, 0.02, door, -0.9 + i * 0.6, 0.45, -1.19);
-  for (let i = 0; i < 4; i++) box(0.68, 0.6, 0.34, door, -0.8 + i * 0.72, 1.95, -1.62);
-  box(0.7, 1.8, 0.65, std(0xe6e2d8, { roughness: 0.4 }), 1.75, 0.9, -1.45);
-  box(0.24, 0.3, 0.18, std(0x2a2a2a), -0.6, 1.07, -1.55);
-  box(0.1, 0.22, 0.1, std(0xb0b0b0, { metalness: 0.6, roughness: 0.3 }), 0.2, 1.03, -1.5);
-
-  // the door to the hall, standing open into the room
-  const hall = keep(hallTex());
-  const hp = add(keep(new THREE.PlaneGeometry(0.8, 2.0)), keep(new THREE.MeshBasicMaterial({ map: hall })), 1.3, 1.0, 1.8 + 2.2 - 0.02); // the next door, at the end of the hall
-  hp.rotation.y = Math.PI;
+  // the door frame (the leaf is the registered door in the hinge, see KITCHEN_DRESSING), standing open into the room
   const dframe = std(0xe9e3d6);
-  box(0.07, 2.12, 0.1, dframe, 0.82, 1.06, 1.77);
-  box(0.07, 2.12, 0.1, dframe, 1.78, 1.06, 1.77);
-  box(1.03, 0.08, 0.1, dframe, 1.3, 2.1, 1.77);
-  const hinge = new THREE.Group();
-  hinge.position.set(1.75, 0, 1.78);
+  box(0.07, 2.14, 0.12, dframe, HL.u0, 1.07, R.v1);
+  box(0.07, 2.14, 0.12, dframe, HL.u1, 1.07, R.v1);
+  box(HL.u1 - HL.u0 + 0.07, 0.08, 0.12, dframe, (HL.u0 + HL.u1) / 2, 2.14, R.v1);
   group.add(hinge);
-  const leaf = box(0.88, 2.02, 0.045, std(0x8a9a7a), -0.44, 1.02, 0, hinge);
-  box(0.05, 0.03, 0.12, std(0xc8c0a0, { metalness: 0.7, roughness: 0.3 }), -0.8, 1.0, 0, hinge);
   hinge.rotation.y = -1.25;
-
-  // the table and two chairs
-  const tableM = std(0xb08a5a), legM = std(0x5a4030);
-  box(1.3, 0.04, 0.86, tableM, 0, KITCHEN.tableH - 0.02, 0);
-  for (const su of [-0.6, 0.6]) for (const sv of [-0.38, 0.38]) box(0.05, KITCHEN.tableH - 0.04, 0.05, legM, su, (KITCHEN.tableH - 0.04) / 2, sv);
-  const chairM = std(0x3f6e4f);
-  for (const [s, side] of [[KITCHEN.anitaSeat, -1], [KITCHEN.tammoSeat, 1]]) {
-    box(0.44, 0.04, 0.44, chairM, s.u, KITCHEN.seatH - 0.02, s.v);
-    box(0.04, 0.5, 0.42, chairM, s.u + side * 0.21, KITCHEN.seatH + 0.25, s.v);
-    for (const du of [-0.19, 0.19]) for (const dv of [-0.19, 0.19]) box(0.035, KITCHEN.seatH - 0.04, 0.035, legM, s.u + du, (KITCHEN.seatH - 0.04) / 2, s.v + dv);
-  }
+  const leaf = hinge.children[0];
 
   // papers, the drawing, the phone
   const flat = (tex, w, d, u, v, rot) => {
@@ -261,19 +265,21 @@ export function buildKitchen(x, y, z) {
   for (const c of tableCups) { c.visible = false; group.add(c); }
   const handCups = [makeCup(), makeCup()];
 
-  // a lamp still on over the table, dawn through the window
-  box(0.01, 0.6, 0.01, std(0x222222), 0, 2.3, 0);
-  const shade = add(keep(new THREE.ConeGeometry(0.26, 0.2, 18, 1, true)), keep(new THREE.MeshStandardMaterial({ color: 0x1e9e56, side: THREE.DoubleSide, emissive: 0x0f3a20, emissiveIntensity: 0.5 })), 0, 1.98, 0);
-  shade.rotation.x = 0;
-  const lamp = adoptSetLight(new THREE.PointLight(0xffd6a0, 3.2, 6, 1.6));
-  lamp.position.set(0, 1.85, 0);
+  // light per room (23-11): the lamp still on over the table (warm), the dawn through the window (low, orange, from behind Tessa)
+  // and the hall lamp, so the open door shows a lit hall instead of a black hole. Three lamps borrowed from the night rig
+  // (setlights.js; 'middel' has three), plus a soft fill so no corner is black.
+  const lamp = adoptSetLight(new THREE.PointLight(0xffd29a, 3.4, 6, 1.6));
+  lamp.position.set(0, 1.95, 0);
   group.add(lamp);
-  const dawn = adoptSetLight(new THREE.PointLight(0xffb27a, 5, 7, 1.4));
-  dawn.position.set(-1.9, 1.7, 0.2);
+  const dawn = adoptSetLight(new THREE.PointLight(0xffb27a, 6, 7.5, 1.3));
+  dawn.position.set(-1.95, 1.75, 0.1);
   group.add(dawn);
-  group.add(new THREE.AmbientLight(0xffe6cc, 0.75));
+  const hallLamp = adoptSetLight(new THREE.PointLight(0xffe0b0, 2.4, 4.5, 1.6));
+  hallLamp.position.set(1.3, 2.1, 2.7);
+  group.add(hallLamp);
+  group.add(new THREE.AmbientLight(0xffe6cc, 0.55));
 
-  for (const o of group.children) { o.castShadow = false; o.receiveShadow = false; }
+  group.traverse((o) => { o.castShadow = false; o.receiveShadow = false; });
 
   // a world point in plan coordinates
   const kp = (u, v, h) => ({ x: x + u, y: y + v, z: z + h });

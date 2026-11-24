@@ -1,0 +1,42 @@
+{
+ "keuken-breed": {
+  "calls": 50,
+  "tris": 7066
+ },
+ "keuken-schouder": {
+  "calls": 44,
+  "tris": 6779
+ },
+ "keuken-aanrecht": {
+  "calls": 46,
+  "tris": 7050
+ },
+ "keuken-deur": {
+  "calls": 54,
+  "tris": 6565
+ },
+ "keuken-raam": {
+  "calls": 46,
+  "tris": 6314
+ },
+ "keuken-deurshot": {
+  "calls": 0,
+  "tris": 0
+ },
+ "flat-overzicht": {
+  "calls": 87,
+  "tris": 26699
+ },
+ "flat-woonkamer": {
+  "calls": 68,
+  "tris": 16350
+ },
+ "flat-keuken": {
+  "calls": 41,
+  "tris": 8883
+ },
+ "flat-slaapkamers": {
+  "calls": 50,
+  "tris": 13133
+ }
+}

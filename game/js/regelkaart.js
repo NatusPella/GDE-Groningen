@@ -83,7 +83,7 @@ function doelSpec(staat) {
   const titel = kaart.doel || 'Regel';
   const body = [kaart.doel ? `Doel: ${kaart.doel}` : '', ...regels].filter(Boolean).join(' ');
   return {
-    kind: 'tip', kicker: 'Doel', title: titel, body,
+    kind: 'tip', missie: true, kicker: 'Doel', title: titel, body,
     bodyHtml: regels.map((r) => esc(r)).join('<br>') || esc(body),
     duration: DUUR_DOEL, key: `regelkaart-${id}-doel`, voice: false, important: true,
   };
@@ -92,7 +92,7 @@ function doelSpec(staat) {
 function regelSpec(staat, i) {
   const r = staat.kaart.regels[i];
   return {
-    kind: 'tip', kicker: 'Regel', title: r.label || staat.kaart.doel || 'Regel', body: r.zin,
+    kind: 'tip', missie: true, kicker: 'Regel', title: r.label || staat.kaart.doel || 'Regel', body: r.zin,
     bodyHtml: `<span class="rw-kaartregel">${iconSvg(ICONEN[r.icoon] ? r.icoon : STANDAARD_ICOON[r.type])} ${esc(r.zin)}</span>`,
     duration: r.duur, key: `regelkaart-${staat.id}-${i}`, voice: false, important: true,
   };

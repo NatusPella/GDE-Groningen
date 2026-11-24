@@ -55,7 +55,9 @@ t('de stuntavond trekt geen punten meer af voor mensen, en de uitleg is kort', (
   assert.ok(!/HIT_COST|lastPedHitAt|iemand geraakt|Strafpunten|R\.score\s*=\s*Math\.max\(0, R\.score -/.test(s), 'geen aftrek meer');
   assert.ok(/onPropBreak\(/.test(s) && /stuntPunten\(/.test(s), 'losse dingen op het plein tellen mee');
   const h = bron('stunthud.js');
-  assert.ok(!/Iemand raken/.test(h) && /BRIEF_TIME = [1-6];/.test(h), 'korte uitleg');
+  // akte 1 (23-11): BRIEF_TIME komt uit missiestart.js (INTRO_MAX_S, hoogstens 5 s), of staat er als getal
+  const intro = Number((/INTRO_MAX_S = (\d+)/.exec(bron('missiestart.js')) || [])[1]);
+  assert.ok(!/Iemand raken/.test(h) && (/BRIEF_TIME = [1-6];/.test(h) || (/BRIEF_TIME = INTRO_MAX_S;/.test(h) && intro >= 1 && intro <= 6)), 'korte uitleg');
   const brief = h.match(/e\.brief\.innerHTML = ([\s\S]*?);\n/)[1];
   const woorden = brief.replace(/\$\{[^}]*\}/g, ' x ').replace(/<[^>]*>/g, ' ').replace(/['"`+]/g, ' ').split(/\s+/).filter(Boolean).length;
   assert.ok(woorden <= 40, `de uitleg telt ${woorden} woorden`);

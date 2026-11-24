@@ -751,7 +751,9 @@ function buildShots(w, film = false) {
       s.kit.hinge.rotation.y = lerp(-0.25, -1.25, smooth(t / 0.7));
       stageK(r.tammo, door.u, lerp(KITCHEN.hallStart, door.v, smooth(t / 1.1)), -Math.PI / 2, { speed: t < 1.1 ? 0.9 : 0, pose: 'door', dt, t });
     },
-    cams: [[0, (u, t) => pose(K(door.u - 0.05, lerp(0.3, 0.55, u), 1.6), K(door.u, door.v, 1.56), 34, t, 0.004)]],
+    // framed on his head, not his chest (VQA 23-11 #2: the chin touched the top of the frame): eye height, 1,6 to 1,4 m away, with
+    // headroom for a 1,78 m Tammo (the Quaternius people) inside the letterbox
+    cams: [[0, (u, t) => pose(K(door.u - 0.05, lerp(0.02, 0.22, u), 1.66), K(door.u, door.v, 1.62), 34, t, 0.004)]],
   };
 
   // flash: a pigeon past the Groninger Museum

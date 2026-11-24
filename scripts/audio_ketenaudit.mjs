@@ -240,7 +240,8 @@ export function checkWerklet(file, src) {
 }
 
 // buffers: createBuffer alleen op bekende plekken (init); een nieuwe plek moet bewust erbij
-export const BUFFER_PLEKKEN = { 'game/js/audio.js': 1, 'game/js/sfx/dsp.js': 2, 'game/js/sfx/sky.js': 1 };
+// flatgeluid.js (akte 1, #1306): één ruisbuffer van 2 s, eenmalig in bouw() (G wordt één keer gebouwd)
+export const BUFFER_PLEKKEN = { 'game/js/audio.js': 1, 'game/js/sfx/dsp.js': 2, 'game/js/sfx/sky.js': 1, 'game/js/flatgeluid.js': 1 };
 export function checkBuffers(file, src) {
   const n = count(stripComments(src), /\.createBuffer\(/g);
   const toegestaan = BUFFER_PLEKKEN[file] || 0;

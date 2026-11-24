@@ -28,7 +28,9 @@ import {
   unmetRequirement, requirementMet, requirementPlace, isNight, setMissionProgress, getMissionProgress, missionDebug,
   activeMissionIndex, failActiveMission, rideFirst,
 } from './missions.js';
-import { getShopVisits, getShopsForRender, grantStoryItem } from './shops.js';
+import { getShopVisits, getShopsForRender, grantStoryItem, shopEntryOf } from './shops.js';
+import { shopSpot } from './shopentry.js';
+const DOOR_NEAR_M = 30; // m van de winkelmarker: dichterbij wijst de gids naar de deur van een inloopwinkel (binnen: naar de toonbank)
 import { getPigeonFlight, stopPigeonMode } from './pigeonmode.js';
 import { isHeliRunActive, abortHeliRun } from './helirun.js';
 import { jumpPrep, jumpSpot, openRond } from './storyjump.js';
@@ -421,13 +423,19 @@ function refreshGuide() {
     if ((need || far > RIDE_FIRST_M) && Math.hypot(ride.x - p.x, ride.y - p.y) < far + 40) { why = `Eerst naar ${ride.name}, dan: ${why}`; place = ride; }
   }
   const shopId = place && place.type && place.id ? place.id : null;
+  // a walk-in shop (shopentry.js): close by the guide points at its door, inside at its counter (spelbot 23-11, M05 Trap & Toeter: the guide
+  // stood on the marker, where E did nothing); the prompt at the marker and the 10 s fallback (shops.js) make sure the purchase always works
+  if (shopId) {
+    const e = shopEntryOf(place), p = hoofdspeler(world);
+    if (e && (e.inside || Math.hypot(place.x - p.x, place.y - p.y) < DOOR_NEAR_M)) { const at = shopSpot(place, e); place = { ...place, x: at.x, y: at.y }; }
+  }
   // a choice (r-trein): the route goes to the nearest option, the others are named
   let alt = '';
   if (step.kind === 'activity' && step.goal.type === 'hideout' && place) {
     why = `Onderduiken: ${place.name.charAt(0).toLowerCase()}${place.name.slice(1)}`;
     alt = hideoutChoices(step).filter((c) => c.id !== place.id).map((c) => c.short).join(' of ');
   }
-  world.storyGuide = place ? { x: place.x, y: place.y, name: why, step: step.id, shopId, buy: !!shopId && isPurchase(step, rt.gate), alt } : null;
+  world.storyGuide = place ? { x: place.x, y: place.y, name: why, step: step.id, goal: step.goal ? step.goal.type : null, shopId, buy: !!shopId && isPurchase(step, rt.gate), alt } : null; // goal: het soort doel (de spelbot herkent er een thuisstap aan)
 }
 
 function isPurchase(step, gate) {
@@ -1344,7 +1352,11 @@ export function getStorySave() {
 // De stand voor de gedeelde poort (unlockgate.js): alleen de eigen voortgang van deze speler. Een gast heeft zijn eigen.
 export function storyGateProgress() {
   const c = currentStep();
-  return progressFrom({ stepId: c && !c.end ? c.id : null, ended: !!(c && c.end && c.finale), gate: state.gate, begun: (id) => isLoopbaanGestart(id) });
+  // een verhaal waar nog niets in gedaan is, is een nieuw spel: alles dicht tot het verhaal het opent (besluit eigenaar: het verhaal opent alles).
+  // Zonder dit gold 'geen poort = oude save = alles open' ook in de eerste seconden van een nieuw spel en bij een gast zonder eigen opening (24-11: de voetbaltip in akte 1).
+  // (alleen in akte 1: een oude save van voor 0.5.0 zonder verhaaldata leidt zijn stap af uit de missies en houdt daar zijn 'alles open'; wat een speler al begon, blijft open via begun)
+  const gate = state.gate || (state.done.size === 0 && (!c || c.part === 'kop') ? newGate() : undefined);
+  return progressFrom({ stepId: c && !c.end ? c.id : null, ended: !!(c && c.end && c.finale), gate, begun: (id) => isLoopbaanGestart(id) });
 }
 export const storyWorldOpen = (id) => worldOpen(id, storyGateProgress());
 export const storyGateHint = (id) => gateHint(id, storyGateProgress());
@@ -1477,7 +1489,7 @@ export function getStoryView() {
     done, total: avail.length,
   };
 }
-registerStoryQueries({ currentStep, storyFlag, getStoryView, getStorySteps, storyVoorschotInfo, prepareStoryShop, getStorySave, storyGateHint, storyWorldOpen });
+registerStoryQueries({ currentStep, storyFlag, getStoryView, getStorySteps, storyVoorschotInfo, prepareStoryShop, getStorySave, storyGateHint, storyWorldOpen, storyGateProgress });
 
 // Dev chapter select: rebuilds the progress, money and belongings a player
 // would have right before step `id` (worst case money from the timeline).
@@ -1506,6 +1518,9 @@ export function devJumpTo(id, opts = {}) {
     if (s.unlocks) state.flags.add(s.unlocks);
     for (const fl of milestoneFlagsFor(s.id)) state.flags.add(fl);
   }
+  // the gate a player has at this step (24-11): open what the story opened up to this act, the rest stays shut. Without it a jump had no gate,
+  // which counts as an old save with everything open: the football club's invite came in act 1 (spelbot --from=M05, QA images of a new game)
+  state.gate = stampGate(newGate(), progressFrom({ stepId: STEPS[k].id, gate: newGate() }));
   // a jump into Deel 4: the finale card of act 5 has played, or the gate (nextStoryStep) would send the story back to it
   if (PARTS[STEPS[k].part].after) state.cards.add(PARTS[STEPS[k].part].after);
   const completed = prior.filter((s) => s.kind === 'mission' && missionIdx(s) >= 0).map(missionIdx);
