@@ -1,4 +1,4 @@
-// De planning van de snackwagens in de wereld (Snackimperium, epic #1095, #1102): welke wagens (de jouwe, die van je medewerkers en die van Usmem Snacks) er nu in beeld zijn,
+// De planning van de snackwagens in de wereld (Snackimperium, epic #1095, #1102): welke wagens (de jouwe, die van je medewerkers en die van Us Mem Snacks) er nu in beeld zijn,
 // hoogstens MAX_WAGONS (de dichtstbijzijnde) binnen de streamstraal met hysterese, met kleur, bord, richting en verkoper. Puur en deterministisch: geen THREE, geen klok, geen Math.random
 // (snackvans3d.js tekent wat dit teruggeeft; scripts/snackvans3d_test.mjs).
 
@@ -10,7 +10,7 @@ export const SPAWN_R = 260, DESPAWN_R = 340;          // een wagen verschijnt bi
 export const MAX_WAGONS = 5;                           // hoogstens vijf tegelijk (de dichtstbijzijnde): geheugen en tekenwerk blijven klein
 export const PLAN_EVERY_S = 0.5;
 export const COLORS = { own: INK.homeBlue, fleet: INK.green, rival: INK.red };
-export const SIGNS = { own: 'TAM & TES', fleet: 'TAM & TES', rival: 'USMEM SNACKS' };
+export const SIGNS = { own: 'TAM & TES', fleet: 'TAM & TES', rival: 'US MEM SNACKS' };
 // De naam op de eigen wagen: de verhaal-lead kiest hem; standaard 'TAM & TES' (eigenaar 21-11). Alleen hoofdletters en spaties, hoogstens 18 tekens.
 export const setOwnSign = (t) => { const s = String(t || '').toUpperCase().replace(/[^A-Z0-9 \u00C0-\u017F'-]/g, '').trim().slice(0, 18); SIGNS.own = s || 'TAM & TES'; return SIGNS.own; };
 const SHIRTS = [0xe8c24a, 0xf4f1e6, 0x9bb8d3, 0xd98b5f];

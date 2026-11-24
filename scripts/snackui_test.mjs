@@ -1,4 +1,4 @@
-// Het tabblad Snackwagen (snackui.js): dicht met uitleg in plaats van een leeg scherm, open met wagen, menu, standplaatsen, Usmem, gebeurtenis en doelen; knoppen en bevestiging.
+// Het tabblad Snackwagen (snackui.js): dicht met uitleg in plaats van een leeg scherm, open met wagen, menu, standplaatsen, Us Mem, gebeurtenis en doelen; knoppen en bevestiging.
 // node scripts/snackui_test.mjs
 import assert from 'node:assert/strict';
 import * as L from '../game/js/bezitlive.js';
@@ -20,12 +20,12 @@ t('dicht: uitleg van Tessa, geen lege pagina en geen knoppen', () => {
   assert.match(h, /Nog dicht/); assert.match(h, /Tessa/); assert.ok(!/data-sn=/.test(h)); assert.match(h, /Jelle Terpstra/);
   GT.setGateProgress(null);
 });
-t('open zonder wagen: aanbod van een snackwagen met bevestiging, de zestien plekken, Usmem en de doelen', () => {
+t('open zonder wagen: aanbod van een snackwagen met bevestiging, de zestien plekken, Us Mem en de doelen', () => {
   reset(); const w = wereld();
   const h = U.snackHtml(SL.snackView(w));
   assert.match(h, /Je hebt nog geen snackwagen/); assert.match(h, /data-sn="koop-wagen"/);
   assert.equal((h.match(/data-spot="/g) || []).length, 16);
-  assert.match(h, /data-spot="markt" data-status="usmem"/); assert.match(h, /Neem over/); assert.match(h, /Usmem Snacks/);
+  assert.match(h, /data-spot="markt" data-status="usmem"/); assert.match(h, /Neem over/); assert.match(h, /Us Mem Snacks/);
   assert.equal((h.match(/data-goal="/g) || []).length, 13);
   assert.match(h, /Snackimperium/); assert.ok(!/Frietwagen/.test(h));
 });
@@ -91,7 +91,7 @@ t('Buurt en klanten: tevredenheid, goodwill, bondgenoten, vaste klanten met hulp
   reset(); const w = wereld(); SL.buyVan(w); SL.koopVergunning(w, 'park'); SL.placeVan('park');
   L.setClaimLookup((id) => (id === 'sp:leek' ? { name: 'lotte', color: '#c0c', playerId: 'B' } : null));
   let h = U.snackHtml(SL.snackView(w));
-  assert.match(h, /Buurt en klanten/); assert.match(h, /Tevreden klanten/); assert.match(h, /Reputatie van Usmem/); assert.match(h, /Nog geen bondgenoten/);
+  assert.match(h, /Buurt en klanten/); assert.match(h, /Tevreden klanten/); assert.match(h, /Reputatie van Us Mem/); assert.match(h, /Nog geen bondgenoten/);
   assert.match(h, /data-buurt="park"/); assert.match(h, /data-sn="help" data-id="park\|buurthuis" data-spot="park" data-kind="buurthuis"/);
   assert.match(h, /data-helper="leek"/); assert.match(h, /data-sn="meewerken" data-id="leek"/);
   U.sui.confirm = 'help:park|buurthuis'; h = U.snackHtml(SL.snackView(w)); assert.match(h, /bd-zeker/);
@@ -124,7 +124,7 @@ t('de tegel toont de reputatie onder dat woord, de prijs staat een keer per plek
   assert.ok(!/>Doel<\/button>/.test(h), 'Route in plaats van Doel');
   // #1249 (hertest 24-11): één regel uitleg per blok en een plaatje per standplaats
   assert.ok(!/Een vergunning duurt/.test(h) && /Vergunning: \d+ speldagen, verlengen kost een kwart\./.test(h), 'de standplaatsuitleg is één korte regel');
-  assert.ok(!/heeft \d+ standplaatsen, /.test(h), 'de standplaatsen van Usmem staan alleen in de tegel');
+  assert.ok(!/heeft \d+ standplaatsen, /.test(h), 'de standplaatsen van Us Mem staan alleen in de tegel');
   assert.equal((h.match(/class="sn-plek-ic"/g) || []).length, (h.match(/data-spot="/g) || []).length, 'elke standplaats heeft een pictogram');
   assert.equal(U.spotIcon({ name: 'Stationsplein, kant Hoofdstation' }), 'trein');
   assert.equal(U.spotIcon({ name: 'Hoek van de Grote Markt' }), 'winkel');

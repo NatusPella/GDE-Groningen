@@ -447,7 +447,8 @@ const draai = async () => {
     }
   }
   for (let i = 0; i < 240 && !ready(); i++) { if (!document.body.classList.contains('game-started') && i % 8 === 7) tap('Enter', 'Enter'); await sleep(1000); }
-  const skipper = setInterval(() => { if (cine.isCinematicActive()) cine.skipCinematic(); }, 100);
+  // het eigen camerabeeld (H.cam, id ht-view) niet wegklikken: anders vielen alle cameraschoten terug op de volgcamera (hertest 24-11: 919 en 1057)
+  const skipper = setInterval(() => { if (cine.isCinematicActive() && !cine.isCinematicActive('ht-view')) cine.skipCinematic(); }, 100);
   for (let i = 0; i < 40 && cine.isCinematicActive(); i++) await sleep(250);
   for (let k = 0; k < 8 && window.__debug.world.paused; k++) { tap(' ', 'Space'); await sleep(700); }
   await sleep(3000);

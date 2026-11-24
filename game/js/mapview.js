@@ -1898,7 +1898,7 @@ function drawDynamicMarkers(ctx, world) {
   state.koopVelden = koopView && koopView.mode === 'shapes' ? koopView.shapes : [];
   if (koopView && koopView.loading) ensureIndex().then(() => { state.dirty = true; }).catch(() => {});
   if (koopView) drawForSale(ctx, koopView, toScreen, state.zoom, state.hoverKoopId, state.card && state.card.h && state.card.h.bezit);
-  // Snackimperium (#1102): de kaartlaag Standplaatsen (pitchmap.js): vrij, van jou, van Usmem Snacks, van een medespeler
+  // Snackimperium (#1102): de kaartlaag Standplaatsen (pitchmap.js): vrij, van jou, van Us Mem Snacks, van een medespeler
   const standView = layerOn('standplaats') && snackOpen() ? pitchMarkerView(spotRows(), viewRect(), state.scale) : null;
   state.standMarkers = standView && standView.mode === 'markers' ? standView.markers : [];
   if (standView) drawPitchMarkers(ctx, standView, toScreen, state.zoom, null, state.card && state.card.h && state.card.h.standplaats);
@@ -3001,7 +3001,7 @@ function bezitActie(world, c, act) {
   showCard(world, c.h);
 }
 
-// Snackimperium (#1102): een vergunning kopen, een plek van Usmem Snacks overnemen of je wagen verplaatsen, steeds met een bevestiging.
+// Snackimperium (#1102): een vergunning kopen, een plek van Us Mem Snacks overnemen of je wagen verplaatsen, steeds met een bevestiging.
 function standActie(world, c, act) {
   const id = c.h.standplaats, row = spotRows().find((q) => q.id === id);
   if (act === 'sp-koop') { c.bezitStap = 'koop'; c.bezitMelding = ''; showCard(world, c.h); return; }
@@ -3068,7 +3068,7 @@ const LEGEND = [
     { kind: 'dorp', label: 'Ommeland', note: 'dorpsuitjes waar je in de buurt was, gevonden wereldeinden', layers: ['ommeland'] },
     { kind: 'perceel-koop', label: 'Percelen', note: 'akkers en weilanden: geel te koop, blauw te huur, groen van jou (met omtrek en hover); klik voor een doel', layers: ['percelen'] },
     { kind: 'perceel-koop', label: 'Te koop', note: 'percelen in de provincie: blauw met streeplijn en prijs is te koop, groen is van jou, een andere kleur van een medespeler, grijs met een slot is niet te koop; klik voor de perceelkaart met Koop', layers: ['tekoop'] },
-    { kind: 'perceel-koop', label: 'Standplaatsen', note: 'plekken voor de snackwagen: blauwe cirkel is vrij, groene schijf is van jou, rode ruit is van Usmem Snacks, een vierkant in een andere kleur is van een medespeler; klik voor het kaartje met de vergunning', layers: ['standplaats'] },
+    { kind: 'perceel-koop', label: 'Standplaatsen', note: 'plekken voor de snackwagen: blauwe cirkel is vrij, groene schijf is van jou, rode ruit is van Us Mem Snacks, een vierkant in een andere kleur is van een medespeler; klik voor het kaartje met de vergunning', layers: ['standplaats'] },
     { kind: 'perceel-eigen-rijp', label: 'Je velden', note: 'een letter per stand: B braak, S stoppel, P geploegd, Z zaailing, G groeit, O oogstklaar (groen met een vlag: dat is je doel; geel: het gewas groeit); T is een machine van jou, A een afnemer van je oogst', layers: ['percelen'] },
     { kind: 'perceel-eigen-rijp', label: 'Alleen oogstklaar', note: 'filter op Je velden: alleen wat nu te oogsten valt blijft staan, plus je machines en de afnemers; uit is alles zichtbaar', layers: ['oogstklaarAlleen'] },
     { kind: 'pg-jelle', label: 'Na het verhaal', note: 'Jelle\'s uitdagingen en de snackwagen', layers: ['postgame'] },

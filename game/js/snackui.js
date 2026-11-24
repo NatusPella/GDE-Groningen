@@ -1,5 +1,5 @@
 // Het tabblad Snackwagen in Land en bedrijf (Snackimperium, epic #1095, #1102): je wagen (menu, plek, uren, prijs, voorraad, upgrades), de standplaatsen met hun vergunning en
-// Usmem Snacks, je medewerkers-wagens, de gebeurtenis die wacht op een antwoord, de doelen en de eindscore. De HTML komt uit pure functies (scripts/snackui_test.mjs);
+// Us Mem Snacks, je medewerkers-wagens, de gebeurtenis die wacht op een antwoord, de doelen en de eindscore. De HTML komt uit pure functies (scripts/snackui_test.mjs);
 // renderSnackPanel zet hem in het paneel en bindt de knoppen. DS3-klassen van bezitui.js (m-bt, bd-rij, bz-tegel); een koop vraagt een tweede druk. Per speler (#429).
 
 import * as SL from './snacklive.js';
@@ -11,7 +11,7 @@ import { sectionCard, missReason, holdingButton } from './holdingcards.js';
 
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 export const sui = { msg: '', confirm: null };
-const STATUS_TEXT = { jij: 'van jou', usmem: 'van Usmem Snacks', medespeler: 'van een medespeler', vrij: 'vrij' };
+const STATUS_TEXT = { jij: 'van jou', usmem: 'van Us Mem Snacks', medespeler: 'van een medespeler', vrij: 'vrij' };
 // Kopen is de gele hoofdknop, de rest omlijnd: zonder eigen vorm leken ze lichtgrijze tekst of uitgeschakeld (#1248).
 const HOOFD = new Set(['koop-wagen', 'vergunning', 'neem-over']);
 // uit: true (slot) of een reden (slot en reden in de knop), zie holdingcards.js (#1272).
@@ -38,7 +38,7 @@ export function closedHtml(hint) {
 function eventHtml(v) {
   const p = v.pending;
   if (!p) return '';
-  const kinds = { storing: 'Storing aan de frituurpan', pech: 'Pechdag', recensie: 'Valse recensie', oorlog: 'Prijzenoorlog', overkoop: 'Verkoper weggekocht', bod: 'Bod van Usmem Snacks', vergunning: 'Gedoe met de vergunning' };
+  const kinds = { storing: 'Storing aan de frituurpan', pech: 'Pechdag', recensie: 'Valse recensie', oorlog: 'Prijzenoorlog', overkoop: 'Verkoper weggekocht', bod: 'Bod van Us Mem Snacks', vergunning: 'Gedoe met de vergunning' };
   const left = Math.max(0, p.deadline - v.day);
   return `<div class="bz-keten" data-event="${esc(p.kind)}"><h4 class="m-h3">${esc(kinds[p.kind] || 'Gebeurtenis')}</h4><p>${esc(p.text)}</p>` +
     `<p class="mut">Nog ${left + 1} ${left === 0 ? 'dag' : 'dagen'} om te antwoorden${p.kind === 'bod' || p.kind === 'overkoop' ? '' : '; zonder antwoord geldt het gevolg al'}.${p.kind === 'vergunning' ? ' Hoe sterker je buurt achter je staat, hoe groter je kans in beroep.' : ''}${p.kind === 'bod' ? ` Het bod is ${euro(p.price)}.` : ''}</p>` +
@@ -93,7 +93,7 @@ function spotsHtml(v) {
       acts += ' ' + askOr('vloot', s.id, `Extra wagen ${euro(v.wagonPrice)}`, `Voor ${euro(v.wagonPrice)} met een medewerker?`, '', why(v, v.wagonPrice, 'team') || (v.fleet.length >= SN.MAX_FLEET ? 'Je hebt al het maximum aan wagens' : false) || (v.fleet.length >= 1 && st(v, 'keten') ? 'Komt later in het verhaal' : false));
     }
     // #1249: een plaatje per standplaats (het pictogram van het soort plek)
-    return `<div class="bd-rij" data-spot="${esc(s.id)}" data-status="${s.status}"><span class="sn-plek-ic" aria-hidden="true">${icoon(spotIcon(s))}</span><span class="bd-naam"><b>${esc(s.name)}</b><span class="bd-feiten">${feiten}</span></span><span class="bd-acties">${acts}</span></div>`;
+    return `<div class="bd-rij" data-spot="${esc(s.id)}" data-status="${s.status}"><span class="sn-plek-ic" aria-hidden="true">${icoon(spotIcon(s), { maat: 'l' })}</span><span class="bd-naam"><b>${esc(s.name)}</b><span class="bd-feiten">${feiten}</span></span><span class="bd-acties">${acts}</span></div>`;
   }).join('');
   // #1249: de uitleg in één regel
   return sectionCard('standplaatsen', 'plek', 'Standplaatsen', `<p class="mut">Vergunning: ${PERMIT_DAYS} speldagen, verlengen kost een kwart.</p>${stNote(v, 'stek', 'standplaats', 'team', 'keten')}${rows}`,
@@ -119,7 +119,7 @@ export function neighbourhoodHtml(v) {
   const rows = g.spots.map((s) => `<div class="bd-rij" data-buurt="${esc(s.id)}"><span class="bd-naam"><b>${esc(s.short)}</b><span class="bd-feiten"><span>vaste klanten ${s.loyal} van ${s.cap}</span><span>${s.helped}x geholpen</span></span></span>` +
     `<span class="bd-acties">${s.help.map((h) => askOr('help', `${s.id}|${h.id}`, `${esc(h.label)} ${euro(h.cost)}${h.wait ? ` (over ${h.wait} d)` : ''}`, `Voor ${euro(h.cost)}?`, ` data-spot="${esc(s.id)}" data-kind="${esc(h.id)}"`, missReason(v.money, h.cost) || h.wait > 0)).join(' ')}</span></div>`).join('');
   const helpers = g.helpers.length ? `<h4 class="m-h3">Meewerken bij een medespeler</h4>` + g.helpers.map((h) => `<div class="bd-rij" data-helper="${esc(h.id)}"><span class="bd-naam"><b>${esc(h.short)}</b><span class="bd-feiten"><span>van ${esc((h.claim && h.claim.name) || 'een medespeler')}</span></span></span><span class="bd-acties">${btn('meewerken', 'Meewerken (6 uur)', ` data-id="${esc(h.id)}"`, h.done)}</span></div>`).join('') : '';
-  return sectionCard('buurt', 'handdruk', 'Buurt en klanten', `<div class="bz-tegels"><span class="bz-tegel"><small>Tevreden klanten</small><b>${g.sat}%</b></span><span class="bz-tegel"><small>Goodwill</small><b>${g.goodwill}</b></span><span class="bz-tegel"><small>Geschillen gewonnen</small><b>${g.disputes.won} van ${g.disputes.won + g.disputes.lost}</b></span><span class="bz-tegel"><small>Reputatie van Usmem</small><b>${v.rival.rep}</b></span></div>` +
+  return sectionCard('buurt', 'handdruk', 'Buurt en klanten', `<div class="bz-tegels"><span class="bz-tegel"><small>Tevreden klanten</small><b>${g.sat}%</b></span><span class="bz-tegel"><small>Goodwill</small><b>${g.goodwill}</b></span><span class="bz-tegel"><small>Geschillen gewonnen</small><b>${g.disputes.won} van ${g.disputes.won + g.disputes.lost}</b></span><span class="bz-tegel"><small>Reputatie van Us Mem</small><b>${v.rival.rep}</b></span></div>` +
     (v.reputatie && v.reputatie.line ? `<p class="mut">Op straat: "${esc(v.reputatie.line)}"${v.reputatie.jelle ? ` Jelle: "${esc(v.reputatie.jelle)}"` : ''} Rij bij je wagen: ${v.reputatie.queue} klanten.</p>` : '') +
     `<p class="mut">${allies}${g.disputes.bribesFailed ? ` Een omkoping van Jelle is ${g.disputes.bribesFailed}x mislukt.` : ''}</p>${rows || '<p class="mut">Zodra je een standplaats hebt, kun je de buurt helpen.</p>'}${helpers}`,
   { info: 'Jelle Terpstra speelt met formulieren, enveloppen en lage prijzen. Jij wint met oprechte interesse: tevreden klanten, vaste klanten en een buurt die je helpt omdat jij hen hielp.' });
@@ -128,9 +128,9 @@ export function neighbourhoodHtml(v) {
 export function snackHtml(v) {
   if (!v.open) return closedHtml(v.hint);
   // #1273: the tile is the reputation (0 to 100), not a name: it says what it is and "van 100", like the Snackimperium tile.
-  const tiles = [['Reputatie', `${Math.round(v.effRep)} van 100`], ['Snackimperium', `${v.score.score} van 100`], ['Standplaatsen', `${v.score.held} tegen ${v.rival.spots} van Usmem`], ['Wagens', v.score.wagons]].map(([k, x]) => `<span class="bz-tegel"><small>${k}</small><b>${x}</b></span>`).join('');
+  const tiles = [['Reputatie', `${Math.round(v.effRep)} van 100`], ['Snackimperium', `${v.score.score} van 100`], ['Standplaatsen', `${v.score.held} tegen ${v.rival.spots} van Us Mem`], ['Wagens', v.score.wagons]].map(([k, x]) => `<span class="bz-tegel"><small>${k}</small><b>${x}</b></span>`).join('');
   const goals = `<ul class="bz-lijst">${v.goals.map((g) => `<li data-goal="${g.id}" data-done="${g.done ? 1 : 0}">${g.done ? 'Klaar: ' : 'Nog niet: '}${esc(g.label)}</li>`).join('')}</ul>`;
-  const war = v.war ? `<p class="bz-zwak" data-kind="oorlog">Prijzenoorlog tot dag ${v.war.until}: Usmem Snacks verlaagt zijn prijzen met ${Math.round(v.war.depth * 100)}%${v.war.matched ? '; jij prijst mee.' : '.'}</p>` : '';
+  const war = v.war ? `<p class="bz-zwak" data-kind="oorlog">Prijzenoorlog tot dag ${v.war.until}: Us Mem Snacks verlaagt zijn prijzen met ${Math.round(v.war.depth * 100)}%${v.war.matched ? '; jij prijst mee.' : '.'}</p>` : '';
   return `<div class="pm-pane-top"><span class="m-eb">Land en bedrijf</span><h2 class="m-h2 td-h2">Snackwagen</h2></div><div class="bz-tegels">${tiles}</div>` +
     // #1249 (hertest 24-11): één korte regel; de standplaatsen staan al in de tegel
     `<p class="mut">${esc(v.rival.name)}: ${v.rival.pand} panden, keten niveau ${v.rival.chain}. Jouw aandeel ${Math.round(v.score.share * 100)}%.</p>${war}${eventHtml(v)}` +

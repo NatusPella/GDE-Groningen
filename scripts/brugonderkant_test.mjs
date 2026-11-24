@@ -37,7 +37,21 @@ R.abutmentDetail(laag, [0, -4], [0, 4], 1.6, 0, 0.8);
 ok(!laag.p.girder, 'een lage muur (onder 1,2 m) krijgt geen detail');
 const S2 = R.structureArrays({ cat: 'primary', width: 8, bridge: true, pts: [[0, 0], [20, 0], [40, 0]], z: [4, 4, 4] }, map);
 const g2 = R.structureGroup(map, S2);
-const gm = g2 && g2.children.find((c) => c.geometry && c.material && c.material.color && c.material.color.getHex() === 0xb6b2a8);
-ok(!!gm, 'de liggers hebben hun eigen lichtere beton');
+// hertest 24-11: in de schaduw onder het dek zag je de liggers niet (bijna dezelfde toon als de onderkant): ze zijn nu duidelijk donkerder
+const lum = (c) => c.r * 0.2126 + c.g * 0.7152 + c.b * 0.0722;
+const meshOf = (name) => g2 && g2.children.find((c) => c.geometry && c.geometry.attributes.position.count === S2.parts.find((p) => p.m === name).pos.length / 3);
+const gm = meshOf('girder'), sm = meshOf('soffit');
+ok(!!gm && !!sm && gm.material !== sm.material, 'de liggers hebben hun eigen beton');
+ok(gm && sm && lum(gm.material.emissive) < lum(sm.material.emissive) * 0.7 && lum(gm.material.color) < lum(sm.material.color) * 0.9, 'de liggers zijn duidelijk donkerder dan de onderkant (contrast in de schaduw)');
+// een ligger is van onderen dicht: er is een driehoek met een normaal naar beneden op de onderkant van de ligger
+const gp = S2.parts.find((p) => p.m === 'girder');
+let dicht = false;
+for (let i = 0; gp && i < gp.pos.length; i += 9) {
+  const y = [gp.pos[i + 1], gp.pos[i + 4], gp.pos[i + 7]];
+  const ux = gp.pos[i + 3] - gp.pos[i], uy = y[1] - y[0], uz = gp.pos[i + 5] - gp.pos[i + 2], vx = gp.pos[i + 6] - gp.pos[i], vy = y[2] - y[0], vz = gp.pos[i + 8] - gp.pos[i + 2];
+  const ny = uz * vx - ux * vz;
+  if (Math.max(...y) < 4 - 1 - 0.5 + 0.01 && ny < 0) dicht = true;
+}
+ok(dicht, 'de ligger heeft een onderkant die naar beneden kijkt');
 console.log(`${n - bad}/${n} ok`);
 process.exit(bad ? 1 : 0);

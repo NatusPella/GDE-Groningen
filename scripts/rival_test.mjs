@@ -1,4 +1,4 @@
-// De concurrent Usmem Snacks (rival.js): start, uitbreiden, overnames, bod, gebeurtenissen en afloop, deterministisch.   node scripts/rival_test.mjs
+// De concurrent Us Mem Snacks (rival.js): start, uitbreiden, overnames, bod, gebeurtenissen en afloop, deterministisch.   node scripts/rival_test.mjs
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import * as R from '../game/js/rival.js';
@@ -7,11 +7,11 @@ import { SPOT_IDS, permitPrice } from '../game/js/pitch.js';
 let n = 0, fails = 0;
 const t = (name, fn) => { n++; try { fn(); } catch (e) { fails++; console.log('FAIL', name, '\n  ', String(e.message).split('\n')[0]); } };
 
-t('Usmem begint met de beste plekken van de stad, drie panden en een kleine keten', () => {
+t('Us Mem begint met de beste plekken van de stad, drie panden en een kleine keten', () => {
   const r = R.newRival();
   assert.deepEqual(r.spots, ['markt', 'station', 'oosterpoort', 'stadion']);
   assert.equal(r.pand, 3); assert.equal(r.chain, 1);
-  assert.equal(R.RIVAL_NAME, 'Usmem Snacks'); assert.ok(R.holds(r, 'markt') && !R.holds(r, 'dorp'));
+  assert.equal(R.RIVAL_NAME, 'Us Mem Snacks'); assert.ok(R.holds(r, 'markt') && !R.holds(r, 'dorp'));
 });
 t('aandeel: jouw plekken tegenover de zijne', () => {
   const r = R.newRival();
@@ -61,7 +61,7 @@ t('een bod op je beste plek: elke 18 tot 25 dagen, 1,8 tot 2,2 maal de vergunnin
   assert.equal(R.offerOn(r, 40, [{ id: 'markt' }]), null);                            // die plek is van hem
   assert.equal(JSON.stringify(R.offerOn(r, 40, [{ id: 'park' }])), JSON.stringify(R.offerOn(r, 40, [{ id: 'park' }])));
 });
-t('kans op een gebeurtenis: begrensd, hoger bij een boze Usmem, lager met bescherming', () => {
+t('kans op een gebeurtenis: begrensd, hoger bij een boze Us Mem, lager met bescherming', () => {
   const r = R.newRival();
   assert.ok(R.eventChance({ ...r, mood: 100 }) > R.eventChance({ ...r, mood: 0 }));
   assert.ok(R.eventChance(r, { protect: 0.5 }) < R.eventChance(r, {}));

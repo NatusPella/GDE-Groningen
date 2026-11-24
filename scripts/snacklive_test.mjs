@@ -49,14 +49,14 @@ t('wagen kopen, vergunning, plaatsen: geld eraf, toestand in de opslag, een twee
   assert.equal(SL.koopVergunning(w, 'dorp').why, 'al-van-jou');
   assert.equal(SL.placeVan('dorp').ok, true);
   assert.equal(SL.buyVan(w).ok, true); assert.equal(w.money, 100000 - price - 7500);
-  assert.equal(SL.koopVergunning(w, 'markt').why, 'bezet');                 // Usmem heeft hem
+  assert.equal(SL.koopVergunning(w, 'markt').why, 'bezet');                 // Us Mem heeft hem
   assert.equal(SL.koopVergunning(wereld(10), 'park').why, 'te-weinig-geld');
   assert.equal(SL.placeVan('park').why, 'geen-vergunning');
   L.markeer(); L.flushBezit && L.flushBezit();
   const raw = JSON.parse(st.getItem(KEYS.bezit) || 'null');
   if (raw) assert.ok(raw.x && raw.x.snack && raw.x.snack.permits.dorp);
 });
-t('de view: zestien plekken met stand, prijs en Usmem; de score en de doelen', () => {
+t('de view: zestien plekken met stand, prijs en Us Mem; de score en de doelen', () => {
   reset(); const w = wereld(100000);
   SL.koopVergunning(w, 'park');
   const v = SL.snackView(w);
@@ -64,7 +64,7 @@ t('de view: zestien plekken met stand, prijs en Usmem; de score en de doelen', (
   assert.equal(v.spots.find((s) => s.id === 'park').status, 'jij'); assert.equal(v.spots.find((s) => s.id === 'markt').status, 'usmem');
   assert.ok(v.spots.find((s) => s.id === 'markt').ask > v.spots.find((s) => s.id === 'markt').price);
   assert.equal(v.spots.find((s) => s.id === 'dorp').status, 'vrij');
-  assert.ok(v.score.score >= 0 && v.goals.length === 13 && v.rival.name === 'Usmem Snacks' && v.menu.length === 8);
+  assert.ok(v.score.score >= 0 && v.goals.length === 13 && v.rival.name === 'Us Mem Snacks' && v.menu.length === 8);
   assert.equal(v.goals.find((g) => g.id === 'vergunning').done, true);
 });
 t('claims voor Samen spelen: een medespeler houdt de plek vast, jouw koop wordt gemeld en een vervallen vergunning geeft hem vrij', () => {
@@ -79,7 +79,7 @@ t('claims voor Samen spelen: een medespeler houdt de plek vast, jouw koop wordt 
   assert.ok(sent.some((m) => m.id === 'sp:dorp' && m.action === 'release'));
   L.setClaimLookup(null); L.setClaimSend(null);
 });
-t('de dagtik: de eigen wagen levert geld (met plafond), vergunningen kosten, de wagen slijt, Usmem breidt uit', () => {
+t('de dagtik: de eigen wagen levert geld (met plafond), vergunningen kosten, de wagen slijt, Us Mem breidt uit', () => {
   reset(); const w = wereld(200000, 50);
   SL.buyVan(w); SL.koopVergunning(w, 'park'); SL.placeVan('park');
   const S = L.snackState(); S.own.stockDays = 5; S.rival.lastEvent = 1e7; S.rival.lastOffer = 1e7;
@@ -129,7 +129,7 @@ t('upgrades, een grotere wagen, het menu en een antwoord op een gebeurtenis', ()
   const m = w.money; const a = SL.answerEvent(w, 'repareer'); assert.ok(a.ok); assert.equal(w.money, m - 350);
   assert.equal(SL.answerEvent(w, 'repareer').why, 'niets-te-doen');
 });
-t('overnemen van Usmem en een bod verkopen: geld en claim', () => {
+t('overnemen van Us Mem en een bod verkopen: geld en claim', () => {
   reset(); const w = wereld(500000, 50); const sent = []; L.setClaimSend((x) => sent.push(x));
   const r = SL.acquireRivalSpot(w, 'station'); assert.ok(r.ok && /overgenomen/.test(r.text));
   assert.ok(SP.permitHeld(L.snackState().permits, 'station', L.calToday()));
@@ -139,7 +139,7 @@ t('overnemen van Usmem en een bod verkopen: geld en claim', () => {
   assert.ok(sent.some((x) => x.id === 'sp:station' && x.action === 'release'));
   L.setClaimSend(null);
 });
-t('Samen spelen: een verloren claim op een standplaats geeft de vergunning terug en de wagen staat weer thuis; wagonSites toont jouw wagen en die van Usmem', () => {
+t('Samen spelen: een verloren claim op een standplaats geeft de vergunning terug en de wagen staat weer thuis; wagonSites toont jouw wagen en die van Us Mem', () => {
   reset(); const w = wereld(100000); SL.buyVan(w); SL.koopVergunning(w, 'dorp'); SL.placeVan('dorp');
   const sites = SL.wagonSites();
   assert.ok(sites.some((s) => s.kind === 'own' && s.spot === 'dorp') && sites.some((s) => s.kind === 'rival' && s.spot === 'markt') && !sites.some((s) => s.kind === 'rival' && s.spot === 'dorp'));

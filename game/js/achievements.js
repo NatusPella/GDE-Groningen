@@ -282,7 +282,7 @@ export const ACHIEVEMENTS = [
   { id: 'bz_streken', cat: 'bijbaan', title: 'Heel Grunn', desc: 'Bezit land in alle acht de streken van de provincie', stat: 'bzStreken', goal: 8 },
   { id: 'bz_snack_eerste', cat: 'bijbaan', title: 'Eerste standplaats', desc: 'Zet je snackwagen op een standplaats met een eigen vergunning' },
   { id: 'bz_snack_tien', cat: 'bijbaan', title: 'Tien standplaatsen', desc: 'Bezit tien standplaatsen tegelijk', stat: 'bzStandplaatsen', goal: 10 },
-  { id: 'bz_usmem', cat: 'bijbaan', title: 'Usmem overtroefd', desc: 'Neem acht standplaatsen en driekwart van alle plekken: Usmem Snacks is klein' },
+  { id: 'bz_usmem', cat: 'bijbaan', title: 'Us Mem overtroefd', desc: 'Neem acht standplaatsen en driekwart van alle plekken: Us Mem Snacks is klein' },
   { id: 'sj_alle', cat: 'bijbaan', title: 'Duizendpoot', desc: 'Rond bij alle zes bijbaantjes een klus af', set: 'sjJobs', goal: 6 },
   { id: 'sj_geld', cat: 'bijbaan', title: 'Eerlijk verdiend', desc: 'Verdien in totaal €5.000 met bijbaantjes', stat: 'sjEarned', goal: 5000, unit: '€' },
   { id: 'sj_bezorger', cat: 'bijbaan', title: 'Nog warm!', desc: 'Bezorg 8 bestellingen op rij in één dienst', stat: 'sj_bezorger_streak', goal: 8 },

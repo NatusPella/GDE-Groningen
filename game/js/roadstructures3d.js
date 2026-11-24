@@ -27,9 +27,10 @@ function mat(name) {
     // the underside of a deck or bridge gets no sun: a little self-light and a lighter tone, so it reads as
     // concrete in shade and not as a black slab (#1192, #919)
     soffit: { color: 0xa8a49b, roughness: 0.95, emissive: 0x4f4c46, emissiveIntensity: 1 },
-    // #1192 (hertest 24-11): de liggers onder het dek en de oplegbalk en ribben van een landhoofd: een iets lichter beton, zodat de onderkant
-    // en de wand geen egaal vlak meer zijn maar balken met licht en schaduw ertussen
-    girder: { color: 0xb6b2a8, roughness: 0.9, emissive: 0x45423c, emissiveIntensity: 1 },
+    // #1192 (hertest 24-11): de liggers onder het dek en de oplegbalk en ribben van een landhoofd. In de schaduw onder het dek
+    // waren liggers in bijna dezelfde toon als de onderkant onzichtbaar (egaal vlak); nu donkerder dan de lichte onderkant,
+    // zodat de balken als banen met schaduw ertussen lezen
+    girder: { color: 0x8a867d, roughness: 0.95, emissive: 0x24231f, emissiveIntensity: 1 },
     // the roof underside only gets the tunnel lights: a little self-light, or it reads as a black hole
     tunnel: { color: 0x8a867e, roughness: 0.9, emissive: 0x3b3934, emissiveIntensity: 1 },
     grass: { color: 0x5c8a4d, roughness: 1 },
@@ -64,6 +65,14 @@ class Buf {
     this.quad(m, A0t, B0t, B1t, A1t);
     this.quad(m, A0, A0t, A1t, A1);
     this.quad(m, B0, B1, B1t, B0t);
+  }
+  // #1192 (hertest 24-11): een balk die onder iets hangt (ligger, oplegbalk) wordt van onderen bekeken. wallBox heeft geen onderkant
+  // (een muur staat op de grond), zodat je door de ligger heen weer het egale vlak zag; beam sluit hem van onderen.
+  beam(m, ax, ay, bx, by, w, za0, za1, zb0, zb1) {
+    this.wallBox(m, ax, ay, bx, by, w, za0, za1, zb0, zb1);
+    const dx = bx - ax, dy = by - ay, l = Math.hypot(dx, dy) || 1;
+    const nx = -dy / l * w / 2, ny = dx / l * w / 2;
+    this.quad(m, [ax + nx, za0, ay + ny], [ax - nx, za0, ay - ny], [bx - nx, zb0, by - ny], [bx + nx, zb0, by + ny]);
   }
   post(m, x, y, w, z0, z1) { this.wallBox(m, x - w / 2, y, x + w / 2, y, w, z0, z1, z0, z1); }
   // the vertex range piece() adds to material m, to hide it again later
@@ -310,7 +319,7 @@ export function girderOffsets(hs) {
 // a, b: de uiteinden van de wand (grondpunten), w: de dikte, g: de voet, top: de bovenkant.
 export function abutmentDetail(B, a, b, w, g, top) {
   if (!(top - g > 1.2)) return;
-  B.wallBox('girder', a[0], a[1], b[0], b[1], w + 0.5, top - 0.45, top, top - 0.45, top);
+  (B.beam ? B.beam.bind(B) : B.wallBox.bind(B))('girder', a[0], a[1], b[0], b[1], w + 0.5, top - 0.45, top, top - 0.45, top);
   B.wallBox('girder', a[0], a[1], b[0], b[1], w + 0.3, g, g + 0.35, g, g + 0.35);
   const dx = b[0] - a[0], dy = b[1] - a[1], L = Math.hypot(dx, dy) || 1, ux = dx / L, uy = dy / L, nx = -uy, ny = ux;
   const n = Math.max(1, Math.floor(L / 2.6));
@@ -344,7 +353,7 @@ export function structureArrays(r, map) {
     // #1192: liggers onder het dek, in de lengte van de overspanning (een echt viaduct is een plaat op balken, geen plat vlak)
     for (const o of girderOffsets(hs)) {
       const ga = lerp2(edge(i, 1, o), edge(i + 1, 1, o), t0), gb = lerp2(edge(i, 1, o), edge(i + 1, 1, o), t1);
-      B.wallBox('girder', ga[0], ga[1], gb[0], gb[1], GIRDER_W, a0 - DECK_T - GIRDER_H, a0 - DECK_T + 0.01, b0 - DECK_T - GIRDER_H, b0 - DECK_T + 0.01);
+      B.beam('girder', ga[0], ga[1], gb[0], gb[1], GIRDER_W, a0 - DECK_T - GIRDER_H, a0 - DECK_T + 0.01, b0 - DECK_T - GIRDER_H, b0 - DECK_T + 0.01);
     }
   };
   const segOf = new Map();

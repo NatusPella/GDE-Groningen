@@ -40,7 +40,7 @@ t('aanklikken: het dichtstbijzijnde punt binnen 16 pixels, anders niets', () => 
   assert.equal(M.pickMarker(v.markers, m.x + 2000, m.y + 2000, 0.05), null);
   assert.equal(M.pickMarker(null, 0, 0, 0.05), null);
 });
-t('het kaartje: vrij vraagt een tweede druk met het bedrag, Usmem heeft overnemen, van jou zet de wagen, medespeler geen knoppen', () => {
+t('het kaartje: vrij vraagt een tweede druk met het bedrag, Us Mem heeft overnemen, van jou zet de wagen, medespeler geen knoppen', () => {
   const r = (id) => rows.find((x) => x.id === id);
   let h = C.spotCardHtml(r('leek'), { money: 1e6 });
   assert.match(h, /data-card="sp-koop"/); assert.match(h, /vergunning van 40 speldagen/);

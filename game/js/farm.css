@@ -79,8 +79,9 @@
 .bz-tegel-ic { width: var(--ds-s-4); height: var(--ds-s-4); }
 /* #1246: lege sectie met icoon en knop; het icoon in het midden van het rastervlak, de knop niet over de volle breedte */
 .bz-leeg { margin: var(--ds-s-3) 0; }
-.bz-leeg .ds-z-leeg__beeld { display: grid; place-items: center; }
-.bz-leeg-ic { width: var(--ds-s-6); height: var(--ds-s-6); }
+/* Hertest 24-11: geen gestippeld placeholdervak (las als kapot glyph) maar een rond vlak met een icoon van vaste maat. */
+.bz-leeg .ds-z-leeg__beeld.bz-leeg-beeld { display: grid; place-items: center; flex: none; width: var(--ds-s-8); height: var(--ds-s-8); min-height: 0; border: var(--ds-lijn-dik) solid var(--ds-c-ink-inkt); border-radius: var(--ds-r-pil); background: var(--ds-c-sel-vlak); }
+.bz-leeg-ic, .bz-leeg .bz-leeg-beeld > svg { width: var(--ds-s-6); height: var(--ds-s-6); max-width: var(--ds-s-6); max-height: var(--ds-s-6); flex: none; }
 .bz-leeg .ds-z-knop { align-self: center; }
 .bz-filters, .bz-bulk { display: flex; flex-wrap: wrap; align-items: center; gap: var(--ds-s-2) var(--ds-s-3); margin: var(--ds-s-3) 0; }
 .bz-sel { display: inline-flex; flex-direction: column; gap: var(--ds-s-1); color: var(--ds-tx-2); font-family: var(--ds-font-tekst); }

@@ -1,11 +1,11 @@
 // Het kaartje van een standplaats op de kaartlaag Standplaatsen (Snackimperium, epic #1095, #1102): naam, plaats, stand, druk, vergunning, wat het kost en de knoppen
-// (vergunning kopen, overnemen van Usmem Snacks, je wagen erheen, doel) met bevestiging. Puur: geeft HTML als tekst (DS3-klassen van kaartactieui.js: mv-acties, mv-actie,
+// (vergunning kopen, overnemen van Us Mem Snacks, je wagen erheen, doel) met bevestiging. Puur: geeft HTML als tekst (DS3-klassen van kaartactieui.js: mv-acties, mv-actie,
 // mv-note), geen DOM (scripts/pitchmap_test.mjs). De acties zijn data-card-waarden die mapview.js afhandelt: sp-koop, sp-ok, sp-annuleer, sp-zet.
 
 import { euro } from './geldtekst.js';
 
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
-const STATUS_LABEL = { jij: 'Van jou', usmem: 'Van Usmem Snacks', medespeler: 'Van een medespeler', vrij: 'Vrij' };
+const STATUS_LABEL = { jij: 'Van jou', usmem: 'Van Us Mem Snacks', medespeler: 'Van een medespeler', vrij: 'Vrij' };
 // een spatie tussen label en prijs: zonder staat er "Vergunning€450" in de tekst en voor een schermlezer (#1234)
 const act = (card, label, small) => `<button type="button" class="mv-actie" data-card="${card}"><span class="mv-at"><span class="mv-al">${label}</span> <small>${small}</small></span></button>`;
 // Drukte als woord: een getal met uitleg tussen haakjes was jargon (#1256)
@@ -25,7 +25,7 @@ export function spotCardHtml(row, { stap = null, melding = '', money = 0, hasWag
       buttons = `<div class="mv-acties" role="group" aria-label="Vergunning bevestigen"><p class="mv-note">${kan ? `Een vergunning voor ${euro(row.price)}? Je houdt ${euro(money - row.price)} over.` : `Je mist nog ${euro(row.price - money)}.`}</p>${act('sp-ok', 'Ja, koop', euro(row.price))}${act('sp-annuleer', 'Nee, laat maar', 'terug')}</div>`;
     } else buttons = `<div class="mv-acties" role="group" aria-label="Vergunning kopen">${act('sp-koop', 'Vergunning kopen', euro(row.price))}</div>`;
   } else if (row.status === 'usmem') {
-    top = `<p class="mv-note" data-spot="usmem">Usmem Snacks staat hier. Overnemen kost <b>${euro(row.ask)}</b>; Jelle Terpstra zal het niet leuk vinden.</p>`;
+    top = `<p class="mv-note" data-spot="usmem">Us Mem Snacks staat hier. Overnemen kost <b>${euro(row.ask)}</b>; Jelle Terpstra zal het niet leuk vinden.</p>`;
     if (stap === 'koop') {
       const kan = money >= row.ask;
       buttons = `<div class="mv-acties" role="group" aria-label="Overname bevestigen"><p class="mv-note">${kan ? `Overnemen voor ${euro(row.ask)}?` : `Je mist nog ${euro(row.ask - money)}.`}</p>${act('sp-ok', 'Ja, neem over', euro(row.ask))}${act('sp-annuleer', 'Nee, laat maar', 'terug')}</div>`;

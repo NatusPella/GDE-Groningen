@@ -64,7 +64,7 @@ import { noteMoney } from './finance.js';
 import { loopbaanLoon, loopbaanTel, loopbaanDeel } from './loopbaanlive.js';
 import { vakVanBaan } from './loopbaan.js';
 import { sfeerVan } from './carrieresfeer.js'; // #631: de sfeer van het vak bij de baan (naam in de kaart)
-import { jobLevel as niveauVanRondes, titelVanNiveau, rondeWaarde, sidejobProfiel } from './sidejobprofiel.js'; // #631/#667/#668
+import { jobLevel as niveauVanRondes, titelVanNiveau, rondeWaarde, sidejobProfiel, accentVast } from './sidejobprofiel.js'; // #631/#667/#668
 import { bewaakGastWereld, spelerBeeld } from './sidejobwereld.js';
 import { tempoBonus, tempoTekst, reeksNaTegenslag, aanrijdingReeksTekst } from './sidejobfeel.js'; // game feel 22-11: tempo bonus and a streak that survives bad luck
 import { hoofdspeler } from './spelersregister.js'; // de speler achter dit scherm doet de dienst (#446); een gast heeft zijn eigen wereldstaat (contexts, #492) en ziet die via coopbijbaan.js
@@ -918,6 +918,13 @@ function vulStand(p, c) {
 // --- 3D: start badges and the objective beacon ------------------------------------
 
 const padGeo = new THREE.CylinderGeometry(0.62, 0.62, 0.04, 6);
+// De kleur van een baan voor canvas en 3D: job.color is een CSS-accent (color-mix met var), dat een canvas en THREE.Color niet lezen.
+// Daardoor was het startvlak een witte zeshoek op straat (hertest 24-11, Vismarkt). Een gewone hex of rgb blijft zoals hij is.
+export function vasteKleur(job) {
+  const c = job && job.color;
+  if (typeof c === 'string' && /^(#[0-9a-f]{3,8}|rgba?\()/i.test(c.trim())) return c;
+  return accentVast(job && job.id) || '#3fc97a';
+}
 const badgeMats = new Map();
 
 function badgeTexture(job) {
@@ -927,9 +934,10 @@ function badgeTexture(job) {
   const g = c.getContext('2d');
   g.translate(S / 2, S / 2);
   hexPath(g, S / 2 - 6);
-  g.fillStyle = job.color; g.fill();
+  const kleur = vasteKleur(job);
+  g.fillStyle = kleur; g.fill();
   g.lineWidth = 7; g.strokeStyle = '#f2ede0'; g.stroke();
-  drawJobGlyph(g, job.glyph, 34, job.color);
+  drawJobGlyph(g, job.glyph, 34, kleur);
   const tex = new THREE.CanvasTexture(c);
   tex.colorSpace = THREE.SRGBColorSpace;
   tex.anisotropy = 4;
@@ -941,7 +949,7 @@ function buildBadge3D(job, x, y) {
   if (!m) {
     m = {
       sprite: new THREE.SpriteMaterial({ map: badgeTexture(job), transparent: true, depthWrite: false, fog: true }),
-      pad: new THREE.MeshLambertMaterial({ color: new THREE.Color(job.color), transparent: true, opacity: 0.85 }),
+      pad: new THREE.MeshLambertMaterial({ color: new THREE.Color(vasteKleur(job)), transparent: true, opacity: 0.85 }),
     };
     badgeMats.set(job.id, m);
   }
@@ -1276,12 +1284,12 @@ export function drawSideJobMapIcon(ctx2, kind, s, opts = {}) {
   }
   const job = BY_ID.get(kind.slice(3)) || SIDE_JOBS[0];
   hexPath(ctx2, 5 * s);
-  ctx2.fillStyle = job.color;
+  ctx2.fillStyle = vasteKleur(job);
   ctx2.fill();
   ctx2.lineWidth = 1.2 * s;
   ctx2.strokeStyle = '#0c140e';
   ctx2.stroke();
-  drawJobGlyph(ctx2, job.glyph, 3.3 * s, job.color);
+  drawJobGlyph(ctx2, job.glyph, 3.3 * s, vasteKleur(job));
 }
 
 // --- save -------------------------------------------------------------------------

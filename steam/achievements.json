@@ -1659,8 +1659,8 @@
     },
     {
       "id": "bz_usmem",
-      "titel": "Usmem overtroefd",
-      "omschrijving": "Neem acht standplaatsen en driekwart van alle plekken: Usmem Snacks is klein",
+      "titel": "Us Mem overtroefd",
+      "omschrijving": "Neem acht standplaatsen en driekwart van alle plekken: Us Mem Snacks is klein",
       "verborgen": false,
       "voorstelApiNaam": "ACH_BZ_USMEM",
       "steamApiNaam": ""

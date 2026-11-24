@@ -43,7 +43,10 @@ const HOOFD = new Set(['koop-pand', 'koop-perceel', 'koop-mobiel', 'huur']);
 const btn = (act, text, extra = '', uit = false) => holdingButton('data-bz', act, text, extra, uit, HOOFD.has(act));
 // Een lege sectie (#1246): icoon, korte kop, één zin en zo mogelijk een knop naar de volgende stap, in plaats van een lap uitleg.
 // knop: [sectie:onderdeel, tekst] gaat via data-goto-sub van het pauzemenu naar dat onderdeel.
-export const emptyState = (ic, kop, tekst, knop = null, data = '') => `<div class="ds-z-leeg ds-zeef bz-leeg"${data ? ` data-leeg="${esc(data)}"` : ''}><span class="ds-z-leeg__beeld bz-leeg-ic">${icoon(ic)}</span><h3 class="ds-z-leeg__kop">${esc(kop)}</h3><p class="ds-z-leeg__tekst">${esc(tekst)}</p>` +
+// Het icoon draagt zelf een vaste maat (32 px als attribuut, plus .bz-leeg-ic in farm.css): zonder maat vulde de svg in het echte spel
+// het hele paneel (hertest 24-11, #1246). scripts/bezitui_iconmaat_test.mjs dwingt af dat elk icoon in Land en bedrijf een maat of klasse heeft.
+const LEEG_IC = { maat: 'xl', cls: 'bz-leeg-ic' };
+export const emptyState = (ic, kop, tekst, knop = null, data = '') => `<div class="ds-z-leeg ds-zeef bz-leeg"${data ? ` data-leeg="${esc(data)}"` : ''}><span class="ds-z-leeg__beeld bz-leeg-beeld">${icoon(ic, LEEG_IC)}</span><h3 class="ds-z-leeg__kop">${esc(kop)}</h3><p class="ds-z-leeg__tekst">${esc(tekst)}</p>` +
   (knop ? `<button type="button" class="ds-z-knop" data-goto-sub="${esc(knop[0])}">${esc(knop[1])}</button>` : '') + '</div>';
 const TILE_ICON = { Percelen: 'gewas', Hectare: 'kaart', Panden: 'gebouw', 'Opbrengst per dag': 'geld', 'Loon per dag': 'geldhand' };
 const locked = (branch) => `<div class="pm-pane-top"><h2 class="m-h2 td-h2">Nog dicht</h2></div><p class="mut">${esc(branchHint(branch))}</p>`;
@@ -240,7 +243,7 @@ export function leegTeKoop(laden) {
   return laden
     ? '<div class="ds-z-leeg" data-leeg="laden"><h3 class="ds-z-leeg__kop">Percelen laden</h3><p class="ds-z-leeg__tekst">Even wachten: de lijst met percelen wordt opgehaald.</p></div>'
     // #1251 (hertest 24-11): met een icoon en een knop naar de kaart met de laag Te koop aan, in plaats van alleen een zin
-    : `<div class="ds-z-leeg ds-zeef bz-leeg" data-leeg="niets"><span class="ds-z-leeg__beeld bz-leeg-ic">${icoon('kaart')}</span><h3 class="ds-z-leeg__kop">Niets te koop in de buurt</h3><p class="ds-z-leeg__tekst">Op de kaart zie je alle percelen die te koop zijn, ook verder weg.</p>` +
+    : `<div class="ds-z-leeg ds-zeef bz-leeg" data-leeg="niets"><span class="ds-z-leeg__beeld bz-leeg-beeld">${icoon('bord', LEEG_IC)}</span><h3 class="ds-z-leeg__kop">Niets te koop in de buurt</h3><p class="ds-z-leeg__tekst">Op de kaart zie je alle percelen die te koop zijn, ook verder weg.</p>` +
       '<button type="button" class="ds-z-knop" data-bz="kaart-tekoop" data-goto="map">Toon op de kaart</button></div>';
 }
 

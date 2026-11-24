@@ -344,5 +344,20 @@ for (const female of [false, true]) {
   ok(!oud.userData.qRig, 'zonder spelerfase (?mensen=oud) het oude model');
 }
 
+// #1178 (hertest 24-11): Tessa zat in de lucht. seatPose (de bank in het flat) laat ud.qParams op zitten staan; wie daarna alleen
+// animatePersonWalk aanroept, blijft zitten. De metgezel in scene3d.js zet daarom elke frame eigen parameters, net als de speler.
+{
+  const { stateName } = await import('../game/js/animstate.js');
+  const m = M.buildModularPerson(4242, { female: true });
+  for (let f = 0; f < 60; f++) P.seatPose(m);
+  for (let f = 0; f < 120; f++) P.animatePersonWalk(m, 1.4, 1 / 60);
+  ok(stateName(m.userData.qSM) === 'sit', 'na seatPose blijft een mens zonder eigen qParams zitten (de valkuil van #1178)');
+  m.userData.qParams = { water: false, grounded: true, vy: 0, jump: false, seated: false, climbing: false };
+  for (let f = 0; f < 120; f++) P.animatePersonWalk(m, 1.4, 1 / 60);
+  ok(stateName(m.userData.qSM) !== 'sit', `met eigen qParams staat ze weer op (${stateName(m.userData.qSM)})`);
+  const s3 = fs.readFileSync(new URL('../game/js/scene3d.js', import.meta.url), 'utf8');
+  ok(/companionMesh\.userData\.qParams = qc;[\s\S]{0,80}animatePersonWalk\(companionMesh, Math\.hypot\(comp\.vx, comp\.vy\)/.test(s3), 'scene3d.js: de metgezel zet eigen qParams vóór het lopen (#1178)');
+}
+
 console.log(fails ? `${fails} van ${n} FAILED` : `modularpeople: alle ${n} checks groen`);
 process.exit(fails ? 1 : 0);

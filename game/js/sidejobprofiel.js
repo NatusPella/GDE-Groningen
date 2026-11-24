@@ -3,7 +3,7 @@
 // banen-app en de tests dezelfde bron gebruiken. Geen nieuwe kleuren: de sfeer komt uit carrieresfeer.js en de
 // families krijgen een naam en uitleg, geen losse hex.
 import { BAAN_IDS, vakVanBaan } from './loopbaan.js';
-import { sfeerVan, sfeerTint } from './carrieresfeer.js';
+import { sfeerVan, sfeerTint, sfeerKleurVast } from './carrieresfeer.js';
 
 export const FAMILIES = Object.freeze({
   dienst: { naam: 'Dienst', uitleg: 'Een rit of dienst met een voertuig, tijd en een doel.' },
@@ -24,6 +24,8 @@ export const familieVan = (id) => (KANTOORKLUS.has(id) ? 'kantoorklus' : 'dienst
 export const familieInfo = (id) => FAMILIES[familieVan(id)];
 // Het accent van een baan: de bestaande sfeertint (rgba, werkt in CSS én in THREE.Color) en nooit een nieuwe hex.
 export const accentVan = (id) => sidejobProfiel(id).accent;
+// Hetzelfde accent als dekkende #rrggbb, voor een canvas of THREE.Color (die lezen geen color-mix/var; hertest 24-11, witte zeshoek).
+export const accentVast = (id) => (id ? sfeerKleurVast(vakVanBaan(id)) : '');
 
 // Het profiel van één baan: vak, sfeernaam, familie en de korte uitleg voor de kaart en de banen-app.
 export function sidejobProfiel(id) {
