@@ -12,6 +12,8 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 - Snackwagen: Jelles bedrijf heet overal Us Mem Snacks (op het tabblad Snackwagen, de kaartlaag Standplaatsen, de prestatie en het bord op zijn wagens stond nog Usmem). Samen spelen: alleen tekst, per speler.
 - Land en bedrijf: het icoon van een lege staat (Overzicht, Te koop) heeft een vaste maat en vult niet meer het hele paneel; Te koop toont een wegwijzerbord in plaats van een gestippeld vakje. Samen spelen: per speler.
 - Visboek: de wateren staan in één kolom met hun volle naam in plaats van drie smalle kolommen met "All..." en "Pl...". Samen spelen: per speler.
+- Bijbanen: het startvlak op straat, de badge erboven en het icoon op de kaart hebben weer de kleur van hun vak, in plaats van een witte zeshoek op de klinkers. Samen spelen: beeld per speler.
+- Viaduct: de liggers onder het dek zijn van onderen dicht en donkerder dan de onderkant, zodat je balken ziet in plaats van een egaal vlak. Samen spelen: alleen beeld.
 - Tessa (of Tammo als metgezel) zit niet meer in de lucht na het flat of na het uitstappen, maar loopt gewoon mee. Samen spelen: de metgezel is van wie het spel opende; een gast ziet hem al via de snapshot.
 
 - Samen spelen, moeilijkheid: ook een gast kan politie en verkeer van de wereld aanpassen. Zijn eigen deel (schade, hulp, tijd en de rest) verandert meteen; politie en verkeer gaan als voorstel naar wie het spel opende, die ziet wat er voorgesteld wordt en samen met de anderen J of N kiest. Wie het vroeg telt als ja; geen antwoord is nee. Samen spelen: nieuw bericht van gast naar opener met alleen de drie wereldopties; een oudere opener kent het niet en dan blijft het bij de oude melding.
