@@ -5,6 +5,7 @@ import { difficultyRecordKey, cleanDifficulty, footballLevel, footballDuration }
 import { getScene, disposeObject } from './scene3d.js';
 import { buildPersonMesh, animatePersonWalk, TAMMO_APPEARANCE, ANITA_APPEARANCE } from './models3d_people.js';
 import { actorLook } from './footballkit.js';
+import { overlayModularClip } from './modularpeople.js';
 import { kitOn, kitOff, gateKit } from './footballkitlive.js';
 import { levelPattern, levelOfDivision } from './clothingkit.js';
 import { showBanner } from './cinematics.js';
@@ -790,7 +791,8 @@ function teken(w, dt) {
     a.mesh.rotation.z = p.duikT > 0 ? (p.duikDx || 0) * 1.15 : 0; // de keeper ligt languit (de kantelas is de wereld-z, zoals bij de penaltykeeper)
     a.mesh.position.y = ground + (p.duikT > 0 ? 0.35 : 0);
     if (p.tackleT > 0 || p.stun > 0) a.mesh.scale.y = 0.82; else a.mesh.scale.y = 1;
-    if (p.vier > 0 && ud && ud.armL && ud.armR) { const s = Math.sin(g.t * 9 + p.id); ud.armL.rotation.z = 2.4 + s * 0.4; ud.armR.rotation.z = -2.4 - s * 0.4; }
+    if (p.vier > 0 && ud && ud.qRig) overlayModularClip(a.mesh, 'Wave', (g.t * 0.7 + p.id * 0.13) % 1, 1);   // juichen: de zwaai van het pack
+    else if (p.vier > 0 && ud && ud.armL && ud.armR) { const s = Math.sin(g.t * 9 + p.id); ud.armL.rotation.z = 2.4 + s * 0.4; ud.armR.rotation.z = -2.4 - s * 0.4; }
   });
   const bq = toWorld(b.x, b.y);
   const fl = fld();

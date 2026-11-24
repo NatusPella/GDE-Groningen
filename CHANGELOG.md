@@ -9,6 +9,11 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ## [Unreleased]
 
+- Mensen: alle figuren in de wereld zijn de nieuwe mensen, ook zitters op bankjes en terrassen, de kraamhouder op de markt, de visser op de kade, de sjouwer, de straatmuzikant met gitaar, wie belt of appt, wie in een groepje praat, wie hurkt en de boze automobilist; kinderen zijn kleiner met een groter hoofd. Alleen zwemkleding blijft het oude model. Samen spelen: de figuren volgen uit zaad en houding, dus een gast ziet dezelfde mensen op dezelfde plek.
+- Mensen: iedereen heeft zijn eigen lengte (man 1,70 tot 1,88 m, vrouw 1,60 tot 1,74 m) en bouw uit zijn zaad, ouderen lopen iets gebogen met grijs haar, ongeveer een op de tien draagt een pet of platte pet, en kapsels kiezen uit meer hoofden. Voorbijgangers kleden zich naar de buurt, het uur en het weer (regenjas bij regen, luchtig bij warmte). Samen spelen: lengte, bouw en kleding volgen uit het zaad.
+- Mensen: wie stilstaat doet na een tijd iets kleins (even de telefoon, een blik op het horloge, achter het hoofd krabben, rondkijken), elk in zijn eigen ritme, nooit synchroon. De verre menigte heeft hetzelfde geslacht als dezelfde voorbijganger dichtbij. Samen spelen: puur beeld, lokaal per speler.
+- Voetbal en padel: het voetbalshirt met strepen, helften, rugnummer, naamstrook en sponsor zit ook op de nieuwe mensen; de padelslag en het juichen van de nieuwe mensen komen uit de clips van het pack. Samen spelen: het tenue reist als kledingcode, de gast tekent het zelf.
+
 - Garage: "Nog 55 te ontdekken" is een lege tegel in het raster (met een stippelrand, even groot als een voertuigkaart) in plaats van een losse regel naast je eerste auto. Samen spelen: per speler.
 - Prestaties: de kop heet "Je stand" (niet nog een keer Prestaties) en herhaalt "0 van 238 behaald" niet meer in een zin en een tweede balk; de vier getallen en de balk bovenaan blijven. Samen spelen: per speler.
 - Samen spelen: de vraag of je meedoet is een gewone kaart met de vraag als kop en de knoppen op één regel; Ja is de gele knop, Nee secundair (eerst waren het twee gele knoppen onder elkaar in een gestippeld vak). Het naamveld voor Samen spelen herhaalt zijn label niet meer als voorbeeldtekst ("Zo zien de anderen je") en de knop Toetsenbord staat naast het veld. Samen spelen: ieder ziet en beantwoordt de eigen vraag.

@@ -2,6 +2,7 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
 import { canvasTex as sharedCanvasTex } from './canvastex.js';
 import { getScene, disposeObject } from './scene3d.js';
 import { buildPersonMesh, animatePersonWalk, TAMMO_APPEARANCE, ANITA_APPEARANCE, PERSON_RIG } from './models3d_people.js';
+import { modularAttackPose } from './modularpeople.js';
 import { DURK_LOOK, DOUWE_LOOK } from './storycast.js';
 import { isMissionActive, getActiveRace } from './missionquery.js';
 import { isCinematicActive, showBanner } from './cinematics.js';
@@ -966,7 +967,8 @@ function placeActors(w, dt) {
     a.mesh.rotation.y = -face;
     animatePersonWalk(a.mesh, a.speed || 0, dt);
     const ud = a.mesh.userData;
-    if (ud.armR) {
+    if (ud.qRig) { if (a.swing > 0) modularAttackPose(a.mesh, 'cross', 1 - a.swing / SWING_T); }   // modulaire mens: de slag uit de stootclip
+    else if (ud.armR) {
       const k = a.swing > 0 ? 1 - a.swing / SWING_T : -1;
       if (k >= 0) ud.armR.rotation.set(0, 0, -1.2 + 2.6 * Math.sin(k * Math.PI * 0.5));
       else ud.armR.rotation.set(0, 0, -0.5);
@@ -1203,7 +1205,8 @@ function placeOnline(w, dt) {
     a.mesh.rotation.y = -(s.team === 0 ? f.rot : f.rot + Math.PI);
     animatePersonWalk(a.mesh, s.speed || 0, dt);
     const ud = a.mesh.userData;
-    if (ud.armR) {
+    if (ud.qRig) { if (s.swing > 0) modularAttackPose(a.mesh, 'cross', 1 - s.swing / SWING_T); }
+    else if (ud.armR) {
       const k = s.swing > 0 ? 1 - s.swing / SWING_T : -1;
       if (k >= 0) ud.armR.rotation.set(0, 0, -1.2 + 2.6 * Math.sin(k * Math.PI * 0.5));
       else ud.armR.rotation.set(0, 0, -0.5);

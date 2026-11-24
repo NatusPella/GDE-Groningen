@@ -211,7 +211,7 @@ export function modularLook(seed, opts = {}) {
   const child = !!opts.child;
   const old = !child && (opts.old !== undefined ? !!opts.old : hashf(seed, 23) < 0.2);
   const dyed = !old && !child && hashf(seed, 24) < 0.02;
-  const { scale, wide } = personSize(rig, seed, { child, old });
+  const { scale, wide } = opts.nominal ? { scale: (rig.man.schaal || 1) * (old ? 0.985 : 1), wide: 1 } : personSize(rig, seed, { child, old });   // nominal: de gemiddelde mens (audits van zitplekken)
   // een hoofddeksel bij ongeveer een op de tien volwassenen (pet, en bij oudere mannen de platte pet)
   let cap = null;
   if (!child && opts.hat !== false && !/Punk|Farmer|Worker/.test(parts.hoofd) && hashf(seed, 50) < (opts.hatChance ?? 0.1)) cap = old && !female ? 'flatcap' : 'cap';
