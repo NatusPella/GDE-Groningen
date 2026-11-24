@@ -9,7 +9,7 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ## [Unreleased]
 
-- Samen spelen, voetbalderby: wie in de andere ploeg speelt, kijkt nu vanaf zijn eigen kant en valt ook naar boven in beeld aan; vooruit op de stick is voor iedereen richting het doel van de tegenstander. Samen spelen: de host rekent de stick van een gast in de andere ploeg om; geen protocolwijziging.
+- Samen spelen, voetbalderby: wie in de andere ploeg speelt, kijkt nu vanaf zijn eigen kant en valt ook naar boven in beeld aan; vooruit op de stick is voor iedereen richting het doel van de tegenstander. Samen spelen: wie het spel opende rekent de stick van een gast in de andere ploeg om; geen protocolwijziging.
 - Voetbal: op de opstellingskaart bij de aftrap lopen de rollen in de rechterkolom (de uitploeg) niet meer over de namen heen, en de kaart zegt waar de aftrap is: op het sportpark van de thuisclub, of in de Euroborg. Samen spelen: alleen beeld, per speler.
 - Voetbalcarrière: Te doen heeft een rij voor je club met de stand en de volgende wedstrijd; kies hem en de route wijst naar het park waar gespeeld wordt. Samen spelen: per speler, uit de eigen carrière; een gast ziet zijn eigen club.
 - Voetbalcarrière: de kaartlaag Voetbal toont de sportparken uit de provincie met hun (verzonnen) club, gedimd naast je eigen club en je volgende tegenstander; alleen in gebied dat je al kent. Samen spelen: lokaal, uit de eigen carrière.

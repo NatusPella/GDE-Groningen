@@ -83,6 +83,8 @@ const open = () => {
   if (!g.open.includes('voetbal')) { sv.gate = { v: 1, open: [...g.open, 'voetbal'] }; ST.applyStorySave(sv); }
 };
 const start = (char = 'tammo') => { if (!CL.hasCareer()) CL.createNew(w, char, 0); return CL.getCareer(); };
+// een onderdeel van het menu openen: eerst dicht, anders blijft een open ouder (Loopbanen) staan
+const menu = async (naam, wacht = 2000) => { try { PM.closePauseMenu(); } catch (e) { /* dicht */ } await sleep(400); PM.openPauseMenu(naam); await sleep(wacht); };
 const klik = async (sel, wacht = 900) => { const b = document.querySelector(sel); if (b) b.click(); await sleep(wacht); return !!b; };
 // het park van de volgende thuiswedstrijd en de plek van het veld (zoals launchCareerMatch hem uitrekent)
 const siteOf = (m) => { const pp = PK.pitchPlacement(m.park); return { x: pp.x, y: pp.y, a: pp.angle - Math.PI / 2, fits: pp.fits }; };
@@ -107,12 +109,12 @@ await scene('dicht', async (ev) => {
 await scene('menu', async (ev) => {
   open(); ev.open = CL.isUnlockedNow(w);
   PM.openPauseMenu('loopbaan'); await shot('loopbanen', 2500);
-  PM.openPauseMenu('voetbal'); await shot('uitnodiging', 2500);
+  await menu('voetbal'); await shot('uitnodiging', 800);
   ev.aangenomen = await klik('[data-vb="start"]', 1500);
   ev.carriere = CL.hasCareer();
   const c = CL.getCareer();
   ev.club = c && CL.getClub(c.club) && CL.getClub(c.club).naam; ev.parken = CL.getIndex().parkCount;
-  ev.klasse = C.leagueTable(c).rows.map((r) => C.nameOf(CL.getClub, r.id));
+  ev.klasse = CL.hasCareer() ? C.leagueTable(c).rows.map((r) => C.nameOf(CL.getClub, r.id)) : null;
   await shot('vandaag', 1500);
   for (const t of ['selectie', 'kalender', 'stand', 'training']) { await klik(`[data-vb="tab:${t}"]`, 1200); await shot(t, 600); }
 });
@@ -120,7 +122,7 @@ await scene('menu', async (ev) => {
 // 2b. Te doen: de rij van de voetbalcarrière (club, stand, volgende wedstrijd)
 await scene('todo', async (ev) => {
   open(); start();
-  PM.openPauseMenu('todo'); await sleep(2000);
+  await menu('todo');
   const rij = [...document.querySelectorAll('[data-panel="todo"] *')].find((el) => el.children.length < 6 && /^Voetbal: /.test((el.textContent || '').trim()));
   ev.rij = rij ? rij.textContent.trim().slice(0, 120) : null;
   if (rij) { rij.scrollIntoView({ block: 'center' }); rij.click(); await sleep(800); }
@@ -130,7 +132,7 @@ await scene('todo', async (ev) => {
 // 3. Het tabblad Club onder Bezit (#1113): aandelen van de eigen club
 await scene('club', async (ev) => {
   open(); start(); w.money = Math.max(w.money || 0, 9000);
-  PM.openPauseMenu('boerderij'); await sleep(1500);
+  await menu('boerderij', 1500);
   const knoppen = [...document.querySelectorAll('[data-panel] button, [role="tab"]')].filter((b) => /club/i.test(b.textContent || '') && b.offsetParent);
   ev.knoppen = knoppen.map((b) => b.textContent.trim()).slice(0, 6);
   if (knoppen[0]) { knoppen[0].click(); await sleep(1200); }
@@ -160,7 +162,7 @@ await scene('kaart', async (ev) => {
 // 6. Een trainingsoefening (#1109) vanuit het tabblad Training
 await scene('training', async (ev) => {
   open(); start();
-  PM.openPauseMenu('voetbal'); await sleep(1500);
+  await menu('voetbal', 1500);
   await klik('[data-vb="tab:training"]', 1000);
   ev.train = await klik('[data-vb="train"]', 4000);
   ev.menuDicht = !document.querySelector('[data-panel="voetbal"]:not([hidden])');
