@@ -10,6 +10,7 @@ import { spawn } from 'node:child_process';
 const arg = (k, d) => { const a = process.argv.find((v) => v.startsWith(`--${k}=`)); return a ? a.slice(k.length + 3) : d; };
 const GAME = path.resolve(arg('game')); const OUT = path.resolve(arg('out')); const SIZE = arg('size', '1920x1080'); const [W, H] = SIZE.split('x').map(Number);
 const SCENES = fs.readFileSync(path.resolve(arg('scenes')), 'utf8'); const ONLY = arg('only', '').split(',').filter(Boolean);
+const TRAAG = Number(arg('traag', '1'));   // wachttijden van de scenes maal dit getal (software-rendering is traag)
 const CHROME = 'C:/Program Files/Google/Chrome/Application/chrome.exe';
 const MIME = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript', '.mjs': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.png': 'image/png', '.jpg': 'image/jpeg', '.svg': 'image/svg+xml', '.ttf': 'font/ttf', '.woff2': 'font/woff2', '.ogg': 'audio/ogg', '.opus': 'audio/ogg', '.mp3': 'audio/mpeg', '.wav': 'audio/wav', '.bin': 'application/octet-stream', '.gdt': 'application/octet-stream', '.glb': 'model/gltf-binary', '.webmanifest': 'application/manifest+json', '.txt': 'text/plain', '.md': 'text/plain' };
 fs.mkdirSync(OUT, { recursive: true });
@@ -44,7 +45,8 @@ await send('Page.enable'); await send('Runtime.enable');
 await send('Emulation.setDeviceMetricsOverride', { width: W, height: H, deviceScaleFactor: 1, mobile: false });
 await send('Page.navigate', { url: `http://127.0.0.1:${PORT}/index.html` });
 await new Promise((r) => setTimeout(r, 4000));
-const code = `(async () => { window.__dsOnly = ${JSON.stringify(ONLY)}; window.__shotsOnly = ${JSON.stringify(ONLY.join(','))};\n${SCENES}\n})()`;
+const SC = SCENES.split('setTimeout(res, ms)').join(`setTimeout(res, ms * ${TRAAG})`);
+const code = `(async () => { window.__dsOnly = ${JSON.stringify(ONLY)}; window.__shotsOnly = ${JSON.stringify(ONLY.join(','))};\n${SC}\n})()`;
 const t0 = Date.now();
 const r = await send('Runtime.evaluate', { expression: code, awaitPromise: true, returnByValue: true, timeout: 1500000 });
 await bezig;

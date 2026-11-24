@@ -13,6 +13,8 @@ import { SPECIES, herdOffers, herdSellValue, vetCost } from './livestock.js';
 import { staffOf, staffCapacity, wageOf, SKILL_NAME } from './farmstaff.js';
 import { missReason } from './holdingcards.js';
 
+// De kadastrale code tussen haakjes (K1244) is een sleutel, geen naam: de speler leest hem niet.
+export const schoneNaam = (n) => String(n || '').replace(/\s*\([A-Za-z]?\d+\)\s*$/, '');
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const IC = (n, cls = 'bz-ic') => icoon(n, { cls });
 const ha = (n) => String(Math.round(n * 10) / 10).replace('.', ',');
@@ -40,9 +42,9 @@ export function rijHtml(r, { sel, vink }) {
   const waarde = r.herd ? (r.herd.sick > 0 ? '<span class="ds-z-status ds-z-status--probleem">Ziek</span>' : `<b class="bz-getal">${r.herd.n}</b>`) : r.ripe ? '<span class="ds-z-status ds-z-status--goed">Oogstklaar</span>' : r.statusId === 'braak' ? '<span class="ds-z-status ds-z-status--zacht">Ligt braak</span>' : r.level === 'leased' ? '<span class="ds-z-status ds-z-status--zacht">Verpacht</span>' : `<b class="bz-getal">${Math.round(r.groei * 100)}%</b>`;
   const gewas = r.herd ? `${r.herd.n} ${SPECIES[r.herd.sp].naam.toLowerCase()}` : r.crop && B.GEWASSEN[r.crop] ? B.GEWASSEN[r.crop].naam : (r.statusId === 'braak' ? 'braak' : 'leeg');
   return `<div class="bz-rij${sel ? ' bz-rij--sel' : ''}" data-row="${esc(r.id)}" ${sel ? 'aria-current="true"' : ''}>` +
-    `<button type="button" class="bz-vink${vink ? ' bz-vink--aan' : ''}" role="checkbox" aria-checked="${!!vink}" aria-label="Kies ${esc(r.name)}" data-vd="vink" data-id="${esc(r.id)}">${vink ? IC('vinkje') : ''}</button>` +
+    `<button type="button" class="bz-vink${vink ? ' bz-vink--aan' : ''}" role="checkbox" aria-checked="${!!vink}" aria-label="Kies ${esc(schoneNaam(r.name))}" data-vd="vink" data-id="${esc(r.id)}">${vink ? IC('vinkje') : ''}</button>` +
     `<button type="button" class="bz-rij__knop" data-vd="kies" data-id="${esc(r.id)}"><span class="bz-ikoon bz-ikoon--${klasse}">${IC(r.herd ? 'koe' : ICOON_VAN[r.statusId] || 'veld_braak', 'bz-ic bz-ic--l')}</span>` +
-    `<span class="bz-rij__tekst"><b>${esc(r.name)}</b><small>${ha(r.ha)} ha · ${esc(gewas)} · ${LEVEL_NAAM[r.level]}</small></span><span class="bz-rij__waarde">${waarde}</span></button></div>`;
+    `<span class="bz-rij__tekst"><b>${esc(schoneNaam(r.name))}</b><small>${ha(r.ha)} ha · ${esc(gewas)} · ${LEVEL_NAAM[r.level]}</small></span><span class="bz-rij__waarde">${waarde}</span></button></div>`;
 }
 
 // ---- het detail rechts ----
@@ -122,7 +124,7 @@ function statusLabel(r) {
 
 export function detailHtml(r, ctx) {
   const { bezit, rows, money = 0, gast = false } = ctx;
-  return `<div class="bz-kopregel"><div><h3 class="bz-detail__titel">${esc(r.name)}</h3><span class="bz-hulp">${r.soort === 'weiland' ? 'Weiland' : r.soort === 'boomgaard' ? 'Boomgaard' : 'Akker'} · ${ha(r.ha)} ha${r.region && r.region !== 'overig' ? ` · ${esc(r.region)}` : ''}</span></div>${statusLabel(r)}</div>` +
+  return `<div class="bz-kopregel"><div><h3 class="bz-detail__titel">${esc(schoneNaam(r.name))}</h3><span class="bz-hulp">${r.soort === 'weiland' ? 'Weiland' : r.soort === 'boomgaard' ? 'Boomgaard' : 'Akker'} · ${ha(r.ha)} ha${r.region && r.region !== 'overig' ? ` · ${esc(r.region)}` : ''}</span></div>${statusLabel(r)}</div>` +
     heroHtml(r, { money, gast, bezit }) + `<div class="bz-raster2">${gebruikBlok(r, bezit)}${gewasBlok(r)}</div><div class="bz-raster2">${teamBlok(bezit, rows)}${verzekeringBlok(r, bezit)}</div>${keudeBlok(r, bezit, money, gast)}`;
 }
 

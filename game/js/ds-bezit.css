@@ -216,3 +216,8 @@ html.reduce-motion .bz-vasthoud::before, html.rustig-drukwerk .bz-vasthoud::befo
 .m-main.bd-main:has(.bz-md) { padding-left: 0; }
 /* de kop van Spullen en Garage past in het paneel */
 .pm-inner > .bz-kop { padding-right: var(--ds-s-5); margin-bottom: var(--ds-s-2); }
+
+/* Velden: geen inspringing meer; de keuzeblokken onder elkaar zodat een segment ruimte heeft */
+.m-main.bd-main:has(.bz-md), .m-main.bd-main:has(.bz-md) > .bd-pane { margin: 0; padding: 0; border: 0; width: auto; max-width: none; }
+.bz-detail .bz-raster2 { grid-template-columns: minmax(0, 1fr); }
+.bz-detail .bz-raster2:has(.ds-z-balk) { grid-template-columns: repeat(2, minmax(0, 1fr)); }
