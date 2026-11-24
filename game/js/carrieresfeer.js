@@ -6,6 +6,8 @@
 // spel; de vorm (vlak, ruit, vouw) draagt de verwijzing. Puur: geen DOM, geen THREE, geen
 // opslag, zodat scripts/carrieresfeer_test.mjs de sferen kan natrekken.
 
+import { dsKleur } from './kaartkleuren.js'; // sfeerKleurVast: de tokens als vaste kleur voor canvas en 3D (node-safe, met terugval)
+
 const CREAM = 'color-mix(in srgb, var(--ds-c-creme) 92%, transparent)';
 const CREAM_SOFT = 'color-mix(in srgb, var(--ds-c-creme) 38%, transparent)';
 const GREEN = 'color-mix(in srgb, var(--ds-c-licht-groen) 75%, var(--ds-c-glas))';
@@ -165,6 +167,16 @@ const TINT_VAN = {
 // De tint van een sfeer (bestaande rgba-tokens, geen nieuwe hex): bruikbaar als accent van een paneel of kaart.
 export function sfeerTint(id) {
   return TINT[TINT_VAN[id]] || '';
+}
+
+// De tint als vaste kleur (#rrggbb) voor een canvas of THREE.Color: die kunnen color-mix() en var() niet lezen. Zonder deze
+// vertaling werd het startvlak van een bijbaan een witte zeshoek op straat en vielen badge en kaarticoon terug op een
+// willekeurige vulkleur (hertest 24-11, Vismarkt). Dezelfde tokens, als dekkende kleur: nacht en bos donkergroen, veld
+// lichtgroen, melk het zachte creme (geen wit vlak op de klinkers).
+const TINT_VAST = { nacht: 'glas-3', bos: 'ink-bord', veld: 'licht-groen', melk: 'creme-zacht' };
+export function sfeerKleurVast(id) {
+  const t = TINT_VAST[TINT_VAN[id]];
+  return t ? dsKleur(t) : '';
 }
 
 // De sfeer van een vak; onbekend vak geeft een lege sfeer (de UI valt dan terug op geen band).
