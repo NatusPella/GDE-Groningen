@@ -150,11 +150,32 @@ export function cardYields(card, hints = []) {
 // #985: the HUD parts a speech bubble stays clear of (prompts.js measures them); empty without a HUD
 let bubbleObstacles = [];
 export function setBubbleObstacles(list) { bubbleObstacles = Array.isArray(list) ? list : []; }
-export function bubblePlace(anchor, size, view, pad = 4) {
-  const p = bubblePlace0(anchor, size, view, pad);
-  if (!p || !bubbleObstacles.length) return p;
-  const dy = labelDy({ left: p.x - size.w / 2, right: p.x + size.w / 2, top: p.y - size.h, bottom: p.y }, bubbleObstacles, view);
-  return dy ? { x: p.x, y: p.y + dy } : p;
+// #1198 (beeld 24-11): two speakers close together put their bubbles over each other (the second one hid the first). `placed`
+// holds the bubbles already set this frame ({ left, top, right, bottom }); a bubble that would cover one of them stacks above it
+// with BUBBLE_GAP, or under it when there is no room above. Same unit as the anchor.
+export const BUBBLE_GAP = 4;
+export function bubbleStack(p, size, view, placed, pad = 4) {
+  if (!p || !placed || !placed.length) return p;
+  let y = p.y;
+  const left = p.x - size.w / 2, right = p.x + size.w / 2;
+  const hit = (yy) => placed.find((o) => Math.min(right, o.right) - Math.max(left, o.left) > 2 && Math.min(yy, o.bottom) - Math.max(yy - size.h, o.top) > 2);
+  for (let i = 0; i < placed.length; i++) {
+    const o = hit(y);
+    if (!o) return y === p.y ? p : { x: p.x, y };
+    const boven = o.top - BUBBLE_GAP;
+    y = boven - size.h >= pad ? boven : o.bottom + BUBBLE_GAP + size.h;
+    if (y > view.h - pad) return p; // no room either way: leave it where it was
+  }
+  return hit(y) ? p : { x: p.x, y };
+}
+export function bubblePlace(anchor, size, view, pad = 4, placed = null) {
+  let p = bubblePlace0(anchor, size, view, pad);
+  if (!p) return p;
+  if (bubbleObstacles.length) {
+    const dy = labelDy({ left: p.x - size.w / 2, right: p.x + size.w / 2, top: p.y - size.h, bottom: p.y }, bubbleObstacles, view);
+    if (dy) p = { x: p.x, y: p.y + dy };
+  }
+  return bubbleStack(p, size, view, placed, pad);
 }
 function bubblePlace0(anchor, size, view, pad = 4) {
   const ax = anchor && Number(anchor.x), ay = anchor && Number(anchor.y);
