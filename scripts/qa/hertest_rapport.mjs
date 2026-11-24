@@ -3,6 +3,7 @@
 //   node scripts/qa/hertest_rapport.mjs --oordelen=<json> --uit=docs/hertest-23-11 [--issues=<gh-json>[,<gh-json>]] [--titel=...] [--jpg=85]
 // oordelen: { inleiding?, bronnen?: [tekst], items: [{ issue, titel?, vraag, oordeel: 'opgelost'|'deels'|'niet'|'niet-te-zien',
 //             reden, beelden: [{ pad, bijschrift?, voor?: true }] }] }
+// soorten (optioneel): eigen oordeelsoorten { sleutel: [css-klasse ok|let|fout|grijs, woord] }, bv. voor de beeldregressie.
 // --issues: uitvoer van `gh issue list --json number,title` (titels als het item er zelf geen heeft).
 import fs from 'node:fs';
 import path from 'node:path';
@@ -10,7 +11,7 @@ import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 
 const opt = (k, d = null) => { const a = process.argv.find((v) => v.startsWith(`--${k}=`)); return a ? a.slice(k.length + 3) : d; };
-export const OORDEEL = {
+export const STANDAARD = {
   opgelost: ['ok', 'lijkt opgelost'],
   deels: ['let', 'deels opgelost'],
   niet: ['fout', 'niet opgelost'],
@@ -19,20 +20,21 @@ export const OORDEEL = {
 const esc = (s) => String(s == null ? '' : s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
 // Telt de oordelen; puur.
-export function tel(items) {
+export function tel(items, OORDEEL = STANDAARD) {
   const t = { totaal: items.length };
   for (const k of Object.keys(OORDEEL)) t[k] = items.filter((i) => i.oordeel === k).length;
   return t;
 }
 
 // Bouwt de HTML; puur (beelden zijn al relatieve paden).
-export function bouwHtml({ titel, inleiding = '', bronnen = [], items }) {
-  const t = tel(items);
+export function bouwHtml({ titel, inleiding = '', bronnen = [], items, soorten = null }) {
+  const OORDEEL = soorten || STANDAARD;
+  const t = tel(items, OORDEEL);
   const kop = Object.entries(OORDEEL).map(([k, [cls, woord]]) => `<span class="b ${cls}">${esc(woord)}: ${t[k]}</span>`).join(' ');
   const rij = (it) => {
     const [cls, woord] = OORDEEL[it.oordeel] || ['grijs', it.oordeel];
     const beelden = (it.beelden || []).map((b) => `<figure${b.voor ? ' class="voor"' : ''}><a href="${esc(b.pad)}"><img loading="lazy" src="${esc(b.pad)}" alt=""></a><figcaption>${b.voor ? '<b>voor (22-11)</b> ' : ''}${esc(b.bijschrift || path.basename(b.pad))}</figcaption></figure>`).join('');
-    return `<section id="i${it.issue}" data-oordeel="${esc(it.oordeel)}"><h2><a href="https://github.com/NatusPella/GDE-Groningen/issues/${it.issue}">#${it.issue}</a> ${esc(it.titel)}</h2>
+    return `<section id="i${it.issue}" data-oordeel="${esc(it.oordeel)}"><h2>${/^\d+$/.test(String(it.issue)) ? `<a href="https://github.com/NatusPella/GDE-Groningen/issues/${it.issue}">#${it.issue}</a>` : esc(it.issue)} ${esc(it.titel)}</h2>
 <p class="vraag"><b>Vraagt:</b> ${esc(it.vraag)}</p>
 <p class="oordeel"><span class="b ${cls}">${esc(woord)}</span> ${esc(it.reden)}</p>
 ${beelden ? `<div class="beelden">${beelden}</div>` : '<p class="geen">Geen beeld.</p>'}</section>`;
@@ -76,8 +78,9 @@ function main() {
       n++; return [{ ...b, pad: 'beelden/' + naam }];
     }),
   }));
-  fs.writeFileSync(path.join(uit, 'index.html'), bouwHtml({ titel: opt('titel', data.titel || 'Hertest in beeld'), inleiding: data.inleiding, bronnen: data.bronnen || [], items }));
-  const t = tel(items);
+  const OORDEEL = data.soorten || STANDAARD;
+  fs.writeFileSync(path.join(uit, 'index.html'), bouwHtml({ titel: opt('titel', data.titel || 'Hertest in beeld'), inleiding: data.inleiding, bronnen: data.bronnen || [], items, soorten: data.soorten }));
+  const t = tel(items, OORDEEL);
   console.log(`${path.join(uit, 'index.html')}: ${t.totaal} issues, ${n} beelden${mis ? `, ${mis} ontbrekend` : ''}`);
   console.log(Object.keys(OORDEEL).map((k) => `${k} ${t[k]}`).join(', '));
 }
