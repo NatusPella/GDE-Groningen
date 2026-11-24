@@ -116,16 +116,19 @@ function cabine(B, D, c) {
   B.geo(planExtrude(fillet([[hl + 0.12, -(hw - 0.2)], [hl + 0.12, hw - 0.2], [hl - 0.1, hw - 0.05], [hl - 0.4, hw - 0.05], [hl - 0.4, -(hw - 0.05)], [hl - 0.1, -(hw - 0.05)]], [0.1, 0.1, 0.06, 0, 0, 0.06], 2), 0.42, 0.26, 0.03, 1), null, dark);
   B.box(hl + 0.14, 0.52, 0, 0.012, 0.11, 0.5, K.PLATE);
   cyl(B, hl + 0.1, 0.4, 0.5, 0.03, 0.03, 0.14, 'x', K.CHROME, 6);
+  const I = c.I; // het interieur is een eigen mesh (interieurSimpel): weg op de lagere niveaus en met de echte cabine (cabin3d.js)
   const icx = hl - D.cabL / 2;
-  h.binnenDoos(B, icx, 1.7, 0, D.cabL - 0.14, 1.8, W - 0.34, 0x3a3c40);
-  B.box(icx, D.floor, 0, D.cabL - 0.16, 0.02, W - 0.4, 0x45474c);
+  const ix0 = xc0 + 0.07, ix1 = hl - 0.34; // de binnenbak blijft achter het raked voorraam
+  h.binnenDoos(I, (ix0 + ix1) / 2, 1.72, 0, ix1 - ix0, 1.16, W - 0.34, 0x3a3c40); // de vloer ligt op drempelhoogte van de deur, boven de wielkast
+  I.box((ix0 + ix1) / 2, 1.15, 0, ix1 - ix0 - 0.02, 0.02, W - 0.4, 0x45474c);
+  I.box((ix0 + ix1) / 2, 2.27, 0, ix1 - ix0 - 0.02, 0.02, W - 0.4, 0x6f737a); // het plafond van de cabine
   for (const s of [1, -1]) {
-    B.box(hl - 1.05, 1.05, s * 0.5, 0.5, 0.12, 0.5, 0x4d515c);
-    B.box(hl - 1.33, 1.4, s * 0.5, 0.1, 0.6, 0.5, 0x4d515c);
-    B.box(hl - 1.36, 1.8, s * 0.5, 0.08, 0.16, 0.3, 0x3a3d44);
+    I.box(hl - 1.05, 1.27, s * 0.5, 0.5, 0.12, 0.5, 0x4d515c); // boven de wielkast (de kast loopt tot 1,13 m)
+    I.box(hl - 1.33, 1.62, s * 0.5, 0.1, 0.6, 0.5, 0x4d515c);
+    I.box(hl - 1.36, 2.02, s * 0.5, 0.08, 0.16, 0.3, 0x3a3d44);
   }
-  B.box(hl - 0.25, 1.62, 0, 0.35, 0.3, W - 0.3, 0x2b2d32);
-  B.geo(new c.THREE.TorusGeometry(0.2, 0.025, 5, 12), c.composeMatrix(hl - 0.5, 1.62, -0.5, 0, Math.PI / 2 - 0.9, 0), 0x1a1b1d);
+  I.box(hl - 0.5, 1.62, 0, 0.35, 0.3, W - 0.3, 0x2b2d32);
+  I.geo(new c.THREE.TorusGeometry(0.2, 0.025, 5, 12), c.composeMatrix(hl - 0.75, 1.62, -0.5, 0, Math.PI / 2 - 0.9, 0), 0x1a1b1d);
   cyl(B, xc0 - 0.06, 2.0, hw - 0.14, 0.07, 0.07, 2.5, 'y', K.CHROME, 8);
   for (const y of [1.2, 2.0, 2.8]) B.box(xc0 - 0.04, y, hw - 0.14, 0.05, 0.06, 0.18, dark);
   B.box(xc0 - 0.06, 3.28, hw - 0.14, 0.2, 0.05, 0.1, 0x6b6e72, 0, 0, 0, 0.5);
@@ -139,13 +142,15 @@ export function buildBakwagen(v, h) {
   const paint = wrecked ? h.WRECKED_COLOR : h.toHex(v.model.color, 0xe8e6e0);
   const geo = h.cached(`truck4|${L}|${W}|${paint}`, () => {
     const B = new GeoBuilder(3);
-    const c = { THREE, composeMatrix, h, K, G, L, W, paint, wrecked };
+    const I = new GeoBuilder(1);
+    const c = { THREE, composeMatrix, h, K, G, L, W, paint, wrecked, I };
     chassis(B, D, c);
     laadbak(B, D, c);
     cabine(B, D, c);
     h.addDoorCuts(B, 'truck', L, hw, paint, K.CHROME, true);
     const k = h.knipDeurgaten(B, 'truck', L, W);
     const g = B.build();
+    g.userData.interieurGeo = I.build();
     g.userData.knip = { ...h.deurSchillen(k, L), rects: k.rects, zs: k.zs };
     return g;
   });
@@ -155,6 +160,7 @@ export function buildBakwagen(v, h) {
   group.add(body);
   group.userData.body = body;
   h.koppelDeurgaten(group, body, geo);
+  h.voegInterieurToe(group, body, geo);
   const wFront = h.cached(`wheel2|${wr}|0.34`, () => h.richWheelGeometry(wr, 0.34, K));
   const wRear = h.cached(`wheel2|${wr}|0.46`, () => h.richWheelGeometry(wr, 0.46, K));
   const wheels = [], front = [];

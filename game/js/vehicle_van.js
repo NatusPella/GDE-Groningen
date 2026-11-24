@@ -46,19 +46,21 @@ export function vanCabin(B, c) {
     bar(B, [wx - 0.03, wy + 0.02, s * 0.12], [wx - 0.28, wy + 0.3, s * 0.5], 0.012, dark);
   }
   B.box(xB + 0.28, roof - 0.28, 0, 0.04, 0.1, 0.22, dark);
-  // het interieur achter de uitgeknipte deuren: wanden, vloer, twee stoelen, dashboard met stuur
+  // het interieur achter de uitgeknipte deuren: wanden, vloer, twee stoelen, dashboard met stuur; een eigen mesh (interieurSimpel) die
+  // op de lagere niveaus en met de echte cabine (cabin3d.js) verdwijnt
+  const I = c.I;
   const cx = (xK + xA) / 2 - 0.02;
-  binnenDoos(B, cx, (0.4 + belt) / 2, 0, xA - xK - 0.2, belt - 0.42, W - 0.32, 0x34383d);
-  B.box(cx, 0.4, 0, xA - xK - 0.22, 0.03, W - 0.36, 0x45474c);
+  binnenDoos(I, cx, (0.4 + belt) / 2, 0, xA - xK - 0.2, belt - 0.42, W - 0.32, 0x34383d);
+  I.box(cx, 0.4, 0, xA - xK - 0.22, 0.03, W - 0.36, 0x45474c);
   for (const s of [1, -1]) {
-    B.box(cx - 0.05, 0.56, s * 0.42, 0.5, 0.14, 0.46, 0x3b4048);
-    B.geo(extrudeProfile([[-0.06, -0.02], [0.06, -0.02], [0.12, 0.62], [-0.02, 0.62]], 0.46, 0.04, 2), composeMatrix(cx - 0.3, 0.6, s * 0.42), 0x3b4048);
-    B.box(cx - 0.36, 1.26, s * 0.42, 0.08, 0.16, 0.26, 0x2e3238);
+    I.box(cx - 0.05, 0.56, s * 0.42, 0.5, 0.14, 0.46, 0x3b4048);
+    I.geo(extrudeProfile([[-0.06, -0.02], [0.06, -0.02], [0.12, 0.62], [-0.02, 0.62]], 0.46, 0.04, 2), composeMatrix(cx - 0.3, 0.6, s * 0.42), 0x3b4048);
+    I.box(cx - 0.36, 1.26, s * 0.42, 0.08, 0.16, 0.26, 0x2e3238);
   }
-  B.box(xA - 0.27, belt - 0.2, 0, 0.46, 0.3, W - 0.34, 0x2a2c31);
-  B.box(xA - 0.05, belt - 0.03, 0, 0.12, 0.04, W - 0.4, 0x202226);
-  B.geo(new c.THREE.TorusGeometry(0.17, 0.022, 5, 12), composeMatrix(xA - 0.58, belt - 0.08, -0.42, 0, Math.PI / 2 - 0.5, 0), 0x1a1b1d);
-  cyl(B, xA - 0.45, belt - 0.2, -0.42, 0.025, 0.03, 0.3, 'x', 0x2a2c31, 6);
+  I.box(xA - 0.27, belt - 0.2, 0, 0.46, 0.3, W - 0.34, 0x2a2c31);
+  I.box(xA - 0.05, belt - 0.03, 0, 0.12, 0.04, W - 0.4, 0x202226);
+  I.geo(new c.THREE.TorusGeometry(0.17, 0.022, 5, 12), composeMatrix(xA - 0.58, belt - 0.08, -0.42, 0, Math.PI / 2 - 0.5, 0), 0x1a1b1d);
+  cyl(I, xA - 0.45, belt - 0.2, -0.42, 0.025, 0.03, 0.3, 'x', 0x2a2c31, 6);
 }
 
 // De bumpers voor en achter, vlak na elkaar in de lakgroep: de schade (vehicleimpact) knipt ze los via de bereiken f0..f1 en f1..r1.

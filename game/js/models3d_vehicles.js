@@ -24,6 +24,7 @@ import { DitherLOD } from './lod3d.js';
 import * as VAN from './vehicle_van.js'; // bestelbus, ambulance en de cabine van de foodtruck (24-11)
 import { richWheelGeometry, splitGroupAtX } from './vehicle_kit.js';
 import { buildBakwagen } from './vehicle_truck.js'; // de bakwagen (24-11)
+import { foodtruckOnderdelen } from './vehicle_foodtruck.js'; // de opbouw van de foodtruck (24-11)
 import { wagonOnderdelen } from './vehicle_wagon.js'; // de stationwagen: opbouw op de SUV-romp (24-11)
 
 // Low-poly vehicles. Group origin = vehicle centre at ground level (y=0),
@@ -401,7 +402,8 @@ function buildCarGeometry(type, L, W, paint, opts) {
   B.geo(body, null, paint);
   if (globalThis.__TEL) console.log("TEL romp", B.triangleCount);
   archLiners(B, arches, W);
-  const vanCtx = P.van ? { amb: !!opts.ambulance, kaal: !!opts.ambulance || !!opts.variant, B, P, hl, hw, W, L, xK, paint, K: VAN_K, G: VAN_G, extrudeProfile, shadeHex, binnenDoos, THREE } : null;
+  const vanI = P.van ? new GeoBuilder(1) : null; // het cabine-interieur van de bus: een eigen geometrie
+  const vanCtx = P.van ? { I: vanI, amb: !!opts.ambulance, kaal: !!opts.ambulance || !!opts.variant, B, P, hl, hw, W, L, xK, paint, K: VAN_K, G: VAN_G, extrudeProfile, shadeHex, binnenDoos, THREE } : null;
   if (P.van) VAN.arcFlares(B, vanCtx, arches);
   if (globalThis.__TEL) console.log("TEL flares", B.triangleCount);
   const decorVanaf = B.groups[G_BODY].p.length / 9;
@@ -619,6 +621,7 @@ function buildCarGeometry(type, L, W, paint, opts) {
   if (P.van) for (const gi of [G_BODY, G_GLASS]) splitGroupAtX(B, gi, [hl - 0.55, hl - 0.28]); // de afronding van neus en kont (hieronder) kantelt anders de grote vlakken
   if (globalThis.__TEL) console.log("TEL post-split", B.triangleCount);
   const geo = B.build();
+  if (vanI) geo.userData.interieurGeo = vanI.build();
   if (knip) geo.userData.knip = { ...deurSchillen(knip, L), rects: knip.rects, zs: knip.zs };
   geo.userData.gaten = gaten;
   geo.userData.deurDecor = deurDecor;
@@ -665,6 +668,7 @@ function assembleCar(type, L, W, paint, { police = false, ambulance = false, wre
   group.userData.loose = looseCarParts(type, L, W, color, P, mats, group);
   addRealDoors(group, body, geo.userData.gaten || [], doorName, L, W, color, P, type);
   if (geo.userData.knip) koppelDeurgaten(group, body, geo);
+  voegInterieurToe(group, body, geo);
   const wW = P.van ? 0.27 : WHEEL_W; // de bus (24-11): een dikker wiel met bolle flank, velg en spaken (vehicle_kit.js)
   const wgeo = P.van ? cached(`wheel2|${wheelR}|${wW}`, () => richWheelGeometry(wheelR, wW, VAN_K)) : carWheelGeometry(wheelR, wW);
   const wheels = [];
@@ -1552,6 +1556,16 @@ function deurSchillen(res, L) {
   return { panelen, dicht: markShared(alle.build()) };
 }
 const linearRGBArr = (hex) => { const c = new THREE.Color(hex); return [c.r, c.g, c.b]; };
+// Het cabine-interieur van een romp met uitgeknipte deuren (bus, bakwagen, 24-11): een eigen mesh 'interieurSimpel' op de romp, zodat het op de
+// lagere LOD-niveaus (vehiclelod3d.js) en met de echte cabine (cabin3d.js, carinterior.js) verdwijnt.
+function voegInterieurToe(group, body, geo) {
+  if (!geo.userData.interieurGeo) return;
+  const ig = cached(`interieur|${geo.uuid}`, () => geo.userData.interieurGeo);
+  const im = new THREE.Mesh(ig, cabinFallbackMaterial());
+  im.name = 'interieurSimpel';
+  body.add(im);
+  group.userData.interieurSimpel = im;
+}
 // Hangt de dichte deuren aan de romp en zet wat de deur-rig en de tests nodig hebben (zoals addRealDoors en de hybride).
 function koppelDeurgaten(group, body, geo) {
   const k = geo.userData.knip;
@@ -1568,7 +1582,7 @@ function koppelDeurgaten(group, body, geo) {
 
 // Bakwagen (24-11: vehicle_truck.js): cab-over front with a box body. De tankwagen (model.tank) heeft een eigen opbouw en cabine.
 function truckKit() {
-  return { THREE, GeoBuilder, composeMatrix, K: VAN_K, G: VAN_G, WRECKED_COLOR, toHex, cached, extrudeProfile, shadeHex, binnenDoos, archedSill, addDoorCuts, knipDeurgaten, deurSchillen, koppelDeurgaten, vehicleMaterials, addWheel, richWheelGeometry };
+  return { THREE, GeoBuilder, composeMatrix, K: VAN_K, G: VAN_G, WRECKED_COLOR, toHex, cached, extrudeProfile, shadeHex, binnenDoos, archedSill, addDoorCuts, knipDeurgaten, deurSchillen, koppelDeurgaten, vehicleMaterials, addWheel, richWheelGeometry, voegInterieurToe };
 }
 function buildTruckMesh(v) {
   if (v.model.tank) return buildTankerMesh(v);
@@ -2445,26 +2459,7 @@ function buildFoodtruckMesh(v) {
   if (wrecked) return group;
   const geo = cached(`foodtruck|${L}|${W}|${paint}`, () => {
     const B = new GeoBuilder(3);
-    // the hatch: a dark opening with a steel counter, the flap propped up as the awning
-    const x0 = -hl + 0.55, x1 = hl - 1.45;
-    const cx = (x0 + x1) / 2, cl = x1 - x0;
-    B.box(cx, 1.45, hw + 0.007, cl, 0.8, 0.01, 0x1c1d20);
-    B.box(cx, 1.3, hw + 0.012, cl * 0.9, 0.35, 0.01, 0xf2c230, G_LAMP);
-    B.box(cx, 1.03, hw + 0.16, cl + 0.1, 0.05, 0.32, CHROME);
-    for (let i = 0; i < 6; i++) {
-      const sx = x0 + (cl * (i + 0.5)) / 6;
-      B.box(sx, 1.98, hw + 0.42, cl / 6, 0.035, 0.9, i % 2 ? 0xf4f1e6 : 0x1f4f8f, 0, 0.5, 0, 0);
-    }
-    for (const x of [x0 + 0.05, x1 - 0.05]) B.geo(tubeGeometry([x, 1.86, hw + 0.8], [x, 1.1, hw + 0.03], 0.018, 0.018, 4), null, CHROME);
-    // snacks on the counter
-    for (let i = 0; i < 4; i++) B.box(cx - cl * 0.3 + i * cl * 0.2, 1.09, hw + 0.18, 0.12, 0.08, 0.1, [0xc9852e, 0xe8c24a, 0x8a4a22, 0xc9852e][i]);
-    // roof: sign frame, an extractor hood, and the eierbal
-    B.box(-0.3, 2.3, 0, L * 0.55, 0.06, 0.08, 0x2a2a2b);
-    for (const x of [-0.3 - L * 0.26, -0.3 + L * 0.26]) B.box(x, 2.22, 0, 0.06, 0.2, 0.06, 0x2a2a2b);
-    B.box(-hl + 0.7, 2.18, -hw * 0.45, 0.5, 0.18, 0.5, CHROME);
-    B.geo(new THREE.SphereGeometry(0.42, 12, 9), composeMatrix(hl - 1.25, 2.55, 0, 0, 0, 0, 1, 0.92, 1), 0xb8742c);
-    B.geo(new THREE.SphereGeometry(0.45, 12, 9, 0, Math.PI * 2, 0, 0.9), composeMatrix(hl - 1.25, 2.55, 0, 0, 0, 0, 1, 0.92, 1), 0xd89a44);
-    B.box(hl - 1.25, 2.12, 0, 0.5, 0.06, 0.5, 0x2a2a2b);
+    foodtruckOnderdelen(B, { L, hl, hw, K: VAN_K, G: VAN_G }); // luik, toonbank, zonnescherm, menubord, kap en eierbal (24-11)
     return B.build();
   });
   group.add(new THREE.Mesh(geo, vehicleMaterials()));
