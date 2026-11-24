@@ -15,6 +15,8 @@ import { getOwnedEntries, spawnOwnedEntry, wardrobeMenu } from './shops.js';
 import { openShopMenu, closeShopMenu, isShopOpen } from './shopui.js';
 import { respawnFade } from './respawn.js';
 import { refreshDayNight } from './daynight.js';
+import { noteSleep } from './calendarday.js';
+import { furnitureNightHook } from './latehooks.js';
 import { clearDrunk } from './drunk.js';
 import { recordStat } from './achievements.js';
 import { saveGame } from './savehook.js';
@@ -381,8 +383,12 @@ function slaapNu(w, h, uur, bericht) {
   setTimeout(() => {
     try {
       if ((w.loadCount || 0) !== load0) return;
+      const van = ((w.clock % 24) + 24) % 24;
       w.clock = uur;
       refreshDayNight(w);
+      // #1297: zoals thuis (home.js, #1299): wie om tien uur slaapt tot half acht, wordt de volgende dag wakker
+      noteSleep(w, van, uur);
+      furnitureNightHook.slept(van, uur);
       w.health = 100;
       clearDrunk(w);
       recordStat(w, 'slept');
