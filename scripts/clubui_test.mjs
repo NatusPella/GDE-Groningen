@@ -103,4 +103,20 @@ t('Club-UI: het tenue als eigen kaart, sponsors aannemen, en het stadion alleen 
   assert.match(gelukt, /vb-sponsor vb-sponsor--aan/); assert.match(gelukt, /✓ Aangenomen/);
 });
 
+t('het shirtvoorbeeld is robuust: een 2D-shirt in de clubkleuren staat er altijd, het 3D-plaatje is verborgen tot het er is (zonder WebGL blijft het 2D-shirt)', () => {
+  const c = V.getCareer(), kit = KIT.kitView(c, getClub), club = getClub(c.club);
+  const h = U.clubHtml({ career: c, money: 1, getClub, kit });
+  assert.match(h, /class="vb-shirt2d"/); assert.ok(h.includes('fill="#' + (club.shirt & 0xffffff).toString(16).padStart(6, '0') + '"'), 'de clubkleur');
+  assert.ok(h.includes('>' + kit.number + '</text>'), 'het rugnummer'); assert.match(h, /data-kit-shirt="[^"]+" hidden>/, 'het 3D-plaatje is verborgen tot het klaar is');
+  assert.ok(U.shirt2dSvg(null, 7).includes('#888888'), 'zonder clubdata een neutraal shirt, geen fout');
+  assert.ok(!/NaN|undefined/.test(U.shirt2dSvg(club, 10)));
+  // zonder document (node) doet kitPhotos niets en gooit niets; plaatjeHeeftInhoud vertrouwt een plaatje dat hij niet meten kan
+  U.kitPhotos({ querySelector: () => ({ getAttribute: () => 'x' }) });
+  assert.equal(typeof U.plaatjeHeeftInhoud({}), 'boolean');
+  const css = fs.readFileSync(new URL('../game/js/ds-voetbal.css', import.meta.url), 'utf8');
+  assert.ok(css.includes('.vb-shirt2d__rand') && css.includes('.vb-shirtvak img[hidden]'));
+  // 24-11 (rooktest integratie-0.66): de wereld bouwt mensen modulair (ADR 0051); het stukvoorbeeld heeft de meetlagen van het procedurele model nodig, anders blijft het leeg
+  assert.ok(fs.readFileSync(new URL('../game/js/clothingpreview.js', import.meta.url), 'utf8').includes('{ ...opts, procedural: true }'), 'buildProbe bouwt het procedurele model');
+});
+
 console.log(`clubui_test ok (${n} groepen)`);
