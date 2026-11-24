@@ -10,8 +10,8 @@
 // Een plek zonder wijk geeft null; de aanroeper valt dan terug op de woonplaats, het dorp of Ommeland, nooit op een stadswijk.
 import { gebiedIn } from './grenzen.js';
 
-export const CITY_LOCALITY = 'Groningen';
-export const MAX_DISTRICT_DISTANCE = 700;   // zonder grenzen: verder dan dit van een wijkpunt is er geen wijk
+const CITY_LOCALITY = 'Groningen';
+const MAX_DISTRICT_DISTANCE = 700;   // zonder grenzen: verder dan dit van een wijkpunt is er geen wijk
 const MAX_HOOGTE = 40;          // boven dit (m boven de grond) in de lucht noemen we geen wijk
 
 const getal = (v) => Number.isFinite(v);

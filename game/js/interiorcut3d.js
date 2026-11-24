@@ -4,7 +4,7 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { MAX_VOLUMES, packVolumes, patchInteriorShader } from './interiorcutshader.js';
 
-export const CUT_UNIFORMS = {
+const CUT_UNIFORMS = {
   uIntA: { value: Array.from({ length: MAX_VOLUMES }, () => new THREE.Vector4()) },
   uIntB: { value: Array.from({ length: MAX_VOLUMES }, () => new THREE.Vector4()) },
   uIntN: { value: 0 },

@@ -17,7 +17,7 @@ export function edgeFadeAmount(d, start, end) {
 
 // Hoeveel van de pixels van een ding op afstand d blijft staan: 1 = alles, 0 = niets.
 // 24-11: steil in het midden van de band (EDGE_STEEP x zo steil), zodat een ding niet lang als een raster van losse pixels staat
-export const EDGE_STEEP = 3;
+const EDGE_STEEP = 3;
 export function edgeFadeKeep(d, start, end) {
   return Math.min(1, Math.max(0, (1 - edgeFadeAmount(d, start, end) - 0.5) * EDGE_STEEP + 0.5));
 }

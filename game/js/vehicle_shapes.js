@@ -5,7 +5,7 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { GeoBuilder, composeMatrix } from './pixelart3d.js';
 
-export const G_BODY = 0, G_GLASS = 1, G_LAMP = 2;
+const G_BODY = 0, G_GLASS = 1, G_LAMP = 2;
 export const C = {
   TRIM: 0x1f2022, DARK: 0x2a2d31, STEEL: 0x6b6e72, LIGHT: 0xa9aaa6, GLASS: 0x2b3740, HEADLAMP: 0xf2efe4, TAIL: 0xa3211b,
   INDICATOR: 0xd9822b, TIRE: 0x1b1b1c, RIM: 0x9ea2a6, CHROME: 0xb9bcbf, SEAT: 0x2b2d32, YELLOW: 0xd9a521,

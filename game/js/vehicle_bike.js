@@ -12,7 +12,7 @@ const HEADLAMP = 0xf2efe4, TAIL = 0xa3211b, REFLECTOR = 0xd8452f, RUST = 0x7a4a2
 const SADDLE = 0x2a1d14, SEAM = 0x5a4634;
 
 export const BIKE_BB = [-0.05, 0.3];
-export const BIKE_CRANK = 0.17;
+const BIKE_CRANK = 0.17;
 
 export function shade(hex, f) {
   const r = Math.min(255, Math.round(((hex >> 16) & 0xff) * f)), g = Math.min(255, Math.round(((hex >> 8) & 0xff) * f)), b = Math.min(255, Math.round((hex & 0xff) * f));

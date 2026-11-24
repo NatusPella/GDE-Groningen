@@ -116,7 +116,7 @@ function detail(o, id) {
 
 // De kop van Veroverd (#608): het getal krijgt woorden, zodat niemand hoeft te raden of het
 // gebieden, procenten of punten zijn. Puur, zodat een test hem kan natrekken.
-export function veroverdKop(sam) {
+function veroverdKop(sam) {
   const klaar = Number(sam && sam.voltooid) || 0;
   const totaal = Number(sam && sam.totaal) || 0;
   return `<span class="mut">Gebieden:</span><span class="m-num">${klaar}</span><span class="mut">van ${totaal} veroverd</span>`;

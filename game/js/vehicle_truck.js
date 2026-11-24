@@ -9,7 +9,7 @@ import { fillet, planExtrude, cyl, bar, mirror, handle, grille, taillight, ridge
 
 const RAIL_DARK = 0x2a2b2d;
 
-export function truckDims(L, W) {
+function truckDims(L, W) {
   const hl = L / 2, hw = W / 2, cabL = 2.0;
   return { hl, hw, cabL, xc0: hl - cabL, boxX0: -hl, boxX1: hl - cabL - 0.1, wr: 0.52, fwx: hl - 0.85, rwx: -hl + 1.7, boxY0: 0.96, boxY1: 3.6, cabBot: 0.64, roof: 2.72, floor: 0.83 };
 }

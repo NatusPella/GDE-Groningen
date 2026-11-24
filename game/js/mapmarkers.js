@@ -5,7 +5,7 @@
 import { PH_SHOP, PH_JOB, PH_GLYPHS, PH_KIND } from './mapglyphs.js';
 
 // De markers met een vaste soort-naam (geen voorvoegsel): diensten, plekken en de wereld.
-export const MARKER_ICOON = {
+const MARKER_ICOON = {
   hospital: 'ehbo', politiebureau: 'politie', garage: 'gereedschap', horeca: 'eten', flitspaal: 'camera', eierbalTip: 'ei', cash: 'geld',
   landmark: 'ster', uitkijkpunt: 'verrekijker', beppe: 'stoel', companion: 'speler',
   dorpKlaar: 'vlag', home: 'thuis', homeGarage: 'garage', homeMooring: 'anker', homeHelipad: 'helikopter',

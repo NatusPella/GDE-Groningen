@@ -60,7 +60,7 @@ export const BEDIENING = '{W} en {S} gas · {A} en {D} rollen · {ARROWUP}/{SPAC
 export const BEDIENING_PAD = 'Linkerstick rollen en gas · A of RT omhoog · B of LT omlaag · LB kleppen · X landingsgestel';
 // #632: het instaptip blijft binnen het kaartbudget; de lange uitleg staat in Besturing > Hulp.
 export const UITLEG_INSTAPPEN = 'Gas: {W}. Stijgen: {SPACE}. Rollen: {A}/{D}. Kleppen: {K}. Gestel: {G}. Landen: zacht.';
-export const BEDIENING_KORT = '{W}/{S} gas · {A}/{D} rollen · {Q}/{E} roer · {K} kleppen · {G} landingsgestel';
+const BEDIENING_KORT = '{W}/{S} gas · {A}/{D} rollen · {Q}/{E} roer · {K} kleppen · {G} landingsgestel';
 
 // --- het paneel ------------------------------------------------------------------------------------------------------------
 const CSS = `#hud .hud-instr{position:absolute;right:var(--hud-edge,46px);bottom:var(--hud-edge,46px);display:none;width:372px;padding:8px 12px 8px 12px;color:var(--ds-c-creme);text-shadow:var(--hud-shadow);background:linear-gradient(90deg,color-mix(in srgb, var(--ds-c-glas) 88%, transparent),color-mix(in srgb, var(--ds-c-glas-2) 62%, transparent) 85%,color-mix(in srgb, var(--ds-c-glas-2) 15%, transparent));border-left:3px solid var(--mk-ok, #3fc97a)}

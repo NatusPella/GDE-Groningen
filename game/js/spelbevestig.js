@@ -14,7 +14,7 @@ export const isBevestigOpen = () => !!open;
 const reduced = () => document.documentElement.classList.contains('reduce-motion') || (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches);
 
 // De HTML van de kaart (puur op tekst, voor de test): opties zie toonBevestiging.
-export function bevestigHtml({ titel, tekst = '', verlies = [], vergelijk = '', acties = [], breed = 760 } = {}) {
+function bevestigHtml({ titel, tekst = '', verlies = [], vergelijk = '', acties = [], breed = 760 } = {}) {
   const regel = (r) => `<div class="sp-verlies__regel">${icoon(r.icoon || (r.soort === 'weg' ? 'waarschuwing' : 'vinkje'), { cls: 'sp-ic' })}<b class="${r.soort === 'weg' ? 'sp-slecht' : r.soort === 'blijft' ? 'sp-goed' : ''}">${esc(r.label)}</b><span>${r.html ? r.tekst : esc(r.tekst)}</span></div>`;
   const groepen = [];
   for (const soort of ['weg', 'blijft', 'nieuw']) {

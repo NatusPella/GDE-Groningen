@@ -30,7 +30,7 @@ export function buildingFadeT(dist, R, B = BUILDING_FADE_BAND) {
 // Bayer 4x4 zoals in de shaders (edgefade3d.js, lod3d.js): 16 drempels, elk in het MIDDEN van zijn zestiende (1/32 tot 31/32). 24-11
 // (beeldregressie 'stad'): met drempels 0 tot 15/16 viel de pixel met drempel 0 weg zodra een varying die overal 1,0 is door de
 // interpolatie 0,9999999 werd: één gat per 4x4 pixels in elk ver gebouw (witte spikkels). Met de halve stap marge kan dat niet meer.
-export const BAYER_HALF_STEP = 1 / 32;
+const BAYER_HALF_STEP = 1 / 32;
 export function bayer4(x, y) {
   const b2 = (ax, ay) => { ax = Math.floor(ax); ay = Math.floor(ay); const v = ax * 0.5 + ay * ay * 0.75; return v - Math.floor(v); };
   return b2(0.5 * x, 0.5 * y) * 0.25 + b2(x, y) + BAYER_HALF_STEP;

@@ -10,7 +10,7 @@
 import { hoofdspeler } from './players.js';
 
 export const STORE_VERSION = 1;
-export const HERO = 'hero';
+const HERO = 'hero';
 const MAX_KEYS = 400;
 
 export const emptyKnown = () => ({ versie: STORE_VERSION, keys: [] });

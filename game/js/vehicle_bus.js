@@ -9,9 +9,9 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { GeoBuilder, composeMatrix } from './pixelart3d.js';
 
-export const BUS_SILL = 0.34;
-export const BUS_WHEEL_R = 0.5;
-export const BUS_ROOF = 3.0;
+const BUS_SILL = 0.34;
+const BUS_WHEEL_R = 0.5;
+const BUS_ROOF = 3.0;
 const WIN_Y0 = 1.2, WIN_Y1 = 2.55, RAIL = 2.62;
 const DOOR_Y0 = 0.42, DOOR_Y1 = 2.57, DOOR_HALF = 0.6, WALL_T = 0.08;
 const G_GLASS = 1, G_LAMP = 2;

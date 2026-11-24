@@ -30,7 +30,7 @@ function pleinTexture() {
   pleinTex.wrapS = pleinTex.wrapT = THREE.RepeatWrapping;
   return pleinTex;
 }
-export function buildPleinFloor(area, map) {
+function buildPleinFloor(area, map) {
   const p = area && area.plein;
   if (!p) return null;
   const geo = new THREE.CircleGeometry(p.radius, 56);

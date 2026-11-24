@@ -106,7 +106,7 @@ export function toonUitje(world, id, { titel = '', regel = '', hint = '', secs =
   return spec;
 }
 
-export function verbergUitje() {
+function verbergUitje() {
   if (!els) return;
   els.root.classList.remove('on');
   els.root.hidden = true;

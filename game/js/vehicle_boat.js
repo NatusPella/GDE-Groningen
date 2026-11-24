@@ -61,7 +61,7 @@ export function hullShellRich(B, st, hull, trim, floorY, deck, K) {
 }
 
 // Dolboord: een kap op de rand, met een buitenzijde en een binnenzijde; w = breedte van de kap.
-export function gunwaleCap(B, st, color, w = 0.07, h = 0.035, inner = true) {
+function gunwaleCap(B, st, color, w = 0.07, h = 0.035, inner = true) {
   for (let i = 0; i < st.length - 1; i++) {
     const a = st[i], b = st[i + 1];
     if (a.hw < 0.03 && b.hw < 0.03) continue;
@@ -75,7 +75,7 @@ export function gunwaleCap(B, st, color, w = 0.07, h = 0.035, inner = true) {
 }
 
 // Schuurlijst langs de zijkant, een stuk onder het dolboord, met rubber stootkussens eraan.
-export function rubStrake(B, st, K, drop = 0.14, pads = true, padColor = 0xe8e6e0) {
+function rubStrake(B, st, K, drop = 0.14, pads = true, padColor = 0xe8e6e0) {
   const { hullAt } = K;
   for (let i = 0; i < st.length - 1; i++) {
     const a = st[i], b = st[i + 1];
@@ -97,14 +97,14 @@ export function rubStrake(B, st, K, drop = 0.14, pads = true, padColor = 0xe8e6e
 }
 
 // Een kikker (afmeertuig): een dwarsstuk op twee poten.
-export function cleat(B, x, y, z, len = 0.14, color = METAL) {
+function cleat(B, x, y, z, len = 0.14, color = METAL) {
   B.box(x, y + 0.03, z, len, 0.022, 0.03, color);
   B.box(x - len * 0.32, y + 0.012, z, 0.03, 0.024, 0.03, color);
   B.box(x + len * 0.32, y + 0.012, z, 0.03, 0.024, 0.03, color);
 }
 
 // Een reddingsboei (ring met vier banden) aan een steun, plat tegen een wand (as langs z).
-export function lifebuoy(B, x, y, z, r = 0.17) {
+function lifebuoy(B, x, y, z, r = 0.17) {
   B.geo(new THREE.TorusGeometry(r, r * 0.3, 6, 14), composeMatrix(x, y, z), 0xe8e6e0);
   for (let k = 0; k < 4; k++) {
     const a = (k / 4) * Math.PI * 2 + 0.4;
@@ -113,7 +113,7 @@ export function lifebuoy(B, x, y, z, r = 0.17) {
 }
 
 // Een bootshaak langs de rand van de boot.
-export function boatHook(B, x0, y, z, len = 1.4) {
+function boatHook(B, x0, y, z, len = 1.4) {
   B.geo(tubeGeometry([x0, y, z], [x0 + len, y, z], 0.012, 0.012, 5), null, 0xb89868);
   B.geo(tubeGeometry([x0 + len, y, z], [x0 + len + 0.04, y + 0.07, z], 0.012, 0.008, 4), null, METAL);
 }
