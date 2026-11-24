@@ -53,13 +53,14 @@ for (const [naam, haal] of bronnen) {
 
 // 3. dezelfde rol, dezelfde maat, ongeacht de kaartsoort
 const alle = [...regels(lees('game/js/hudcards.css')), ...regels(lees('game/js/phonefeed.css')), ...regels(lees('game/js/hud_panel.css')), ...regels(lees('game/js/achievements.js').slice(lees('game/js/achievements.js').indexOf('const CSS')))];
-const rol = (selDeel, verwacht, exact = false) => {
-  const gevonden = alle.filter((r) => (exact ? r.sel.split(',').map((x) => x.trim()).some((x) => x.endsWith(selDeel)) : r.sel.includes(selDeel))).flatMap((r) => maten(r.body)).filter((g) => !/em$|%$/.test(g));
+const rol = (selDeel, verwacht, exact = false, zonder = null) => {
+  const gevonden = alle.filter((r) => !(zonder && zonder.test(r.sel))).filter((r) => (exact ? r.sel.split(',').map((x) => x.trim()).some((x) => x.endsWith(selDeel)) : r.sel.includes(selDeel))).flatMap((r) => maten(r.body)).filter((g) => !/em$|%$/.test(g));
   ok(gevonden.length > 0 && gevonden.every((g) => g === `var(--ds-t-kaart-${verwacht})`), `${selDeel} is de rol ${verwacht} (${gevonden.join(' | ')})`);
 };
 rol('.hc-text small', 'eyebrow'); rol('.pf-from', 'eyebrow'); rol('.pf-speaker', 'eyebrow'); rol('.ach-kicker', 'eyebrow'); rol('.hud-nowplaying small', 'eyebrow');
 rol('.hc-text b', 'titel'); rol('.pf-title', 'titel'); rol('.ach-title', 'titel'); rol('.hud-nowplaying b', 'titel'); rol('.pf-callwho b', 'titel');
-rol('.hc-text span', 'body'); rol('.pf-body', 'body'); rol('.pf-say', 'body'); rol('.ach-desc', 'body');
+rol('.hc-text span', 'body', false, /.sk-/); // de labels van de startkaart (ds3-v2): eyebrow
+rol('span.sk-l', 'eyebrow'); rol('span.sk-chip', 'eyebrow'); rol('.sk-m i', 'eyebrow'); rol('.pf-body', 'body'); rol('.pf-say', 'body'); rol('.ach-desc', 'body');
 rol('.pf-time', 'hulp'); rol('.pf-appnaam', 'hulp'); rol('.pf-sub', 'hulp'); rol('.hud-card .hc-close', 'hulp'); rol('.hud-nowplaying span:not(.np-ic)', 'hulp');
 // de telefoonkaart schaalt zijn lange tekst niet met een eigen groot formaat
 ok(!/pf-title[^}]*--ds-t-kop\b/.test(lees('game/js/phonefeed.css')), 'de nieuwskop gebruikt de titelrol, niet de 44 px-kop');
