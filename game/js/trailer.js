@@ -1,6 +1,7 @@
 import { gridItems } from './spatialgrid.js';
 import { hoofdspeler } from './players.js';
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
+import { adoptSetLight } from './setlights.js';
 import { FLAGS } from './devflags.js';
 import { canvasTex as canvasTexture } from './canvastex.js';
 import { mulberry32 } from './rng.js';
@@ -2200,8 +2201,9 @@ export function runTrailer(world, { mode = 'opname', cut = 'vol', shot = null, f
     getScene().add(group);
     r.group = group;
     // one light for the whole run (dark until a shot uses it): adding or
-    // removing a light mid-run would recompile every material
-    r.light = new THREE.PointLight(0xffb066, 0, 14, 1.4);
+    // removing a light mid-run would recompile every material. perf-r3 (24-11): it borrows a lamp of the night rig (setlights.js),
+    // so the light count stays that of the game: an extra light gave every lit material a second program in the benchmark
+    r.light = adoptSetLight(new THREE.PointLight(0xffb066, 0, 14, 1.4));
     getScene().add(r.light);
     // actors and props are built once per session and hidden between shots
     disposeTrailerProps(); // #797: een vorig traject dat niet netjes eindigde, laat hier niets achter

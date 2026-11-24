@@ -1,3 +1,4 @@
+import { probe } from './hitchprobe.js';
 import { hoofdspeler } from './players.js';
 import { dist, isInWater, closestPointOnSegment, pointInPolygon } from './util.js';
 import { trafficSignalsNear, pedestriansMayCross, getTrafficLights } from './trafficlights.js';
@@ -310,13 +311,47 @@ function addSite(x, y, kind) {
 }
 
 function buildSites(map) {
-  const roads = map.orderedRoads ? map.orderedRoads() : map['roads'] || [];
-  sitesGeo = { map, ver: map._roadVer !== undefined ? map._roadVer : map.geoVer, geo: map.geoVer, roads: new Set(roads) };
-  sites = new SpatialGrid(SITE_CELL);
-  // platte testkaarten zonder raster vallen terug op hun eigen wegenlijst
-  addRoadSites(roads, null);
-  for (const h of getTrafficLights()) if (h.crossing || h.bike) addSite(h.ax, h.ay, 'signal');
+  sitesBuild = null;
+  for (const _ of buildSitesSteps(map)) { /* in één keer */ }
 }
+// perf-r3 (24-11, t-voetgangers tot ~165 ms): de volle opbouw (na een sprong, als de tegellog niet ver genoeg terugreikt) loopt in
+// stappen van hoogstens SITES_BUDGET_MS per beeld in een nieuwe grid; de oude sites blijven tot de nieuwe af zijn (zelfde uitkomst
+// als in één keer: dezelfde knopen in dezelfde volgorde). Alleen zonder sites (de eerste keer) gaat het in één keer.
+const SITES_BUDGET_MS = 2;
+let sitesBuild = null;
+function* buildSitesSteps(map) {
+  const roads = map.orderedRoads ? map.orderedRoads() : map['roads'] || [];
+  const geo = { map, ver: map._roadVer !== undefined ? map._roadVer : map.geoVer, geo: map.geoVer, roads: new Set(roads) };
+  const grid = new SpatialGrid(SITE_CELL);
+  const nodes = new Map();
+  const key = (p) => Math.round(p[0] * 10) * 1e6 + Math.round(p[1] * 10);
+  for (let n = 0; n < roads.length; n++) {
+    const r = roads[n];
+    r.pts.forEach((p, i) => {
+      const k = key(p);
+      let a = nodes.get(k);
+      if (!a) nodes.set(k, a = []);
+      a.push(r, i);
+    });
+    if (n % 400 === 399) yield;
+  }
+  let n = 0;
+  for (const [, a] of nodes) {
+    const site = nodeSite(a);
+    if (site) grid.insertPoint(site, site.x, site.y);
+    if (++n % 2000 === 0) yield;
+  }
+  for (const h of getTrafficLights()) if (h.crossing || h.bike) grid.insertPoint({ x: h.ax, y: h.ay, kind: 'signal' }, h.ax, h.ay);
+  sites = grid;
+  sitesGeo = geo;
+}
+function stepSitesBuild() {
+  if (!sitesBuild) return;
+  const t0 = performance.now();
+  do { if (sitesBuild.next().done) { sitesBuild = null; return; } } while (performance.now() - t0 < SITES_BUDGET_MS);
+}
+// elk beeld een stuk van een lopende opbouw (pedestrians.js updatePedestrians)
+export function stepPedSites() { stepSitesBuild(); }
 
 // 24-11 (profiel benchmark: buildSites 10% van de spellus, bij elke nieuwe wegentegel over ALLE wegen): alleen wat sinds de vorige bouw
 // veranderde, opnieuw. Per gewijzigde tegel (map.geoLog, tileworld.js) de wegen die nu zijn vlak raken tegen de wegen die er bij de vorige
@@ -349,12 +384,14 @@ function patchSites(map) {
     const R = [b[0] - 0.5, b[1] - 0.5, b[2] + 0.5, b[3] + 0.5];
     for (const st of sites.query(R[0], R[1], R[2], R[3])) if (inRect(R, st.x, st.y)) sites.removePoint(st, st.x, st.y);
   }
+  // perf-r3 (24-11): de oversteeklichten één keer uitzoeken, niet alle lichten opnieuw per gewijzigde weg (een tegel brengt honderden wegen)
+  const crossHeads = changed.length ? getTrafficLights().filter((h) => h.crossing || h.bike) : [];
   for (const r of changed) {
     const b = r.bounds;
     const R = [b[0] - 0.5, b[1] - 0.5, b[2] + 0.5, b[3] + 0.5];
     // geen dubbele sites: een knoop in de box van twee gewijzigde wegen komt er één keer bij
     addRoadSites(map.roadGrid.query(R[0], R[1], R[2], R[3]), R, true);
-    for (const h of getTrafficLights()) if ((h.crossing || h.bike) && inRect(R, h.ax, h.ay)) addSiteOnce(h.ax, h.ay, 'signal');
+    for (const h of crossHeads) if (inRect(R, h.ax, h.ay)) addSiteOnce(h.ax, h.ay, 'signal');
   }
   sitesGeo = { map, ver: map._roadVer !== undefined ? map._roadVer : map.geoVer, geo: map.geoVer, roads: known };
   return true;
@@ -377,20 +414,25 @@ function addRoadSites(roads, R, once = false) {
     });
   }
   for (const [, a] of nodes) {
-    if (a.length < 4) continue;
-    let car = null, busy = false, foot = false, branches = 0;
-    for (let j = 0; j < a.length; j += 2) {
-      const r = a[j], i = a[j + 1];
-      const interior = i > 0 && i < r.pts.length - 1;
-      branches += (i > 0) + (i < r.pts.length - 1);
-      if (CAR_CATS.includes(r.cat)) {
-        car = car || r.pts[i];
-        if (interior && DETOUR_CATS.includes(r.cat)) busy = true;
-      } else if (r.cat === 'foot' && interior) foot = true;
-    }
-    // same rule roadsurface.js uses to paint zebra stripes
-    if (car && branches >= 3 && (!R || inRect(R, car[0], car[1]))) (once ? addSiteOnce : addSite)(car[0], car[1], busy && foot ? 'zebra' : 'junction');
+    const site = nodeSite(a);
+    if (site && (!R || inRect(R, site.x, site.y))) (once ? addSiteOnce : addSite)(site.x, site.y, site.kind);
   }
+}
+// de site van één knoop ([weg, index, ...]) of null
+function nodeSite(a) {
+  if (a.length < 4) return null;
+  let car = null, busy = false, foot = false, branches = 0;
+  for (let j = 0; j < a.length; j += 2) {
+    const r = a[j], i = a[j + 1];
+    const interior = i > 0 && i < r.pts.length - 1;
+    branches += (i > 0) + (i < r.pts.length - 1);
+    if (CAR_CATS.includes(r.cat)) {
+      car = car || r.pts[i];
+      if (interior && DETOUR_CATS.includes(r.cat)) busy = true;
+    } else if (r.cat === 'foot' && interior) foot = true;
+  }
+  // same rule roadsurface.js uses to paint zebra stripes
+  return car && branches >= 3 ? { x: car[0], y: car[1], kind: busy && foot ? 'zebra' : 'junction' } : null;
 }
 
 function sitesNear(x, y, r, out) {
@@ -937,7 +979,9 @@ export function walkRoute(ped, world, dt, dPlayer) {
       if (!sites || sitesGeo.map !== map || sitesGeo.ver !== ver) {
         const intro = typeof document !== 'undefined' && document.body && (document.body.classList.contains('intro-montage') || document.body.classList.contains('cine-hide-hud'));
         const tilesCalm = tilesCalmGate(map);
-        if (tilesCalm && !intro && !patchSites(map)) buildSites(map);
+        probe.mark("t-voetgangers:route");
+        if (tilesCalm && !intro && !sitesBuild && !patchSites(map)) { if (sites) sitesBuild = buildSitesSteps(map); else buildSites(map); }
+        probe.mark("t-voetgangers:sites");
       }
       r.cross.site = siteKind(r.cross);
       const mayDetour = !a.detour && !tgt.detour && (r.detours || 0) < 6;

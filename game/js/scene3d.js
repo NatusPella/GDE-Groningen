@@ -852,7 +852,7 @@ function pinShaderPrograms(r) {
   const programs = r.info.programs;
   const push = programs.push;
   programs.push = function (...added) {
-    for (const p of added) { p.usedTimes++; probe.program(p); programWatch.note(p); }
+    for (const p of added) { p.usedTimes++; probe.program(p); programWatch.note(p); if (!perfOff('linkuitstel')) guardFirstUse(p); }
     return push.apply(this, added);
   };
 }
@@ -1395,6 +1395,24 @@ function programLinked(p) {
   if (ready) { p._linked = true; return true; }
   return false;
 }
+// perf-r3 (24-11): de wacht hierboven kijkt naar de programma's die een materiaal al HAD. Een nieuwe variant van een bekend materiaal
+// (een ander lichtaantal, de nachtrig aan of uit, een poolkopie na needsUpdate, een nieuwe dieptevariant) zag hij niet: die werd bij de
+// draw gemaakt en de eerste getUniforms wachtte op de link (stilstanden tot 1,7 s in de benchmark, ~320 programma's tijdens het spel).
+// Nu gooit de eerste getUniforms van een programma dat nog linkt NOT_LINKED, zolang een bewaakte draw loopt (deferDraw): three heeft dan
+// nog geen GL-toestand veranderd (getUniforms komt voor useProgram in setProgram), de draw valt dit beeld weg en de link loopt parallel
+// door. Na LINK_DEFER_MAX_MS tekent hij toch (een driver die nooit klaar meldt). ?perfoff=linkuitstel is het oude gedrag.
+const NOT_LINKED = new Error('programma linkt nog');
+const LINK_DEFER_MAX_MS = 4000;
+let deferDraw = false;
+const linkDeferStats = { skipped: 0 };
+function guardFirstUse(p) {
+  const get = p.getUniforms, born = performance.now();
+  p.getUniforms = function () {
+    if (deferDraw && !programLinked(p) && performance.now() - born < LINK_DEFER_MAX_MS) { linkDeferStats.skipped++; throw NOT_LINKED; }
+    p.getUniforms = get; // gelinkt (of lang genoeg gewacht): voortaan de gewone aanroep
+    return get.call(p);
+  };
+}
 function hookLinkGuard(r) {
   r.setOpaqueSort(programSort);
   const draw0 = r.renderBufferDirect.bind(r);
@@ -1414,6 +1432,14 @@ function hookLinkGuard(r) {
       if (!ready) { linkPending.add(object); return undefined; }
     }
     if (sc === null && material.isMeshDepthMaterial && !perfOff('dieptevarianten')) material = depthVariant(material, object);
+    if (guard && canvasFrames > linkGuardFrom() && (sc === scene || (sc === null && (material.isMeshDepthMaterial || material.isMeshDistanceMaterial)))) {
+      deferDraw = true;
+      try { return draw(camera, sc, geometry, material, object, group); } catch (e) {
+        if (e !== NOT_LINKED) throw e;
+        if (sc === scene) linkPending.add(object);
+        return undefined;
+      } finally { deferDraw = false; }
+    }
     return draw(camera, sc, geometry, material, object, group);
   };
 }

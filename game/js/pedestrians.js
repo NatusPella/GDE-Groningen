@@ -1,3 +1,4 @@
+import { probe } from './hitchprobe.js';
 import { isInsideBuilding, isOnRoad, CAR_ROAD_CATS, lineOfSight, setPedPose, pushAudioEvent } from './pedgeom.js';
 export { isInsideBuilding, isOnRoad, lineOfSight, setPedPose, pushAudioEvent };
 import { DEAD_DURATION } from './pedconst.js';
@@ -23,7 +24,7 @@ import { registerPoseSource, unregisterPoseSource, prunePoseSources } from './mo
 import { knockDown, isKnockedDown } from './ragdoll.js';
 import { splatterPed, bleedPed, GIB_SPEED } from './gore3d.js';
 import { knockFx } from './knockfx3d.js';
-import { walkRoute, processPedPlanQueue, buildPedAvoidGrid, separatePeds, makeCompanion, setRhythmClock } from './pedroutes.js';
+import { walkRoute, processPedPlanQueue, buildPedAvoidGrid, separatePeds, makeCompanion, setRhythmClock, stepPedSites } from './pedroutes.js';
 import { NIGHTLIFE_SPOTS, readClock, nightlifeScale } from './dailyrhythm.js';
 import { carStartle, STARTLE, STARTLE_LINES } from './trafficreact.js';
 import { reportCrime } from './crime.js';
@@ -1240,6 +1241,7 @@ export function updatePedestrians(dt, world) {
 
   readClock(world, rclock);
   setRhythmClock(rclock.hour, rclock.weekday, rclock.wet);   // de dagritmes van pedroutes.js (#1314)
+  probe.mark("t-voetgangers:voor"); // hitchprobe (?hitch): de delen van updatePedestrians, perf-r3 24-11
   const events = gatherEvents(world);
   if (pendingEvents.length) events.push(...pendingEvents.splice(0));
   if (events.length) processEvents(world, events);
@@ -1249,7 +1251,10 @@ export function updatePedestrians(dt, world) {
   greetWalkingPlayer(world);
   grumbleAtHorn(world);
   knockOffRiders(world);
+  probe.mark("t-voetgangers:gebeurtenissen");
   processPedPlanQueue(world);
+  stepPedSites(); // perf-r3: een stuk van een lopende opbouw van de oversteekplekken
+  probe.mark("t-voetgangers:planrij");
   // #653: de avoid-grid om de twee frames i.p.v. elke frame
   if (++pedAvoidTick % 2 === 0) buildPedAvoidGrid(peds);
 
@@ -1271,6 +1276,7 @@ export function updatePedestrians(dt, world) {
     if (foci) for (const f of foci) if (!f.host) managePopulation(world, f, foci.length);
     prunePoseSources(new Set(peds));
   }
+  probe.mark("t-voetgangers:populatie");
 
   // civilians beside a racing police car step back and look (#52); the cap
   // on lookers follows the stars and the frame time
