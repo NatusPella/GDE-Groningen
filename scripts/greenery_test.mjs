@@ -30,7 +30,19 @@ ok(forest.has(S.beuk) && forest.has(S.eik) && forest.has(S.den) && !forest.has(S
 const street = new Set(); for (let i = 0; i < 400; i++) street.add(GR.speciesFor({ place: 'street', water: 99 }, i / 400));
 ok(street.size >= 6 && street.has(S.kers), 'street trees vary, a cherry among them', [...street].map((i) => GR.SPECIES[i].id).join(','));
 ok(GR.speciesFor({ water: 99, rowSeed: 0.42 }, 0.1) === GR.speciesFor({ water: 99, rowSeed: 0.42 }, 0.9), 'a row is one species');
-ok((() => { const c = GR.SPECIES[S.kers].color; return ((c >> 16) & 255) > ((c >> 8) & 255) + 20 && (c & 255) > ((c >> 8) & 255); })(), 'the cherry blooms pink (also after the world colours of the design system)');
+// #1333 (constitution 3, always summer): no pink blossom; a mapped cherry is mostly drawn as a lime, a maple or a plane
+ok((() => { const c = GR.SPECIES[S.kers].color; return ((c >> 8) & 255) > ((c >> 16) & 255) && ((c >> 8) & 255) > (c & 255); })(), 'the cherry is in summer leaf: green, not pink');
+{
+  const picks = {}; const col = { r: 0, g: 0, b: 0, setHex(h) { this.r = ((h >> 16) & 255) / 255; this.g = ((h >> 8) & 255) / 255; this.b = (h & 255) / 255; return this; }, multiplyScalar(v) { this.r *= v; this.g *= v; this.b *= v; return this; } };
+  let pink = 0;
+  for (let i = 0; i < 400; i++) {
+    const tr = [i * 3.7 + 0.31, i * 1.9 - 4.2, S.kers, 75, 0];
+    const id = GR.SPECIES[GR.treeDims(tr).sp].id; picks[id] = (picks[id] || 0) + 1;
+    GR.treeColor(tr, col); if (col.r > col.g) pink++;
+  }
+  ok(pink === 0, 'no mapped cherry shows a pink crown', pink + ' of 400');
+  ok(picks.linde > 80 && picks.esdoorn > 60 && picks.plataan > 40 && (picks.kers || 0) < 80, 'a mapped cherry becomes a lime, maple or plane, a cherry in leaf only now and then', JSON.stringify(picks));
+}
 
 // heights and shapes
 for (const sp of [S.linde, S.plataan, S.esdoorn, S.eik]) {

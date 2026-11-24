@@ -617,7 +617,9 @@ function addShopfront(B, e, s0, s1, top, S, seed, poiType = null) {
   const shopRank = poiType ? rankForType(poiType, seed) : hash2(seed, 5.5);
   // gevelreclame en markies van hetzelfde winkeltype als het interieur in de ruit (winkelkit.js)
   const look = facadeLook(shopRank);
-  const shopUV = (s0, s1, y0, y1, bay) => panes.push({ c: (s0 + s1) / 2, w: s1 - s0, y0, y1 }) && wallQuad(B, e, s0, s1, y0, y1, 0.055, GLASS_TONES[(bay + Math.floor(seed * 7)) % 4 + 1], G_GLASS, edgePaneUV(e, shopRank, PANE_SHOP, s1 - s0, y1 - y0, bay));
+  // #1333: de ruitnummering begint per pand op een andere plek, zodat twee winkels van dezelfde soort niet dezelfde kamers tonen
+  const bay0 = Math.floor(hash2(seed, 9.1) * 8);
+  const shopUV = (s0, s1, y0, y1, bay) => panes.push({ c: (s0 + s1) / 2, w: s1 - s0, y0, y1 }) && wallQuad(B, e, s0, s1, y0, y1, 0.055, GLASS_TONES[(bay + Math.floor(seed * 7)) % 4 + 1], G_GLASS, edgePaneUV(e, shopRank, PANE_SHOP, s1 - s0, y1 - y0, (bay + bay0) & 7));
   for (let i = 0; i < n; i++) {
     const a = s0 + i * bw + 0.07, b = s0 + (i + 1) * bw - 0.07;
     if (i === doorBay && bw > 1.1) {

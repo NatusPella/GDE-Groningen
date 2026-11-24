@@ -318,6 +318,172 @@ vec3 igProducts(vec2 c, float detail, float style, int st) {
   return mix(mix(vec3(0.4), acc.rgb, 0.45) * 0.9, col, detail);
 }
 
+// distance from p to the segment a-b
+float igSeg(vec2 p, vec2 a, vec2 b) { vec2 pa = p - a, ba = b - a; return length(pa - ba * clamp(dot(pa, ba) / dot(ba, ba), 0.0, 1.0)); }
+
+// a bicycle seen from the side, l in metres from the middle between the axles (wheels 0.6 m); linear colours
+vec3 igBike(vec2 l, vec3 frame, vec3 bg) {
+  vec3 col = bg;
+  vec2 wa = vec2(-0.52, 0.0), wb = vec2(0.52, 0.0), bb = vec2(-0.04, 0.0), seat = vec2(-0.17, 0.43), head = vec2(0.34, 0.43);
+  float da = length(l - wa), db = length(l - wb);
+  if (abs(da - 0.268) < 0.009 || abs(db - 0.268) < 0.009) col = vec3(0.45);                    // velg
+  else if ((da < 0.26 && abs(fract(atan(l.y - wa.y, l.x - wa.x) * 2.546) - 0.5) < 0.04) || (db < 0.26 && abs(fract(atan(l.y, l.x - wb.x) * 2.546) - 0.5) < 0.04)) col = mix(bg, vec3(0.5), 0.6); // spaken
+  if (abs(da - 0.3) < 0.03 || abs(db - 0.3) < 0.03) return vec3(0.02);                            // banden
+  float f = min(min(igSeg(l, wa, bb), igSeg(l, bb, seat)), min(min(igSeg(l, seat, head), igSeg(l, bb, head)), min(igSeg(l, wa, seat), igSeg(l, head, wb))));
+  if (f < 0.022) col = frame;
+  if (igSeg(l, vec2(-0.27, 0.51), vec2(-0.07, 0.53)) < 0.03) col = vec3(0.02);                    // zadel
+  if (igSeg(l, head, vec2(0.38, 0.6)) < 0.016 || igSeg(l, vec2(0.33, 0.61), vec2(0.5, 0.58)) < 0.018) col = vec3(0.03); // stuur
+  if (length(l - bb) < 0.065) col = vec3(0.12);                                                   // trapas
+  return col;
+}
+
+// A shop wall in bays of 1 to 1.6 m (#1333): per bay a shelving unit, a rail, something hung on the wall, or a bare piece of wall with
+// now and then a poster. The bay width, the height of the units and which bays stay bare come from the seed of the building, so every
+// shop is furnished differently, and a wall is never one pattern from floor to ceiling. c: (along the wall, height above the floor) in m;
+// returns linear albedo.
+vec3 igShopWall(vec2 c, vec3 wallC, float detail, float seed, int st, float ceilH) {
+  vec4 sty = uShopSty[st];
+  int pat = int(sty.x + 0.5);
+  vec3 acc = uShopAccent[st].rgb, acc2 = acc * acc;
+  if (c.y < 0.1) return wallC * 0.45;                                                           // plint
+  if (c.y > ceilH - 0.42 && c.y < ceilH - 0.3) return mix(wallC, acc2, 0.75);                    // fries in de kleur van de winkel
+  if (pat == 12) { vec3 pr = igProducts(c, detail, seed, st); return pr * pr; }                  // de kermiskraam is zijn zeildoek
+  float bw = (pat == 5 || pat == 8 ? 1.2 : 1.0) + 0.6 * fract(seed * 7.31);
+  float u = c.x / bw + seed * 5.3;
+  float bay = floor(u), bx = fract(u) * bw;
+  float hb = igH(vec2(bay, seed * 17.0 + 3.0)), hc = fract(hb * 13.17), hk = fract(hb * 7.7);
+  float edge = min(bx, bw - bx);
+  vec3 col = wallC;
+  vec3 wood = mix(vec3(0.36, 0.25, 0.15), vec3(0.62, 0.62, 0.6), step(0.5, fract(seed * 3.3))); wood *= wood;
+  if (hb < sty.w) {
+    // een kaal vak: muur, soms een ingelijste poster in de kleuren van de winkel
+    vec2 pd = abs(vec2(bx - bw * 0.5, c.y - 1.55)) - vec2(0.24 + 0.1 * hc, 0.34);
+    if (hb < sty.w * 0.5 && max(pd.x, pd.y) < 0.0) col = max(pd.x, pd.y) > -0.03 ? vec3(0.02) : mix(acc2, vec3(0.75, 0.72, 0.65), 0.6 * step(0.5, fract((c.y + bx * (hc - 0.5)) * 2.3)));
+    return mix(wallC, col, detail);
+  }
+  float top = 1.5 + 0.55 * hc;                                                                   // elke kast een eigen hoogte
+  if (pat == 5) {
+    // fietsenwinkel: een fiets aan een haak (rechtop in een smal vak, liggend in een breed), een rail met banden of een gereedschapswand
+    if (hk < 0.6) {
+      vec3 fc = mix(acc, mix(vec3(0.75, 0.12, 0.1), vec3(0.1, 0.35, 0.25), step(0.5, hc)), step(0.35, fract(hb * 3.1))); fc *= fc;
+      vec2 l = vec2(bx - bw * 0.5, c.y);
+      if (bw < 1.55) { l = vec2(c.y - (1.28 + 0.12 * hc), -(bx - bw * 0.5)); if (abs(l.y) < 0.012 && l.x > 0.7) col = vec3(0.1); }   // haak
+      else l.y -= 1.45 + 0.2 * hc;
+      col = igBike(l, fc, col);
+    } else if (hk < 0.8) {
+      if (abs(c.y - 1.98) < 0.025 && edge > 0.06) col = vec3(0.15);                              // rail
+      // banden naast elkaar aan de rail (een vak per band, geen lus: de glasshader heeft er geen)
+      float sw = bw / max(1.0, floor(bw / 0.62)), ti = floor(bx / sw);
+      float d = length(vec2(bx - (ti + 0.5) * sw, c.y - 1.66));
+      if (abs(d - 0.28) < 0.04) col = vec3(0.03 + 0.03 * fract(ti * 0.37 + hb));
+    } else {
+      if (edge > 0.1 && c.y > 1.0 && c.y < 1.95) {
+        col = vec3(0.55, 0.42, 0.27);
+        if (length(fract(vec2(bx, c.y) / 0.06) - 0.5) < 0.14) col = vec3(0.3, 0.22, 0.14);       // gaatjes van de gaatjeswand
+        // vier stuks gereedschap op een eigen hoogte en met een eigen scheefstand
+        float sw = (bw - 0.2) / 4.0, ti = clamp(floor((bx - 0.1) / sw), 0.0, 3.0), tx = 0.1 + (ti + 0.5) * sw, th = igH(vec2(bay, ti + 9.0));
+        if (igSeg(vec2(bx, c.y), vec2(tx, 1.25 + 0.1 * th), vec2(tx + 0.05 * (th - 0.5), 1.7 + 0.15 * th)) < 0.018 + 0.012 * th) col = th < 0.5 ? vec3(0.1) : vec3(0.7, 0.12, 0.08);
+        col *= col;
+      }
+    }
+  } else if (pat == 8) {
+    // elektronica: een tv per vak aan een beugel, op een eigen hoogte
+    float tw = bw - 0.24, th = min(0.8, tw * 0.56), cy = 1.5 + 0.25 * hc;
+    vec2 d = abs(vec2(bx - bw * 0.5, c.y - cy)) - vec2(tw, th) * 0.5;
+    if (max(d.x, d.y) < 0.0) {
+      vec3 scr = hk < 0.35 ? vec3(0.22, 0.5, 0.98) : (hk < 0.65 ? vec3(0.35, 0.82, 0.95) : (hk < 0.9 ? vec3(0.9, 0.85, 0.6) : vec3(0.95, 0.55, 0.25)));
+      col = max(d.x, d.y) > -0.03 ? vec3(0.01) : scr * scr * (0.55 + 0.45 * (c.y - cy + th * 0.5) / th);
+    }
+  } else if (pat == 7) {
+    // kapper: per vak een spiegel met lijst en een plankje met flesjes
+    vec2 d = abs(vec2(bx - bw * 0.5, c.y - 1.45)) - vec2(bw * 0.5 - 0.15, 0.5);
+    if (max(d.x, d.y) < 0.0) col = max(d.x, d.y) > -0.035 ? vec3(0.03) : mix(vec3(0.42, 0.55, 0.6), vec3(0.85, 0.9, 0.92), clamp((c.y - 0.95) * 0.9 + 0.2 * bx, 0.0, 1.0));
+    else if (abs(c.y - 0.9) < 0.02 && edge > 0.12) col = vec3(0.8);
+    else if (c.y > 0.91 && c.y < 0.91 + 0.09 + 0.06 * fract(floor(bx / 0.09) * 0.37) && edge > 0.15 && fract(bx / 0.09) < 0.6) col = mix(acc2, vec3(0.8, 0.5, 0.6), step(0.5, fract(floor(bx / 0.09) * 0.71)));
+  } else if (pat == 4) {
+    // kleding: een stang met hangers en kleren eronder, of een kast met gevouwen stapels
+    if (hk < 0.65) {
+      float rail = 1.72 + 0.1 * hc;
+      if (abs(c.y - rail) < 0.018 && edge > 0.05) col = vec3(0.35);
+      float gu = bx / 0.17, cell = floor(gu), fx = fract(gu) - 0.5;
+      float h = igH(vec2(cell + bay * 17.0, 7.0));
+      float fy = (c.y - (rail - 0.85)) / 0.8;
+      if (h > 0.15 && fy > 0.0 && fy < 1.0 && edge > 0.1) {
+        float halfw = fy > 0.72 ? 0.46 : 0.32;
+        if (fy > 0.92 && abs(fx) < 0.08) halfw = 0.0;
+        if (abs(fx) < halfw) {
+          int pi = int(floor(h * 6.0));
+          vec3 cc = pi == 0 ? vec3(0.82, 0.25, 0.3) : (pi == 1 ? vec3(0.2, 0.4, 0.75) : (pi == 2 ? vec3(0.95, 0.8, 0.25) : (pi == 3 ? vec3(0.25, 0.6, 0.4) : (pi == 4 ? vec3(0.55, 0.35, 0.7) : vec3(0.97)))));
+          cc = mix(cc, acc, 0.15) * (0.8 + 0.25 * fy);
+          col = cc * cc;
+        }
+      }
+    } else if (c.y < top) {
+      if (edge < 0.035 || fract(c.y / 0.4) < 0.06) col = wood;
+      else if (fract(c.y / 0.4) < 0.45 && fract(bx / 0.32) > 0.1) { float h = igH(vec2(floor(bx / 0.32) + bay * 9.0, floor(c.y / 0.4))); vec3 cc = mix(vec3(0.2, 0.3, 0.55), vec3(0.85, 0.8, 0.7), h); col = cc * cc * (0.85 + 0.15 * step(0.5, fract(c.y / 0.08))); }
+    }
+  } else if (pat == 3) {
+    // snackbar: wandtegels tot schouderhoogte en per vak een menubord
+    if (c.y < 1.35) col = (fract(bx / 0.15) < 0.04 || fract(c.y / 0.15) < 0.04) ? vec3(0.55) : vec3(0.88, 0.86, 0.8);
+    vec2 d = abs(vec2(bx - bw * 0.5, c.y - 1.8)) - vec2(bw * 0.5 - 0.08, 0.3);
+    if (max(d.x, d.y) < 0.0) {
+      col = vec3(0.015);
+      float row = floor((c.y - 1.5) / 0.1), lx = bx - 0.12;
+      if (fract((c.y - 1.5) / 0.1) > 0.3 && fract((c.y - 1.5) / 0.1) < 0.7 && lx > 0.0 && lx < (bw - 0.4) * (0.5 + 0.5 * igH(vec2(bay, row)))) col = vec3(0.9, 0.7, 0.12);
+      if (bx > bw - 0.42 && bx < bw - 0.14 && c.y > 1.6 && c.y < 2.0) col = vec3(0.8, 0.35, 0.1);
+    }
+  } else {
+    // a shelving unit: uprights, a top board, the goods of the shop on the shelves, and a plinth
+    if (c.y > top + 0.04) return col;
+    if (c.y > top || edge < 0.035 || c.y < 0.18) col = wood * (c.y < 0.18 ? 0.6 : 1.0);
+    else { vec3 pr = igProducts(c, detail, seed, st); col = pr * pr * (0.7 + 0.3 * smoothstep(0.035, 0.22, edge)); }
+  }
+  return mix(wallC, col, detail);
+}
+
+// The front of the furniture against the back wall (winkelkit.js STIJL.kast): a shelving unit with goods, a refrigerated counter,
+// a fryer, a workbench, a dressing table or a display case; c in m from the box's left bottom corner; linear albedo.
+vec3 igShopUnit(vec2 c, float kw, float kh, float detail, float seed, int st) {
+  int pat = int(uShopSty[st].x + 0.5);
+  vec3 acc = uShopAccent[st].rgb;
+  vec3 wood = mix(vec3(0.36, 0.25, 0.15), vec3(0.62, 0.62, 0.6), step(0.5, fract(seed * 3.3))); wood *= wood;
+  float bx = fract(c.x / 1.0), edge = min(bx, 1.0 - bx);
+  vec3 col;
+  if (pat == 2) {
+    // koeltoonbank: een stalen voet, daarboven glas met het vlees erachter
+    col = c.y < 0.55 ? vec3(0.72, 0.73, 0.74) : igProducts(c * vec2(1.0, 1.0) + vec2(3.0, -0.55), detail, seed, st);
+    if (c.y > 0.55 && c.y < 0.6) col = vec3(0.3);
+    col *= col;
+  } else if (pat == 3) {
+    col = vec3(0.6, 0.61, 0.62);                                                                  // frituurkast in rvs
+    if (abs(fract(c.x / 0.6) - 0.5) > 0.48 || abs(c.y - kh + 0.12) < 0.02) col = vec3(0.25);
+    col *= col;
+  } else if (pat == 5) {
+    col = c.y > kh - 0.06 ? vec3(0.55, 0.4, 0.24) : vec3(0.18, 0.2, 0.22);                       // werkbank: houten blad, ladekast
+    if (c.y < kh - 0.06 && (fract(c.y / 0.21) < 0.05 || abs(fract(c.x / 0.5) - 0.5) > 0.47)) col = vec3(0.08);
+    if (c.y < kh - 0.06 && abs(fract(c.y / 0.21) - 0.5) < 0.04 && abs(fract(c.x / 0.5) - 0.5) < 0.1) col = vec3(0.7);
+    col *= col;
+  } else if (pat == 7) {
+    col = vec3(0.92, 0.92, 0.9);                                                                  // kaptafel met kastjes
+    if (abs(fract(c.x / 0.45) - 0.5) > 0.47 || c.y > kh - 0.04) col = mix(acc, vec3(0.3), 0.4);
+    col *= col;
+  } else if (pat == 8) {
+    // vitrine: donkere voet, een glazen bovenkant met telefoons erin
+    col = vec3(0.1);
+    if (c.y > kh - 0.4 && c.y < kh - 0.05) {
+      col = vec3(0.55, 0.62, 0.66);
+      vec2 p = vec2(fract(c.x / 0.22), (c.y - kh + 0.4) / 0.35);
+      if (p.x > 0.3 && p.x < 0.7 && p.y > 0.25 && p.y < 0.85) col = igH(vec2(floor(c.x / 0.22), 4.0)) < 0.5 ? vec3(0.05) : vec3(0.3, 0.55, 0.9);
+    }
+    col *= col;
+  } else {
+    // schappen: staanders per meter, een bovenblad en de waar van de winkel
+    if (c.y > kh - 0.04 || edge < 0.025 || c.y < 0.15) col = wood * (c.y < 0.15 ? 0.6 : 1.0);
+    else { vec3 pr = igProducts(c + vec2(seed * 7.0, 0.0), detail, seed, st); col = pr * pr * (0.72 + 0.28 * smoothstep(0.025, 0.2, edge)); }
+  }
+  return col;
+}
+
 vec3 igInterior(IgPane q, vec3 N, vec3 V, float dist, out float fres) {
   bool ground = abs(q.kind - 1.0) < 0.5, shop = abs(q.kind - 2.0) < 0.5, office = q.kind > 2.5;
   float W = max(q.size.x, 0.05), H = max(q.size.y, 0.05);
@@ -352,6 +518,8 @@ vec3 igInterior(IgPane q, vec3 N, vec3 V, float dist, out float fres) {
   wallC *= wallC;
 
   float shopStyle = igH(vec2(floor(q.K / 8.0), 3.7));
+  // #1333: the furnishing seed of this building's shop (type level, pane number with a per-building start, pane size)
+  float pand = fract(shopStyle * 3.17 + s1 * 0.731);
   float RW = W + (shop ? 2.4 : 1.3);
   float fY = shop ? -0.45 : ground ? -0.55 : -0.85;
   float cY = max(fY + (office ? 2.9 : 2.75), H + 0.3);
@@ -381,14 +549,22 @@ vec3 igInterior(IgPane q, vec3 N, vec3 V, float dist, out float fres) {
   if (ft == 3 && ground) ft = 0;
   float cx = (s3 - 0.5) * max(0.0, RW - 2.2);
   vec3 a0 = vec3(0.0), a1 = vec3(0.0), c0 = vec3(0.0), c1 = vec3(0.0);
+  vec3 k0 = vec3(0.0, cY + 5.0, 0.0), k1 = vec3(0.1, cY + 5.1, 0.1);
   if (ft == 0) { a0 = vec3(cx - 0.95, fY, D - 0.95); a1 = vec3(cx + 0.95, fY + 0.45, D); c0 = vec3(cx - 0.95, fY, D - 0.3); c1 = vec3(cx + 0.95, fY + 0.92, D); }
   else if (ft == 1) { a0 = vec3(cx - 0.6, fY, D - 0.35); a1 = vec3(cx + 0.6, fY + 2.0, D); }
   else if (ft == 2) { a0 = vec3(cx - 0.7, fY, D - 0.5); a1 = vec3(cx + 0.7, fY + 0.85, D); }
   else if (ft == 3) { float sx = s5 < 0.5 ? -1.0 : 1.0; a0 = vec3(sx * RW * 0.5 - 0.8, fY, D - 2.0); a1 = vec3(sx * RW * 0.5 + 0.8, fY + 0.5, D); c0 = vec3(sx * RW * 0.5 - 0.8, fY, D - 0.1); c1 = vec3(sx * RW * 0.5 + 0.8, fY + 1.0, D); }
   else if (ft == 10) {
-    vec4 lay = uShopLay[st];
+    vec4 lay = uShopLay[st], sty = uShopSty[st];
+    // the furniture against the back wall (#1333, winkelkit.js STIJL.kast): a part of the wall, its width and place per building
+    if (sty.y > 0.05) {
+      float kw = RW * (0.45 + 0.35 * fract(pand * 5.7));
+      float kx = (fract(pand * 9.1) - 0.5) * (RW - kw);
+      k0 = vec3(kx - kw * 0.5, fY, D - sty.z); k1 = vec3(kx + kw * 0.5, fY + sty.y, D);
+    }
     float iw = min(lay.x, RW - 0.8) * 0.5;
-    if (iw > 0.1) { a0 = vec3(cx - iw, fY, D * 0.55); a1 = vec3(cx + iw, fY + lay.y, D * 0.55 + 0.6); }
+    float iz = min(D * 0.55, D - sty.z - 1.2);
+    if (iw > 0.1 && iz > 1.35) { a0 = vec3(cx - iw, fY, iz); a1 = vec3(cx + iw, fY + lay.y, iz + 0.6); }
     else { a0 = vec3(0.0, cY + 5.0, 0.0); a1 = vec3(0.1, cY + 5.1, 0.1); }
     c0 = vec3(-cx - 0.6, fY, 0.5); c1 = vec3(-cx + 0.6, fY + lay.z * 0.75, 1.2);
   }
@@ -400,6 +576,7 @@ vec3 igInterior(IgPane q, vec3 N, vec3 V, float dist, out float fres) {
     if (ta < t) { t = ta; n = fn; hitF = 1; }
     float tc = igBox(ro, ird, c0, c1, fn);
     if (tc < t) { t = tc; n = fn; hitF = 2; }
+    if (ft == 10) { float tk = igBox(ro, ird, k0, k1, fn); if (tk < t) { t = tk; n = fn; hitF = 3; } }
   }
   vec3 hp = ro + rd * t;
 
@@ -420,6 +597,16 @@ vec3 igInterior(IgPane q, vec3 N, vec3 V, float dist, out float fres) {
     }
     else if (ft == 2) alb = wood * (n.z < -0.5 && fract((hp.y - fY) / 0.28) < 0.06 ? 0.5 : 1.0);
     else if (ft == 3) alb = hitF == 1 ? (n.y > 0.5 ? vec3(0.8, 0.8, 0.82) : fab) : wood;
+    else if (ft == 10 && hitF == 3) {
+      // the back-wall furniture: its front shows what the shop has, the top is a worktop or the top shelf, the sides a panel
+      float kh = k1.y - k0.y;
+      int kp = int(uShopSty[st].x + 0.5);
+      if (n.z < -0.5) alb = igShopUnit(vec2(hp.x - k0.x, hp.y - fY), k1.x - k0.x, kh, detail, pand, st);
+      else if (n.y > 0.5) {
+        vec3 tp = kp == 2 || kp == 3 ? vec3(0.7, 0.71, 0.72) : (kp == 5 ? vec3(0.55, 0.4, 0.24) : (kp == 7 ? vec3(0.9) : (kp == 8 ? vec3(0.15) : igProducts(hp.xz * 2.0, detail, pand, st))));
+        alb = tp * tp;
+      } else alb = (kp == 5 || kp == 8 ? vec3(0.03) : vec3(0.25, 0.2, 0.15));
+    }
     else if (ft == 10) alb = hitF == 1 ? (n.y > 0.5 ? mix(vec3(0.5), uShopAccent[st].rgb, 0.5) : uShopAccent[st].rgb * vec3(0.25, 0.27, 0.3)) : (n.y > 0.5 ? igProducts(hp.xz * 2.0, detail, shopStyle, st) : vec3(0.74, 0.67, 0.59));
     else if (ft == 11) alb = hitF == 1 ? vec3(0.6, 0.6, 0.62) : vec3(0.18);
     if (ft == 10 && hitF == 2 && n.y > 0.5) alb *= alb;
@@ -427,7 +614,7 @@ vec3 igInterior(IgPane q, vec3 N, vec3 V, float dist, out float fres) {
   } else if (n.z < -0.5) {
     alb = wallC;
     vec2 c = vec2(hp.x, hp.y - fY);
-    if (shop) { vec3 pr = igProducts(c + vec2(10.0, 0.0), detail, shopStyle, st); alb = c.y > 0.2 ? pr * pr : wallC; }
+    if (shop) alb = igShopWall(c + vec2(10.0, 0.0), wallC, detail, pand, st, cY - fY);
     else if (!office) {
       vec2 pc = vec2((s4 - 0.5) * RW * 0.5, 1.55);
       vec2 d = abs(c - pc) - vec2(0.3 + 0.2 * s2, 0.24);
@@ -439,7 +626,7 @@ vec3 igInterior(IgPane q, vec3 N, vec3 V, float dist, out float fres) {
   } else if (abs(n.x) > 0.5) {
     alb = wallC * 0.95;
     vec2 c = vec2(hp.z, hp.y - fY);
-    if (shop) { vec3 pr = igProducts(c, detail, shopStyle, st); alb = c.y > 0.2 ? pr * pr : wallC; }
+    if (shop) alb = igShopWall(c + vec2(hp.x > 0.0 ? 31.0 : 57.0, 0.0), wallC, detail, fract(pand + (hp.x > 0.0 ? 0.37 : 0.71)), st, cY - fY);
     else if (sign(hp.x) == (s5 < 0.5 ? 1.0 : -1.0) && abs(c.x - D * 0.62) < 0.45 && c.y < 2.05) alb = s3 < 0.5 ? vec3(0.8, 0.79, 0.76) : vec3(0.05);
   } else if (n.y > 0.5) {
     if (shop) {
@@ -480,6 +667,11 @@ vec3 igInterior(IgPane q, vec3 N, vec3 V, float dist, out float fres) {
   E += vec3(0.003, 0.0035, 0.005) + vec3(0.030, 0.032, 0.045) * night * (1.0 - lit) * (0.45 + 0.55 * exp(-hp.z * 0.6));
   vec3 dd = min(hp - b0, b1 - hp) + abs(n) * 10.0;
   float ao = hitF > 0 ? 0.85 : 0.5 + 0.5 * smoothstep(0.0, 0.7, min(dd.x, min(dd.y, dd.z)));
+  if (hitF == 0 && n.y > 0.5 && ft == 10) {
+    // contact shadow on the shop floor under the furniture
+    vec2 fk = max(max(k0.xz - hp.xz, hp.xz - k1.xz), 0.0), fa = max(max(a0.xz - hp.xz, hp.xz - a1.xz), 0.0), fc = max(max(c0.xz - hp.xz, hp.xz - c1.xz), 0.0);
+    ao *= 0.6 + 0.4 * smoothstep(0.0, 0.3, min(length(fk), min(length(fa), length(fc))));
+  }
   if (hitF == 0 && n.y > 0.5 && ft != 4 && ft < 10) {
     vec3 m0 = a0, m1 = a1;
     if (ft == 0 || ft == 3) { m0 = min(a0, c0); m1 = max(a1, c1); }

@@ -107,20 +107,24 @@ export const WINKEL = {
 //            5 fietswielen, 6 emmers met bloemen, 7 spiegelwand, 8 tv-schermen,
 //            9 rommelkasten, 10 kaarten en mokken, 11 tijdschriftenrek,
 //            12 kermiskraam (zeildoek, gloeilampjes, poffertjes en suikerspin)
+//   kast:    [hoog, diep] in m: het meubel tegen de achterwand (schappenkast, toonbank met koeling, frituurkast, werkbank,
+//            kaptafel); [0, 0] = geen, dan hangt alles aan de wand (kledingrekken, kermiskraam)
+//   leeg:    het deel van de wandvakken dat kaal blijft (een muur, soms een poster): zo leest een wand als winkel en niet als
+//            behang met een herhalend patroon (#1333)
 export const STIJL = {
-  supermarkt: { patroon: 0, buiten: 'karretjes' },
-  bakker: { patroon: 1, buiten: 'bord' },
-  slager: { patroon: 2, buiten: 'bord' },
-  snackbar: { patroon: 3, buiten: 'menubord' },
-  kleding: { patroon: 4, buiten: 'poppen' },
-  fietsen: { patroon: 5, buiten: 'fietsrek' },
-  bloemist: { patroon: 6, buiten: 'emmers' },
-  kapper: { patroon: 7, buiten: 'kapperspaal' },
-  elektronica: { patroon: 8, buiten: 'vlag' },
-  tweedehands: { patroon: 9, buiten: 'meubels' },
-  souvenir: { patroon: 10, buiten: 'draaistandaard' },
-  kiosk: { patroon: 11, buiten: 'krantenrek' },
-  kermiskraam: { patroon: 12, buiten: 'bord' },
+  supermarkt: { patroon: 0, buiten: 'karretjes', kast: [1.9, 0.5], leeg: 0.1 },
+  bakker: { patroon: 1, buiten: 'bord', kast: [1.7, 0.45], leeg: 0.25 },
+  slager: { patroon: 2, buiten: 'bord', kast: [1.1, 0.7], leeg: 0.3 },
+  snackbar: { patroon: 3, buiten: 'menubord', kast: [1, 0.7], leeg: 0.3 },
+  kleding: { patroon: 4, buiten: 'poppen', kast: [0, 0], leeg: 0.25 },
+  fietsen: { patroon: 5, buiten: 'fietsrek', kast: [0.9, 0.65], leeg: 0.3 },
+  bloemist: { patroon: 6, buiten: 'emmers', kast: [1, 0.6], leeg: 0.3 },
+  kapper: { patroon: 7, buiten: 'kapperspaal', kast: [0.85, 0.45], leeg: 0.15 },
+  elektronica: { patroon: 8, buiten: 'vlag', kast: [1, 0.5], leeg: 0.2 },
+  tweedehands: { patroon: 9, buiten: 'meubels', kast: [1.9, 0.45], leeg: 0.1 },
+  souvenir: { patroon: 10, buiten: 'draaistandaard', kast: [1.6, 0.4], leeg: 0.2 },
+  kiosk: { patroon: 11, buiten: 'krantenrek', kast: [1.8, 0.35], leeg: 0.15 },
+  kermiskraam: { patroon: 12, buiten: 'bord', kast: [0, 0], leeg: 0 },
 };
 for (const k of SHOP_KINDS) Object.assign(WINKEL[k], STIJL[k]);
 
@@ -188,7 +192,7 @@ export function shaderTable() {
     floor.push([...hex(t.floor), t.floorPattern]);
     accent.push([...hex(t.accent), t.mix]);
     layout.push([t.island[0], t.island[1], t.counter[0], t.items]);
-    stijl.push([t.patroon, 0, 0, 0]);
+    stijl.push([t.patroon, t.kast[0], t.kast[1], t.leeg]);
   }
   return { wall, floor, accent, layout, stijl };
 }

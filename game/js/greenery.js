@@ -27,13 +27,25 @@ export const SPECIES = [
   { id: 'wilg', h: [8, 14], crown: 'weeping', r: [4.2, 6.0], stem: 0.2, color: 0x82a35e, trunk: 0x5a4a38 },
   { id: 'berk', h: [12, 18], crown: 'oval', r: [2.6, 3.6], stem: 0.3, color: 0x78a250, trunk: 0x8c8778 },
   { id: 'den', h: [12, 20], crown: 'conical', r: [2.4, 3.4], stem: 0.35, color: 0x2e4d2a, trunk: 0x6a4a30 },
-  // Japanese ornamental cherry: late bloom in pink, kept all summer
-  { id: 'kers', h: [6, 9], crown: 'round', r: [3.2, 4.4], stem: 0.3, color: 0xe58fb4, trunk: 0x4a3428 },
+  // ornamental cherry in summer leaf (#1333, constitution 3: always summer): no pink blossom, a dark green with a touch of bronze
+  { id: 'kers', h: [6, 9], crown: 'round', r: [3.2, 4.4], stem: 0.3, color: 0x5a7438, trunk: 0x4a3428 },
 ];
 // 21-11: de kleuren van het spel gaan zacht naar bordgroen (worldpalette.js); Node-scripts (de bouwer) lezen alleen soort en index en houden het oude palet
-if (typeof document !== 'undefined') for (const sp of SPECIES) { sp.color = dsWereld(sp.color, sp.id === 'kers' ? 'roze' : 'loof'); sp.trunk = dsWereld(sp.trunk, 'bouw'); }
+if (typeof document !== 'undefined') for (const sp of SPECIES) { sp.color = dsWereld(sp.color, 'loof'); sp.trunk = dsWereld(sp.trunk, 'bouw'); }
 export const SPECIES_INDEX = Object.fromEntries(SPECIES.map((s, i) => [s.id, i]));
 export const TREE_FLAG = { fill: 1, row: 2 };
+
+// #1333 (constitution 3, always summer): a cherry from the map (OSM Prunus, or a street pick of an older world) is drawn as a summer
+// species: mostly a lime, a maple or a plane, each tree its own pick by its place, and only now and then a cherry in summer leaf.
+// The map keeps the species it has; treeDims and treeColor read this, so the crown, the trunk and the colour agree.
+const SUMMER_FOR_CHERRY = [['linde', 0.36], ['esdoorn', 0.3], ['plataan', 0.22], ['kers', 0.12]];
+export function summerSpecies(t) {
+  const sp = t.length > 2 && t[2] >= 0 ? t[2] : SPECIES_INDEX.linde;
+  if (sp !== SPECIES_INDEX.kers) return sp;
+  let h = hash2(t[0] * 0.37 + 11.3, t[1] * 0.53 - 7.1);
+  for (const [id, w] of SUMMER_FOR_CHERRY) { h -= w; if (h <= 0) return SPECIES_INDEX[id]; }
+  return SPECIES_INDEX.kers;
+}
 
 // OSM species / genus / species:nl (first word) to a species
 const OSM_GENUS = {
@@ -97,7 +109,7 @@ const _d = { sp: 0, h: 0, trunkH: 0, tr: 0, ts: 1, r: 0, ry: 0, cy: 0, lr: 0, lx
 export function treeDims(t) {
   const x = t[0], y = t[1];
   const hA = hash2(x, y), hB = hash2(y, x);
-  const sp = t.length > 2 && t[2] >= 0 ? t[2] : SPECIES_INDEX.linde;
+  const sp = summerSpecies(t);
   const s = SPECIES[sp] || SPECIES[0];
   // een gemapte hoogte krijgt een paar procent speling (AI-tells 23-11): een laan van precies even hoge bomen leest als gekopieerd
   const H = t.length > 3 && t[3] > 0 ? (t[3] / 10) * (0.94 + 0.12 * hA) : s.h[0] + (s.h[1] - s.h[0]) * hA;
@@ -147,7 +159,7 @@ export function treeBlocksPoint(t, x, y, z, pad = 0) {
 
 // the colour of tree t's leaves (hex), a few percent either way per tree
 export function treeColor(t, out) {
-  const sp = t.length > 2 && t[2] >= 0 ? t[2] : 0;
+  const sp = t.length > 2 && t[2] >= 0 ? summerSpecies(t) : 0;
   const s = SPECIES[sp] || SPECIES[0];
   const v = 0.9 + 0.2 * hash2(t[1] * 1.7, t[0] * 0.3);
   out.setHex(s.color).multiplyScalar(v);
