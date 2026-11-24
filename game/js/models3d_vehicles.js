@@ -4,7 +4,7 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
 import { makeLodObject } from './lodkit3d.js';
 import { applyVehicleLook } from './vehiclelook3d.js'; // epic Autotuning (#1155): v.look komt er na het bouwen op
 import { HABBO_PALETTE, habboMaterial, GeoBuilder, vcMaterial, markShared, composeMatrix, tubeGeometry } from './pixelart3d.js';
-import { buildPersonMesh, PERSON_RIG, holdPhoneRiding, reachHandFromParent, steerHands } from './models3d_people.js';
+import { buildPersonMesh, seatPose, seatedY, PERSON_RIG, holdPhoneRiding, reachHandFromParent, steerHands } from './models3d_people.js';
 import { boatKind, boatHasCabin } from './boattypes.js';
 import { CANOPY, RAIL } from './boatdeck.js';
 import { midibusDeurXs } from './businterieur.js';
@@ -21,6 +21,7 @@ import { QCARS } from './models/qcars.js';
 import { hybrideSchaal, VOERTUIG_REGISTER } from './propregister.js';
 import { attachVehicleLods } from './vehiclelod3d.js';
 import { DitherLOD } from './lod3d.js';
+import { stepFrameParts, stepSteerParts, stepGripSpec, mopedFrameParts, mopedSteerParts, mopedGripSpec, scooterWheelRich } from './vehicle_scooter.js';
 import { bikeFrameParts, bikeSteerParts, bakfietsParts, bikeWheelRich, bikeCrankParts, bikeGripSpec, bikeStijlNaam, bikeLean, bikeHipX, bikeExtras, BIKE_BB } from './vehicle_bike.js';
 
 // Low-poly vehicles. Group origin = vehicle centre at ground level (y=0),
@@ -2748,51 +2749,34 @@ function buildBikeMesh(v) {
   return group;
 }
 
+// De step en de snorscooter (vehicle_scooter.js); zonderStuur: het stuur met kap en vork is dichtbij een eigen onderdeel (stuurOverlay, #442)
 function buildScooterGeometry(color, zonderStuur = false) {
   return cached(`step|${color}|${zonderStuur}`, () => {
     const B = new GeoBuilder(3);
-    // deck with the battery pack slung underneath and grip tape on top
-    B.box(-0.04, 0.13, 0, 0.78, 0.05, 0.19, color);
-    B.box(-0.04, 0.095, 0, 0.62, 0.05, 0.15, 0x26272a);
-    B.box(-0.06, 0.158, 0, 0.64, 0.008, 0.155, 0x1d1d1e);
-    // steering neck and a thick stem
-    B.geo(tubeGeometry([0.3, 0.14, 0], [0.43, 0.12, 0], 0.028, 0.026, 6), null, color);
-    if (!zonderStuur) B.geo(tubeGeometry([0.43, 0.1, 0], [0.37, 1.02, 0], 0.034, 0.028, 8), null, color);
-    B.box(0.43, 0.2, 0, 0.06, 0.12, 0.05, 0x2a2a2b);
-    B.geo(tubeGeometry([0.43, 0.2, 0.03], [0.42, 0.11, 0.035], 0.012, 0.012, 4), null, 0x8a8e92);
-    B.geo(tubeGeometry([0.43, 0.2, -0.03], [0.42, 0.11, -0.035], 0.012, 0.012, 4), null, 0x8a8e92);
-    // bars, grips, the little display and a bell
-    if (!zonderStuur) scooterStuurOnderdelen(B, 0);
-    B.box(0.405, 0.42, 0, 0.035, 0.05, 0.07, HEADLAMP, G_LAMP);
-    // fenders over both wheels, tail light on the rear one, kickstand
-    const fender = new THREE.TorusGeometry(0.13, 0.024, 3, 8, Math.PI * 0.6);
-    B.geo(fender.clone(), composeMatrix(0.42, 0.11, 0, 0, 0, Math.PI * 0.25), color);
-    B.geo(fender, composeMatrix(-0.43, 0.11, 0, 0, 0, Math.PI * 0.15), color);
-    B.box(-0.52, 0.2, 0, 0.012, 0.025, 0.07, TAIL, G_LAMP);
-    B.geo(tubeGeometry([-0.14, 0.09, -0.08], [-0.26, 0.01, -0.13], 0.01, 0.01, 4), null, 0x2a2a2b);
+    stepFrameParts(B, color);
+    if (!zonderStuur) stepSteerParts(B, color, 0);
     return B.build();
   });
 }
-
-// Snorscooter: step-through body with a front shield, a long seat and small wheels.
 function buildMopedGeometry(color, zonderStuur = false) {
   return cached(`moped|${color}|${zonderStuur}`, () => {
     const B = new GeoBuilder(3);
-    const dark = 0x2a2b2e;
-    B.box(-0.38, 0.5, 0, 0.72, 0.36, 0.44, color);
-    B.box(-0.3, 0.73, 0, 0.7, 0.1, 0.32, 0x1b1b1c);
-    B.box(0.08, 0.3, 0, 0.62, 0.07, 0.36, dark);
-    B.box(0.42, 0.62, 0, 0.12, 0.62, 0.44, color);
-    B.box(0.48, 0.34, 0, 0.3, 0.1, 0.2, color);
-    if (!zonderStuur) mopedStuurOnderdelen(B, color, 0);
-    B.box(-0.76, 0.56, 0, 0.04, 0.08, 0.18, TAIL, G_LAMP);
-    B.box(-0.62, 0.8, 0, 0.26, 0.05, 0.3, dark);
-    B.geo(tubeGeometry([-0.3, 0.28, 0.16], [-0.72, 0.36, 0.2], 0.035, 0.03, 6), null, CHROME);
+    mopedFrameParts(B, color);
+    if (!zonderStuur) mopedSteerParts(B, color, 0);
     return B.build();
   });
 }
+function scooterWheelGeometry(r, tire, disc = false) {
+  return cached(`swheel|${r}|${tire}|${disc}`, () => scooterWheelRich(new GeoBuilder(1), r, tire, { disc }).build());
+}
 
 const MOPED_BODY_L = 1.53;
+// Een rijder op het zadel van een scooter: zijn heup op zadelhoogte en de benen via de zit-houding (voeten op de vloer), recline = voorover
+function seatScooterRider(rider, hipX, seatTop, spec, lean) {
+  seatPose(rider, spec);
+  rider.position.set(hipX, seatedY(rider, seatTop), 0);
+  rider.rotation.z = -Math.abs(lean || 0);
+}
 function buildMopedMesh(v) {
   const group = new THREE.Group();
   const color = v.wrecked ? WRECKED_COLOR : toHex(v.model.color, 0xe6e1d6);
@@ -2804,7 +2788,7 @@ function buildMopedMesh(v) {
   group.add(body);
   group.userData.stuurSpec = { soort: 'brommer', color, body, sx };
   const r = 0.23;
-  const wgeo = bikeWheelGeometry(r, 0.09, false);
+  const wgeo = scooterWheelGeometry(r, 0.07, true);
   const wheels = [];
   addWheel(group, wgeo, mats[0], 0.55 * sx, r, 0, wheels);
   addWheel(group, wgeo, mats[0], -0.52 * sx, r, 0, wheels);
@@ -2812,9 +2796,13 @@ function buildMopedMesh(v) {
   group.userData.wheelRadius = r;
   group.userData.spinStep = 0.28;
   const rider = riderFor(v, toHex(v.model.rider, HABBO_PALETTE.roofBlue));
-  rider.position.set(-0.22, 0.8 - 0.93 * rider.scale.y, 0);
-  poseRider(rider, 1.25, 1.0, -0.04);
+  // op het zadel (heup op 0,8 m), de voeten op de vloerplaat en de handen aan de handvatten van de stuurkap
+  seatScooterRider(rider, -0.34, 0.8, { recline: 0.04, footX: 0.5, footY: -0.5, arms: 'lap' }, 0.04);
   group.add(rider);
+  group.userData.riderMesh = rider;
+  group.userData.riderGrip = { ...mopedGripSpec(), x: mopedGripSpec().x };
+  bikeHands(rider, group.userData.riderGrip, 0);
+  makeLodObject('vehicle', 'bromfiets', group);
   return group;
 }
 
@@ -3016,7 +3004,7 @@ function buildScooterMesh(v) {
   group.add(stepBody);
   group.userData.stuurSpec = { soort: 'step', color, body: stepBody };
   const r = 0.11;
-  const wgeo = bikeWheelGeometry(r, 0.035, false);
+  const wgeo = scooterWheelGeometry(r, 0.04);
   const wheels = [];
   addWheel(group, wgeo, mats[0], 0.42, r, 0, wheels);
   addWheel(group, wgeo, mats[0], -0.43, r, 0, wheels);
@@ -3033,6 +3021,9 @@ function buildScooterMesh(v) {
   rider.userData.legL.position.z *= 0.6;
   rider.userData.legR.position.z *= 0.6;
   group.add(rider);
+  group.userData.riderMesh = rider;
+  group.userData.riderGrip = stepGripSpec();
+  bikeHands(rider, group.userData.riderGrip, 0);
   if (v.isPolice) {
     const lamps = [];
     for (const s of [1, -1]) {
@@ -3043,6 +3034,7 @@ function buildScooterMesh(v) {
     }
     group.userData.policeLamps = lamps;
   }
+  makeLodObject('vehicle', 'step', group);
   return group;
 }
 
@@ -4054,25 +4046,6 @@ export function bikeHands(rider, grip, a) {
   }
 }
 
-function scooterStuurOnderdelen(B, px, color = null) {
-  const tube = (a, b, r1, r2, sides, c) => B.geo(tubeGeometry([a[0] - px, a[1], a[2]], [b[0] - px, b[1], b[2]], r1, r2, sides), null, c);
-  if (color !== null) tube([0.43, 0.1, 0], [0.37, 1.02, 0], 0.034, 0.028, 8, color);
-  tube([0.37, 1.03, -0.25], [0.37, 1.03, 0.25], 0.016, 0.016, 6, 0x2a2a2b);
-  for (const s of [1, -1]) tube([0.37, 1.03, s * 0.17], [0.37, 1.03, s * 0.26], 0.022, 0.022, 6, 0x1b1b1c);
-  B.box(0.37 - px, 1.055, 0, 0.07, 0.025, 0.1, 0x1b1b1c);
-  B.box(0.35 - px, 1.07, 0, 0.012, 0.018, 0.07, 0x5fd0e0, G_LAMP);
-  B.geo(new THREE.CylinderGeometry(0.018, 0.022, 0.02, 8), composeMatrix(0.37 - px, 1.05, -0.13), 0xc8cbcf);
-}
-function mopedStuurOnderdelen(B, color, px) {
-  const dark = 0x2a2b2e;
-  const tube = (a, b, r1, r2, sides, c) => B.geo(tubeGeometry([a[0] - px, a[1], a[2]], [b[0] - px, b[1], b[2]], r1, r2, sides), null, c);
-  tube([0.46, 0.7, 0], [0.42, 1.04, 0], 0.032, 0.03, 6, dark);
-  tube([0.42, 1.04, -0.32], [0.42, 1.04, 0.32], 0.018, 0.018, 6, CHROME);
-  for (const s of [1, -1]) tube([0.42, 1.04, s * 0.22], [0.42, 1.04, s * 0.33], 0.024, 0.024, 6, 0x1b1b1c);
-  B.box(0.49 - px, 1.0, 0, 0.1, 0.12, 0.16, color);
-  B.box(0.545 - px, 1.0, 0, 0.02, 0.08, 0.1, HEADLAMP, G_LAMP);
-  for (const s of [1, -1]) B.box(0.43 - px, 1.12, s * 0.2, 0.02, 0.07, 0.05, CHROME);
-}
 // De bouwstenen voor het meedraaiende stuur van een fiets, step of brommer: { zonder: carrosserie zonder stuur,
 // stuur: het stuur om de stuurpen, px: x van de stuurpen, sx: schaal van de carrosserie } of null.
 export function stuurOverlay(spec) {
@@ -4095,7 +4068,7 @@ export function stuurOverlay(spec) {
     return {
       px, sx: 1,
       zonder: hold(buildScooterGeometry(spec.color, true)),
-      stuur: hold(cached(`stuur|step|${spec.color}`, () => { const B = new GeoBuilder(3); scooterStuurOnderdelen(B, px, spec.color); return B.build(); })),
+      stuur: hold(cached(`stuur|step|${spec.color}`, () => { const B = new GeoBuilder(3); stepSteerParts(B, spec.color, px); return B.build(); })),
     };
   }
   if (spec.soort === 'brommer') {
@@ -4103,7 +4076,7 @@ export function stuurOverlay(spec) {
     return {
       px, sx: spec.sx || 1,
       zonder: hold(buildMopedGeometry(spec.color, true)),
-      stuur: hold(cached(`stuur|brommer|${spec.color}`, () => { const B = new GeoBuilder(3); mopedStuurOnderdelen(B, spec.color, px); return B.build(); })),
+      stuur: hold(cached(`stuur|brommer|${spec.color}`, () => { const B = new GeoBuilder(3); mopedSteerParts(B, spec.color, px); return B.build(); })),
     };
   }
   return null;

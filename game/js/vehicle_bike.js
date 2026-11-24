@@ -14,7 +14,7 @@ const SADDLE = 0x2a1d14, SEAM = 0x5a4634;
 export const BIKE_BB = [-0.05, 0.3];
 export const BIKE_CRANK = 0.17;
 
-function shade(hex, f) {
+export function shade(hex, f) {
   const r = Math.min(255, Math.round(((hex >> 16) & 0xff) * f)), g = Math.min(255, Math.round(((hex >> 8) & 0xff) * f)), b = Math.min(255, Math.round((hex & 0xff) * f));
   return (r << 16) | (g << 8) | b;
 }
@@ -41,15 +41,15 @@ export function bikeGripSpec(stijl) {
   return { x: 0.13, y: s.H1[1] + 0.115, z: 0.28, px };
 }
 
-const tubeAt = (B, a, b, r1, r2, c, sides = 8) => B.geo(tubeGeometry(a, b, r1, r2, sides), null, c);
-const cyl = (B, x, y, z, r, len, c, sides = 10, axis = 'z') => {
+export const tubeAt = (B, a, b, r1, r2, c, sides = 8) => B.geo(tubeGeometry(a, b, r1, r2, sides), null, c);
+export const cyl = (B, x, y, z, r, len, c, sides = 10, axis = 'z') => {
   const g = new THREE.CylinderGeometry(r, r, len, sides);
   if (axis === 'z') g.rotateX(Math.PI / 2); else if (axis === 'x') g.rotateZ(Math.PI / 2);
   return B.geo(g, composeMatrix(x, y, z), c);
 };
 
 // Een gebogen strook (spatbord) om een as: rand-omlaag-gerold, met een onderkant, hoeken a0..a1 (rad, 0 = recht vooruit).
-function arcStrip(B, cx, cy, ro, w, a0, a1, segs, color) {
+export function arcStrip(B, cx, cy, ro, w, a0, a1, segs, color) {
   const ring = (a, d) => {
     const c = Math.cos(a), s = Math.sin(a);
     return [[cx + c * (ro - 0.016 - d), cy + s * (ro - 0.016 - d), -w / 2], [cx + c * (ro - d), cy + s * (ro - d), 0], [cx + c * (ro - 0.016 - d), cy + s * (ro - 0.016 - d), w / 2]];
