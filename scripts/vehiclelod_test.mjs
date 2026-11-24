@@ -28,6 +28,13 @@ const ANDERE = [
 const lijst = [...Object.entries(VOERTUIG_REGISTER).filter(([, e]) => !e.lod).map(([id, e]) => [id, { model: { ...e.model }, isTaxi: !!e.isTaxi, isPolice: !!e.isPolice }]), ...ANDERE];
 for (const [id, spec] of lijst) {
   const mesh = buildVehicleMesh({ id: 'lod-' + id, health: 100, ...spec });
+  // de helikopter (voertuigen-klein 24-11) bouwt zijn romp via het centrale lodkit3d.js (makeLodObject, userData.lod op de rompgroep); de
+  // drie niveaus en de afstanden toetst lod_audit_test.mjs
+  if (spec.isHeli) {
+    let eigen = null; mesh.traverse((o) => { if (!eigen && o.userData && o.userData.lod && o.userData.lod.kind === 'vehicle' && o.userData.lod.entries && o.userData.lod.entries.length) eigen = o.userData.lod; });
+    check(id + ': de romp heeft LOD-niveaus via het centrale systeem (lodkit3d.js)', !!eigen);
+    continue;
+  }
   const l = mesh.userData.lods;
   check(id + ': heeft LOD-niveaus', !!l);
   if (!l) continue;
