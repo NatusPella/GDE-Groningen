@@ -164,6 +164,7 @@ await scene('nan', async (ev) => {
   BG.computeBoundingBox = function () { kijk(this); return oud.box.call(this); };
   BG.computeBoundingSphere = function () { kijk(this); return oud.bol.call(this); };
   await menu('boerderij', 1500);
+  { const bt = [...document.querySelectorAll('[role="tab"]')].find((b) => /^Boerderij$/.test((b.textContent || '').trim()) && b.offsetParent); if (bt) { bt.click(); await sleep(500); } }
   await sleep(4000); await shot('boerderij-plaatjes', 300);   // de plaatjes (dier, gewas, trekker) komen lui in de rusttijd
   ev.plaatjes = [...document.querySelectorAll('[data-fp]')].map((x) => x.dataset.fp + ':' + (x.querySelector('img') ? 'beeld' : 'icoon'));
   const k = [...document.querySelectorAll('[data-panel] button, [role="tab"]')].find((b) => /^club$/i.test((b.textContent || '').trim()) && b.offsetParent);
