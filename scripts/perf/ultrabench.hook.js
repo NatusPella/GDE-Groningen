@@ -10,12 +10,38 @@
   const lts = [];
   try { new PerformanceObserver((l) => { for (const e of l.getEntries()) lts.push([Math.round(e.startTime), Math.round(e.duration)]); }).observe({ entryTypes: ['longtask'] }); } catch (e) { /* none */ }
   const progAt = []; // [t, programs] once a second during the run
+  // draw calls in the city (shot 3, Terrassen op de Vismarkt, 1,5 s in): one frame, each draw of the game scene by the name of its
+  // nearest named ancestor and its material type; shadow-pass draws (scene null) counted apart
+  let callsCity = null, shadowCity = null, drawsCity = null;
+  const captureDraws = () => {
+    const r = ren();
+    if (!r) return;
+    const orig = r.renderBufferDirect;
+    const by = new Map();
+    let main = 0, shadow = 0;
+    r.renderBufferDirect = function (camera, sc, geometry, material, object, group) {
+      if (sc === null) shadow++;
+      else {
+        main++;
+        let o = object, label = '';
+        while (o && !label) { label = o.name || (o.userData && (o.userData.kind || o.userData.type)) || ''; o = o.parent; }
+        const k = (label || object.type) + '/' + (material && material.type ? material.type.replace(/Material$/, '') : '?');
+        by.set(k, (by.get(k) || 0) + 1);
+      }
+      return orig.apply(this, arguments);
+    };
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      r.renderBufferDirect = orig;
+      callsCity = main; shadowCity = shadow;
+      drawsCity = [...by].sort((a, b) => b[1] - a[1]).slice(0, 30);
+    }));
+  };
   const ren = () => { try { return window.__scene3d && window.__scene3d.renderer; } catch (e) { return null; } };
   const log = console.log.bind(console);
   log('[trailer] ubhook aan');
   console.log = (...a) => {
     const s = typeof a[0] === 'string' ? a[0] : '';
-    if (s.startsWith('[trailer] enter ')) { const m = /enter (\d+)/.exec(s); const t = performance.now(); if (!benchT0) benchT0 = t; enters.push([t, Number(m && m[1])]); }
+    if (s.startsWith('[trailer] enter ')) { const m = /enter (\d+)/.exec(s); const t = performance.now(); if (!benchT0) benchT0 = t; enters.push([t, Number(m && m[1])]); if (Number(m && m[1]) === 3) setTimeout(captureDraws, 1500); }
     if (s.startsWith('[trailer] shot ')) { const m = /shot (\d+) ([^:]+):/.exec(s); if (m) { const e = enters.find((x) => x[1] === Number(m[1])); if (e) e[2] = m[2]; } }
     if (s.startsWith('[trailer] benchmark ')) { benchT1 = performance.now(); queueMicrotask(emit); } // the app quits right after the run: emit before any timer
     return log(...a);
@@ -54,7 +80,7 @@
       cats: Object.fromEntries(Object.entries(s.cats || {}).map(([k, v]) => [k, { avg: +v.avg.toFixed(1), low1: +v.low1.toFixed(1) }])),
       shots: (s.shots || []).map((x) => ({ label: x.label, fps: +x.fps.toFixed(1), idx: x.idx })).sort((a, b) => a.idx - b.idx),
       raf: { frames: ms.length, durS: +durS.toFixed(1), max: Math.round(Math.max(0, ...ms)), over50: ms.filter((x) => x > 50).length, over100: ms.filter((x) => x > 100).length, over50PerMin: +(ms.filter((x) => x > 50).length / (durS / 60)).toFixed(1) },
-      benchT0s: +(benchT0 / 1000).toFixed(2), longest, longtasks: lts.filter(([t]) => t > benchT0 && t <= benchT1).length, progAt, info, hitch,
+      callsCity, shadowCity, drawsCity, benchT0s: +(benchT0 / 1000).toFixed(2), longest, longtasks: lts.filter(([t]) => t > benchT0 && t <= benchT1).length, progAt, info, hitch,
       enters: enters.map(([t, i, l]) => [+((t - benchT0) / 1000).toFixed(1), i, l || '']),
     };
     emitted = true;

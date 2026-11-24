@@ -28,7 +28,12 @@ const FLAGS = ['benchwacht=0', ...arg('flags', '').split(',').filter(Boolean)].j
 const OUT = path.resolve(arg('out', path.join(ROOT, '.pb', 'ub')));
 const TAG = arg('tag', 'run');
 const electron = process.env.ELECTRON_EXE || runner.findElectron(ROOT) || path.join(ROOT, 'desktop', 'node_modules', 'electron', 'dist', 'electron.exe');
-const quiet = { maxCpu: Number(arg('max-cpu', 0.25)), minFreeGB: Number(arg('min-vrij-gb', 3)), waitMin: Number(arg('wacht-min', 90)), required: true };
+// --onder-last: geen stille-machinepoort en een gewoon (niet-exclusief) slot; alleen voor gepaarde A/B-runs direct na elkaar onder
+// dezelfde last, of voor tellingen (draw calls) in plaats van fps. Elke run zegt zelf of de machine tijdens de meting stil was.
+const UNDER_LOAD = process.argv.includes('--onder-last');
+const quiet = UNDER_LOAD ? false : { maxCpu: Number(arg('max-cpu', 0.25)), minFreeGB: Number(arg('min-vrij-gb', 3)), waitMin: Number(arg('wacht-min', 90)), required: true };
+// stil tijdens de run: de hele machine (met deze Electron, die alleen al ~10% van 16 kernen gebruikt) gemiddeld hoogstens STIL_CPU %
+const STIL_CPU = Number(arg('stil-cpu', 30));
 fs.mkdirSync(OUT, { recursive: true });
 const log = runner.makeLog(OUT, `${TAG}.log`);
 
@@ -46,7 +51,7 @@ async function once(b, round) {
   const sampler = setInterval(() => { const c = cpuNow(); load.push(Math.round(100 * (1 - (c.i - prev.i) / Math.max(1, c.t - prev.t)))); prev = c; }, 2000);
   const res = await runner.runElectron({
     electron, args, cwd: path.join(ROOT, 'desktop'), env, out: dir, log, timeoutMin: 12, below: false,
-    slot: { label: `ultrabench ${TAG}`, exclusive: true, waitMin: 240 }, quiet,
+    slot: { label: `ultrabench ${TAG}`, exclusive: !UNDER_LOAD, waitMin: 240 }, quiet,
     onLine: (r) => { if (r.startsWith('[trailer] ubstats ')) { line = r.slice(18); setTimeout(() => runner.killTree(childOf(dir)), 0); } },
   }).catch((e) => ({ error: e.message }));
   runner.removeProfile(profile);
@@ -57,9 +62,10 @@ async function once(b, round) {
   clearInterval(sampler);
   const sorted = load.slice().sort((x, y) => x - y);
   const cpuRun = load.length ? { mean: Math.round(load.reduce((a, v) => a + v, 0) / load.length), p90: sorted[Math.floor(sorted.length * 0.9)], max: sorted[sorted.length - 1] } : null;
-  const rec = { cpuRun, build: b.name, round, stand: STAND, flags: [FLAGS, ...b.flags].join(','), machine: res && res.quiet ? res.quiet.last : null, error: res.error || (j ? null : 'geen ubstats'), ...(j || {}) };
+  const stil = !!cpuRun && cpuRun.mean <= STIL_CPU;
+  const rec = { cpuRun, stil, build: b.name, round, stand: STAND, flags: [FLAGS, ...b.flags].join(','), machine: res && res.quiet ? res.quiet.last : null, error: res.error || (j ? null : 'geen ubstats'), ...(j || {}) };
   fs.writeFileSync(`${dir}.json`, JSON.stringify(rec));
-  log(`${b.name} ronde ${round}: ${j ? `gem ${j.avg.toFixed(1)} fps, 1%-low ${j.low1.toFixed(1)}, >50 ms ${j.spikes[0]}/min, grootste ${j.raf.max} ms, prog ${j.info && j.info.prog}, CPU tijdens run gem ${cpuRun && cpuRun.mean}% p90 ${cpuRun && cpuRun.p90}%` : rec.error}`);
+  log(`${b.name} ronde ${round}: ${j ? `gem ${j.avg.toFixed(1)} fps, 1%-low ${j.low1.toFixed(1)}, >50 ms ${j.spikes[0]}/min, grootste ${j.raf.max} ms, prog ${j.info && j.info.prog}, CPU tijdens run gem ${cpuRun && cpuRun.mean}% p90 ${cpuRun && cpuRun.p90}% (${stil ? 'stil' : 'ONDER LAST'})` : rec.error}`);
   return rec;
 }
 // runElectron owns the child; the run ends on its own once the benchmark is done (BENCH_RUNS quits), so nothing to kill here
@@ -73,10 +79,11 @@ for (let r = 1; r <= ROUNDS; r++) {
 const med = (a) => { const s = a.filter(Number.isFinite).sort((x, y) => x - y); const h = s.length >> 1; return !s.length ? NaN : s.length % 2 ? s[h] : (s[h - 1] + s[h]) / 2; }; // even aantal: het gemiddelde van de middelste twee
 const f1 = (x) => (Number.isFinite(x) ? x.toFixed(1).replace('.', ',') : '-');
 console.log(`\n${TAG}, stand ${STAND}, ${ROUNDS} rondes, mediaan (vlaggen ${FLAGS})`);
-console.log('build'.padEnd(10) + ['gem fps', '1%-low', '>50ms/min', 'grootste ms', 'prog'].map((h) => h.padStart(12)).join(''));
+console.log('build'.padEnd(10) + ['gem fps', '1%-low', '>50ms/min', 'grootste ms', 'prog', 'calls', 'stil'].map((h) => h.padStart(12)).join(''));
 for (const b of builds) {
   const rs = all.filter((x) => x.build === b.name && !x.error);
-  console.log(b.name.padEnd(10) + [med(rs.map((x) => x.avg)), med(rs.map((x) => x.low1)), med(rs.map((x) => x.spikes[0])), med(rs.map((x) => x.raf.max)), med(rs.map((x) => x.info && x.info.prog))].map((v) => f1(v).padStart(12)).join(''));
+  console.log(b.name.padEnd(10) + [med(rs.map((x) => x.avg)), med(rs.map((x) => x.low1)), med(rs.map((x) => x.spikes[0])), med(rs.map((x) => x.raf.max)), med(rs.map((x) => x.info && x.info.prog)), med(rs.map((x) => x.callsCity))].map((v) => f1(v).padStart(12)).join('') + `${rs.filter((x) => x.stil).length}/${rs.length}`.padStart(12));
+  if (rs.some((x) => x.drawsCity)) { const d = rs.find((x) => x.drawsCity).drawsCity; console.log(`  draws in de stad (${b.name}): ` + d.slice(0, 14).map(([k, v]) => `${k} ${v}`).join(', ')); }
 }
 const cats = [...new Set(all.flatMap((x) => Object.keys(x.cats || {})))];
 for (const c of cats) console.log(`  ${c.padEnd(10)}` + builds.map((b) => `${b.name} ${f1(med(all.filter((x) => x.build === b.name && x.cats && x.cats[c]).map((x) => x.cats[c].avg)))}/${f1(med(all.filter((x) => x.build === b.name && x.cats && x.cats[c]).map((x) => x.cats[c].low1)))}`).join('   '));
