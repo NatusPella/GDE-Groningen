@@ -281,7 +281,9 @@ async function connect() {
     if (buttons().includes('kies-host')) await act('kies-host');
     log('scherm', { titel: title(), knoppen: buttons(), tekst: panel().innerText.slice(0, 400) });
     await wizard('prive');
-    await act(CFG.route === 'kamer' ? 'route-kamer' : 'route-direct');
+    // 22-11 (multiplayerwizardui.js): de kamercode heet in de wizard 'Open je spel' (host-open, die route-kamer aanroept); route-kamer zelf staat er niet meer
+    if (CFG.route === 'kamer') { await until(() => buttons().includes('host-open') || buttons().includes('route-kamer'), 8000, 'knop host-open of route-kamer'); await act(buttons().includes('host-open') ? 'host-open' : 'route-kamer'); }
+    else await act('route-direct');
     // toestemming: vóór akkoord is er niets verstuurd
     const voor = netNow();
     log('toestemming', { titel: title(), tekst: panel().innerText.slice(0, 600), knoppen: buttons(), net: voor });
@@ -1991,7 +1993,9 @@ const PHASES = {
         for (const v of w.vehicles || []) if (v && v.busRun) { const k = (v.halteStaat && v.halteStaat.fase) || 'geen'; fasen[k] = (fasen[k] || 0) + 1; }
         const nad = (w.vehicles || []).filter((v) => v && v.busRun && v.halteStaat && v.halteStaat.fase === 'nadering' && v.halteStaat.stop);
         nadLog = nad.map((v) => Math.round(BS.halteAfstand(v.busRun, v.halteStaat.stop)));
-        bus = nad.map((v) => ({ v, d: BS.halteAfstand(v.busRun, v.halteStaat.stop) })).filter((o) => o.d > 0 && o.d < 90).sort((a, b) => b.d - a.d)[0] || null; // de verste eerst: dan zie je hem nog aankomen
+        const staat = (w.vehicles || []).find((v) => v && v.busRun && v.halteStaat && v.halteStaat.fase === 'staan' && v.halteStaat.stop); // een bus die al bij een halte staat: meteen erheen
+        if (staat && performance.now() > qaT0() + 25000) { bus = { v: staat, d: 0 }; break; } // pas als er na 25 s geen naderende bus is
+        bus = nad.map((v) => ({ v, d: BS.halteAfstand(v.busRun, v.halteStaat.stop) })).filter((o) => o.d > 25 && o.d < 90).sort((a, b) => b.d - a.d)[0] || null; // ver genoeg weg: dan zie je hem aankomen en stoppen
         if (!bus) await sleep(400);
       }
       if (!bus) { log('qa-halte-host', { geenBus: true, rondes: ronde, fasen, naderingD: nadLog, bussen: (w.vehicles || []).filter((v) => v && v.busRun).map((v) => ({ afstand: Math.round(Math.hypot(v.x - p.x, v.y - p.y)), v: qaR(v.speed || 0), lijn: v.busRun.line && v.busRun.line.name || null, live: !!v.liveId })) }); await tot(s); return; }
@@ -2014,7 +2018,7 @@ const PHASES = {
       if (!beeld) shot('qa-halte-host-staan');
       log('qa-halte-host', { verloop, maxWissel });
     } else {
-      await tot(4);
+      await tot(1);
       const me = await qaIk(); const bussen = () => ((w.coopHost && w.coopHost.voertuigen) || []).filter((x) => x.soort === 'bus').sort((a, b) => Math.hypot(a.x - me.x, a.y - me.y) - Math.hypot(b.x - me.x, b.y - me.y));
       const verloop = []; let maxWissel = 0, stil = 0, knipper = 0, beeld = 0;
       for (let i = 0; i < 100 && performance.now() < qaT0() + (s - 3) * 1000; i++) {
