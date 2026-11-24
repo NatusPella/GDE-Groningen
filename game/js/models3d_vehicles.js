@@ -2798,7 +2798,7 @@ function buildMopedMesh(v) {
   group.userData.spinStep = 0.28;
   const rider = riderFor(v, toHex(v.model.rider, HABBO_PALETTE.roofBlue));
   // op het zadel (heup op 0,8 m), de voeten op de vloerplaat en de handen aan de handvatten van de stuurkap
-  seatScooterRider(rider, -0.34, 0.8, { recline: 0.04, footX: 0.5, footY: -0.5, arms: 'lap' }, 0.04);
+  seatScooterRider(rider, -0.2, 0.8, { recline: 0.04, footX: 0.5, footY: -0.5, arms: 'lap' }, 0.08);
   group.add(rider);
   group.userData.riderMesh = rider;
   group.userData.riderGrip = { ...mopedGripSpec(), x: mopedGripSpec().x };
