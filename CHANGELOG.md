@@ -9,6 +9,9 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ## [Unreleased]
 
+- Verkeer: AI-auto's houden op een smalle straat het midden aan als de gevel dicht bij de weg staat, en rijden geen doodlopend weggetje meer in waar ze alleen langs een gevel kunnen keren. Een kwart minder geschaaf langs gevels. Samen spelen: het verkeer is van wie het spel opende; een gast ziet het in de momentopname, geen nieuw bericht.
+- Fiets uit een stalling: een rekfiets met zijn voorwiel tegen de gevel staat na het pakken met zijn voorwiel naar de straat, zodat je meteen kunt wegfietsen. Samen spelen: de fiets is van de wereld; geen nieuw bericht.
+- Meerijden op een autodak: een auto die vanaf een paar km/u stopt (een rij, een licht) gooit je er niet meer af; een harde rem op snelheid nog wel. Samen spelen: lokaal per speler.
 - Taxirit: de taxi van de rit rijdt geen voetgangers meer omver (hij duwt ze opzij) en het verkeer botst er niet meer tegenaan, dus geen deuken onderweg. Samen spelen: de rit is lokaal per speler; geen nieuw bericht.
 - Snackwagen: Jelles bedrijf heet overal Us Mem Snacks (op het tabblad Snackwagen, de kaartlaag Standplaatsen, de prestatie en het bord op zijn wagens stond nog Usmem). Samen spelen: alleen tekst, per speler.
 - Land en bedrijf: het icoon van een lege staat (Overzicht, Te koop) heeft een vaste maat en vult niet meer het hele paneel; Te koop toont een wegwijzerbord in plaats van een gestippeld vakje. Samen spelen: per speler.
