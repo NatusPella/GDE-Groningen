@@ -50,7 +50,7 @@ t('kopen zonder geld: de knop is uit met de reden', () => {
 t('bevestiging: boven €1.000 vasthouden (met uitleg voor toets en controller), eronder direct; het dagbedrag erna met ±', () => {
   const i = items().find((x) => x.key === 'p:11');
   const houd = K.bevestigHtml(i, { money: 18450, dagNu: 559 });
-  assert.match(houd, /data-houd="p:11"/); assert.match(houd, /Houd vast om te kopen/); assert.match(houd, /Enter, A/); assert.match(houd, /twee keer/);
+  assert.match(houd, /data-houd="p:11"/); assert.match(houd, /Houd vast om te kopen/); assert.match(houd, /data-gk="ENTER"/); assert.match(houd, /data-gk="A"/); assert.match(houd, /controller/); assert.match(houd, /twee keer/);
   assert.match(houd, /Je dagbedrag erna \(±\)/); assert.match(houd, /Je houdt over[\s\S]*€15\.750/);
   assert.ok(!/data-kp="koop-ok"/.test(houd), 'geen directe koop bij een groot bedrag');
   const klein = K.bevestigHtml({ ...i, price: 900 }, { money: 5000, dagNu: 10 });
