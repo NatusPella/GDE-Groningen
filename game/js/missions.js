@@ -2004,7 +2004,8 @@ function updateMissionKern(dt, world) {
     // mission only fails when nobody of the group is on foot; a guest driving costs the host his
     // mission not. Alone the group is one body, so the old rule stands word for word.
     const groep = groepsActeurs(world);
-    const rijdend = groep.filter((a) => a.inVehicle);
+    const rijdend = [];
+    for (let i = 0; i < groep.length; i++) if (groep[i].inVehicle) rijdend.push(groep[i]);
     if (rijdend.length) {
       chainState().run.inVehT = (chainState().run.inVehT || 0) + dt;
       if (chainState().run.inVehT < dt * 1.5) hint(world, 'Uitstappen, jong. Fatbikes ontwijk je te voet.');
