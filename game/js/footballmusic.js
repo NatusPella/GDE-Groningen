@@ -47,7 +47,7 @@ export function footballMusicVolume(settings) {
 }
 
 // De slotfase: tweede helft en minder dan een kwart van de helft over, of een knappe stand (hooguit een doelpunt verschil) in de laatste helft van de tweede helft.
-export const FINAL_PHASE_SHARE = 0.25;
+const FINAL_PHASE_SHARE = 0.25;
 export function isFinalPhase(sim) {
   if (!sim || sim.helft !== 2) return false;
   const duur = Number(sim.duurHelft) || 0, klok = Number(sim.klok);

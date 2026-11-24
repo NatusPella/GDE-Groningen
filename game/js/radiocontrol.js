@@ -7,7 +7,7 @@
 import { PAD_MAPS, PAD_COOP, PAD_BUTTONS, WHEEL_HOLD_MS, wheelItemsFor } from './controls.js';
 
 // Het zenderwiel is een pagina met een lijst: elke zender met een icoon en zijn naam, de huidige gemarkeerd, 'Binnenkort' grijs.
-export const RADIO_DIAL_TITLE = 'Zenders';
+const RADIO_DIAL_TITLE = 'Zenders';
 export const RADIO_OFF = '__uit';
 
 // list: channelList() uit radio.js ({ id, name, dj, sub, status: 'open' | 'soon', active }); een geheime zender die nog niet gevonden is
