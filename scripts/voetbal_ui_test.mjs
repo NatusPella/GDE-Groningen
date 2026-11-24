@@ -198,10 +198,10 @@ t('Samen spelen: een gast kan niet starten, niet coachen en de transfers niet be
   let c = C.advanceDays(start('anita'), 3, getClub).career;
   const gast = { ...env, samen: { gast: true, host: 'Femke', bezig: false } };
   let h = viewHtml(c, 'overzicht', gast);
-  assert.match(h, /data-vb="play"[^>]*aria-disabled="true"[^>]*title="Wie het spel opende start de wedstrijd \(Femke\); jij doet mee met J"/); assert.match(h, /Femke<\/b> start de wedstrijden/); assert.match(h, /data-vb="sim"(?![^>]*aria-disabled)/);
+  assert.match(h, /data-vb="play"[^>]*aria-disabled="true"[^>]*title="Wie het spel opende start de wedstrijd \(Femke\); jij kiest zelf of je meedoet"/); assert.match(h, /Femke<\/b> start de wedstrijden/); assert.match(h, /data-vb="sim"(?![^>]*aria-disabled)/);
   const bezig = { ...env, samen: { gast: true, host: 'Femke', bezig: true } };
   h = viewHtml(c, 'overzicht', bezig);
-  assert.match(h, /speelt nu een wedstrijd\. Doe mee met J/); assert.match(h, /data-vb="sim"[^>]*aria-disabled="true"[^>]*title="De wedstrijd loopt nu"/);
+  assert.match(h, /speelt nu een wedstrijd\. Doe mee [\s\S]*?data-gk="J"[\s\S]*?sla over [\s\S]*?data-gk="N"/); assert.match(h, /data-vb="sim"[^>]*aria-disabled="true"[^>]*title="De wedstrijd loopt nu"/);
   const tr = { ...c, roles: { trainer: true, manager: true } };
   h = viewHtml(tr, 'tactiek', gast);
   assert.match(h, /Je speelt in het team van Femke/); assert.match(h, /data-vb="coach"[^>]*aria-disabled="true"[^>]*title="Jij speelt mee in het team van wie het spel opende"/);
@@ -209,7 +209,7 @@ t('Samen spelen: een gast kan niet starten, niet coachen en de transfers niet be
   ui.deel = 'transfers'; h = viewHtml({ ...tr, market: { ...tr.market, pool: [{ ...C.squadOf(tr, tr.club, getClub)[1], id: 'x1', name: 'Test Speler' }] } }, 'selectie', gast);
   assert.match(h, /data-vb="sell:[^"]*"[^>]*aria-disabled="true"[^>]*title="Alleen in je eigen wereld"/);
   const solo = viewHtml(c, 'overzicht', { ...env, samen: { gast: false, host: '', bezig: false } });
-  assert.ok(!/Doe mee met J|start de wedstrijden/.test(solo), 'de host zelf ziet gewoon Speel de wedstrijd');
+  assert.ok(!/Doe mee |start de wedstrijden/.test(solo), 'de host zelf ziet gewoon Speel de wedstrijd');
 });
 t('de css van het scherm: kop en tabs vast, de inhoud scrolt; geen hex; de tabs gebruiken de lijn van ds-micro', () => {
   const css = fs.readFileSync(new URL('../game/js/ds-voetbal.css', import.meta.url), 'utf8').replace(/\/\*[\s\S]*?\*\//g, '');

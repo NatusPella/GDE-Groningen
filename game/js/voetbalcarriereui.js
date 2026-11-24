@@ -3,6 +3,7 @@
 // Vier soorten dingen zien er anders uit: status is platte tekst, navigatie een onderstreping, een keuze een segmentknop met vinkje, een actie een knop (één gele per scherm). De HTML komt uit pure functies (testbaar in node:
 // scripts/voetbal_ui_test.mjs); renderVoetbalPanel zet hem in de DOM en luistert op `data-vb`. Toetsenbord, controller en aanraken doen hetzelfde (gewone knoppen); Esc of B gaat terug (pausemenu).
 // Samen spelen: het Clubhuis is van de speler zelf; een gast ziet Meedoen-uitleg in plaats van Speel de wedstrijd en kan de tactiek en de transfers van de host niet wijzigen (env.samen).
+import { keyTextHtml } from './keycap.js';
 import { hoofdspeler } from './players.js';
 import * as C from './voetbalcarriere.js';
 import * as O from './voetbalontwikkeling.js';
@@ -69,7 +70,7 @@ const tabsHtml = (tab, c, env) => `<nav class="ds-m-tabs vb-tabs" role="tablist"
 const nieuweSponsors = (c) => !!(c.sponsors && c.sponsors.slots && c.sponsors.slots.some((x) => !x.accepted && !x.paid));
 
 // ---- schermen ----
-const samenUit = (env) => { const s = env.samen; return s && s.gast ? `Wie het spel opende start de wedstrijd${s.host ? ` (${s.host})` : ''}; jij doet mee met J` : ''; };
+const samenUit = (env) => { const s = env.samen; return s && s.gast ? `Wie het spel opende start de wedstrijd${s.host ? ` (${s.host})` : ''}; jij kiest zelf of je meedoet` : ''; };
 function viewOverzicht(c, env) {
   const m = env.match, ov = env.ov, samen = env.samen || {};
   const voorstel = proposal(c, m);
@@ -92,7 +93,7 @@ function viewOverzicht(c, env) {
     const hoofd = dsButtonKey({ label: 'Speel de wedstrijd', toets: 'ENTER', klasse: 'ds-z-knop ds-m-knop', attrs: `data-vb="play"${playUit ? ` aria-disabled="true" title="${esc(playUit)}"` : ''}` });
     const links = `<div class="vb-keuze vb-keuze--groot">${hoofd}<ul class="vb-uitleg"><li><b>Je speelt zelf mee.</b> Wat je doet telt als training van vandaag.</li><li>${esc(speelTekst)}</li></ul></div>`;
     const rechts = `<div class="vb-keuze">${knop('sim', 'Laat uitrekenen', { uit: simUit })}<ul class="vb-uitleg"><li>De club speelt zonder jou.</li><li class="kost">${pay.uitrekenen ? `Levert ${euro(pay.uitrekenen)} vergoeding, geen bonus.` : 'Levert niets op.'}</li></ul><span>${link('tab:training', 'Eerst trainen')}</span></div>`;
-    const gastRegel = samen.gast || samen.bezig ? `<div class="vb-notitie"><b>${esc(samen.host || 'Wie het spel opende')}</b>${samen.bezig ? ' speelt nu een wedstrijd. Doe mee met J, sla over met N.' : ' start de wedstrijden in deze wereld. Jij krijgt Meedoen (J of N).'}</div>` : '';
+    const gastRegel = samen.gast || samen.bezig ? keyTextHtml(`<div class="vb-notitie"><b>${esc(samen.host || 'Wie het spel opende')}</b>${samen.bezig ? ' speelt nu een wedstrijd. Doe mee met {J}, sla over met {N}.' : ' start de wedstrijden in deze wereld. Jij krijgt Meedoen ({J} of {N}).'}</div>`) : '';
     card = `${gastRegel}<article class="ds-z-kaart ds-z-kaart--recht vb-hero ds-m-binnen on"><div class="ds-z-kaart__kop"><h3 class="ds-z-kaart__titel">Volgende wedstrijd</h3><span>${esc(matchTitle(m))}${m.travelDays > 1 ? ' · verre rit: twee speldagen' : ''}</span></div>` +
       `<div class="vb-hero__teams">${m.isHome ? mijn : tegen}<div class="vb-hero__mid"><span class="vb-tegen">Tegen</span><b>${esc(wanneer)}</b>${plaats ? `<small>${esc(plaats)}</small>` : ''}</div>${m.isHome ? tegen : mijn}</div>` +
       `<div class="vb-vergelijk"><span><b>${m.isHome ? look.mine : look.theirs}</b> sterkte</span><span class="vb-vergelijk__l">${esc(look.zin)}${m.isHome ? '' : ' · uit spelen is een korte reis'}</span><span style="text-align:right"><b>${m.isHome ? look.theirs : look.mine}</b> sterkte</span></div>` +
@@ -166,8 +167,8 @@ function viewStand(c, env) {
   const tabel = `<div><div class="vb-tabel-vak"><table class="ds-z-tabel vb-standtabel"><thead><tr><th class="c">#</th><th class="l">Club</th><th>Gesp.</th><th>W</th><th>Gel.</th><th>V</th><th>DS</th><th>Ptn</th><th class="l">Vorm</th></tr></thead><tbody class="vb-stand on">${rows}</tbody></table></div>${legenda}</div>`;
   const bekerWoord = (ko, ja, nee) => (ko.winner === c.club ? ja : nee);
   const bekers = [];
-  if (c.cup) bekers.push(`<p class="vb-feit">${c.cup.done ? (c.cup.winner === c.club ? '<span class="vb-ja">✓ Gewonnen</span>' : '<span class="vb-nee">– Afgelopen</span>') : c.cup.alive.includes(c.club) ? '<span class="vb-ja">✓ Nog in de race</span>' : '<span class="vb-nee">– Uitgeschakeld</span>'}<span>Dijkbeker</span></p>`);
-  if (c.europe) bekers.push(`<p class="vb-feit">${c.europe.winner === c.club ? '<span class="vb-ja">✓ Gewonnen</span>' : c.europe.alive.includes(c.club) ? '<span class="vb-ja">✓ Nog in de race</span>' : '<span class="vb-nee">– Uitgeschakeld</span>'}<span>Waddenbeker</span></p>`);
+  if (c.cup) bekers.push(`<p class="vb-feit">${c.cup.done ? (c.cup.winner === c.club ? '<span class="vb-ja">✓ Gewonnen</span>' : '<span class="vb-nee">Afgelopen</span>') : c.cup.alive.includes(c.club) ? '<span class="vb-ja">✓ Nog in de race</span>' : '<span class="vb-nee">Uitgeschakeld</span>'}<span>Dijkbeker</span></p>`);
+  if (c.europe) bekers.push(`<p class="vb-feit">${c.europe.winner === c.club ? '<span class="vb-ja">✓ Gewonnen</span>' : c.europe.alive.includes(c.club) ? '<span class="vb-ja">✓ Nog in de race</span>' : '<span class="vb-nee">Uitgeschakeld</span>'}<span>Waddenbeker</span></p>`);
   const res = c.result ? `<section>${tussen('Vorig seizoen')}<p class="vb-tip vb-groot">${esc(DIV[c.result.division])}, plek ${c.result.rank}: ${esc(c.result.outcome.replace('-', ' en '))}.</p></section>` : '';
   const zij = `<div class="vb-kolom"><section>${tussen('Jouw seizoen')}<div class="vb-feiten">${feit(`${S.rankOf(c.leagues[mijnKlasse], c.club)}<small>e</small>`, `plek van ${c.leagues[mijnKlasse].clubs.length}`)}${feit(`${Math.min(c.leagues[mijnKlasse].round, ROUNDS)}<small>/${ROUNDS}</small>`, 'rondes gespeeld')}</div></section>${bekers.length ? `<section>${tussen('Bekers')}${bekers.join('')}</section>` : ''}${res}</div>`;
   const kies = segment('Klasse', ['kroon', 'terp', 'talent'].filter((d) => c.leagues[d]).map((d) => [`liga:${d}`, DIV[d] + (d === mijnKlasse ? ' · jouw klasse' : ''), d === div]));

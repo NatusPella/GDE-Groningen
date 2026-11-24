@@ -522,6 +522,7 @@
     "sponsorpanden",
     "voetbalbezit",
     "voetbalcommentarycareer",
+    "voetbalwapen",
     "footballmusic"
    ],
    "eigenaar": "speler",
@@ -875,6 +876,7 @@
    "modules": [
     "map*",
     "minimap*",
+    "localmap*",
     "kaart*",
     "navtarget",
     "navpijl",
@@ -899,6 +901,7 @@
     "scripts/viewanchor_test.mjs",
     "scripts/kaartontdekking_test.mjs",
     "scripts/minimap_pijlen_test.mjs",
+    "scripts/localmap_test.mjs",
     "scripts/navtarget_test.mjs",
     "scripts/loadwait_test.mjs"
    ],
