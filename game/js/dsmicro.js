@@ -122,7 +122,11 @@ export function trackTabLine(kader) {
   applyTabLine(kader);
   if (kader.dataset.lijnVolgt || typeof ResizeObserver === 'undefined') return;
   kader.dataset.lijnVolgt = '1';
-  new ResizeObserver(() => applyTabLine(kader)).observe(kader);
+  // ook de tabs zelf: een tab die breder wordt (een teller die later binnenkomt, een tab die verschijnt) schuift de rest op zonder dat het
+  // kader van maat verandert; dan stond de streep onder de verkeerde tab (beeld 24-11: onder Snackwagen terwijl Club gekozen was)
+  const ro = new ResizeObserver(() => applyTabLine(kader));
+  ro.observe(kader);
+  for (const t of kader.querySelectorAll('[role="tab"]')) ro.observe(t);
 }
 
 // Houdt data-boven en data-onder van een scrollgebied bij (voor .ds-m-scrollfade).

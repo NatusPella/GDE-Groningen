@@ -9,6 +9,8 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ## [Unreleased]
 
+- Menu: de onderstreping van de tabbladen staat weer onder het gekozen tabblad, ook als een tabblad ervoor later breder wordt (bijvoorbeeld Club onder Land en bedrijf). Samen spelen: alleen beeld.
+- Voetbalcarrière: in het tabblad Trainer zijn de gekozen vorming en speelstijl gemarkeerd. Samen spelen: alleen beeld, per speler.
 - Voetbal: het commentaar bij een carrièrewedstrijd op een sportpark heet je niet meer welkom "in de Euroborg" en juicht niet meer voor de Stadjers als die niet meespelen. Samen spelen: per speler, zoals het commentaar al was.
 - Voetbalcarrière: in het Voetbal-scherm staan de lijsten weer in beeld (je vaardigheden, de selectie, de stand, de kalender, de sponsors en de trainingskaarten); ze bleven onzichtbaar omdat hun intro-animatie nooit startte. Samen spelen: alleen beeld, per speler.
 - Voetbal: het publiek langs de lijn van een sportpark en de trainende ploegen op de velden van je club zijn echte mensen (in rust, juichend bij een doelpunt, joggend in het clubshirt) in plaats van gekleurde paaltjes; de trainende ploeg loopt nu een ruime ronde in plaats van als bosje op de middenstip te staan. Samen spelen: lokaal decor, per speler.

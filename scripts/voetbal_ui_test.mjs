@@ -91,6 +91,10 @@ t('Trainer- en Managertab pas na ontgrendeling; het bod, de tactiek en de markt 
   const tr = { ...c, roles: { trainer: true, manager: false } };
   const h = viewHtml(tr, 'trainer', env);
   assert.match(h, /data-vb="tab:trainer"/); assert.match(h, /data-vb="tactic:formation:4-3-3"/); assert.match(h, /data-vb="tactic:style:aanvallend"/); assert.match(h, /Basis \(11\)/); assert.match(h, /Bank \(7\)/);
+  // beeld 24-11: de gekozen vorming en stijl zijn gemarkeerd (ds-z-tab--actief), precies één van elk
+  const actief = (x) => (x.match(/ds-z-tab--actief" data-vb="tactic:[a-z]+:[^"]+/g) || []).map((m) => m.split('tactic:')[1]);
+  assert.deepEqual(actief(h), ['formation:' + tr.tactic.formation, 'style:' + tr.tactic.style]);
+  assert.deepEqual(actief(viewHtml({ ...tr, tactic: { formation: '3-5-2', style: 'aanvallend' } }, 'trainer', env)), ['formation:3-5-2', 'style:aanvallend']);
   const mg = { ...c, roles: { trainer: true, manager: true }, market: { ...c.market, pool: [] } };
   const m = viewHtml(mg, 'manager', env);
   assert.match(m, /Clubkas €/); assert.match(m, /ds-z-leeg/); assert.match(m, /data-vb="sell:/); assert.match(m, /title="Alleen in de pauze/);

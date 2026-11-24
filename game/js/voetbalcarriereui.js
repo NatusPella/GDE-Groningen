@@ -137,8 +137,10 @@ function lineupHtml(c, env) {
   return `<h3 class="ds-z-kaart__titel">Basis (${lu.basis.length})</h3><ul class="ds-z-lijst vb-selectie on">${li(lu.basis, 0, true)}</ul><h3 class="ds-z-kaart__titel">Bank (${lu.bank.length})</h3><ul class="ds-z-lijst vb-selectie on">${li(lu.bank, 8, false)}</ul>${nog}<p class="ds-z-kaart__voet">Een vaste speler staat in de basis op zijn eigen plek (hooguit ${C.MAX_PINS}); wie op de bank blijft speelt alleen als er niemand anders is.</p>`;
 }
 function viewTrainer(c, env) {
-  const vm = C.TACTICS.formations.map((f) => `<button type="button" class="ds-z-tab" data-vb="tactic:formation:${f}" aria-pressed="${c.tactic.formation === f}">${f}</button>`).join('');
-  const st = C.TACTICS.styles.map((f) => `<button type="button" class="ds-z-tab" data-vb="tactic:style:${f}" aria-pressed="${c.tactic.style === f}">${esc(f)}</button>`).join('');
+  // beeld 24-11: aria-pressed alleen kleurt ds-z-tab niet (alleen aria-selected of --actief), dus de gekozen vorming en stijl waren niet te zien; nu de actieve stand erbij
+  const keuze = (soort, f, aan, tekst) => `<button type="button" class="ds-z-tab${aan ? ' ds-z-tab--actief' : ''}" data-vb="tactic:${soort}:${f}" aria-pressed="${aan}">${tekst}</button>`;
+  const vm = C.TACTICS.formations.map((f) => keuze('formation', f, c.tactic.formation === f, esc(f))).join('');
+  const st = C.TACTICS.styles.map((f) => keuze('style', f, c.tactic.style === f, esc(f))).join('');
   const m = C.nextMatch(c, env.getClub), kan = m && m.status === 'open', reden = !m ? 'Er is geen wedstrijd' : m.status === 'soon' ? 'Nog niet aan de beurt' : '';
   const coach = `<p class="vb-acties">${knop('coach', 'Coach de wedstrijd', { primair: true, uit: kan ? '' : reden })}</p><p class="ds-z-kaart__voet">Je kijkt toe en past de tactiek onderweg aan (toets 1 speelstijl, toets 2 vorming, om de 40 seconden); alleen computerspelers voetballen. Je speelt dan niet mee.</p>`;
   return `<p>${chip('Je mag blijven spelen')} ${chip('Opstelling en tactiek zijn van jou')}</p>${coach}<h3 class="ds-z-kaart__titel">Vorming</h3><p class="vb-acties">${vm}</p><h3 class="ds-z-kaart__titel">Speelstijl</h3><p class="vb-acties">${st}</p>` +
