@@ -22015,30 +22015,10 @@
     {
      "speaker": "Tessa",
      "key": "A",
-     "text": "Ik kan hem laten smaken. Ik kan hem niet laten rijden.",
+     "text": "Ik bak. Jij rijdt.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": false,
-     "rec": "lines",
-     "voice": "Anita"
-    },
-    {
-     "speaker": "Tammo",
-     "key": "T",
-     "text": "Ik kan hem laten rijden. Ik kan hem niet laten smaken.",
-     "tag": "NIEUW",
-     "channel": "stem",
-     "textOnly": false,
-     "rec": "lines"
-    },
-    {
-     "speaker": "Tessa",
-     "key": "A",
-     "text": "Dus we blijven bij elkaar.",
-     "tag": "NIEUW",
-     "channel": "stem",
-     "textOnly": false,
-     "rec": "lines",
+     "textOnly": true,
      "voice": "Anita"
     },
     {
@@ -22251,11 +22231,10 @@
     {
      "speaker": "Durk",
      "key": "durk",
-     "text": "Rij maar gewoon, baas.",
+     "text": "Gewoon in de rij, baas.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": false,
-     "rec": "lines"
+     "textOnly": true
     },
     {
      "speaker": "Douwe",
@@ -22335,12 +22314,11 @@
     {
      "speaker": "Jelle Terpstra",
      "key": "jelle",
-     "text": "...Een prijs zonder bijlage. Wie doet dat?",
+     "text": "...Ik heb nog nooit de vraagprijs betaald.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": false,
-     "humor": "HE-05",
-     "rec": "lines"
+     "textOnly": true,
+     "humor": "HE-05"
     }
    ]
   },

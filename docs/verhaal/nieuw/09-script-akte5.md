@@ -549,9 +549,7 @@ TESSA: Doe de friteuse aan. [NIEUW]
 TAMMO: Is dat een knop of een gebed? [NIEUW]
 TESSA: Eerst een knop. Dan een gebed. [NIEUW]
 (regie: de friteuse sist. De eerste eierbal zakt, draait, komt goudbruin boven. Ze staan schouder aan schouder voor het luik.)
-TESSA: Ik kan hem laten smaken. Ik kan hem niet laten rijden. [NIEUW]
-TAMMO: Ik kan hem laten rijden. Ik kan hem niet laten smaken. [NIEUW]
-TESSA: Dus we blijven bij elkaar. [NIEUW]
+TESSA: Ik bak. Jij rijdt. [NIEUW]
 TAMMO: Dat was mijn plan al. [NIEUW]
 TESSA: Sinds wanneer? [NIEUW]
 TAMMO: Sinds de Escapade. [NIEUW]
@@ -578,7 +576,7 @@ TESSA: Dat is het menu. Eén kom, twee oma's. [NIEUW]
 JELLE: Eén eierbal. Met mosterd. [NIEUW]
 TESSA: Je staat achteraan. [NIEUW]
 JELLE: Ik had een vergunning om voor te dringen. Ik heb hem ingetrokken. [NIEUW]
-DURK: Rij maar gewoon, baas. [NIEUW]
+DURK: Gewoon in de rij, baas. [NIEUW]
 DOUWE: Het werkt, hè. [NIEUW]
 (regie: Tessa kijkt naar Tammo. Tammo ballt zijn vuist, kijkt ernaar, en opent hem weer.)
 TESSA: Je mag hem één klap geven. [NIEUW]
@@ -589,7 +587,7 @@ TAMMO: Ik heb ook geen vergunning. [NIEUW]
 JELLE: Mems mosterd. Van 1953. Zij zegt dat jullie hem mogen hebben. [NIEUW]
 MEM: Ik zei niet mogen. Ik zei: ik heb er genoeg. [NIEUW]
 TESSA: Een euro vijftig. Dat is de prijs. [NIEUW]
-JELLE: ...Dat is de eerste prijs die ik niet kon onderhandelen. [NIEUW]
+JELLE: ...Ik heb nog nooit de vraagprijs betaald. [NIEUW]
 
 ## [F5] Een avond voor twee – Stad, Noorderhaven, de kade – te voet
 (regie: zondag 30 augustus, avond. De wagen staat gesloten aan de kade. Tammo heeft een opgevouwen briefje bij zich, een deken en twee eierballen in een zak. Tessa zit op een krat naast hem, met de deken eronder. Boven hen draait een duif rondjes. Het is windstil.)
