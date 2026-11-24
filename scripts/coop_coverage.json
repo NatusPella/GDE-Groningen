@@ -1962,6 +1962,10 @@
    "reden": "Alleen beeld: elke client bouwt zijn eigen decor."
   },
   {
+   "glob": "buildingfade",
+   "reden": "Alleen beeld (perf-ultra 23-11): de dither-overgang tussen een detailgebouw en de verre laag, per client; geen spelstaat en geen netwerk."
+  },
+  {
    "glob": "facadefront",
    "reden": "Alleen beeld (AI-tells beeld 23-11): de voorgevel van winkelpanden (deur, pui, markies); elke client bouwt zijn eigen gevels."
   },
