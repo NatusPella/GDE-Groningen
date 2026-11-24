@@ -205,3 +205,14 @@ html.reduce-motion .bz-vasthoud::before, html.rustig-drukwerk .bz-vasthoud::befo
 
 /* de Boerderij vult de breedte van het paneel (het was een krimpend flexvak) */
 #pause-menu .pm-vsub.pm-boerderij { width: 100%; max-width: none; min-width: 0; }
+
+/* de steppers in lijsten en filters: hulpletter, geen subkop (24-11) */
+.bz-lijst__kop .ds-z-stapper, .bz-filters .ds-z-stapper { font-size: var(--ds-t-hulp); }
+.bz-lijst__kop .ds-z-stapper > output, .bz-filters .ds-z-stapper > output { min-width: 0; padding: 0 var(--ds-s-3); font-family: var(--ds-font-zeef-tekst); font-size: var(--ds-t-hulp); font-weight: 400; line-height: 1.2; white-space: nowrap; }
+.bz-lijst__kop .ds-z-stapper > output b, .bz-filters .ds-z-stapper > output b { font-family: var(--ds-font-zeef-kop); font-weight: 800; font-size: var(--ds-t-label); text-transform: uppercase; letter-spacing: var(--ds-ls-label); }
+.bz-lijst__kop .ds-z-stapper > button, .bz-filters .ds-z-stapper > button { width: var(--ds-hoogte-chip); height: var(--ds-hoogte-chip); }
+/* Velden en Team hebben het hele paneel: geen inspringende zijlijn van de oude boerderijpagina */
+.bd-pane:has(> .bz-md) { border: 0; padding: 0; margin: 0; background: none; box-shadow: none; }
+.m-main.bd-main:has(.bz-md) { padding-left: 0; }
+/* de kop van Spullen en Garage past in het paneel */
+.pm-inner > .bz-kop { padding-right: var(--ds-s-5); margin-bottom: var(--ds-s-2); }
