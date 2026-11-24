@@ -1996,8 +1996,8 @@ const PHASES = {
         const nad = (w.vehicles || []).filter((v) => v && v.busRun && v.halteStaat && v.halteStaat.fase === 'nadering' && v.halteStaat.stop);
         nadLog = nad.map((v) => Math.round(BS.halteAfstand(v.busRun, v.halteStaat.stop)));
         const staat = (w.vehicles || []).find((v) => v && v.busRun && v.halteStaat && v.halteStaat.fase === 'staan' && v.halteStaat.stop); // een bus die al bij een halte staat: meteen erheen
-        if (staat && performance.now() > qaT0() + 25000) { bus = { v: staat, d: 0 }; break; } // pas als er na 25 s geen naderende bus is
-        bus = nad.map((v) => ({ v, d: BS.halteAfstand(v.busRun, v.halteStaat.stop) })).filter((o) => o.d > 25 && o.d < 90).sort((a, b) => b.d - a.d)[0] || null; // ver genoeg weg: dan zie je hem aankomen en stoppen
+        if (staat && performance.now() > qaT0() + 14000) { bus = { v: staat, d: 0 }; break; } // pas als er na 14 s geen naderende bus is (25 s liet in twee van vier runs geen bus over)
+        bus = nad.map((v) => ({ v, d: BS.halteAfstand(v.busRun, v.halteStaat.stop) })).filter((o) => o.d > 15 && o.d < 90).sort((a, b) => b.d - a.d)[0] || null; // ver genoeg weg: dan zie je hem aankomen en stoppen
         if (!bus) await sleep(400);
       }
       if (!bus) { log('qa-halte-host', { geenBus: true, rondes: ronde, fasen, naderingD: nadLog, bussen: (w.vehicles || []).filter((v) => v && v.busRun).map((v) => ({ afstand: Math.round(Math.hypot(v.x - p.x, v.y - p.y)), v: qaR(v.speed || 0), lijn: v.busRun.line && v.busRun.line.name || null, live: !!v.liveId })) }); await tot(s); return; }

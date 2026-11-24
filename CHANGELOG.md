@@ -9,6 +9,7 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ## [Unreleased]
 
+- Samen spelen: ook als meespeler zie je bij de bushaltes de paal, de wachtenden en wie in- en uitstapt als een bus van wie het spel opende stopt. Eerder stond een meespeler bij een halte zonder paal en zonder reizigers. Samen spelen: alleen beeld bij de gast, de bussen komen al uit de momentopname; geen nieuw bericht.
 - Samen spelen: valt wie het spel opende weg en neem jij het over, dan speelt niet meer de opening van je eigen nieuwe spel voordat de anderen er weer zijn. Eerder sprong de klok dan naar de ochtend, stond je ineens bij je nieuwe thuis en kwam de groep daar binnen. Samen spelen: alleen bij wie het spel overneemt; geen nieuw bericht.
 - Samen spelen: een gast die terugkomt nadat de verbinding even haperde, krijgt geen dubbele meldingen meer en blijft niet hangen op een oud bericht van voor de hapering. Een gast die blijft aankloppen krijgt nog maar één welkom per seconde in plaats van één per bericht. Samen spelen: alleen de netlaag aan beide kanten, geen nieuw bericht; een oudere tegenspeler merkt niets anders.
 - Snackwagen: Jelles bedrijf heet overal Us Mem Snacks (op het tabblad Snackwagen, de kaartlaag Standplaatsen, de prestatie en het bord op zijn wagens stond nog Usmem). Samen spelen: alleen tekst, per speler.
