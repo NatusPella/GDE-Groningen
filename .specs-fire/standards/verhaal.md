@@ -31,7 +31,7 @@ zomer en in de stem van de vaste cast; tekst is data (canon, script, build, spel
 4. **Spel**: `game/js/storytext.js` leest `game/storydata/script.json`;
    `game/js/storyarc.js` is de enige facade voor de rest van het spel (`:7`, `:16`).
 
-De data: 275 scènes, 2.123 regels in act 1 tot en met 6; 57 zijn stille appjes en 57 hebben geen opname (de 37 appjes zijn bewust stil; 4 regels wachten sinds de verhaalcanon van 21-11 op een nieuwe opname, zie docs/VERHAALCANON-21-11.md; de
+De data: 275 scènes, 2.121 regels in act 1 tot en met 6; 57 zijn stille appjes en 60 hebben geen opname (de 37 appjes zijn bewust stil; 4 regels wachten sinds de verhaalcanon van 21-11 op een nieuwe opname, zie docs/VERHAALCANON-21-11.md; de
 1.390 andere gesproken regels hebben een opname, stand 21-11). Een regel zonder opname toont
 het spel als ondertitel met leestijd (`game/js/storytext.js:53`). Een `[BEHOUDEN]`-regel heeft een opname: één andere
 letter maakt hem stil. Nieuwe opnames komen er in rondes bij op Flash-Lite (ADR 0019,
@@ -155,6 +155,19 @@ Een cutscene gebruikt **alleen de echte assets en systemen van het spel**, nooit
 - **Bewaking:** `scripts/cutscene_assets_audit.mjs` (met `scripts/cutscene_assets_audit_test.mjs`) faalt als een propsoort niet in een register staat, als een bouwer in het register ontbreekt of als scènecode meer losse primitieven bouwt dan de baseline (de bestaande schuld, alleen te verlagen). `scripts/verhaal_props_audit.mjs` meet de budgetten. De stand en de schuld staan in [docs/CUTSCENE-ISSUES-23-11.md](../../docs/CUTSCENE-ISSUES-23-11.md).
 - **Plaatsing op een voertuig of boot:** figuren staan alleen waar ze passen. Op de rondvaartboot praat het paar op de bank onder het glazen dak (staand zou het hoofd door het dak steken); een romp te smal om op te staan (kano, kajak, SUP, roeiboot) zet ze op hun eigen zitplaatsen; `boatdeck.js` en `scripts/boatdeck_test.mjs` bewaken dat, `scripts/cutscene_regie_audit.mjs` de rest (niemand loopt door of staat in een voertuig).
 
+## Regie: contactvellen, licht en camerablik (24-11, #1322-#1325)
+
+- **Bekijken zonder spel:** `scripts/cutscene_contactvel.mjs` maakt per cutscene een contactvel (keyframe per shot, spreker, ondertitel,
+  camera, licht, lintvondsten) in één webpagina; altijd een schets door de echte camera, met een vrij Electron-slot ook het echte beeld.
+  Test: `scripts/cutscene_contactvel_test.mjs`.
+- **Licht is data:** `light` op een shot of een scène, in een missiespec ook `lights: [{ on, light }]` (`game/js/shotlight.js`, presets en
+  key/fill/rim); zonder licht het wereldlicht. Test: `scripts/shotlight_test.mjs`.
+- **Camera- en blikregels:** de cutscene-lint toetst ook afgekapt hoofd, camera in of achter geometrie, spreker van achteren, te snelle
+  snedes, ondertitel te kort in beeld en lopen door objecten; de telling staat in `scripts/release/cutscene-regie-baseline.json` en mag
+  alleen dalen. Test: `scripts/cutscene_regieregels_test.mjs`.
+- **Dekking:** `coverage: 'ots'` of `'front'` in een missiespec (opt-in); een `close`/`reaction`-shot staat vóór het gezicht.
+  De regieronde staat in [docs/REGIE-RONDE-24-11.md](../../docs/REGIE-RONDE-24-11.md).
+
 ## Open punten (met issue)
 
 - **#472, #474, #475, #489 en #490 zijn op 25-10 gesloten.** `docs/personages.md`
@@ -197,7 +210,7 @@ De kern (eigenaar, 21-11): twee net afgestudeerde vrienden zoeken een plekje in 
 |---|---|
 | `docs/verhaal/nieuw/00-OVERZICHT.md:118` | T1 heet daar "Station Groningen → Winsum", met een losse rit naar Warffum erna (`:119`); `docs/verhaal/nieuw/09-script-akte2.md:111` en `game/js/storyarc_nieuw.js:257` zeggen allebei dat T1 naar Warffum gaat. |
 | `docs/verhaal/nieuw/00-OVERZICHT.md:80` | De totaalrij zegt nog "26 missies, 4 reisbeats" (het plan van vóór Deel 4, `:82`); de code heeft er 30 en 5 door Deel 4 (`docs/verhaal/nieuw/DEEL4.md:21-25`). |
-| `docs/verhaal/nieuw/07-TTS-RAMING.md:24` | 172 scènes en 1.164 uitingen voor de vijf akten; `game/storydata/script.json` telt er 275 en 2123 |
+| `docs/verhaal/nieuw/07-TTS-RAMING.md:24` | 172 scènes en 1.164 uitingen voor de vijf akten; `game/storydata/script.json` telt er 275 en 2121 |
 
 Opgelost op 25-10: de dubbele kermisdatum, "KEI-week" op vier plekken, Tessa's
 stemprofiel, en de verouderde `built`-comment.

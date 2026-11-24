@@ -6,6 +6,7 @@
 //        [--electron | --schets]   standaard: Electron als er een slot vrij is en een gestagede game is, anders alleen schetsen
 //        [--width=960]             breedte van de Electron-keyframes (16:9, JPEG)
 //        [--html]                  alleen de webpagina opnieuw maken uit de runs in --out
+//        [--publiceer=<docs-map> [--fotos-per-scene=3]]   de runs naar docs/ (alle schetsen, per cutscene een paar echte beelden)
 //
 // Uitvoer in <out>/:
 //   index.html                     alle cutscenes van alle runs; twee runs (bijv. voor en na) staan per shot naast elkaar
@@ -224,12 +225,47 @@ export function schrijfPagina(out) {
   return runs.length;
 }
 
+// Een uitvoermap naar docs/ (voor/na in git): alle schetsen en data, maar per cutscene maar `perScene` echte beelden (eerst de shots
+// met een vondst in een run, dan gelijk verdeeld), zodat de repo niet tientallen MB aan JPEG's krijgt.
+export function publiceer(out, doel, { perScene = 3 } = {}) {
+  const runs = leesRuns(out);
+  fs.mkdirSync(doel, { recursive: true });
+  const kies = {};
+  for (const r of runs) for (const c of r.cutscenes) {
+    const k = kies[c.id] = kies[c.id] || new Set();
+    for (const key of c.keys) if (key.vondsten.length && k.size < perScene) k.add(key.n);
+  }
+  for (const r of runs) for (const c of r.cutscenes) {
+    const k = kies[c.id];
+    const n = c.keys.length;
+    for (let i = 0; k.size < Math.min(perScene, n) && i < perScene * 2; i++) k.add(c.keys[Math.min(n - 1, Math.round(((i + 0.5) * n) / perScene) % n)].n);
+  }
+  for (const r of runs) {
+    const van = path.join(out, 'runs', r.label), naar = path.join(doel, 'runs', r.label);
+    fs.rmSync(naar, { recursive: true, force: true });
+    fs.cpSync(path.join(van, 'schets'), path.join(naar, 'schets'), { recursive: true });
+    const kopie = { ...r, foto: r.foto ? {} : null };
+    for (const c of r.cutscenes) {
+      if (!r.foto) break;
+      kopie.foto[c.id] = (r.foto[c.id] || []).filter((n) => kies[c.id].has(n));
+      for (const n of kopie.foto[c.id]) {
+        const f = `k${String(n).padStart(2, '0')}.jpg`;
+        fs.mkdirSync(path.join(naar, 'foto', safe(c.id)), { recursive: true });
+        fs.copyFileSync(path.join(van, 'foto', safe(c.id), f), path.join(naar, 'foto', safe(c.id), f));
+      }
+    }
+    fs.writeFileSync(path.join(naar, 'data.json'), JSON.stringify(kopie, null, 1) + '\n');
+  }
+  return schrijfPagina(doel);
+}
+
 // ---------------------------------------------------------------- hoofdprogramma
 
 async function main() {
   const OUT = path.resolve(String(arg('out', path.join(ROOT, '.contactvel'))));
   const log = (t) => console.log(`contactvel: ${t}`);
   if (arg('html')) { const n = schrijfPagina(OUT); log(`${n} run(s) -> ${path.join(OUT, 'index.html')}`); return 0; }
+  if (arg('publiceer')) { const doel = path.resolve(String(arg('publiceer'))); const n = publiceer(OUT, doel, { perScene: Number(arg('fotos-per-scene', 3)) || 3 }); log(`${n} run(s) gepubliceerd in ${path.join(doel, 'index.html')}`); return 0; }
   const label = safe(String(arg('label', 'na')));
   const only = arg('set') === 'regie' ? REGIE_SET : String(arg('only', '')).split(',').filter(Boolean);
   const { rapporten, data } = await runLint();
