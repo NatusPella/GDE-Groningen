@@ -148,6 +148,8 @@ await scene('etalage', async (ev) => {
     g.setAttribute('normal', new THREE.Float32BufferAttribute([0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1], 3));
     g.setAttribute('color', new THREE.Float32BufferAttribute(new Array(12).fill(0.5), 3));
     g.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2));
+    // lodC (0, 0): het glas draagt de gebouwvervaging (buildingfade.js); zonder dit attribuut leest de shader een willekeurige waarde en dithert de ruit weg
+    g.setAttribute('lodC', new THREE.Float32BufferAttribute(new Array(8).fill(0), 2));
     g.setIndex([0, 1, 2, 0, 2, 3]);
     const m = new THREE.Mesh(g, IG.glassMaterial); m.position.set(x + cx, z0 + cy, y); grp.add(m);
     const fr = new THREE.Mesh(new THREE.PlaneGeometry(w + 0.24, h + 0.24), new THREE.MeshBasicMaterial({ color: 0x2b2b2b }));
@@ -183,6 +185,39 @@ await scene('etalage', async (ev) => {
   const zs = gh(x, y) + 1.6;
   for (const a of [0, 1, 2, 3]) { const h = a * Math.PI / 2 + 0.4; cam(x, y, zs, x + Math.cos(h) * 10, y + Math.sin(h) * 10, zs, 70); await shot('binnenstad-' + a, 1500); }
   const FP = await imp('firstperson'); camOff(); FP.setFirstPerson(w, true); await shot('binnenstad-fp', 2500); FP.setFirstPerson(w, false);
+});
+
+// diagnose: waarom tekent het losse glasmateriaal (buiten de pool) zwart? Een verse kloon met een eigen programmasleutel onder
+// checkShaderErrors, naast het gewone materiaal; alle glasprogramma's met hun status.
+await scene('glasdebug', async (ev) => {
+  await jump(...stad, 3000); const [x, y] = stad; const z0 = gh(x, y) + 45;
+  const IG = await imp('interiorglass'); const WK = await imp('winkelkit');
+  const R0 = window.__scene3d.renderer; R0.debug.checkShaderErrors = true;
+  const ce = console.error, cw = console.warn, fouten = []; console.error = (...a) => { fouten.push(a.map(String).join(' ').slice(0, 3000)); ce.apply(console, a); }; console.warn = (...a) => { fouten.push('W ' + a.map(String).join(' ').slice(0, 3000)); cw.apply(console, a); };
+  const kloon = IG.glassMaterial.clone(); kloon.onBeforeCompile = IG.glassMaterial.onBeforeCompile; kloon.customProgramCacheKey = () => 'glass-debug-' + Date.now();
+  const g = new THREE.Group();
+  const mk = (mat, cx, type) => {
+    const uv = IG.paneUV(WK.rankForType(type, 5), IG.PANE_SHOP, 2.4, 2.1, 1, 0, 0, 1, 0);
+    const geo = new THREE.BufferGeometry();
+    geo.setAttribute('position', new THREE.Float32BufferAttribute([-1.2, 0, 0, 1.2, 0, 0, 1.2, 2.1, 0, -1.2, 2.1, 0], 3));
+    geo.setAttribute('normal', new THREE.Float32BufferAttribute([0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1], 3));
+    geo.setAttribute('color', new THREE.Float32BufferAttribute(new Array(12).fill(0.5), 3));
+    geo.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2));
+    geo.setAttribute('lodC', new THREE.Float32BufferAttribute(new Array(8).fill(0), 2));
+    geo.setIndex([0, 1, 2, 0, 2, 3]);
+    const m = new THREE.Mesh(geo, mat); m.position.set(x + cx, z0, y); g.add(m);
+  };
+  mk(kloon, -1.4, 'fietsen'); mk(IG.glassMaterial, 1.4, 'fietsen');
+  window.__scene3d.scene.add(g);
+  cam(x, y + 6, z0 + 1.1, x, y, z0 + 1.0, 60); await shot('kloon-links-gewoon-rechts', 3000);
+  const gm = IG.glassMaterial, pr = R0.properties.get(gm);
+  ev.glas = { visible: gm.visible, transparent: gm.transparent, opacity: gm.opacity, side: gm.side, ud: Object.keys(gm.userData || {}).join(','), edge: gm.userData.edgeFade ? gm.userData.edgeFade.value.toArray() : null,
+    programma: !!(pr && pr.currentProgram), versie: gm.version, sleutel: gm.customProgramCacheKey ? String(gm.customProgramCacheKey()).slice(0, 80) : null };
+  if (gm.userData.edgeFade) { const was = gm.userData.edgeFade.value.clone(); gm.userData.edgeFade.value.set(1e9, 1e9 + 1); await shot('zonder-randvervaging', 1500); gm.userData.edgeFade.value.copy(was); }
+  console.error = ce; console.warn = cw;
+  ev.fouten = fouten.filter((f) => !/\[bb\]|\[capture\]/.test(f)).slice(0, 4);
+  ev.programmas = (R0.info.programs || []).filter((pr) => /glass/.test(pr.cacheKey || '')).map((pr) => ({ key: String(pr.cacheKey).slice(0, 60), naam: pr.name, ok: pr.diagnostics ? pr.diagnostics.runnable : 'onbekend', log: pr.diagnostics ? String(pr.diagnostics.fragmentShader.log || pr.diagnostics.programLog).slice(0, 1500) : '' }));
+  window.__scene3d.scene.remove(g);
 });
 
 // #1333b bomen aan de Vismarkt: geen roze bloesem meer (constitutie 3), zomerse soorten met variatie in groen

@@ -9,6 +9,10 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ## [Unreleased]
 
+- Etalages: achter de winkelruiten staat een echte winkel in plaats van een wand vol hetzelfde patroon tot aan het plafond: vakken met kasten, rekken en een kaal stuk muur of een poster, een fries in de kleur van de winkel, en een meubel tegen de achterwand (een schappenkast, een koeltoonbank, een frituurkast, een werkbank, een kaptafel of een vitrine). De fietsenwinkel hangt losse fietsen, banden en gereedschap op in plaats van een behang van fietswielen. Elk pand is anders ingericht. Samen spelen: alleen beeld, bij iedereen hetzelfde.
+- Bomen: geen roze bloesembomen meer (het is altijd zomer). Een sierkers uit de kaart staat er als linde, esdoorn of plataan, en een enkele kers in donkergroen zomerblad. Samen spelen: alleen beeld, bij iedereen hetzelfde.
+- Gevels aan de Grote Markt, de Vismarkt en het Natalini-blok: de crème lijsten, speklagen, lateien en hoekstroken flikkeren niet meer zaagtandvormig door de baksteen; ze steken een paar centimeter uit de gevel. Samen spelen: alleen beeld, bij iedereen hetzelfde.
+- M13, het containerlabyrint: de containers zijn niet meer bijna zwart; ze hebben hun lakkleur, ribbels en deuren die ook in de schaduw te zien zijn. Samen spelen: alleen beeld, bij iedereen hetzelfde.
 - Heli-opdrachten (Ballonjacht, Het staat niet in het rooster): de routekaart bovenin valt niet meer achter de heli-gids, en meldingen en de missiekaart staan onder het heli-paneel in plaats van erachter. Samen spelen: alleen beeld, per speler.
 - Samen spelen: jaagt de politie op een medespeler, dan raak je je eigen sterren kwijt als er geen politie bij jou in de buurt is; de afkoeltijd van de een schuift die van de ander niet meer door. Alleen bij wie het spel opende; een gast ziet de sterren van het doelwit zoals voorheen.
 - Safehuis: wie overdag gaat slapen tot de ochtend of de middag, wordt net als thuis de volgende dag wakker; de datum en de stek van de plant gaan mee. Samen spelen: slapen blijft een gezamenlijke keuze; de datum volgt de wereld van wie het spel opende.
