@@ -91,4 +91,24 @@ let tests = 0;
   tests++;
 }
 
+// Test 3: opgepakt (respawn onderweg, gezondheid nog boven 0): de uithaal landt ook dan niet.
+// Eerst de controle dat dezelfde uithaal zonder arrestatie wel raakt (eigen tijd, dus geen afkoeling van test 1 en 2).
+const uithaal = (opgepakt, t) => {
+  const w = wereld({ time: t });
+  for (let i = 0; i < 60; i++) updateCombat(0.05, w); // de afkoeling van de vorige slag loopt af
+  const ped = { x: 1, y: 0, state: 'standing', health: 100 };
+  w.pedestrians.push(ped);
+  w.input.mouse.down = true;
+  updateCombat(0.016, w);
+  w.input.mouse.down = false;
+  if (opgepakt) w.pendingRespawn = { busted: true, moneyPenalty: 50 };
+  w.time += 0.2;
+  updateCombat(0.016, w);
+  return ped.health;
+};
+assert.ok(uithaal(false, 500) < 100, 'controle: zonder arrestatie raakt de uithaal');
+tests++;
+assert.strictEqual(uithaal(true, 1000), 100, 'Een opgepakte speler moet geen pending swing kunnen uitvoeren');
+tests++;
+
 console.log(`ok: pendingswing_cancel_test (${tests} controles)`);
