@@ -223,9 +223,11 @@ function copyOf(mat) {
     // clone() does not carry the defines of a built-in material over (MeshStandardMaterial.copy resets them to STANDARD): the road surfaces choose their
     // paving by define (roadsurface.js SURF_KLINKER, SURF_TILES, ...) and without them every road was plain grey
     c.defines = { ...mat.defines };
-    c.onBeforeCompile = mat.onBeforeCompile;
-    const ck = mat.customProgramCacheKey;
-    c.customProgramCacheKey = () => (ck ? ck.call(mat) : '') + '|pool';
+    // 24-11: the copy follows the original's patch at compile time, not the one it had when the copy was made: a wall material that
+    // got the building fade (scene3d.js patchBuildingFade) after its first pooled use otherwise kept drawing without it (syncMaterials
+    // recompiles the copy when the original's version changes)
+    c.onBeforeCompile = function (shader, renderer) { if (mat.onBeforeCompile) mat.onBeforeCompile.call(this, shader, renderer); };
+    c.customProgramCacheKey = () => (mat.customProgramCacheKey ? mat.customProgramCacheKey() : '') + '|pool';
     c.userData = { ...mat.userData, shared: true, poolOf: mat, srcVersion: mat.version };
     copies.set(mat, c);
   }

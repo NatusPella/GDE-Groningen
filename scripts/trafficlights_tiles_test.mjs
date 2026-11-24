@@ -48,6 +48,29 @@ TL.updateTrafficLights(1 / 60, world);
 ok(TL.getTrafficControllers().length === 1, 'na het weggaan van de tegel blijft de stad over', String(TL.getTrafficControllers().length));
 ok(!J.allSignals(map).some((s) => s.key === '0,55'), 'het signaal van de weggevallen tegel is weg');
 
+// 3b. perf-r3 (24-11): de opbouw loopt in stappen; het oude netwerk blijft tot het nieuwe af is, daarna wisselt alles tegelijk
+{
+  map.junctionRows.set('t1', [{ k: '0,55', p: [[0, 55]], c: 'signals', a: [[2, 1, 1, 1, 6, 1]] }]);
+  map.junctionVer++;
+  map.signalVer = (map.signalVer || 0) + 1;
+  const oud = TL.getTrafficControllers();
+  const realNow = performance.now.bind(performance);
+  let t = realNow();
+  performance.now = () => (t += 5); // elke klokcontrole is 5 ms later: de opbouw komt per beeld maar één stap ver
+  TL.updateTrafficLights(1 / 60, world);
+  const bezig = TL.trafficNetworkBuilding();
+  const tijdens = TL.getTrafficControllers();
+  let frames = 1;
+  while (TL.trafficNetworkBuilding() && frames < 200) { TL.updateTrafficLights(1 / 60, world); frames++; }
+  performance.now = realNow;
+  ok(!bezig || tijdens === oud, 'tijdens de opbouw rijdt het verkeer op het oude netwerk');
+  ok(!TL.trafficNetworkBuilding() && TL.getTrafficControllers().length === 2, `de opbouw is af na ${frames} beelden met het nieuwe netwerk`, String(TL.getTrafficControllers().length));
+  map.junctionRows.delete('t1');
+  map.junctionVer++;
+  map.signalVer = (map.signalVer || 0) + 1;
+  TL.updateTrafficLights(1 / 60, world);
+}
+
 // 4. een tegel zonder beveiligde kruising vraagt geen herbouw
 const before = TL.getTrafficControllers().length;
 map.junctionRows.set('t2', [{ k: '70,0', p: [[70, 0]], c: 'equal', a: [[0, 2, 1, 3, 4, 1]] }]);

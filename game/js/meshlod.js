@@ -11,6 +11,7 @@
 // following the same bones and a flat-coloured face keeps its colour. Indexed or not, the result is non-indexed.
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { lodLevel, lodScaleFor, registerLodModel } from './lodregistry.js';
+import { silhouetteKept } from './lodsimplify.js';
 
 function partOf(geometry) {
   const si = geometry.attributes.skinIndex, sw = geometry.attributes.skinWeight, n = geometry.attributes.position.count;
@@ -81,16 +82,27 @@ export const triCount = (g) => Math.round((g.index ? g.index.count : g.attribute
 
 // LOD0 plus two cluster levels: the cell grows (from 4% of the model's longest side) until a level has at most 60% and 40% of the
 // triangles of LOD0 (the minCut of kind 'animal' in lodregistry.js: 35% and 60% fewer). name: registers the model for the audit.
+// 24-11 (beeldregressie): a level only counts while it keeps the silhouette (the bounding box per axis within 80%, silhouetteKept of
+// lodsimplify.js); a coarser cell flattened a gull to a slab. Without such a level the previous one stays (LOD1 = LOD0, LOD2 = LOD1).
+const boxOf = (g) => { g.computeBoundingBox(); const b = g.boundingBox; return [b.min.x, b.min.y, b.min.z, b.max.x, b.max.y, b.max.z]; };
 export function animalLods(geometry, size, name = null) {
   const t0 = triCount(geometry);
-  const level = (share, from) => {
-    let cell = from, g = clusterLod(geometry, cell);
-    for (let i = 0; i < 16 && triCount(g) > t0 * share; i++) { cell *= 1.3; g = clusterLod(geometry, cell); }
-    return { g, cell };
+  const b0 = boxOf(geometry);
+  let silhouette = false; // a level stopped short of its share to keep the silhouette (lodregistry.js auditLodModel)
+  const level = (share, from, fallback) => {
+    let cell = from, best = null;
+    for (let i = 0; i < 16; i++, cell *= 1.3) {
+      const g = clusterLod(geometry, cell);
+      if (!silhouetteKept(b0, boxOf(g))) { silhouette = true; break; }
+      best = { g, cell };
+      if (triCount(g) <= t0 * share) break;
+    }
+    return best || { g: fallback, cell: from };
   };
-  const l1 = level(0.6, size * 0.04), l2 = level(0.4, l1.cell * 1.3);
+  const l1 = level(0.6, size * 0.04, geometry), l2 = level(0.4, l1.cell * 1.3, l1.g);
   const geos = [geometry, l1.g, l2.g];
-  if (name) registerLodModel('animal', name, geos.map(triCount), { cull: false });
+  geos.silhouette = silhouette;
+  if (name) registerLodModel('animal', name, geos.map(triCount), { cull: false, silhouette });
   return geos;
 }
 

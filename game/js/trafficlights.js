@@ -352,7 +352,7 @@ function newController(x, y) {
 // Controllers closer than MERGE_RADIUS run as one: a dual carriageway's two
 // nodes, or a crossing just outside a junction, never get independent
 // timings that could send crossing streams on green together.
-function mergeControllers() {
+function mergeControllers(controllers) {
   for (let i = 0; i < controllers.length; i++) {
     const a = controllers[i];
     for (let j = i + 1; j < controllers.length; j++) {
@@ -472,75 +472,111 @@ export function initTrafficLights(world) {
   buildTrafficNetwork(world);
 }
 
-function buildTrafficNetwork(world) {
+// 24-11 (perf-r3, verkeerspieken tot ~195 ms): het netwerk wordt in stappen opgebouwd, elk beeld hoogstens NETWORK_BUDGET_MS, terwijl
+// het oude netwerk gewoon doorloopt; pas als het nieuwe af is, gaat het in één keer over (zelfde uitkomst als in één aanroep: dezelfde
+// volgorde van signalen, ankers en controllers). initTrafficLights draait het in één keer af.
+const NETWORK_BUDGET_MS = 2;
+const YIELD_EVERY = 16; // zoveel stappen tussen twee klokcontroles
+function* networkSteps(world) {
   map = world.map;
   buildNodes(map);
   const signals = allSignals(map);
   const list = [];
   list.junctions = [];
-  for (const s of signals) approachesFromSignal(s, list);
+  for (let i = 0; i < signals.length; i++) {
+    approachesFromSignal(signals[i], list);
+    if (i % YIELD_EVERY === YIELD_EVERY - 1) yield;
+  }
 
   // cluster junction nodes (and crossings) into controllers, strongest road first
-  controllers = [];
+  const ctrls = [];
   const anchors = [
     ...list.junctions,
     ...list.filter((a) => !a.key || a.bike).map((a) => ({ x: a.ax, y: a.ay, rank: a.bike ? -1 : CAT_RANK[a.road.cat] ?? 0 })),
   ].sort((a, b) => b.rank - a.rank);
   const ctrlOf = new Map();
-  for (const an of anchors) {
-    let c = controllers.find((o) => Math.hypot(o.x - an.x, o.y - an.y) < CLUSTER_RADIUS);
+  for (let i = 0; i < anchors.length; i++) {
+    const an = anchors[i];
+    let c = ctrls.find((o) => Math.hypot(o.x - an.x, o.y - an.y) < CLUSTER_RADIUS);
     if (!c) {
       c = newController(an.x, an.y);
-      controllers.push(c);
+      ctrls.push(c);
     }
     c.x = (c.x * c.n + an.x) / (c.n + 1);
     c.y = (c.y * c.n + an.y) / (c.n + 1);
     c.n++;
     if (an.key && !an.implied) c.keys.add(an.key);
     if (an.key) ctrlOf.set(an.key, c);
+    if (i % (YIELD_EVERY * 4) === YIELD_EVERY * 4 - 1) yield;
   }
-  for (const a of list) {
+  for (let i = 0; i < list.length; i++) {
+    const a = list[i];
     const c = (a.key && !a.bike && ctrlOf.get(a.key)) ||
-      controllers.reduce((b, o) => (!b || Math.hypot(o.x - a.ax, o.y - a.ay) < Math.hypot(b.x - a.ax, b.y - a.ay) ? o : b), null);
+      ctrls.reduce((b, o) => (!b || Math.hypot(o.x - a.ax, o.y - a.ay) < Math.hypot(b.x - a.ax, b.y - a.ay) ? o : b), null);
+    if (i % (YIELD_EVERY * 4) === YIELD_EVERY * 4 - 1) yield;
     if (!c) continue;
     a.ctrl = c;
     c.approaches.push(a);
   }
-  mergeControllers();
-  for (const c of controllers) {
+  mergeControllers(ctrls);
+  yield;
+  for (let i = 0; i < ctrls.length; i++) {
+    const c = ctrls[i];
     for (const a of c.approaches) if (a.key && !a.crossing && !a.bike) c.keys.add(a.key);
     fillJunctionArms(c, list);
+    if (i % YIELD_EVERY === YIELD_EVERY - 1) yield;
   }
-  controllers = controllers.filter((c) => c.approaches.length);
+  const live = ctrls.filter((c) => c.approaches.length);
 
-  heads = [];
-  for (const c of controllers) {
+  const hs = [];
+  for (let i = 0; i < live.length; i++) {
+    const c = live[i];
     assignAxes(c);
     buildPhases(c);
     c.t = Math.random() * c.cycle;
     stepController(c);
     for (const a of c.approaches) {
       placePoles(a);
-      heads.push(a);
+      hs.push(a);
     }
+    if (i % YIELD_EVERY === YIELD_EVERY - 1) yield;
   }
 
-  grid = new Map();
-  for (const h of heads) {
+  const g = new Map();
+  for (const h of hs) {
     const cx = Math.floor(h.x / GRID), cy = Math.floor(h.y / GRID);
     for (let ix = cx - 1; ix <= cx + 1; ix++) {
       for (let iy = cy - 1; iy <= cy + 1; iy++) {
         const k = ix + ',' + iy;
-        let a = grid.get(k);
-        if (!a) grid.set(k, a = []);
+        let a = g.get(k);
+        if (!a) g.set(k, a = []);
         a.push(h);
       }
     }
   }
+  // de overgang: alles van het nieuwe netwerk tegelijk
+  controllers = live;
+  heads = hs;
+  grid = g;
   poles = heads.flatMap((h) => h.poles);
   turnArrows = buildTurnArrowList();
   if (instanced) disposeInstanced();
 }
+let building = null; // de lopende opbouw (networkSteps), of null
+function buildTrafficNetwork(world) {
+  building = null;
+  for (const _ of networkSteps(world)) { /* in één keer */ }
+}
+// Een stuk van de lopende opbouw: tot de klok NETWORK_BUDGET_MS voorbij is. Geeft true als het netwerk af is.
+function stepNetwork(budgetMs = NETWORK_BUDGET_MS) {
+  if (!building) return true;
+  const t0 = performance.now();
+  do { // minstens één stap per beeld, ook op een trage machine
+    if (building.next().done) { building = null; return true; }
+  } while (performance.now() - t0 < budgetMs);
+  return false;
+}
+export const trafficNetworkBuilding = () => !!building;
 
 // AI traffic reads the lights itself (see trafficLightLimit in vehicle.js).
 // In the rain the car phases run faster (w.wet 0..1), so the Groningen bike
@@ -563,9 +599,10 @@ export function updateTrafficLights(dt, world) {
     const tilesCalm = tilesCalmGate(m);
     if (tilesCalm && !intro) {
       signalVer = m.signalVer;
-      buildTrafficNetwork(world);
+      building = networkSteps(world); // een nieuwe wijziging begint opnieuw; het oude netwerk loopt door tot het nieuwe af is
     }
   }
+  if (building) stepNetwork();
   const wet = (world && world.weather && world.weather.wet) || 0;
   for (const c of controllers) {
     c.t = (c.t + dt * trafficClockRate(c.phases[c.cur], wet)) % c.cycle;

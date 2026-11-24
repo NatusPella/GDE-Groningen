@@ -18,7 +18,7 @@ const _camSphereHit = new THREE.Vector3();
 const _camInv = new THREE.Matrix4();
 const _segA = new THREE.Vector3();
 const _segB = new THREE.Vector3();
-import { buildBuildingMesh, setBuildingMap, setNightFactor, setPartsInUse } from './models3d_buildings.js';
+import { buildBuildingMesh, setBuildingMap, setNightFactor, setPartsInUse, ownBuildingModel } from './models3d_buildings.js';
 import { updateDiscoLamp } from './discolight.js';
 import { buildVehicleMesh, updateVehicleWheelSpin, applyFlatTire, setBusRearAngle, updatePoliceLamps, updateIndicatorLamps, syncPoliceMount, riderSeatFor, attachHelmet, releaseVehicleGeometries } from './models3d_vehicles.js';
 import {
@@ -102,7 +102,7 @@ import { reducedMotion } from './motion.js';
 import { dynamicScale, cpuLevel, currentPreset } from './gfxprofile.js';
 import { setAnimalLodPreset } from './meshlod.js';
 import { setLodPreset, updateLodObjects, lodFadeMaterial, lodScale } from './lodkit3d.js';
-import { GLSL_DETAIL_HEAD_VERT, GLSL_DETAIL_VERT, GLSL_DETAIL_HEAD_FRAG, GLSL_DETAIL_FRAG, BUILDING_FADE_BAND } from './buildingfade.js';
+import { GLSL_DETAIL_HEAD_VERT, GLSL_DETAIL_VERT, GLSL_DETAIL_HEAD_FRAG, GLSL_DETAIL_FRAG, BUILDING_FADE_BAND, fadeBandStep } from './buildingfade.js';
 import { registerLodModel, lodLevelsForFade, lodSpec } from './lodregistry.js';
 import { adaptedShadowLevel } from './shadowlevel.js';
 import { treeSyncDue } from './treesync.js';
@@ -852,7 +852,7 @@ function pinShaderPrograms(r) {
   const programs = r.info.programs;
   const push = programs.push;
   programs.push = function (...added) {
-    for (const p of added) { p.usedTimes++; probe.program(p); programWatch.note(p); }
+    for (const p of added) { p.usedTimes++; probe.program(p); programWatch.note(p); if (!perfOff('linkuitstel')) guardFirstUse(p); }
     return push.apply(this, added);
   };
 }
@@ -1395,6 +1395,24 @@ function programLinked(p) {
   if (ready) { p._linked = true; return true; }
   return false;
 }
+// perf-r3 (24-11): de wacht hierboven kijkt naar de programma's die een materiaal al HAD. Een nieuwe variant van een bekend materiaal
+// (een ander lichtaantal, de nachtrig aan of uit, een poolkopie na needsUpdate, een nieuwe dieptevariant) zag hij niet: die werd bij de
+// draw gemaakt en de eerste getUniforms wachtte op de link (stilstanden tot 1,7 s in de benchmark, ~320 programma's tijdens het spel).
+// Nu gooit de eerste getUniforms van een programma dat nog linkt NOT_LINKED, zolang een bewaakte draw loopt (deferDraw): three heeft dan
+// nog geen GL-toestand veranderd (getUniforms komt voor useProgram in setProgram), de draw valt dit beeld weg en de link loopt parallel
+// door. Na LINK_DEFER_MAX_MS tekent hij toch (een driver die nooit klaar meldt). ?perfoff=linkuitstel is het oude gedrag.
+const NOT_LINKED = new Error('programma linkt nog');
+const LINK_DEFER_MAX_MS = 4000;
+let deferDraw = false;
+const linkDeferStats = { skipped: 0 };
+function guardFirstUse(p) {
+  const get = p.getUniforms, born = performance.now();
+  p.getUniforms = function () {
+    if (deferDraw && !programLinked(p) && performance.now() - born < LINK_DEFER_MAX_MS) { linkDeferStats.skipped++; throw NOT_LINKED; }
+    p.getUniforms = get; // gelinkt (of lang genoeg gewacht): voortaan de gewone aanroep
+    return get.call(p);
+  };
+}
 function hookLinkGuard(r) {
   r.setOpaqueSort(programSort);
   const draw0 = r.renderBufferDirect.bind(r);
@@ -1414,6 +1432,14 @@ function hookLinkGuard(r) {
       if (!ready) { linkPending.add(object); return undefined; }
     }
     if (sc === null && material.isMeshDepthMaterial && !perfOff('dieptevarianten')) material = depthVariant(material, object);
+    if (guard && canvasFrames > linkGuardFrom() && (sc === scene || (sc === null && (material.isMeshDepthMaterial || material.isMeshDistanceMaterial)))) {
+      deferDraw = true;
+      try { return draw(camera, sc, geometry, material, object, group); } catch (e) {
+        if (e !== NOT_LINKED) throw e;
+        if (sc === scene) linkPending.add(object);
+        return undefined;
+      } finally { deferDraw = false; }
+    }
     return draw(camera, sc, geometry, material, object, group);
   };
 }
@@ -2036,7 +2062,7 @@ function makeBuildingMesh(b) {
   const mesh = enableShadows(buildBuildingMesh(b), true, 2.5);
   if (liftMap && liftMap.terrainOn) mesh.position.y += buildingLift(liftMap, b);
   if (isSkyline(b)) useSkylineMaterials(mesh);
-  if (!b.landmark && !perfOff('gebouwfade')) addBuildingFade(mesh, b);
+  if (!ownBuildingModel(b) && !perfOff('gebouwfade')) addBuildingFade(mesh, b); // eigen model: de harde wissel (models3d_buildings.js ownBuildingModel)
   freezeStatic(mesh);
   return mesh;
 }
@@ -2063,6 +2089,9 @@ function addBuildingFade(mesh, b) {
 function patchBuildingFade(m) {
   if (m.userData.buildingFade || !(m.isMeshStandardMaterial || m.isMeshLambertMaterial || m.isMeshPhongMaterial || m.isMeshBasicMaterial)) return;
   m.userData.buildingFade = true;
+  // 24-11: de samenvoeging (staticbatch3d.js bakeSig) bewaart zijn sleutel op het materiaal; een sleutel van vóór deze patch liet een
+  // samengevoegd detailgebouw zonder overgang tekenen (vol detail plus de half uitgedoofde verre kopie: het patroon van de beeldregressie)
+  m.userData.bakeSig = undefined;
   const prev = m.onBeforeCompile;
   const U = lodShared();
   m.onBeforeCompile = (shader, r) => {
@@ -3122,7 +3151,9 @@ export function update3D(dt, world) {
           if (mesh.userData.pigeonScale !== want) { mesh.scale.setScalar(want); mesh.userData.pigeonScale = want; }   // Reuzenduif (cheat)
         } else if (!(Math.abs(mesh.scale.x - baseScale) < 1e-4 && Math.abs(mesh.scale.y - baseScale) < 1e-4 && Math.abs(mesh.scale.z - baseScale) < 1e-4)) mesh.scale.setScalar(baseScale);
         mesh.rotation.y = -a.angle - (a.draai || 0);   // a.lift en a.draai: een schaap in de straal van een schotel (#333)
-        { const fx = a.x - focus.x, fy = a.y - focus.y; mesh.userData.lodD2 = fx * fx + fy * fy; mesh.userData.ver = mesh.userData.lodD2 > 45 * 45; }   // ver weg: de lichte animatie
+        // 24-11: de LOD volgt ook de camera (de kleinste van de twee afstanden): in een filmpje, de benchmark of een beeldrun staat de
+        // camera ver van de speler, en dan stond een duif vlak voor de lens op het lichtste niveau
+        { const fx = a.x - focus.x, fy = a.y - focus.y, cx = a.x - cam.position.x, cy = a.y - cam.position.z, cz = y - cam.position.y; mesh.userData.lodD2 = Math.min(fx * fx + fy * fy, cx * cx + cy * cy + cz * cz); mesh.userData.ver = mesh.userData.lodD2 > 45 * 45; }   // ver weg: de lichte animatie
         animateWildlifeMesh3D(mesh, a, world.time);
       }
     }
@@ -3258,7 +3289,9 @@ export function update3D(dt, world) {
   const lodR = viewDist > DRAW_DIST + 20 ? Math.min(DRAW_DIST, buildingDetailR, roadDetailR + 8) : DRAW_DIST;
   const flt0 = performance.now(), fl = streamLead(streamAhead);
   // de dither-overgang detailgebouw / verre kopie (buildingfade.js) alleen als er een verre laag is; anders de harde wissel op de ring
-  lodShared().uLodBand.value = viewDist > DRAW_DIST + 20 && !perfOff('gebouwfade') ? BUILDING_FADE_BAND : 0;
+  // 24-11 (beeldregressie 'stad'): alleen in beweging; stilstaand krimpt de band in BAND_SETTLE_S naar 0 (temporele overgang), zodat een
+  // gebouw dat toevallig in de band staat niet blijvend half detail, half verre kopie is
+  lodShared().uLodBand.value = fadeBandStep(lodShared().uLodBand.value, viewDist > DRAW_DIST + 20 && !perfOff('gebouwfade') ? BUILDING_FADE_BAND : 0, focusSpeed, dt);
   farLod.update(focus.x, focus.y, viewDist, Math.min(viewDist, scene.fog.far) + 20, lodR, { keep: ringKeep, budgetMs: plan.grant('far', 2.5), lead: fl.lead > 0 ? fl : null });
   plan.spend('far', performance.now() - flt0);
   probe.mark('3d:farlod');

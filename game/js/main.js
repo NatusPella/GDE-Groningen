@@ -400,11 +400,14 @@ function waitForStart(world, ready) {
     updateAudio(dt, world);
     updateTrafficLights(dt, world);
     probe.mark('t-audio+lichten');
+    // perf-r3 (24-11): ook hier het padbudget van de spellus (#804): na een sprong van de trailer of de benchmark bouwden alle nieuwe
+    // voertuigen hun pad in hetzelfde beeld op (t-verkeer tot ~100 ms)
+    const pathBudget = { left: PATH_BUILDS_PER_FRAME };
     for (const v of world.vehicles) {
       if (v.driver === 'player' || v.isPolice || v.cineTemp) continue;
       if (v.isBoat) updateBoatAI(v, dt, world.map, world, Math.random);
       else {
-        updateTrafficAI(v, dt, world.map, world, Math.random);
+        updateTrafficAI(v, dt, world.map, world, Math.random, v.aiOpts ? null : { budget: pathBudget });
         resolveVehicleBuildingCollision(v, world.map, dt);
       }
     }
