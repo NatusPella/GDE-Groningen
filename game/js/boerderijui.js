@@ -353,7 +353,8 @@ function detail(b, geld) {
   // Elke andere subpagina van de boerderij draagt dezelfde sfeerband (#609).
   // De oude pagina's (perceel, percelen, gewas, bank) blijven bereikbaar voor sneltoetsen en tests; het segment toont ze onder Velden en Kasboek.
   const inhoud = gekozen === 'percelen' ? percelen(b, geld) : gekozen === 'erf' ? erf(b, geld) : gekozen === 'gewas' ? gewas(b) : gekozen === 'machines' ? machines(b, geld) : gekozen === 'kas' ? kas(b) + bank(b, geld) : gekozen === 'bank' ? bank(b, geld) : perceel(b, geld);
-  return band() + inhoud;
+  // De pagina's Machines, Erf en Kasboek (24-11) staan zonder sfeerband in het kader van Land en bedrijf; de oude pagina's perceel, percelen, gewas en bank houden hem.
+  return ['machines', 'erf', 'kas'].includes(gekozen) ? `<div class="bz-pagina">${inhoud}</div>` : band() + inhoud;
 }
 
 // QoL (#985): een aankoop van €1.000 of meer vraagt een tweede druk, zoals de gewone winkel.

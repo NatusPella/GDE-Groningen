@@ -193,3 +193,12 @@ html.reduce-motion .bz-vasthoud::before, html.rustig-drukwerk .bz-vasthoud::befo
 .bz-menukaart__naam { font-family: var(--ds-font-zeef-kop); font-weight: 800; font-size: var(--ds-t-label); padding-right: var(--ds-s-5); }
 .bz-menukaart small { font-size: var(--ds-t-hulp); }
 .bz-menukaart .bz-vink { position: absolute; top: var(--ds-s-2); right: var(--ds-s-2); width: var(--ds-s-4); height: var(--ds-s-4); }
+
+/* ---- Machines, Erf en Kasboek in het sjabloon (24-11): eigen koppen worden tussenkoppen, de uitleg is een link ---- */
+.bz-pagina { display: flex; flex-direction: column; gap: var(--ds-s-3); }
+.bz-pagina .pm-pane-top { margin: 0; }
+.bz-pagina .pm-pane-top .m-eb { font-family: var(--ds-font-zeef-kop); font-weight: 800; font-size: var(--ds-t-hulp); letter-spacing: var(--ds-ls-label); text-transform: uppercase; color: var(--ds-zeef-kop); }
+.bz-pagina .lb-titel, .bz-pagina h3, .bz-pagina .m-h3 { font-family: var(--ds-font-zeef-kop); font-weight: 800; font-size: var(--ds-t-hulp); letter-spacing: var(--ds-ls-label); text-transform: uppercase; color: var(--ds-zeef-kop); text-shadow: none; margin: var(--ds-s-3) 0 var(--ds-s-1); }
+.bd-meer__sum { display: inline-flex; align-items: center; gap: var(--ds-s-1); cursor: pointer; list-style: none; }
+.bd-meer__sum::-webkit-details-marker { display: none; }
+.bd-meer > p { margin: var(--ds-s-2) 0; font-size: var(--ds-t-hulp); max-width: calc(var(--ds-s-8) * 12); }

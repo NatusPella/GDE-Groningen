@@ -19,7 +19,7 @@ const handlers = {};
 const el = { innerHTML: '', dataset: {}, addEventListener: (k, f) => { handlers[k] = f; }, querySelector: () => null, querySelectorAll: () => [] };
 const world = { money: 50000, clock: 8, addMessage() {} };
 const klik = (data) => handlers.click({ target: { closest: (sel) => (sel === '[data-bd]' && data.bd ? { dataset: data } : null) } });
-const PAGINA = ['perceel', 'percelen', 'erf', 'gewas', 'machines', 'kas', 'bank'];   // de oude pagina's; Velden en Team hebben een eigen kader (24-11)
+const PAGINA = ['perceel', 'percelen', 'gewas', 'bank'];   // de oude pagina's met sfeerband; Velden, Team, Machines, Erf en Kasboek staan in het kader van 24-11 zonder
 const tekst = (html) => html.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
 
 renderBoerderijPanel(el, world);
