@@ -29,7 +29,7 @@ import { KERMIS } from './kermis.js';
 import { CARBID } from './carbid.js';
 import { buildCarbidSet, busOpBok, animateCarbidSet, vrijOpKaart } from './carbidset.js';
 import { dekselOp } from './carbidintro.js';
-import { spawnExplosionFx, spawnFxPuff } from './fx3d.js';
+import { spawnFxPuff } from './fx3d.js';
 import { tractorBodyGeometry, tractorBaseGeometry } from './countrymodels.js';
 import { vcMaterial } from './pixelart3d.js';
 import { Vehicle, MODELS, TRAFFIC_MODELS, spawnHeroCarNear } from './vehicle.js';
@@ -1255,7 +1255,7 @@ function buildShots(w) {
   const FW = (u, v) => ({ x: veld.x + vc * u - vs * v, y: veld.y + vs * u + vc * v });
   const KNAL = 1.0;
   const ommeland = {
-    label: 'Carbid in de Ommelanden', cuts: ['vol'], dur: 4.0, clock: 20.4, weather: 'helder', focus: FW(-4, 0),
+    label: 'Carbid in de Ommelanden', cuts: ['vol'], dur: 4.0, clock: 19.9, weather: 'helder', focus: FW(-4, 0),
     sfx: [[KNAL, 'knal']],
     prep(r) { r.prop('carbiderf', () => buildCarbidYard(map)); },
     enter(r, s) {
@@ -1273,23 +1273,24 @@ function buildShots(w) {
       if (!s.banged) {
         s.banged = true;
         flash(false);
-        spawnExplosionFx(mond.x + vc * 0.5, mond.z + vs * 0.5, mond.y, 0x8a9197, 0.3);
-        for (let i = 0; i < 18; i++) spawnFxPuff(mond.x, mond.y, mond.z, vc * (2 + Math.random() * 6) + (Math.random() - 0.5) * 2, 0.4 + Math.random() * 1.6, vs * (2 + Math.random() * 6) + (Math.random() - 0.5) * 2, 1.2 + Math.random() * 1.2, 0.35, 1.8, 0.86, 0.85, 0.82, 0.55, 1.4, 0.3);
+        for (let i = 0; i < 18; i++) spawnFxPuff(mond.x, mond.y, mond.z, vc * (2 + Math.random() * 6) + (Math.random() - 0.5) * 2, 0.4 + Math.random() * 1.6, vs * (2 + Math.random() * 6) + (Math.random() - 0.5) * 2, 1.4 + Math.random() * 1.4, 0.5, 2.6, 0.9, 0.89, 0.86, 0.7, 1.4, 0.3);
         for (let i = 0; i < 6; i++) spawnFxPuff(mond.x, mond.y, mond.z, vc * (5 + Math.random() * 4), Math.random(), vs * (5 + Math.random() * 4), 0.18, 0.15, 0.6, 1, 0.75, 0.3, 1, 3, 0, 1);
+        for (let i = 0; i < 10; i++) spawnFxPuff(mond.x + vc * i * 0.5, mond.y + 0.3, mond.z + vs * i * 0.5, vc * 0.8, 0.25, vs * 0.8, 4.5 + Math.random() * 1.5, 0.8, 3.2, 0.82, 0.81, 0.78, 0.45, 0.6, 0.15);
       }
       if (deksel.parent !== s.erf) s.erf.add(deksel);
       const m = s.erf.worldToLocal(mond.clone());
       const d = dekselOp(k, undefined, { u: m.x, h: m.y });
       deksel.position.set(d.u, d.h, m.z + d.v);
       deksel.rotation.set(d.ligt ? 0 : d.spin, 0.3, d.ligt ? 0 : -Math.PI / 2 + Math.sin(d.spin) * 0.7);
+      if (!d.ligt && dt > 0) { const p = deksel.getWorldPosition(new THREE.Vector3()); spawnFxPuff(p.x, p.y, p.z, 0, 0.2, 0, 1.6, 0.12, 0.7, 0.85, 0.84, 0.8, 0.6, 1.2, 0.1); }
     },
     exit(r, s) { if (s.erf) { const { bus, deksel, thuis } = s.erf.userData; bus.add(deksel); deksel.position.copy(thuis); } },
     cam(u) {
       // from the road side over the row of churns onto the yard (the intro's first shot, carbidintro.js): churns, onlookers behind
       // the fence, the shed and the farm, the sun from the side; a slow dolly in
-      const a = FW(lerp(-10, -8.6, u), lerp(-10.5, -9.6, u)), l = FW(lerp(2.5, 3.2, u), lerp(8.5, 8.0, u));
+      const a = FW(lerp(-5.4, -4.4, u), lerp(-5.8, -5.0, u)), l = FW(lerp(1.4, 1.9, u), lerp(3.2, 3.0, u));
       const z = gz(veld.x, veld.y);
-      return { position: P(a.x, a.y, z + lerp(5.6, 4.7, u)), lookAt: P(l.x, l.y, z + 1.3), fov: 50, shake: 0.05 };
+      return { position: P(a.x, a.y, z + lerp(2.5, 2.1, u)), lookAt: P(l.x, l.y, z + 1.1), fov: 52, shake: 0.05 };
     },
   };
 

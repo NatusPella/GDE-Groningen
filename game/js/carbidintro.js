@@ -15,7 +15,7 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { playCinematic, isCinematicActive } from './cinematics.js';
 import { refreshDayNight } from './daynight.js';
-import { spawnExplosionFx, spawnFxPuff } from './fx3d.js';
+import { spawnFxPuff } from './fx3d.js';
 import { flashMuzzleLight } from './nightlights3d.js';
 import { pushAudioEvent } from './pedgeom.js';
 import { adoptSetLight } from './setlights.js';
@@ -35,7 +35,7 @@ export const CARBID_INTRO = {
   shots: [
     { id: 'erf', t: 0, from: [-10, -10.5, 5.8], to: [-8, -9.5, 4.4], look: [3, 9, 1.4], fov: 52 },
     { id: 'ontsteking', t: 3.2, from: [-0.2, 1.7, 1.35], to: [-0.35, 1.45, 1.2], look: [-1.05, -0.75, 1.0], fov: 44, licht: { fakkel: 1 } },
-    { id: 'knal', t: 5.6, from: [3.4, -7.2, 1.25], to: [4.6, -7.6, 1.6], look: 'deksel', fov: 46, schud: 0.16 },
+    { id: 'knal', t: 5.6, from: [2.4, -3.8, 1.05], to: [3.2, -4.4, 1.4], look: 'deksel', fov: 50, schud: 0.16 },
     { id: 'reactie', t: 8.0, from: [-3.6, 1.5, 1.6], to: [-3.9, 1.8, 1.65], look: [-1.0, 5.4, 1.45], fov: 42 },
   ],
   // de mensen van de scène (veldcoördinaten, phi: kijkrichting)
@@ -53,7 +53,7 @@ export const CARBID_INTRO = {
   deksel: { v0: 21, el: 0.42 },
 };
 
-export const shotOp = (t, shots = CARBID_INTRO.shots) => { let i = 0; for (let k = 0; k < shots.length; k++) if (t >= shots[k].t) i = k; return i; };
+const shotOp = (t, shots = CARBID_INTRO.shots) => { let i = 0; for (let k = 0; k < shots.length; k++) if (t >= shots[k].t) i = k; return i; };
 const smooth = (k) => { k = Math.max(0, Math.min(1, k)); return k * k * (3 - 2 * k); };
 const lerp = (a, b, k) => a + (b - a) * k;
 
@@ -126,7 +126,6 @@ export function speelCarbidIntro(ctx) {
     stok.position.copy(tip).addScaledVector(dir.normalize(), -LONT);
     stok.quaternion.copy(_q.setFromUnitVectors(X, dir));
     stok.visible = len > 0.3;
-    if (typeof window !== 'undefined') window.__carbidIntroDebug = { gat: gat.toArray(), hand: hand.toArray(), tip: tip.toArray(), stok: stok.position.toArray(), len };
     // het vuur aan de fakkel (tot de knal) en het licht dat erbij hoort
     const fakkel = stok.localToWorld(new THREE.Vector3(LONT + 0.04, 0.035, 0));
     vlam.position.copy(root.worldToLocal(fakkel.clone()));
@@ -140,6 +139,8 @@ export function speelCarbidIntro(ctx) {
       const d = dekselOp(s, D.deksel, { u: mondStart.x, h: mondStart.y });
       deksel.position.set(d.u, d.h, mondStart.z + d.v);
       deksel.rotation.set(d.ligt ? 0 : d.spin, 0.3, d.ligt ? 0 : -Math.PI / 2 + Math.sin(d.spin) * 0.7);
+      // een rookspoor achter het deksel zolang het vliegt
+      if (!d.ligt && dt > 0) { const p = deksel.getWorldPosition(new THREE.Vector3()); spawnFxPuff(p.x, p.y, p.z, 0, 0.2, 0, 1.6, 0.12, 0.7, 0.85, 0.84, 0.8, 0.6, 1.2, 0.1); }
     }
     // de knal: vuur, rook, licht en geluid (één keer, als de tijd hem passeert)
     if (!geknald && s >= 0) {
@@ -147,9 +148,8 @@ export function speelCarbidIntro(ctx) {
       const m = bus.userData.mond.getWorldPosition(new THREE.Vector3());
       const c = Math.cos(ctx.fieldRot), sn = Math.sin(ctx.fieldRot);
       pushAudioEvent(w, { kind: 'weapon', sub: 'carbid', x: m.x, y: m.z });
-      spawnExplosionFx(m.x + c * 0.5, m.z + sn * 0.5, m.y, 0x8a9197, 0.3);
       flashMuzzleLight(m.x, m.y + 0.4, m.z, 4);
-      for (let k = 0; k < 18; k++) spawnFxPuff(m.x, m.y, m.z, c * (2 + Math.random() * 6) + (Math.random() - 0.5) * 2, 0.4 + Math.random() * 1.6, sn * (2 + Math.random() * 6) + (Math.random() - 0.5) * 2, 1.2 + Math.random() * 1.2, 0.35, 1.8, 0.86, 0.85, 0.82, 0.55, 1.4, 0.3);
+      for (let k = 0; k < 18; k++) spawnFxPuff(m.x, m.y, m.z, c * (2 + Math.random() * 6) + (Math.random() - 0.5) * 2, 0.4 + Math.random() * 1.6, sn * (2 + Math.random() * 6) + (Math.random() - 0.5) * 2, 1.4 + Math.random() * 1.4, 0.5, 2.6, 0.9, 0.89, 0.86, 0.7, 1.4, 0.3);
       // een trage wolk die blijft hangen (in het reactieshot drijft hij nog voor de bomen)
       for (let k = 0; k < 10; k++) spawnFxPuff(m.x + c * k * 0.5, m.y + 0.3, m.z + sn * k * 0.5, c * 0.8 + (Math.random() - 0.5) * 0.5, 0.25, sn * 0.8 + (Math.random() - 0.5) * 0.5, 4.5 + Math.random() * 1.5, 0.8, 3.2, 0.82, 0.81, 0.78, 0.45, 0.6, 0.15);
       for (let k = 0; k < 6; k++) spawnFxPuff(m.x, m.y, m.z, c * (5 + Math.random() * 4), Math.random(), sn * (5 + Math.random() * 4), 0.18, 0.15, 0.6, 1, 0.75, 0.3, 1, 3, 0, 1); // de vlam uit de mond

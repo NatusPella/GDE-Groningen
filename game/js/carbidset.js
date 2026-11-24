@@ -21,14 +21,14 @@ import { MELKBUS, BOK_WIEG } from './carbidprops3d.js';
 import { isInWater, pointInPolygon } from './util.js';
 
 // De hoogte van de as van een liggende bus op een bok
-export const BUS_AS = BOK_WIEG + MELKBUS.r + 0.008;
+const BUS_AS = BOK_WIEG + MELKBUS.r + 0.008;
 
 // De rij bussen naast die van het spel (v), elk een eigen bok, deksel en emmer; de bus van het spel staat op v = 0
-export const RIJ = [-2.6, -5.2, 2.7];
+const RIJ = [-2.6, -5.2, 2.7];
 
 // Wat er op het erf staat (u, v, phi). Achter de bus loopt een sloot (gemeten op de echte kaart, 24-11) en links de weg: het erf
 // ligt rechts van de schietlijn (+v), de boerderij met haar romp langs het veld. Het veld zelf (v < 6) blijft vrij.
-export const ERF = {
+const ERF = {
   hekken: [[-9, 6.6, Math.PI / 2], [-5, 6.6, Math.PI / 2], [-1, 6.6, Math.PI / 2], [3, 6.6, Math.PI / 2]],
   tafel: [-6.2, 4.3, 0],
   trekker: [6, 13.5, Math.PI],
