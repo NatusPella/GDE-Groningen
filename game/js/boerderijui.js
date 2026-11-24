@@ -454,7 +454,7 @@ export function renderBoerderijPanel(el, world, sluit = null) {
   // De sfeernaam staat al in de band; hier alleen de chip en het geld.
   let kader = ''; try { kader = frameHtml(frameView(world)); } catch (e) { /* het kader is een extra; de boerderij werkt ook zonder */ }
   el.innerHTML = kader + `<div class="bd-seg-rij"><nav class="ds-z-segment ds-z-segment--klein" role="radiogroup" aria-label="Boerderij">${tabs}</nav></div>` +
-    (['velden', 'team'].includes(gekozen) ? '' : dagKaart()) +
+    (['velden', 'team', 'machines', 'erf', 'kas'].includes(gekozen) ? '' : dagKaart()) +
     `<div class="m-main bd-main"><aside class="m-pane pa-pane bd-pane" aria-live="polite">${detail(b, geld)}</aside></div>`;
   fillBars(el, bars);
   vulPlaatjes(el);

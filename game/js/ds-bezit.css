@@ -223,3 +223,6 @@ html.reduce-motion .bz-vasthoud::before, html.rustig-drukwerk .bz-vasthoud::befo
 .bz-detail .bz-raster2:has(.ds-z-balk) { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 #pause-menu .m-main.bd-main:has(.bz-md), #pause-menu .m-main.bd-main:has(.bz-md) > .bd-pane { margin: 0; padding: 0; border: 0; border-left: 0; width: auto; max-width: none; background: none; box-shadow: none; }
 #pause-menu .bd-pane > .bz-md::before, #pause-menu .m-main.bd-main:has(.bz-md)::before { content: none; }
+/* Elk Bezit-blad vult de breedte van het menublad (ook een leeg Bedrijven-blad), en machines/erf/kas springen niet in */
+#pause-menu .pm-vsub[data-of="boerderij"] { width: 100%; max-width: none; min-width: 0; }
+#pause-menu .m-main.bd-main:has(.bz-pagina), #pause-menu .m-main.bd-main:has(.bz-pagina) > .bd-pane { margin: 0; padding: 0; border: 0; width: auto; max-width: none; background: none; box-shadow: none; }
