@@ -991,7 +991,8 @@ while (true) {
   // ("Eerst: ...") and the bot goes there first, like a player who reads the line
   const guide = world.storyGuide;
   if (mem.guideSeen !== s.story.id + '|' + !!(guide && guide.buy)) { mem.guideSeen = s.story.id + '|' + !!(guide && guide.buy); B.log('gids', { stap: s.story.id, gids: guide && { x: Math.round(guide.x), y: Math.round(guide.y), naam: guide.name, koop: guide.buy, winkel: guide.shopId }, bron: s.target && s.target.source, actief: s.mission.active }); }
-  if (!s.mission.active && !s.blocking.shop && guide && (guide.buy || /^Eerst/i.test(guide.name || '')) && Number.isFinite(guide.x) && s.target) {
+  // na een koop is de gids nog tot 2,5 s oud (story.js GUIDE_EVERY): niet nog eens kopen (24-11: drie fietsen gekocht)
+  if (!s.mission.active && !s.blocking.shop && guide && (s.t - (mem.boughtT ?? -99)) > 4 && (guide.buy || /^Eerst/i.test(guide.name || '')) && Number.isFinite(guide.x) && s.target) {
     const gk = (guide.step || '') + ':' + Math.round(guide.x) + ',' + Math.round(guide.y);
     if (guide.shopId && Math.hypot(guide.x - s.player.x, guide.y - s.player.y) < 8 && !mem.toonbankLog) { mem.toonbankLog = true; const Sh = await imp('shops'); const shop = Sh.getShopsForRender().find((x) => x.id === guide.shopId); B.log('toonbank', { winkel: guide.shopId, ingang: shop ? Sh.shopEntryOf(shop) : 'winkel niet gevonden', inloop: shop ? (await imp('interiors')).markerHasInterior(shop) : null, gids: [Math.round(guide.x), Math.round(guide.y)], prompt: s.hud.prompt || '' }); } // diagnose 23-11: de ingang (deur, toonbank, levend, binnen) van een inloopwinkel van het verhaal
     if (mem.gateKey !== gk) { mem.gateKey = gk; mem.pressTries = 0; mem.shopPress = 0; mem.boardTries = 0; B.log('eis', { stap: guide.step, winkel: guide.name || '', x: Math.round(guide.x), y: Math.round(guide.y) }); }
@@ -1058,7 +1059,7 @@ while (true) {
     detector.hold(s.t);
     B.stick(0, 0);
     const m0 = player.money ?? world.money;
-    if (act.n <= 2) { await B.press('enter', 150); await sleep(600); if (act.n === 2) B.log('winkel', { gekocht: m0 - world.money, geld: Math.round(world.money) }); }
+    if (act.n <= 2) { await B.press('enter', 150); await sleep(600); if (act.n === 2) { B.log('winkel', { gekocht: m0 - world.money, geld: Math.round(world.money) }); mem.boughtT = s.t; } }
     else await B.press('escape', 150);
     await sleep(300);
     continue;
