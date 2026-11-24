@@ -1,0 +1,345 @@
+/* Club-UI, ontwerp 24-11 (fase 1): de NIEUWE componenten van de mockups. Alleen var(--ds-...), geen hex, geen eigen lettertypen.
+   De mockups laden de echte DS3-CSS (ds-tokens, ds-components, ds-keycap, ds-micro); dit bestand is wat er in fase 2 bijkomt
+   (naar game/js/ds-voetbal.css, of de generieke delen naar ds-components.css). De clubkleuren in het wapen zijn data
+   (voetbalclubs.js: shirt, accent, patroon) en komen als inline stijl uit het gegeven, niet uit dit bestand. */
+
+
+/* ---- Schermkader: dezelfde stage-zoom als het pausemenu (menu.css, uiscale.js: --mz = min(h/1080, w/1920)) ---- */
+  position: absolute; left: 0; top: 0; width: calc(100vw / var(--mz)); height: calc(100vh / var(--mz)); zoom: var(--mz);
+  --menu-min: calc(13px / var(--mz));
+  --ds-t-label: max(16px, var(--menu-min)); --ds-t-hulp: max(14px, var(--menu-min));
+  background: var(--ds-c-glas-2);
+}
+
+/* ---- Toetsregel in groepen (pausemenu-voet en HUD): groepen gescheiden door een streep, nooit twee regels met elf toetsen ---- */
+.vb-hint { display: inline-flex; align-items: center; gap: var(--ds-s-4); padding: var(--ds-s-2) var(--ds-s-4); background: var(--ds-zeef-bg); border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); border-radius: var(--ds-r); box-shadow: var(--ds-schaduw-hard-klein); font-size: var(--ds-t-hulp); white-space: nowrap; color: var(--ds-c-ink-inkt); }
+.vb-hint__groep { display: inline-flex; align-items: center; gap: var(--ds-s-2); }
+.vb-hint__groep + .vb-hint__groep { padding-left: var(--ds-s-4); border-left: var(--ds-lijn-dik) solid var(--ds-c-ink-inkt); }
+.vb-hint__naam { font-family: var(--ds-font-zeef-kop); font-weight: 800; letter-spacing: var(--ds-ls-label); text-transform: uppercase; color: var(--ds-c-ink-bord); }
+.vb-hint .ds-z-toets { min-width: var(--ds-s-6); min-height: var(--ds-s-6); }
+
+/* ---- Tussenkop: één niveau onder de schermtitel, zonder misdruk; een lijn trekt de sectie vast ---- */
+
+/* ---- Wapen: een schild in de clubkleuren (SVG uit crestSvg, kleuren uit de clubdata); maten xs 24, s 32, m 48, l 72, xl 120 ---- */
+.vb-wapen { display: inline-block; flex: none; width: var(--w, 48px); height: calc(var(--w, 48px) * 1.15); }
+.vb-wapen--xs { --w: 24px; } .vb-wapen--s { --w: 32px; } .vb-wapen--m { --w: 48px; } .vb-wapen--l { --w: 72px; } .vb-wapen--xl { --w: 120px; }
+.vb-wapen svg { display: block; width: 100%; height: 100%; overflow: visible; }
+
+/* ---- Kopband van het Clubhuis: wapen, naam, klasse en plek links; statusblokken rechts (platte tekst, geen pillen) ---- */
+
+/* ---- Tabs als echte tabs: een rij met een onderstreping (de glijdende lijn van ds-micro: .ds-m-tabs__lijn), geen pillen ---- */
+.vb-tabs { position: relative; display: flex; align-items: flex-end; gap: var(--ds-s-6); margin: 0; padding: 0 var(--ds-s-1); border-bottom: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); }
+.vb-tab { position: relative; display: inline-flex; align-items: center; gap: var(--ds-s-2); height: var(--ds-hoogte-knop); margin-bottom: calc(var(--ds-lijn-zeef) * -1); padding: 0 var(--ds-s-1); border: 0; background: none; cursor: pointer; font-family: var(--ds-font-zeef-kop); font-weight: 800; font-size: calc(var(--ds-t-subkop) * 0.86); letter-spacing: var(--ds-ls-label); text-transform: uppercase; color: var(--ds-c-inkt-zacht); border-bottom: var(--ds-status-rand) solid transparent; }
+.vb-tab:hover { color: var(--ds-c-ink-inkt); border-bottom-color: var(--ds-c-ink-inkt); }
+.vb-tab[aria-selected="true"] { color: var(--ds-c-ink-inkt); border-bottom-color: var(--ds-c-ink-bord); }
+.vb-tab:focus-visible { outline: var(--ds-focus-dikte) solid var(--ds-c-ink-inkt); outline-offset: var(--ds-focus-afstand); }
+.vb-tab__punt { width: var(--ds-s-2); height: var(--ds-s-2); border-radius: 50%; background: var(--ds-c-ink-roze); }
+.vb-tabs .ds-z-toets { align-self: center; }
+.vb-tabs__rest { margin-left: auto; display: flex; align-items: center; gap: var(--ds-s-2); }
+
+/* ---- Statusregel: platte tekst met icoon of letter; nooit een pil, nooit een rand (status is niet klikbaar) ---- */
+.vb-feit { display: inline-flex; align-items: center; gap: var(--ds-s-2); font-size: var(--ds-t-body); }
+.vb-feit b { font-family: var(--ds-font-zeef-kop); font-weight: 800; font-size: var(--ds-t-subkop); line-height: var(--ds-lh-kop); letter-spacing: var(--ds-ls-label); font-variant-numeric: tabular-nums; }
+.vb-feit small { font-size: var(--ds-t-hulp); color: var(--ds-c-inkt-zacht); }
+.vb-ico { width: var(--ds-s-5); height: var(--ds-s-5); flex: none; fill: currentColor; }
+
+/* ---- Vorm: laatste vijf als W, G of V; letter + vorm + kleur; een leeg gestippeld vakje is "nog niet gespeeld" ---- */
+.vb-vorm { display: inline-flex; gap: var(--ds-s-1); }
+.vb-vorm i { display: inline-flex; align-items: center; justify-content: center; width: var(--ds-s-5); height: var(--ds-s-5); box-sizing: border-box; border: var(--ds-lijn-dik) solid var(--ds-c-ink-inkt); border-radius: 4px; font: normal 800 var(--ds-t-hulp) / 1 var(--ds-font-zeef-kop); }
+.vb-vorm .w { background: var(--ds-c-groen-vlak); border-color: var(--ds-c-ink-bord); color: var(--ds-c-groen-tx); }
+.vb-vorm .g { background: var(--ds-c-papier-2); color: var(--ds-c-inkt-zacht); border-color: var(--ds-c-inkt-zacht); }
+.vb-vorm .v { background: var(--ds-c-rood-vlak); border-color: var(--ds-c-rood); color: var(--ds-c-rood-tx); border-radius: 50%; }
+.vb-vorm .n { border-style: dashed; border-color: var(--ds-c-inkt-zacht); color: var(--ds-c-inkt-zacht); background: none; }
+.vb-vorm--l i { width: var(--ds-s-6); height: var(--ds-s-6); font-size: var(--ds-t-label); }
+.vb-trend { display: inline-flex; align-items: center; gap: var(--ds-s-1); font-family: var(--ds-font-zeef-kop); font-weight: 800; letter-spacing: var(--ds-ls-label); }
+.vb-trend--op { color: var(--ds-c-groen-tx); } .vb-trend--neer { color: var(--ds-c-rood-tx); } .vb-trend--gelijk { color: var(--ds-c-inkt-zacht); }
+
+/* ---- Positiebadge: letter + vorm; K, V, M en A hebben elk een eigen vulling (de letter draagt de betekenis) ---- */
+.vb-pos { display: inline-flex; align-items: center; justify-content: center; width: var(--ds-s-6); height: var(--ds-s-5); box-sizing: border-box; border: var(--ds-lijn-dik) solid var(--ds-c-ink-inkt); border-radius: var(--ds-r-toets); font: normal 800 var(--ds-t-hulp) / 1 var(--ds-font-zeef-kop); letter-spacing: 0.04em; }
+.vb-pos--k { background: var(--ds-c-ink-inkt); color: var(--ds-c-ink-papier); }
+.vb-pos--v { background: var(--ds-c-ink-bord); color: var(--ds-c-wit); }
+.vb-pos--m { background: var(--ds-c-sel-vlak); color: var(--ds-c-ink-inkt); border-color: var(--ds-c-ink-bord); }
+.vb-pos--a { background: var(--ds-c-amber-vlak); color: var(--ds-c-amber-tx); border-color: var(--ds-c-amber-tx); }
+
+/* ---- Link: de derde actie (onderstreept, met pijl); nooit kale tekst die op een kop lijkt ---- */
+
+/* ---- Segmentknop: een keuze uit weinig, rechthoekig en aan elkaar; gekozen = bordgroen gevuld met een vinkje (kleur is nooit het enige) ---- */
+
+/* ---- Wedstrijdkaart (held van het Clubhuis): twee wapens, wanneer en waar, daaronder de keuze met wat het kost en oplevert ---- */
+.vb-hero { padding-bottom: 0; }
+.vb-hero__teams { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: center; gap: var(--ds-s-5); padding: var(--ds-s-2) 0 var(--ds-s-3); }
+.vb-team { display: flex; align-items: center; gap: var(--ds-s-4); min-width: 0; }
+.vb-team--uit { flex-direction: row-reverse; text-align: right; }
+.vb-team__naam { margin: 0; font-family: var(--ds-font-zeef-kop); font-weight: 800; font-size: var(--ds-t-subkop); line-height: var(--ds-lh-kop); letter-spacing: var(--ds-ls-label); }
+.vb-team__sub { display: flex; flex-wrap: wrap; align-items: center; gap: var(--ds-s-1) var(--ds-s-3); margin: var(--ds-s-2) 0 0; font-size: var(--ds-t-hulp); }
+.vb-team--uit .vb-team__sub { justify-content: flex-end; }
+.vb-hero__mid { display: flex; flex-direction: column; align-items: center; gap: var(--ds-s-1); text-align: center; }
+.vb-hero__mid b { font-family: var(--ds-font-zeef-kop); font-weight: 800; font-size: var(--ds-t-subkop); letter-spacing: var(--ds-ls-label); text-transform: uppercase; }
+.vb-hero__mid small { font-size: var(--ds-t-hulp); }
+.vb-tegen { font-family: var(--ds-font-zeef-kop); font-weight: 800; font-size: var(--ds-t-label); letter-spacing: 0.12em; text-transform: uppercase; padding: 0 var(--ds-s-3); border: var(--ds-lijn-dik) solid var(--ds-c-ink-inkt); border-radius: var(--ds-r-pil); }
+.vb-thuisuit { font-family: var(--ds-font-zeef-kop); font-weight: 800; font-size: var(--ds-t-hulp); letter-spacing: 0.12em; text-transform: uppercase; padding: 0 var(--ds-s-2); border: var(--ds-lijn-dik) solid var(--ds-c-ink-inkt); border-radius: var(--ds-r-toets); background: var(--ds-c-wit); }
+.vb-vergelijk { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: center; gap: var(--ds-s-4); padding: var(--ds-s-2) 0 var(--ds-s-3); border-top: var(--ds-lijn-dik) dashed var(--ds-c-ink-inkt); font-size: var(--ds-t-hulp); }
+.vb-vergelijk__l { font-family: var(--ds-font-zeef-kop); font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ds-c-inkt-zacht); text-align: center; }
+.vb-vergelijk b { font-family: var(--ds-font-zeef-kop); font-weight: 800; font-size: var(--ds-t-subkop); line-height: 1; font-variant-numeric: tabular-nums; }
+.vb-hero__keuze { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); margin: 0 calc(var(--ds-s-4) * -1); border-top: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); }
+.vb-keuze { display: flex; flex-direction: column; gap: var(--ds-s-2); padding: var(--ds-s-4); }
+.vb-keuze + .vb-keuze { border-left: var(--ds-lijn-dik) solid var(--ds-c-ink-inkt); background: var(--ds-c-papier-2); }
+.vb-keuze .ds-z-knop { align-self: stretch; }
+.vb-keuze--groot .ds-z-knop { min-height: calc(var(--ds-hoogte-knop) * 1.15); }
+.vb-uitleg { display: grid; gap: var(--ds-s-1); margin: 0; padding: 0; list-style: none; font-size: var(--ds-t-hulp); line-height: var(--ds-lh-tekst); }
+.vb-uitleg li { display: flex; gap: var(--ds-s-2); align-items: baseline; }
+.vb-uitleg li::before { content: ''; flex: none; width: var(--ds-s-2); height: var(--ds-s-2); border-radius: 50%; background: var(--ds-c-ink-bord); transform: translateY(-1px); }
+.vb-uitleg li.kost::before { background: var(--ds-c-amber); }
+.vb-uitleg b { font-weight: 700; }
+.vb-notitie { display: flex; align-items: center; gap: var(--ds-s-3); padding: var(--ds-s-2) var(--ds-s-3); border-left: var(--ds-status-rand) solid var(--ds-c-ink-bord); background: var(--ds-c-sel-vlak); font-size: var(--ds-t-hulp); line-height: var(--ds-lh-tekst); }
+.vb-notitie b { font-family: var(--ds-font-zeef-kop); font-weight: 800; letter-spacing: var(--ds-ls-label); }
+
+/* ---- Indeling van het Clubhuis ---- */
+.vb-raster { display: grid; grid-template-columns: minmax(0, 1.75fr) minmax(0, 1fr); gap: var(--ds-s-6); align-items: start; }
+.vb-kolom { display: flex; flex-direction: column; gap: var(--ds-s-4); min-width: 0; }
+
+/* ---- Tabel: echte kolommen, tabelcijfers, jouw rij gemarkeerd; kleurzones links als rand (met pijl en woord in de legenda) ---- */
+.ds-z-tabel .nr { width: var(--ds-s-7); font-family: var(--ds-font-zeef-kop); font-weight: 800; font-size: var(--ds-t-subkop); text-align: center; padding-left: var(--ds-s-2); padding-right: var(--ds-s-2); }
+.ds-z-tabel .naam { text-align: left; white-space: nowrap; }
+.ds-z-tabel .naam > span { display: inline-flex; align-items: center; gap: var(--ds-s-3); font-family: var(--ds-font-zeef-kop); font-weight: 800; font-size: var(--ds-t-subkop); letter-spacing: var(--ds-ls-label); }
+.ds-z-tabel .pt { font-family: var(--ds-font-zeef-kop); font-weight: 800; font-size: var(--ds-t-subkop); }
+.ds-z-tabel tr.jij { background: var(--ds-c-sel-vlak); }
+.ds-z-tabel tr.gekozen { background: var(--ds-c-sel-vlak); }
+.ds-z-tabel tr.gekozen td:first-child { border-left-color: var(--ds-c-ink-bord); }
+.vb-jij { margin-left: var(--ds-s-2); padding: 0 var(--ds-s-2); border: var(--ds-lijn-dik) solid var(--ds-c-ink-inkt); border-radius: var(--ds-r-toets); background: var(--ds-c-wit); font: normal 800 var(--ds-t-hulp) / 1.3 var(--ds-font-zeef-kop); letter-spacing: 0.1em; }
+.vb-legenda { display: flex; flex-wrap: wrap; gap: var(--ds-s-2) var(--ds-s-5); margin: var(--ds-s-3) 0 0; font-size: var(--ds-t-hulp); }
+.vb-legenda span { display: inline-flex; align-items: center; gap: var(--ds-s-2); }
+.vb-legenda i { display: inline-block; width: var(--ds-s-1); height: var(--ds-s-4); background: var(--ds-c-ink-bord); }
+.vb-legenda i.neer { background: var(--ds-c-rood); }
+.vb-tabel-vak { border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); border-radius: var(--ds-r); overflow: hidden; background: var(--ds-zeef-bg); }
+.vb-tabel-vak--scroll { overflow: auto; }
+.vb-mini { font-size: var(--ds-t-hulp); }
+.vb-mini tbody tr { height: calc(var(--ds-s-6) * 1.6); }
+.vb-mini .naam > span, .vb-mini .nr, .vb-mini .pt { font-size: var(--ds-t-label); }
+
+/* ---- Zijpaneel (Selectie): hoogstens 480 px, kop met rugnummer, rating, stats met teamgemiddelde en groei ---- */
+.vb-twee { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 480px); gap: var(--ds-s-5); height: 100%; min-height: 0; }
+.vb-twee > * { min-height: 0; }
+.vb-zij { display: flex; flex-direction: column; gap: var(--ds-s-3); padding: var(--ds-s-4); overflow: auto; background: var(--ds-zeef-bg); border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); border-radius: var(--ds-r); box-shadow: var(--ds-schaduw-hard); }
+.vb-speler-kop { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: var(--ds-s-3); }
+.vb-nr { display: inline-flex; align-items: center; justify-content: center; width: var(--ds-s-8); height: var(--ds-s-8); border-radius: 50%; border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); background: var(--ds-c-wit); font-family: var(--ds-font-zeef-kop); font-weight: 800; font-size: var(--ds-t-kop); line-height: 1; }
+.vb-speler-kop h3 { margin: 0; font-family: var(--ds-font-zeef-kop); font-weight: 800; font-size: var(--ds-t-subkop); line-height: var(--ds-lh-kop); letter-spacing: var(--ds-ls-label); }
+.vb-speler-kop p { margin: var(--ds-s-1) 0 0; display: flex; align-items: center; gap: var(--ds-s-2); font-size: var(--ds-t-hulp); }
+.vb-rating { display: flex; flex-direction: column; align-items: center; min-width: calc(var(--ds-s-8) * 1.1); padding: var(--ds-s-1) var(--ds-s-3); border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); border-radius: var(--ds-r); background: var(--ds-c-wit); box-shadow: var(--ds-schaduw-hard-klein); }
+.vb-rating b { font-family: var(--ds-font-zeef-kop); font-weight: 800; font-size: var(--ds-t-cijfer); line-height: 1; font-variant-numeric: tabular-nums; }
+.vb-rating small { font-size: var(--ds-t-hulp); }
+.vb-stat { display: grid; grid-template-columns: calc(var(--ds-s-8) * 1.6) minmax(0, 1fr) var(--ds-s-7) calc(var(--ds-s-8) * 1.05); align-items: center; gap: var(--ds-s-3); min-height: calc(var(--ds-s-6) * 1.5); }
+.vb-stat__naam { font-family: var(--ds-font-zeef-kop); font-weight: 800; font-size: var(--ds-t-label); letter-spacing: var(--ds-ls-label); text-transform: uppercase; }
+.vb-stat__spoor { position: relative; }
+.vb-stat__spoor .ds-z-balk__baan { height: var(--ds-s-4); }
+.vb-stat__team { position: absolute; top: calc(var(--ds-s-1) * -1); bottom: calc(var(--ds-s-1) * -1); width: var(--ds-lijn-zeef); background: var(--ds-c-ink-inkt); left: var(--team); }
+.vb-stat__cap { position: absolute; top: 50%; height: var(--ds-s-4); transform: translateY(-50%); left: var(--cap); border-left: var(--ds-lijn-dik) dashed var(--ds-c-inkt-zacht); }
+.vb-stat__w { font-family: var(--ds-font-zeef-kop); font-weight: 800; font-size: var(--ds-t-subkop); text-align: right; font-variant-numeric: tabular-nums; }
+.vb-delta { font-family: var(--ds-font-zeef-kop); font-weight: 800; font-size: var(--ds-t-label); white-space: nowrap; }
+.vb-delta--op { color: var(--ds-c-groen-tx); } .vb-delta--neer { color: var(--ds-c-rood-tx); } .vb-delta--gelijk { color: var(--ds-c-inkt-zacht); }
+.vb-sleutel { display: flex; flex-wrap: wrap; gap: var(--ds-s-4); font-size: var(--ds-t-hulp); color: var(--ds-c-inkt-zacht); }
+.vb-sleutel span { display: inline-flex; align-items: center; gap: var(--ds-s-2); }
+.vb-sleutel i.tick { display: inline-block; width: var(--ds-lijn-zeef); height: var(--ds-s-4); background: var(--ds-c-ink-inkt); }
+.vb-sleutel i.cap { display: inline-block; height: var(--ds-s-4); border-left: var(--ds-lijn-dik) dashed var(--ds-c-inkt-zacht); }
+.vb-groei { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--ds-s-2); }
+.vb-groei > div { display: flex; flex-direction: column; gap: var(--ds-s-1); padding: var(--ds-s-2) var(--ds-s-3); border: var(--ds-lijn-dik) solid var(--ds-c-ink-inkt); border-radius: var(--ds-r); background: var(--ds-c-papier-2); }
+.vb-groei span { font-size: var(--ds-t-hulp); color: var(--ds-c-inkt-zacht); }
+.vb-groei b { font-family: var(--ds-font-zeef-kop); font-weight: 800; font-size: var(--ds-t-subkop); line-height: 1; font-variant-numeric: tabular-nums; }
+.vb-blessure { display: inline-flex; align-items: center; gap: var(--ds-s-1); font-family: var(--ds-font-zeef-kop); font-weight: 800; font-size: var(--ds-t-hulp); letter-spacing: var(--ds-ls-label); color: var(--ds-c-rood-tx); }
+.vb-blessure::before { content: '+'; display: inline-flex; align-items: center; justify-content: center; width: var(--ds-s-4); height: var(--ds-s-4); border-radius: 3px; background: var(--ds-c-rood); color: var(--ds-c-wit); font-size: var(--ds-t-hulp); line-height: 1; }
+.vb-fit { color: var(--ds-c-groen-tx); font-family: var(--ds-font-zeef-kop); font-weight: 800; font-size: var(--ds-t-hulp); letter-spacing: var(--ds-ls-label); }
+
+/* ---- Formatieveld (Tactiek en wedstrijdintro): veld van boven; gras = lichte groenvlak met voren, lijnen in inkt ---- */
+.vb-veld { position: relative; width: 100%; aspect-ratio: 68 / 80; border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); border-radius: var(--ds-r); background-color: var(--ds-c-groen-vlak); background-image: var(--ds-motief-voren); color: var(--ds-c-ink-inkt); overflow: hidden; }
+.vb-veld--breed { aspect-ratio: 105 / 68; }
+.vb-veld__lijnen { position: absolute; inset: 0; width: 100%; height: 100%; }
+.vb-veld__lijnen * { fill: none; stroke: var(--ds-c-ink-inkt); stroke-width: 2; vector-effect: non-scaling-stroke; }
+.vb-veld__lijnen .vul { fill: var(--ds-c-ink-inkt); stroke: none; }
+.vb-spot { position: absolute; transform: translate(-50%, 50%); display: flex; flex-direction: column; align-items: center; gap: 2px; width: calc(var(--ds-s-8) * 2); border: 0; background: none; padding: 0; cursor: pointer; font: inherit; color: inherit; }
+.vb-veld--breed .vb-spot { transform: translate(-50%, -50%); width: var(--ds-s-8); }
+.vb-spot__nr { display: inline-flex; align-items: center; justify-content: center; width: var(--ds-s-7); height: var(--ds-s-7); box-sizing: border-box; border-radius: 50%; border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); background: var(--ds-c-wit); font-family: var(--ds-font-zeef-kop); font-weight: 800; font-size: var(--ds-t-subkop); line-height: 1; box-shadow: var(--ds-schaduw-hard-klein); }
+.vb-spot__naam { max-width: 100%; padding: 0 var(--ds-s-2); border-radius: var(--ds-r-toets); background: var(--ds-c-wit); border: var(--ds-lijn-dik) solid var(--ds-c-ink-inkt); font-family: var(--ds-font-zeef-kop); font-weight: 800; font-size: var(--ds-t-hulp); letter-spacing: 0.04em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.35; }
+.vb-spot__rt { font-family: var(--ds-font-zeef-kop); font-weight: 800; font-size: var(--ds-t-hulp); letter-spacing: var(--ds-ls-label); }
+.vb-spot:hover .vb-spot__nr { background: var(--ds-c-sel-vlak); }
+.vb-spot:focus-visible { outline: none; } .vb-spot:focus-visible .vb-spot__nr { outline: var(--ds-focus-dikte) solid var(--ds-c-ink-inkt); outline-offset: var(--ds-focus-afstand); }
+.vb-spot[aria-pressed="true"] .vb-spot__nr { background: var(--ds-c-ink-bord); color: var(--ds-c-wit); transform: translate(var(--ds-hard-klein), var(--ds-hard-klein)); box-shadow: none; }
+.vb-spot[aria-pressed="true"] .vb-spot__naam { background: var(--ds-c-ink-bord); color: var(--ds-c-wit); }
+.vb-spot--jij .vb-spot__nr { background: var(--ds-zeef-primair); }
+.vb-spot--jij .vb-spot__naam::after { content: ' · jij'; }
+.vb-spot--tegen .vb-spot__nr { background: var(--ds-c-ink-inkt); color: var(--ds-c-ink-papier); }
+.vb-spot--klein .vb-spot__nr { width: var(--ds-s-6); height: var(--ds-s-6); font-size: var(--ds-t-hulp); box-shadow: none; }
+.vb-spot--klein .vb-spot__naam, .vb-spot--klein .vb-spot__rt { display: none; }
+.vb-spot--kandidaat .vb-spot__nr { border-style: dashed; }
+.vb-veld__kop { position: absolute; left: var(--ds-s-3); top: var(--ds-s-2); padding: 0 var(--ds-s-2); background: var(--ds-c-wit); border: var(--ds-lijn-dik) solid var(--ds-c-ink-inkt); border-radius: var(--ds-r-toets); font: normal 800 var(--ds-t-hulp) / 1.4 var(--ds-font-zeef-kop); letter-spacing: 0.1em; text-transform: uppercase; z-index: 2; }
+.vb-veld__kop--r { left: auto; right: var(--ds-s-3); }
+.vb-richting { position: absolute; left: 50%; bottom: var(--ds-s-2); transform: translateX(-50%); font: normal 800 var(--ds-t-hulp) / 1.3 var(--ds-font-zeef-kop); letter-spacing: 0.12em; text-transform: uppercase; background: var(--ds-c-wit); padding: 0 var(--ds-s-2); border-radius: var(--ds-r-toets); border: var(--ds-lijn-dik) solid var(--ds-c-ink-inkt); z-index: 2; }
+
+/* ---- Keuze met één zin uitleg; bank; actiebalk onderaan een tab ---- */
+.vb-keuzeblok { display: flex; flex-direction: column; gap: var(--ds-s-2); }
+.vb-uitlegzin { margin: 0; font-size: var(--ds-t-hulp); line-height: var(--ds-lh-tekst); max-width: 52ch; }
+.vb-bank { display: grid; gap: 0; margin: 0; padding: 0; list-style: none; }
+.vb-bank li { display: grid; grid-template-columns: var(--ds-s-6) var(--ds-s-6) minmax(0, 1fr) auto auto; align-items: center; gap: var(--ds-s-3); min-height: var(--ds-s-7); padding: var(--ds-s-1) var(--ds-s-3); border-bottom: var(--ds-lijn) solid var(--ds-c-ink-inkt); border-left: var(--ds-status-rand) solid transparent; font-size: var(--ds-t-hulp); cursor: pointer; }
+.vb-bank li:hover { background: var(--ds-c-sel-vlak); }
+.vb-bank li[aria-selected="true"] { background: var(--ds-c-sel-vlak); border-left-color: var(--ds-c-ink-bord); }
+.vb-bank .n { font-family: var(--ds-font-zeef-kop); font-weight: 800; font-size: var(--ds-t-label); text-align: center; }
+.vb-bank .nm { font-family: var(--ds-font-zeef-kop); font-weight: 800; font-size: var(--ds-t-label); letter-spacing: var(--ds-ls-label); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.vb-bank .rt { font-family: var(--ds-font-zeef-kop); font-weight: 800; font-size: var(--ds-t-subkop); font-variant-numeric: tabular-nums; text-align: right; }
+.vb-actiebalk { flex: none; display: flex; align-items: center; gap: var(--ds-s-5); padding: var(--ds-s-3) var(--ds-s-6); border-top: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); background: var(--ds-c-papier-2); }
+.vb-actiebalk p { margin: 0; flex: 1; font-size: var(--ds-t-hulp); line-height: var(--ds-lh-tekst); }
+.vb-actiebalk .ds-z-knop { flex: none; }
+
+/* ---- Club: tenue-editor, wapen en kleuren, stadion, aandeel, sponsors ---- */
+.vb-clubraster { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: var(--ds-s-5); align-items: start; }
+.vb-clubraster > .vol { grid-column: 1 / -1; }
+.vb-shirtvak { display: grid; place-items: center; min-height: calc(var(--ds-s-8) * 4); background-color: var(--ds-c-papier-2); background-image: var(--ds-raster); background-size: var(--ds-raster-maat); border: var(--ds-lijn-dik) solid var(--ds-c-ink-inkt); border-radius: var(--ds-r); position: relative; }
+.vb-shirtvak svg { height: calc(var(--ds-s-8) * 3.6); width: auto; }
+.vb-veldrij { display: grid; grid-template-columns: calc(var(--ds-s-8) * 1.6) minmax(0, 1fr); align-items: center; gap: var(--ds-s-3); min-height: var(--ds-s-7); }
+.vb-veldrij > .vb-veldrij__l { font-family: var(--ds-font-zeef-kop); font-weight: 800; font-size: var(--ds-t-label); letter-spacing: var(--ds-ls-label); text-transform: uppercase; color: var(--ds-c-inkt-zacht); }
+.vb-kleuren { display: flex; flex-wrap: wrap; gap: var(--ds-s-4); }
+.vb-kleur { display: flex; align-items: center; gap: var(--ds-s-2); font-size: var(--ds-t-hulp); }
+.vb-kleur i { display: inline-block; width: var(--ds-s-6); height: var(--ds-s-6); border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); border-radius: var(--ds-r-toets); }
+.vb-twee-vlak { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: var(--ds-s-5); align-items: center; }
+.vb-feiten { display: grid; grid-template-columns: repeat(auto-fit, minmax(calc(var(--ds-s-8) * 1.7), 1fr)); gap: var(--ds-s-3); }
+.vb-sponsor { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; align-items: center; gap: var(--ds-s-4); min-height: var(--ds-hoogte-rij); padding: var(--ds-s-2) var(--ds-s-3); border-bottom: var(--ds-lijn) solid var(--ds-c-ink-inkt); border-left: var(--ds-status-rand) solid transparent; }
+.vb-sponsor b { font-family: var(--ds-font-zeef-kop); font-weight: 800; font-size: var(--ds-t-subkop); letter-spacing: var(--ds-ls-label); }
+.vb-sponsor small { display: block; font-size: var(--ds-t-hulp); }
+.vb-sponsor__bedrag { font-family: var(--ds-font-zeef-kop); font-weight: 800; font-size: var(--ds-t-subkop); font-variant-numeric: tabular-nums; }
+.vb-sponsor--aan { background: var(--ds-c-sel-vlak); border-left-color: var(--ds-c-ink-bord); }
+.vb-sponsor .ds-z-knop { min-height: var(--ds-hoogte-tab); font-size: var(--ds-t-label); padding: 0 var(--ds-s-4); }
+.vb-slot { display: flex; align-items: center; gap: var(--ds-s-3); padding: var(--ds-s-3) var(--ds-s-4); border: var(--ds-lijn-zeef) dashed var(--ds-c-ink-inkt); border-radius: var(--ds-r); background: var(--ds-zeef-bg); font-size: var(--ds-t-body); line-height: var(--ds-lh-tekst); }
+.vb-slot .vb-ico { width: var(--ds-s-6); height: var(--ds-s-6); }
+.vb-slot b { font-family: var(--ds-font-zeef-kop); font-weight: 800; letter-spacing: var(--ds-ls-label); }
+.vb-optie { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--ds-s-3); }
+.vb-optie button { display: flex; flex-direction: column; align-items: center; gap: var(--ds-s-1); padding: var(--ds-s-3); border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); border-radius: var(--ds-r); background: var(--ds-zeef-bg); cursor: pointer; font-family: var(--ds-font-zeef-kop); font-weight: 800; color: var(--ds-c-ink-inkt); box-shadow: var(--ds-schaduw-hard-klein); }
+.vb-optie button:hover { background: var(--ds-c-wit); }
+.vb-optie button b { font-size: var(--ds-t-subkop); } .vb-optie button span { font-size: var(--ds-t-label); letter-spacing: var(--ds-ls-label); }
+.vb-optie button[aria-disabled="true"] { border-style: dashed; box-shadow: none; cursor: not-allowed; color: var(--ds-c-inkt-zacht); }
+.vb-tip { margin: 0; font-size: var(--ds-t-hulp); line-height: var(--ds-lh-tekst); color: var(--ds-c-inkt-zacht); }
+
+/* ---- Wedstrijdintro en HUD ---- */
+.intro { position: absolute; left: 50%; top: calc(var(--ds-s-8) * 1.1); transform: translateX(-50%); width: min(calc(100% - var(--ds-s-8)), calc(var(--ds-s-8) * 20)); box-sizing: border-box; padding: var(--ds-s-4) var(--ds-s-5); display: flex; flex-direction: column; gap: var(--ds-s-3); background: var(--ds-zeef-bg); border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); border-radius: var(--ds-r); box-shadow: var(--ds-schaduw-hard); color: var(--ds-c-ink-inkt); }
+.intro__kop { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: center; gap: var(--ds-s-4); }
+.intro__plek { text-align: center; font-family: var(--ds-font-zeef-kop); font-weight: 800; font-size: var(--ds-t-label); letter-spacing: 0.12em; text-transform: uppercase; color: var(--ds-c-ink-bord); }
+.intro__plek b { display: block; font-size: var(--ds-t-subkop); color: var(--ds-c-ink-inkt); letter-spacing: var(--ds-ls-label); }
+.intro__midden { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 2.3fr) minmax(0, 1fr); gap: var(--ds-s-4); align-items: start; }
+.hud-score { position: absolute; left: 50%; top: var(--ds-s-5); transform: translateX(-50%); display: grid; grid-template-columns: auto auto auto auto; align-items: center; gap: var(--ds-s-3); padding: var(--ds-s-2) var(--ds-s-5); background: var(--ds-zeef-bg); border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); border-radius: var(--ds-r); box-shadow: var(--ds-schaduw-hard); color: var(--ds-c-ink-inkt); }
+.hud-score__team { display: flex; align-items: center; gap: var(--ds-s-2); font-family: var(--ds-font-zeef-kop); font-weight: 800; font-size: var(--ds-t-subkop); letter-spacing: var(--ds-ls-label); text-transform: uppercase; }
+.hud-score__stand { display: flex; align-items: center; gap: var(--ds-s-2); padding: 0 var(--ds-s-3); font-family: var(--ds-font-zeef-kop); font-weight: 800; font-size: var(--ds-t-cijfer); line-height: 1; font-variant-numeric: tabular-nums; }
+.hud-score__tijd { display: flex; flex-direction: column; align-items: center; padding-left: var(--ds-s-4); border-left: var(--ds-lijn-dik) solid var(--ds-c-ink-inkt); font-family: var(--ds-font-zeef-kop); font-weight: 800; line-height: 1.05; }
+.hud-score__tijd b { font-size: var(--ds-t-subkop); font-variant-numeric: tabular-nums; } .hud-score__tijd small { font-size: var(--ds-t-hulp); letter-spacing: 0.1em; text-transform: uppercase; color: var(--ds-c-inkt-zacht); }
+.hud-melding { position: absolute; left: 50%; bottom: var(--ds-s-8); transform: translateX(-50%); max-width: calc(var(--ds-s-8) * 11); display: flex; align-items: center; gap: var(--ds-s-3); padding: var(--ds-s-2) var(--ds-s-4); background: var(--ds-zeef-bg); border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); border-left: var(--ds-status-rand) solid var(--ds-c-ink-bord); border-radius: var(--ds-r); box-shadow: var(--ds-schaduw-hard); color: var(--ds-c-ink-inkt); font-size: var(--ds-t-body); line-height: var(--ds-lh-tekst); }
+.hud-melding b { font-family: var(--ds-font-zeef-kop); font-weight: 800; letter-spacing: var(--ds-ls-label); text-transform: uppercase; font-size: var(--ds-t-label); white-space: nowrap; }
+.hud-speler { position: absolute; right: var(--ds-s-5); bottom: var(--ds-s-5); width: calc(var(--ds-s-8) * 5); box-sizing: border-box; display: flex; flex-direction: column; gap: var(--ds-s-2); padding: var(--ds-s-3) var(--ds-s-4); background: var(--ds-zeef-bg); border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); border-radius: var(--ds-r); box-shadow: var(--ds-schaduw-hard); color: var(--ds-c-ink-inkt); }
+.hud-speler__kop { display: flex; align-items: center; gap: var(--ds-s-3); }
+.hud-speler__kop b { font-family: var(--ds-font-zeef-kop); font-weight: 800; font-size: var(--ds-t-subkop); letter-spacing: var(--ds-ls-label); line-height: 1; }
+
+/* ---- Componentenpagina: staten en voorbeelden ---- */
+.vb-skelet { display: grid; gap: var(--ds-s-2); }
+.vb-skelet i { display: block; height: var(--ds-s-6); border-radius: var(--ds-r); background-color: var(--ds-c-papier-2); background-image: var(--ds-raster); background-size: var(--ds-raster-maat); border: var(--ds-lijn-dik) solid var(--ds-c-ink-inkt); }
+.vb-skelet i:nth-child(2) { width: 82%; } .vb-skelet i:nth-child(3) { width: 64%; }
+
+/* ---- Compacte kopband (alle tabs behalve Overzicht): wapen klein, naam op subkopmaat, geen onderregel ---- */
+.vb-tactiek { display: grid; grid-template-columns: minmax(0, 540px) minmax(0, 1fr); gap: var(--ds-s-6); flex: 1 1 auto; min-height: 0; padding: var(--ds-s-4) var(--ds-s-6); }
+.vb-tactiek__veld { display: flex; justify-content: center; min-height: 0; }
+.vb-tactiek__veld .vb-veld { height: 100%; width: auto; max-width: 100%; }
+.vb-tactiek__rechts { display: flex; flex-direction: column; gap: var(--ds-s-4); min-height: 0; overflow: auto; }
+.vb-team__vol { margin: 0; font-size: var(--ds-t-hulp); color: var(--ds-c-inkt-zacht); line-height: var(--ds-lh-tekst); }
+.vb-team__naam { font-size: calc(var(--ds-t-subkop) * 1.25); }
+.vb-veldrij > .ds-z-segment, .vb-veldrij > .ds-z-stapper { justify-self: start; }
+.vb-bank li { min-height: calc(var(--ds-s-6) * 1.55); }
+.vb-bank li[aria-selected="true"] { border-left-color: var(--ds-c-ink-bord); }
+.vb-hero__mid { max-width: calc(var(--ds-s-8) * 4); }
+.vb-hero__mid b { font-size: calc(var(--ds-t-label) * 1.25); line-height: 1.1; }
+.intro { top: 50%; transform: translate(-50%, -50%); }
+.intro__midden { align-items: stretch; }
+.intro__midden .vb-veld { aspect-ratio: auto; height: 100%; }
+.vb-veld:not(.vb-veld--breed) .vb-spot__rt { display: none; }
+.vb-richting { bottom: auto; top: var(--ds-s-2); left: auto; right: var(--ds-s-3); transform: none; }
+.vb-tactiek { grid-template-columns: minmax(0, 560px) minmax(0, 1fr); }
+.intro { width: min(calc(100% - var(--ds-s-8)), calc(var(--ds-s-8) * 23)); }
+.intro__midden { grid-template-columns: minmax(0, 1.12fr) minmax(0, 2fr) minmax(0, 1.12fr); }
+
+
+/* ---- Wapen: rand en symbool lezen de inkten van het designsysteem; de kleuren van het schild zelf zijn clubdata (inline fill) ---- */
+.vb-wapen__rand { fill: none; stroke: var(--ds-c-ink-inkt); stroke-width: 6; stroke-linejoin: round; }
+.vb-wapen__teken { fill: var(--ds-c-ink-papier); stroke: var(--ds-c-ink-inkt); stroke-width: 4; stroke-linejoin: round; }
+/* ---- Tabs: de glijdende lijn van ds-micro neemt de onderstreping over zodra hij gemeten is ---- */
+.vb-tabs { --ds-m-lijn-h: var(--ds-status-rand); --ds-m-lijn-kleur: var(--ds-c-ink-bord); }
+.vb-tabs.ds-m-tabs--aan > .vb-tab[aria-selected="true"] { border-bottom-color: transparent; }
+.vb-tabs > .ds-m-tabs__lijn { bottom: 0; }
+.vb-pane { display: flex; flex-direction: column; gap: var(--ds-s-3); min-height: 0; }
+.vb-body { display: block; }
+.vb-body > .ds-z-kaart { transform: none; }
+.vb-acties { display: flex; flex-wrap: wrap; gap: var(--ds-s-2); align-items: center; }
+.vb-foci { display: grid; grid-template-columns: repeat(auto-fill, minmax(calc(var(--ds-s-8) * 3.4), 1fr)); gap: var(--ds-s-3); }
+.vb-focus { text-align: left; cursor: pointer; }
+
+/* ---- Het paneel in het pausemenu: kop en tabs vast, de inhoud scrolt (of vult de hoogte bij Selectie en Tactiek) ---- */
+.pm-voetbal { overflow: auto; }
+.vb-pane { box-sizing: border-box; min-height: 100%; padding: var(--ds-s-4) var(--ds-s-6) var(--ds-s-5); }
+.vb-pane--vast { height: 100%; min-height: 0; }
+.vb-body--vast { flex: 1 1 auto; min-height: 0; overflow: hidden; display: flex; flex-direction: column; }
+.vb-pane--vast > .vb-actiebalk { margin: 0 calc(var(--ds-s-6) * -1) calc(var(--ds-s-5) * -1); }
+.vb-pane > .ds-z-kopband, .vb-pane > .vb-tabs { flex: none; }
+.vb-selkolom { display: flex; flex-direction: column; gap: var(--ds-s-3); min-height: 0; height: 100%; }
+.vb-selbalk { display: flex; align-items: center; gap: var(--ds-s-4); flex: none; margin-bottom: var(--ds-s-3); }
+.vb-selkolom > .vb-selbalk { margin-bottom: 0; }
+.vb-selbalk > .vb-tip { margin-left: auto; }
+.vb-selkolom > .vb-tabel-vak { flex: 1; min-height: 0; }
+.vb-sel tbody tr { height: calc(var(--ds-s-6) * 1.75); }
+.vb-celknop { display: block; width: 100%; padding: 0; border: 0; background: none; color: inherit; font: inherit; text-align: left; cursor: pointer; }
+.vb-celknop:focus-visible { outline: var(--ds-focus-dikte) solid var(--ds-c-ink-inkt); outline-offset: var(--ds-focus-afstand); }
+.vb-standraster { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 270px); gap: var(--ds-s-4); align-items: start; }
+.vb-feiten-regel { display: flex; flex-wrap: wrap; align-items: center; gap: var(--ds-s-2) var(--ds-s-5); margin: 0; }
+.vb-groot { font-size: var(--ds-t-body); }
+.vb-spot { left: var(--spot-x); bottom: var(--spot-y); }
+.vb-mini__rand { fill: none; stroke: currentColor; stroke-width: 2; }
+.vb-mini__punt { fill: currentColor; }
+.vb-bankrij { display: grid; grid-template-columns: var(--ds-s-6) var(--ds-s-6) minmax(0, 1fr) auto auto; align-items: center; gap: var(--ds-s-3); width: 100%; min-height: calc(var(--ds-s-6) * 1.55); padding: var(--ds-s-1) var(--ds-s-3); border: 0; border-bottom: var(--ds-lijn) solid var(--ds-c-ink-inkt); border-left: var(--ds-status-rand) solid transparent; background: none; color: inherit; font: inherit; font-size: var(--ds-t-hulp); text-align: left; cursor: pointer; }
+.vb-bankrij:hover, .vb-bankrij:focus-visible { background: var(--ds-c-sel-vlak); }
+.vb-bankrij[aria-disabled="true"] { cursor: not-allowed; }
+.vb-bankrij .n { font-family: var(--ds-font-zeef-kop); font-weight: 800; font-size: var(--ds-t-label); text-align: center; }
+.vb-bankrij .nm { font-family: var(--ds-font-zeef-kop); font-weight: 800; font-size: var(--ds-t-label); letter-spacing: var(--ds-ls-label); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.vb-bankrij .rt { font-family: var(--ds-font-zeef-kop); font-weight: 800; font-size: var(--ds-t-subkop); font-variant-numeric: tabular-nums; text-align: right; }
+.vb-bank li { display: block; padding: 0; min-height: 0; border: 0; }
+.vb-kleurvlak { width: var(--ds-s-6); height: var(--ds-s-6); }
+.vb-kleurvlak__rand { stroke: var(--ds-c-ink-inkt); stroke-width: 2.5; }
+.vb-ico__lijn { stroke: currentColor; stroke-width: 2.5; }
+.vb-slot__tekst { flex: 1; display: flex; flex-direction: column; gap: var(--ds-s-2); }
+.vb-actiebalk .ds-z-knop--toets { white-space: nowrap; }
+.vb-vorming > button { flex-direction: column; gap: var(--ds-s-1); padding: var(--ds-s-2) var(--ds-s-4); }
+.vb-vorming > button[aria-checked="true"]::before { content: none; }
+.vb-vorming__mini { display: block; width: calc(var(--ds-s-8) * 0.9); height: var(--ds-s-7); }
+
+/* ---- De lijst van een team in de opstelling (kop met #, positie en speler; elf rijen met vaste kolommen en een vaste hoogte, namen krimpen met een ellips) ---- */
+.lijst11 { border: var(--ds-lijn-dik) solid var(--ds-c-ink-inkt); border-radius: var(--ds-r); background: var(--ds-c-wit); overflow: hidden; color: var(--ds-c-ink-inkt); }
+.lijst11 > ol { margin: 0; padding: 0; list-style: none; }
+.lijst11 > .h, .lijst11 li { display: grid; grid-template-columns: var(--ds-s-6) var(--ds-s-6) minmax(0, 1fr); align-items: center; gap: var(--ds-s-2); height: calc(var(--ds-s-6) * 1.5); padding: 0 var(--ds-s-2); border-bottom: var(--ds-lijn) solid var(--ds-c-ink-inkt); font-size: var(--ds-t-hulp); }
+.lijst11 li:last-child { border-bottom: 0; }
+.lijst11 > .h { font: normal 800 var(--ds-t-hulp) / 1 var(--ds-font-zeef-kop); letter-spacing: 0.1em; text-transform: uppercase; background: var(--ds-c-papier-2); border-bottom: var(--ds-lijn-dik) solid var(--ds-c-ink-inkt); }
+.lijst11 .n { font-family: var(--ds-font-zeef-kop); font-weight: 800; text-align: right; font-size: var(--ds-t-label); }
+.lijst11 .nm { font-family: var(--ds-font-zeef-kop); font-weight: 800; font-size: var(--ds-t-label); letter-spacing: var(--ds-ls-label); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.lijst11 li.jij { background: var(--ds-zeef-primair); box-shadow: inset var(--ds-status-rand) 0 0 var(--ds-c-ink-bord); }
+.vb-veld--breed .vb-spot { left: var(--spot-x); top: var(--spot-y); bottom: auto; }
+
+/* ---- Op een smal paneel (720p) past het Overzicht zonder scroll: een kleinere titel, een wapen van 72 px in de held-kaart ---- */
+.vb-pane .ds-z-kopband__titel { font-size: calc(var(--ds-t-kop) * 0.8); }
+.vb-pane .ds-z-kopband--compact .ds-z-kopband__titel { font-size: var(--ds-t-subkop); }
+.vb-team__naam { font-size: var(--ds-t-subkop); }
+.vb-hero__teams { gap: var(--ds-s-3); }
+.vb-team { gap: var(--ds-s-3); }
+/* ---- De toetsregel op het bord tijdens de wedstrijd: groepen achter elkaar zonder streepjes, de naam van de groep vooraan ---- */
+.mg-help .vb-hint__groep { display: inline-flex; align-items: center; gap: var(--ds-s-1); margin-right: var(--ds-s-3); padding: 0; border: 0; white-space: nowrap; }
+.mg-help .vb-hint__groep + .vb-hint__groep { padding-left: 0; border-left: 0; }
+/* ---- Een klein venster (1280 breed): het veld krijgt alleen nummers, de gekozen plek zijn naam; de keuzes zijn compacter ---- */
+@media (max-width: 1400px) {
+  .vb-tactiek { grid-template-columns: minmax(0, 330px) minmax(0, 1fr); gap: var(--ds-s-4); }
+  .vb-tactiek .vb-spot { width: calc(var(--ds-s-8) * 1.1); }
+  .vb-tactiek .vb-spot__naam { display: none; }
+  .vb-tactiek .vb-spot[aria-pressed="true"] .vb-spot__naam { display: block; position: absolute; top: 100%; z-index: 2; }
+  .vb-tactiek__rechts .ds-z-segment > button { padding: 0 var(--ds-s-2); font-size: var(--ds-t-hulp); letter-spacing: 0; }
+  .vb-vorming > button { padding: var(--ds-s-1) var(--ds-s-2); }
+}
+@media (max-height: 800px) {
+  .lijst11 > .h, .lijst11 li { height: calc(var(--ds-s-6) * 1.12); }
+}

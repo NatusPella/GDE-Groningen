@@ -17,7 +17,7 @@
 /* het herhalingslabel */
 .vbtv-herhaling.ds-z-waarde { position: absolute; right: var(--ds-s-4); top: var(--ds-s-4); text-transform: uppercase; letter-spacing: var(--ds-ls-label); }
 /* de ondertitel van het commentaar: onderin het midden, één regel, de naam vet */
-.vbtv-ondertitel { position: absolute; left: 50%; transform: translateX(-50%); bottom: calc(var(--ds-s-4) + var(--ds-s-7)); margin: 0; max-width: min(calc(var(--ds-s-8) * 11), calc(100vw - var(--ds-s-8) * 2)); display: flex; gap: var(--ds-s-2); align-items: baseline;
+.vbtv-ondertitel { position: absolute; left: 50%; transform: translateX(-50%); bottom: calc(var(--ds-s-8) * 2);   /* boven de plaatsnaam en de minikaart: het commentaar overlapt niets (Club-UI 24-11) */ margin: 0; max-width: min(calc(var(--ds-s-8) * 11), calc(100vw - var(--ds-s-8) * 2)); display: flex; gap: var(--ds-s-2); align-items: baseline;
   padding: var(--ds-s-1) var(--ds-s-3); background: var(--ds-bg); color: var(--ds-tx); border: var(--ds-lijn) solid var(--ds-c-ink-inkt); border-radius: var(--ds-r); box-shadow: var(--ds-schaduw-hard-klein); font-size: var(--ds-t-label); line-height: var(--ds-lh-tekst); }
 .vbtv-ondertitel b { font-family: var(--ds-font-kop); letter-spacing: var(--ds-ls-label); text-transform: uppercase; white-space: nowrap; }
 .vbtv-ondertitel b::after { content: ':'; }
@@ -26,20 +26,6 @@
 .vbtv-kop h2 { margin: 0; display: flex; align-items: center; justify-content: center; gap: var(--ds-s-3); font-family: var(--ds-font-kop); font-size: var(--ds-t-kop); line-height: var(--ds-lh-kop); letter-spacing: var(--ds-ls-kop); flex-wrap: wrap; text-align: center; }
 .vbtv-kop h2 b { font-size: var(--ds-t-display); text-shadow: var(--ds-misdruk); }
 .vbtv-eyebrow { display: block; text-align: center; font-family: var(--ds-font-kop); font-size: var(--ds-t-label); letter-spacing: var(--ds-ls-label); text-transform: uppercase; color: var(--ds-c-ink-bord); }
-.vbtv-twee { display: grid; grid-template-columns: 1fr 1fr; gap: var(--ds-s-5); }
-.vbtv-kolom h3 { margin: 0; display: flex; align-items: center; gap: var(--ds-s-2); font-family: var(--ds-font-kop); font-size: var(--ds-t-subkop); }
-.vbtv-kolom--uit h3 { justify-content: flex-end; }
-.vbtv-sub { margin: 0 0 var(--ds-s-2); font-size: var(--ds-t-hulp); color: var(--ds-tx-zacht); }
-.vbtv-kolom--uit .vbtv-sub { text-align: right; }
-.vbtv-kolom ol { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--ds-s-1); }
-.vbtv-kolom li { display: grid; grid-template-columns: var(--ds-s-5) 1fr auto; gap: var(--ds-s-2); align-items: baseline; font-size: var(--ds-t-label); }
-/* gespiegeld met direction: rtl, dus kolom 1 staat rechts: dezelfde kolommen als thuis (nummer smal, naam breed, rol naar inhoud). Andersom kreeg de rol de
-   smalle kolom en liep "Keeper" over de naam (#1110, 24-11). */
-.vbtv-kolom--uit li { grid-template-columns: var(--ds-s-5) 1fr auto; direction: rtl; }
-.vbtv-kolom--uit li > * { direction: ltr; }
-.vbtv-kolom--uit li > span:not(.vbtv-nr) { text-align: right; }
-.vbtv-kolom li em { font-style: normal; font-size: var(--ds-t-hulp); color: var(--ds-tx-zacht); }
-.vbtv-nr { font-family: var(--ds-font-kop); font-weight: 800; text-align: center; }
 .vbtv-jij { background: var(--ds-zeef-primair); color: var(--ds-zeef-tx); border-radius: var(--ds-r); padding: 0 var(--ds-s-1); }
 .vbtv-jij em { color: var(--ds-zeef-tx); }
 .vbtv-scorers { display: grid; grid-template-columns: 1fr 1fr; gap: var(--ds-s-5); font-size: var(--ds-t-label); }
@@ -66,5 +52,19 @@
 .vbtv-kaart--rood i { background: var(--ds-c-rood); }
 .vbtv-kaart b { font-size: var(--ds-t-hulp); font-weight: 700; text-transform: uppercase; letter-spacing: 0; }
 .vbtv-blessure { display: inline-flex; }
-@media (max-width: 720px) { .vbtv-twee, .vbtv-scorers { grid-template-columns: 1fr; } .vbtv-kolom--uit h3, .vbtv-kolom--uit .vbtv-sub { text-align: left; justify-content: flex-start; } .vbtv-scorers p:last-child { text-align: left; } }
+@media (max-width: 720px) { .vbtv-scorers { grid-template-columns: 1fr; } .vbtv-scorers p:last-child { text-align: left; } }
 @media (prefers-reduced-motion: reduce) { .vbtv * { animation: none; transition: none; } }
+
+/* de opstelling bij de aftrap (Club-UI 24-11): twee lijsten en één veld op één raster; de kaart is hier breder dan bij de rust en het einde */
+.vbtv-paneel.ds-z-kaart:has(.vbtv-introrij) { width: min(calc(var(--ds-s-8) * 21), calc(100vw - var(--ds-s-6))); }
+.vbtv-introkop { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: center; gap: var(--ds-s-4); }
+.vbtv-teamnaam { margin: 0; font-family: var(--ds-font-zeef-kop); font-weight: 800; font-size: var(--ds-t-subkop); line-height: var(--ds-lh-kop); letter-spacing: var(--ds-ls-label); white-space: nowrap; }
+.vbtv-sub { margin: 0; font-size: var(--ds-t-hulp); color: var(--ds-tx); }
+.vbtv-introkop .vbtv-sub { display: flex; flex-wrap: wrap; align-items: center; gap: var(--ds-s-1) var(--ds-s-3); margin-top: var(--ds-s-1); }
+.vbtv-introkop .vb-team--uit .vbtv-sub { justify-content: flex-end; }
+.vbtv-plek { display: flex; flex-direction: column; align-items: center; gap: var(--ds-s-1); text-align: center; }
+.vbtv-plek b { font-family: var(--ds-font-zeef-kop); font-weight: 800; font-size: var(--ds-t-subkop); letter-spacing: var(--ds-ls-label); text-transform: uppercase; white-space: nowrap; }
+.vbtv-introrij { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 2fr) minmax(0, 1.1fr); gap: var(--ds-s-4); align-items: stretch; }
+.vbtv-introrij .vb-veld { aspect-ratio: auto; height: 100%; min-height: calc(var(--ds-s-8) * 4); }
+.vbtv-voet { display: flex; align-items: center; justify-content: space-between; gap: var(--ds-s-5); }
+.vbtv-aftrap { pointer-events: none; }

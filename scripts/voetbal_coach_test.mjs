@@ -6,7 +6,10 @@ import * as C from '../game/js/voetbalcarriere.js';
 import * as K from '../game/js/voetbalcoach.js';
 import { loadIndex } from './voetbal_carriere_sim.mjs';
 import * as T from '../game/js/voetbaltransfers.js';
-import { viewHtml } from '../game/js/voetbalcarriereui.js';
+import { viewHtml as vh, ui } from '../game/js/voetbalcarriereui.js';
+// Club-UI 24-11: de tabs Vandaag, Trainer en Manager zijn Overzicht, Tactiek en het deel Transfers van Selectie; deze test blijft de oude namen gebruiken
+const viewHtml = (c, tab, env) => { ui.deel = 'selectie'; if (tab === 'manager') { ui.deel = 'transfers'; tab = 'selectie'; } if (tab === 'trainer') tab = 'tactiek'; if (tab === 'vandaag') tab = 'overzicht'; return vh(c, tab, env); };
+
 import { tikWedstrijd, snapVoetbal, leesLiveVoetbal } from '../game/js/voetbalmatch.js';
 
 let n = 0;
@@ -89,7 +92,7 @@ t('het Trainer-scherm biedt Coach de wedstrijd, de Speler-tabs niet', () => {
   const env = { money: 0, getClub, unlocked: true, hint: '', char: 'anita' };
   const open = { ...trainer(), day: 3 };
   assert.match(viewHtml(open, 'trainer', env), /data-vb="coach"/);
-  assert.match(viewHtml(open, 'trainer', env), /toets 1 speelstijl/);
+  assert.match(viewHtml(open, "trainer", env), /speelstijl [(]toets 1[)]/);
   assert.doesNotMatch(viewHtml(speler(), 'vandaag', env), /data-vb="coach"/);
 });
 t('het Manager-scherm toont het contract, Verleng en het voorstel van Tammo', () => {
@@ -134,10 +137,10 @@ t('opstelling kiezen: vast in de basis, op de bank, terug naar auto en een gekle
 t('het Manager-scherm en de Trainer-tab tonen de opstelling met knoppen', () => {
   const cm = { ...trainer(), roles: { trainer: true, manager: true } };
   const env = { getClub, money: 100, match: C.nextMatch(cm, getClub), ov: C.summary(cm, getClub), char: 'anita' };
-  for (const tab of ['trainer', 'manager']) {
-    const html = viewHtml(cm, tab, env);
-    assert.match(html, /data-vb="pin:bench:/); assert.match(html, /Opstelling|Basis \(/);
-  }
+  // Club-UI 24-11: de opstelling staat op Tactiek (een plek op het veld kiezen, dan een speler van de bank); het deel Transfers heeft alleen de markt en de eigen selectie
+  const tact = viewHtml(cm, 'trainer', env);
+  assert.match(tact, /data-vb="pin:start:/); assert.match(tact, /data-vb="slot:\d+"/); assert.match(tact, /class="vb-veld"/);
+  assert.match(viewHtml(cm, 'manager', env), /Clubkas/);
   const lu = C.lineupOf(cm, getClub, ['keeper']); const r = C.setLineupPin(cm, lu.basis[0].id, 'start', getClub);
   assert.match(viewHtml(r.career, 'trainer', env), /data-vb="pin:all"/);
 });
