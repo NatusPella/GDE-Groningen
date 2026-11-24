@@ -412,3 +412,5 @@ Aandachtspunten:
 ## Kwaliteitsmachine (beeldregressie op camerapunten, video-QA, eindrapport)
 
 Eén runnerbibliotheek voor alle beeldscripts (`scripts/lib/electronrunner.cjs`: slot met stale-detectie, hartslag, profiel in de uitvoermap, standaard `--no-sandbox`, nooit een dialoogvenster, stille-machinepoort vóór fps-metingen), de beeldregressie op vaste camerapunten met perceptuele diff en referenties buiten git (`node scripts/kwaliteit/beeldregressie.mjs --run --out=<map>`), de video-QA als één hervatbaar commando (`node scripts/videoqa/run.mjs --minuten=30`) en een eindrapport in één pagina (`node scripts/kwaliteit/eindrapport.mjs`). Pure tests: `electronrunner_test`, `kwaliteit_beeldregressie_test`, `kwaliteit_rapport_test`. Alles in [KWALITEITSMACHINE.md](KWALITEITSMACHINE.md).
+
+- **Testbank en exitcode 3:** `scripts/coop/testbank.mjs` start Electron sinds 24-11 standaard met `--no-sandbox`; zonder die vlag stopt Electron in de agentomgeving direct met exitcode 3 en lege logs. Zet voor de run ook `GDE_COOP_PROFILE_DIR` en `TEMP` onder `.claude/worktrees` (buiten die map geeft Electron EPERM) en `ELECTRON_EXE` als de worktree geen `node_modules` heeft.
