@@ -12,6 +12,9 @@
 import { SpatialGrid, gridItems } from './spatialgrid.js';
 import { poiLayerPlaces } from './poisections.js';
 
+// De sleutel van wat van de verkeerslichten afhangt: signalVer als de tegelwereld die bijhoudt (tileworld.js zet hem op 0 en hoogt hem op
+// bij een tegel met een beveiligde kruising), anders junctionVer (een kaart zonder tegelwereld, of een test die alleen junctionVer ophoogt).
+const signalKey = (map) => (map && map.signalVer !== undefined ? 's' + map.signalVer : 'j' + ((map && map.junctionVer) || 0));
 const CAR_CATS = new Set(['major', 'normal', 'minor']);
 const TYPE_RANK = {
   motorway: 7, trunk: 7, primary: 6, secondary: 5, tertiary: 4,
@@ -143,7 +146,8 @@ export function allSignals(map) {
   // De signalen van de gestroomde tegels komen uit het kruispuntmodel (JUNCTIONS-rijen):
   // een arm met regel 'signal' is een beveiligde kruising (#469, #314 C2b). Het model
   // verandert als er een tegel bij komt of weggaat (junctionVer), dus de lijst ook.
-  const ver = map && map.junctionVer;
+  // 24-11: op signalVer, niet junctionVer: alleen een tegel met een beveiligde kruising (tileworld.js _bumpJunctions) verandert tileSignals
+  const ver = signalKey(map);
   if (!s.all || s.allVer !== ver) {
     s.allVer = ver;
     s.all = [...poiLayerPlaces(map, 'trafficLights'), ...autoSignals(map), ...tileSignals(map)];
@@ -169,7 +173,7 @@ function signalised(map, x, y) {
   const s = store(map);
   // De signaalgrid volgt de signaallijst: komt er een tegel met een beveiligde kruising
   // bij of gaat die weg (junctionVer), dan wordt de grid opnieuw gevuld (#314 C2b).
-  const ver = map && map.junctionVer;
+  const ver = signalKey(map); // 24-11: zie allSignals
   if (!s.sigGrid || s.sigVer !== ver) {
     s.sigVer = ver;
     s.sigGrid = new SpatialGrid(50);
@@ -232,8 +236,29 @@ export function junctionModel(map) {
   // In de openingsfilm/een cutscene geen kruispuntmodel herbouwen per
   // wijkwissel; de bestaande modellen blijven bruikbaar tot de film klaar is.
   if (s.model && typeof document !== 'undefined' && document.body && (document.body.classList.contains('intro-montage') || document.body.classList.contains('cine-hide-hud'))) return s.model;
+  // 24-11 (profiel benchmark: junctionModel plus signalised 10 tot 15% van de spellus): de stadsknopen hangen alleen af van de vaste
+  // stadsindex en van de verkeerslichten (map.signalVer), niet van elke tegel met kruispunten (junctionVer). Die helft blijft dus staan;
+  // per junctionVer komen alleen de tegelknopen er opnieuw bij.
+  const index = junctionIndex(map);
+  const sigKey = signalKey(map);
+  if (!s.cityModel || s.cityModelIndex !== index || s.cityModelSig !== sigKey) {
+    s.cityModel = cityJunctionModel(map, index);
+    s.cityModelIndex = index;
+    s.cityModelSig = sigKey;
+  }
+  const out = new Map(s.cityModel);
+  // De gestreamde provincietegels dragen hun eigen kruispuntmodel (de JUNCTIONS-sectie, junction_tiles.mjs):
+  // dezelfde code heeft het bij de tegelbouw uitgerekend. Zonder deze regel kende het spel buiten de gepinde
+  // stad geen voorrang, rotondes of stoplijnen (#469). Een knooppunt uit de stad wint: dat is dezelfde plek.
+  for (const n of tileJunctionNodes(map)) if (!out.has(n.key)) out.set(n.key, n);
+  s.model = out;
+  s.modelVer = ver;
+  return out;
+}
+
+function cityJunctionModel(map, index) {
   const out = new Map();
-  for (const node of junctionIndex(map).values()) {
+  for (const node of index.values()) {
     const sig = !graded(node) && signalised(map, node.x, node.y);
     const ring = node.arms.some((a) => a.road.roundabout);
     const car = node.arms.filter((a) => a.rank >= 2);
@@ -257,12 +282,6 @@ export function junctionModel(map) {
     });
     out.set(node.key, { key: node.key, x: node.x, y: node.y, control, arms });
   }
-  // De gestreamde provincietegels dragen hun eigen kruispuntmodel (de JUNCTIONS-sectie, junction_tiles.mjs):
-  // dezelfde code heeft het bij de tegelbouw uitgerekend. Zonder deze regel kende het spel buiten de gepinde
-  // stad geen voorrang, rotondes of stoplijnen (#469). Een knooppunt uit de stad wint: dat is dezelfde plek.
-  for (const n of tileJunctionNodes(map)) if (!out.has(n.key)) out.set(n.key, n);
-  s.model = out;
-  s.modelVer = ver;
   return out;
 }
 

@@ -8,6 +8,7 @@ import { walkPathHook } from './latehooks.js';
 import { markZebraUser, zebraSpeedLimit } from './trafficyield.js';
 import { poiLayerPlaces } from './facilities.js';
 import { createCalmGate } from './tilestream.js';
+import { tileOrigin, TILE_M } from './gdt.js';
 const tilesCalmGate = createCalmGate(); // wacht ook op de achtergrondwachtrij van de tegelwereld, hoogstens twee seconden achter elkaar (#1052)
 export { zebraSpeedLimit };
 
@@ -254,12 +255,65 @@ function addSite(x, y, kind) {
 }
 
 function buildSites(map) {
-  sitesGeo = { map, ver: map._roadVer !== undefined ? map._roadVer : map.geoVer };
+  const roads = map.orderedRoads ? map.orderedRoads() : map['roads'] || [];
+  sitesGeo = { map, ver: map._roadVer !== undefined ? map._roadVer : map.geoVer, geo: map.geoVer, roads: new Set(roads) };
   sites = new SpatialGrid(SITE_CELL);
+  // platte testkaarten zonder raster vallen terug op hun eigen wegenlijst
+  addRoadSites(roads, null);
+  for (const h of getTrafficLights()) if (h.crossing || h.bike) addSite(h.ax, h.ay, 'signal');
+}
+
+// 24-11 (profiel benchmark: buildSites 10% van de spellus, bij elke nieuwe wegentegel over ALLE wegen): alleen wat sinds de vorige bouw
+// veranderde, opnieuw. Per gewijzigde tegel (map.geoLog, tileworld.js) de wegen die nu zijn vlak raken tegen de wegen die er bij de vorige
+// bouw waren: een site verandert alleen op een punt van een weg die erbij kwam of wegging. In de box van zo'n weg gaan de sites eruit en
+// leveren alle wegen die die box raken de knopen opnieuw (een knoop in de box heeft al zijn wegen in die zoekvraag). False: alles opnieuw.
+const inRect = (R, x, y) => x >= R[0] && x <= R[2] && y >= R[1] && y <= R[3];
+function patchSites(map) {
+  const log = map.geoLog, since = sitesGeo && sitesGeo.geo;
+  if (!sites || !sitesGeo || sitesGeo.map !== map || since == null || !map.roadGrid || !log || !log.length || !(log[0] <= since + 1)) return false;
+  const known = sitesGeo.roads;
+  if (!known) return false;
+  const changed = [];
+  for (let n = 0; n < log.length; n += 2) {
+    if (log[n] <= since) continue;
+    const [i, j] = String(log[n + 1]).replace(/^o/, '').split(',').map(Number);
+    if (!Number.isFinite(i) || !Number.isFinite(j)) return false;
+    const [ox, oy] = tileOrigin(i, j);
+    const T = [ox - 0.5, oy - 0.5, ox + TILE_M + 0.5, oy + TILE_M + 0.5];
+    const now = new Set(map.roadGrid.query(T[0], T[1], T[2], T[3]));
+    for (const r of now) if (!known.has(r)) { known.add(r); changed.push(r); }
+    for (const r of known) {
+      const b = r.bounds;
+      if (!b || b[2] < T[0] || b[0] > T[2] || b[3] < T[1] || b[1] > T[3]) continue;
+      if (!now.has(r)) { known.delete(r); changed.push(r); }
+    }
+  }
+  for (const r of changed) {
+    const b = r.bounds;
+    if (!b) return false;
+    const R = [b[0] - 0.5, b[1] - 0.5, b[2] + 0.5, b[3] + 0.5];
+    for (const st of sites.query(R[0], R[1], R[2], R[3])) if (inRect(R, st.x, st.y)) sites.removePoint(st, st.x, st.y);
+  }
+  for (const r of changed) {
+    const b = r.bounds;
+    const R = [b[0] - 0.5, b[1] - 0.5, b[2] + 0.5, b[3] + 0.5];
+    // geen dubbele sites: een knoop in de box van twee gewijzigde wegen komt er één keer bij
+    addRoadSites(map.roadGrid.query(R[0], R[1], R[2], R[3]), R, true);
+    for (const h of getTrafficLights()) if ((h.crossing || h.bike) && inRect(R, h.ax, h.ay)) addSiteOnce(h.ax, h.ay, 'signal');
+  }
+  sitesGeo = { map, ver: map._roadVer !== undefined ? map._roadVer : map.geoVer, geo: map.geoVer, roads: known };
+  return true;
+}
+
+function addSiteOnce(x, y, kind) {
+  for (const st of sites.query(x, y, x, y)) if (st.x === x && st.y === y && st.kind === kind) return;
+  addSite(x, y, kind);
+}
+// de zebra's en kruisingen van deze wegen; R: alleen knopen binnen dit vlak (null: alle); once: niet als hij er al staat
+function addRoadSites(roads, R, once = false) {
   const nodes = new Map();
   const key = (p) => Math.round(p[0] * 10) * 1e6 + Math.round(p[1] * 10);
-  // platte testkaarten zonder raster vallen terug op hun eigen wegenlijst
-  for (const r of (map.orderedRoads ? map.orderedRoads() : map['roads'] || [])) {
+  for (const r of roads) {
     r.pts.forEach((p, i) => {
       const k = key(p);
       let a = nodes.get(k);
@@ -280,9 +334,8 @@ function buildSites(map) {
       } else if (r.cat === 'foot' && interior) foot = true;
     }
     // same rule roadsurface.js uses to paint zebra stripes
-    if (car && branches >= 3) addSite(car[0], car[1], busy && foot ? 'zebra' : 'junction');
+    if (car && branches >= 3 && (!R || inRect(R, car[0], car[1]))) (once ? addSiteOnce : addSite)(car[0], car[1], busy && foot ? 'zebra' : 'junction');
   }
-  for (const h of getTrafficLights()) if (h.crossing || h.bike) addSite(h.ax, h.ay, 'signal');
 }
 
 function sitesNear(x, y, r, out) {
@@ -740,7 +793,7 @@ export function walkRoute(ped, world, dt, dPlayer) {
       if (!sites || sitesGeo.map !== map || sitesGeo.ver !== ver) {
         const intro = typeof document !== 'undefined' && document.body && (document.body.classList.contains('intro-montage') || document.body.classList.contains('cine-hide-hud'));
         const tilesCalm = tilesCalmGate(map);
-        if (tilesCalm && !intro) buildSites(map);
+        if (tilesCalm && !intro && !patchSites(map)) buildSites(map);
       }
       r.cross.site = siteKind(r.cross);
       const mayDetour = !a.detour && !tgt.detour && (r.detours || 0) < 6;
@@ -812,3 +865,6 @@ export function makeCompanion(ped, leader) {
 }
 
 
+
+// voor scripts/pedsites_test.mjs: de site-index alles opnieuw tegen alleen de gewijzigde tegels
+export const pedSitesForTest = { build: (map) => buildSites(map), patch: (map) => patchSites(map), list: (R) => (sites ? sites.query(R[0], R[1], R[2], R[3]).map((s) => `${s.kind}@${s.x},${s.y}`).sort() : []) };

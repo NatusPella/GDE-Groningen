@@ -471,6 +471,7 @@ export class TileWorld extends GameMap {
       // de kruispunten van deze tegel (de JUNCTIONS-sectie): junctions.js leest ze bij het model (#469)
       if (s.type === SECTION.JUNCTIONS) {
         const jrows = s.rows || [];
+        if (this.signalVer === undefined) this.signalVer = 0; // junctions.js signalKey: de lichten volgen signalVer, niet elke kruispunttegel
         (this.junctionRows || (this.junctionRows = new Map())).set(tk, jrows);
         // een tegel met een beveiligde kruising vraagt de verkeerslichten om een herbouw (#314 C2b)
         const signal = hasSignalArm(jrows);

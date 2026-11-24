@@ -924,6 +924,7 @@ export function updateCityProps(dt, w, scene) {
   // generating a cell and building its meshes are both several ms: at most
   // one of the two per frame, except for the cell the player stands in
   let busy = false;
+  probe.mark('cp-in');
 
   for (let gx = pcx - span; gx <= pcx + span; gx++) {
     for (let gy = pcy - span; gy <= pcy + span; gy++) {
@@ -940,6 +941,7 @@ export function updateCityProps(dt, w, scene) {
     }
   }
 
+  probe.mark('cp-cellen'); // de cellen rond de speler, met hoogstens één buildCellMeshes
   genQueue = genQueue.filter((key) => {
     const [gx, gy] = key.split(',').map(Number);
     return Math.hypot(p.x - (gx + 0.5) * CELL, p.y - (gy + 0.5) * CELL) < BUILD_RADIUS + CELL;
@@ -958,6 +960,7 @@ export function updateCityProps(dt, w, scene) {
     probe.mark('cp-gen');
   }
 
+  probe.mark('cp-gen-rest');
   const night = isNight();
   for (const cell of cells.values()) {
     if (!cell.active) continue;
