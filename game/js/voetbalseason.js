@@ -194,3 +194,17 @@ export function baseStrength(club) {
 }
 export const makeCtx = (getClub, overrides = {}) => ({ strength: (id) => overrides[id] || baseStrength(getClub(id) || { id, sterkte: 40 }) });
 export { KNOCKOUT_ROUNDS };
+
+// ---- weergave van de stand (Club-UI, docs/ontwerp/CLUB-UI-24-11.md) ----
+// De laatste uitslagen van één club in deze competitie als letters, oud naar nieuw: W winst, G gelijk, V verlies. Leeg als er nog niet gespeeld is.
+export function formOf(lg, id, n = 5) {
+  const out = [];
+  for (const ronde of (lg && lg.results) || []) { const d = ronde.find((x) => x[0] === id || x[1] === id); if (d) { const mine = d[0] === id ? d[2] : d[3], other = d[0] === id ? d[3] : d[2]; out.push(mine > other ? 'W' : mine === other ? 'G' : 'V'); } }
+  return out.slice(-n).join('');
+}
+// De kleurzones van de stand: de Kroonklasse heeft geen promotie; de laagste klasse (de Talentenklasse) laat alleen de promotie zien, want de club van de speler zakt daar nooit (endSeason houdt hem beschermd) en de pool is geen divisie om naar toe te zakken.
+export function zonesFor(division, plek, n = 8) {
+  const op = division !== 'kroon' && plek <= PROMOTE;
+  const neer = division !== 'talent' && plek > n - RELEGATE;
+  return { op, neer };
+}
