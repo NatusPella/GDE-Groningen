@@ -9,7 +9,7 @@
   "standaardDrempel": { "minSsim": 0.9, "maxSlecht": 0.02 },
   "punten": [
     { "id": "filmpje-opening-a", "soort": "filmpje", "titel": "Openingsfilmpje, 2 s", "t": 2.0, "drempel": { "minSsim": 0.85, "maxSlecht": 0.05 } },
-    { "id": "filmpje-opening-b", "soort": "filmpje", "titel": "Openingsfilmpje, 7 s", "t": 7.0, "drempel": { "minSsim": 0.85, "maxSlecht": 0.05 } },
+    { "id": "filmpje-opening-b", "soort": "filmpje", "titel": "Openingsfilmpje, 13 s", "t": 13.0, "drempel": { "minSsim": 0.85, "maxSlecht": 0.05 } },
     { "id": "stad", "soort": "wereld", "titel": "De stad van boven", "camAbs": [40, 115, 45], "kijkAbs": [196, -6, 30], "drempel": { "minSsim": 0.88, "maxSlecht": 0.03 } },
     { "id": "grote-markt", "soort": "wereld", "titel": "Grote Markt", "doel": "Grote Markt", "terug": [205, 40], "cam": [-80, 70, 35], "kijk": [0, 0, 4] },
     { "id": "martinitoren", "soort": "wereld", "titel": "Martinitoren", "doel": "Martinitoren", "terug": [213.81, 9.9], "cam": [-130, 95, 25], "kijk": [0, 0, 45] },
