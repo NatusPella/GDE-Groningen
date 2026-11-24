@@ -123,7 +123,7 @@ function teken(world) {
   const kanStoppen = !!(w && w.oud && w.oud.bezig);
   if (u.vraag) houder.render({
     title: 'Het spel overnemen?',
-    text: `${u.vraag.tekst} Nog ${u.vraag.rest} seconden. Zonder antwoord is het nee.`,
+    text: `${u.vraag.tekst} Daarna draait het spel op jouw computer; tijd, weer en je voortgang blijven zoals ze waren. Nog ${u.vraag.rest} seconden. Zonder antwoord is het nee.`,
     buttons: [{ action: 'ja', label: 'Ja', toets: 'J', primary: true }, { action: 'nee', label: 'Nee', toets: 'N' }],
   });
   else if (u.pauze) houder.render({

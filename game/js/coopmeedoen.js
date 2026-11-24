@@ -190,11 +190,13 @@ export const toeschouwerTekst = (label) => `${String(label || 'De opdracht').sli
 // De uitnodiging als vorm voor het scherm (#1001): een vraag en twee echte knoppen met de toets erin (J en N, ook op aanraking),
 // of alleen een zin als er niets te kiezen valt (de opdracht is begonnen, het verhaal heeft je nodig, een status). Puur;
 // coophud.js tekent het. Elke speler ziet zijn eigen vraag en antwoordt voor zichzelf.
+// Wat het oplevert en wat geen antwoord betekent (ontwerp 24-11): de vraag zegt het zelf.
+export const MEEDOEN_UITLEG = 'Je krijgt de volledige beloning en je eigen verhaalstap. Geen antwoord: je kijkt mee.';
 export const MEEDOEN_KNOPPEN = [{ toets: 'j', letter: 'J', label: 'Ja' }, { toets: 'n', letter: 'N', label: 'Nee' }];
 export function uitnodigingVorm(u, naam = 'De ander') {
   if (!u) return null;
   if (u.start || (u.status && !u.verplicht) || u.verplicht) return { tekst: uitnodigingTekst(u, naam), knoppen: [] };
-  return { tekst: `Meedoen met ${u.label}?`, knoppen: MEEDOEN_KNOPPEN };
+  return { titel: 'Meedoen?', tekst: `Meedoen met ${u.label}?`, uitleg: MEEDOEN_UITLEG, knoppen: MEEDOEN_KNOPPEN };
 }
 
 export function uitnodigingTekst(u, naam = 'De ander') {
