@@ -11,7 +11,7 @@ import { groepAkkoord, isGast, meerSpelers } from './coopgroep.js';
 export const WORLD_OPTIONS = Object.freeze(OPTION_DEFS.filter((d) => d.scope === 'wereld').map((d) => d.key));
 
 export const WORLD_GUEST_TEXT = 'De moeilijkheid van de wereld bepaalt de groep. Vraag het aan wie het spel opende; die legt het iedereen voor.';
-export const WORLD_GUEST_SENT = 'Je eigen deel is aangepast. Politie en verkeer leg je de groep voor: iedereen stemt met J of N.';
+export const WORLD_GUEST_SENT = 'Je eigen deel is aangepast. Politie en verkeer leg je de groep voor: iedereen stemt ja of nee.';
 
 // Raakt deze wijziging de wereld? change = { type: 'option', key } | { type: 'level', naar } | { type: 'reset' }.
 export function touchesWorld(change, profile = getDifficultyProfile()) {
