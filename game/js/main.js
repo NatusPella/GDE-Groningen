@@ -162,7 +162,7 @@ import { aandeel, tegelFoci, nietBijFoci } from './coopfoci.js';
 import { wantsOpenSamen, takeOpenSamen, samenGate } from './samenpanel.js';
 import { benchmarkPending } from './trailerstate.js';
 import { launchPlan, launchKind, skipStartChoice, askLaunchChoice, applyLaunchMode, getLaunchMode, bewaarKeuze, bewaarRol } from './launchchoice.js'; // Alleen of Samen bij elke start (eigenaarsbesluit 21-11)
-import { openLaunchChoice, openToestemming } from './launchchoiceui.js';
+import { openHoofdmenu, openToestemming } from './launchchoiceui.js';
 import { openOnlineStart } from './onlineconsentui.js';
 import { openSamenKeuze } from './samenkeuze.js';
 import { requestOpenSamen } from './samenpanel.js';
@@ -698,7 +698,7 @@ function beginOnlineStartQuestion() {
       plan,
       settings: () => getSettings(),
       naam: () => openOnlineStart({ terug: true }),
-      keuze: (index) => openLaunchChoice({ index }),
+      keuze: (index) => openHoofdmenu({ index }),
       toestemming: () => openToestemming(),
       sessie: (voorkeur) => new Promise((klaar) => openSamenKeuze({ voorkeur, onKies: (rol) => klaar(rol), onClose: () => klaar(null) })),
       samen: (rol) => requestOpenSamen(rol === 'host' ? { rol: 'host', gate: true } : { rol: 'gast', gate: true, lijst: rol === 'lijst' }),
