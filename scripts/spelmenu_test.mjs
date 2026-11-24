@@ -69,8 +69,8 @@ ok(!/localStorage\.(setItem|getItem)\([^)]*spel/i.test(pm), 'Spel bewaart niets 
 // de tabbladen van Spel, de sectie en alles eromheen
 const sub = (pm.match(/spel: \[((?:\[[^\]]+\],? ?)+)\],/) || [])[1] || '';
 const subIds = [...sub.matchAll(/\['(\w+)', '([^']+)'\]/g)].map((x) => x[1]);
-ok(subIds.join() === 'overzicht,samen,acties', 'Spel heeft de tabbladen Overzicht, Samen spelen en Opslaan & stoppen (#979: Camera en Hints zijn instellingen geworden)', subIds.join());
-ok(subIds.every((id) => ['overzicht', 'samen'].includes(id) || spelSrc.includes(`tab('${id}'`) || spelSrc.includes(`data-sub="${id}" class="sp-opslaan`)) && spelSrc.includes('data-sub="overzicht" class="pm-ov pm-spelov"'),'elk tabblad heeft zijn inhoud (Overzicht tekent zich in Spel)');
+ok(subIds.join() === 'overzicht,samen,spelers,uitnodigen,sessie,acties', 'Spel heeft één tabrij: Overzicht, Samen spelen (zonder sessie) of Spelers, Uitnodigen en Sessie (in een sessie), en Opslaan en stoppen (ontwerp Samen spelen 24-11)', subIds.join());
+ok(subIds.every((id) => ['overzicht', 'samen', 'spelers', 'uitnodigen', 'sessie'].includes(id) || spelSrc.includes(`tab('${id}'`) || spelSrc.includes(`data-sub="${id}" class="sp-opslaan`)) && spelSrc.includes('data-sub="overzicht" class="pm-ov pm-spelov"'), 'elk tabblad heeft zijn inhoud (Overzicht tekent zich in Spel)');
 // #979: de twee verhuisde tabbladen staan nu onder Instellingen, met hun eigen inhoud.
 const setSub = (pm.match(/settings: \[((?:\[[^\]]+\],? ?)+)\],/) || [])[1] || '';
 const setIds = [...setSub.matchAll(/\['(\w+)', '([^']+)'\]/g)].map((x) => x[1]);
@@ -199,8 +199,8 @@ ok(!/data-goto="telefoon"/.test(pm) && !/'telefoon'\)/.test(pm.slice(pm.indexOf(
 // oude namen verwijzen door
 for (const [oud, nieuw] of [["name === 'overzicht' || name === 'game'", "name = 'spel'"], ["name === 'telefoon'", "name = 'verhaal'"], ["name === 'cheats'", "name = 'streken'"], ["name === 'missions'", "name = 'todo'"]]) ok(pm.includes(oud) && pm.includes(nieuw), 'oude naam ' + oud.split("'")[1] + ' verwijst door');
 ok(/CHILD = {[^}]*controls: 'settings'/.test(pm) && !/streken: 'settings'/.test(pm) && !pm.includes("['settings', 'over', 'streken']") && /rowName\('Over GDE'/.test(pm) && !/spelers: 'samen'/.test(pm), 'Over is sinds #601 een rij onder Instellingen; Cheats staat sinds #435 in de rail; Samen spelen en Spelers zijn geen onderdeel of rijknop meer');
-ok(pm.includes("['samen', 'Sessie'], ['spelers', 'Spelers']") && pm.includes('data-of="spel" data-sub="samen"') && pm.includes('data-of="samen" data-sub="spelers"') && pm.includes('renderSamenPanel(root.querySelector') && pm.includes('renderSpelersPanel(root.querySelector') && !pm.includes("id === 'spelers' && !(world && world.coopNet)"), 'Spelers is een tabblad onder Samen spelen, met dezelfde lijst als eerst; sinds #530 ook zonder sessie, want daar staat de schakelaar Meedoen met andere spelers');
-ok(!subIds.includes('spelers') && !pm.includes('data-of="spel" data-sub="spelers"') && !pm.includes('data-of="spel" data-subtab="spelers"'), 'Spelers is geen los tabblad of rijknop van Spel meer (#434)');
+ok(pm.includes("['samen', 'Samen spelen'], ['spelers', 'Spelers'], ['uitnodigen', 'Uitnodigen'], ['sessie', 'Sessie']") && pm.includes('data-of="spel" data-sub="spelers"') && pm.includes('data-of="spel" data-sub="uitnodigen"') && pm.includes('data-of="spel" data-sub="sessie"') && pm.includes('renderSamenPanel(root.querySelector') && pm.includes('renderSpelersPanel(root.querySelector') && pm.includes('renderUitnodigen(') && pm.includes('renderSessie('), 'in een sessie vervangen Spelers, Uitnodigen en Sessie het tabblad Samen spelen in één tabrij (ontwerp Samen spelen 24-11)');
+ok(pm.includes('const spelTabMag') && pm.includes("id === 'samen' ? !echteSessieNu()"), 'Samen spelen is er alleen zonder echte sessie; Spelers, Uitnodigen en Sessie alleen met een sessie');
 ok(pm.includes("name === 'samen' || name === 'samenspelen' || name === 'spelers'") && pm.includes("setN('spel', coopN") && pm.includes('world.coopSpelers.length'), 'de oude namen samen, samenspelen en spelers verwijzen naar Spel > Samen spelen; de rijknop Spel toont het aantal spelers');
 ok(read('game/js/main.js').includes("openPauseMenu('samen')"), 'de coöp-melding opent nog openPauseMenu(samen), dat nu naar Spel > Samen spelen gaat');
 ok(!read('scripts/coop/coop.page.js').includes('.ra[data-goto="samen"]') && !read('scripts/coop/coop.page.js').includes('.ra[data-goto="spelers"]'), 'de coöp-QA zoekt geen oude rijknoppen meer');
@@ -316,7 +316,7 @@ ok(/lower === 'q' \|\| lower === 'e' \|\| k === '\[' \|\| k === '\]'/.test(pm) &
   'Q/E en [ ] pakken de zichtbare tabrij, de binnenste eerst (#601)');
 ok(/if \(SUBTABS\[tab\] && cycleVisibleTabs\(dir\)\) return;\s*if \(cycleOwnTabs\(dir\)\) return;\s*cycleSection\(dir\);/.test(pm),
   'Q/E en [ ] vallen terug op het onderdeel als er geen tabbladen zijn (#601)');
-ok(/spelers-tab/.test(pm) && /\(pref\.sub\.spel \|\| 'overzicht'\) === 'samen'/.test(pm), 'de voetregel noemt de uitkomst van Q/E op Spel > Samen spelen (#601)');
+ok(!/spelers-tab/.test(pm), 'er is geen tweede tabrij meer, dus Q/E hoeft op Spel > Samen spelen niets bijzonders te noemen (ontwerp Samen spelen 24-11)');
 const hintSecties = ['spullen', 'loopbaan', 'visboek', 'boerderij', 'fotos', 'streken', 'over', 'map'];
 for (const s of hintSecties) ok(new RegExp(`^\\s*${s}: .*\\[\\['Q', 'E'\\], '`, 'm').test(pm), `de voetregel van ${s} noemt Q/E (wat de toets daar doet)`);
 ok(/over: \[\[\['↑', '↓'\], 'kiezen'\], \[\['Enter'\], 'open of dicht'\]/.test(pm), 'Over heeft een eigen voetregel met de vouwen (#601)');

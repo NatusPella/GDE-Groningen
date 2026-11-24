@@ -3,7 +3,10 @@ import { keepFocus } from './focusbehoud.js';
 import { setVisibleInterval } from './visibletimer.js';
 import { icoon } from './icons.js';
 import { tabRegel, versieRegel, hintStand, hintTekst, volgHint } from './playerstatus.js';
-import { esc, cardHtml, kopHtml, pvpHtml as pvpKaartHtml, roepHtml, CARD_KEYS } from './playercards.js';
+import { esc } from './samenspelers.js';
+// de sneltoetsen op een gekozen speler (was playercards.js): M dempt, B blokkeert, X zet eruit (met bevestiging)
+const CARD_KEYS = { gedempt: 'M', geblokkeerd: 'B', eruit: 'X' };
+const leegKop = '<div class="cs-kop cs-kop-leeg"><b class="cs-kop-t">Je speelt nu alleen</b><p class="cs-kop-regel">Nodig iemand uit op het tabblad Uitnodigen.</p></div>';
 import { gateOn } from './coopgate.js';
 import { VERSION } from './version.js';
 import { keyTextHtml } from './keycap.js';
@@ -24,7 +27,9 @@ import { getSettings, setSetting } from './settings.js';
 import { PROFIEL_KLEUREN, ONLINE_NAAM_MAX, profielNaam, profielKleur, profielTekst } from './lobby.js';
 import { meedoenSchakelaarHtml } from './onlineconsentui.js';
 import { oskKnop } from './oskview.js';
-import { signaalHtml, tabelHtml, detailHtml, jijStrookHtml, aandachtRegels, aandachtHtml } from './samenspelers.js';
+import { signaalHtml, tabelHtml, detailHtml, jijStrookHtml, aandachtRegels, aandachtHtml, wachtkamerVoetHtml } from './samenspelers.js';
+import { toonBevestiging } from './spelbevestig.js';
+import { startKnop, magStarten } from './playerstatus.js';
 
 const netStand = (v) => (v === 'lag' || v === 'lost' ? v : 'ok');
 // Een sessie van één (#554, coopsolo.js) is geen samen-sessie: geen spelerslijst, geen "1 speler"-badge
@@ -34,8 +39,7 @@ const echteSessie = (world) => !!(world && world.coopNet && !isSoloHost(world));
 // dempen en blokkeren (#1159): per speler, alleen in het geheugen en op naam; de wereld waarvoor de lijst getekend wordt staat in muteWorld
 let muteWorld = null;
 const muteWord = (slot) => { const st = muteWorld ? playerMuteState(muteWorld, slot) : 'gewoon'; return st === 'gewoon' ? '' : `<small class="cs-tab-actief">${esc(st)}</small>`; };
-// #1011: het kaartje van een speler komt uit playercards.js (puur, gemeten in scripts/ui/multiplayerflow_meet.mjs)
-const rijHtml = (r, acties, rol = null, bevestig = null, ctx = {}) => cardHtml(r, { acties, rol, bevestig, ctx, muteStaat: (slot) => (muteWorld ? playerMuteState(muteWorld, slot) : 'gewoon') });
+// De tabel en het detail van Spelers komen uit samenspelers.js (puur, gemeten in scripts/ui/multiplayerflow_meet.mjs)
 // De compacte regel van de Tab-lijst in het spel: naam, kleur, ping, afstand en richting, klaar (playerstatus.js tabRegel)
 function tabRijHtml(r, ctx = {}) {
   const t = tabRegel(r, ctx);
@@ -45,11 +49,6 @@ function tabRijHtml(r, ctx = {}) {
     `<span class="cs-tab-ping">${signaalHtml(r.niveau || (t.verbinding === 'lost' ? 'weg' : t.verbinding === 'lag' ? 'slecht' : 'goed'))}</span>` +
     `<span class="cs-tab-afstand"${t.afstandWoord ? ` title="${esc(t.afstandWoord)}"` : ''}>${esc(t.afstand)}</span>${klaar}` +
     `<span class="cs-tab-later">${t.jij ? '' : muteWord(t.slot)}</span></li>`;
-}
-// De passieve stand (#447): een knop met uitleg, alleen als de host het kent
-function pvpHtml(world) {
-  if (!kanPassiefKiezen(world)) return '';
-  return pvpKaartHtml({ passief: passiefStandVan(world), tekst: PVP_TEKST });
 }
 const roepHint =() => PING_TOETSEN.map((k) => `<b>${k.toets}</b> ${esc(k.tekst)}`).join(' · ');
 
@@ -250,7 +249,7 @@ export function updateSpelersOverlay(world) {
 export const spelersOverlayZichtbaar = () => !!overlay && overlay.style.display !== 'none';
 
 // ---- het onderdeel Spelers in het pauzemenu
-let timer = null, bevestig = null, profielFout = '', gekozen = null; // gekozen: het slot waarvan het detail staat
+let timer = null, bevestig = null, profielFout = '', gekozen = null, startGevraagd = false, startBezig = false; // gekozen: het slot waarvan het detail staat
 // Je online-avatar (#455): de naam en kleur die anderen van je zien. Bewaard in de
 // gewone instellingen (settings.js), dus per apparaat; de volgende keer dat je
 // meedoet gaan ze mee in de kennismaking en ziet iedereen ze bij je figuur.
@@ -290,15 +289,16 @@ export function renderSpelersPanel(root, world, sluit = () => {}, opts = {}) {
     root.dataset.key = key; root.dataset.klaar = '1';
     const ctx = { wachtkamer: gateOn() };
     const opener = (rijen.find((r) => r.slot === 0) || {}).naam || 'De ander';
-    const kop = kopHtml({ aantal: rijen.length, rol, opener, versie: versieRegel(VERSION) });
+    const kop = leegKop;
     const restore = keepFocus(root); // dempen, blokkeren en de rest tekenen de lijst opnieuw: de focus blijft op dezelfde knop (22-11)
     if (!rijen.some((r) => r.slot === gekozen)) gekozen = (rijen.find((r) => !r.jij) || rijen[0] || {}).slot ?? null; // standaard de eerste andere speler
     const gekozenRij = rijen.find((r) => r.slot === gekozen) || null;
     const muteStaat = (slot) => (muteWorld ? playerMuteState(muteWorld, slot) : 'gewoon');
     root.innerHTML = (rijen.length
       ? aandachtHtml(aandachtRegels(rijen)) +
-        `<div class="ss-md"><div class="ss-kol">${tabelHtml(rijen, { sel: gekozen, wachtkamer: ctx.wachtkamer })}${jijStrookHtml({ passief: passiefStandVan(world), kan: kanPassiefKiezen(world), tekstUitleg: PVP_TEKST.uitleg, roep: PING_TOETSEN })}</div>${detailHtml(gekozenRij, { rol, bevestig, muteStaat, openerNaam: opener })}</div>`
+        `<div class="ss-md"><div class="ss-kol">${tabelHtml(rijen, { sel: gekozen, wachtkamer: ctx.wachtkamer })}${jijStrookHtml({ passief: passiefStandVan(world), kan: kanPassiefKiezen(world), tekstUitleg: PVP_TEKST.uitleg, roep: PING_TOETSEN })}</div>${detailHtml(gekozenRij, { rol, muteStaat, openerNaam: opener })}</div>`
       : kop) +
+      (ctx.wachtkamer && rijen.length ? wachtkamerVoetHtml(startKnop({ rol: rol === 'host' ? 'host' : 'gast', spelers: rijen.map((r) => ({ naam: r.naam, verbinding: r.verbinding })), bezig: startBezig, gevraagd: startGevraagd, opener })) : '') +
       profielHtml(world);
     const veld = root.querySelector('.cs-profiel-naam'); if (veld && veld.value !== naamInvoer) veld.value = naamInvoer;
     restore();
@@ -336,14 +336,23 @@ export function renderSpelersPanel(root, world, sluit = () => {}, opts = {}) {
       } // dempen of blokkeren, een tweede keer terugzetten (#1159)
       const ps = e.target.closest('[data-passief]');
       if (ps) { zetPassiefGebaar(world, ps.getAttribute('data-passief') === '1'); root.dataset.klaar = ''; teken(); return; } // omschakelen met afkoeling; de gast ziet de stand zodra de host antwoordt (#447)
-      if (e.target.closest('[data-eruit-nee]')) { bevestig = null; root.dataset.klaar = ''; teken(); return; }
+      const st = e.target.closest('[data-start-spel]');
+      if (st) { // de wachtkamer: de gele start (wie het spel opende) of Vraag om te starten (een gast, #642)
+        const alle = world.coopSpelers || [], isHost = !!(world.coopNet && world.coopNet.role === 'host');
+        const knop = startKnop({ rol: isHost ? 'host' : 'gast', spelers: alle.map((r) => ({ naam: r.naam, verbinding: r.verbinding })), bezig: startBezig, gevraagd: startGevraagd, opener: (alle.find((r) => r.slot === 0) || {}).naam || 'de ander' });
+        if (magStarten(knop, startBezig) && opts.startSpel) { if (isHost) startBezig = true; else startGevraagd = true; opts.startSpel(); root.dataset.klaar = ''; teken(); }
+        return;
+      }
       const k = e.target.closest('[data-eruit]');
-      if (k) { // twee keer klikken: eerst vragen, dan eruit zetten (#434)
+      if (k) { // Uit het spel zetten (alleen wie het spel opende): wat hij verliest en wat blijft, de veilige keuze eerst, het onomkeerbare vraagt vasthouden (spelbevestig.js, 600 ms)
         const slot = +k.getAttribute('data-eruit'), r = (world.coopSpelers || []).find((x) => x.slot === slot);
-        if (bevestig !== slot) { bevestig = slot; root.dataset.klaar = ''; teken(); return; }
-        bevestig = null; root.dataset.klaar = '';
-        if (r && removeGuest(world, slot) && world.addMessage) world.addMessage(eruitGezetTekst(r), 4);
-        teken(); return;
+        if (!r) return;
+        toonBevestiging({
+          titel: `${r.naam} uit het spel zetten?`, tekst: 'Hij verlaat de sessie en speelt weer zijn eigen spel.',
+          verlies: [{ soort: 'weg', label: 'Hij verliest', tekst: 'de sessie; hij speelt weer zijn eigen spel' }, { soort: 'blijft', label: 'Blijft', tekst: 'zijn geld, zijn voortgang en zijn eigen spel. Hij kan later opnieuw meedoen.' }],
+          acties: [{ label: 'Nee, laat hem', soort: 'veilig' }, { label: 'Houd vast om hem uit het spel te zetten', soort: 'gevaar', vasthouden: true }],
+        }).then((i) => { if (i === 1 && removeGuest(world, slot) && world.addMessage) world.addMessage(eruitGezetTekst(r), 4); root.dataset.klaar = ''; teken(); });
+        return;
       }
       const geef = e.target.closest('[data-geef]');
       if (geef) { if (biedOver(world, +geef.getAttribute('data-geef')).ok) sluit(); return; } // #439: het spel overdragen; bij een reden blijft het menu staan (de melding staat al in beeld)

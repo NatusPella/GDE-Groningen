@@ -426,7 +426,7 @@ await t('het pauzemenu geeft Escape eerst aan de hub, vóór de gewone stap teru
   const goBack = pm.slice(pm.indexOf('function goBack()'), pm.indexOf('function goBack()') + 1600);
   assert.match(goBack, /samenHubTerug\(\)/, 'goBack delegeert naar de hub');
   assert.ok(goBack.indexOf('samenHubTerug()') < goBack.indexOf('data-restart-confirm'), 'en doet dat vóór het sluiten van het menu');
-  assert.match(goBack, /pref\.sub\.spel === 'samen' && \(pref\.sub\.samen \|\| 'samen'\) !== 'spelers'/, 'maar niet op het tabblad Spelers, waar geen hub staat');
+  assert.match(goBack, /pref\.sub\.spel === 'samen' && samenHubTerug\(\)/, 'maar alleen op het tabblad Samen spelen (zonder sessie), waar de hub staat');
   assert.match(pm, /import \{[^}]*samenHubTerug[^}]*\} from '\.\/samenpanel\.js'/, 'de hub komt via samenpanel.js binnen');
 });
 

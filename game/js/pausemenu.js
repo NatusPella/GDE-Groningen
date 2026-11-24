@@ -19,7 +19,8 @@ import { uitlegBlok, zetUitlegGlyph, startUitleg, resetUitlegNietMeer } from './
 import { PRESET_ORDER, presetLabel, PRESET_HINTS, describePreset, describeChanges, currentPreset, applyPreset, getBenchResult, dismissBenchBanner, GEAR_SVG, measureAutoPreset, autoGfxNote, autoGfxLabel } from './gfxprofile.js';
 import { mountMapView, kaartUitlegSluiten, kaartReisPopupSluiten, kaartPlekkaartSluiten, kaartToets, setMapActive, setMapCloseHandler, setMapView, getDiscoveredRatio, setMapTeleport } from './mapview.js';
 import { mountOnlineInstelling } from './onlineconsentui.js';
-import { renderSamenPanel, requestOpenSamen, samenHubTerug } from './samenpanel.js';
+import { renderSamenPanel, requestOpenSamen, samenHubTerug, startWachtkamer } from './samenpanel.js';
+import { renderUitnodigen, renderSessie } from './samenkamerui.js';
 import { isSoloHost, stopSoloHost } from './coopsolo.js';
 import { renderVeroverdPanel } from './veroverdpanel.js';
 import { renderSpelersPanel } from './coopspelersui.js';
@@ -417,11 +418,11 @@ const SUBTABS = {
   // Hoe het spel speelt (verkeer, rijden, de kaart), hoe je kijkt en hoe de uitleg in beeld staat,
   // zijn instellingen: die staan onder Instellingen (#979: Camera en Hints horen daar, niet als
   // losse Spel-tabs).
-  spel: [['overzicht', 'Overzicht'], ['samen', 'Samen spelen'], ['acties', 'Opslaan en stoppen']],
+  // Eén tabrij (ontwerp Samen spelen 24-11): zonder sessie Samen spelen, in een sessie vervangen Spelers, Uitnodigen en Sessie dat ene tabblad (geen tweede tabrij meer).
+  spel: [['overzicht', 'Overzicht'], ['samen', 'Samen spelen'], ['spelers', 'Spelers'], ['uitnodigen', 'Uitnodigen'], ['sessie', 'Sessie'], ['acties', 'Opslaan en stoppen']],
   // Samen spelen heeft twee eigen tabbladen (#434): uitnodigen en de spelerslijst. De lijst is geen
   // los tabblad van Spel en geen rijknop in de rail; hij hoort bij Samen spelen, en sinds #530 staat
   // er ook je profiel met de schakelaar (dus hij is er ook zonder sessie).
-  samen: [['samen', 'Sessie'], ['spelers', 'Spelers']],
   // #604: alleen echte instellingen. Cheats staat sinds #435 als eigen onderdeel in de rail en het
   // foutrapport (diagnose) staat onder Over als "Problemen"; twee tabbladen met één knop naar elders
   // maakten van dit scherm een doolhof.
@@ -531,7 +532,6 @@ function loadPref() {
     const p = JSON.parse(localStorage.getItem(PREF_KEY) || '{}');
     const sub = p.sub && typeof p.sub === 'object' ? p.sub : {};
     // een oud tabblad Spelers (#434): de lijst zit nu onder Samen spelen
-    if (sub.spel === 'spelers') { sub.spel = 'samen'; if (!sub.samen) sub.samen = 'spelers'; }
     // #979: Camera & richten en Hints & uitleg zaten onder Spel; ze horen nu bij Instellingen.
     if (sub.spel === 'camera' || sub.spel === 'hints') { sub.settings = sub.spel; sub.spel = 'overzicht'; }
     return { last: typeof p.last === 'string' ? p.last : 'todo', sub };
@@ -574,11 +574,14 @@ const CHEV_R = icoon('volgende');
 const plain = (t) => String(t).replace(/<[^>]*>/g, '').replace(/&shy;/g, '');
 
 // the tabs of a section that are there in the main menu too (Opslaan & stoppen of Spel needs a running game)
-const inGameOnly = (of, id) => of === 'spel' && (id === 'acties' || id === 'overzicht' || id === 'samen' || id === 'spelers');
+const inGameOnly = (of, id) => of === 'spel' && ['acties', 'overzicht', 'samen', 'spelers', 'uitnodigen', 'sessie'].includes(id);
+// Welke tabbladen van Spel er nu zijn: in een echte sessie (geen sessie van één) Spelers, Uitnodigen en Sessie, anders Samen spelen.
+const echteSessieNu = () => !!(world && world.coopNet && !isSoloHost(world));
+const spelTabMag = (id) => (id === 'samen' ? !echteSessieNu() : ['spelers', 'uitnodigen', 'sessie'].includes(id) ? echteSessieNu() : true);
 // Spelers (wie er meespeelt) staat onder Samen spelen. Sinds #530 staat daar ook je eigen profiel
 // met de schakelaar Meedoen met andere spelers, dus het tabblad is er ook zonder sessie: anders is
 // "Alleen spelen" bij de eerste start een doodlopende weg (ADR 0022: later alsnog kunnen meedoen).
-const subsOf = (of) => SUBTABS[of].filter(([id]) => !(prestart && inGameOnly(of, id)) && subVisible(of, id));
+const subsOf = (of) => SUBTABS[of].filter(([id]) => !(prestart && inGameOnly(of, id)) && subVisible(of, id) && (of !== 'spel' || spelTabMag(id)));
 function subtabsHtml(of, label) {
   // DS3 (ds-micro.css): de nav draagt .ds-m-tabs en de glijdende streep; de stip op een tab met [data-new] poppen met .ds-m-nieuw
   return `<div class="m-tabs"><nav class="m-tablist ds-m-tabs" role="tablist" aria-label="${label}">` + SUBTABS[of].map(([id, text]) =>
@@ -953,11 +956,10 @@ function spelHtml() {
   const tab = (id, rows, side = '') => `<div data-of="spel" data-sub="${id}" class="pm-settab" hidden><div class="m-list pm-slist">${rows}</div>${side}</div>`;
   return `<div class="ds-zeef sp-kop" data-spel-kop></div>${subtabsHtml('spel', 'Onderdeel')}
     <div data-of="spel" data-sub="overzicht" class="pm-ov pm-spelov" hidden></div>
-    <div data-of="spel" data-sub="samen" class="pm-samen pm-spelcoop" hidden>
-      ${subtabsHtml('samen', 'Samen spelen')}
-      <div data-of="samen" data-sub="samen" class="pm-samen-inner"></div>
-      <div data-of="samen" data-sub="spelers" class="pm-spelers pm-samen-spelers" hidden></div>
-    </div>
+    <div data-of="spel" data-sub="samen" class="pm-samen pm-spelcoop" hidden><div class="pm-samen-inner" data-samen-start></div></div>
+    <div data-of="spel" data-sub="spelers" class="pm-spelers pm-samen-spelers" hidden></div>
+    <div data-of="spel" data-sub="uitnodigen" class="pm-spelers pm-samen-spelers" hidden></div>
+    <div data-of="spel" data-sub="sessie" class="pm-spelers pm-samen-spelers" hidden></div>
     <div data-of="spel" data-sub="acties" class="sp-opslaan ds-zeef" hidden>
       <div class="sp-body" style="grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:28px">
         <div class="sp-kol">
@@ -1638,7 +1640,7 @@ function goBack() {
   // Samen spelen (#527): de hub met drie stappen gaat eerst zelf een stap terug, zodat Escape de sessie nooit
   // afsluit (de uitweg heet daar Ontsnappen naar besloten). Pas op de eerste stap doet Escape wat het altijd deed.
   // Het tabblad Spelers heeft zijn eigen lijst zonder hub; daar blijft Escape dus buiten.
-  if (tab === 'spel' && pref.sub.spel === 'samen' && (pref.sub.samen || 'samen') !== 'spelers' && samenHubTerug()) return;
+  if (tab === 'spel' && pref.sub.spel === 'samen' && samenHubTerug()) return;
   // #604: de vraag "alles terug naar de standaard?" gaat eerst weg met Escape
   const resetBox = root.querySelector('[data-reset-confirm]');
   if (resetBox && !resetBox.hidden) {
@@ -2716,7 +2718,7 @@ function stopInfo() {
 }
 
 // Spel (ontwerp Spel-UI 24-11): de kopband met je geld, je gezondheid en je zoekniveau, boven de tabs; hij blijft bij elk tabblad van Spel staan.
-const SPEL_TITEL = { overzicht: 'Overzicht', samen: 'Samen spelen', acties: 'Opslaan en stoppen' };
+const SPEL_TITEL = { overzicht: 'Overzicht', samen: 'Samen spelen', spelers: 'Spelers', uitnodigen: 'Uitnodigen', sessie: 'Sessie', acties: 'Opslaan en stoppen' };
 function renderSpelKop() {
   const el = root && root.querySelector('[data-spel-kop]');
   if (!el || !world) return;
@@ -2807,6 +2809,13 @@ function renderPhone() {
 }
 
 // Spel: het tabblad Overzicht tekent zich opnieuw, de rest houdt zijn vaste inhoud (#430)
+// De tabbladen van Spel volgen de sessie: Samen spelen zonder, Spelers, Uitnodigen en Sessie met een echte sessie. Staat de gekozen tab er niet meer, dan de eerste die er wel is.
+function syncSpelTabs() {
+  if (!root) return;
+  for (const b of root.querySelectorAll('[data-of="spel"][data-subtab]')) b.hidden = !subsOf('spel').some(([id]) => id === b.dataset.subtab);
+  const nu = pref.sub.spel;
+  if (nu && !subsOf('spel').some(([id]) => id === nu)) showSubtab('spel', echteSessieNu() ? 'spelers' : 'samen');
+}
 function afterSpelSub() {
   const sub = pref.sub.spel;
   renderSpelKop();
@@ -2815,11 +2824,11 @@ function afterSpelSub() {
     sheetNote('');
     // Samen spelen (#434): het uitnodigen en de spelerslijst zijn twee tabbladen van hetzelfde onderdeel
     // (samenpanel.js, coopspelersui.js); elk tekent zich in zijn eigen tabblad.
-    if (sub === 'samen') {
-      showSubtab('samen', pref.sub.samen || 'samen');
-      if (pref.sub.samen === 'spelers') renderSpelersPanel(root.querySelector('[data-of="samen"][data-sub="spelers"]'), world, closePauseMenu, { openSamen: () => { closePauseMenu(); stopSoloHost(world); requestOpenSamen(); } });
-      else renderSamenPanel(root.querySelector('[data-of="samen"][data-sub="samen"]'), world, closePauseMenu);
-    }
+    syncSpelTabs();
+    if (sub === 'samen') renderSamenPanel(root.querySelector('[data-samen-start]'), world, closePauseMenu);
+    else if (sub === 'spelers') renderSpelersPanel(root.querySelector('[data-of="spel"][data-sub="spelers"]'), world, closePauseMenu, { openSamen: () => { closePauseMenu(); stopSoloHost(world); requestOpenSamen(); }, startSpel: () => startWachtkamer(world, closePauseMenu) });
+    else if (sub === 'uitnodigen') renderUitnodigen(root.querySelector('[data-of="spel"][data-sub="uitnodigen"]'), world);
+    else if (sub === 'sessie') renderSessie(root.querySelector('[data-of="spel"][data-sub="sessie"]'), world);
   }
   syncFooter();
 }
@@ -2905,7 +2914,6 @@ function syncFooter() {
   const back = prestart ? 'terug naar het hoofdmenu' : origin !== 'home' ? 'doorgaan' : 'terug';
   let hints = HINTS[atHome() ? 'overzicht' : tab] || HINTS.overzicht;
   // Spel > Samen spelen has a second tab row: name the outcome of Q/E there (#601)
-  if (tab === 'spel' && (pref.sub.spel || 'overzicht') === 'samen') hints = hints.map(([k, l, a]) => (k.join() === 'Q,E' ? [k, 'spelers-tab', a] : [k, l, a]));
   if (prestart) hints = hints.map(([k, l, a]) => [k, l, a === 'resume' ? 'back' : a]);
   root.querySelector('.pm-footer').innerHTML = hints.map((h) => hintHtml(h, pad, back)).join('');
   // een andere invoer (toetsen of controller) verandert ook het hintvoorbeeld onder Instellingen > Hints
@@ -2924,7 +2932,7 @@ function showTab(name, how) {
   if (name === 'streken' && !ids.includes('streken')) { pref.sub.settings = 'spel'; name = 'settings'; } // 22-11: Cheats is uit het menu; de schakelaar staat bij Spelregels
   // #676: Veroverd is een eigen railrij; de oude plek (Verhaal > Veroverd) verwijst door.
   if (name === 'verhaal' && pref.sub.verhaal === 'veroverd') { pref.sub.verhaal = 'opdrachten'; name = 'veroverd'; }
-  if (name === 'samen' || name === 'samenspelen' || name === 'spelers') { pref.sub.spel = 'samen'; pref.sub.samen = name === 'spelers' && world && world.coopNet && !isSoloHost(world) ? 'spelers' : 'samen'; name = 'spel'; }
+  if (name === 'samen' || name === 'samenspelen' || name === 'spelers') { pref.sub.spel = echteSessieNu() ? 'spelers' : 'samen'; name = 'spel'; }
   if (name === 'jobs') name = 'todo';
   // #979: Camera & richten en Hints & uitleg zaten onder Spel. Een opgeslagen keuze opent ze nu
   // onder Instellingen, waar ze staan; Spel zelf begint weer bij Overzicht.
@@ -3023,7 +3031,7 @@ function showTab(name, how) {
   if (name === 'controls') { const q = root.querySelector('[data-controls-search]'); q.value = ''; filterControls(''); showSubtab('controls', pref.sub.controls || defaultControlsSubtab(document.documentElement.classList.contains('touch-device'))); bindMsg = ''; renderBinds(); }
   if (prev === 'controls' && name !== 'controls') cancelRebind();
   if (name === 'spel') { showSubtab('spel', pref.sub.spel || subsOf('spel')[0][0]); syncControls(); syncSaveButtons(); afterSpelSub(); }
-  if (name === 'spel') { const sp = root.querySelector('[data-of="samen"][data-subtab="spelers"]'); if (sp) sp.hidden = !(world && world.coopNet); }
+  if (name === 'spel') syncSpelTabs();
   if (name === 'settings') { showSubtab('settings', pref.sub.settings || 'video'); syncControls(); syncDesktopControls(); mountOnlineInstelling(root.querySelector('[data-online-instelling]'), { world }); }
   if (name === 'over') renderOverPanel(root.querySelector('[data-panel="over"] .pm-inner'));
   // Elke opening van een onderdeel begint bovenaan: het blad zelf (dat bij een lange inhoud
@@ -3052,7 +3060,7 @@ export function openPauseMenu(name = HOME, opts = {}) {
   if (opts.prestart) prestart = { onClose: opts.onClose || null };
   if (name === 'overzicht') { pref.sub.spel = 'overzicht'; name = 'spel'; }
   if (name === 'cheats') name = 'streken';
-  if (name === 'samen' || name === 'samenspelen' || name === 'spelers') { pref.sub.spel = 'samen'; pref.sub.samen = name === 'spelers' && world && world.coopNet && !isSoloHost(world) ? 'spelers' : 'samen'; name = 'spel'; }
+  if (name === 'samen' || name === 'samenspelen' || name === 'spelers') { pref.sub.spel = echteSessieNu() ? 'spelers' : 'samen'; name = 'spel'; }
   if (opts.sub && SUBTABS[name]) pref.sub[name] = opts.sub;
   if (opts.select) selectTodo(opts.select);
   // de telefoon opent Activiteiten met de Dichtbij-filter (#607): één lijst, geen eigen weergave

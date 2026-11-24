@@ -340,14 +340,6 @@ html.touch-device :is(#pause-menu .pm-samen, .coop-hold, .cp-overlay) .coop-toet
 .ss-blok { display: flex; flex-direction: column; gap: var(--ds-s-2); padding: var(--ds-s-2) var(--ds-s-3) var(--ds-s-3); border: var(--ds-lijn-dik) solid var(--ds-c-ink-inkt); border-radius: var(--ds-r); background: var(--ds-zeef-bg); }
 .ss-roep { display: flex; gap: var(--ds-s-4); flex-wrap: wrap; }
 .ss-roepknop { display: inline-flex; align-items: center; gap: var(--ds-s-2); min-height: var(--ds-doel-aanraken); padding: 0 var(--ds-s-2); border: 0; background: none; font: inherit; color: inherit; cursor: pointer; }
-/* de Aandacht-strook (zelfde vorm als Nu te doen in Land en bedrijf) */
-.ss-aandacht { display: flex; gap: var(--ds-s-2); align-items: stretch; flex-wrap: wrap; margin-bottom: var(--ds-s-3); }
-.ss-aandacht__kop { align-self: center; font-family: var(--ds-font-zeef-kop); font-weight: 800; font-size: var(--ds-t-hulp); letter-spacing: 0.12em; text-transform: uppercase; }
-.ss-klus { flex: 1; min-width: 240px; display: flex; gap: var(--ds-s-3); align-items: center; padding: var(--ds-s-1) var(--ds-s-3); border: var(--ds-lijn-dik) solid var(--ds-c-ink-inkt); border-left: var(--ds-status-rand) solid var(--ds-c-ink-bord); border-radius: var(--ds-r); background: var(--ds-zeef-bg); }
-.ss-klus > b { font-family: var(--ds-font-zeef-kop); font-weight: 800; letter-spacing: var(--ds-ls-label); font-size: var(--ds-t-label); color: var(--ds-c-groen-tx); }
-.ss-klus--nu { border-left-color: var(--ds-c-rood); background: var(--ds-c-rood-vlak); } .ss-klus--nu > b { color: var(--ds-c-rood-tx); }
-.ss-klus--vandaag { border-left-color: var(--ds-c-ink-geel); }
-.ss-klus span b { font-family: var(--ds-font-zeef-kop); }
 @media (max-width: 1100px) { .ss-md { grid-template-columns: 1fr; } .ss-strook { grid-template-columns: 1fr; } }
 
 /* Meedoen? (ontwerp 24-11): een kaart met titelband, de vraag, wat het oplevert, een aftelbalk en Ja en Nee op één regel */
@@ -379,3 +371,29 @@ html.reduce-motion .cp-meedoen-tijd b { transition: none; }
 .ss-jij { display: inline-block; }
 .ss-detail .ss-acties .ds-z-knop { min-height: var(--ds-doel-aanraken); padding: 0 var(--ds-s-3); font-size: var(--ds-t-label); box-shadow: var(--ds-schaduw-hard-klein); }
 .ss-detail .ss-acties .ds-z-knop--gevaar { color: var(--ds-c-rood-tx); }
+
+/* Uitnodigen, Sessie en de wachtkamervoet (samenspelers.js) */
+.ss-md--uitnodigen, .ss-md--sessie { grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); }
+.ss-hero { display: flex; flex-direction: column; gap: var(--ds-s-3); padding: var(--ds-s-3) var(--ds-s-4); border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); border-radius: var(--ds-r); background: var(--ds-c-sel-vlak); }
+.ss-hero h3 { margin: 0; font-family: var(--ds-font-zeef-kop); font-weight: 800; font-size: var(--ds-t-kop-klein, 28px); }
+.ss-code { display: inline-block; padding: var(--ds-s-2) var(--ds-s-4); border: var(--ds-lijn-zeef) dashed var(--ds-c-ink-inkt); border-radius: var(--ds-r); background: var(--ds-c-wit); font-family: var(--ds-font-zeef-kop); font-weight: 800; font-size: 54px; letter-spacing: 0.08em; line-height: 1; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.ss-stappen { margin: 0; padding: 0; list-style: none; counter-reset: s; display: flex; flex-direction: column; gap: var(--ds-s-2); }
+.ss-stappen li { counter-increment: s; position: relative; padding-left: 40px; min-height: 28px; font-size: var(--ds-t-body); }
+.ss-stappen li::before { content: counter(s); position: absolute; left: 0; top: -1px; width: 28px; height: 28px; display: grid; place-items: center; font-family: var(--ds-font-zeef-kop); font-weight: 800; border: 2px solid var(--ds-c-ink-inkt); border-radius: 4px; background: var(--ds-c-ink-papier); }
+.ss-wierij { display: flex; align-items: center; gap: var(--ds-s-3); padding: var(--ds-s-2) 0; border-bottom: var(--ds-lijn) solid var(--ds-c-ink-inkt); }
+.ss-wierij .ss-sig { margin-left: auto; }
+.ss-vorm--s { width: var(--ds-s-6); height: var(--ds-s-6); font-size: var(--ds-t-label); }
+.ss-feiten { display: grid; grid-template-columns: auto 1fr; gap: var(--ds-s-1) var(--ds-s-4); margin: 0; }
+.ss-feiten dd { margin: 0; text-align: right; font-family: var(--ds-font-zeef-kop); font-weight: 800; }
+.ss-grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: var(--ds-s-3); }
+.ss-invoer { min-height: var(--ds-doel-aanraken); display: flex; align-items: center; padding: 0 var(--ds-s-3); border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); border-radius: var(--ds-r); background: var(--ds-c-wit); }
+.ss-uitleg--info { border-left-color: var(--ds-c-ink-bord); }
+.ss-tabel--s .ds-z-tabel tbody tr { height: auto; cursor: default; }
+.ss-logrij { display: flex; flex-direction: column; padding: var(--ds-s-2) 0; border-bottom: var(--ds-lijn) solid var(--ds-c-ink-inkt); }
+.ss-wachtvoet { display: flex; align-items: center; justify-content: space-between; gap: var(--ds-s-4); margin-top: var(--ds-s-3); padding-top: var(--ds-s-3); border-top: var(--ds-lijn-dik) dashed var(--ds-c-ink-inkt); }
+.ss-stappen + .ss-hulp { margin: 0; }
+
+.ss-detail .ds-z-segment > button { padding: 0 var(--ds-s-2); min-width: 0; font-size: var(--ds-t-hulp); letter-spacing: 0; }
+.ss-detail .ds-z-segment { max-width: 100
+.ss-detail .ds-z-segment > button { padding: 0 var(--ds-s-2); min-width: 0; font-size: var(--ds-t-hulp); letter-spacing: 0; }
+.ss-detail .ds-z-segment { max-width: 100%; }

@@ -1,7 +1,7 @@
 // Het tabblad Spelers als tabel met detail (samenspelers.js): wie wat ziet, verbinding in woorden, geen milliseconden en geen IP-adres.
 //   node scripts/samenspelers_test.mjs
 import assert from 'node:assert/strict';
-import { tabelHtml, detailHtml, jijStrookHtml, aandachtRegels, aandachtHtml, signaalHtml } from '../game/js/samenspelers.js';
+import { uitnodigenHtml, sessieHtml, wachtkamerVoetHtml, tabelHtml, detailHtml, jijStrookHtml, aandachtRegels, aandachtHtml, signaalHtml } from '../game/js/samenspelers.js';
 
 let n = 0;
 const t = (naam, f) => { f(); n++; console.log('ok ' + naam); };
@@ -37,11 +37,9 @@ t('Matig, Slecht en Weg krijgen een uitleg, Goed niet', () => {
   assert.match(detailHtml(RIJEN[2], { rol: 'gast' }), /ss-uitleg--matig/); assert.match(detailHtml(RIJEN[3], { rol: 'gast' }), /ss-uitleg--weg/);
   assert.match(detailHtml(rij(5, { niveau: 'matig', jij: true }), { rol: 'gast' }), /Anderen zien je soms schokken/);
 });
-t('uit het spel zetten vraagt eerst wat je verliest en wat blijft, met de veilige keuze eerst', () => {
-  const h = detailHtml(RIJEN[2], { rol: 'host', bevestig: 2 });
-  assert.match(h, /Hij verliest/); assert.match(h, /Blijft/); assert.match(h, /data-eruit-nee/);
-  assert.ok(h.indexOf('data-eruit-nee') < h.indexOf('data-eruit="2"'), 'Nee staat vóór Ja');
-  assert.doesNotMatch(detailHtml(RIJEN[2], { rol: 'gast', bevestig: 2 }), /data-eruit/, 'een gast krijgt de bevestiging nooit');
+t('Uit het spel zetten is een link bij wie het spel opende; de bevestiging (verliest, blijft, vasthouden) komt van spelbevestig.js', () => {
+  assert.match(detailHtml(RIJEN[2], { rol: 'host' }), /class="ds-z-link ss-eruit" data-eruit="2"/);
+  assert.doesNotMatch(detailHtml(RIJEN[2], { rol: 'gast' }), /data-eruit/);
 });
 t('de aandacht noemt wie weg is, jouw eigen verbinding en wie op Actief staat, hoogstens drie', () => {
   const a = aandachtRegels(RIJEN);
@@ -57,5 +55,24 @@ t('jouw stand is een segment, alleen als de stand te kiezen is, en roepen staat 
 });
 t('een speler die weg is heeft een eigen vorm zonder kleur-alleen: het woord Weg staat er', () => {
   assert.match(signaalHtml('weg'), /Weg/);
+});
+t('Uitnodigen: de code groot met Kopieer, een openbare sessie heeft geen code, een gast kent hem dan niet', () => {
+  const R2 = RIJEN.slice(0, 3);
+  const prive = uitnodigenHtml({ code: 'K3J9D-8F2MN', rol: 'host', spelers: R2 });
+  assert.match(prive, /K3J9D-8F2MN/); assert.match(prive, /data-kopieer/); assert.match(prive, /Kopieer de code/);
+  const open = uitnodigenHtml({ openbaar: true, openbaarNaam: 'Zomeravond', code: 'K3J9D-8F2MN', rol: 'gast', openerNaam: 'Sem', spelers: R2 });
+  assert.doesNotMatch(open, /K3J9D|data-kopieer/); assert.match(open, /Openbare sessies/); assert.match(open, /alleen Sem kent de kamercode/);
+  assert.match(uitnodigenHtml({ openbaar: true, openbaarNaam: 'Z', rol: 'host', spelers: R2 }), /data-privaat/);
+  assert.doesNotMatch(prive + open, /d{1,3}(.d{1,3}){3}/, 'geen IP-adres');
+});
+t('Sessie: instellingen zijn van wie het spel draait, de keuzes zijn van iedereen, stoppen is een voorstel', () => {
+  const host = sessieHtml({ naam: 'Zomeravond', rol: 'host', logboek: [{ titel: 'Race', namen: ['Sem', 'Iris'], tijd: '19:52' }] });
+  assert.match(host, /Dit kun alleen jij instellen/); assert.match(host, /Race/); assert.match(host, /data-stop-voorstel/); assert.doesNotMatch(host, /data-verlaat/);
+  const gast = sessieHtml({ naam: 'Zomeravond', rol: 'gast', openerNaam: 'Sem' });
+  assert.match(gast, /Dit stelt Sem in/); assert.match(gast, /data-verlaat/); assert.match(gast, /Cheats aan/); assert.match(gast, /Nog niets samen gedaan/);
+});
+t('de wachtkamervoet: de gele start met zijn reden, uitgeschakeld als het niet kan', () => {
+  assert.match(wachtkamerVoetHtml({ label: 'Spel starten', disabled: false, hint: 'Alle 3 spelers zijn er.' }), /data-start-spel>Spel starten/);
+  assert.match(wachtkamerVoetHtml({ label: 'Spel starten', disabled: true, hint: 'Wacht op een medespeler.' }), /disabled/);
 });
 console.log(`samenspelers_test: ${n} tests ok`);
