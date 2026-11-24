@@ -7,7 +7,10 @@ import { wgsToWorld } from '../game/js/rdnew.js';
 import { makeParkIndex, HOME_WGS } from '../game/js/voetbalparken.js';
 import * as C from '../game/js/voetbalcarriere.js';
 import * as T from '../game/js/voetbaltransfers.js';
-import { viewHtml, uitReden, actieBericht, ui, vraagtBevestiging } from '../game/js/voetbalcarriereui.js';
+import { viewHtml as vh, uitReden, actieBericht, ui, vraagtBevestiging } from '../game/js/voetbalcarriereui.js';
+// Club-UI 24-11: de tabs Vandaag, Trainer en Manager zijn Overzicht, Tactiek en het deel Transfers van Selectie; deze test blijft de oude namen gebruiken
+const viewHtml = (c, tab, env) => { ui.deel = 'selectie'; if (tab === 'manager') { ui.deel = 'transfers'; tab = 'selectie'; } if (tab === 'trainer') tab = 'tactiek'; if (tab === 'vandaag') tab = 'overzicht'; return vh(c, tab, env); };
+
 import { radarModel, radarHtml, magOverslaan, MIN_LEEST, carriereBannerRijen } from '../game/js/voetbalpresentatie.js';
 import { stopBericht } from '../game/js/voetbaltraining.js';
 import { voetbalHudModel, watNu, naarMijn } from '../game/js/voetbalstatus.js';
@@ -72,20 +75,19 @@ t('de selectielijst toont iedereen (tot 22) met het echte aantal, ook als je spe
   assert.ok(gekocht >= 2, `gekocht ${gekocht}`);
   const sq = C.squadOf(c, c.club, getClub);
   const sel = viewHtml(c, 'selectie', env);
-  assert.ok(sel.includes(`Selectie van ${sq.length}<`), 'het echte aantal');
-  const lijst = (sel.split('vb-selectie">')[1] || '');
-  assert.equal((lijst.match(/<li /g) || []).length, sq.length, 'elke speler staat erin');
+  assert.ok(sel.includes(`${sq.length} spelers`), 'het echte aantal');
+  assert.equal((sel.match(/<tr class="ds-m-rij/g) || []).length, sq.length, 'elke speler staat erin');
   const man = viewHtml(c, 'manager', env);
-  const eigen = (man.split('Jouw selectie')[1] || '').split('<p class="ds-z-kaart__voet">')[0];
+  const eigen = (man.split('Jouw selectie')[1] || '').split('<p class="vb-tip">')[0];
   assert.equal((eigen.match(/<li /g) || []).length, sq.filter((q) => !q.protagonist).length, 'ook wie na de achttiende komt is te verkopen of te verlengen');
 });
 
-t('een tab die er niet meer is (manager of trainer weg) valt terug op Vandaag, met een gekozen tab in de balk', () => {
+t('een tab die er niet meer is (manager of trainer weg) valt terug op Overzicht, met een gekozen tab in de balk', () => {
   const c = C.advanceDays(start(), 3, getClub).career;
-  const h = viewHtml(c, 'trainer', env);
-  assert.ok(h.includes('data-vb="tab:vandaag" aria-selected="true"'));
+  const h = vh(c, 'trainer', env);
+  assert.ok(h.includes('data-vb="tab:overzicht" aria-selected="true"'));
   assert.equal((h.match(/aria-selected="true"/g) || []).length, 1);
-  assert.ok(viewHtml(c, 'bestaatniet', env).includes('data-vb="tab:vandaag" aria-selected="true"'));
+  assert.ok(vh(c, 'bestaatniet', env).includes('data-vb="tab:overzicht" aria-selected="true"'));
 });
 
 t('geld weggeven of een speler laten gaan vraagt een tweede druk: de knop zegt Zeker', () => {
@@ -134,13 +136,14 @@ t('training: Esc tijdens het resultaat meldt geen geen-winst (de groei is al uit
 t('HUD in een derby: een mens in team 1 ziet jullie en tegen vanuit zijn eigen kant', () => {
   const g = { fase: 'spel', helft: 1, klok: 50, score: [3, 1], bezit: [10, 30], bezitTeam: 1, heeftBal: false, rol: 'veld', stamina: 1, moe: false, laad: 0, eigen: 0 };
   const hud0 = voetbalHudModel(g);
-  assert.equal(hud0.cijfers[0].waarde, '3'); assert.equal(hud0.cijfers[1].waarde, '1');
+  // Club-UI 24-11: de stand en het bezit staan niet meer op de spelerskaart (alleen op het bord en in de rust); het omdraaien voor team 1 gebeurt in naarMijn
+  assert.deepEqual(hud0.cijfers.map((x) => x.label), ['Jouw doelpunten']); assert.deepEqual(naarMijn(g).score, [3, 1]);
   assert.ok(hud0.nu.includes('Zet druk'));
   const hud1 = voetbalHudModel({ ...g, mijnTeam: 1 });
-  assert.equal(hud1.cijfers[0].waarde, '1', 'jullie = team 1'); assert.equal(hud1.cijfers[1].waarde, '3');
+  assert.deepEqual(naarMijn({ ...g, mijnTeam: 1 }).score, [1, 3], 'jullie = team 1');
   assert.ok(hud1.nu.includes('Jullie hebben de bal'), 'team 1 heeft de bal: dat zijn jullie');
   assert.equal(hud1.stappen.find((s) => s.stand === 'nu').label, 'Aanvallen');
-  assert.equal(hud1.cijfers.find((x) => x.label === 'Bezit').waarde, '75%');
+  assert.deepEqual(naarMijn({ ...g, mijnTeam: 1 }).bezit, [30, 10], 'het bezit draait mee');
   assert.deepEqual(naarMijn(naarMijn({ ...g, mijnTeam: 1 })).score, [1, 3], 'twee keer omdraaien gebeurt niet');
   assert.deepEqual(g.score, [3, 1], 'het origineel blijft heel');
   assert.ok(watNu({ fase: 'spel', helft: 1, moe: true, heeftBal: false, bezitTeam: -1, rol: 'veld' }).includes('Buiten adem'));
@@ -227,7 +230,7 @@ t('het uitslagbord noemt wat het opleverde; de markt staat gesorteerd; training 
   const ratings = [...markt.matchAll(/rating (\d+)/g)].map((x) => +x[1]);
   assert.ok(ratings.length >= 5, 'er staan spelers op de markt');
   for (let i = 1; i < ratings.length; i++) assert.ok(ratings[i] <= ratings[i - 1], 'de beste staat bovenaan');
-  assert.match(viewHtml(C.advanceDays(start(), 3, getClub).career, 'training', env), /energie nu \d+%/);
+  assert.match(viewHtml(C.advanceDays(start(), 3, getClub).career, 'training', env), /Energie nu<[/]small><b>\d+%/);
 });
 
 console.log(`voetbal_verfijn_test ok: ${n} testen`);

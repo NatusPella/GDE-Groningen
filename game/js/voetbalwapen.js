@@ -26,6 +26,7 @@ const sig = (c, e) => `${c.shirt}|${c.accent}|${c.patroon}|${e}`;
 // Het symbool van een club, uniek binnen zijn klasgenoten (een lijst clubs met id, shirt, accent en patroon; mag de club zelf bevatten). Deterministisch: klasgenoten met een lagere id gaan voor.
 export function emblemIndex(club, mates = []) {
   if (!club) return 0;
+  if (Number.isInteger(club.emblem)) return Math.abs(club.emblem) % EMBLEMS.length;     // een wedstrijdteam draagt het symbool uit zijn klas al mee (matchSetup)
   const start = hashSeed('wapen', club.id) % EMBLEMS.length;
   const others = mates.filter((m) => m && m.id !== club.id).sort((a, b) => (String(a.id) < String(b.id) ? -1 : 1));
   const taken = new Set();

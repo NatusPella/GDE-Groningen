@@ -12,6 +12,7 @@ import * as T from './voetbaltransfers.js';
 import * as Sp from './voetbalsponsors.js';
 import * as B from './voetbalclub_bezit.js';
 import { makeRng } from './minigamekit.js';
+import { emblemIndex } from './voetbalwapen.js';
 
 export const VERSION = 1;
 export const WORLD_SEED = 1106;                 // één wereldzaad: iedere speler krijgt dezelfde uitkomst voor niet-gespeelde duels
@@ -139,7 +140,9 @@ export function matchSetup(c, getClub, formations) {
   const fac = (l) => l.map((x) => ({ naam: x.player ? x.player.name : undefined, f: x.factors }));
   const bonus = simFactors(c.me, { form, fatigue: c.fatigue });
   const mine = getClub(c.club), theirs = getClub(m.opponent);
-  return { teams: [teamFor(mine), teamFor(theirs)], ratings: [fac(my), fac(opp)], bonus: { sprint: bonus.sprint, schot: bonus.schot, aanname: bonus.aanname, verd: bonus.verd, uit: bonus.uit }, opponent: m.opponent, match: m };
+  // het wapen in de uitzending is hetzelfde als in het Clubhuis: het symbool komt uit de klas van de club
+  const embl = (club) => { const d = S.divisionOf(c.world, club.id), ids = (d && c.world[d]) || []; return emblemIndex(club, ids.map((x) => getClub(x)).filter(Boolean)); };
+  return { teams: [{ ...teamFor(mine), emblem: embl(mine) }, { ...teamFor(theirs), emblem: embl(theirs) }], ratings: [fac(my), fac(opp)], bonus: { sprint: bonus.sprint, schot: bonus.schot, aanname: bonus.aanname, verd: bonus.verd, uit: bonus.uit }, opponent: m.opponent, match: m };
 }
 
 // ---- een wedstrijd verwerken ----
@@ -565,3 +568,17 @@ export function normalize(raw) {
 const normPins = (p) => { const ids = (l) => (Array.isArray(l) ? [...new Set(l.filter((x) => typeof x === 'string' && x.length < 40))].slice(0, MAX_PINS) : []); const start = ids(p && p.start); return { start, bench: ids(p && p.bench).filter((x) => !start.includes(x)) }; };
 export const clubResolver = (index) => (id) => clubById(id) || (index && index.byId.get(id)) || null;
 export { CLUBS, clubById };
+
+// ---- Club-UI: wat de wedstrijdkaart toont (docs/ontwerp/CLUB-UI-24-11.md) ----
+const sumPay = (l) => l.reduce((a, x) => a + x.amount, 0);
+// Wat een wedstrijd oplevert volgens payFor: spelen (winst, gelijk, verlies) en uitrekenen. Alleen wat de code werkelijk uitbetaalt.
+export function payOverview(division, kind) {
+  return { winst: sumPay(payFor(division, kind, 'winst', true)), gelijk: sumPay(payFor(division, kind, 'gelijk', true)), verlies: sumPay(payFor(division, kind, 'verlies', true)), uitrekenen: sumPay(payFor(division, kind, 'verlies', false)) };
+}
+// Sterkte tegen sterkte (gemiddelde van aanval en verdediging van de selectie, zoals teamStrength) met één zin; geen percentage.
+export function matchOutlook(c, getClub, m) {
+  if (!m) return null;
+  const sterkte = (id) => { const s = teamStrength(squadOf(c, id, getClub)); return Math.round((s.attack + s.defense) / 2); };
+  const mine = sterkte(c.club), theirs = sterkte(m.opponent), diff = mine - theirs;
+  return { mine, theirs, zin: Math.abs(diff) <= 2 ? 'Bijna gelijk' : diff > 0 ? 'Jullie zijn favoriet' : 'Zij zijn favoriet' };
+}

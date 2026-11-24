@@ -128,7 +128,7 @@
 .vb-rating { display: flex; flex-direction: column; align-items: center; min-width: calc(var(--ds-s-8) * 1.1); padding: var(--ds-s-1) var(--ds-s-3); border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); border-radius: var(--ds-r); background: var(--ds-c-wit); box-shadow: var(--ds-schaduw-hard-klein); }
 .vb-rating b { font-family: var(--ds-font-zeef-kop); font-weight: 800; font-size: var(--ds-t-cijfer); line-height: 1; font-variant-numeric: tabular-nums; }
 .vb-rating small { font-size: var(--ds-t-hulp); }
-.vb-stat { display: grid; grid-template-columns: calc(var(--ds-s-8) * 1.6) minmax(0, 1fr) var(--ds-s-7) calc(var(--ds-s-8) * 1.05); align-items: center; gap: var(--ds-s-3); min-height: var(--ds-s-7); }
+.vb-stat { display: grid; grid-template-columns: calc(var(--ds-s-8) * 1.6) minmax(0, 1fr) var(--ds-s-7) calc(var(--ds-s-8) * 1.05); align-items: center; gap: var(--ds-s-3); min-height: calc(var(--ds-s-6) * 1.5); }
 .vb-stat__naam { font-family: var(--ds-font-zeef-kop); font-weight: 800; font-size: var(--ds-t-label); letter-spacing: var(--ds-ls-label); text-transform: uppercase; }
 .vb-stat__spoor { position: relative; }
 .vb-stat__spoor .ds-z-balk__baan { height: var(--ds-s-4); }
@@ -222,16 +222,6 @@
 .intro__plek { text-align: center; font-family: var(--ds-font-zeef-kop); font-weight: 800; font-size: var(--ds-t-label); letter-spacing: 0.12em; text-transform: uppercase; color: var(--ds-c-ink-bord); }
 .intro__plek b { display: block; font-size: var(--ds-t-subkop); color: var(--ds-c-ink-inkt); letter-spacing: var(--ds-ls-label); }
 .intro__midden { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 2.3fr) minmax(0, 1fr); gap: var(--ds-s-4); align-items: start; }
-.lijst11 { margin: 0; padding: 0; list-style: none; border: var(--ds-lijn-dik) solid var(--ds-c-ink-inkt); border-radius: var(--ds-r); background: var(--ds-c-wit); overflow: hidden; }
-.lijst11 > li { display: grid; grid-template-columns: var(--ds-s-6) var(--ds-s-6) minmax(0, 1fr) var(--ds-s-6); align-items: center; gap: var(--ds-s-2); height: var(--ds-s-6); padding: 0 var(--ds-s-2); border-bottom: var(--ds-lijn) solid var(--ds-c-ink-inkt); font-size: var(--ds-t-hulp); }
-.lijst11 > li:last-child { border-bottom: 0; }
-.lijst11 .h { font: normal 800 var(--ds-t-hulp) / 1 var(--ds-font-zeef-kop); letter-spacing: 0.1em; text-transform: uppercase; background: var(--ds-c-papier-2); }
-.lijst11 .n { font-family: var(--ds-font-zeef-kop); font-weight: 800; text-align: right; font-size: var(--ds-t-label); }
-.lijst11 .nm { font-family: var(--ds-font-zeef-kop); font-weight: 800; font-size: var(--ds-t-label); letter-spacing: var(--ds-ls-label); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.lijst11 .rt { font-family: var(--ds-font-zeef-kop); font-weight: 800; text-align: right; font-size: var(--ds-t-label); }
-.lijst11 li.jij { background: var(--ds-c-sel-vlak); box-shadow: inset var(--ds-status-rand) 0 0 var(--ds-c-ink-bord); }
-.intro__voet { display: flex; align-items: center; gap: var(--ds-s-5); }
-.intro__voet .vb-hint { margin-left: auto; box-shadow: none; border-width: var(--ds-lijn-dik); }
 .hud-score { position: absolute; left: 50%; top: var(--ds-s-5); transform: translateX(-50%); display: grid; grid-template-columns: auto auto auto auto; align-items: center; gap: var(--ds-s-3); padding: var(--ds-s-2) var(--ds-s-5); background: var(--ds-zeef-bg); border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); border-radius: var(--ds-r); box-shadow: var(--ds-schaduw-hard); color: var(--ds-c-ink-inkt); }
 .hud-score__team { display: flex; align-items: center; gap: var(--ds-s-2); font-family: var(--ds-font-zeef-kop); font-weight: 800; font-size: var(--ds-t-subkop); letter-spacing: var(--ds-ls-label); text-transform: uppercase; }
 .hud-score__stand { display: flex; align-items: center; gap: var(--ds-s-2); padding: 0 var(--ds-s-3); font-family: var(--ds-font-zeef-kop); font-weight: 800; font-size: var(--ds-t-cijfer); line-height: 1; font-variant-numeric: tabular-nums; }
@@ -249,7 +239,6 @@
 .vb-skelet i:nth-child(2) { width: 82%; } .vb-skelet i:nth-child(3) { width: 64%; }
 
 /* ---- Compacte kopband (alle tabs behalve Overzicht): wapen klein, naam op subkopmaat, geen onderregel ---- */
-.lijst11 > li { height: calc(var(--ds-s-6) * 1.5); }
 .vb-tactiek { display: grid; grid-template-columns: minmax(0, 540px) minmax(0, 1fr); gap: var(--ds-s-6); flex: 1 1 auto; min-height: 0; padding: var(--ds-s-4) var(--ds-s-6); }
 .vb-tactiek__veld { display: flex; justify-content: center; min-height: 0; }
 .vb-tactiek__veld .vb-veld { height: 100%; width: auto; max-width: 100%; }
@@ -321,3 +310,14 @@
 .vb-vorming > button { flex-direction: column; gap: var(--ds-s-1); padding: var(--ds-s-2) var(--ds-s-4); }
 .vb-vorming > button[aria-checked="true"]::before { content: none; }
 .vb-vorming__mini { display: block; width: calc(var(--ds-s-8) * 0.9); height: var(--ds-s-7); }
+
+/* ---- De lijst van een team in de opstelling (kop met #, positie en speler; elf rijen met vaste kolommen en een vaste hoogte, namen krimpen met een ellips) ---- */
+.lijst11 { border: var(--ds-lijn-dik) solid var(--ds-c-ink-inkt); border-radius: var(--ds-r); background: var(--ds-c-wit); overflow: hidden; color: var(--ds-c-ink-inkt); }
+.lijst11 > ol { margin: 0; padding: 0; list-style: none; }
+.lijst11 > .h, .lijst11 li { display: grid; grid-template-columns: var(--ds-s-6) var(--ds-s-6) minmax(0, 1fr); align-items: center; gap: var(--ds-s-2); height: calc(var(--ds-s-6) * 1.5); padding: 0 var(--ds-s-2); border-bottom: var(--ds-lijn) solid var(--ds-c-ink-inkt); font-size: var(--ds-t-hulp); }
+.lijst11 li:last-child { border-bottom: 0; }
+.lijst11 > .h { font: normal 800 var(--ds-t-hulp) / 1 var(--ds-font-zeef-kop); letter-spacing: 0.1em; text-transform: uppercase; background: var(--ds-c-papier-2); border-bottom: var(--ds-lijn-dik) solid var(--ds-c-ink-inkt); }
+.lijst11 .n { font-family: var(--ds-font-zeef-kop); font-weight: 800; text-align: right; font-size: var(--ds-t-label); }
+.lijst11 .nm { font-family: var(--ds-font-zeef-kop); font-weight: 800; font-size: var(--ds-t-label); letter-spacing: var(--ds-ls-label); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.lijst11 li.jij { background: var(--ds-zeef-primair); box-shadow: inset var(--ds-status-rand) 0 0 var(--ds-c-ink-bord); }
+.vb-veld--breed .vb-spot { left: var(--spot-x); top: var(--spot-y); bottom: auto; }
