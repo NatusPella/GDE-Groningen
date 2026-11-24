@@ -11,7 +11,7 @@ import { plan as mixPlan, speechDuckFactor, categoryLevel, duckVeilig } from './
 import { speechDuckStep } from './sfx/sfxfeel.js';
 import { createLinkups } from './sfx/linkups.js';
 import { createSamples, SAMPLE_INFO, vervangSleutel, variatie, autoDeurPlan, slipLoopNiveau, slipLoopRate, grindNodig, DRIFT_SLIP, driftLoopNiveau, driftLoopRate, HANDREM_MIN_V, SLIPSTOOT_SLIP } from './sfx/samples.js';
-import { initAmbience, updateAmbience, ambienceStats, getPlace } from './sfx/ambience.js';
+import { initAmbience, updateAmbience, ambienceStats, getPlace, playAnimalCall } from './sfx/ambience.js';
 import { roomMusicHz } from './sfx/binnenklank.js';
 import { initFoley, updateFoley, propHit, foleyStats } from './sfx/foley.js';
 import { speel as speelMissieSting, stingVanEvent, medailleSting } from './sfx/stingen.js';
@@ -2676,6 +2676,8 @@ function playAudioEvents(world) {
       case 'golf': playGolfEvent(e.sub, x, y, clamp(e.strength ?? 0.5, 0, 1)); break;   // golfphysics.js events (#453)
       case 'purr': case 'yip': playAaiGeluid(e.kind, x, y); break;   // aaien.js (#437)
       case 'fx': playFx(e.name, x, y, e); break;
+      case 'animal': playAnimalCall(e.name, x, y); break;   // een meeuw of eend als losse roep (cutscenesfx.js), dezelfde dieren als de omgeving
+      case 'warm': if (samples && Array.isArray(e.keys)) for (const k of e.keys.slice(0, 48)) samples.has(k); break;   // een cutscene vraagt haar opnames vooraf (cutscenehost.js): has() laadt een luie opname
       // one carillon-game bell (carillon.js): the tower's bell sample at the right pitch, no gap limit
       case 'bell_note': {
         const out = spatialOut(x, y, { ref: 8, rolloff: 0.7, range: 400, prio: 2 });

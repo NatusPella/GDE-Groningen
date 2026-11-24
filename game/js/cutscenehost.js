@@ -36,7 +36,7 @@ import { voiceLevel } from './audio.js';
 setVoiceLevelSource(voiceLevel);
 import { applyClipsHuman, applyClipsCat, resetCat } from './poseclips.js';
 import { showNameCard } from './namecard.js';
-import { audioPlan } from './cutaudio.js';
+import { audioPlan, planEvent, warmKeys, sceneAmbience } from './cutaudio.js';
 import { lineVoiceFor } from './linevoice.js';
 import { plannedVoiceLines } from './voicetiming.js';
 import { cutPakket, cutHostId, cutHostStart, cutHostEnd, cutHostTik, cutGastTik, cutsceneScene, cutsceneVerdeling, acteurRol, cutSpoor } from './coopcut.js';
@@ -166,7 +166,13 @@ function buildScriptRun(def, scene, anchor, env = null, w = null, noKit = false)
   let kit = null;
   const authored = (def.fx || []).map((f) => ({ ...f, t0: resolveTime(f.t, scene.lines, scene.duration) ?? 0 }));
   // vehicles, bikes and pigeons that move get their sound from the plan (cutaudio.js, #117)
-  const planned = audioPlan(def, scene.lines, scene.duration).map((p) => ({ t: p.t, t0: p.t, fx: 'sfx', kind: p.kind, name: p.name }));
+  // plus the scene's own sound moments (cutscenesfx.js): each one the game's own sound for it, at its place in the set (planEvent)
+  const plan = audioPlan(def, scene.lines, scene.duration);
+  const planned = plan.map((p) => ({ t: p.t, t0: p.t, fx: 'sfx', kind: p.kind, name: p.name, plan: p }));
+  // the ambience bed of the scene (cutscenesfx.js): sfx/ambience.js reads world.cutsceneAmb while the scene runs (binnen: the room tone)
+  const amb = sceneAmbience(def.id);
+  const warm = warmKeys(plan);
+  if (w && warm.length) (w.audioEvents || (w.audioEvents = [])).push({ kind: 'warm', keys: warm, x: anchor.x, y: anchor.y });
   const fx = [...authored, ...planned].sort((a, b) => a.t0 - b.t0);
   const fired = new Set();
   const cupState = {}, cupKey = {};
@@ -211,14 +217,16 @@ function buildScriptRun(def, scene, anchor, env = null, w = null, noKit = false)
   }
   const focusId = Object.keys(def.props || {}).find((id) => { const s = propSource(def.props[id].kind); return s && s.vehicle; });
   const doorFx = fx.filter((f) => f.fx === 'door');
-  const sfx = (kind, name) => { if (w) (w.audioEvents || (w.audioEvents = [])).push(name ? { kind, name, x: anchor.x, y: anchor.y } : { kind, x: anchor.x, y: anchor.y }); };
+  const sfx = (f) => { if (w) (w.audioEvents || (w.audioEvents = [])).push(f.plan ? planEvent(f.plan, anchor) : f.name ? { kind: f.kind, name: f.name, x: anchor.x, y: anchor.y } : { kind: f.kind, x: anchor.x, y: anchor.y }); };
   // De effecten van de set (en de sfx van elke set); de keuken heeft daarnaast
   // zijn eigen radio, deur en kopjes. Het kantoorset heeft die niet (#950).
   const setFrame = (t) => {
+    if (w && amb) w.cutsceneAmb = amb;
     let buzz = false;
     for (const f of fx) {
       if (f.t0 > t) break;
-      if (f.fx === 'sfx' && !fired.has(f)) { fired.add(f); sfx(f.kind, f.name); }
+      // een geluid dat al voorbij is (een gast die later instapt, een sprong in de scènetijd) klinkt niet meer: geen salvo van cues tegelijk
+      if (f.fx === 'sfx' && !fired.has(f)) { fired.add(f); if (t - f.t0 < 1) sfx(f); }
       if (!kit || def.set !== 'keuken') continue;
       if (f.fx === 'buzz' && t < f.t0 + (f.dur ?? 2)) buzz = true;
       if (f.fx === 'pulse' && t < f.t0 + (f.dur ?? 2)) kit.radio.rotation.z = Math.sin(t * 9) * 0.05;
@@ -299,6 +307,7 @@ function buildScriptRun(def, scene, anchor, env = null, w = null, noKit = false)
       // #734 (F13): de keukenset heeft eigen materialen en canvas-textures (introkitchen3d.js `own`);
       // die gingen nooit mee de deur uit. `kit.dispose()` ruimt ze op, zoals intromontage.js al doet.
       if (kit && typeof kit.dispose === 'function') kit.dispose();
+      if (w && w.cutsceneAmb === amb) w.cutsceneAmb = null;
       for (const c of crowds) disposeCrowd(c);
       for (const v of verborgen) v.hideInScene = false;
       group.removeFromParent();
