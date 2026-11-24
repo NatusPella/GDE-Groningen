@@ -602,13 +602,16 @@ function renderWorldPrompts(world, primary) {
   // het scherm. De modelmatige marge in placeWp kent niet elke ui-schaal/labelcombinatie.
   const ui = getUiScale();
   for (const s of wps) {
-    if (!s.el.classList.contains('in')) { s.chip.style.translate = ''; continue; }
+    if (!s.el.classList.contains('in')) { s.chip.style.translate = ''; s.el.classList.remove('wp-los'); continue; }
     s.chip.style.translate = '';
     const r = s.chip.getBoundingClientRect();
     const dx = r.right > window.innerWidth - 4 ? window.innerWidth - 4 - r.right : r.left < 4 ? 4 - r.left : 0;
     // #985: ook niet over een kaart, de minikaart of het doel heen: onder of boven dat onderdeel
     const dy = labelDy({ left: r.left + dx, right: r.right + dx, top: r.top, bottom: r.bottom }, hudObstacles(), { w: window.innerWidth, h: window.innerHeight });
     s.chip.style.translate = dx || dy ? `${(dx / ui).toFixed(1)}px ${(dy / ui).toFixed(1)}px` : '';
+    // #1189 (hertest 24-11): een label dat onder de doelbalk is geschoven hangt niet meer aan zijn stip; de schuine lijn wees dan
+    // dwars door de tekst. Los van het anker: geen lijn, alleen de stip op de plek zelf.
+    s.el.classList.toggle('wp-los', !!dy);
   }
 }
 

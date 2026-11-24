@@ -102,6 +102,9 @@ function badgeMaterial() {
   return badgeMat;
 }
 
+// #1189 (beeld 24-11): at 0.52 m the badge filled a sixth of the screen height when you stood a few metres from the spot and
+// shouted louder than the prompt and the objective; 0.4 m still reads from across a square and the minimap marks the spot too
+export const BADGE_SIZE_M = 0.4;
 function buildMarker(x, y) {
   const group = new THREE.Group();
   group.position.set(x, 0, y);
@@ -109,7 +112,7 @@ function buildMarker(x, y) {
   pad.position.y = 0.03;
   group.add(pad);
   const badge = new THREE.Sprite(badgeMaterial());
-  badge.scale.set(0.52, 0.52, 1);
+  badge.scale.set(BADGE_SIZE_M, BADGE_SIZE_M, 1);
   const phase = Math.random() * Math.PI * 2;
   badge.position.y = 2.3;
   badge.onBeforeRender = () => { badge.position.y = 2.3 + Math.sin(performance.now() / 650 + phase) * 0.06; };

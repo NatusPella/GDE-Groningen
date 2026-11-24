@@ -80,6 +80,8 @@
 
 #hud .wp.flip .wp-line { left: -3px; transform: rotate(-142deg) scaleX(0); }
 #hud .wp.flip.in .wp-line { transform: rotate(-142deg) scaleX(1); }
+/* #1189: een label dat voor de doelbalk of een kaart is opgeschoven (prompts.js wp-los) heeft geen lijn: die wees dwars door de tekst */
+#hud .wp.wp-los .wp-line { visibility: hidden; }
 #hud .wp.flip .wp-chip {
   left: auto;
   right: 26px;
