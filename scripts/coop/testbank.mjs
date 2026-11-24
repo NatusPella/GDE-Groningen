@@ -632,7 +632,7 @@ for (const n of NAMES) {
   check(full.length > 3, `${n}: ziet niet alle ${EXPECT - 1} medespelers (max ${Math.max(0, ...samples(n).map((s) => (s.partners || []).length))})`);
 }
 // positie van Tammo bij de gast, speelklok, desync
-const gW = [...gs].filter((q) => q.role === 'client' && q.companion && (q.ph === 'wacht' || q.ph === '')).pop(), hW = gW && hs.filter((q) => q.me && Math.abs(q.t - gW.t) < 1.5)[0]; // aan het begin, terwijl beiden stilstaan
+const gW = [...gs].filter((q) => q.role === 'client' && q.companion && (q.ph === 'wacht' || q.ph === '')).pop(), hW = gW && hs.filter((q) => q.me && Math.abs(q.wall - gW.wall) < 1500)[0]; // op dezelfde wandklok: t telt per venster vanaf zijn eigen start (samenqa 24-11: 101 s bij de host was 45 s voor 102 s bij de gast, 215 m na een warp)
 if (gW && hW && SUITE !== 'gastacties') { // (bij gastacties staat de host steeds ergens anders)
   const d = Math.hypot(gW.companion.x - hW.me.x, gW.companion.y - hW.me.y);
   check(d < 6, `gast ziet Tammo op ${d.toFixed(1)} m van de host`);

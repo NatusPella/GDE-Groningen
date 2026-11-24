@@ -2026,12 +2026,12 @@ const PHASES = {
       for (let i = 0; i < 100 && performance.now() < qaT0() + (s - 3) * 1000; i++) {
         await sleep(500);
         const b = bussen()[0], ist = IN.instapStats(); maxWissel = Math.max(maxWissel, ist.wissels);
-        if (b) { qaKijk(b.x, b.y); if (Math.abs(b.snelheid) < 0.3 && Math.hypot(b.x - me.x, b.y - me.y) < 40) stil++; if (b.ind) knipper++; }
+        if (b) { qaKijk(b.x, b.y); if (Math.abs(b.snelheid) < 0.3 && Math.hypot(b.x - me.x, b.y - me.y) < 40) { stil++; if (stil === 3) shot('qa-halte-gast-bus-stil'); } if (b.ind) knipper++; } // ook een beeld van de stilstaande bus zelf, niet alleen als er reizigers zijn
         if (i % 4 === 0) verloop.push(b ? [qaR(b.snelheid), b.ind || '-', qaR(Math.hypot(b.x - me.x, b.y - me.y)), ist.wissels, ist.wachtend] : ['geen bus', ist.wissels, ist.wachtend]);
         if (ist.wissels > 0 && beeld === 0) { beeld = 1; await sleep(600); shot('qa-halte-gast-instappers'); }
       }
       if (!beeld) shot('qa-halte-gast-instappers');
-      log('qa-halte-gast', { verloop, maxWissel, stilTellen: stil, knipperTellen: knipper });
+      log('qa-halte-gast', { verloop, maxWissel, stilTellen: stil, knipperTellen: knipper, wachtend: IN.instapStats().wachtend });
     }
     await tot(s);
   },
