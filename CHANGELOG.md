@@ -9,6 +9,9 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ## [Unreleased]
 
+- Voetbal: het scherm is opnieuw opgezet. Bovenin staan je clubwapen, de klasse, je plek, je vorm (W, G of V) en je geld; de tabs zijn echte tabs met een onderstreping (Overzicht, Selectie, Tactiek, Stand, Kalender, Training, Club). Op Overzicht staat de volgende wedstrijd met twee wapens, wanneer en waar, sterkte tegen sterkte en een gele knop Speel de wedstrijd; Laat uitrekenen staat eronder met wat het oplevert. De sponsors staan nu op Club. Samen spelen: het Clubhuis is van jezelf; een gast kan niet zelf een wedstrijd starten, coachen of transfers doen, en tijdens een gedeelde wedstrijd is uitrekenen dicht.
+- Voetbal: Selectie is een tabel met een zijpaneel (vaardigheden tegen het teamgemiddelde en je plafond), Tactiek heeft een formatieveld met klikbare plekken, vorming en speelstijl als keuze met uitleg en een bank met kandidaten, en Stand heeft kolommen, wapens en kleurzones: promotie bovenin en degradatie onderin, in de laagste klasse alleen promotie. Elke club heeft een eigen wapen.
+- Voetbal: de opstelling bij de aftrap is één kaart met een veld voor beide teams en twee lijsten met vaste kolommen. Tijdens de wedstrijd spreken hoogstens een scorebalk, één melding en je spelerskaart; de toetsregel staat in groepen en het commentaar overlapt de plaatsnaam niet meer.
 - Menu: de onderstreping van de tabbladen staat weer onder het gekozen tabblad, ook als een tabblad ervoor later breder wordt (bijvoorbeeld Club onder Land en bedrijf). Samen spelen: alleen beeld.
 - Voetbalcarrière: in het tabblad Trainer zijn de gekozen vorming en speelstijl gemarkeerd. Samen spelen: alleen beeld, per speler.
 - Voetbal: het commentaar bij een carrièrewedstrijd op een sportpark heet je niet meer welkom "in de Euroborg" en juicht niet meer voor de Stadjers als die niet meespelen. Samen spelen: per speler, zoals het commentaar al was.

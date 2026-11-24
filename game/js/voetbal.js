@@ -36,7 +36,7 @@ import {
 import {
   makeMatch, tikWedstrijd, zetTactiek, verlaatVoetbal, uitslagVoetbal, medailleUitRij, liveVoetbal, makeFootballMirror, voerInVoetbal, tikVoetbalSpiegel,
 } from './voetbalmatch.js';
-import { voetbalHudModel, voetbalBoard, popVan, UITLEG_ID } from './voetbalstatus.js';
+import { voetbalHudModel, voetbalBoard, popVan, UITLEG_ID, toetsGroepenHtml } from './voetbalstatus.js';
 import { makeCommentaar, commentaarVoor, tikCommentaar, commentMvp, derbyVan } from './voetbalcommentaar.js';
 import { makeRegie, regieTik, cameraVoor, makeOpname, opnameTik, opnameClip, clipFrame, pasFrameToe, herstelStaat, planHerhaling, herhalingShot, nextMode, MODE_NAMES } from './voetbalregie.js';
 import { magOverslaan, carriereBannerRijen, scoreboardRow, opstellingHtml, rustHtml, eindHtml, radarHtml, subtitleHtml, guestEvents, guestState, leesTvVoorkeur, hex } from './voetbalpresentatie.js';
@@ -671,9 +671,9 @@ function tvTik(w, dt) {
   let paneel = null, hint = null;
   const cardPhase = sim.fase === 'intro' || sim.fase === 'rust' || sim.fase === 'eind' || sim.fase === 'klaar';
   if (cardPhase) {
-    if (g.paneelCache.fase !== sim.fase) g.paneelCache = { fase: sim.fase, html: sim.fase === 'intro' ? opstellingHtml(sim, plekTekst(g)) : sim.fase === 'rust' ? rustHtml(sim) : eindHtml(sim) };
+    if (g.paneelCache.fase !== sim.fase) g.paneelCache = { fase: sim.fase, html: sim.fase === 'intro' ? opstellingHtml(sim, plekTekst(g), { knop: !g.online }) : sim.fase === 'rust' ? rustHtml(sim) : eindHtml(sim) };
     paneel = g.paneelCache.html;
-    hint = g.online ? null : '{F} Doorgaan';
+    hint = g.online || sim.fase === 'intro' ? null : '{F} Doorgaan';
   } else g.paneelCache = { fase: '', html: '' };
   g.radarT -= dt;
   if (g.radarT <= 0) { g.radarT = 0.2; g.radarHtml = cardPhase || g.replay ? null : radarHtml(sim, eigenId(g)); }
@@ -862,7 +862,7 @@ function updateHud(w) {
     hervat: sim.hervat ? sim.hervat.kind : null, tekst: g.online === 'gast' ? sim.flashTekst : sim.flash ? sim.flash.tekst : '', uitleg: !uitlegGezien(UITLEG_ID),
   };
   if (model.laad > 0.02) zetUitlegGezien(UITLEG_ID);
-  const boardModel = voetbalBoard({ ...model, help: keyTextHtml('{WASD} lopen · {F} pass · {E} lang · {SPATIE} schot · {CTRL} tackle · {Q} wissel · {1} stijl · {2} vorming · {3} camera · {BACKSPACE} stopt') });
+  const boardModel = voetbalBoard({ ...model, help: toetsGroepenHtml(keyTextHtml) });
   boardModel.row = scoreboardRow(sim);
   ensureBoard().set(boardModel);
   simHudTik(0, voetbalHudModel({ ...model, formaatNaam: FORMATEN[sim.formaat].naam }));

@@ -10,6 +10,7 @@ import { COMMENTATOREN, KINDS, COMMENTAAR, MIN_PER_KIND, MIN_TOTAAL, MAX_WORDS }
 import { makeCommentaar, commentaarVoor, tikCommentaar, allLines, countLines, vulSjabloon, stemSleutel, derbyVan } from '../game/js/voetbalcommentaar.js';
 import { hasForbiddenWord } from './voetbal_verboden.mjs';
 import { CAMERA_MODI, SHOTS, cleanModus, nextMode, makeRegie, regieTik, cameraVoor, makeOpname, opnameTik, opnameClip, clipFrame, pasFrameToe, herstelStaat, planHerhaling, herhalingShot } from '../game/js/voetbalregie.js';
+import * as _status from '../game/js/voetbalstatus.js';
 import { scoreboardRow, clubLogo, cardIcon, hex, opstellingHtml, rustHtml, eindHtml, eindModel, radarModel, radarHtml, guestEvents, leesTvVoorkeur, subtitleHtml } from '../game/js/voetbalpresentatie.js';
 import { CLUBS } from '../game/js/voetbalclubs.js';
 
@@ -321,7 +322,7 @@ t('presentatie: scorebord met verzonnen logo\'s en kaart- en blessure-icoontjes,
   assert.ok(rij.includes('vbtv-logo') && rij.includes('vbtv-kaart--geel') && rij.includes('vbtv-blessure'));
   assert.equal(rij.includes('<b>Boze</b>'), false, 'de teamnaam is ontsnapt'); assert.ok(rij.includes('&lt;b&gt;Boze'));
   kaart.rood = true; assert.ok(scoreboardRow(m).includes('vbtv-kaart--rood'));
-  for (const club of CLUBS) { const svg = clubLogo(club, 30); assert.ok(svg.startsWith('<svg') && svg.includes('role="img"') && !/NaN|undefined/.test(svg), club.id); }
+  for (const club of CLUBS) { const svg = clubLogo(club, 30); assert.ok(svg.startsWith('<span class="vbtv-logo vb-wapen') && svg.includes('role="img"') && !/NaN|undefined/.test(svg), club.id); }
   assert.ok(cardIcon('rood').includes('rood') && cardIcon('geel').includes('geel'), 'een kaart heeft een woord, niet alleen een kleur');
   assert.equal(hex(0x2f9e5b), '#2f9e5b'); assert.equal(hex(NaN), '#000000');
 });
@@ -409,12 +410,29 @@ t('commentaar op een sportpark (beeld 24-11): geen regel over de Euroborg, en ge
   assert.equal(thuis.mijd, null, 'in de Euroborg met de Stadjers mag alles');
 });
 
-t('stijl: de gespiegelde kolom van de opstelling geeft de rol niet de smalle kolom (#1110, 24-11: "KeepeAart" liep over de naam)', () => {
-  const css = fs.readFileSync(new URL('../game/js/voetbaltv.css', import.meta.url), 'utf8');
-  const thuis = /\.vbtv-kolom li \{[^}]*grid-template-columns:\s*([^;]+);/.exec(css), uit = /\.vbtv-kolom--uit li \{[^}]*grid-template-columns:\s*([^;]+);/.exec(css);
-  assert.ok(thuis && uit, 'beide kolommen hebben een raster');
-  assert.equal(uit[1].trim(), thuis[1].trim(), 'rtl spiegelt de volgorde al: dezelfde kolommen als thuis');
-  assert.match(css, /\.vbtv-kolom--uit li \{[^}]*direction:\s*rtl/);
+t('opstelling (Club-UI 24-11): twee lijsten met dezelfde kolommen en één veld met beide teams; de kop gebruikt de korte naam en breekt niet; de gele Aftrap draagt zijn toets', () => {
+  const css = fs.readFileSync(new URL('../game/js/voetbaltv.css', import.meta.url), 'utf8'), ds = fs.readFileSync(new URL('../game/js/ds-voetbal.css', import.meta.url), 'utf8');
+  const regel = (bron, kop) => { const i = bron.indexOf(kop); return i < 0 ? '' : bron.slice(i, bron.indexOf('}', i)); };
+  assert.ok(regel(css, '.vbtv-introrij {').includes('minmax(0, 2fr)'), 'lijst, veld en lijst op één raster');
+  assert.ok(regel(css, '.vbtv-teamnaam {').includes('white-space: nowrap'), 'de kopregel breekt niet over twee regels');
+  assert.ok(regel(ds, '.lijst11 > .h, .lijst11 li {').includes('grid-template-columns: var(--ds-s-6) var(--ds-s-6) minmax(0, 1fr)'), 'de kop en de rijen hebben dezelfde kolommen');
+  assert.ok(regel(css, '.vbtv-ondertitel {').includes('bottom: calc(var(--ds-s-8) * 2)'), 'het commentaar staat boven de plaatsnaam');
+  const m = makeMatch([{ slot: 0, naam: 'Jij' }], { duur: 'kort', seed: 42, aiBeide: false, formaat: 'groot' });
+  const op = opstellingHtml(m, 'in de Euroborg', { knop: true });
+  assert.equal((op.match(/class="lijst11 /g) || []).length, 2); assert.equal((op.match(/class="vb-spot /g) || []).length, 22, 'alle spelers op het ene veld');
+  assert.match(op, /class="vbtv-teamnaam">/); assert.ok(!op.includes(m.teams[0].naam + '</h2>') || m.teams[0].naam === m.teams[0].kort);
+  assert.ok(op.includes('vbtv-aftrap') && op.includes('<span class="ds-z-knop__label">Aftrap</span><span class="ds-z-knop__toets'), 'de toets zit in de knop'); assert.ok(op.includes('Jij speelt als <b>'));
+  assert.ok(!opstellingHtml(m, 'in de Euroborg', { knop: false }).includes('vbtv-aftrap'), 'een gast kan niet doorgaan');
+  assert.ok(!/NaN|undefined/.test(op));
 });
-
+t('de HUD tijdens de wedstrijd: de toetsregel in groepen en de spelerskaart zonder stand, bezit en klok (die staan op het bord)', () => {
+  const st = fs.readFileSync(new URL('../game/js/voetbalstatus.js', import.meta.url), 'utf8');
+  const { TOETS_GROEPEN, toetsGroepenHtml, voetbalHudModel } = _status;
+  assert.ok(TOETS_GROEPEN.length >= 4 && TOETS_GROEPEN.length <= 5, 'hoogstens vijf groepen');
+  const h = toetsGroepenHtml((x) => x);
+  assert.equal((h.match(/vb-hint__groep/g) || []).length, TOETS_GROEPEN.length); assert.ok(h.includes('Lopen') && h.includes('Bal') && h.includes('Verdedigen') && h.includes('Tactiek'));
+  assert.ok(st.includes('toetsGroepenHtml'));
+  const mdl = voetbalHudModel({ fase: 'spel', helft: 1, klok: 5, score: [1, 0], namen: ['A', 'B'], bezit: [10, 5], eigen: 1, mijnTeam: 0 });
+  assert.deepEqual(mdl.cijfers.map((c) => c.label), ['Jouw doelpunten'], 'alleen je eigen doelpunten op de spelerskaart');
+});
 console.log(`voetbal_uitzending_test ok (${n} groepen)`);

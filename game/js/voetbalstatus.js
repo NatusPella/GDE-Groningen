@@ -19,6 +19,9 @@ export const UITLEG = [
   { toets: ['CTRL', 'Q'], animatie: 'druk', tekst: 'Tackle en wissel van speler' },
 ];
 const HELP_TEXT = '{WASD} lopen · {F} pass · {E} lang · {SPATIE} schot · {CTRL} tackle · {Q} wissel · {3} camera';
+// De toetsregel in groepen (Club-UI 24-11): een groep heeft een naam en hoort bij elkaar, zodat de regel nooit midden in een groep breekt. `render` maakt van een tekst met {TOKEN}s toetsplaatjes (keycap.js keyTextHtml).
+export const TOETS_GROEPEN = [['Lopen', '{WASD} lopen'], ['Bal', '{F} pass · {E} lang · {SPATIE} schot'], ['Verdedigen', '{CTRL} tackle · {Q} wissel'], ['Tactiek', '{1} stijl · {2} vorming'], ['Verder', '{3} camera · {BACKSPACE} stopt']];
+export const toetsGroepenHtml = (render) => TOETS_GROEPEN.map(([naam, tekst]) => `<span class="vb-hint__groep"><span class="vb-hint__naam">${esc(naam)}</span>${render(tekst)}</span>`).join('');
 
 const esc = (s) => String(s == null ? '' : s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const PHASE_WORD = { intro: 'Aanstaande', aftrap: 'Aftrap', spel: '', hervat: 'Herstart', goal: 'Doelpunt', rust: 'Rust', eind: 'Einde', klaar: 'Einde' };
@@ -43,13 +46,9 @@ export function voetbalHudModel(g0) {
   const idx = STEPS.findIndex((s) => s.id === stepOf(g));
   const steps = STEPS.map((s, i) => ({ label: s.label, icoon: s.icoon, stand: i === idx ? 'nu' : 'straks' }));
   const meter = { pct: Math.max(0, Math.min(100, (g.stamina == null ? 1 : g.stamina) * 100)), naam: 'Adem voor het sprinten', label: g.moe ? 'Buiten adem' : 'Adem', staat: g.moe ? 'laag' : '' };
-  const cijfers = [
-    { label: 'Jullie doelpunten', waarde: String((g.score || [0, 0])[0]), icoon: ICOON.score, primair: true },
-    { label: 'Tegen', waarde: String((g.score || [0, 0])[1]), icoon: ICOON.verdedig },
-  ];
-  if (g.bezit) { const tot = Math.max(1, g.bezit[0] + g.bezit[1]); cijfers.push({ label: 'Bezit', waarde: `${Math.round((g.bezit[0] / tot) * 100)}%`, icoon: ICOON.bezit }); }
-  if (g.eigen != null) cijfers.push({ label: 'Jouw doelpunten', waarde: String(g.eigen), icoon: ICOON.schoten });
-  cijfers.push({ label: helftTekst(g.helft || 1), waarde: clockText(g.klok == null ? 0 : g.klok), icoon: ICOON.tijd });
+  // de spelerskaart (Club-UI 24-11): hoogstens drie dingen spreken tegelijk (bord, een melding, deze kaart); de stand, het bezit en de klok staan op het bord en in de rust, dus hier alleen je eigen doelpunten
+  const cijfers = [];
+  if (g.eigen != null) cijfers.push({ label: 'Jouw doelpunten', waarde: String(g.eigen), icoon: ICOON.schoten, primair: true });
   return {
     id: 'voetbal', controller: 'voetbal', titel: 'Voetbal Euroborg', icoon: ICOON.aanval, plek: g.formaatNaam || '5 tegen 5', stappen: steps, meter, cijfers, uitleg: g.uitleg && (g.fase === 'aftrap' || g.fase === 'hervat') ? UITLEG : [],
     nu: watNu(g), hulp: HELP_TEXT, slecht: false,
