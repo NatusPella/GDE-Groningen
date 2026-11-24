@@ -19,7 +19,10 @@ Telling: 102 scènes, 163 props, 51 soorten in gebruik, 27 aankledingsplannen, 5
 | botsauto | decor | 48 | 300 | 4 | 1.74 x 0.95 x 1.04 | 2 |
 | briefje | decor | 24 | 400 | 2 | 0.21 x 0.016 x 0.15 | 4 |
 | broodtrommel | decor | 36 | 400 | 3 | 0.29 x 0.145 x 0.195 | 1 |
+| busdeksel | decor | 340 | 420 | 1 | 0.23 x 0.111 x 0.236 | 0 |
 | bushokje | decor | 514 | 900 | 1 | 4.14 x 2.76 x 1.76 | 0 |
+| carbidbok | decor | 276 | 400 | 1 | 0.646 x 0.555 x 0.549 | 0 |
+| carbidspul | decor | 514 | 650 | 1 | 0.526 x 0.425 x 0.324 | 0 |
 | container | decor | 204 | 600 | 4 | 3.1 x 2.72 x 2.5 | 5 |
 | deken | decor | 48 | 400 | 2 | 1.3 x 0.032 x 0.9 | 1 |
 | doos | decor | 24 | 400 | 2 | 0.52 x 0.4 x 0.4 | 12 |
@@ -28,9 +31,11 @@ Telling: 102 scènes, 163 props, 51 soorten in gebruik, 27 aankledingsplannen, 5
 | fotolijst | decor | 72 | 400 | 3 | 0.47 x 1.408 x 0.36 | 1 |
 | friteuse | decor | 60 | 400 | 4 | 0.8 x 1.01 x 0.63 | 1 |
 | frituuraanhanger | decor | 176 | 400 | 8 | 4.1 x 1.68 x 2.325 | 1 |
+| gehoorkap | decor | 368 | 480 | 1 | 0.1 x 0.207 x 0.31 | 0 |
 | goudbal | decor | 372 | 600 | 2 | 0.254 x 0.235 x 0.254 | 0 |
 | hek | decor | 48 | 400 | 2 | 2.5 x 1.1 x 0.1 | 1 |
 | hesjes | decor | 48 | 400 | 2 | 0.5 x 0.2 x 0.4 | 1 |
+| hooibaal | decor | 1012 | 1200 | 1 | 1.361 x 1.412 x 1.239 | 0 |
 | jas | decor | 48 | 400 | 3 | 0.44 x 0.13 x 0.49 | 1 |
 | jeneverglas | decor | 80 | 400 | 2 | 0.043 x 0.076 x 0.045 | 0 |
 | jerrycan | decor | 152 | 260 | 1 | 0.191 x 0.502 x 0.33 | 4 |
@@ -41,9 +46,12 @@ Telling: 102 scènes, 163 props, 51 soorten in gebruik, 27 aankledingsplannen, 5
 | klomp | decor | 128 | 400 | 3 | 0.38 x 0.128 x 0.12 | 5 |
 | koelbox | decor | 36 | 400 | 3 | 0.62 x 0.415 x 0.42 | 1 |
 | koffer | decor | 60 | 400 | 4 | 0.56 x 0.42 x 0.22 | 4 |
+| koffietafel | decor | 960 | 1200 | 1 | 0.704 x 1.118 x 1.322 | 0 |
 | krat | decor | 228 | 400 | 3 | 0.51 x 0.26 x 0.34 | 6 |
+| lontstok | decor | 164 | 260 | 1 | 2.055 x 0.072 x 0.07 | 0 |
 | map | decor | 48 | 400 | 4 | 0.326 x 0.032 x 0.27 | 2 |
 | matras | decor | 48 | 300 | 4 | 1.94 x 0.3 x 1.04 | 1 |
+| melkbus | decor | 824 | 1000 | 1 | 0.68 x 0.372 x 0.336 | 0 |
 | mosterdpot | decor | 92 | 400 | 3 | 0.2 x 0.175 x 0.2 | 1 |
 | paaltje | decor | 160 | 260 | 1 | 0.23 x 0.93 x 0.23 | 0 |
 | pan | decor | 200 | 400 | 3 | 0.41 x 0.315 x 0.5 | 3 |
@@ -60,6 +68,7 @@ Telling: 102 scènes, 163 props, 51 soorten in gebruik, 27 aankledingsplannen, 5
 | tas | decor | 48 | 400 | 4 | 0.42 x 0.355 x 0.23 | 2 |
 | vetvat | decor | 324 | 480 | 1 | 0.57 x 0.9 x 0.584 | 4 |
 | vuurwerk | decor | 150 | 400 | 3 | 0.52 x 0.675 x 0.36 | 1 |
+| weidehek | decor | 214 | 320 | 1 | 0.18 x 1.43 x 4.22 | 0 |
 | wijnglas | decor | 80 | 400 | 2 | 0.058 x 0.12 x 0.061 | 0 |
 | zuil | decor | 36 | 400 | 3 | 0.4 x 1.305 x 0.42 | 1 |
 
@@ -129,5 +138,5 @@ Cutscene-sets in gebruik: loket (3), kantoor (5), omakeuken (4), serverkamer (1)
 - Het prikbord (N8, de vijf vrienden) bestaat nu als model, maar er is nog geen scène-spec die hem neerzet (N8 is een gesprek zonder cutscene-spec).
 - Niets hiervan is in beeld gezien (geen Electron in deze ronde): vorm, schaal en kleur zijn alleen gemeten, niet gekeken.
 
-Soorten zonder scène-gebruik (model bestaat, geen spec zet ze neer): bal, bank, afvalbak, fietsenrek, bushokje, paaltje, pinautomaat, goudbal, polsstok, bierglas, jeneverglas, wijnglas, kiosk, sticker, koe.
+Soorten zonder scène-gebruik (model bestaat, geen spec zet ze neer): bal, bank, afvalbak, fietsenrek, bushokje, paaltje, melkbus, busdeksel, carbidbok, carbidspul, lontstok, gehoorkap, koffietafel, hooibaal, weidehek, pinautomaat, goudbal, polsstok, bierglas, jeneverglas, wijnglas, kiosk, sticker, koe.
 

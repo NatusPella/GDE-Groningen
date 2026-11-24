@@ -26,6 +26,10 @@ import { JELLE_LOOK, DURK_LOOK, DOUWE_LOOK } from './storycast.js';
 import { spawnPedestriansNear } from './pedestrians.js';
 import { isOnRoad } from './pedgeom.js';
 import { KERMIS } from './kermis.js';
+import { CARBID } from './carbid.js';
+import { buildCarbidSet, busOpBok, animateCarbidSet, vrijOpKaart } from './carbidset.js';
+import { dekselOp } from './carbidintro.js';
+import { spawnFxPuff } from './fx3d.js';
 import { tractorBodyGeometry, tractorBaseGeometry } from './countrymodels.js';
 import { vcMaterial } from './pixelart3d.js';
 import { Vehicle, MODELS, TRAFFIC_MODELS, spawnHeroCarNear } from './vehicle.js';
@@ -550,32 +554,19 @@ function buildBumperCar() {
   return g;
 }
 
-// A milk churn on a trestle with carbid: the lid goes off with a bang.
-function buildChurn() {
-  const g = new THREE.Group();
-  const steel = propMat(0xc8ced2, { roughness: 0.38, metalness: 0.35 });
-  const churn = new THREE.Group();
-  churn.position.set(0, 0.98, 0);
-  churn.rotation.z = Math.PI / 2 - 0.12;
-  g.add(churn);
-  churn.add(new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.22, 0.78, 16), steel));
-  const neck = new THREE.Mesh(new THREE.CylinderGeometry(0.13, 0.19, 0.14, 16), steel);
-  neck.position.y = 0.45;
-  churn.add(neck);
-  const lid = new THREE.Mesh(new THREE.SphereGeometry(0.16, 14, 8), propMat(0xd02a1e, { roughness: 0.5 }));
-  lid.scale.set(1, 0.6, 1);
-  g.add(lid);
-  for (const x of [-0.25, 0.25]) for (const z of [-0.18, 0.18]) {
-    const leg = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.9, 0.06), propMat(0x6a4a2a));
-    leg.position.set(x, 0.45, z);
-    g.add(leg);
-  }
-  const smoke = new THREE.Mesh(new THREE.SphereGeometry(0.5, 12, 8), new THREE.MeshBasicMaterial({ color: 0xe8e4dc, transparent: true, opacity: 0, depthWrite: false }));
-  g.add(smoke);
-  g.traverse((o) => { if (o.isMesh && o !== smoke) o.castShadow = true; });
-  g.userData = { lid, smoke };
-  return g;
+// Carbid schieten on boer Roelf's yard (24-11): the same yard as the activity (carbidset.js: the row of churns on trestles, the
+// fence with onlookers, the coffee table, tractor, shed, farm and trees, all from the real libraries) round the churn that fires.
+function buildCarbidYard(map) {
+  const f = CARBID.field(), c = Math.cos(f.rot), s = Math.sin(f.rot);
+  const toW = (u, v) => ({ x: f.x + c * u - s * v, y: f.y + s * u + c * v });
+  const root = new THREE.Group();
+  const bus = busOpBok(0.32);
+  root.add(bus.groep);
+  const set = buildCarbidSet(root, { vrij: vrijOpKaart(map, toW) });
+  root.userData = { bus: bus.bus, deksel: bus.deksel, thuis: bus.deksel.position.clone(), set, toW, field: f };
+  return root;
 }
+
 
 function buildTractor() {
   const g = new THREE.Group();
@@ -1254,35 +1245,55 @@ function buildShots(w) {
     },
   };
 
+  // carbid schieten in the Ommelanden (24-11, feedback eigenaar): on boer Roelf's yard by the Beijumerweg, the row of churns on
+  // trestles with the farm, fence and onlookers behind; one churn goes off, the lid flies into the meadow, smoke and fire
+  const veld = CARBID.field();
+  // the Ommeland edge north-east of the city (the gameplay shot over the whole map looks that way)
   const box = cityBox(map);
   const land = { x: (box[0] + box[2]) / 2 + 300, y: box[1] - 260 };
-  const churnAt = { x: land.x - 20, y: land.y + 17 };
+  const vc = Math.cos(veld.rot), vs = Math.sin(veld.rot);
+  const FW = (u, v) => ({ x: veld.x + vc * u - vs * v, y: veld.y + vs * u + vc * v });
+  const KNAL = 1.0;
   const ommeland = {
-    label: 'De Ommelanden', cuts: ['vol'], dur: 4.0, clock: 19.0, weather: 'helder', focus: land,
-    sfx: [[2.2, 'knal']],
-    prep(r) { r.prop('churn', buildChurn); },
+    label: 'Carbid in de Ommelanden', cuts: ['vol'], dur: 4.0, clock: 19.9, weather: 'helder', focus: FW(-4, 0),
+    sfx: [[KNAL, 'knal']],
+    prep(r) { r.prop('carbiderf', () => buildCarbidYard(map)); },
     enter(r, s) {
-      s.churn = r.prop('churn', buildChurn);
-      s.z = gz(churnAt.x, churnAt.y);
-      s.churn.position.set(churnAt.x, s.z, churnAt.y);
-      s.churn.rotation.y = -2.2;
+      s.erf = r.prop('carbiderf', () => buildCarbidYard(map));
+      s.erf.position.set(veld.x, gz(veld.x, veld.y), veld.y);
+      s.erf.rotation.y = -veld.rot;
+      s.banged = false;
     },
-    tick(r, s, t) {
-      const { lid, smoke } = s.churn.userData;
-      const k = t - 2.2;
-      if (k < 0) { lid.position.set(-0.52, 0.93, 0); smoke.material.opacity = 0; return; }
-      if (!s.banged) { s.banged = true; flash(false); }
-      lid.position.set(-0.52 - k * 9, 0.93 + k * 7 - 4.9 * k * k, Math.sin(k * 3) * 0.3);
-      lid.rotation.set(k * 9, 0, k * 6);
-      smoke.position.set(-0.7 - k * 1.2, 0.95 + k * 0.6, 0);
-      smoke.scale.setScalar(0.4 + k * 2.4);
-      smoke.material.opacity = Math.max(0, 0.75 - k * 0.45);
+    tick(r, s, t, dt) {
+      const { bus, deksel, thuis, set } = s.erf.userData;
+      const k = t - KNAL;
+      animateCarbidSet(set, dt || 0, k > 0.3 ? 'clap' : null);
+      if (k < 0) { if (deksel.parent !== bus) bus.add(deksel); deksel.position.copy(thuis); deksel.rotation.set(0, 0, -Math.PI / 2); s.banged = false; return; }
+      const mond = bus.localToWorld(thuis.clone());
+      if (!s.banged) {
+        s.banged = true;
+        flash(false);
+        for (let i = 0; i < 18; i++) spawnFxPuff(mond.x, mond.y, mond.z, vc * (2 + Math.random() * 6) + (Math.random() - 0.5) * 2, 0.4 + Math.random() * 1.6, vs * (2 + Math.random() * 6) + (Math.random() - 0.5) * 2, 1.4 + Math.random() * 1.4, 0.5, 2.6, 0.9, 0.89, 0.86, 0.7, 1.4, 0.3);
+        for (let i = 0; i < 6; i++) spawnFxPuff(mond.x, mond.y, mond.z, vc * (5 + Math.random() * 4), Math.random(), vs * (5 + Math.random() * 4), 0.18, 0.15, 0.6, 1, 0.75, 0.3, 1, 3, 0, 1);
+        for (let i = 0; i < 10; i++) spawnFxPuff(mond.x + vc * i * 0.5, mond.y + 0.3, mond.z + vs * i * 0.5, vc * 0.8, 0.25, vs * 0.8, 4.5 + Math.random() * 1.5, 0.8, 3.2, 0.82, 0.81, 0.78, 0.45, 0.6, 0.15);
+      }
+      if (deksel.parent !== s.erf) s.erf.add(deksel);
+      const m = s.erf.worldToLocal(mond.clone());
+      const d = dekselOp(k, undefined, { u: m.x, h: m.y });
+      deksel.position.set(d.u, d.h, m.z + d.v);
+      deksel.rotation.set(d.ligt ? 0 : d.spin, 0.3, d.ligt ? 0 : -Math.PI / 2 + Math.sin(d.spin) * 0.7);
+      if (!d.ligt && dt > 0) { const p = deksel.getWorldPosition(new THREE.Vector3()); spawnFxPuff(p.x, p.y, p.z, 0, 0.2, 0, 1.6, 0.12, 0.7, 0.85, 0.84, 0.8, 0.6, 1.2, 0.1); }
     },
+    exit(r, s) { if (s.erf) { const { bus, deksel, thuis } = s.erf.userData; bus.add(deksel); deksel.position.copy(thuis); } },
     cam(u) {
-      const cz = gz(churnAt.x, churnAt.y);
-      return { position: P(land.x - 40 + u * 22, land.y + 30, cz + lerp(2.2, 3.2, u)), lookAt: P(churnAt.x + 3, churnAt.y - 9, cz + 1.4), fov: 48, shake: 0.04 };
+      // from the road side over the row of churns onto the yard (the intro's first shot, carbidintro.js): churns, onlookers behind
+      // the fence, the shed and the farm, the sun from the side; a slow dolly in
+      const a = FW(lerp(-5.4, -4.4, u), lerp(-5.8, -5.0, u)), l = FW(lerp(1.4, 1.9, u), lerp(3.2, 3.0, u));
+      const z = gz(veld.x, veld.y);
+      return { position: P(a.x, a.y, z + lerp(2.5, 2.1, u)), lookAt: P(l.x, l.y, z + 1.1), fov: 52, shake: 0.05 };
     },
   };
+
 
   // The benchmark's rail stretch (#159): the train nearest the city, from beside the track; falls back to the tower when a build has no trains.
   const spoorTrain = (() => {

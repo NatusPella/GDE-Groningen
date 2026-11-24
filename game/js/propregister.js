@@ -141,6 +141,58 @@ export const PROP_REGISTER = {
     nl: 'Buisradio', bouwer: 'buisradio', gebruik: ['interieur'],
     norm: { tris: [160, 420], kleuren: 7, maat: [0.17, 0.38, 0.31], eisen: ['houten kast met gewelfd dak en plint', 'luidsprekerstof met lijsten en messing bies', 'groen afstemvenster met naald', 'twee knoppen', 'antenne'] },
   },
+  // het carbidveld van boer Roelf (24-11, feedback eigenaar: carbidschieten moet zonder ondertitel herkenbaar zijn): de bouwers staan
+  // in carbidprops3d.js; carbid.js (het veld), carbidintro.js (de intro) en de trailershot gebruiken ze
+  melkbus: {
+    nl: 'Melkbus (liggend, carbid)', bouwer: 'melkbus', gebruik: ['cutscene', 'activiteit'],
+    norm: { tris: [600, 1000], kleuren: 6, maat: [0.68, 0.37, 0.34], eisen: ['gedraaide romp met voetrand, twee banden, schouder en hals met kraag', 'open mond met donker binnenwerk (het deksel zit los)', 'twee oren', 'ontsteekgaatje bij de bodem', 'roestplekken'] },
+  },
+  busdeksel: {
+    nl: 'Deksel van de melkbus', bouwer: 'busdeksel', gebruik: ['cutscene', 'activiteit'],
+    norm: { tris: [200, 420], kleuren: 4, maat: [0.23, 0.11, 0.24], eisen: ['schotel met opstaande rand', 'bolle kap', 'beugel op twee voetjes', 'binnenrand aan de onderkant'] },
+  },
+  carbidbok: {
+    nl: 'Houten bok voor de melkbus', bouwer: 'carbidbok', gebruik: ['cutscene', 'activiteit'],
+    norm: { tris: [200, 400], kleuren: 5, maat: [0.65, 0.56, 0.55], eisen: ['twee schragen met gespreide poten', 'V-vormige wieg voor de romp', 'regel onderlangs en schoren', 'spie onder de voorkant', 'bouten'] },
+  },
+  carbidspul: {
+    nl: 'Emmer water en blik carbid', bouwer: 'carbidspul', gebruik: ['cutscene', 'activiteit'],
+    norm: { tris: [380, 650], kleuren: 8, maat: [0.53, 0.43, 0.32], eisen: ['zinken emmer met rand, band, hengsel en water', 'blik met deksel, rode band en witte bies', 'lepel', 'gemorste brokjes carbid'] },
+  },
+  lontstok: {
+    nl: 'Lontstok (fakkel op een stok)', bouwer: 'lontstok', gebruik: ['cutscene', 'activiteit'],
+    norm: { tris: [120, 260], kleuren: 5, maat: [2.06, 0.07, 0.07], eisen: ['lange taps toelopende stok', 'greep van tape', 'omwikkelde lap met ijzerdraad', 'gloeiende punt'] },
+  },
+  gehoorkap: {
+    nl: 'Gehoorkappen', bouwer: 'gehoorkap', gebruik: ['cutscene', 'activiteit'],
+    norm: { tris: [250, 480], kleuren: 4, maat: [0.1, 0.21, 0.31], eisen: ['gebogen hoofdband met kussen', 'twee gele kappen', 'zwarte oorkussens', 'draaipunten'] },
+  },
+  koffietafel: {
+    nl: 'Klaptafel met koffie', bouwer: 'koffietafel', gebruik: ['cutscene', 'activiteit'],
+    norm: { tris: [700, 1200], kleuren: 10, maat: [0.7, 1.12, 1.32], eisen: ['geruit tafelzeil met overhang', 'schragenpoten in een X met regels', 'thermoskan met dop-beker en handvat', 'vier mokken met koffie en een oor', 'koektrommel en krant'] },
+  },
+  hooibaal: {
+    nl: 'Ronde baal hooi', bouwer: 'hooibaal', gebruik: ['cutscene', 'activiteit'],
+    norm: { tris: [800, 1200], kleuren: 5, maat: [1.36, 1.41, 1.24], eisen: ['rol met strovlekken', 'spiraal op de kopse kanten', 'netbanden om de omtrek', 'uitstekende strootjes'] },
+  },
+  weidehek: {
+    nl: 'Weidehek (gegalvaniseerd)', bouwer: 'weidehek', gebruik: ['cutscene', 'activiteit'],
+    norm: { tris: [160, 320], kleuren: 5, maat: [0.18, 1.43, 4.22], eisen: ['twee eiken palen met een kapje', 'vijf regels in twee tinten', 'stijlen en een schoor', 'scharnieren en een sluitketting'] },
+  },
+  // het Groningse erf (24-11, na de carbidbeelden: geen Amerikaanse schuur); bouwers in erfgebouwen3d.js. Gebouwen en wagens zijn
+  // groter dan decor in een cutscene mag zijn (storyprops.js DECOR_BUDGET maxDim): alleen 'activiteit' (carbidset.js)
+  kophalsromp: {
+    nl: 'Groningse kop-hals-rompboerderij', bouwer: 'kophalsromp', gebruik: ['activiteit'],
+    norm: { tris: [1100, 2000], kleuren: 10, maat: [48.65, 14.69, 24.68], eisen: ['woonhuis (kop) van baksteen met plint, speklaag, wit gootlijsten en donker pannendak met de nok dwars', 'voorgevel met roedenramen, groene voordeur met bovenlicht en stoep; schoorstenen op de nok', 'lage hals met eigen dak, deur en raam', 'schuur (romp) met lage muren en een hoog rood pannendak met wolfseinden, nokvorsten, goten en uilenborden', 'groen-witte baanderdeuren, staldeur en gietijzeren stalraampjes'] },
+  },
+  werktuigloods: {
+    nl: 'Werktuigenloods met inrichting', bouwer: 'werktuigloods', gebruik: ['activiteit'],
+    norm: { tris: [700, 1300], kleuren: 15, maat: [10.9, 7.2, 14.9], eisen: ['stalen wanden op een gemetselde voet, golfplaatribben, zadeldak', 'half open schuifdeur met rail en greep', 'lichte binnenwanden en een betonvloer', 'trekkerband met velg, werkbank met bankschroef, gereedschapsbord, jerrycans en olievat', 'lamp onder de nok'] },
+  },
+  balenwagen: {
+    nl: 'Balenwagen', bouwer: 'balenwagen', gebruik: ['activiteit'],
+    norm: { tris: [450, 800], kleuren: 6, maat: [7.56, 2.63, 2.52], eisen: ['laadvloer van planken in twee tinten', 'chassisbalken en rode randbalk', 'vier wielen met velg op assen', 'dissel met trekoog', 'rek voorop'] },
+  },
 };
 
 export const PROP_IDS = Object.keys(PROP_REGISTER);

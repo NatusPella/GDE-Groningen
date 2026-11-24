@@ -5,6 +5,8 @@
 // (zie de driehoekennorm in het register). Alles is laag-poly met echt detail: latten, gietijzer, kragen, banden, schroeven.
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { GeoBuilder, composeMatrix, tubeGeometry, markShared } from './pixelart3d.js';
+import { melkbus, busdeksel, carbidbok, carbidspul, lontstok, gehoorkap, koffietafel, hooibaal, weidehek } from './carbidprops3d.js'; // carbidveld (24-11)
+import { kophalsromp, werktuigloods, balenwagen } from './erfgebouwen3d.js'; // het Groningse erf (24-11)
 
 const IRON = 0x2b2f2a, STEEL = 0x6b6e70, DARK = 0x3a3d40;
 
@@ -704,8 +706,7 @@ function bolder() {
   return B.build();
 }
 
-const MAKERS = { bank, afvalbak, fietsenrek: () => fietsenrek(4), bushokje, paaltje, autostoel, dashboard, vetvat, jerrycan, kraampje, ijscokar, gitaarkoffer, gitaar, tv, frituurpan, buisradio, boekenkast, droogrek, verhuisdozen, lijst, poster, laptop,
-  container20: () => zeecontainer(6.06), container40: () => zeecontainer(12.19), havenkraan, havenhek, lichtmast, heftruck, kabelhaspel, bolder };
+const MAKERS = { bank, afvalbak, fietsenrek: () => fietsenrek(4), bushokje, paaltje, autostoel, dashboard, vetvat, jerrycan, kraampje, ijscokar, gitaarkoffer, gitaar, tv, frituurpan, buisradio, boekenkast, droogrek, verhuisdozen, lijst, poster, laptop, melkbus, busdeksel, carbidbok, carbidspul, lontstok, gehoorkap, koffietafel, hooibaal, weidehek, kophalsromp, werktuigloods, balenwagen , container20: () => zeecontainer(6.06), container40: () => zeecontainer(12.19), havenkraan, havenhek, lichtmast, heftruck, kabelhaspel, bolder };
 // de props met lichtere LOD-niveaus (de opgave staat in propregister.js PROP_REGISTER[id].lod)
 const LOD_MAKERS = new Set(['vetvat', 'jerrycan']);
 const cache = new Map();
