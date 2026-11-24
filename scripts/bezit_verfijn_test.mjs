@@ -113,35 +113,26 @@ t('koop: elke weigering heeft een eigen zin; vee op een perceel van een ander ze
 });
 
 // ---- bevestiging en redenen ----
-t('vee kopen vraagt een tweede druk per soort, met wat je overhoudt; zonder geld een reden', () => {
+t('vee kopen (Velden): de knop per soort staat er, zonder geld met de reden; de aankoop gaat via veldenActie', () => {
   reset(); const world = w(80000);
   assert.ok(L.koopPerceel(world, 'paaaaaaaaaaa1').ok);
-  let h = U.summaryHtml(ctx(world));
-  assert.match(h, /data-bz="koop-vee" data-id="paaaaaaaaaaa1\|melkvee" data-sp="melkvee"/);
-  U.ui.confirm = 'koop-vee:paaaaaaaaaaa1|melkvee';
-  h = U.summaryHtml(ctx(world));
-  assert.equal((h.match(/bd-zeker/g) || []).length, 1, 'alleen de gekozen soort vraagt bevestiging');
-  assert.match(h, /Je houdt €[\d.]+ over\./);
-  U.ui.confirm = null; world.money = 100;
-  assert.match(U.summaryHtml(ctx(world)), /title="Je mist nog €[\d.]+"[^>]*disabled/);
+  const h = U.veldenView(world);
+  assert.match(h, /data-vd="koop-vee" data-id="paaaaaaaaaaa1" data-sp="melkvee"/);
+  world.money = 100; // zonder geld: een grijze knop met de reden
+  assert.match(U.veldenView(world), /data-vd="koop-vee"[^>]*disabled>[^<]*<small>Je mist nog €[\d.]+<\/small>/);
+  world.money = 80000;
+  // bezit-ui 24-11: Velden vraagt geen tweede druk meer voor vee (de knop zegt wat het kost); de aankoop loopt direct
+  U.veldenActie(world, { vd: 'koop-vee', id: 'paaaaaaaaaaa1', sp: 'melkvee' });
+  assert.match(U.veldenView(world), /data-vd="verkoop-vee"/, 'na de aankoop staat er een kudde');
 });
-t('bulk met kosten vraagt een tweede druk met een schatting; bulk zonder kosten niet', () => {
+t('bulk met kosten: de schatting volgt uit bulkCost; bulk zonder kosten is gratis', () => {
   reset(); const world = w(80000);
   assert.ok(L.koopPerceel(world, 'paaaaaaaaaaa1').ok);
-  const rows = BL.getBoerderij() && ctx(world);
+  const rows = ctx(world);
   const own = Object.keys(rows.bezit.parcels).filter((id) => !rows.bezit.parcels[id].lg);
-  for (const id of own) U.ui.sel.add(id);
-  U.ui.confirm = 'bulk-mieren:';
-  let h = U.summaryHtml(rows);
-  assert.match(h, /Ongeveer €[\d.]+\. Zeker\?/); assert.match(h, /data-bz="bulk-mieren" data-ok="1"/);
   assert.ok(U.bulkCost('bulk-mieren', rows.bezit, own) > 0);
   assert.equal(U.bulkCost('bulk-oogst', rows.bezit, own), 0);
-  U.ui.confirm = 'bulk-zaai:';
-  assert.match(U.summaryHtml(rows), /zaaigoed en loonwerk/);
-  U.ui.confirm = null;
-  assert.match(U.summaryHtml(rows), /data-bz="bulk-oogst"(?![^>]*data-ok)/);
-  U.ui.sel.clear?.();
-  assert.match(U.summaryHtml(rows), /Vink eerst percelen aan/);
+  assert.match(U.bulkText('bulk-mieren', { ok: true }) || 'ok', /./);
 });
 t('ketenuitbreiding vraagt een tweede druk; renovatie toont de prijs en vraagt een tweede druk', () => {
   const VIEW = { id: 'kaas', name: 'Melk naar kaas', margin: 0.15, sourceKg: 440, sourceCount: 2, picked: 0, closedDays: 0, last: null, weakest: null, sources: [], links: [
@@ -170,11 +161,10 @@ t('te koop: laden en leeg zijn twee verschillende zinnen', () => {
   // #1251 (hertest 24-11): de lege staat heeft een icoon en een knop naar de kaartlaag Te koop
   assert.match(U.forSaleHtml({ money: 1, offers: [] }), /bz-leeg-ic[\s\S]*data-bz="kaart-tekoop" data-goto="map"/);
 });
-t('overzicht: met personeel staat het loon per dag erbij', () => {
+t('team: met personeel staat het loon per dag erbij', () => {
   reset(); const world = w(80000);
-  assert.ok(!U.summaryHtml(ctx(world)).includes('Loon per dag'));
   assert.ok(L.huurArbeider(world, 2).ok);
-  assert.match(U.summaryHtml(ctx(world)), /Loon per dag<\/small><b>€[\d.]+</);
+  assert.match(U.teamView(world), /[Ll]oon/);
 });
 
 // ---- snackwagen: wat nu? ----

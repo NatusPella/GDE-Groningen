@@ -63,7 +63,7 @@ t('#669: het scherm en de baan gebruiken dezelfde bron', () => {
   assert.match(ui, /dagKeuzeTekst/, 'en toont de regel');
   assert.match(ui, /dagKaart\(\)/, 'de kaart staat bovenaan het scherm');
   assert.match(ui, /dagKeuzeTekst\(k\)\.replace\(\/\^Vandaag: \//, 'de regel herhaalt het woord Vandaag niet na de kop (#1244)');
-  assert.match(ui, /\['perceel', 'Werk'\]/, 'de eerste subtab heet niet nog eens Overzicht (#1243)');
+  assert.match(ui, /\['velden', 'Velden'\]/, 'de eerste subtab heet niet nog eens Overzicht (#1243; sinds bezit-ui 24-11 is hij Velden)');
   const job = bron('sidejob_boerderij.js');
   assert.match(job, /rijCue\(s\)/, 'de bijbaan meldt de cue per rij');
 });

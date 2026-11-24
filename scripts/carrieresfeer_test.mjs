@@ -87,7 +87,7 @@ t('Visboek en Boerderij dragen dezelfde sfeerband als Loopbanen (#609)', () => {
     assert.ok(src.includes(`const SFEER = '${id}'`), naam + ' hangt aan zijn eigen vak');
     assert.match(src, /sfeerBandHtml\(SFEER/, naam + ' heeft een sfeerband boven het detail');
     assert.match(src, /SFEER_BAND_CSS/, naam + ' zet de bandopmaak erbij');
-    assert.match(src, /lb-sfeer-chip/, naam + ' toont de sfeer ook als chip');
+    if (naam === 'Visboek') assert.match(src, /lb-sfeer-chip/, naam + ' toont de sfeer ook als chip'); // Boerderij: de band zegt het al (bezit-ui 24-11)
   }
 });
 

@@ -247,11 +247,13 @@ t('het menu: ketens, prijzen, nieuws, frietwagen en woningen staan in de panelen
   reset();
   const w = wereld(100000);
   L.koopPand(w, 1001);
-  const els = { overzicht: { innerHTML: '', addEventListener() {} }, bedrijven: { innerHTML: '', addEventListener() {} }, tekoop: { innerHTML: '', addEventListener() {} } };
+  const kaal = () => ({ innerHTML: '', addEventListener() {}, closest: () => null }); // closest: de tabbalk zoekt het paneel (bezit-ui 24-11)
+  const els = { overzicht: kaal(), bedrijven: kaal(), tekoop: kaal() };
   UI.renderBezitPanels(els, w);
   assert.match(els.overzicht.innerHTML, /Nieuws van het land/); assert.match(els.overzicht.innerHTML, /data-sectie="ketens"/); assert.match(els.overzicht.innerHTML, /Prijzen vandaag per streek/);
   assert.match(els.overzicht.innerHTML, /data-chain="kaas"/); assert.match(els.overzicht.innerHTML, /data-bz-bind="kaas\|kaasmakerij"/);
-  assert.match(els.bedrijven.innerHTML, /Snackwagen te koop|Snackwagen/); assert.match(els.bedrijven.innerHTML, /tabblad Snackwagen/); assert.ok(!/data-bz="koop-mobiel"/.test(els.bedrijven.innerHTML), 'de snackwagen koop je alleen op zijn eigen tabblad (#1250)');
+  // bezit-ui 24-11: Bedrijven noemt de snackwagen niet meer (die heeft een eigen tabblad)
+  assert.ok(!/data-bz="koop-mobiel"/.test(els.bedrijven.innerHTML), 'de snackwagen koop je alleen op zijn eigen tabblad (#1250)');
 });
 
 console.log(`bezitlive_keten_test: ${n - fails}/${n} ok`);

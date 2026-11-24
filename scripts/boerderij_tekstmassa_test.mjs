@@ -10,7 +10,7 @@ const { renderBoerderijPanel } = await import('../game/js/boerderijui.js');
 
 const RAPPORT = process.argv.includes('--rapport');
 // Limieten (tekens zichtbare tekst per tab) in een gevulde boerderij: elk scherm is beeld-eerst, de rest zit in Details.
-export const LIMIET = { perceel: 1400, percelen: 1800, erf: 1000, gewas: 1700, machines: 1800, kas: 600, bank: 550 };
+export const LIMIET = { perceel: 1400, percelen: 1800, erf: 1000, gewas: 1700, machines: 1800, kas: 700, bank: 550 }; // kas 600 naar 700 (bezit-ui 24-11: de kas kreeg een kaart met uitleg, 655 tekens gemeten)
 // Een lang tekstblok (p of rij) boven deze lengte is een lap.
 export const LAP = 160;
 

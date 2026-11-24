@@ -3,6 +3,7 @@
 // Puur (scripts/bezitkoop_test.mjs). Rendement alleen als er een echt getal voor is; anders laat het scherm de regel weg.
 // Samen spelen: wat een medespeler claimde staat niet in de lijst (forSale is al onwaar); gekocht land is van de speler zelf (#429).
 
+import { keyTextHtml } from './keycap.js';
 import { icoon } from './icons.js';
 import { euro } from './geldtekst.js';
 import { kaartSvg } from './bezitkaart.js';
@@ -65,7 +66,7 @@ export function bevestigHtml(i, { money = 0, dagNu = null } = {}) {
   const knop = houd ? `<button type="button" class="ds-z-knop bz-vasthoud" data-houd="${esc(i.key)}" aria-describedby="bz-houd-uitleg">${IC('geld')} Houd vast om te kopen</button>` : `<button type="button" class="ds-z-knop" data-kp="koop-ok" data-key="${esc(i.key)}">${IC('geld')} Koop voor ${euro(i.price)}</button>`;
   return `<div class="bz-scherm" role="dialog" aria-label="Aankoop bevestigen"><section class="ds-z-kaart ds-z-kaart--recht bz-bevestig"><header class="ds-z-kaart__kop"><h3 class="ds-z-kaart__titel">${IC('bon')}Aankoop bevestigen</h3></header>` +
     `<div><div class="bz-detail__titel">${esc(i.naam)}</div><span class="bz-hulp">${esc(i.sub)}</span></div>${bon([['Prijs', euro(i.price)], ['Je geld nu', euro(money)], ['Je houdt over', euro(money - i.price)]])}${dag}` +
-    `<p class="bz-hulp" id="bz-houd-uitleg">${houd ? 'Houd Enter, A of je muisknop 0,6 seconde vast. Met een controller zonder vasthouden: druk twee keer.' : 'Een kleine koop gaat direct.'}</p>` +
+    `<p class="bz-hulp" id="bz-houd-uitleg">${houd ? keyTextHtml('Houd {ENTER}, {A} of {LMB} 0,6 seconde vast. Met een controller zonder vasthouden: druk twee keer.') : 'Een kleine koop gaat direct.'}</p>` +
     `<div class="bz-actie">${knop}<button type="button" class="ds-z-knop ds-z-knop--secundair" data-kp="terug">Terug</button></div></section></div>`;
 }
 

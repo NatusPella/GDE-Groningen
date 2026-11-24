@@ -78,7 +78,7 @@ t('de menuregels: het tabblad staat in het pausemenu en de bezit-koppeling kent 
   const menu = fs.readFileSync(new URL('../game/js/pausemenu.js', import.meta.url), 'utf8');
   assert.ok(menu.includes("['club', 'Club']") && menu.includes('data-of="boerderij" data-sub="club"'));
   assert.equal((menu.match(/club: q\('club'\)/g) || []).length, 2, 'beide renderplekken geven het paneel mee');
-  assert.ok(fs.readFileSync(new URL('../game/js/bezitui.js', import.meta.url), 'utf8').includes('if (els.club) renderClubPanel(els.club, world)'));
+  assert.ok(fs.readFileSync(new URL('../game/js/bezitui.js', import.meta.url), 'utf8').includes('if (els.club) { renderClubPanel(els.club, world)'));
 });
 
 

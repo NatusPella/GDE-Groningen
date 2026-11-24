@@ -16,7 +16,7 @@ export const standKaart = (statusId, level) => (statusId === 'aanbod' ? { vul: '
 export function kaartSvg(vlakken, { w = 250, h = 150, sel = null, label = 'Kaart van je velden' } = {}) {
   const lijst = (vlakken || []).filter((v) => v && (Array.isArray(v.shape) ? v.shape.length >= 3 : Number.isFinite(v.x) && Number.isFinite(v.y)));
   const defs = '<defs><pattern id="bzk-raster" width="6" height="6" patternUnits="userSpaceOnUse"><rect width="6" height="6" class="bzk-papier"/><circle cx="3" cy="3" r="1.15" class="bzk-inkt"/></pattern></defs>';
-  if (!lijst.length) return `<svg class="bz-kaartvlak" viewBox="0 0 ${w} ${h}" role="img" aria-label="${esc(label)}">${defs}<rect width="${w}" height="${h}" class="bzk-grond"/></svg>`;
+  if (!lijst.length) return `<svg class="bz-kaartvlak" viewBox="0 0 ${w} ${h}" role="img" aria-label="${esc(label)}">${defs}<rect width="${w}" height="${h}" class="bzk-grond"/></svg>`; // ds3-uitzondering: de kaart is een tekening van percelen (data), geen icoon
   const SCHETS = 120;   // meter: de zijde van een perceel zonder vorm
   const polys = lijst.map((v) => (Array.isArray(v.shape) && v.shape.length >= 3 ? v.shape : [[v.x - SCHETS / 2, v.y - SCHETS / 2], [v.x + SCHETS / 2, v.y - SCHETS / 2], [v.x + SCHETS / 2, v.y + SCHETS / 2], [v.x - SCHETS / 2, v.y + SCHETS / 2]]));
   const xs = polys.flat().map((p) => p[0]), ys = polys.flat().map((p) => p[1]);
@@ -32,7 +32,7 @@ export function kaartSvg(vlakken, { w = 250, h = 150, sel = null, label = 'Kaart
     return `<g data-veld="${esc(v.id)}"><title>${esc(v.naam || '')}</title><polygon points="${pts}" class="bzk-vlak bzk-${k.vul}${k.streep ? ' bzk-streep' : ''}${gekozen ? ' bzk-sel' : ''}"/>` +
       (k.letter ? `<g transform="translate(${cx.toFixed(1)},${cy.toFixed(1)})"><rect x="-10" y="-10" width="20" height="20" rx="3" class="bzk-letterplaat"/><text y="5" text-anchor="middle" class="bzk-letter">${k.letter}</text></g>` : '') + '</g>';
   }).join('');
-  return `<svg class="bz-kaartvlak" viewBox="0 0 ${w} ${h}" role="img" aria-label="${esc(label)}">${defs}<rect width="${w}" height="${h}" class="bzk-grond"/>${body}</svg>`;
+  return `<svg class="bz-kaartvlak" viewBox="0 0 ${w} ${h}" role="img" aria-label="${esc(label)}">${defs}<rect width="${w}" height="${h}" class="bzk-grond"/>${body}</svg>`; // ds3-uitzondering: de kaart is een tekening van percelen (data), geen icoon
 }
 
 export const LEGENDA = [['raster', 'Braak'], ['geel', 'Groeit'], ['bord', 'Oogstklaar'], ['streep', 'Verpacht']];

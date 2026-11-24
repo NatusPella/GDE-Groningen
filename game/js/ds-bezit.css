@@ -172,7 +172,7 @@
 .bz-bevestig { width: calc(var(--ds-s-8) * 10); max-width: 90%; gap: var(--ds-s-3); }
 .bz-bevestig > .ds-z-kaart__kop { margin: calc(var(--ds-s-4) * -1) calc(var(--ds-s-4) * -1) 0; }
 .bz-vasthoud { position: relative; overflow: hidden; }
-.bz-vasthoud::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 0; background: var(--ds-c-geel-druk); transition: width 600ms linear; z-index: 0; }
+.bz-vasthoud::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 0; background: var(--ds-c-geel-druk); transition: width 600ms linear; z-index: 0; } /* ds3-dwell: de vulling volgt de vasthoudtijd van 0,6 s; geen sierbeweging */
 .bz-vasthoud.is-vasthouden::before { width: 100%; }
 html.reduce-motion .bz-vasthoud::before, html.rustig-drukwerk .bz-vasthoud::before { transition: none; }
 .bz-vasthoud > * { position: relative; z-index: 1; }

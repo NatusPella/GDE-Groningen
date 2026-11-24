@@ -11,7 +11,7 @@ import * as L from '../game/js/bezitlive.js';
 import * as BL from '../game/js/boerderijlive.js';
 
 const rd = (f) => fs.readFileSync(new URL(`../game/js/${f}`, import.meta.url), 'utf8');
-const css = rd('farm.css') + '\n' + rd('ds-components.css');
+const css = rd('farm.css') + '\n' + rd('ds-components.css') + '\n' + rd('ds-bezit.css');
 let n = 0, fails = 0;
 const t = (name, fn) => { n++; try { fn(); } catch (e) { fails++; console.log('FAIL', name, '\n  ', String(e.message).split('\n')[0]); } };
 
