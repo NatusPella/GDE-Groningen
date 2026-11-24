@@ -10,7 +10,7 @@
   "CS-V05",
   "CS-V06"
  ],
- "totaal": 227,
+ "totaal": 226,
  "telling": {
   "CS-C06": {
    "carriere-bezit-start": 2,
@@ -109,7 +109,6 @@
    "M15.outro": 1,
    "M16.intro": 2,
    "M16.outro": 1,
-   "M17.outro": 1,
    "M18.3": 2,
    "M19.intro": 2,
    "M19.outro": 3,

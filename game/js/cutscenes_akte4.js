@@ -56,7 +56,8 @@ S['M17.outro'] = {
     { on: 'Nee. Maar het is een begin', actor: 'stien', anim: 'shrug' },
   ],
   shots: [],
-  wide: WIDE([-4.5, 4, 3], [-2.5, 2.8, 2.3], 'mid:wubbo,tammo@1'),
+  // #1325: de opening van opzij (het paar kijkt naar Wubbo): Tammo's eerste regel van voren, niet zijn rug
+  wide: WIDE([2.5, 5.5, 3.0], [1.8, 4.0, 2.4], 'mid:wubbo,tammo@1'),
 };
 
 // --- M18 Wiebelwerk: the office on Laan Corpus den Hoorn in the Stad, a desk with a screen ---
