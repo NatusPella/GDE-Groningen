@@ -82,7 +82,7 @@ export const PROP_REGISTER = {
   // de woonkamer van twee net-afgestudeerden (23-11, na beeldcontrole coördinator): boeken, was, dozen, prints, een laptop
   boekenkast: {
     nl: 'Boekenkast met boeken', bouwer: 'boekenkast', gebruik: ['interieur'],
-    norm: { tris: [600, 2000], kleuren: 10, maat: [0.3, 1.8, 0.9], eisen: ['grenen kast met achterwand, plint en vijf planken', 'rijen boeken van wisselende dikte, hoogte en kleur met titelstreepjes', 'een liggend boek en gaten in de rij', 'doos, plantje en tijdschriften'] },
+    norm: { tris: [600, 2000], kleuren: 10, maat: [0.3, 1.8, 0.9], eisen: ['grenen kast met achterwand, plint en vijf planken', 'rijen boeken van wisselende dikte, hoogte en kleur met titelstreepjes', 'een liggend boek en gaten in de rij', 'een doos met een plantje erop naast een stapel tijdschriften'] },
   },
   droogrek: {
     nl: 'Droogrek met was', bouwer: 'droogrek', gebruik: ['interieur'],
