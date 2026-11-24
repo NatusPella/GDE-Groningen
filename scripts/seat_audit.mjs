@@ -79,7 +79,8 @@ function groupBoxes(root, matIndex) {
   const onWheel = (o) => { for (let p = o.parent; p && p !== root; p = p.parent) if (wheels.has(p)) return true; return false; };
   root.traverse((o) => {
     // the hubcaps (sierdoppen, #205) sit on the wheels and have a second material group of their own: not glass
-    if (!o.isMesh || o.isSkinnedMesh || !o.geometry || o.userData.person || onWheel(o)) return;
+    // de karakterdelen van de Escapade (dakdrager, lampen, 24-11) hebben een eigen materiaal 1 en zijn geen ruit
+    if (!o.isMesh || o.isSkinnedMesh || !o.geometry || o.userData.person || onWheel(o) || o.name === 'karakter' || o.name === 'karakterVlak') return;
     const g = o.geometry, pos = g.attributes.position;
     if (!pos) return;
     const groups = g.groups.length ? g.groups : [{ start: 0, count: pos.count, materialIndex: 0 }];
@@ -211,7 +212,8 @@ function check(label, v, driver) {
   const glass = frontGlass(groupBoxes(mesh, 1));
   const f = seatFigure(mesh, v, seat);
   const issues = [];
-  if (glass && !v.isBike && !v.isScooter && !v.isBoat) {
+  // een quad heeft geen cabine (de rijder zit erbovenop): zijn "glas" is een koplampje, geen voorruit
+  if (glass && !v.isBike && !v.isScooter && !v.isBoat && v.model.name !== 'quad') {
     const gz = Math.max(Math.abs(glass.min.z), Math.abs(glass.max.z));
     if (f.head.x < glass.min.x - 0.35 || f.head.x > glass.max.x + 0.05) issues.push(`head x ${f.head.x.toFixed(2)} outside cab glass x ${glass.min.x.toFixed(2)}..${glass.max.x.toFixed(2)}`);
     if (Math.abs(f.head.z) > gz) issues.push(`head z ${f.head.z.toFixed(2)} outside glass ±${gz.toFixed(2)}`);

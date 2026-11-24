@@ -177,8 +177,8 @@ function buildRig(mesh, v, defs) {
         // de hybride: het deurblad is het stuk van hun gebogen romp dat uit de flank geknipt is (met binnenkant en dikte);
         // het blokje eronder is alleen de drager (onzichtbaar) waar de bekleding aan hangt
         panel = new THREE.Mesh(panelGeo(d.w, d.h), DRAGER_MAT);
-        const s2 = new THREE.Mesh(schil, mesh.userData.body.material);
-        s2.position.set(-(baseX + (d.soort === 'scharnier' ? -d.w / 2 : d.w / 2)), -(d.y0 + d.h / 2), -baseZ);
+        const s2 = new THREE.Mesh(schil, (mesh.userData.body || mesh.userData.deurBody).material);
+        s2.position.set(-(baseX + (d.soort === 'scharnier' ? -d.w / 2 : d.soort === 'schuif' ? 0 : d.w / 2)), -(d.y0 + d.h / 2), -baseZ);
         const dec = mesh.userData.deurDecals && mesh.userData.deurDecals[d.id];
         if (dec) s2.add(new THREE.Mesh(dec, mesh.userData.nadenMat)); // strepen op het deurblad (politie)
         panel.add(s2);

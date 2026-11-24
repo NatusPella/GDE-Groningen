@@ -60,6 +60,10 @@ Een model met eigen materialen per exemplaar kan ook `DitherLOD` (`lod3d.js`) me
 Elk model dat via `lodkit3d.js` gebouwd wordt, staat in het register; zet de bouw ook in `scripts/lod_audit_test.mjs` (blok "bouwen"),
 dan faalt de test als het geen LOD's heeft of als LOD1/LOD2 te weinig scheelt.
 
+Een voertuig kan zelf zijn tweede niveau (LOD1) opgeven; staan er meer dan een, dan geldt een vaste volgorde: **lodRomp wint, dan lodDoel, dan lodMax**.
+`userData.lodRomp` is een eigen eenvoudig gebouwde romp (de bus; die is dan niveau 1), `userData.lodDoel` een bovengrens in driehoeken die `simplifyToTarget` (`lodsimplify.js`) in kleine stappen bereikt, `userData.lodMax` een bovengrens waaronder de fijnste cel van de centrale keten blijft.
+Zonder een van de drie volgt niveau 1 de minCut van de soort. De keuze staat in `lod1Bron` (`vehiclelod3d.js`); `scripts/vehiclelod_volgorde_test.mjs` toetst de volgorde.
+
 ## 4. Open
 
 - Windmolens en landmarks: geen eigen impostor. De windmolens staan al als één instanced laag tot 5,2 km (farprops.js) en de

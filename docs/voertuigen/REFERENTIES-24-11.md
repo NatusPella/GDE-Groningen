@@ -36,3 +36,15 @@ Alleen gelezen (zoekresultaten en productpagina's), niets gedownload; in het spe
 | Rondvaartboot en sloep | https://alle.travel/en/amsterdam/pages/amsterdam-boats-for-canal-cruises en https://alle.travel/en/amsterdam/pages/flagship-amsterdam-boats | rondvaartboot 18 m lang en 3,75 m breed, kleine salonboot 7 m x 2,5 m, sloep 9 m x 2,5 m | spel: rondvaart 14 x 3,3 m, sloep 5,5 x 2,0 m (kleiner, past op de grachten van het spel) |
 | Skûtsje, kano, kajak, rubberboot | niet opgezocht (eigen maten in boattypes.js) | | dolboord, schuurlijst, kikkers, boegoog, spanten |
 | Helikopter (lichte tweezitter) | https://www.heli-archive.ch/en/helicopters/in-depth-articles/bell-47g en https://aerocorner.com/aircraft/bell-47/ | rotor 10,2 tot 11,3 m, romp 8,3 tot 9,9 m lang, hoogte 2,7 tot 2,8 m, driehoekige staartboom | rotor 10 m, romp 8,8 m, hoogte 3 m; staartboom, kielvin, kruisbuisonderstel |
+
+## Derde ronde: groot materieel (voertuigen-groot-24-11)
+
+Alleen gelezen (maten en herkenningspunten), niets overgenomen; in het spel staan verzonnen namen (Korenwolf M3, Laadkabouter L45, een verzonnen vervoerder met wit en oranje en crème en groen).
+
+| Voertuig | Bron | Maten (echt) | Maat in het spel |
+|---|---|---|---|
+| Wiellader (compact) | https://www.cat.com/en_US/products/new/equipment/wheel-loaders/compact-wheel-loaders/116320.html, https://bobcatoftherockies.com/showroom-machines/bobcat-l85-compact-wheel-loader/ en https://construction.newholland.com/en-us/northamerica/products/light-construction-equipment/small-articulated-loaders/ml22x | lengte 3,0 tot 5,5 m met bak, breedte over de banden 1,2 tot 2,0 m, wielbasis 1,6 tot 2,2 m; knikgewricht, laadarmen boven de wielen | 3,4 m + bak, 1,8 breed, wielstraal 0,46 |
+| Maaidorser | https://www.veritread.com/specs/agriculture/combine-harvesters/john-deere/6600 en https://en.wikipedia.org/wiki/Fortschritt_E_514 | 7,4 tot 8,9 m lang, 2,9 tot 4,5 m breed, hoogte 3,7 tot 3,8 m (kleinere machines); maaitafel met haspel voorop, cabine boven de invoer, graantank met lospijp | 7,4 x 3,3 x 3,8 m |
+| Intercity (dubbeldekker) | https://en.wikipedia.org/wiki/NS_VIRM (alleen de maten) | breedte 3,02 m, hoogte 4,67 m, treinlengte 107,6 m (vier delen, ca. 26 m per rijtuig); lage en hoge raamrij, pantograaf op een stuurstandrijtuig | 26,5 m per rijtuig, hoogte 4,7 m |
+| Stadsbus (herhaald) | https://en.wikipedia.org/wiki/Solaris_Urbino_18 | 18 m, 2,55 breed; balg met draaitafel, twee dubbele deuren | 11,2 + 6,8 m |
+| Tram | niet opgezocht | Bestaat niet als gebouwd model in het spel (alleen `isTram`-controles in de code); overgeslagen | |

@@ -7,6 +7,7 @@ import { makeLodObject } from './lodkit3d.js';
 import { syncTreinInterieur, syncTreinLodInterieur, hideTreinLodInterieur, TREIN_LOD_BUILD_BUDGET } from './treininterieur.js';
 import { gastTreinVan } from './cooptrein.js';
 import { raamband } from './treinlayout.js';
+import { buildCarGeometry } from './vehicle_train.js';
 import { gridItems } from './spatialgrid.js'; // de trein van de gastheer waarin een gast conducteur is (#492)
 import { getTrains, getLevelCrossings, nearLevelCrossing, railZ, isOffMap, TRAIN_HALF_WIDTH, FLAT_DECK_Z } from './railway.js';
 import { WATER_Y } from './util.js';
@@ -646,22 +647,6 @@ function addCab(g, cfg, end, x0, H, W, lamps) {
   for (const z of [-0.92, 0.92]) lamps[end].push(box(g, 0.06, 0.16, 0.36, LAMP_DARK, tip + end * 0.04, cfg.front === 'virm' ? 1.75 : 1.55, z));
 }
 
-function buildPowerModule(cfg, seg) {
-  const g = new THREE.Group();
-  const L = seg.len, H = cfg.height - 0.1, W = TRAIN_HALF_WIDTH * 2 - 0.1;
-  box(g, L - 0.6, 0.7, 2.2, DARK(), 0, 0.55);
-  const shell = box(g, L, H - 0.8, W, mat(cfg.stripe), 0, 0.8 + (H - 0.8) / 2);
-  shell.castShadow = true;
-  for (const side of [-1, 1]) {
-    for (let k = 0; k < 3; k++) box(g, L * 0.55, 0.08, 0.04, DARK(), 0, 1.6 + k * 0.28, side * (W / 2 + 0.01));
-    box(g, 0.7, 0.55, 0.04, GLASS_MAT, L * 0.3, 2.6, side * (W / 2 + 0.01));
-  }
-  box(g, L - 0.6, 0.35, W - 0.6, ROOF(), 0, H + 0.12);
-  box(g, 0.25, 0.5, 0.25, DARK(), -L * 0.2, H + 0.5, 0.4);
-  g.userData.lamps = {};
-  return g;
-}
-
 // Goods train (story): a diesel loco with a cab at both ends, and flats
 // with a low deck (railway.js FLAT_DECK_Z) that a car can ride on.
 function buildLoco(cfg, seg) {
@@ -701,71 +686,54 @@ function buildFlat(cfg, seg) {
 
 // Voor scripts/trein_lod_test.mjs: de romp van één wagen, precies zoals buildTrainView die bouwt.
 export function buildCar(cfg, seg) {
-  if (seg.kind === 'power') return buildPowerModule(cfg, seg);
   if (seg.kind === 'loco') return buildLoco(cfg, seg);
   if (seg.kind === 'flat') return buildFlat(cfg, seg);
-  const g = new THREE.Group();
-  const L = seg.len, H = cfg.height, W = TRAIN_HALF_WIDTH * 2;
-  const NOSE = cfg.front === 'virm' ? 1.9 : 1.6;
-  const x1 = L / 2 - (seg.cab === 1 ? NOSE : 0);
-  const x0 = -L / 2 + (seg.cab === -1 ? NOSE : 0);
-  const bl = x1 - x0, bx = (x0 + x1) / 2;
-  const floor = cfg.doubleDeck ? 0.5 : 0.7;
-  const body = mat(cfg.body), stripe = mat(cfg.stripe), door = mat(cfg.door);
-  // De romp is geen dichte doos meer (#847): de raambanden zijn open, met doorzichtig glas en een donkere vuller
-  // erachter, zodat het LOD-interieur van een nabije trein (treininterieur.js) door de ramen te zien is. De vuller
-  // gaat uit zodra dat interieur er staat; van buiten lezen livrei, raamband en deuren hetzelfde als voorheen.
-  // De zijwanden, kopwanden en glasbanden gaan per stuk in één mesh: dat scheelt draw calls per wagen.
-  const top = H - 0.2;
-  const bands = raamband(cfg);
-  const glassLenOf = (b) => (cfg.doubleDeck && b === bands[0] ? bl - 2 * 4.6 : bl - 1.2);
-  const bodyParts = [], glassParts = [];
-  for (const s of [-1, 1]) {
-    let prev = floor;
-    for (const b of bands) {
-      bodyParts.push([bl, b.y0 - prev, 0.06, bx, (prev + b.y0) / 2, s * (W / 2 - 0.03)]);
-      glassParts.push([glassLenOf(b), b.y1 - b.y0, 0.02, bx, (b.y0 + b.y1) / 2, s * (W / 2 + 0.005)]);
-      prev = b.y1;
+  return buildPassengerCar(cfg, seg);
+}
+
+// Het rijtuig en de tussenmodule komen uit vehicle_train.js (24-11): één romp met vertexkleuren, het doorzichtige salonglas en het
+// cabineglas; hier komen de lampen (die per frame van materiaal wisselen), de donkere vuller achter de ruiten en de schaduw bij.
+const BODY_VC = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.55, metalness: 0.15 });
+BODY_VC.userData.shared = true;
+const carGeos = new Map();
+// Eén geometrie met materiaalgroepen als losse geometrieën per groep (null als een groep leeg is).
+function splitGroups(geo) {
+  const out = [null, null, null];
+  const attrs = Object.keys(geo.attributes);
+  for (const gr of geo.groups) {
+    const g = new THREE.BufferGeometry();
+    for (const a of attrs) {
+      const src = geo.attributes[a], n = src.itemSize;
+      const arr = new src.array.constructor(src.array.buffer.slice(gr.start * n * src.array.BYTES_PER_ELEMENT, (gr.start + gr.count) * n * src.array.BYTES_PER_ELEMENT));
+      g.setAttribute(a, new THREE.BufferAttribute(arr, n, src.normalized));
     }
-    bodyParts.push([bl, top - prev, 0.06, bx, (prev + top) / 2, s * (W / 2 - 0.03)]);
+    out[gr.materialIndex] = g;
   }
-  // waar de raamband geen glas heeft (de uiteinden) is hij dicht met livrei
-  for (const b of bands) {
-    const endLen = (bl - glassLenOf(b)) / 2;
-    if (endLen > 0.05) for (const e of [-1, 1]) bodyParts.push([endLen, b.y1 - b.y0, W, bx + e * (bl / 2 - endLen / 2), (b.y0 + b.y1) / 2, 0]);
-  }
-  for (const x of [x0, x1]) bodyParts.push([0.05, top - floor, W, x, floor + (top - floor) / 2, 0]);   // kopwanden
-  mergedMesh(g, bodyParts, body).castShadow = true;
-  mergedMesh(g, glassParts, SALOON_GLASS);
-  // de donkere vuller: zonder LOD-interieur kijk je door de ramen een donkere, dichte salon in
+  return out;
+}
+function buildPassengerCar(cfg, seg) {
+  const key = `${cfg.front}|${cfg.body}|${cfg.stripe}|${seg.kind}|${seg.len}|${seg.cab || 0}`;
+  let e = carGeos.get(key);
+  if (!e) { e = buildCarGeometry(cfg, seg, TRAIN_HALF_WIDTH); e.parts = splitGroups(e.geo); e.lod1 = splitGroups(buildCarGeometry(cfg, seg, TRAIN_HALF_WIDTH, true).geo)[0]; if (e.lod1) e.lod1.userData.shared = true; for (const p of e.parts) if (p) p.userData.shared = true; carGeos.set(key, e); }
+  const g = new THREE.Group();
+  // drie meshes (romp met vertexkleuren, doorzichtig salonglas, cabineglas): het glas heeft een eigen materiaal en volgorde
+  [BODY_VC, SALOON_GLASS, GLASS_MAT].forEach((material, i) => {
+    if (!e.parts[i]) return;
+    const mesh = new THREE.Mesh(e.parts[i], material);
+    mesh.castShadow = i === 0;
+    // niveau 1 van het centrale systeem: een eigen, eenvoudig gebouwde romp (vehicle_train.js, simple) van ca. 1000 tot 1500 driehoeken
+    if (i === 0 && e.lod1) mesh.userData.lodRomp = e.lod1;
+    g.add(mesh);
+  });
+  const L = seg.len, H = cfg.height, W = TRAIN_HALF_WIDTH * 2, NOSE = cfg.front === 'virm' ? 1.9 : 1.6;
+  const x1 = L / 2 - (seg.cab === 1 ? NOSE : 0), x0 = -L / 2 + (seg.cab === -1 ? NOSE : 0), bl = x1 - x0, bx = (x0 + x1) / 2;
+  const floor = cfg.doubleDeck ? 0.5 : 0.7, top = H - 0.2;
+  // de donkere vuller: zonder LOD-interieur kijk je door de ramen een donkere, dichte salon in (uit zodra dat interieur er staat)
   const filler = box(g, bl - 0.16, top - floor - 0.16, W - 0.16, DARK(), bx, floor + (top - floor) / 2);
   filler.castShadow = false;
   g.userData.interiorFiller = filler;
-  box(g, bl - 0.4, 0.25, W - 0.5, ROOF(), bx, H - 0.08);
-  if (cfg.doubleDeck) {
-    // VIRM-style: single-deck ends over the bogies, low-slung double-deck middle
-    const endLen = 4.6;
-    for (const e of [-1, 1]) box(g, 2.8, 0.75, 2.3, DARK(), e * (L / 2 - 2.6), 0.5);
-    box(g, bl, 0.22, W + 0.03, stripe, bx, 0.72);
-    box(g, bl, 0.1, W + 0.03, stripe, bx, H - 0.45);
-    for (const e of [-1, 1]) {
-      const dx = e > 0 ? x1 - endLen + 1.6 : x0 + endLen - 1.6;
-      box(g, 1.35, 2.05, W + 0.04, door, dx, 1.9);
-      box(g, 1.0, 0.7, W + 0.02, GLASS_MAT, e > 0 ? x1 - 1.1 : x0 + 1.1, 2.45);
-    }
-  } else {
-    // low-floor GTW/WINK car: bogie only under the cab end, the other end
-    // rests on the power module
-    const cabEnd = seg.cab || 1;
-    box(g, 2.6, 0.6, 2.2, DARK(), cabEnd * (L / 2 - 3.2), 0.45);
-    box(g, bl, 0.35, W - 0.3, DARK(), bx, floor - 0.05);
-    box(g, bl, 0.42, W + 0.03, stripe, bx, 1.0);
-    box(g, bl, 0.07, W + 0.03, stripe, bx, 2.55);
-    for (const dx of [-cabEnd * (L / 2 - 3.2), cabEnd * (L / 2 - 6.5)]) box(g, 1.45, 2.15, W + 0.04, door, dx, floor + 1.1);
-  }
   const lamps = {};
-  if (seg.cab === 1) addCab(g, cfg, 1, x1, H, W, lamps);
-  if (seg.cab === -1) addCab(g, cfg, -1, x0, H, W, lamps);
+  for (const l of e.lampen) (lamps[l.end] || (lamps[l.end] = [])).push(box(g, 0.06, 0.16, 0.36, LAMP_DARK, l.x, l.y, l.z));
   g.userData.lamps = lamps;
   return g;
 }
@@ -776,7 +744,7 @@ function buildTrainView(t) {
     const m = buildCar(t.cfg, car.seg);
     group.add(m);
     // centraal LOD-systeem (lodkit3d.js): per wagen lichtere niveaus naast elke mesh, gewisseld op afstand tot de camera
-    makeLodObject('train', 'wagen', m);
+    makeLodObject('train', `wagen-${t.cfg.front}-${car.seg.kind}-${car.seg.cab || 0}`, m); // de naam houdt een gespiegelde kopwagen uit dezelfde keten (anders kreeg wagen -1 de neus van wagen 1 op niveau 1)
     return m;
   });
   scene.add(group);

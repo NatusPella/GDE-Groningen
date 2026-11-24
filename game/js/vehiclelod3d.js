@@ -14,7 +14,7 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
 import { DitherLOD } from './lod3d.js';
 import { lodSpec, registerLodModel, LOD_KINDS } from './lodregistry.js';
 import { lodScale } from './lodkit3d.js';
-import { buildLodChainGroups } from './lodsimplify.js';
+import { buildLodChainGroups, simplifyToTarget } from './lodsimplify.js';
 
 const lodGeos = new WeakMap(); // rompgeometrie -> { l1, l2, tris }
 
@@ -96,32 +96,55 @@ function grof(t) {
   return opp >= 0.0006 && opp / Math.max(...e) >= 0.01;
 }
 // haalt niveau 1 de minCut van de soort niet (een klein model als de heli), dan vereenvoudigt het centrale systeem hem verder
-// max (optioneel, group.userData.lodMax): een bovengrens voor niveau 1 van een zwaar model (24-11, bus, ambulance, bakwagen, wagon); het centrale
-// systeem (lodsimplify) vereenvoudigt dan tot onder die grens met behoud van het silhouet.
-function genoegMinder(l1, t0, max = Infinity) {
-  const need = LOD_KINDS.vehicle.minCut[0];
-  if (triCount(l1) > max) {
-    // de fijnste cel van het centrale systeem (lodsimplify) waarmee niveau 1 onder de grens komt: zo houdt het zoveel mogelijk van het silhouet
-    const P0 = l1.attributes.position.array, C0 = l1.attributes.color.array;
-    let best = null;
-    for (const f of [0.02, 0.025, 0.03, 0.035, 0.04, 0.05, 0.06, 0.07, 0.085, 0.1, 0.12, 0.14]) {
-      const { levels } = buildLodChainGroups({ position: P0, color: C0, index: null }, l1.groups, { minCut: [0.01], cells: [[f]] });
-      const lv = levels[1];
-      if (!lv) continue;
-      const g = new THREE.BufferGeometry();
-      g.setAttribute('position', new THREE.BufferAttribute(lv.geom.position, 3));
-      if (lv.geom.color) g.setAttribute('color', new THREE.BufferAttribute(lv.geom.color, 3));
-      for (const gr of lv.groups) g.addGroup(gr.start, gr.count, gr.materialIndex);
-      g.computeVertexNormals();
-      g.userData.shared = true;
-      best = g;
-      if (triCount(g) <= max) break;
-    }
-    if (best) return best;
+// Niveau 1 van een zwaar model (24-11). Een model kan er drie meegeven; de volgorde als er meer dan een staat (docs/LOD-SYSTEEM-23-11.md,
+// scripts/vehiclelod_volgorde_test.mjs): 1. group.userData.lodRomp (een eigen eenvoudig gebouwde romp: de bus, de trein; die is niveau 1),
+// 2. group.userData.lodDoel (een bovengrens in driehoeken, simplifyToTarget van lodsimplify.js), 3. group.userData.lodMax (een bovengrens in
+// driehoeken, de fijnste cel van het centrale systeem die eronder blijft). Een model zonder een van de drie volgt de minCut van de soort.
+export function lod1Bron(ud) {
+  const u = ud || {};
+  if (u.lodRomp) return 'lodRomp';
+  if (u.lodDoel > 0) return 'lodDoel';
+  if (u.lodMax > 0) return 'lodMax';
+  return null;
+}
+// doel: simplifyToTarget (kleine stappen in de celgrootte, silhouet bewaakt)
+function totDoel(l1, doel) {
+  const r = simplifyToTarget(l1.attributes.position.array, l1.attributes.color.array, l1.groups, doel);
+  if (!r) return null;
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.Float32BufferAttribute(r.geom.position, 3));
+  g.setAttribute('color', new THREE.Float32BufferAttribute(r.geom.color, 3));
+  for (const x of r.groups) g.addGroup(x.start, x.count, x.materialIndex);
+  g.computeVertexNormals();
+  g.userData.shared = true;
+  return g;
+}
+// max: de fijnste cel van het centrale systeem (lodsimplify) waarmee niveau 1 onder de grens komt: zo houdt het zoveel mogelijk van het silhouet
+function totMax(l1, max) {
+  const P0 = l1.attributes.position.array, C0 = l1.attributes.color.array;
+  let best = null;
+  for (const f of [0.02, 0.025, 0.03, 0.035, 0.04, 0.05, 0.06, 0.07, 0.085, 0.1, 0.12, 0.14]) {
+    const { levels } = buildLodChainGroups({ position: P0, color: C0, index: null }, l1.groups, { minCut: [0.01], cells: [[f]] });
+    const lv = levels[1];
+    if (!lv) continue;
+    const g = new THREE.BufferGeometry();
+    g.setAttribute('position', new THREE.BufferAttribute(lv.geom.position, 3));
+    if (lv.geom.color) g.setAttribute('color', new THREE.BufferAttribute(lv.geom.color, 3));
+    for (const gr of lv.groups) g.addGroup(gr.start, gr.count, gr.materialIndex);
+    g.computeVertexNormals();
+    g.userData.shared = true;
+    best = g;
+    if (triCount(g) <= max) break;
   }
-  if (1 - triCount(l1) / t0 >= need) return l1;
+  return best;
+}
+function genoegMinder(l1, t0, doel = 0, max = 0) {
+  if (doel && triCount(l1) > doel) { const g = totDoel(l1, doel); if (g) return g; }
+  else if (!doel && max && triCount(l1) > max) { const g = totMax(l1, max); if (g) return g; }
+  const need = Math.max(LOD_KINDS.vehicle.minCut[0], doel ? 1 - doel / Math.max(1, triCount(l1)) : 0);
+  if (1 - triCount(l1) / t0 >= need && (!doel || triCount(l1) <= doel)) return l1;
   const P = l1.attributes.position.array, C = l1.attributes.color.array;
-  const { levels } = buildLodChainGroups({ position: P, color: C, index: null }, l1.groups, { minCut: [need, LOD_KINDS.vehicle.minCut[1]] });
+  const { levels } = buildLodChainGroups({ position: P, color: C, index: null }, l1.groups, { minCut: [need, Math.max(LOD_KINDS.vehicle.minCut[1], need)] });
   for (const lv of levels.slice(1)) {
     const flat = lv.geom;
     const g = new THREE.BufferGeometry();
@@ -130,7 +153,7 @@ function genoegMinder(l1, t0, max = Infinity) {
     for (const gr of lv.groups) g.addGroup(gr.start, gr.count, gr.materialIndex);
     g.computeVertexNormals();
     g.userData.shared = true;
-    if (1 - triCount(g) / t0 >= need) return g;
+    if (1 - triCount(g) / t0 >= LOD_KINDS.vehicle.minCut[0] && (!doel || triCount(g) <= doel)) return g;
   }
   return l1;
 }
@@ -168,13 +191,16 @@ export function attachVehicleLods(group, naam = 'voertuig') {
   const inv = new THREE.Matrix4().copy(body.matrixWorld).invert();
   let set = lodGeos.get(body.geometry);
   if (!set) {
+    // een voertuig met een eigen eenvoudig gebouwde romp (userData.lodRomp: de bus) gebruikt die voor niveau 1; anders de vereenvoudigde romp
+    const eigen1 = group.userData.lodRomp ? trisOf(group.userData.lodRomp) : null;
     const romp = trisOf(body.geometry);
     const extra = group.userData.deurenDicht ? trisOf(group.userData.deurenDicht.geometry) : [];
     const wielen = [];
     for (const w of group.userData.wheels || []) wielen.push(...eenvoudigWiel(w, inv));
     let t0 = 0;
     group.traverse((o) => { if (o.isMesh && o.geometry && o.geometry.attributes.position && !o.name.startsWith('lod')) t0 += triCount(o.geometry); });
-    const l1 = genoegMinder(build([...romp, ...extra].filter(grof).concat(wielen)), t0, group.userData.lodMax);
+    const ud = group.userData; // lod1Bron: lodRomp, dan lodDoel, dan lodMax
+    const l1 = eigen1 ? build(eigen1.concat(wielen)) : genoegMinder(build([...romp, ...extra].filter(grof).concat(wielen)), t0, ud.lodDoel || 0, ud.lodMax || 0);
     const l2 = build(silhouet([...romp, ...extra], hoofdkleur(romp)), 1);
     set = { l1, l2, tris: [Math.round(t0), triCount(l1), triCount(l2)] };
     lodGeos.set(body.geometry, set);

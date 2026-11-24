@@ -41,17 +41,17 @@ const GTW_SEGMENTS = [
 export const TRAIN_TYPES = {
   gtw: {
     label: 'Stoptrein', vmax: 22, height: 3.75, doubleDeck: false, front: 'gtw', gap: 0.35,
-    body: 0xf2f4f3, stripe: 0x00a3ad, door: 0x00a3ad, nose: 0x00a3ad, accent: 0x0b3b4f,
+    body: 0xf2f4f3, stripe: 0xe36a1d, door: 0xe36a1d, nose: 0xe36a1d, accent: 0x3a2a1a,
     segments: GTW_SEGMENTS,
   },
   wink: {
     label: 'Stoptrein', vmax: 22, height: 3.85, doubleDeck: false, front: 'wink', gap: 0.35,
-    body: 0xeef2f2, stripe: 0x00a3ad, door: 0x0b3b4f, nose: 0x00a3ad, accent: 0x0b3b4f,
+    body: 0xeef2f2, stripe: 0xe36a1d, door: 0x3a2a1a, nose: 0xe36a1d, accent: 0x3a2a1a,
     segments: [{ len: 19.5, kind: 'car', cab: 1 }, { len: 5, kind: 'power' }, { len: 19.5, kind: 'car', cab: -1 }],
   },
   virm: {
     label: 'Intercity', vmax: 24, height: 4.7, doubleDeck: true, front: 'virm', gap: 1.0,
-    body: 0xffc917, stripe: 0x003082, door: 0x003082, nose: 0xffc917, accent: 0xd52b1e,
+    body: 0xefe6c8, stripe: 0x1f5a3a, door: 0x1f5a3a, nose: 0x1f5a3a, accent: 0xe36a1d,
     segments: [
       { len: 26.5, kind: 'car', cab: 1 }, { len: 26.5, kind: 'car' }, { len: 26.5, kind: 'car' }, { len: 26.5, kind: 'car', cab: -1 },
     ],

@@ -8,7 +8,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const ROOT = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
-const MAP = path.join(ROOT, 'docs', 'beeld-24-11', 'voertuigen');
+const MAP = path.join(ROOT, 'docs', 'beeld-24-11', process.env.VB_MAP || 'voertuigen');
 const [fase = 'na', lijst = 'escapade', weergaven = 'buiten,schuin,achter,open,binnen'] = process.argv.slice(2);
 const CHROME = ['C:/Program Files/Google/Chrome/Application/chrome.exe', 'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe'].find((p) => fs.existsSync(p));
 const wacht = (ms) => new Promise((r) => setTimeout(r, ms));

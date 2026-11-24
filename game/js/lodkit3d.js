@@ -13,7 +13,7 @@
 // opkomt: samen precies één beeld, geen gat en geen dubbel). Hysterese: de CPU deelt een instance in met marge (lodLevelsForFade), dus een
 // model op de grens wisselt niet heen en weer; de shader bepaalt per pixel welk niveau zichtbaar is.
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
-import { buildLodChain, buildLodChainGroups } from './lodsimplify.js';
+import { buildLodChain, buildLodChainGroups, simplifyToTarget } from './lodsimplify.js';
 import { LOD_KINDS, lodSpec, lodLevelsForFade, lodScaleFor, registerLodModel } from './lodregistry.js';
 
 let scale = 1;
@@ -62,20 +62,26 @@ function geometryOf(plain) {
 export const trianglesOf = (g) => (g.index ? g.index.count / 3 : g.getAttribute('position').count / 3);
 
 const chains = new Map(); // `${kind}:${name}` -> [BufferGeometry]
-export function makeLodGeometries(kind, name, geometry) {
+// minCutOverride (24-11): een zwaar model (een dubbeldekker) geeft zelf een snede per niveau op (mesh.userData.lodMinCut), voor de soort-standaard.
+export function makeLodGeometries(kind, name, geometry, minCutOverride = null, doel = 0) {
   const key = `${kind}:${name}`;
   let geoms = chains.get(key);
   if (geoms) return geoms;
   const k = LOD_KINDS[kind];
   if (!k) throw new Error(`onbekende LOD-soort: ${kind}`);
   const want = Math.max(1, k.lod.grenzen.length); // zoveel lichtere niveaus vraagt de soort
-  const minCut = k.minCut.slice(0, want);
+  const minCut = minCutOverride ? minCutOverride.slice(0, want) : k.minCut.slice(0, want);
   if (geometry.groups && geometry.groups.length > 1) {
     // meerdere materialen (carrosserie, glas, lampen): per groep vereenvoudigd, de groepen blijven bestaan
     const { levels } = buildLodChainGroups(plainOf(geometry), geometry.groups, { minCut });
+    // doel: niveau 1 dicht bij dat aantal driehoeken (simplifyToTarget) in plaats van de grove stap van de keten
+    const p0 = plainOf(geometry), t1 = doel && simplifyToTarget(p0.position, p0.color, geometry.groups, doel);
+    if (t1 && levels.length > 1) levels.splice(1, 1, { geom: t1.geom, groups: t1.groups, tris: t1.tris });
     geoms = [geometry, ...levels.slice(1).map((l) => { const gg = geometryOf(l.geom); for (const gr of l.groups) gg.addGroup(gr.start, gr.count, gr.materialIndex); return gg; })];
   } else {
     const { levels } = buildLodChain(plainOf(geometry), { minCut });
+    const p1 = doel && plainOf(geometry), t1 = p1 && p1.position.length && simplifyToTarget(p1.position, p1.color || new Float32Array(p1.position.length), [{ start: 0, count: p1.position.length / 3, materialIndex: 0 }], doel);
+    if (t1 && levels.length > 1) levels.splice(1, 1, { geom: t1.geom, tris: t1.tris, cell: 0 });
     geoms = [geometry, ...levels.slice(1).map((l) => geometryOf(l.geom))];
   }
   for (let L = 1; L < geoms.length; L++) geoms[L].userData.shared = true; // gedeeld tussen alle exemplaren: een eigenaar gooit hem niet weg
@@ -155,7 +161,9 @@ function levelMeshes(kind, name, mesh, geometry) {
   if (!geometry.boundingBox) geometry.computeBoundingBox();
   const bb = geometry.boundingBox, dim = (a, b) => Math.round((a - b) * 100);
   const key = `${name}:${geometry.getAttribute('position').count}:${dim(bb.max.x, bb.min.x)}x${dim(bb.max.y, bb.min.y)}x${dim(bb.max.z, bb.min.z)}`;
-  const geoms = plain ? makeLodGeometries(kind, key, geometry) : (registerLodModel(kind, key + ':textuur', [trianglesOf(geometry)]), [geometry]);
+  const geoms = plain ? makeLodGeometries(kind, key, geometry, mesh.userData.lodMinCut || null, mesh.userData.lodDoel || 0) : (registerLodModel(kind, key + ':textuur', [trianglesOf(geometry)]), [geometry]);
+  // een model dat zijn eigen eenvoudige niveau 1 meebrengt (userData.lodRomp, zelfde materiaalgroepen): dat vervangt de vereenvoudiging van de keten
+  if (mesh.userData.lodRomp && geoms.length > 1) geoms[1] = mesh.userData.lodRomp;
   const out = [mesh];
   const fadeOf = (L) => (Array.isArray(mesh.material) ? mats.map((x) => lodFadeMaterial(x, kind, L, geoms.length)) : lodFadeMaterial(mat, kind, L, geoms.length));
   if (geoms.length > 1 || LOD_KINDS[kind].lod.weg != null) mesh.material = fadeOf(0);

@@ -29,6 +29,8 @@ import { wagonOnderdelen } from './vehicle_wagon.js'; // de stationwagen: opbouw
 import { densify, hullShellRich, boatFinish, outboardRich } from './vehicle_boat.js';
 import { stepFrameParts, stepSteerParts, stepGripSpec, mopedFrameParts, mopedSteerParts, mopedGripSpec, scooterWheelRich } from './vehicle_scooter.js';
 import { bikeFrameParts, bikeSteerParts, bikeForkParts, bakfietsParts, bikeWheelRich, bikeCrankParts, bikeGripSpec, bikeStijlNaam, bikeLean, bikeHipX, bikeHipY, bikeExtras, BIKE_BB } from './vehicle_bike.js';
+import { buildMaaidorserGeo, maaidorserWheels, buildLaadmachineGeo, laadmachineWheel } from './vehicle_farm.js';
+import { busSection as busSectionQ, busBellows, busWheelGeometry, busDoorKnip } from './vehicle_bus.js';
 
 // Low-poly vehicles. Group origin = vehicle centre at ground level (y=0),
 // facing local +X, right-hand side on +Z; sized off v.model.len/wid.
@@ -2344,48 +2346,21 @@ function buildQuadMesh(v) {
 function buildMaaidorserMesh(v) {
   const L = v.model.len, W = v.model.wid, hl = L / 2, hw = W / 2;
   const paint = v.wrecked ? WRECKED_COLOR : toHex(v.model.color, 0xc43d2b);
-  const geo = cached(`maaidorser|${L}|${W}|${paint}`, () => {
-    const B = new GeoBuilder(3);
-    const rond = shadeHex(paint, 0.82);
-    // maaitafel voorop met haspel en messenbalk, dorskast, graantank, lospijp, cabine
-    B.box(hl - 0.5, 0.62, 0, 1.0, 0.5, W, 0xd9b84a);
-    B.box(hl - 0.15, 0.4, 0, 0.18, 0.14, W, 0x6b6b6b);
-    B.box(hl - 0.45, 1.05, 0, 0.5, 0.5, W * 0.96, shadeHex(0xd9b84a, 0.8));
-    B.box(hl - 1.45, 1.5, 0, 1.6, 1.0, W * 0.62, rond);
-    B.box(-0.55, 1.55, 0, hl * 1.2, 1.1, W * 0.78, paint);
-    B.box(-1.2, 2.55, 0, 3.2, 1.0, W * 0.74, paint);
-    B.box(-1.2, 3.14, 0, 3.3, 0.14, W * 0.78, rond);
-    B.box(-0.2, 3.5, hw * 0.55, 3.4, 0.14, 0.16, 0x6b6b6b);
-    // De maaidorsers-cabine (#847): geen dichte plaatswerkdoos meer achter het glas, zodat het
-    // interieur op cabinehoogte (2,35-3,2 m) door de glasband te zien is. Onderpaneel tot de
-    // raamlijn, dakpaneel erboven en vier hoekstijlen ertussen; de glaspanelen zelf staan op
-    // dezelfde plek als voorheen (voor/achter op hl-1,64 en hl-3,16, zij op +/-W*0,35).
-    B.box(hl - 2.4, 2.175, 0, 1.5, 0.35, W * 0.7, paint);
-    B.box(hl - 2.4, 3.25, 0, 1.5, 0.1, W * 0.7, paint);
-    for (const px of [hl - 3.12, hl - 1.68]) for (const pz of [-1, 1]) B.box(px, 2.775, pz * (W * 0.35 - 0.03), 0.06, 0.85, 0.06, paint);
-    B.box(hl - 2.4, 3.36, 0, 1.6, 0.14, W * 0.76, rond);
-    B.box(hl - 1.64, 2.7, 0, 0.03, 1.0, W * 0.64, GLASS, G_GLASS);
-    B.box(hl - 3.16, 2.7, 0, 0.03, 1.0, W * 0.64, GLASS, G_GLASS);
-    for (const s of [1, -1]) {
-      B.box(hl - 2.4, 2.7, s * W * 0.35, 1.5, 1.0, 0.03, GLASS, G_GLASS);
-      B.box(hl - 0.04, 0.62, s * (hw - 0.3), 0.02, 0.14, 0.24, HEADLAMP, G_LAMP);
-      B.box(-hl + 0.03, 1.5, s * (hw * 0.5), 0.02, 0.14, 0.2, TAIL, G_LAMP);
-    }
-    return B.build();
-  });
+  const geo = cached(`maaidorser2|${L}|${W}|${paint}`, () => buildMaaidorserGeo(L, W, paint));
   const mats = vehicleMaterials(v.wrecked);
   const group = new THREE.Group();
   const body = new THREE.Mesh(geo, mats);
   group.add(body);
   group.userData.body = body;
   const wheels = [];
-  const big = carWheelGeometry(0.95, 0.7), small = carWheelGeometry(0.62, 0.5);
+  const { big, small } = { big: cached('maaidorser-big', () => maaidorserWheels().big), small: cached('maaidorser-small', () => maaidorserWheels().small) };
   for (const s of [1, -1]) {
     addWheel(group, big, mats[0], hl - 2.7, 0.95, s * (hw - 0.45), wheels);
     addWheel(group, small, mats[0], -hl + 1.0, 0.62, s * (hw - 0.55), wheels);
   }
   group.userData.wheels = wheels;
   group.userData.wheelRadius = 0.95;
+  group.userData.lodDoel = 1400;
   return group;
 }
 
@@ -2393,40 +2368,21 @@ function buildMaaidorserMesh(v) {
 function buildLaadmachineMesh(v) {
   const L = v.model.len, W = v.model.wid, hl = L / 2, hw = W / 2;
   const paint = v.wrecked ? WRECKED_COLOR : toHex(v.model.color, 0xe0a92b);
-  const geo = cached(`laadmachine|${L}|${W}|${paint}`, () => {
-    const B = new GeoBuilder(3);
-    const rond = shadeHex(paint, 0.8);
-    B.box(-hl + 0.7, 0.85, 0, 1.4, 0.7, W * 0.8, paint);
-    B.box(-hl + 0.45, 1.3, 0, 0.9, 0.3, W * 0.72, rond);
-    B.box(0.15, 0.62, 0, 1.6, 0.4, W * 0.62, 0x2a2a2a);
-    // cabine met kooi, de laadarm langs beide kanten en de bak
-    B.box(-0.1, 1.45, 0, 1.1, 0.12, W * 0.78, rond);
-    B.box(-0.1, 2.0, 0, 1.1, 0.08, W * 0.86, rond);
-    for (const s of [1, -1]) {
-      for (const px of [-0.6, 0.38]) B.box(px, 1.75, s * (hw * 0.78), 0.06, 0.66, 0.06, rond);
-      B.box(0.55, 1.2, s * (hw * 0.92), 1.7, 0.1, 0.1, 0x5a5a5a);
-      B.box(0.38, 1.76, s * (hw * 0.78), 0.02, 0.56, 0.02, GLASS, G_GLASS);
-      B.box(hl - 0.03, 0.9, s * (W * 0.3), 0.02, 0.12, 0.2, HEADLAMP, G_LAMP);
-      B.box(-hl + 0.02, 1.05, s * (W * 0.3), 0.02, 0.1, 0.18, TAIL, G_LAMP);
-    }
-    B.box(hl + 0.1, 0.45, 0, 0.8, 0.5, W * 1.02, 0x5a5a5a);
-    B.box(hl + 0.45, 0.72, 0, 0.1, 0.45, W * 1.02, 0x5a5a5a);
-    B.box(-0.1, 1.75, 0, 0.02, 0.56, W * 0.76, GLASS, G_GLASS);
-    return B.build();
-  });
+  const geo = cached(`laadmachine2|${L}|${W}|${paint}`, () => buildLaadmachineGeo(L, W, paint));
   const mats = vehicleMaterials(v.wrecked);
   const group = new THREE.Group();
   const body = new THREE.Mesh(geo, mats);
   group.add(body);
   group.userData.body = body;
   const wheels = [];
-  const wheel = carWheelGeometry(0.46, 0.5);
+  const wheel = cached('laadmachine-wiel', () => laadmachineWheel());
   for (const s of [1, -1]) {
     addWheel(group, wheel, mats[0], hl - 0.85, 0.46, s * (hw - 0.25), wheels);
     addWheel(group, wheel, mats[0], -hl + 0.7, 0.46, s * (hw - 0.25), wheels);
   }
   group.userData.wheels = wheels;
   group.userData.wheelRadius = 0.46;
+  group.userData.lodDoel = 1300;
   return group;
 }
 
@@ -3054,104 +3010,7 @@ const BUS_ROOF = 3.0;
 const BUS_SILL = 0.32;
 const BUS_WHEEL_R = 0.5;
 
-// One bus section from x0 (rear) to x1 (front); rounded roof edge at whichever
-// end is exposed. doorXs: door centre positions on the kerb (+Z) side.
-function spansBetween(x0, x1, arches, pad = 0.02) {
-  const out = [];
-  let a = x0;
-  for (const { x, r } of arches) {
-    if (x - r - pad > a) out.push([a, x - r - pad]);
-    a = Math.max(a, x + r + pad);
-  }
-  if (x1 > a) out.push([a, x1]);
-  return out;
-}
-
-function busSection(B, x0, x1, W, { front, rear, wheelXs, doorXs }) {
-  const hw = W / 2;
-  const R = BUS_WHEEL_R + 0.1;
-  const arches = wheelXs.slice().sort((a, b) => a - b).map((x) => ({ x, r: R, cy: BUS_WHEEL_R }));
-  const zs = hw + 0.006;
-  const winY0 = 1.15, winY1 = 2.6;
-  const inner0 = x0 + (rear ? 0.35 : 0.1), inner1 = x1 - (front ? 0.3 : 0.1);
-  // hollow between the window lines, so the driver shows through the glass
-  const top = [[x1, BUS_SILL + 0.1]];
-  if (front) top.push([x1 + 0.03, 1.0], [x1 + 0.03, winY0]);
-  else top.push([x1, winY0]);
-  top.push([x0, winY0], [x0, BUS_SILL + 0.1]);
-  B.geo(extrudeProfile([...top, ...archedSill(x0, x1, BUS_SILL, arches)], W, 0.06), null, BUS_WHITE);
-  const roof = [[x1, winY1]];
-  if (front) roof.push([x1, 2.7], [x1 - 0.25, BUS_ROOF]);
-  else roof.push([x1, BUS_ROOF]);
-  if (rear) roof.push([x0 + 0.25, BUS_ROOF], [x0, 2.75], [x0, winY1]);
-  else roof.push([x0, BUS_ROOF], [x0, winY1]);
-  B.geo(extrudeProfile(roof, W, 0.06), null, BUS_WHITE);
-  const midY = (winY0 + winY1) / 2, winH = winY1 - winY0;
-  for (const s of [1, -1]) {
-    B.box((x0 + inner0) / 2, midY, s * (hw - 0.03), inner0 - x0, winH, 0.06, BUS_WHITE);
-    B.box((inner1 + x1) / 2, midY, s * (hw - 0.03), x1 - inner1, winH, 0.06, BUS_WHITE);
-  }
-  if (rear) {
-    B.box(x0 + 0.03, (winY0 + 1.65) / 2, 0, 0.06, 1.65 - winY0, W, BUS_WHITE);
-    for (const s of [1, -1]) B.box(x0 + 0.03, (1.65 + winY1) / 2, s * (hw - 0.125), 0.06, winY1 - 1.65, 0.25, BUS_WHITE);
-  } else B.box(x0 + 0.03, midY, 0, 0.06, winH, W, BUS_WHITE);
-  if (!front) B.box(x1 - 0.03, midY, 0, 0.06, winH, W, BUS_WHITE);
-  B.box((x0 + x1) / 2, winY0 + 0.012, 0, x1 - x0 - 0.12, 0.02, W - 0.12, 0x3a3d42);
-  for (let x = inner0 + 0.6; x < inner1 - (front ? 1.2 : 0.4); x += 1.1) {
-    for (const s of [1, -1]) B.box(x, winY0 + 0.3, s * hw * 0.5, 0.08, 0.55, hw * 0.78, 0x2f4f7a);
-  }
-  archLiners(B, arches, W);
-
-  for (const s of [1, -1]) {
-    const z = s * zs;
-    for (const [a, b] of spansBetween(x0 + 0.03, x1 - 0.03, arches)) {
-      B.box((a + b) / 2, 0.55, z, b - a, 0.42, 0.012, BUS_GREEN);
-      B.box((a + b) / 2, 0.8, z, b - a, 0.07, 0.012, BUS_LIME);
-    }
-    B.box((inner0 + inner1) / 2, (winY0 + winY1) / 2, z, inner1 - inner0, winY1 - winY0, 0.012, GLASS, G_GLASS);
-    const n = Math.max(2, Math.round((inner1 - inner0) / 1.45));
-    for (let i = 0; i <= n; i++) {
-      const x = inner0 + ((inner1 - inner0) * i) / n;
-      B.box(x, (winY0 + winY1) / 2, s * (zs + 0.004), 0.09, winY1 - winY0 + 0.02, 0.01, TRIM);
-    }
-    B.box((inner0 + inner1) / 2, winY1 + 0.03, s * (zs + 0.004), inner1 - inner0, 0.05, 0.01, TRIM);
-    B.box((inner0 + inner1) / 2, winY0 - 0.02, s * (zs + 0.004), inner1 - inner0, 0.04, 0.01, TRIM);
-    if (s === 1) {
-      for (const dx of doorXs) {
-        // gesloten deurblad: lichtblauw glas boven een witte onderkant, dicht en dus niet door te kijken
-        // (vroeger donker doorzichtig glas voor een lege romp: een dichte bus zag er open uit)
-        B.box(dx, (BUS_SILL + 0.1 + 1.05) / 2, s * (zs + 0.008), 1.25, 1.05 - BUS_SILL - 0.1, 0.012, BUS_WHITE);
-        B.box(dx, (1.05 + winY1) / 2, s * (zs + 0.008), 1.25, winY1 - 1.05, 0.012, 0x5f8299);
-        B.box(dx, (BUS_SILL + 0.1 + winY1) / 2, s * (zs + 0.014), 0.05, winY1 - BUS_SILL - 0.05, 0.01, TRIM);
-        for (const e of [-0.64, 0.64]) B.box(dx + e, (BUS_SILL + 0.1 + winY1) / 2, s * (zs + 0.014), 0.06, winY1 - BUS_SILL, 0.012, TRIM);
-      }
-    }
-  }
-  if (front) {
-    B.box(x1 + 0.035, 1.8, 0, 0.012, 1.55, W - 0.24, GLASS, G_GLASS);
-    B.box(x1 + 0.04, 2.8, 0, 0.012, 0.22, W * 0.7, 0x1b1b1c);
-    B.box(x1 + 0.046, 2.8, 0, 0.01, 0.13, W * 0.55, 0xf0b33a, G_LAMP);
-    B.box(x1 + 0.018, 0.6, 0, 0.012, 0.35, W - 0.1, BUS_GREEN);
-    for (const s of [1, -1]) {
-      B.box(x1 + 0.03, 0.62, s * (hw - 0.28), 0.02, 0.14, 0.34, HEADLAMP, G_LAMP);
-      B.box(x1 - 0.35, 2.35, s * (hw + 0.28), 0.08, 0.34, 0.12, TRIM);
-      B.box(x1 - 0.2, 2.55, s * (hw + 0.14), 0.05, 0.04, 0.3, TRIM);
-    }
-    B.box(x1 + 0.03, 0.47, 0, 0.012, 0.1, 0.48, PLATE);
-  }
-  if (rear) {
-    B.box(x0 - 0.035, 2.1, 0, 0.012, 0.9, W - 0.5, GLASS, G_GLASS);
-    B.box(x0 - 0.04, 0.95, 0, 0.012, 0.5, W - 0.6, 0x3a3b3d);
-    for (const s of [1, -1]) {
-      B.box(x0 - 0.045, 0.75, s * (hw - 0.25), 0.02, 0.35, 0.18, TAIL, G_LAMP);
-      B.box(x0 - 0.045, 1.0, s * (hw - 0.25), 0.02, 0.1, 0.18, INDICATOR, G_LAMP);
-    }
-    B.box(x0 - 0.06, 0.45, 0, 0.012, 0.1, 0.48, PLATE);
-  }
-  const podLen = Math.min(4, (x1 - x0) * 0.45);
-  B.box((x0 + x1) / 2 + (front ? 0.6 : -0.3), BUS_ROOF + 0.14, 0, podLen, 0.28, W * 0.72, 0xd6d6d0);
-  B.box((x0 + x1) / 2 + (front ? 0.6 : -0.3), BUS_ROOF + 0.29, 0, podLen - 0.3, 0.03, W * 0.6, 0xa9aaa6);
-}
+// De bussecties (romp, ruiten, deuren, wielkasten, dak) bouwt vehicle_bus.js.
 
 function buildBusMesh(v) {
   const group = new THREE.Group();
@@ -3172,36 +3031,61 @@ function buildBusMesh(v) {
   const key = `bus|${len}|${wid}|${trailer}|${!!v.wrecked}`;
   const mats = vehicleMaterials(!!v.wrecked);
 
-  const frontGeo = cached(key + '|f', () => {
+  const dDefs = DEUR_DEFS_REF.bus.map((d) => ({ id: d.id, x: d.x * len }));
+  const frontDoors = [{ x: hl - 1.05, id: 'd1' }, { x: (fwX + mwX) / 2, id: 'd2' }];
+  const frontGeo = cached(key + '|f2', () => {
+    const B = new GeoBuilder(3), leafOut = {};
+    busSectionQ(B, x0f, hl, wid, { front: true, rear: false, wheelXs: [fwX, mwX], doors: frontDoors, leafOut });
+    busBellows(B, jointX, wid);
+    const g = B.build();
+    g.userData.knip = busDoorKnip(leafOut, wid / 2, dDefs);
+    return g;
+  });
+  const frontMesh = new THREE.Mesh(frontGeo, mats);
+  group.add(frontMesh);
+  group.userData.deurBody = frontMesh;
+  koppelDeurgaten(group, frontMesh, frontGeo);
+  // niveau 1 van de lodkit (vehiclelod3d.js): een eigen, eenvoudig gebouwde romp in plaats van een vereenvoudiging van het volle model
+  group.userData.lodRomp = cached(key + '|fl', () => {
     const B = new GeoBuilder(3);
-    busSection(B, x0f, hl, wid, { front: true, rear: false, wheelXs: [fwX, mwX], doorXs: [hl - 1.05, (fwX + mwX) / 2] });
-    const bel = new THREE.CylinderGeometry(wid / 2 * 0.96, wid / 2 * 0.96, BUS_ROOF - 0.45, 12, 1, true);
-    B.geo(bel, composeMatrix(jointX, (BUS_ROOF + 0.45) / 2, 0), 0x2a2a2c);
-    for (let i = 0; i < 3; i++) B.geo(new THREE.TorusGeometry(wid / 2 * 0.965, 0.025, 3, 12).rotateX(Math.PI / 2), composeMatrix(jointX, 0.9 + i * 0.75, 0), 0x3a3a3c);
+    busSectionQ(B, x0f, hl, wid, { front: true, rear: false, wheelXs: [fwX, mwX], doors: frontDoors, simple: true });
+    busBellows(B, jointX, wid, true);
     return B.build();
   });
-  group.add(new THREE.Mesh(frontGeo, mats));
 
   const rear = new THREE.Group();
   rear.position.x = jointX;
   group.add(rear);
-  const rearGeo = cached(key + '|r', () => {
+  const rearGeo = cached(key + '|r2', () => {
     const B = new GeoBuilder(3);
-    busSection(B, -BUS_JOINT_GAP - rearLen, -BUS_JOINT_GAP, wid, { front: false, rear: true, wheelXs: [rwX], doorXs: [-BUS_JOINT_GAP - (trailer ? 1.4 : 1.2)] });
+    busSectionQ(B, -BUS_JOINT_GAP - rearLen, -BUS_JOINT_GAP, wid, { front: false, rear: true, wheelXs: [rwX], doors: [{ x: -BUS_JOINT_GAP - (trailer ? 1.4 : 1.2), id: null }] });
     return B.build();
   });
-  rear.add(new THREE.Mesh(rearGeo, mats));
+  // de achterwagen heeft eigen materialen en een eigen LOD: met de materialen van de voorwagen verdween hij mee met het niveau van de voorwagen
+  const rearMats = vehicleMaterials(!!v.wrecked);
+  rear.add(new THREE.Mesh(rearGeo, rearMats));
+  rear.userData.lodRomp = cached(key + '|rl', () => {
+    const B = new GeoBuilder(3);
+    busSectionQ(B, -BUS_JOINT_GAP - rearLen, -BUS_JOINT_GAP, wid, { front: false, rear: true, wheelXs: [rwX], doors: [{ x: -BUS_JOINT_GAP - (trailer ? 1.4 : 1.2), id: null }], simple: true });
+    return B.build();
+  });
+  rear.userData.lodDoel = 0;
 
-  const wgeo = carWheelGeometry(BUS_WHEEL_R, 0.3);
+  const wgeo = cached('buswheel2', () => busWheelGeometry(BUS_WHEEL_R, 0.3));
   const wheels = [];
   const wz = wid / 2 - 0.2;
   for (const x of [fwX, mwX]) for (const s of [1, -1]) addWheel(group, wgeo, mats[0], x, BUS_WHEEL_R, s * wz, wheels);
-  for (const s of [1, -1]) addWheel(rear, wgeo, mats[0], rwX, BUS_WHEEL_R, s * wz, wheels);
+  const rearWheels = [];
+  for (const s of [1, -1]) addWheel(rear, wgeo, rearMats[0], rwX, BUS_WHEEL_R, s * wz, rearWheels);
+  wheels.push(...rearWheels);
+  rear.userData.wheels = rearWheels;
 
   group.userData.wheels = wheels;
   group.userData.frontWheels = wheels.slice(0, 2);
   group.userData.wheelRadius = BUS_WHEEL_R;
   group.userData.busRear = rear;
+  attachVehicleLods(rear, 'busrear');
+  group.userData.lodDoel = 1800; // niveau 1 van de lodkit: bussen rijden in groten getale op 60 tot 150 m
   group.userData.busSections = { frontLen, frontX, rearLen, rearX };
 
   if (v.isPolice) {
@@ -4109,15 +3993,27 @@ export function applyFlatTire(mesh, v) {
 function buildMidiBusMesh(v) {
   const group = new THREE.Group();
   const len = v.model.len, wid = v.model.wid, hl = len / 2;
-  const fwX = hl - 1.9, rwX = -hl + 2.0;
-  const geo = cached(`midibus|${len}|${wid}|${!!v.wrecked}`, () => {
-    const B = new GeoBuilder(3);
-    busSection(B, -hl, hl, wid, { front: true, rear: true, wheelXs: [fwX, rwX], doorXs: midibusDeurXs(len) });
-    return B.build();
+  const fwX = hl - 2.45, rwX = -hl + 2.0;
+  const dDefs = DEUR_DEFS_REF.midibus.map((d) => ({ id: d.id, x: d.x * len }));
+  const mDoors = midibusDeurXs(len);
+  const geo = cached(`midibus2|${len}|${wid}|${!!v.wrecked}`, () => {
+    const B = new GeoBuilder(3), leafOut = {};
+    busSectionQ(B, -hl, hl, wid, { front: true, rear: true, wheelXs: [fwX, rwX], doors: [{ x: mDoors[0], id: 'd1' }, { x: mDoors[1], id: null }], leafOut });
+    const g = B.build();
+    g.userData.knip = busDoorKnip(leafOut, wid / 2, dDefs);
+    return g;
   });
   const mats = vehicleMaterials();
-  group.add(new THREE.Mesh(geo, mats));
-  const wgeo = carWheelGeometry(BUS_WHEEL_R, 0.3);
+  const bodyM = new THREE.Mesh(geo, mats);
+  group.add(bodyM);
+  group.userData.deurBody = bodyM;
+  group.userData.lodRomp = cached(`midibus2l|${len}|${wid}`, () => {
+    const B = new GeoBuilder(3);
+    busSectionQ(B, -hl, hl, wid, { front: true, rear: true, wheelXs: [fwX, rwX], doors: [{ x: mDoors[0], id: null }, { x: mDoors[1], id: null }], simple: true });
+    return B.build();
+  });
+  koppelDeurgaten(group, bodyM, geo);
+  const wgeo = cached('buswheel2', () => busWheelGeometry(BUS_WHEEL_R, 0.3));
   const wheels = [];
   for (const x of [fwX, rwX]) for (const s of [1, -1]) addWheel(group, wgeo, mats[0], x, BUS_WHEEL_R, s * (wid / 2 - 0.2), wheels);
   group.userData.wheels = wheels;
