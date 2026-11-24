@@ -23,6 +23,7 @@ import { attachVehicleLods } from './vehiclelod3d.js';
 import { DitherLOD } from './lod3d.js';
 import * as VAN from './vehicle_van.js'; // bestelbus, ambulance en de cabine van de foodtruck (24-11)
 import { richWheelGeometry, splitGroupAtX } from './vehicle_kit.js';
+import { wagonOnderdelen } from './vehicle_wagon.js'; // de stationwagen: opbouw op de SUV-romp (24-11)
 
 // Low-poly vehicles. Group origin = vehicle centre at ground level (y=0),
 // facing local +X, right-hand side on +Z; sized off v.model.len/wid.
@@ -951,7 +952,7 @@ function buildCarMesh(v) {
 const hybData = new Map();
 // De Fjord Escapade (24-11) is een hybride op de romp van de kleine hatchback (qcars.js 'hatch'), 4,0 m lang: de extra lengte komt
 // uit een zone tussen de wielkasten (QREK, x in hun maat), zodat de wielkasten rond blijven en er niets over de wielen uitrekt.
-const QALIAS = { escapade: 'hatch' };
+const QALIAS = { escapade: 'hatch', wagon: 'suv' }; // de stationwagen is de SUV-romp op wagenhoogte (vehicle_wagon.js)
 const QREK = { escapade: [-0.62, 0.70] };
 const qdata = (key) => QCARS[QALIAS[key] || key];
 function b64Bytes(s) { return typeof atob === 'function' ? Uint8Array.from(atob(s), (c) => c.charCodeAt(0)) : new Uint8Array(Buffer.from(s, 'base64')); }
@@ -996,10 +997,11 @@ export function hybridKey(v) {
   if (n === 'sedan') return 'sedan';
   if (n === 'hatch') return 'hatch';
   if (n === 'suv') return 'suv';
+  if (n === 'wagon') return 'wagon';
   if (n === 'sport') return hash2(typeof v.id === 'number' ? v.id : String(v.id).length, 3.7) < 0.5 ? 'sport' : 'sport2';
   return null;
 }
-const HYB_DOORS = { escapade: 'escort', sedan: 'sedan', hatch: 'hatch', suv: 'suv', sport: 'sport', sport2: 'sport', taxi: 'taxi', police: 'police' };
+const HYB_DOORS = { escapade: 'escort', wagon: 'wagon', sedan: 'sedan', hatch: 'hatch', suv: 'suv', sport: 'sport', sport2: 'sport', taxi: 'taxi', police: 'police' };
 // De flank: waar een straal van buiten naar binnen (langs z) de romp raakt, op hoogte y en lengte x.
 function hybridSurface(tris, x, y, side) {
   let best = null;
@@ -1422,7 +1424,7 @@ function buildHybridCar(v, key, paint) {
   const { sy, sz, mapx } = hybridScale(auto, L, W, key);
   const r = +(auto.wielen[0].r * sy).toFixed(3);
   const escapade = key === 'escapade';
-  const wgeo = carWheelGeometry(r, WHEEL_W, escapade);
+  const wgeo = key === 'wagon' ? cached(`wheel2|${r}|0.25`, () => richWheelGeometry(r, 0.25, VAN_K)) : carWheelGeometry(r, WHEEL_W, escapade); // de stationwagen heeft het dikke wiel met velg van de bus
   const wheels = [], front = [];
   for (const w of auto.wielen) {
     const m = addWheel(group, wgeo, mats[0], mapx(w.x), r, w.z * sz * 0.97, wheels);
@@ -1431,7 +1433,7 @@ function buildHybridCar(v, key, paint) {
   group.userData.wheels = wheels;
   group.userData.frontWheels = front;
   group.userData.wheelRadius = r;
-  group.userData.loose.sierdoppen = hubcaps(wheels, r, escapade ? [1] : []); // de Escapade is een wieldop kwijt (linksachter)
+  if (key !== 'wagon') group.userData.loose.sierdoppen = hubcaps(wheels, r, escapade ? [1] : []); // de Escapade is een wieldop kwijt (linksachter)
   if (escapade && !v.wrecked) {
     const k = escapadeKarakter(L, W, color, fit, geo.userData.gatRects, auto.wielen.filter((w) => w.z > 0).map((w) => ({ x: mapx(w.x), r })));
     const km = new THREE.Mesh(k.onderdelen, mats);
@@ -1441,6 +1443,13 @@ function buildHybridCar(v, key, paint) {
     kv.name = 'karakterVlak';
     body.add(kv);
     group.userData.karakter = [km, kv];
+  }
+  if (key === 'wagon' && !v.wrecked) {
+    const lakW = hybridTris(key, L, W).filter((t) => t.r === 0).map((t) => t.v);
+    const wg = cached(`wagon-onderdelen|${L}|${W}|${color}`, () => { const B = new GeoBuilder(3); wagonOnderdelen(B, fit, (x, y) => hybridSurface(lakW, x, y, 1), (x) => Math.max(0, ...lakW.flat().filter((q) => Math.abs(q[0] - x) < 0.06).map((q) => q[1])), VAN_K, color, shadeHex); return B.build(); });
+    const wm = new THREE.Mesh(wg, mats);
+    wm.name = 'wagonOnderdelen';
+    body.add(wm);
   }
   if (police && auto.lichtbalk) {
     const lamps = [];
