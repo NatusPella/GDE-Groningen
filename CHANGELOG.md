@@ -9,6 +9,7 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ## [Unreleased]
 
+- Taxirit: de taxi van de rit rijdt geen voetgangers meer omver (hij duwt ze opzij) en het verkeer botst er niet meer tegenaan, dus geen deuken onderweg. Samen spelen: de rit is lokaal per speler; geen nieuw bericht.
 - Snackwagen: Jelles bedrijf heet overal Us Mem Snacks (op het tabblad Snackwagen, de kaartlaag Standplaatsen, de prestatie en het bord op zijn wagens stond nog Usmem). Samen spelen: alleen tekst, per speler.
 - Land en bedrijf: het icoon van een lege staat (Overzicht, Te koop) heeft een vaste maat en vult niet meer het hele paneel; Te koop toont een wegwijzerbord in plaats van een gestippeld vakje. Samen spelen: per speler.
 - Visboek: de wateren staan in één kolom met hun volle naam in plaats van drie smalle kolommen met afgekapte namen. Samen spelen: per speler.
