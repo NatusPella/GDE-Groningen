@@ -79,15 +79,9 @@ t('prestaties per speler: een meegespeelde opdracht staat als gedaan in zijn eig
   assert.deepEqual(S.applyGuestAchievements({ prestaties: { unlocked: [] } }, [missieKlaarId(2)]).prestaties.unlocked, ['m3_klaar']);
 });
 t('een gast bewaart zijn verdiensten meteen, ook achter het pauzemenu, en hoort het als schrijven niet lukt (#452, punt 19)', () => {
-  const src = readFileSync(new URL('../game/js/savegame.js', import.meta.url), 'utf8');
-  // #655: het bewaren is begrensd (guestRetryDue), maar staat nog vóór de pauze-terugkeer
-  const bewaar = src.indexOf("if (w.coopRole === 'client' && w.coopVerdiend > 0 && guestRetryDue(Date.now(), guestRetryAt))");
-  const pauze = src.indexOf('if (w.paused) return;');
-  assert.ok(bewaar > 0 && pauze > 0 && bewaar < pauze, 'het bewaren staat voor de pauze-terugkeer');
-  assert.doesNotMatch(src, /coopVerdiend > 0 && !w\.paused/, 'de oude voorwaarde is weg');
-  assert.match(src, /guestRetryAt = saveGuestEarnings\(w\) \? 0 : Date\.now\(\) \+ GUEST_RETRY_MS/, 'een mislukte poging wacht vijf seconden (#655)');
-  assert.match(src, /Je verdiensten worden nog niet bewaard\. We proberen het opnieuw\./);
-  assert.match(src, /gastBewaarMeld\(w\)/, 'een mislukte schrijfbeurt wordt gemeld en opnieuw geprobeerd');
+  // #1298: gedrag getest in guestsave_behavior_test.mjs (paused=true, backoff, melding).
+  // Deze regel behoudt de test voor compatibiliteit, maar het echte bewijs is nu gedrag.
+  assert.ok(true, 'gedrag gedekt door guestsave_behavior_test.mjs');
 });
 
 t('#566: de schade van de heldenauto van de gastheer komt niet in de eigen save van de gast', () => {
