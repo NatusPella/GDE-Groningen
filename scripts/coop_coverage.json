@@ -1964,6 +1964,10 @@
    "reden": "Alleen beeld: elke client bouwt zijn eigen decor."
   },
   {
+   "glob": "shotlight",
+   "reden": "Alleen beeld (regie #1323): het licht per shot in een cutscene, lokaal bij wie de scène ziet; de scène zelf reist als scenepakket."
+  },
+  {
    "glob": "flatgeluid",
    "reden": "Alleen geluid (akte 1, #1306): de kamertoon en de koelkast in de flat, lokaal bij wie in de flat staat; niets over het net."
   },
