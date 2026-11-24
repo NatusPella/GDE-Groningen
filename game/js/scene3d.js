@@ -3157,7 +3157,7 @@ export function update3D(dt, world) {
         mesh.rotation.y = -a.angle - (a.draai || 0);   // a.lift en a.draai: een schaap in de straal van een schotel (#333)
         // 24-11: de LOD volgt ook de camera (de kleinste van de twee afstanden): in een filmpje, de benchmark of een beeldrun staat de
         // camera ver van de speler, en dan stond een duif vlak voor de lens op het lichtste niveau
-        { const fx = a.x - focus.x, fy = a.y - focus.y, cx = a.x - cam.position.x, cy = a.y - cam.position.z, cz = y - cam.position.y; mesh.userData.lodD2 = Math.min(fx * fx + fy * fy, cx * cx + cy * cy + cz * cz); mesh.userData.ver = mesh.userData.lodD2 > 45 * 45; }   // ver weg: de lichte animatie
+        { const fx = a.x - focus.x, fy = a.y - focus.y, cx = a.x - cam.position.x, cy = a.y - cam.position.z, cz = y - cam.position.y; mesh.userData.lodD2 = perfOff('dierlodcamera') ? fx * fx + fy * fy : Math.min(fx * fx + fy * fy, cx * cx + cy * cy + cz * cz); mesh.userData.ver = mesh.userData.lodD2 > 45 * 45; }   // ver weg: de lichte animatie
         animateWildlifeMesh3D(mesh, a, world.time);
       }
     }
@@ -3295,7 +3295,7 @@ export function update3D(dt, world) {
   // de dither-overgang detailgebouw / verre kopie (buildingfade.js) alleen als er een verre laag is; anders de harde wissel op de ring
   // 24-11 (beeldregressie 'stad'): alleen in beweging; stilstaand krimpt de band in BAND_SETTLE_S naar 0 (temporele overgang), zodat een
   // gebouw dat toevallig in de band staat niet blijvend half detail, half verre kopie is
-  lodShared().uLodBand.value = fadeBandStep(lodShared().uLodBand.value, viewDist > DRAW_DIST + 20 && !perfOff('gebouwfade') ? BUILDING_FADE_BAND : 0, focusSpeed, dt);
+  { const want = viewDist > DRAW_DIST + 20 && !perfOff('gebouwfade') ? BUILDING_FADE_BAND : 0; lodShared().uLodBand.value = perfOff('bandstil') ? want : fadeBandStep(lodShared().uLodBand.value, want, focusSpeed, dt); }
   farLod.update(focus.x, focus.y, viewDist, Math.min(viewDist, scene.fog.far) + 20, lodR, { keep: ringKeep, budgetMs: plan.grant('far', 2.5), lead: fl.lead > 0 ? fl : null });
   plan.spend('far', performance.now() - flt0);
   probe.mark('3d:farlod');

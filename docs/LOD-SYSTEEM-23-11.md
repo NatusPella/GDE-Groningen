@@ -39,6 +39,9 @@
   anders één pixel per 4x4 wegvallen: witte spikkels op elk ver gebouw); een gebouw met een eigen model (`ownBuildingModel`: landmark,
   marktgebouw, kit) houdt in beide lagen de harde wissel (`lodHard`); een gedeeld materiaal dat de overgang later kreeg, volgt die nu
   ook in de samengevoegde en gepoolde kopieën (staticbatch3d `bakeSig`, multidraw3d `copyOf`).
+  Bisect-vlaggen voor die commit (75054fe95), los of samen met `+`: `?perfoff=dierlodcamera` (dier-LOD alleen op afstand tot de
+  speler, niet tot de camera), `?perfoff=poolkopielive` (de poolkopie houdt de shaderpatch van het moment van kopiëren),
+  `?perfoff=bandstil` (de gebouwband blijft ook stilstaand open). Met ultrabench: `--builds=a:<map>,b:<map>|perfoff=bandstil`.
 - **Stand**: de grenzen schalen mee (Laag 0,6, Midden 0,8, Hoog 0,9, Ultra 1; `setLodPreset` vanuit `scene3d.js`).
 
 ## 3. API voor de andere agents
