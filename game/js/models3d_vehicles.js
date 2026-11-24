@@ -2307,22 +2307,54 @@ function buildTractorMesh(v) {
 function buildQuadMesh(v) {
   const L = v.model.len, W = v.model.wid, hl = L / 2, hw = W / 2;
   const paint = v.wrecked ? WRECKED_COLOR : toHex(v.model.color, 0xb8322a);
-  const geo = cached(`quad|${L}|${W}|${paint}`, () => {
+  const geo = cached(`quad2|${L}|${W}|${paint}`, () => {
     const B = new GeoBuilder(3);
-    B.box(0, 0.45, 0, L * 0.7, 0.2, W * 0.42, 0x2a2a2a);
-    B.box(hl - 0.42, 0.68, 0, 0.62, 0.22, W * 0.8, paint);
-    B.box(-hl + 0.42, 0.68, 0, 0.62, 0.22, W * 0.8, paint);
-    B.box(0.12, 0.7, 0, 0.7, 0.3, W * 0.42, paint);
-    B.box(-0.22, 0.86, 0, 0.62, 0.1, 0.36, 0x1c1c1c);
-    B.box(hl - 0.42, 0.84, 0, 0.5, 0.04, W * 0.7, 0x3a3a3a);
-    B.box(-hl + 0.42, 0.84, 0, 0.5, 0.04, W * 0.7, 0x3a3a3a);
-    B.box(0.42, 0.98, 0, 0.06, 0.36, 0.06, 0x2a2a2a);
-    B.box(0.44, 1.16, 0, 0.06, 0.04, W * 0.72, 0x2a2a2a);
+    const zw = hw - 0.13, fx = hl - 0.42, rx = -hl + 0.42, WR = 0.3;
+    const donker = shadeHex(paint, 0.74), STAAL = 0x2a2a2a, RUBBER = 0x1c1c1c;
+    // frame en motorblok (24-11): buisframe onder de plastic delen, de motor onder de zitting, voetplaten met ribbels
+    B.box(0, 0.45, 0, L * 0.7, 0.14, W * 0.3, STAAL);
+    B.box(-0.12, 0.55, 0, 0.5, 0.24, W * 0.32, 0x3a3c3f);
     for (const s of [1, -1]) {
-      B.box(hl - 0.08, 0.74, s * 0.2, 0.02, 0.1, 0.16, HEADLAMP, G_LAMP);
-      B.box(-hl + 0.105, 0.72, s * 0.24, 0.02, 0.08, 0.1, TAIL, G_LAMP);
-      B.box(-0.05, 0.42, s * (W * 0.26), 0.4, 0.04, 0.22, 0x2a2a2a);
+      B.box(-0.05, 0.4, s * (W * 0.27), 0.5, 0.05, 0.24, STAAL);
+      for (let k = 0; k < 4; k++) B.box(-0.2 + k * 0.13, 0.445, s * (W * 0.27), 0.03, 0.03, 0.22, RUBBER);
+      B.box(0, 0.42, s * (W * 0.16), 0.9, 0.04, 0.04, STAAL);
+      B.box(fx, 0.45, s * zw * 0.7, 0.05, 0.05, 0.5, STAAL); // wielophanging voor
+      B.box(rx, 0.45, s * zw * 0.7, 0.05, 0.05, 0.5, STAAL); // achter
     }
+    // voorkant: afgeronde neus (zijaanzicht uitgetrokken), voor- en achterspatborden als bogen over de wielen
+    B.geo(extrudeProfile([[0.1, 0.62], [hl - 0.1, 0.6], [hl - 0.02, 0.72], [hl - 0.08, 0.88], [0.5, 0.96], [0.1, 0.84]], W * 0.4, 0.05, 2), composeMatrix(0, 0, 0), paint);
+    B.geo(extrudeProfile([[-0.2, 0.6], [0.52, 0.64], [0.56, 0.95], [0.32, 1.03], [-0.02, 0.97], [-0.2, 0.88]], W * 0.36, 0.05, 2), composeMatrix(0, 0, 0), paint); // tank
+    for (const s of [1, -1]) {
+      B.geo(extrudeProfile(fenderArc(WR * 1.22 + 0.04, WR * 1.22, 5, 175), 0.34, 0.015, 1), composeMatrix(fx, WR, s * zw), donker);
+      B.geo(extrudeProfile(fenderArc(WR * 1.22 + 0.04, WR * 1.22, 5, 175), 0.34, 0.015, 1), composeMatrix(rx, WR, s * zw), donker);
+      B.box(fx + 0.02, 0.7, s * (zw - 0.12), 0.5, 0.04, 0.2, donker);
+      B.box(rx - 0.02, 0.7, s * (zw - 0.12), 0.5, 0.04, 0.2, donker);
+    }
+    // zitting: een ruime, naar achteren oplopende bank met een lichte rand
+    B.geo(extrudeProfile([[-0.6, 0.8], [0.0, 0.84], [0.12, 0.92], [-0.02, 1.0], [-0.5, 0.98], [-0.62, 0.9]], 0.38, 0.05, 2), composeMatrix(0, 0, 0), 0x1c1c1c);
+    B.box(-0.27, 0.8, 0, 0.62, 0.03, 0.42, 0x3a3a3a);
+    // stuur: kolom, stuurbuis, handvatten en remhendels, een ronde koplamp op de neus en een tweede lampje in de bumper
+    B.geo(new THREE.CylinderGeometry(0.03, 0.03, 0.4, 8), composeMatrix(0.5, 1.12, 0), STAAL);
+    B.geo(new THREE.CylinderGeometry(0.018, 0.018, W * 0.68, 8).rotateX(Math.PI / 2), composeMatrix(0.46, 1.3, 0), STAAL);
+    for (const s of [1, -1]) {
+      B.geo(new THREE.CylinderGeometry(0.026, 0.026, 0.14, 8).rotateX(Math.PI / 2), composeMatrix(0.46, 1.3, s * W * 0.31), RUBBER);
+      B.box(0.52, 1.27, s * W * 0.27, 0.12, 0.012, 0.014, 0x8f9296);
+      B.geo(new THREE.CylinderGeometry(0.075, 0.075, 0.06, 10).rotateZ(Math.PI / 2), composeMatrix(hl - 0.04, 0.8, s * 0.2), HEADLAMP, G_LAMP);
+      B.box(-hl + 0.1, 0.72, s * 0.24, 0.02, 0.09, 0.12, TAIL, G_LAMP);
+    }
+    B.box(0.48, 1.07, 0, 0.16, 0.14, 0.34, 0x1d1e20); // stuurkap met dashboard
+    B.box(0.57, 1.12, 0, 0.02, 0.04, 0.2, 0x2f6fb0, G_GLASS);
+    // bagagerekken voor en achter (buisframe met latten), bumperbuis en trekhaak
+    for (const [x, y] of [[hl - 0.25, 1.0], [-hl + 0.22, 0.98]]) {
+      for (const s of [1, -1]) { B.box(x, y, s * (W * 0.3), 0.44, 0.025, 0.025, STAAL); B.box(x, y - 0.1, s * (W * 0.3), 0.025, 0.2, 0.025, STAAL); }
+      for (let k = -2; k <= 2; k++) B.box(x + k * 0.09, y + 0.012, 0, 0.03, 0.02, W * 0.6, STAAL);
+    }
+    B.geo(new THREE.CylinderGeometry(0.02, 0.02, W * 0.62, 8).rotateX(Math.PI / 2), composeMatrix(hl - 0.02, 0.5, 0), STAAL);
+    B.geo(new THREE.CylinderGeometry(0.02, 0.02, W * 0.6, 8).rotateX(Math.PI / 2), composeMatrix(-hl + 0.02, 0.5, 0), STAAL);
+    B.geo(new THREE.SphereGeometry(0.028, 8, 6), composeMatrix(-hl - 0.04, 0.52, 0), 0xb9bcbf);
+    // uitlaat: een demper rechts onder de zitting
+    B.geo(new THREE.CylinderGeometry(0.05, 0.05, 0.5, 8).rotateZ(Math.PI / 2), composeMatrix(-0.5, 0.58, W * 0.22), 0x55585c);
+    B.box(-0.78, 0.58, W * 0.22, 0.06, 0.07, 0.07, 0x1b1b1c);
     return B.build();
   });
   const mats = vehicleMaterials(v.wrecked);
