@@ -10,6 +10,7 @@ const {
   swingAmount, gunKick, handsPose, showFirstPersonWeapon, firstPersonWeaponKey,
   syncFirstPersonHands, hideFirstPersonHands, currentFirstPersonHands,
   weaponClass, HAND_CLASSES, muzzleFlash, firstPersonHandsHidden, HANDS_HIDE_FLAGS, disposeFirstPersonHands,
+  VIEWMODEL_ORDER, VIEWMODEL_CLEAR_ORDER, viewmodelMaterial, shouldClearViewmodelDepth,
 } = await import('../game/js/firstpersonhands.js');
 const { buildWeaponMesh } = await import('../game/js/models3d_people.js');
 const { WEAPON_KEYS } = await import('../game/js/weapons.js');
@@ -311,14 +312,42 @@ t('muzzle flash: vol bij het schot, weg na 0,07 s, NaN geeft uit', () => {
   assert.equal(muzzleFlash(NaN), 0);
 });
 
-t('overlay: de materialen van armen en wapens testen de diepte niet (nooit in muren); gedeelde wapenmaterialen blijven heel', () => {
+t('viewmodel: eerst de wereld (ook de routestrook), dan diepte leeg, dan handen en wapen met dieptetest; gedeelde wapenmaterialen blijven heel', () => {
   world.weapon = 'jachtgeweer';
   setCombatEffect({ type: 'muzzle', start: world.time, until: world.time + 0.06, weapon: 'jachtgeweer' });
   syncFirstPersonHands(scene, cam, world, player);
   const h = currentFirstPersonHands();
+  const clear = h.userData.clear;
   let meshes = 0;
-  h.traverse((o) => { if (o.isMesh) { meshes++; assert.equal(o.material.depthTest, false); assert.ok(o.renderOrder >= 30); } });
+  h.traverse((o) => {
+    if (!o.isMesh || o === clear || o === h.userData.flash) return;
+    meshes++;
+    // de vuist dekt nu met diepte de arm af in plaats van zijn achtervlak eroverheen te tekenen (hertest 22-11)
+    assert.equal(o.material.depthTest, true, o.name || 'mesh');
+    assert.equal(o.material.depthWrite, true);
+    // doorschijnende lijst, dus na de routestrook (renderOrder 1, transparent) en na het merkje dat de diepte leegmaakt
+    assert.equal(o.material.transparent, true);
+    assert.equal(o.material.opacity, 1);
+    assert.ok(o.renderOrder >= VIEWMODEL_ORDER && o.renderOrder > clear.renderOrder);
+  });
   assert.ok(meshes > 8);
+  assert.equal(clear.material.colorWrite, false, 'het merkje tekent niets');
+  assert.equal(clear.material.transparent, true);
+  assert.equal(clear.renderOrder, VIEWMODEL_CLEAR_ORDER);
+  assert.ok(VIEWMODEL_CLEAR_ORDER > 20, 'boven de routestrook en de Samen-pings');
+  assert.equal(h.userData.flash.material.transparent, true, 'de flash komt na de handen');
+  // alleen de camera waar de handen aan hangen maakt de diepte leeg
+  let cleared = 0;
+  const fake = { clearDepth: () => { cleared++; } };
+  clear.onBeforeRender(fake, scene, cam);
+  assert.equal(cleared, 1);
+  clear.onBeforeRender(fake, scene, new THREE.PerspectiveCamera());
+  assert.equal(cleared, 1, 'een andere camera (foto, spiegel) laat de diepte staan');
+  assert.equal(shouldClearViewmodelDepth(cam, h), true);
+  assert.equal(shouldClearViewmodelDepth(cam, { visible: false, parent: cam }), false, 'verborgen handen: niets leegmaken');
+  assert.equal(shouldClearViewmodelDepth(null, h), false);
+  const pm = viewmodelMaterial(new THREE.MeshBasicMaterial({ transparent: true, opacity: 0.5 }));
+  assert.equal(pm.opacity, 0.5, 'een glazen deel van een wapen blijft doorschijnend');
   assert.equal(h.userData.flash.visible, true, 'flash bij een vuurwapenschot');
   const orig = buildWeaponMesh('jachtgeweer');
   orig.traverse((o) => { if (o.isMesh) assert.notEqual(o.material.depthTest, false, 'derde-persoonmateriaal onaangeroerd'); });
