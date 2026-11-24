@@ -85,7 +85,9 @@ export function pieceBuild(piece) {
 function buildProbe(shirt, opts, skin = MANNEQUIN) {
   const was = personProbe.layers;
   personProbe.layers = true;
-  try { return buildPersonMesh(shirt, skin, opts); } finally { personProbe.layers = was; }
+  // procedural: true (ADR 0051: de wereld bouwt mensen nu modulair): alleen het procedurele model heeft de meetlagen (personProbe.layers) waaruit het stuk wordt gehaald;
+  // zonder deze vlag was elk los stuk, elke haarstijl en de stukhelft van het winkelvoorbeeld leeg (zelfde regel als de club-agent in f5c77f8bb)
+  try { return buildPersonMesh(shirt, skin, { ...opts, procedural: true }); } finally { personProbe.layers = was; }
 }
 
 // Clips a triangle (9 numbers) along the plane y = y0; above = true keeps what lies above it. Returns a list of 0, 1 or 2 triangles (9 numbers each).
