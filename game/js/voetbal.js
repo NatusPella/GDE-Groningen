@@ -30,6 +30,8 @@ import { pushAudioEvent } from './pedgeom.js';
 import { sfxEvent } from './sfx/haken.js';
 import { registreerWedstrijd, zetWedGastHaken, wedNodigUit, wedNuStarten, wedLiveTik, wedHostLiveEind, wedGastVerlaat, wedGastReset } from './multiplayerwedstrijd.js';
 import { hoofdspeler } from './players.js';
+import { registerLocalMap } from './localmap.js';
+import { maakVoetbalKaart } from './localmapvelden.js';
 import { KEYS } from './storagekeys.js';
 import {
   PITCH, DUREN, FORMATEN, OPPONENTS, STIJLEN, zetFormaat, formationNames, cleanFormation, cleanStijl, leesVoorkeur, LAAD_S, leesInvoer, recordValue, recordTekst, MEDAILLE_TEKSTEN, voetbalBeloning,
@@ -1063,6 +1065,9 @@ zetWedGastHaken('voetbal', {
 
 // --- de activiteit --------------------------------------------------------------------------------------------------------------
 
+// De minimap toont tijdens de wedstrijd het veld in plaats van de wereld (localmap.js, localmapvelden.js); zonder wedstrijd (ook na afbreken of een verbroken verbinding) geeft dit null en staat de wereldkaart er weer.
+const lokaleKaart = maakVoetbalKaart();
+registerLocalMap('voetbal', () => game && game.sim && game.sim.spelers ? lokaleKaart.zet(game.sim, { site, toWorld, team: mijnTeam(game), eigenId: eigenId(game), pitch: PITCH }) : null);
 export const VOETBAL = {
   id: 'voetbal',
   layer: 'voetbal',
