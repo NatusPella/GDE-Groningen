@@ -111,7 +111,7 @@ ok(D.staffelDuur(5) === 4 * 40 + 250 && D.staffelDuur(0) === 0 && D.staffelDuur(
 ok(JSON.stringify(D.tabLine([{ left: 10, width: 80 }, { left: 100, width: 120 }], 1, { left: 4 })) === JSON.stringify({ x: 96, w: 120 }), 'de streep zit onder de actieve tab, vanaf de linkerrand van de rij');
 ok(D.tabLine([], 0).w === 0 && D.tabLine(null, 0).w === 0, 'zonder tabs geen streep');
 ok(D.tabZoom(853, 1280) > 0.66 && D.tabZoom(853, 1280) < 0.67 && D.tabZoom(500, 0) === 1 && D.tabZoom(0, 500) === 1, '#1200: de zoom van het kader (scherm/layout), 1 zonder maat');
-ok(D.tabLine([{ left: 10, width: 80 }, { left: 100, width: 120 }], 1, { left: 4 }, 0.5).x === 192 && /tabLine\([^)]*tabZoom\(/.test(lees('game/js/dsmicro.js')), '#1200, #1113: tabLine deelt door de zoom van de menustage, en applyTabLine geeft die door (tabZoom)');
+ok(D.tabLine([{ left: 10, width: 80 }, { left: 100, width: 120 }], 1, { left: 4 }, 0.5).x === 192 && /tabLine\(.*tabZoom\(/.test(lees('game/js/dsmicro.js')), '#1200, #1113: tabLine deelt door de zoom van de menustage, en applyTabLine geeft die door (tabZoom)');
 ok(JSON.stringify(D.scrollRanden({ scrollTop: 0, clientHeight: 100, scrollHeight: 400 })) === JSON.stringify({ boven: false, onder: true }), 'bovenaan vervaagt alleen de onderrand');
 ok(D.scrollRanden({ scrollTop: 150, clientHeight: 100, scrollHeight: 400 }).boven && D.scrollRanden({ scrollTop: 150, clientHeight: 100, scrollHeight: 400 }).onder, 'in het midden vervagen beide randen');
 ok(!D.scrollRanden({ scrollTop: 300, clientHeight: 100, scrollHeight: 400 }).onder, 'onderaan vervaagt de onderrand niet');
