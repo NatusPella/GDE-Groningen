@@ -857,6 +857,7 @@ html.touch-device #pause-menu .sp-tabkey { display: none; }
 #pause-menu .pm-hub-kt { overflow-wrap: anywhere; min-width: 0; display: block; font-family: var(--ds-font-kop); font-size: var(--ds-t-subkop); line-height: var(--ds-lh-kop); letter-spacing: var(--ds-ls-kop); text-transform: uppercase; }
 #pause-menu .pm-hub-staat { justify-self: end; align-self: start; min-height: 28px; padding: 0 var(--ds-s-3); }
 #pause-menu .pm-hub-keuze small { grid-column: 2 / -1; font-size: var(--ds-t-body); line-height: var(--ds-lh-tekst); color: var(--ds-tx-zacht); }
+#pause-menu .pm-hub-meer { display: inline-flex; vertical-align: middle; color: var(--ds-tx-zacht); cursor: help; } /* #1222: de uitleg achter een info-icoon */
 #pause-menu .pm-hub-rijen { display: flex; flex-direction: column; gap: 6px; margin: 0; padding: 0; list-style: none; max-width: 820px; }
 #pause-menu .pm-hub-rijen li { display: flex; align-items: baseline; gap: 10px; padding: 8px 12px; border-radius: 8px; background: color-mix(in srgb, var(--ds-c-creme) 4%, transparent); font-size: 20px; line-height: 1.35; }
 #pause-menu .pm-hub-rijen li::before { flex: none; width: 20px; text-align: center; color: var(--g); }

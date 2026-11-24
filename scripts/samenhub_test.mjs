@@ -39,6 +39,10 @@ await t('stap 1: de drie keuzes staan er altijd, met uitleg; zonder toestemming 
   assert.doesNotMatch(meedoen.uitleg, /Instellingen/, 'de hub verwijst niet naar een instelling die dit nog niet zet: onlineMeedoen is van het bootpad (#528)');
   assert.equal(meedoen.uitleg.indexOf('sessie past'), -1, 'en doet niet alsof er al een lijst is');
   assert.deepEqual(v.kandidaten, [], 'niets opgehaald zonder toestemming');
+  // #1222: geen tekstmuur op de kaart: een korte regel, het waarom staat achter het info-icoon (meer)
+  assert.ok(meedoen.uitleg.length <= 60, `korte regel op de kaart (${meedoen.uitleg.length} tekens)`);
+  assert.match(meedoen.meer, /aansluitscherm/, 'het waarom staat in meer');
+  assert.equal(stapWaar({ meedoen: true }).keuzes[0].meer, '', 'met toestemming geen info-icoon');
 });
 
 await t('stap 1: met toestemming en een opgehaalde lijst telt de hub de passende sessies', () => {
@@ -290,6 +294,7 @@ await t('de hub opent op stap 1 als wizard: geen tabsemantiek, wel een statusreg
   assert.doesNotMatch(root.innerHTML, /[↔＋]/, 'geen tekstglyphs als icoon');
   assert.doesNotMatch(root.innerHTML, /Kan nu</, 'geen Kan nu-badge op elke keuze die gewoon kan');
   assert.doesNotMatch(root.querySelector('.pm-hub-veilig').innerHTML, /Escape|\{ESC\}/, 'Escape staat er als toetsplaatje, niet als woord');
+  assert.equal(root.querySelectorAll('.pm-hub-meer').length, 1, 'Meedoen zonder toestemming heeft één info-icoon met de uitleg (#1222)');
   const k = root.querySelectorAll('[data-hub-keuze]').map((b) => b.getAttribute('data-hub-keuze'));
   assert.deepEqual(k, [ACT.MEEDOEN, ACT.HOSTEN, ACT.BESLOTEN]);
   assert.ok(root.querySelector('.pm-hub-hero'), 'de hub heeft een eigen kop (#903)');

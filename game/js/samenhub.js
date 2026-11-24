@@ -83,17 +83,22 @@ export function stapWaar({ rijen = [], meedoen = null, eigenId = '', sessie = nu
   const meedoenUitleg = sessie
     ? 'Je zit al in een sessie; Stap 3 zegt hoe je verdergaat of eruit gaat.'
     : meedoen !== true
-      ? 'Je gaf nog geen toestemming voor online spelen: het aansluitscherm vraagt die eerst, daarna pas gaat er iets naar buiten.'
+      ? 'Eerst vraagt het spel je toestemming.'
       : !gekeken
         ? 'Op het aansluitscherm zie je de openbare sessies en het veld voor een kamercode.'
         : aantal
           ? `${aantal} ${aantal === 1 ? 'sessie past' : 'sessies passen'} bij je${k.sessie && k.sessie.naam ? `, de drukste is "${k.sessie.naam}"` : ''}.`
           : (k.reden || 'Er is nu geen sessie om bij aan te sluiten.');
+  // #1222: de korte regel staat op de kaart; waarom, staat achter het info-icoon (meer), geen tekstmuur.
+  const meedoenMeer = !sessie && meedoen !== true
+    ? 'Het aansluitscherm vraagt je toestemming voor online spelen. Pas daarna gaat er iets naar buiten.'
+    : '';
   return {
     stap: STAP.WAAR, sessie, doen: k.doen, kandidaten: k.kandidaten || [],
     keuzes: KEUZES.map((c) => ({
       ...c,
       kan: c.act === ACT.BESLOTEN || !sessie,
+      meer: c.act === ACT.MEEDOEN ? meedoenMeer : '',
       uitleg: c.act === ACT.MEEDOEN ? meedoenUitleg
         : c.act === ACT.HOSTEN ? (sessie ? 'Deze sessie is al van jou of van iemand anders.' : 'Je krijgt een kamercode die je aan de anderen geeft.')
           : c.sub,
