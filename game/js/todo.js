@@ -58,6 +58,8 @@ import { getStreekuitdagingSpotsForRender } from './streekuitdaginglive.js'; // 
 import { beppeTodoItem } from './beppe_garden.js'; // #832
 import * as L from './loopbaan.js'; // #846: de loopbanen als één overkoepelende rij in Te doen
 import { getProfiel } from './loopbaanlive.js';
+import { getCareer as getVoetbalCarriere, getClub as getVoetbalClub } from './voetbalcarrierelive.js'; // #1110: de voetbalcarrière als rij
+import { todoRow as voetbalTodoRij } from './voetbalcarriere.js';
 import { districtAt } from './districtat.js';
 export { beginHierItems, beginHierCount };
 
@@ -632,6 +634,15 @@ function spaardoelItems(world) {
   }];
 }
 
+// #1110: de voetbalcarrière als eigen rij (club, stand, volgende wedstrijd, doel op het park); de Euroborg is de spelerspoort van de wedstrijd.
+function voetbalItems(acts) {
+  try {
+    const poort = acts.find((a) => a.layer === 'voetbal' && a.id === 'voetbal');
+    const r = voetbalTodoRij(getVoetbalCarriere(), getVoetbalClub, poort ? { x: poort.x, y: poort.y } : null);
+    return r ? [r] : [];
+  } catch (e) { return []; }
+}
+
 // The current story step when it is an activity (a mission step is in the missions).
 function storyStepItem(world) {
   const g = world.storyGuide;
@@ -652,7 +663,7 @@ export function getTodoItems(world) {
   worldRef = world;
   const p = hoofdspeler(world);
   const acts = activityMapIcons(world);
-  const basis = [...missionItems(world), ...minigameItems(world, acts), ...jobItems(), ...ommelandItems(world), ...collectItems(world), ...postgameItems(world), ...spaardoelItems(world)];
+  const basis = [...missionItems(world), ...minigameItems(world, acts), ...jobItems(), ...ommelandItems(world), ...collectItems(world), ...postgameItems(world), ...spaardoelItems(world), ...voetbalItems(acts)];
   // #985: een onbekende streek lekt niet via Te doen (de kaart verbergt hem ook, #825)
   const items = hideUnknownAreas([...basis, ...loopbaanItems(world, basis, acts)], isAreaHidden);
   const st = storyStepItem(world);
