@@ -177,6 +177,9 @@ S['M29.outro'] = {
 
 // --- M30 Het proefbeleg: the haystack, the moat, the bridge, the gate, the snackwagen ---
 S['M30.intro'] = {
+  // regieronde #1325: de sprekers van voren over de schouder van wie ze aanspreken (geen achterhoofd, geen as-sprong); het krijgsberaad in de ochtend
+  coverage: 'ots',
+  light: 'ochtend',
   cast: {
     berend: { key: 'berend', at: [3.4, 0.4], face: 180, anim: 'idle', gest: ['point', 'hips', 'talk', 'point'] },
     lammert: { key: 'lammert', at: [4.4, -2.4], face: 165, anim: 'idle', gest: ['talk', 'nod'] },
@@ -261,12 +264,9 @@ S['M30.3'] = {
   wide: WIDE([-5, 4.2, 3.2], [-3, 3, 2.4], 'mid:wubbo,berend@1'),
 };
 S['M30.5'] = {
-  // as-sprongen hersteld (180-gradenregel): deze shots vervangen de gegenereerde (missionScene, spec.shotFix)
-  shotFix: [
-    { t: 'L6', shot: 'cut', at: [0.81, -2.65, 1.55], look: 'speaker', fov: 30 },
-    { t: 'L8', shot: 'dolly', from: [2.61, -2.29, 1.5], to: [2.12, -0.87, 1.55], look: 'speaker', fov: 34 },
-    { t: 'L11+1', shot: 'dolly', from: [2.72, -4.53, 2.8], to: [2.94, -2.81, 3.7], look: 'mid:berend,tessa@1', fov: 50 },
-  ],
+  // regieronde #1325: de sprekers van voren over de schouder van wie ze aanspreken (geen achterhoofd, geen as-sprong); de poort
+  coverage: 'ots',
+  light: 'spanning',
   cast: {
     berend: { key: 'berend', at: [3.2, 1.0], face: 185, anim: 'idle', gest: ['talk', 'hips', 'shake', 'nod'] },
     jelle: { key: 'jelle', at: [5.6, -3], face: 170, anim: 'idle', bg: true, gest: ['wave', 'shrug'] },
@@ -290,6 +290,9 @@ S['M30.5'] = {
   wide: WIDE([-5.4, 4.4, 3.4], [-3.4, 3.2, 2.5], 'mid:berend,tessa@1'),
 };
 S['M30.outro'] = {
+  // regieronde #1325: de sprekers van voren over de schouder van wie ze aanspreken (geen achterhoofd, geen as-sprong); de kar: het slot in het late licht
+  coverage: 'ots',
+  light: 'gouden-uur',
   cast: {
     tinus: { key: 'tinus', at: [6.4, -2.2], face: 175, anim: 'idle', bg: true, gest: ['nod', 'talk'] },
     geesje: { key: 'geesje', at: [6.8, 2.4], face: 190, anim: 'idle', gest: ['hips', 'talk'] },
@@ -297,11 +300,12 @@ S['M30.outro'] = {
     berend: { key: 'berend', at: [5.4, -3.2], face: 170, anim: 'idle', gest: ['point', 'nod'] },
     jelle: { key: 'jelle', at: [6.7, 1.5], face: 190, anim: 'idle', gest: ['shrug', 'hips'] },
   },
-  props: { bus: { kind: 'snackwagen', at: [4.8, 0, 0], face: 90 } },
+  // #1325: de kar staat naast de groep in beeld, niet meer tussen het paar en de anderen (hij blokkeerde het zicht en vulde het kader)
+  props: { bus: { kind: 'snackwagen', at: [3.4, 5.2, 0], face: 20 } },
   open: [{ actor: 'tessa', face: 'actor:tammo' }, { actor: 'tammo', face: 'actor:tessa' }],
   beats: [
-    // hij loopt om de achterkant van de snackwagen heen naar de kant van het paar (4,6 / -1,8 lag midden in de wagen: 34 s binnen de romp)
-    { on: 0, dt: 0.4, actor: 'tinus', walk: [[6.2, -4.5], [3.3, -4.5], [3.3, -1.7]], speed: 0.9 },
+    // hij loopt naar de kant van het paar (de kar staat nu opzij: geen omweg meer)
+    { on: 0, dt: 0.4, actor: 'tinus', walk: [[3.3, -1.7]], speed: 0.9 },
     { on: 'De bieten staan', actor: 'geesje', anim: 'point' },
     { on: 'In Veendam zoeken ze', actor: 'berend', anim: 'point' },
     { on: 'Dat pand ken ik', actor: 'jelle', anim: 'shrug' },
@@ -311,15 +315,7 @@ S['M30.outro'] = {
     { on: 'Kon minder.', actor: 'tammo', anim: 'shrug' },
     { on: 'Kon veel minder', actor: 'tessa', anim: 'cheer' },
   ],
-  // het slot: de laatste beurten van Tammo en Tessa van achter het paar, met de snackwagen Tam & Tes achter hen in beeld (eerst keek
-  // de dekking van de wagen af naar het Stadhuis en verdween de wagen na de opening uit beeld); alle camera's aan de kant van de opening
-  shots: [
-    { on: 'De bieten staan', shot: 'follow', target: 'geesje', dist: 3.0, side: 0.8, h: 1.6, fov: 40 }, // Geesje opent: zij in beeld
-    { on: 'Elke zomer één ronde', shot: 'dolly', from: [-3.4, 1.7, 1.55], to: [-2.7, 1.2, 1.5], look: 'speaker', fov: 36 },
-    { on: 'Thuis is waar de kar staat', shot: 'cut', at: [-2.5, -1.3, 1.5], look: 'speaker', fov: 32 },
-    { on: 'Zes.', shot: 'cut', at: [-2.3, 1.4, 1.55], look: 'speaker', fov: 30 },
-    { on: 'Kon minder.', shot: 'cut', at: [-2.6, -1.2, 1.5], look: 'speaker', fov: 34 },
-    { on: 'Kon veel minder', shot: 'cut', at: [-2.3, 1.4, 1.55], look: 'speaker', fov: 32 },
-  ],
+  // het slot: Geesje opent van voren; de laatste beurten van het paar komen uit de ots-dekking (van voren, over de schouder van de ander)
+  shots: [{ on: 'De bieten staan', shot: 'close', target: 'geesje', dist: 2.6, side: 0.5, fov: 34 }],
   wide: WIDE([-5, 4.2, 3.2], [-3, 3, 2.4], 'mid:tammo,tessa@1'),
 };

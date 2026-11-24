@@ -101,6 +101,9 @@ S['M13.outro'] = {
 
 // --- M14 De dijk: Jelle and the deurwaarder at the start, the finish at the sluis ---
 S['M14.intro'] = {
+  // regieronde #1325: de sprekers van voren over de schouder van wie ze aanspreken (geen achterhoofd, geen as-sprong); Jelle aan de dijk in de ochtend
+  coverage: 'ots',
+  light: 'ochtend',
   cast: {
     jelle: { key: 'jelle', at: [4.6, 1.2], face: 185, anim: 'hips', gest: ['hips', 'talk', 'point', 'shrug'] },
     deurwaarder: { key: 'deurwaarder', at: [5.4, -1.6], face: 175, anim: 'idle', noauto: true },
@@ -125,6 +128,10 @@ S['M14.intro'] = {
 };
 
 S['M14.outro'] = {
+  // regieronde #1325: de sprekers van voren over de schouder van wie ze aanspreken (geen achterhoofd, geen as-sprong); na de finish; warmer als Tammo iets durft te zeggen
+  coverage: 'ots',
+  light: 'ochtend',
+  lights: [{ on: 'Je ziet er goed uit met wind', light: 'gouden-uur' }],
   cast: {
     lammert: { key: 'lammert', at: [3, 1], face: 185, anim: 'idle', gest: ['talk', 'shrug', 'hips'] },
     deurwaarder: { key: 'deurwaarder', at: [4.4, -2.2], face: 175, anim: 'idle', gest: ['shrug', 'talk'] },
@@ -250,14 +257,9 @@ S['M16.intro'] = {
 };
 
 S['M16.outro'] = {
-  // as-sprongen hersteld (180-gradenregel): deze shots vervangen de gegenereerde (missionScene, spec.shotFix)
-  shotFix: [
-    { t: 'L4', shot: 'cut', at: [2.21, 3.25, 1.6], look: 'mid:tammo,tessa@1.3', fov: 40 },
-    { t: 'L6', shot: 'cut', at: [3.18, 2.29, 1.7], look: 'mid:tammo,tessa@1.3', fov: 40 },
-    { t: 'L24', shot: 'cut', at: [3.35, 2.25, 1.6], look: 'speaker', fov: 30 },
-    { t: 'L34', shot: 'cut', at: [3.58, 2.17, 1.6], look: 'speaker', fov: 30 },
-    { t: 'L41+1', shot: 'dolly', from: [2.7, 3.2, 2.7], to: [1, 2.88, 3.6], look: 'mid:durk,tammo@1', fov: 50 },
-  ],
+  // regieronde #1325: de sprekers van voren over de schouder van wie ze aanspreken (geen achterhoofd, geen as-sprong); de kermis in het avondlicht (één licht: het netpakket van deze lange scène zit tegen de grens)
+  coverage: 'ots',
+  light: 'avond-buiten',
   // #737: M16.3-M16.5 spelen op de kermis; M16.6 is de dijk bij Blauwestad bij zonsondergang. De knip ligt
   // bij de dijkregel: daarna speelt 'M16.dijk' op een eigen anker (lat/lon) en met een eigen dagdeel.
   split: { at: 'In de botsauto mocht ik niet', key: 'M16.dijk', lat: 53.17, lon: 6.988, facing: 1.2, clock: 20.6 },

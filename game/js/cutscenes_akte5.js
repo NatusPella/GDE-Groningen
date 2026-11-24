@@ -16,14 +16,10 @@ const queue = (n, f, s0, step = 0.75, prefix = 'rij') => Object.fromEntries(QUEU
 
 // --- F1 Een wagen langs de weg: de aanhanger met het luik, het bierviltje van twaalf dagen geleden ---
 S.F1 = {
-  // as-sprongen hersteld (180-gradenregel): deze shots vervangen de gegenereerde (missionScene, spec.shotFix)
-  shotFix: [
-    { t: 'L4', shot: 'cut', at: [2.98, 1.77, 1.55], look: 'speaker', fov: 38 },
-    { t: 'L6', shot: 'cut', at: [2.98, 1.77, 1.55], look: 'speaker', fov: 25 },
-    { t: 'L8', shot: 'cut', at: [2.98, 1.77, 1.55], look: 'speaker', fov: 30 },
-    { t: 'L10+0.2', shot: 'cut', at: [2.98, 1.77, 1.55], look: 'speaker', fov: 26 },
-  ],
-  duo: { tammo: { at: [-0.4, 1.4], face: 10, anim: 'idle' }, tessa: { at: [3.0, -0.1], face: 0, anim: 'idle' } },
+  // regieronde #1325: de sprekers van voren over de schouder van wie ze aanspreken (geen achterhoofd, geen as-sprong); de aanhanger niet meer als muur voor de lens (coördinator 24-11)
+  coverage: 'ots',
+  // #1325: Tessa staat schuin naast de aanhanger (niet ervoor): over Tammo's schouder is de aanhanger decor naast haar, geen muur
+  duo: { tammo: { at: [-0.4, 1.4], face: 10, anim: 'idle' }, tessa: { at: [3.3, -2.0], face: 20, anim: 'idle' } },
   cast: {},
   props: {
     aanhanger: { kind: 'frituuraanhanger', at: [4.7, 0, 0], face: 270 },
@@ -47,7 +43,8 @@ S.F1 = {
     { on: 'Met zo', dt: 1.2, actor: 'tessa', anim: 'phone' },
   ],
   shots: [CLOSE('Dit tekende ik', 'tessa'), CLOSE('Naar de motor', 'tammo', { dist: 1.1 }), CLOSE('Een snackwagen', 'tessa', { dist: 1.15, fov: 26 })],
-  wide: WIDE([-1.6, 3.8, 2.4], [0.2, 2.6, 2.0], 'mid:tammo,tessa@1.2'),
+  // de opening van de voorkant: Tammo loopt naar haar toe en niet van de camera weg
+  wide: WIDE([3.2, 4.6, 2.4], [2.6, 3.6, 2.0], 'mid:tammo,tessa@1.2'),
 };
 
 // --- F2 De eerste bak: de wagen op blokken in de loods, Tammo eronder, Tessa bij de friteuse ---
@@ -74,12 +71,11 @@ S.F2 = {
     { on: 'Is dat een knop of een gebed', actor: 'tammo', face: 'prop:friteuse' },
     { on: 'Is dat een knop of een gebed', dt: 0.3, actor: 'tammo', anim: 'shrug' },
     { on: 'Eerst een knop', actor: 'tessa', anim: 'hips' },
-    { on: 'Ik kan hem laten smaken', actor: 'tessa', anim: 'nod' },
-    { on: 'Ik kan hem laten rijden', actor: 'tammo', anim: 'point' },
-    { on: 'Dus we blijven bij elkaar', actor: 'tessa', anim: 'lean' },
+    { on: 'Ik bak. Jij rijdt', actor: 'tessa', anim: 'point' },
+    { on: 'Ik bak. Jij rijdt', dt: 1.0, actor: 'tessa', anim: 'lean' },
     { on: 'Dat was mijn plan al', actor: 'tammo', anim: 'nod' },
   ],
-  shots: [CLOSE('Is dat een knop of een gebed', 'tammo', { dist: 1.3 }), { on: 'Ik kan hem laten smaken', dt: 0.2, shot: 'dolly', from: [-0.2, -2.6, 1.5], to: [1.0, -2.0, 1.55], look: 'mid:tammo,tessa@1.35', fov: 36 }],
+  shots: [CLOSE('Is dat een knop of een gebed', 'tammo', { dist: 1.3 }), { on: 'Ik bak. Jij rijdt', dt: 0.2, shot: 'dolly', from: [-0.2, -2.6, 1.5], to: [1.0, -2.0, 1.55], look: 'mid:tammo,tessa@1.35', fov: 36 }],
   wide: WIDE([-1.2, 2.6, 2.4], [0.4, 1.8, 2.0], 'mid:tammo,tessa@1.2'),
 };
 
@@ -129,7 +125,7 @@ S.F4 = {
     { on: 'Eén eierbal', actor: 'jelle', anim: 'point' },
     { on: 'Je staat achteraan', actor: 'tessa', anim: 'hips' },
     { on: 'Ik had een vergunning', actor: 'jelle', anim: 'shrug' },
-    { on: 'Rij maar gewoon', actor: 'durk', anim: 'point' },
+    { on: 'Gewoon in de rij', actor: 'durk', anim: 'point' },
     { on: 'Het werkt', actor: 'douwe', anim: 'nod' },
     { on: 'Je mag hem één klap', actor: 'tessa', anim: 'point' },
     { on: 'Ik heb erover nagedacht', actor: 'tammo', anim: 'look' },
@@ -141,7 +137,7 @@ S.F4 = {
     { on: 'Mems mosterd', dt: 0.3, prop: 'pot', show: true },
     { on: 'Ik zei niet mogen', actor: 'mem', anim: 'hips' },
     { on: 'Een euro vijftig', actor: 'tessa', anim: 'point' },
-    { on: '...Een prijs zonder bijlage', actor: 'jelle', anim: 'shrug' },
+    { on: '...Ik heb nog nooit', actor: 'jelle', anim: 'shrug' },
   ],
   shots: [CLOSE('Ik heb ook geen vergunning', 'tammo', { dist: 1.3 }), CLOSE('Ik zei niet mogen', 'mem', { dist: 1.3 }), CLOSE('Een euro vijftig', 'tessa', { dist: 1.25 })],
   crowd: { shape: 'line', pts: [[12, -8], [12, 10]], count: 12, side: 3, spread: 2.5, seed: 2130, key: 'cut:slot4' },
@@ -150,19 +146,19 @@ S.F4 = {
 
 // --- F5 Een avond voor twee: zoet en komisch, het lijstje in de zak van Tammo, twee kratten aan de kade, de duif draait rondjes ---
 S.F5 = {
-  // as-sprongen hersteld (180-gradenregel): deze shots vervangen de gegenereerde (missionScene, spec.shotFix)
-  shotFix: [
-    { t: 'L4', shot: 'cut', at: [2.2, 2.6, 2.8], look: 'speaker', fov: 44 },
-    { t: 'L10', shot: 'cut', at: [2.2, 2.6, 2.8], look: 'speaker', fov: 44 },
-  ],
+  // regieronde #1325: ze zitten naast elkaar met de rug naar de wagen; elke camera staat aan hun voorkant (de oude dekking stond tussen
+  // hen en de wagen: achterhoofden en een wagen die het kader vulde). Avondlicht, warmer vanaf "Zijn we nu een stel".
+  coverage: 'front', front: { f: 1.5, h: 1.15, lookH: 1.1, fov: 30 },
+  light: 'avond-buiten',
+  lights: [{ on: 'Zijn we nu een stel', light: 'warm-intiem' }],
   duo: { tammo: { at: [3.4, -0.3], face: 180, anim: 'idle', sit: 0.4 }, tessa: { at: [3.4, 0.6], face: 180, anim: 'idle', sit: 0.4 } },
   cast: {},
   props: {
-    wagen: { kind: 'snackwagen', at: [6.2, 0.2, 0], face: 90 },
+    wagen: { kind: 'snackwagen', at: [7.4, -4.6, 0], face: 60 }, // #1325: schuin achter hen, niet als muur achter hun hoofden
     krat1: { kind: 'doos', at: [3.4, -0.3, 0], face: 0 },
     krat2: { kind: 'doos', at: [3.4, 0.6, 0], face: 0 },
     deken: { kind: 'deken', at: [3.0, 0.15, 0], face: 0 },
-    duif: { kind: 'duif', at: [6.2, 0.2, 3.0], face: 0 },
+    duif: { kind: 'duif', at: [7.4, -4.6, 3.0], face: 0 },
   },
   open: [],
   beats: [
@@ -184,24 +180,21 @@ S.F5 = {
     { on: 'Hier. Met jou erbij', dt: 0.2, shot: 'cut', at: [1.6, -0.2, 1.2], look: 'mid:tammo,tessa@1.1', fov: 38 },
     { on: 'Vier woorden', dt: 0.1, shot: 'cut', at: [1.9, 1.0, 1.15], look: 'tessa@1.1', fov: 30 },
   ],
-  wide: WIDE([-0.6, 2.8, 1.9], [0.4, 2.2, 1.6], 'mid:tammo,tessa@0.9'),
+  wide: WIDE([-0.8, 0.4, 1.9], [0.4, 0.2, 1.5], 'mid:tammo,tessa@0.9'),
 };
 
 // --- F6 De kaart op het luik: eenenveertig rode stippen tegen een blauwe; de overgang naar het eindspel ---
 S.F6 = {
-  // as-sprongen hersteld (180-gradenregel): deze shots vervangen de gegenereerde (missionScene, spec.shotFix)
-  shotFix: [
-    { t: 'L5', shot: 'cut', at: [2.8, -2.6, 1.55], look: 'speaker', fov: 38 },
-    { t: 'L12', shot: 'cut', at: [-2.97, -4.35, 1.55], look: 'speaker', fov: 38 },
-    { t: 'L12+1', shot: 'dolly', from: [-6.89, -5.17, 2.5], to: [-7.62, -6.71, 3.4], look: 'mid:tessa,tammo@1.2', fov: 50 },
-  ],
+  // regieronde #1325: de sprekers van voren over de schouder van wie ze aanspreken (geen achterhoofd, geen as-sprong); de kaart op het luik in het avondlicht
+  coverage: 'ots',
+  light: 'avond-buiten',
   duo: { tammo: { at: [4.3, -3.4], face: 90, anim: 'idle' }, tessa: { at: [4.3, -1.8], face: 270, anim: 'idle' } },
   cast: {},
   props: {
     wagen: { kind: 'snackwagen', at: [6.4, -2.6, 0], face: 270 },
     kaart: { kind: 'kaart', at: [5.5, -2.6, 1.15], face: 270 },
     radio: { kind: 'radio', at: [5.5, -1.6, 1.15], face: 270 },
-    escapade: { kind: 'auto', at: [-2.4, -5.6, 0], face: 20 },
+    escapade: { kind: 'auto', at: [-3.6, -7.4, 0], face: 20 }, // #1325: verder weg, ze lopen er niet meer doorheen
   },
   open: [{ actor: 'tessa', face: 'prop:kaart' }, { actor: 'tammo', face: 'prop:kaart' }],
   beats: [
@@ -218,6 +211,7 @@ S.F6 = {
     { on: 'Dan rijden we', dt: 0.4, actor: 'tessa', walk: [[-1.9, -3.6]], speed: 1.4 },
     { on: 'Eerst de Hereweg', dt: 0.6, actor: 'tammo', face: 'prop:escapade' },
   ],
-  shots: [CLOSE('Eenenveertig tegen één', 'tessa', { dist: 1.25 }), CLOSE('Eén stip. Maar wel de onze', 'tammo', { dist: 1.2 })],
-  wide: WIDE([0.2, 1.2, 2.6], [1.2, 0.2, 2.2], 'mid:tessa,tammo@1.2'),
+  // #1325: Tessa's eerste regel van voren (de close-up toont nu het gezicht); de rest uit de ots-dekking
+  shots: [CLOSE('Eenenveertig tegen één', 'tessa', { dist: 1.6, side: 0.3, fov: 30 })],
+  wide: { ...WIDE([0.2, 1.2, 2.6], [1.2, 0.2, 2.2], 'mid:tessa,tammo@1.2'), until: 0 },
 };
