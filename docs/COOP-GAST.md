@@ -30,7 +30,7 @@ Anderen zien je als je **online-avatar**: de naam en kleur die je zelf invult bi
 De naam is hoogstens 16 tekens en gaat door dezelfde lijst verboden woorden als een sessienaam, zonder echte
 persoonsnamen (constitutie 10); de kleur komt uit een vaste set (`PROFIEL_KLEUREN` in `lobby.js`). Je ziet ze terug bij je
 figuur in de spelerslijst (Tab) en in het spelersoverzicht; de andere verhaalrol (Tessa als jij Tammo bent, of andersom)
-is in jouw beeld een computerfiguur die één keer in de wereld staat.
+is in jouw beeld een computerfiguur die één keer in de wereld staat. Ook wie het spel opende zie je als gast als zijn online-avatar met naamlabel (sinds 24-11, samen-qa in twee vensters: daarvoor tekende `scene3d.js` zijn lichaam, dat op een gast `world.companion` is, als Tessa zonder naam). `coopclient.js` `gastheerAvatar` en `metgezelSleutel` kiezen het model; test: `coopspeler_test.mjs`.
 
 In een verhaalscène tekent het spel elke rol één keer (`coopcut.js` `cutsceneVerdeling`): de rol die jij speelt, en de
 andere verhaalrol als metgezel. Een tweede kopie van dezelfde rol in een scène wordt niet getekend, en de online-avatars

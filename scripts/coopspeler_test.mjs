@@ -2,7 +2,7 @@
 import assert from 'node:assert/strict';
 import { stapSprong, knoppen, KNOP_SPRING, KNOP_BUK, KNOP_RENNEN, wapenCode, wapenNaam, aanvalCode, leesAanval, volgendeStoel, SPRONG_SNELHEID } from '../game/js/coopspeler.js';
 import { encodeSnapshot, decodeSnapshot } from '../game/js/net/codec.js';
-import { applyHostState, makeClientInput } from '../game/js/coopclient.js';
+import { applyHostState, makeClientInput, gastheerAvatar, metgezelSleutel } from '../game/js/coopclient.js';
 import { spelerRecord } from '../game/js/coopnet.js';
 import { setCombatEffect } from '../game/js/combateffect.js';
 
@@ -83,5 +83,22 @@ t('host: record van een speler met voertuig, stoel, bukken, wapen en aanval', ()
   const fig = { slot: 3, x: 0, y: 0, inVeh: veh, stoel: 4 };
   assert.deepEqual([spelerRecord(world, fig, 3).seat, spelerRecord(world, fig, 3).vehicle], [4, 40]);
   assert.equal(spelerRecord(world, { x: 0, y: 0, inVehicle: veh, state: 'ok' }, 1).seat, 1);
+});
+t('samen-qa 24-11: een gast ziet de gastheer (world.companion) als zijn online-avatar, niet als Tessa (#455)', () => {
+  const roster = [{ slot: 0, char: 'tammo', avatar: { naam: 'Bouwer', kleur: '#3f6ea8', outfit: null } }, { slot: 1, char: 'rik', avatar: { naam: 'Gastspeler' } }];
+  const gast = { coopRole: 'client', companion: { character: 'anita', x: 0, y: 0 }, coopRoster: roster };
+  const av = gastheerAvatar(gast);
+  assert.ok(av, 'de gast kent de avatar van de gastheer');
+  assert.equal(av.naam, 'Bouwer'); assert.equal(av.kleur, '#3f6ea8');
+  assert.ok(!['tammo', 'anita'].includes(av.char), 'nooit het model van een verhaalrol');
+  assert.match(metgezelSleutel(gast), /^avatar:.*Bouwer/);
+  // bij de gastheer, alleen spelen of zonder lijst: de computermetgezel blijft de verhaalrol
+  const host = { coopRole: 'host', companion: { character: 'anita' }, coopRoster: roster };
+  assert.equal(gastheerAvatar(host), null); assert.equal(metgezelSleutel(host), 'anita');
+  assert.equal(gastheerAvatar({ companion: { character: 'tammo' } }), null);
+  assert.equal(metgezelSleutel({ coopRole: 'client', companion: { character: 'anita' }, coopRoster: [] }), 'anita');
+  // een andere naam of kleding van de gastheer bouwt het model opnieuw
+  const ander = { ...gast, coopRoster: [{ ...roster[0], avatar: { naam: 'Anders', kleur: '#3f6ea8' } }] };
+  assert.notEqual(metgezelSleutel(ander), metgezelSleutel(gast));
 });
 console.log(`coopspeler_test: ${n}/${n} ok`);
