@@ -7,6 +7,7 @@
 //           menustroom: tekstveld, wachtkamer, de opening samen bekijken, overslaan alleen door de gastheer)
 //           alles (rooktest 21-11, docs/COOP-SWEEP-21-11.md: host + 2 gasten, ping, waypoint, outfit, tuning, bezit, winkel, bijbaan, cutscene)
 //           samenqa (samen-qa 24-11: groepswarp, wolf, levende stad, bushalte, raakbevestiging, zitpose; host + 1 gast)
+//           langweg (#1293: de gast komt terug na het hervatvenster van 120 s; host + 1 gast, route direct)
 //           fatbikes, penaltyserie, duivenspot, plaatsbord, filmpjewissel (route kamer), besloten, venster (alles na elkaar) (#1061: vensterstappen_check.mjs)
 //   --gasten=1|2 (Electron-gasten, host + gasten <= 3 sloten), --mock=N (extra headless gasten in dit proces, voor de 4e speler)
 //   --menu: begin bij het hoofdmenu (ingang Samen spelen), --duration=20, --invuln
@@ -108,9 +109,10 @@ const P = {
   ]])),
   overname: Object.fromEntries(['host', 'gast', 'gast2', 'gast3'].map((me) => [me, [ // #1011: de host valt hard weg (het proces wordt gedood) midden in een bijbaan van een gast: de opvolger neemt over (route kamer)
     [0, 'wacht', { s: 6 }],
-    [8, 'gastbijbaan', { s: 120, wie: 'gast', id: 'krantenwijk' }],
+    [8, 'gastbijbaan', { s: 120, wie: 'gast', id: 'krantenwijk', fotos: [24, 50, 75, 112] }], // beelden: voor het wegvallen (de host stopt 30 s na het begin) en erna
     [130, 'wacht', { s: 8 }],
   ]])),
+  langweg: { host: [[0, 'wacht', { s: 6 }], [8, 'wacht', { s: 200 }], [212, 'stopHost', {}]], gast: [[0, 'wacht', { s: 6 }], [8, 'herverbind', { wie: 'gast', wachtS: 135 }], [190, 'wacht', { s: 16 }]] }, // #1293: de gast is langer weg dan het hervatvenster (120 s) en komt terug via Opnieuw verbinden; zijn wereld mag niet stilstaan
   alles: Object.fromEntries(SPELERS_ELECTRON.map((me) => [me, [ // rooktest 21-11 (docs/COOP-SWEEP-21-11.md): host en twee gasten (3 echte vensters) spelen een kort scenario met zoveel mogelijk systemen
     [0, 'wacht', { s: 6 }],
     [8, 'allesstap', { stap: 'ping', wie: 'gast', s: 6 }], [18, 'allesstap', { stap: 'waypoint', wie: 'gast', s: 4 }],
@@ -858,6 +860,20 @@ if (SUITE === 'overname') {
   for (const n of gasten) check(unieke(n), `overname: ${n} ziet een dubbele speler`);
   for (const n of gasten) { const l = st(n); check(!l.length || l[l.length - 1].geld >= 500, `overname: ${n} verloor geld (${l.length && l[l.length - 1].geld})`); }
   for (const n of gasten) { let v = 0; const bad = samples(n).filter((x) => { const nieuw = (x.desyncN || 0) > v; v = Math.max(v, x.desyncN || 0); return nieuw; }); note(`desyncN ${n}: ${v}`); }
+}
+
+// ----- suite 'langweg' (#1293): de gast komt terug na het hervatvenster; zijn wereld mag niet stilstaan
+if (SUITE === 'langweg') {
+  const weg = of(G, 'herverbind-lang-weg')[0], klaar = of(G, 'herverbind-klaar')[0];
+  check(!!weg, 'langweg: de gast was niet lang genoeg weg (geen herverbind-lang-weg)');
+  check(!!klaar && klaar.coopNet && !klaar.hold, 'langweg: de gast kwam niet terug in het spel: ' + JSON.stringify(klaar || null));
+  const na = klaar ? samples('gast').filter((x) => x.t > klaar.t + 2) : [];
+  const klok = na.filter((x) => Number.isFinite(x.clock)).map((x) => x.clock);
+  note(`langweg: ${na.length} samples na terugkeer, klok ${klok.length ? klok[0].toFixed(1) + ' -> ' + klok[klok.length - 1].toFixed(1) : '?'}`);
+  check(klok.length >= 6 && klok[klok.length - 1] - klok[0] > 3, 'langweg: de klok van de gast loopt na terugkeer niet (bevroren wereld)');
+  check(na.some((x) => (x.partners || []).length >= 1), 'langweg: de gast ziet de host niet na terugkeer');
+  const hna = klaar ? samples('host').filter((x) => x.wall > klaar.wall + 2000) : [];
+  check(hna.some((x) => (x.roster || []).some((r) => r[0] >= 1 && r[2] === 'ok')), 'langweg: de host ziet de gast niet terug als verbonden');
 }
 
 // ----- suite 'overdracht' (#1011): de hostwissel midden in een bijbaan

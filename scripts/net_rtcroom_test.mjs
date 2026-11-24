@@ -54,7 +54,9 @@ function hub() {
   });
   return h;
 }
-const TO = { connect: 600, gather: 50, broker: 100, fallbackAfter: 100 };
+// connect ruim: de eerste sleutelafleiding (PBKDF2, 100.000 rondes) kost op een volle machine al snel meer dan 600 ms, en dan verliep de
+// host voor het antwoord er was en bleef de gast op guest.opened hangen (exit 13, ongeveer de helft van de runs bij 100% CPU)
+const TO = { connect: 4000, gather: 50, broker: 100, fallbackAfter: 100 };
 
 await t('host en gast verbinden via de kamercode; het kanaal is onbetrouwbaar en ongeordend', async () => {
   const h = hub(), pcs = [], states = [];

@@ -494,15 +494,16 @@ const PHASES = {
   },
   // #1011: een bijbaan door een gast, in een echte sessie. De gast (args.wie) staat bij het startpunt en drukt E; de anderen
   // krijgen "Meedoen?" en zeggen J. Gelogd: wie meedoet, de stand van de baan en het geld per speler (elke meedoende krijgt het volle bedrag).
-  async gastbijbaan({ s = 45, wie = 'gast', id = 'krantenwijk', beloon = 0, bied = 0 }) {
+  async gastbijbaan({ s = 45, wie = 'gast', id = 'krantenwijk', beloon = 0, bied = 0, fotos = [] }) {
     const w = W(); const SJ = await import('./js/sidejobs.js'); const CB = await import('./js/coopbijbaan.js'); let beloond = false, wisselBod = false, wisselJ = false;
     const spot = SJ.getSideJobSpotsForRender().find((x) => x.job && x.job.id === id);
     const geld0 = w.money | 0; let jGestuurd = false, deelde = false, verzoek = false; const slotVan = { gast: 1, gast2: 2, gast3: 3 }[wie] || 1;
     log('gastbijbaan-begin', { wie: CFG.name, spot: spot ? [Math.round(spot.x), Math.round(spot.y)] : null, geld: geld0 });
     if (!spot) { await sleep(s * 1000); return; }
-    const t0 = performance.now(); let laatsteLog = 0;
+    const t0 = performance.now(); let laatsteLog = 0; const fotoRest = fotos.slice(); // fotos: seconden na het begin waarop elk venster een beeld maakt (overname: voor en na het wegvallen)
     while (performance.now() - t0 < s * 1000) {
       const G = w.coopBijbaanGast;
+      if (fotoRest.length && performance.now() - t0 > fotoRest[0] * 1000) shot('gastbijbaan-' + fotoRest.shift() + 's');
       // de plek van een gast is van de gastheer: de host zet de figuur van de gast bij het startpunt (de gast loopt er zelf niet heen)
       if (CFG.role === 'host' && performance.now() - t0 < 9000) { const f = (w.coopFigures || {})[slotVan]; if (f) { f.x = spot.x + 0.8; f.y = spot.y; f.vx = 0; f.vy = 0; f.verTijd = 0; f.vastTijd = 0; } }
       if (CFG.name === wie && !verzoek && performance.now() - t0 > 6000) { key('e', 'KeyE'); verzoek = true; log('gastbijbaan-e', { wie: CFG.name, pos: [Math.round(w.player.x), Math.round(w.player.y)], spot: [Math.round(spot.x), Math.round(spot.y)], msg: (w.messages || []).slice(-2).map((m) => m.text || m) }); }
@@ -724,7 +725,7 @@ const PHASES = {
     log('uitval-host-na', { hold: houdOpen(), uiPaused: !!W().coopHold, paused: !!W().paused, roster: (W().coopRoster || []).map((r) => [r.slot, r.verbinding]) });
   },
   // de verbinding van de gast gaat dicht (TCP weg): wachtscherm, 'Opnieuw verbinden', de code opnieuw invoeren, akkoord: zoals een speler
-  async herverbind({ wie = 'gast' }) {
+  async herverbind({ wie = 'gast', wachtS = 0 }) {
     if (CFG.name !== wie) { await sleep(28000); return; }
     const ses = net() && net().session;
     if (!ses) { log('herverbind-geen-sessie', {}); return; }
@@ -733,6 +734,7 @@ const PHASES = {
     await until(hold, 20000, 'wachtscherm na het sluiten van de verbinding');
     log('herverbind-hold', { hold: true, paused: !!W().paused, coopHold: !!W().coopHold, status: ses.status });
     shot('herverbind-hold');
+    if (wachtS) { await sleep(wachtS * 1000); log('herverbind-lang-weg', { s: wachtS, hold: !!hold(), status: ses.status }); shot('herverbind-lang-weg'); } // #1293: langer weg dan het hervatvenster (120 s): de host geeft de plek een nieuwe sessie
     const knop = (act) => hold() && hold().querySelector('[data-act="' + act + '"]');
     await until(() => knop('hervat'), 5000, 'knop Opnieuw verbinden'); knop('hervat').click(); await sleep(400);
     const veld = await until(() => hold().querySelector('.coop-input'), 5000, 'invoerveld voor de code');
