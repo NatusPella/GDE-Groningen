@@ -400,3 +400,4 @@ html.reduce-motion .cp-meedoen-tijd b { transition: none; }
 #pause-menu [data-of="spel"].pm-samen-spelers { max-width: none; padding: var(--ds-s-3) var(--ds-s-8) var(--ds-s-5); }
 #pause-menu .m-tab[hidden] { display: none; }
 .ss-tabel .ds-z-tabel td, .ss-tabel .ds-z-tabel th { padding-inline: var(--ds-s-2); }
+.sb-kaart { font-family: var(--ds-font-zeef-tekst); font-size: var(--ds-t-body); }
