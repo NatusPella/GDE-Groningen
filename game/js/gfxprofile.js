@@ -381,6 +381,9 @@ const SLOW_MS = 27, GOOD_MS = 19;
 // cpuLevel 3: no shadow map but one frame in four, the shortest view and detail ring, fewer facade details and a thinner city
 const CPU_LEVEL_MAX = 3;
 const COOL_MS = 2500, UP_WAIT_MS = 15000, UP_WAIT_MAX = 120000;
+// 24-11: laad- en opwarmpieken (shaders, streaming) duwen cpuLevel niet omhoog: de eerste CPU_WARM_MS van het oordelen telt niet
+// voor cpuLevel (wel voor de renderschaal), en een stap omhoog vraagt CPU_SLOW_SECONDS trage seconden achter elkaar (was 2)
+const CPU_WARM_MS = 45000, CPU_SLOW_SECONDS = 3;
 // #1046: de eerste seconden na de spelstart (shaders die nog linken, texture-uploads) zijn geen maat voor de GPU: tijdens de startgrace telt een frame
 // langer dan GRACE_HITCH_MS niet mee, zodat de renderschaal en de schaduwkaart niet midden in de opening wisselen.
 const GRACE_HITCH_MS = 100;
@@ -497,7 +500,7 @@ function notePerfFrame(ms, cpuMs) {
 export function noteFrame(ms, cpuMs) {
   if (perfCounterOn()) notePerfFrame(ms, cpuMs);
   const st = getSettings();
-  if (!st.autoResolution) {
+  if (!st.autoResolution || FLAGS.dynvast) { // ?dynvast: beeldtools onder last (beeldregressie, hertest, wereldbugs): geen terugval
     if (dyn.scale === 1 && dyn.cpuLevel === 0) return false;
     dyn.scale = 1; dyn.cpuLevel = 0;
     return true;
@@ -526,7 +529,7 @@ export function noteFrame(ms, cpuMs) {
     if (dyn.slowGpu >= (hoog ? 3 : 2) && dyn.scale > DYN_MIN) {
       dyn.scale = Math.max(DYN_MIN, dyn.scale - 0.1);
       dyn.slowGpu = 0;
-    } else if (dyn.slowCpu >= 2 && dyn.cpuLevel < CPU_LEVEL_MAX) {
+    } else if (dyn.slowCpu >= CPU_SLOW_SECONDS && dyn.cpuLevel < CPU_LEVEL_MAX && dyn.now >= CPU_WARM_MS) {
       dyn.cpuLevel++;
       dyn.slowCpu = 0;
     }

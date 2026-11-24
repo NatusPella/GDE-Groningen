@@ -120,7 +120,7 @@ async function main(argv) {
     fs.writeFileSync(script, `window.__kp = ${JSON.stringify(kp)};\n${lib}\n${page}\nreturn await kpMain();\n`);
     const args = ['.', `--smoke-test=${path.join(out, '_smoke.png')}`, `--perf-script=${script}`, `--autoplay=${cfg.seed || 7}`, '--stil',
       '--disable-renderer-backgrounding', '--disable-backgrounding-occluded-windows', '--disable-features=CalculateNativeWinOcclusion',
-      `--clip=${nieuwMap}`, `--clip-size=${cfg.formaat || '1920x1080'}`, `--preset=${cfg.preset}`, ...(opt('url-flags') ? [`--url-flags=${opt('url-flags')}`] : [])];
+      `--clip=${nieuwMap}`, `--clip-size=${cfg.formaat || '1920x1080'}`, `--preset=${cfg.preset}`, `--url-flags=${['dynvast', ...(opt('url-flags') ? [opt('url-flags')] : [])].join(',')}`]; // dynvast: geen terugvalmist onder last (24-11)
     const env = R.electronEnv({ profile: dirs.profile, tmp: dirs.tmp, gameDir, extra: { GDE_NIEUW_VERHAAL: '1' } });
     delete env.GDE_MENU_TEST;
     try {

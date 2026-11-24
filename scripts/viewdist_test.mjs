@@ -68,7 +68,18 @@ ok(V.viewDistanceFor('heelver', 0.8, 1, 'stad') === 900, 'stad: 80% renderschaal
 ok(V.viewDistanceFor('heelver', V.VIEW_FALLBACK_SCALE, 1, 'stad') === 600, 'stad: renderschaal op de bodem: 600 m');
 ok(V.viewDistanceFor('heelver', 1, 2, 'stad') === 600, 'stad: de CPU houdt het niet bij: 600 m');
 for (const ctx of ['lucht', 'water']) ok(V.viewDistanceFor('heelver', 0.5, 2, ctx) === 900, `${ctx}: Ultra blijft 900 m`);
-ok(V.viewDistanceFor('heelver', 0.5, 3, 'lucht') === 150, 'cpuLevel 3 blijft de noodstand, overal');
+// 24-11 (mistsoep op Hoog onder last): geen enkel cpuLevel, renderschaal of context zet de zichtafstand onder de ondergrens van de
+// gekozen stand (hooguit één trap omlaag, nooit onder 'normaal' als de speler meer koos), en bij 350 m of meer begint de mist nooit
+// binnen 150 m
+for (const setting of Object.keys(V.VIEW_DISTANCES)) {
+  for (const lvl of [0, 1, 2, 3, 4]) for (const scale of [1, 0.8, 0.6, 0.5]) for (const ctx of ['stad', 'lucht', 'water']) {
+    const d = V.viewDistanceFor(setting, scale, lvl, ctx);
+    ok(d >= V.viewFloor(setting), `${setting}, cpuLevel ${lvl}, schaal ${scale}, ${ctx}: ${d} m >= ondergrens ${V.viewFloor(setting)} m`);
+    if (setting !== 'kort') ok(d >= 350, `${setting}, cpuLevel ${lvl}: nooit onder 'normaal' (${d} m)`);
+    for (const ring of [V.DETAIL_WEAK, 140, 170]) { const fr = V.fogRange(d, ring); if (d >= 350) ok(fr.near >= 150, `${setting}/${lvl}/ring ${ring}: mist vanaf ${fr.near.toFixed(0)} m`); }
+  }
+}
+ok(V.viewDistanceFor('normaal', 1, 3) === 350 && V.viewDistanceFor('ver', 1, 3) === 350 && V.viewDistanceFor('heelver', 1, 3, 'lucht') === 600 && V.viewDistanceFor('kort', 1, 3) === 150, 'cpuLevel 3: hooguit één trap omlaag');
 // de context, met hysterese op de hoogte
 ok(V.viewContext('stad', 40, false) === 'stad' && V.viewContext('stad', 46, false) === 'lucht', 'pas boven 45 m in de lucht');
 ok(V.viewContext('lucht', 35, false) === 'lucht' && V.viewContext('lucht', 29, false) === 'stad', 'pas onder 30 m weer de stad (geen heen en weer)');

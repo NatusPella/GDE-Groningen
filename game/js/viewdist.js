@@ -10,9 +10,20 @@ export const DRAW_DISTANCE_LABELS = { kort: 'kort', normaal: 'normaal', ver: 've
 // and on the water (ctx 'lucht', 'water') Ultra keeps its view (decision 24-11). Hysteresis: cpuLevel and the scale have their own
 // (gfxprofile.js), the context has it in viewContext below.
 export const VIEW_FALLBACK_SCALE = 0.6;
+// 24-11 (wereldbugs: cpuLevel 3 zette Hoog/normaal op 'kort', 150 m met mist vanaf 60 m: een mistsoep, de klacht van de eigenaar
+// "Hoog heeft veel te korte zichtafstand"): de adaptieve terugval verlaagt eerst renderschaal, schaduwen, gevels en drukte
+// (gfxprofile.js, scene3d.js); de zichtafstand zakt hooguit één trap en nooit onder viewFloor (de gekozen stand, en minstens 'normaal'
+// tenzij de speler zelf 'kort' koos). scripts/viewdist_test.mjs controleert dat voor elk cpuLevel.
+const VIEW_ORDER = ['kort', 'normaal', 'ver', 'heelver'];
+export function viewFloor(setting) {
+  const i = VIEW_ORDER.indexOf(setting);
+  if (i <= 0) return VIEW_DISTANCES.kort;
+  return Math.max(VIEW_DISTANCES.normaal, VIEW_DISTANCES[VIEW_ORDER[i - 1]]);
+}
 export function viewDistanceFor(setting, scale = 1, cpuLvl = 0, ctx = 'stad') {
-  // cpuLevel 3 (a machine that cannot even carry level 2, scripts/perf/zwak.mjs): the shortest view
-  if (cpuLvl >= 3) return VIEW_DISTANCES.kort;
+  if (!VIEW_DISTANCES[setting]) setting = 'normaal';
+  // cpuLevel 3 (scripts/perf/zwak.mjs): één trap omlaag, niet lager dan viewFloor
+  if (cpuLvl >= 3) return Math.max(viewFloor(setting), VIEW_DISTANCES[VIEW_ORDER[Math.max(0, VIEW_ORDER.indexOf(setting) - 1)]]);
   // 'heel ver' zakt alleen in de stad naar 'ver', en pas als de renderschaal het niet meer redt. Tot 23-11 gaf al 90% renderschaal 'ver',
   // zodat Ultra onder belasting stil een Hoog werd.
   if (setting === 'heelver' && ctx === 'stad' && (cpuLvl >= 2 || scale <= VIEW_FALLBACK_SCALE)) setting = 'ver';
@@ -32,9 +43,11 @@ export function viewContext(prev, camHeight, onBoat, p = VIEW_CTX) {
 // zichtafstand (op 'kort' liep hij van 63 tot 153 m: een muur die het landschap wegsnijdt) en is dicht op de zichtafstand zelf.
 // Puur, zodat scripts/viewdist_test.mjs de reeks per stand narekent. drawDist: de detailring (DRAW_DIST in scene3d.js).
 export const FOG_NEAR_SHARE = 0.4;
+// 24-11: bij 350 m of meer begint de mist nooit binnen FOG_MIN_NEAR (ook niet met de kleine detailring van cpuLevel 3)
+export const FOG_MIN_NEAR = 150;
 export function fogRange(viewDist, drawDist) {
   const base = drawDist * 0.45 + (viewDist - 150) * 0.25;
-  return { near: Math.max(base, viewDist * FOG_NEAR_SHARE), far: viewDist * 1.02 };
+  return { near: Math.max(base, viewDist * FOG_NEAR_SHARE, viewDist >= 350 ? FOG_MIN_NEAR : 0), far: viewDist * 1.02 };
 }
 
 // The high-detail radius (scene3d.js DRAW_DIST: full buildings, roads, street
