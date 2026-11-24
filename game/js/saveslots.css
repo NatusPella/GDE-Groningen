@@ -164,3 +164,15 @@ html.reduce-motion #saveslots .ssl-card, html.reduce-motion #saveslots .ssl-more
 #saveslots.gm-zeef .ssl-hero { background: var(--ds-c-groen-vlak); box-shadow: var(--ds-schaduw-hard-klein); border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); border-radius: var(--ds-r); }
 #saveslots.gm-zeef .ssl-hero:hover { background: var(--ds-c-sel-vlak); }
 #saveslots.gm-zeef .m-bg.danger { color: var(--ds-c-rood-tx); box-shadow: none; border-color: var(--ds-c-rood); }
+
+/* Spel-UI 24-11: de kaarten van Opgeslagen spellen (ds-spel.css: sp-slot, sp-thumb): vier kolommen, het beeld bovenaan, de acties als knoppen op de kaart. */
+#saveslots .ssl-grid.sp-slots { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; align-content: start; }
+#saveslots .ssl-card.sp-slot { flex-direction: column; overflow: visible; min-height: 0; border-radius: var(--ds-r); padding: 10px; }
+#saveslots .ssl-card.sp-slot:hover { background: var(--ds-zeef-bg); }
+#saveslots .ssl-card.sp-slot[aria-current="true"] { background: var(--ds-c-sel-vlak); }
+#saveslots .ssl-card.sp-slot.sel { box-shadow: var(--ds-schaduw-hard-klein), 0 0 0 3px var(--ds-c-ink-bord); }
+#saveslots .sp-slot .ssl-main { width: auto; min-height: 40px; flex: 1; display: inline-flex; align-items: center; justify-content: center; text-align: center; border-radius: var(--ds-r); }
+#saveslots .sp-slot .ssl-more { position: static; width: 40px; height: 40px; min-width: 40px; opacity: 1; border-radius: var(--ds-r); background: var(--ds-zeef-bg); }
+#saveslots .sp-slot .ssl-more .ssl-ic { width: 22px; height: 22px; }
+#saveslots .sp-slot .sp-slot__acties .ds-z-knop { padding: 0 10px; min-width: 0; }
+@media (max-width: 1100px) { #saveslots .ssl-grid.sp-slots { grid-template-columns: repeat(2, minmax(0, 1fr)); } }

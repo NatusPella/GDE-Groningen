@@ -9,6 +9,8 @@ import { geefToestemming, moetNaamVragen, moetToestemmingVragen } from './online
 import { openOnlineStart, meerInfoHtml, wieZietWatHtml } from './onlineconsentui.js';
 import { getSettings } from './settings.js';
 import { trapTabInCard, bewaarFocus } from './listnav.js';
+import { menuItems, startFocus, menuToets, uitkomstVan, nieuwSpelPlan, ladenPlan, heldRegels } from './hoofdmenu.js';
+import { isPauseMenuOpen } from './pausestate.js';
 
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
@@ -92,6 +94,100 @@ export function openLaunchChoice({ index = 0 } = {}) {
   knoppen.forEach((b, i) => b.addEventListener('mouseenter', () => zet(i))); // de muis volgt de focus: de knop onder de muis is de gekozen knop
   open = { promise, el };
   zet(nu);
+  return promise;
+}
+
+// Het hoofdmenu (ontwerp Spel-UI 24-11, hoofdmenu.js is de regel): Doorgaan met het laatste spel als held, Nieuw spel, Opgeslagen spellen, Samen
+// spelen, Instellingen en Afsluiten. Resolvet met 'alleen' of 'samen', net als de keuzekaart die hij vervangt; Nieuw spel en Opgeslagen spellen
+// leggen eerst de plek vast voor de boot (startNewSlot, markStay) en geven dan 'alleen'. Een bestaande save wordt hier nooit gewijzigd of gewist.
+const DESKTOP_HM = typeof window !== 'undefined' && window.gdeDesktop && window.gdeDesktop.isDesktop ? window.gdeDesktop : null;
+
+export function hoofdmenuHtml({ items, summary, thumb, melding = '', versie = '' } = {}) {
+  const regels = heldRegels(summary);
+  const ic = (n, cls = 'sp-ic') => icoon(n, { cls });
+  const held = items.find((x) => x.held);
+  const heldHtml = held.id === 'doorgaan' && regels
+    ? `<button type="button" class="sp-doorgaan" data-hm="doorgaan" data-i="0"><div class="sp-thumb${thumb ? '' : ' sp-thumb--leeg'}"${thumb ? ` style="background-image:url('${thumb}')"` : ''}></div><span class="sp-doorgaan__body"><span class="sp-doorgaan__kop"><span>Doorgaan</span><span class="ds-z-knop__toets" aria-hidden="true">${keyLabelHtml('Enter')}</span></span><span class="sp-doorgaan__regel"><b>${esc(regels.naam)}</b> · ${esc(regels.wie)}</span>${regels.stap ? `<span class="sp-doorgaan__regel">${esc(regels.stap)}</span>` : ''}<span class="sp-doorgaan__regel">${esc(regels.meta)}</span></span></button>`
+    : `<button type="button" class="sp-doorgaan sp-doorgaan--groot" data-hm="nieuw" data-i="0"><span class="sp-doorgaan__body"><span class="sp-doorgaan__kop"><span>Nieuw spel</span><span class="ds-z-knop__toets" aria-hidden="true">${keyLabelHtml('Enter')}</span></span><span class="sp-doorgaan__regel">${esc(held.uitleg)}</span></span></button>`;
+  const rij = (x, i) => `<button type="button" class="sp-keuze" data-hm="${x.id}" data-i="${i}">${ic(x.icoon)}<span><b>${esc(x.label)}</b><span>${esc(x.uitleg)}</span></span>${x.meta ? `<span class="sp-hulp">${esc(x.meta)}</span>` : `<span class="sp-keuze__toets" aria-hidden="true">${keyLabelHtml(String(i + 1))}</span>`}</button>`;
+  const rest = items.map((x, i) => [x, i]).filter(([x]) => !x.held);
+  return `<div class="gm gm-zeef sp-hm-wrap"><div class="gm-stage ds-zeef"><aside class="sp-menu" role="dialog" aria-modal="true" aria-label="Hoofdmenu">` +
+    `<div class="sp-logo"><span class="sp-logo__mark">GDE</span><div><span class="sp-logo__sign">Groningen</span><small>Zomer vol misdaad</small></div></div>${heldHtml}` +
+    `<div class="sp-keuzes" role="menu">${rest.map(([x, i]) => rij(x, i)).join('')}</div><p class="sp-hulp sp-hm-melding" role="status" data-hm-melding>${esc(melding)}</p>` +
+    `<div class="sp-menu__hints"><div class="hints"><span>${keyTextHtml('{ARROWS} kiezen')}</span><span>${keyTextHtml('{ENTER} doen')}</span></div></div>` +
+    `<div class="sp-menu__voet"><span class="sp-pegi" aria-label="Vanaf 18 jaar">18</span><span>${esc(versie)}</span></div></aside></div></div>`;
+}
+
+// De zware modules (opslag, opgeslagen spellen, versie) komen pas als het menu opent: dit bestand blijft lichtgewicht voor de tests (launchchoice_test).
+export async function openHoofdmenu({ index = 0 } = {}) {
+  if (open) return open.promise;
+  if (typeof document === 'undefined' || !document.body) return 'alleen';
+  const [SG, S, UI, MM, VV] = await Promise.all([import('./savegame.js'), import('./saveslots.js'), import('./saveslotsui.js'), import('./menumodels.js'), import('./version.js')]);
+  const { hasSave, getSaveSummary, startNewSlot } = SG;
+  const { listSlots, freeSlot, readThumb, markStay } = S;
+  const openSaveSlots = UI.openSaveSlots;
+  if (open) return open.promise;
+  const heeftSave = (() => { try { return hasSave(); } catch (e) { return false; } })();
+  const summary = heeftSave ? (() => { try { return getSaveSummary(); } catch (e) { return null; } })() : null;
+  const aantal = (() => { try { return listSlots(null).length; } catch (e) { return 0; } })();
+  const metSave = heeftSave && !!summary;
+  const items = menuItems({ heeftSave: metSave, desktop: !!DESKTOP_HM, aantal });
+  const thumb = summary ? readThumb(null, summary.slot) : '';
+  const el = backdrop();
+  el.classList.add('sp-hm');
+  el.innerHTML = hoofdmenuHtml({ items, summary, thumb, versie: MM.versionLabel(VV.VERSION) });
+  const knoppen = [...el.querySelectorAll('[data-hm]')].sort((a, b) => Number(a.dataset.i) - Number(b.dataset.i));
+  const melding = el.querySelector('[data-hm-melding]');
+  let nu = startFocus(items, getSettings().startKeuze);
+  let klaar = () => {};
+  const promise = new Promise((r) => { klaar = r; });
+  const zet = (i) => { nu = i; knoppen.forEach((b, k) => b.setAttribute('aria-current', String(k === i))); knoppen[i].focus({ preventScroll: true }); };
+  const zegt = (t) => { melding.textContent = t || ''; };
+  const sluit = (modus) => {
+    window.removeEventListener('keydown', onKey, true);
+    open = null;
+    try { el.remove(); } catch (e) { /* al weg */ }
+    klaar(modus);
+  };
+  const doe = (id) => {
+    if (id === 'doorgaan' || id === 'samen') { sluit(uitkomstVan(id)); return; }
+    if (id === 'nieuw') {
+      const plan = nieuwSpelPlan({ heeftSave: metSave, vrijePlek: !!freeSlot(null) });
+      if (plan.actie === 'vol') { zegt(plan.tekst); return; }
+      if (plan.actie === 'nieuwe-plek' && !startNewSlot()) { zegt('Er kon geen nieuwe plek worden gemaakt; je spellen zijn niet veranderd.'); return; }
+      sluit('alleen');
+      return;
+    }
+    if (id === 'laden') {
+      openSaveSlots({
+        mode: 'start', solo: true, eyebrow: 'Hoofdmenu', titel: 'Opgeslagen spellen',
+        onLoad: (n) => { const p = ladenPlan(n); if (p.actie === 'stay') markStay(null, p.n); sluit('alleen'); },
+        onNew: () => { if (metSave && !startNewSlot()) { zegt('Er kon geen nieuwe plek worden gemaakt; je spellen zijn niet veranderd.'); return; } sluit('alleen'); },
+        onClose: () => zet(nu),
+      });
+      return;
+    }
+    if (id === 'instellingen') {
+      import('./pausemenu.js').then((m) => m.openPauseMenu('settings', { prestart: true, onClose: () => zet(nu) })).catch((e) => { console.warn('instellingen vanuit het hoofdmenu', e); zegt('Instellingen openen lukte niet.'); });
+      return;
+    }
+    if (id === 'afsluiten' && DESKTOP_HM && DESKTOP_HM.quit) DESKTOP_HM.quit();
+  };
+  function onKey(e) {
+    if (e.metaKey || e.ctrlKey || e.altKey) return;
+    if (isPauseMenuOpen() || document.getElementById('saveslots')) return; // Instellingen en Opgeslagen spellen hebben hun eigen toetsen
+    const a = menuToets(e.key, nu, items);
+    if (!a) { if (e.key === 'Escape' || e.key === 'Backspace') { e.preventDefault(); e.stopPropagation(); } return; }
+    e.preventDefault();
+    e.stopPropagation();
+    if (e.repeat) return;
+    if (a.focus != null) zet(a.focus); else if (a.kies) doe(a.kies);
+  }
+  window.addEventListener('keydown', onKey, true);
+  el.addEventListener('click', (e) => { const b = e.target && e.target.closest ? e.target.closest('[data-hm]') : null; if (b) { zet(Number(b.dataset.i)); doe(b.dataset.hm); } });
+  knoppen.forEach((b, i) => b.addEventListener('mouseenter', () => { if (!isPauseMenuOpen()) zet(i); }));
+  open = { promise, el };
+  zet(Math.min(Math.max(nu, 0), knoppen.length - 1));
   return promise;
 }
 

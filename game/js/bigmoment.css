@@ -111,3 +111,12 @@ html.rustig-drukwerk .bm-ster:not(.aan) { background-color: var(--ds-c-ink-papie
 #wijk-card.bm-vervangen { visibility: hidden; }
 /* Achter de eindkaart (missie geslaagd of mislukt) staat geen doelbalk meer in beeld (#1188). */
 body.bm-eindkaart #hud .hud-mission { opacity: 0; transition: opacity var(--ds-m) var(--ds-ease); }
+
+/* Spel-UI 24-11: de uitslagkaart met bon (opgepakt, buiten westen): de stempel staat rechtsboven en de bon zegt wat het kost, wat verdwijnt en wat je overhoudt */
+.bm-slip:has(.bm-bon) { padding-bottom: 32px; padding-top: 44px; }
+.bm-slip:has(.bm-bon) .bm-stempel { top: 16px; bottom: auto; font-size: clamp(22px, 2.4vw, 36px); padding: 2px 16px; }
+.bm-slip:has(.bm-bon) .bm-i-beloning { display: none; }
+.bm-bon { margin-top: 4px; font-size: clamp(18px, 1.5vw, 26px); }
+.bm-bon .ds-z-bon { width: 100%; }
+.bm-bon .bm-bon-min { color: var(--ds-c-rood-tx); }
+.bm-bon .bm-bon-goed { color: var(--ds-c-groen-tx); }
