@@ -48,6 +48,7 @@ const LOCKS = process.env.GDE_LOCKS || path.join(os.homedir(), 'gde-locks');
 // testbank-run niet op machinelast of windowbeheer vastloopt:
 //   GDE_COOP_ELECTRON_ARGS=--disable-background-timer-throttling,--disable-renderer-backgrounding,--disable-backgrounding-occluded-windows
 // Met een ';' erin scheidt ';' de vlaggen, zodat een vlag zelf komma's mag hebben (--preset=quality:laag,drawDistance:kort: minder geheugen per venster)
+// GDE_COOP_WINDOW=960x540: kleinere vensters (minder geheugen per instantie op een volle machine)
 const EXTRA_ARGS = (process.env.GDE_COOP_ELECTRON_ARGS || '').split((process.env.GDE_COOP_ELECTRON_ARGS || '').includes(';') ? ';' : ',').map((x) => x.trim()).filter(Boolean);
 const ELECTRON = process.env.ELECTRON_EXE || path.join(ROOT, 'desktop', 'node_modules', 'electron', 'dist', process.platform === 'win32' ? 'electron.exe' : 'Electron');
 fs.mkdirSync(OUT, { recursive: true });
@@ -176,7 +177,7 @@ function start(name, cfg, seed, extraArgs = []) {
   delete env.ELECTRON_RUN_AS_NODE;
   const extra = [...EXTRA_ARGS, ...extraArgs];
   if (ROUTE === 'kamer' && !PUBLIEK) extra.push('--disable-features=WebRtcHideLocalIpsWithMdns', '--allow-loopback-in-peer-connection'); // kandidaten op de loopback, zonder mDNS-naam en zonder firewall
-  const child = spawn(ELECTRON, ['.', '--windowed', '--stil', '--force-device-scale-factor=1', '--window-size=1280x720', '--coop', `--autoplay=${seed}`,
+  const child = spawn(ELECTRON, ['.', '--windowed', '--stil', '--force-device-scale-factor=1', '--window-size=' + (process.env.GDE_COOP_WINDOW || '1280x720'), '--coop', `--autoplay=${seed}`,
     `--smoke-test=${path.join(dir, 'shots.png')}`, `--perf-script=${script}`, `--bot-events=${events}`, ...extra], { cwd: path.join(ROOT, 'desktop'), env, stdio: ['ignore', 'pipe', 'pipe'] });
   try { os.setPriority(child.pid, os.constants.priority.PRIORITY_BELOW_NORMAL); } catch (e) { /* geen rechten: gewone prioriteit */ }
   let out = '';

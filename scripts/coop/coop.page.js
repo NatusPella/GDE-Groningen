@@ -281,7 +281,9 @@ async function connect() {
     if (buttons().includes('kies-host')) await act('kies-host');
     log('scherm', { titel: title(), knoppen: buttons(), tekst: panel().innerText.slice(0, 400) });
     await wizard('prive');
-    await act(CFG.route === 'kamer' ? 'route-kamer' : 'route-direct');
+    // 22-11 (multiplayerwizardui.js): de kamercode heet in de wizard 'Open je spel' (host-open, die route-kamer aanroept); route-kamer zelf staat er niet meer
+    if (CFG.route === 'kamer') { await until(() => buttons().includes('host-open') || buttons().includes('route-kamer'), 8000, 'knop host-open of route-kamer'); await act(buttons().includes('host-open') ? 'host-open' : 'route-kamer'); }
+    else await act('route-direct');
     // toestemming: vóór akkoord is er niets verstuurd
     const voor = netNow();
     log('toestemming', { titel: title(), tekst: panel().innerText.slice(0, 600), knoppen: buttons(), net: voor });
@@ -1985,22 +1987,25 @@ const PHASES = {
     const w = W(), tot = qaKlok(), IN = await imp('boarding3d');
     if (CFG.role === 'host') {
       const p = w.player, BS = await imp('busstop');
-      let bus = null, ronde = 0; const fasen = {};
+      let bus = null, ronde = 0, nadLog = []; const fasen = {};
       while (!bus && performance.now() < qaT0() + 36000) {
         ronde++;
         for (const v of w.vehicles || []) if (v && v.busRun) { const k = (v.halteStaat && v.halteStaat.fase) || 'geen'; fasen[k] = (fasen[k] || 0) + 1; }
         const nad = (w.vehicles || []).filter((v) => v && v.busRun && v.halteStaat && v.halteStaat.fase === 'nadering' && v.halteStaat.stop);
-        bus = nad.map((v) => ({ v, d: BS.halteAfstand(v.busRun, v.halteStaat.stop) })).filter((o) => o.d > 12 && o.d < 90).sort((a, b) => b.d - a.d)[0] || null;
+        nadLog = nad.map((v) => Math.round(BS.halteAfstand(v.busRun, v.halteStaat.stop)));
+        const staat = (w.vehicles || []).find((v) => v && v.busRun && v.halteStaat && v.halteStaat.fase === 'staan' && v.halteStaat.stop); // een bus die al bij een halte staat: meteen erheen
+        if (staat && performance.now() > qaT0() + 25000) { bus = { v: staat, d: 0 }; break; } // pas als er na 25 s geen naderende bus is
+        bus = nad.map((v) => ({ v, d: BS.halteAfstand(v.busRun, v.halteStaat.stop) })).filter((o) => o.d > 25 && o.d < 90).sort((a, b) => b.d - a.d)[0] || null; // ver genoeg weg: dan zie je hem aankomen en stoppen
         if (!bus) await sleep(400);
       }
-      if (!bus) { log('qa-halte-host', { geenBus: true, rondes: ronde, fasen, bussen: (w.vehicles || []).filter((v) => v && v.busRun).map((v) => ({ afstand: Math.round(Math.hypot(v.x - p.x, v.y - p.y)), v: qaR(v.speed || 0), lijn: v.busRun.line && v.busRun.line.name || null, live: !!v.liveId })) }); await tot(s); return; }
+      if (!bus) { log('qa-halte-host', { geenBus: true, rondes: ronde, fasen, naderingD: nadLog, bussen: (w.vehicles || []).filter((v) => v && v.busRun).map((v) => ({ afstand: Math.round(Math.hypot(v.x - p.x, v.y - p.y)), v: qaR(v.speed || 0), lijn: v.busRun.line && v.busRun.line.name || null, live: !!v.liveId })) }); await tot(s); return; }
       const v = bus.v, c = Math.cos(v.angle || 0), sn = Math.sin(v.angle || 0);
       const stop = { x: v.x + c * bus.d, y: v.y + sn * bus.d };
       const plek = { x: stop.x - sn * 8 + c * 6, y: stop.y + c * 8 + sn * 6 };
       p.x = plek.x; p.y = plek.y; p.vx = 0; p.vy = 0;
       const g = qaGastFig(); if (g) { g.x = plek.x + c * 2; g.y = plek.y + sn * 2; g.vx = 0; g.vy = 0; }
       window.__qaHalte = stop;
-      log('qa-halte-host-bus', { d: Math.round(bus.d), snelheid: qaR(v.speed || 0), fase: v.halteFase, lijn: v.busRun.line && v.busRun.line.name || null, t: qaR((performance.now() - qaT0()) / 1000) });
+      log('qa-halte-host-bus', { d: Math.round(bus.d), alle: nadLog, snelheid: qaR(v.speed || 0), fase: v.halteFase, lijn: v.busRun.line && v.busRun.line.name || null, t: qaR((performance.now() - qaT0()) / 1000) });
       const verloop = []; let maxWissel = 0, beeld = 0;
       for (let i = 0; i < 60; i++) {
         await sleep(500);
@@ -2013,7 +2018,7 @@ const PHASES = {
       if (!beeld) shot('qa-halte-host-staan');
       log('qa-halte-host', { verloop, maxWissel });
     } else {
-      await tot(4);
+      await tot(1);
       const me = await qaIk(); const bussen = () => ((w.coopHost && w.coopHost.voertuigen) || []).filter((x) => x.soort === 'bus').sort((a, b) => Math.hypot(a.x - me.x, a.y - me.y) - Math.hypot(b.x - me.x, b.y - me.y));
       const verloop = []; let maxWissel = 0, stil = 0, knipper = 0, beeld = 0;
       for (let i = 0; i < 100 && performance.now() < qaT0() + (s - 3) * 1000; i++) {
