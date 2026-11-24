@@ -2110,7 +2110,7 @@ function askClose(a) {
     : `Wat je sinds ${wanneer} deed (${speel} min in deze sessie) is niet bewaard.`;
   box.querySelector('[data-exit-text]').textContent = a === 'quit-now' || a === 'exit'
     ? `Opslaan mislukt. ${sinds} Wil je het spel toch sluiten?`
-    : `Opslaan mislukt. ${sinds} Wil je het spel toch herstarten?`;
+    : `Opslaan mislukt. ${sinds} Wil je toch naar het hoofdmenu?`;
   showQuestion(box, true);
   const b = box.querySelector('[data-action="exit-retry"]');
   if (b) b.focus();

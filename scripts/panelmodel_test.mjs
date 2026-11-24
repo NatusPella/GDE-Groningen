@@ -36,7 +36,7 @@ t('de bron: eigen rail-item onder Bezit, tabs in het paneel, dynamisch label, ac
   assert.doesNotMatch(pm, /const CHILD = \{[^}]*boerderij/);
   assert.match(pm, /'Begin je boerderij'/);
   assert.match(pm, /begonnen \? 'Land en bedrijf' : 'Begin je boerderij'/, 'de rail noemt het onderdeel zoals de kop van het scherm (review 22-11)');
-  assert.match(pm, /\['boerderij', 'Land en bedrijf'/, 'Land en bedrijf is een eigen railrij (Spel-ontwerp 24-11: de rij Naar mijn boerderij in Opslaan en stoppen is weg)');
+  assert.match(pm, /\['bezit', 'Bezit', \['spullen', 'garage', 'boerderij'\]\]/, 'Land en bedrijf staat in de rail (Spel-UI 24-11: de rij Naar mijn boerderij in Opslaan en stoppen is weg, het stond er dubbel)');
   const ui = lees('game/js/boerderijui.js');
   assert.match(ui, /role="radio" class="[^"]*" data-bd=/, 'de onderdelen zijn een segmentbalk'); // #1243: een radiogroep in ds-z-segment
   assert.match(ui, /Begin je boerderij/);
