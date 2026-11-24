@@ -30,7 +30,7 @@ Daarnaast: de kaartenwachtrij (`enqueueCard`, `hudcards.js`) en de zonelayout (`
 | opmerking | story.js | beslist zelf | P1 | - | ja: narrative (say) | Samen met autopraat en ballon: een praatkanaal, dat als ondertitel of als ballon laat zien, nooit allebei. |
 | autopraat | banter.js | 2 modules, 2 aanroepen | P3 | G | ja: narrative (banter, sub-banter), speech (banter) | Samen met opmerking en ballon (zie daar). De 8 s wachttijd na verhaal blijft. |
 | ondertitel | cinematics.js, storytalk.js, subtitles.js en 1 andere | 5 modules, 5 aanroepen | P1 | G | ja: narrative (sub-cine) | Blijft. setDualText is een tekstmaker, geen kanaal: meerdere modules bouwen er hun eigen regel mee; de plaatsing hoort bij het ene ondertitelblok. |
-| scene | cinematics.js, intromontage.js, respawn.js en 2 andere | 14 modules, 30 aanroepen | n.v.t. | - | ja: narrative (scene) | Blijft. |
+| scene | cinematics.js, intromontage.js, respawn.js en 2 andere | 15 modules, 31 aanroepen | n.v.t. | - | ja: narrative (scene) | Blijft. |
 | moment | cinematics.js | beslist zelf | n.v.t. | - | ja: moment (wijk, landmark, ommelanden, veroverd, crash, wanted5) | wijk en landmark kunnen samen met de plaatsnaam: het vlucht-shot is dezelfde boodschap als de naam. Minder momenten, meer plaatsnaam. |
 | banner | cinematics.js | 22 modules, 34 aanroepen | P0 | D | ja: overlay (resultaat), narrative (scene) | Blijft de ene resultaatkaart. Veel minigame- en bijbaanmodules roepen hem apart aan; één gedeeld resultaat via minigamekit scheelt herhaling. |
 | grotemomenten | bigmoment.js | beslist zelf | P0 | D | ja: overlay (resultaat), narrative (scene) |  |
