@@ -5,7 +5,11 @@ import { cleanDifficulty, difficultyRecordKey, scaleTarget } from './difficulty.
 import { toonStartkaart } from './startkaart.js';
 import { createBoard, mgThema } from './minigamekit.js';
 import { getScene } from './scene3d.js';
-import { buildPersonMesh, animatePersonWalk } from './models3d_people.js';
+import { animatePersonWalk } from './models3d_people.js';
+import { DECOR_MAKERS } from './storyprops.js';
+import { buildCarbidSet, busOpBok, setMens, animateCarbidSet, vrijOpKaart } from './carbidset.js';
+import { speelCarbidIntro, CARBID_INTRO } from './carbidintro.js';
+import { MELKBUS } from './carbidprops3d.js';
 import { showBanner } from './cinematics.js';
 import { pushAudioEvent } from './pedgeom.js';
 import { unlockAchievement, recordChallengeResult, getChallengeRecord, recordStat, MEDALS } from './achievements.js';
@@ -47,6 +51,8 @@ const PRIZE = [0, 20, 45, 90];
 const MEDAL_AT = [0, 45, 80, 120];
 const POINTS = { baal: 10, ton: 20, pop: 40 };
 const DUSK = 19.2;
+// the mouth of the churn: it turns round the back cradle of the trestle (carbidset.js busOpBok)
+const MOUTH_PIVOT = -0.26, MOUTH_R = 0.6, MOUTH_Z = 0.643;
 
 const TARGETS = [
   { kind: 'baal', u: 15, v: 3 }, { kind: 'baal', u: 32, v: -4 }, { kind: 'baal', u: 38, v: 5 }, { kind: 'baal', u: 47, v: -1 },
@@ -70,19 +76,9 @@ let mats = null;
 function materials() {
   if (mats) return mats;
   const std = (color, o = {}) => new THREE.MeshStandardMaterial({ color, roughness: 0.85, ...o });
-  const label = document.createElement('canvas');
-  label.width = 128; label.height = 64;
-  const g = label.getContext('2d');
-  g.fillStyle = '#e9e0c8'; g.fillRect(0, 0, 128, 64);
-  g.fillStyle = '#b8352a'; g.fillRect(0, 0, 128, 14);
-  g.fillStyle = '#1d1d1d'; g.font = 'bold 30px Arial'; g.textAlign = 'center'; g.fillText('CARBID', 64, 48);
-  const tex = new THREE.CanvasTexture(label);
-  tex.colorSpace = THREE.SRGBColorSpace;
+  // the churn, trestle, bales and drums are registered props now (propregister.js); only the stroman and the ring are drawn here
   mats = {
-    churn: std(0xc8ced2, { roughness: 0.38, metalness: 0.35 }), lid: std(0x9aa2a8, { roughness: 0.4, metalness: 0.35 }),
-    wood: std(0x7a5a3a), plank: std(0x9a7a52), straw: std(0xd6b46a), strawEnd: std(0xc29a52),
-    red: std(0xb8352a, { roughness: 0.6, metalness: 0.3 }), blue: std(0x2f5f9a, { roughness: 0.6, metalness: 0.3 }),
-    cloth: std(0x9a2f2f), bag: std(0xffffff, { map: tex }), water: std(0x5a8ab0, { roughness: 0.2 }),
+    wood: std(0x7a5a3a), straw: std(0xd6b46a), cloth: std(0x9a2f2f),
     ring: new THREE.MeshBasicMaterial({ color: 0xffd23f, transparent: true, opacity: 0.85, depthWrite: false }),
     ringBad: new THREE.MeshBasicMaterial({ color: 0xff7a3c, transparent: true, opacity: 0.7, depthWrite: false }),
   };
@@ -98,16 +94,20 @@ function mesh(geo, mat, x, y, z, parent) {
   return m;
 }
 
-// One target's mesh in its own group (so a hit can tumble it).
+// One target's mesh in its own group (so a hit can tumble it). The bales and drums come from the prop register
+// (propregister.js: hooibaal, vetvat); the group's origin is the target's middle, the prop stands on its own ground.
 function targetMesh(t, M) {
   const g = new THREE.Group();
   if (t.kind === 'baal') {
-    const body = mesh(new THREE.CylinderGeometry(0.66, 0.66, 1.2, 18), M.straw, 0, 0, 0, g);
-    body.rotation.x = Math.PI / 2;
-    for (const s of [-1, 1]) { const e = mesh(new THREE.CircleGeometry(0.62, 18), M.strawEnd, 0, 0, s * 0.605, g); if (s < 0) e.rotation.y = Math.PI; }
+    const b = DECOR_MAKERS.hooibaal();
+    b.position.y = -0.66;
+    g.add(b);
     t.h = 1.32; t.hu = 0.66; t.hv = 0.6; t.lift = 0.66;
   } else if (t.kind === 'ton') {
-    mesh(new THREE.CylinderGeometry(0.3, 0.3, 0.88, 14), Math.random() < 0.5 ? M.red : M.blue, 0, 0, 0, g);
+    const d = DECOR_MAKERS.vetvat();
+    d.position.y = -0.44;
+    d.rotation.y = t.u * 0.7;
+    g.add(d);
     t.h = 0.88; t.hu = 0.3; t.hv = 0.3; t.lift = 0.44;
   } else {
     mesh(new THREE.BoxGeometry(0.08, 2.2, 0.08), M.wood, 0, 0, 0, g);
@@ -118,49 +118,40 @@ function targetMesh(t, M) {
     mesh(new THREE.CylinderGeometry(0.15, 0.17, 0.2, 12), M.wood, 0, 1.3, 0, g);
     t.h = 2.4; t.hu = 0.35; t.hv = 0.7; t.lift = 1.1;
   }
+  g.traverse((o) => { if (o.isMesh) { o.castShadow = true; o.receiveShadow = true; } });
   return g;
 }
 
-function buildField() {
+function buildField(w) {
   const M = materials();
   const root = new THREE.Group();
   root.position.set(FIELD.x, 0, FIELD.y);
   root.rotation.y = -FIELD.rot;
-  // three.js local: x = u, z = v
-  const L = (u, v) => [u, v];
-  // the trestle and the churn on it (the churn sits in its own group to aim)
-  for (const s of [-1, 1]) {
-    for (const k of [-1, 1]) {
-      const leg = mesh(new THREE.BoxGeometry(0.08, 0.75, 0.08), M.wood, s * 0.45, 0.36, k * 0.22, root);
-      leg.rotation.x = k * 0.25;
-    }
-    mesh(new THREE.BoxGeometry(0.1, 0.06, 0.5), M.wood, s * 0.45, 0.7, 0, root);
-  }
-  mesh(new THREE.BoxGeometry(1.3, 0.05, 0.36), M.plank, 0, 0.75, 0, root);
-  const churn = new THREE.Group();
-  churn.position.set(0, 0.98, 0);
-  root.add(churn);
-  const body = mesh(new THREE.CylinderGeometry(0.2, 0.22, 0.78, 16), M.churn, 0, 0, 0, churn);
-  body.rotation.z = -Math.PI / 2;
-  const neck = mesh(new THREE.CylinderGeometry(0.13, 0.19, 0.14, 16), M.churn, 0.45, 0, 0, churn);
-  neck.rotation.z = -Math.PI / 2;
-  const lidHome = new THREE.Vector3(0.54, 0, 0);
-  const lid = mesh(new THREE.CylinderGeometry(0.15, 0.15, 0.06, 16), M.lid, lidHome.x, 0, 0, churn);
-  lid.rotation.z = -Math.PI / 2;
-  // props: water bucket, carbid bag, the lontstok
-  const [bx, bz] = L(-0.6, -0.9);
-  mesh(new THREE.CylinderGeometry(0.17, 0.14, 0.3, 12), M.lid, bx, 0.15, bz, root);
-  mesh(new THREE.CircleGeometry(0.15, 12).rotateX(-Math.PI / 2), M.water, bx, 0.28, bz, root);
-  const [cx, cz] = L(-0.3, 0.9);
-  const bag = mesh(new THREE.BoxGeometry(0.42, 0.5, 0.26), M.bag, cx, 0.25, cz, root);
-  bag.rotation.y = 0.4;
-  const stick = mesh(new THREE.BoxGeometry(0.04, 1.5, 0.04), M.wood, -0.75, 0.72, 0.6, root);
-  stick.rotation.z = 0.35;
+  // three.js local: x = u, z = v. The churn of the game lies on its trestle (carbidset.js busOpBok, the registered props);
+  // its group turns round the back cradle to aim, the lid sits in the mouth until the knal.
+  const B = busOpBok(0.5);
+  root.add(B.groep);
+  const churn = B.bus, lid = B.deksel;
+  const lidHome = lid.position.clone();
+  const gat = new THREE.Object3D(), mond = new THREE.Object3D();
+  gat.position.set(-0.08 + MELKBUS.gat, MELKBUS.r + 0.008, 0);
+  mond.position.set(-0.08 + MELKBUS.mond, 0, 0);
+  churn.add(gat, mond);
+  churn.userData = { gat, mond, dekselThuis: lidHome };
+  // water, carbid and the lontstok beside it
+  const spul = DECOR_MAKERS.carbidspul();
+  spul.position.set(-0.9, 0, -0.75);
+  spul.rotation.y = -0.3;
+  const stok = DECOR_MAKERS.lontstok();
+  stok.position.set(-1.6, 0, 0.6);
+  stok.rotation.y = 0.25;
+  root.add(spul, stok);
+  // the yard round it: the row of churns, fences with the onlookers, the coffee table, tractor, shed, farm and trees
+  const set = buildCarbidSet(root, { vrij: vrijOpKaart(w && w.map, toW) });
   // the targets: a fresh set per game
   for (const t of TARGETS) {
     const m = targetMesh(t, M);
-    const [tx, tz] = L(t.u, t.v);
-    t.mesh = m; t.home = { x: tx, z: tz };
+    t.mesh = m; t.home = { x: t.u, z: t.v };
     root.add(m);
   }
   // landing ring (the gas preview) lives in world space
@@ -173,13 +164,15 @@ function buildField() {
   ring.userData.disc = disc;
   ring.visible = false;
   getScene().add(root, ring);
-  // Roelf and Hilje
-  const roelf = buildPersonMesh(ROELF_LOOK.shirt, ROELF_LOOK.skin, ROELF_LOOK);
-  const hilje = buildPersonMesh(HILJE_LOOK.shirt, HILJE_LOOK.skin, HILJE_LOOK);
+  // Roelf and Hilje (clothing system; modular people where the decor sets may use them)
+  const roelf = setMens(ROELF_LOOK);
+  const hilje = setMens(HILJE_LOOK);
   const place = (m, u, v, face) => { const p = toW(u, v); m.position.set(p.x, 0, p.y); m.rotation.y = -(FIELD.rot + face); getScene().add(m); return { mesh: m, u, v, x: p.x, y: p.y, face }; };
-  const farmers = { Roelf: place(roelf, -2.6, -2.4, 0.7), Hilje: place(hilje, -3.6, 2.8, -0.5) };
-  return { root, churn, lid, lidHome, ring, farmers };
+  const farmers = { Roelf: place(roelf, -2.6, -2.4, 0.7), Hilje: place(hilje, -5.3, 3.7, -0.6) };
+  for (const [u, v, r] of set.colliders) { const p = toW(u, v); addStaticCollider('garagewall', p.x, p.y, r, 0, FIELD.rot); }
+  return { root, churn, lid, lidHome, ring, farmers, set, intro: false };
 }
+
 
 function resetTargets() {
   for (const t of TARGETS) {
@@ -195,7 +188,7 @@ function resetTargets() {
 function updateLod(w) {
   const speler = hoofdspeler(w);
   const d = Math.hypot(speler.x - FIELD.x, speler.y - FIELD.y);
-  if (!built && d < DETAIL_M) { built = buildField(); resetTargets(); }
+  if (!built && d < DETAIL_M) { built = buildField(w); resetTargets(); }
   if (!built) return;
   const vis = d < DETAIL_M + 60 || !!game;
   built.root.visible = vis;
@@ -249,9 +242,16 @@ function interact(w) {
   return true;
 }
 
-function start(w) {
+let introPlayed = false;
+
+function start(w, { revealed = false } = {}) {
   if (game) return false;
-  if (!built) { built = buildField(); }
+  if (!built) { built = buildField(w); }
+  // 24-11: the first time per session a short intro shows what carbid schieten is (carbidintro.js); skippable
+  if (!revealed && !introPlayed && !(window.__carbid && window.__carbid.introOverslaan)) {
+    introPlayed = true;
+    if (playIntro(w, () => start(w, { revealed: true }))) return true;
+  }
   resetTargets();
   // hier schrijft het spel het eigen lichaam (uit de auto, naar de melkbus): dat
   // blijft hoofdspeler(world), want alleen de lezers gaan via hoofdspeler (#500)
@@ -287,6 +287,21 @@ function newWind() {
   return { v: rand(-2.6, 2.6), u: rand(-1.2, 1.2) };
 }
 
+// The intro on the farmer's yard (carbidintro.js): the field's own churn, lid and farmers, in the light of a summer evening.
+function playIntro(w, after) {
+  if (!built) built = buildField(w);
+  const p = hoofdspeler(w);
+  if (p.inVehicle) p.exitVehicle(w.map, w);
+  built.intro = true;
+  const ok = speelCarbidIntro({
+    w, toW, root: built.root, bus: built.churn, deksel: built.lid, set: built.set, fieldRot: FIELD.rot, ground: () => built.root.position.y,
+    boeren: { Roelf: built.farmers.Roelf.mesh, Hilje: built.farmers.Hilje.mesh },
+    onEinde: () => { built.intro = false; placeLid(null); if (after) after(); },
+  });
+  if (!ok) built.intro = false;
+  return ok;
+}
+
 // --- the shot -------------------------------------------------------------------------------
 
 function peakFor(water) {
@@ -312,21 +327,21 @@ function launchSpeed(power) {
 function predict(g, power) {
   const { c, s } = dirOf(g);
   const v0 = launchSpeed(power);
-  let vh = v0 * Math.cos(g.el), vz = v0 * Math.sin(g.el), d = 0, z = 1.05;
+  let vh = v0 * Math.cos(g.el), vz = v0 * Math.sin(g.el), d = 0, z = mouthPos(g).z;
   const dt = 0.02;
   for (let i = 0; i < 400 && (z > 0 || vz > 0); i++) {
     const sp = Math.hypot(vh, vz);
     vh -= DRAG * sp * vh * dt; vz -= (G + DRAG * sp * vz) * dt;
     d += vh * dt; z += vz * dt;
   }
-  const mouth = 0.55 * Math.cos(g.el);
+  const mouth = MOUTH_PIVOT + MOUTH_R * Math.cos(g.el);
   return { x: FIELD.x + c * (d + mouth), y: FIELD.y + s * (d + mouth), d: d + mouth };
 }
 
 function mouthPos(g) {
   const { c, s } = dirOf(g);
-  const r = 0.55 * Math.cos(g.el);
-  return { x: FIELD.x + c * r, y: FIELD.y + s * r, z: 0.98 + 0.55 * Math.sin(g.el) };
+  const r = MOUTH_PIVOT + MOUTH_R * Math.cos(g.el);
+  return { x: FIELD.x + c * r, y: FIELD.y + s * r, z: MOUTH_Z + MOUTH_R * Math.sin(g.el) };
 }
 
 function ignite(w, g) {
@@ -613,8 +628,9 @@ function placeLid(L) {
 
 function sync3D(w, dt) {
   const b = built;
-  if (!b) return;
+  if (!b || b.intro) return;
   const g = game;
+  animateCarbidSet(b.set, dt);
   for (const f of Object.values(b.farmers)) {
     animatePersonWalk(f.mesh, 0, dt);
   }
@@ -722,6 +738,8 @@ function knal(w) {
 export const CARBID = {
   id: 'carbid',
   layer: 'carbid',
+  // samen spelen: a guest builds the yard too (the churns, fences and onlookers stand for everyone nearby); the game itself stays with whoever opened the world
+  gastTick: true,
   legend: { kind: 'act-carbid', label: 'Carbid schieten', note: 'melkbus, deksel en een flinke knal in de polder' },
   init(w) {
     // the trestle with the churn is solid
@@ -736,6 +754,9 @@ export const CARBID = {
       fire: (power = 1, yaw = 0, el = 0.5) => { if (!game || (game.phase !== 'aim' && game.phase !== 'gas')) return false; Object.assign(game, { yaw, el, peak: power, rise: 1, gasT: 1.05, phase: 'gas' }); ignite(w, game); return true; },
       finish: () => { if (!game) return false; game.shot = SHOTS - 1; nextShot(w); return true; },
       quit: () => { if (!game) return false; end(w, { quit: true }); return true; },
+      // the intro (render of the quality machine, scripts/carbid*): play it, or skip it for a plain start
+      intro: { speel: () => playIntro(w, null), tijden: () => [['erf', 1.6], ['ontsteking', 5.0], ['knal', 5.75], ['vlucht', 6.6], ['reactie', 9.4]], duur: CARBID_INTRO.duur },
+      introOverslaan: false,
     };
   },
   spots,
