@@ -21,7 +21,7 @@ export function tabelHtml(rijen, { sel = null, wachtkamer = false } = {}) {
     : '<th class="l">Speler</th><th class="l">Doet</th><th class="l">Waar</th><th class="l">Verbinding</th><th class="l">Stand</th>';
   const rij = (r) => {
     const n = niveauVan(r), weg = n === 'weg';
-    const speler = `<td class="l"><span class="ss-speler">${vormHtml(r)}<span class="ss-spelernaam"><b>${esc(r.naam)}</b>${r.jij ? ' <span class="ss-jij">JIJ</span>' : ''}${r.slot === 0 ? '<small>Opende het spel</small>' : ''}</span></span></td>`;
+    const speler = `<td class="l"><span class="ss-speler">${vormHtml(r)}<span class="ss-spelernaam"><span class="ss-naamrij"><b>${esc(r.naam)}</b>${r.jij ? ' <span class="ss-jij">JIJ</span>' : ''}</span>${r.slot === 0 ? '<small>Opende het spel</small>' : ''}</span></span></td>`;
     const rest = wachtkamer
       ? `<td class="l">${signaalHtml(n)}</td><td class="l">${weg ? '<span class="ss-klaar ss-klaar--weg">Weg</span>' : '<span class="ss-klaar">Klaar</span>'}</td>`
       : `<td class="l">${esc(r.doet)}${r.groep ? `<small class="ss-groep">${esc(r.groep)}</small>` : ''}</td><td class="l">${afstand(r) || (weg ? '<small>laatst gezien</small>' : '')}</td><td class="l">${signaalHtml(n)}</td><td class="l">${standHtml(r)}</td>`;

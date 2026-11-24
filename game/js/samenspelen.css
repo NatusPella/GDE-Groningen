@@ -374,3 +374,8 @@ html.reduce-motion .cp-meedoen-tijd b { transition: none; }
 .sb-feiten { display: grid; grid-template-columns: auto 1fr; gap: var(--ds-s-1) var(--ds-s-4); margin: 0; }
 .sb-feiten dd { margin: 0; text-align: right; font-family: var(--ds-font-zeef-kop); font-weight: 800; }
 .sb-acties { display: flex; gap: var(--ds-s-3); margin: 0 var(--ds-s-5); }
+
+.ss-naamrij { display: flex; align-items: baseline; gap: var(--ds-s-2); }
+.ss-jij { display: inline-block; }
+.ss-detail .ss-acties .ds-z-knop { min-height: var(--ds-doel-aanraken); padding: 0 var(--ds-s-3); font-size: var(--ds-t-label); box-shadow: var(--ds-schaduw-hard-klein); }
+.ss-detail .ss-acties .ds-z-knop--gevaar { color: var(--ds-c-rood-tx); }
