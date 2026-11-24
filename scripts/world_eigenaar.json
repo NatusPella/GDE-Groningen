@@ -488,9 +488,9 @@
     {
       "veld": "clock",
       "bestand": "game/js/coopnet.js",
-      "max": 1,
-      "reden": "zet de klok of een dag/nacht-timer",
-      "issue": "#498"
+      "max": 3,
+      "reden": "zet de klok of een dag/nacht-timer; bij Samen spelen zet het gastbericht slapen, reizen of onderduiken en de gezamenlijke klokstap de klok",
+      "issue": "#1059"
     },
     {
       "veld": "clock",
@@ -1363,9 +1363,9 @@
     {
       "veld": "wanted",
       "bestand": "game/js/coopgezocht.js",
-      "max": 3,
-      "reden": "verhoogt of verlaagt de gezochtheid; police.js bezit alleen het verval",
-      "issue": "#498"
+      "max": 4,
+      "reden": "verhoogt of verlaagt de gezochtheid; police.js bezit alleen het verval. Samen spelen: de gast heeft een eigen gezochtheid (#1296) en coopgezocht.js wisselt die tijdelijk in",
+      "issue": "#429"
     },
     {
       "veld": "wanted",
@@ -1786,6 +1786,27 @@
       "max": 2,
       "reden": "de verhaalketentest zet het zoekniveau rechtstreeks om een stap te bereiken (testhulp, geen spellogica)",
       "issue": "#1121"
+    },
+    {
+      "veld": "wantedDecayTimer",
+      "bestand": "game/js/coopgezocht.js",
+      "max": 5,
+      "reden": "Samen spelen: de afkoelklok is per speler (#1296); coopgezocht.js wisselt de klok van de gast tijdelijk in en laat hem aflopen",
+      "issue": "#429"
+    },
+    {
+      "veld": "extraSpeakers",
+      "bestand": "game/js/vehicle/traffic.js",
+      "max": 1,
+      "reden": "zet een spraakballon boven een passerend voertuig; scene3d.js bezit de lijst en toont hem",
+      "issue": "#1059"
+    },
+    {
+      "veld": "pedestrians",
+      "bestand": "game/js/streeteventlive.js",
+      "max": 2,
+      "reden": "voegt de figuranten van een straatgebeurtenis toe en ruimt ze weer op; pedestrians.js bezit de lijst en de lus",
+      "issue": "#1059"
     }
   ]
 }
