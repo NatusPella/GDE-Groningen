@@ -22,7 +22,7 @@ export function onlineStartHtml({ naam = '', fout = '', consent = false, terug =
   return `<section class="os-kaart" role="dialog" aria-modal="true" aria-labelledby="os-titel">
     <h2 id="os-titel">${esc(EERSTE_START.titel)}</h2>
     <label class="os-label"><span>${esc(EERSTE_START.naamLabel)}</span>
-      <input type="text" class="os-naam" data-osk="naam" data-osk-check="online-naam" data-osk-label="Online naam" maxlength="${ONLINE_NAAM_MAX}" spellcheck="false" autocomplete="off" placeholder="Je naam" required value="${esc(naam)}">${oskKnop('je naam')}
+      <input type="text" class="os-naam" data-osk="naam" data-osk-check="online-naam" data-osk-label="Online naam" maxlength="${ONLINE_NAAM_MAX}" spellcheck="false" autocomplete="off" placeholder="Zo zien de anderen je" required value="${esc(naam)}">${oskKnop('je naam')}
     </label>
     <label class="os-consent"><input type="checkbox" class="m-sw os-consent-vink"${consent ? ' checked' : ''}> <span>${esc(EERSTE_START.consent)}</span></label>
     ${meerInfoHtml(EERSTE_START.meerInfo, EERSTE_START.info)}
@@ -132,7 +132,7 @@ export function onlineInstellingHtml({ naam = '', meedoen = false, fout = '', me
   const T = ONLINE_INSTELLING;
   return `<div class="os-inst">
     <label class="os-label"><span>${esc(T.naamLabel)}</span>
-      <input type="text" class="os-naam os-inst-naam" data-osk="naam" data-osk-check="online-naam" data-osk-label="Online naam" maxlength="${ONLINE_NAAM_MAX}" spellcheck="false" autocomplete="off" placeholder="Je naam" value="${esc(naam)}">${oskKnop('je naam')}
+      <input type="text" class="os-naam os-inst-naam" data-osk="naam" data-osk-check="online-naam" data-osk-label="Online naam" maxlength="${ONLINE_NAAM_MAX}" spellcheck="false" autocomplete="off" placeholder="Zo zien de anderen je" value="${esc(naam)}">${oskKnop('je naam')}
     </label>
     <div class="os-knoppen"><button type="button" class="os-knop os-alleen" data-naam-bewaar>${esc(T.bewaar)}</button></div>
     ${fout ? `<p class="os-fout" role="alert">${esc(fout)}</p>` : melding ? `<p class="os-hint" role="status">${esc(melding)}</p>` : ''}

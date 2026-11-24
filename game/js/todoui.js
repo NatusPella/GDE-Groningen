@@ -99,7 +99,6 @@ const TDOU_CSS = `
 #pause-menu .td-card-chips .ds-z-chip { min-height: 28px; padding: 0 var(--ds-s-3); }
 #pause-menu .td-card .ds-z-balk { margin-top: 0; }
 #pause-menu .ds-zeef.ds-z-chip { font-size: var(--ds-t-label); }
-#pause-menu .td-begin-lead { padding: 0 0 8px; font-size: max(16px, var(--menu-min, 16px)); line-height: 1.35; }
 /* Het detail: eerst wat dit is en wat het oplevert, dan de drie kloppende cijfers groot,
    en pas daarna de volledige lijst achter een vouw. */
 #pause-menu .td-dtop .m-eb { white-space: normal; line-height: 1.35; letter-spacing: 0.14em; }
@@ -393,7 +392,8 @@ function nextHtml(cur) {
   const pct = list.length ? Math.round((done / list.length) * 100) : 0;
   const goal = getGoal();
   return `<section class="td-next" aria-label="Volgende stap"><div class="td-next-top"><span class="m-eb">Waar je nu bent · ${esc(partName(cur.part))}</span>${chip('selectie', 'kan', 'Nu', true)}</div>` +
-    `<b class="td-next-t">${esc(cur.title)}</b>${cur.lead ? `<p class="td-next-lead">${esc(cur.lead)}</p>` : ''}` +
+    // #999 (24-11): de zin over de missie staat alleen hier als het detail rechts een ander item toont; anders stond hij twee keer in beeld
+    `<b class="td-next-t">${esc(cur.title)}</b>${cur.lead && (!it || ui.sel !== it.key) ? `<p class="td-next-lead">${esc(cur.lead)}</p>` : ''}` +
     `<div class="td-next-prog"><span class="m-bar on"><i data-bar="next-${cur.part}" data-w="${pct}"></i></span><span class="mut">${done} van ${list.length} in dit hoofdstuk</span></div>` +
     (it ? `<div class="m-acts td-next-acts ds-zeef"><button type="button" class="ds-z-knop ds-z-knop--secundair" data-todo-goal="${esc(it.key)}">${svg(ICON.flag)}${goal ? 'Terug naar het verhaal' : 'Zet als doel'}</button></div>` : '') + '</section>';
 }
@@ -468,11 +468,11 @@ export function setTodoFilter(near) { ui.near = !!near; }
 const DICHTBIJ_M = 600;
 const telDichtbij = (lijst) => lijst.filter((it) => it.dist != null && it.dist < DICHTBIJ_M).length;
 
-function activiteitenHero(eigen, metPlek) {
-  const dichtbij = telDichtbij(eigen);
-  return `<section class="td-acthero" aria-label="Activiteiten"><div class="td-acthero-main"><b class="td-acthero-t">${eigen.length} ${eigen.length === 1 ? 'ding' : 'dingen'} in en om Grunn</b>` +
-    `<span class="td-acthero-lead">Kies er een voor de uitleg, de afstand en de knop naar de plek.</span></div>` +
-    `<div class="td-acthero-facts ds-zeef">${chip('selectie', 'pin', `${dichtbij} dichtbij`)}${chip('', 'pin', `${metPlek} met een plek`)}</div></section>`;
+// #999 (24-11): de kop van Activiteiten is de filterrij zelf (soort en Dichtbij), bovenaan zoals de tabbladen van een grote game.
+// De telling stond drie keer onder elkaar (de bladregel, een kop "89 dingen" en "Begin hier: 81 te doen") en de filters stonden
+// onder de kaarten, op 1280x720 buiten beeld. De bladregel houdt de telling; hier staat alleen wat je kunt kiezen.
+function activiteitenHero(filter, chips) {
+  return `<section class="td-acthero" aria-label="Wat wil je doen?">${filter}${chips}</section>`;
 }
 
 // #681: het Ommeland-paspoort boven de lijst: één balk voor de dorpen en de hint vanaf 80%.
@@ -521,8 +521,8 @@ function beginHierHtml() {
   const n = beginHierCount(items, p);
   if (!n) return '';
   const next = near[0];
-  return `<section class="td-begin" aria-label="Begin hier"><div class="m-gh"><span>Begin hier</span><span>${n} te doen</span></div>` +
-    `<p class="m-note td-begin-lead">Er is hier ${n} te doen.${next ? ` De eerste kaart is het dichtstbij: <b>${esc(next.title)}</b>${next.dist != null ? `, ${esc(formatDistance(next.dist))} van hier` : ''}.` : ''}</p>` +
+  // #999 (24-11): geen tweede telling en geen zin die de eerste kaart naleest; de kaarten zeggen het zelf (naam, afstand, Eerstvolgende)
+  return `<section class="td-begin" aria-label="Begin hier"><div class="m-gh"><span>Begin hier</span><span>${next && next.dist != null ? 'dichtstbij eerst' : ''}</span></div>` +
     `<div class="td-begin-list td-begin-cards">${near.map(beginCard).join('')}</div></section>`;
 }
 
@@ -530,7 +530,6 @@ function allHtml() {
   const eigen = items.filter(isActiviteit);
   const counts = Object.fromEntries(SHOWN.map(([g]) => [g, eigen.filter((it) => it.group === g).length]));
   const total = eigen.length;
-  const metPlek = eigen.filter((it) => it.dist != null).length;
   // De chip heet Dichtbij en telt daarom hetzelfde als de hero: wat binnen 600 m is. Eerst stond er
   // "Dichtbij 140" naast "12 dichtbij" (het aantal met een plek), twee getallen met één woord.
   const dichtbij = telDichtbij(eigen);
@@ -538,8 +537,7 @@ function allHtml() {
   const filter = `<div class="m-chips" role="group" aria-label="Filter"><button type="button" class="m-chip" data-todo-near aria-pressed="${ui.near}">Dichtbij <span>${dichtbij}</span></button></div>`;
   const chips = `<div class="m-chips" role="radiogroup" aria-label="Soort"><button type="button" class="m-chip" role="radio" data-todo-kind="alles" aria-checked="${ui.kind === 'alles'}">Alles <span>${total}</span></button>` +
     SHOWN.map(([g, label]) => `<button type="button" class="m-chip" role="radio" data-todo-kind="${g}" aria-checked="${ui.kind === g}">${label} <span>${counts[g]}</span></button>`).join('') + '</div>';
-  const tools = `<div class="td-acttools"><div class="m-gh"><span>Wat wil je doen?</span><span>Kies een soort of blijf bij alles</span></div>${filter}${chips}</div>`;
-  const hero = activiteitenHero(eigen, metPlek);
+  const hero = activiteitenHero(filter, chips);
   if (!total) {
     return `<div class="ds-zeef ds-z-leeg td-leeg"><span class="ds-z-leeg__beeld">${svg(ICON.pin)}</span><div class="ds-z-leeg__kop">Nog niets te doen in de buurt</div><p class="ds-z-leeg__tekst">Loop of rij door Grunn: klussen, minigames en uitjes verschijnen hier zodra je ze tegenkomt. Op de kaart zie je waar je heen kunt.</p><button type="button" class="ds-z-knop" data-goto="map">Naar de kaart</button></div>`;
   }
@@ -547,7 +545,7 @@ function allHtml() {
     const label = ((SHOWN.find(([g]) => g === ui.kind) || [])[1] || '');
     const list = eigen.filter((it) => it.dist != null && (ui.kind === 'alles' || it.group === ui.kind))
       .sort((a, b) => (a.dist ?? Infinity) - (b.dist ?? Infinity));
-    return hero + begin + tools + `<div class="m-gh"><span>Dichtbij${label ? ` · ${esc(label)}` : ''}</span><span>${list.length} ${list.length === 1 ? 'ding' : 'dingen'} met een plek, dichtstbij eerst</span></div>` + list.map((it) => row(it)).join('') +
+    return hero + begin + `<div class="m-gh"><span>Dichtbij${label ? ` · ${esc(label)}` : ''}</span><span>${list.length} ${list.length === 1 ? 'ding' : 'dingen'} met een plek, dichtstbij eerst</span></div>` + list.map((it) => row(it)).join('') +
       (!list.length ? `<div class="ds-zeef ds-z-leeg td-leeg"><div class="ds-z-leeg__kop">Niks met een plek in deze soort</div><p class="ds-z-leeg__tekst">Kies een andere soort, of zet de filter Dichtbij uit om alles te zien.</p><button type="button" class="ds-z-knop" data-todo-near>Filter uitzetten</button></div>` : '');
   }
   const groups = SHOWN.filter(([g]) => ui.kind === 'alles' || ui.kind === g).map(([g, label, sub]) => {
@@ -562,7 +560,7 @@ function allHtml() {
     return `<section class="td-group"><div class="m-gh"><span>${esc(label)}</span><span>${list.length} · ${esc(sub)}</span></div><div class="td-group-rows">${shown.map((it) => row(it)).join('')}</div>` +
       (rest > 0 ? `<button type="button" class="m-more" data-grp-more="${g}">Nog ${rest} ${esc(label.toLowerCase())}</button>` : '') + '</section>';
   }).join('');
-  return hero + begin + tools + ((ui.kind === 'alles' || ui.kind === 'ommeland') ? paspoortHtml() : '') + groups;
+  return hero + begin + ((ui.kind === 'alles' || ui.kind === 'ommeland') ? paspoortHtml() : '') + groups;
 }
 
 // Eén vaste opmaak voor een feit, niet afhankelijk van de lengte van de tekst (#607): het

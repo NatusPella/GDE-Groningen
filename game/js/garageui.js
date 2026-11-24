@@ -95,8 +95,10 @@ const CSS = `
 #pause-menu .gar-vraag-kop { display: flex; align-items: center; gap: var(--ds-s-2); }
 #pause-menu .gar-naam { font-family: var(--ds-font-zeef-kop); font-weight: 800; font-size: var(--ds-t-kop); line-height: var(--ds-lh-kop); letter-spacing: var(--ds-ls-kop); }
 #pause-menu .gar-leeg { margin: var(--ds-s-3) 0 0 var(--ds-s-5); }
-#pause-menu .gar-meer { margin: var(--ds-s-4) 0 0 var(--ds-s-5); color: var(--ds-c-inkt-zacht); font-size: var(--ds-t-hulp); }
-#pause-menu .gar-meer b { font-weight: 600; }
+/* #999 (24-11): "nog te ontdekken" is een lege tegel in het raster (stippelrand = nog niet van jou), even groot als een kaart, niet een losse regel ernaast */
+#pause-menu .gar-meer { display: flex; flex-direction: column; justify-content: center; gap: var(--ds-s-1); min-height: 192px; padding: var(--ds-s-4); border: var(--ds-lijn-zeef) dashed var(--ds-c-ink-inkt); color: var(--ds-c-inkt-zacht); font-size: var(--ds-t-hulp); line-height: 1.35; text-align: center; }
+#pause-menu .gar-meer b { font-family: var(--ds-font-zeef-kop); font-weight: 800; font-size: var(--ds-t-subkop); line-height: var(--ds-lh-kop); color: var(--ds-c-ink-inkt); }
+#pause-menu .gar-meer br { display: none; }
 #pause-menu .gar-leeg .ds-z-leeg__tekst { color: var(--ds-zeef-tx); }
 #pause-menu .gar-leeg .gar-ic { width: var(--ds-s-6); height: var(--ds-s-6); fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 /* De draaihint staat als eigen strook onder het model (nooit erover) en licht op

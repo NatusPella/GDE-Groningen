@@ -49,7 +49,7 @@ function updateMeedoenChip(world) {
     meedoenEl.textContent = '';
     const t = document.createElement('span'); t.className = 'cp-meedoen-tekst'; t.textContent = v.tekst; meedoenEl.appendChild(t);
     for (const kn of v.knoppen) {
-      const b = document.createElement('button'); b.type = 'button'; b.className = 'ds-z-knop cp-meedoen-knop'; b.dataset.k = kn.toets;
+      const b = document.createElement('button'); b.type = 'button'; b.className = 'ds-z-knop cp-meedoen-knop' + (kn.toets === 'n' ? ' ds-z-knop--secundair' : ''); // #1001: één gele knop (Ja), Nee is secundair b.dataset.k = kn.toets;
       const toets = document.createElement('span'); toets.className = 'ds-z-toets'; toets.setAttribute('aria-hidden', 'true'); toets.textContent = kn.letter;
       b.append(toets, ` ${kn.label}`); b.setAttribute('aria-keyshortcuts', kn.letter);
       meedoenEl.appendChild(b);

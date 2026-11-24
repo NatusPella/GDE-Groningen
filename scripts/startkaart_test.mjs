@@ -42,11 +42,13 @@ t('de kaart noemt doel, medailles, beloning en samen; het record komt erbij als 
   const spec = startkaartSpec('discgolf', { record: '2 onder par' });
   assert.equal(spec.kind, 'tip');
   assert.equal(spec.title, 'Discgolf');
-  assert.match(spec.bodyHtml, /Doel: /);
-  assert.match(spec.bodyHtml, /Medailles: brons /);
-  assert.match(spec.bodyHtml, /Beloning: /);
-  assert.match(spec.bodyHtml, /Samen: /);
+  // #999 (24-11): een label per regel (geen zinnen onder elkaar), de medailles als B, Z en G met de eis, stand, samen en record als chips
+  for (const label of ['Doel', 'Toetsen', 'Medailles', 'Beloning']) assert.match(spec.bodyHtml, new RegExp(`<span class="sk-l">${label}</span>`), label + ' staat als label');
+  assert.match(spec.bodyHtml, /aria-label="brons">B<\/i>/, 'de medaille heeft een letter en een naam, niet alleen een kleur');
+  assert.match(spec.bodyHtml, /sk-chip[^"]*">Samen: ja</);
+  assert.match(spec.bodyHtml, /sk-chip[^"]*">Stand: /);
   assert.match(spec.bodyHtml, /Record: 2 onder par/);
+  assert.match(spec.body, /^Doel: .*Medailles: brons .*Samen: ja, met de groep/, 'de volle zinnen blijven de tekst van de kaart (tekstlog)');
   assert.match(spec.bodyHtml, /<span class="hud-key[^"]*" data-gk="SPACE">/, 'de toetsen staan als toetsplaatjes');
   assert.equal(spec.key, 'startkaart-discgolf');
   assert.equal(startkaartSpec('onbestaand'), null, 'een onbekende activiteit geeft geen kaart');

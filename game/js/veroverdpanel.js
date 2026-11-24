@@ -118,7 +118,8 @@ export function renderVeroverdPanel(el, sluit = null, world = null) {
     const hero = `<section class="pm-hero vo-hero" aria-label="Veroverd"><div class="pm-hero-h"><span class="m-eb">Veroverd</span><span class="pm-badge" data-tone="ok">${s.pct}% van Grunn</span></div>` +
       `<h2 class="pm-hero-t">${esc(titel)}</h2>` +
       `<p class="pm-hero-lead">Doe alles wat er in een gebied te doen is, dan is het van jou: een titel, geld en een vlag op de kaart. Je hoeft niemand kwaad te doen.</p>` +
-      `<div class="pm-hero-meta vo-kop">${g.totaal}</div></section>`;
+      // #999 (24-11): "Gebieden: 0 van 72 veroverd" stond hier en in de eerste tegel eronder; met tegels staat het alleen daar
+      (s.totaal ? '' : `<div class="pm-hero-meta vo-kop">${g.totaal}</div>`) + '</section>';
     // #1269: zonder gebieden (nog niet geladen) zijn "0 van 0"-tegels leeg gepraat: ze komen er niet
     const stats = `<div class="pm-stats vo-stats">` + (!s.totaal ? '' :
       `<span class="pm-stat" data-tone="accent"><b>${s.klaar}</b><span>van ${s.totaal} gebieden veroverd</span><span class="m-bar${s.klaar ? ' on' : ''}"><i data-bar="vo-gebieden" data-w="${s.pct}"></i></span></span>` +
