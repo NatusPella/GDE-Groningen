@@ -79,6 +79,16 @@ ok(roadFitsBody(m6, r6, 1.85), 'en het water dat weer weg is, ook');
 // canUseRoad: kleine voertuigen worden niet getoetst, auto's wel
 ok(canUseRoad({ isBike: true, model: { wid: 0.6 } }, nauw, m1), 'een fiets mag door de smalle straat');
 ok(!canUseRoad({ model: { wid: 1.85 } }, nauw, m1), 'een auto niet');
-ok(canUseRoad({ model: { wid: 1.85 } }, ruim, m1), 'een auto wel door de ruime straat');
+// (de ruime straat loopt door tot voorbij de gevel: een doodlopend einde naast de gevel is een andere toets, zie hieronder)
+const ruimDoor = road([[-20, -3], [60, -3]]);
+ok(canUseRoad({ model: { wid: 1.85 } }, ruimDoor, m1), 'een auto wel door de ruime straat');
+// #1049: een doodlopend einde met de gevel binnen een autolengte plus 2 m: daar keert een auto niet zonder te schaven
+ok(roadClearance(m1, ruim).endRoom[0] < 4, 'ruimte om te keren aan het begin gemeten', String(roadClearance(m1, ruim).endRoom));
+ok(!canUseRoad({ model: { wid: 1.85, len: 4.4 } }, ruim, m1), 'een auto niet in een doodlopend einde naast de gevel');
+const mKop = mapOf([box(40, -10, 60, 10)]); // een pand dwars voor het einde, 5 m verder
+const kop = road([[0, 0], [35, 0]]);
+ok(!canUseRoad({ model: { wid: 1.85, len: 4.4 } }, kop, mKop), 'een auto niet in een doodlopend einde met een pand op 5 m');
+const verKop = road([[0, 0], [30, 0]]); // het pand op 10 m: genoeg ruimte om te keren
+ok(canUseRoad({ model: { wid: 1.85, len: 4.4 } }, verKop, mKop), 'wel als het pand 10 m verder staat');
 console.log(`roadfit_test: ${n - fails}/${n}`);
 process.exit(fails ? 1 : 0);
