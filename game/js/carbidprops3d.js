@@ -154,11 +154,11 @@ export function hooibaal() {
   return B.build();
 }
 
-// Een gegalvaniseerd weidehek (vier meter): twee eiken palen met een kapje, het hek met vijf regels, twee stijlen, een schoor,
+// Een gegalvaniseerd weidehek (3,8 m): twee eiken palen met een kapje, het hek met vijf regels, twee stijlen, een schoor,
 // scharnieren en een sluitketting. Breedte langs z, voorkant +x.
 export function weidehek() {
   const B = new GeoBuilder(1);
-  const W = 4.0, gal = 0xaab1b6, galD = 0x7d858b;
+  const W = 3.8, gal = 0xaab1b6, galD = 0x7d858b;
   for (const s of [-1, 1]) {
     B.box(0, 0.7, s * (W / 2 + 0.12), 0.16, 1.4, 0.16, 0x5e4a34);                                                     // paal
     B.box(0, 1.415, s * (W / 2 + 0.12), 0.18, 0.03, 0.18, 0x4a3a28);                                                    // kapje

@@ -144,7 +144,21 @@ export const PROP_REGISTER = {
   },
   weidehek: {
     nl: 'Weidehek (gegalvaniseerd)', bouwer: 'weidehek', gebruik: ['cutscene', 'activiteit'],
-    norm: { tris: [160, 320], kleuren: 5, maat: [0.18, 1.43, 4.42], eisen: ['twee eiken palen met een kapje', 'vijf regels in twee tinten', 'stijlen en een schoor', 'scharnieren en een sluitketting'] },
+    norm: { tris: [160, 320], kleuren: 5, maat: [0.18, 1.43, 4.22], eisen: ['twee eiken palen met een kapje', 'vijf regels in twee tinten', 'stijlen en een schoor', 'scharnieren en een sluitketting'] },
+  },
+  // het Groningse erf (24-11, na de carbidbeelden: geen Amerikaanse schuur); bouwers in erfgebouwen3d.js. Gebouwen en wagens zijn
+  // groter dan decor in een cutscene mag zijn (storyprops.js DECOR_BUDGET maxDim): alleen 'activiteit' (carbidset.js)
+  kophalsromp: {
+    nl: 'Groningse kop-hals-rompboerderij', bouwer: 'kophalsromp', gebruik: ['activiteit'],
+    norm: { tris: [1100, 2000], kleuren: 10, maat: [48.65, 14.69, 24.68], eisen: ['woonhuis (kop) van baksteen met plint, speklaag, wit gootlijsten en donker pannendak met de nok dwars', 'voorgevel met roedenramen, groene voordeur met bovenlicht en stoep; schoorstenen op de nok', 'lage hals met eigen dak, deur en raam', 'schuur (romp) met lage muren en een hoog rood pannendak met wolfseinden, nokvorsten, goten en uilenborden', 'groen-witte baanderdeuren, staldeur en gietijzeren stalraampjes'] },
+  },
+  werktuigloods: {
+    nl: 'Werktuigenloods met inrichting', bouwer: 'werktuigloods', gebruik: ['activiteit'],
+    norm: { tris: [700, 1300], kleuren: 15, maat: [10.9, 7.2, 14.9], eisen: ['stalen wanden op een gemetselde voet, golfplaatribben, zadeldak', 'half open schuifdeur met rail en greep', 'lichte binnenwanden en een betonvloer', 'trekkerband met velg, werkbank met bankschroef, gereedschapsbord, jerrycans en olievat', 'lamp onder de nok'] },
+  },
+  balenwagen: {
+    nl: 'Balenwagen', bouwer: 'balenwagen', gebruik: ['activiteit'],
+    norm: { tris: [450, 800], kleuren: 6, maat: [7.56, 2.63, 2.52], eisen: ['laadvloer van planken in twee tinten', 'chassisbalken en rode randbalk', 'vier wielen met velg op assen', 'dissel met trekoog', 'rek voorop'] },
   },
 };
 

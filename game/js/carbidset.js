@@ -9,7 +9,10 @@
 // de veldgroep is x = u en z = v; een ding dat naar richting phi kijkt (vanaf +u naar +v) heeft rotation.y = -phi.
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { DECOR_MAKERS } from './storyprops.js';
-import { shedGeometry, roundTreeGeometry, poplarGeometry, farmKHRGeometry, FARM_LOOKS, trailerBodyGeometry, trailerBaseGeometry } from './countrymodels.js';
+import { roundTreeGeometry, poplarGeometry } from './countrymodels.js';
+import { propGeometry } from './propmodels3d.js';
+import { WAGENVLOER } from './erfgebouwen3d.js';
+import { adoptSetLight } from './setlights.js';
 import { buildPersonMesh } from './models3d_people.js';
 import { buildModularFromAppearance, modularReady, mensenFase } from './modularpeople.js';
 import { buildVehicleMesh } from './models3d_vehicles.js';
@@ -24,24 +27,26 @@ import { isInWater, pointInPolygon } from './util.js';
 const BUS_AS = BOK_WIEG + MELKBUS.r + 0.008;
 
 // De rij bussen naast die van het spel (v), elk een eigen bok, deksel en emmer; de bus van het spel staat op v = 0
-const RIJ = [-2.6, -5.2, 2.7];
+// alleen aan de erfkant (+v): links van de bus staat begroeiing die in de trailer in beeld komt (24-11)
+const RIJ = [2.5, 4.8];
 
 // Wat er op het erf staat (u, v, phi). Achter de bus loopt een sloot (gemeten op de echte kaart, 24-11) en links de weg: het erf
 // ligt rechts van de schietlijn (+v), de boerderij met haar romp langs het veld. Het veld zelf (v < 6) blijft vrij.
 const ERF = {
   hekken: [[-9, 6.6, Math.PI / 2], [-5, 6.6, Math.PI / 2], [-1, 6.6, Math.PI / 2], [3, 6.6, Math.PI / 2]],
   tafel: [-6.2, 4.3, 0],
-  trekker: [6, 13.5, Math.PI],
+  trekker: [20, 12, Math.PI],
   balen: [[-10.5, 11.5, 0], [-10.5, 12.9, 0], [-10.5, 12.2, 0, 1.2]],
-  loods: [-3, 15.5, Math.PI],
-  boerderij: [-8, 32, 0],
-  bomen: [[-13, 22, 'rond'], [-14, 39, 'rond'], [46, 28, 'rond'], [20, 9.5, 'rond'], ...[-10, 0, 10, 20, 30, 40].map((u) => [u, 48, 'populier'])],
+  // de loods met de deur naar het veld (-v), de boerderij met de kop naar de weg (-u) en de baanderdeuren naar het erf
+  loods: [6, 17, -Math.PI / 2],
+  boerderij: [10, 37, Math.PI],
+  bomen: [[-15, 24, 'rond'], [-16, 44, 'rond'], [48, 30, 'rond'], [30, 9, 'rond'], ...[-10, 0, 10, 20, 30, 40].map((u) => [u, 53, 'populier'])],
   // de toeschouwers achter het hek (op afstand), met gehoorkappen voor wie dichtbij staat
   publiek: [
-    { u: -9.6, v: 7.6, rol: 'boer', seed: 7311, anim: 'idle', kap: false, shirt: 0x2f5a3a, skin: 0xe2b48c, variant: 'male', hairStyle: 'short', look: { age: 'old', hat: 'flatcap', hatColor: 0x3a3a34 } },
-    { u: -8.4, v: 7.9, rol: 'voetganger', seed: 7323, anim: 'phone', kap: false, shirt: 0xc9a227, skin: 0xb98a62, variant: 'female', hairStyle: 'long' },
-    { u: -5.8, v: 7.5, rol: 'feestganger', seed: 7337, anim: 'idle', kap: true, shirt: 0xb8352a, skin: 0xd9b48f, variant: 'male', hairStyle: 'curly' },
-    { u: -2.4, v: 7.7, rol: 'boer', seed: 7349, anim: 'hips', kap: true, shirt: 0x6a4a8a, skin: 0x8a5a3c, variant: 'female', hairStyle: 'bun' },
+    { u: -10.4, v: 7.6, rol: 'boer', seed: 7311, anim: 'idle', kap: false, shirt: 0x2f5a3a, skin: 0xe2b48c, variant: 'male', hairStyle: 'short', look: { age: 'old', hat: 'flatcap', hatColor: 0x3a3a34 } },
+    { u: -9.0, v: 7.9, rol: 'voetganger', seed: 7323, anim: 'phone', kap: false, shirt: 0xc9a227, skin: 0xb98a62, variant: 'female', hairStyle: 'long' },
+    { u: -6.6, v: 7.5, rol: 'feestganger', seed: 7337, anim: 'idle', kap: true, shirt: 0xb8352a, skin: 0xd9b48f, variant: 'male', hairStyle: 'curly' },
+    { u: -4.2, v: 7.7, rol: 'boer', seed: 7349, anim: 'hips', kap: true, shirt: 0x6a4a8a, skin: 0x8a5a3c, variant: 'female', hairStyle: 'bun' },
   ],
 };
 
@@ -49,7 +54,7 @@ let mats = null;
 function materials() {
   if (mats) return mats;
   const vc = (color = 0xffffff, o = {}) => new THREE.MeshStandardMaterial({ vertexColors: true, color, roughness: 0.85, ...o });
-  mats = { boom: vc(), boerderij: vc(), loods: vc(0xc4c8bf), wagen: vc(0x8e4a32), wagenOnder: vc() };
+  mats = { boom: vc(), gebouw: vc() };
   for (const m of Object.values(mats)) m.userData.shared = true; // het veld en de trailershot delen ze: nooit weggooien
   return mats;
 }
@@ -143,22 +148,31 @@ export function buildCarbidSet(root, { vrij = () => true } = {}) {
     if (vrij(u, v, 5)) {
       const t = buildVehicleMesh({ id: 'carbid-trekker', model: { ...TRACTOR_MODEL }, health: 100 });
       put(G, t, u, v, 0, phi);
+      // de balenwagen erachter (dissel aan de trekhaak), vier balen op de vloer en twee erbovenop, de as dwars
       const w = new THREE.Group();
-      w.add(new THREE.Mesh(geo('wagen', trailerBodyGeometry), M.wagen), new THREE.Mesh(geo('wagenOnder', trailerBaseGeometry), M.wagenOnder));
-      const c = Math.cos(phi), s = Math.sin(phi), d = 2.15 + 4.0;
+      w.add(new THREE.Mesh(propGeometry('balenwagen'), M.gebouw));
+      const c = Math.cos(phi), s = Math.sin(phi), d = 2.15 + 4.5;
       put(G, w, u - c * d, v - s * d, 0, phi);
-      for (const k of [-1.6, 0, 1.6]) { const baal = prop('hooibaal'); baal.rotation.y = Math.PI / 2; baal.position.set(k, 2.2, 0); w.add(baal); }
+      for (const k of [-2.0, -0.66, 0.68, 2.02]) { const baal = prop('hooibaal'); baal.position.set(k, WAGENVLOER, 0); w.add(baal); }
+      for (const k of [-1.33, 0.01]) { const baal = prop('hooibaal'); baal.position.set(k, WAGENVLOER + 1.12, 0); w.add(baal); }
       set.colliders.push([u, v, 2.2], [u - c * d, v - s * d, 2.8]);
     } }
   for (const [u, v, phi, y = 0] of ERF.balen) if (vrij(u, v, 1)) put(G, prop('hooibaal'), u, v, y, phi);
   // de werktuigenloods, de boerderij en de bomen (platteland-bouwers)
   { const [u, v, phi] = ERF.loods;
-    if (vrij(u, v, 6)) { const l = new THREE.Mesh(geo('loods', shedGeometry), M.loods); l.scale.set(12, 1, 9); put(G, l, u, v, 0, phi); set.colliders.push([u, v, 6]); } }
+    if (vrij(u, v, 6)) {
+      put(G, new THREE.Mesh(propGeometry('werktuigloods'), M.gebouw), u, v, 0, phi);
+      // binnen brandt de lamp: het deurgat is geen zwart vlak (de lamp leent een lamp van de nachtrig, setlights.js)
+      const lamp = adoptSetLight(new THREE.PointLight(0xffe2a8, 9, 16, 1.6));
+      lamp.position.set(u - Math.cos(phi) * 0.5, 4.6, v - Math.sin(phi) * 0.5);
+      G.add(lamp);
+      set.colliders.push([u, v, 6]);
+    } }
   { const [u, v, phi] = ERF.boerderij;
-    // de boerderij is groot (50 bij 24 m): alleen als de hele voetafdruk vrij is
+    // de boerderij is groot (49 bij 25 m): alleen als de hele voetafdruk vrij is
     const c = Math.cos(phi), s = Math.sin(phi);
-    const vrijB = [0, 10, 25, 40].every((x) => [-10, 0, 10].every((z) => vrij(u + c * x - s * z, v + s * x + c * z, 2)));
-    if (vrijB) { put(G, new THREE.Mesh(geo('boerderij', () => farmKHRGeometry(FARM_LOOKS[0])), M.boerderij), u, v, 0, phi); set.boerderij = true; } }
+    const vrijB = [-22, -10, 0, 10, 22].every((x) => [-10, 0, 10].every((z) => vrij(u + c * x - s * z, v + s * x + c * z, 2)));
+    if (vrijB) { put(G, new THREE.Mesh(propGeometry('kophalsromp'), M.gebouw), u, v, 0, phi); set.boerderij = true; set.colliders.push([u, v, 12]); } }
   for (const [u, v, soort] of ERF.bomen) if (vrij(u, v, 1.5)) put(G, new THREE.Mesh(geo(soort, soort === 'rond' ? roundTreeGeometry : poplarGeometry), M.boom), u, v, 0, (u * 7 + v) % 6.28);
   // het publiek achter het hek
   for (const p of ERF.publiek) {

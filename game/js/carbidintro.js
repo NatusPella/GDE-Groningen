@@ -36,13 +36,13 @@ export const CARBID_INTRO = {
     { id: 'erf', t: 0, from: [-10, -10.5, 5.8], to: [-8, -9.5, 4.4], look: [3, 9, 1.4], fov: 52 },
     { id: 'ontsteking', t: 3.2, from: [-0.2, 1.7, 1.35], to: [-0.35, 1.45, 1.2], look: [-1.05, -0.75, 1.0], fov: 44, licht: { fakkel: 1 } },
     { id: 'knal', t: 5.6, from: [2.4, -3.8, 1.05], to: [3.2, -4.4, 1.4], look: 'deksel', fov: 50, schud: 0.16 },
-    { id: 'reactie', t: 8.0, from: [-3.6, 1.5, 1.6], to: [-3.9, 1.8, 1.65], look: [-1.0, 5.4, 1.45], fov: 42 },
+    { id: 'reactie', t: 8.0, from: [-4.3, 1.3, 1.6], to: [-4.6, 1.6, 1.65], look: [-2.4, 5.5, 1.45], fov: 42 },
   ],
   // de mensen van de scène (veldcoördinaten, phi: kijkrichting)
   cast: {
     roelf: { at: [-1.85, -1.3], kap: true },
-    tammo: { at: [-1.6, 5.2], phi: -1.27 },
-    tessa: { at: [-0.6, 5.7], phi: -1.47, kap: true },
+    tammo: { at: [-3.0, 5.2], phi: -1.0 },
+    tessa: { at: [-2.1, 5.8], phi: -1.2, kap: true },
   },
   regels: [
     { at: 3.4, dur: 2.0, speaker: 'Boer Roelf', text: 'Kiek uut, hai gaait!' },
