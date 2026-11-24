@@ -15,6 +15,7 @@ import { queueHalte } from '../haltefiguren.js';
 
 const _in = { stop: null, afstand: Infinity, speed: 0, dt: 0, dwell: DWELL, decel: HALTE.DECEL, live: false, liveStil: false };
 const _ev = { board: -1, alight: 0 };
+export const LOS_M = 25; // m: zoveel verder hemelsbreed dan langs de lijn en de bus hoort niet meer bij deze halte
 
 // out: wat stepRunner(…, zacht) gaf ({ stop }); lp: de positie van de echte bus (#395) of null.
 export function stapBusHalte(v, out, dt, world, lp = null, rng = Math.random) {
@@ -24,6 +25,10 @@ export function stapBusHalte(v, out, dt, world, lp = null, rng = Math.random) {
   const doel = hs.fase === 'nadering' ? hs.stop : out.stop;
   _in.stop = out.stop;
   _in.afstand = doel ? halteAfstand(r, doel) : Infinity;
+  // De rit loopt niet mee met de bus (hij rijdt van zijn lijn af of de andere kant op): de afstand langs de lijn blijft dan
+  // staan terwijl de bus wegrijdt, en hij kroop met knipperlicht op remsnelheid door tot de nadering na 60 s afbrak (samen-qa
+  // 24-11, in twee vensters gezien). Is hij hemelsbreed veel verder van het stoppunt dan langs de lijn, dan is de halte gemist.
+  if (doel && Number.isFinite(doel.x) && Number.isFinite(doel.y) && Math.hypot(doel.x - v.x, doel.y - v.y) > Math.max(0, _in.afstand) + LOS_M) _in.afstand = -Infinity;
   _in.speed = v.speed || 0;
   _in.dt = dt;
   _in.live = !!lp;

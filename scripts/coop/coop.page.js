@@ -1985,22 +1985,23 @@ const PHASES = {
     const w = W(), tot = qaKlok(), IN = await imp('boarding3d');
     if (CFG.role === 'host') {
       const p = w.player, BS = await imp('busstop');
-      let bus = null, ronde = 0; const fasen = {};
+      let bus = null, ronde = 0, nadLog = []; const fasen = {};
       while (!bus && performance.now() < qaT0() + 36000) {
         ronde++;
         for (const v of w.vehicles || []) if (v && v.busRun) { const k = (v.halteStaat && v.halteStaat.fase) || 'geen'; fasen[k] = (fasen[k] || 0) + 1; }
         const nad = (w.vehicles || []).filter((v) => v && v.busRun && v.halteStaat && v.halteStaat.fase === 'nadering' && v.halteStaat.stop);
-        bus = nad.map((v) => ({ v, d: BS.halteAfstand(v.busRun, v.halteStaat.stop) })).filter((o) => o.d > 12 && o.d < 90).sort((a, b) => b.d - a.d)[0] || null;
+        nadLog = nad.map((v) => Math.round(BS.halteAfstand(v.busRun, v.halteStaat.stop)));
+        bus = nad.map((v) => ({ v, d: BS.halteAfstand(v.busRun, v.halteStaat.stop) })).filter((o) => o.d > 0 && o.d < 90).sort((a, b) => b.d - a.d)[0] || null; // de verste eerst: dan zie je hem nog aankomen
         if (!bus) await sleep(400);
       }
-      if (!bus) { log('qa-halte-host', { geenBus: true, rondes: ronde, fasen, bussen: (w.vehicles || []).filter((v) => v && v.busRun).map((v) => ({ afstand: Math.round(Math.hypot(v.x - p.x, v.y - p.y)), v: qaR(v.speed || 0), lijn: v.busRun.line && v.busRun.line.name || null, live: !!v.liveId })) }); await tot(s); return; }
+      if (!bus) { log('qa-halte-host', { geenBus: true, rondes: ronde, fasen, naderingD: nadLog, bussen: (w.vehicles || []).filter((v) => v && v.busRun).map((v) => ({ afstand: Math.round(Math.hypot(v.x - p.x, v.y - p.y)), v: qaR(v.speed || 0), lijn: v.busRun.line && v.busRun.line.name || null, live: !!v.liveId })) }); await tot(s); return; }
       const v = bus.v, c = Math.cos(v.angle || 0), sn = Math.sin(v.angle || 0);
       const stop = { x: v.x + c * bus.d, y: v.y + sn * bus.d };
       const plek = { x: stop.x - sn * 8 + c * 6, y: stop.y + c * 8 + sn * 6 };
       p.x = plek.x; p.y = plek.y; p.vx = 0; p.vy = 0;
       const g = qaGastFig(); if (g) { g.x = plek.x + c * 2; g.y = plek.y + sn * 2; g.vx = 0; g.vy = 0; }
       window.__qaHalte = stop;
-      log('qa-halte-host-bus', { d: Math.round(bus.d), snelheid: qaR(v.speed || 0), fase: v.halteFase, lijn: v.busRun.line && v.busRun.line.name || null, t: qaR((performance.now() - qaT0()) / 1000) });
+      log('qa-halte-host-bus', { d: Math.round(bus.d), alle: nadLog, snelheid: qaR(v.speed || 0), fase: v.halteFase, lijn: v.busRun.line && v.busRun.line.name || null, t: qaR((performance.now() - qaT0()) / 1000) });
       const verloop = []; let maxWissel = 0, beeld = 0;
       for (let i = 0; i < 60; i++) {
         await sleep(500);

@@ -9,6 +9,7 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ## [Unreleased]
 
+- Lijnbussen: een bus die van zijn lijn af raakt, kruipt niet meer een minuut met knipperlicht op slakkentempo naar een halte die hij nooit haalt; hij slaat de halte over en rijdt door. Samen spelen: het verkeer is van wie het spel opende; een gast ziet het gewoon in de momentopname, geen nieuw bericht.
 - Samen spelen: wie mee aan boord gaat in de vluchtboot (of door de groep in een boot wordt gezet) zit nu op een eigen bank achterin in plaats van in de bestuurder. Samen spelen: de stoel is van wie het spel opende en reist mee in de momentopname; geen nieuw bericht.
 - Samen spelen: als gast zie je wie het spel opende nu als zijn eigen avatar, met zijn naam erboven en in zijn eigen kleding, in plaats van als Tessa zonder naam. Samen spelen: dit is beeld bij iedere gast; de avatar staat al in de lijst met spelers, er is geen nieuw bericht.
 - Samen spelen: je medespelers zijn nu ook de nieuwe mensenmodellen in hun eigen kleding (te voet en zittend in een voertuig), in plaats van het oude figuurtje in een effen shirt. Samen spelen: dit is beeld bij iedere speler; de kledingcode reist al mee, er is geen nieuw bericht.
