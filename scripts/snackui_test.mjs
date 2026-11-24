@@ -117,11 +117,17 @@ t('de tegel toont de reputatie onder dat woord, de prijs staat een keer per plek
   reset(); const w = wereld();
   const h = U.snackHtml(SL.snackView(w));
   assert.match(h, /<small>Reputatie<\/small><b>\d+( van 100)?<\/b>/); assert.ok(!/<small>Naam<\/small>/.test(h));
-  const markt = h.slice(h.indexOf('data-spot="markt"'), h.indexOf('data-spot="markt"') + 900);
+  const markt = h.slice(h.indexOf('data-spot="markt"'), h.indexOf('data-spot="markt"') + 4000);
   assert.equal((markt.match(/€25\.\d{3}|€\d+\.\d{3}/g) || []).length >= 1, true);
   assert.ok(!/<span>overnemen €/.test(h) && !/<span>vergunning €/.test(h), 'de prijs staat niet ook nog als feit naast de knop');
   assert.match(h, /class="m-bt bz-hoofd" data-sn="koop-wagen"/);
   assert.ok(!/>Doel<\/button>/.test(h), 'Route in plaats van Doel');
+  // #1249 (hertest 24-11): één regel uitleg per blok en een plaatje per standplaats
+  assert.ok(!/Een vergunning duurt/.test(h) && /Vergunning: \d+ speldagen, verlengen kost een kwart\./.test(h), 'de standplaatsuitleg is één korte regel');
+  assert.ok(!/heeft \d+ standplaatsen, /.test(h), 'de standplaatsen van Usmem staan alleen in de tegel');
+  assert.equal((h.match(/class="sn-plek-ic"/g) || []).length, (h.match(/data-spot="/g) || []).length, 'elke standplaats heeft een pictogram');
+  assert.equal(U.spotIcon({ name: 'Stationsplein, kant Hoofdstation' }), 'trein');
+  assert.equal(U.spotIcon({ name: 'Hoek van de Grote Markt' }), 'winkel');
 });
 console.log(`snackui_test: ${n - fails}/${n} ok`);
 process.exit(fails ? 1 : 0);

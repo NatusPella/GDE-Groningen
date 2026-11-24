@@ -22,6 +22,7 @@ import { renderSnackPanel } from './snackui.js';
 import { renderClubPanel } from './clubui.js';   // het tabblad Club: clubaandelen en sponsors van de voetbalcarrière (#1113)
 import { SPECIES, herdOffers, herdSellValue, herdsOf } from './livestock.js';
 import { icoon } from './icons.js';
+import { setLayer } from './mapfilters.js';
 
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const ha = (n) => String(Math.round(n * 10) / 10).replace('.', ',');
@@ -219,7 +220,9 @@ export function homesHtml(homes = [], money = 0) {
 export function leegTeKoop(laden) {
   return laden
     ? '<div class="ds-z-leeg" data-leeg="laden"><h3 class="ds-z-leeg__kop">Percelen laden</h3><p class="ds-z-leeg__tekst">Even wachten: de lijst met percelen wordt opgehaald.</p></div>'
-    : '<div class="ds-z-leeg" data-leeg="niets"><h3 class="ds-z-leeg__kop">Niets te koop in de buurt</h3><p class="ds-z-leeg__tekst">Op de kaart zie je met de laag Te koop alle percelen, ook verder weg.</p></div>';
+    // #1251 (hertest 24-11): met een icoon en een knop naar de kaart met de laag Te koop aan, in plaats van alleen een zin
+    : `<div class="ds-z-leeg ds-zeef bz-leeg" data-leeg="niets"><span class="ds-z-leeg__beeld bz-leeg-ic">${icoon('kaart')}</span><h3 class="ds-z-leeg__kop">Niets te koop in de buurt</h3><p class="ds-z-leeg__tekst">Op de kaart zie je alle percelen die te koop zijn, ook verder weg.</p>` +
+      '<button type="button" class="ds-z-knop" data-bz="kaart-tekoop" data-goto="map">Toon op de kaart</button></div>';
 }
 
 // ---- Te koop ----
@@ -298,6 +301,7 @@ function act(world, d, els) {
   else if (a === 'meer') ui.more = true;
   else if (a === 'kies-alles') H.selectRows(ui.sel, H.sortRows(H.filterRows(rows, { region: ui.filter.region || undefined, soort: ui.filter.soort || undefined, level: ui.filter.level || undefined }), ui.sort).slice(0, 200));
   else if (a === 'kies-niets') H.clearSelection(ui.sel);
+  else if (a === 'kaart-tekoop') setLayer('tekoop', true); // het pauzemenu gaat zelf naar de kaart (data-goto)
   else if (a === 'doel' || a === 'doel-perceel') { const o = L.parcelOffer(id); if (o) { import('./routing.js').then((m) => m.setUserWaypoint(o.parcel.x, o.parcel.y, o.name)); ui.msg = `Doel gezet: ${o.name}.`; } else ui.msg = 'Dit perceel heeft nog geen plek op de kaart.'; }
   else if (a === 'koop-perceel') { if (!ask(a)) { const r = L.koopPerceel(world, id); ui.msg = r.text; if (r.ok && world.addMessage) world.addMessage(r.text, 3); } }
   else if (a === 'koop-pand') { if (!ask(a)) { const r = L.koopPand(world, Number(id)); ui.msg = r.text; if (r.ok && world.addMessage) world.addMessage(r.text, 3); } }

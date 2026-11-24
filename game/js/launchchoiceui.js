@@ -33,12 +33,12 @@ export function toestemmingHtml() {
   return `<section class="os-kaart sk-kaart" role="dialog" aria-modal="true" aria-labelledby="st-titel">
     <p class="os-eb">${esc(T.eyebrow)}</p>
     <h2 id="st-titel">${esc(T.titel)}</h2>
-    <label class="os-consent"><input type="checkbox" class="os-consent-vink"> <span>${esc(T.consent)}</span></label>
+    <label class="os-consent"><input type="checkbox" class="m-sw os-consent-vink"> <span>${esc(T.consent)}</span></label>
     ${meerInfoHtml(T.meerInfo, T.info)}
     <p class="os-fout" role="alert" hidden>Vink eerst het akkoord aan om verder te gaan.</p>
     <div class="os-knoppen">
-      <button type="button" class="os-knop os-doorgaan" data-geef>${esc(T.geef)}</button>
-      <button type="button" class="os-knop os-alleen" data-terug>${esc(T.terug)}</button>
+      <button type="button" class="os-knop os-doorgaan" data-geef aria-keyshortcuts="Enter">${esc(T.geef)} <span class="sk-toets-in">${keyTextHtml('{ENTER}')}</span></button>
+      <button type="button" class="os-knop os-alleen" data-terug aria-keyshortcuts="Escape">${esc(T.terug)} <span class="sk-toets-in">${keyTextHtml('{ESC}')}</span></button>
     </div>
   </section>`;
 }
@@ -128,6 +128,12 @@ export function openToestemming({ zet = undefined } = {}) {
     if (e.key === 'Escape' || e.key === 'Backspace') {
       if (e.target && e.target.closest && e.target.closest('input[type="text"]')) return;
       e.preventDefault(); e.stopPropagation(); sluit(false);
+      return;
+    }
+    // #1225 (hertest 24-11): Enter staat als toets in de knop Akkoord, dus Enter doet dat ook vanaf de schakelaar (een knop of Meer info doet zelf)
+    if (e.key === 'Enter' && !e.repeat) {
+      if (e.target && e.target.closest && e.target.closest('button, summary')) return;
+      e.preventDefault(); e.stopPropagation(); geef();
     }
   }
   window.addEventListener('keydown', onKey, true);

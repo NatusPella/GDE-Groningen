@@ -39,5 +39,24 @@ ok(V.keyAction(beat, 'meerijden', 'Tab').markeer === 'zelf' && V.keyAction(beat,
 ok(['ArrowUp', 'ArrowDown', 'w', 's', 'a', 'd'].every((k) => V.keyAction(beat, 'zelf', k) === null), 'movement and steering keys stay with the game');
 ok(V.keyAction(beat, 'zelf', 'Enter').kies === 'zelf' && V.keyAction(beat, 'zelf', '3').kies === 'overslaan', 'enter confirms the pick, digits choose');
 ok(V.keyAction(beat, 'zelf', 'Escape').sluit === true && V.keyAction(beat, 'zelf', 'x') === null && V.keyAction({ ...beat, lines: null }, 'zelf', '3') === null, 'escape closes, rest is not ours');
+// #1216 (hertest 24-11): de reisvraag is dezelfde reiskaart als Reis erheen op de grote kaart
+{
+  const { reisKaartHtml, reisPopupHtml } = await import('../game/js/kaartactieui.js');
+  const fs = await import('node:fs');
+  const m = V.reisKaartModel({ ...beat, to: 'Zoutkamp', length: 30000, ride: 'trein' }, 'zelf', {});
+  ok(m.titel === 'Naar Zoutkamp' && m.afstand === '30 km' && m.gekozen === 'zelf' && m.hud === true, 'model: titel, afstand, keuze', JSON.stringify(m).slice(0, 200));
+  ok(m.rijen.map((r) => r.toets).join('') === '123' && m.rijen[0].icoon === 'trein' && m.rijen.every((r) => r.icoon), 'elke rij heeft een icoon en zijn cijfertoets');
+  ok(/\+ € 120/.test(m.rijen[1].kosten) && !m.rijen[0].kosten && !/NaN|gratis|undefined/.test(JSON.stringify(m)), 'alleen zelf gaan toont de winst, nooit gratis of NaN');
+  const h = reisKaartHtml(m);
+  const kaart = reisPopupHtml({ naam: 'Vismarkt', afstand: '3,2 km', rijen: [], gekozen: null, reis: { label: 'Reis nu' } });
+  const klassen = (x) => ['ds-z-kaart ds-z-kaart--recht mv-reispop-box', 'ds-z-kaart__titel', 'mv-help-foot', 'mv-reispop-ok'].every((c) => x.includes(c));
+  ok(klassen(h) && klassen(kaart), 'reisvraag en kaartpopup delen kop, kaart en knop (één component)');
+  ok((h.match(/class="mv-keuze/g) || []).length === 3 && /data-card="kies:zelf"[^>]*data-key="2"/.test(h) && /mv-keuze sel"[^>]*data-card="kies:zelf"/.test(h), 'de rijen zijn de rijen van de kaartpopup, met de markering op de keuze');
+  ok(/mv-reispop--hud/.test(h) && !/aria-modal/.test(h) && !/data-card="reis-sluit"/.test(h), 'in het spel niet modaal en zonder Terug (Esc neemt de standaard)');
+  const zonder = V.reisKaartModel({ to: 'Zoutkamp', ride: 'bus', lines: ['x'] }, null, {});
+  ok(zonder.afstand === '' && !/NaN|undefined/.test(reisKaartHtml(zonder)), 'zonder afstand geen NaN in de kaart');
+  const rp = fs.readFileSync(new URL('../game/js/reispanel.js', import.meta.url), 'utf8');
+  ok(/reisKaartHtml/.test(rp) && !/createChoicePanel/.test(rp), 'reispanel.js tekent de reiskaart, niet meer het keuzepaneel');
+}
 console.log(`${n - fails}/${n} reisview`);
 process.exit(fails ? 1 : 0);

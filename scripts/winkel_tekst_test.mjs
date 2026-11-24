@@ -37,5 +37,9 @@ const shops = readFileSync(new URL('../game/js/shops.js', import.meta.url), 'utf
 ok(!/\+\$\{hp\} gezondheid/.test(shops), 'geen "+N gezondheid" in tekst');
 ok(!/Gezondheid nu \$\{/.test(shops), 'geen losse "Gezondheid nu"-regel');
 
+// #1258 (hertest 24-11): de koopknop draagt zijn toets in de knop, zonder een kleine hint "om te kopen" eronder
+ok(!/om te kopen'/.test(ui) && !/ds-z-knop__sub/.test(ui), 'geen kleine hint in de koopknop');
+ok(/<span class="ds-z-knop__toets" aria-hidden="true">\$\{toetsHint\(\)\}<\/span>/.test(ui) && /classList\.toggle\('ds-z-knop--toets'/.test(ui), 'de toets staat in de knop');
+
 console.log(fails ? `${fails} van ${n} mislukt` : `winkel_tekst_test: ${n} gecontroleerd, alles goed`);
 process.exit(fails ? 1 : 0);

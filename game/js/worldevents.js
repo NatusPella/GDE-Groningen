@@ -1,7 +1,7 @@
 import { hoofdspeler } from './players.js';
 import { gridItems } from './spatialgrid.js';
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
-import { canvasTex } from './canvastex.js';
+import { canvasTex, plainBack } from './canvastex.js';
 import { getScene } from './scene3d.js';
 import { WATER_Y, isInWater } from './util.js';
 import { getWaterIndex } from './waterindex.js';
@@ -251,7 +251,7 @@ function buildLake(lake, patches) {
     const sign = new THREE.Group();
     const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 1.9, 6), new THREE.MeshStandardMaterial({ color: 0x4a4e52, metalness: 0.4, roughness: 0.6 }));
     pole.position.y = 0.95;
-    const board = new THREE.Mesh(new THREE.PlaneGeometry(1.15, 0.86), new THREE.MeshBasicMaterial({ map: signTexture(), side: THREE.DoubleSide }));
+    const board = new THREE.Mesh(new THREE.PlaneGeometry(1.15, 0.86), plainBack(new THREE.MeshBasicMaterial({ map: signTexture() }))); // hertest 24-11: de achterkant is een effen bordrug, geen spiegelschrift (canvastex.js plainBack)
     board.position.y = 1.7;
     sign.add(pole, board);
     sign.position.set(sx, map.groundHeightAt ? map.groundHeightAt(sx, sy) : 0, sy);

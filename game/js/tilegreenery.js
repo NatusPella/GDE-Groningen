@@ -8,6 +8,7 @@
 //
 // world: het spel (TileWorld) of, in een audit, { roadsNear, buildingsNear, waterNear }.
 import { closestPointOnSegment, polygonBounds } from './util.js';
+import { monumentPleinAt } from './heritagearea.js';
 import { treeBesideRoad } from './treeclear.js';
 import { inBuildingAt, waterDistance } from './propfilter.js';
 
@@ -127,7 +128,8 @@ function retrimHedge(world, h) {
 // in de cellen van zijn nieuwe plek, een verdwenen boom staat er niet meer in (het spel tekent wat hier staat).
 function retrimTree(world, t) {
   // een boom in een watervlak of in een gebouw is een fout in de kaart (wereldaudit 21-11, #1045): weg
-  const p = inBuildingAt(world, t[0], t[1]) || waterDistance(world, t[0], t[1], 0.5) === 0 ? null : treeBesideRoad(world, t[0], t[1]);
+  // #1203: op een bestraat monumentplein (het Marktplein van Bourtange) staan alleen de linden van de aankleding, geen kaartbomen
+  const p = inBuildingAt(world, t[0], t[1]) || waterDistance(world, t[0], t[1], 0.5) === 0 || monumentPleinAt(t[0], t[1]) ? null : treeBesideRoad(world, t[0], t[1]);
   if (!p) {
     if (world.treeGrid) world.treeGrid.remove(t, [t[0], t[1], t[0], t[1]]);
     return 'weg';

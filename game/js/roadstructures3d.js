@@ -26,7 +26,10 @@ function mat(name) {
     wall: { color: 0x8f8b82, roughness: 0.95, emissive: 0x2a2825, emissiveIntensity: 1 },
     // the underside of a deck or bridge gets no sun: a little self-light and a lighter tone, so it reads as
     // concrete in shade and not as a black slab (#1192, #919)
-    soffit: { color: 0xa8a49b, roughness: 0.95, emissive: 0x3a3833, emissiveIntensity: 1 },
+    soffit: { color: 0xa8a49b, roughness: 0.95, emissive: 0x4f4c46, emissiveIntensity: 1 },
+    // #1192 (hertest 24-11): de liggers onder het dek en de oplegbalk en ribben van een landhoofd: een iets lichter beton, zodat de onderkant
+    // en de wand geen egaal vlak meer zijn maar balken met licht en schaduw ertussen
+    girder: { color: 0xb6b2a8, roughness: 0.9, emissive: 0x45423c, emissiveIntensity: 1 },
     // the roof underside only gets the tunnel lights: a little self-light, or it reads as a black hole
     tunnel: { color: 0x8a867e, roughness: 0.9, emissive: 0x3b3934, emissiveIntensity: 1 },
     grass: { color: 0x5c8a4d, roughness: 1 },
@@ -294,6 +297,32 @@ export function buildRoadStructure(r, map) {
 
 // The civil works of road r as plain arrays (no scene, no state on r): the
 // main thread and the geometry worker (geokernels.js roadGeo) run this.
+// #1192 (hertest 24-11): onder een viaduct zag je een egaal donker vlak en een kaal grijs blok als landhoofd.
+// Liggers: om de ~2,4 m over de breedte van het dek, 0,4 m breed en 0,55 m hoog, de buitenste 0,7 m binnen de rand. Puur (brugonderkant_test).
+export const GIRDER_W = 0.4, GIRDER_H = 0.55, GIRDER_STEP = 2.4;
+export function girderOffsets(hs) {
+  const half = Math.max(0, hs - 0.7);
+  if (half < 0.5) return [0];
+  const k = Math.max(1, Math.round((2 * half) / GIRDER_STEP));
+  return Array.from({ length: k + 1 }, (_, j) => -half + (2 * half * j) / k);
+}
+// Een landhoofd met detail: een uitstekende oplegbalk onder het dek, een voet en verticale ribben aan beide kanten van de wand.
+// a, b: de uiteinden van de wand (grondpunten), w: de dikte, g: de voet, top: de bovenkant.
+export function abutmentDetail(B, a, b, w, g, top) {
+  if (!(top - g > 1.2)) return;
+  B.wallBox('girder', a[0], a[1], b[0], b[1], w + 0.5, top - 0.45, top, top - 0.45, top);
+  B.wallBox('girder', a[0], a[1], b[0], b[1], w + 0.3, g, g + 0.35, g, g + 0.35);
+  const dx = b[0] - a[0], dy = b[1] - a[1], L = Math.hypot(dx, dy) || 1, ux = dx / L, uy = dy / L, nx = -uy, ny = ux;
+  const n = Math.max(1, Math.floor(L / 2.6));
+  for (let j = 1; j < n + 1 && j * (L / (n + 1)) < L - 0.3; j++) {
+    const s = j * (L / (n + 1));
+    for (const side of [1, -1]) {
+      const px = a[0] + ux * s + nx * side * (w / 2 + 0.1), py = a[1] + uy * s + ny * side * (w / 2 + 0.1);
+      B.wallBox('girder', px - ux * 0.2, py - uy * 0.2, px + ux * 0.2, py + uy * 0.2, 0.22, g + 0.35, top - 0.45, g + 0.35, top - 0.45);
+    }
+  }
+}
+
 export function structureArrays(r, map) {
   const elev = map.elev;
   const B = new Buf();
@@ -312,6 +341,11 @@ export function structureArrays(r, map) {
     const l0 = lerp2(edge(i, 1, hs), edge(i + 1, 1, hs), t0), r0 = lerp2(edge(i, -1, hs), edge(i + 1, -1, hs), t0);
     const l1 = lerp2(edge(i, 1, hs), edge(i + 1, 1, hs), t1), r1 = lerp2(edge(i, -1, hs), edge(i + 1, -1, hs), t1);
     B.quad('soffit', [l0[0], a0 - DECK_T, l0[1]], [l1[0], b0 - DECK_T, l1[1]], [r1[0], b0 - DECK_T, r1[1]], [r0[0], a0 - DECK_T, r0[1]]);
+    // #1192: liggers onder het dek, in de lengte van de overspanning (een echt viaduct is een plaat op balken, geen plat vlak)
+    for (const o of girderOffsets(hs)) {
+      const ga = lerp2(edge(i, 1, o), edge(i + 1, 1, o), t0), gb = lerp2(edge(i, 1, o), edge(i + 1, 1, o), t1);
+      B.wallBox('girder', ga[0], ga[1], gb[0], gb[1], GIRDER_W, a0 - DECK_T - GIRDER_H, a0 - DECK_T + 0.01, b0 - DECK_T - GIRDER_H, b0 - DECK_T + 0.01);
+    }
   };
   const segOf = new Map();
   // (a streamed road has its segments listed: no walk over all of the province's)
@@ -364,6 +398,7 @@ export function structureArrays(r, map) {
           if (prevOver !== null && prevOver !== pc.over && a0 > 1) {
             const l = lerp2(edge(i, 1, hs), edge(i + 1, 1, hs), pc.t0), rr = lerp2(edge(i, -1, hs), edge(i + 1, -1, hs), pc.t0);
             B.wallBox('concrete', l[0], l[1], rr[0], rr[1], 0.8, -0.05, a0 - DECK_T + 0.05, -0.05, a0 - DECK_T + 0.05);
+            abutmentDetail(B, l, rr, 0.8, -0.05, a0 - DECK_T + 0.05);
           }
           prevOver = pc.over;
         }
@@ -494,6 +529,7 @@ export function structureArrays(r, map) {
       if (pierBlocked(map, cx, cy, ux, uy, hs, Z[i])) continue;
       const g = groundUnder(map, cx, cy);
       B.wallBox('concrete', cx - uy * hs, cy + ux * hs, cx + uy * hs, cy - ux * hs, 1.6, g, Z[i] - DECK_T + 0.05, g, Z[i] - DECK_T + 0.05);
+      abutmentDetail(B, [cx - uy * hs, cy + ux * hs], [cx + uy * hs, cy - ux * hs], 1.6, g, Z[i] - DECK_T + 0.05);
     }
   }
 

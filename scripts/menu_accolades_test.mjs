@@ -24,7 +24,11 @@ t('de rijbouwers van het menu en de fototips sturen tekst door braceKeysHtml', (
 t('Overzicht: geen "Stap 0 van n" en geen tegel "0/0 Missies klaar"', () => {
   const td = fs.readFileSync(new URL('../game/js/todoui.js', import.meta.url), 'utf8');
   assert.match(td, /const stapNu = Math\.min\(done \+ 1, steps\.length\)/);
-  assert.match(td, /\(ms\.length \? tile\(ICON\.flag, 'Missies klaar'/);
+  assert.match(td, /\(ms\.length \? \(mDone \? tile\(ICON\.flag, 'Missies klaar'/);
+  // #1259 (hertest 24-11): ook geen "0/31" of "0/38": zonder iets af zegt de tegel hoeveel er te doen of te vinden is
+  assert.match(td, /tile\(ICON\.flag, 'Missies te doen', String\(ms\.length\)/);
+  assert.match(td, /\(found \? tile\(ICON\.pin, 'Gevonden'/);
+  assert.match(td, /tile\(ICON\.pin, 'Te vinden', String\(all\)/);
 });
 t('#1263: de brede kopkaarten (Prestaties, Fotos, Voetbal) staan recht en schuiven niet over tabs of titel', () => {
   for (const [f, k] of [['achievementsui.js', 'pa-hero'], ['fotomodusui.js', 'foto-hero'], ['voetbalcarriereui.js', 'ds-z-kaart--recht ds-m-binnen']]) {
@@ -67,6 +71,9 @@ t('#1270: elk watertype heeft een eigen pictogram in het Visboek en "Per water" 
   for (const w of WATERTYPEN) assert.ok(new RegExp('\\b' + w.id + ': ').test(blok), 'geen icoon voor ' + w.id);
   const paden = [...blok.matchAll(/: '(<path[^']*)'/g)].map((m) => m[1]);
   assert.equal(new Set(paden).size, paden.length, 'twee watertypen delen een icoon');
-  assert.ok(src.includes('<div class="lb-groep"><span>Per water</span></div>'));
+  // hertest 24-11: lb-groep hoort bij de CSS van Loopbanen (die het Visboek niet laadt): de groepskop van het menu (m-gh) is overal gestijld
+  assert.ok(src.includes('<div class="m-gh vb-groep"><span>Per water</span>'));
+  // en het detail is geen blok lopende tekst meer: drie getallen en korte regels
+  assert.ok(/class="vb-feiten"/.test(src) && !/Hoe meer soorten en wateren, hoe meer elke vis opbrengt/.test(src) && !/Meer hengels, aas en een sterkere lijn/.test(src));
 });
 console.log(`menu_accolades_test: ${n}/${n} ok`);

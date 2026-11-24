@@ -554,6 +554,15 @@ const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&l
 export const cheatsInMenu = () => cheatsVisible({ dev: DEV || !!FLAGS.dev, actief: anyCheatOn() }) || cheatsOpen();
 const sectionIds = () => (prestart ? PRESTART_SECTIONS : SECTIONS.map(([id]) => id).filter((id) => id !== 'streken' || cheatsInMenu()).filter(sectionVisible));
 const sectionOf = (id) => SECTIONS.find(([s]) => s === id);
+// Waar showTab heen gaat als het gevraagde onderdeel niet in de rail staat (puur, scripts/pauzemenu_slot_test.mjs): het hoofdmenu valt
+// terug op Instellingen, het spel op Spel > Overzicht. locked: het onderdeel bestaat wel maar het verhaal opende het nog niet.
+export const NOT_YET_NOTE = 'Dat onderdeel is nog niet beschikbaar: het komt later in het verhaal.';
+export function resolveSection(name, ids, isPrestart = false) {
+  if (ids.includes(name)) return { name, sub: null, locked: false };
+  if (isPrestart) return { name: ids.includes('settings') ? 'settings' : ids[0], sub: null, locked: false };
+  const known = SECTIONS.some(([s]) => s === name);
+  return { name: 'spel', sub: 'overzicht', locked: known };
+}
 const key = (k) => `<span class="hud-key">${k}</span>`;
 
 const CHEV_L = icoon('terug');
@@ -2879,7 +2888,13 @@ function showTab(name, how) {
     name = 'settings';
     savePref();
   }
-  if (!ids.includes(name)) name = prestart ? 'settings' : HOME;
+  // 24-11 (hertest): een onderdeel dat (nog) niet in het menu staat, via code geopend (de telefoon, een melding, een test), viel terug op
+  // HOME ('overzicht'): dat is geen sectie, dus sectionOf gaf niets en de kop crashte ("sectionOf is not a function or its return value is
+  // not iterable"). Nu wijst de terugval naar Spel > Overzicht met een korte regel, zonder de naam van het verborgen onderdeel (geen spoiler).
+  const r = resolveSection(name, ids, !!prestart);
+  if (r.sub) pref.sub.spel = r.sub;
+  name = r.name;
+  const lockedNote = r.locked ? NOT_YET_NOTE : '';
   if (how) origin = how;
   const prev = tab;
   tab = name;
@@ -2912,7 +2927,7 @@ function showTab(name, how) {
   syncFooter();
   root.querySelector('#pm-title').textContent = prestart ? 'Menu' : 'Pauze';
   syncNavBadges();
-  const [, label] = sectionOf(name);
+  const [, label] = sectionOf(name) || sectionOf('spel');
   sheet.querySelector('.pm-sheet-title').textContent = label;
   // 21-11 (pauzemenu-ruimte): de omschrijving rechts van de kop is weg; titel, tabs en inhoud krijgen de ruimte (bij Spel staat de plek er ook niet bij)
   const eigenKop = name === 'spel';
@@ -2967,6 +2982,7 @@ function showTab(name, how) {
   // door focus kan zijn meegescrold), de paneelinhoud en de lijst/het detail erin (#906).
   resetScrolls();
   syncSettingsExtras(getSettings());
+  if (lockedNote) sheetNote(lockedNote);
 }
 
 // Zet elke scrollstand van het open onderdeel terug naar boven, zonder de focus te verplaatsen.

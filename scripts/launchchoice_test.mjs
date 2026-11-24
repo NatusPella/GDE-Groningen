@@ -281,10 +281,13 @@ await t('toestemmingskaart: de STUN- en brokertekst, een vinkje, Akkoord en Teru
   const html = UI.toestemmingHtml();
   assert.match(html, /gaat naar je medespeler en naar de openbare servers/);
   assert.match(html, /STUN-server en openbare brokers/);
-  assert.match(html, /class="os-consent-vink"/);
+  assert.match(html, /class="m-sw os-consent-vink"/);
   assert.match(html, /data-geef/);
   assert.match(html, /data-terug/);
   assert.match(html, /role="alert"[^>]*hidden/);
+  // #1225 (hertest 24-11): een schakelaar (m-sw) zoals de naamkaart en de toetsen in de knoppen
+  assert.match(html, /data-geef aria-keyshortcuts="Enter">[^<]*<span class="sk-toets-in">/);
+  assert.match(html, /data-terug aria-keyshortcuts="Escape">[^<]*<span class="sk-toets-in">/);
 });
 
 // Een nep-DOM die genoeg kan voor openLaunchChoice en openToestemming.
@@ -380,7 +383,9 @@ await t('css: tekst op de keuzekaart nooit onder 13 px, focusring aanwezig, bewe
   for (const m of stuk.matchAll(/font-size:\s*(\d+)px/g)) assert.ok(Number(m[1]) >= 13, `font-size ${m[1]}px`);
   assert.match(stuk, /\.sk-keuze:focus, \.sk-keuze:focus-visible \{ background: var\(--ds-zeef-primair\)[^}]*outline: var\(--ds-focus-dikte\)/, 'de knop met focus is de gele hoofdknop met de DS-focusring');
   assert.doesNotMatch(stuk, /\.sk-keuze\[data-keuze="samen"\] \{ background/, 'Samen is niet altijd de gele hoofdknop');
-  assert.match(css, /\.os-overlay \{ place-items: end center;/, 'de kaart staat onderaan: het logo blijft zichtbaar');
+  assert.match(css, /body:has\(#loading:not\(\.done\)\) \.os-overlay \{ place-items: end center;/, 'de kaart staat onderaan zolang het logo van het laadscherm er staat');
+  assert.doesNotMatch(css, /^\.os-overlay \{ place-items: end center;/m, '#1228: zonder laadscherm staat de kaart niet altijd onderaan');
+  assert.match(css, /\.os-overlay \{\s*position: fixed; inset: 0;[^}]*place-items: center;/, '#1228: de basis is gecentreerd');
   assert.match(css, /body:has\(#online-start\) #loading \.bt-load \{ visibility: hidden; \}/, 'de laadstatus lekt niet onder de kaart door');
   assert.match(stuk, /prefers-reduced-motion: reduce/);
   assert.match(stuk, /html\.reduce-motion \.sk-keuze \{ transition: none; \}/);

@@ -398,12 +398,12 @@ vec3 cAsphalt(vec2 p, float px, float e, float hw, inout float rough) {
   rough += -0.07 + (fine - 0.5) * 0.1 - stone * 0.08 * fa - track * 0.14;
   return cLin(75.0, 77.0, 80.0) * a;
 }
-// The city's road paint: white, worn in patches (SURF_MARKING).
+// The city's road paint (SURF_MARKING): white, a calm tone that varies over a few metres. #1197 (hertest 24-11): no more holes
+// (the paint was cut away below a noise threshold, with a 31-per-metre term: ragged, dotted zebra edges and gaps).
 vec3 cPaint(vec3 c, vec2 p, float m) {
   if (m <= 0.0) return c;
-  float mw = cNoise(p * 2.3) * 0.55 + cNoise(p * 9.0) * 0.3 + cNoise(p * 31.0) * 0.15;
-  m *= smoothstep(0.28, 0.38, mw);
-  return mix(c, vec3(0.86) * (0.78 + 0.22 * smoothstep(0.33, 0.7, mw)), m);
+  float mw = cNoise(p * 1.7) * 0.65 + cNoise(p * 5.0) * 0.35;
+  return mix(c, vec3(0.86) * (0.88 + 0.12 * smoothstep(0.25, 0.75, mw)), m);
 }
 
 float countryWeight(vec2 p) {

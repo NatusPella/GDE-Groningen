@@ -108,12 +108,14 @@ class Kit {
   post(x, z, h, color = WOOD, r = 0.06) { return this.cyl(x, h / 2, z, r, h, color, 6); }
   // a textured board facing local +x (and -x when two-sided)
   board(x, y, z, w, h, tex, ry = 0, twoSided = false) {
-    const mat = new THREE.MeshStandardMaterial({ map: tex, roughness: 0.9, side: twoSided ? THREE.DoubleSide : THREE.FrontSide });
+    // hertest 24-11: twee kanten zijn twee vlakken rug aan rug (een dubbelzijdig vlak toont de tekst achterstevoren)
+    const mat = new THREE.MeshStandardMaterial({ map: tex, roughness: 0.9, side: THREE.FrontSide });
     const geo = new THREE.PlaneGeometry(w, h);
     const m = new THREE.Mesh(geo, mat);
     m.position.set(x, y, z);
     m.rotation.y = ry + Math.PI / 2;
     this.group.add(m);
+    if (twoSided) { const achter = new THREE.Mesh(geo, mat); achter.rotation.y = Math.PI; m.add(achter); }
     this.own.push(mat, geo, tex);
     return m;
   }
