@@ -160,9 +160,11 @@ html.reduce-motion :is(.mapview-overlay, .reis-hud) :is(.mv-help, .mv-reispop, .
 @media (max-height: 760px) { .mapview-overlay :is(.mv-help-box, .mv-reispop-box) { gap: var(--ds-s-2); } .mapview-overlay :is(.mv-help, .mv-reispop) { padding: var(--ds-s-3); } }
 .mapview-overlay .mv-uitleg small { display: block; margin-top: 8px; font-size: 18px; color: var(--mut, rgba(240,237,228,0.65)); }
 /* #1216: de reisvraag van een verhaalstap is dezelfde kaart, bovenin het spel zonder de kaart erachter te dimmen */
-.reis-hud .mv-reispop.mv-reispop--hud { position: fixed; inset: var(--ds-s-6, 72px) 0 auto 0; z-index: 40; place-items: start center; background: none; pointer-events: none; }
+.reis-hud .mv-reispop.mv-reispop--hud { position: fixed; inset: 120px 0 auto 0; z-index: 40; place-items: start center; background: none; pointer-events: none; }
 .reis-hud .mv-reispop--hud .mv-reispop-box { pointer-events: auto; }
-:is(.mapview-overlay, .reis-hud) .mv-reispop-eb { display: block; margin: 0 0 var(--ds-s-1); font-family: var(--ds-font-kop); font-size: max(13px, var(--ds-t-label, 13px)); letter-spacing: 0.14em; text-transform: uppercase; color: var(--ds-tx-accent, var(--ds-c-groen, #0c5a2c)); }
+/* in de groene kop: de kicker licht boven de titel, beide links (de kop zet zijn kinderen anders uit elkaar) */
+:is(.mapview-overlay, .reis-hud) .mv-reispop-box > .ds-z-kaart__kop:has(.mv-reispop-eb) { flex-direction: column; align-items: flex-start; gap: 2px; }
+:is(.mapview-overlay, .reis-hud) .mv-reispop-eb { display: block; margin: 0; font-family: var(--ds-font-kop); font-size: max(13px, var(--ds-t-label, 13px)); letter-spacing: 0.14em; text-transform: uppercase; color: color-mix(in srgb, var(--ds-c-wit, #fff) 78%, transparent); }
 .mapview-legend .mv-leg-hint { margin: 0 2px 8px; }
 .mapview-legend .mv-leg-hint .hint { margin: 0 0 2px; }
 .mapview-legend .mv-leg-hint .hint:last-child { margin-bottom: 0; }
