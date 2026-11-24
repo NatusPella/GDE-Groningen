@@ -59,7 +59,7 @@ const rol = (selDeel, verwacht, exact = false, zonder = null) => {
 };
 rol('.hc-text small', 'eyebrow'); rol('.pf-from', 'eyebrow'); rol('.pf-speaker', 'eyebrow'); rol('.ach-kicker', 'eyebrow'); rol('.hud-nowplaying small', 'eyebrow');
 rol('.hc-text b', 'titel'); rol('.pf-title', 'titel'); rol('.ach-title', 'titel'); rol('.hud-nowplaying b', 'titel'); rol('.pf-callwho b', 'titel');
-rol('.hc-text span', 'body', false, /.sk-/); // de labels van de startkaart (ds3-v2): eyebrow
+rol('.hc-text span', 'body', false, /.sk-/); // de labels van de startkaart zijn eyebrow
 rol('span.sk-l', 'eyebrow'); rol('span.sk-chip', 'eyebrow'); rol('.sk-m i', 'eyebrow'); rol('.pf-body', 'body'); rol('.pf-say', 'body'); rol('.ach-desc', 'body');
 rol('.pf-time', 'hulp'); rol('.pf-appnaam', 'hulp'); rol('.pf-sub', 'hulp'); rol('.hud-card .hc-close', 'hulp'); rol('.hud-nowplaying span:not(.np-ic)', 'hulp');
 // de telefoonkaart schaalt zijn lange tekst niet met een eigen groot formaat
