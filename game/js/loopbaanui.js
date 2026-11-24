@@ -295,7 +295,7 @@ function startHtml(profiel, id) {
     fit ? `<span class="ds-z-chip">Goed in: ${esc(FIT[fit.fit])}</span>` : '',
     fit ? `<span class="ds-z-chip${fit.together ? ' ds-z-chip--succes' : ''}">${fit.together ? 'Samen: ja' : 'Samen: lastig'}</span>` : '',
   ].filter(Boolean).join('');
-  const waarom = fit && fit.why ? `<details class="lb-waarom"><summary>Wie is hier goed: ${esc(FIT[fit.fit])}</summary><p>${esc(fit.why)}</p></details>` : '';
+  const waarom = fit && fit.why ? `<details class="lb-waarom"><summary>Waarom ${esc(FIT[fit.fit])}?</summary><p>${esc(fit.why)}</p></details>` : '';
   const baan = s.baan && doelen.has(s.baan)
     ? `<button type="button" class="ds-z-knop ds-z-knop--secundair" data-todo-goal="job:${esc(s.baan)}">Eerste klus als doel</button>` : '';
   return `<div class="lb-start"><p class="m-eb">Eerste klus</p>` +

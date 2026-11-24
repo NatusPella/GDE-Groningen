@@ -472,7 +472,7 @@ const telDichtbij = (lijst) => lijst.filter((it) => it.dist != null && it.dist <
 // De telling stond drie keer onder elkaar (de bladregel, een kop "89 dingen" en "Begin hier: 81 te doen") en de filters stonden
 // onder de kaarten, op 1280x720 buiten beeld. De bladregel houdt de telling; hier staat alleen wat je kunt kiezen.
 function activiteitenHero(filter, chips) {
-  return `<section class="td-acthero" aria-label="Wat wil je doen?">${chips}${filter}</section>`;
+  return `<section class="td-acthero" aria-label="Wat wil je doen?">${filter}${chips}</section>`;
 }
 
 // #681: het Ommeland-paspoort boven de lijst: één balk voor de dorpen en de hint vanaf 80%.
