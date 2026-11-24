@@ -1,0 +1,194 @@
+/* Mockup-CSS voor Land en bedrijf (ontwerp 24-11). Alleen var(--ds-...) uit game/js/ds-tokens.css: geen nieuwe kleur, geen nieuw lettertype.
+   De klassen bz3-* zijn de voorgestelde nieuwe componenten (zie docs/ontwerp/BEZIT-UI-24-11.md, "Componenten"). Wat .ds-z-* heet is bestaand. */
+
+html, body { margin: 0; height: 100%; background: var(--ds-c-glas); overflow: hidden; }
+.stage { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; transform-origin: 0 0; background: var(--ds-c-glas); font-family: var(--ds-font-zeef-tekst); color: var(--ds-zeef-tx); font-size: var(--ds-t-kaart-body); line-height: 1.3; }
+.stage *, .stage *::before, .stage *::after { box-sizing: border-box; }
+.stage :is(h1, h2, h3, h4, p, ul, ol, dl, dd, figure) { margin: 0; padding: 0; font-weight: normal; }
+:where(.stage) button { font: inherit; color: inherit; }
+.bz3-ic { width: 20px; height: 20px; flex: none; fill: currentColor; }
+.bz3-ic--s { width: 16px; height: 16px; }
+.bz3-ic--l { width: 24px; height: 24px; }
+.bz3-ic--xl { width: 32px; height: 32px; }
+
+/* ---------- het pauzemenu eromheen (bestaand, hier nagebootst) ---------- */
+.rail { position: absolute; left: 76px; top: 75px; width: 260px; height: 806px; background: var(--ds-c-ink-papier); border-radius: var(--ds-r); padding: 14px 20px; display: flex; flex-direction: column; gap: 2px; overflow: hidden; }
+.rail__logo { font-family: var(--ds-font-logo); font-weight: 900; font-size: 30px; color: var(--ds-c-ink-bord); border: 2px solid var(--ds-c-ink-inkt); border-radius: 6px; padding: 0 8px; align-self: flex-start; line-height: 1.1; }
+.rail__datum { font-size: var(--ds-t-hulp); margin: 6px 0 8px; }
+.rail__groep { font-family: var(--ds-font-zeef-kop); font-weight: 800; font-size: 14px; letter-spacing: var(--ds-ls-label); text-transform: uppercase; margin: 12px 0 2px; }
+.rail__item { display: flex; align-items: center; gap: 10px; height: 40px; padding: 0 8px; font-family: var(--ds-font-zeef-kop); font-weight: 800; font-size: 22px; color: var(--ds-c-ink-bord); }
+.rail__item[aria-current="true"] { background: var(--ds-c-sel-vlak); box-shadow: inset 4px 0 0 var(--ds-c-ink-bord); margin: 0 -20px; padding: 0 28px; }
+.pane { position: absolute; left: 384px; top: 75px; width: 1444px; height: 806px; background: var(--ds-c-ink-papier); border-radius: var(--ds-r); padding: 20px 28px 0; display: flex; flex-direction: column; gap: 10px; overflow: hidden; box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35); }
+.hints { position: absolute; left: 384px; top: 902px; width: 1444px; display: flex; gap: 28px; align-items: center; color: var(--ds-c-wit); font-size: var(--ds-t-hulp); }
+.hints span { display: inline-flex; align-items: center; gap: 8px; }
+.hints .ds-z-toets { min-height: 28px; min-width: 28px; font-size: 16px; }
+.hints__r { margin-left: auto; }
+
+/* ---------- de gedeelde kop van Bezit (nieuw: bz3-kop) ---------- */
+.bz3-kop { display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; min-height: 66px; }
+.bz3-kop__eb { font-family: var(--ds-font-zeef-kop); font-weight: 800; font-size: 14px; letter-spacing: var(--ds-ls-label); text-transform: uppercase; color: var(--ds-c-ink-bord); }
+.bz3-kop__titel { font-family: var(--ds-font-zeef-kop); font-weight: 800; font-size: var(--ds-t-kop); line-height: 1; text-shadow: var(--ds-misdruk); }
+.bz3-waarden { display: flex; gap: 12px; align-items: stretch; }
+.bz3-waarden .ds-z-waarde { gap: 8px; padding: 4px 12px; min-height: 44px; }
+.bz3-waarden .ds-z-waarde__getal { font-size: 26px; }
+.bz3-waarde__tekst { display: flex; flex-direction: column; line-height: 1.05; }
+.bz3-waarde__tekst small { font-size: 13px; color: var(--ds-c-inkt-zacht); font-family: var(--ds-font-zeef-tekst); }
+.bz3-waarden .ds-z-waarde--gevaar .bz3-waarde__tekst small { color: var(--ds-c-rood-tx); }
+.bz3-waarde--stil { background: transparent; border-style: dashed; box-shadow: none; color: var(--ds-c-inkt-zacht); }
+
+/* tabs: dezelfde onderstreepte tabs als de rest van het pauzemenu (m-tab); nieuw is alleen het getal en de aandachtsstip */
+.bz3-tabs { display: flex; align-items: flex-end; gap: 0; border-bottom: 2px solid var(--ds-c-ink-inkt); position: relative; min-height: 40px; }
+.bz3-tab { position: relative; display: inline-flex; align-items: center; gap: 8px; height: 40px; padding: 0 18px; font-family: var(--ds-font-zeef-kop); font-weight: 800; font-size: 20px; letter-spacing: var(--ds-ls-label); text-transform: uppercase; color: var(--ds-c-inkt-zacht); background: none; border: 0; cursor: pointer; }
+.bz3-tab small { font-size: 14px; font-weight: 800; padding: 0 6px; min-width: 22px; text-align: center; border: 2px solid currentColor; border-radius: var(--ds-r-pil); letter-spacing: 0; line-height: 1.3; }
+.bz3-tab[aria-selected="true"] { color: var(--ds-c-ink-inkt); box-shadow: inset 0 -5px 0 var(--ds-c-ink-bord); }
+.bz3-tab--aandacht::after { content: ""; width: 10px; height: 10px; background: var(--ds-c-rood); border: 2px solid var(--ds-c-ink-inkt); transform: rotate(45deg); margin-left: 2px; }
+.bz3-tabs__q, .bz3-tabs__e { align-self: center; margin: 0 6px 6px; }
+.bz3-tabs__e { margin-left: auto; }
+.bz3-tabs .ds-z-toets { min-height: 26px; min-width: 26px; font-size: 16px; box-shadow: none; }
+
+/* de strook "Nu te doen": rijen die een dringendheid hebben, hoogstens drie, elke rij is één groot doel */
+.bz3-nu { display: flex; align-items: stretch; gap: 10px; }
+.bz3-nu__kop { display: flex; flex-direction: column; justify-content: center; font-family: var(--ds-font-zeef-kop); font-weight: 800; font-size: 14px; letter-spacing: var(--ds-ls-label); text-transform: uppercase; width: 64px; line-height: 1.1; flex: none; }
+.bz3-klus { flex: 1; min-width: 0; display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 10px; padding: 3px 12px; min-height: 46px; background: var(--ds-zeef-bg); border: var(--ds-lijn-dik) solid var(--ds-c-ink-inkt); border-left: var(--ds-status-rand) solid var(--ds-c-ink-inkt); border-radius: var(--ds-r); cursor: pointer; text-align: left; }
+.bz3-klus--nu { border-left-color: var(--ds-c-rood); background: var(--ds-c-rood-vlak); }
+.bz3-klus--vandaag { border-left-color: var(--ds-c-ink-geel); }
+.bz3-klus--later { border-left-style: dashed; border-left-color: var(--ds-c-inkt-zacht); border-style: dashed; }
+.bz3-klus__tekst { display: flex; flex-direction: column; min-width: 0; line-height: 1.15; }
+.bz3-klus__tekst b { font-family: var(--ds-font-zeef-kop); font-weight: 800; font-size: 18px; letter-spacing: 0.02em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.bz3-klus__tekst span { font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.bz3-klus__meer { flex: none; display: inline-flex; align-items: center; justify-content: center; padding: 0 14px; font-family: var(--ds-font-zeef-kop); font-weight: 800; font-size: 16px; text-transform: uppercase; letter-spacing: var(--ds-ls-label); border: 2px dashed var(--ds-c-ink-inkt); border-radius: var(--ds-r); }
+
+/* status: een vlak label met een gekleurde streep, geen pil en geen schaduw; zo lijkt het niet op een tab of knop */
+
+/* keuze: een samengestelde schakelaar met een gedeelde rand (radiogroep); geen pillen, dus geen tabs */
+.bz3-seg { display: inline-flex; border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); border-radius: var(--ds-r); overflow: hidden; background: var(--ds-zeef-bg); }
+.bz3-seg > button { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; padding: 6px 14px; min-height: 52px; background: transparent; border: 0; border-left: var(--ds-lijn-dik) solid var(--ds-c-ink-inkt); font-family: var(--ds-font-zeef-kop); font-weight: 800; font-size: 18px; letter-spacing: var(--ds-ls-label); text-transform: uppercase; cursor: pointer; text-align: left; }
+.bz3-seg > button:first-child { border-left: 0; }
+.bz3-seg > button small { font-family: var(--ds-font-zeef-tekst); font-weight: 400; font-size: 14px; text-transform: none; letter-spacing: 0; }
+.bz3-seg > button[aria-checked="true"] { background: var(--ds-c-sel-vlak); box-shadow: inset 0 -5px 0 var(--ds-c-ink-bord); }
+.bz3-seg--blok { display: flex; width: 100%; }
+.bz3-seg--blok > button { flex: 1; }
+.bz3-seg--klein > button { min-height: 36px; font-size: 16px; padding: 4px 12px; flex-direction: row; align-items: center; gap: 6px; }
+.bz3-seg > button:disabled { border-style: dashed; color: var(--ds-c-inkt-zacht); cursor: not-allowed; }
+
+/* filter en sortering: een stapper met pijltjes, geen chip (L en R op de controller) */
+.bz3-stap { display: inline-flex; align-items: center; gap: 0; border: var(--ds-lijn-dik) solid var(--ds-c-ink-inkt); border-radius: var(--ds-r); background: var(--ds-zeef-bg); min-height: 40px; }
+.bz3-stap > span { padding: 0 12px; font-size: 15px; display: inline-flex; gap: 6px; align-items: baseline; }
+.bz3-stap > span b { font-family: var(--ds-font-zeef-kop); font-weight: 800; font-size: 17px; text-transform: uppercase; letter-spacing: var(--ds-ls-label); }
+.bz3-stap > i { display: grid; place-items: center; width: 30px; align-self: stretch; border-left: var(--ds-lijn-dik) solid var(--ds-c-ink-inkt); font-style: normal; }
+.bz3-stap > i:first-child { border-left: 0; border-right: var(--ds-lijn-dik) solid var(--ds-c-ink-inkt); }
+.bz3-filters { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+
+/* kaarten */
+.ds-z-kaart.bz3-kaart { transform: none; gap: 8px; padding: 12px 14px; }
+.ds-z-kaart.bz3-kaart > .ds-z-kaart__kop { margin: -12px -14px 0; padding: 5px 14px; }
+.bz3-kaart .ds-z-kaart__titel { font-size: 22px; display: inline-flex; align-items: center; gap: 8px; }
+.bz3-kaart .ds-z-kaart__titel .bz3-ic { width: 22px; height: 22px; }
+.bz3-kaart--klik { cursor: pointer; }
+.bz3-kaart .bz3-open { display: inline-flex; align-items: center; gap: 4px; font-family: var(--ds-font-zeef-kop); font-weight: 800; font-size: 14px; letter-spacing: var(--ds-ls-label); text-transform: uppercase; }
+.bz3-kaart--focus { outline: var(--ds-focus-dikte) solid var(--ds-zeef-tx); outline-offset: 3px; }
+.bz3-feiten { display: grid; grid-template-columns: auto 1fr; gap: 3px 14px; align-items: baseline; }
+.bz3-feiten dt { font-size: 14px; color: var(--ds-c-inkt-zacht); }
+.bz3-feiten dd { font-family: var(--ds-font-zeef-kop); font-weight: 800; font-size: 20px; text-align: right; font-variant-numeric: tabular-nums; line-height: 1.1; }
+.bz3-plus { color: var(--ds-c-groen-tx); }
+.bz3-min { color: var(--ds-c-rood-tx); }
+.bz3-zacht { color: var(--ds-c-inkt-zacht); }
+.bz3-hulp { font-size: var(--ds-t-hulp); color: var(--ds-c-inkt-zacht); }
+.bz3-label { font-family: var(--ds-font-zeef-kop); font-weight: 800; font-size: 14px; letter-spacing: var(--ds-ls-label); text-transform: uppercase; color: var(--ds-c-ink-bord); }
+.bz3-getal { font-family: var(--ds-font-zeef-kop); font-weight: 800; font-variant-numeric: tabular-nums; }
+.bz3-rij { display: flex; align-items: center; gap: 10px; }
+.bz3-rij--tussen { justify-content: space-between; }
+.bz3-kol { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.bz3-raster2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+
+/* kaartminiatuur: de omtrek van de percelen, de kleur van de stand, een letter erbij */
+.bz3-mini { position: relative; border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); border-radius: var(--ds-r); background: var(--ds-c-papier-2); overflow: hidden; flex: none; }
+.bz3-mini svg { display: block; width: 100%; height: 100%; }
+.bz3-kaartlegenda { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 14px; align-items: center; }
+.bz3-kaartlegenda span { display: inline-flex; align-items: center; gap: 6px; }
+.bz3-kaartlegenda i { width: 18px; height: 18px; border: 2px solid var(--ds-c-ink-inkt); display: inline-block; }
+.i-braak { background-color: var(--ds-c-ink-papier); background-image: var(--ds-raster); background-size: 5px 5px; }
+.i-groeit { background: var(--ds-c-ink-geel); }
+.i-rijp { background: var(--ds-c-ink-bord); }
+.i-verpacht { border-style: dashed !important; background: var(--ds-c-ink-papier); }
+
+/* de groeifasen van een gewas (de seizoensbalk; het is altijd zomer, dus fasen en dagen, geen maanden) */
+.bz3-fasen { display: grid; grid-template-columns: repeat(5, 1fr); gap: 0; position: relative; list-style: none; padding: 0; }
+.bz3-fasen li { display: flex; flex-direction: column; align-items: center; gap: 4px; position: relative; font-size: 14px; text-align: center; }
+.bz3-fasen li::before { content: ""; position: absolute; top: 15px; left: -50%; width: 100%; height: 4px; background: var(--ds-c-ink-inkt); z-index: 0; }
+.bz3-fasen li:first-child::before { display: none; }
+.bz3-fasen li.is-klaar::before, .bz3-fasen li.is-nu::before { background: var(--ds-c-ink-bord); }
+.bz3-fasen li.is-later::before { background: none; border-top: 4px dotted var(--ds-c-inkt-zacht); height: 0; }
+.bz3-fasen i { position: relative; z-index: 1; width: 34px; height: 34px; display: grid; place-items: center; border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); border-radius: var(--ds-r); background: var(--ds-c-ink-papier); font-style: normal; }
+.bz3-fasen .is-klaar i { background: var(--ds-c-ink-inkt); color: var(--ds-c-ink-papier); }
+.bz3-fasen .is-nu i { background: var(--ds-c-ink-geel); box-shadow: var(--ds-schaduw-hard-klein); }
+.bz3-fasen .is-later i { border-style: dashed; color: var(--ds-c-inkt-zacht); }
+.bz3-fasen b { font-family: var(--ds-font-zeef-kop); font-weight: 800; font-size: 15px; letter-spacing: var(--ds-ls-label); text-transform: uppercase; }
+.bz3-fasen .is-later b, .bz3-fasen .is-later small { color: var(--ds-c-inkt-zacht); }
+.bz3-fasen small { font-size: 13px; }
+
+/* lijst met keuze-rijen */
+.bz3-lijst { display: flex; flex-direction: column; min-height: 0; overflow-x: hidden; overflow-y: auto; border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); border-radius: var(--ds-r); background: var(--ds-zeef-bg); }
+.bz3-lijst .ds-z-rij { min-height: 52px; padding: 4px 12px; grid-template-columns: auto auto minmax(0, 1fr) auto; border-bottom-width: var(--ds-lijn); }
+.bz3-lijst .ds-z-rij__naam { font-size: 19px; text-transform: none; letter-spacing: 0.01em; }
+.bz3-lijst .ds-z-rij__sub { font-size: 14px; }
+.bz3-lijst .ds-z-rij__waarde { font-size: 22px; text-align: right; }
+.bz3-lijst .ds-z-rij__waarde small { display: block; font-family: var(--ds-font-zeef-tekst); font-weight: 400; font-size: 13px; color: var(--ds-c-inkt-zacht); }
+.bz3-lijst__kop { display: flex; align-items: center; justify-content: space-between; padding: 6px 12px; background: var(--ds-c-papier-2); border-bottom: var(--ds-lijn-dik) solid var(--ds-c-ink-inkt); }
+.bz3-vink { width: 22px; height: 22px; border: var(--ds-lijn-dik) solid var(--ds-c-ink-inkt); border-radius: 4px; background: var(--ds-c-wit); display: grid; place-items: center; flex: none; }
+.bz3-vink--aan { background: var(--ds-c-ink-inkt); color: var(--ds-c-ink-papier); }
+.bz3-vink .bz3-ic { width: 16px; height: 16px; }
+.bz3-ikoon { width: 36px; height: 36px; border: var(--ds-lijn-dik) solid var(--ds-c-ink-inkt); border-radius: var(--ds-r); display: grid; place-items: center; background: var(--ds-c-ink-papier); flex: none; }
+.bz3-ikoon--rijp { background: var(--ds-c-ink-bord); color: var(--ds-c-wit); }
+.bz3-ikoon--groeit { background: var(--ds-c-ink-geel); }
+.bz3-ikoon--braak { background-image: var(--ds-raster); background-size: 5px 5px; }
+
+/* master-detail */
+.bz3-md { display: grid; gap: 18px; min-height: 0; flex: 1; grid-template-rows: minmax(0, 1fr); }
+.bz3-md > * { min-height: 0; }
+.bz3-detail { display: flex; flex-direction: column; gap: 12px; min-width: 0; min-height: 0; overflow-x: hidden; overflow-y: auto; padding: 0 8px 8px 0; }
+.bz3-hero { display: flex; flex-direction: column; gap: 10px; padding: 12px 14px; border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); border-radius: var(--ds-r); background: var(--ds-c-sel-vlak); box-shadow: var(--ds-schaduw-hard-bord); }
+.bz3-hero__titel { font-family: var(--ds-font-zeef-kop); font-weight: 800; font-size: 26px; line-height: 1.05; }
+.bz3-actie { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.bz3-actie .ds-z-knop { min-height: 48px; padding: 0 22px; font-size: 22px; }
+.bz3-kleinknop.ds-z-knop { min-height: 40px; padding: 0 14px; font-size: 17px; box-shadow: var(--ds-schaduw-hard-klein); }
+.bz3-kleinknop.ds-z-knop--ghost { box-shadow: none; }
+.bz3-actie__sub { font-size: 14px; color: var(--ds-c-inkt-zacht); }
+.bz3-blok { display: flex; flex-direction: column; gap: 8px; padding: 10px 14px 12px; border: var(--ds-lijn-dik) solid var(--ds-c-ink-inkt); border-radius: var(--ds-r); background: var(--ds-zeef-bg); min-width: 0; }
+.bz3-blok > .bz3-label { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.bz3-balkrij { display: grid; grid-template-columns: 130px 1fr auto; gap: 10px; align-items: center; font-size: 15px; }
+.bz3-spark { width: 100%; height: 46px; display: block; }
+
+/* bon van kosten en opbrengst */
+.bz3-bon .ds-z-bon__regel { font-size: 16px; }
+.bz3-bon { border-width: var(--ds-lijn-dik); padding: 8px 12px; }
+
+/* toestanden */
+.bz3-leeg { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; text-align: center; }
+.bz3-leeg__kop { font-family: var(--ds-font-zeef-kop); font-weight: 800; font-size: 44px; line-height: 1; text-shadow: var(--ds-misdruk); }
+.bz3-leeg p { max-width: 640px; font-size: 20px; }
+.bz3-stappen { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; width: 100%; max-width: 1300px; }
+.bz3-skel { background-color: var(--ds-c-ink-papier); background-image: var(--ds-raster); background-size: var(--ds-raster-maat); border: var(--ds-lijn-dik) dashed var(--ds-c-ink-inkt); border-radius: var(--ds-r); }
+
+/* de bevestiging: een bon boven de rest, vasthouden om te kopen */
+.bz3-scherm { position: absolute; inset: 0; background: color-mix(in srgb, var(--ds-c-ink-inkt) 55%, transparent); display: grid; place-items: center; z-index: 5; }
+.bz3-vasthoud { position: relative; overflow: hidden; }
+.bz3-vasthoud::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: var(--vul, 0%); background: var(--ds-c-geel-druk); z-index: 0; }
+.bz3-vasthoud > * { position: relative; z-index: 1; }
+.stage .ds-z-toets { font-family: var(--ds-font-zeef-tekst); font-weight: 700; }
+
+.bz3-bon .ds-z-bon__totaal { font-size: 22px; }
+
+/* status (zoals vb-st in het clubontwerp): platte tekst met icoon, geen rand, geen schaduw, geen pil; kleur nooit alleen */
+.bz3-stand { display: inline-flex; align-items: center; gap: 6px; font-family: var(--ds-font-zeef-kop); font-weight: 800; font-size: 15px; letter-spacing: var(--ds-ls-label); text-transform: uppercase; line-height: 1.25; white-space: nowrap; }
+.bz3-stand .bz3-ic { width: 18px; height: 18px; }
+.bz3-stand--rijp { color: var(--ds-c-groen-tx); }
+.bz3-stand--groeit { color: var(--ds-zeef-tx); }
+.bz3-stand--braak, .bz3-stand--later { color: var(--ds-c-inkt-zacht); }
+.bz3-stand--probleem, .bz3-stand--nu { color: var(--ds-c-rood-tx); }
+.bz3-stand--vandaag { color: var(--ds-zeef-tx); }
+/* segment (zoals vb-seg in het clubontwerp): rechthoekig en aan elkaar; gekozen = bordgroen gevuld met een vinkje */
+.bz3-seg > button[aria-checked="true"] { background: var(--ds-c-ink-bord); color: var(--ds-c-wit); box-shadow: none; }
+.bz3-seg > button[aria-checked="true"] small { color: var(--ds-c-wit); }
+.bz3-seg > button .bz3-ic { width: 16px; height: 16px; }
+.bz3-seg > button > span { display: inline-flex; align-items: center; gap: 6px; }
