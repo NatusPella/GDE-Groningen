@@ -1,0 +1,56 @@
+/* Gedeelde zeefdrukcomponenten van Land en bedrijf en het clubontwerp (24-11): ds-z-segment, -status, -tussenkop, -stapper, -kopband, -tabel, -link.
+   Alleen tokens (var(--ds-...)), geen hex, geen verloop. Gebruik en markup: docs/ontwerp/BEZIT-UI-24-11.md, hoofdstuk 5.
+   Vier soorten dingen: status (platte tekst), navigatie (tabrij), keuze (segment, stapper), actie (ds-z-knop; de derde actie is ds-z-link). */
+
+/* ---- ds-z-segment: rechthoekige keuze aan elkaar (role="radiogroup" met role="radio" en aria-checked); gekozen = bordgroen met een vinkje ---- */
+.ds-z-segment { display: inline-flex; border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); border-radius: var(--ds-r); overflow: hidden; background: var(--ds-zeef-bg); max-width: 100%; }
+.ds-z-segment--blok { display: flex; width: 100%; }
+.ds-z-segment--blok > .ds-z-segment__optie { flex: 1; }
+.ds-z-segment__optie { display: flex; flex-direction: column; align-items: flex-start; gap: var(--ds-s-1); min-height: var(--ds-hoogte-rij); padding: var(--ds-s-1) var(--ds-s-3); background: transparent; color: var(--ds-zeef-tx); border: 0; border-left: var(--ds-lijn-dik) solid var(--ds-c-ink-inkt); cursor: pointer; text-align: left; font-family: var(--ds-font-zeef-kop); font-weight: 800; font-size: var(--ds-t-label); letter-spacing: var(--ds-ls-label); text-transform: uppercase; }
+.ds-z-segment__optie:first-child { border-left: 0; }
+.ds-z-segment__optie > span { display: inline-flex; align-items: center; gap: var(--ds-s-1); }
+.ds-z-segment__optie small { font-family: var(--ds-font-zeef-tekst); font-weight: 400; font-size: var(--ds-t-hulp); letter-spacing: 0; text-transform: none; }
+.ds-z-segment__optie:hover { background: var(--ds-c-sel-vlak); }
+.ds-z-segment__optie[aria-checked="true"] { background: var(--ds-c-ink-bord); color: var(--ds-c-wit); }
+.ds-z-segment__optie:focus-visible { outline: var(--ds-focus-dikte) solid var(--ds-zeef-tx); outline-offset: calc(var(--ds-focus-dikte) * -1); }
+.ds-z-segment__optie:disabled, .ds-z-segment__optie[aria-disabled="true"] { border-left-style: dashed; color: var(--ds-c-inkt-zacht); background: var(--ds-zeef-bg); cursor: not-allowed; }
+.ds-z-segment--klein > .ds-z-segment__optie { min-height: var(--ds-hoogte-chip); flex-direction: row; align-items: center; }
+
+/* ---- ds-z-status: platte tekst met icoon en woord; geen rand, schaduw of pil. Kleur is nooit het enige. ---- */
+.ds-z-status { display: inline-flex; align-items: center; gap: var(--ds-s-1); font-family: var(--ds-font-zeef-kop); font-weight: 800; font-size: var(--ds-t-hulp); letter-spacing: var(--ds-ls-label); text-transform: uppercase; line-height: 1.25; white-space: nowrap; }
+.ds-z-status__icoon { width: var(--ds-s-4); height: var(--ds-s-4); fill: currentColor; flex: none; }
+.ds-z-status--succes { color: var(--ds-c-groen-tx); }
+.ds-z-status--probleem { color: var(--ds-c-rood-tx); }
+.ds-z-status--zacht { color: var(--ds-c-inkt-zacht); }
+
+/* ---- ds-z-tussenkop: tussenkop binnen een blok; bordgroen, kleine hoofdletters, zonder misdruk ---- */
+.ds-z-tussenkop { display: flex; align-items: center; justify-content: space-between; gap: var(--ds-s-2); margin: 0; font-family: var(--ds-font-zeef-kop); font-weight: 800; font-size: var(--ds-t-hulp); letter-spacing: var(--ds-ls-label); text-transform: uppercase; color: var(--ds-zeef-kop); text-shadow: none; }
+
+/* ---- ds-z-stapper: pijl, waarde, pijl (links en rechts op de controller) voor sorteren, filter en een nummer ---- */
+.ds-z-stapper { display: inline-flex; align-items: stretch; min-height: var(--ds-hoogte-chip); border: var(--ds-lijn-dik) solid var(--ds-c-ink-inkt); border-radius: var(--ds-r); background: var(--ds-zeef-bg); color: var(--ds-zeef-tx); }
+.ds-z-stapper__stap { display: grid; place-items: center; width: var(--ds-hoogte-tab); background: transparent; color: inherit; border: 0; cursor: pointer; }
+.ds-z-stapper__stap:first-child { border-right: var(--ds-lijn-dik) solid var(--ds-c-ink-inkt); }
+.ds-z-stapper__stap:last-child { border-left: var(--ds-lijn-dik) solid var(--ds-c-ink-inkt); }
+.ds-z-stapper__stap:hover { background: var(--ds-c-sel-vlak); }
+.ds-z-stapper__stap:focus-visible { outline: var(--ds-focus-dikte) solid var(--ds-zeef-tx); outline-offset: calc(var(--ds-focus-dikte) * -1); }
+.ds-z-stapper__waarde { display: inline-flex; align-items: baseline; gap: var(--ds-s-2); padding: 0 var(--ds-s-3); font-family: var(--ds-font-zeef-tekst); font-size: var(--ds-t-hulp); align-self: center; }
+.ds-z-stapper__waarde b { font-family: var(--ds-font-zeef-kop); font-weight: 800; font-size: var(--ds-t-label); text-transform: uppercase; letter-spacing: var(--ds-ls-label); }
+
+/* ---- ds-z-kopband: eyebrow en titel links, waardeplaatjes (ds-z-waarde) rechts ---- */
+.ds-z-kopband { display: flex; align-items: flex-end; justify-content: space-between; gap: var(--ds-s-5); }
+.ds-z-kopband__eb { font-family: var(--ds-font-zeef-kop); font-weight: 800; font-size: var(--ds-t-hulp); letter-spacing: var(--ds-ls-label); text-transform: uppercase; color: var(--ds-zeef-kop); }
+.ds-z-kopband__titel { margin: 0; font-family: var(--ds-font-zeef-kop); font-weight: 800; font-size: var(--ds-t-kop); line-height: var(--ds-lh-kop); text-shadow: var(--ds-misdruk); }
+.ds-z-kopband__waarden { display: flex; flex-wrap: wrap; gap: var(--ds-s-3); justify-content: flex-end; }
+
+/* ---- ds-z-tabel: tabel met kolomkoppen; een gekozen rij is bordgroen-getint ---- */
+.ds-z-tabel { width: 100%; border-collapse: collapse; font-family: var(--ds-font-zeef-tekst); font-size: var(--ds-t-hulp); color: var(--ds-zeef-tx); }
+.ds-z-tabel th { padding: var(--ds-s-1) var(--ds-s-3); text-align: left; font-family: var(--ds-font-zeef-kop); font-weight: 800; letter-spacing: var(--ds-ls-label); text-transform: uppercase; border-bottom: var(--ds-lijn-dik) solid var(--ds-c-ink-inkt); }
+.ds-z-tabel td { padding: var(--ds-s-2) var(--ds-s-3); border-bottom: var(--ds-lijn) solid var(--ds-c-ink-inkt); font-variant-numeric: tabular-nums; }
+.ds-z-tabel td.ds-z-tabel__getal, .ds-z-tabel th.ds-z-tabel__getal { text-align: right; }
+.ds-z-tabel tr[aria-current="true"] td { background: var(--ds-c-sel-vlak); }
+.ds-z-tabel tr[aria-current="true"] td:first-child { box-shadow: inset var(--ds-status-rand) 0 0 var(--ds-c-ink-bord); }
+
+/* ---- ds-z-link: de derde actie, onderstreept met een pijl ---- */
+.ds-z-link { display: inline-flex; align-items: center; gap: var(--ds-s-1); padding: 0; background: none; border: 0; color: var(--ds-zeef-tx); cursor: pointer; font-family: var(--ds-font-zeef-kop); font-weight: 800; font-size: var(--ds-t-label); letter-spacing: var(--ds-ls-label); text-transform: uppercase; text-decoration: underline; text-underline-offset: var(--ds-s-1); }
+.ds-z-link:hover { color: var(--ds-zeef-kop); }
+.ds-z-link:focus-visible { outline: var(--ds-focus-dikte) solid var(--ds-zeef-tx); outline-offset: var(--ds-focus-afstand); }

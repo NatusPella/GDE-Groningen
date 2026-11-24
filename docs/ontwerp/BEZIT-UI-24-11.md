@@ -84,6 +84,16 @@ Alle schermen delen de **kopband**: eyebrow "Bezit", de titel Land en bedrijf, e
 | (tabel) | `vb-tabel` | `ds-z-tabel` | tabel met een gekozen rij, voor het Kasboek en de prijzen per streek |
 | (link) | `vb-link` | `ds-z-link` | derde actie, onderstreept met pijl |
 
+**Gedeelde componenten, gebouwd (24-11, `game/js/ds-gedeeld.css`, test `scripts/ds_gedeeld_test.mjs`).** Namen en gebruik, voor Land en bedrijf en het clubontwerp:
+
+- `ds-z-segment` met `__optie` (`--blok`, `--klein`): `<div class="ds-z-segment" role="radiogroup"><button class="ds-z-segment__optie" role="radio" aria-checked="true"><span>[vinkje] Zelf</span><small>regel eronder</small></button>...</div>`.
+- `ds-z-status` met `__icoon` (`--succes`, `--probleem`, `--zacht`): platte tekst, icoon en woord.
+- `ds-z-tussenkop`: tussenkop in een blok, zonder misdruk.
+- `ds-z-stapper` met `__stap` (twee knoppen, pijl links en rechts) en `__waarde` (`<b>` voor de waarde).
+- `ds-z-kopband` met `__eb`, `__titel`, `__waarden` (de plaatjes zijn `ds-z-waarde`).
+- `ds-z-tabel` (`th`, `td`, `__getal` voor rechts uitgelijnd, `tr[aria-current="true"]` voor de gekozen rij).
+- `ds-z-link`: de derde actie, onderstreept, met een pijl-icoon erachter.
+
 **Nieuw en alleen voor Bezit** (`game/js/ds-bezit.css`, voorvoegsel `bz-`; vervangt de oude `bz-`-regels in `farm.css`): `bz-nu` en `bz-klus` (de strook en een klus met dringendheid), `bz-fasen` (de groeifasen van een gewas), `bz-kaartvlak` (de SVG-kaart met percelen, markers en legenda), `bz-feiten` (een `dl` met label en waarde), `bz-lijst` (de lijst met vinkvak en vervagende rand), `bz-hero` (het gekleurde blok met de gele actie), `bz-blok` (een blok met tussenkop), `bz-spark` (het lijntje over zeven dagen), `bz-skel` (laadvlak). In de mockups heten ze `bz3-*`; in `mock.src.css` staat alles in tokens, zonder hex of eigen lettertype.
 
 Wat verdwijnt: de pillenrij van de Boerderij (`bd-seg`, `bd-seg-tab`), de cyclus-chips (`cycleChip`), de tegels (`bz-tegel`), de grote uitlegknop (`meerHtml` als knop), het inline "Ja, Nee" (`bd-zeker`) en de `m-bt`-knoppen die op platte tekst lijken.
