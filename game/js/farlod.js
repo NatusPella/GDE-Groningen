@@ -1,5 +1,5 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
-import { buildingLodStyle } from './models3d_buildings.js';
+import { buildingLodStyle, ownBuildingModel } from './models3d_buildings.js';
 import { namedSilhouette } from './landmarks3d.js';
 import { perfOff } from './devflags.js';
 import { buildingLift, roadBaseAt } from './terrainlift.js';
@@ -93,6 +93,7 @@ function buildingMaterial() {
       .replace('#include <common>', `#include <common>
 attribute vec2 lodCenter;
 attribute vec2 lodWall;
+attribute float lodHard;
 uniform vec2 uLodPlayer;
 uniform float uLodDetailR;
 uniform vec2 uLodKeep[${RING_KEEP_MAX}];
@@ -113,7 +114,7 @@ if (lodDist <= uLodDetailR) {
   for (int i = 0; i < ${RING_KEEP_MAX}; i++) { if (i >= uLodKeepN) break; if (distance(lodCenter, uLodKeep[i]) < 0.6) { keepFar = true; break; } }
   // binnen de band dooft de kopie uit tegen het detailgebouw in (buildingfade.js); daarbinnen klapt hij in
   if (!keepFar) {
-    if (uLodBand <= 0.0 || lodDist <= uLodDetailR - uLodBand) gl_Position = vec4(0.0, 0.0, -2.0, 1.0);
+    if (uLodBand <= 0.0 || lodHard > 0.5 || lodDist <= uLodDetailR - uLodBand) gl_Position = vec4(0.0, 0.0, -2.0, 1.0);
     else vFarFade = (lodDist - (uLodDetailR - uLodBand)) / uLodBand;
   }
 }`);
@@ -295,6 +296,9 @@ class MeshBuilder {
     this.ctr = withCenter ? new Buf(Float32Array, 4096) : null;
     // buildings: the foot and the top of the wall this vertex belongs to, for the facade rhythm (farlod.js buildingMaterial, #463)
     this.wall = withWall ? new Buf(Float32Array, 4096) : null;
+    // buildings: 1 = no dither band (a landmark: its detail mesh never fades, so its far copy keeps the hard switch on the ring)
+    this.hard = withWall ? new Buf(Uint8Array, 4096) : null;
+    this.hardNow = 0;
   }
   get vertCount() { return this.pos.n / 3; }
   vert(x, y, z, c, cx, cy, wb, wt) {
@@ -304,6 +308,7 @@ class MeshBuilder {
     k.a[k.n++] = c[0]; k.a[k.n++] = c[1]; k.a[k.n++] = c[2];
     if (this.ctr) { this.ctr.reserve(2); this.ctr.a[this.ctr.n++] = cx; this.ctr.a[this.ctr.n++] = cy; }
     if (this.wall) { this.wall.reserve(2); this.wall.a[this.wall.n++] = wb; this.wall.a[this.wall.n++] = wt; }
+    if (this.hard) { this.hard.reserve(1); this.hard.a[this.hard.n++] = this.hardNow; }
   }
   tri(a, b, c) {
     this.idx.reserve(3);
@@ -317,6 +322,7 @@ class MeshBuilder {
     g.setAttribute('color', new THREE.BufferAttribute(this.col.view(), 3, true));
     if (this.ctr) g.setAttribute('lodCenter', new THREE.BufferAttribute(this.ctr.view(), 2));
     if (this.wall) g.setAttribute('lodWall', new THREE.BufferAttribute(this.wall.view(), 2));
+    if (this.hard) g.setAttribute('lodHard', new THREE.BufferAttribute(this.hard.view(), 1, true));
     if (normalUp) {
       const n = new Int8Array(this.vertCount * 3);
       for (let i = 1; i < n.length; i += 3) n[i] = 127;
@@ -329,6 +335,7 @@ class MeshBuilder {
 }
 
 function addBuilding(B, b, lift = 0) {
+  B.hardNow = ownBuildingModel(b) ? 1 : 0; // own model: its detail does not fade (scene3d.js addBuildingFade), no dither band for its copy either
   const s = buildingLodStyle(b);
   const ring = s.ring;
   const n = ring.length;

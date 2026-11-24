@@ -97,9 +97,12 @@ export const lodChoiceFor = (kind, d, levels = 3, scale = 1) => lodChoice(d, lod
 // --- het register ----------------------------------------------------------------------------------------------------------------
 // Elk gebouwd LOD-model: soort, naam en het aantal driehoeken per niveau (LOD0 eerst). 'cull' betekent: voorbij de laatste afstand niets.
 const models = new Map();
-export function registerLodModel(kind, name, tris, { cull = !!(LOD_KINDS[kind] && culls(kind)) } = {}) {
-  models.set(`${kind}:${name}`, { kind, name, tris: [...tris], cull });
+// silhouette: true = a lighter level stopped where the next one would lose the silhouette (meshlod.js animalLods); for a small model
+// (at most SILHOUETTE_SMALL_TRIS) the silhouette wins over minCut: a flat block is worse than a few triangles more (beeldregressie 24-11)
+export function registerLodModel(kind, name, tris, { cull = !!(LOD_KINDS[kind] && culls(kind)), silhouette = false } = {}) {
+  models.set(`${kind}:${name}`, { kind, name, tris: [...tris], cull, silhouette });
 }
+export const SILHOUETTE_SMALL_TRIS = 600;
 export const lodModels = () => [...models.values()];
 export const clearLodModels = () => models.clear();
 
@@ -121,6 +124,7 @@ export function auditLodModel(m) {
     return issues;
   }
   if (lighter < 2) issues.push(`${m.kind}:${m.name}: ${m.tris.length - 1} lichtere niveaus${m.cull ? ' plus cull' : ''}, minstens 2 nodig`);
+  if (m.silhouette && t0 <= SILHOUETTE_SMALL_TRIS) return issues;
   for (let L = 1; L < m.tris.length; L++) {
     const cut = 1 - m.tris[L] / t0;
     const need = k.minCut[Math.min(L - 1, k.minCut.length - 1)];

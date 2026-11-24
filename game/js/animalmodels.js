@@ -66,7 +66,8 @@ function template(id) {
   // and registered in the central LOD register (lodregistry.js) under the species id
   const box = new THREE.Box3().setFromBufferAttribute(attrs.position);
   const bs = box.getSize(new THREE.Vector3());
-  const geos = animalLods(geoWith(d.index), Math.max(bs.x, bs.y, bs.z), id).map((g) => markShared(g));
+  const lods = animalLods(geoWith(d.index), Math.max(bs.x, bs.y, bs.z), id);
+  const geos = Object.assign(lods.map((g) => markShared(g)), { silhouette: lods.silhouette }); // silhouette: meshlod.js stopte voor het silhouet
   const sphere = box.getBoundingSphere(new THREE.Sphere());
   const inverses = [];
   const iv = typed(d.inverses, Float32Array);

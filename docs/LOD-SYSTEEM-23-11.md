@@ -34,6 +34,11 @@
   Een gebouw zonder eigen mesh (`uLodKeep`) houdt zijn volle kopie. Zonder verre laag (Laag, kort) is de band 0: de oude wissel.
   `scripts/buildingfade_test.mjs` controleert voor elke afstand en elke pixel van het patroon dat er minstens één laag staat en waar
   beide bestaan precies één. A/B: `?perfoff=gebouwfade` (en `?perfoff=boombillboard` voor de billboards).
+  Na de beeldregressie van 24-11: de band staat alleen open terwijl de speler beweegt (`fadeBandStep`: stilstaand in 0,8 s dicht, dus
+  nooit blijvend half detail en half kopie); de 16 Bayer-drempels liggen in het midden van hun zestiende (een interpolatiefout liet
+  anders één pixel per 4x4 wegvallen: witte spikkels op elk ver gebouw); een gebouw met een eigen model (`ownBuildingModel`: landmark,
+  marktgebouw, kit) houdt in beide lagen de harde wissel (`lodHard`); een gedeeld materiaal dat de overgang later kreeg, volgt die nu
+  ook in de samengevoegde en gepoolde kopieën (staticbatch3d `bakeSig`, multidraw3d `copyOf`).
 - **Stand**: de grenzen schalen mee (Laag 0,6, Midden 0,8, Hoog 0,9, Ultra 1; `setLodPreset` vanuit `scene3d.js`).
 
 ## 3. API voor de andere agents

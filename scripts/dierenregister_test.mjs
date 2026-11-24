@@ -85,7 +85,9 @@ for (const d of R.DIEREN) {
   // mesh-LOD's (meshlod.js, eis eigenaar 23-11): drie niveaus, elk duidelijk lichter dan het vorige
   {
     const lod = mesh.userData.lod, tris = lod ? lod.geos.map((x) => Math.round((x.index ? x.index.count : x.attributes.position.count) / 3)) : [];
-    check(`${d.id}: LOD's met duidelijk minder driehoeken (${tris.join('/')})`, tris.length === 3 && tris[1] <= tris[0] * 0.8 && tris[2] <= tris[0] * 0.55, tris.join('/'));
+    // 24-11: een niveau dat verder het silhouet zou verliezen (plat blok) blijft staan (meshlod.js animalLods: geos.silhouette); dan
+    // telt alleen dat LOD2 niet zwaarder is dan LOD1
+    check(`${d.id}: LOD's met duidelijk minder driehoeken (${tris.join('/')})`, tris.length === 3 && tris[1] <= tris[0] * 0.8 && (tris[2] <= tris[0] * 0.55 || (lod.geos.silhouette && tris[2] <= tris[1])), tris.join('/'));
   }
   check(`${d.id}: geen NaN in de vorm`, !nan);
   const sleutel = geo ? geo.uuid : d.id;

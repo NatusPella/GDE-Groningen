@@ -99,6 +99,19 @@ const R3 = await import('../game/js/railway3d.js');
 const { TRAIN_TYPES } = await import('../game/js/railway.js');
 for (const cfg of Object.values(TRAIN_TYPES)) for (const seg of cfg.segments) K.makeLodObject('train', 'wagen', (() => { const g = new THREE.Group(); g.add(R3.buildCar(cfg, seg)); return g.children[0]; })());
 
+// 24-11 (beeldregressie, 'platte grijze blokjes' op straat): een klein dier (duif, meeuw, eend) mag op geen enkel niveau tot een plat
+// blok vereenvoudigen: elk niveau houdt zijn silhouet (de bounding box per as binnen 80%). De blokjes in het laadschermbeeld zelf komen uit
+// game/img/laad/vismarkt.jpg (een render van 15-10, de oude duiven), niet uit de LOD's.
+{
+  const W = await import('../game/js/wildlife.js');
+  for (const [name, mesh] of [['duif', W.buildPigeonMesh3D(0)], ['meeuw', W.buildSeagullMesh3D()], ['eend', W.buildDuckMesh3D()]]) {
+    const geos = mesh.userData.lod && mesh.userData.lod.geos;
+    ok(geos && geos.length === 3, `${name}: drie niveaus`);
+    const b0 = S.bboxOf(geos[0].getAttribute('position').array);
+    for (let L = 1; L < geos.length; L++) ok(S.silhouetteKept(b0, S.bboxOf(geos[L].getAttribute('position').array)), `${name}: LOD${L} houdt het silhouet (geen plat blok)`);
+  }
+}
+
 const models = R.lodModels();
 const kinds = new Set(models.map((m) => m.kind));
 ok(SF.furnitureLodKind('gantry') === 'propfar' && SF.furnitureLodKind('bench') === 'prop', 'een portaal is van ver te zien, een bankje niet');

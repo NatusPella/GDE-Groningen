@@ -18,7 +18,7 @@ const _camSphereHit = new THREE.Vector3();
 const _camInv = new THREE.Matrix4();
 const _segA = new THREE.Vector3();
 const _segB = new THREE.Vector3();
-import { buildBuildingMesh, setBuildingMap, setNightFactor, setPartsInUse } from './models3d_buildings.js';
+import { buildBuildingMesh, setBuildingMap, setNightFactor, setPartsInUse, ownBuildingModel } from './models3d_buildings.js';
 import { updateDiscoLamp } from './discolight.js';
 import { buildVehicleMesh, updateVehicleWheelSpin, applyFlatTire, setBusRearAngle, updatePoliceLamps, updateIndicatorLamps, syncPoliceMount, riderSeatFor, attachHelmet, releaseVehicleGeometries } from './models3d_vehicles.js';
 import {
@@ -102,7 +102,7 @@ import { reducedMotion } from './motion.js';
 import { dynamicScale, cpuLevel, currentPreset } from './gfxprofile.js';
 import { setAnimalLodPreset } from './meshlod.js';
 import { setLodPreset, updateLodObjects, lodFadeMaterial, lodScale } from './lodkit3d.js';
-import { GLSL_DETAIL_HEAD_VERT, GLSL_DETAIL_VERT, GLSL_DETAIL_HEAD_FRAG, GLSL_DETAIL_FRAG, BUILDING_FADE_BAND } from './buildingfade.js';
+import { GLSL_DETAIL_HEAD_VERT, GLSL_DETAIL_VERT, GLSL_DETAIL_HEAD_FRAG, GLSL_DETAIL_FRAG, BUILDING_FADE_BAND, fadeBandStep } from './buildingfade.js';
 import { registerLodModel, lodLevelsForFade, lodSpec } from './lodregistry.js';
 import { adaptedShadowLevel } from './shadowlevel.js';
 import { treeSyncDue } from './treesync.js';
@@ -2036,7 +2036,7 @@ function makeBuildingMesh(b) {
   const mesh = enableShadows(buildBuildingMesh(b), true, 2.5);
   if (liftMap && liftMap.terrainOn) mesh.position.y += buildingLift(liftMap, b);
   if (isSkyline(b)) useSkylineMaterials(mesh);
-  if (!b.landmark && !perfOff('gebouwfade')) addBuildingFade(mesh, b);
+  if (!ownBuildingModel(b) && !perfOff('gebouwfade')) addBuildingFade(mesh, b); // eigen model: de harde wissel (models3d_buildings.js ownBuildingModel)
   freezeStatic(mesh);
   return mesh;
 }
@@ -2063,6 +2063,9 @@ function addBuildingFade(mesh, b) {
 function patchBuildingFade(m) {
   if (m.userData.buildingFade || !(m.isMeshStandardMaterial || m.isMeshLambertMaterial || m.isMeshPhongMaterial || m.isMeshBasicMaterial)) return;
   m.userData.buildingFade = true;
+  // 24-11: de samenvoeging (staticbatch3d.js bakeSig) bewaart zijn sleutel op het materiaal; een sleutel van vóór deze patch liet een
+  // samengevoegd detailgebouw zonder overgang tekenen (vol detail plus de half uitgedoofde verre kopie: het patroon van de beeldregressie)
+  m.userData.bakeSig = undefined;
   const prev = m.onBeforeCompile;
   const U = lodShared();
   m.onBeforeCompile = (shader, r) => {
@@ -3122,7 +3125,9 @@ export function update3D(dt, world) {
           if (mesh.userData.pigeonScale !== want) { mesh.scale.setScalar(want); mesh.userData.pigeonScale = want; }   // Reuzenduif (cheat)
         } else if (!(Math.abs(mesh.scale.x - baseScale) < 1e-4 && Math.abs(mesh.scale.y - baseScale) < 1e-4 && Math.abs(mesh.scale.z - baseScale) < 1e-4)) mesh.scale.setScalar(baseScale);
         mesh.rotation.y = -a.angle - (a.draai || 0);   // a.lift en a.draai: een schaap in de straal van een schotel (#333)
-        { const fx = a.x - focus.x, fy = a.y - focus.y; mesh.userData.lodD2 = fx * fx + fy * fy; mesh.userData.ver = mesh.userData.lodD2 > 45 * 45; }   // ver weg: de lichte animatie
+        // 24-11: de LOD volgt ook de camera (de kleinste van de twee afstanden): in een filmpje, de benchmark of een beeldrun staat de
+        // camera ver van de speler, en dan stond een duif vlak voor de lens op het lichtste niveau
+        { const fx = a.x - focus.x, fy = a.y - focus.y, cx = a.x - cam.position.x, cy = a.y - cam.position.z, cz = y - cam.position.y; mesh.userData.lodD2 = Math.min(fx * fx + fy * fy, cx * cx + cy * cy + cz * cz); mesh.userData.ver = mesh.userData.lodD2 > 45 * 45; }   // ver weg: de lichte animatie
         animateWildlifeMesh3D(mesh, a, world.time);
       }
     }
@@ -3258,7 +3263,9 @@ export function update3D(dt, world) {
   const lodR = viewDist > DRAW_DIST + 20 ? Math.min(DRAW_DIST, buildingDetailR, roadDetailR + 8) : DRAW_DIST;
   const flt0 = performance.now(), fl = streamLead(streamAhead);
   // de dither-overgang detailgebouw / verre kopie (buildingfade.js) alleen als er een verre laag is; anders de harde wissel op de ring
-  lodShared().uLodBand.value = viewDist > DRAW_DIST + 20 && !perfOff('gebouwfade') ? BUILDING_FADE_BAND : 0;
+  // 24-11 (beeldregressie 'stad'): alleen in beweging; stilstaand krimpt de band in BAND_SETTLE_S naar 0 (temporele overgang), zodat een
+  // gebouw dat toevallig in de band staat niet blijvend half detail, half verre kopie is
+  lodShared().uLodBand.value = fadeBandStep(lodShared().uLodBand.value, viewDist > DRAW_DIST + 20 && !perfOff('gebouwfade') ? BUILDING_FADE_BAND : 0, focusSpeed, dt);
   farLod.update(focus.x, focus.y, viewDist, Math.min(viewDist, scene.fog.far) + 20, lodR, { keep: ringKeep, budgetMs: plan.grant('far', 2.5), lead: fl.lead > 0 ? fl : null });
   plan.spend('far', performance.now() - flt0);
   probe.mark('3d:farlod');

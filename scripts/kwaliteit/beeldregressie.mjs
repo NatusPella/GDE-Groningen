@@ -4,7 +4,7 @@
 // met referentiebeelden BUITEN git en maakt één HTML-pagina met voor/na/diff per punt.
 //
 //   node scripts/kwaliteit/beeldregressie.mjs --lijst
-//   node scripts/kwaliteit/beeldregressie.mjs --run --out=<map> [--only=a,b] [--game-dir=<gestagede game>] [--geen-vergelijk]
+//   node scripts/kwaliteit/beeldregressie.mjs --run --out=<map> [--only=a,b] [--game-dir=<gestagede game>] [--geen-vergelijk] [--url-flags=perfoff=x]
 //   node scripts/kwaliteit/beeldregressie.mjs --vergelijk --out=<map> [--ref=<map>] [--streng]
 //   node scripts/kwaliteit/beeldregressie.mjs --ververs --out=<map> [--only=a,b] [--ref=<map>]
 //
@@ -120,7 +120,7 @@ async function main(argv) {
     fs.writeFileSync(script, `window.__kp = ${JSON.stringify(kp)};\n${lib}\n${page}\nreturn await kpMain();\n`);
     const args = ['.', `--smoke-test=${path.join(out, '_smoke.png')}`, `--perf-script=${script}`, `--autoplay=${cfg.seed || 7}`, '--stil',
       '--disable-renderer-backgrounding', '--disable-backgrounding-occluded-windows', '--disable-features=CalculateNativeWinOcclusion',
-      `--clip=${nieuwMap}`, `--clip-size=${cfg.formaat || '1920x1080'}`, `--preset=${cfg.preset}`];
+      `--clip=${nieuwMap}`, `--clip-size=${cfg.formaat || '1920x1080'}`, `--preset=${cfg.preset}`, ...(opt('url-flags') ? [`--url-flags=${opt('url-flags')}`] : [])];
     const env = R.electronEnv({ profile: dirs.profile, tmp: dirs.tmp, gameDir, extra: { GDE_NIEUW_VERHAAL: '1' } });
     delete env.GDE_MENU_TEST;
     try {

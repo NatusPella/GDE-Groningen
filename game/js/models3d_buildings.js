@@ -1589,6 +1589,11 @@ export function buildingBase(b) {
   return f ? f.y : 0;
 }
 
+// A building with its own model (a landmark, a Grote Markt / Vismarkt model or historic facade, a named or kit model): its detail looks
+// nothing like the plain far copy (24-11, beeldregressie 'stad': a light round building with arches dithered with a brick cylinder), so
+// neither layer gets the dither band (scene3d.js addBuildingFade, farlod.js lodHard): the hard switch on the ring, as before the band.
+export const ownBuildingModel = (b) => !!(b.landmark || marktKind(b) || hasLandmarkModel(b));
+
 // Massing + rough colours for the far LOD layer (farlod.js).
 export function buildingLodStyle(b) {
   capBuilding(b); // the far LOD shows the same capped heights as the mesh (buildingcap.js, #179/#259)
