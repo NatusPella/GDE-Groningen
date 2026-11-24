@@ -12,18 +12,18 @@
 <p class="klein">Headless Chrome met <code>pagina.html</code> (1920x1080, vaste camerapunten, eigen belichting, geen spel); in het spel zelf nog niet bekeken. Weergaven: buiten, schuin, achter, dicht (rijder en stuur). Opnieuw maken: <code>node scripts/voertuigklein_beeld.mjs voor|na &lt;voertuig&gt;</code>.</p>
 <h2>Driehoeken en oordeel</h2>
 <table><tr><th>Voertuig</th><th>Voor (totaal)</th><th>Na (totaal, LOD0 / LOD1 / LOD2)</th><th>Oordeel voor</th><th>Oordeel na</th></tr>
-<tr><td>fiets</td><td>2810 (6 draws)</td><td>4844 / 2747 / 2114 (7 draws)</td><td>6</td><td>8</td></tr>
-<tr><td>fiets2</td><td>3242 (5 draws)</td><td>5320 / 3178 / 2542 (6 draws)</td><td>nieuw</td><td></td></tr>
-<tr><td>fietsoud</td><td>3162 (5 draws)</td><td>5204 / 3095 / 2462 (6 draws)</td><td>5.5</td><td>7.5</td></tr>
-<tr><td>fatbike</td><td>2702 (4 draws)</td><td>5024 / 2745 / 2551 (6 draws)</td><td>5.5</td><td>7</td></tr>
+<tr><td>fiets</td><td>2810 (6 draws)</td><td>4844 / 3405 / 2829 (10 draws)</td><td>6</td><td>8</td></tr>
+<tr><td>fiets2</td><td>3242 (5 draws)</td><td>5320 / 3839 / 3263 (9 draws)</td><td>nieuw</td><td></td></tr>
+<tr><td>fietsoud</td><td>3162 (5 draws)</td><td>5204 / 3764 / 3188 (9 draws)</td><td>5.5</td><td>7.5</td></tr>
+<tr><td>fatbike</td><td>2702 (4 draws)</td><td>5024 / 3436 / 3162 (9 draws)</td><td>5.5</td><td>7</td></tr>
 <tr><td>bakfiets</td><td>4338 (6 draws)</td><td>6112 / 4563 / 4263 (7 draws)</td><td>5.5</td><td>7.5</td></tr>
-<tr><td>bezorger</td><td>2870 (7 draws)</td><td>4904 / 2773 / 2140 (8 draws)</td><td>nieuw</td><td></td></tr>
-<tr><td>deelfiets</td><td>2988 (7 draws)</td><td>5142 / 2891 / 2202 (8 draws)</td><td>5.5</td><td>7.5</td></tr>
-<tr><td>fietsrace</td><td>nieuw</td><td>4586 / 3137 / 2740 (6 draws)</td><td>nieuw</td><td>7.5</td></tr>
-<tr><td>fietsmtb</td><td>nieuw</td><td>4490 / 3100 / 2705 (6 draws)</td><td>nieuw</td><td>7.5</td></tr>
-<tr><td>fietsebike</td><td>nieuw</td><td>5220 / 3101 / 2521 (6 draws)</td><td>nieuw</td><td>7.5</td></tr>
-<tr><td>step</td><td>2714 (5 draws)</td><td>3944 / 2786 / 2364 (5 draws)</td><td>4</td><td>7</td></tr>
-<tr><td>bromfiets</td><td>2594 (5 draws)</td><td>4744 / 2835 / 2422 (5 draws)</td><td>4</td><td>7</td></tr>
+<tr><td>bezorger</td><td>2870 (7 draws)</td><td>4904 / 3431 / 2855 (11 draws)</td><td>nieuw</td><td></td></tr>
+<tr><td>deelfiets</td><td>2988 (7 draws)</td><td>5142 / 3687 / 3055 (11 draws)</td><td>5.5</td><td>7.5</td></tr>
+<tr><td>fietsrace</td><td>nieuw</td><td>4586 / 3498 / 3039 (9 draws)</td><td>nieuw</td><td>7.5</td></tr>
+<tr><td>fietsmtb</td><td>nieuw</td><td>4490 / 3364 / 2993 (9 draws)</td><td>nieuw</td><td>7.5</td></tr>
+<tr><td>fietsebike</td><td>nieuw</td><td>5220 / 3812 / 3236 (10 draws)</td><td>nieuw</td><td>7.5</td></tr>
+<tr><td>step</td><td>2714 (5 draws)</td><td>3944 / 2930 / 2508 (7 draws)</td><td>4</td><td>7</td></tr>
+<tr><td>bromfiets</td><td>2594 (5 draws)</td><td>4770 / 3575 / 3169 (7 draws)</td><td>4</td><td>7</td></tr>
 <tr><td>sloep</td><td>445 (3 draws)</td><td>1617 / 342 / 146 (3 draws)</td><td>3.5</td><td>6.5</td></tr>
 <tr><td>sloepkap</td><td>445 (3 draws)</td><td>1617 / 342 / 146 (3 draws)</td><td>nieuw</td><td></td></tr>
 <tr><td>rondvaart</td><td>1749 (3 draws)</td><td>3297 / 507 / 193 (3 draws)</td><td>5</td><td>7</td></tr>
@@ -82,3 +82,24 @@
 <h2>Helikopter</h2>
 <div class="rij"><figure><img src="voor-heli-schuin.png"><figcaption>voor, schuin</figcaption></figure><figure><img src="na-heli-schuin.png"><figcaption>na, schuin</figcaption></figure></div>
 <div class="rij"><figure><img src="voor-heli-achter.png"><figcaption>voor, achter</figcaption></figure><figure><img src="na-heli-achter.png"><figcaption>na, achter</figcaption></figure></div>
+<h1 style="margin-top:36px">Modulaire rijders (Quaternius) en sturen</h1><p class="klein">Headless Chrome met de echte modulaire man en vrouw en seating3d placeSeatedLocal, zoals de spelerfase het doet; niet in Electron of in het spel zelf bekeken. Meting zonder beeld: <code>node scripts/rijpose_modulair_test.mjs --toon</code> (heup op het zadel, handen aan de handvatten, voeten op de trappers voor man en vrouw in drie maten).</p>
+<h2>Modulaire rijder (Quaternius, mensenFase 3) op de fiets: voor en na</h2>
+<div class="rij"><figure><img src="voor-fiets+q-buiten.png"><figcaption>voor, buiten</figcaption></figure><figure><img src="na-fiets+q-buiten.png"><figcaption>na, fiets+q buiten</figcaption></figure></div>
+<div class="rij"><figure><img src="voor-fiets+q-dicht.png"><figcaption>voor, dicht</figcaption></figure><figure><img src="na-fiets+q-dicht.png"><figcaption>na, fiets+q dicht</figcaption></figure></div>
+<h2>Modulaire rijder op de snorscooter: voor en na</h2>
+<div class="rij"><figure><img src="voor-bromfiets+q+m-buiten.png"><figcaption>voor, buiten</figcaption></figure><figure><img src="na-bromfiets+q+m-buiten.png"><figcaption>na, bromfiets+q+m buiten</figcaption></figure></div>
+<div class="rij"><figure><img src="voor-bromfiets+q+m-dicht.png"><figcaption>voor, dicht</figcaption></figure><figure><img src="na-bromfiets+q+m-dicht.png"><figcaption>na, bromfiets+q+m dicht</figcaption></figure></div>
+<h2>Modulaire rijder op de step: voor en na</h2>
+<div class="rij"><figure><img src="voor-step+q-buiten.png"><figcaption>voor, buiten</figcaption></figure><figure><img src="na-step+q-buiten.png"><figcaption>na, step+q buiten</figcaption></figure></div>
+<div class="rij"><figure><img src="voor-step+q-dicht.png"><figcaption>voor, dicht</figcaption></figure><figure><img src="na-step+q-dicht.png"><figcaption>na, step+q dicht</figcaption></figure></div>
+<h2>Sturen links: voorvork, spatbord, lamp en stuur draaien mee (bovenaanzicht)</h2>
+<div class="rij"><figure><img src="voor-fiets+q+l-boven.png"><figcaption>voor, boven</figcaption></figure><figure><img src="na-fiets+q+l-boven.png"><figcaption>na, fiets+q+l boven</figcaption></figure></div>
+<h2>Sturen rechts op de snorscooter (bovenaanzicht)</h2>
+<div class="rij"><figure><img src="voor-bromfiets+q+r-boven.png"><figcaption>voor, boven</figcaption></figure><figure><img src="na-bromfiets+q+r-boven.png"><figcaption>na, bromfiets+q+r boven</figcaption></figure></div>
+<h2>Alleen na: racefiets (man), fatbike (man), bakfiets, kleine vrouw (x0,92), grote man (x1,08)</h2>
+<div class="rij"><figure></figure><figure><img src="na-fietsrace+q+m-buiten.png"><figcaption>na, fietsrace+q+m buiten</figcaption></figure></div>
+<div class="rij"><figure></figure><figure><img src="na-fietsrace+q+m-dicht.png"><figcaption>na, fietsrace+q+m dicht</figcaption></figure></div>
+<div class="rij"><figure></figure><figure><img src="na-fatbike+q+m-buiten.png"><figcaption>na, fatbike+q+m buiten</figcaption></figure></div>
+<div class="rij"><figure></figure><figure><img src="na-bakfiets+q-buiten.png"><figcaption>na, bakfiets+q buiten</figcaption></figure></div>
+<div class="rij"><figure></figure><figure><img src="na-fiets+q+m+x0.92-buiten.png"><figcaption>na, fiets+q+m+x0.92 buiten</figcaption></figure></div>
+<div class="rij"><figure></figure><figure><img src="na-fiets+q+x1.08-buiten.png"><figcaption>na, fiets+q+x1.08 buiten</figcaption></figure></div>

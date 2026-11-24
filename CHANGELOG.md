@@ -9,6 +9,7 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ## [Unreleased]
 
+- Voertuigen: de modulaire mens (Quaternius) zit op fiets, bakfiets en snorscooter met de heup op het zadel, de voeten op de trappers of de vloerplaat en de handen aan de handvatten, en staat met beide handen aan het stuur van de step; man en vrouw in drie lichaamsmaten (scripts/rijpose_modulair_test.mjs). De krukken draaien mee met de voeten, en de voorvork met het voorspatbord en de lamp draaien nu mee met het stuur. Alleen beeld.
 - Voertuigen: de step en de snorscooter zijn opnieuw gebouwd (vehicle_scooter.js): afgeronde panelen, een beenschild, een stuurkap met koplamp, spiegels, uitlaat met demper, kentekenplaat en dikke wielen; de step heeft een dek met accu, scharnierklem en display. De rijder zit op het zadel of staat op het dek met de handen aan het stuur. Alleen beeld.
 - Voertuigen: de kleine boten hebben een romp met dichtere stations en een bolle kimming, een dolboord, een schuurlijst met stootkussens, kikkers, een boegoog, spanten, reddingsboeien en een bootshaak; de kano heeft een juk en een peddel, de rubberboot een vloer en een buitenboordmotor met schroef. Alleen beeld.
 - Voertuigen: de helikopter heeft een gebogen staartboom, een kielvin met onderste vin, een stabilisator met eindplaten, een rotorkop met stuurplateau, kapbogen, een kruisbuisonderstel met schoenen, een zoeklicht en versmallende rotorbladen; de romp krijgt lichtere niveaus. Alleen beeld.
