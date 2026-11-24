@@ -13,7 +13,7 @@ const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<
 export const sui = { msg: '', confirm: null };
 const STATUS_TEXT = { jij: 'van jou', usmem: 'van Us Mem Snacks', medespeler: 'van een medespeler', vrij: 'vrij' };
 // Kopen is de gele hoofdknop, de rest omlijnd: zonder eigen vorm leken ze lichtgrijze tekst of uitgeschakeld (#1248).
-const HOOFD = new Set(['koop-wagen', 'vergunning', 'neem-over']);
+const HOOFD = new Set(['koop-wagen']);   // één gele knop per scherm: de eerste vergunning zonder standplaats wordt geel in spotsHtml (24-11)
 // uit: true (slot) of een reden (slot en reden in de knop), zie holdingcards.js (#1272).
 const btn = (act, text, extra = '', uit = false) => holdingButton('data-sn', act, text, extra, uit, HOOFD.has(act));
 const key = (act, id) => `${act}:${id}`;
@@ -70,6 +70,29 @@ function ownHtml(v) {
     `<span class="bd-acties">${btn('vul', `Vul aan (${euro(SN.RESTOCK_FEE)})`, '', o.stockDays >= SN.STOCK_MAX)} ${next ? askOr('tier', 'own', `Grotere wagen ${euro(SN.TIERS[next].up)}`, `Voor ${euro(SN.TIERS[next].up)}?`, miss(v.money, SN.TIERS[next].up), why(v, SN.TIERS[next].up)) : ''}</span></div>${knobs}${offeringsBlock}<div class="bz-bulk">${up}</div>`);
 }
 
+
+// Je wagen (ontwerp docs/ontwerp/BEZIT-UI-24-11.md, onderdeel f): wat hij verwacht te leveren, de dienst als dagbalk met stappers, het menu als kaarten en de upgrades.
+const stap = (label, waarde, patchMin, patchPlus, uitMin, uitPlus) => `<span class="ds-z-stapper"><button type="button" data-sn="open" data-patch="${patchMin}" aria-label="${esc(label)}: minder"${uitMin ? ' disabled' : ''}>${icoon('pijl_links', { cls: 'bz-ic' })}</button><output>${esc(label)} <b>${esc(waarde)}</b></output><button type="button" data-sn="open" data-patch="${patchPlus}" aria-label="${esc(label)}: meer"${uitPlus ? ' disabled' : ''}>${icoon('pijl_rechts', { cls: 'bz-ic' })}</button></span>`;
+const tus = (t, ic) => `<h4 class="ds-z-tussenkop"><span>${esc(t)}</span>${ic ? icoon(ic, { cls: 'bz-ic' }) : ''}</h4>`;
+export function ownNieuw(v) {
+  const o = v.own, f = o.forecast;
+  const spot = o.spot ? v.spots.find((s) => s.id === o.spot) : null;
+  const next = SN.TIER_IDS[SN.TIER_IDS.indexOf(o.tier) + 1];
+  const duur = o.hours;
+  const dienst = `<section class="bz-blok" data-blok="dienst">${tus('Dienst', 'tijd')}<div class="bz-dienst" role="img" aria-label="Open van ${hh(o.from)} tot ${hh(o.from + duur)}"><span class="bz-dienst__open" style="--van:${(o.from / 24) * 100}%;--duur:${(Math.min(duur, 24 - o.from) / 24) * 100}%"></span></div><div class="bz-dienst__uren bz-hulp"><span>00:00</span><span>06:00</span><span>12:00</span><span>18:00</span><span>24:00</span></div>` +
+    `<div class="bz-filters" role="group" aria-label="Openingstijd en prijs">${stap('Open vanaf', hh(o.from), `from:${(o.from + 23) % 24}`, `from:${(o.from + 1) % 24}`, false, false)}${stap('Open', `${duur} uur`, `hours:${duur - 1}`, `hours:${duur + 1}`, duur <= 4, duur >= 14)}${stap('Prijs', `${Math.round(o.pr * 100)}%`, `pr:${Math.round((o.pr - 0.05) * 100) / 100}`, `pr:${Math.round((o.pr + 0.05) * 100) / 100}`, o.pr <= 0.7, o.pr >= 1.4)}</div></section>`;
+  const kaarten = v.menu.map((m) => {
+    const reden = !m.unlocked ? 'Eerst koeling' : st(v, 'menu') ? 'Komt later in het verhaal' : '';
+    return `<button type="button" class="bz-menukaart${m.on ? ' is-aan' : ''}" data-sn="menu" data-id="${esc(m.id)}" data-on="${m.on ? 1 : 0}" role="switch" aria-checked="${!!m.on}"${reden ? ' disabled' : ''}><span class="bz-menukaart__naam">${esc(m.label)}</span><small>€${eur2(m.price)}${m.chainOwn >= 0.5 ? ' · eigen keten' : ''}${reden ? ` · ${reden}` : ''}</small><span class="bz-vink${m.on ? ' bz-vink--aan' : ''}" aria-hidden="true">${m.on ? icoon('vinkje', { cls: 'bz-ic' }) : reden ? icoon('slot', { cls: 'bz-ic' }) : ''}</span></button>`;
+  }).join('');
+  const menu = `<section class="bz-blok" data-blok="menu">${tus(`Menu · ${o.menu.length} van ${o.tierDef.slots} plekken`, 'eten')}<div class="bz-menu">${kaarten}</div>${stNote(v, 'menu')}<span class="bz-hulp">Per klant ongeveer €${eur2(o.numbers.ticket)} omzet en €${eur2(o.numbers.cogs)} inkoop.</span></section>`;
+  const ups = SN.UPGRADE_IDS.map((id) => (v.up.includes(id) ? `<div class="bz-rij-tussen"><span><b>${esc(SN.UPGRADES[id].label)}</b> <span class="ds-z-status ds-z-status--goed">aanwezig</span></span></div>` : `<div class="bz-rij-tussen"><b>${esc(SN.UPGRADES[id].label)}</b>${askOr('upgrade', id, euro(SN.UPGRADES[id].price), `Voor ${euro(SN.UPGRADES[id].price)}?`, miss(v.money, SN.UPGRADES[id].price), why(v, SN.UPGRADES[id].price))}</div>`)).join('');
+  const nu = `<section class="bz-blok" data-blok="wagen">${tus(esc(o.tierDef.label), 'burger')}<dl class="bz-feiten"><dt>Standplaats</dt><dd>${spot ? esc(spot.short) : 'nog thuis'}</dd><dt>Voorraad</dt><dd>${o.stockDays} ${o.stockDays === 1 ? 'dag' : 'dagen'}</dd>${f ? `<dt>Verwacht vandaag (±)</dt><dd>${euro(f.net)} winst</dd><dt>Klanten (±)</dt><dd>${f.sold}${f.unserved ? `, ${f.unserved} gemist` : ''}</dd>` : ''}</dl>${f ? `<span class="bz-hulp">${esc(f.note)}</span>` : ''}<div class="bz-acties">${btn('vul', `Vul aan (${euro(SN.RESTOCK_FEE)})`, '', o.stockDays >= SN.STOCK_MAX)}${next ? askOr('tier', 'own', `Grotere wagen ${euro(SN.TIERS[next].up)}`, `Voor ${euro(SN.TIERS[next].up)}?`, miss(v.money, SN.TIERS[next].up), why(v, SN.TIERS[next].up)) : ''}</div></section>`;
+  const home = !spot ? `<p class="bz-hulp" data-hint="thuis">Je wagen staat nog thuis en verdient niets. Koop hieronder een vergunning voor een standplaats en zet je wagen erheen.</p>` : '';
+  const leeg = !o.menu.length ? '<p class="bz-zwak" data-hint="menu">Je menu is leeg: zonder product verkoop je niets. Zet hieronder iets op het menu.</p>' : '';
+  return `<div class="bz-snack">${home}${leeg}<div class="bz-raster2">${nu}${dienst}</div>${menu}<section class="bz-blok" data-blok="upgrades">${tus('Upgrades', 'tune_snack')}${ups}</section></div>`;
+}
+
 // Het pictogram van een standplaats uit zijn naam: een stadion, een station, een markt, een strand of een park; anders een plek.
 export function spotIcon(s) {
   const n = String((s && (s.name || s.short)) || '').toLowerCase();
@@ -82,11 +105,13 @@ export function spotIcon(s) {
 }
 
 function spotsHtml(v) {
+  let geelGehad = v.own.hasWagon && !v.own.spot ? false : true;   // de eerste vrije vergunning is de gele knop als je wagen nog thuis staat
   const hasEmpty = (id) => !v.spots.find((s) => s.id === id).wagon;
   const rows = v.spots.slice().sort((a, b) => b.foot - a.foot).map((s) => {
     const feiten = [esc(s.place), STATUS_TEXT[s.status] + (s.claim ? ` (${esc(s.claim.name)})` : ''), s.status === 'jij' ? `nog ${s.daysLeft} dagen, verlengen ${euro(s.renew)}` : '', s.wagon ? (s.wagon === 'own' ? 'jouw wagen staat er' : `wagen ${esc(s.wagon)} staat er`) : ''].filter(Boolean).map((x) => `<span>${x}</span>`).join('');
     let acts = btn('doel-plek', 'Op de kaart', ` data-id="${esc(s.id)}"`);
-    if (s.status === 'vrij') acts += ' ' + askOr('vergunning', s.id, `Vergunning ${euro(s.price)}`, `Voor ${euro(s.price)}?`, miss(v.money, s.price), why(v, s.price, 'stek'));
+    if (s.status === 'vrij' && !geelGehad) { geelGehad = true; acts += ' ' + askOr('vergunning', s.id, `Vergunning ${euro(s.price)}`, `Voor ${euro(s.price)}?`, miss(v.money, s.price), why(v, s.price, 'stek')).replace('class="m-bt', 'class="m-bt bz-hoofd'); }
+    else if (s.status === 'vrij') acts += ' ' + askOr('vergunning', s.id, `Vergunning ${euro(s.price)}`, `Voor ${euro(s.price)}?`, miss(v.money, s.price), why(v, s.price, 'stek'));
     else if (s.status === 'usmem') acts += ' ' + askOr('neem-over', s.id, `Neem over ${euro(s.ask)}`, `Voor ${euro(s.ask)}?`, miss(v.money, s.ask), why(v, s.ask, 'keten'));
     else if (s.status === 'jij' && hasEmpty(s.id)) {
       if (v.own.hasWagon) acts += ' ' + btn('zet-wagen', 'Zet mijn wagen hier', ` data-id="${esc(s.id)}"`, st(v, 'standplaats'));
@@ -128,13 +153,14 @@ export function neighbourhoodHtml(v) {
 export function snackHtml(v) {
   if (!v.open) return closedHtml(v.hint);
   // #1273: the tile is the reputation (0 to 100), not a name: it says what it is and "van 100", like the Snackimperium tile.
-  const tiles = [['Reputatie', `${Math.round(v.effRep)} van 100`], ['Snackimperium', `${v.score.score} van 100`], ['Standplaatsen', `${v.score.held} tegen ${v.rival.spots} van Us Mem`], ['Wagens', v.score.wagons]].map(([k, x]) => `<span class="bz-tegel"><small>${k}</small><b>${x}</b></span>`).join('');
+  const balk = (naam, w) => `<div class="ds-z-balk" style="--ds-z-w:${Math.max(0, Math.min(100, Math.round(w)))}%"><span class="ds-z-balk__baan"><span class="ds-z-balk__vul"></span></span><span class="ds-z-balk__label">${naam}: ${Math.round(w)} van 100</span></div>`;
+  const imperium = `<section class="bz-blok" data-blok="imperium"><h4 class="ds-z-tussenkop"><span>Imperium</span></h4>${balk('Reputatie', v.effRep)}${balk('Snackimperium', v.score.score)}<dl class="bz-feiten"><dt>Standplaatsen</dt><dd>${v.score.held} tegen ${v.rival.spots} van Us Mem</dd><dt>Wagens</dt><dd>${v.score.wagons}</dd></dl></section>`;
   const goals = `<ul class="bz-lijst">${v.goals.map((g) => `<li data-goal="${g.id}" data-done="${g.done ? 1 : 0}">${g.done ? 'Klaar: ' : 'Nog niet: '}${esc(g.label)}</li>`).join('')}</ul>`;
   const war = v.war ? `<p class="bz-zwak" data-kind="oorlog">Prijzenoorlog tot dag ${v.war.until}: Us Mem Snacks verlaagt zijn prijzen met ${Math.round(v.war.depth * 100)}%${v.war.matched ? '; jij prijst mee.' : '.'}</p>` : '';
-  return `<div class="pm-pane-top"><span class="m-eb">Land en bedrijf</span><h2 class="m-h2 td-h2">Snackwagen</h2></div><div class="bz-tegels">${tiles}</div>` +
+  return `${imperium}` +
     // #1249 (hertest 24-11): één korte regel; de standplaatsen staan al in de tegel
     `<p class="mut">${esc(v.rival.name)}: ${v.rival.pand} panden, keten niveau ${v.rival.chain}. Jouw aandeel ${Math.round(v.score.share * 100)}%.</p>${war}${eventHtml(v)}` +
-    ownHtml(v) + fleetHtml(v) + spotsHtml(v) + neighbourhoodHtml(v) + sectionCard('doelen', 'vlag', 'Doelen', goals, { count: `${v.goals.filter((g) => g.done).length} van ${v.goals.length}` }) + `<p class="bd-melding" aria-live="polite">${esc(sui.msg)}</p>`;
+    (v.own.hasWagon ? ownNieuw(v) : ownHtml(v)) + fleetHtml(v) + spotsHtml(v) + neighbourhoodHtml(v) + sectionCard('doelen', 'vlag', 'Doelen', goals, { count: `${v.goals.filter((g) => g.done).length} van ${v.goals.length}` }) + `<p class="bd-melding" aria-live="polite">${esc(sui.msg)}</p>`;
 }
 
 // ---- binden ----

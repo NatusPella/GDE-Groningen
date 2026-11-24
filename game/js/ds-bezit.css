@@ -179,3 +179,17 @@ html.reduce-motion .bz-vasthoud::before, html.rustig-drukwerk .bz-vasthoud::befo
 .bzk-i-eigen { background: var(--ds-c-ink-papier); }
 .bz-leeg { margin: var(--ds-s-4) 0; }
 .bz-leeg-beeld { display: grid; place-items: center; }
+
+/* ---- Snackwagen (snackui.js): dienst, menu en imperium ---- */
+.bz-snack { display: flex; flex-direction: column; gap: var(--ds-s-3); }
+.bz-dienst { position: relative; height: var(--ds-s-5); border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); border-radius: var(--ds-r); background-color: var(--ds-c-ink-papier); background-image: var(--ds-raster); background-size: var(--ds-raster-maat); overflow: hidden; }
+.bz-dienst__open { position: absolute; top: 0; bottom: 0; left: var(--van); width: var(--duur); background: var(--ds-c-ink-geel); border-left: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); border-right: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); }
+.bz-dienst__uren { display: flex; justify-content: space-between; }
+.bz-menu { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--ds-s-2); }
+.bz-menukaart { position: relative; display: flex; flex-direction: column; gap: var(--ds-s-1); padding: var(--ds-s-2) var(--ds-s-3); text-align: left; background: var(--ds-zeef-bg); color: var(--ds-zeef-tx); border: var(--ds-lijn-dik) solid var(--ds-c-ink-inkt); border-radius: var(--ds-r); cursor: pointer; box-shadow: var(--ds-schaduw-hard-klein); font: inherit; }
+.bz-menukaart.is-aan { background: var(--ds-c-sel-vlak); border-color: var(--ds-c-ink-bord); }
+.bz-menukaart:disabled { border-style: dashed; box-shadow: none; color: var(--ds-c-inkt-zacht); cursor: not-allowed; }
+.bz-menukaart:focus-visible { outline: var(--ds-focus-dikte) solid var(--ds-zeef-tx); outline-offset: var(--ds-focus-afstand); }
+.bz-menukaart__naam { font-family: var(--ds-font-zeef-kop); font-weight: 800; font-size: var(--ds-t-label); padding-right: var(--ds-s-5); }
+.bz-menukaart small { font-size: var(--ds-t-hulp); }
+.bz-menukaart .bz-vink { position: absolute; top: var(--ds-s-2); right: var(--ds-s-2); width: var(--ds-s-4); height: var(--ds-s-4); }
