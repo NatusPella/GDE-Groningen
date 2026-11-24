@@ -9,6 +9,12 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ## [Unreleased]
 
+- Straatpraat: twee mensen die vlak bij elkaar iets zeggen, krijgen hun tekstbellen boven elkaar in plaats van over elkaar heen. Samen spelen: alleen beeld, per speler.
+- Duiven: het blauwe duivenplaatje boven een duivenplek is kleiner (het vulde van dichtbij een zesde van het scherm), en de vraag 'Fluit een duif' houdt een vaste afstand tot de doelbalk in plaats van er tegenaan te plakken; als hij daarvoor is opgeschoven, loopt er geen lijntje meer dwars door de tekst. Samen spelen: alleen beeld, per speler.
+- Doelbalk: bij 'Ontsnap aan de politie' steken de toetsplaatjes (W A S D, Shift, E) niet meer omhoog in de regel 'Pak een bak en smeer hem'. Samen spelen: alleen beeld, per speler.
+- Land en bedrijf > Boerderij: de naam van de boerderij en 'Boerenzakdoek' liggen niet meer over elkaar in de band, en de veldkaart toont de hele naam van het veld (het gewasplaatje in de kop is kleiner, de standchip mag eronder). Samen spelen: alleen beeld, per speler.
+- Samen spelen: de eerste keuze (Meedoen of Open je spel) toont twee tegels met een groot icoon en een duidelijke kop in plaats van twee lege vlakken met een klein tekentje. Samen spelen: alleen menubeeld, niets aan het netwerk.
+- Menu: op een kleiner scherm (1280x720) staat de groene streep onder het tabblad dat open is, en niet meer twee tabbladen verderop. Samen spelen: alleen beeld, per speler.
 - Snackwagen: Jelles bedrijf heet overal Us Mem Snacks (op het tabblad Snackwagen, de kaartlaag Standplaatsen, de prestatie en het bord op zijn wagens stond nog Usmem). Samen spelen: alleen tekst, per speler.
 - Land en bedrijf: het icoon van een lege staat (Overzicht, Te koop) heeft een vaste maat en vult niet meer het hele paneel; Te koop toont een wegwijzerbord in plaats van een gestippeld vakje. Samen spelen: per speler.
 - Visboek: de wateren staan in één kolom met hun volle naam in plaats van drie smalle kolommen met afgekapte namen. Samen spelen: per speler.
