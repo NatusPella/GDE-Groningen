@@ -26,7 +26,7 @@ ok(!/#5dff7a|#ff9a8a|#9aa3ad|rgba\(95, 180, 217/.test(kau), 'de actiebalk heeft 
 // hij nooit meer vanzelf terug; hij blijft te vinden onder Instellingen > Besturing > Hulp.
 ok(/body\.insertAdjacentHTML\('beforeend', uitlegHtml/.test(mv),
   'de uitleg wordt als popup over de kaart geplaatst');
-ok(/\.mapview-overlay :is\(\.mv-help, \.mv-reispop\) \{ position: absolute; inset: 0;/.test(kau),
+ok(/(?:\.mapview-overlay|:is\(\.mapview-overlay, \.reis-hud\)) :is\(\.mv-help, \.mv-reispop\) \{ position: absolute; inset: 0;/.test(kau),
   'de uitleg dekt de kaart af als popup in plaats van in een kolom te staan');
 ok(/role="dialog" aria-modal="true"/.test(kau) && /data-act="uitleg-sluit"/.test(kau) && !/aria-label="Sluiten"/.test(kau),
   'de popup is een dialoog met één sluitknop (Begrepen), geen kruisje');
