@@ -137,7 +137,7 @@ ok(nieuw > 2 && !isLegacyCardOpen() && listeners.length === basis, 'N kiest Nieu
 
 // de bedrading in de bron
 const ui =src('game/js/saveslotsui.js'), ss = src('game/js/startscreen.js'), sg = src('game/js/savegame.js'), sl = src('game/js/saveslots.js');
-ok(/chips\.push\(`<span class="ssl-chip" title="[^"]*">\$\{esc\(LEGACY_CARD\.tag\)\}<\/span>`\)/.test(ui) && /sm\.legacyStory/.test(ui), 'het opgeslagen-spellenscherm toont de tag Oude versie');
+ok(/esc\(LEGACY_CARD\.tag\)/.test(ui) && /sm\.legacyStory/.test(ui), 'het opgeslagen-spellenscherm toont de tag Oude versie');
 ok(/summary\.legacyCard && !cardDone\.has\(cur\.n\)\) \{ over = \{ n: cur\.n, kind: 'legacy' \}/.test(ui), 'laden van een oude save vraagt eerst');
 ok(/act === 'legacy-continue'[\s\S]{0,200}markLegacyCardSeen\(cur\.n\)[\s\S]{0,120}doAction\('load'/.test(ui), 'Doorgaan zet de vlag en laadt zoals nu');
 ok(/act === 'legacy-new'[\s\S]{0,500}doAction\('new', vrij, 0\)/.test(ui) && !/legacy-new[\s\S]{0,500}deleteSlot/.test(ui), 'Nieuw spel gaat via de gewone route en wist niets');

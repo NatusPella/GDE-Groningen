@@ -36,7 +36,7 @@ t('de bron: eigen rail-item onder Bezit, tabs in het paneel, dynamisch label, ac
   assert.doesNotMatch(pm, /const CHILD = \{[^}]*boerderij/);
   assert.match(pm, /'Begin je boerderij'/);
   assert.match(pm, /begonnen \? 'Land en bedrijf' : 'Begin je boerderij'/, 'de rail noemt het onderdeel zoals de kop van het scherm (review 22-11)');
-  assert.match(pm, /data-goto="boerderij">Boerderij<\/button>/, 'Naar mijn boerderij staat in Spel > Opslaan & stoppen');
+  assert.match(pm, /\['bezit', 'Bezit', \['spullen', 'garage', 'boerderij'\]\]/, 'Land en bedrijf staat in de rail (Spel-UI 24-11: de rij Naar mijn boerderij in Opslaan en stoppen is weg, het stond er dubbel)');
   const ui = lees('game/js/boerderijui.js');
   assert.match(ui, /role="tab" class="[^"]*" data-bd=/, 'de onderdelen zijn tabs'); // #1243 (wensen-m): een segmentbalk (ds-z-tab), role=tab blijft
   assert.match(ui, /Begin je boerderij/);

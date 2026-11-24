@@ -67,7 +67,7 @@ const woorden = (t) => String(t || '').trim().split(/\s+/).filter(Boolean).lengt
     ok(totaal <= RECAP_MAX_WORDS, `${s.id}: de recapkaart past in ${RECAP_MAX_WORDS} woorden`, totaal);
     ok(/[.!?]$/.test(c.now), `${s.id}: "Nu" eindigt op een hele zin`, c.now);
     ok(!c.now.includes('…'), `${s.id}: "Nu" bevat geen beletselteken`);
-    if (c.now !== lead) afgekapt++;
+    if (c.now !== lead.replace(/^(Tammo|Anita|Tessa): /, '')) afgekapt++; // Spel-UI 24-11: de kaart noemt de gekozen hoofdpersoon, het voorvoegsel van de spreker valt weg
     // een leadzin die alleen een voorzetsel van de opdracht is ("Eerst de mosterd.") mag niet het hele "Nu" zijn als er meer staat
     if (woorden(c.now) <= 4 && woorden(lead) > 12) zonderDoel.push(s.id);
   }

@@ -33,7 +33,7 @@ ok(/if \(solo\) tiles\.push\(newCard/.test(ui), 'Nieuw spel is de eerste kaart')
 ok(/newfull/.test(ui) && /Dat spel wordt gewist/.test(ui), 'bij een volle opslag vraagt Nieuw spel eerst');
 
 const pause = read('game/js/pausemenu.js');
-ok(/data-action="menu"[^>]*>Herstarten</.test(pause), 'het pauzemenu heeft Spel herstarten');
+ok(/data-action="menu"[^>]*>Naar het menu</.test(pause), 'het pauzemenu heeft Naar het hoofdmenu (Spel-UI 24-11: was Spel herstarten)');
 ok(!/>Hoofdmenu<\/button>/.test(pause), 'het pauzemenu heeft geen kale Hoofdmenu-knop meer');
 
 const words = read('docs/WOORDENLIJST.md');

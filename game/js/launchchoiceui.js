@@ -9,6 +9,7 @@ import { geefToestemming, moetNaamVragen, moetToestemmingVragen } from './online
 import { openOnlineStart, meerInfoHtml } from './onlineconsentui.js';
 import { getSettings } from './settings.js';
 import { trapTabInCard, bewaarFocus } from './listnav.js';
+import { knopToets } from './dsbutton.js';
 import { menuItems, startFocus, menuToets, uitkomstVan, nieuwSpelPlan, ladenPlan, heldRegels } from './hoofdmenu.js';
 import { isPauseMenuOpen } from './pausestate.js';
 
@@ -107,8 +108,8 @@ export function hoofdmenuHtml({ items, summary, thumb, melding = '', versie = ''
   const ic = (n, cls = 'sp-ic') => icoon(n, { cls });
   const held = items.find((x) => x.held);
   const heldHtml = held.id === 'doorgaan' && regels
-    ? `<button type="button" class="sp-doorgaan" data-hm="doorgaan" data-i="0"><div class="sp-thumb${thumb ? '' : ' sp-thumb--leeg'}"${thumb ? ` style="background-image:url('${thumb}')"` : ''}></div><span class="sp-doorgaan__body"><span class="sp-doorgaan__kop"><span>Doorgaan</span><span class="ds-z-knop__toets" aria-hidden="true">${keyLabelHtml('Enter')}</span></span><span class="sp-doorgaan__regel"><b>${esc(regels.naam)}</b> · ${esc(regels.wie)}</span>${regels.stap ? `<span class="sp-doorgaan__regel">${esc(regels.stap)}</span>` : ''}<span class="sp-doorgaan__regel">${esc(regels.meta)}</span></span></button>`
-    : `<button type="button" class="sp-doorgaan sp-doorgaan--groot" data-hm="nieuw" data-i="0"><span class="sp-doorgaan__body"><span class="sp-doorgaan__kop"><span>Nieuw spel</span><span class="ds-z-knop__toets" aria-hidden="true">${keyLabelHtml('Enter')}</span></span><span class="sp-doorgaan__regel">${esc(held.uitleg)}</span></span></button>`;
+    ? `<button type="button" class="sp-doorgaan" data-hm="doorgaan" data-i="0"><div class="sp-thumb${thumb ? '' : ' sp-thumb--leeg'}"${thumb ? ` style="background-image:url('${thumb}')"` : ''}></div><span class="sp-doorgaan__body"><span class="sp-doorgaan__kop"><span>Doorgaan</span>${knopToets('ENTER')}</span><span class="sp-doorgaan__regel"><b>${esc(regels.naam)}</b> · ${esc(regels.wie)}</span>${regels.stap ? `<span class="sp-doorgaan__regel">${esc(regels.stap)}</span>` : ''}<span class="sp-doorgaan__regel">${esc(regels.meta)}</span></span></button>`
+    : `<button type="button" class="sp-doorgaan sp-doorgaan--groot" data-hm="nieuw" data-i="0"><span class="sp-doorgaan__body"><span class="sp-doorgaan__kop"><span>Nieuw spel</span>${knopToets('ENTER')}</span><span class="sp-doorgaan__regel">${esc(held.uitleg)}</span></span></button>`;
   const rij = (x, i) => `<button type="button" class="sp-keuze" data-hm="${x.id}" data-i="${i}">${ic(x.icoon)}<span><b>${esc(x.label)}</b><span>${esc(x.uitleg)}</span></span>${x.meta ? `<span class="sp-hulp">${esc(x.meta)}</span>` : `<span class="sp-keuze__toets" aria-hidden="true">${keyLabelHtml(String(i + 1))}</span>`}</button>`;
   const rest = items.map((x, i) => [x, i]).filter(([x]) => !x.held);
   return `<div class="gm gm-zeef sp-hm-wrap"><div class="gm-stage ds-zeef"><aside class="sp-menu" role="dialog" aria-modal="true" aria-label="Hoofdmenu">` +
@@ -127,6 +128,8 @@ export async function openHoofdmenu({ index = 0 } = {}) {
   const { listSlots, freeSlot, readThumb, markStay } = S;
   const openSaveSlots = UI.openSaveSlots;
   if (open) return open.promise;
+  // dezelfde keuze als de boot straks maakt (laatst bewaarde plek, een verse plek of een gekozen plek), zodat de held het spel toont dat Doorgaan opent
+  try { SG.ensureLatestSlot(); } catch (e) { /* geen opslag: het menu toont dan Nieuw spel */ }
   const heeftSave = (() => { try { return hasSave(); } catch (e) { return false; } })();
   const summary = heeftSave ? (() => { try { return getSaveSummary(); } catch (e) { return null; } })() : null;
   const aantal = (() => { try { return listSlots(null).length; } catch (e) { return 0; } })();

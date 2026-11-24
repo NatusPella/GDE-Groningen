@@ -1,0 +1,20 @@
+const sleep = (ms) => new Promise((res) => setTimeout(res, ms));
+const imp = (f) => import('/js/' + f + '.js');
+const key = (k, code, ty) => { for (const t of [window, document]) t.dispatchEvent(new KeyboardEvent(ty, { key: k, code, bubbles: true })); };
+const tap = (k, code) => { key(k, code, 'keydown'); key(k, code, 'keyup'); };
+const ready = () => window.__debug && window.__debug.world && window.__debug.world.map && document.body.classList.contains('game-started') && !document.querySelector('.ls.on:not(.out)');
+for (let i = 0; i < 240 && !ready(); i++) { if (!document.body.classList.contains('game-started') && i % 8 === 7) tap('Enter', 'Enter'); await sleep(1000); }
+const cine = await imp('cinematics');
+const skipper = setInterval(() => { if (cine.isCinematicActive()) cine.skipCinematic(); }, 100);
+for (let i = 0; i < 40 && cine.isCinematicActive(); i++) await sleep(250);
+await sleep(3000);
+const PM = await imp('pausemenu');
+PM.openPauseMenu('spel', { sub: 'overzicht' }); await sleep(1800);
+const h = document.querySelector('.sp-held');
+const cs = h ? getComputedStyle(h) : null;
+const k = document.querySelector('.sp-held__kaart');
+const out = { held: !!h, display: cs && cs.display, cols: cs && cs.gridTemplateColumns, padding: cs && cs.padding, kaart: k ? JSON.stringify(k.getBoundingClientRect()) : null, svg: k ? !!k.querySelector('svg') : null, sheets: [...document.styleSheets].map((s) => (s.href || '').split('/').pop()).filter((x) => /ds-|menu|pausemenu/.test(x)), html: h ? h.outerHTML.slice(0, 1400) : '' };
+console.log('[capture] probe');
+await sleep(800);
+clearInterval(skipper);
+return JSON.stringify(out);

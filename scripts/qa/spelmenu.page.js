@@ -26,7 +26,7 @@ for (const sub of ['acties']) {
   check(`Spel > ${sub}: rijen zichtbaar`, rij.length >= 3, rij.join(' | '));
   if (sub === 'acties') {
     const acties = [...root().querySelectorAll('[data-panel="spel"] [data-action]')].filter(zichtbaar).map((b) => b.dataset.action);
-    check('Opslaan & stoppen: de acties zijn zichtbaar', ['resume', 'save', 'saves', 'menu', 'restart'].every((a) => acties.includes(a)), acties.join(','));
+    check('Opslaan & stoppen: de acties zijn zichtbaar', ['save', 'saves', 'menu', 'nieuw-vraag', 'terugzetten-vraag'].every((a) => acties.includes(a)), acties.join(','));
     check('de rail heeft geen opslaan, laden of afsluiten meer', !root().querySelector('.pm-rail [data-action="save"], .pm-rail [data-action="restart"], .pm-rail [data-action="menu"]'));
   }
   console.log('[capture] spel-' + sub);

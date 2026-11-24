@@ -105,7 +105,7 @@ ok(L.codeer({ ...basis, niveau: 'zwaar' }) && !('d' in JSON.parse(L.codeer({ ...
   ok(SS.summarize({ ...base, moeilijkheid: { level: 'standaard', custom: { income: 1.25 } } }).niveau === 'Standaard · aangepast', 'met "aangepast" als er opties afwijken');
   ok(SS.summarize(base).niveau === '', 'een oude save zonder veld toont niets');
   ok(SS.summarize({ ...base, moeilijkheid: 'kapot' }).niveau === '', 'een kapot veld toont niets');
-  ok(/sm\.niveau && !bad\) chips\.push\(`<span class="ssl-chip"/.test(read('game/js/saveslotsui.js')), 'het label staat als klein chip op de kaart');
+  ok(/sm\.niveau && !bad \? `<span class="sp-hulp"/.test(read('game/js/saveslotsui.js')), 'het niveau staat als klein label op de kaart (Spel-UI 24-11)');
 }
 
 console.log(fails ? `${fails}/${n} FAIL` : `difficulty_lobby_test: ${n}/${n} ok`);

@@ -200,7 +200,8 @@
 .sp-niveau { min-height: 190px; }
 
 /* Het hoofdmenu bij de start (launchchoiceui.js openHoofdmenu): over het opstartscherm, het paneel links, zonder donkere sluier. */
-#online-start.sp-hm { background: transparent; display: block; padding: 0; place-items: unset; }
+#online-start.sp-hm { background: var(--ds-c-glas) url('../img/laad/luchtfoto.jpg') center / cover no-repeat; display: block; padding: 0; place-items: unset; }
+#online-start.sp-hm::before { content: ''; position: absolute; inset: 0; background: color-mix(in srgb, var(--ds-c-glas) 28%, transparent); }
 #online-start.sp-hm .sp-hm-wrap { position: fixed; inset: 0; }
 .sp-menu__hints .hints { display: flex; flex-wrap: wrap; gap: 8px 18px; align-items: center; font-size: max(15px, var(--menu-min, 15px)); }
 .sp-menu__hints .hints span { display: inline-flex; align-items: center; gap: 8px; }

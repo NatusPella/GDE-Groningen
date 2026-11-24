@@ -83,7 +83,7 @@ ok(C.CARD_TEXT.optiesUitleg.length <= 60, 'moeilijkheid: inleiding van de opties
   const ui = read('saveslotsui.js'), css = read('saveslots.css');
   const kaart = ui.slice(ui.indexOf('const card = (s)'), ui.indexOf('const emptyCard'));
   ok(!/ssl-part|ssl-prog|Volgende stap|storySummary/.test(kaart), 'opgeslagen spellen: geen verhaaldeel, balk of tip per rij');
-  ok(/ssl-nm[\s\S]*ssl-meta[\s\S]*ssl-chips[\s\S]*ssl-go/.test(kaart), 'opgeslagen spellen: naam, één regel, tags, actie');
+  ok(/sp-slot__naam[\s\S]*sp-slot__meta[\s\S]*sp-slot__acties/.test(kaart), 'opgeslagen spellen: naam, één regel, acties (Spel-UI 24-11)');
   ok(/\.ssl-grid \{[^}]*repeat\(2,/.test(css) && /\.ssl-go \{[^}]*display: inline-flex/.test(css), 'opgeslagen spellen: twee brede kolommen en de actie altijd zichtbaar');
 }
 
