@@ -21,6 +21,8 @@
   // #oud: de bouwer van voor deze ronde (een tijdelijke kopie game/js/_oud_voertuigen_tmp.js uit git, niet ingecheckt)
   const { buildVehicleMesh } = await import(root + (location.hash.includes('oud') ? 'game/js/_oud_voertuigen_tmp.js' : 'game/js/models3d_vehicles.js'));
   const { BOAT_KINDS } = await import(root + 'game/js/boattypes.js');
+  const { zetLodAfstand } = await import(root + 'game/js/vehiclelod3d.js');
+  window.lod = (d) => zetLodAfstand(m, d); // vergelijking van niveau 0 en 1 (afstand in m)
   const { syncVehicleDoors } = await import(root + 'game/js/vehicledoors3d.js');
   const { HERO_CAR_MODEL } = await import(root + 'game/js/vehicle.js');
   const naam = (location.hash || '#escapade').slice(1).replace('oud', '').replace('zondersub', '');
@@ -70,7 +72,7 @@
     achter: () => ({ p: [-R * 1.35, size.y * 0.95 + 0.3, R * 1.5], t: [0, size.y * 0.4, 0] }),
     open: () => ({ p: [R * 0.5, size.y * 1.6 + 0.4, R * 1.5], t: [0, size.y * 0.3, 0], doors: true }),
     // cabine (24-11): uit de cabine zelf, deuren open (de bus, ambulance, foodtruck en bakwagen hebben hun stoelen voorin)
-    cabine: () => { const C = { van: [[0.9, 1.5, 0], [2.3, 1.1, 0]], ambulance: [[0.95, 1.5, 0], [2.4, 1.1, 0]], foodtruck: [[0.95, 1.5, 0], [2.4, 1.1, 0]], truck: [[2.5, 1.95, 0], [4.2, 1.45, 0]], wagon: [[-0.3, 1.15, 0], [1.8, 0.95, 0]] }[naam]; return C ? { p: C[0], t: C[1], fov: 74, doors: true } : VIEWS.binnen(); },
+    cabine: () => { const C = { van: [[0.9, 1.5, 0], [2.3, 1.1, 0]], ambulance: [[0.95, 1.5, 0], [2.4, 1.1, 0]], foodtruck: [[0.95, 1.5, 0], [2.4, 1.1, 0]], truck: [[1.0, 3.2, 3.6], [3.3, 1.5, 0]], wagon: [[-0.3, 1.15, 0], [1.8, 0.95, 0]] }[naam]; return C ? { p: C[0], t: C[1], fov: 74, doors: true } : VIEWS.binnen(); },
     binnen: () => ({ p: [-size.x * 0.2, Math.min(size.y * 0.78, 1.2), 0], t: [size.x * 0.35, Math.min(size.y * 0.5, 0.8), 0], fov: 72, doors: true }),
   };
   window.neem = (weergave) => {

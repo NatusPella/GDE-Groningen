@@ -159,6 +159,7 @@ export function buildBakwagen(v, h) {
   const body = new THREE.Mesh(geo, mats);
   group.add(body);
   group.userData.body = body;
+  group.userData.lodMax = 1500; // niveau 1 (vehiclelod3d.js)
   h.koppelDeurgaten(group, body, geo);
   h.voegInterieurToe(group, body, geo);
   const wFront = h.cached(`wheel2|${wr}|0.34`, () => h.richWheelGeometry(wr, 0.34, K));

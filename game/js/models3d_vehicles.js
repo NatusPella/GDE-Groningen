@@ -669,6 +669,7 @@ function assembleCar(type, L, W, paint, { police = false, ambulance = false, wre
   addRealDoors(group, body, geo.userData.gaten || [], doorName, L, W, color, P, type);
   if (geo.userData.knip) koppelDeurgaten(group, body, geo);
   voegInterieurToe(group, body, geo);
+  if (P.van) group.userData.lodMax = ambulance ? 1500 : doorName === 'foodtruck' ? 1500 : 1300; // niveau 1 (vehiclelod3d.js): bovengrens, het model is zwaar
   const wW = P.van ? 0.27 : WHEEL_W; // de bus (24-11): een dikker wiel met bolle flank, velg en spaken (vehicle_kit.js)
   const wgeo = P.van ? cached(`wheel2|${wheelR}|${wW}`, () => richWheelGeometry(wheelR, wW, VAN_K)) : carWheelGeometry(wheelR, wW);
   const wheels = [];
@@ -1374,6 +1375,7 @@ function buildHybridCar(v, key, paint) {
   const body = new THREE.Mesh(geo, mats);
   group.add(body);
   group.userData.body = body;
+  if (key === 'wagon') group.userData.lodMax = 1300;
   group.userData.hybride = key;
   group.userData.deurZ = geo.userData.deurZ;
   group.userData.deurPanelen = geo.userData.deurPanelen;

@@ -96,8 +96,29 @@ function grof(t) {
   return opp >= 0.0006 && opp / Math.max(...e) >= 0.01;
 }
 // haalt niveau 1 de minCut van de soort niet (een klein model als de heli), dan vereenvoudigt het centrale systeem hem verder
-function genoegMinder(l1, t0) {
+// max (optioneel, group.userData.lodMax): een bovengrens voor niveau 1 van een zwaar model (24-11, bus, ambulance, bakwagen, wagon); het centrale
+// systeem (lodsimplify) vereenvoudigt dan tot onder die grens met behoud van het silhouet.
+function genoegMinder(l1, t0, max = Infinity) {
   const need = LOD_KINDS.vehicle.minCut[0];
+  if (triCount(l1) > max) {
+    // de fijnste cel van het centrale systeem (lodsimplify) waarmee niveau 1 onder de grens komt: zo houdt het zoveel mogelijk van het silhouet
+    const P0 = l1.attributes.position.array, C0 = l1.attributes.color.array;
+    let best = null;
+    for (const f of [0.02, 0.025, 0.03, 0.035, 0.04, 0.05, 0.06, 0.07, 0.085, 0.1, 0.12, 0.14]) {
+      const { levels } = buildLodChainGroups({ position: P0, color: C0, index: null }, l1.groups, { minCut: [0.01], cells: [[f]] });
+      const lv = levels[1];
+      if (!lv) continue;
+      const g = new THREE.BufferGeometry();
+      g.setAttribute('position', new THREE.BufferAttribute(lv.geom.position, 3));
+      if (lv.geom.color) g.setAttribute('color', new THREE.BufferAttribute(lv.geom.color, 3));
+      for (const gr of lv.groups) g.addGroup(gr.start, gr.count, gr.materialIndex);
+      g.computeVertexNormals();
+      g.userData.shared = true;
+      best = g;
+      if (triCount(g) <= max) break;
+    }
+    if (best) return best;
+  }
   if (1 - triCount(l1) / t0 >= need) return l1;
   const P = l1.attributes.position.array, C = l1.attributes.color.array;
   const { levels } = buildLodChainGroups({ position: P, color: C, index: null }, l1.groups, { minCut: [need, LOD_KINDS.vehicle.minCut[1]] });
@@ -153,7 +174,7 @@ export function attachVehicleLods(group, naam = 'voertuig') {
     for (const w of group.userData.wheels || []) wielen.push(...eenvoudigWiel(w, inv));
     let t0 = 0;
     group.traverse((o) => { if (o.isMesh && o.geometry && o.geometry.attributes.position && !o.name.startsWith('lod')) t0 += triCount(o.geometry); });
-    const l1 = genoegMinder(build([...romp, ...extra].filter(grof).concat(wielen)), t0);
+    const l1 = genoegMinder(build([...romp, ...extra].filter(grof).concat(wielen)), t0, group.userData.lodMax);
     const l2 = build(silhouet([...romp, ...extra], hoofdkleur(romp)), 1);
     set = { l1, l2, tris: [Math.round(t0), triCount(l1), triCount(l2)] };
     lodGeos.set(body.geometry, set);
