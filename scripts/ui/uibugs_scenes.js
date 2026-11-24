@@ -132,13 +132,17 @@ scene('1075', async () => {
   const glyphs = [...document.querySelectorAll('#hud .hud-obj-keys .pad-g, #hud .hud-obj-keys .hud-key')].map((e) => rect(e)).filter(Boolean);
   meet('sub', sub); meet('glyphs', glyphs);
   meet('overlapPx', sub && glyphs.length ? Math.max(0, ...glyphs.map((g) => sub.y + sub.h - g.y)) : null);
-  await shot('1075-doelkaart', 0);
+  // de regel verdwijnt na een paar seconden en een schermopname in swiftshader duurt langer: houd hem alleen voor het beeld vast
+  const mis = document.querySelector('#hud .hud-mission'); const houd = setInterval(() => { if (mis) mis.classList.add('obj-fresh'); }, 50);
+  await shot('1075-doelkaart', 300); clearInterval(houd);
   w.wanted = 0; await sleep(800);
   PM.openPauseMenu('controls', { sub: 'overzicht' }); await shot('1075-toetsenoverzicht', 1800); await sluit();
 });
 
 // #1243 (hertest 24-11): Land en bedrijf > Boerderij, de lage sfeerband en de veldkaart
 scene('1243', async () => {
+  // het verhaal opent Land en bedrijf pas later: alleen in dit wegwerpspel tonen (zoals hertest_lijst --ontgrendel), niets in de opslag
+  const FR = await imp('featurereveal'); FR.setRevealSource({ open: () => true, owns: () => true });
   PM.openPauseMenu('boerderij', { sub: 'boerderij' }); await shot('1243-boerderij', 1800);
   const band = rect('.bd-pane .lb-sfeer'), klein = rect('.bd-pane .lb-sfeer-klein'), groot = rect('.bd-pane .lb-sfeer-groot');
   meet('band', band); meet('klein', klein); meet('groot', groot);
