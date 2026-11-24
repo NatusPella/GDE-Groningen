@@ -9,6 +9,12 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ## [Unreleased]
 
+## [0.66.0] - 2026-11-24
+
+- **Let op, pre-release:** deze versie is uitgebracht zonder de volledige releasegate, met akkoord van de eigenaar (24-11). Er is geen volledige serietest, geen AI-code-review, geen stille fps-meting en geen volledige beeldregressie gedraaid. Wel gedraaid: gerichte tests per onderdeel en een Electron-rooktest.
+- **Bekend:** 60 fps op Ultra is nog niet gehaald (gemeten rond 47 fps op de ontwikkelmachine). Wereldtests die de provinciedata nodig hebben, zijn niet gedraaid in de integratie. Niet in een echte sessie met meerdere spelers getest: Samen spelen (stemmen, hostwissel, wachtkamer).
+- **Nog niet in beeld bekeken:** de nieuwe voertuigen en mensen in een rit of menigte op volle schermgrootte, de Kaart-tab met de nieuwe Doorgaan-knop en het controllergedrag van vasthouden.
+
 - Samen spelen: één tabrij in Spel. Zonder sessie staat er Samen spelen; in een sessie vervangen Spelers, Uitnodigen en Sessie dat tabblad (de tweede tabrij is weg). Spelers is een tabel met een detailpaneel: Ga erheen, Spel overdragen, Gewoon of Gedempt of Geblokkeerd, en voor wie het spel opende Uit het spel zetten (met wat je verliest en wat blijft, en vasthouden). Uitnodigen toont de kamercode groot met Kopieer; Sessie toont de instellingen en hoe jullie samen kiezen. Samen spelen-regel: de tabbladen zijn van jezelf; wat je ziet komt uit de sessie, niets verandert voor een andere speler.
 - Samen spelen: de verbinding staat in woorden (Goed, Matig, Slecht, Weg) met drie streepjes, ook in de Tab-lijst; geen milliseconden meer. Bij Matig of Slecht staat één zin wat het betekent en wat je kunt doen. De drempels zijn voorlopig (docs/SAMEN-VERBINDING-MEETNOTITIE.md).
 - Samen spelen: de toestemming zegt in een tabel wie wat ziet (medespelers, hulpservers, postbussen, de lijst met openbare sessies, en wij: niets), in gewone woorden zonder STUN of brokers; bij de eerste keer, bij de startkeuze en bij Instellingen. Er verandert niets aan wat er naar buiten gaat.
