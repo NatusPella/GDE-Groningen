@@ -99,6 +99,7 @@ export function lookFromAppearance(a, partIds) {
     seed: a.seed ?? 1, rig, parts,
     skin: skinColor ?? 0xd9a47a, shirt: cop ? COP_NAVY : L.topColor ?? a.shirt ?? null, hair: a.vary && L.age === 'old' ? OLD_HAIR[Math.floor(hashf(a.seed ?? 1, 20) * OLD_HAIR.length)] : hairColor ?? 0x3b2a1e, pants: cop ? COP_NAVY : a.pants ?? 0x2f3b52,
     wear: cop ? ['politiepet', 'politieuniform'] : extras.length ? extras : null, kit, wearParams: cop ? null : wearParams,
+    shoes: a.shoes ?? null,   // schoenkleur uit de kleding (clothing.js outfitToLook), op het voetdeel
     cap: CAPS.has(hat) ? hat : null, capColor: hat === 'tammo' ? (a.cap ?? L.capColor ?? 0xc8621e) : (L.hatColor ?? L.capColor ?? 0x2b2f36),
     old: L.age === 'old', child: L.age === 'child', scale: null, body: a.body || null, mood, face: faceScale,
   };

@@ -195,6 +195,7 @@ function colorFor(rig, part, palIdx, look, out) {
   if (/hair|eyebrow|moustache|beard/i.test(m)) return out.copy(_base.setHex(look.hair)).multiplyScalar(/eyebrow/i.test(m) ? 0.8 : 1);
   if (part.main === m && part.slot === 'romp' && look.shirt != null) return out.copy(_base.setHex(look.shirt));
   if (part.main === m && part.slot === 'benen') return out.copy(_base.setHex(look.pants));
+  if (part.main === m && part.slot === 'voeten' && look.shoes != null) return out.copy(_base.setHex(look.shoes));   // de schoenen van de kleding (eerst bleven ze het rood of paars van het pack)
   if (/eye/i.test(m)) return out;
   const j = 0.92 + 0.16 * hashf(look.seed, palIdx + 3);
   return out.multiplyScalar(j);
@@ -380,7 +381,7 @@ export function resetModularGeoBudget() { geoBuildSpent = 0; geoBudgetOn = true;
 function geoCached(rig, look, lod, grip) { return !!rig.geoCache.get(geoKey(look, lod, !!(grip && lod === 0 && rig.grip))); }
 function geoKey(look, lod, grip) {
   const wearIds = look.wear && look.wear.length && lod < 2 ? look.wear : null;
-  return `${lod}${grip ? 'g' : ''}|${wearIds ? wearIds.join('+') : ''}|${look.mood || ''}|${look.cap || ''}|${look.capColor || ''}|${look.kit ? JSON.stringify(look.kit) : ''}${look.wearParams ? JSON.stringify(look.wearParams) : ''}|${look.parts.hoofd}|${look.parts.romp}|${look.parts.benen}|${look.parts.voeten}|${look.skin}|${look.shirt}|${look.hair}|${look.pants}|${Math.floor(hashf(look.seed, 3) * 8)}`;
+  return `${lod}${grip ? 'g' : ''}|${wearIds ? wearIds.join('+') : ''}|${look.mood || ''}|${look.cap || ''}|${look.capColor || ''}|${look.kit ? JSON.stringify(look.kit) : ''}${look.wearParams ? JSON.stringify(look.wearParams) : ''}|${look.parts.hoofd}|${look.parts.romp}|${look.parts.benen}|${look.parts.voeten}|${look.skin}|${look.shirt}|${look.hair}|${look.pants}|${look.shoes ?? ''}|${Math.floor(hashf(look.seed, 3) * 8)}`;
 }
 function geometryFor(rig, look, lod = 0, grip = false) {
   grip = !!(grip && lod === 0 && rig.grip);   // de LOD's houden een open hand (vanaf 25 m zie je geen vingers)
