@@ -113,7 +113,9 @@ import { glassMaterial } from './interiorglass.js';
 import { detailMaterial } from './models3d_buildings.js';
 import { streamLead } from './streambudget.js';
 import { fadeBand, loadRadius } from './popinrules.js';
-import { VIEW_DISTANCES, viewDistanceFor, detailDistanceFor, fogRange, DETAIL_BASE } from './viewdist.js';
+import { VIEW_DISTANCES, viewDistanceFor, viewContext, detailDistanceFor, fogRange, DETAIL_BASE } from './viewdist.js';
+// waar de camera is voor de terugval van Ultra (viewdist.js viewContext): in de lucht en op het water blijft de verste zichtafstand
+let viewCtx = 'stad';
 import { glanceAt, shareFeet } from './gait.js';
 import { NEAR_MIN, cameraNearTarget, stepNear, parseNearFlag, parseFarFlag } from './cameranear.js';
 import { compareOpaque } from './drawpool.js';
@@ -1097,7 +1099,7 @@ function applyViewSettings(st, key) {
 
 // view distance, camera far plane and fog; 'heel ver' follows adaptive quality
 function applyViewDistance(st) {
-  viewDist = Math.round(viewDistanceFor(st.drawDistance, dynamicScale(), cpuLevel()) * gpuRamp()); // gpuherstel.js: na contextverlies groeit de afstand terug
+  viewDist = Math.round(viewDistanceFor(st.drawDistance, dynamicScale(), cpuLevel(), viewCtx) * gpuRamp()); // gpuherstel.js: na contextverlies groeit de afstand terug
   DRAW_DIST = detailDistanceFor(st.quality, viewDist, cpuLevel());
   cam.far = parseFarFlag(FLAGS.far) ?? Math.max(DRAW_DIST * 1.4, viewDist * 1.4, landmarkDist() * 1.1); // ?far=<m>: testvlag (#917)
   const fog = fogRange(viewDist, DRAW_DIST);
@@ -2753,6 +2755,12 @@ export function update3D(dt, world) {
   // animations freeze with gameplay (pause, cutscenes); the camera keeps using dt
   const animDt = world.paused ? 0 : dt;
   jumpLoading = !!world.cineJumpLoading && !perfOff('poortbudget');
+  {
+    const pl = hoofdspeler(world), boat = !!(pl && pl.inVehicle && pl.inVehicle.isBoat);
+    const ground = world.map && world.map.groundHeightAt ? world.map.groundHeightAt(cam.position.x, cam.position.z, cam.position.y) : 0;
+    const next = viewContext(viewCtx, cam.position.y - ground, boat);
+    if (next !== viewCtx) { viewCtx = next; const was = viewDist; applyViewDistance(getSettings()); if (viewDist !== was) { cam.updateProjectionMatrix(); noteGfxEvent(`zichtafstand ${was}->${viewDist} m (${viewCtx})`); } }
+  }
   const player = hoofdspeler(world);
   const focus = updateStreamFocus(world);
 
