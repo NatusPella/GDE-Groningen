@@ -1,0 +1,28 @@
+[
+ {
+  "groep": "bug",
+  "issue": 1192,
+  "naam": "viaduct-onder",
+  "soort": "js",
+  "klok": 14,
+  "limietS": 150,
+  "doe": "const SG = await H.imp('spatialgrid'); const roads = SG.gridItems(H.map.roadGrid); const [sx, sy] = H.stad; let best = null; for (const r of roads) { const Z = r.z; if (!Z || !r.pts) continue; for (let i = 1; i < Z.length - 1; i++) { if (Z[i] > 5) { const d = Math.hypot(r.pts[i][0] - sx, r.pts[i][1] - sy); if (!best || d < best.d) best = { d, x: r.pts[i][0], y: r.pts[i][1], z: Z[i], r, i }; } } } if (!best) { H.noteer('geen viaduct (' + roads.length + ' wegen)'); return; } H.meet('viaduct', [Math.round(best.x), Math.round(best.y), +best.z.toFixed(1), Math.round(best.d), best.r.name || '']); const P = best.r.pts; const dx = P[best.i + 1][0] - P[best.i - 1][0], dy = P[best.i + 1][1] - P[best.i - 1][1]; const L = Math.hypot(dx, dy) || 1; const nx = -dy / L, ny = dx / L; await H.jump(best.x + nx * 16, best.y + ny * 16, 6000); const g = H.gh(best.x + nx * 16, best.y + ny * 16); H.cam(best.x + nx * 11, best.y + ny * 11, g + 1.6, best.x - nx * 4, best.y - ny * 4, g + best.z * 0.85, 75); await H.shot('onder-schuin', 4000); H.cam(best.x + nx * 1.5 + dx / L * 6, best.y + ny * 1.5 + dy / L * 6, g + 1.7, best.x + nx * 1.5 + dx / L * 30, best.y + ny * 1.5 + dy / L * 30, g + best.z * 0.7, 70); await H.shot('onder-langs', 3500); H.cam(best.x + nx * 40, best.y + ny * 40, g + 4, best.x, best.y, g + best.z * 0.6, 55); await H.shot('zij', 3500); H.camOff();"
+ },
+ {
+  "groep": "bug",
+  "issue": 919,
+  "naam": "stadsbrug",
+  "soort": "js",
+  "klok": 14,
+  "limietS": 120,
+  "doe": "const SG = await H.imp('spatialgrid'); const roads = SG.gridItems(H.map.roadGrid).filter((r) => r.bridge && r.pts && r.pts.length > 1); H.meet('bruggen', roads.length); const [sx, sy] = H.stad; let best = null; for (const r of roads) { const m = Math.floor(r.pts.length / 2); const a = r.pts[Math.max(0, m - 1)], b = r.pts[m]; const x = (a[0] + b[0]) / 2, y = (a[1] + b[1]) / 2; const d = Math.hypot(x - sx, y - sy); if (d > 150 && (!best || d < best.d)) best = { d, x, y, dx: b[0] - a[0], dy: b[1] - a[1], r }; } if (!best) { H.noteer('geen brug'); return; } H.meet('brug', [Math.round(best.x), Math.round(best.y), Math.round(best.d), best.r.name || '']); const L2 = Math.hypot(best.dx, best.dy) || 1; const nx = -best.dy / L2, ny = best.dx / L2; await H.jump(best.x + nx * 18, best.y + ny * 18, 6000); const g = H.gh(best.x + nx * 18, best.y + ny * 18); H.cam(best.x + nx * 28, best.y + ny * 28, g + 14, best.x, best.y, g, 55); await H.shot('schuin', 3500); H.cam(best.x + nx * 12, best.y + ny * 12, g + 0.6, best.x, best.y, g + 1.2, 70); await H.shot('laag', 3500); H.camOff();"
+ },
+ {
+  "groep": "wens",
+  "issue": 1254,
+  "naam": "winkels",
+  "soort": "js",
+  "limietS": 120,
+  "doe": "const SU = await H.imp('shopui'); const S = await H.imp('shops'); const arr = S.getShopsForRender() || []; const soorten = {}; for (const s of arr) { const k = s.type || s.kind || '?'; if (!soorten[k]) soorten[k] = s; } H.meet('soorten', Object.keys(soorten).join(',')); let n = 0; for (const [k, s] of Object.entries(soorten)) { if (!/gun|wapen|weapon|car|auto|garage|dealer|vehicle|snack|bike|fiets|cloth|kled/i.test(k)) continue; try { SU.openShopMenu(H.w, s); await H.shot('winkel-' + k, 2200); SU.closeShopMenu({ save: false }); } catch (e) { H.noteer(k + ': ' + e.message); } await H.sleep(600); if (++n >= 4) break; }"
+ }
+]
