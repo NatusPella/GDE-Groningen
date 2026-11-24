@@ -152,7 +152,7 @@ export function kitPhotos(el) {
   if (!img || typeof document === 'undefined') return;
   const piece = img.getAttribute('data-kit-shirt');
   // het 2D-shirt staat er al; het 3D-voorbeeld vervangt hem pas als het een echt, niet-leeg plaatje is (zonder WebGL of bij 'too many errors' blijft het 2D-shirt staan)
-  const toon = (url) => { if (!url || !img.isConnected) return; const t = new Image(); t.onload = () => { if (img.isConnected && plaatjeHeeftInhoud(t)) { img.src = url; img.hidden = false; const d = el.querySelector('.vb-shirt2d'); if (d) d.hidden = true; } }; t.src = url; };
+  const toon = (url) => { if (!url || !img.isConnected) return; const t = new Image(); t.onload = () => { if (img.isConnected && plaatjeHeeftInhoud(t)) { img.src = url; img.hidden = false; const d = el.querySelector('.vb-shirt2d'); if (d) d.setAttribute('hidden', ''); } }; t.src = url; };
   import('./vehiclepreview.js').then((m) => { m.renderSnapshot({ kind: 'piece', piece }, 320, 320, toon, { angle: 0.6 }); }).catch(() => { /* het 2D-shirt blijft */ });
 }
 // Een plaatje is leeg als geen enkele pixel iets heeft (een mislukte WebGL-render geeft een doorzichtig vlak).
