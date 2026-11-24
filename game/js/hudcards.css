@@ -156,6 +156,22 @@ body.pigeon-mode #hud .hud-cards { top: 300px; }
 #hud .hc-text span { font-family: var(--ds-font-zeef-tekst); font-weight: 400; letter-spacing: 0; color: var(--ds-c-ink-inkt); }
 #hud .hud-card .hc-close { font-family: var(--ds-font-zeef-tekst); }
 #hud .hc-text kbd.hud-key, #hud .hc-text .hud-key { font-family: var(--ds-font-zeef-kop); font-weight: 800; }
+/* Startkaart (#999, startkaart.js): een label links en de waarde rechts per regel, de stand, samen en het record als chips
+   onderaan, de medailles als drie plaatjes met een letter. De <br> tussen de regels is er voor de hoogteschatting (hudbus.js). */
+#hud .hc-text span.sk { display: grid; grid-template-columns: max-content minmax(0, 1fr); column-gap: var(--ds-s-3); row-gap: 5px; margin-top: 6px; }
+#hud .hc-text span.sk br { display: none; }
+#hud .hc-text span.sk-r { display: contents; }
+#hud .hc-text span.sk-l { margin: 0; padding-top: 2px; font-family: var(--ds-font-zeef-kop); font-weight: 800; font-size: max(13px, var(--ds-t-kaart-eyebrow)); letter-spacing: 0.08em; text-transform: uppercase; color: var(--ds-c-inkt-zacht); }
+#hud .hc-text span.sk-w { margin: 0; }
+#hud .hc-text span.sk-m { display: inline-flex; align-items: center; gap: 4px; margin: 0 10px 0 0; white-space: nowrap; }
+#hud .hc-text .sk-m i { display: inline-grid; place-items: center; width: 1.25em; height: 1.25em; border-radius: 50%; border: 1.5px solid var(--ds-c-ink-inkt); font-family: var(--ds-font-zeef-kop); font-weight: 800; font-style: normal; font-size: 0.8em; line-height: 1; }
+#hud .hc-text .sk-m i.sk-m-b { background: var(--ds-c-amber-vlak); color: var(--ds-c-amber-tx); }
+#hud .hc-text .sk-m i.sk-m-z { background: var(--ds-c-toets-vlak); color: var(--ds-c-ink-inkt); }
+#hud .hc-text .sk-m i.sk-m-g { background: var(--ds-c-ink-geel); color: var(--ds-c-ink-inkt); }
+#hud .hc-text span.sk-chips { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
+#hud .hc-text span.sk-chip { margin: 0; padding: 1px 8px; border: 1.5px solid var(--ds-c-ink-inkt); border-radius: 999px; font-family: var(--ds-font-zeef-kop); font-weight: 800; font-size: max(13px, var(--ds-t-kaart-eyebrow)); letter-spacing: 0.04em; line-height: 1.4; white-space: nowrap; }
+#hud .hc-text span.sk-chip--ja { background: var(--ds-c-groen-vlak); color: var(--ds-c-groen-tx); border-color: var(--ds-c-ink-bord); }
+#hud .hc-text span.sk-chip--record { border-style: dashed; }
 #hud .hud-count { color: var(--ds-c-ink-papier); font-family: var(--ds-font-zeef-kop); font-weight: 800; -webkit-text-stroke: 4px var(--ds-c-ink-inkt); paint-order: stroke fill; text-shadow: var(--ds-misdruk), 6px 6px 0 var(--ds-c-ink-inkt); }
 #hud .hud-count[data-go="1"] { color: var(--ds-c-ink-geel); }
 html.rustig-drukwerk #hud .hud-card.on .hc-text b { animation: none; text-shadow: none; }

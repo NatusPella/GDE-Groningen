@@ -224,16 +224,40 @@ export function startkaartRegels(id, { record = null, difficulty = null } = {}) 
 }
 
 // De kaart als hudcards-spec. `record` komt van de activiteit zelf (die kent zijn recordregel).
+// #999 (24-11): de kaart is een kort overzicht in plaats van negen zinnen onder elkaar. Elke regel heeft een label links
+// (Doel, Toetsen, Medailles, Beloning, Daarna) en de waarde rechts; de stand, samen en je record zijn chips onderaan, met
+// een woord erin (nooit alleen kleur). De medailles zijn drie plaatjes met een letter (B, Z, G) en de eis. De regels staan
+// los met <br> ertussen, zodat de hoogteschatting van hudbus.js (cardLines) dezelfde regels telt als het beeld.
+const MEDAILLE = [['b', 'B', 'brons'], ['z', 'Z', 'zilver'], ['g', 'G', 'goud']];
+const rij = (label, waarde) => `<span class="sk-r"><span class="sk-l">${label}</span><span class="sk-w">${waarde}</span></span>`;
+const skChip = (tekst, soort = '') => `<span class="sk-chip${soort ? ' sk-chip--' + soort : ''}">${esc(tekst)}</span>`;
+
 export function startkaartSpec(id, { record = null, kicker = null, difficulty = null } = {}) {
   const k = STARTKAART[id];
   if (!k) return null;
-  const regels = startkaartRegels(id, { record, difficulty });
-  const kern = k.kern ? `<br>${keysHtml(k.kern)}` : '';
-  const body = `Doel: ${k.doel}`;
+  const mode = cleanDifficulty(difficulty || getSettings().difficulty);
+  const rijen = [rij('Doel', esc(k.doel))];
+  if (k.kern) rijen.push(rij('Toetsen', keysHtml(k.kern)));
+  const medailles = medaillesVoorStand(id, mode);
+  if (medailles) {
+    rijen.push(rij('Medailles', MEDAILLE.map(([c, l, naam], i) => `<span class="sk-m"><i class="sk-m-${c}" role="img" aria-label="${naam}">${l}</i>${esc(medailles[i])}</span>`).join('')));
+  }
+  if (k.beloning) rijen.push(rij('Beloning', esc(k.beloning)));
+  const laag = laagVan(id);
+  if (laag) rijen.push(rij('Daarna', esc(laag)));
+  const chips = [skChip(`Stand: ${DIFFICULTY[mode].label}`)];
+  const s = samenStatus('activiteit', id);
+  if (s) chips.push(skChip(`Samen: ${s === 'werkt' ? 'ja' : s === 'deels' ? 'deels' : 'nee'}`, s === 'werkt' ? 'ja' : ''));
+  if (s === 'werkt') chips.push(skChip('+50% per speler', 'ja'));
+  if (record) chips.push(skChip(`Record: ${record}`, 'record'));
+  rijen.push(`<span class="sk-r sk-chips">${chips.join('')}</span>`);
+  // de volledige zinnen (stand, samen met toelichting, 1+1=3) blijven de tekst voor het tekstlog en schermlezers
+  const regels = startkaartRegels(id, { record, difficulty: mode });
+  const body = [`Doel: ${k.doel}`, ...regels].join(' · ');
   return {
     kind: 'tip', kicker: kicker || 'Activiteit', title: k.titel,
     body,
-    bodyHtml: esc(body) + kern + (regels.length ? `<br>${regels.map((r) => esc(r)).join('<br>')}` : ''),
+    bodyHtml: `<span class="sk">${rijen.join('<br>')}</span>`,
     duration: 12, key: 'startkaart-' + id, voice: false, important: true,
   };
 }

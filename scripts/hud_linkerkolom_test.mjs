@@ -28,9 +28,11 @@ t('de hoogteschatting telt kop, titel en elke <br>-regel met terugloop', () => {
   assert.equal(B.cardLines(streek), 4);
 });
 
-t('het geval uit het spel: de kartbaan-startkaart en "Nieuwe streek" passen niet samen', () => {
+t('het geval uit het spel: de kartbaan-startkaart en "Nieuwe streek"', () => {
   assert.ok(kart, 'de kartbaan heeft een startkaart');
-  assert.ok(B.cardLines(kart) >= 14, `de startkaart is lang (${B.cardLines(kart)} regels)`);
+  // #999 (24-11): de startkaart is een overzicht met labels en chips en geen negen zinnen meer; hij past nu met de melding samen
+  assert.ok(B.cardLines(kart) <= 13, `de startkaart is kort (${B.cardLines(kart)} regels)`);
+  assert.equal(B.leftColumnFits(kart, streek), true, 'de kartbaan-startkaart en "Nieuwe streek" staan samen in de kolom');
   assert.equal(B.leftColumnFits(kart, streek), B.cardLines(kart) + B.cardLines(streek) <= B.LEFT_COLUMN_LINES, 'de E-kaart wacht alleen als beide niet in de kolom passen');
   assert.equal(B.leftColumnFits({ title: 'Lang', bodyHtml: Array(14).fill('regel').join('<br>') }, streek), false, 'een echt lange A-kaart laat de E-kaart wachten');
 });
