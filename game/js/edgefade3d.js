@@ -19,7 +19,10 @@ export function applyEdgeFade(mat, start, end, off = false) {
 float efBayer2(vec2 a) { a = floor(a); return fract(dot(a, vec2(0.5, a.y * 0.75))); }
 float efBayer4(vec2 a) { return efBayer2(0.5 * a) * 0.25 + efBayer2(a); }
 void main() {
+  // 24-11 (puntraster op verre gevels): alleen het middelste derde van de band dithert (popinrules.js EDGE_STEEP); daarbuiten vol
+  // of weg, zodat de stand met één pixel per 4x4 (een zichtbaar raster over een hele gevel) maar over een smalle strook bestaat
   float efKeep = 1.0 - clamp((length(vViewPosition) - uEdge.x) / (uEdge.y - uEdge.x), 0.0, 1.0);
+  efKeep = clamp((efKeep - 0.5) * 3.0 + 0.5, 0.0, 1.0);
   if (efKeep < 1.0 && efBayer4(gl_FragCoord.xy) >= efKeep) discard;`);
   };
   const base = mat.customProgramCacheKey ? mat.customProgramCacheKey.bind(mat) : null;
