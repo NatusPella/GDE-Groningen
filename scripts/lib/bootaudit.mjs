@@ -3,7 +3,8 @@
 //   { cat, naam, x, y, klasse, ok, reden, breedte, opNet, kade, afstKade, water }
 // Categorieen: marina (liggers in jachthavens), verhuur (Bootje Huren-steigers), bijbaan (bijbaan- en missieboten),
 // ai (ambient boten van manageBoatPopulation, over meerdere seeds), sier (de decorboten op de maren van countrylife),
-// race (de vaste wedstrijdplekken: Hoornse-Plas-regatta met startlijn, skutsjerace-starts, bruggenrace-grid; #1083).
+// race (de vaste wedstrijdplekken: Hoornse-Plas-regatta met startlijn, skutsjerace-starts, bruggenrace-grid; #1083),
+// missie (de missieboten van akte 2 en 4; #1083).
 import fs from 'node:fs';
 import { laadBootWereld } from './bootwereld.mjs';
 
@@ -179,6 +180,32 @@ export async function maakAudit() {
     } catch (e) { out.push({ cat: 'race', naam: 'skutsje/bruggenrace (kon niet laden: ' + e.message + ')', ok: true, reden: 'overgeslagen', x: 0, y: 0, klasse: '', breedte: 0 }); }
     return out;
   };
+
+  // 7. missieboten (#1083): de boten van akte 2 en akte 4, zoals missions.js spawnStoryBoat/spawnMissionBoat ze legt (na ensureBoatValid).
+  // Bron van de plekken: missions_akte2.js boatStart (M11) en missions_akte4.js veendamBoot (M17); verschuift er een, pas hem hier mee aan.
+  alle.missie = async () => {
+    const out = [];
+    try {
+      const { wgsToWorld } = await import('../../game/js/rdnew.js');
+
+      // M11 (akte 2): Klaas' rubberboot op de Reitdiep bij Zoutkamp
+      const m11 = { x: -18075, y: -12902, angle: 2.8, kind: 'rubberboot' };
+      await W.laadRond(m11.x, m11.y, 500);
+      const boot11 = { x: m11.x, y: m11.y, angle: m11.angle, model: { kind: m11.kind, len: 4, wid: 1.6 } };
+      B.ensureBoatValid(map, boot11, 120);
+      out.push(await rij('missie', 'M11 rubberboot (akte 2)', boot11.x, boot11.y, m11.kind, {}));
+
+      // M17 (akte 4): de sloep voor de bruggenrace bij Veendam
+      const veendamBoot = [53.05641, 6.84933];
+      const [rdx, rdy] = wgsToWorld(veendamBoot[0], veendamBoot[1]);
+      await W.laadRond(rdx, rdy, 500);
+      const boot17 = { x: rdx, y: rdy, angle: -1.2, model: { kind: 'sloep', len: 7.2, wid: 2.4 } };
+      B.ensureBoatValid(map, boot17, 120);
+      out.push(await rij('missie', 'M17 sloep (akte 4)', boot17.x, boot17.y, 'sloep', {}));
+    } catch (e) { out.push({ cat: 'missie', naam: 'missieboten (kon niet laden: ' + e.message + ')', ok: true, reden: 'overgeslagen', x: 0, y: 0, klasse: '', breedte: 0 }); }
+    return out;
+  };
+
   return { W, B, map, alle };
 }
 
