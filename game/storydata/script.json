@@ -14782,7 +14782,8 @@
      "text": "Bewaar het. En trek morgen iets kleurigs aan.",
      "tag": "NIEUW",
      "channel": "telefoon",
-     "textOnly": true
+     "textOnly": false,
+     "rec": "lines"
     }
    ]
   },
@@ -22172,7 +22173,8 @@
      "text": "Dan eet je in de gang. Op een Friese mat.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true
+     "textOnly": false,
+     "rec": "lines"
     },
     {
      "speaker": "Beppe",
@@ -24152,7 +24154,8 @@
      "text": "Zeg maar van wel.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true,
+     "textOnly": false,
+     "rec": "lines",
      "voice": "Anita"
     },
     {
@@ -24161,7 +24164,8 @@
      "text": "Als ze van het luik afblijven.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true
+     "textOnly": false,
+     "rec": "lines"
     }
    ]
   },

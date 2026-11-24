@@ -3647,6 +3647,10 @@
 "src": "anita/zeg_het_maar_d81e9290.mp3",
 "dur": 1.71
 },
+"Anita|Zeg maar van wel.": {
+"src": "anita/zeg_maar_van_wel_294e6515.mp3",
+"dur": 0.97
+},
 "Anita|Zeg ze nog eens.": {
 "src": "anita/zeg_ze_nog_eens_26f4f9ff.mp3",
 "dur": 1.28
@@ -7027,6 +7031,10 @@
 "src": "mem_terpstra/dan_eet_je_in_de_gang_op_een_fri_7389ac67.mp3",
 "dur": 2.94
 },
+"Mem Terpstra|Dan eet je in de gang. Op een Friese mat.": {
+"src": "mem_terpstra/dan_eet_je_in_de_gang_op_een_fri_277e57a5.mp3",
+"dur": 3.09
+},
 "Mem Terpstra|Dank je. Nu is hij van mij.": {
 "src": "mem_terpstra/dank_je_nu_is_hij_van_mij_1c9a1179.mp3",
 "dur": 2.45
@@ -7558,6 +7566,10 @@
 "Rikus|Berend zegt niks meer. Hij heeft een kloet in de strotte. Dat is de hoogste trede van de complimentenladder. Dat is nog nooit gebeurd.": {
 "src": "rikus/berend_zegt_niks_meer_hij_heeft__cc47f28b.mp3",
 "dur": 6.91
+},
+"Rikus|Bewaar het. En trek morgen iets kleurigs aan.": {
+"src": "rikus/bewaar_het_en_trek_morgen_iets_k_7894445b.mp3",
+"dur": 2.99
 },
 "Rikus|Bewaar het. Ik heb dit niet gezegd.": {
 "src": "rikus/bewaar_het_ik_heb_dit_niet_gezeg_85861be5.mp3",
@@ -9578,6 +9590,10 @@
 "Tammo|Als iemand het museum kent, is het Bert. De beste vriend van mijn opa.": {
 "src": "tammo/als_iemand_het_museum_kent_is_he_3c1bb2e5.mp3",
 "dur": 4.44
+},
+"Tammo|Als ze van het luik afblijven.": {
+"src": "tammo/als_ze_van_het_luik_afblijven_d358d23f.mp3",
+"dur": 1.48
 },
 "Tammo|Altied.": {
 "src": "tammo/altied_497fd5c4.mp3",
