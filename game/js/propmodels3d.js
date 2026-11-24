@@ -520,7 +520,9 @@ function laptop() {
 // de (verzonnen) rederij komt van het materiaal (vertexkleur maal materiaalkleur), zodat een kleur geen eigen geometrie kost.
 function zeecontainer(L) {
   const B = new GeoBuilder(1);
-  const W = 2.44, H = 2.59, body = 0xd6d6d6, rib = 0xbcbcbc, frame = 0x8c8c8c, dark = 0x3a3a3a, steel = 0xa6a8a6;
+  // #1328: een lichte romp en duidelijk donkerdere ribben, zodat de golfplaat ook in de schaduw als ribbels leest (de lak komt van
+  // het materiaal van de aanroeper en vermenigvuldigt dit)
+  const W = 2.44, H = 2.59, body = 0xf0f0f0, rib = 0xb4b4b4, frame = 0x8c8c8c, dark = 0x3a3a3a, steel = 0xcfd1cf;
   B.box(0, H / 2, 0, L - 0.16, H - 0.2, W - 0.1, body);                                          // de romp
   // golfplaat op de lange zijden: om de 28 cm een uitstekende rib
   const n = Math.floor((L - 0.5) / 0.28);

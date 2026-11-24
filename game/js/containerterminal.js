@@ -20,11 +20,22 @@ import { buildVehicleMesh } from './models3d_vehicles.js';
 let placedOn = null;
 let hoogte = () => 0;
 
-// een materiaal per kleur: vertexkleur maal materiaalkleur (de containerromp is lichtgrijs, de rederijkleur komt van hier)
+// een materiaal per kleur: vertexkleur maal materiaalkleur (de containerromp is lichtgrijs, de rederijkleur komt van hier).
+// #1328 (24-11): de containers waren bijna zwart. Lambert krijgt het omgevingslicht van de lucht (scene.environment) niet, dus een
+// zijkant in de schaduw zakte weg, en een donkere lak (lineair 0,03) maal de grijze romp gaf een albedo van een paar procent. Nu
+// hetzelfde PBR-materiaal als de rest van de wereld (geverfd staal: niet metallisch, halfmat, platte vlakken zodat de ribben
+// lichten en schaduwen) en een lak met een ondergrens aan de lichtheid: de kleur blijft herkenbaar, ook in de schaduw.
+const LAK_L = [0.4, 0.62];
 const mats = new Map();
 const mat = (color = '#ffffff') => {
   let m = mats.get(color);
-  if (!m) { m = new T.MeshLambertMaterial({ vertexColors: true, color }); mats.set(color, m); }
+  if (!m) {
+    const c = new T.Color(color), hsl = {};
+    c.getHSL(hsl);
+    c.setHSL(hsl.h, Math.min(hsl.s, 0.75), Math.min(LAK_L[1], Math.max(LAK_L[0], hsl.l * 1.2)));
+    m = new T.MeshStandardMaterial({ vertexColors: true, color: c, roughness: 0.62, metalness: 0.05, flatShading: true });
+    mats.set(color, m);
+  }
   return m;
 };
 // een prop uit het register op (x, y), op de grond, met de hoek van het spel (three: rotation.y = -hoek)
