@@ -1964,6 +1964,14 @@
    "reden": "Alleen beeld: elke client bouwt zijn eigen decor."
   },
   {
+   "glob": "carbidintro",
+   "reden": "Alleen beeld (carbidschieten 24-11): de vier shots van de intro op het erf; de scene zelf reist als scenepakket."
+  },
+  {
+   "glob": "carbidset",
+   "reden": "Alleen beeld (carbidschieten 24-11): de inrichting van het erf van boer Roelf voor intro en trailer; elke client bouwt zijn eigen set."
+  },
+  {
    "glob": "shotlight",
    "reden": "Alleen beeld (regie #1323): het licht per shot in een cutscene, lokaal bij wie de scène ziet; de scène zelf reist als scenepakket."
   },

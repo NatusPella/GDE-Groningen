@@ -183,7 +183,7 @@ export const PROP_REGISTER = {
   // groter dan decor in een cutscene mag zijn (storyprops.js DECOR_BUDGET maxDim): alleen 'activiteit' (carbidset.js)
   kophalsromp: {
     nl: 'Groningse kop-hals-rompboerderij', bouwer: 'kophalsromp', gebruik: ['activiteit'],
-    norm: { tris: [1100, 2000], kleuren: 10, maat: [48.65, 14.69, 24.68], eisen: ['woonhuis (kop) van baksteen met plint, speklaag, wit gootlijsten en donker pannendak met de nok dwars', 'voorgevel met roedenramen, groene voordeur met bovenlicht en stoep; schoorstenen op de nok', 'lage hals met eigen dak, deur en raam', 'schuur (romp) met lage muren en een hoog rood pannendak met wolfseinden, nokvorsten, goten en uilenborden', 'groen-witte baanderdeuren, staldeur en gietijzeren stalraampjes'] },
+    norm: { tris: [1100, 2000], kleuren: 10, maat: [48.65, 14.69, 24.68], eisen: ['woonhuis (kop) van baksteen met plint, speklaag, wit gootlijsten en donker pannendak met de nok dwars', 'voorgevel met roedenramen, groene voordeur met bovenlicht en stoep; schoorstenen op de nok', 'lage hals met eigen dak, deur en raam', 'schuur (romp) met lage muren en een hoog rood pannendak met wolfseinden, nokvorsten, goten en uilenborden', 'groen-witte baanderdeuren met een staldeur ernaast; gietijzeren stalraampjes'] },
   },
   werktuigloods: {
     nl: 'Werktuigenloods met inrichting', bouwer: 'werktuigloods', gebruik: ['activiteit'],
