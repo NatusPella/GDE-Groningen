@@ -194,7 +194,9 @@ Fase 2, zes stappen met elk een eigen commit en test:
 
 Samen: ca. 5 nieuwe en 14 herschreven bronbestanden, 1 nieuw CSS-bestand, 3 nieuwe tests en 6 aangepaste. Niet in dit werk: het netwerkprotocol, chat en voice (#451), dedicated servers (#450), geluid en nieuwe spelregels.
 
-## 10. Wat nog niet is besloten
+## 10. Besluiten van de coördinator (24-11) en wat nog open is
+
+Besloten: (1) het tabblad Praten · later wordt niet getoond; de plek blijft alleen in dit document en als vrije slotnaam in de code. (2) Iedereen kan een voorstel doen voor tijd, slapen, reizen, laden en cheats; geen antwoord telt als nee; wie weg is, laadt of in een scène zit telt niet mee; cheats aan vraagt een eenstemmig ja (gebouwd in fase 2a, `scripts/coop/samenstem_test.mjs`). (3) Nu zonder de ander verder is geen verwijdering; alleen de opener kan kicken. (4) De verbindingsdrempels staan als constanten in `game/js/samensignaal.js` met een meetnotitie (`docs/SAMEN-VERBINDING-MEETNOTITIE.md`). (5) De beloningskaart toont het eigen bedrag en de plekken van de anderen. (6) De sessie-instellingen blijven bij wie het spel draait. De punten hieronder die hiermee zijn beantwoord, zijn vervallen.
 
 0. **Afgestemd met het Spel-ontwerp.** De tabnaam is Opslaan en stoppen; rail, kopband (Geld, Gezondheid, Gezocht), Aandacht en bevestigingen volgen dat ontwerp. Eén verschil: dit ontwerp toont in een sessie een gestippeld tabblad **Praten · later** als gereserveerde plek (#451); het Spel-ontwerp (`a4`) toont dat niet. Eén van beide, voor beide ontwerpen.
 

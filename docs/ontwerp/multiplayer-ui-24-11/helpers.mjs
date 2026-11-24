@@ -54,7 +54,7 @@ export const HINT_STD = [['↑+↓', 'kiezen'], ['Enter', 'doen'], ['Q+E', 'tabb
 
 // de tabrij van Spel: zonder sessie Overzicht, Samen spelen, Opslaan en stoppen; in een sessie vervangen Spelers, Uitnodigen en Sessie het ene tabblad Samen spelen (geen tweede tabrij meer)
 export const TABS_ZONDER = [['overzicht', 'Overzicht'], ['samen', 'Samen spelen'], ['opslaan', 'Opslaan en stoppen']];
-export const tabsMet = (n) => [['overzicht', 'Overzicht'], ['spelers', 'Spelers', n], ['uitnodigen', 'Uitnodigen'], ['sessie', 'Sessie'], ['praten', 'Praten · later', null, 'uit'], ['opslaan', 'Opslaan en stoppen']];
+export const tabsMet = (n) => [['overzicht', 'Overzicht'], ['spelers', 'Spelers', n], ['uitnodigen', 'Uitnodigen'], ['sessie', 'Sessie'], ['opslaan', 'Opslaan en stoppen']];
 
 // de kopband: eyebrow, titel, onderregel en rechts de statusblokken
 export function kop({ eb = 'Spel', titel = 'Samen spelen', sub = '', rechts = '' }) {
