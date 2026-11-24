@@ -94,7 +94,7 @@ ok(/export function introShotPoints\(w\)/.test(read('game/js/intromontage.js')),
 ok(/introShotPoints\(world\)/.test(warmBody) && /registerShots\(spots/.test(warmBody) && /prewarmStreamAt\(p\.x, p\.y, 180, 170\)/.test(warmBody), 'de warm-stap laadt en prewarmt de montageplekken');
 ok(/INTRO_WARM_MS/.test(main) && /!world\.loadedFromSave/.test(warmBody), 'de montage wordt alleen bij een nieuw spel voorgereden en heeft een eigen grens');
 ok(/releaseShots\(\)/.test(read('game/js/intromontage.js')), 'de montage geeft de gepinde tegels weer vrij');
-ok(/const WARM_START = FLAGS\.warm \|\| FLAGS\.benchmark \|\| !\(FLAGS\.noattract[\s\S]{0,260}FLAGS\.autoplay/.test(main), 'een test- of QA-run slaat het voorladen over, tenzij ?warm (meting); de benchmark start zoals een speler, met voorladen (perf-r3)');
+ok(/const WARM_START = FLAGS\.warm \|\| !\(FLAGS\.noattract[\s\S]{0,260}FLAGS\.autoplay/.test(main), 'een test- of QA-run slaat het voorladen over, tenzij ?warm (meting)');
 // Prestatiebesluit (trend 0.54 -> nu): het laadscherm houdt het voorwarmen kort; de som van de budgetten mag niet terug naar tientallen seconden.
 const num = (k) => +((new RegExp('const ' + k + ' = ([0-9]+);').exec(main) || [0, 0])[1]);
 ok(/if \(FLAGS\.warmfilm && !world\.loadedFromSave\)/.test(main), 'het voorrijden van de openingsfilm staat standaard uit (?warmfilm, gemeten 19-11: +20 tot 90 s laadtijd, ~400 extra programmas)');

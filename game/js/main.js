@@ -355,9 +355,7 @@ initLoading();
 // keys, so the first seconds in the world build and link nothing on the main
 // thread. A longer boot is the price the owner chose for a smooth start. A test
 // or QA run skips it: those start from a script and their timing must stay put.
-// perf-r3 (24-11): de benchmark start zoals een speler, dus met de opwarming (gebouwen, wegen en shaders achter het laadscherm): koud
-// begon hij met de stilstanden van de eerste seconden (tot 2,9 s) die een speler na het laadscherm niet heeft
-const WARM_START = FLAGS.warm || FLAGS.benchmark || !(FLAGS.noattract || FLAGS.storytest || FLAGS.stil || FLAGS.trailer || FLAGS.preview || FLAGS.benchmark || FLAGS.perf || FLAGS.spotsonly || FLAGS.autoplay || FLAGS.menutest);
+const WARM_START = FLAGS.warm || !(FLAGS.noattract || FLAGS.storytest || FLAGS.stil || FLAGS.trailer || FLAGS.preview || FLAGS.benchmark || FLAGS.perf || FLAGS.spotsonly || FLAGS.autoplay || FLAGS.menutest);
 // opdracht 21-11: the warm-up runs behind the boot screen's bar (the route of a normal start); the menu route of the QA
 // and trailer tools has no warm-up, so its bar finishes at the end of the boot as before
 const BOOT_WARM_ROUTE = WARM_START && !(FLAGS.attract || FLAGS.menutest || FLAGS.trailer || FLAGS.preview);
