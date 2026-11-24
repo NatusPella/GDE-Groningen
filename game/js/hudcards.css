@@ -164,7 +164,7 @@ body.pigeon-mode #hud .hud-cards { top: 300px; }
 #hud .hc-text span.sk-l { margin: 0; padding-top: 2px; font-family: var(--ds-font-zeef-kop); font-weight: 800; font-size: max(13px, var(--ds-t-kaart-eyebrow)); letter-spacing: 0.08em; text-transform: uppercase; color: var(--ds-c-inkt-zacht); }
 #hud .hc-text span.sk-w { margin: 0; }
 #hud .hc-text span.sk-m { display: inline-flex; align-items: center; gap: 4px; margin: 0 10px 0 0; white-space: nowrap; }
-#hud .hc-text .sk-m i { display: inline-grid; place-items: center; width: 1.25em; height: 1.25em; border-radius: 50%; border: 1.5px solid var(--ds-c-ink-inkt); font-family: var(--ds-font-zeef-kop); font-weight: 800; font-style: normal; font-size: 0.8em; line-height: 1; }
+#hud .hc-text .sk-m i { display: inline-grid; place-items: center; width: 1.4em; height: 1.4em; border-radius: 50%; border: 1.5px solid var(--ds-c-ink-inkt); font-family: var(--ds-font-zeef-kop); font-weight: 800; font-style: normal; font-size: max(13px, 0.8em); line-height: 1; }
 #hud .hc-text .sk-m i.sk-m-b { background: var(--ds-c-amber-vlak); color: var(--ds-c-amber-tx); }
 #hud .hc-text .sk-m i.sk-m-z { background: var(--ds-c-toets-vlak); color: var(--ds-c-ink-inkt); }
 #hud .hc-text .sk-m i.sk-m-g { background: var(--ds-c-ink-geel); color: var(--ds-c-ink-inkt); }
