@@ -72,27 +72,28 @@ export function stepFrameParts(B, color) {
 }
 
 export function stepSteerParts(B, color, px) {
+  const H = 1.2, BX = 0.34;   // stuurhoogte en stuurplek (de modulaire arm is kort: het stuur dicht bij de borst)
   const T = (a, b, r1, r2, c, sides = 8) => tubeAt(B, [a[0] - px, a[1], a[2]], [b[0] - px, b[1], b[2]], r1, r2, c, sides);
   const box = (x, y, z, a, b, c, col, g = 0) => B.box(x - px, y, z, a, b, c, col, g);
   // stuurpen met scharnierklem, buis en een dwarsstang met handvatten
-  T([0.43, 0.1, 0], [0.37, 1.02, 0], 0.034, 0.027, color, 8);
+  T([0.43, 0.1, 0], [BX + 0.02, H - 0.01, 0], 0.034, 0.027, color, 8);
   cyl(B, 0.42 - px + 0.002, 0.42, 0, 0.042, 0.06, DARK, 8, 'y');
-  cyl(B, 0.405 - px, 0.82, 0, 0.037, 0.05, DARK, 8, 'y');
+  cyl(B, 0.39 - px, 0.95, 0, 0.037, 0.05, DARK, 8, 'y');
   box(0.405, 0.44, 0, 0.012, 0.08, 0.1, color);
-  T([0.37, 1.03, -0.25], [0.37, 1.03, 0.25], 0.0155, 0.0155, 0x2a2a2b, 8);
+  T([BX, H, -0.25], [BX, H, 0.25], 0.0155, 0.0155, 0x2a2a2b, 8);
   for (const s of [1, -1]) {
-    T([0.37, 1.03, s * 0.17], [0.37, 1.03, s * 0.27], 0.022, 0.022, RUBBER, 8);
-    cyl(B, 0.37 - px, 1.03, s * 0.275, 0.016, 0.01, METAL, 6);
-    T([0.35, 1.04, s * 0.15], [0.3, 1.06, s * 0.17], 0.006, 0.005, METAL, 4); // remhendel
-    T([0.33, 1.05, s * 0.16], [0.4, 0.8, s * 0.01], 0.003, 0.003, DARK, 3); // kabel
+    T([BX, H, s * 0.17], [BX, H, s * 0.27], 0.022, 0.022, RUBBER, 8);
+    cyl(B, BX - px, H, s * 0.275, 0.016, 0.01, METAL, 6);
+    T([BX - 0.02, H + 0.01, s * 0.15], [BX - 0.07, H + 0.03, s * 0.17], 0.006, 0.005, METAL, 4); // remhendel
+    T([BX - 0.04, H + 0.02, s * 0.16], [0.4, 0.8, s * 0.01], 0.003, 0.003, DARK, 3); // kabel
   }
-  box(0.37, 1.055, 0, 0.07, 0.03, 0.11, RUBBER);
-  box(0.35, 1.072, 0, 0.012, 0.018, 0.08, 0x5fd0e0, G_LAMP);
-  B.geo(new THREE.SphereGeometry(0.024, 8, 4, 0, Math.PI * 2, 0, Math.PI / 2), composeMatrix(0.37 - px, 1.045, -0.12), METAL);
-  box(0.37, 1.04, -0.12, 0.028, 0.012, 0.028, DARK);
-  T([0.37, 1.04, 0.17], [0.37, 1.04, 0.2], 0.026, 0.026, 0x2a5f8a, 8); // gashendel
+  box(BX, H + 0.025, 0, 0.07, 0.03, 0.11, RUBBER);
+  box(BX - 0.02, H + 0.042, 0, 0.012, 0.018, 0.08, 0x5fd0e0, G_LAMP);
+  B.geo(new THREE.SphereGeometry(0.024, 8, 4, 0, Math.PI * 2, 0, Math.PI / 2), composeMatrix(BX - px, H + 0.015, -0.12), METAL);
+  box(BX, H + 0.01, -0.12, 0.028, 0.012, 0.028, DARK);
+  T([BX, H + 0.01, 0.17], [BX, H + 0.01, 0.2], 0.026, 0.026, 0x2a5f8a, 8); // gashendel
 }
-export const stepGripSpec = () => ({ x: 0.37, y: 1.03, z: 0.22, px: 0.4 });
+export const stepGripSpec = () => ({ x: 0.34, y: 1.2, z: 0.22, px: 0.4 });
 
 // ---- de snorscooter ------------------------------------------------------------------------------------------------------
 // Ontwerplengte 1,53 m (de mesh schaalt in x naar de lengte van het model); wielen 0,23 op x = 0,55 en -0,52; zadel 0,8 hoog.

@@ -23,7 +23,7 @@ import { attachVehicleLods } from './vehiclelod3d.js';
 import { DitherLOD } from './lod3d.js';
 import { densify, hullShellRich, boatFinish, outboardRich } from './vehicle_boat.js';
 import { stepFrameParts, stepSteerParts, stepGripSpec, mopedFrameParts, mopedSteerParts, mopedGripSpec, scooterWheelRich } from './vehicle_scooter.js';
-import { bikeFrameParts, bikeSteerParts, bakfietsParts, bikeWheelRich, bikeCrankParts, bikeGripSpec, bikeStijlNaam, bikeLean, bikeHipX, bikeExtras, BIKE_BB } from './vehicle_bike.js';
+import { bikeFrameParts, bikeSteerParts, bikeForkParts, bakfietsParts, bikeWheelRich, bikeCrankParts, bikeGripSpec, bikeStijlNaam, bikeLean, bikeHipX, bikeHipY, bikeExtras, BIKE_BB } from './vehicle_bike.js';
 
 // Low-poly vehicles. Group origin = vehicle centre at ground level (y=0),
 // facing local +X, right-hand side on +Z; sized off v.model.len/wid.
@@ -2654,7 +2654,7 @@ function buildBakfietsMesh(v) {
   group.add(crank);
   group.userData.crank = crank;
   const hipDrop = PERSON_RIG.HIP_Y * rider.scale.y;
-  rider.position.set(-0.68 + hipDrop * Math.sin(-0.05), 1.02 - hipDrop * Math.cos(-0.05), 0);
+  rider.position.set(-0.68 + hipDrop * Math.sin(-0.05), 1.065 - hipDrop * Math.cos(-0.05), 0);
   poseRider(rider, 0.33, 0.7, -0.05);
   // handen aan de handvatten (x -0,43; hoogte 1,045; halve breedte 0,26) en de voeten op de trappers bij de trapas van de bakfiets
   group.add(rider);
@@ -2726,7 +2726,7 @@ function buildBikeMesh(v) {
   group.userData.crank = crank;
 
   const rider = riderFor(v, toHex(v.model.rider, HABBO_PALETTE.roofBlue));
-  const hipY = fat ? 0.93 : 1.02;
+  const hipY = bikeHipY(stijl);
   // de rijder kantelt om zijn voeten: zet de heup op het zadel, ook bij een voorovergebogen racer
   const lean = bikeLean(stijl), hipDrop = PERSON_RIG.HIP_Y * rider.scale.y;
   rider.position.set(bikeHipX(stijl) + hipDrop * Math.sin(lean), hipY - hipDrop * Math.cos(lean), 0);
@@ -4061,12 +4061,15 @@ export function stuurOverlay(spec) {
   const owner = spec.body && spec.body.parent;
   const hold = (g) => { retainCachedGeometry(owner, g); return g; };
   if (spec.soort === 'fiets') {
-    const px = 0.38, o = spec.opts;
+    const px = 0.38, o = spec.opts, vorkPx = o.stijl === 'fat' ? 0.52 : 0.56;
     const sk = `${o.stijl}|${o.old ? 1 : 0}|${o.extra && o.extra.mand ? 'm' + o.extra.mandKleur : ''}`;
     return {
       px, sx: 1,
       zonder: hold(buildBikeGeometry({ ...o, zonderStuur: true })),
       stuur: hold(cached(`stuur|fiets|${sk}`, () => { const B = new GeoBuilder(3); bikeSteerParts(B, o, px); return B.build(); })),
+      // de voorvork, het voorspatbord en de lamp draaien mee om de wielas (voertuigbediening.js)
+      vork: hold(cached(`vork|fiets|${o.color}|${o.stijl}|${o.st || ''}|${o.old ? 1 : 0}|${o.noLight ? 1 : 0}|${o.old ? Math.floor((o.hash || 0) * 3) : 0}`, () => { const B = new GeoBuilder(3); bikeForkParts(B, o, vorkPx); return B.build(); })),
+      vorkPx,
     };
   }
   if (spec.soort === 'step') {
@@ -4133,7 +4136,7 @@ export function updateVehicleWheelSpin(mesh, speed, dt, steer = 0) {
     // de zwaai van dit beeld, voor een zitter van buiten dit model (coopzitten3d.js): zijn benen trappen mee (#434)
     ud.pedalSwing = sw;
   }
-  if (ud.crank) ud.crank.rotation.z = ud.pedalPhase || 0;
+  if (ud.crank) ud.crank.rotation.z = ud.crankPhaseFrom && ud.crankPhaseFrom.userData && ud.crankPhaseFrom.parent ? (ud.crankPhaseFrom.userData.qPedal || 0) + Math.PI / 2 : ud.pedalPhase || 0; // de modulaire voeten: hoek a van de voet links (-z) is a - 90 graden, de kruk links staat 180 graden verder
 }
 
 // Lekke band (#41): het wiel aan de trekkende kant wordt kleiner en zakt in; terug naar normaal na

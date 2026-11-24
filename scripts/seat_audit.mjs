@@ -147,7 +147,7 @@ function seatFigureModular(mesh, v, seat) {
     const lv = p.worldToLocal(v3.clone()), lh = p.worldToLocal(hip.clone());
     if (lv.y < lh.y && lv.y > lh.y - 0.2 / (p.scale.y || 1) && lv.x < lh.x + 0.03 && Math.abs(lv.z - lh.z) < 0.15) butt = Math.min(butt, v3.y);
   }
-  const seatW = worldOf(mesh.userData.body || mesh, seat.x, seat.rider ? seat.y + PERSON_RIG.HIP_Y - SADDLE_BELOW_HIP : seat.y, seat.z), seatY = seatW.y;
+  const seatW = worldOf(mesh.userData.body || mesh, seat.x, seat.rider ? (seat.saddle ?? seat.y + PERSON_RIG.HIP_Y - SADDLE_BELOW_HIP) : seat.y, seat.z), seatY = seatW.y;
   const deg = (x) => x * 180 / Math.PI;
   const ang3 = (a, b, c) => deg(a.clone().sub(b).angleTo(c.clone().sub(b)));   // hoek bij b
   const knee = (k) => ang3(w(B[k ? I.upR : I.upL]), w(B[k ? I.loR : I.loL]), feet[k]);
@@ -268,10 +268,12 @@ function check(label, v, driver) {
     if (seat.rider) {
       // trappers (modularpeople.js PEDAL_R): het been onderaan de slag 135-172 graden, het andere (bovenaan) niet dichter dan 70
       const kLo = Math.max(...f.kneeDeg), kHi = Math.min(...f.kneeDeg);
+      if (!seat.bb) { noteMargin('scooter romp', -f.backDeg, 8, 50, lbl); if (f.backDeg > -8 || f.backDeg < -50) issues.push(`scooter: romp ${(-f.backDeg).toFixed(0)} graden voorover (8-50)`); } else {
       noteMargin('fietser romp', -f.backDeg, 8, 50, lbl); noteMargin('fietser knie', kLo, 135, 172, lbl); noteMargin('fietser knie boven', kHi, 70, 172, lbl);
       if (f.backDeg > -8 || f.backDeg < -50) issues.push(`fietser: romp ${(-f.backDeg).toFixed(0)} graden voorover (8-50)`);
       if (kLo < 135 || kLo > 172) issues.push(`fietser: knie onderaan ${kLo.toFixed(0)} graden (135-172)`);
       if (kHi < 70) issues.push(`fietser: knie bovenaan ${kHi.toFixed(0)} graden (minstens 70)`);
+      }
     }
     if (seat.pose && seat.pose.arms === 'rail' && !seat.stand) noteMargin('achterop knie', f.kneeDeg, 70, 100, lbl);
     if (seat.pose && seat.pose.arms === 'rail' && !seat.stand && out(f.kneeDeg, 70, 100)) issues.push(`achterop: knie ${r0(f.kneeDeg)} graden (70-100)`);

@@ -1,6 +1,6 @@
 // Voor/na-beelden van voertuigen (1920x1080) met headless Chrome (geen Electron, geen spel, nooit poort 9000).
 //   node scripts/voertuigklein_beeld.mjs <voor|na> <voertuig,voertuig,...> [weergave,weergave,...]
-// Voertuigen: zie SPECS in docs/beeld-24-11/voertuigen-klein/pagina.html. Weergaven: buiten, schuin, achter, dicht, hoog.
+// Voertuigen: zie SPECS in docs/beeld-24-11/voertuigen-klein/pagina.html. Weergaven: buiten, schuin, achter, dicht, hoog, boven, laag.
 // De PNG komt in docs/beeld-24-11/voertuigen-klein/<voor|na>-<voertuig>-<weergave>.png. Tijdelijk profiel in <worktree>/.scr.
 import { spawn } from 'node:child_process';
 import fs from 'node:fs';

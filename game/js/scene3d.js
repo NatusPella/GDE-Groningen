@@ -21,6 +21,7 @@ const _segB = new THREE.Vector3();
 import { buildBuildingMesh, setBuildingMap, setNightFactor, setPartsInUse, ownBuildingModel } from './models3d_buildings.js';
 import { updateDiscoLamp } from './discolight.js';
 import { buildVehicleMesh, updateVehicleWheelSpin, applyFlatTire, setBusRearAngle, updatePoliceLamps, updateIndicatorLamps, syncPoliceMount, riderSeatFor, attachHelmet, releaseVehicleGeometries } from './models3d_vehicles.js';
+import { bikeStijlNaam, bikeHipX, bikeHipY } from './vehicle_bike.js';
 import {
   buildVehicleImpactSparkMesh3D, updateVehicleImpactSparkMesh3D,
   vehicleNeedsFireEffect, vehicleSmokeOnly, buildVehicleFireMesh3D, updateVehicleFireMesh3D,
@@ -819,7 +820,8 @@ function syncPlayerRider(pv, pvMesh, hide, t = 0) {  const want = pv && (pv.isBi
   } else {
     if (ud.helmet) { ud.head.remove(ud.helmet); ud.helmet = null; }
     const fat = !!pv.model.fat;
-    playerRider.position.set(fat ? -0.26 : -0.3, (fat ? 0.93 : 1.02) - 0.93 * playerRider.scale.y, 0);
+    const stijl = bikeStijlNaam(pv.model);
+    playerRider.position.set(bikeHipX(stijl), bikeHipY(stijl) - 0.93 * playerRider.scale.y, 0);
     playerRider.rotation.set(0, 0, -0.08);
     const arm = fat ? 0.95 : 0.85;
     // fietstrucs (#207): achterover bij een wheelie, voorover bij een stoppie, de armen omhoog zonder handen

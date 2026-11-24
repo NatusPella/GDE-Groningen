@@ -22,23 +22,28 @@ export function shade(hex, f) {
 // Meetkundige punten per stijl: zadelbuis (S), kop boven (H1) en onder (H0), en de vorm van het stuur.
 // grip: het midden van een handvat (bike-assen), lean: hoe ver de rijder voorover hangt (rad).
 const STIJL = {
-  stad: { S: [-0.24, 0.84], H1: [0.4, 0.93], H0: [0.45, 0.72], lean: -0.08, post: 0.14 },
-  ebike: { S: [-0.24, 0.84], H1: [0.4, 0.93], H0: [0.45, 0.72], lean: -0.07, post: 0.14 },
-  fat: { S: [-0.24, 0.72], H1: [0.4, 0.82], H0: [0.45, 0.66], lean: -0.08, post: 0.2 },
-  race: { S: [-0.2, 0.86], H1: [0.38, 0.86], H0: [0.43, 0.7], lean: -0.5, post: 0.12, hipX: -0.23 },
-  mtb: { S: [-0.22, 0.81], H1: [0.4, 0.88], H0: [0.46, 0.7], lean: -0.3, post: 0.15, hipX: -0.27 },
+  stad: { S: [-0.24, 0.84], H1: [0.4, 0.93], H0: [0.45, 0.72], lean: -0.08, post: 0.065, stem: 0.17, back: 0.3 },
+  ebike: { S: [-0.24, 0.84], H1: [0.4, 0.93], H0: [0.45, 0.72], lean: -0.07, post: 0.065, stem: 0.17, back: 0.3 },
+  fat: { S: [-0.24, 0.72], H1: [0.4, 0.82], H0: [0.45, 0.66], lean: -0.08, post: 0.17, stem: 0.25, back: 0.3 },
+  race: { S: [-0.2, 0.86], H1: [0.38, 0.86], H0: [0.43, 0.7], lean: -0.5, post: 0.09, hipX: -0.23, back: 0.55 },
+  mtb: { S: [-0.22, 0.81], H1: [0.4, 0.88], H0: [0.46, 0.7], lean: -0.3, post: 0.12, hipX: -0.27, back: 0.5 },
 };
 export const bikeStijlNaam = (model) => (model && model.fat ? 'fat' : model && STIJL[model.stijl] ? model.stijl : 'stad');
 export const bikeLean = (stijl) => (STIJL[stijl] || STIJL.stad).lean;
+// Het zadel: de bovenkant van het zadel (zadelbuis + pen + de dikte van het zadel) en de heup van de rijder daarboven (0,065 m, zoals
+// modularpeople.js HIP_ABOVE_SEAT); beide mensmodellen zitten zo op het zadel (seating3d.js bikeRiderSeat).
+export const bikeSaddleTop = (stijl) => { const P = STIJL[stijl] || STIJL.stad; return P.S[1] + P.post + (stijl === 'race' || stijl === 'mtb' ? 0.055 : 0.076); };
+export const bikeHipY = (stijl) => bikeSaddleTop(stijl) + 0.065;
+export const bikeBack = (stijl) => (STIJL[stijl] || STIJL.stad).back ?? 0.3; // rughoek van de modulaire rijder (rad voorover)
 export const bikeHipX = (stijl) => (STIJL[stijl] || STIJL.stad).hipX ?? (stijl === 'fat' ? -0.26 : -0.3);
 
 // Handvatten: x en hoogte van het midden, halve breedte, stuuras. De rijder pakt hier vast (bikeHands).
 export function bikeGripSpec(stijl) {
   const s = STIJL[stijl] || STIJL.stad;
   const px = 0.38;
-  if (stijl === 'race') return { x: s.H1[0] + 0.07, y: s.H1[1] + 0.12, z: 0.2, px };
-  if (stijl === 'mtb') return { x: s.H1[0] - 0.17, y: s.H1[1] + 0.12, z: 0.3, px };
-  return { x: 0.13, y: s.H1[1] + 0.115, z: 0.28, px };
+  if (stijl === 'race') return { x: s.H1[0] + 0.03, y: s.H1[1] + 0.23, z: 0.2, px };
+  if (stijl === 'mtb') return { x: s.H1[0] - 0.21, y: s.H1[1] + 0.155, z: 0.3, px };
+  return { x: 0.05, y: s.H1[1] + s.stem - 0.025, z: 0.28, px };
 }
 
 export const tubeAt = (B, a, b, r1, r2, c, sides = 8) => B.geo(tubeGeometry(a, b, r1, r2, sides), null, c);
@@ -149,20 +154,8 @@ export function bikeFrameParts(B, o) {
     cyl(B, R[0], R[1], s * 0.06, 0.017, 0.018, METAL, 6);
   }
   T([S[0] - 0.015, S[1] - 0.05, 0.025], [S[0] - 0.015, S[1] - 0.05, -0.025], t * 0.7, t * 0.7);
-  // voorvork met een lichte bocht naar voren
-  const suspension = mtb;
-  for (const s of [1, -1]) {
-    const top = [H0[0] + 0.005, H0[1] - 0.012, s * 0.055], bend = [H0[0] + 0.055, (H0[1] + F[1]) * 0.5 + 0.02, s * 0.055], bot = [F[0], F[1], s * 0.052];
-    if (suspension) {
-      T(top, [bend[0] - 0.005, bend[1] + 0.03, s * 0.055], 0.017, 0.017, 0xb8932b, 6);
-      T([bend[0] - 0.005, bend[1] + 0.03, s * 0.055], bot, 0.02, 0.014, shade(color, 0.7));
-    } else {
-      T(top, bend, 0.015, 0.0125, fork);
-      T(bend, bot, 0.0125, 0.0105, fork);
-    }
-    cyl(B, F[0], F[1], s * 0.052, 0.017, 0.018, METAL, 6);
-  }
-  B.box(H0[0] + 0.0, H0[1] - 0.045, 0, 0.05, 0.03, 0.14, fork, 0, 0, 0, -0.18);
+  // de voorvork, het voorspatbord en de lamp: bikeForkParts (draait dichtbij met het stuur mee)
+  if (!o.zonderStuur) bikeForkParts(B, o, 0);
 
   // zadel: afgerond, met neus, een lichte naad en veren eronder
   const sx = post[0] - 0.02, sy = post[1];
@@ -186,10 +179,6 @@ export function bikeFrameParts(B, o) {
   const fender = old ? ([0xb0b3b8, 0x2a4a8a, color][Math.floor(hash * 3)]) : color;
   if (!race && !mtb || fat) {
     const w = fat ? 0.12 : 0.075, ro = r + 0.03 + (fat ? 0.04 : 0);
-    // een scheef voorspatbord: omhoog gebogen en een stukje weg van het wiel (zelfde aantal driehoeken)
-    if (st.includes('S')) arcStrip(B, F[0] + 0.06, F[1] + 0.09, ro, w, 0.3, 2.37, 12, fender);
-    else arcStrip(B, F[0], F[1], ro, w, -0.12, 2.05, 12, fender);
-    for (const s of [1, -1]) T([F[0] + 0.0, F[1], s * 0.052], [F[0] + 0.12, F[1] + 0.2, s * 0.035], 0.005, 0.005, METAL, 4);
     arcStrip(B, R[0], R[1], ro, w, 0.35, 3.45, 14, fender);
     for (const s of [1, -1]) {
       T([R[0], R[1], s * 0.06], [R[0] - 0.09, R[1] + 0.27, s * 0.045], 0.005, 0.005, METAL, 4);
@@ -246,18 +235,10 @@ export function bikeFrameParts(B, o) {
   }
   // naafdynamo of lamp, ringslot, (e-bike) motor, schijfremmen
   if (!sport) {
-    if (!noLight) {
-      cyl(B, H0[0] + 0.07, H0[1] + 0.06, 0, 0.05, 0.075, 0x2a2a2b, 10, 'x');
-      cyl(B, H0[0] + 0.113, H0[1] + 0.06, 0, 0.038, 0.012, HEADLAMP, 10, 'x');
-      B.box(H0[0] + 0.12, H0[1] + 0.06, 0, 0.01, 0.06, 0.06, HEADLAMP, G_LAMP);
-      T([H0[0] + 0.03, H0[1] + 0.02, 0], [H0[0] + 0.045, H0[1] + 0.045, 0], 0.01, 0.008, METAL, 4);
-      cyl(B, F[0] - 0.01, F[1] + 0.085, 0.07, 0.015, 0.02, 0x2a2a2b, 6);
-    }
     B.box(-0.47, 0.6, 0, 0.075, 0.055, 0.17, 0x1d1d1e);
     cyl(B, -0.47, 0.6, 0.0, 0.03, 0.18, 0x3a3a3c, 8);
     B.box(-0.5, 0.6, 0.095, 0.03, 0.03, 0.012, 0xc8a02a);
   } else {
-    if (!noLight) B.box(H0[0] + 0.045, H0[1] + 0.045, 0, 0.025, 0.035, 0.045, HEADLAMP, G_LAMP);
     B.box(R[0] - 0.07, 0.72, 0, 0.025, 0.035, 0.04, TAIL, G_LAMP);
     B.box(R[0] - 0.01, 0.72, 0, 0.06, 0.02, 0.04, 0x2a2a2b);
   }
@@ -266,7 +247,6 @@ export function bikeFrameParts(B, o) {
     B.box(BB[0] + 0.02, BB[1] + 0.082, 0, 0.14, 0.012, 0.1, color);
   }
   // voorrem en achterrem: blokjes bij de velg met een kabelkoker
-  B.box(F[0] - 0.005, F[1] + r - 0.08, 0, 0.04, 0.04, 0.09, 0x2a2a2b);
   B.box(R[0] + 0.005, R[1] + r - 0.08, 0, 0.04, 0.04, 0.09, 0x2a2a2b);
   // trapas is los (bikeCrankParts), de standaard hangt dichtgeklapt langs de achterbouw
   T([-0.22, 0.285, -0.07], [-0.46, 0.31, -0.085], 0.008, 0.008, 0x2a2a2b, 5);
@@ -281,6 +261,53 @@ export function bikeFrameParts(B, o) {
   return { r, wb };
 }
 
+// De voorvork met kroon, het voorspatbord (een scheef spatbord: st S), de lamp met dynamo en de voorrem: één onderdeel dat dichtbij met het
+// stuur meedraait (voertuigbediening.js, pivot op de wielas px = F.x); px = 0 voor de volledige carrosserie op afstand.
+export function bikeForkParts(B, o, px = 0) {
+  const { color, stijl = 'stad', st = '', old = false, hash = 0.5 } = o;
+  const noLight = o.noLight || st.includes('L');
+  const P = STIJL[stijl] || STIJL.stad;
+  const fat = stijl === 'fat', race = stijl === 'race', mtb = stijl === 'mtb', sport = race || mtb;
+  const r = fat ? 0.3 : 0.34, wb = fat ? 0.52 : 0.56;
+  const F = [wb, r, 0], { H0 } = P;
+  const fork = old ? shade(color, 0.85) : color;
+  const fender = old ? ([0xb0b3b8, 0x2a4a8a, color][Math.floor(hash * 3)]) : color;
+  const T = (a, b, r1, r2, c, sides = 8) => tubeAt(B, [a[0] - px, a[1], a[2]], [b[0] - px, b[1], b[2]], r1, r2, c, sides);
+  const box = (x, y, z, a, b, c, col, g = 0, rz = 0) => B.box(x - px, y, z, a, b, c, col, g, 0, 0, rz);
+  // twee vorkpoten met een lichte bocht naar voren (mountainbike: voorvering)
+  for (const s of [1, -1]) {
+    const top = [H0[0] + 0.005, H0[1] - 0.012, s * 0.055], bend = [H0[0] + 0.055, (H0[1] + F[1]) * 0.5 + 0.02, s * 0.055], bot = [F[0], F[1], s * 0.052];
+    if (mtb) {
+      T(top, [bend[0] - 0.005, bend[1] + 0.03, s * 0.055], 0.017, 0.017, 0xb8932b, 6);
+      T([bend[0] - 0.005, bend[1] + 0.03, s * 0.055], bot, 0.02, 0.014, shade(color, 0.7));
+    } else {
+      T(top, bend, 0.015, 0.0125, fork);
+      T(bend, bot, 0.0125, 0.0105, fork);
+    }
+    cyl(B, F[0] - px, F[1], s * 0.052, 0.017, 0.018, METAL, 6);
+  }
+  box(H0[0], H0[1] - 0.045, 0, 0.05, 0.03, 0.14, fork, 0, -0.18);
+  // het voorspatbord met stagen; een scheef spatbord is omhoog gebogen en een stukje weg van het wiel (zelfde aantal driehoeken)
+  if (!sport) {
+    const w = fat ? 0.12 : 0.075, ro = r + 0.03 + (fat ? 0.04 : 0);
+    if (st.includes('S')) arcStrip(B, F[0] + 0.06 - px, F[1] + 0.09, ro, w, 0.3, 2.37, 12, fender);
+    else arcStrip(B, F[0] - px, F[1], ro, w, -0.12, 2.05, 12, fender);
+    for (const s of [1, -1]) T([F[0], F[1], s * 0.052], [F[0] + 0.12, F[1] + 0.2, s * 0.035], 0.005, 0.005, METAL, 4);
+  }
+  // lamp op de kroon, met dynamo (sportfietsen: een klein lampje)
+  if (!noLight) {
+    if (!sport) {
+      cyl(B, H0[0] + 0.07 - px, H0[1] + 0.06, 0, 0.05, 0.075, 0x2a2a2b, 10, 'x');
+      cyl(B, H0[0] + 0.113 - px, H0[1] + 0.06, 0, 0.038, 0.012, HEADLAMP, 10, 'x');
+      box(H0[0] + 0.12, H0[1] + 0.06, 0, 0.01, 0.06, 0.06, HEADLAMP, G_LAMP);
+      T([H0[0] + 0.03, H0[1] + 0.02, 0], [H0[0] + 0.045, H0[1] + 0.045, 0], 0.01, 0.008, METAL, 4);
+      cyl(B, F[0] - 0.01 - px, F[1] + 0.085, 0.07, 0.015, 0.02, 0x2a2a2b, 6);
+    } else box(H0[0] + 0.045, H0[1] + 0.045, 0, 0.025, 0.035, 0.045, HEADLAMP, G_LAMP);
+  }
+  // voorrem: een blokje bij de velg
+  box(F[0] - 0.005, F[1] + r - 0.08, 0, 0.04, 0.04, 0.09, 0x2a2a2b);
+}
+
 // Stuurstang, stuurpen, handvatten, remhendels, bel en kabels, om de stuurpen (px) gedraaid. Als de stuurpen zelf op x=px staat.
 export function bikeSteerParts(B, o, px) {
   const { color, stijl = 'stad', extra = {}, old = false, hash = 0.5 } = o;
@@ -292,7 +319,7 @@ export function bikeSteerParts(B, o, px) {
   const box = (x, y, z, a, b, c, col, g = 0, rz = 0) => B.box(x - px, y, z, a, b, c, col, g, 0, 0, rz);
   if (race) {
     // korte stuurpen, dropstuur: kap boven, bocht naar voren en omlaag
-    const clamp = [H1[0] + 0.0, H1[1] + 0.09, 0];
+    const clamp = [H1[0] - 0.04, H1[1] + 0.2, 0];
     T([H1[0], H1[1] + 0.02, 0], clamp, 0.017, 0.017, METAL, 6);
     T([clamp[0] - 0.01, clamp[1], -0.05], [clamp[0] - 0.01, clamp[1], 0.05], 0.016, 0.016, 0x2a2a2b, 8);
     for (const s of [1, -1]) {
@@ -308,27 +335,27 @@ export function bikeSteerParts(B, o, px) {
     return;
   }
   if (mtb) {
-    const clamp = [H1[0] + 0.0, H1[1] + 0.12, 0];
+    const clamp = [H1[0] + 0.0, H1[1] + 0.17, 0];
     T([H1[0], H1[1] + 0.02, 0], clamp, 0.019, 0.019, METAL, 6);
     for (const s of [1, -1]) {
       T([clamp[0] + 0.0, clamp[1], s * 0.03], [clamp[0] - 0.02, clamp[1] + 0.015, s * 0.2], 0.0115, 0.0115, 0x2a2a2b, 6);
-      T([clamp[0] - 0.02, clamp[1] + 0.015, s * 0.2], [clamp[0] - 0.1, clamp[1] - 0.005, s * 0.3], 0.0115, 0.0115, 0x2a2a2b, 6);
-      T([clamp[0] - 0.1, clamp[1] - 0.005, s * 0.3], [clamp[0] - 0.24, clamp[1] - 0.02, s * 0.3], 0.019, 0.019, 0x4a8f3a, 8);
+      T([clamp[0] - 0.02, clamp[1] + 0.015, s * 0.2], [clamp[0] - 0.14, clamp[1] - 0.005, s * 0.3], 0.0115, 0.0115, 0x2a2a2b, 6);
+      T([clamp[0] - 0.14, clamp[1] - 0.005, s * 0.3], [clamp[0] - 0.28, clamp[1] - 0.02, s * 0.3], 0.019, 0.019, 0x4a8f3a, 8);
       T([clamp[0] - 0.1, clamp[1] + 0.005, s * 0.27], [clamp[0] + 0.03, clamp[1] + 0.01, s * 0.27], 0.005, 0.005, METAL, 4);
       T([clamp[0] - 0.01, clamp[1] - 0.005, s * 0.2], [clamp[0] - 0.01, clamp[1] - 0.12, s * 0.03], 0.0035, 0.0035, 0x55585b, 3);
     }
     return;
   }
   // stad, e-bike, fat: opgebogen stuur met een stuurpen
-  const top = [H1[0] - 0.02, H1[1] + 0.14, 0];
+  const top = [H1[0] - 0.02, H1[1] + P.stem, 0];
   T([H1[0], H1[1] + 0.02, 0], top, 0.0145, 0.0145, METAL, 8);
   cyl(B, top[0] - px, top[1], 0, 0.021, 0.07, METAL, 8);
   for (const s of [1, -1]) {
-    const m1 = [top[0] - 0.01, top[1], s * 0.1], m2 = [top[0] - 0.06, top[1] - 0.005, s * 0.2], grip = [top[0] - 0.2, top[1] - 0.02, s * 0.28];
+    const m1 = [top[0] - 0.01, top[1], s * 0.1], m2 = [top[0] - 0.06, top[1] - 0.005, s * 0.2], grip = [top[0] - 0.28, top[1] - 0.02, s * 0.28];
     T(top, m1, 0.0125, 0.0125, METAL, 6);
     T(m1, m2, 0.0125, 0.0125, METAL, 6);
-    T(m2, [top[0] - 0.12, top[1] - 0.015, s * 0.25], 0.0125, 0.0125, METAL, 6);
-    T([top[0] - 0.12, top[1] - 0.015, s * 0.25], grip, 0.0125, 0.0125, METAL, 6);
+    T(m2, [top[0] - 0.14, top[1] - 0.015, s * 0.25], 0.0125, 0.0125, METAL, 6);
+    T([top[0] - 0.14, top[1] - 0.015, s * 0.25], grip, 0.0125, 0.0125, METAL, 6);
     T(grip, [grip[0] - 0.1, grip[1] - 0.01, grip[2]], 0.019, 0.019, GRIP, 8);
     T([grip[0] - 0.1, grip[1] - 0.01, grip[2]], [grip[0] - 0.108, grip[1] - 0.011, grip[2]], 0.012, 0.012, METAL, 6);
     // remhendel en kabel

@@ -854,15 +854,23 @@ function aimBone(bone, from, to, dir) {
   _bx.subVectors(_bw, _bv).normalize();
   rotateWorld(bone, _bq.setFromUnitVectors(_bx, dir));
 }
+// De greep k (0 = links, -z) van het stuur van een tweewieler in de wereld: het midden van het handvat (grip: x, y, z, px = de stuuras)
+// gedraaid met het stuur over dezelfde hoek als de voorwielen (voertuigbediening.js MAX_STUUR 0,5 rad).
+const _gp = new THREE.Vector3();
+function gripPoint(g, k, ctx, out) {
+  const a = -Math.max(-1, Math.min(1, ctx.steer || 0)) * 0.5, c = Math.cos(a), sn = Math.sin(a), z = k ? g.z : -g.z, dx = g.x - (g.px ?? g.x);
+  return ctx.toWorld((g.px ?? g.x) + dx * c + z * sn, g.y, -dx * sn + z * c, out);
+}
 const _dir = new THREE.Vector3(), _hp = new THREE.Vector3(), _tg = new THREE.Vector3(), _ft = new THREE.Vector3(), _c0 = new THREE.Vector3(), _ax1 = new THREE.Vector3(), _ax2 = new THREE.Vector3();
 function seatIK(mesh, seat, ctx = null) {
   const ud = mesh.userData, I = ud.qIdx, B = ud.qBones, pose = seat && seat.pose, rig = ud.qRig;
   const rider = !!(seat && seat.rider);
+  if (seat && seat.stand && !rider && seat.grip && ctx && ctx.toWorld) { standGrip(mesh, seat, ctx); return; }
   if ((!pose && !rider) || (seat.stand && !rider)) return;
   const bn = (n) => B[ud.qIdxBy[n]];
   const astride = !!(pose && pose.splay);
   const railSit = !!(pose && pose.arms === 'rail');
-  const T0 = rider ? SEAT_TARGETS.bike : railSit ? SEAT_TARGETS.rail : pose && pose.arms === 'wheel' ? SEAT_TARGETS.drive : SEAT_TARGETS.car;
+  const T0 = rider ? (seat.back ? { ...SEAT_TARGETS.bike, back: -seat.back } : SEAT_TARGETS.bike) : railSit ? SEAT_TARGETS.rail : pose && pose.arms === 'wheel' ? SEAT_TARGETS.drive : SEAT_TARGETS.car;
   // een sportstoel ligt verder achterover (pose.recline): de rug gaat mee, zodat de heuphoek open blijft
   const T = pose && !rider && !railSit && (pose.recline || 0) > 0.35 ? { ...T0, back: Math.min(0.48, T0.back + 0.045) } : T0;
   mesh.updateMatrixWorld(true);
@@ -928,7 +936,7 @@ function seatIK(mesh, seat, ctx = null) {
   // van het eigen model), via de omzetting van het voertuig als die er is; zo hangt het niet meer van de zitclip af
   if (seat && !astride && ctx && ctx.toWorld) {
     mesh.updateMatrixWorld(true);
-    const top = rider ? seat.y + (0.93 - 0.17) * s : seat.y;
+    const top = rider ? (seat.saddle ?? seat.y + (0.93 - 0.17) * s) - (seat.bb ? Math.max(0, 1 - s / (rig.man.schaal || 1)) * 0.3 : 0) : seat.y;
     ctx.toWorld(seat.x, top, seat.z, _c0);
     bn('Hips').getWorldPosition(_bv);
     const dy = _c0.y + HIP_ABOVE_SEAT * s - _bv.y;
@@ -951,6 +959,15 @@ function seatIK(mesh, seat, ctx = null) {
     up.getWorldPosition(_hp); mesh.worldToLocal(_hp);
     let fx, fy, fz = 0;
     if (astride) { fx = pose.footX ?? 0.3; fy = pose.footY ?? -0.6; fz = side * Math.sin(pose.splay) * Math.abs(fy); }
+    else if (rider && ctx && ctx.toWorld && (seat.bb || seat.feet)) {
+      // de echte trapas of voetplank van dit voertuig (24-11): de enkel op het pedaal (0,07 m erboven), de pedalen een crank van 17 cm
+      // rond de trapas (de voeten staan tegenover elkaar); een brommer: de voeten stil op de vloerplaat
+      if (seat.bb) {
+        const a = (ud.qPedal || 0) + (k ? Math.PI : 0);
+        ctx.toWorld(seat.bb.x + PEDAL_R * Math.sin(a), seat.bb.y + 0.07 - PEDAL_R * Math.cos(a), side * (seat.bb.z || 0.11), _tg);
+      } else ctx.toWorld(seat.feet.x, seat.feet.y, side * seat.feet.z, _tg);
+      fx = null;
+    }
     else if (rider) {
       // trappers: de voet op een crank van 17 cm rond de trapas; onderaan de slag is het been op de gewenste kniehoek gestrekt, de
       // twee voeten staan tegenover elkaar en draaien mee met de snelheid (stilstaand blijven ze waar ze waren)
@@ -981,7 +998,7 @@ function seatIK(mesh, seat, ctx = null) {
       // de vloer is dieper dan het been reikt (hoge cabine): de dij bijna vlak, de knie op de gewenste hoek, de voet hangt boven de vloer (op een voetsteun)
       else { const t = 0.09, kx = l1 * Math.cos(t), ky = l1 * Math.sin(t), a = Math.PI - T.knee - t; fx = kx + l2 * Math.cos(a); fy = ky - l2 * Math.sin(a); }   // a = hoek van de scheen onder de horizontaal
     }
-    toW(_hp.x + fx / s, _hp.y + fy / s, _hp.z + fz / s, _tg);
+    if (fx !== null) toW(_hp.x + fx / s, _hp.y + fy / s, _hp.z + fz / s, _tg);
     shinEnd(rig, lo, k ? 'R' : 'L', s, _ft);
     ikTo(up, lo, _ft, _tg);
     if (astride) kneeOut(mesh, up, lo, _tg, side);
@@ -1009,7 +1026,10 @@ function seatIK(mesh, seat, ctx = null) {
   if (rider) {
     // handvatten: 0,43 m voor en 0,12 m boven de heup van het eigen model op het zadel, 0,28 m opzij
     bn('Hips').getWorldPosition(_hp); mesh.worldToLocal(_hp);
-    for (let k = 0; k < 2; k++) reach(k, toW(_hp.x + 0.43 / s, _hp.y + 0.12 / s, _hp.z + (k ? 0.28 : -0.28) / s, _tg));
+    for (let k = 0; k < 2; k++) {
+      if (seat.grip && ctx && ctx.toWorld) { gripPoint(seat.grip, k, ctx, _gp); reach(k, _gp); }
+      else reach(k, toW(_hp.x + 0.43 / s, _hp.y + 0.12 / s, _hp.z + (k ? 0.28 : -0.28) / s, _tg));
+    }
     return;
   }
   if (driver) {
@@ -1049,6 +1069,25 @@ function seatIK(mesh, seat, ctx = null) {
     dirW(0, 1, 0, _dir); _tg.addScaledVector(_dir, 0.07 * s);
     reach(k, _tg);
   }
+}
+
+// Een staander op een step: alleen de handen naar de handvatten van het stuur (de voeten staan op het dek).
+function standGrip(mesh, seat, ctx) {
+  const ud = mesh.userData, B = ud.qBones, I = ud.qIdx, s = mesh.scale.y || 1;
+  mesh.updateMatrixWorld(true);
+  const bn = (n) => B[ud.qIdxBy[n]];
+  for (let k = 0; k < 2; k++) {
+    const up = bn(k ? 'UpperArmR' : 'UpperArmL'), lo = bn(k ? 'LowerArmR' : 'LowerArmL'), wr = bn(k ? 'WristR' : 'WristL');
+    gripPoint(seat.grip, k, ctx, _gp);
+    for (let it = 0; it < 5; it++) {
+      wr.getWorldPosition(_ft);
+      _tg.copy(_gp);
+      if (it) { lo.getWorldPosition(_bv); _ax1.subVectors(_ft, _bv).normalize(); _tg.addScaledVector(_ax1, -HAND_PALM * s); }
+      ikTo(up, lo, _ft, _tg);
+      poleTo(mesh, up, lo, _tg, 0, -1, (k ? 1 : -1) * 0.6);
+    }
+  }
+  void I;
 }
 
 export function plantFeetModular(mesh, ground, w = 1) {
@@ -1134,7 +1173,7 @@ export function seatModular(mesh, seat, t, ctx = null) {
   animateModular(mesh, 0, dt);
   ud.qInSeat = false;
   // vuisten om het stuur (met de echte stuurpositie) of de stuurgreep van de fiets
-  setModularGrip(mesh, rider || arms === 'wheel');
+  setModularGrip(mesh, rider || arms === 'wheel' || !!(seat && seat.stand && seat.grip));
   if (!(ud.qLod > 0)) seatIK(mesh, seat, ctx);
   return true;
 }
