@@ -9,6 +9,7 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ## [Unreleased]
 
+- Garage: "Nog 55 te ontdekken" is een lege tegel in het raster (met een stippelrand, even groot als een voertuigkaart) in plaats van een losse regel naast je eerste auto. Samen spelen: per speler.
 - Prestaties: de kop heet "Je stand" (niet nog een keer Prestaties) en herhaalt "0 van 238 behaald" niet meer in een zin en een tweede balk; de vier getallen en de balk bovenaan blijven. Samen spelen: per speler.
 - Samen spelen: de vraag "Meedoen met ...?" is een gewone kaart met de vraag als kop en de knoppen op één regel; Ja is de gele knop, Nee secundair (eerst waren het twee gele knoppen onder elkaar in een gestippeld vak). Het naamveld voor Samen spelen herhaalt zijn label niet meer als voorbeeldtekst ("Zo zien de anderen je") en de knop Toetsenbord staat naast het veld. Samen spelen: elke speler ziet en beantwoordt zijn eigen vraag.
 - Veroverd: "Gebieden: 0 van 72 veroverd" staat niet meer in de kop én in de eerste tegel eronder. Samen spelen: per speler.
