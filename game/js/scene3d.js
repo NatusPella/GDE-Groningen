@@ -2927,12 +2927,15 @@ export function update3D(dt, world) {
     if (!reliefPatches) reliefPatches = new ReliefPatches(scene);
     reliefPatches.sync(world);
   }
+  probe.mark('3d:roads:reliëf'); // hitchprobe (perf-r3): de delen van 3d:roads
   syncRoads(world, focus.x, focus.y);
+  probe.mark('3d:roads:sync');
   // movable bridges (movablebridges3d.js): the static road of a span that is
   // not lying closed is hidden and left out of the road batches
   if (!bridgeViews) { initMovableBridges3D(scene, world.map); bridgeViews = true; }
   syncMovableBridges3D(focus.x, focus.y, world.map);
   openBridgeRoads(openSpans);
+  probe.mark('3d:roads:bruggen');
   if (!NO_BATCH) roadBatcher.update({ scene, meshes: roadMeshes, hidden: openSpans.size ? openSpans : null, px: focus.x, py: focus.y, detailR: DRAW_DIST, drawDist: DRAW_DIST, withDetail: true, compile: batchCompile, ready: batchReady, budgetMs: 3 });
   // de open span en elke tweede weg die erop ligt (#967: anders blijft daar de verf in de lucht
   // hangen); komt de brug weer dicht, dan worden ze allebei weer zichtbaar
@@ -2941,8 +2944,9 @@ export function update3D(dt, world) {
   for (const r of openSpans) { hiddenSpans.add(r); const m = roadMeshes.get(r); if (m) m.visible = false; }
   updateMovableBridges3D(focus.x, focus.y, waterNight);
   updateSluizen3D(scene, focus.x, focus.y, waterNight);
+  probe.mark('3d:roads:batch+sluizen');
   if (!world.cinemaLean) updateStreetFurniture3D(focus.x, focus.y);
-  probe.mark('3d:roads');
+  probe.mark('3d:roads:meubilair');
   syncTrees(world, focus.x, focus.y);
   syncTreeImpostors(world, focus.x, focus.y);
   probe.mark('3d:trees');

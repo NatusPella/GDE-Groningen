@@ -1,3 +1,4 @@
+import { probe } from './hitchprobe.js';
 import { aandeel, minAfstand } from './coopfoci.js';
 import { hoofdspeler, naasteSpeler, voorElkeSpeler } from './spelersregister.js';
 import { dist, angleLerp, pointInPolygon, SeededRng, isInWater, WATER_Y } from './util.js';
@@ -764,6 +765,7 @@ export function updateWildlife(dt, world) {
     maintain(world, null, foci ? foci.length : 1);
     if (foci) for (const f of foci) if (!f.host) maintain(world, f, foci.length);
   }
+  probe.mark('t-dieren:onderhoud'); // hitchprobe (perf-r3)
   for (const a of list) {
     if (a.dead) {
       if (world.time - a.deadAt > CARCASS_S) a.gone = true;

@@ -9,7 +9,7 @@ import { FLAGS } from './devflags.js';
 import { latencyStats } from './benchstats.js';
 
 const SLOW_MS = 40;
-const KEEP = 300;
+const KEEP = 2000; // perf-r3: ruim genoeg voor de eerste seconden van een benchmark (alleen met ?hitch)
 
 const enabled = FLAGS.hitch || !!globalThis.__hitchOn;
 

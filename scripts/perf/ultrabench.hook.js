@@ -46,7 +46,7 @@
     try {
       if (window.__hitch) {
         const h = window.__hitch.summary();
-        hitch = { sections: h.sections, peaks: h.peaks, slow: ((l) => l.length > 160 ? [...l.slice(0, 80), ...l.slice(-80)] : l)(h.slow.filter((x) => (x.gap || x.cpu) >= 50)), programs: h.programs.length, progList: h.programs.slice(-400).map((p) => `${p.at} ${p.name}`) };
+        hitch = { sections: h.sections, peaks: h.peaks, slow: ((l) => l.length > 240 ? [...l.slice(0, 160), ...l.slice(-80)] : l)(h.slow.filter((x) => (x.gap || x.cpu) >= 50)), programs: h.programs.length, progList: h.programs.slice(-400).map((p) => `${p.at} ${p.name}`) };
       }
     } catch (e) { hitch = { error: String(e) }; }
     const out = {
@@ -54,7 +54,7 @@
       cats: Object.fromEntries(Object.entries(s.cats || {}).map(([k, v]) => [k, { avg: +v.avg.toFixed(1), low1: +v.low1.toFixed(1) }])),
       shots: (s.shots || []).map((x) => ({ label: x.label, fps: +x.fps.toFixed(1), idx: x.idx })).sort((a, b) => a.idx - b.idx),
       raf: { frames: ms.length, durS: +durS.toFixed(1), max: Math.round(Math.max(0, ...ms)), over50: ms.filter((x) => x > 50).length, over100: ms.filter((x) => x > 100).length, over50PerMin: +(ms.filter((x) => x > 50).length / (durS / 60)).toFixed(1) },
-      longest, longtasks: lts.filter(([t]) => t > benchT0 && t <= benchT1).length, progAt, info, hitch,
+      benchT0s: +(benchT0 / 1000).toFixed(2), longest, longtasks: lts.filter(([t]) => t > benchT0 && t <= benchT1).length, progAt, info, hitch,
       enters: enters.map(([t, i, l]) => [+((t - benchT0) / 1000).toFixed(1), i, l || '']),
     };
     emitted = true;
