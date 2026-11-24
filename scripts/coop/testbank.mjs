@@ -51,6 +51,7 @@ const LOCKS = process.env.GDE_LOCKS || path.join(os.homedir(), 'gde-locks');
 // Met een ';' erin scheidt ';' de vlaggen, zodat een vlag zelf komma's mag hebben (--preset=quality:laag,drawDistance:kort: minder geheugen per venster)
 // GDE_COOP_WINDOW=960x540: kleinere vensters (minder geheugen per instantie op een volle machine)
 const EXTRA_ARGS = (process.env.GDE_COOP_ELECTRON_ARGS || '').split((process.env.GDE_COOP_ELECTRON_ARGS || '').includes(';') ? ';' : ',').map((x) => x.trim()).filter(Boolean);
+if (!EXTRA_ARGS.includes('--no-sandbox')) EXTRA_ARGS.push('--no-sandbox'); // zonder deze vlag stopt Electron in de agentomgeving met exitcode 3 (zie electronrunner.cjs); standaard aan
 const ELECTRON = process.env.ELECTRON_EXE || path.join(ROOT, 'desktop', 'node_modules', 'electron', 'dist', process.platform === 'win32' ? 'electron.exe' : 'Electron');
 fs.mkdirSync(OUT, { recursive: true });
 const EXPECT = 2 + (GASTEN - 1) + MOCK; // aantal spelers in totaal
