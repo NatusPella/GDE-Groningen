@@ -1848,13 +1848,16 @@ const PHASES = {
   },
   // Groepswarp (groepwarp.js): M11 (een warp of reisscène: storytravel.placeParty), M20 (landing na de sprong: warpGasten) en
   // M06 (de vluchtboot: gastenMeeAanBoord). De gastheer meet in dezelfde tik waar de gast staat, dus niet de band van 110 m.
-  async qawarp({ s = 60 }) {
-    const w = W(), tot = qaKlok();
+  async qaboot(a) { return PHASES.qawarp({ ...a, alleenBoot: true }); }, // alleen M06 (de vluchtboot), vanaf het beginpunt: een warp laadt een tweede stuk wereld
+  async qawarp({ s = 60, alleenBoot = false }) {
+    const w = W(), tot = qaKlok(), b = alleenBoot ? -18 : 0; // b: de boot meteen, zonder de twee warps ervoor
     if (CFG.role === 'host') {
       const ST = await imp('storytravel'), GW = await imp('groepwarp'), S = await imp('shops'), p = w.player;
       const winkels = (S.getShopsForRender() || []).map((q) => ({ q, d: Math.hypot(q.x - p.x, q.y - p.y) })).filter((o) => o.d > 300 && o.d < 900).sort((a, b) => a.d - b.d);
       await tot(3); // de gast legt eerst zijn plek vast
-      const dest = await qaVrij(winkels.length ? winkels[0].q.x : p.x + 500, winkels.length ? winkels[0].q.y : p.y);
+      let dest = { x: p.x, y: p.y };
+      if (!alleenBoot) {
+      dest = await qaVrij(winkels.length ? winkels[0].q.x : p.x + 500, winkels.length ? winkels[0].q.y : p.y);
       const g0 = qaGastFig(), voor = g0 ? qaR(Math.hypot(g0.x - dest.x, g0.y - dest.y)) : null;
       ST.placeParty(w, dest);
       const g1 = qaGastFig();
@@ -1866,7 +1869,8 @@ const PHASES = {
       const n20 = GW.warpGasten(w, land), g2 = qaGastFig();
       log('qa-warp-m20-host', { n: n20, gastAfstand: g2 ? qaR(Math.hypot(g2.x - land.x, g2.y - land.y)) : null });
       await tot(19); if (g2) qaKijk(g2.x, g2.y); await tot(20); shot('qa-warp-m20-host');
-      await tot(24);
+      }
+      await tot(24 + b);
       const boten = (w.vehicles || []).filter((v) => v && v.isBoat && !v.driver && !v.wrecked && !v.sinking).sort((a, b) => Math.hypot(a.x - p.x, a.y - p.y) - Math.hypot(b.x - p.x, b.y - p.y));
       let boot = boten[0] && Math.hypot(boten[0].x - p.x, boten[0].y - p.y) < 400 ? boten[0] : null, gemaakt = false;
       if (!boot) { // geen boot in de buurt: een rubberboot als die van M06 (heist.js GETAWAY_BOAT) op het dichtstbijzijnde brede water
@@ -1885,8 +1889,8 @@ const PHASES = {
         if (p.inVehicle !== boot) p.enterVehicle(boot, w);
         const n06 = GW.gastenMeeAanBoord(w), g3 = qaGastFig();
         log('qa-warp-m06-host', { n: n06, afstand, gemaakt, hostInBoot: p.inVehicle === boot, gast: g3 ? { inBoot: g3.inVeh === boot, stoel: g3.stoel ?? null } : null, model: boot.model && boot.model.name });
-        await tot(36); qaKijk(boot.x + 6, boot.y + 6); shot('qa-warp-m06-host');
-        await tot(46);
+        await tot(36 + b); qaKijk(boot.x + 6, boot.y + 6); shot('qa-warp-m06-host');
+        await tot(46 + b);
         // terug aan wal (handBack 'moor'): wie in de boot zat stapt mee uit
         p.exitVehicle(w.map, w); p.x = dest.x; p.y = dest.y; p.water = null; p.swimming = false;
         const nUit = GW.warpGasten(w, dest, { alleen: (l) => l.inVeh === boot }), g4 = qaGastFig();
@@ -1894,17 +1898,20 @@ const PHASES = {
       }
     } else {
       const msgs = qaMsgs(), me = await qaIk(), p0 = [me.x, me.y];
+      let h = null;
+      if (!alleenBoot) {
       await tot(5);
-      let h = qaHost();
+      h = qaHost();
       log('qa-warp-m11-gast', { verplaatst: qaR(Math.hypot(me.x - p0[0], me.y - p0[1])), afstandHost: h ? qaR(Math.hypot(h.x - me.x, h.y - me.y)) : null, meldingen: msgs.slice(-3) });
       if (h) qaKijk(h.x, h.y); await tot(7.5); shot('qa-warp-m11-gast');
       await tot(19); h = qaHost();
       log('qa-warp-m20-gast', { afstandHost: h ? qaR(Math.hypot(h.x - me.x, h.y - me.y)) : null, meldingen: msgs.slice(-3) });
       if (h) qaKijk(h.x, h.y); await tot(20.5); shot('qa-warp-m20-gast');
-      await tot(34); h = qaHost();
+      }
+      await tot(34 + b); h = qaHost();
       log('qa-warp-m06-gast', { inVoertuig: !!w.coopInVoertuig, afstandHost: h ? qaR(Math.hypot(h.x - me.x, h.y - me.y)) : null, meldingen: msgs.slice(-3) });
-      if (h) qaKijk(h.x, h.y); await tot(36.5); shot('qa-warp-m06-gast');
-      await tot(52);
+      if (h) qaKijk(h.x, h.y); await tot(36.5 + b); shot('qa-warp-m06-gast');
+      await tot(52 + b);
       log('qa-warp-m06-uit-gast', { inVoertuig: !!w.coopInVoertuig, zwemt: !!(me.swimming || me.water), meldingen: msgs.slice(-3) });
     }
     await tot(s);
@@ -1978,14 +1985,15 @@ const PHASES = {
     const w = W(), tot = qaKlok(), IN = await imp('boarding3d');
     if (CFG.role === 'host') {
       const p = w.player, BS = await imp('busstop');
-      let bus = null, ronde = 0;
+      let bus = null, ronde = 0; const fasen = {};
       while (!bus && performance.now() < qaT0() + 36000) {
         ronde++;
+        for (const v of w.vehicles || []) if (v && v.busRun) { const k = (v.halteStaat && v.halteStaat.fase) || 'geen'; fasen[k] = (fasen[k] || 0) + 1; }
         const nad = (w.vehicles || []).filter((v) => v && v.busRun && v.halteStaat && v.halteStaat.fase === 'nadering' && v.halteStaat.stop);
-        bus = nad.map((v) => ({ v, d: BS.halteAfstand(v.busRun, v.halteStaat.stop) })).filter((o) => o.d > 25 && o.d < 85).sort((a, b) => b.d - a.d)[0] || null;
+        bus = nad.map((v) => ({ v, d: BS.halteAfstand(v.busRun, v.halteStaat.stop) })).filter((o) => o.d > 12 && o.d < 90).sort((a, b) => b.d - a.d)[0] || null;
         if (!bus) await sleep(400);
       }
-      if (!bus) { log('qa-halte-host', { geenBus: true, rondes: ronde, bussen: (w.vehicles || []).filter((v) => v && v.busRun).length }); await tot(s); return; }
+      if (!bus) { log('qa-halte-host', { geenBus: true, rondes: ronde, fasen, bussen: (w.vehicles || []).filter((v) => v && v.busRun).map((v) => ({ afstand: Math.round(Math.hypot(v.x - p.x, v.y - p.y)), v: qaR(v.speed || 0), lijn: v.busRun.line && v.busRun.line.name || null, live: !!v.liveId })) }); await tot(s); return; }
       const v = bus.v, c = Math.cos(v.angle || 0), sn = Math.sin(v.angle || 0);
       const stop = { x: v.x + c * bus.d, y: v.y + sn * bus.d };
       const plek = { x: stop.x - sn * 8 + c * 6, y: stop.y + c * 8 + sn * 6 };
@@ -2062,6 +2070,40 @@ const PHASES = {
       log('qa-treffer-gast', { auto: auto ? qaR(Math.hypot(auto.x - me.x, auto.y - me.y)) : null, wapen: w.weapon, patronen: [ammo0, w.ammo.pistol], raakNieuw: !!(m && m.at !== mark0), mark: m ? { at: qaR(m.at || 0), kind: m.kind || null } : null });
       shot('qa-treffer-gast-na');
       w.weapon = 'fists';
+    }
+    await tot(s);
+  },
+  // Meerijden en de zitpose (modulaire mensen, coopzitten3d.js): de gastheer stapt in een geparkeerde auto, de gast stapt in via dezelfde weg als E
+  // (coopnet.js figGebruik), beide kanten leggen vast hoe de ander zit; daarna rijdt de gastheer een stukje en stapt de gast weer uit.
+  async qazit({ s = 40 }) {
+    const w = W(), tot = qaKlok();
+    if (CFG.role === 'host') {
+      const p = w.player, g = qaGastFig(), N = await imp('coopnet');
+      const auto = (w.vehicles || []).filter((v) => v && !v.driver && !v.isBoat && !v.isBus && !v.isTrain && !v.isHeli && !v.isPlane && !v.isBike && !v.isScooter && !v.wrecked && !v.isPolice && !v.missionCar).sort((a, b) => Math.hypot(a.x - p.x, a.y - p.y) - Math.hypot(b.x - p.x, b.y - p.y))[0];
+      if (!auto || !g) { log('qa-zit-host', { geenAuto: !auto, geenGast: !g }); await tot(s); return; }
+      p.x = auto.x + 2; p.y = auto.y; g.x = auto.x - 2; g.y = auto.y; g.vx = 0; g.vy = 0;
+      await sleep(1200);
+      p.enterVehicle(auto, w);
+      await sleep(800);
+      const ok = N.figGebruik(w, g.slot);
+      log('qa-zit-host', { hostIn: p.inVehicle === auto, gastIn: ok, stoel: g.stoel ?? null, model: auto.model && auto.model.name, plekken: N.figuurPlekken(auto) });
+      await tot(6); qaKijk(auto.x, auto.y, 0.9); await tot(7.5); shot('qa-zit-host');
+      w.firstPerson = false;
+      await tot(16); // de gastheer rijdt een stukje
+      const B = window.__bot; if (B) { B.stick(0, -1); await sleep(1500); B.stick(0, 0); B.down(' '); await sleep(1500); B.up(' '); }
+      await tot(22); shot('qa-zit-host-rijdt');
+      await tot(28);
+      auto.speed = 0; const uit = N.figGebruik(w, g.slot);
+      log('qa-zit-host-uit', { gastUit: uit, inVeh: !!g.inVeh });
+      await tot(31); p.exitVehicle(w.map, w);
+    } else {
+      await tot(6);
+      const h = qaHost(); if (h) qaKijk(h.x, h.y, 0.9);
+      log('qa-zit-gast', { inVoertuig: !!w.coopInVoertuig, zitters: (w.coopZitters || []).map((z) => [z.slot, z.voertuig, z.stoel, z.bestuurder]) });
+      await tot(8); shot('qa-zit-gast');
+      await tot(22); shot('qa-zit-gast-rijdt');
+      await tot(30);
+      log('qa-zit-gast-uit', { inVoertuig: !!w.coopInVoertuig });
     }
     await tot(s);
   },

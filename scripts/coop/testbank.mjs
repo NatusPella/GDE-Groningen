@@ -55,7 +55,7 @@ const EXPECT = 2 + (GASTEN - 1) + MOCK; // aantal spelers in totaal
 const SPELERS_ELECTRON = GASTEN >= 3 ? ['host', 'gast', 'gast2', 'gast3'] : ['host', 'gast', 'gast2']; // #1011: ook de derde Electron-gast heeft een programma (anders eindigt hij meteen en valt hij weg)
 
 // samen-qa 24-11: de fasen met hun duur; --fasen kiest een deel, in deze volgorde
-const SAMENQA_FASEN = [['qamensen', 14], ['qawarp', 60], ['qadier', 34], ['qastad', 24], ['qahalte', 60], ['qatreffer', 16], ['gastrit', 90]];
+const SAMENQA_FASEN = [['qamensen', 14], ['qawarp', 60], ['qaboot', 60], ['qadier', 34], ['qastad', 24], ['qahalte', 60], ['qatreffer', 16], ['qazit', 40], ['gastrit', 90]];
 function samenQaProgramma(me, keuze) {
   const wil = keuze ? keuze.split(',') : SAMENQA_FASEN.map(([n]) => n);
   const prog = [[0, 'wacht', { s: 6 }]]; let t = 8;
