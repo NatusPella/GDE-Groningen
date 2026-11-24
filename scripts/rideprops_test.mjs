@@ -4,7 +4,7 @@
 import './node3d.mjs';
 import assert from 'node:assert/strict';
 
-const { vrijeStart, rideFirstFree, rideCandidates } = await import('../game/js/rideprops.js');
+const { vrijeStart, vrijeKoers, rideFirstFree, rideCandidates } = await import('../game/js/rideprops.js');
 const B = await import('../game/js/breakables.js');
 
 let n = 0, fails = 0;
@@ -33,6 +33,17 @@ ok(() => {
   assert.ok(Math.abs(v.y - 52) < 1e-9, 'en start op de vrije plek');
   assert.equal(rideFirstFree(world, a, 50.2, 50), null, 'niets meer vrij: null, de speler krijgt een melding');
 }, 'een niet te claimen fiets valt terug op de volgende');
+
+ok(() => {
+  // een gevel langs x = 2 (het pand loopt van x 2 tot 12): een fiets op x 0,8 met het voorwiel naar +x staat ertegen
+  const box = { pts: [[2, -10], [12, -10], [12, 10], [2, 10], [2, -10]], bounds: [2, -10, 12, 10] };
+  const map = { buildingsNear: (x, y) => (x > 1 && x < 13 && y > -11 && y < 11 ? [box] : []) };
+  assert.ok(Math.abs(vrijeKoers(map, 0.8, 0, 0) - Math.PI) < 1e-9, 'voorwiel naar de gevel: omgedraaid naar de straat');
+  assert.equal(vrijeKoers(map, 0.8, 0, Math.PI), Math.PI, 'al naar de straat: blijft staan');
+  assert.equal(vrijeKoers(map, 0.8, 0, Math.PI / 2), Math.PI / 2, 'langs de gevel: blijft staan');
+  assert.equal(vrijeKoers(map, -5, 0, 0), 0, 'ver van de gevel: blijft staan');
+  assert.equal(vrijeKoers(null, 0.8, 0, 0), 0, 'zonder kaart: blijft staan');
+}, 'een rekfiets met zijn voorwiel naar de gevel draait om (#1018, beeldcheck 24-11)');
 
 console.log(`rideprops_test: ${n - fails}/${n}`);
 process.exit(fails ? 1 : 0);
