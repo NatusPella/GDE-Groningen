@@ -8,19 +8,21 @@ Elk blad is de toetssteen voor elke regel in de akte: past een scène niet bij d
 
 *Twee net afgestudeerde vrienden van 24 weten niet wat ze met hun leven moeten en zijn bang elkaar kwijt te raken. Ze proberen allerlei loopbanen en ontdekken onderweg dat ze verliefd zijn en samen kunnen werken; pas dan vallen de stukjes en willen ze samen een snackwagen met een eigen standplaats, en daar staat Jelle Terpstra voor.*
 
+**Aanvulling eigenaar (24-11):** Tammo en Tessa zijn net afgestudeerd, al lang vrienden, en hebben hun eerste baantjes als volwassenen. De kern is een eigen plekje in de wereld en de carrière-tour; de snackwagen *Tam & Tes* komt pas laat. Jelle is de tegenspeler en krijgt een redemption (F4, O11). Femke blijft; Jelles moeder blijft onbenoemd; Gerda (Mem) is Jelles oma. Slogan: *Een zomer in Grunn. Kon minder.* In het spel opent het verhaal de vakken per akte, ook de bijbaantjes in de wereld (`unlockgate.js`, `sidejobgate.js`).
+
 Hun doel is **niet** de snackwagen: hun doel is een plekje in de wereld vinden. De snackwagen is een verhaaltwist rond het kantelpunt (akte 4 en 5) en komt niet prominent in de marketing of in het begin van het verhaal (slogan: *Een zomer in Grunn. Kon minder.*, sinds 23-11).
 
 Vier lijnen, elke scène hoort bij minstens één:
 
 1. **Een plek in de wereld (A-lijn, het doel).** Tammo en Tessa zijn allebei anders en proberen verschillende carrières (de "Donald Duck-loopbaan": alle loopbanen en bijbanen van het spel langs, ook de profvoetbalcarrière). In de ene is Tammo goed, in de andere Tessa; in veel dingen kunnen ze juist niet samenwerken omdat hun vaardigheden verschillen. Ze ontdekken dat ze samen heel goed kunnen werken. Zie de carrière-tour in [VERHAAL-RELATIE-21-11.md](../VERHAAL-RELATIE-21-11.md).
 2. **De romance (B-lijn).** Tammo is vijf jaar stiekem verliefd; Tessa is er een beetje blind voor maar vindt hem een leuke kerel. Zoet en komisch; kleine keuzes met stille flags `romantiek:*` (WP14), nooit een ander einde. Ze worden een stel (kantelpunt akte 4 en 5, de knuffel in M22.4, de vijf woorden en de kus in M26.7).
-3. **Jelle (C-lijn).** Jelle is van de bureaucratie: regels, vergunningen en trucs zijn zijn wapen (rijk, lang, arrogant, een eikel waar je een hekel aan hebt, altijd in de weg). Tammo en Tessa zien bureaucratie als een noodzakelijk kwaad; zij investeren in mensen en relaties, en dat is hun kracht en wat uiteindelijk wint (de mensen die ze hielpen komen terug). Voor wie doet Jelle wat? De eierbal-erfenis is van zijn **oma** Mem (zij bakte hem en kreeg in 1953 niet de erkenning; hij wil die voor haar winnen, "foar mem"); het **imperium** en het succes zijn voor zijn **moeder** Sytske (zakelijk en trots, alleen aan de telefoon; zij wil omzet; Jelle: "Mijn moeder wil omzet. Mijn oma wil een eierbal. Ik lever allebei."). Mem vindt dat helemaal niet nodig. De verzoening komt pas aan het eind (Dirk/Durk en Douwe, Mem). Hij wordt verslagen met zijn eigen vergunning en een warme eierbal, nooit met geweld.
+3. **Jelle (C-lijn).** Jelle is van de bureaucratie: regels, vergunningen en trucs zijn zijn wapen (rijk, lang, arrogant, een eikel waar je een hekel aan hebt, altijd in de weg). Tammo en Tessa zien bureaucratie als een noodzakelijk kwaad; zij investeren in mensen en relaties, en dat is hun kracht en wat uiteindelijk wint (de mensen die ze hielpen komen terug). Voor wie doet Jelle wat? De eierbal-erfenis is van zijn **oma** Mem (zij bakte hem en kreeg in 1953 niet de erkenning; hij wil die voor haar winnen, "foar mem"); het **imperium** en het succes zijn voor zijn **moeder** (onbenoemd, zonder stem en zonder scène; alleen Jelle noemt haar, O6 en J5; zij wil omzet; Jelle: "Mijn moeder wil omzet. Mijn oma wil een eierbal. Ik lever allebei."). Mem vindt dat helemaal niet nodig. De verzoening komt pas aan het eind (Dirk/Durk en Douwe, Mem). Hij wordt verslagen met zijn eigen vergunning en een warme eierbal, nooit met geweld.
 4. **De snackwagen (D-lijn, de twist en daarna de endgame).** De wagen ontstaat pas als ze weten dat ze samen iets willen: Tessa houdt van snacks, Tammo van auto's en rijden (en van Tessa: hij staat elke dag naast haar in de wagen). Je moet de wagen verwerven en een standplaats veroveren; daar draait de strijd met Jelle om. De verhaalstappen leveren alleen de mijlpaal-flags `wagen:*` (WP13); de bedrijfsmechaniek (upgrades, menu, standplaatsen, AI-wagens, het snackimperium van Jelle overnemen) is de endgame van de Bezit-epic. Niets stopt: alle loopbanen, bijbanen en minigames blijven beschikbaar.
 
 Kernkeuzes die hierbij horen (zie ook de veto-lijst):
 
 - De bestaande plotmotor blijft (de Noordelijke Snackprijs, de Gouden Eierbal, Oma Trijntjes recept van 1953, Jelles koopronde): hij is beproefd en geeft elke akte een obstakel. Wat verschuift is de betekenis: de wagen is in akte 1 tot en met 3 hooguit een tekening die Tessa niet durft te geloven; de ontdekking is M22 (de luik in de Escapade), de standplaats het Ontzet (M26).
-- Jelles verhaal: zijn moeder Mem (91), niet zijn oma, is de tweede in 1953 (leeftijd klopt; Oma Trijntje won). Oma Trijntje gaf haar toen niet de erkenning; Mem krijgt die uiteindelijk. De spelling blijft "Us Mem Snacks" (de opgenomen regels zeggen het hetzelfde), de handlangers blijven Durk en Douwe.
+- Jelles verhaal: zijn oma Mem (Gerda Terpstra, 91), niet zijn moeder, is de tweede in 1953 (leeftijd klopt; Oma Trijntje won). Oma Trijntje gaf haar toen niet de erkenning; Mem krijgt die uiteindelijk. De spelling blijft "Us Mem Snacks" (de opgenomen regels zeggen het hetzelfde), de handlangers blijven Durk en Douwe.
 
 ## De naam van de wagen: Tam & Tes
 
@@ -62,7 +64,7 @@ Bestaande saves houden alles wat al open was; alleen een nieuw spel begint dicht
 
 | Onderdeel | Inhoud |
 |---|---|
-| Doel | Honderdvijftig euro verdienen en zich inschrijven voor de Noordelijke Snackprijs: de enige weg naar een standplaats voor de snackwagen. |
+| Doel | Een plekje in Grunn zoeken: de eerste baantjes (de carrière-tour begint), honderdvijftig euro en een inschrijving voor de Noordelijke Snackprijs, voordat Jelle alles opkoopt. De snackwagen is hier nog geen doel. |
 | Tegenstander | Jelle Terpstra, die de markt opkoopt. Hij is vroeg en vaak zichtbaar: radio, een geluidsbericht, dan in persoon (M03). |
 | Inzet | Tessa's droom van een thuis met wielen; Tammo blijft bij haar. |
 | Wagen | Een tekening op een bierviltje en een auto met een lekke band. Flag `wagen:idee`. |
@@ -99,7 +101,7 @@ Bestaande saves houden alles wat al open was; alleen een nieuw spel begint dicht
 | Onderdeel | Inhoud |
 |---|---|
 | Doel | De bal terughalen in Bourtange voordat Jelle hem aan zijn moeder geeft; bewijs dat hij hem al had. |
-| Tegenstander | Jelle zelf op pad; zijn moeder Mem als tweede gezicht. |
+| Tegenstander | Jelle zelf op pad; zijn oma Mem als tweede gezicht. |
 | Wagen | Een team: Berend, Tinus en Wubbo helpen bij wat ze samen gaan doen. Flag `wagen:team`. |
 | Kennismaken | Wubbo, de accountmanager, Tinus (via Henk: "hij heeft een schuur"). |
 | Romantiek | Het dieptepunt: de ruzie. De speler weet vooraf wat Tessa verbergt (Mems telefoontjes). |
@@ -145,7 +147,7 @@ Doel: de wagen laten groeien en de gemeenschap iets teruggeven. Willemien is vas
 Zes nieuwe activiteiten (J1 tot en met J6, zonder beloning, overslaanbaar, zelfde migratie als N1 tot en met N8): **akte 3** J1 Post van de gemeente (flat, na M12), J2 Een envelop in Appingedam (na M14), J3 Koffie bij Tessa's ouders (na de kermisrit); **akte 4** J4 Een dubbele date in Veendam (na M17), J5 Een wielklem in Stadskanaal (na M18), J6 Beppe aan de deur (flat, na M19). De ruzie van M20 blijft de bodem: de stappen ervoor zijn zoet en komisch, zodat het verlies groter voelt.
 
 - **Jelle (C-lijn):** zijn wapens zijn papier en geld, de tegenzet is Tessa die zijn papier leert lezen (J1: "Niet vechten. Lezen. Dat is erger."; J5: artikel 9 tegen zijn artikel 4a). Het formulier in drievoud van het Ontzet is zo voorbereid. J2: omkoping met gratis frikandellen; Lammert helpt wie vraagt, niet wie betaalt. J4: een betaalde tafel als voorschot.
-- **Redemption-zaadje:** Durk en Douwe worden mensen (J2: Durks oma bakt ook en zegt dat een eierbal zonder zout geen eierbal is; J5: Douwe zegt Mems briefje na, "Eet wat"). In J5 draagt Jelles oma Mem hem een warme eierbal in een broodtrommel mee terwijl zijn moeder Sytske aan de telefoon omzet wil (zij is alleen te horen via Jelles helft van het gesprek). Tessa kent Mem en zegt niets.
+- **Redemption-zaadje:** Durk en Douwe worden mensen (J2: Durks oma bakt ook en zegt dat een eierbal zonder zout geen eierbal is; J5: Douwe zegt Mems briefje na, "Eet wat"). In J5 draagt Jelles oma Mem hem een warme eierbal in een broodtrommel mee terwijl zijn moeder aan de telefoon omzet wil (zij is alleen te horen via Jelles helft van het gesprek). Tessa kent Mem en zegt niets.
 - **Romantiek (B-lijn):** het kasboekje en het formulier "partner, huisgenoot of overig" (J1), de ouders die de afstand op de bank zien en Tammo's onvoltooide zin (de vijfde, J3), de dubbele date waar beiden zeggen dat het geen date is (J4), Beppe's "Wannear trouwe jim?" met Tammo's dagdroom van de bruiloft bij de snackwagen en "Overig." (J6). Het bewijs wordt niet uitgelegd.
 - **Beppe en Douwe/Durk:** Beppe komt met soep en herhaalt haar zin uit N3 ("Hy seit neat, mar hy docht it goed."); Durk en Douwe staan in J2 en J5.
 - **Samen spelen:** de stappen zijn van wie het spel opende (de wereld); Tammo en Tessa zijn de lokale hoofdpersonen, een andere speler is partner en NPC, en de voortgang is per speler.

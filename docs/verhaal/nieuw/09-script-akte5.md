@@ -567,7 +567,7 @@ TESSA: Hij is Gronings, ik ben een beetje Fries. Wij zijn de verzoening. [NIEUW]
 TAMMO: Ik ben het compromis. [NIEUW]
 DOUWE: Mogen wij ook soep? [NIEUW]
 DURK: Wij passen er niet in. [NIEUW]
-MEM: Dan eet je in de gang. Op een Fries mat. [NIEUW]
+MEM: Dan eet je in de gang. Op een Friese mat. [NIEUW]
 (regie: Beppe schept soep. Oma legt een eierbal in de kom. Het wordt even heel stil in de keuken.)
 BEPPE: It smakket. [NIEUW]
 OMA TRIJNTJE: Moi. Het is soep met een eierbal. Daar kan niemand wat van zeggen. [NIEUW]

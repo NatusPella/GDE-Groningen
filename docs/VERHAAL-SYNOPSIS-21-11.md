@@ -27,7 +27,7 @@ Antwoord op de vraag van de eigenaar (21-11): *"Kun je mij ook een synopsis geve
 
 1. **A, de frietwagen.** Tessa bakt en wil een thuis met wielen, Tammo rijdt. De wagen groeit per akte: naam, recept, stek, team, standplaats, keten.
 2. **B, de romance.** Zoet en komisch, een trap in zes stappen: handen (M06), lange blik (M11), voorzichtige flirt (M14), kus (M16), ruzie (M20), knuffel en openbaring (M22), vijf woorden en samen (M26). Ze worden een stel.
-3. **C, Jelle.** Hij wint met bureaucratie: regels, vergunningen en trucs. Hij heeft de Gouden Eierbal echt gestolen; zijn moeder Mem neemt hem die in Bourtange af.
+3. **C, Jelle.** Hij wint met bureaucratie: regels, vergunningen en trucs. Hij heeft de Gouden Eierbal echt gestolen; zijn oma Mem neemt hem die in Bourtange af.
 
 **De ene zin boven alles:** *Twee net afgestudeerde, werkloze vrienden van 24 willen een frietwagen laten rijden; Tessa wil dat meer dan ze zegt, Tammo wil bij haar blijven, en Jelle Terpstra koopt Grunn op voordat het kan.*
 
@@ -82,7 +82,7 @@ Het verhaal loopt van vrijdag 14 augustus tot vrijdag 28 augustus, met een epilo
 | | |
 |---|---|
 | **Doel** | De bal terughalen in Bourtange voordat Jelle hem aan zijn moeder geeft; bewijzen dat hij hem al had. |
-| **Tegenstander, inzet** | Jelle zelf op pad; Mem als tweede gezicht. Hij koopt de fanfare en de machinist; zijn beleggers belegeren de kruitkelder. Inzet: het dieptepunt van de romance. |
+| **Tegenstander, inzet** | Jelle zelf op pad; zijn oma Mem als tweede gezicht. Hij koopt de fanfare en de machinist; zijn beleggers belegeren de kruitkelder. Inzet: het dieptepunt van de romance. |
 | **Kernmissies** | M17 Open, dicht (sloep, bruggen); M18 Wie draaide de camera's uit? (Wiebelwerk, kantoor, serverkamer); M19 Stoom (museumtrein); reis T4 De bus naar Bourtange; **M20 Het beleg van Bourtange** (Mem neemt de bal af, de ruzie); M21 Iedereen heeft een rode auto gezien (twee solodelen: Tessa redt de auto en verliest de bal, Tammo faalt bij de vrienden). |
 | **Nieuwe personages** | Wubbo (brugwachter, via Oma's vrienden), Tinus (trekkertrekker, via Henk: "hij heeft een schuur"), Mem in persoon (M20), de accountmanager. |
 | **Woonplek** | Onderweg: de museumtrein, Bourtange, Tinus' schuur in het Westerkwartier. De flat is ver weg. |

@@ -212,8 +212,8 @@ TESSA: Een pand, de bieten, Veendam. Een tweede wagen voor Willemien. Jelle koop
 TAMMO: Dan beginnen we overal. [NIEUW]
 (regie: op de galerij kijkt meneer Veldkamp om het hoekje, een duif op zijn arm.)
 VELDKAMP: De duiven vragen of jullie blijven. [NIEUW]
-TESSA: Samen. [NIEUW]
-TAMMO: Samen. [NIEUW]
+TESSA: Zeg maar van wel. [NIEUW]
+TAMMO: Als ze van het luik afblijven. [NIEUW]
 
 ## [F6] De kaart op het luik – Stad, Vismarkt – snackwagen
 (regie: zaterdag 19 september, ochtend. Op de Vismarkt staat de snackwagen met het luik open, nog zonder rij. Tessa legt een kaart van de provincie op het luik met knijpers. Rood staat voor Us Mem Snacks, en dat is veel. Ze plakt er één blauw stipje bij: de Vismarkt.)

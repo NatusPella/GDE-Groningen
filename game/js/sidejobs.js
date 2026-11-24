@@ -63,6 +63,9 @@ import { openingVan, klantPraatje, reeksMelding, reeksTekst, eindregel } from '.
 import { noteMoney } from './finance.js';
 import { loopbaanLoon, loopbaanTel, loopbaanDeel } from './loopbaanlive.js';
 import { vakVanBaan } from './loopbaan.js';
+import { storyWorldOpen, storyGateHint } from './storyquery.js';
+import { isLoopbaanGestart } from './loopbaanlive.js';
+import { sideJobGate } from './sidejobgate.js'; // #1131: a side job opens through the story (unlockgate.js); closed = dimmed, with the character's line
 import { sfeerVan } from './carrieresfeer.js'; // #631: de sfeer van het vak bij de baan (naam in de kaart)
 import { jobLevel as niveauVanRondes, titelVanNiveau, rondeWaarde, sidejobProfiel, accentVast } from './sidejobprofiel.js'; // #631/#667/#668
 import { bewaakGastWereld, spelerBeeld } from './sidejobwereld.js';
@@ -71,6 +74,11 @@ import { hoofdspeler } from './spelersregister.js'; // de speler achter dit sche
 
 export const SIDE_JOBS = [bezorger, krantenwijk, taxi, bus, rondvaart, fietsdepot, verhuizing, rondvaarttour, boa, rechtbank, cabaret, vracht, loket, studiestaat, vigilantia, promotie, kamerkoning, wolkenhal, helix, niemeyer, bernard, energielabel, tjalke, lijn, ...BIJBAAN_JOBS, veerdienst, zeeschipLauwersoog, zeeschipEemshaven, ...PANEEL_JOBS, ...STAD_JOBS, ...PACK_SIDE_JOBS, bietenoogst, boerderij, snackoverlast];
 const BY_ID = new Map(SIDE_JOBS.map((j) => [j.id, j]));
+// The unlock gate per start spot (#1131): only for the player behind this screen (owner 0); a guest on the host is never closed.
+const STORY_GATE = { open: storyWorldOpen, begun: isLoopbaanGestart, hint: storyGateHint };
+const gateReason = (job, owner = 0) => sideJobGate(job.id, STORY_GATE, { owner, played: rec(job.id).rounds > 0 });
+// For the map (mapview.js): the character's line while this side job is still closed, else null.
+export function sideJobGateHint(id) { const job = BY_ID.get(id); return job ? gateReason(job) : null; }
 
 import { markerColors } from './a11y.js';
 import { phosphorInBox, PH_JOB } from './mapglyphs.js';
@@ -186,7 +194,7 @@ export function getSideJobOffers(w) {
     return {
       id: s.job.id, name: s.job.name, blurb: s.job.blurb, x: s.x, y: s.y, level: lvl, title: levelTitle(lvl),
       pay: [lo, Math.max(lo + 5, hi)], dist: dist(s.x, s.y, p.x, p.y), active: !!ctx && ctx.job === s.job,
-      blocked: ctx && ctx.job === s.job ? '' : why, familie: pr.familie, familieNaam: pr.familieNaam, sfeer: pr.sfeer, uitleg: pr.uitleg,
+      blocked: ctx && ctx.job === s.job ? '' : (why || gateReason(s.job)), familie: pr.familie, familieNaam: pr.familieNaam, sfeer: pr.sfeer, uitleg: pr.uitleg,
     };
   }).sort((a, b) => a.dist - b.dist);
 }
@@ -789,19 +797,20 @@ export function trySideJobInteract(w) {
   }
   const s = nearestSpot(w);
   if (!s) return false;
-  const why = blockReason(w);
+  const why = blockReason(w) || gateReason(s.job);
   if (why) { w.addMessage(why, 2.5); return consume(); }
   startJob(s.job);
   return consume();
 }
 
 // Waarom je de dienst van deze bus nu niet kunt overnemen (tekst), of null als het kan (#396).
-export function busShiftBlock(w) { return blockReason(w); }
+export function busShiftBlock(w) { return blockReason(w) || lineGate(); }
+function lineGate() { const j = BY_ID.get('lijn'); return j ? gateReason(j) : null; }
 
 // De dienst van een lijnbus overnemen: de bijbaan Streekbus op de lijn, richting en volgende halte van deze bus.
 export function startBusShift(w, vehicle, line, dir) {
   world = w;
-  const why = blockReason(w);
+  const why = blockReason(w) || lineGate();
   if (why) { w.addMessage(why, 2.5); return false; }
   return startJob(BY_ID.get('lijn'), { vehicle, line, dir });
 }
@@ -811,7 +820,7 @@ export function startBusShift(w, vehicle, line, dir) {
 // zijn hetzelfde.
 export function startBusDienstBijHalte(w, optie) {
   world = w;
-  const why = blockReason(w);
+  const why = blockReason(w) || lineGate();
   if (why) { w.addMessage(why, 2.5); return false; }
   return startJob(BY_ID.get('lijn'), { halte: { line: optie.line, dir: optie.dir, index: optie.index, eerst: optie.eerst } });
 }
@@ -831,7 +840,7 @@ export function sideJobPrompt(w) {
   if (!bijbaanPromptToegestaan(w.mission)) return null;
   const s = nearestSpot(w);
   if (!s) return null;
-  const why = blockReason(w);
+  const why = blockReason(w) || gateReason(s.job);
   const lvl = jobLevel(s.job.id);
   const best = rec(s.job.id).bestStreak;
   const sub = why || `${s.job.blurb} · niveau ${lvl}${best ? ` · record ${best}` : ''}`;

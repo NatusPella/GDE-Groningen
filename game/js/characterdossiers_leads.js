@@ -49,7 +49,7 @@ export const LEADS = [
     household: "Tammo, haar beste vriend en huisgenoot; zelf geen auto",
     origin: "boerendochter van het platteland (een dorp op de klei, bewust vaag, niet Groningen); tot haar achtste daar, daarna zeven plekken voor haar tiende; elke zomer in Ljouwert naast Mem; vanaf haar achttiende in Stad voor de studie",
     education: "een opleiding in Stad (niet genoemd), net afgestudeerd; eerst de Kiezelweek, daar ontmoette ze Tammo",
-    work: "werkloos, net afgestudeerd; haar droom is een eigen frietwagen; eerste klusjes uit het spel",
+    work: "werkloos, net afgestudeerd; eerste baantjes uit het spel (de carrière-tour); de frietwagen is tot akte 5 een tekening op een bierviltje",
     employer: "n.v.t.; later de snackwagen (eigen bedrijf)",
     hobbies: ["koken en frituren", "rijden, vooral hard", "de rondvaart en het water", "voetbal (dorpsteam sinds haar zesde; ze wil er prof in worden)", "het Noorderplantsoen bij de eerste zon", "winnen"],
     traits: ["snel en ad rem", "baas van het duo", "betweterig als het om regels gaat", "praktisch, met boerennuchterheid", "geeft niet op"],

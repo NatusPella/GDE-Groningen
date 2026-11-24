@@ -31,7 +31,7 @@ zomer en in de stem van de vaste cast; tekst is data (canon, script, build, spel
 4. **Spel**: `game/js/storytext.js` leest `game/storydata/script.json`;
    `game/js/storyarc.js` is de enige facade voor de rest van het spel (`:7`, `:16`).
 
-De data: 275 scènes, 2.123 regels in act 1 tot en met 6; 57 zijn stille appjes en 57 hebben geen opname (de 37 appjes zijn bewust stil; 4 regels wachten sinds de verhaalcanon van 21-11 op een nieuwe opname, zie docs/VERHAALCANON-21-11.md; de
+De data: 275 scènes, 2.123 regels in act 1 tot en met 6; 57 zijn stille appjes en 61 hebben geen opname (de 37 appjes zijn bewust stil; 4 regels wachten sinds de verhaalcanon van 21-11 op een nieuwe opname, zie docs/VERHAALCANON-21-11.md; de
 1.390 andere gesproken regels hebben een opname, stand 21-11). Een regel zonder opname toont
 het spel als ondertitel met leestijd (`game/js/storytext.js:53`). Een `[BEHOUDEN]`-regel heeft een opname: één andere
 letter maakt hem stil. Nieuwe opnames komen er in rondes bij op Flash-Lite (ADR 0019,
@@ -182,7 +182,7 @@ Een cutscene gebruikt **alleen de echte assets en systemen van het spel**, nooit
 De kern (eigenaar, 21-11): twee net afgestudeerde vrienden zoeken een plekje in de wereld en zijn bang elkaar kwijt te raken; de snackwagen is een verhaaltwist (rond akte 4 en 5) en het eind een open wereld; Jelle is de gelaagde tegenstander (eikel tot de verzoening aan het eind). Uitgewerkt in [docs/verhaal/RUGGENGRAAT.md](../../docs/verhaal/RUGGENGRAAT.md), [docs/VERHAAL-RELATIE-21-11.md](../../docs/VERHAAL-RELATIE-21-11.md) en het gegenereerde [filmscript](../../docs/verhaal/FILMSCRIPT-21-11.md). Wat de bouw toevoegt, met zijn test:
 
 - **Overgangsscènes** (`BRIDGES` in `storyarc_nieuw.js`, `storybridge.js`, `storybridgerun.js`; `storybridge_test`): twaalf korte scènes tussen missies, nooit twee na opeenvolgende missies, overslaanbaar, lokaal, zonder voortgang.
-- **Ontgrendelpoort** (`unlockgate.js`; `unlockgate_test`): werelden per akte, een nieuw spel begint dicht, een oude save houdt alles; Bezit en voetbal registreren met `registerGateWorld`.
+- **Ontgrendelpoort** (`unlockgate.js`; `unlockgate_test`): werelden per akte, een nieuw spel begint dicht, een oude save houdt alles; Bezit en voetbal registreren met `registerGateWorld`. Ook de bijbaantjes in de wereld volgen hem (`sidejobgate.js`; `sidejobgate_test`): een dichte bijbaan heeft een gedimd startpunt en kaarticoon en bij E de zin van het personage.
 - **Mijlpalen en romantiek** (`storymilestones.js`, `storyromance.js`): stille vlaggen `wagen:*` en `romantiek:*`, alleen toevoegen; een keuze verandert nooit het verloop of het einde.
 - **Humorkeuze** (`game/storydata/humor*.json`, `humor_panel_prepare.mjs`, `humor_doc.mjs`; `humor_test`): elke nieuwe komische beat heeft drie varianten en een neutrale terugval; een paneel van drie onafhankelijke beoordelaars kiest; de eigenaar heeft een veto-lijst ([HUMOR-KEUZELIJST.md](../../docs/verhaal/HUMOR-KEUZELIJST.md)).
 - **Dialoogvorm** (`dialogueform.js`; `dialoogvorm_test`): `{ov}`, `{cut}`, `{pause}` per regel; zonder tag verandert niets.

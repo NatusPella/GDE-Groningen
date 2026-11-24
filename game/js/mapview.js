@@ -59,7 +59,7 @@ import { drawPitchMarkers } from './pitchdraw.js';
 import { spotCardHtml, pitchTipLine } from './pitchcard.js';
 import { spotRows, koopVergunning, acquireRivalSpot, placeVan, snackOpen } from './snacklive.js';
 import { myMobile } from './bezitlive.js';
-import { getSideJobSpotsForRender } from './sidejobs.js';
+import { getSideJobSpotsForRender, sideJobGateHint } from './sidejobs.js';
 import { getEierbalTips } from './furniture.js';
 import { drawRailsOnMap } from './railway.js';
 import { drawCountryBase, drawCountryDetail, villageLabels, syncMapPhase, MAP_STYLE, builtUpAt } from './countrymap.js';
@@ -2030,7 +2030,7 @@ function drawDynamicMarkers(ctx, world) {
     if (ct.path.length) drawRoute(ctx, [...ct.path, ct].map((w) => toScreen(w.x, w.y)), ICON);
     icon(null, 'sj-target', ct.x, ct.y, 'Controlepunt', {}, 'Uitdaging');
   }
-  for (const sj of getSideJobSpotsForRender()) { if (onbekend(sj.x, sj.y)) continue; icon(sj.job.layer || 'bijbaan', 'sj-' + sj.job.id, sj.x, sj.y, sj.job.name, {}, `${sj.job.kicker || 'Bijbaantje'}: ${sj.job.blurb.toLowerCase()}`, { goal: { kind: 'job', id: sj.job.id, name: sj.job.name, sub: 'Bijbaantje', x: sj.x, y: sj.y }, todo: 'job:' + sj.job.id }, samenVan('bijbaan', sj.job.id)); }
+  for (const sj of getSideJobSpotsForRender()) { if (onbekend(sj.x, sj.y)) continue; const dicht = sideJobGateHint(sj.job.id); /* #1131: nog dicht in het verhaal: gedimd, met de zin van het personage */ icon(sj.job.layer || 'bijbaan', 'sj-' + sj.job.id, sj.x, sj.y, sj.job.name, dicht ? { alpha: 0.4 } : {}, dicht || `${sj.job.kicker || 'Bijbaantje'}: ${sj.job.blurb.toLowerCase()}`, { goal: { kind: 'job', id: sj.job.id, name: sj.job.name, sub: 'Bijbaantje', x: sj.x, y: sj.y }, todo: 'job:' + sj.job.id }, samenVan('bijbaan', sj.job.id)); }
   for (const st of getStationsForRender()) icon('trein', 'station', st.x, st.y, st.name, {}, VILLAGES[st.name] ? `Reizen met de trein · ${VILLAGES[st.name].teaser}. Machinist: pak een stilstaande trein (E), dan G` : 'Reizen met de trein. Machinist: pak een stilstaande trein (E), dan G');
   // de bushaltes rond de speler (ovmissie.js): bij elke halte kan een busdienst beginnen; zelfde filter als de stations
   for (const h of haltesVoorKaart(hoofdspeler(world))) icon('trein', 'ov-halte', h.x, h.y, `Halte ${h.naam}`, {}, 'Een busdienst starten: loop erheen en druk E');
