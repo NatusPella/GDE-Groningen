@@ -890,7 +890,9 @@ export function updateSaveGame(dt, w) {
     restoredMoney = -1;
   }
   playSeconds += dt;
-  const busy = isCinematicActive() || w.pendingRespawn || w.health <= 0;
+  // #1295: tijdens een reisrit schrijft saveGame niets (en meldt toch true); de autosave wacht dus tot de rit voorbij is,
+  // anders was hij verbruikt en bleef een wijziging van vlak voor de rit liggen tot de volgende wijziging
+  const busy = isCinematicActive() || w.pendingRespawn || w.health <= 0 || !!w.ritBezig;
 
   if (w.stats.missionsDone > lastMissionsDone) {
     lastMissionsDone = w.stats.missionsDone;

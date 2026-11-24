@@ -364,6 +364,28 @@ ok(() => {
 }, 'een save tijdens een reisrit schrijft de halve rit niet weg');
 
 ok(() => {
+  // #1295: een autosave die tijdens de rit afliep was verbruikt (saveGame gaf true zonder te schrijven); een wijziging
+  // vlak voor een rit bleef daarna liggen tot de volgende wijziging. De autosave wacht nu tot de rit voorbij is.
+  schoon(); SS.setActive(null, 1); SG.bindSlot();
+  const w = mk({ money: 500 });
+  assert.equal(sla(w, { toast: false }), true);
+  const oudBody = document.body;
+  const classes = new Set(['game-started']);
+  document.body = { classList: { contains: (c) => classes.has(c), add: (c) => classes.add(c), remove: (c) => classes.delete(c) } };
+  try {
+    HOME.__zetHome({ center: { x: 1e6, y: 1e6 } });
+    w.money = 900; // de wijziging vlak voor de rit
+    SG.markDirty();
+    w.ritBezig = true;
+    for (let f = 0; f < 60 * 5; f++) SG.updateSaveGame(1 / 60, w); // de autosave loopt af tijdens de rit
+    assert.equal(lees().money, 500, 'tijdens de rit wordt niets geschreven');
+    w.ritBezig = false;
+    for (let f = 0; f < 60 * 5; f++) SG.updateSaveGame(1 / 60, w);
+    assert.equal(lees().money, 900, 'na de rit komt de wachtende autosave alsnog op schijf');
+  } finally { document.body = oudBody; }
+}, 'een autosave die tijdens een reisrit afloopt, wordt na de rit alsnog geschreven');
+
+ok(() => {
   const sleutels = Object.keys(serializeSleutels());
   for (const s of sleutels) assert.ok(!/rit|opening|cutscene|cinema|film|wacht|stage|reis|prop|tijdelijk/i.test(s), `${s}: geen tijdelijke staat in de save`);
   assert.ok(sleutels.includes('missions') && sleutels.includes('story') && sleutels.includes('pos'));
