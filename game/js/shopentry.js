@@ -14,7 +14,7 @@
 export const SHOP_USE_RADIUS = 2.6;      // m: de marker van een gewone winkel
 export const STORY_SHOP_RADIUS = 4.5;    // m: de winkel van het verhaal, rond de marker en rond de deur
 export const STORY_SHOP_WAIT_S = 10;     // s bij de deur of binnen: dan opent de winkelkaart vanzelf
-export const STORY_SHOP_NEAR = 6;        // m: zo dichtbij telt als 'bij de deur' voor de wachttijd
+const STORY_SHOP_NEAR = 6;        // m: zo dichtbij telt als 'bij de deur' voor de wachttijd
 
 const d2 = (ax, ay, bx, by) => Math.hypot(ax - bx, ay - by);
 

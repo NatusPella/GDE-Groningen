@@ -10,7 +10,7 @@
 // Samen spelen: 'ingestapt' geldt voor de groep: één meespeler in het missievoertuig is genoeg (zoals de stappen van de groep).
 
 export const INTRO_MAX_S = 5;
-export const INTRO_PLEK = 'onder-doelbalk'; // stunthud.js zet de kaart daar (CSS top onder de doelbalk), niet in het midden
+const INTRO_PLEK = 'onder-doelbalk'; // stunthud.js zet de kaart daar (CSS top onder de doelbalk), niet in het midden
 
 // voertuig: heeft de missie een eigen voertuig waar je eerst in moet; ingestapt: zat iemand van de groep er al in; cinematic: loopt er
 // een scène (de klok stond daar altijd al stil).

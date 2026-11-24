@@ -18,7 +18,7 @@ import { noticeDuration, makeTimer, precedence } from './noticetiming.js';
 
 export const MAX_AGE_S = 20;
 export const MAX_WAITING = 4;      // meer dan dit wacht niet: het laagste vouwt samen tot "en N meer"
-export const SLOT_GRACE_S = 15;    // een slot met `until` valt na de duur plus dit vrij, ook als de bron nooit klaar meldt
+const SLOT_GRACE_S = 15;    // een slot met `until` valt na de duur plus dit vrij, ook als de bron nooit klaar meldt
 export const MAX_TOTAL = 12;       // harde bovengrens op de rij; boven dit valt het oudste van het laagste af (niet gevaar, politie, wanted, missie)
 export const MAX_COLLAPSE = 2;     // meer wachtende prestaties dan dit vouwen samen tot een samenvattingskaart
 export const MIN_GAP_S = 4;        // tussen twee meldingen zit minstens dit (gevaar, politie, wanted en missie slaan het over)

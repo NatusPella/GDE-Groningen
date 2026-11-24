@@ -120,7 +120,7 @@ export function footprint(e, maat) {
 }
 
 // De schaal per as zoals interiorprops3d.js fitScale hem rekent (zelfde regel, zonder three).
-export function scaleOf(e, maat) {
+function scaleOf(e, maat) {
   if (e.scale) return Array.isArray(e.scale) ? e.scale : [e.scale, e.scale, e.scale];
   if (!e.fit) return [1, 1, 1];
   const want = [e.fit.b, e.fit.h, e.fit.d];
