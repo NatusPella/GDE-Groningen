@@ -8,7 +8,7 @@
 // muted output. emit(type, data) writes the replay-log line (playerapi.js).
 
 // The name of a played buffer: the dsp bank's own name, else the old buffer-length label.
-function sfxLabel(buffer) {
+export function sfxLabel(buffer) {
   if (buffer && typeof buffer.__sfx === 'string' && buffer.__sfx) return buffer.__sfx;
   return buffer ? `buf${buffer.length}@${buffer.sampleRate}` : 'buf?';
 }

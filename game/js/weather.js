@@ -354,7 +354,7 @@ const _moodTarget = { wad: 0, lauwers: 0, veen: 0 }, _moodW = { wad: NaN, lauwer
 const _mood = { tint: [1, 1, 1], haze: 0, glow: 1 };
 const _moodTint = new THREE.Color(1, 1, 1);
 const _moodZenith = new THREE.Color(1, 1, 1);
-const MOOD_ZENITH_K = 0.6; // het deel van de streektint dat ook het zenit kleurt (#1291)
+export const MOOD_ZENITH_K = 0.6; // het deel van de streektint dat ook het zenit kleurt (#1291)
 
 export function applyWeatherToScene3D(scene, renderer, world, dt, px, py, cam = null) {
   const w = world.weather;

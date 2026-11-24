@@ -7,7 +7,7 @@ import { isCinematicActive } from './cinematics.js';
 import { isShopOpen } from './shopui.js';
 import { startPigeonMode, isPigeonActive, addPigeonLoft, buildPigeonBird, posePigeonBird } from './pigeonmode.js';
 // de maat van een duif op de voerplek t.o.v. het model (0,6 m van snavel tot staart): 0,64 geeft een stadsduif van ca. 0,38 m (#1195)
-const GROUND_PIGEON_SCALE = 0.64;
+export const GROUND_PIGEON_SCALE = 0.64;
 import { isInWater } from './util.js';
 import { playerBusy } from './busy.js';
 import { waarschuwVoorStart } from './coopstatus.js';
@@ -104,7 +104,7 @@ function badgeMaterial() {
 
 // #1189 (beeld 24-11): at 0.52 m the badge filled a sixth of the screen height when you stood a few metres from the spot and
 // shouted louder than the prompt and the objective; 0.4 m still reads from across a square and the minimap marks the spot too
-const BADGE_SIZE_M = 0.4;
+export const BADGE_SIZE_M = 0.4;
 function buildMarker(x, y) {
   const group = new THREE.Group();
   group.position.set(x, 0, y);
