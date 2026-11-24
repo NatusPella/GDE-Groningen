@@ -41,6 +41,7 @@ const { TALK } = NARRATIVE;
 let clock = () => (typeof performance !== 'undefined' ? performance.now() : Date.now()) / 1000;
 const probes = {}; // kind -> { active, pending }
 const was = {}; // kind -> active at the last sample
+let probeKeys = []; // cached keys, updated on register/reset
 const endedAt = {}; // kind -> clock when it last stopped being active
 let lastToast = -Infinity;
 let sampledAt = -Infinity;
@@ -48,16 +49,18 @@ let sampledAt = -Infinity;
 export function setNarrativeClock(fn) { clock = fn; }
 
 export function resetNarrative() {
-  for (const k of Object.keys(probes)) delete probes[k];
+  for (const k of probeKeys) delete probes[k];
   for (const k of Object.keys(was)) delete was[k];
   for (const k of Object.keys(endedAt)) delete endedAt[k];
   lastToast = -Infinity;
   sampledAt = -Infinity;
+  probeKeys = [];
 }
 
 // active(): the item plays now; pending(): one waits and is ready to play.
 export function registerNarrative(kind, { active, pending } = {}) {
   probes[kind] = { active: active || (() => false), pending: pending || (() => false) };
+  probeKeys = Object.keys(probes);
 }
 
 function probe(kind, which) {
@@ -71,7 +74,7 @@ function probe(kind, which) {
 export function updateNarrative() {
   const now = clock();
   sampledAt = now;
-  for (const kind of Object.keys(probes)) {
+  for (const kind of probeKeys) {
     const on = probe(kind, 'active');
     if (was[kind] && !on) endedAt[kind] = now;
     was[kind] = on;
@@ -79,7 +82,7 @@ export function updateNarrative() {
 }
 
 const isOn = (kind) => !!was[kind];
-const subtitleOn = () => Object.keys(was).some((k) => k.startsWith('sub-') && was[k]);
+const subtitleOn = () => probeKeys.some((k) => k.startsWith('sub-') && was[k]);
 const since = (kind, now) => (isOn(kind) ? 0 : now - (endedAt[kind] ?? -Infinity));
 const sinceAny = (kinds, now) => Math.min(...kinds.map((k) => since(k, now)));
 
@@ -127,9 +130,9 @@ export const narrativeState = () => {
   const now = sampledAt;
   return {
     now,
-    active: Object.keys(probes).filter(isOn),
-    pending: Object.keys(probes).filter((k) => probe(k, 'pending')),
-    since: Object.fromEntries(Object.keys(probes).map((k) => [k, +since(k, now).toFixed(2)])),
+    active: probeKeys.filter(isOn),
+    pending: probeKeys.filter((k) => probe(k, 'pending')),
+    since: Object.fromEntries(probeKeys.map((k) => [k, +since(k, now).toFixed(2)])),
   };
 };
 
