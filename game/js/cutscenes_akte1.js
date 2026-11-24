@@ -97,7 +97,7 @@ Object.assign(SPECS, SPECS_AKTE2);
       { t: 'L9', shot: 'ots', from: 'tessa', target: 'berend', dist: 1.7, side: 0.5, fov: 34 },
       { t: 'L15', shot: 'cut', at: [4.4, 2.3, 1.7], look: 'mid:tammo,tessa@1.3', fov: 40 },
       { t: 'L15+4.05', shot: 'cut', at: [3.6, 2.9, 1.9], look: 'mid:tammo,tessa@1.3', fov: 40 },
-      { t: 'L16', shot: 'cut', at: [4.6, 1.6, 1.7], look: 'mid:tammo,tessa@1.3', fov: 40 },
+      { t: 'L16', shot: 'cut', at: [4.8, 2.2, 1.8], look: 'mid:tammo,tessa@1.3', fov: 40 }, // integratie 0.66: aan dezelfde kant als L15 en L17 (4.6/1.6 sprong over de as)
       { t: 'L19', shot: 'cut', at: [3.6, 2.9, 1.7], look: 'mid:tammo,tessa@1.3', fov: 40 },
     ],
     // R-13: Berend krijgt een naamkaart bij zijn eerste verschijning (#1124, #1138)
