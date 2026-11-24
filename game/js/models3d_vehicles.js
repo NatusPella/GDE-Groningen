@@ -21,6 +21,7 @@ import { QCARS } from './models/qcars.js';
 import { hybrideSchaal, VOERTUIG_REGISTER } from './propregister.js';
 import { attachVehicleLods } from './vehiclelod3d.js';
 import { DitherLOD } from './lod3d.js';
+import { densify, hullShellRich, boatFinish, outboardRich } from './vehicle_boat.js';
 import { stepFrameParts, stepSteerParts, stepGripSpec, mopedFrameParts, mopedSteerParts, mopedGripSpec, scooterWheelRich } from './vehicle_scooter.js';
 import { bikeFrameParts, bikeSteerParts, bakfietsParts, bikeWheelRich, bikeCrankParts, bikeGripSpec, bikeStijlNaam, bikeLean, bikeHipX, bikeExtras, BIKE_BB } from './vehicle_bike.js';
 
@@ -3730,7 +3731,7 @@ function dinghyFit(B, st, L) {
     B.box(x, 0.3, 0, 0.26, 0.04, h.hw * 2 - 0.08, WOOD);
   }
   for (const s of [1, -1]) B.geo(tubeGeometry([-0.6, 0.4, s * 0.38], [1.0, 0.36, s * 0.3], 0.018, 0.018, 4), null, 0x8a6440);
-  outboard(B, -hl, 0.45, 0.8);
+  outboardRich(B, -hl, 0.45, 1.0);
 }
 
 function outboard(B, x, y, k = 1) {
@@ -3758,7 +3759,7 @@ function rubberFit(B, st, L, W, tube, accent) {
   B.box(0.15, 0.36, 0, 0.36, 0.52, 0.42, shadeHex(accent, 0.9));
   B.box(0.26, 0.7, 0, 0.02, 0.18, 0.44, GLASS, G_GLASS, 0, 0, 0.4);
   B.box(-0.35, 0.3, 0, 0.36, 0.3, W - 0.8, 0x2a2a2b);
-  outboard(B, -hl + 0.02, 0.4, 1.1);
+  outboardRich(B, -hl + 0.02, 0.48, 1.25);
 }
 
 function waterfietsFit(B, L, W, color, accent) {
@@ -3961,7 +3962,8 @@ export function animateSkutsjeRig(v, trim, strike, t) {
 }
 
 // de hulpjes en kleuren van dit bestand voor zeeschip3d.js
-const SHIP_K = { GLASS, G_GLASS, G_LAMP, NAV_WHITE, NAV_RED, NAV_GREEN, shadeHex, hullAt };
+const SHIP_K = { GLASS, G_GLASS, G_LAMP, NAV_WHITE, NAV_RED, NAV_GREEN, shadeHex, hullAt, WOOD, DECK, KEEL };
+const RICH_HULLS = new Set(['sloep', 'rondvaart', 'kano', 'kajak', 'dinghy', 'rubberboot', 'skiff', 'acht', 'sup', 'skutsje']);
 
 function buildBoatGeometry(kind, L, W, hull, trim, cabin, police, soort = '') {
   return cached(`boat|${kind}|${L}|${W}|${hull}|${trim}|${cabin}|${police}|${soort}`, () => {
@@ -3972,8 +3974,11 @@ function buildBoatGeometry(kind, L, W, hull, trim, cabin, police, soort = '') {
       return B.build();
     }
     const S = HULL_SHAPES[kind] || HULL_SHAPES.sloep;
-    const st = hullStations(L, W, S);
-    hullShell(B, st, hull, trim, S.floor, !!S.deck);
+    // de kleine boten krijgen dichtere stations en een bolle kimming (vehicle_boat.js); de grote schepen houden hun eigen romp
+    const rich = RICH_HULLS.has(kind);
+    const st = hullStations(L, W, rich ? { ...S, ts: densify(S.ts) } : S);
+    if (rich) hullShellRich(B, st, hull, trim, S.floor, !!S.deck, SHIP_K);
+    else hullShell(B, st, hull, trim, S.floor, !!S.deck);
     switch (kind) {
       case 'rondvaart': rondvaartFit(B, st, L, W, hull, cabin || 0xe8e6e0); break;
       case 'kano': kanoFit(B, st, L, W, hull); break;
@@ -3989,6 +3994,7 @@ function buildBoatGeometry(kind, L, W, hull, trim, cabin, police, soort = '') {
       case 'sleper': sleperFit(B, st, L, W, hull, cabin || 0xe8e6e0, SHIP_K); break;
       default: sloepFit(B, st, L, W, hull, cabin, police);
     }
+    if (rich) boatFinish(B, kind, st, L, W, hull, trim, cabin, SHIP_K, police);
     if (kind === 'kano' || kind === 'kajak') {
       const x = -hl * 0.72;
       B.box(x, hullAt(st, x).top + (kind === 'kajak' ? 0.06 : 0.02), 0, 0.05, 0.05, 0.05, NAV_WHITE, G_LAMP);
