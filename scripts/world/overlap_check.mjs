@@ -8,6 +8,7 @@ import '../node3d.mjs';
 import * as G from '../../game/js/gdt.js';
 import { inflateRaw } from '../../game/js/tilestore.js';
 import * as P from './pack_tiles.mjs';
+import { worldDir } from '../lib/worldlocator.mjs';
 
 const CELL = 50;
 const cellKey = (x, y) => Math.floor(x / CELL) + ',' + Math.floor(y / CELL);
@@ -92,7 +93,7 @@ export async function findOverlaps({ world = 'game/world', near = null, map = nu
 
 async function main() {
   const a = process.argv.slice(2);
-  const world = path.resolve(a.includes('--world') ? a[a.indexOf('--world') + 1] : 'game/world');
+  const world = path.resolve(a.includes('--world') ? a[a.indexOf('--world') + 1] : worldDir());
   const near = a.includes('--near') ? (([x, y, r]) => ({ x, y, r }))(a[a.indexOf('--near') + 1].split(',').map(Number)) : null;
   const r = await findOverlaps({ world, near });
   console.log(`tegels gelezen: ${r.tiles}`);

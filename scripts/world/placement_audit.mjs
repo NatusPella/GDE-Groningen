@@ -25,6 +25,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import zlib from 'node:zlib';
 import { fileURLToPath } from 'node:url';
+import { worldDir } from '../lib/worldlocator.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 
@@ -260,7 +261,7 @@ async function main() {
   let data;
   if (args.includes('--world')) {
     const dir = args[args.indexOf('--world') + 1];
-    const out = path.resolve(ROOT, dir && !dir.startsWith('--') ? dir : 'game/world');
+    const out = path.resolve(ROOT, dir && !dir.startsWith('--') ? dir : worldDir());
     data = await worldData(out);
     if (!data) { console.log(`no province layer in ${path.relative(ROOT, out)}: run scripts/world/build_province.mjs (or cd desktop && npm run stage)`); return; }
     console.log(`${data.buildings.length} buildings, ${data.water.length} water rows, ${data.roads.length} roads in the tiles (fences and hedges of the tiles are the countryside's: see countryside.js)`);

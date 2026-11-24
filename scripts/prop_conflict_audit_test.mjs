@@ -5,6 +5,7 @@
 //   node scripts/prop_conflict_audit_test.mjs
 import fs from 'node:fs';
 import './node3d.mjs';
+import { worldDir, worldDirUrl } from './lib/worldlocator.mjs';
 
 let n = 0, fails = 0;
 const ok = (c, m, info = '') => { n++; if (!c) { fails++; console.log(`FAIL ${m}${info ? ' (' + info + ')' : ''}`); } };
@@ -70,7 +71,7 @@ if (typeof CS.animalTarget !== 'function') { console.log(`${n} checks, ${fails} 
   }
 }
 
-const out = new URL('../game/world/', import.meta.url);
+const out = worldDirUrl();
 if (!fs.existsSync(new URL('index-provincie.json', out))) { console.log('SKIP no game/world with the province layer'); console.log(`${n} checks, ${fails} failed`); process.exit(fails ? 1 : 0); }
 
 // the windows are the same every run
@@ -83,7 +84,7 @@ const land = JSON.parse(fs.readFileSync(new URL('provincie-land.json', out), 'ut
 const CE = await import('../game/js/countryedge.js');
 const pairs = (p) => { const o = []; for (let i = 0; i < p.length; i += 2) o.push([p[i], p[i + 1]]); return o; };
 CE.initCountryEdge({ meta: { bounds: [-2000, -2000, 2000, 2000] }, railRoutes: [], countryRails: (land.rails || []).map(pairs), roads: [], buildings: [], water: [], green: [] });
-const dir = new URL('../game/world', import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, '$1');
+const dir = worldDir();
 const list = [];
 for (const key of [...W1.rail, ...W1.random]) list.push(A.auditWindow(dir, index, key));
 const total = A.sumWindows(list);

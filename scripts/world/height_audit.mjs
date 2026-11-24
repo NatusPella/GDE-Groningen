@@ -9,10 +9,11 @@ import fs from 'node:fs';
 import path from 'node:path';
 import zlib from 'node:zlib';
 import { fileURLToPath } from 'node:url';
+import { worldDir } from '../lib/worldlocator.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const args = process.argv.slice(2);
-const out = path.resolve(ROOT, args.find((a) => !a.startsWith('--')) || 'game/world');
+const out = path.resolve(ROOT, args.find((a) => !a.startsWith('--')) || worldDir());
 await import('../node3d.mjs');
 const G = await import('../../game/js/gdt.js');
 const C = await import('../../game/js/buildingcap.js');

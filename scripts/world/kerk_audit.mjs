@@ -7,10 +7,11 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { leesTegelRijen, heeftTegels } from '../lib/tegelrijen.mjs';
+import { worldDir } from '../lib/worldlocator.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const args = process.argv.slice(2);
-const dir = path.resolve(args.find((a) => !a.startsWith('--')) || path.join(ROOT, 'game', 'world'));
+const dir = path.resolve(args.find((a) => !a.startsWith('--')) || worldDir());
 const jsonOut = (args.find((a) => a.startsWith('--json=')) || '').slice(7);
 if (!heeftTegels(dir)) { console.log(`geen tegels in ${dir}`); process.exit(0); }
 const K = await import('../../game/js/landmarkkit.js');

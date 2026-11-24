@@ -13,11 +13,12 @@ import fs from 'node:fs';
 import path from 'node:path';
 import zlib from 'node:zlib';
 import { fileURLToPath } from 'node:url';
+import { worldDir } from '../lib/worldlocator.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const args = process.argv.slice(2);
 const dirArg = args.find((a) => !a.startsWith('--'));
-const out = path.resolve(ROOT, dirArg || 'game/world');
+const out = path.resolve(ROOT, dirArg || worldDir());
 
 await import('../node3d.mjs');
 const G = await import('../../game/js/gdt.js');

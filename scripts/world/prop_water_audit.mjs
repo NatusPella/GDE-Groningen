@@ -10,6 +10,7 @@ import path from 'node:path';
 import zlib from 'node:zlib';
 import { fileURLToPath } from 'node:url';
 import '../node3d.mjs';
+import { worldDir } from '../lib/worldlocator.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const G = await import('../../game/js/gdt.js');
@@ -102,7 +103,7 @@ export function auditSpot(out, index, [x, y], { naive = false, radius = 480 } = 
 async function main() {
   const args = process.argv.slice(2);
   const spots = args.filter((a) => /^-?\d+,-?\d+$/.test(a)).map((a) => a.split(',').map(Number));
-  const out = path.join(ROOT, 'game/world');
+  const out = worldDir();
   const file = path.join(out, 'index-provincie.json');
   if (!fs.existsSync(file)) { console.log('no province layer in game/world: run cd desktop && npm run stage'); return; }
   const index = JSON.parse(fs.readFileSync(file, 'utf8'));

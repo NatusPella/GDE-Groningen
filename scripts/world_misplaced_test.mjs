@@ -7,8 +7,9 @@
 //   node scripts/world_misplaced_test.mjs        (zonder game/world: SKIP)
 import fs from 'node:fs';
 import './node3d.mjs';
+import { worldDirUrl } from './lib/worldlocator.mjs';
 
-const root = new URL('../game/world/', import.meta.url);
+const root = worldDirUrl();
 if (!fs.existsSync(new URL('index-provincie.json', root))) { console.log('SKIP world_misplaced_test: geen game/world met de provincie'); process.exit(0); }
 
 const S = await import('../game/js/tilestore.js');
