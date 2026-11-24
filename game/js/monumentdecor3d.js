@@ -13,10 +13,11 @@ import { canvasTex } from './canvastex.js';
 // #1203 (hertest 24-11): de vloer van het plein, klinkers in keperverband in grijs en rood, over het gras en de wegen van de kaart heen
 // (heritagearea.js plein). Eén schijf, een gedeelde textuur; hij gaat mee weg met de aankleding.
 let pleinTex = null;
+const VOEG = '#6f6a63'; // de voeg tussen de klinkers: 3D-textuur, geen UI-kleur
 function pleinTexture() {
   if (pleinTex) return pleinTex;
   pleinTex = canvasTex(128, 128, (g, w, h) => {
-    g.fillStyle = '#6f6a63'; g.fillRect(0, 0, w, h);
+    g.fillStyle = VOEG; g.fillRect(0, 0, w, h);
     const kl = ['#8a8279', '#7d766d', '#938a7f', '#86605a', '#7a5650'];
     let k = 0;
     // keperverband: stenen van 16 x 8 px, om en om liggend en staand
