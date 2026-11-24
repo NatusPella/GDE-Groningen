@@ -260,6 +260,7 @@ Debug hooks on `window` (`window.__x`, read by scripts/perf, the story test and 
 | `?ketentest` | Verhaaltest: speel de hele verhaalketen (elke stap, ook de reis- en tussenstappen) en log per stap wat er gebeurt; devtools zet dit bij `GDE_STORY_KETEN=1` |
 | `?trailer` | Trailer-opnamemodus |
 | `?benchmark` | Benchmarkrun; de waarde is het aantal rondes |
+| `?dynvast` | De adaptieve kwaliteit staat vast (renderschaal 1, cpuLevel 0): voor beeldtools onder last (beeldregressie, hertest, wereldbugs), zodat een beeld geen terugvalmist toont |
 | `?benchwacht` | `benchwacht=0`: de benchmark wacht tussen twee shots niet tot de volgende plek geladen is (de oude meting, om te vergelijken) |
 | `?shot` | Trailer: neem alleen die shot |
 | `?cut` | Trailer: montagevariant (vol, kort, ...) |
