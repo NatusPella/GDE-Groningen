@@ -25,6 +25,7 @@ export const localMapIds = () => [...registry.keys()];
 // De beschrijving van de plek waar de speler nu actief is, of null (dan blijft de wereldkaart). Eerste aanmelder die iets geeft wint;
 // een fout in een aanmelder laat de wereldkaart staan.
 export function activeLocalMap(world) {
+  if (typeof window !== 'undefined' && window.__geenLokaleKaart) return null; // debug en beeldvergelijking: altijd de wereldkaart
   for (const fn of registry.values()) {
     let d = null;
     try { d = fn(world); } catch (e) { d = null; }
