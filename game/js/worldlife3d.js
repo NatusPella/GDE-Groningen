@@ -1,13 +1,20 @@
-// World life (worldlife.js, 21-11): draws the daily events and animals with a fixed number of instanced meshes.
-// Three InstancedMesh objects in all (people bodies, people heads, animals: LIFE_LIMITS.extraDrawCalls), no per-person
-// objects; the bubbles are DOM through world.extraSpeakers (zero draw calls). Outfit colours come from the NPC role pools
-// of the clothing (npcOutfit, same seed and role = same colours on every client). Nothing is drawn far from the actors.
+// World life (worldlife.js, 21-11): draws the daily events and animals with a fixed number of instanced meshes, no per-person
+// objects; the bubbles are DOM through world.extraSpeakers (zero draw calls). Nothing is drawn far from the actors.
+// People (#1330): real people from the character system (modularpeople.js bakeModularPose, the same baked Quaternius people as the
+// far crowd), not coloured cylinders: one InstancedMesh per rig, look and pose (stand, walk, act), PEOPLE_MESHES in all, of which
+// only the ones with someone in them are drawn (LIFE_LIMITS.extraDrawCalls is the ceiling). Until the rigs are loaded nobody is
+// drawn, never a stand-in. The look follows the actor's seed, so every client sees the same person.
 import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js";
 import { LIFE_LIMITS, lifeRoster, lifePose, lifeSpeakers } from './worldlife.js';
-import { npcOutfit, parsePiece } from './clothing.js';
 import { pigeonMerged } from './pigeonmodel.js';
+import { bakeModularPose, modularReady } from './modularpeople.js';
+import { vcMaterial } from './pixelart3d.js';
 
-const SKIN = [0xf0c9a4, 0xd9a577, 0xb07c54, 0x7d5336, 0xe8b894];
+// per rig (man, vrouw) PEOPLE_LOOKS kledingsets, elk in vier houdingen: staan (lifePose pose 0), lopen in twee fasen die twee keer per
+// seconde wisselen (pose 1, zoals de verre menigte: geen standbeeld dat over straat schuift) en iets doen (pose 2: zwaaien, fotograferen)
+export const PEOPLE_LOOKS = 3;
+export const PEOPLE_POSES = Object.freeze([['Idle', 0.3], ['Walk', 0.1], ['Walk', 0.6], ['Wave', 0.45]]);
+export const PEOPLE_MESHES = 2 * PEOPLE_LOOKS * PEOPLE_POSES.length;
 const SPECIES_COLOR = { eend: 0x7a5a2a, schaap: 0xf0ece0, duif: 0x8a8f9a, zwaluw: 0x23262e };
 // [breedte, hoogte, lengte] (halve maten van de omhullende ellips); het dier kijkt langs x
 const SPECIES_SIZE = { eend: [0.34, 0.24, 0.5], schaap: [0.5, 0.45, 0.8], duif: [0.1, 0.1, 0.19], zwaluw: [0.06, 0.05, 0.12] };
@@ -15,45 +22,57 @@ const REBUILD_S = 2; // look at the roster twice a minute at most...
 const MOVE_REBUILD_M = 50; // ...or when the player has moved this far
 const BUBBLE_TAG = 'wereldleven';
 
-let group = null, bodies = null, heads = null, beasts = null;
+let group = null, people = null, beasts = null;
 let roster = [], rosterKey = '', rosterAt = { x: 1e9, y: 1e9 }, sinceBuild = 0;
 let tSec = 0;
 const pose = {};
 const dummy = new THREE.Object3D();
 const color = new THREE.Color();
 const speakers = [];
-const colorCache = new Map();
+const peopleCount = new Array(PEOPLE_MESHES).fill(0);
 
 function build(scene) {
   group = new THREE.Group(); group.name = 'wereldleven';
-  const mat = () => new THREE.MeshLambertMaterial({ color: 0xffffff });
-  const bodyGeo = new THREE.CylinderGeometry(0.27, 0.23, 1.1, 6); bodyGeo.translate(0, 0.75, 0);
-  const headGeo = new THREE.SphereGeometry(0.17, 6, 5); headGeo.translate(0, 1.5, 0);
   // een dier is het verste niveau van het duivenmodel (pigeonmodel.js: afgeronde romp, kop, vleugels en staart, ca. 100 driehoeken) op eenheidsmaat:
   // geen bol meer. De kleur komt van de instantie, dus de hoekpuntkleuren gaan eraf.
   const beastGeo = pigeonMerged('far', {}, { wings: 'folded' });
   beastGeo.deleteAttribute('color');
   beastGeo.translate(0, 0.105, 0).scale(1 / 0.3, 1 / 0.3, 1 / 0.3);
-  bodies = new THREE.InstancedMesh(bodyGeo, mat(), LIFE_LIMITS.maxPeople);
-  heads = new THREE.InstancedMesh(headGeo, mat(), LIFE_LIMITS.maxPeople);
-  beasts = new THREE.InstancedMesh(beastGeo, mat(), LIFE_LIMITS.maxAnimals);
-  for (const m of [bodies, heads, beasts]) { m.frustumCulled = false; m.count = 0; m.instanceMatrix.setUsage(THREE.DynamicDrawUsage); group.add(m); }
+  beasts = new THREE.InstancedMesh(beastGeo, new THREE.MeshLambertMaterial({ color: 0xffffff }), LIFE_LIMITS.maxAnimals);
+  beasts.name = 'wereldleven-dieren';
+  beasts.frustumCulled = false; beasts.count = 0; beasts.instanceMatrix.setUsage(THREE.DynamicDrawUsage); group.add(beasts);
   group.visible = false;
   scene.add(group);
 }
 
-// The body colour of a person: the top of the NPC outfit of his role (cached per seed and role).
-function bodyColor(a) {
-  const k = `${a.seed}|${a.role}|${a.hot ? 1 : 0}${a.rain ? 1 : 0}`;
-  let c = colorCache.get(k);
-  if (c === undefined) {
-    const worn = npcOutfit(a.seed, a.role, { hot: a.hot, rain: a.rain, hair: false });
-    const top = parsePiece(worn.outer || worn.top);
-    c = top ? top.hex : 0x888888;
-    if (colorCache.size > 600) colorCache.clear();
-    colorCache.set(k, c);
+// De mensen: pas als de rigs geladen zijn (modularReady), daarna een keer. [rig][look][houding] in een platte lijst.
+function buildPeople() {
+  if (people || !modularReady()) return !!people;
+  const mat = vcMaterial({ roughness: 0.85 });
+  const list = [];
+  for (const female of [false, true]) {
+    for (let k = 0; k < PEOPLE_LOOKS; k++) {
+      for (const [clip, u] of PEOPLE_POSES) {
+        const g = bakeModularPose(9100 + k * 173 + (female ? 29 : 0), { female }, clip, u, 1);
+        const m = new THREE.InstancedMesh(g, mat, LIFE_LIMITS.maxPeople);
+        m.name = 'wereldleven-mensen';
+        m.frustumCulled = false; m.count = 0; m.visible = false; m.castShadow = false; m.receiveShadow = false;
+        m.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+        group.add(m);
+        list.push(m);
+      }
+    }
   }
-  return c;
+  people = list;
+  return true;
+}
+// welke mesh een acteur krijgt: zijn rig en look volgen zijn zaad (op elke client dezelfde), de houding volgt lifePose; step (0 of 1)
+// is de loopfase
+export function peopleSlot(seed, poseKind, step = 0) {
+  const s = Math.abs(Math.floor(seed)) || 0;
+  const female = s & 1, look = Math.floor(s / 2) % PEOPLE_LOOKS;
+  const pk = poseKind === 1 ? 1 + (step & 1) : poseKind === 2 ? 3 : 0;
+  return (female * PEOPLE_LOOKS + look) * PEOPLE_POSES.length + pk;
 }
 
 function placed(m, i, x, y, z, heading, sx, sy, sz, hex) {
@@ -62,7 +81,7 @@ function placed(m, i, x, y, z, heading, sx, sy, sz, hex) {
   dummy.scale.set(sx, sy, sz);
   dummy.updateMatrix();
   m.setMatrixAt(i, dummy.matrix);
-  m.setColorAt(i, color.setHex(hex));
+  if (hex != null) m.setColorAt(i, color.setHex(hex));
 }
 
 // De dag voor het rooster: een gast simuleert de kalender niet maar krijgt de dag van de host (world.coopDag, 'klok'-gebeurtenis);
@@ -72,7 +91,7 @@ export function lifeDay(world) {
   return world.calendar && Number.isFinite(world.calendar.day) ? world.calendar.day : 1;
 }
 
-// Called once per frame (weather.js applyWeatherToScene3D). Returns the draw calls this frame adds (0 or 3).
+// Called once per frame (weather.js applyWeatherToScene3D). Returns the draw calls this frame adds (0 up to LIFE_LIMITS.extraDrawCalls).
 export function updateWorldLife(scene, world, px, py, dt) {
   if (!group) build(scene);
   const day = lifeDay(world);
@@ -86,28 +105,43 @@ export function updateWorldLife(scene, world, px, py, dt) {
   }
   if (!roster.length) { group.visible = false; clearBubbles(world); return 0; }
   group.visible = true;
-  let nP = 0, nA = 0;
+  let nA = 0;
+  const peopleOn = buildPeople();
+  peopleCount.fill(0);
+  const ground = world.map && world.map.groundHeightAt ? world.map : null;
   for (let i = 0; i < roster.length; i++) {
     const a = roster[i];
     lifePose(a, tSec, pose);
     if (Math.abs(pose.x - px) > LIFE_LIMITS.nearM || Math.abs(pose.y - py) > LIFE_LIMITS.nearM) continue;
+    // op de grond waar hij staat (een zwaluw of een sprong telt er zijn eigen hoogte bij op)
+    // een hoogtevraag alleen als de acteur meer dan een meter verder staat dan bij de vorige vraag
+    if (ground && !(Math.abs(pose.x - (a._gx ?? 1e9)) < 1 && Math.abs(pose.y - (a._gy ?? 1e9)) < 1)) { a._gx = pose.x; a._gy = pose.y; a._gz = ground.groundHeightAt(pose.x, pose.y, 0) || 0; }
+    const gz = ground ? a._gz : 0;
     if (a.kind === 'people') {
-      const bob = pose.pose === 1 ? Math.abs(Math.sin(tSec * 6 + a.phase)) * 0.06 : pose.pose === 2 ? Math.abs(Math.sin(tSec * 3 + a.phase)) * 0.05 : 0;
-      placed(bodies, nP, pose.x, pose.y, pose.z + bob, pose.heading, a.scale, a.scale, a.scale, bodyColor(a));
-      placed(heads, nP, pose.x, pose.y, pose.z + bob, pose.heading, a.scale, a.scale, a.scale, SKIN[a.seed % SKIN.length]);
-      nP++;
+      if (!peopleOn) continue;
+      const slot = peopleSlot(a.seed, pose.pose, Math.floor(tSec * 2 + (a.phase || 0)));
+      const m = people[slot];
+      if (peopleCount[slot] >= LIFE_LIMITS.maxPeople) continue;
+      placed(m, peopleCount[slot]++, pose.x, pose.y, gz + pose.z, pose.heading, a.scale, a.scale, a.scale, null);
     } else {
       const sz = SPECIES_SIZE[a.species] || SPECIES_SIZE.eend, s = a.scale;
-      placed(beasts, nA, pose.x, pose.y, pose.z, pose.heading, sz[2] * s, sz[1] * s, sz[0] * s, SPECIES_COLOR[a.species] || 0x888888);
+      placed(beasts, nA, pose.x, pose.y, gz + pose.z, pose.heading, sz[2] * s, sz[1] * s, sz[0] * s, SPECIES_COLOR[a.species] || 0x888888);
       nA++;
     }
   }
-  bodies.count = heads.count = nP; beasts.count = nA;
-  for (const m of [bodies, heads, beasts]) { m.instanceMatrix.needsUpdate = true; if (m.instanceColor) m.instanceColor.needsUpdate = true; }
+  beasts.count = nA;
+  beasts.instanceMatrix.needsUpdate = true; if (beasts.instanceColor) beasts.instanceColor.needsUpdate = true;
+  let calls = nA ? 1 : 0;
+  beasts.visible = nA > 0;
+  if (people) for (let k = 0; k < people.length; k++) {
+    const m = people[k], n = peopleCount[k];
+    m.count = n; m.visible = n > 0;
+    if (n) { m.instanceMatrix.needsUpdate = true; calls++; }
+  }
   // bubbles: at most two, DOM only (scene3d.js syncSpeechBubbles reads world.extraSpeakers)
   lifeSpeakers(roster, px, py, tSec, day, speakers);
   syncBubbles(world);
-  return 3;
+  return calls;
 }
 
 function clearBubbles(world) {
