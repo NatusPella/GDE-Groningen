@@ -130,7 +130,7 @@ export function summaryHtml({ bezit, farm, money = 0, day = 0, news = null, chai
   const parcels = sectionCard('percelen', 'gewas', 'Percelen', `<div class="bz-filters" role="group" aria-label="Sorteren en filteren">${cycleChip('sort', 'Sorteren', H.SORTS.map((x) => [x, SORT_NAME[x]]), ui.sort)}` +
     `${sel('region', 'Streek', opt.regions || [])}${sel('soort', 'Soort', opt.soorten || [])}${sel('level', 'Beheer', H.LEVELS)}</div>` + bulk + `<div class="bz-rijen">${body}</div>` +
     (shown.length > MAX_ROWS && !ui.more ? `<p>${btn('meer', `Toon alle ${shown.length}`)}</p>` : ''), { count: shown.length });
-  return `${portfolio}${rapportHtml()}${newsHtml(news)}${empty}` +
+  return `${portfolio}${rapportHtml()}${newsHtml(news)}` +
     (rows.length ? parcels : '') + staffHtml + veeHtml(bezit, rows, money) + chainsHtml(chains, money) + marketHtml(board, products) + `<p class="bd-melding" aria-live="polite">${esc(msgNow())}</p>`;
 }
 

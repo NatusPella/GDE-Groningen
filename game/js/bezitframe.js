@@ -35,10 +35,12 @@ export function frameView(world) {
 export const plaatHtml = (ic, getal, label, mod = '') => `<span class="ds-z-waarde bz-plaat${mod ? ` ds-z-waarde--${mod}` : ''}" data-plaat="${esc(label)}">${IC(ic, 'ds-z-waarde__icoon')}<span class="bz-plaat__tekst"><span class="ds-z-waarde__getal">${esc(getal)}</span><small>${esc(label)}</small></span></span>`;
 const plus = (n) => (n >= 0 ? '+' : '−') + euro(Math.abs(n));
 
-export function kopHtml(w, { titel = 'Land en bedrijf', eb = 'Bezit' } = {}) {
+// In het pauzemenu staat de titel al in de kop van het paneel: zonder titel blijven alleen de plaatjes over (rechts uitgelijnd).
+export function kopHtml(w, { titel = null, eb = 'Bezit' } = {}) {
   const platen = plaatHtml('geld', euro(w.geld), 'geld') + (w.leeg ? '' :
     plaatHtml('gebouw', euro(w.waarde), 'totale waarde') + plaatHtml('geldhand', plus(w.perDag), 'per dag') + plaatHtml('waarschuwing', String(w.aandacht), 'aandacht', w.aandacht ? 'gevaar' : ''));
-  return `<header class="bz-kop"><div><div class="bz-kop__eb">${esc(eb)}</div><h2 class="bz-kop__titel">${esc(titel)}</h2></div><div class="bz-waarden" role="group" aria-label="Je bezit in cijfers">${platen}</div></header>`;
+  const titelHtml = titel ? `<div><div class="bz-kop__eb">${esc(eb)}</div><h2 class="bz-kop__titel">${esc(titel)}</h2></div>` : '';
+  return `<header class="bz-kop">${titelHtml}<div class="bz-waarden" role="group" aria-label="Je bezit in cijfers">${platen}</div></header>`;
 }
 
 export const klusHtml = (k) => `<button type="button" class="bz-klus bz-klus--${k.urg}" data-klus="${esc(k.code)}" data-goto-sub="boerderij:${esc(k.tab)}">` +

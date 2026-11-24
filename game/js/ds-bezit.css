@@ -8,7 +8,7 @@
 
 /* kopband: eyebrow, titel en vier waardeplaatjes */
 .bz-frame { display: flex; flex-direction: column; gap: var(--ds-s-2); margin-bottom: var(--ds-s-3); }
-.bz-kop { display: flex; align-items: flex-end; justify-content: space-between; gap: var(--ds-s-5); }
+.bz-kop { display: flex; align-items: flex-end; justify-content: flex-end; gap: var(--ds-s-5); }
 .bz-kop__eb { font-family: var(--ds-font-zeef-kop); font-weight: 800; font-size: var(--ds-t-hulp); letter-spacing: var(--ds-ls-label); text-transform: uppercase; color: var(--ds-zeef-kop); }
 .bz-kop__titel { margin: 0; font-family: var(--ds-font-zeef-kop); font-weight: 800; font-size: var(--ds-t-kop); line-height: var(--ds-lh-kop); text-shadow: var(--ds-misdruk); }
 .bz-waarden { display: flex; gap: var(--ds-s-3); flex-wrap: wrap; justify-content: flex-end; }
@@ -52,7 +52,7 @@
 .bz-open:focus-visible { outline: var(--ds-focus-dikte) solid var(--ds-c-wit); outline-offset: var(--ds-focus-afstand); }
 .bz-pkaart__body { display: flex; gap: var(--ds-s-3); align-items: stretch; }
 .bz-mini { width: calc(var(--ds-s-8) * 3.9); flex: none; border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); border-radius: var(--ds-r); background: var(--ds-c-papier-2); overflow: hidden; }
-.bz-mini svg { display: block; width: 100%; height: auto; }
+.bz-mini > svg.bz-kaartvlak { display: block; width: 100%; height: auto; }
 .bz-kol { display: flex; flex-direction: column; justify-content: space-between; gap: var(--ds-s-2); flex: 1; min-width: 0; }
 .bz-statussen { display: flex; flex-direction: column; gap: var(--ds-s-1); }
 .bz-feiten { display: grid; grid-template-columns: auto 1fr; gap: var(--ds-s-1) var(--ds-s-3); align-items: baseline; margin: 0; }
@@ -61,7 +61,7 @@
 .bz-plus { color: var(--ds-c-groen-tx); }
 .bz-min { color: var(--ds-c-rood-tx); }
 .bz-iconplaat { display: grid; place-items: center; min-height: calc(var(--ds-s-8) * 1.5); border: var(--ds-lijn-dik) dashed var(--ds-c-ink-inkt); border-radius: var(--ds-r); background-color: var(--ds-c-ink-papier); background-image: var(--ds-raster); background-size: var(--ds-raster-maat); }
-.bz-iconplaat .bz-ic { background: var(--ds-c-ink-papier); padding: var(--ds-s-1); box-sizing: content-box; }
+.bz-iconplaat .bz-ic { width: var(--ds-s-6); height: var(--ds-s-6); background: var(--ds-c-ink-papier); padding: var(--ds-s-1); box-sizing: content-box; }
 .bz-volgende { gap: var(--ds-s-3); }
 .bz-volgende > .ds-z-kaart__kop { background: transparent; padding-left: var(--ds-s-4); }
 .bz-volgende .ds-z-kaart__titel { color: var(--ds-c-wit); display: inline-flex; gap: var(--ds-s-2); align-items: center; }
@@ -94,5 +94,6 @@
 .bz-leeg-hoofd p { margin: 0; font-size: var(--ds-t-body); max-width: calc(var(--ds-s-8) * 10); }
 .bz-stappen { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--ds-s-4); }
 .bz-stap { gap: var(--ds-s-3); }
+.bz-stap .ds-z-kaart__titel { display: inline-flex; align-items: center; gap: var(--ds-s-2); }
 .bz-stap p { margin: 0; }
 .bz-stap .ds-z-knop { margin-top: auto; }
