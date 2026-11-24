@@ -67,18 +67,15 @@ const nepKamer = async () => ({ opened: new Promise(() => {}), cancel() {} }); /
 const lobby = mountLobby(vak, hooks, { wizard, startGate: /wacht/.test(scene), spelNaam: 'Spel 1', joinRoom: nepKamer });
 const klik = async (act) => { const b = vak.querySelector('[data-act="' + act + '"]'); if (!b) throw new Error('geen knop ' + act); b.click(); await tick(); };
 const typ = async (klasse, tekst) => { const i = vak.querySelector('.' + klasse); if (!i) throw new Error('geen veld ' + klasse); i.value = tekst; i.dispatchEvent(new Event('input', { bubbles: true })); await tick(); };
-const spelerKaarten = async (rol) => { // het tabblad Spelers (playercards.js, puur): dezelfde HTML als coopspelersui.js, met zijn eigen CSS (/spelers.css)
-  const css = document.createElement('link'); css.rel = 'stylesheet'; css.href = '/spelers.css'; document.head.appendChild(css);
-  await new Promise((r) => { css.onload = css.onerror = r; });
-  const K = await import('/game/js/playercards.js'), P = await import('/game/js/playerstatus.js');
-  const rij = (slot, naam, kleur, vorm, o = {}) => ({ slot, naam, kleur, vorm, doet: 'loopt', verbinding: 'ok', ms: 40, afstandTekst: slot === 1 ? '' : '120 m', richting: slot === 1 ? null : { pijl: '→', woord: 'oost' }, jij: false, passief: true, x: 10, y: 10, ...o });
-  const rijen = [rij(0, 'Sem', '#4fb3ff', 'cirkel', { jij: rol === 'host', x: null }), rij(1, 'Iris', '#5bd6a0', 'ster', { jij: rol === 'gast' }), rij(2, 'Tijn', '#f2b134', 'plus', { verbinding: 'lag', ms: 420 }), rij(3, 'Liv', '#ff9a62', 'hart', { verbinding: 'lost', doet: 'weg' }), rij(4, 'Gijs', '#ff7ab8', 'maan', { groep: 'Taxi' })];
+const spelerKaarten = async (rol) => { // het tabblad Spelers (samenspelers.js, puur): tabel met detail, dezelfde HTML als coopspelersui.js, met de CSS van samenspelen.css
+  const K = await import('/game/js/samenspelers.js');
+  const rij = (slot, naam, kleur, vorm, o = {}) => ({ slot, naam, kleur, vorm, doet: 'loopt', verbinding: 'ok', niveau: 'goed', ms: 40, afstandTekst: slot === 1 ? '' : '120 m', richting: slot === 1 ? null : { pijl: '→', woord: 'oost' }, jij: false, passief: true, x: 10, y: 10, ...o });
+  const rijen = [rij(0, 'Sem', '#4fb3ff', 'cirkel', { jij: rol === 'host', x: null }), rij(1, 'Iris', '#5bd6a0', 'ster', { jij: rol === 'gast' }), rij(2, 'Tijn', '#f2b134', 'plus', { verbinding: 'lag', niveau: 'matig', ms: 220 }), rij(3, 'Liv', '#ff9a62', 'hart', { verbinding: 'lost', niveau: 'weg', doet: 'weg' }), rij(4, 'Gijs', '#ff7ab8', 'maan', { groep: 'Taxi', passief: false })];
   document.querySelector('[data-sub="samen"].pm-samen-inner').hidden = true;
   const p = document.getElementById('spelers'); p.hidden = false;
   document.querySelectorAll('.pm-samen > .m-tabs .m-tab').forEach((b, i) => b.setAttribute('aria-selected', String(i === 1)));
-  p.innerHTML = K.kopHtml({ aantal: rijen.length, rol, opener: 'Sem', versie: 'Versie 0.64.0.' }) + '<ul class="cs-lijst">' + rijen.map((r) => K.cardHtml(r, { acties: true, rol, ctx: {}, muteStaat: (s) => (s === 2 ? 'gedempt' : 'gewoon') })).join('') + '</ul>'
-    + K.pvpHtml({ passief: true, tekst: { knopAan: 'Passief: aan', knopUit: 'Passief: uit', uitleg: 'Als je passief staat kunnen medespelers je geen schade doen.' } }) + K.roepHtml([{ soort: 'hier', tekst: 'Kom hier', toets: 'Z' }, { soort: 'help', tekst: 'Help', toets: 'X' }]);
-  void P;
+  const sel = rijen.find((r) => !r.jij);
+  p.innerHTML = K.aandachtHtml(K.aandachtRegels(rijen)) + '<div class="ss-md"><div class="ss-kol">' + K.tabelHtml(rijen, { sel: sel.slot }) + K.jijStrookHtml({ passief: true, kan: true, tekstUitleg: 'Op passief neem je geen schade van spelers.', roep: [{ soort: 'hier', tekst: 'Kom hier', toets: 'Z' }, { soort: 'help', tekst: 'Help', toets: 'X' }] }) + '</div>' + K.detailHtml(sel, { rol, muteStaat: () => 'gewoon', openerNaam: 'Sem' }) + '</div>';
 };
 const SPELERS = ['Sem', 'Iris', 'Tijn', 'Liv', 'Gijs', 'Huub', 'Roos'].map((naam, i) => ({ slot: i, naam, kleur: ['#4fb3ff', '#5bd6a0', '#f2b134', '#ff9a62', '#ff7ab8', '#b78cff', '#e86a6a'][i], vorm: ['cirkel', 'ster', 'plus', 'hart', 'maan', 'ruit', 'vierkant'][i], verbinding: 'ok', char: 'tammo' }));
 const RIJEN = [['Zomeravond', 3, 8, 'a1b2c3d4'], ['Pannenkoeken', 1, 4, 'b2c3d4e5'], ['Late dienst', 8, 8, 'c3d4e5f6'], ['Fietsen in Grunn', 2, 6, 'd4e5f6a7']].map(([naam, spelers, max, id], i) => ({ id, naam, spelers, max, versie: '0.64.0', kan: spelers < max, anders: false, vol: spelers >= max, ouderdom: 5 + i * 3, niveau: 'normaal', room: '@' + id }));
@@ -156,15 +153,16 @@ if (sw) {
   m.knoppen = [...voet.querySelectorAll('.sw-knop')].map((k) => k.textContent.trim());
   m.ip = /\b\d{1,3}(\.\d{1,3}){3}\b|GDE2-/i.test(kopie.textContent);
 } else if (scene.startsWith('spelers')) {
-  const kaarten = [...sp.querySelectorAll('.cs-rij')];
+  const kaarten = [...sp.querySelectorAll('.ss-tabel tbody tr')];
   m.spelers = {
-    kaarten: kaarten.length, horizontaal: [...sp.querySelectorAll('*')].filter((e) => zichtbaar(e) && e.scrollWidth > e.clientWidth + 1 && getComputedStyle(e).overflowX !== 'visible' && e !== sp).map((e) => e.className).slice(0, 5),
-    overlap: [...overlap(kaarten), ...kaarten.flatMap((k) => overlap([...k.children].flatMap((c) => c.classList.contains('cs-acties') ? [c, ...c.children] : [c])))],
-    kopTekens: (sp.querySelector('.cs-kop') ? (() => { const k = sp.querySelector('.cs-kop').cloneNode(true); for (const d of k.querySelectorAll('details:not([open]) > :not(summary)')) d.remove(); return k.textContent.replace(/\s+/g, ' ').trim().length; })() : 0),
+    kaarten: kaarten.length, horizontaal: [...sp.querySelectorAll('*')].filter((e) => zichtbaar(e) && e.scrollWidth > e.clientWidth + 1 && getComputedStyle(e).overflowX !== 'visible' && e !== sp && !e.closest('.ss-tabel')).map((e) => e.className).slice(0, 5),
+    overlap: [...overlap(kaarten)],
+    kopTekens: 0,
     alineas: [...sp.querySelectorAll('p')].filter((p) => zichtbaar(p) && p.textContent.trim().length > 110).map((p) => p.textContent.trim().slice(0, 40)),
     eruit: sp.querySelectorAll('[data-eruit]').length, overdragen: sp.querySelectorAll('[data-geef]').length,
-    eruitBijJij: !!sp.querySelector('.cs-rij:has(.cs-jij) [data-eruit], .cs-rij:has(.cs-jij) [data-geef], .cs-rij:has(.cs-jij) [data-stand]'),
-    muteKnoppen: [...sp.querySelectorAll('.cs-stand')].map((b) => ({ tekst: b.textContent.trim(), titel: !!b.title, toets: b.getAttribute('aria-keyshortcuts') })),
+    eruitBijJij: !!sp.querySelector('.ss-detail[data-detail] [data-eruit], .ss-detail[data-detail] [data-geef]') && !!sp.querySelector('tr:has(.ss-jij)[aria-selected="true"]'),
+    muteKnoppen: [...sp.querySelectorAll('[data-stand]')].map((b) => ({ tekst: b.textContent.trim(), titel: true, toets: 'x' })),
+    ms: /\b\d+ ?ms\b/i.test(sp.textContent),
     scrollbalk: scrollt(sp), hoogte: sp.scrollHeight, zichtbaar: sp.clientHeight, ip: /\b\d{1,3}(\.\d{1,3}){3}\b|GDE2-/i.test(sp.textContent),
   };
 } else {
@@ -254,15 +252,15 @@ export function keur(m, sc) {
   if (m.logs && m.logs.length) f.push('fouten in de console: ' + m.logs.slice(0, 2).join(' | '));
   if (m.spelers) { // het tabblad Spelers: kaartjes zonder overlap, geen afgekapte tekst, geen tekstmuur, de acties volgens de rol
     const s = m.spelers, host = m.scene === 'spelers-host';
-    if (s.kaarten !== 5) f.push('verwacht 5 kaartjes, er staan ' + s.kaarten);
+    if (s.kaarten !== 5) f.push('verwacht 5 rijen, er staan ' + s.kaarten);
     if (s.overlap.length) f.push('overlap: ' + s.overlap.join('; '));
     if (s.horizontaal.length) f.push('afgekapt: ' + s.horizontaal.join(', '));
     if (s.kopTekens > 120) f.push('de kop heeft te veel tekst (' + s.kopTekens + ' tekens)');
     if (s.alineas.length) f.push('alinea\'s in beeld: ' + s.alineas.join(' | '));
-    if (host && s.eruit < 3) f.push('wie het spel opende ziet Eruit zetten bij de anderen');
+    if (host && s.eruit < 1) f.push('wie het spel opende ziet Uit het spel zetten bij de gekozen speler');
     if (!host && (s.eruit || s.overdragen)) f.push('een gast ziet Eruit zetten of Overdragen');
     if (s.eruitBijJij) f.push('acties bij jezelf');
-    if (!s.muteKnoppen.length || s.muteKnoppen.some((b) => b.tekst || !b.titel || !b.toets)) f.push('Dempen en Blokkeren zijn pictogrammen met tooltip en toets');
+    if (s.muteKnoppen.length !== 3) f.push('Dempen en blokkeren zijn één segment met drie keuzes'); if (s.ms) f.push('milliseconden staan in beeld');
     if (s.ip) f.push('een IP-adres staat in beeld');
     return f;
   }

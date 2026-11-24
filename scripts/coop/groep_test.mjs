@@ -158,10 +158,8 @@ t('stemming: een gast die wegvalt telt niet mee; een tweede vraag tegelijk mag n
   s.gs[0].gw.input.s.add('j'); s.gs[1].link.cut(); s.step(8);
   assert.equal(ok, 1, 'de gast die wegviel hoeft niet meer te antwoorden');
 });
-t('stemming: een gast kan de tijd niet zelf verzetten; een antwoord van buiten de stemming doet niets', () => {
+t('stemming: een antwoord van buiten de stemming doet niets (een gast mag sinds 24-11 wel voorstellen: samenstem_test)', () => {
   const s = sessie(1); s.step(2);
-  assert.equal(G.groepAkkoord(s.gs[0].gw, 'slapen', 'Tessa', () => { throw new Error('mag niet'); }), false);
-  assert.ok(tekstIn(s.gs[0].gw, /verspringt alleen als iedereen akkoord is/));
   assert.equal(N.handleEvent(s.hw, { k: 'stemantwoord', id: 1, ja: true }, 1), false, 'geen lopende stemming');
   let ok = 0; G.groepAkkoord(s.hw, 'slapen', 'Tammo', () => ok++);
   assert.equal(N.handleEvent(s.hw, { k: 'stemantwoord', id: 99, ja: true }, 1), false, 'een verkeerd nummer');

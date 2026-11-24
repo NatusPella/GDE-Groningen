@@ -16,14 +16,16 @@ const words = (t) => String(t || '').trim().split(/\s+/).filter(Boolean).length;
 // --- content -------------------------------------------------------------------------------------------------------
 const step = { id: 'M03', part: 'kop', title: 'Het Loket', lead: 'Tessa: Het Loket bij de Grote Markt. Open tot twaalf uur, contant.' };
 const k = recapContent({ step, ended: false, last: 'Even pinnen', partTitle: PARTS.kop.title, why: WHY.kop });
-ok(k && k.now === step.lead && k.last === 'Even pinnen' && k.why === WHY.kop && k.part === 'Akte 1: Moi, Grunn' && k.stepId === 'M03', 'the card has part, why, last done and now');
+ok(k && k.now === 'Het Loket bij de Grote Markt. Open tot twaalf uur, contant.' && k.last === 'Even pinnen' && k.why === WHY.kop && k.part === 'Akte 1: Moi, Grunn' && k.stepId === 'M03', 'the card has part, why, last done and now');
+// Spel-UI 24-11: de kaart noemt de gekozen hoofdpersoon (Tammo of Anita, opts.character) en nooit de spreker van de verhaalregel
+ok(recapContent({ step, ended: false, last: '', partTitle: 'x', why: '', wie: 'Anita' }).wie === 'Anita' && !/^(Tammo|Anita|Tessa):/.test(k.now), 'the card names the chosen main character and the lead has no speaker prefix');
 ok(recapRows(k).map((r) => r[0]).join() === 'Waar het om draait,Laatst gedaan,Nu', 'three rows in a fixed order');
 ok(recapRows(recapContent({ step, ended: false, last: '', partTitle: 'x', why: '' })).map((r) => r[0]).join() === 'Nu', 'without a last step and without a why only "Nu" is left');
 ok(recapContent(null) === null && recapContent({ ended: true, step }) === null && recapContent({ ended: false, step: null }) === null, 'no card without a step or after the end');
 ok(recapContent({ step: { ...step, lead: '' }, ended: false, why: WHY.kop }) === null, 'no card without a lead: there is no goal to name');
 const long = { ...step, lead: 'Tessa: Een eerste zin die iets zegt. ' + 'En dan nog veel meer woorden die niemand hoeft te lezen, '.repeat(6) + 'tot het einde.' };
 const kl = recapContent({ step: long, ended: false, last: 'Even pinnen', partTitle: 'Akte 1', why: WHY.kop });
-ok(kl.now === 'Tessa: Een eerste zin die iets zegt.', 'a lead that is too long is cut to its first sentence', kl.now);
+ok(kl.now === 'Een eerste zin die iets zegt.', 'a lead that is too long is cut to its first sentence', kl.now);
 const size = (x) => words(x.why) + words(x.last) + words(x.now);
 ok(size(kl) <= RECAP_MAX_WORDS, 'cut, it fits the word limit', size(kl));
 const kw = recapContent({ step: { ...step, lead: 'Tessa: ' + 'woord '.repeat(60) }, ended: false, last: 'Even pinnen', partTitle: 'Akte 1', why: WHY.kop });

@@ -32,7 +32,7 @@ export const TOESTEMMING_TEKST = Object.freeze({
   titel: 'Mag het spel online verbinden?',
   consent: 'Ik ga akkoord met online verbinden (mijn IP-adres wordt gedeeld).',
   meerInfo: 'Meer info',
-  info: `${CONSENT_TEXT} Het spel verbindt online met een STUN-server en openbare brokers. Zonder jouw akkoord maakt het spel geen verbinding.`,
+  info: `${CONSENT_TEXT} Zonder jouw akkoord maakt het spel geen verbinding.`,
   geef: 'Akkoord en doorgaan',
   terug: 'Terug',
 });

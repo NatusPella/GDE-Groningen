@@ -6,7 +6,7 @@
 import { ONLINE_NAAM_MAX } from './lobby.js';
 import { oskKnop } from './oskview.js';
 import { getSettings } from './settings.js';
-import { EERSTE_START, SCHAKELAAR, ONLINE_INSTELLING, kiesNaam, wijzigNaam, zetMeedoen } from './onlineconsent.js';
+import { EERSTE_START, SCHAKELAAR, ONLINE_INSTELLING, WIE_ZIET_WAT, WIE_ZIET_WAT_VOET, kiesNaam, wijzigNaam, zetMeedoen } from './onlineconsent.js';
 import { magOnline } from './settings.js';
 import { bewaarFocus } from './listnav.js';
 import { keyTextHtml } from './keycap.js';
@@ -18,6 +18,9 @@ const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<
 // De uitleg achter het vinkje: een uitklapper (details), standaard dicht; met Tab en Enter of de muis te openen.
 export const meerInfoHtml = (label, tekst) => `<details class="os-info"><summary>${esc(label)}</summary><p class="os-info-tekst">${esc(tekst)}</p></details>`;
 
+// De tabel "Wie ziet wat" (puur): per partij wat die ziet. Geen jargon in de koppen.
+export const wieZietWatHtml = () => `<div class="os-wie"><b class="os-wie-kop">${esc(EERSTE_START.wieZietWat)}</b><table><tbody>${WIE_ZIET_WAT.map((r) => `<tr${r.niets ? ' class="os-wie-niets"' : ''}><th scope="row">${esc(r.wie)}<small>${esc(r.klein)}</small></th><td>${esc(r.ziet)}</td></tr>`).join('')}</tbody></table><p class="os-wie-voet">${esc(WIE_ZIET_WAT_VOET)}</p></div>`;
+
 export function onlineStartHtml({ naam = '', fout = '', consent = false, terug = false } = {}) {
   return `<section class="os-kaart" role="dialog" aria-modal="true" aria-labelledby="os-titel">
     <h2 id="os-titel">${esc(EERSTE_START.titel)}</h2>
@@ -25,7 +28,7 @@ export function onlineStartHtml({ naam = '', fout = '', consent = false, terug =
       <input type="text" class="os-naam" data-osk="naam" data-osk-check="online-naam" data-osk-label="Online naam" maxlength="${ONLINE_NAAM_MAX}" spellcheck="false" autocomplete="off" placeholder="Zo zien de anderen je" required value="${esc(naam)}">${oskKnop('je naam')}
     </label>
     <label class="os-consent"><input type="checkbox" class="m-sw os-consent-vink"${consent ? ' checked' : ''}> <span>${esc(EERSTE_START.consent)}</span></label>
-    ${meerInfoHtml(EERSTE_START.meerInfo, EERSTE_START.info)}
+    ${wieZietWatHtml()}
     ${fout ? `<p class="os-fout" role="alert">${esc(fout)}</p>` : '<p class="os-fout" role="alert" hidden></p>'}
     <div class="os-knoppen">
       <button type="button" class="os-knop os-doorgaan" data-doorgaan aria-keyshortcuts="Enter">${esc(EERSTE_START.doorgaan)} <span class="sk-toets-in">${keyTextHtml('{ENTER}')}</span></button>
@@ -136,7 +139,7 @@ export function onlineInstellingHtml({ naam = '', meedoen = false, fout = '', me
     </label>
     <div class="os-knoppen"><button type="button" class="os-knop os-alleen" data-naam-bewaar>${esc(T.bewaar)}</button></div>
     ${fout ? `<p class="os-fout" role="alert">${esc(fout)}</p>` : melding ? `<p class="os-hint" role="status">${esc(melding)}</p>` : ''}
-    <p class="os-uitleg">${esc(meedoen ? T.akkoordAan : T.akkoordUit)}</p>
+    <p class="os-uitleg">${esc(meedoen ? T.akkoordAan : T.akkoordUit)}</p>${wieZietWatHtml()}
     <div class="os-knoppen">${meedoen ? `<button type="button" class="os-knop os-alleen" data-akkoord-in>${esc(T.intrekken)}</button>` : ''}</div>
   </div>`;
 }

@@ -373,7 +373,7 @@ function slaap(w, h, uur, bericht) {
   if (bezig) return false;
   bezig = true;
   closeShopMenu();
-  const gestart = groepAkkoord(w, 'slapen', null, () => slaapNu(w, h, uur, bericht), () => { bezig = false; });
+  const gestart = groepAkkoord(w, 'slapen', null, () => slaapNu(w, h, uur, bericht), () => { bezig = false; }, { uur });
   if (!gestart) bezig = false;
   return gestart;
 }
@@ -405,7 +405,7 @@ function duikOnder(w, h, uren) {
   if (bezig) return false;
   bezig = true;
   closeShopMenu();
-  const gestart = groepAkkoord(w, 'onderduiken', null, () => duikOnderNu(w, h, uren), () => { bezig = false; });
+  const gestart = groepAkkoord(w, 'onderduiken', null, () => duikOnderNu(w, h, uren), () => { bezig = false; }, { uren });
   if (!gestart) bezig = false;
   return gestart;
 }

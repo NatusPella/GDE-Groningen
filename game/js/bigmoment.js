@@ -39,6 +39,7 @@ import { isPauseMenuOpen } from './pausestate.js';
 import { hoofdspeler } from './players.js';
 import { planIntro, isSkipEvent } from './endcardimpact.js';
 import { icoon } from './icons.js';
+import { uitslagBon } from './spelstatus.js';
 
 export function klemWoorden(tekst, max = MAX_WOORDEN) {
   const w = String(tekst == null ? '' : tekst).replace(/\s+/g, ' ').trim().split(' ').filter(Boolean);
@@ -94,6 +95,9 @@ export function bouwMoment(opts = {}) {
   const sterren = Number.isFinite(opts.sterren) ? Math.max(0, Math.min(5, Math.round(opts.sterren))) : null;
   const beloningLabel = cut(opts.beloningLabel, 16) || (soort === 'opgepakt' ? 'Boete' : 'Beloning');
   const klein = cut(opts.klein, 24) || d.klein;
+  // Spel-UI 24-11: de uitslagkaart van opgepakt en buiten westen zegt wat het kost, wat verdwijnt en wat blijft (spelstatus.js uitslagBon)
+  const bon = Array.isArray(opts.bon) ? opts.bon.slice(0, 5).map((r) => ({ label: cut(r.label, 40), waarde: cut(r.waarde, 28), soort: ['min', 'goed'].includes(r.soort) ? r.soort : '' })) : [];
+  const bonOver = bon.length ? cut(opts.bonOver, 16) : '';
   const compact = !!opts.rijdend && COMPACT_VORMEN.includes(d.vorm);
   const delen = [klein + '.', kop + '.', regelNl];
   if (beloning) delen.push(`${beloningLabel}: ${beloning}.`);
@@ -103,9 +107,11 @@ export function bouwMoment(opts = {}) {
   // opnieuwToets is de toetsglyph die de aanroeper meegeeft (cinematics.js), zodat dit bestand geen toetsen kent
   const opnieuw = soort === 'mislukt' && opts.opnieuwToets ? String(opts.opnieuwToets) : '';
   if (opnieuw) delen.push('Opnieuw proberen kan meteen.');
+  for (const r of bon) delen.push(`${r.label}: ${r.waarde}.`);
+  if (bonOver) delen.push(`Je houdt over: ${bonOver}.`);
   return {
-    opnieuw,
-    soort, vorm: d.vorm, schermvullend: d.schermvullend, klein, kop, lang, regelNl, beloning, beloningWaarde: Number.isFinite(beloningIn) ? beloningIn : null, beloningLabel, tijd, sterren, compact, ms: compact ? Math.round(d.ms * 0.65) : d.ms,
+    opnieuw, bon, bonOver,
+    soort, vorm: d.vorm, schermvullend: d.schermvullend, klein, kop, lang, regelNl, beloning, beloningWaarde: Number.isFinite(beloningIn) ? beloningIn : null, beloningLabel, tijd, sterren, compact, ms: bon.length && !compact ? d.ms + 3500 : compact ? Math.round(d.ms * 0.65) : d.ms,
     aria: delen.join(' '),
   };
 }
@@ -179,9 +185,12 @@ export function momentVanWanted(prev, nu) {
 }
 
 // Opgepakt (busted: a fine) or buiten westen (down: a hospital bill); money is the amount lost.
-export function momentVanOpgepakt({ busted = false, geld = 0 } = {}) {
-  if (busted) return { soort: 'opgepakt', beloning: -Math.abs(geld || 0) };
-  return { soort: 'opgepakt', klein: 'Neergegaan', titel: 'Buiten westen', regelNl: 'Je bent opgelapt in het ziekenhuis.', beloningLabel: 'Rekening', beloning: -Math.abs(geld || 0) };
+export function momentVanOpgepakt({ busted = false, geld = 0, money = null, missie = '' } = {}) {
+  // met het geld van de speler erbij (Spel-UI 24-11) staat er een bon op de kaart: wat het kost, wat verdwijnt en wat je overhoudt
+  const bon = money == null ? null : uitslagBon({ busted, boete: geld, geld: money, missieNaam: missie });
+  const extra = bon ? { bon: bon.regels, bonOver: bon.over } : {};
+  if (busted) return { soort: 'opgepakt', beloning: -Math.abs(geld || 0), ...extra };
+  return { soort: 'opgepakt', klein: 'Neergegaan', titel: 'Buiten westen', regelNl: 'Je bent opgelapt in het ziekenhuis.', beloningLabel: 'Rekening', beloning: -Math.abs(geld || 0), ...extra };
 }
 
 // A first visit to a district, village or the surrounding land: the place is the print.
@@ -267,12 +276,19 @@ function sterrenHtml(n) {
   return `<span class="bm-sterren">${h}</span>`;
 }
 
+// De bon onder de stempelkaart: regels met stippellijn, daaronder wat je overhoudt (spelstatus.js uitslagBon)
+function bonHtml(m) {
+  if (!m.bon || !m.bon.length) return '';
+  const regel = (r) => `<div class="ds-z-bon__regel"><span>${esc(r.label)}</span><span class="ds-z-bon__stippen"></span><span class="ds-z-bon__bedrag${r.soort === 'min' ? ' bm-bon-min' : r.soort === 'goed' ? ' bm-bon-goed' : ''}">${esc(r.waarde)}</span></div>`;
+  return `<div class="ds-zeef bm-bon"><div class="ds-z-bon">${m.bon.map(regel).join('')}${m.bonOver ? `<div class="ds-z-bon__totaal"><span>Je houdt over</span><span class="ds-z-bon__stippen"></span><span class="ds-z-bon__bedrag">${esc(m.bonOver)}</span></div>` : ''}</div></div>`;
+}
+
 function binnenHtml(m) {
   const meta = [];
   if (m.beloning) meta.push(`<span class="bm-meta-i bm-i-beloning"><b>${esc(m.beloningLabel)}</b> <span class="bm-teller">${esc(m.beloning)}</span></span>`);
   if (m.tijd) meta.push(`<span class="bm-meta-i bm-i-tijd"><b>Tijd</b> ${esc(m.tijd)}</span>`);
   if (m.opnieuw) meta.push(`<span class="bm-meta-i bm-i-opnieuw">${m.opnieuw} <b>Opnieuw proberen</b></span>`);
-  const metaHtml = meta.length ? `<div class="bm-meta">${meta.join('')}</div>` : '';
+  const metaHtml = (meta.length ? `<div class="bm-meta">${meta.join('')}</div>` : '') + bonHtml(m);
   const kop = `<div class="bm-kop${m.lang ? ' lang' : ''}">${esc(m.kop)}</div>`;
   const regel = `<p class="bm-regel">${esc(m.regelNl)}</p>`;
   if (m.vorm === 'band') return `<div class="bm-dim"></div><div class="bm-band ds-mi-in ds-mi-landing"><span class="bm-klein">${esc(m.klein)}</span>${kop}${regel}${metaHtml}${m.sterren != null && m.soort === 'geslaagd' ? sterrenHtml(m.sterren) : ''}<span class="bm-glans" aria-hidden="true"></span></div>`;

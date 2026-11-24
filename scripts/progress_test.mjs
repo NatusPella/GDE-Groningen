@@ -59,9 +59,9 @@ ok(!/from '\.\/progresslive\.js'/.test(hud) && !/hud-done/.test(hud) && !/update
 ok(!/hud-done/.test(hcss), 'het chipje heeft geen stijl meer');
 ok(!/Welkom terug in Grunn/.test(hud), 'het welkom-terugbericht met het cijfer staat niet meer in de HUD');
 
-ok(/from '\.\/progresslive\.js'/.test(pm) && /gameProgress\(\)/.test(pm), 'het Overzicht haalt hetzelfde cijfer uit progresslive.js');
-ok(/pm-progress/.test(pm) && /querySelector\('\.ov-scroll'\)/.test(pm) && /body\.insertAdjacentHTML\('afterbegin', blok\)/.test(pm), 'het voortgangsblok staat boven aan de scrollende inhoud van Overzicht (#965)');
-ok(/#pause-menu \.pm-progress \{/.test(css), 'het voortgangsblok heeft een eigen stijl');
+ok(/from '\.\/progresslive\.js'/.test(lees('todoui.js')) && /gameProgress\(\)/.test(lees('todoui.js')), 'het Overzicht haalt hetzelfde cijfer uit progresslive.js (Spel-UI 24-11: todoui.js)');
+ok(/function voortgangBlokHtml/.test(lees('todoui.js')) && /sp-voortgang__pct/.test(lees('todoui.js')), 'het voortgangsblok is één percentage met één balk en platte regels (Spel-UI 24-11)');
+ok(/\.sp-voortgang__pct/.test(lees('ds-spel.css')), 'het voortgangsblok heeft een eigen stijl (ds-spel.css)');
 
 // tekstdieet 21-11: de kleine savekaart toont geen percentage meer (naam, speeltijd, plek, datum); de grote Doorgaan-knop wel, met het label "verhaal"
 ok(/saveProgress/.test(ssl) && !/class="ssl-prog"/.test(ssl), 'de savekaart heeft geen voortgangsbalk meer');
@@ -80,8 +80,8 @@ ok(tilesShownElsewhere(combineProgress({ verhaal: { done: 0, total: 71 }, presta
 ok(tilesShownElsewhere(combineProgress({ verhaal: { done: 0, total: 71 } }).parts).length === 0 && tilesShownElsewhere(undefined).length === 0, 'zonder prestaties in het blok blijft de tegel');
 {
   const tu = lees('todoui.js');
-  ok(/skipTiles \|\| \[\]\)\.includes\('prestaties'\)/.test(tu), 'todoui slaat de tegel Prestaties over als het blok hem toont');
-  ok(/progressPartText\(p\)/.test(pm) && /skipTiles: elders/.test(pm), 'pausemenu gebruikt de regel en geeft de tegels door');
+  ok(!/ov-tile|tilesHtml/.test(tu), 'het Overzicht heeft geen tegels meer: elk cijfer staat één keer (Spel-UI 24-11)');
+  ok(/progressPartText\(/.test(tu), 'todoui gebruikt de eerlijke regel van het voortgangsblok');
 }
 
 console.log(bad ? `progress_test: ${bad} van ${n} checks rood` : `progress_test: ${n} checks groen`);

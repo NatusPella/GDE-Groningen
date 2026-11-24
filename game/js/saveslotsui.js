@@ -23,7 +23,13 @@ import { keyLabelHtml } from './keycap.js';
 const CONFIRM_KEY = 'Enter'; // de toets in de knop Doorgaan (zoals bij de moeilijkheidskaart: een label voor keyLabelHtml, geen spelertekst)
 import { saveProgress } from './progress.js';
 import { stopCoopNet } from './coopnet.js';
+import { groepAkkoord, meerSpelers } from './coopgroep.js';
 import { coopLoadTekst, coopActieTekst, COOP_LOAD_FAIL, COOP_ACTIE_FAIL, runCoopLoad, runCoopStop } from './cooploadrules.js';
+import { getPlaySeconds } from './savegame.js';
+import { getMissionDefs, isMissionCompleted } from './missions.js';
+import { hoofdspeler } from './players.js';
+import { toonBevestiging, isBevestigOpen } from './spelbevestig.js';
+import { verliesSinds, verliesTekst, slotVergelijk, euro } from './spelstatus.js';
 
 const DESKTOP = typeof window !== 'undefined' && window.gdeDesktop && window.gdeDesktop.isDesktop ? window.gdeDesktop : null;
 
@@ -113,13 +119,11 @@ export function openSaveSlots(opts = {}) {
 
   // a picture arrives after the frame that follows a save: put it on its card
   onThumbKept((n) => {
-    const pic = rootEl && rootEl.querySelector(`.ssl-card[data-slot="${n}"] .ssl-pic`);
+    const pic = rootEl && rootEl.querySelector(`.ssl-card[data-slot="${n}"] .sp-thumb`);
     const url = S.readThumb(null, n);
     if (!pic || !url) return;
-    const old = pic.querySelector('img, .ssl-nopic');
-    const img = document.createElement('img');
-    img.src = url; img.alt = ''; img.draggable = false;
-    if (old) old.replaceWith(img); else pic.prepend(img);
+    pic.classList.remove('sp-thumb--leeg');
+    pic.style.backgroundImage = `url('${url}')`;
   });
 
   const close = (afterClose) => {
@@ -206,29 +210,26 @@ export function openSaveSlots(opts = {}) {
     // opgeslagen spel juist door de sessie te verlaten (#492)
     const currentBlocked = isCurrent && !(inSessie && world.coopRole !== 'host');
     const label = isCurrent ? 'Huidig spel' : primaryLabel;
-    const chips = [];
-    if (isCurrent) chips.push('<span class="ssl-chip on">Bewaard vanzelf</span>');
-    if (s.state === 'hersteld') chips.push('<span class="ssl-chip warn">Hersteld</span>');
-    if (bad) chips.push('<span class="ssl-chip warn">Kan niet laden</span>');
-    if (sm && sm.legacyStory && !bad) chips.push(`<span class="ssl-chip" title="Dit spel komt van een eerdere versie">${esc(LEGACY_CARD.tag)}</span>`); // 22-11
-    if (sm && sm.niveau && !bad) chips.push(`<span class="ssl-chip" title="Moeilijkheid van dit spel">${esc(sm.niveau)}</span>`); // #1169
-    const pic = thumb ? `<img src="${thumb}" alt="" draggable="false">` : `<span class="ssl-nopic">${svg(IC.person, 'ssl-nopic-ic')}</span>`;
     const ago = sm ? S.agoText(sm.savedAt) || dateText(sm.savedAt) : '';
-    // Tekstdieet 21-11: per rij alleen de naam, één regel (speeltijd, plek, datum) en kleine tags; geen verhaaldeel, geen balk, geen tip.
     const meta = bad ? S.stateText(s.state) : sm ? [S.formatPlaytime(sm.playSeconds), sm.plek, ago].filter(Boolean).join(' · ') : '';
     const open = over && over.n === s.n && over.kind !== 'coop-load' && over.kind !== 'coop-actie' && over.kind !== 'legacy';
-    return `<div class="ssl-card${s.n === sel ? ' sel' : ''}${bad ? ' bad' : ''}${open ? ' open' : ''}" role="listitem" data-slot="${s.n}">` +
-      `<button type="button" class="ssl-main" data-grp="list" data-slot="${s.n}" data-do="load"${bad || !sm || currentBlocked ? ' disabled' : ''} aria-label="${esc(s.name)}: ${label}">` +
-      `<span class="ssl-pic">${pic}</span>` +
-      `<span class="ssl-body"><span class="ssl-nm">${esc(s.name)}</span><span class="ssl-meta one mut">${esc(meta)}</span><span class="ssl-chips">${chips.join('')}</span><span class="ssl-go">${esc(label)}</span></span></button>` +
-      `<button type="button" class="ssl-more" data-grp="list" data-more="${s.n}" aria-haspopup="menu" aria-expanded="${!!open}" aria-label="Meer voor ${esc(s.name)}" title="Meer">${svg(IC.more)}</button>` +
+    const pic = `<div class="sp-thumb${thumb ? '' : ' sp-thumb--leeg'}"${thumb ? ` style="background-image:url('${thumb}')"` : ''}>${isCurrent ? '<span class="sp-thumb__tag">Huidig</span>' : ''}</div>`;
+    const niveau = sm && sm.niveau && !bad ? `<span class="sp-hulp" title="Moeilijkheid van dit spel">${esc(sm.niveau)}</span>` : '';
+    const oud = sm && sm.legacyStory && !bad ? `<span class="ds-z-status ds-z-status--zacht">${esc(LEGACY_CARD.tag)}</span>` : '';
+    const vanzelf = isCurrent ? '<span class="ds-z-status ds-z-status--goed">Bewaard vanzelf</span>' : '';
+    const hersteld = s.state === 'hersteld' ? '<span class="ds-z-status ds-z-status--probleem">Hersteld</span>' : '';
+    const kapot = bad ? '<span class="ds-z-status ds-z-status--probleem">Kan niet laden</span>' : '';
+    const primair = mode === 'start' && !solo && !opts.pick;
+    const laadKnop = `<button type="button" class="ds-z-knop${primair && !bad ? '' : ' ds-z-knop--secundair'} sp-kleinknop ssl-main" data-grp="list" data-slot="${s.n}" data-do="load"${bad || !sm || currentBlocked ? ' disabled' : ''} aria-label="${esc(s.name)}: ${label}">${esc(label)}</button>`;
+    const hierOpslaan = mode === 'game' && !opts.pick && !bad && !gastInSessie() ? `<button type="button" class="ds-z-knop ds-z-knop--secundair sp-kleinknop" data-grp="list" data-slot="${s.n}" data-do="save-here" aria-label="Hier opslaan: ${esc(s.name)}">Hier opslaan</button>` : '';
+    return `<div class="ssl-card sp-slot${s.n === sel ? ' sel' : ''}${bad ? ' sp-slot--kapot bad' : ''}${open ? ' open' : ''}" role="listitem" data-slot="${s.n}"${isCurrent ? ' aria-current="true"' : ''}>${pic}` +
+      `<div class="sp-slot__naam"><span>${esc(s.name)}</span>${niveau}</div><div class="sp-slot__meta">${esc(meta)}${[vanzelf, hersteld, kapot, oud].filter(Boolean).length ? '<br>' + [vanzelf, hersteld, kapot, oud].filter(Boolean).join(' ') : ''}</div>` +
+      `<div class="sp-slot__acties">${laadKnop}${hierOpslaan}<button type="button" class="ds-z-knop ds-z-knop--secundair sp-kleinknop sp-slot__meer ssl-more" data-grp="list" data-more="${s.n}" aria-haspopup="menu" aria-expanded="${!!open}" aria-label="Meer voor ${esc(s.name)}" title="Meer">${svg(IC.more)}</button></div>` +
       (open ? overHtml(s) : '') + '</div>';
   };
 
-  const emptyCard = (n) => `<div class="ssl-card empty" role="listitem" data-slot="${n}">` +
-    `<button type="button" class="ssl-main" data-grp="list" data-do="new" data-want="${n}" aria-label="Lege plek ${n}: ${mode === 'start' ? 'nieuw spel' : 'spel opslaan'}">` +
-    '<span class="ssl-pic"><span class="ssl-nopic">' + svg(IC.plus, 'ssl-nopic-ic') + '</span></span>' +
-    `<span class="ssl-body"><span class="ssl-nm mut">Leeg</span><span class="ssl-meta mut one">${mode === 'start' ? 'Nieuw spel' : 'Spel opslaan'}</span></span></button></div>`;
+  const emptyCard = (n) => `<div class="ssl-card sp-slot sp-slot--leeg empty" role="listitem" data-slot="${n}"><span class="sp-ikoon">${svg(IC.plus, 'ssl-ic')}</span><b class="sp-getal" style="font-size:22px">Lege plek</b>` +
+    `<button type="button" class="ds-z-knop ds-z-knop--secundair sp-kleinknop ssl-main" data-grp="list" data-do="new" data-want="${n}" aria-label="Lege plek ${n}: ${mode === 'start' ? 'nieuw spel' : 'spel opslaan'}">${mode === 'start' ? 'Nieuw spel' : 'Hier opslaan'}</button></div>`;
 
   // Alleen spelen: Nieuw spel is the first card. With every place in use it asks first (it takes the place of the active game)
   const newCard = (n, active) => {
@@ -237,10 +238,8 @@ export function openSaveSlots(opts = {}) {
     // anders blijft de oude save als "herstel" opduiken en kan de boot hem alsnog laden.
     const q = ask ? `<div class="ssl-over ssl-q" role="alertdialog" aria-label="Nieuw spel"><p>Alle ${MAX_SLOTS} plekken zijn in gebruik. Je nieuwe spel komt op de plek van "${esc(active ? active.name : '')}". Dat spel wordt gewist, inclusief de herstelkopie. Dat kan niet ongedaan worden gemaakt.</p>` +
       '<div class="ssl-qacts"><button type="button" class="m-bp" data-grp="menu" data-do="back">Nee, terug</button><button type="button" class="m-bg danger" data-grp="menu" data-do="newfull-ok">Ja, nieuw spel</button></div></div>' : '';
-    return `<div class="ssl-card ssl-new${ask ? ' open' : ''}" role="listitem" data-slot="0">` +
-      `<button type="button" class="ssl-main" data-grp="list" data-slot="0" data-do="${n ? 'new' : 'new-ask'}" data-want="${n}" aria-label="Nieuw spel">` +
-      `<span class="ssl-pic"><span class="ssl-nopic">${svg(IC.plus, 'ssl-nopic-ic')}</span></span>` +
-      '<span class="ssl-body"><span class="ssl-nm">Nieuw spel</span><span class="ssl-go">Beginnen</span></span></button>' + q + '</div>';
+    return `<div class="ssl-card sp-slot sp-slot--leeg ssl-new${ask ? ' open' : ''}" role="listitem" data-slot="0"><span class="sp-ikoon">${svg(IC.plus, 'ssl-ic')}</span><b class="sp-getal" style="font-size:22px">Nieuw spel</b>` +
+      `<button type="button" class="ds-z-knop ds-z-knop--secundair sp-kleinknop ssl-main" data-grp="list" data-slot="0" data-do="${n ? 'new' : 'new-ask'}" data-want="${n}" aria-label="Nieuw spel">Beginnen</button>${q}</div>`;
   };
 
   // the game played last: the active one, else the one saved last; Doorgaan on top
@@ -286,7 +285,7 @@ export function openSaveSlots(opts = {}) {
     stage.innerHTML = `<section class="m-panel ssl-panel${tiles.length <= 2 ? ' ssl-weinig' : ''}">
       <header class="m-head"><div><span class="m-eb">${esc(opts.eyebrow || (mode === 'start' ? 'Spel' : 'Pauze'))}</span><h1 class="m-h1" id="ssl-title">${esc(opts.titel || 'Opgeslagen spellen')}</h1>${opts.hint ? `<p class="mut ssl-intro">${esc(opts.hint)}</p>` : ''}</div><div class="m-hr"><span class="mut">${slots.length} van ${MAX_SLOTS}</span></div></header>
       ${last ? `<div class="ssl-hero-wrap">${heroHtml(last)}</div>` : ''}
-      <div class="ssl-scroll"><div class="ssl-grid" role="list" aria-label="Opgeslagen spellen">${tiles.join('')}</div></div>
+      <div class="ssl-scroll"><div class="ssl-grid sp-slots" role="list" aria-label="Opgeslagen spellen">${tiles.join('')}</div></div>
       ${mode === 'game' ? '<p class="ssl-note">Het spel bewaart vanzelf.</p>' : ''}
       <p class="ssl-msg" role="status">${esc(message)}</p>
       <footer class="ssl-foot"><button type="button" class="ssl-fb" data-grp="foot" data-do="import"${full ? ' disabled title="Alle plekken zijn in gebruik"' : ''}>${svg(IC.import)}<span>Spel importeren</span></button>
@@ -310,6 +309,19 @@ export function openSaveSlots(opts = {}) {
   };
 
   const say = (t) => { message = t; const p = rootEl && rootEl.querySelector('.ssl-msg'); if (p) p.textContent = t; };
+
+  // Wat een nieuw bewaarde stand van het lopende spel zou zijn tegenover wat in een plek staat (spelstatus.js).
+  const stageHost = () => rootEl.querySelector('.gm-stage') || document.body;
+  const nuStand = () => {
+    let missies = 0;
+    try { for (let i = 0, k = getMissionDefs().length; i < k; i++) if (isMissionCompleted(i)) missies++; } catch (e) { missies = 0; }
+    let character = 'tammo';
+    try { character = hoofdspeler(world).character === 'anita' ? 'anita' : 'tammo'; } catch (e) { /* geen wereld */ }
+    return { speeltijd: getPlaySeconds(), money: world ? world.money : 0, missies, character };
+  };
+  const slotStand = (sl) => ({ speeltijd: sl.summary ? sl.summary.playSeconds : 0, money: sl.summary ? sl.summary.money : 0, missies: sl.summary ? sl.summary.missionsDone : 0, character: sl.summary ? (sl.summary.character === 'Tessa' ? 'anita' : 'tammo') : '' });
+  const thumbBlok = (n) => { const t = S.readThumb(null, n); return `<div class="sp-thumb${t ? '' : ' sp-thumb--leeg'}"${t ? ` style="background-image:url('${t}')"` : ''}></div>`; };
+  const kort = (sl) => sl.summary ? `${S.formatPlaytime(sl.summary.playSeconds)}${sl.summary.plek ? ' · ' + esc(sl.summary.plek) : ''}<br>${esc(euro(sl.summary.money))} · ${esc(S.agoText(sl.summary.savedAt) || dateText(sl.summary.savedAt))}` : '';
 
   const doAction = (act, want, n) => {
     const slot = n || sel;
@@ -384,9 +396,22 @@ export function openSaveSlots(opts = {}) {
         close(() => { if (opts.onLoad) opts.onLoad(cur.n); });
       } else {
         // eerst de huidige voortgang bewaren; mislukt dat, dan blijft het huidige spel staan
-        if (!saveGame(world, { toast: false })) { say('Opslaan mislukt; het spel is niet geladen.'); return; }
-        if (loadSlot(world, cur.n)) close(() => { if (opts.onLoad) opts.onLoad(cur.n); });
-        else say('Dit opgeslagen spel kan niet geladen worden.');
+        const laad = (metOpslaan) => {
+          if (metOpslaan && !saveGame(world, { toast: false })) { say('Opslaan mislukt; het spel is niet geladen.'); return; }
+          if (loadSlot(world, cur.n)) close(() => { if (opts.onLoad) opts.onLoad(cur.n); });
+          else say('Dit opgeslagen spel kan niet geladen worden.');
+        };
+        const hui = S.listSlots().find((x) => x.n === currentSlot());
+        const v = hui && hui.summary ? verliesSinds(nuStand(), slotStand(hui)) : null;
+        if (v && !v.leeg) {
+          toonBevestiging({
+            titel: `“${cur.name}” laden?`, breed: 820, tekst: `Je speelt verder vanaf dit spel. Je huidige spel “${esc(hui.name)}” heeft <b>nog niet opgeslagen</b> wat je sinds de laatste opslag deed.`,
+            verlies: [{ soort: 'weg', label: 'Anders weg', tekst: verliesTekst(v), icoon: 'waarschuwing' }],
+            acties: [{ label: 'Opslaan en laden', soort: 'veilig', toets: 'ENTER', kies: () => laad(true) }, { label: 'Laden zonder opslaan', soort: 'neutraal', kies: () => { laad(false); } }, { label: 'Annuleren', soort: 'neutraal', toets: 'ESC' }],
+          }, stageHost());
+          return;
+        }
+        laad(true);
       }
       return;
     }
@@ -417,7 +442,22 @@ export function openSaveSlots(opts = {}) {
     }
     if (act === 'save-here' && cur) {
       if (world && world.pigeonMode) { over = null; message = 'Je bent een duif. Stop de duif-modus om op te slaan.'; render({ more: cur.n }); return; }
-      if (!cur.active && cur.state !== 'leeg') { over = { n: cur.n, kind: 'overwrite' }; render(); return; }
+      if (!cur.active && cur.state !== 'leeg') {
+        // oud tegenover nieuw, met vasthouden (Spel-UI 24-11): de plek en het lopende spel naast elkaar, en of het veilig is
+        const huidig = S.listSlots().find((x) => x.n === currentSlot()) || null;
+        const nu = nuStand();
+        const vgl = slotVergelijk(slotStand(cur), nu);
+        const zij = (kop, thumbHtml, tekst, weg) => `<div class="sp-vergelijk__zij${weg ? ' sp-vergelijk__zij--weg' : ''}"><b>${kop}</b>${thumbHtml}<span>${tekst}</span></div>`;
+        const vergelijk = '<div class="sp-vergelijk">' + zij('Nu in deze plek', thumbBlok(cur.n), kort(cur), true) + '<div class="sp-vergelijk__pijl">→</div>' +
+          zij('Straks in deze plek', huidig ? thumbBlok(huidig.n) : '<div class="sp-thumb sp-thumb--leeg"></div>', `${S.formatPlaytime(nu.speeltijd)}<br>${esc(euro(nu.money))} · nu`, false) + '</div>';
+        const lege = S.freeSlot(null);
+        toonBevestiging({
+          titel: `“${cur.name}” overschrijven?`, breed: 1040, tekst: 'Dit opgeslagen spel wordt vervangen door je huidige spel. Het oude spel is daarna <b>weg</b>.', vergelijk,
+          verlies: [vgl.veilig ? { soort: 'blijft', label: 'Veilig', tekst: 'Je verliest alleen de oudere stand in deze plek.', icoon: 'vinkje' } : { soort: 'weg', label: 'Let op', tekst: vgl.waarschuwing, icoon: 'waarschuwing' }],
+          acties: [{ label: 'Nee, bewaar allebei', soort: 'veilig', toets: 'ENTER' }, ...(lege ? [{ label: 'Naar een lege plek', soort: 'neutraal', kies: () => doAction('new', lege, 0) }] : []), { label: 'Houd vast om te overschrijven', soort: 'gevaar', vasthouden: true, toets: 'ENTER', kies: () => { sel = cur.n; doAction('overwrite-ok', 0, cur.n); } }],
+        }, stageHost());
+        return;
+      }
       S.setActive(null, cur.n);
       bindSlot();
       over = null;
@@ -434,6 +474,13 @@ export function openSaveSlots(opts = {}) {
       return;
     }
     if (act === 'coop-load-ok' && cur) {
+      const gaLaden = () => {
+        const res = runCoopLoad(world, cur.n, { stop: stopCoopNet, save: saveGame, load: loadSlot });
+        if (res.ok) { close(() => { if (opts.onLoad) opts.onLoad(cur.n); }); return; }
+        over = null; message = COOP_LOAD_FAIL[res.reason] || 'Laden mislukt.'; render({ slot: cur.n });
+      };
+      // wie het laden de sessie voor iedereen laat stoppen, stelt het eerst voor (24-11); een gast verlaat alleen zelf de sessie
+      if (world.coopRole === 'host' && meerSpelers(world)) { over = null; message = 'Je stelt voor om te laden. Iedereen moet akkoord zijn.'; render({ slot: cur.n }); groepAkkoord(world, 'laden', null, gaLaden, () => { message = 'Niet iedereen is akkoord; er wordt niets geladen.'; render({ slot: cur.n }); }); return; }
       const res = runCoopLoad(world, cur.n, { stop: stopCoopNet, save: saveGame, load: loadSlot });
       if (res.ok) { close(() => { if (opts.onLoad) opts.onLoad(cur.n); }); return; }
       // ook bij een mislukte stap eerlijk opnieuw tekenen: na het stoppen is de sessie weg
@@ -463,7 +510,12 @@ export function openSaveSlots(opts = {}) {
       // #492 slices 1-2: het actieve spel verwijderen tijdens een echte sessie vraagt eerst om
       // bevestiging; daarna stopt de sessie, wordt de voortgang bewaard en pas dan wordt het spel gewist.
       if (cur.active && coopSessieLoopt(world)) { over = { n: cur.n, kind: 'coop-actie', act: 'delete', wat: 'Dit opgeslagen spel verwijderen' }; render(); return; }
-      over = { n: cur.n, kind: 'delete' }; render(); return; }
+      toonBevestiging({
+        titel: `“${cur.name}” verwijderen?`, breed: 820, tekst: 'Dit spel en zijn reservekopie gaan weg. Dat kan niet ongedaan worden gemaakt.',
+        vergelijk: `<div class="sp-vergelijk" style="grid-template-columns:1fr"><div class="sp-vergelijk__zij sp-vergelijk__zij--weg" style="flex-direction:row;gap:14px;align-items:center"><div style="width:220px">${thumbBlok(cur.n)}</div><span><b>${esc(cur.name)}</b><br>${kort(cur)}</span></div></div>`,
+        acties: [{ label: 'Nee, bewaren', soort: 'veilig', toets: 'ENTER' }, { label: 'Houd vast om te verwijderen', soort: 'gevaar', vasthouden: true, toets: 'ENTER', kies: () => { sel = cur.n; doAction('delete-ok', 0, cur.n); } }],
+      }, stageHost());
+      return; }
     if (act === 'delete-ok' && cur) {
       over = null;
       if (spelDatNuLoopt(cur)) { message = NU_SPEL_NIET_WEG; render(); return; }
@@ -555,25 +607,30 @@ export function openSaveSlots(opts = {}) {
       else if (dir === 'up') { const m = rootEl.querySelector(`.ssl-main[data-slot="${sel}"]:not(:disabled)`) || first('list'); if (m) m.focus(); }
       return;
     }
+    // elke kaart heeft meerdere knoppen (Laden, Hier opslaan, …): links en rechts lopen erdoor, omhoog en omlaag naar dezelfde knop van de kaart erboven of eronder
     const cards = [...rootEl.querySelectorAll('.ssl-card')];
     const ci = cards.indexOf(cur.closest('.ssl-card'));
-    const onMore = cur.classList.contains('ssl-more');
+    const knoppenVan = (c) => [...c.querySelectorAll('[data-grp="list"]:not(:disabled)')];
+    const mine = knoppenVan(cards[ci]);
+    const bi = mine.indexOf(cur);
     const cols = columns();
-    const focusCard = (k, more) => {
+    const naar = (k, idx) => {
       const c = cards[k];
       if (!c) return false;
-      const t = (more && c.querySelector('.ssl-more')) || c.querySelector('.ssl-main:not(:disabled)') || c.querySelector('.ssl-more');
-      if (t) { t.focus(); if (t.scrollIntoView) t.scrollIntoView({ block: 'nearest' }); return true; }
-      return false;
+      const kn = knoppenVan(c);
+      if (!kn.length) return false;
+      const t = kn[Math.max(0, Math.min(kn.length - 1, idx))];
+      t.focus(); if (t.scrollIntoView) t.scrollIntoView({ block: 'nearest' });
+      return true;
     };
-    const moreOf = (k) => cards[k] && cards[k].querySelector('.ssl-more');
-    if (dir === 'right') { if (!onMore && moreOf(ci)) moreOf(ci).focus(); else focusCard(ci + 1, false); }
-    else if (dir === 'left') { if (onMore) focusCard(ci, false); else if (ci > 0) focusCard(ci - 1, !!moreOf(ci - 1)); }
-    else if (dir === 'up') { if (!focusCard(ci - cols, onMore)) { const h = first('hero'); if (h) h.focus(); } }
-    else if (dir === 'down') { if (!focusCard(ci + cols, onMore)) { const f = first('foot'); if (f) f.focus(); } }
+    if (dir === 'right') { if (bi < mine.length - 1) mine[bi + 1].focus(); else naar(ci + 1, 0); }
+    else if (dir === 'left') { if (bi > 0) mine[bi - 1].focus(); else if (ci > 0) naar(ci - 1, 99); }
+    else if (dir === 'up') { if (!naar(ci - cols, bi)) { const h = first('hero'); if (h) h.focus(); } }
+    else if (dir === 'down') { if (!naar(ci + cols, bi)) { const f = first('foot'); if (f) f.focus(); } }
   };
 
   const onKey = (e) => {
+    if (isBevestigOpen()) return; // de bevestigingskaart (spelbevestig.js) heeft de toetsen
     if (e.metaKey || e.ctrlKey || e.altKey) return;
     const k = e.key;
     const inInput = e.target && e.target.tagName === 'INPUT' && e.target.dataset.input !== undefined;

@@ -16,6 +16,10 @@ import { isMissionActive } from './missions.js';
 import { AUTOPLAY, STORY_TEST } from './devflags.js';
 import { zachtePauze } from './coopgroep.js';
 import { isRecapOpen, markRecapOpen } from './recapstate.js';
+import { icoon } from './icons.js';
+import { sprekerNaam } from './spelstatus.js';
+import { hoofdspeler } from './players.js';
+import { dsButtonKey } from './dsbutton.js';
 import { recapContent, recapRows, recapBlockers, recapDecide, readRecapSeen, writeRecapSeen, recapSeenRecently, RECAP_CLOSE_S } from './recapcard.js';
 
 let seenLoad = 0;    // the last world.loadCount we already made an attempt for
@@ -28,19 +32,12 @@ const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<
 function storage() { try { return window.localStorage; } catch (e) { return null; } }
 export { isRecapOpen };
 
+// De kaartlook (sp-recap, sp-ikoon, ds-z-knop) staat in ds-spel.css; hier alleen de laag eromheen.
 const CSS = `
 #recapkaart { position: fixed; inset: 0; z-index: 61; display: grid; place-items: center; background: color-mix(in srgb, var(--ds-c-ink-inkt) 55%, transparent); font-family: var(--ds-font-zeef-tekst); }
 #recapkaart[hidden] { display: none; }
-#recapkaart .rk-box { zoom: calc(var(--ui, 1.2) / 1.2); width: min(560px, calc(100vw / var(--ui, 1.2) * 1.2 - 32px)); box-sizing: border-box; display: flex; flex-direction: column; gap: 14px; padding: 28px 34px; background: var(--ds-c-ink-papier); color: var(--ds-c-ink-inkt); border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); box-shadow: var(--ds-schaduw-hard); transform: rotate(var(--ds-schuin)); animation: mo-in var(--dur-slow) var(--ease-out); }
+#recapkaart .rk-box { zoom: calc(var(--ui, 1.2) / 1.2); width: min(640px, calc(100vw / var(--ui, 1.2) * 1.2 - 32px)); }
 html.rustig-drukwerk #recapkaart .rk-box { animation: none; }
-#recapkaart .rk-kop { font-family: var(--ds-font-zeef-kop); font-weight: 800; font-size: 44px; line-height: 0.95; letter-spacing: 0.01em; color: var(--ds-c-ink-bord); text-shadow: var(--ds-misdruk); }
-#recapkaart .rk-deel { font-size: 18px; color: var(--ds-c-inkt-zacht); }
-#recapkaart .rk-rij { display: flex; flex-direction: column; gap: 2px; }
-#recapkaart .rk-rij small { font-family: var(--ds-font-zeef-kop); font-size: 16px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ds-c-inkt-zacht); }
-#recapkaart .rk-rij p { margin: 0; font-size: 20px; line-height: 1.4; }
-#recapkaart .rk-rij.rk-nu p { font-weight: 700; }
-#recapkaart button { align-self: flex-end; min-height: 52px; padding: 6px 26px; font-family: var(--ds-font-zeef-kop); font-weight: 800; font-size: 24px; letter-spacing: 0.04em; cursor: pointer; color: var(--ds-c-ink-inkt); background: var(--ds-zeef-primair); border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); box-shadow: var(--ds-schaduw-hard); }
-#recapkaart button:active { transform: translate(4px, 4px); box-shadow: none; }
 `;
 
 function ensureCss() {
@@ -56,10 +53,14 @@ function build() {
   const el = document.createElement('div');
   el.id = 'recapkaart';
   el.hidden = true;
-  el.innerHTML = '<div class="rk-box" role="dialog" aria-modal="true" aria-labelledby="rk-kop"><b class="rk-kop" id="rk-kop">Waar waren we?</b><span class="rk-deel"></span><div class="rk-rijen"></div><button type="button" data-rk-ok>Verder</button></div>';
+  el.innerHTML = `<div class="rk-box ds-zeef sp-recap" role="dialog" aria-modal="true" aria-labelledby="rk-kop"><b class="sp-recap__kop" id="rk-kop">Waar waren we?</b><span class="sp-hulp rk-deel"></span><div class="rk-rijen"></div><div class="sp-actie" style="justify-content:space-between"><button type="button" class="ds-z-link" data-rk-over>Naar het Overzicht</button>${dsButtonKey({ label: 'Verder', toets: 'ENTER', attrs: 'data-rk-ok' })}</div></div>`;
   document.body.appendChild(el);
   el.addEventListener('mousedown', (e) => e.stopPropagation());
-  el.addEventListener('click', () => close());
+  el.addEventListener('click', (e) => {
+    const naarOverzicht = e.target.closest && e.target.closest('[data-rk-over]');
+    close();
+    if (naarOverzicht) import('./pausemenu.js').then((m) => m.openPauseMenu('spel')).catch((err) => console.warn('recap naar overzicht', err));
+  });
   window.addEventListener('keydown', (e) => {
     if (el.hidden) return;
     if (!['Enter', ' ', 'Escape', 'Backspace'].includes(e.key)) return;
@@ -85,13 +86,14 @@ function close() {
 }
 
 // The input for recapContent, from the story progress (storyquery.js: read only, no import of story.js).
-function contentInput() {
+function contentInput(w) {
   const step = currentStep();
   if (!step || step.end) return { ended: true };
   const view = getStoryView();
   const done = [...getStorySteps()].reverse().find((s) => s.done && !s.skipped && s.kind === 'mission');
   return {
     ended: false,
+    wie: (() => { try { return sprekerNaam(hoofdspeler(w).character); } catch (e) { return ''; } })(),
     step: { id: step.id, part: step.part, title: step.title, lead: view && view.lead ? view.lead : '' },
     last: done ? done.title : '',
     partTitle: PARTS[step.part] ? PARTS[step.part].title : partName(step.part),
@@ -123,9 +125,10 @@ function snapshot(w, menuOpen) {
 }
 
 function fill(card, withNowClass) {
-  dlg.el.querySelector('.rk-deel').textContent = card.part;
+  dlg.el.querySelector('.rk-deel').textContent = [card.wie ? `Je speelt als ${card.wie}` : '', card.part].filter(Boolean).join(' · ');
+  const IC = { 'Waar het om draait': 'verhaal', 'Laatst gedaan': 'vinkje', Nu: 'doel' };
   dlg.el.querySelector('.rk-rijen').innerHTML = recapRows(card)
-    .map(([label, text]) => `<div class="rk-rij${withNowClass && label === 'Nu' ? ' rk-nu' : ''}"><small>${esc(label)}</small><p>${esc(text)}</p></div>`).join('');
+    .map(([label, text]) => `<div class="sp-recap__rij${withNowClass && label === 'Nu' ? ' sp-recap__rij--nu' : ''}"><span class="sp-ikoon${label === 'Nu' ? ' sp-ikoon--geel' : ''}">${icoon(IC[label] || 'verhaal', { cls: 'sp-ic' })}</span><div><small>${esc(label)}</small><p>${esc(text)}</p></div></div>`).join('');
 }
 
 // `menuOpen`: main.js passes whether a menu, the map, the phone or a shop is open.
@@ -144,11 +147,17 @@ export function updateRecap(dt, w, menuOpen) {
   if (decision === 'show') show(w);
 }
 
-function show(w) {
-  const card = recapContent(contentInput());
+// Op verzoek (Overzicht > Waar waren we?): de kaart opnieuw, ook als hij net al is getoond.
+export function toonRecapNu(w) {
+  if (!w || isRecapOpen()) return false;
+  return show(w, true);
+}
+
+function show(w, opVerzoek = false) {
+  const card = recapContent(contentInput(w));
   if (!card) return false;
   const store = storage();
-  if (recapSeenRecently(readRecapSeen(store), card.stepId)) return false;
+  if (!opVerzoek && recapSeenRecently(readRecapSeen(store), card.stepId)) return false;
   if (!dlg) dlg = build();
   dlg.world = w;
   fill(card, true);

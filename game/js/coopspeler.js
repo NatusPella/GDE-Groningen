@@ -38,6 +38,7 @@ export function avatarVan(speler = {}, slot = 0) {
     char: basis.id,
     naam: schoon.ok && !isVerhaalnaam(schoon.naam) ? schoon.naam : basis.naam,
     kleur: /^#[0-9a-f]{6}$/i.test(av.kleur || '') ? av.kleur : basis.kleur,
+    vorm: basis.vorm || 'cirkel', // de vorm naast de kleur: kleur is nooit het enige (naamplaat en spelerslijst)
     kleding: typeof av.kleding === 'string' && av.kleding.trim() ? av.kleding.slice(0, 40) : basis.kleding,
     huid: basis.huid, seed: basis.seed, variant: basis.variant,
     outfit: cleanOutfitCode(av.outfit), // de kleding van de speler zelf (optioneel; zonder code de kleur van de avatar)
@@ -56,7 +57,7 @@ export function avatarLook(avatar) {
   }
   return { karakter: null, shirt: hexInt(a.kleur), skin: a.huid, opts: { speler: true, seed: a.seed, variant: a.variant } };
 }
-export const avatarLabel = (avatar) => { const a = avatar && avatar.naam ? avatar : avatarVan(avatar); return { tekst: a.naam, kleur: a.kleur }; };
+export const avatarLabel = (avatar) => { const a = avatar && avatar.naam ? avatar : avatarVan(avatar); return { tekst: a.naam, kleur: a.kleur, vorm: a.vorm }; };
 
 // Knoppen van de gast: rennen, handrem (met het stuur), springen en bukken (te voet).
 export function knoppen({ rennen = false, handrem = false, springen = false, bukken = false, aanval = false, zicht = false } = {}) {

@@ -148,3 +148,13 @@ html.reduce-motion .dk-rij { transition: none; }
 .os-info summary { display: inline-block; cursor: pointer; padding: 2px 4px; color: var(--ds-zeef-tx); font-weight: 700; text-decoration: underline; text-underline-offset: 3px; }
 .os-info summary:focus-visible { outline: var(--ds-lijn-zeef, 3px) solid var(--ds-c-ink-bord); outline-offset: 2px; }
 .os-info-tekst { margin: 6px 0 0; line-height: 1.4; color: var(--ds-zeef-tx); }
+
+/* De tabel Wie ziet wat (ontwerp 24-11): per partij wat die ziet; "Wij: niets" gemarkeerd. Alleen ds-tokens. */
+.os-wie { margin: 10px 0 0; }
+.os-wie-kop { display: block; margin-bottom: 4px; font-family: var(--ds-font-zeef-kop); font-weight: 800; font-size: 15px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ds-c-ink-bord); }
+.os-wie table { width: 100%; border-collapse: collapse; font-size: 17px; }
+.os-wie th, .os-wie td { text-align: left; vertical-align: top; padding: 6px 8px; border-bottom: var(--ds-lijn) solid var(--ds-c-ink-inkt); }
+.os-wie th { width: 34%; font-family: var(--ds-font-zeef-kop); font-weight: 800; font-size: 19px; }
+.os-wie th small { display: block; font-family: var(--ds-font-zeef-tekst); font-weight: 400; font-size: 14px; color: var(--ds-c-inkt-zacht); }
+.os-wie-niets th, .os-wie-niets td { background: var(--ds-c-sel-vlak); }
+.os-wie-voet { margin: 6px 0 0; font-size: 14px; color: var(--ds-c-inkt-zacht); }

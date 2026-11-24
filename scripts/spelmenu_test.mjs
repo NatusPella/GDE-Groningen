@@ -69,8 +69,8 @@ ok(!/localStorage\.(setItem|getItem)\([^)]*spel/i.test(pm), 'Spel bewaart niets 
 // de tabbladen van Spel, de sectie en alles eromheen
 const sub = (pm.match(/spel: \[((?:\[[^\]]+\],? ?)+)\],/) || [])[1] || '';
 const subIds = [...sub.matchAll(/\['(\w+)', '([^']+)'\]/g)].map((x) => x[1]);
-ok(subIds.join() === 'overzicht,samen,acties', 'Spel heeft de tabbladen Overzicht, Samen spelen en Opslaan & stoppen (#979: Camera en Hints zijn instellingen geworden)', subIds.join());
-ok(subIds.every((id) => ['overzicht', 'samen'].includes(id) || spelSrc.includes(`tab('${id}'`)) && spelSrc.includes('data-sub="overzicht" class="pm-ov pm-spelov"'),'elk tabblad heeft zijn inhoud (Overzicht tekent zich in Spel)');
+ok(subIds.join() === 'overzicht,samen,spelers,uitnodigen,sessie,acties', 'Spel heeft één tabrij: Overzicht, Samen spelen (zonder sessie) of Spelers, Uitnodigen en Sessie (in een sessie), en Opslaan en stoppen (ontwerp Samen spelen 24-11)', subIds.join());
+ok(subIds.every((id) => ['overzicht', 'samen', 'spelers', 'uitnodigen', 'sessie'].includes(id) || spelSrc.includes(`tab('${id}'`) || spelSrc.includes(`data-sub="${id}" class="sp-opslaan`)) && spelSrc.includes('data-sub="overzicht" class="pm-ov pm-spelov"'), 'elk tabblad heeft zijn inhoud (Overzicht tekent zich in Spel)');
 // #979: de twee verhuisde tabbladen staan nu onder Instellingen, met hun eigen inhoud.
 const setSub = (pm.match(/settings: \[((?:\[[^\]]+\],? ?)+)\],/) || [])[1] || '';
 const setIds = [...setSub.matchAll(/\['(\w+)', '([^']+)'\]/g)].map((x) => x[1]);
@@ -85,19 +85,20 @@ ok(/data-panel="spel" class="pm-panel pm-col pm-tabbed"/.test(pm) && /\$\{spelHt
 ok(pm.includes("if (name === 'spel') { showSubtab('spel', pref.sub.spel || subsOf('spel')[0][0]); syncControls(); syncSaveButtons(); afterSpelSub(); }"),'Spel laat zijn tabblad, de waarden van de regelaars en de opslagknoppen zien');
 ok(/tab === 'settings' \|\| tab === 'spel'\) syncControls\(\)/.test(pm), 'Q en E tussen de tabbladen van Spel vullen de regelaars');
 ok(/\['besturing', 'Besturing'\]/.test(pm), 'Instellingen heeft het tabblad Besturing (muis, toetsenbord, controller en touch)');
-ok(pm.includes('enterSection(go.dataset.goto)') && spelSrc.includes('data-goto-sub="spel:overzicht"'),'Missie stoppen verwijst naar Spel > Overzicht (de knop met de vraag, #390)');
+ok(pm.includes('enterSection(go.dataset.goto)') && read('game/js/todoui.js').includes('data-action="mission-stop"'),'Missie stoppen staat bij de missie in Spel > Overzicht (de knop met de vraag, #390; Spel-UI 24-11)');
 // de spel-acties van de oude rail (Spel opslaan, Opgeslagen spellen, Naar het hoofdmenu, Afsluiten, Opnieuw beginnen, Laatste spel laden, Nieuw spel, Annuleren, Doorgaan) staan nu onder Spel > Opslaan & stoppen, met dezelfde data-action
-const ACTIES = ['resume', 'save', 'saves', 'menu', 'exit', 'restart', 'load', 'new', 'cancel'];
-const actiesTab = spelSrc.slice(spelSrc.indexOf("tab('acties'"), spelSrc.indexOf("tab('spelen'"));
+// Spel-UI 24-11: Doorgaan staat alleen nog in de rail; Opslaan en stoppen heeft de kaart Dit spel (save, saves), het verlaten (menu, exit) en de vragen (nieuw-vraag, terugzetten-vraag) en houdt de oude herstartvraag verborgen in de DOM (restart, load, new, cancel)
+const ACTIES = ['save', 'saves', 'menu', 'exit', 'nieuw-vraag', 'terugzetten-vraag', 'restart', 'load', 'new', 'cancel'];
+const actiesTab = spelSrc.slice(spelSrc.indexOf('data-sub="acties"')) + pm.slice(pm.indexOf('function saveFactsInner'), pm.indexOf('function syncSaveFacts'));
 for (const a of ACTIES) ok(new RegExp('data-action="' + a + '"').test(actiesTab), 'Spel > Opslaan & stoppen heeft data-action="' + a + '"');
 ok(!/pm-rail-acts|pm-rail-foot/.test(pm.slice(pm.indexOf('<nav class="pm-rail"'), pm.indexOf('</nav>', pm.indexOf('<nav class="pm-rail"')))), 'de rail heeft geen spel-acties meer');
 ok(/data-restart-confirm/.test(actiesTab) && /Laatste spel laden/.test(actiesTab) && /Nieuw spel \(nieuwe plek\)/.test(actiesTab) && /Annuleren/.test(actiesTab), 'de vraag bij Opnieuw beginnen staat er met haar drie knoppen');
-ok(/Spel opslaan<\/button>/.test(actiesTab) && /Herstarten<\/button>/.test(actiesTab) && /Opgeslagen spellen<\/button>/.test(actiesTab) && /Opnieuw beginnen<\/button>/.test(actiesTab) && /Afsluiten<\/button>/.test(actiesTab), 'de knoppen houden hun tekst (de tests en harnassen zoeken erop)');
+ok(/Nu opslaan/.test(actiesTab) && /Naar het menu<\/button>/.test(actiesTab) && /Opgeslagen spellen<\/button>/.test(actiesTab) && /Terugzetten…<\/button>/.test(actiesTab) && /Afsluiten<\/button>/.test(actiesTab), 'de knoppen houden hun tekst (de tests en harnassen zoeken erop)');
 ok(!/querySelector\('\.pm-game \.pm-confirm'\)|querySelector\('\.pm-status'\)|\.pm-rail-acts/.test(pm), 'de code zoekt de vraag, de statusregel en de knoppen niet meer in de rail');
 ok(/data-game-status/.test(actiesTab) && /\[data-game-status\]/.test(pm), 'de statusregel van opslaan en laden staat onder de knoppen');
 ok(/pm-ingame/.test(pm.slice(pm.indexOf('function subtabsHtml'), pm.indexOf('function subtabsHtml') + 500)) && /const subsOf = /.test(pm), 'het tabblad Opslaan & stoppen is er in het hoofdmenu (voor de start) niet');
 ok(/#pause-menu \[data-panel="spel"\] \[data-action\]/.test(read('desktop/devtools.js')), 'de smoke-test van Electron meldt ook de acties onder Spel (pauseButtons)');
-ok(/data-action="menu"[^>]*>Herstarten</.test(pm), 'het pauzemenu heeft Spel herstarten (alleenspelen_test)');
+ok(/data-action="menu"[^>]*>Naar het menu</.test(pm), 'het pauzemenu heeft Naar het hoofdmenu (alleenspelen_test)');
 // Standaard herstellen blijft bij Instellingen (het zet alles terug, ook Spel)
 ok(/\[data-action="reset"\]'\)\.hidden = name !== 'settings'/.test(pm), 'Standaard herstellen blijft bij Instellingen');
 // oude opgeslagen keuzes (pref.sub) breken niets: een onbekend tabblad valt terug op het eerste
@@ -120,7 +121,7 @@ ok(/stand === 'pad' \? `\$\{pg\('y'\)\}<span>Instappen<\/span>`/.test(pm), 'het 
 ok(/bron\.setAttribute\('aria-disabled', String\(!st\.showHints\)\)/.test(pm) && /if \(!pk \|\| pk\.getAttribute\('aria-disabled'\) === 'true'\) return;/.test(pm), 'zonder toetshints is de keuze "Hints tonen voor" niet meer bedienbaar');
 ok(/tab\('camera'[\s\S]*?<span>Kijken<\/span>[\s\S]*?<span>Richten<\/span>[\s\S]*?<span>Sfeer<\/span>/.test(settingsSrc), 'Camera groepeert de regelaars in Kijken, Richten en Sfeer (#980)');
 ok(/tab\('hints'[\s\S]*?<span>In beeld<\/span>[\s\S]*?<span>Uitleg<\/span>[\s\S]*?<span>Terugkijken<\/span>/.test(settingsSrc), 'Hints groepeert de regelaars in In beeld, Uitleg en Terugkijken (#980)');
-ok(/saveFactsHtml\(\)/.test(spelSrc) && /data-save-now/.test(pm) && /function syncSaveFacts/.test(pm), 'Opslaan & stoppen toont sessietijd, laatste opslag en de savegame (#980)');
+ok(/data-save-now/.test(spelSrc) && /function saveFactsInner/.test(pm) && /function syncSaveFacts/.test(pm), 'Opslaan & stoppen toont sessietijd, laatste opslag en de savegame (#980)');
 const pmcss = read('game/js/pausemenu.css');
 ok(/\.pm-nowfacts/.test(pmcss) && /\.pm-hintprev/.test(pmcss), 'de samenvatting en het hintvoorbeeld hebben eigen vormgeving');
 ok(/\[data-panel="settings"\] \.pm-inner\.pm-settings > \.m-tabs \.m-tablist \{ gap: 0 28px; \}/.test(pmcss), 'de acht instellingentabs blijven met een krappere tussenruimte op één rij (#979)');
@@ -198,8 +199,8 @@ ok(!/data-goto="telefoon"/.test(pm) && !/'telefoon'\)/.test(pm.slice(pm.indexOf(
 // oude namen verwijzen door
 for (const [oud, nieuw] of [["name === 'overzicht' || name === 'game'", "name = 'spel'"], ["name === 'telefoon'", "name = 'verhaal'"], ["name === 'cheats'", "name = 'streken'"], ["name === 'missions'", "name = 'todo'"]]) ok(pm.includes(oud) && pm.includes(nieuw), 'oude naam ' + oud.split("'")[1] + ' verwijst door');
 ok(/CHILD = {[^}]*controls: 'settings'/.test(pm) && !/streken: 'settings'/.test(pm) && !pm.includes("['settings', 'over', 'streken']") && /rowName\('Over GDE'/.test(pm) && !/spelers: 'samen'/.test(pm), 'Over is sinds #601 een rij onder Instellingen; Cheats staat sinds #435 in de rail; Samen spelen en Spelers zijn geen onderdeel of rijknop meer');
-ok(pm.includes("['samen', 'Sessie'], ['spelers', 'Spelers']") && pm.includes('data-of="spel" data-sub="samen"') && pm.includes('data-of="samen" data-sub="spelers"') && pm.includes('renderSamenPanel(root.querySelector') && pm.includes('renderSpelersPanel(root.querySelector') && !pm.includes("id === 'spelers' && !(world && world.coopNet)"), 'Spelers is een tabblad onder Samen spelen, met dezelfde lijst als eerst; sinds #530 ook zonder sessie, want daar staat de schakelaar Meedoen met andere spelers');
-ok(!subIds.includes('spelers') && !pm.includes('data-of="spel" data-sub="spelers"') && !pm.includes('data-of="spel" data-subtab="spelers"'), 'Spelers is geen los tabblad of rijknop van Spel meer (#434)');
+ok(pm.includes("['samen', 'Samen spelen'], ['spelers', 'Spelers'], ['uitnodigen', 'Uitnodigen'], ['sessie', 'Sessie']") && pm.includes('data-of="spel" data-sub="spelers"') && pm.includes('data-of="spel" data-sub="uitnodigen"') && pm.includes('data-of="spel" data-sub="sessie"') && pm.includes('renderSamenPanel(root.querySelector') && pm.includes('renderSpelersPanel(root.querySelector') && pm.includes('renderUitnodigen(') && pm.includes('renderSessie('), 'in een sessie vervangen Spelers, Uitnodigen en Sessie het tabblad Samen spelen in één tabrij (ontwerp Samen spelen 24-11)');
+ok(pm.includes('const spelTabMag') && pm.includes("id === 'samen' ? !echteSessieNu()"), 'Samen spelen is er alleen zonder echte sessie; Spelers, Uitnodigen en Sessie alleen met een sessie');
 ok(pm.includes("name === 'samen' || name === 'samenspelen' || name === 'spelers'") && pm.includes("setN('spel', coopN") && pm.includes('world.coopSpelers.length'), 'de oude namen samen, samenspelen en spelers verwijzen naar Spel > Samen spelen; de rijknop Spel toont het aantal spelers');
 ok(read('game/js/main.js').includes("openPauseMenu('samen')"), 'de coöp-melding opent nog openPauseMenu(samen), dat nu naar Spel > Samen spelen gaat');
 ok(!read('scripts/coop/coop.page.js').includes('.ra[data-goto="samen"]') && !read('scripts/coop/coop.page.js').includes('.ra[data-goto="spelers"]'), 'de coöp-QA zoekt geen oude rijknoppen meer');
@@ -213,7 +214,7 @@ const tui = read('game/js/todoui.js');
 ok(/isActiviteit = \(it\) => it\.group !== 'verhaal' && it\.group !== 'bijbaantjes'/.test(tui) && /SHOWN = GROUPS\.filter/.test(tui) && /eigen\.filter\(\(it\) => it\.dist != null/.test(tui), 'Activiteiten (één lijst met Dichtbij-filter) heeft geen bijbanen meer');
 ok(/data-todo-goal="job:/.test(lb) && /baanDoelen/.test(lb) && /tab === 'loopbaan' && todoClick/.test(pm), 'een bijbaan kies je onder Loopbanen met Zet als doel (niet dubbel)');
 const bron = pm.slice(0, pm.indexOf('export function initPauseMenu('));
-for (const act of [...ACTIES, 'bench', 'bench-go', 'errlog-copy']) {
+for (const act of [...ACTIES.filter((a) => a !== 'save'), 'bench', 'bench-go', 'errlog-copy']) {
   const aantal = (bron.match(new RegExp('<button[^>]*data-action="' + act + '"', 'g')) || []).length;
   ok(aantal === 1, 'data-action="' + act + '" staat op één knop', String(aantal));
 }
@@ -315,7 +316,7 @@ ok(/lower === 'q' \|\| lower === 'e' \|\| k === '\[' \|\| k === '\]'/.test(pm) &
   'Q/E en [ ] pakken de zichtbare tabrij, de binnenste eerst (#601)');
 ok(/if \(SUBTABS\[tab\] && cycleVisibleTabs\(dir\)\) return;\s*if \(cycleOwnTabs\(dir\)\) return;\s*cycleSection\(dir\);/.test(pm),
   'Q/E en [ ] vallen terug op het onderdeel als er geen tabbladen zijn (#601)');
-ok(/spelers-tab/.test(pm) && /\(pref\.sub\.spel \|\| 'overzicht'\) === 'samen'/.test(pm), 'de voetregel noemt de uitkomst van Q/E op Spel > Samen spelen (#601)');
+ok(!/spelers-tab/.test(pm), 'er is geen tweede tabrij meer, dus Q/E hoeft op Spel > Samen spelen niets bijzonders te noemen (ontwerp Samen spelen 24-11)');
 const hintSecties = ['spullen', 'loopbaan', 'visboek', 'boerderij', 'fotos', 'streken', 'over', 'map'];
 for (const s of hintSecties) ok(new RegExp(`^\\s*${s}: .*\\[\\['Q', 'E'\\], '`, 'm').test(pm), `de voetregel van ${s} noemt Q/E (wat de toets daar doet)`);
 ok(/over: \[\[\['↑', '↓'\], 'kiezen'\], \[\['Enter'\], 'open of dicht'\]/.test(pm), 'Over heeft een eigen voetregel met de vouwen (#601)');
@@ -327,17 +328,13 @@ ok(/#pause-menu \.pm-over p, #pause-menu \.pm-over li \{ font-size: 18px/.test(p
 // één "Wat is er nieuw": het oude titelscherm heeft die ingang niet meer
 const ss = read('game/js/startscreen.js');
 ok(!/act: 'news'/.test(ss) && !/openNews/.test(ss), 'het titelscherm heeft geen tweede "Wat is er nieuw" meer (#601)');
-// Overzicht: "Snel instellen" is één gevouwen blok, geen rij instelschakelaars boven de kaart
+// Spel-UI 24-11: het Overzicht is een heldkaart met de gele knop, een strook Aandacht, één voortgangsblok en een voet met Vastgelopen?; geen tegels en geen vouwen meer
 const todoSrc = read('game/js/todoui.js');
-ok(/folds: new Set\(\['quick', 'voortgang'\]\)/.test(todoSrc) && /disc\('quick', 'Snel instellen'/.test(todoSrc),
-  'Overzicht toont "Snel instellen" als één gevouwen blok (#601)');
+ok(/function heldHtml/.test(todoSrc) && /verderKnop\('Verder met deze stap'/.test(todoSrc) && /data-ov-verder/.test(todoSrc), 'Overzicht heeft de heldkaart met Verder met deze stap (Spel-UI 24-11)');
+ok(/function strookHtml/.test(todoSrc) && /aandachtRegels\(/.test(todoSrc) && /function voortgangBlokHtml/.test(todoSrc) && /function voetHtml/.test(todoSrc), 'Overzicht heeft de strook Aandacht, het voortgangsblok en de voet');
+ok(!/ov-tile|tilesHtml|disc\('quick'|disc\('help'/.test(todoSrc), 'de tegels en de vouwen Snel instellen en Vastgelopen? zijn weg uit het Overzicht');
 ok(/export function foldNote/.test(todoSrc) && /foldNote\(btn\.dataset\.fold, on\)/.test(pm), 'de vouwen van Over en Overzicht onthouden hun stand');
-// #965: de grote hero-kop van Spel > Overzicht schoof onder de tabbalk en werd daar
-// afgekapt. De tabs en de hero staan nu stil; alleen de inhoud eronder scrolt.
-ok(/el\.innerHTML = heroHtml\(world\) \+ '<div class="ov-scroll">'/.test(todoSrc), 'de hero staat buiten de scrollende inhoud (#965)');
-ok(/class="ov-scroll"/.test(todoSrc) && /'<\/div><\/div>';/.test(todoSrc), 'de inhoud onder de hero zit in één scroller (#965)');
-ok(/querySelector\('\.ov-scroll'\)/.test(pm) && /body\.insertAdjacentHTML\('afterbegin', blok\)/.test(pm), 'het voortgangsblok staat bovenaan de scrollende inhoud, niet meer tussen de tabs en de hero (#965)');
-ok(/#pause-menu \.pm-ov \{[^}]*overflow: hidden/.test(pmcss) && /#pause-menu \.ov-scroll \{[^}]*overflow-y: auto/.test(pmcss), 'de tabs en de hero blijven staan en alleen .ov-scroll scrolt (#965)');
+ok(/data-ov-verder/.test(todoSrc) && /chooseTodo\(world, it, null\)/.test(todoSrc) && /api\.close/.test(todoSrc), 'Verder met deze stap zet het doel, sluit het menu en laat het spel verder gaan');
 ok(/-webkit-mask-image: linear-gradient\(180deg, transparent 0, (?:#000|var\(--ds-c-ink-inkt\)) 14px\)/.test(pmcss), 'wat wegscrolt vervaagt, in plaats van midden in een regel af te knippen (#965)');
 ok(/\.ov-scroll'\)\) n\.scrollTop = 0/.test(pm), 'bij het openen begint het Overzicht weer bovenaan (#965)');
 

@@ -64,7 +64,7 @@ t('de 3D-labels gebruiken de meting met het juiste vlak', () => {
   const figuur = fs.readFileSync(new URL('../game/js/avatarlabel3d.js', import.meta.url), 'utf8'); // het label van coopfigures3d.js en scene3d.js (24-11)
   assert.match(figuur, /import \{ pasLabel \} from '\.\/multiplayerlabels\.js';/);
   assert.match(figuur, /LABEL_VLAK = 236/);
-  assert.match(figuur, /pasLabel\(spec\.tekst, \{ maxBreedte: LABEL_VLAK/);
+  assert.match(figuur, /pasLabel\(glyph \+ spec\.tekst, \{ maxBreedte: LABEL_VLAK/);
   assert.doesNotMatch(figuur, /fillText\(spec\.tekst/, 'geen ongemeten tekst meer op de kaart');
   const ping = fs.readFileSync(new URL('../game/js/cooppings3d.js', import.meta.url), 'utf8');
   assert.match(ping, /import \{ pasLabel \} from '\.\/multiplayerlabels\.js';/);

@@ -158,7 +158,7 @@ punt('spel starten, de limietknop 4/8/12/16 en de openbare sessielijst', () => {
 });
 
 punt('Spelers is een tabblad onder Samen spelen', () => {
-  const ui = lees('../game/js/coopspelersui.js') + lees('../game/js/playercards.js');
+  const ui = lees('../game/js/coopspelersui.js') + lees('../game/js/samenspelers.js');
   assert.match(ui, /tabblad Spelers/, 'de lijst hoort bij het tabblad Spelers');
   assert.match(ui, /data-eruit=/, 'met de knop per speler');
   assert.match(P.rijTekst({ naam: 'Nikky', doet: 'loopt mee', verbindingTekst: 'goed', jij: true }), /Nikky \(jij\)/);

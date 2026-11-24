@@ -30,6 +30,16 @@ function eigenFilmpjeOverslaan(world, kan) {
   return canJoin(world);
 }
 
+// 'Spel starten' (wie het spel opende, in de wachtkamer van een nieuw spel) en Vraag om te starten (een gast, #642): één functie voor de wizard en voor het tabblad Spelers.
+// Het menu sluit en de opening begint; alleen met minstens twee spelers; de melding blijft staan als het menu dicht is.
+export function startWachtkamer(world, sluit = () => {}) {
+  const n = world.coopNet;
+  if (!n || n.role === 'host') { if (!genoegSpelers(world)) return false; startStartMeting(world); openHek(world); markeerStartStap(world, 'hek-open'); if (world.addMessage) world.addMessage('Spel wordt gestart… even geduld, de wereld wordt geladen.', 8); }
+  else { if (!vraagStart(world)) return false; } // een gast vraagt het de opener (#642); het hek-bericht doet de rest
+  sluit();
+  return true;
+}
+
 let view = null, mountedOn = null, gebonden = null; // gebonden: de sessie (world.coopNet) waar dit paneel zelf bij hoort; een andere sessie is door een overdracht gekomen
 
 // #1011: de oude hub (#527, het stappenscherm van samenhub.js) is vervangen door de wizard in de lobby zelf (lobbyui.js, multiplayerwizard.js): stap 0 (Meedoen
@@ -120,12 +130,7 @@ export function renderSamenPanel(root, world, sluit = () => {}) {
     joined: () => {},
     // 'Spel starten' (de gastheer in de wachtkamer van een nieuw spel): het menu sluit en de opening begint.
     // #642: een gast kan het ook vragen; de gastheer opent dan het hek en de gast start bij het hek-bericht.
-    startSpel: () => {
-      const n = world.coopNet;
-      if (!n || n.role === 'host') { if (!genoegSpelers(world)) return; startStartMeting(world); openHek(world); markeerStartStap(world, 'hek-open'); if (world.addMessage) world.addMessage('Spel wordt gestart… even geduld, de wereld wordt geladen.', 8); } // alleen met minstens twee spelers; de melding blijft staan als het menu dicht is
-      else setGate(false); // een gast: de ander startte
-      sluit();
-    },
+    startSpel: () => startWachtkamer(world, sluit),
     // #642: een gast vraagt de wachtkamer te starten (de knop in de wachtkamer)
     vraagStart: () => vraagStart(world),
     // 'Iedereen stoppen': de gastheer stopt de sessie; een gast vraagt de groep om akkoord (#642)

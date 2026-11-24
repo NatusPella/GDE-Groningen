@@ -2074,6 +2074,22 @@
   {
    "glob": "modularwear",
    "reden": "Alleen beeld: kledingdelen (politiepet, uniformdetails) volgen uit de look; elke client bouwt ze zelf."
+  },
+  {
+   "glob": "voetbalwapen",
+   "reden": "Alleen beeld: het clubwapen als SVG uit kleur en patroon, per client getekend (club-ui, Refs #1106)."
+  },
+  {
+   "glob": "spelbevestig",
+   "reden": "Het Spel-menu is lokaal per speler: eigen geld, eigen opslag, eigen verhaal (ontwerp Spel-UI 24-11, hoofdstuk 8)."
+  },
+  {
+   "glob": "spelstatus",
+   "reden": "Het Spel-menu is lokaal per speler: eigen geld, eigen opslag, eigen verhaal (ontwerp Spel-UI 24-11, hoofdstuk 8)."
+  },
+  {
+   "glob": "hoofdmenu",
+   "reden": "Het Spel-menu is lokaal per speler: eigen geld, eigen opslag, eigen verhaal (ontwerp Spel-UI 24-11, hoofdstuk 8)."
   }
  ],
  "opslag": {

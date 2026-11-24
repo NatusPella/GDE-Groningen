@@ -10,7 +10,7 @@ import { getSettings, setSetting, resetSettings, resetSettingsKeys, defaultSetti
 import { TAB_KEYS, changedPerTab, changedKeys, resetMessage, dependencies, silenceWarning, synonymsFor, cheatsVisible, COLOR_BLIND_LABELS, shakePreviewPx } from './settingsrules.js';
 import { effectsFor } from './a11ylogic.js';
 import { reducedMotion } from './motion.js';
-import { retryBeschikbaar, herstartMissie, herstartBlokkade } from './missions.js';   // #985 punt 16
+import { retryBeschikbaar, herstartMissie, herstartBlokkade, getMissionDefs, isMissionCompleted } from './missions.js';   // #985 punt 16
 import { changeWithGroup } from './difficultyvote.js'; // moeilijkheid van de wereld is een gezamenlijke keuze
 import { difficultyTabHtml, difficultyPaneHtml, syncDifficultyTab, stepDifficultyPicker, handleDifficultyClick } from './difficultypanel.js'; // #1169: Instellingen > Moeilijkheid, per save
 import { logoHtml } from './logo.js';
@@ -19,16 +19,19 @@ import { uitlegBlok, zetUitlegGlyph, startUitleg, resetUitlegNietMeer } from './
 import { PRESET_ORDER, presetLabel, PRESET_HINTS, describePreset, describeChanges, currentPreset, applyPreset, getBenchResult, dismissBenchBanner, GEAR_SVG, measureAutoPreset, autoGfxNote, autoGfxLabel } from './gfxprofile.js';
 import { mountMapView, kaartUitlegSluiten, kaartReisPopupSluiten, kaartPlekkaartSluiten, kaartToets, setMapActive, setMapCloseHandler, setMapView, getDiscoveredRatio, setMapTeleport } from './mapview.js';
 import { mountOnlineInstelling } from './onlineconsentui.js';
-import { renderSamenPanel, requestOpenSamen, samenHubTerug } from './samenpanel.js';
+import { renderSamenPanel, requestOpenSamen, samenHubTerug, startWachtkamer } from './samenpanel.js';
+import { renderUitnodigen, renderSessie } from './samenkamerui.js';
 import { isSoloHost, stopSoloHost } from './coopsolo.js';
 import { renderVeroverdPanel } from './veroverdpanel.js';
 import { renderSpelersPanel } from './coopspelersui.js';
 import { renderCheatsPanel, cheatsClick, resetCheatsPanel, cheatsFocus } from './cheatsui.js';
 import { cheatsOpen, anyCheatOn } from './cheats.js';
-import { skipCurrent } from './story.js';
+import { skipCurrent, getStoryView } from './story.js';
+import { partName } from './storyarc.js';
 import { saveGame, hasSave, loadLatestSave, startNewSlot, coopSessieLoopt, GAST_BEWAARD_TEKST, getSaveSummary, getPlaySeconds, loadSlot, currentSlot, saveGameEchtBewaard, preventCloseSave, saveFailReason } from './savegame.js';
 import { openSaveSlots, isSaveSlotsOpen } from './saveslotsui.js';
 import { stopCoopNet } from './coopnet.js';
+import { groepAkkoord, meerSpelers } from './coopgroep.js';
 import { coopLoadTekst, coopActieTekst, COOP_LOAD_FAIL, COOP_ACTIE_FAIL, runCoopLoad, runCoopStop } from './cooploadrules.js';
 import { getClockText } from './clocktext.js';
 import { openCardLog } from './hudcards.js';
@@ -36,7 +39,7 @@ import { hoofdspeler } from './players.js'; // de speler van dit apparaat (#500)
 import { VERSION } from './version.js';
 import { loadChangelogVersions, allVersionsHtml, overBodyHtml, newsOnStart, CREDITS_HTML, LICENSES_HTML } from './over.js';
 import { versionLabel } from './menumodels.js';
-import { storyDate } from './calendarday.js';
+import { storyDate, todaySpecial } from './calendarday.js';
 import { isCinematicActive } from './cinematics.js';
 import { renderAchievementsPanel } from './achievementsui.js';
 import { trackTabLine } from './dsmicro.js'; // DS3: de glijdende onderstreping van de tabs (ds-micro.css)
@@ -52,7 +55,8 @@ import { renderGaragePanel, selectGarageVehicle, disposeGarageViewer, garageNaar
 import { deliverOwnedVehicle, locateOwnedVehicle, getGarageList, verkoopVoertuig, actieBevestiging } from './ownedvehicles.js';
 import { isShopOpen, closeShopMenu } from './shopui.js';
 import { benchmarkViaReload } from './trailerstate.js';
-import { markStay } from './saveslots.js';
+import { markStay, readThumb } from './saveslots.js';
+import { dsButtonKey } from './dsbutton.js';
 import { prepareBenchmarkReload, BENCH_RELOAD_FAIL_TEXT, BENCH_SAVE_FIRST_TEXT, BENCH_COOP_TEXT } from './benchmarkreturn.js'; // de benchmark laat je save en voortgang met rust
 import { radioIsOn, setRadio, channelList, selectChannel, stepChannel } from './radio.js';
 import { channelPickerHtml } from './radiokeuze.js';
@@ -88,8 +92,9 @@ import { takeNoticeThread } from './phonefeed.js';
 import { getErrorLog, errorReport, clearErrorLog, onErrorLogChange } from './errorlog.js';
 import { KEYS } from './storagekeys.js';
 import { renderFotoPanel, fotoClick, isPhotoMode } from './fotomodusui.js';
-import { gameProgress } from './progresslive.js';
-import { progressPartText, tilesShownElsewhere } from './progress.js';
+import { kopStatus, verliesSinds, verliesTekst, euro } from './spelstatus.js';
+import { toonBevestiging, isBevestigOpen } from './spelbevestig.js';
+import { toonRecapNu } from './recapcardrun.js';
 import { woordenVan, past } from './zoektekst.js';
 // Running inside the desktop app (desktop/preload.js): window mode + quit.
 const DESKTOP = typeof window !== 'undefined' && window.gdeDesktop && window.gdeDesktop.isDesktop ? window.gdeDesktop : null;
@@ -413,11 +418,11 @@ const SUBTABS = {
   // Hoe het spel speelt (verkeer, rijden, de kaart), hoe je kijkt en hoe de uitleg in beeld staat,
   // zijn instellingen: die staan onder Instellingen (#979: Camera en Hints horen daar, niet als
   // losse Spel-tabs).
-  spel: [['overzicht', 'Overzicht'], ['samen', 'Samen spelen'], ['acties', 'Opslaan & stoppen']],
+  // Eén tabrij (ontwerp Samen spelen 24-11): zonder sessie Samen spelen, in een sessie vervangen Spelers, Uitnodigen en Sessie dat ene tabblad (geen tweede tabrij meer).
+  spel: [['overzicht', 'Overzicht'], ['samen', 'Samen spelen'], ['spelers', 'Spelers'], ['uitnodigen', 'Uitnodigen'], ['sessie', 'Sessie'], ['acties', 'Opslaan en stoppen']],
   // Samen spelen heeft twee eigen tabbladen (#434): uitnodigen en de spelerslijst. De lijst is geen
   // los tabblad van Spel en geen rijknop in de rail; hij hoort bij Samen spelen, en sinds #530 staat
   // er ook je profiel met de schakelaar (dus hij is er ook zonder sessie).
-  samen: [['samen', 'Sessie'], ['spelers', 'Spelers']],
   // #604: alleen echte instellingen. Cheats staat sinds #435 als eigen onderdeel in de rail en het
   // foutrapport (diagnose) staat onder Over als "Problemen"; twee tabbladen met één knop naar elders
   // maakten van dit scherm een doolhof.
@@ -527,7 +532,6 @@ function loadPref() {
     const p = JSON.parse(localStorage.getItem(PREF_KEY) || '{}');
     const sub = p.sub && typeof p.sub === 'object' ? p.sub : {};
     // een oud tabblad Spelers (#434): de lijst zit nu onder Samen spelen
-    if (sub.spel === 'spelers') { sub.spel = 'samen'; if (!sub.samen) sub.samen = 'spelers'; }
     // #979: Camera & richten en Hints & uitleg zaten onder Spel; ze horen nu bij Instellingen.
     if (sub.spel === 'camera' || sub.spel === 'hints') { sub.settings = sub.spel; sub.spel = 'overzicht'; }
     return { last: typeof p.last === 'string' ? p.last : 'todo', sub };
@@ -570,11 +574,14 @@ const CHEV_R = icoon('volgende');
 const plain = (t) => String(t).replace(/<[^>]*>/g, '').replace(/&shy;/g, '');
 
 // the tabs of a section that are there in the main menu too (Opslaan & stoppen of Spel needs a running game)
-const inGameOnly = (of, id) => of === 'spel' && (id === 'acties' || id === 'overzicht' || id === 'samen' || id === 'spelers');
+const inGameOnly = (of, id) => of === 'spel' && ['acties', 'overzicht', 'samen', 'spelers', 'uitnodigen', 'sessie'].includes(id);
+// Welke tabbladen van Spel er nu zijn: in een echte sessie (geen sessie van één) Spelers, Uitnodigen en Sessie, anders Samen spelen.
+const echteSessieNu = () => !!(world && world.coopNet && !isSoloHost(world));
+const spelTabMag = (id) => (id === 'samen' ? !echteSessieNu() : ['spelers', 'uitnodigen', 'sessie'].includes(id) ? echteSessieNu() : true);
 // Spelers (wie er meespeelt) staat onder Samen spelen. Sinds #530 staat daar ook je eigen profiel
 // met de schakelaar Meedoen met andere spelers, dus het tabblad is er ook zonder sessie: anders is
 // "Alleen spelen" bij de eerste start een doodlopende weg (ADR 0022: later alsnog kunnen meedoen).
-const subsOf = (of) => SUBTABS[of].filter(([id]) => !(prestart && inGameOnly(of, id)) && subVisible(of, id));
+const subsOf = (of) => SUBTABS[of].filter(([id]) => !(prestart && inGameOnly(of, id)) && subVisible(of, id) && (of !== 'spel' || spelTabMag(id)));
 function subtabsHtml(of, label) {
   // DS3 (ds-micro.css): de nav draagt .ds-m-tabs en de glijdende streep; de stip op een tab met [data-new] poppen met .ds-m-nieuw
   return `<div class="m-tabs"><nav class="m-tablist ds-m-tabs" role="tablist" aria-label="${label}">` + SUBTABS[of].map(([id, text]) =>
@@ -916,19 +923,24 @@ function lastSavedText(s = getSaveSummary()) {
 function saveFactsInner() {
   const s = getSaveSummary();
   const speel = getPlaySeconds();
-  const tijd = speel >= 3600
-    ? `${Math.floor(speel / 3600)} u ${Math.round((speel % 3600) / 60)} min`
-    : `${Math.max(0, Math.round(speel / 60))} min`;
-  const wanneer = lastSavedText(s);
-  const naam = s && s.name ? s.name : 'deze speelsessie';
-  return '<div class="m-fact"><span>Deze sessie</span><b>' + esc(tijd) + '</b></div>' +
-    '<div class="m-fact"><span>Laatst opgeslagen</span><b>' + esc(wanneer) + '</b></div>' +
-    '<div class="m-fact"><span>Opslagplek</span><b>' + esc(naam) + '</b></div>';
+  const tijd = speel >= 3600 ? `${Math.floor(speel / 3600)} u ${String(Math.round((speel % 3600) / 60)).padStart(2, '0')}` : `${Math.max(0, Math.round(speel / 60))} min`;
+  const naam = s && s.name ? s.name : 'Dit spel';
+  const ago = s && s.savedAt ? Math.round((Date.now() - s.savedAt) / 60000) : null;
+  const ic = (n) => icoon(n, { cls: 'sp-ic' });
+  const thumb = s ? readThumb(null, s.slot) : '';
+  const wie = world ? (hoofdspeler(world).character === 'anita' ? 'Tessa' : 'Tammo') : 'Tammo';
+  let deel = '';
+  try { const sv = getStoryView(); deel = sv && !sv.end ? partName(sv.part).split(':')[0] : ''; } catch (e) { deel = ''; }
+  const statusRegel = ago == null ? `<span class="ds-z-status ds-z-status--probleem">${ic('waarschuwing')}Nog niet opgeslagen</span>`
+    : `<span class="ds-z-status${ago >= 20 ? ' ds-z-status--probleem' : ' ds-z-status--goed'}">${ic(ago >= 20 ? 'waarschuwing' : 'vinkje')}${ago < 1 ? 'Net opgeslagen' : ago < 120 ? 'Opgeslagen · ' + ago + ' min geleden' : 'Opgeslagen · ' + lastSavedText(s)}</span>`;
+  const pigeon = !!(world && world.pigeonMode);
+  return `<div class="sp-thumb${thumb ? '' : ' sp-thumb--leeg'}"${thumb ? ` style="background-image:url('${thumb}')"` : ''}><span class="sp-thumb__tag">Huidig spel</span></div>` +
+    `<div class="sp-spel__body"><h2 class="sp-spel__naam">${esc(naam)}</h2><div class="sp-held__feiten"><span class="ds-z-status">${ic('speler')}${esc(wie)}${deel ? ' · ' + esc(deel) : ''}</span><span class="ds-z-status">${ic('tijd')}${esc(tijd)}</span></div>${statusRegel}` +
+    '<span class="sp-hulp">Het spel bewaart ook vanzelf: elke paar minuten en bij elke missie.</span>' +
+    `<div class="sp-actie" style="margin-top:auto">${dsButtonKey({ label: 'Nu opslaan', toets: 'ENTER', attrs: 'data-action="save"' + (pigeon ? ' disabled' : '') })}<button type="button" class="ds-z-knop ds-z-knop--secundair sp-kleinknop" data-action="saves"${pigeon ? ' disabled' : ''}>Opgeslagen spellen</button></div></div>`;
 }
 function saveFactsHtml() {
-  // Leeg bij het bouwen: syncSaveButtons vult de feiten zodra het menu opengaat, zodat het bouwen
-  // van het menu geen save hoeft te lezen.
-  return '<div class="pm-nowfacts pm-savefacts" data-save-now role="group" aria-label="Deze speelsessie"></div>';
+  return '';
 }
 function syncSaveFacts() {
   const box = root && root.querySelector('[data-save-now]');
@@ -942,41 +954,44 @@ function syncSaveFacts() {
 // only the place in the menu changed, nothing is lost and nothing is saved differently.
 function spelHtml() {
   const tab = (id, rows, side = '') => `<div data-of="spel" data-sub="${id}" class="pm-settab" hidden><div class="m-list pm-slist">${rows}</div>${side}</div>`;
-  return `${subtabsHtml('spel', 'Onderdeel')}
+  return `<div class="ds-zeef sp-kop" data-spel-kop></div>${subtabsHtml('spel', 'Onderdeel')}
     <div data-of="spel" data-sub="overzicht" class="pm-ov pm-spelov" hidden></div>
-    <div data-of="spel" data-sub="samen" class="pm-samen pm-spelcoop" hidden>
-      ${subtabsHtml('samen', 'Samen spelen')}
-      <div data-of="samen" data-sub="samen" class="pm-samen-inner"></div>
-      <div data-of="samen" data-sub="spelers" class="pm-spelers pm-samen-spelers" hidden></div>
-    </div>
-    ${tab('acties', `
-      ${saveFactsHtml()}
-      <div class="m-li pm-row">${rowName('Naar mijn boerderij', 'Je akker, gewassen en machines')}<button type="button" class="m-bg" data-goto="boerderij">Boerderij</button></div>
-      <div class="m-li pm-row">${rowName('Verder spelen', 'Terug naar het spel')}<button type="button" class="m-bp" data-action="resume">Doorgaan</button></div>
-      <div class="m-gh"><span>Opslaan en laden</span></div>
-      <div class="m-li pm-row">${rowName('Opslaan', 'Bewaart je geld, spullen en voortgang; laden zet je terug waar je was, of bij je flat als je daar opsloeg')}<button type="button" class="m-bg" data-action="save">Spel opslaan</button></div>
-      <div class="m-li pm-row">${rowName('Opgeslagen spellen', 'Kiezen, laden, hernoemen, exporteren en verwijderen')}<button type="button" class="m-bg" data-action="saves" title="Opgeslagen spellen kiezen, laden, hernoemen, exporteren en verwijderen">Opgeslagen spellen</button></div>
-      <p class="pm-status" data-game-status role="status"></p>
-      <div class="m-gh"><span>Stoppen</span></div>
-<div class="m-li pm-row" data-stop-rij hidden>${rowName('Missie stoppen', 'Je stopt hem in Overzicht, met een vraag erbij')}<button type="button" class="m-bg" data-goto-sub="spel:overzicht">Naar Overzicht</button></div>
-      <div class="m-li pm-row">${rowName('Spel herstarten', 'Slaat op en start het spel opnieuw')}<button type="button" class="m-bg" data-action="menu" title="Opslaan en het spel opnieuw starten">Herstarten</button></div>
-      ${DESKTOP ? `<div class="m-li pm-row">${rowName('Spel sluiten', 'Vraagt eerst of je het zeker weet en slaat je voortgang op')}<button type="button" class="m-bg" data-action="exit" title="Opslaan en het spel sluiten">Afsluiten</button></div>` : ''}
-      <div class="m-gh"><span>Opnieuw beginnen</span></div>
-      <div class="m-li pm-row">${rowName('Opnieuw beginnen', 'Alles sinds je laatste opslag gaat verloren')}<button type="button" class="m-bg danger" data-action="restart">Opnieuw beginnen</button></div>
-      <div class="pm-confirm" data-restart-confirm hidden>
-        <p>Opnieuw beginnen? Alles sinds je laatste opslag gaat verloren. Je andere opgeslagen spellen blijven staan.</p>
-        <button type="button" class="m-bg" data-action="load">Laatste spel laden</button>
-        <button type="button" class="m-bg danger" data-action="new">Nieuw spel (nieuwe plek)</button>
-        <button type="button" class="m-bt" data-action="cancel">Annuleren</button>
+    <div data-of="spel" data-sub="samen" class="pm-samen pm-spelcoop" hidden><div class="pm-samen-inner" data-samen-start></div></div>
+    <div data-of="spel" data-sub="spelers" class="pm-spelers pm-samen-spelers" hidden></div>
+    <div data-of="spel" data-sub="uitnodigen" class="pm-spelers pm-samen-spelers" hidden></div>
+    <div data-of="spel" data-sub="sessie" class="pm-spelers pm-samen-spelers" hidden></div>
+    <div data-of="spel" data-sub="acties" class="sp-opslaan ds-zeef" hidden>
+      <div class="sp-body" style="grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:28px">
+        <div class="sp-kol">
+          <section class="ds-z-kaart sp-spel" data-save-now aria-label="Dit spel"></section>
+          <p class="pm-status sp-hulp" data-game-status role="status"></p>
+          <section><h3 class="ds-z-tussenkop">Het spel verlaten</h3>
+            <div class="sp-stop"><b>Naar het hoofdmenu</b><span>Je spel wordt eerst opgeslagen. Daarna kies je een ander spel of Samen spelen.</span><button type="button" class="ds-z-knop ds-z-knop--secundair sp-kleinknop" data-action="menu" title="Opslaan en naar het hoofdmenu">Naar het menu</button></div>
+            ${DESKTOP ? `<div class="sp-stop"><b>Afsluiten</b><span>Slaat je spel op en sluit het spel.</span><button type="button" class="ds-z-knop ds-z-knop--secundair sp-kleinknop" data-action="exit" title="Opslaan en het spel sluiten">Afsluiten</button></div>` : ''}
+          </section>
+        </div>
+        <div class="sp-kol">
+          <section><h3 class="ds-z-tussenkop">Opnieuw beginnen</h3>
+            <div class="sp-stop"><b>Nieuw spel</b><span data-nieuw-tekst>Begint op een nieuwe plek. Je huidige spel blijft staan.</span><button type="button" class="ds-z-knop ds-z-knop--secundair sp-kleinknop" data-action="nieuw-vraag">Nieuw spel…</button></div>
+            <div class="sp-stop sp-stop--gevaar"><b>Laatste opslag terugzetten</b><span data-terug-tekst>Zet je spel terug naar je laatste opslag. Wat je daarna deed, gaat verloren.</span><button type="button" class="ds-z-knop ds-z-knop--gevaar sp-kleinknop" data-action="terugzetten-vraag">Terugzetten…</button></div>
+          </section>
+          <div class="pm-confirm" data-coop-load-confirm hidden>
+            <p data-coop-load-text></p>
+            <div class="m-acts"><button type="button" class="m-bp" data-action="coop-load-go">Ja, sessie beëindigen en laden</button><button type="button" class="m-bt" data-action="coop-load-cancel">Annuleren</button></div>
+          </div>
+          <div class="pm-confirm" data-coop-new-confirm hidden>
+            <p data-coop-new-text></p>
+            <div class="m-acts"><button type="button" class="m-bp" data-action="coop-new-go">Ja, sessie beëindigen en nieuw spel</button><button type="button" class="m-bt" data-action="coop-new-cancel">Annuleren</button></div>
+          </div>
+        </div>
       </div>
-      <div class="pm-confirm" data-coop-load-confirm hidden>
-        <p data-coop-load-text></p>
-        <div class="m-acts"><button type="button" class="m-bp" data-action="coop-load-go">Ja, sessie beëindigen en laden</button><button type="button" class="m-bt" data-action="coop-load-cancel">Annuleren</button></div>
+      <!-- de oude herstartvraag blijft (verborgen) in de DOM: de Samen spelen-routes en Escape verwijzen ernaar; de zichtbare weg is nieuw-vraag en terugzetten-vraag -->
+      <div hidden>
+        <button type="button" data-action="restart" tabindex="-1">Opnieuw beginnen</button>
+        <div class="pm-confirm" data-restart-confirm hidden><button type="button" data-action="load">Laatste spel laden</button><button type="button" data-action="new">Nieuw spel (nieuwe plek)</button><button type="button" data-action="cancel">Annuleren</button></div>
+        <div data-stop-rij hidden></div>
       </div>
-      <div class="pm-confirm" data-coop-new-confirm hidden>
-        <p data-coop-new-text></p>
-        <div class="m-acts"><button type="button" class="m-bp" data-action="coop-new-go">Ja, sessie beëindigen en nieuw spel</button><button type="button" class="m-bt" data-action="coop-new-cancel">Annuleren</button></div>
-      </div>`, `${pane('Spel', 'Je spel', '<p>Opslaan, laden, opnieuw beginnen en stoppen. Je spel wordt ook vanzelf bewaard.</p><p class="mut">Hoe het spel speelt en hoe moeilijk het is, staat onder Instellingen &gt; Spelregels; camera en hints onder Instellingen &gt; Camera en Hints &amp; uitleg.</p>')}`)}`;
+    </div>`;
 }
 // Problemen (#604): het foutrapport staat onder Over, niet meer als tabblad onder Instellingen. De
 // Nederlandse samenvatting staat vooraan; de ruwe, Engelse meldingen zitten achter de vouw.
@@ -1162,7 +1177,13 @@ export function initPauseMenu(w) {
     if (panel && tab === 'spullen' && spullenClick(e, world, panel, spullenApi)) return;
     if (tab === 'verhaal' && pref.sub.verhaal === 'personages' && root.querySelector('[data-vh-phone]') && phoneClick(e, world, root.querySelector('[data-vh-phone]'), phoneApi)) return;
     if (panel && tab === 'todo' && todoClick(e, world, panel, todoApi)) return;
-    if (tab === 'spel' && pref.sub.spel === 'overzicht' && todoClick(e, world, root.querySelector(OV_SUB), todoApi)) return;
+    if (tab === 'spel' && pref.sub.spel === 'overzicht') {
+      // de strook Aandacht en de link Waar waren we? (Spel-UI 24-11)
+      const doel = e.target.closest('[data-ov-doel]');
+      if (doel) { const d = doel.dataset.ovDoel; if (d === 'opslaan') { showSubtab('spel', 'acties'); afterSpelSub(); } else enterSection(d); return; }
+      if (e.target.closest('[data-ov-recap]')) { setOpen(false); toonRecapNu(world); return; }
+      if (todoClick(e, world, root.querySelector(OV_SUB), todoApi)) return;
+    }
     if (panel && tab === 'loopbaan' && todoClick(e, world, panel, todoApi)) return;
     const gd = e.target.closest('[data-garage-deliver]');
     if (gd) return garageDeliver(gd.dataset.garageDeliver);
@@ -1372,7 +1393,7 @@ function consume(e) {
 function onKey(e) {
   if (e.metaKey || e.ctrlKey || e.altKey) return;
   // the play-ahead question (todo.js) has its own keys
-  if (isPlayAheadOpen() || isSaveSlotsOpen() || isHelpOfferOpen() || isRecapOpen()) return;
+  if (isPlayAheadOpen() || isSaveSlotsOpen() || isHelpOfferOpen() || isRecapOpen() || isBevestigOpen()) return;
   const k = e.key;
   const lower = k.length === 1 ? k.toLowerCase() : k;
   if (!open) {
@@ -1619,7 +1640,7 @@ function goBack() {
   // Samen spelen (#527): de hub met drie stappen gaat eerst zelf een stap terug, zodat Escape de sessie nooit
   // afsluit (de uitweg heet daar Ontsnappen naar besloten). Pas op de eerste stap doet Escape wat het altijd deed.
   // Het tabblad Spelers heeft zijn eigen lijst zonder hub; daar blijft Escape dus buiten.
-  if (tab === 'spel' && pref.sub.spel === 'samen' && (pref.sub.samen || 'samen') !== 'spelers' && samenHubTerug()) return;
+  if (tab === 'spel' && pref.sub.spel === 'samen' && samenHubTerug()) return;
   // #604: de vraag "alles terug naar de standaard?" gaat eerst weg met Escape
   const resetBox = root.querySelector('[data-reset-confirm]');
   if (resetBox && !resetBox.hidden) {
@@ -2088,6 +2109,16 @@ function askClose(a) {
   if (b) b.focus();
 }
 
+// Wat er verloren gaat als je terugzet naar de laatste opslag: het verschil tussen de lopende stand en de save (spelstatus.js).
+function verliesNu() {
+  const sm = getSaveSummary();
+  if (!sm || !world) return null;
+  let missies = 0;
+  try { for (let i = 0, n = getMissionDefs().length; i < n; i++) if (isMissionCompleted(i)) missies++; } catch (e) { missies = 0; }
+  return verliesSinds({ speeltijd: getPlaySeconds(), money: world.money, missies }, { speeltijd: sm.playSeconds, money: sm.money, missies: sm.missionsDone });
+}
+const formatSpeel = (sec) => { const m = Math.floor((Number(sec) || 0) / 60); return m < 60 ? `${m} min` : `${Math.floor(m / 60)} u ${String(m % 60).padStart(2, '0')}`; };
+
 function runAction(a) {
   const confirmEl = root.querySelector('[data-restart-confirm]');
   if (a === 'resume') setOpen(false);
@@ -2121,9 +2152,14 @@ function runAction(a) {
     if (b) b.focus();
   } else if (a === 'coop-load-go') {
     root.querySelector('[data-coop-load-confirm]').hidden = true;
-    const res = runCoopLoad(world, currentSlot(), { stop: stopCoopNet, save: saveGame, load: loadSlot });
-    if (res.ok) setOpen(false);
-    else status(COOP_LOAD_FAIL[res.reason] || 'Laden mislukt.');
+    const doe = () => {
+      const res = runCoopLoad(world, currentSlot(), { stop: stopCoopNet, save: saveGame, load: loadSlot });
+      if (res.ok) setOpen(false);
+      else status(COOP_LOAD_FAIL[res.reason] || 'Laden mislukt.');
+    };
+    // wie het laden de sessie voor iedereen laat stoppen, stelt het eerst voor: een gezamenlijke keuze (24-11); een gast verlaat alleen zelf de sessie
+    if (world.coopRole === 'host' && meerSpelers(world)) groepAkkoord(world, 'laden', null, doe, () => status('Niet iedereen is akkoord; er wordt niets geladen.'));
+    else doe();
   } else if (a === 'coop-new-cancel') {
     root.querySelector('[data-coop-new-confirm]').hidden = true;
     confirmEl.hidden = false;
@@ -2146,6 +2182,24 @@ function runAction(a) {
   } else if (a === 'saves') {
     if (world && world.pigeonMode) { status('Je bent een duif. Stop de duif-modus om savegames te gebruiken.'); return; }
     openSaveSlots({ mode: 'game', world, onLoad: () => setOpen(false), onClose: () => { syncSaveButtons(); const b = root.querySelector('[data-panel="spel"] [data-action="saves"]'); if (b) b.focus(); } });
+  } else if (a === 'terugzetten-vraag') {
+    if (coopSessieLoopt(world)) { runAction('load'); return; }
+    if (!hasSave()) { status('Er is nog geen opslag om naar terug te gaan.'); return; }
+    const v = verliesNu();
+    const sm = getSaveSummary();
+    toonBevestiging({
+      titel: 'Laatste opslag terugzetten?', tekst: `Je spel gaat terug naar <b>${esc(lastSavedText(sm))}</b>. Wat je daarna deed, is weg.`,
+      verlies: [v && v.leeg ? { soort: 'blijft', label: 'Niets weg', tekst: verliesTekst(v), icoon: 'vinkje' } : { soort: 'weg', label: 'Je verliest', tekst: verliesTekst(v), icoon: 'waarschuwing' }, { soort: 'blijft', label: 'Blijft', tekst: 'Alle andere opgeslagen spellen, en dit spel zoals het was bij die opslag.', icoon: 'vinkje' }],
+      acties: [{ label: 'Nee, doorspelen', soort: 'veilig', toets: 'ENTER' }, { label: 'Houd vast om terug te zetten', soort: 'gevaar', vasthouden: true, toets: 'ENTER', kies: () => { if (loadLatestSave(world)) setOpen(false); else status('Geen savegame gevonden'); } }],
+    }, root.querySelector('.pm-fold'));
+  } else if (a === 'nieuw-vraag') {
+    if (coopSessieLoopt(world)) { runAction('new'); return; }
+    const sm = getSaveSummary();
+    toonBevestiging({
+      titel: 'Nieuw spel beginnen?', tekst: `Je begint opnieuw in Grunn. “${esc(sm && sm.name ? sm.name : 'Je spel')}” wordt eerst opgeslagen en blijft staan.`,
+      verlies: [{ soort: 'blijft', label: 'Blijft', tekst: sm ? `“${esc(sm.name)}”: ${esc(formatSpeel(sm.playSeconds))}, ${esc(euro(sm.money))}` : 'Je huidige spel', icoon: 'vinkje', html: true }, { soort: 'nieuw', label: 'Nieuw', tekst: 'Een nieuw spel op een nieuwe plek, vanaf de eerste stap, op een niveau dat je zo kiest.', icoon: 'plus' }],
+      acties: [{ label: 'Verder naar het niveau', soort: 'veilig', toets: 'ENTER', kies: () => runAction('new') }, { label: 'Annuleren', soort: 'neutraal', toets: 'ESC' }],
+    }, root.querySelector('.pm-fold'));
   } else if (a === 'restart') {
     root.querySelector('[data-coop-load-confirm]').hidden = true;
     root.querySelector('[data-coop-new-confirm]').hidden = true;
@@ -2663,43 +2717,32 @@ function stopInfo() {
   return { title: (w.mission && w.mission.label) || 'de missie' };
 }
 
-// #896: het Overzicht is een rustig beeld, geen instellingenscherm. De volumes, "beweging
-// beperken" en de luidsprekerhint stonden hier als losse blokken; die horen bij Geluid en
-// Toegankelijkheid en staan nu daar. Wat overblijft is waar je bent, hoe ver je bent (#898),
-// wat er in de buurt is en wat je bijna haalt.
-function progressOverviewHtml() {
-  let info;
-  try { info = gameProgress(); } catch (e) { return ''; }
-  if (!info.parts.length) return '';
-  const rijen = info.parts.map((p) => `<li><span>${esc(p.label)}</span><span class="mut">${esc(progressPartText(p))}</span></li>`).join('');
-  return `<section class="pm-progress" aria-label="Je voortgang">` +
-    `<div class="pm-progress-head"><span class="m-eb">Je voortgang</span><span class="pm-progress-pct"><b>${info.pct}%</b><span class="mut">klaar</span></span></div>` +
-    `<span class="m-bar on"><i style="width:${info.pct}%"></i></span>` +
-    `<ul class="pm-progress-parts">${rijen}</ul></section>`;
+// Spel (ontwerp Spel-UI 24-11): de kopband met je geld, je gezondheid en je zoekniveau, boven de tabs; hij blijft bij elk tabblad van Spel staan.
+const SPEL_TITEL = { overzicht: 'Overzicht', samen: 'Samen spelen', spelers: 'Spelers', uitnodigen: 'Uitnodigen', sessie: 'Sessie', acties: 'Opslaan en stoppen' };
+function renderSpelKop() {
+  const el = root && root.querySelector('[data-spel-kop]');
+  if (!el || !world) return;
+  const k = kopStatus({ money: world.money, health: world.health, wanted: world.wanted });
+  const sub = pref.sub.spel || 'overzicht';
+  let deel = '';
+  try { const sv = getStoryView(); deel = sv && !sv.end ? partName(sv.part) : ''; } catch (e) { deel = ''; }
+  const blok = (l, w, mod = '') => `<div class="ds-z-status ds-z-status--blok${mod ? ' ds-z-status--' + mod : ''}"><span class="ds-z-status__l">${l}</span><span class="ds-z-status__w">${w}</span></div>`;
+  const ic = (n) => icoon(n, { cls: 'sp-ic' });
+  el.innerHTML = `<header class="ds-z-kopband"><div><div class="ds-z-kopband__eb">Spel${sub === 'overzicht' && deel ? ' · ' + esc(deel) : ''}</div><h1 class="ds-z-kopband__titel">${SPEL_TITEL[sub] || 'Spel'}</h1></div><div class="ds-z-kopband__rechts">` +
+    blok('Geld', `${ic('geld')}${esc(k.geld)}`) +
+    blok('Gezondheid', `${ic('hart')}${k.gezond}%${k.gezondLaag ? ' <small>laag</small>' : ''}`, k.gezondLaag ? 'probleem' : '') +
+    blok('Gezocht', `${ic(k.sterren ? 'ster' : 'politie')}${esc(k.gezocht)}`, k.sterren ? 'probleem' : '') + '</div></header>';
 }
 
 function renderOverviewPanel() {
   const el = root.querySelector(OV_SUB);
-  // #1259: één bron per cijfer: wat het voortgangsblok toont, krijgt geen tegel meer
-  let elders = [];
-  try { elders = tilesShownElsewhere(gameProgress().parts); } catch (e) { elders = []; }
-  try { renderOverview(el, world, helpButtons(), { play: getPlaySeconds(), stop: stopInfo(), skipTiles: elders }); } catch (err) { console.error('overzicht', err); }
-  // #898/#965: het voortgangsblok staat onder de hero, boven aan de scrollende
-  // inhoud, zodat het percentage meteen in het oog valt en de grote kop blijft staan.
-  if (el && !el.querySelector('.pm-progress')) {
-    const blok = progressOverviewHtml();
-    const body = el.querySelector('.ov-scroll');
-    if (blok) {
-      if (body) body.insertAdjacentHTML('afterbegin', blok);
-      else el.insertAdjacentHTML('afterbegin', blok);
-    }
-  }
-  syncControls();
-  const r = getDiscoveredRatio();
+  renderSpelKop();
   const s = getSaveSummary();
-  const ago = s ? Math.round((Date.now() - s.savedAt) / 60000) : -1;
-  sheetNote([`${storyDate(world).long} ${getClockText(world)}`.trim(), r >= 0.01 ? `${Math.round(r * 100)}% van Grunn verkend` : '',
-    ago < 0 ? '' : ago < 1 ? 'net opgeslagen' : ago < 120 ? `laatst opgeslagen ${ago} min geleden` : ''].filter(Boolean).join(' · '));
+  const ago = s ? Math.round((Date.now() - s.savedAt) / 60000) : null;
+  let evenement = null;
+  try { const sp = todaySpecial(world); if (sp) evenement = { naam: sp.name, sub: 'Staat in de agenda' }; } catch (e) { evenement = null; }
+  try { renderOverview(el, world, helpButtons(), { play: getPlaySeconds(), stop: stopInfo(), ongelezen: phoneUnread(world), evenement, minutenOpslaan: ago }); } catch (err) { console.error('overzicht', err); }
+  syncControls();
 }
 
 function renderTodoPanel() {
@@ -2766,18 +2809,26 @@ function renderPhone() {
 }
 
 // Spel: het tabblad Overzicht tekent zich opnieuw, de rest houdt zijn vaste inhoud (#430)
+// De tabbladen van Spel volgen de sessie: Samen spelen zonder, Spelers, Uitnodigen en Sessie met een echte sessie. Staat de gekozen tab er niet meer, dan de eerste die er wel is.
+function syncSpelTabs() {
+  if (!root) return;
+  for (const b of root.querySelectorAll('[data-of="spel"][data-subtab]')) b.hidden = !subsOf('spel').some(([id]) => id === b.dataset.subtab);
+  const nu = pref.sub.spel;
+  if (nu && !subsOf('spel').some(([id]) => id === nu)) showSubtab('spel', echteSessieNu() ? 'spelers' : 'samen');
+}
 function afterSpelSub() {
   const sub = pref.sub.spel;
+  renderSpelKop();
   if (sub === 'overzicht') renderOverviewPanel();
   else {
     sheetNote('');
     // Samen spelen (#434): het uitnodigen en de spelerslijst zijn twee tabbladen van hetzelfde onderdeel
     // (samenpanel.js, coopspelersui.js); elk tekent zich in zijn eigen tabblad.
-    if (sub === 'samen') {
-      showSubtab('samen', pref.sub.samen || 'samen');
-      if (pref.sub.samen === 'spelers') renderSpelersPanel(root.querySelector('[data-of="samen"][data-sub="spelers"]'), world, closePauseMenu, { openSamen: () => { closePauseMenu(); stopSoloHost(world); requestOpenSamen(); } });
-      else renderSamenPanel(root.querySelector('[data-of="samen"][data-sub="samen"]'), world, closePauseMenu);
-    }
+    syncSpelTabs();
+    if (sub === 'samen') renderSamenPanel(root.querySelector('[data-samen-start]'), world, closePauseMenu);
+    else if (sub === 'spelers') renderSpelersPanel(root.querySelector('[data-of="spel"][data-sub="spelers"]'), world, closePauseMenu, { openSamen: () => { closePauseMenu(); stopSoloHost(world); requestOpenSamen(); }, startSpel: () => startWachtkamer(world, closePauseMenu) });
+    else if (sub === 'uitnodigen') renderUitnodigen(root.querySelector('[data-of="spel"][data-sub="uitnodigen"]'), world);
+    else if (sub === 'sessie') renderSessie(root.querySelector('[data-of="spel"][data-sub="sessie"]'), world);
   }
   syncFooter();
 }
@@ -2826,7 +2877,8 @@ function refreshInfo() {
   const c = world.pigeonMode ? 'Duif' : hoofdspeler(world).character === 'anita' ? 'Tessa' : 'Tammo';
   // the rail's date line: the story day and the clock
   const when = [storyDate(world).long, getClockText(world)].filter(Boolean).join(' · ');
-  for (const el of root.querySelectorAll('[data-info="when"]')) el.textContent = prestart ? '' : when;
+  const klok = getClockText(world);
+  for (const el of root.querySelectorAll('[data-info="when"]')) el.innerHTML = prestart ? '' : `${klok ? `<b class="pm-q-tijd">${esc(klok)}</b>` : ''}<span>${esc(storyDate(world).long)}</span>`;
   root.dataset.who = c;
 }
 
@@ -2855,11 +2907,13 @@ function hintHtml([keys, label, action], pad, back) {
 
 function syncFooter() {
   if (!root) return;
+  // Doorgaan is geel, tenzij het paneel een eigen gele knop heeft (Spel-UI 24-11): dan is hij secundair
+  const eigenKnop = tab === 'spel' && !prestart && ['overzicht', 'acties'].includes(pref.sub.spel || 'overzicht');
+  if (eigenKnop) root.setAttribute('data-eigen-knop', ''); else root.removeAttribute('data-eigen-knop');
   const pad = isPadActive();
   const back = prestart ? 'terug naar het hoofdmenu' : origin !== 'home' ? 'doorgaan' : 'terug';
   let hints = HINTS[atHome() ? 'overzicht' : tab] || HINTS.overzicht;
   // Spel > Samen spelen has a second tab row: name the outcome of Q/E there (#601)
-  if (tab === 'spel' && (pref.sub.spel || 'overzicht') === 'samen') hints = hints.map(([k, l, a]) => (k.join() === 'Q,E' ? [k, 'spelers-tab', a] : [k, l, a]));
   if (prestart) hints = hints.map(([k, l, a]) => [k, l, a === 'resume' ? 'back' : a]);
   root.querySelector('.pm-footer').innerHTML = hints.map((h) => hintHtml(h, pad, back)).join('');
   // een andere invoer (toetsen of controller) verandert ook het hintvoorbeeld onder Instellingen > Hints
@@ -2878,7 +2932,7 @@ function showTab(name, how) {
   if (name === 'streken' && !ids.includes('streken')) { pref.sub.settings = 'spel'; name = 'settings'; } // 22-11: Cheats is uit het menu; de schakelaar staat bij Spelregels
   // #676: Veroverd is een eigen railrij; de oude plek (Verhaal > Veroverd) verwijst door.
   if (name === 'verhaal' && pref.sub.verhaal === 'veroverd') { pref.sub.verhaal = 'opdrachten'; name = 'veroverd'; }
-  if (name === 'samen' || name === 'samenspelen' || name === 'spelers') { pref.sub.spel = 'samen'; pref.sub.samen = name === 'spelers' && world && world.coopNet && !isSoloHost(world) ? 'spelers' : 'samen'; name = 'spel'; }
+  if (name === 'samen' || name === 'samenspelen' || name === 'spelers') { pref.sub.spel = echteSessieNu() ? 'spelers' : 'samen'; name = 'spel'; }
   if (name === 'jobs') name = 'todo';
   // #979: Camera & richten en Hints & uitleg zaten onder Spel. Een opgeslagen keuze opent ze nu
   // onder Instellingen, waar ze staan; Spel zelf begint weer bij Overzicht.
@@ -2917,6 +2971,7 @@ function showTab(name, how) {
   for (const g of root.querySelectorAll('.pm-rail-group')) {
     const shown = [...g.querySelectorAll('[data-goto]')].filter((b) => !b.hidden).length;
     g.hidden = shown === 0;
+    g.classList.toggle('pm-rail-solo', shown === 1); // een groep van één onderdeel heeft geen kop: die herhaalde alleen de naam (#911, Spel-UI 24-11)
   }
   for (const p of root.querySelectorAll('[data-panel]')) p.hidden = p.dataset.panel !== name;
   if (world) setMapActive(world, open && name === 'map');
@@ -2931,6 +2986,7 @@ function showTab(name, how) {
   sheet.querySelector('.pm-sheet-title').textContent = label;
   // 21-11 (pauzemenu-ruimte): de omschrijving rechts van de kop is weg; titel, tabs en inhoud krijgen de ruimte (bij Spel staat de plek er ook niet bij)
   const eigenKop = name === 'spel';
+  sheet.classList.toggle('pm-eigenkop', eigenKop);
   const pos = sheet.querySelector('.pm-sheet-pos');
   if (pos) pos.textContent = prestart || eigenKop ? '' : railPosition(name);
   if (name !== 'map') sheetNote('');
@@ -2975,7 +3031,7 @@ function showTab(name, how) {
   if (name === 'controls') { const q = root.querySelector('[data-controls-search]'); q.value = ''; filterControls(''); showSubtab('controls', pref.sub.controls || defaultControlsSubtab(document.documentElement.classList.contains('touch-device'))); bindMsg = ''; renderBinds(); }
   if (prev === 'controls' && name !== 'controls') cancelRebind();
   if (name === 'spel') { showSubtab('spel', pref.sub.spel || subsOf('spel')[0][0]); syncControls(); syncSaveButtons(); afterSpelSub(); }
-  if (name === 'spel') { const sp = root.querySelector('[data-of="samen"][data-subtab="spelers"]'); if (sp) sp.hidden = !(world && world.coopNet); }
+  if (name === 'spel') syncSpelTabs();
   if (name === 'settings') { showSubtab('settings', pref.sub.settings || 'video'); syncControls(); syncDesktopControls(); mountOnlineInstelling(root.querySelector('[data-online-instelling]'), { world }); }
   if (name === 'over') renderOverPanel(root.querySelector('[data-panel="over"] .pm-inner'));
   // Elke opening van een onderdeel begint bovenaan: het blad zelf (dat bij een lange inhoud
@@ -3004,7 +3060,7 @@ export function openPauseMenu(name = HOME, opts = {}) {
   if (opts.prestart) prestart = { onClose: opts.onClose || null };
   if (name === 'overzicht') { pref.sub.spel = 'overzicht'; name = 'spel'; }
   if (name === 'cheats') name = 'streken';
-  if (name === 'samen' || name === 'samenspelen' || name === 'spelers') { pref.sub.spel = 'samen'; pref.sub.samen = name === 'spelers' && world && world.coopNet && !isSoloHost(world) ? 'spelers' : 'samen'; name = 'spel'; }
+  if (name === 'samen' || name === 'samenspelen' || name === 'spelers') { pref.sub.spel = echteSessieNu() ? 'spelers' : 'samen'; name = 'spel'; }
   if (opts.sub && SUBTABS[name]) pref.sub[name] = opts.sub;
   if (opts.select) selectTodo(opts.select);
   // de telefoon opent Activiteiten met de Dichtbij-filter (#607): één lijst, geen eigen weergave

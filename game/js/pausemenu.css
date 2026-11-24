@@ -1369,13 +1369,7 @@ html.pad-active #pause-menu.gm :is(.ra, .m-li, .m-tab, .m-bp, .m-bg, .m-bt, .m-c
 /* de rij waar een zoekresultaat je heen bracht */
 #pause-menu .pm-flash { animation: pm-flash 1.8s ease both; } /* ds3-dwell: verblijf */
 @keyframes pm-flash { 0%, 60% { background: color-mix(in srgb, var(--g) 30%, transparent); } 100% { background: transparent; } }
-/* dertien rijen (Boerderij is een eigen item sinds 21-11): op lage schermen een compactere rail, zonder logo en versie */
-@media (max-height: 780px) {
-  #pause-menu .pm-rail { --ra-h: 34px; }
-  #pause-menu .ra { font-size: 20px; }
-  #pause-menu .pm-q-head, #pause-menu .pm-ver, #pause-menu .pm-rail-sp { display: none; }
-  #pause-menu .pm-rail-go { padding-top: 4px; }
-}
+/* Spel-UI 24-11: de rail houdt op elke maat zijn logo, de tijd en de versie. De stage is altijd minstens 1080 hoog (--mz-fit), dus een venster van 720 hoog heeft evenveel ruimte voor de rail als een van 1080; de regel die logo en versie op lage vensters weghaalde is weg. */
 /* Loopbanen: de stand op één regel */
 #pause-menu .lb-stand { display: flex; flex-wrap: wrap; gap: 4px 24px; padding: 6px 24px; font-size: 18px; }
 #pause-menu .lb-stand b { font-family: var(--ds-font-kop); font-size: 24px; font-weight: normal; }
@@ -1436,3 +1430,20 @@ html.pad-active #pause-menu.gm [data-panel="settings"] .m-tablist .m-tab:focus {
   #pause-menu.gm [data-panel="settings"] .pm-inner.pm-settings > .m-tabs .m-tablist { gap: 0 22px; }
   #pause-menu.gm [data-panel="settings"] .m-tablist .m-tab { height: 50px; font-size: max(18px, var(--menu-min)); }
 }
+
+/* Spel-UI 24-11: de rail. Een groep van één onderdeel heeft geen kop, de tijd staat groot rechts van het logo (de dag klein), Doorgaan is
+   secundair zodra het paneel een eigen gele knop heeft, en het blad van Spel heeft zijn eigen kopband (ds-z-kopband) boven de tabs. */
+#pause-menu .pm-rail-solo .pm-rail-h { display: none; }
+#pause-menu .pm-rail-group[data-group="systeem"].pm-rail-solo { border-top: var(--ds-lijn-dik) solid var(--ds-c-ink-inkt); margin: 6px 24px 0 24px; padding-top: 4px; }
+#pause-menu .pm-rail-group[data-group="systeem"].pm-rail-solo .ra { padding-left: 0; }
+#pause-menu .pm-q-head { flex-direction: row; align-items: center; justify-content: space-between; gap: 8px; padding: 0 16px 12px 24px; }
+#pause-menu .pm-q-info { display: flex; flex-direction: column; align-items: flex-end; margin: 0; font-size: 15px; line-height: 1.15; text-align: right; white-space: normal; }
+#pause-menu .pm-q-info b.pm-q-tijd { font-family: var(--ds-font-kop); font-weight: 800; font-size: 26px; letter-spacing: 0.04em; color: var(--ink); }
+#pause-menu[data-eigen-knop] .pm-rail-go .pm-go { background: var(--ds-c-ink-papier); color: var(--ds-c-ink-inkt); box-shadow: var(--ds-schaduw-hard-klein); }
+#pause-menu .pm-sheet.pm-eigenkop .pm-sheet-head { display: none; }
+#pause-menu .sp-kop { flex: none; padding: 20px 64px 0; }
+#pause-menu [data-panel="spel"] .m-tabs { padding-left: 64px; padding-right: 64px; }
+#pause-menu .sp-ov { display: flex; flex-direction: column; gap: 14px; padding: 12px 64px 0; min-height: 0; }
+#pause-menu .pm-spelov { padding: 0; overflow-y: auto; }
+#pause-menu .sp-opslaan { padding: 12px 64px 0; overflow-y: auto; min-height: 0; flex: 1; }
+#pause-menu [data-panel="spel"] .pm-inner { display: flex; flex-direction: column; min-height: 0; }

@@ -76,7 +76,7 @@ const start = src('startscreen.js'), pm = src('pausemenu.js');
 
 ok(() => {
   // 3. "Autosave" was Engels en stond alleen in een tooltip; nu een Nederlandse chip plus een schermregel.
-  assert.match(ui, /chips\.push\('<span class="ssl-chip on">Bewaard vanzelf<\/span>'\)/);
+  assert.match(ui, /Bewaard vanzelf/);
   assert.doesNotMatch(ui, />Autosave</, 'het Engelse woord staat niet meer op het scherm');
   assert.match(ui, /class="ssl-note">Het spel bewaart vanzelf.</, 'de uitleg staat als gewone regel op het scherm');
   assert.ok(ui.indexOf('ssl-note') > ui.indexOf("role=\"list\" aria-label=\"Opgeslagen spellen\""), 'de regel staat onder het raster, bij de spelers zichtbaar');

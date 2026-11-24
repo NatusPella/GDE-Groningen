@@ -10,25 +10,19 @@ import { getTodoItems, chooseTodo, mapIconUrl, placeName, GROUPS, STATUS_LABEL, 
 import { activityTodoItems } from './activities.js';
 import { getStoryView, getStorySteps, requestCredits } from './story.js';
 import { PARTS, WHY, partName } from './storyarc.js';
-import { getAchievementView, getAchievementSummary, getSaveSet, EIERBAL_TOTAL, MEDALS } from './achievements.js';
-import { SECRETS_TOTAL } from './geheimen.js';
-import { getGoal, clearGoal, storyWaiting } from './goal.js';
+import { getAchievementView, MEDALS } from './achievements.js';
+import { getGoal, clearGoal } from './goal.js';
 import { formatDistance } from './routing.js';
 import { deviceText } from './touchui.js';
 import { KEYS } from './storagekeys.js';
 import { dualHtml } from './subtitles.js';
-import { loopbaanSamenvatting, loopbaanEersteKlusStand } from './loopbaanlive.js'; // #821, #846: de lussen in gewone taal
-import { getSideJobList } from './sidejobs.js';
-import { getOverzicht } from './gebiedenlive.js';
-import { getStrekenStand } from './explorationlive.js';
-import { streekOpenTekst } from './verkenpunten.js'; // #985: voortgang van de streken
-import { samenvatting as gebiedenSamenvatting } from './gebieden.js';
 import { fillBars, countTo } from './motion.js';
-import { placeShot } from './placeshot.js';
-import { todayInfo, todaySpecial, upcoming, today as calendarToday } from './calendarday.js';
-import { agendaRegels } from './agendaregels.js'; // #985: evenementen staan ook vooruit in de agenda
-import { calIcon } from './calendar.js';
 import { tijdStreep } from './todotijd.js'; // #980: het tijdstreepje van een evenement
+import { aandachtRegels, zonderSpreker } from './spelstatus.js';
+import { dsButtonKey } from './dsbutton.js';
+import { openerNaam } from './coopplayers.js';
+import { gameProgress } from './progresslive.js';
+import { progressPartText } from './progress.js';
 
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const PART_IDS = Object.keys(PARTS);
@@ -204,100 +198,6 @@ function nearlyThere() {
   return out.sort((a, b) => b.progress.cur / b.progress.goal - a.progress.cur / a.progress.goal).slice(0, 3);
 }
 
-const PIN_SVG = icoon('plek', { cls: 'ov-pin' });
-const heroShotHtml = (url) => `<img class="ov-shot" src="${url}" alt="">`;
-
-// the still arrives a frame after the menu opened: swap it in
-function showHeroShot(key, url) {
-  const hero = document.querySelector(`[data-todo-hero="${CSS.escape(key)}"]`);
-  if (hero && !hero.querySelector('.ov-shot')) hero.insertAdjacentHTML('afterbegin', heroShotHtml(url));
-}
-
-function goalLine(world) {
-  const g = getGoal();
-  if (!g) return '';
-  const wait = storyWaiting(world);
-  const d = Math.hypot(g.x - hoofdspeler(world).x, g.y - hoofdspeler(world).y);
-  return `<span class="ov-goal mut">${svg(ICON.flag)}<span class="one">Doel: ${esc(g.name)}${[formatDistance(d), wait ? `verhaal wacht: ${wait.label}` : ''].filter(Boolean).map((t) => ' · ' + esc(t)).join('')}</span>` +
-    '<button type="button" class="m-bt" data-todo-clear>Doel wissen</button></span>';
-}
-
-function heroHtml(world) {
-  const sv = getStoryView();
-  if (sv.end) {
-    const e = sv.ending;
-    const open = e && !e.done ? [...e.challenges.map((c) => c.name), ...e.missions.map((m) => m.title)] : [];
-    const text = open.length
-      ? `Nog te doen voor de aftiteling: ${open.join(', ')}. Een overgeslagen missie telt pas als je hem alsnog haalt.`
-      : 'Speel missies opnieuw als klus voor een betere medaille, verdien bij met een bijbaantje of zoek wat er nog verstopt ligt.';
-    return `<article class="ov-hero"><div class="ov-main"><span class="m-eb">Het verhaal</span><h1 class="ov-title">${esc(sv.title)}</h1><p class="ov-lead">${esc(text)}</p></div>` +
-      `<div class="m-acts"><button type="button" class="m-bg" data-todo-view="alles">Alles te doen</button>` +
-      `${e && e.credits ? '<button type="button" class="m-bg" data-story-credits>Aftiteling bekijken</button>' : ''}</div>${goalLine(world)}</article>`;
-  }
-  const steps = getStorySteps().filter((s) => s.part === sv.part && s.available);
-  const done = steps.filter((s) => s.done).length;
-  const cur = getStorySteps().find((s) => s.current);
-  const it = cur ? byKey.get(cur.kind === 'mission' ? 'm:' + cur.mission : 'st:' + cur.id) : null;
-  const goal = getGoal();
-  const title = cur ? cur.title : sv.title;
-  const where = it && it.x != null ? placeName(world, it.x, it.y) : '';
-  const shot = it && it.x != null ? placeShot(world, it.key, it.x, it.y, (url) => showHeroShot(it.key, url)) : null;
-  const pct = steps.length ? Math.round((done / steps.length) * 100) : 0;
-  const stapNu = Math.min(done + 1, steps.length); // #1259: "Stap 0 van 12" bestaat niet: je bent bezig met stap 1
-  return `<article class="ov-hero"${it ? ` data-todo-hero="${esc(it.key)}"` : ''}>${shot ? heroShotHtml(shot) : ''}` +
-    `<div class="ov-main"><span class="m-eb">Het verhaal · ${esc(partName(sv.part))}</span>` +
-    `<h1 class="ov-title${title.length > 20 ? " long" : ""}">${esc(title)}</h1>${cur && cur.lead ? `<p class="ov-lead">${esc(cur.lead)}</p>` : ''}` +
-    `<div class="ov-prog"><span class="m-bar"><i data-bar="ov-part" data-w="${pct}"></i></span><span class="mut">Stap <span data-num="ov-part" data-to="${stapNu}">${stapNu}</span> van ${steps.length}${where ? ` · ${esc(where)}` : ''}</span></div></div>` +
-    // UX-audit 23-11 (S7): Doorgaan staat al geel bovenaan de rail; een tweede gele Doorgaan hier was dubbel. De rest is secundair.
-    `<div class="m-acts ov-acts">` +
-    `${it && !goal ? `<button type="button" class="m-bg" data-todo-goal="${esc(it.key)}">Zet als doel</button>` : ''}` +
-    `${it && goal ? `<button type="button" class="m-bg" data-todo-goal="${esc(it.key)}">Terug naar het verhaal</button>` : ''}` +
-    `<button type="button" class="m-bg" data-goto="map">${svg(ICON.pin)}Op de kaart</button>` +
-    `<button type="button" class="m-bg" data-todo-view="verhaal">Alle opdrachten</button>` +
-    `<button type="button" class="m-bg" data-action="save" title="Bewaart je voortgang">Opslaan</button>` +
-    `${sv.canSkip ? `<button type="button" class="m-bt" data-story-skip>${esc(sv.skipLabel)}</button>` : ''}</div>${goalLine(world)}</article>`;
-}
-
-// Today and the coming special days (calendarday.js)
-function agendaHtml(world) {
-  const t = todayInfo(world), sp = todaySpecial(world);
-  const list = agendaRegels(calendarToday(world), { special: sp, specials: upcoming(world, 4), count: 6 });
-  const item = (icon, name, when, on) => `<li${on ? ' data-on' : ''}>${calIcon(icon, 'ov-ag-ic')}<b>${esc(name)}</b><span class="mut">${esc(when)}</span></li>`;
-  const inner = `<ul class="ov-agenda">` + list.map((r) => item(r.icon, r.name, r.when, r.on)).join('') +
-    (!list.length ? '<li><span class="mut">Geen bijzondere dagen meer. Het blijft zomer.</span></li>' : '') + '</ul>';
-  return disc('agenda', 'Agenda', `${t.long} · ${t.nazomer ? 'de nazomer houdt aan' : `zomerdag ${t.n}`}`, inner);
-}
-
-// #821: één blok "Je voortgang" dat de drie lussen naast elkaar zet, met alleen de bestaande
-// systemen als bron (loopbaanlive, sidejobs, gebieden) en geen nieuwe teller of opslagsleutel.
-function voortgangHtml(world) {
-  let lb = null, ek = null, banen = [], gebieden = null, streken = null;
-  try { lb = loopbaanSamenvatting(); } catch (e) { lb = null; }
-  try { ek = loopbaanEersteKlusStand(); } catch (e) { ek = null; }
-  try { banen = getSideJobList() || []; } catch (e) { banen = []; }
-  try { const o = getOverzicht(); if (o) gebieden = gebiedenSamenvatting(o.profiel, o.ind); } catch (e) { gebieden = null; }
-  try { streken = getStrekenStand(world); } catch (e) { streken = null; }
-  const lbTekst = ek ? `${ek.gedaan} van ${ek.totaal} eerste klussen${ek.klaar ? ` · titel ${esc(ek.titel)}` : ''}${lb && lb.hoogste ? ` · hoogste titel: ${esc(lb.hoogste.titel)}` : ''}` : 'Nog niet geladen';
-  const niveau2 = banen.filter((b) => b.level >= 2).length;
-  const baanTekst = banen.length ? `${niveau2} van ${banen.length} banen op niveau 2 of hoger` : 'Nog geen baan gedaan';
-  const gebiedTekst = gebieden ? `${gebieden.voltooid} van ${gebieden.totaal} gebieden veroverd` : 'De kaart wordt nog geladen';
-  const rij = (naam, tekst) => `<div class="m-li pm-row"><span class="nm"><span class="one">${naam}</span><span class="mut one">${tekst}</span></span></div>`;
-  const inner = '<div class="ov-voortgang">' + rij('Loopbaan', lbTekst) + rij('Bijbanen', baanTekst) + rij('Veroverd', gebiedTekst) + strekenHtml(streken, rij) +
-    '<p class="m-note">Herhalen maakt één baan beter, variëren maakt je loopbaan breder, en alles in een gebied maakt je wijkheld.</p></div>';
-  return disc('voortgang', 'Je voortgang', 'Drie lussen in gewone taal', inner);
-}
-
-// #985: "3 van 8 streken verkend" en per ontdekte streek wat er nog openstaat; onbekende streken
-// blijven zonder naam, zoals op de kaart.
-function strekenHtml(st, rij) {
-  if (!st) return '';
-  const onbekend = st.totaal - st.ontdekt;
-  let uit = rij('Streken', `${st.verkend} van ${st.totaal} verkend${st.ontdekt > st.verkend ? ` · ${st.ontdekt - st.verkend} nog niet af` : ''}`);
-  for (const r of st.rijen) if (r.ontdekt) uit += rij(esc(r.naam), esc(streekOpenTekst(r)));
-  if (onbekend > 0) uit += rij('Nog onbekend', `${onbekend} ${onbekend === 1 ? 'streek' : 'streken'}: rij of loop erheen, of zoek het uitkijkpunt`);
-  return uit;
-}
-
 function disc(id, title, hint, inner) {
   const open = ui.folds.has(id);
   return `<button type="button" class="m-disc" data-fold="${id}" aria-expanded="${open}" aria-controls="pm-f-${id}">${svg(ICON.chev)}<b>${esc(title)}</b><span class="mut one">${esc(hint)}</span></button>` +
@@ -306,59 +206,141 @@ function disc(id, title, hint, inner) {
 
 // #1259: the Doorgaan button with its key as a keycap (never raw {ESC}); no key on a touch device.
 
-// The state of the game in four tiles: a quick look, no text to read (#34, #92)
-function tilesHtml(world, extra) {
-  const ms = items.filter((it) => it.group === 'missies');
-  const mDone = ms.filter((it) => it.status === 'klaar').length;
-  const ach = getAchievementSummary();
-  const found = getSaveSet('eierballen').size + getSaveSet('geheimen').size, all = EIERBAL_TOTAL + SECRETS_TOTAL;
-  const min = Math.floor((extra.play || 0) / 60);
-  const play = min < 1 ? 'net begonnen' : min < 60 ? `${min} min` : `${Math.floor(min / 60)} u ${String(min % 60).padStart(2, '0')}`;
-  const tile = (ic, label, val, pct, goto) => `<button type="button" class="ov-tile" ${goto ? `data-goto="${goto}"` : 'tabindex="-1"'} aria-label="${esc(label)}: ${esc(val)}">${svg(ic)}<span class="ov-tv${val.length > 7 ? ' long' : ''}">${esc(val)}</span><span class="ov-tl mut">${esc(label)}</span>${pct == null ? '' : `<span class="m-bar"><i style="width:${pct}%"></i></span>`}</button>`;
-  return '<div class="ov-tiles">' +
-    tile(ICON.coin, 'Geld', `€${Math.floor(world.money || 0).toLocaleString('nl-NL')}`, null, 'spullen') +
-    tile(ICON.clock, 'Speeltijd', play, null, '') +
-    // #1259: "0/0 Missies klaar" zegt niets: de tegel komt er pas als er missies zijn
-    // #1259 (hertest 24-11): geen "0/31" in een nieuw spel: zolang er niets af is, zegt de tegel hoeveel er te doen is
-    (ms.length ? (mDone ? tile(ICON.flag, 'Missies klaar', `${mDone}/${ms.length}`, Math.round((mDone / ms.length) * 100), 'todo') : tile(ICON.flag, 'Missies te doen', String(ms.length), null, 'todo')) : '') +
-    // #1259: staat Prestaties al in het voortgangsblok (pausemenu.js), dan geen tweede cijfer in een tegel
-    ((extra.skipTiles || []).includes('prestaties') ? '' : tile(ICON.cup, 'Prestaties', `${ach.done}/${ach.total}`, ach.pct, 'prestaties')) +
-    (found ? tile(ICON.pin, 'Gevonden', `${found}/${all}`, all ? Math.round((found / all) * 100) : 0, 'todo') : tile(ICON.pin, 'Te vinden', String(all), null, 'todo')) + '</div>';
+// --- Overzicht (ontwerp Spel-UI 24-11) ---------------------------------------------------------
+// Eén heldkaart met de volgende stap en de gele knop, een strook Aandacht, één voortgangsblok, wat er dichtbij is en een rustige voet
+// met Vastgelopen? en de stand van de opslag. De kopband (geld, gezondheid, gezocht) en de tabs staan in pausemenu.js.
+
+const plekIcoon = (n) => icoon(n, { cls: 'sp-ic' });
+const SOORT_STATUS = { nu: 'probleem', vandaag: '', nieuw: 'goed' };
+const SOORT_WOORD = { nu: 'NU', vandaag: 'VANDAAG', nieuw: 'NIEUW' };
+
+// De strook Aandacht: bronnen en regels zijn in spelstatus.js (puur).
+function strookHtml(extra) {
+  const a = aandachtRegels({ ongelezen: extra.ongelezen || 0, evenement: extra.evenement || null, minutenSindsOpslaan: extra.minutenOpslaan == null ? null : extra.minutenOpslaan });
+  if (!a.regels.length) return '';
+  const klus = (r, i) => `<button type="button" class="sp-klus sp-klus--${r.soort}" data-ov-doel="${r.doel}"><span class="ds-z-status${SOORT_STATUS[r.soort] ? ' ds-z-status--' + SOORT_STATUS[r.soort] : ''}">${plekIcoon(r.icoon)}${SOORT_WOORD[r.soort]}</span>` +
+    `<span class="sp-klus__tekst"><b>${esc(r.kop)}</b><span>${esc(r.sub)}</span></span>${plekIcoon('pijl_rechts')}</button>`;
+  return `<div class="sp-strook"><div class="sp-strook__kop">${plekIcoon('klembord')}<span>Aandacht</span></div>${a.regels.map(klus).join('')}${a.meer ? `<span class="sp-klus__meer">+${a.meer} meer</span>` : ''}</div>`;
 }
 
-// help: [[action, icon svg, label]] for the contextual buttons (pausemenu.js decides which)
-// extra: { play: seconds played, quick: html of the quick settings }
+// Een kaartminiatuur: jij, het doel en een stippellijn ertussen (vogelvlucht; de echte route staat op de kaart).
+function miniKaartHtml(world, it, naam) {
+  if (!it || it.x == null) return '';
+  const p = hoofdspeler(world);
+  const dx = it.x - p.x, dy = it.y - p.y;
+  const max = Math.max(Math.abs(dx), Math.abs(dy), 1);
+  const s = 120 / max;
+  const px = 180 - dx * s * 0.5, py = 115 + dy * s * 0.5; // jij
+  const gx = 180 + dx * s * 0.5, gy = 115 - dy * s * 0.5; // doel (noord boven)
+  const x1 = 180 - (dx * s) / 2, y1 = 115 + (dy * s) / 2, x2 = 180 + (dx * s) / 2, y2 = 115 - (dy * s) / 2;
+  void px; void py; void gx; void gy;
+  return `<div class="sp-held__kaart"><svg viewBox="0 0 360 230" preserveAspectRatio="xMidYMid slice" role="img" aria-label="Het doel ligt ${esc(formatDistance(Math.hypot(dx, dy)))} van je vandaan">` +
+    '<rect width="360" height="230" fill="var(--ds-c-papier-2)"/><g fill="none" stroke="var(--ds-c-ink-inkt)" stroke-width="2" opacity=".3"><path d="M0 60H360M0 150H360M80 0V230M200 0V230M290 0V230"/></g>' +
+    `<path d="M${x1.toFixed(1)} ${y1.toFixed(1)} L${x2.toFixed(1)} ${y2.toFixed(1)}" fill="none" stroke="var(--ds-c-ink-geel)" stroke-width="9" stroke-linecap="round"/>` +
+    `<path d="M${x1.toFixed(1)} ${y1.toFixed(1)} L${x2.toFixed(1)} ${y2.toFixed(1)}" fill="none" stroke="var(--ds-c-ink-inkt)" stroke-width="2.5" stroke-dasharray="2 9" stroke-linecap="round"/>` +
+    `<circle cx="${x1.toFixed(1)}" cy="${y1.toFixed(1)}" r="11" fill="var(--ds-c-ink-papier)" stroke="var(--ds-c-ink-inkt)" stroke-width="3.5"/><circle cx="${x1.toFixed(1)}" cy="${y1.toFixed(1)}" r="4" fill="var(--ds-c-ink-inkt)"/>` +
+    `<rect x="${(x2 - 12).toFixed(1)}" y="${(y2 - 12).toFixed(1)}" width="24" height="24" fill="var(--ds-c-ink-bord)" stroke="var(--ds-c-ink-inkt)" stroke-width="3.5"/></svg>` +
+    `${naam ? `<small>${esc(naam)}</small>` : ''}</div>`;
+}
+
+const verderKnop = (label, key) => dsButtonKey({ label, toets: 'ENTER', attrs: `data-ov-verder="${key}"` });
+
+// De heldkaart. Vier toestanden: verhaal uit, een missie bezig of mislukt, de gast (alleen kijken) en gewoon de volgende stap.
+function heldHtml(world, extra) {
+  const sv = getStoryView();
+  const gast = !!(world.coopNet && !world.coopSolo && world.coopRole === 'client');
+  if (sv.end) {
+    const e = sv.ending;
+    const open = e && !e.done ? [...e.challenges.map((c) => c.name), ...e.missions.map((m) => m.title)] : [];
+    const tekst = open.length
+      ? `Nog te doen voor de aftiteling: ${open.join(', ')}. Een overgeslagen missie telt pas als je hem alsnog haalt.`
+      : 'Speel missies opnieuw als klus voor een betere medaille, verdien bij met een bijbaantje of zoek wat er nog verstopt ligt.';
+    return `<section class="ds-z-kaart sp-held sp-held--leeg" aria-label="Het verhaal"><header class="ds-z-kaart__kop"><h2 class="ds-z-kaart__titel">Het verhaal</h2></header>` +
+      `<div class="sp-held__tekst"><h3 class="sp-held__titel">${esc(sv.title)}</h3><p class="sp-held__lead">${esc(tekst)}</p><div class="sp-actie"><button type="button" class="ds-z-knop" data-todo-view="alles">Alles te doen${e && e.credits ? '' : ''}</button>` +
+      `${e && e.credits ? '<button type="button" class="ds-z-link" data-story-credits>Aftiteling bekijken</button>' : ''}</div></div></section>`;
+  }
+  const alle = getStorySteps();
+  const steps = alle.filter((s) => s.part === sv.part && s.available);
+  const done = steps.filter((s) => s.done).length;
+  const cur = alle.find((s) => s.current);
+  const it = cur ? byKey.get(cur.kind === 'mission' ? 'm:' + cur.mission : 'st:' + cur.id) : null;
+  const vorige = [...alle].reverse().find((s) => s.done && !s.skipped && s.kind === 'mission');
+  const titel = cur ? cur.title : sv.title;
+  const waar = it && it.x != null ? placeName(world, it.x, it.y) : '';
+  const afstand = it && it.dist != null ? formatDistance(it.dist) : (it && it.x != null ? formatDistance(Math.hypot(it.x - hoofdspeler(world).x, it.y - hoofdspeler(world).y)) : '');
+  const stapNu = Math.min(done + 1, steps.length); // "Stap 0 van 12" bestaat niet (#1259)
+  const pct = steps.length ? Math.round((done / steps.length) * 100) : 0;
+  const bezig = !!(extra.stop && !extra.stop.herstart);
+  const mislukt = !!(extra.stop && extra.stop.herstart);
+  const opener = gast ? openerNaam(world.coopRoster) : '';
+  const kop = gast ? `Verhaal van ${opener} · ${partName(sv.part)}` : bezig ? `Je bent bezig · ${partName(sv.part)}` : mislukt ? `Mislukt · ${partName(sv.part)}` : `Volgende stap · ${partName(sv.part)}`;
+  const feiten = [];
+  if (waar) feiten.push(`<span class="ds-z-status">${plekIcoon('plek')}${esc(waar)}${afstand ? ` · ${esc(afstand)}` : ''}</span>`);
+  if (cur && cur.reward > 0) feiten.push(`<span class="ds-z-status">${plekIcoon('geld')}Beloning €${Math.round(cur.reward).toLocaleString('nl-NL')}</span>`);
+  const key = it ? esc(it.key) : '';
+  let actie;
+  if (mislukt) actie = `<div class="sp-actie"><button type="button" class="ds-z-knop" data-action="mission-retry">Opnieuw beginnen</button></div>`;
+  else if (bezig) actie = `<div class="sp-actie">${verderKnop('Verder met de missie', key)}<button type="button" class="ds-z-link" data-action="mission-stop">Missie stoppen</button></div>` +
+    '<span class="sp-hulp">Stoppen kost niets en je kunt hem opnieuw starten. Wat je in deze poging deed, telt niet mee.</span>';
+  else if (gast) actie = `<div class="sp-actie">${verderKnop('Verder spelen', '')}<button type="button" class="ds-z-link" data-goto="map">Op de kaart</button></div>` +
+    `<span class="sp-hulp">Het verhaal is van ${esc(opener)}, die het spel opende. Jij speelt mee; je geld en je voortgang zijn van jou.</span>`;
+  else actie = `<div class="sp-actie">${verderKnop('Verder met deze stap', key)}<button type="button" class="ds-z-link" data-goto="map">Op de kaart</button>` +
+    `${vorige ? `<button type="button" class="ds-z-link" data-ov-recap title="Eerder: ${esc(vorige.title)}">Waar waren we?</button>` : ''}<button type="button" class="ds-z-link" data-todo-view="verhaal">Alle opdrachten</button></div>`;
+  const stop = bezig ? '<div class="pm-confirm" data-stop-confirm hidden><p>Missie stoppen?</p><p class="m-note">Je krijgt geen straf en je kunt hem opnieuw starten. Wat je in deze poging deed, telt niet mee.</p>' +
+    '<div class="m-acts"><button type="button" class="m-bp" data-action="mission-stop-go">Ja, stoppen</button><button type="button" class="m-bt" data-action="mission-stop-no">Nee, doorgaan</button></div></div>' : '';
+  return `<section class="ds-z-kaart sp-held${bezig ? ' sp-held--bezig' : ''}" aria-label="Volgende stap"${it ? ` data-todo-hero="${key}"` : ''}><header class="ds-z-kaart__kop"><h2 class="ds-z-kaart__titel">${esc(kop)}</h2>${gast ? `<span class="ds-z-status">${plekIcoon('oog')}Alleen kijken</span>` : ''}</header>` +
+    `<div class="sp-held__tekst"><h3 class="sp-held__titel">${esc(titel)}</h3>${cur && cur.lead ? `<p class="sp-held__lead">${esc(zonderSpreker(cur.lead))}</p>` : ''}` +
+    `<div class="sp-held__feiten">${feiten.join('')}</div><div class="sp-fase"><span class="m-bar"><i data-bar="ov-part" data-w="${pct}"></i></span><span class="sp-hulp">Stap <span data-num="ov-part" data-to="${stapNu}">${stapNu}</span> van ${steps.length} in ${esc(partName(sv.part).split(':')[0])}</span></div>${actie}${stop}</div>` +
+    `${miniKaartHtml(world, it, waar)}</section>`;
+}
+
+// Rechts: één groot percentage, één balk en vier platte regels, daaronder wat je bijna haalt.
+function voortgangBlokHtml(extra) {
+  let info = null;
+  try { info = gameProgress(); } catch (e) { info = null; }
+  let blok = '';
+  if (info && info.parts.length) {
+    const regel = (p) => (p.id === 'kaart' ? (p.done > 0 ? `${p.pct}%` : 'nog niets') : progressPartText({ ...p, pct: 0 }).replace(/ · 0%$/, ''));
+    blok = `<section class="sp-voortgang"><h3 class="ds-z-tussenkop">Voortgang</h3><div class="sp-voortgang__pct"><b>${info.pct}%</b><span>van het spel</span></div>` +
+      `<span class="m-bar on"><i style="width:${info.pct}%"></i></span><dl class="sp-regels">${info.parts.map((p) => `<dt>${esc(p.label)}</dt><dd>${esc(regel(p))}</dd>`).join('')}</dl></section>`;
+  } else blok = '<section class="sp-voortgang"><h3 class="ds-z-tussenkop">Voortgang</h3><p class="sp-hulp">Je voortgang verschijnt zodra het spel geladen is.</p></section>';
+  const ach = nearlyThere().slice(0, 2);
+  const bijna = ach.length
+    ? `<section><h3 class="ds-z-tussenkop">Bijna gehaald</h3><div class="sp-lijst">${ach.map((a) => `<button type="button" class="ds-z-rij" data-goto="prestaties"><span class="sp-ikoon">${plekIcoon('prestaties')}</span><span><span class="ds-z-rij__naam">${dualHtml(a.title)}</span></span><span class="ds-z-rij__waarde">${a.progress.cur} van ${a.progress.goal}</span></button>`).join('')}</div></section>`
+    : '';
+  return `<div class="sp-kol">${blok}${bijna}</div>`;
+}
+
+// De rustige voet: Vastgelopen? met de hulpknoppen die er nu zijn, en de stand van de opslag met de link om op te slaan.
+function voetHtml(help, extra) {
+  const link = ([a, ic, label]) => `<button type="button" class="ds-z-link" data-action="${a}">${esc(String(label).replace(/^Vastgelopen\?\s*/, ''))}</button>`;
+  const min = extra.minutenOpslaan;
+  const speel = extra.play ? (extra.play < 60 ? 'net begonnen' : formatSpeel(extra.play)) : 'net begonnen';
+  const ago = min == null ? 'nog niet opgeslagen' : min < 1 ? 'net opgeslagen' : min < 120 ? `opgeslagen ${min} min geleden` : 'opgeslagen';
+  return `<footer class="sp-voetstrook"><span>${plekIcoon('hulp')} Vastgelopen?</span>${help.map(link).join('')}<span class="sp-uit sp-hulp">Speeltijd ${esc(speel)} · ${esc(ago)}</span>` +
+    '<button type="button" class="ds-z-link" data-action="save" title="Bewaart je voortgang">Nu opslaan</button></footer>';
+}
+function formatSpeel(sec) {
+  const m = Math.floor(sec / 60);
+  return m < 60 ? `${m} min` : `${Math.floor(m / 60)} u ${String(m % 60).padStart(2, '0')}`;
+}
+
+// Dichtbij: de twee dichtstbijzijnde activiteiten, met de link naar Activiteiten.
+function dichtbijHtml() {
+  const near = items.filter((it) => it.dist != null && it.goal && it.goal !== 'story' && !['later', 'slot', 'nu'].includes(it.status)).sort((a, b) => a.dist - b.dist).slice(0, 2);
+  if (!near.length) return '<section><h3 class="ds-z-tussenkop">Dichtbij</h3><p class="sp-hulp">Niks in de buurt. Kijk bij Activiteiten.</p></section>';
+  const rijen = near.map((it) => `<button type="button" class="ds-z-rij" data-todo="${esc(it.key)}"><span class="sp-ikoon">${it.icon ? `<img class="td-ico" src="${mapIconUrl(it.icon, 22)}" alt="">` : plekIcoon('plek')}</span><span><span class="ds-z-rij__naam">${esc(it.title)}</span><span class="ds-z-rij__sub">${esc(it.meta || '')}</span></span><span class="ds-z-rij__waarde">${esc(formatDistance(it.dist))}</span></button>`).join('');
+  return `<section><h3 class="ds-z-tussenkop">Dichtbij<button type="button" class="ds-z-link" data-goto="todo">Alle activiteiten</button></h3><div class="sp-lijst">${rijen}</div></section>`;
+}
+
+// help: [[action, icon svg, label]] voor de hulpknoppen (pausemenu.js bepaalt welke)
+// extra: { play: seconden gespeeld, stop: { title, herstart }, ongelezen, evenement: { naam, sub }, minutenOpslaan }
 export function renderOverview(el, world, help, extra = {}) {
   ensureCss();
   refresh(world);
-  const near = items.filter((it) => it.dist != null && it.goal && it.goal !== 'story' && !['later', 'slot', 'nu'].includes(it.status))
-    .sort((a, b) => a.dist - b.dist).slice(0, 3);
-  const ach = nearlyThere();
-  const helpHtml = `<div class="ov-help">${help.map(([a, ic, label]) => `<button type="button" class="m-bg" data-action="${a}">${ic}<span>${esc(label)}</span></button>`).join('')}</div>`;
-  // a running mission can be stopped from here (#390): the button asks "Missie stoppen?" first (pausemenu.js); stopping is no failure
-  // #985 punt 16: na een mislukking is er geen lopende missie, maar wel een aanbod om opnieuw te
-  // beginnen. Dat stond hier niet, terwijl de Enter-hint na 40 s verdween: dan was de startmarker
-  // de enige weg terug. Nu staat er dezelfde actie als Enter, zonder bevestiging (er valt niets
-  // te verliezen: je begint gewoon opnieuw).
-  const stopHtml = extra.stop && extra.stop.herstart
-    ? `<div class="ov-stop"><div class="m-gh"><span>Mislukt</span></div><div class="m-li pm-row"><span class="nm"><span class="one">${esc(extra.stop.title)}</span></span><button type="button" class="m-bp" data-action="mission-retry"><span>Opnieuw beginnen</span></button></div></div>`
-    : extra.stop ? `<div class="ov-stop"><div class="m-gh"><span>Missie bezig</span></div><div class="m-li pm-row"><span class="nm"><span class="one">${esc(extra.stop.title)}</span></span><button type="button" class="m-bg" data-action="mission-stop">${ICON.stop || ''}<span>Missie stoppen</span></button></div>` +
-    '<div class="pm-confirm" data-stop-confirm hidden><p>Missie stoppen?</p><p class="m-note">Je krijgt geen straf en je kunt hem opnieuw starten. Wat je in deze poging deed, telt niet mee.</p>' +
-    '<div class="m-acts"><button type="button" class="m-bp" data-action="mission-stop-go">Ja, stoppen</button><button type="button" class="m-bt" data-action="mission-stop-no">Nee, doorgaan</button></div></div></div>' : '';
-  // #965: de hero staat buiten de scroller. De tabs en de grote kop blijven staan
-  // en alleen wat eronder komt (voortgang, tegels, dichtbij, vouwen) scrolt; eerst
-  // schoof de kop onder de tabbalk en werd hij daar afgekapt.
-  el.innerHTML = heroHtml(world) + '<div class="ov-scroll">' + stopHtml + tilesHtml(world, extra) + voortgangHtml(world) +
-    '<div class="ov-cols"><section aria-label="Dichtbij" class="ov-col"><div class="m-gh"><span>Dichtbij</span></div>' +
-    (near.length ? `<div class="ov-rows">${near.map((it) => row(it)).join('')}</div>` : '<p class="m-note">Niks in de buurt. Kijk bij Activiteiten.</p>') +
-    '</section><section aria-label="Bijna binnen" class="ov-col"><div class="m-gh"><span>Bijna binnen</span></div>' +
-    (ach.length ? `<div class="ov-rows">${ach.map((a) => `<button type="button" class="m-li ov-a" data-goto="prestaties"><span class="nm"><span class="ov-a-t"><span class="one">${dualHtml(a.title)}</span>` +
-      `<span class="v"><span data-num="ach-${esc(a.id)}" data-to="${a.progress.cur}">${a.progress.cur}</span>/${a.progress.goal}</span></span>` +
-      `<span class="m-bar"><i data-bar="ach-${esc(a.id)}" data-w="${Math.round((a.progress.cur / a.progress.goal) * 100)}"></i></span></span></button>`).join('')}</div>`
-      : '<p class="m-note">Speel wat rond, dan komen ze vanzelf.</p>') +
-    '</section></div><div class="ov-folds"><div class="m-rule"></div>' +
-    (extra.quick ? disc('quick', 'Snel instellen', 'Geluid en beweging', extra.quick) : '') + disc('help', 'Vastgelopen?', 'Naar huis of jezelf vrijzetten', helpHtml) + agendaHtml(world) + '</div></div>';
+  el.innerHTML = `<div class="ds-zeef sp-ov">${strookHtml(extra)}<div class="sp-body" style="grid-template-columns:minmax(0,1fr) minmax(280px,30%)"><div class="sp-kol">${heldHtml(world, extra)}${dichtbijHtml()}</div>${voortgangBlokHtml(extra)}</div>${voetHtml(help, extra)}</div>`;
   animateChanges(el);
+  // de stilstaande foto van de plek bestond al en past niet meer in de heldkaart; de kaartminiatuur vervangt hem
 }
 
 // --- Te doen --------------------------------------------------------------------
@@ -736,6 +718,14 @@ export function selectTodo(key) {
 // Clicks in Overzicht and Te doen; api: { rerender(), showView(view), showOnMap(x, y) }.
 export function todoClick(e, world, panel, api) {
   const t = e.target;
+  // Verder met deze stap (Spel > Overzicht): het doel gaat op de stap, het menu sluit en het spel loopt verder
+  const verder = t.closest('[data-ov-verder]');
+  if (verder) {
+    const it = verder.dataset.ovVerder ? byKey.get(verder.dataset.ovVerder) : null;
+    if (it && !it.isGoal) chooseTodo(world, it, null);
+    if (api.close) api.close();
+    return true;
+  }
   const goal = t.closest('[data-todo-goal]');
   if (goal) { chooseTodo(world, byKey.get(goal.dataset.todoGoal), () => api.rerender()); return true; }
   if (t.closest('[data-todo-clear]')) { clearGoal(); api.rerender(); return true; }
