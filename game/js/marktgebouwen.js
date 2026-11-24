@@ -186,24 +186,33 @@ function plotStyle(kind, r) {
 
 // --- one plot ----------------------------------------------------------------------
 
+// #917 (z-fighting op de rode Natalini-gevels): de crème lijsten, speklagen, hoekstroken, lateien en kozijnen lagen 1,2 tot 3 cm voor
+// de baksteen, in hetzelfde materiaal zonder polygonOffset. Op een paar meter is de dieptestap daar al groter dan (eerste persoon,
+// telelens, een korte near), en dan sneden de banden zaagtandvormig door de muur. Elke laag ligt nu minstens 4 cm voor wat erachter
+// ligt, en een laag die over een raam zou lopen wordt rond het raam onderbroken in plaats van erachter te verdwijnen:
+//   muur 0 | speklaag 0,045 | kozijn 0,05 en latei 0,05 | glas 0,065 | roede 0,085 | lijst tussen de verdiepingen 0,09 | hoekstrook en
+//   pilaster 0,13 | kroonlijst 0,12 en meer (alleen boven de stroken). De plint van een Natalini-gevel is de muur zelf in steenkleur.
+export const MARKT_LAGEN = { speklaag: 0.045, kozijn: 0.05, latei: 0.05, glas: 0.065, roede: 0.085, lijst: 0.09, strook: 0.13 };
+const L = MARKT_LAGEN;
+
 function sashWindow(D, e, c, w, y0, y1, S, rank) {
   const f = 0.08;
-  fq(D, e, c - w / 2 - f, c + w / 2 + f, y0 - f, y1 + f, 0.03, S.frame);
-  fq(D, e, c - w / 2, c + w / 2, y0, y1, 0.045, GLASS, F_GLASS, pane(e, rank, PANE_HOME, w, y1 - y0));
+  fq(D, e, c - w / 2 - f, c + w / 2 + f, y0 - f, y1 + f, L.kozijn, S.frame);
+  fq(D, e, c - w / 2, c + w / 2, y0, y1, L.glas, GLASS, F_GLASS, pane(e, rank, PANE_HOME, w, y1 - y0));
   if (S.bars) {
     const m = y0 + (y1 - y0) * 0.55;
-    fq(D, e, c - w / 2, c + w / 2, m - 0.035, m + 0.035, 0.06, S.frame);
-    fq(D, e, c - 0.03, c + 0.03, y0, y1, 0.06, S.frame);
+    fq(D, e, c - w / 2, c + w / 2, m - 0.035, m + 0.035, L.roede, S.frame);
+    fq(D, e, c - 0.03, c + 0.03, y0, y1, L.roede, S.frame);
   }
   fbx(D, e, c - w / 2 - f - 0.05, c + w / 2 + f + 0.05, y0 - f - 0.08, y0 - f, 0, 0.12, S.sill, F_PLAIN, FR | TOP);
   if (S.lintel) {
     if (S.arch) {
       // segmental arch: a low stone wedge over the frame
-      const a = wp(e, c - w / 2 - f - 0.1, y1 + f, 0.025), b = wp(e, c + w / 2 + f + 0.1, y1 + f, 0.025);
-      const m = wp(e, c, y1 + f + 0.38, 0.025), ml = wp(e, c - w / 2 - f - 0.1, y1 + f + 0.22, 0.025), mr = wp(e, c + w / 2 + f + 0.1, y1 + f + 0.22, 0.025);
+      const a = wp(e, c - w / 2 - f - 0.1, y1 + f, L.latei), b = wp(e, c + w / 2 + f + 0.1, y1 + f, L.latei);
+      const m = wp(e, c, y1 + f + 0.38, L.latei), ml = wp(e, c - w / 2 - f - 0.1, y1 + f + 0.22, L.latei), mr = wp(e, c + w / 2 + f + 0.1, y1 + f + 0.22, L.latei);
       D.quadOut(a, b, mr, ml, [e.nx, 0, e.ny], S.lintel);
       D.triOut(ml, mr, m, [e.nx, 0, e.ny], S.lintel);
-    } else fq(D, e, c - w / 2 - f - 0.06, c + w / 2 + f + 0.06, y1 + f, y1 + f + 0.2, 0.025, S.lintel);
+    } else fq(D, e, c - w / 2 - f - 0.06, c + w / 2 + f + 0.06, y1 + f, y1 + f + 0.2, L.latei, S.lintel);
   }
 }
 
@@ -211,13 +220,13 @@ function shopfront(D, e, s0, s1, top, S, r) {
   const span = s1 - s0;
   fbx(D, e, s0, s1, 0, 0.35, 0, 0.06, 0x8f8b84, F_PLAIN, FR | TOP);
   const frameC = r() < 0.5 ? 0x2a2b2d : WHITE;
-  fbx(D, e, s0, s1, 0.35, top, 0, 0.025, frameC, F_PLAIN, FR | SIDES);
+  fbx(D, e, s0, s1, 0.35, top, 0, L.kozijn, frameC, F_PLAIN, FR | SIDES);
   const n = Math.max(1, Math.round(span / 2.2));
   const bw = span / n, door = Math.floor(r() * n), rank = r();
   for (let i = 0; i < n; i++) {
     const a = s0 + i * bw + 0.07, b = s0 + (i + 1) * bw - 0.07;
     const y0 = i === door ? 0.06 : 0.42;
-    fq(D, e, a, b, y0, top - 0.07, 0.045, GLASS, F_GLASS, pane(e, rank, PANE_SHOP, b - a, top - 0.07 - y0, i));
+    fq(D, e, a, b, y0, top - 0.07, L.glas, GLASS, F_GLASS, pane(e, rank, PANE_SHOP, b - a, top - 0.07 - y0, i));
   }
   const sign = pick(r, SIGNS);
   fbx(D, e, s0, s1, top, top + 0.55, 0, 0.1, sign, F_PLAIN, FR | TOP | BOT | SIDES);
@@ -359,9 +368,10 @@ function buildPlot(B, D, e, s0, s1, Hb, depth, S, r, shop) {
   const post = kind === 'postwar' || kind === 'postwarGable';
   const nat = kind === 'natalini' || kind === 'nataliniGable';
   let Ep = S.Ep;
-  fq(B, e, s0, s1, 0, Ep, 0, S.wall, S.g);
   // storeys
   const gH = shop ? (nat ? 4.6 : 4.0) : 3.4;
+  // een Natalini-gevel heeft een stenen plint over de hele begane grond: dat is de muur zelf, geen laag erover (#917)
+  if (nat) { fq(B, e, s0, s1, gH, Ep, 0, S.wall, S.g); fq(B, e, s0, s1, 0, gH, 0, 0xcfc3a5); } else fq(B, e, s0, s1, 0, Ep, 0, S.wall, S.g);
   const nUp = Math.max(1, Math.round((Ep - gH - 0.6) / (post ? 3.0 : 3.25)));
   const fh = (Ep - gH - 0.5) / nUp;
   const n = Math.max(1, Math.floor((w - 0.4) / (post ? 2.4 : 1.85)));
@@ -373,19 +383,27 @@ function buildPlot(B, D, e, s0, s1, Hb, depth, S, r, shop) {
     const wh = Math.min(post ? 1.6 : 2.3, fh * (post ? 0.52 : top && !gabled ? 0.55 : 0.64));
     const y0 = y + (fh - wh) * 0.55;
     for (let i = 0; i < n; i++) sashWindow(D, e, s0 + (i + 0.5) * bw, ww, y0, y0 + wh, S, r());
-    if (post || nat) fq(B, e, s0, s1, y - 0.12, y + 0.12, 0.02, post ? 0xc8c4ba : 0xe2d8c0);
+    if (post || nat) fbx(B, e, s0, s1, y - 0.12, y + 0.12, 0, L.lijst, post ? 0xc8c4ba : 0xe2d8c0, F_PLAIN, FR | TOP | BOT);
   }
   if (nat) {
-    // speklagen and stone corner strips
-    for (let f = 0; f < nUp; f++) fq(B, e, s0, s1, gH + f * fh + fh * 0.5 - 0.1 + 1.0, gH + f * fh + fh * 0.5 + 0.1 + 1.0, 0.018, 0xe2d8c0);
-    for (const s of [s0, s1 - 0.55]) fq(B, e, s, s + 0.55, gH, Ep, 0.025, 0xe2d8c0);
-    fq(B, e, s0, s1, 0, gH, 0.012, 0xcfc3a5);
+    // speklagen (onderbroken rond de ramen, waar ze vroeger achter het kozijn wegvielen) and stone corner strips (smal genoeg om
+    // naast het raam te blijven, en onder de kroonlijst en naast de pilaster van de buurgevel)
+    const cw = Math.max(0.12, Math.min(0.55, bw / 2 - ww / 2 - 0.2)), hw = ww / 2 + 0.08 + 0.07;
+    const gaps = [];
+    let g0 = s0;
+    for (let i = 0; i < n; i++) { const c = s0 + (i + 0.5) * bw; if (c - hw > g0 + 0.05) gaps.push([g0, c - hw]); g0 = c + hw; }
+    if (s1 > g0 + 0.05) gaps.push([g0, s1]);
+    for (let f = 0; f < nUp; f++) {
+      const ys = gH + f * fh + fh * 0.5 + 1.0;
+      for (const [a, b] of gaps) fbx(B, e, a, b, ys - 0.1, ys + 0.1, 0, L.speklaag, 0xe2d8c0, F_PLAIN, FR | TOP | BOT | SIDES);
+    }
+    for (const s of [s0 + 0.08, s1 - 0.08 - cw]) fbx(B, e, s, s + cw, gH, Ep - 0.32, 0, L.strook, 0xe2d8c0, F_PLAIN, FR | SIDES);
   }
   if (shop) shopfront(D, e, s0 + 0.15, s1 - 0.15, gH - 0.7, S, r);
   else {
     const dc = s0 + (r() < 0.5 ? 0.5 : n - 0.5) * bw;
-    fq(D, e, dc - 0.5, dc + 0.5, 0.1, 2.3, 0.04, 0x2f3a33);
-    fq(D, e, dc - 0.6, dc + 0.6, 0.0, 2.45, 0.025, S.frame);
+    fq(D, e, dc - 0.5, dc + 0.5, 0.1, 2.3, L.roede, 0x2f3a33);
+    fq(D, e, dc - 0.6, dc + 0.6, 0.0, 2.45, L.kozijn - 0.005, S.frame);
     for (let i = 0; i < n; i++) {
       const c = s0 + (i + 0.5) * bw;
       if (Math.abs(c - dc) > 0.4) sashWindow(D, e, c, Math.min(1.1, ww), 0.9, 2.6, S, r());
@@ -457,8 +475,8 @@ function buildFacade(b, ring, edges) {
         const n = Math.floor(e.len / 3);
         for (let i = 0; i < n; i++) for (let y = 4; y + 1.6 < Hb; y += 3.1) {
           const c = (i + 0.5) * e.len / n;
-          fq(D, e, c - 0.6, c + 0.6, y, y + 1.6, 0.03, WHITE);
-          fq(D, e, c - 0.5, c + 0.5, y + 0.1, y + 1.5, 0.045, GLASS, F_GLASS, pane(e, r(), PANE_HOME, 1.0, 1.4));
+          fq(D, e, c - 0.6, c + 0.6, y, y + 1.6, L.kozijn, WHITE);
+          fq(D, e, c - 0.5, c + 0.5, y + 0.1, y + 1.5, L.glas, GLASS, F_GLASS, pane(e, r(), PANE_HOME, 1.0, 1.4));
         }
       }
     }
@@ -495,7 +513,7 @@ function buildFacade(b, ring, edges) {
       const shop = shopAll ? r() < 0.92 : r() < 0.4;
       buildPlot(B, D, e, s + 0.02, s + w - 0.02, Hb, Math.max(1.5, depth), S, r, shop);
       // a pilaster strip hides the joint between two plots
-      if (i > 0) fq(B, e, s - 0.08, s + 0.08, 0, Math.min(S.Ep, Hb), 0.03, shade(S.wall, 0.82), S.g);
+      if (i > 0) fbx(B, e, s - 0.08, s + 0.08, 0, Math.min(S.Ep, Hb), 0, L.strook, shade(S.wall, 0.82), S.g, FR | SIDES);
       s += w;
     });
   }
