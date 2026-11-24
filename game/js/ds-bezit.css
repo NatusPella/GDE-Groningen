@@ -202,3 +202,6 @@ html.reduce-motion .bz-vasthoud::before, html.rustig-drukwerk .bz-vasthoud::befo
 .bd-meer__sum { display: inline-flex; align-items: center; gap: var(--ds-s-1); cursor: pointer; list-style: none; }
 .bd-meer__sum::-webkit-details-marker { display: none; }
 .bd-meer > p { margin: var(--ds-s-2) 0; font-size: var(--ds-t-hulp); max-width: calc(var(--ds-s-8) * 12); }
+
+/* de Boerderij vult de breedte van het paneel (het was een krimpend flexvak) */
+#pause-menu .pm-vsub.pm-boerderij { width: 100%; max-width: none; min-width: 0; }

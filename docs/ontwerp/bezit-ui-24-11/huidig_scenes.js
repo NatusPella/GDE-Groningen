@@ -36,7 +36,7 @@ if (fase('leeg')) {
   BG.setUnlockGate(() => true);
   w.money = 5000;
   for (const t of tabs) { await open('boerderij', t); await shot('B-leeg-' + t); }
-  await open('boerderij', 'boerderij');
+  await open('boerderij', 'boerderij'); await klik('[data-bd="velden"]');
   for (const id of ['team', 'machines', 'erf', 'kas']) { if (await klik('[data-bd="' + id + '"]')) await shot('B-leeg-boerderij-' + id, 500); }
   await sluit();
 }
@@ -56,9 +56,9 @@ if (fase('gevuld')) {
   try { for (const k of [1, 2]) L.huurArbeider(w, k); } catch (e) { out.push('arbeider ' + e.message); }
   w.money = 18000;
   for (const t of tabs) { await open('boerderij', t); await shot('C-vol-' + t); }
-  await open('boerderij', 'boerderij');
+  await open('boerderij', 'boerderij'); await klik('[data-bd="velden"]');
   for (const id of ['team', 'machines', 'erf', 'kas']) { if (await klik('[data-bd="' + id + '"]')) await shot('C-vol-boerderij-' + id, 500); }
-  await open('boerderij', 'boerderij'); { const v = document.querySelectorAll('[data-vd="vink"]'); for (let i = 0; i < Math.min(2, v.length); i++) { v[i].click(); await sleep(500); } await shot('C-vol-velden-bulk', 400); }
+  await open('boerderij', 'boerderij'); await klik('[data-bd="velden"]'); { const v = document.querySelectorAll('[data-vd="vink"]'); for (let i = 0; i < Math.min(2, v.length); i++) { v[i].click(); await sleep(500); } await shot('C-vol-velden-bulk', 400); }
   // aankoopbevestiging (nieuw: Kopen opent de bevestigingskaart)
   await open('boerderij', 'tekoop'); { const kb = document.querySelector('[data-kp="koop"]') || document.querySelector('[data-bz="koop-perceel"]'); if (kb) { kb.click(); await sleep(700); } await shot('C-vol-tekoop-bevestig', 300); }
   await open('boerderij', 'overzicht'); const ck = document.querySelector('[data-bz-sel]'); if (ck) { ck.click(); await sleep(500); } await shot('C-vol-overzicht-gekozen', 300);
