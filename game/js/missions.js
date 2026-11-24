@@ -539,6 +539,13 @@ export function getMissionList() {
   })).filter((m) => ARC_BUILT.has(m.index) || !!chainState().defs[m.index].side);
 }
 
+// What a start waited on (the ride and the open requirement): when it changes, the start is armed again without walking away (24-11).
+function startWaitKey(w, def) {
+  const v = hoofdspeler(w).inVehicle;
+  return (v ? 'v:' + (v.id != null ? v.id : v.kind || 'x') : 'te voet') + '|' + (unmetRequirement(w, def) || '-');
+}
+const startWaitChanged = (w, def, key) => startWaitKey(w, def) !== key;
+
 // False (with the companion's line, now and then) while the player is not in
 // the ride def needs.
 function checkRide(w, def) {
@@ -1954,14 +1961,17 @@ function updateMissionKern(dt, world) {
     }
     const R = def.triggerRadius || TRIGGER_RADIUS;
     const d = dist(p.x, p.y, def.start.x, def.start.y);
-    if (d > R + 2) chainState().armed = true;
-    else if (d < R && chainState().armed) {
+    // 24-11 (spelbot, M05): wie zonder fiets bij de start kwam en daar op zijn eigen fiets stapte, moest eerst 8 m weg en terug; nu zet een
+    // andere rit of een vervulde eis de start opnieuw op scherp (de melding herhaalt dan niet: die heeft zijn eigen pauze van 3 s)
+    if (d > R + 2) { chainState().armed = true; chainState().waitFor = null; }
+    else if (!chainState().armed && d < R && chainState().waitFor && startWaitChanged(world, def, chainState().waitFor)) chainState().armed = true;
+    if (d < R && chainState().armed) {
       // a running bijbaantje (sidejobs.js) first has to be finished or stopped
       if (world.sideJob && world.sideJob.active) {
         chainState().armed = false;
         world.addMessage('Eerst je bijbaantje afmaken of stoppen ({ESC} > Spel)', 3);
-      } else if (playerBusy(world, ['challenge', 'padel', 'activityGame']).busy) chainState().armed = false; else if (!checkRequirement(world, def, true)) chainState().armed = false;
-      else if (!checkRide(world, def)) chainState().armed = false;
+      } else if (playerBusy(world, ['challenge', 'padel', 'activityGame']).busy) chainState().armed = false; else if (!checkRequirement(world, def, true)) { chainState().armed = false; chainState().waitFor = startWaitKey(world, def); }
+      else if (!checkRide(world, def)) { chainState().armed = false; chainState().waitFor = startWaitKey(world, def); }
       else if (hooks.canStart(world, chainState().index)) startMission(world, def);
     }
     syncPub(world);
