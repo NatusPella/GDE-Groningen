@@ -43,6 +43,27 @@ export async function loadParkData() {
   return getIndex().parkCount;
 }
 
+// De kaartlaag Voetbal (#1115, #1117, besluit eigenaar 21-11): de sportparken uit de kaart, elk met zijn verzonnen club, als gedimde plek in de laag Voetbal. Het thuispark,
+// het trainingsveld en het park van de volgende uitwedstrijd komen al van de activiteit (voetbal.js mapLayerSpots) en staan hier niet dubbel. Zonder echte parkdata (de terugval
+// van acht verzonnen plekken) niets: die plekken liggen niet op de kaart. De kaart dunt en verbergt onbezocht gebied zelf. Samen spelen: lokaal, uit de eigen carrière.
+let parkSpotCache = { key: '', spots: [] };
+export function parkMapSpots() {
+  if (!index) return [];
+  const c = getCareer(), has = C.hasCareer(c);
+  let nextId = null;
+  if (has) { try { const nm = C.nextMatch(c, getClub); nextId = nm && !nm.isHome ? nm.opponent : null; } catch (e) { nextId = null; } }
+  const key = `${index.parkCount}|${has ? c.club : ''}|${nextId || ''}`;
+  if (parkSpotCache.key === key) return parkSpotCache.spots;
+  const spots = [];
+  for (const cl of index.clubs) {
+    if (has && (cl.id === c.club || cl.id === nextId)) continue;
+    const p = cl.park, n = cl.trainingsvelden.length + 1;
+    spots.push({ id: `voetbal:${cl.id}`, x: p.x, y: p.y, name: cl.naam, sub: `Voetbalclub in ${cl.plaats}${n > 1 ? ` · ${n} sportparken` : ''}`, goal: { kind: 'place', id: `voetbal:${cl.id}`, name: cl.naam, sub: 'Sportpark', x: p.x, y: p.y } });
+  }
+  parkSpotCache = { key, spots };
+  return spots;
+}
+
 export function getCareer() {
   if (!career) {
     let raw = null;

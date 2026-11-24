@@ -1,13 +1,17 @@
-// Het publiek langs de lijn van een dorpspark (#1115): één InstancedMesh, kleur per figuur, een sprong bij een doelpunt (alleen als beweging mag). De beslissingen (aantal, plekken, sprong) staan puur in
-// voetbalworld.js (scripts/voetbal_wereld_test.mjs); dit bestand tekent ze en is niet in beeld bekeken. Een tikje kost bij hooguit 140 figuren een paar matrixschrijfacties en alleen tijdens de viering.
+// Het publiek langs de lijn van een dorpspark (#1115): kleur per figuur, een sprong bij een doelpunt (alleen als beweging mag). De beslissingen (aantal, plekken, sprong) staan puur in
+// voetbalworld.js (scripts/voetbal_wereld_test.mjs); dit bestand tekent ze. Een tikje kost bij hooguit 140 figuren een paar matrixschrijfacties en alleen tijdens de viering.
+// Beeld 24-11: de figuren waren kale cilinders. Met `bake` (voetbalfiguren.js: gebakken Quaternius-mensen) zijn het echte mensen: per jaskleur een InstancedMesh in rust en een
+// met de armen omhoog (viering), en de trainende ploegen joggen in hun clubshirt. Zonder bake (node-tests, rig nog niet geladen) de eenvoudige figuur.
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { parkCrowdSeats, crowdBounce, CROWD_COLORS } from './voetbalworld.js';
 
 const FIG_H = 1.55;
 // root: de groep van het veld (eigen ruimte, toLocal zet veldpunten om); count en seed bepalen wie waar staat. Geeft null als er niets te tekenen valt (laagste kwaliteit).
-export function buildCrowd(root, { count, seed, B, L, toLocal, uit = false }) {
+export function buildCrowd(root, { count, seed, B, L, toLocal, uit = false, bake = null, material = null }) {
   if (uit || !(count > 0)) return null;
   const seats = parkCrowdSeats(count, seed, { B, L });
+  const echt = bake && material ? bakedCrowd(root, seats, toLocal, bake, material) : null;
+  if (echt) return echt;
   const geo = new THREE.CylinderGeometry(0.2, 0.26, FIG_H, 6).translate(0, FIG_H / 2, 0);
   const mat = new THREE.MeshLambertMaterial({ color: 0xffffff });
   const mesh = new THREE.InstancedMesh(geo, mat, seats.length);
@@ -34,16 +38,60 @@ export function buildCrowd(root, { count, seed, B, L, toLocal, uit = false }) {
   };
 }
 
-// ---- trainende teams op de velden binnen 150 m van de speler (voetbalworld.js trainingSquads): geen sim, alleen jogfiguren en een bal; niet in beeld bekeken ----
-// Per ploeg één InstancedMesh (6 tot 10 figuren in het clubshirt, zonder logo) die rondjes lopen, en een bal in het midden. `sync` zet ze neer of ruimt ze op als de speler weg is, `tik(t)` beweegt ze.
+// Het publiek als gebakken mensen: per kleur (CROWD_COLORS) een geometrie in rust en een in de viering (Wave, armen omhoog), allebei gedeeld. Iedereen kijkt naar het veld.
+const CROWD_POSE = { rust: { clip: 'Idle', u: 0.2 }, juich: { clip: 'Wave', u: 0.35 } };
+function bakedCrowd(root, seats, toLocal, bake, material) {
+  const V = CROWD_COLORS.length, geos = { rust: [], juich: [] };
+  for (const k of ['rust', 'juich']) for (let v = 0; v < V; v++) { const g = bake({ seed: 4200 + v * 37, shirt: CROWD_COLORS[v], female: v % 2 === 1, ...CROWD_POSE[k] }); if (!g) return null; geos[k].push(g); }
+  const per = Array(V).fill(0); for (const s of seats) per[s.kleur % V]++;
+  const meshes = { rust: [], juich: [] };
+  for (const k of ['rust', 'juich']) for (let v = 0; v < V; v++) { const im = new THREE.InstancedMesh(geos[k][v], material, Math.max(1, per[v])); im.count = 0; im.frustumCulled = false; im.castShadow = false; im.name = 'voetbalpubliek'; root.add(im); meshes[k].push(im); }
+  const base = seats.map((s) => { const l = toLocal(s.x, s.y); return { x: l.x, z: l.y, hoek: l.x > 0 ? Math.PI : 0 }; });   // het gezicht naar het midden van het veld
+  const m = new THREE.Matrix4(), q = new THREE.Quaternion(), pos = new THREE.Vector3(), sc = new THREE.Vector3(1, 1, 1), up = new THREE.Vector3(0, 1, 0);
+  const zetAlles = (t) => {
+    for (const k of ['rust', 'juich']) for (const im of meshes[k]) im.count = 0;
+    seats.forEach((s, i) => {
+      const b = base[i], hop = t >= 0 ? crowdBounce(t, s.fase) : 0, im = meshes[hop > 0.02 ? 'juich' : 'rust'][s.kleur % V];
+      q.setFromAxisAngle(up, -b.hoek); sc.set(s.hoogte, s.hoogte, s.hoogte);
+      m.compose(pos.set(b.x, hop, b.z), q, sc); im.setMatrixAt(im.count++, m);
+    });
+    for (const k of ['rust', 'juich']) for (const im of meshes[k]) { im.visible = im.count > 0; im.instanceMatrix.needsUpdate = true; }
+  };
+  zetAlles(-1);
+  return {
+    mesh: meshes.rust[0], meshes, seats, klaar: true, acc: 0, echt: true,
+    tik(dt, t, beweging) {
+      if (!beweging) return;
+      this.acc += dt;
+      if (t < 0 || t >= 4) { if (!this.klaar) { zetAlles(-1); this.klaar = true; } return; }
+      if (this.acc < 1 / 15) return;
+      this.acc = 0; this.klaar = false; zetAlles(t);
+    },
+    dispose() { for (const k of ['rust', 'juich']) for (const im of meshes[k]) { root.remove(im); im.dispose(); } },   // de geometrie en het materiaal zijn gedeeld (voetbalfiguren.js)
+  };
+}
+
+// ---- trainende teams op de velden binnen 150 m van de speler (voetbalworld.js trainingSquads): geen sim, alleen jogfiguren en een bal ----
+// Per ploeg 6 tot 10 figuren in het clubshirt (zonder logo) die rondjes lopen, en een bal in het midden. `sync` zet ze neer of ruimt ze op als de speler weg is, `tik(t)` beweegt ze.
+// Met `bake` joggen er gebakken mensen (twee fasen van de jogclip, elk een InstancedMesh, de fase wisselt per figuur); zonder de eenvoudige figuur.
+// Beeld 24-11: de ring was 2 m breed (sq.r is de hoek van het veld, geen straal), de ploeg stond als een bosje op de middenstip; nu een vaste ring van 6 tot 12 m.
+const JOG = 'UAL_Jog_Fwd_Loop', JOG_U = [0.15, 0.65], RING = 12;
 export const kickPeriod = (sq) => 2.4 + 1.2 * ((Math.abs(Math.round(sq.x * 7 + sq.y * 13)) % 10) / 10);
-export function makeTrainers(scene) {
+export function makeTrainers(scene, { bake = null, material = null } = {}) {
   const groups = new Map();
   const geo = new THREE.CylinderGeometry(0.2, 0.26, FIG_H, 6).translate(0, FIG_H / 2, 0);
   const ballGeo = new THREE.SphereGeometry(0.2, 8, 6);
   const ballMat = new THREE.MeshLambertMaterial({ color: 0xf5f5f5 });
   const m = new THREE.Matrix4(), q = new THREE.Quaternion(), pos = new THREE.Vector3(), sc = new THREE.Vector3(1, 1, 1);
-  const weg = (g) => { scene.remove(g.mesh); scene.remove(g.ball); g.mesh.material.dispose(); g.mesh.dispose(); };
+  const up = new THREE.Vector3(0, 1, 0);
+  const weg = (g) => { scene.remove(g.ball); for (const im of g.fasen || [g.mesh]) { scene.remove(im); im.dispose(); } if (!g.fasen) g.mesh.material.dispose(); };
+  // twee jogfasen in het shirt van de club; null als de rig er (nog) niet is
+  const jogMeshes = (sq) => {
+    if (!bake || !material) return null;
+    const out = [];
+    for (const u of JOG_U) { const geo2 = bake({ seed: 5300 + (Math.abs(Math.round(sq.x)) % 7) * 11, shirt: sq.shirt, female: false, clip: JOG, u }); if (!geo2) return null; const im = new THREE.InstancedMesh(geo2, material, sq.n); im.count = 0; im.frustumCulled = false; im.castShadow = false; im.name = 'voetbaltrainers'; out.push(im); }
+    return out;
+  };
   return {
     groups,
     sync(squads, groundAt) {
@@ -52,25 +100,31 @@ export function makeTrainers(scene) {
         const key = `${sq.club}:${Math.round(sq.x)}:${Math.round(sq.y)}`;
         keep.add(key);
         if (groups.has(key)) continue;
-        const mesh = new THREE.InstancedMesh(geo, new THREE.MeshLambertMaterial({ color: sq.shirt }), sq.n);
+        const fasen = jogMeshes(sq);
+        const mesh = fasen ? fasen[0] : new THREE.InstancedMesh(geo, new THREE.MeshLambertMaterial({ color: sq.shirt }), sq.n);
         mesh.frustumCulled = false;
         const ball = new THREE.Mesh(ballGeo, ballMat);
         const y = groundAt ? groundAt(sq.x, sq.y) : 0;
-        scene.add(mesh, ball);
-        groups.set(key, { sq, mesh, ball, y });
+        scene.add(...(fasen || [mesh]), ball);
+        groups.set(key, { sq, mesh, fasen, ball, y });
       }
       for (const [k, g] of groups) if (!keep.has(k)) { weg(g); groups.delete(k); }
     },
     // kick(sq, x, y): een trap van de ploeg (elke 2,4 tot 3,6 s per veld, op een vaste maat); de aanroeper kiest het geluid (voetbal.js: sfxEvent) en let op de afstand tot de speler.
     tik(t, kick) {
       for (const g of groups.values()) {
-        const { sq } = g, ruim = Math.max(4, Math.min(sq.r || 12, 18)) * 0.5;
+        const { sq } = g, ruim = RING;
+        if (g.fasen) for (const im of g.fasen) im.count = 0;
         for (let i = 0; i < sq.n; i++) {
-          const hoek = t * (0.35 + 0.1 * (i % 3)) + (i * 2 * Math.PI) / sq.n, straal = ruim * (0.55 + 0.45 * (i % 2));
+          const w = 0.35 + 0.1 * (i % 3), hoek = t * w * 12 / RING + (i * 2 * Math.PI) / sq.n, straal = ruim * (0.5 + 0.5 * (i % 2));   // ongeveer 4 m/s langs de ring
           pos.set(sq.x + Math.cos(hoek) * straal, g.y, sq.y + Math.sin(hoek) * straal);
-          m.compose(pos, q, sc); g.mesh.setMatrixAt(i, m);
+          if (g.fasen) {
+            q.setFromAxisAngle(up, -(hoek + Math.PI / 2));   // de looprichting: langs de ring, tegen de klok in
+            const im = g.fasen[Math.floor(t * 3 + i * 0.37) & 1];
+            m.compose(pos, q, sc); im.setMatrixAt(im.count++, m);
+          } else { q.identity(); m.compose(pos, q, sc); g.mesh.setMatrixAt(i, m); }
         }
-        g.mesh.instanceMatrix.needsUpdate = true;
+        if (g.fasen) for (const im of g.fasen) { im.visible = im.count > 0; im.instanceMatrix.needsUpdate = true; } else g.mesh.instanceMatrix.needsUpdate = true;
         g.ball.position.set(sq.x + Math.cos(t * 0.9) * ruim * 0.3, g.y + 0.2, sq.y + Math.sin(t * 0.7) * ruim * 0.3);
         const maat = Math.floor(t / kickPeriod(sq));
         if (g.maat === undefined) g.maat = maat;       // het eerste meetmoment zet alleen de maat: geen trap bij het neerzetten

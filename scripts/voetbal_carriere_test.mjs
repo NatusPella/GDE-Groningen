@@ -146,4 +146,18 @@ t('niveau en rol: begint als Talent, Speler; trainer pas later', () => {
   assert.ok(C.summary(c, getClub).next && C.summary(c, getClub).divisionName === 'Talentenklasse');
   assert.equal(C.summary(null, getClub), null);
 });
+t('de rij in Te doen (#1110): club, stand, de volgende wedstrijd met een doel op het park; zonder carrière geen rij', () => {
+  assert.equal(C.todoRow(C.newCareer(), getClub), null);
+  let c = start();
+  let r = C.todoRow(c, getClub, { x: 1, y: 2 });
+  const m = C.nextMatch(c, getClub);
+  assert.equal(r.key, 'vc:carriere'); assert.equal(r.group, 'loopbanen'); assert.ok(r.title.startsWith('Voetbal: '));
+  assert.match(r.record, /^Talentenklasse, plek \d$/); assert.equal(r.status, '', 'nog niet aan de beurt');
+  assert.ok(r.meta.includes(m.opponentName) && r.meta.includes('over 3 speldagen'));
+  const park = m.park; assert.ok(park, 'een lokale club speelt op een park');
+  assert.equal(r.goal.kind, 'place'); assert.equal(r.goal.x, park.x); assert.equal(r.goal.y, park.y); assert.ok(r.goal.name.startsWith('Voetbal · Sportpark'));
+  assert.ok(m.parkPlaats, 'het park weet zijn plaats (de opstellingskaart noemt hem)');
+  c = C.advanceDays(c, 3, getClub).career;
+  r = C.todoRow(c, getClub); assert.equal(r.status, 'nu'); assert.ok(r.meta.endsWith('nu te spelen'));
+});
 console.log(`voetbal_carriere_test ok (${n} groepen)`);

@@ -23,6 +23,7 @@ import { coachSetup, makeCoachMatch, coachTactic, coachMelding, coachResult } fr
 import { formationList } from './voetbalrules.js';
 import { awayKit, mapSpots, parkCrowdCount, crowdVisible, trainingSquads } from './voetbalworld.js';
 import { buildCrowd, makeTrainers, buildAdBoards } from './voetbalpubliek.js';
+import { bakeFigure, figureMaterial } from './voetbalfiguren.js';   // beeld 24-11: publiek en trainers als gebakken mensen in plaats van cilinders
 import { boardNames } from './voetbalsponsors.js';
 import { pushAudioEvent } from './pedgeom.js';
 import { sfxEvent } from './sfx/haken.js';
@@ -453,7 +454,7 @@ function launch(w, { force = false, online = null, sim = null, career = null } =
     ruimParkOp(); parkBuilt = bouw(w, sim.formaat, career.site);
     try { // supporters langs de lijn (voetbalpubliek.js): het aantal volgt de klasse; niet bij de laagste kwaliteit
       const cc = CL.getCareer(), div = (cc && cc.world && divisionOfMyClub(cc)) || 'talent';
-      parkBuilt.publiek = buildCrowd(parkBuilt.root, { count: parkCrowdCount(div), seed: (sim.seed | 0) + 1, B: PITCH.B, L: PITCH.L, toLocal, uit: crowdVisible({ quality: getSettings().quality === 'laag' ? 'laagst' : 'hoog' }) === 'uit' });
+      parkBuilt.publiek = buildCrowd(parkBuilt.root, { count: parkCrowdCount(div), seed: (sim.seed | 0) + 1, B: PITCH.B, L: PITCH.L, toLocal, uit: crowdVisible({ quality: getSettings().quality === 'laag' ? 'laagst' : 'hoog' }) === 'uit', bake: bakeFigure, material: figureMaterial() });
     } catch (e) { parkBuilt.publiek = null; }
   }
   try { // de reclameborden van de sponsors (verzonnen namen) langs de zijlijnen, op het park en in de Euroborg; zonder sponsors geen borden (#1118)
@@ -478,7 +479,7 @@ function launch(w, { force = false, online = null, sim = null, career = null } =
   fl.bal.visible = true; fl.schaduw.visible = true;
   w.voetbalGame = game;
   w.cinematicHidePlayers = true;
-  ensureBoard(); board.show();
+  ensureBoard(); board.show(); zetBordKop(game);
   w.companionHold = career && career.site ? { x: game.exitX, y: game.exitY, face: -Math.PI / 2 } : { x: GATE.x, y: GATE.y - 4, face: -Math.PI / 2 };
   if (online === 'gast') installeerGastKnoppen(w);
   if (online !== 'gast') toonStartkaart(w, 'voetbal', { record: recText() });
@@ -625,7 +626,7 @@ const comCtx = (g) => ({ carriere: g.cctx || null, fase: g.sim.fase, helft: g.si
 
 function tvInit(w, g) {
   const sim = g.sim;
-  g.com = makeCommentaar({ seed: (sim.seed | 0) + runs, teams: [sim.teams[0].kort, sim.teams[1].kort], ids: [sim.teams[0].id, sim.teams[1].id], duurHelft: sim.duurHelft });
+  g.com = makeCommentaar({ seed: (sim.seed | 0) + runs, teams: [sim.teams[0].kort, sim.teams[1].kort], ids: [sim.teams[0].id, sim.teams[1].id], duurHelft: sim.duurHelft, buiten: !!(g.career && g.career.site) });
   g.derby = derbyVan(sim.teams[0].id, sim.teams[1].id);
   g.regie = makeRegie({ modus: leesTv().camera });
   g.op = makeOpname(); g.replay = null; g.replayWacht = null; g.lastKans = -999; g.camShot = 'breed'; g.camReplay = null; g.evs = [];
@@ -657,6 +658,8 @@ function sayLine(w, r) {
 }
 
 // Elke frame: het commentaar afspelen, de kaart van het moment (opstelling, rust, einde), de radar en de ondertitel.
+// Waar de aftrap is, voor de opstellingskaart: een carrièrewedstrijd op een sportpark ligt in de plaats van de thuisclub, de rest in de Euroborg.
+const plekTekst = (g) => { const m = g.career && g.career.site && g.career.match; const pl = m && m.parkPlaats; return pl ? `op het sportpark in ${pl}` : 'in de Euroborg'; };
 function tvTik(w, dt) {
   const g = game, sim = g.sim;
   g.bezitT -= dt;
@@ -668,7 +671,7 @@ function tvTik(w, dt) {
   let paneel = null, hint = null;
   const cardPhase = sim.fase === 'intro' || sim.fase === 'rust' || sim.fase === 'eind' || sim.fase === 'klaar';
   if (cardPhase) {
-    if (g.paneelCache.fase !== sim.fase) g.paneelCache = { fase: sim.fase, html: sim.fase === 'intro' ? opstellingHtml(sim) : sim.fase === 'rust' ? rustHtml(sim) : eindHtml(sim) };
+    if (g.paneelCache.fase !== sim.fase) g.paneelCache = { fase: sim.fase, html: sim.fase === 'intro' ? opstellingHtml(sim, plekTekst(g)) : sim.fase === 'rust' ? rustHtml(sim) : eindHtml(sim) };
     paneel = g.paneelCache.html;
     hint = g.online ? null : '{F} Doorgaan';
   } else g.paneelCache = { fase: '', html: '' };
@@ -820,7 +823,7 @@ function camera(w) {
   const sim = g.sim, id = eigenId(g);
   // de tv-regie (voetbalregie.js) kiest het shot; het standaardshot is de camera achter je speler. De posities zijn veldcoördinaten.
   const shot = g.replay ? g.replaySnit : g.camShot;
-  const extra = shot === 'viering' ? { speler: g.regie.scorer } : g.regie.extra;
+  const extra = { ...(shot === 'viering' ? { speler: g.regie.scorer } : g.regie.extra), team1: mijnTeam(g) === 1 };   // derby (#1114): team 1 kijkt vanaf de andere kant
   const cv = g.replay && g.camReplay ? g.camReplay : cameraVoor(shot, sim, id, g.t, extra);
   const wp = (q) => { const t = toWorld(q.x, q.y); return { x: t.x, y: t.y, z: ground + q.z }; };
   const c = easeCamera(g, wp(cv.pos), wp(cv.at), shot === 'speler' ? 0.1 : shot === 'breed' ? 0.06 : 0.14);
@@ -828,6 +831,16 @@ function camera(w) {
 }
 
 // --- de HUD: het bord bovenin en de strook onderin -------------------------------------------------------------------------------
+
+// De kop van het bord: de vaste kop van het thema zegt "Voetbal Euroborg · Vijf tegen vijf", ook bij elf tegen elf op een sportpark (beeld 24-11). Nu de plek en het formaat van deze wedstrijd.
+function zetBordKop(g) {
+  try {
+    const m = g.career && g.career.match, plek = g.career && g.career.site ? (m && m.parkPlaats ? `Voetbal · ${m.parkPlaats}` : 'Voetbal · sportpark') : 'Voetbal Euroborg';
+    const kop = board.root.querySelector('small > span'), sfeer = board.root.querySelectorAll('.mg-sfeer, .mg-watermark'), formaat = FORMATEN[g.sim.formaat] ? FORMATEN[g.sim.formaat].naam : '';
+    if (kop) kop.textContent = plek;
+    for (const el of sfeer) el.textContent = formaat;
+  } catch (e) { /* de kop is versiering */ }
+}
 
 function ensureBoard() {
   if (!board) board = createBoard('voetbal');
@@ -932,7 +945,7 @@ function updateTrainers(w) {
     const p = hoofdspeler(w);
     const squads = trainingSquads(CL.getIndex(), { x: p.x, y: p.y }, 1);
     if (!squads.length && !trainers) return;
-    if (!trainers) trainers = makeTrainers(getScene());
+    if (!trainers) trainers = makeTrainers(getScene(), { bake: bakeFigure, material: figureMaterial() });
     trainers.sync(squads, (x, y) => { try { const r = w.map.surfaceAt(x, y, { z: 0, ribbon: null }); return r && Number.isFinite(r.z) ? r.z : 0; } catch (e) { return 0; } });
     if (!squads.length) { trainers.dispose(); trainers = null; }
   } catch (e) { if (trainers) { try { trainers.dispose(); } catch (e2) { /* weg */ } trainers = null; } }

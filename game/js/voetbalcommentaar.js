@@ -25,9 +25,12 @@ export function allLines() {
 }
 export function countLines() { return allLines().length; }
 
-export function makeCommentaar({ seed = 1, teams = ['Stadjers', 'Hunebedders'], ids = ['stadjers', 'hunebedders'], duurHelft = 150 } = {}) {
+// `buiten`: de wedstrijd is niet in de Euroborg (een carrièrewedstrijd op een sportpark). Dan mijden we regels die de Euroborg noemen, en regels over de Stadjers als die niet
+// meespelen (beeld 24-11: "Welkom in de Euroborg!" op het park in Oude Roodehaan). Zo'n regel komt alleen nog als er in die zak niets anders is.
+export function makeCommentaar({ seed = 1, teams = ['Stadjers', 'Hunebedders'], ids = ['stadjers', 'hunebedders'], duurHelft = 150, buiten = false } = {}) {
+  const mijd = [buiten ? 'Euroborg' : null, ids.includes('stadjers') ? null : 'Stadjers'].filter(Boolean);
   return {
-    rng: makeRng((seed | 0) + 4242), teams, ids, duurHelft,
+    rng: makeRng((seed | 0) + 4242), teams, ids, duurHelft, mijd: mijd.length ? new RegExp(mijd.join('|')) : null,
     zak: {}, laatsteIndex: {}, geheugen: [], rij: [], sinds: 99, laatsteWie: 'r', logboek: [], laatsteSoort: {}, t: 0, stilte: 0,
     flags: { start: false, laatste: false, spanning: [false, false, false], bezit: -999 }, scorePrev: [0, 0], gezegd: 0,
   };
@@ -45,8 +48,12 @@ function trek(c, soort, wie) {
     if (zak.length > 1 && zak[zak.length - 1] === c.laatsteIndex[sleutel]) zak.unshift(zak.pop()); // de eerstvolgende (aan het eind) is niet de vorige
     c.zak[sleutel] = zak;
   }
-  let kies = zak.length - 1;
-  for (let k = zak.length - 1; k >= 0; k--) { if (!c.geheugen.includes(pool[zak[k]])) { kies = k; break; } }
+  const past = (k) => !c.mijd || !c.mijd.test(pool[zak[k]]);
+  let kies = -1;
+  for (let k = zak.length - 1; k >= 0; k--) { if (past(k) && !c.geheugen.includes(pool[zak[k]])) { kies = k; break; } }
+  if (kies < 0) for (let k = zak.length - 1; k >= 0; k--) { if (past(k)) { kies = k; break; } }
+  if (kies < 0 && c.mijd && pool.some((t) => !c.mijd.test(t))) { delete c.zak[sleutel]; return trek(c, soort, wie); }   // de zak heeft alleen nog gemeden regels: opnieuw schudden
+  if (kies < 0) kies = zak.length - 1;
   const idx = zak.splice(kies, 1)[0];
   c.laatsteIndex[sleutel] = idx;
   const tekst = pool[idx];

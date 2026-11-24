@@ -11,7 +11,9 @@ import { stopBericht, drillFor, newDrill, stepDrill, drillScore, drillStatus, sf
 import { buildDrillProps } from './voetbaltraining3d.js';
 import { kitOn, kitOff } from './footballkitlive.js';
 
-// De uitvoering van de trainingsminigames (#1109): een korte oefening op het gras naast je, met de props uit voetbaltraining3d.js en de regels uit voetbaltraining.js.
+// De uitvoering van de trainingsminigames (#1109): een korte oefening op het trainingsveld van je club, met de props uit voetbaltraining3d.js en de regels uit voetbaltraining.js.
+// Beeld 24-11: de oefening lag "op het gras naast je", ook als je op straat of in huis stond: hoepels door de gevel, de speler in de woonkamer. Nu gaat de speler naar het
+// trainingsveld van zijn club (of het hoofdveld; zoals de wedstrijd hem naar het park zet) en loopt de oefening langs de lengteas van dat veld. Alleen zonder bekend veld nog naast je.
 // Hij leeft als "extra activiteit" in activities.js (de speler staat stil terwijl de oefening loopt) maar staat niet in de lijst met spelplekken: je start hem in het kindscherm
 // Voetbal > Training. Samen spelen: lokaal en per speler (een gast krijgt de snelle training zonder oefening); de beloning is alleen groei van je eigen speler, nooit verlies.
 // Bediening: A D (W S) of de pijltjes of de linkerstick, SPATIE of de A-knop van de controller, Esc of B stopt zonder beloning. `window.__voetbaltraining` debug.
@@ -28,6 +30,16 @@ const heldKeys = (input) => {
 };
 const toWorld = (g, x, z) => { const c = Math.cos(g.heading), s = Math.sin(g.heading); return { x: g.origin.x + c * x - s * z, y: g.origin.y + s * x + c * z }; };
 
+// Het veld van de oefening: het eerste trainingsveld van de club, anders zijn hoofdveld; de oefening loopt langs de lengteas (r, zoals pitchPlacement in voetbalparken.js).
+// Null bij de terugval zonder parkdata (die plekken liggen niet op de kaart): dan naast de speler.
+export function trainingField(c, getClub = V.getClub, echteKaart = V.getIndex().plaatsen.length > 8) {
+  const club = echteKaart && c && c.club ? getClub(c.club) : null;
+  if (!club || !club.placeId) return null;
+  const v = (club.trainingsvelden && club.trainingsvelden[0]) || club.park;
+  return v && Number.isFinite(v.x) && Number.isFinite(v.y) ? { x: v.x, y: v.y, heading: (Number.isFinite(v.r) ? v.r : 0) - Math.PI / 2 } : null;
+}
+const groundAt = (w, x, y) => { try { const r = w.map.surfaceAt(x, y, { z: 0, ribbon: null }); return r && Number.isFinite(r.z) ? r.z : null; } catch (e) { return null; } };
+
 function launchExercise(w, focus) {
   if (game || !w) return false;
   const c = V.getCareer();
@@ -36,10 +48,13 @@ function launchExercise(w, focus) {
   if (!C.hasCareer(c) || !drill) return false;
   if (!O.canTrain(c, c.day - c.seasonStart)) { if (w.addMessage) w.addMessage(c.injury ? c.injury.text : 'Vandaag al getraind of gespeeld', 3); return false; }
   if (w.coopRole === 'client' || p.inVehicle || p.swimming) { V.trainNow(w, focus, 0.8); return true; }   // een gast traint lokaal zonder oefening
-  const heading = (Number.isFinite(p.angle) ? p.angle : 0) - Math.PI / 2;
+  const veld = trainingField(c);
+  if (veld) { p.x = veld.x; p.y = veld.y; p.vx = p.vy = 0; }
+  const heading = veld ? veld.heading : (Number.isFinite(p.angle) ? p.angle : 0) - Math.PI / 2;
+  const grond = veld ? groundAt(w, veld.x, veld.y) : null;
   const seed = (c.day | 0) * 31 + (c.seasonNr | 0);
   const state = newDrill(drill.id, seed);
-  game = { w, drill, state, focus, phase: 'intro', t: INTRO_S, heading, origin: { x: p.x, y: p.y }, ground: Number.isFinite(p.z) ? p.z : 0, cam: null, dt: 1 / 60, prevAct: false, flash: drill.kort, bad: false, score: null, input: { ax: 0, ay: 0, act: false, press: false, rel: false } };
+  game = { w, drill, state, focus, phase: 'intro', t: INTRO_S, heading, origin: { x: p.x, y: p.y }, ground: Number.isFinite(grond) ? grond : Number.isFinite(p.z) ? p.z : 0, cam: null, dt: 1 / 60, prevAct: false, flash: drill.kort, bad: false, score: null, input: { ax: 0, ay: 0, act: false, press: false, rel: false } };
   kitOn(w, { mode: 'training' });   // trainingsshirt met hesje (voetbalkleding 22-11); end() geeft de eigen kleren terug
   props = buildDrillProps(THREE, state, game.origin, heading, game.ground);
   try { getScene().add(props.group); } catch (e) { /* zonder scène geen props: de oefening loopt gewoon */ }

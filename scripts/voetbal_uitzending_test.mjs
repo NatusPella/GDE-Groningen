@@ -2,6 +2,7 @@
 // De aanvullende spelregels (kaarten, blessures, wissels, strafschoppen, buitenspel), het commentaar (afwisselend, niet herhalend, 200+ regels), de TV-regie (camera en herhaling) en de
 // presentatie (rustpauze, eindsamenvatting, Man van de match, opstelling). Geen THREE, geen DOM, geen Electron.
 import assert from 'node:assert/strict';
+import fs from 'node:fs';
 import { PITCH, zetFormaat, richtingVan } from '../game/js/voetbalrules.js';
 import { makeMatch, tikWedstrijd, setupResume, snapVoetbal, leesLiveVoetbal, makeFootballMirror, voerInVoetbal } from '../game/js/voetbalmatch.js';
 import { DEFAULT_RULES, NO_RULES, cleanRules, penaltySpot, judgeFoul, pasBeoordelingToe, substitute, rustWissels, blessureWissels, offsideAtKick, matchMvp, statistiekenVan, speelMinuut } from '../game/js/voetbalextrarules.js';
@@ -335,6 +336,7 @@ t('presentatie: opstelling, rustpauze en eindsamenvatting met Man van de match',
   const em = eindModel(m), eind = eindHtml(m);
   assert.ok(em.mvp && eind.includes('Man van de match') && eind.includes(m.spelers[em.mvp.id].naam.replace(/&/g, '&amp;')) && ['Gewonnen', 'Verloren', 'Gelijkspel'].includes(em.uitslag));
   assert.ok(eind.includes('Eindsignaal'));
+  assert.ok(op.includes('Aftrap in de Euroborg'), 'zonder plek: de Euroborg'); assert.ok(opstellingHtml(m, 'op het sportpark in <Ten Boer>').includes('Aftrap op het sportpark in &lt;Ten Boer&gt;'), 'een park: de plaats, ontsnapt');
   const spiegel = makeFootballMirror({ deeln: [{ slot: 0, naam: 'Jij' }] }, 0, { formaat: 'groot' });
   assert.equal(eindModel(spiegel).mvp, null, 'een gast heeft geen statistieken (die zijn van de host)'); assert.ok(!eindHtml(spiegel).includes('vbtv-stats'));
 });
@@ -382,6 +384,45 @@ t('#1110: een verborgen kaart van de tv-laag blijft verborgen (geen lege witte b
   // .vbtv-paneel.ds-z-kaart zet display: grid; de verbergregel moet zwaarder wegen dan die twee klassen
   assert.match(css, /\.vbtv \.ds-z-kaart\[hidden\][^{]*\{\s*display:\s*none/);
   assert.match(css, /\.vbtv-paneel\.ds-z-kaart\s*\{[^}]*display:\s*grid/);
+});
+
+t('derby (#1114): wie in team 1 speelt kijkt vanaf de andere kant en zijn stick draait mee, vooruit is naar het doel van de tegenstander', () => {
+  const m = makeMatch([{ slot: 0, naam: 'Jij' }], { duur: 'kort', seed: 32, formaat: 'groot' }); tot(m, 'spel', 30);
+  m.bal.x = 6; m.bal.y = 12;
+  const mir = (q) => ({ ...q, x: -q.x, y: -q.y });
+  for (const shot of ['speler', 'hoog']) {
+    const a = cameraVoor(shot, m, 4, 5, { team1: true }), b = cameraVoor(shot, { ...m, bal: mir(m.bal), spelers: m.spelers.map(mir) }, 4, 5, {});
+    assert.deepEqual([a.pos.x, a.pos.y, a.pos.z, a.at.x, a.at.y], [-b.pos.x, -b.pos.y, b.pos.z, -b.at.x, -b.at.y], shot);
+    const gewoon = cameraVoor(shot, m, 4, 5, {});
+    assert.ok(Math.sign(a.at.y - a.pos.y) === -Math.sign(gewoon.at.y - gewoon.pos.y), shot + ': de kijkrichting is omgedraaid');
+  }
+  assert.deepEqual(cameraVoor('zijlijn', m, 4, 5, { team1: true }), cameraVoor('zijlijn', m, 4, 5, {}), 'een tv-shot blijft gewoon');
+  // dezelfde stick (vooruit) brengt een mens in team 0 en een in team 1 elk naar het doel van de tegenstander
+  for (const team of [0, 1]) {
+    const d = makeMatch([{ slot: 0, naam: 'Jij', team }], { duur: 'kort', seed: 9, formaat: 'groot' }); tot(d, 'spel', 30);
+    const me = d.spelers[d.mensen[0].ctl], y0 = me.y;
+    for (let i = 0; i < 40; i++) tikWedstrijd(d, DT, () => ({ mx: 0, my: -1, buttons: 0 }));
+    assert.ok((me.y - y0) * richtingVan(team) > 1, `team ${team}: ${y0.toFixed(1)} naar ${me.y.toFixed(1)}`);
+  }
+});
+
+t('commentaar op een sportpark (beeld 24-11): geen regel over de Euroborg, en geen over de Stadjers als die niet spelen', () => {
+  for (let seed = 1; seed <= 40; seed++) {
+    const c = makeCommentaar({ seed, teams: ['Dorkwerd', 'Roodehaan'], ids: ['lc1', 'lc2'], buiten: true });
+    const regels = [];
+    for (const ev of [{ type: 'aftrap', team: 0 }, { type: 'goal', team: 0, speler: 3 }, { type: 'fluit', helft: 1 }, { type: 'goal', team: 1, speler: 14 }, { type: 'einde', winnaar: 0 }]) regels.push(...commentaarVoor(c, ev, { helft: 1, score: [1, 0], naamVan: () => 'Aart' }));
+    for (const r of regels) assert.ok(!/Euroborg|Stadjers/.test(r.tekst), r.tekst);
+  }
+  const thuis = makeCommentaar({ seed: 1, teams: ['Stadjers', 'Wadlopers'], ids: ['stadjers', 'wadlopers'] });
+  assert.equal(thuis.mijd, null, 'in de Euroborg met de Stadjers mag alles');
+});
+
+t('stijl: de gespiegelde kolom van de opstelling geeft de rol niet de smalle kolom (#1110, 24-11: "KeepeAart" liep over de naam)', () => {
+  const css = fs.readFileSync(new URL('../game/js/voetbaltv.css', import.meta.url), 'utf8');
+  const thuis = /\.vbtv-kolom li \{[^}]*grid-template-columns:\s*([^;]+);/.exec(css), uit = /\.vbtv-kolom--uit li \{[^}]*grid-template-columns:\s*([^;]+);/.exec(css);
+  assert.ok(thuis && uit, 'beide kolommen hebben een raster');
+  assert.equal(uit[1].trim(), thuis[1].trim(), 'rtl spiegelt de volgorde al: dezelfde kolommen als thuis');
+  assert.match(css, /\.vbtv-kolom--uit li \{[^}]*direction:\s*rtl/);
 });
 
 console.log(`voetbal_uitzending_test ok (${n} groepen)`);

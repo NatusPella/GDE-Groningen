@@ -122,7 +122,7 @@ export function nextMatch(c, getClub) {
   else { const ko = ev.kind === 'cup' ? c.cup : c.europe; const tie = S.myTie(ko, c.club); if (tie) { opp = tie.opponent; isHome = tie.isHome; } }
   if (!opp) return null;
   const myClub = getClub(c.club), oppClub = getClub(opp), venue = isHome ? myClub : oppClub;
-  const park = venue && venue.stadion ? { stadium: venue.stadion } : venue && venue.park ? { park: venue.park } : {};
+  const park = venue && venue.stadion ? { stadium: venue.stadion } : venue && venue.park ? { park: venue.park, parkPlaats: venue.plaats || null } : {};
   const travelDays = !isHome && venue && venue.park && myClub && myClub.park && Math.hypot(venue.park.x - myClub.park.x, venue.park.y - myClub.park.y) > NEAR_TRIP_M ? 2 : 1;
   return { ev, opponent: opp, opponentName: nameOf(getClub, opp), isHome, ...park, status: A.eventStatus(ev, rel(c), travelDays), travelDays, in: A.daysUntil(ev, rel(c)), canPlay: !c.injury, kind: ev.kind, n: ev.n };
 }
@@ -401,6 +401,28 @@ export function summary(c, getClub) {
   return {
     club: nameOf(getClub, c.club), clubId: c.club, division: st.division, divisionName: { kroon: 'Kroonklasse', terp: 'Terpklasse', talent: 'Talentenklasse' }[st.division], rank: mine ? mine.plek : 0, points: mine ? mine.p : 0, round: st.round,
     season: c.seasonNr, day: rel(c), next: nextMatch(c, getClub), level: levelOf(c), rating: myRating(c), form: O.formFactor(c.history), formArrow: O.formArrow(O.formFactor(c.history)), fatigue: c.fatigue, injury: c.injury,
+  };
+}
+
+// De rij in Te doen (#1110): club, stand en de volgende wedstrijd, met als doel het park waar hij gespeeld wordt (thuis het eigen park, uit dat van de tegenstander)
+// of de Euroborg (`arena` = { x, y } van de spelerspoort). Zonder carrière geen rij. Puur: todo.js zet hem in de lijst.
+export function todoRow(c, getClub, arena = null) {
+  const ov = summary(c, getClub);
+  if (!ov) return null;
+  const m = ov.next;
+  const plek = m && m.park ? { x: m.park.x, y: m.park.y, naam: m.parkPlaats ? `Sportpark ${m.parkPlaats}` : 'Sportpark' } : m && m.stadium && arena ? { x: arena.x, y: arena.y, naam: 'Euroborg' } : null;
+  const wat = m ? `${A.KIND_NAMES[m.kind]}${m.kind === 'league' ? ` ronde ${m.n}` : ''} tegen ${m.opponentName} (${m.isHome ? 'thuis' : 'uit'})` : 'Pauze tussen de seizoenen';
+  const wanneer = !m ? '' : m.status === 'open' ? 'nu te spelen' : m.status === 'missed' ? 'voorbij: de club rekent hem uit' : A.dayText(m.in);
+  return {
+    key: 'vc:carriere', group: 'loopbanen', icon: 'act-voetbal', title: `Voetbal: ${ov.club}`, status: m && m.status === 'open' ? 'nu' : '', medal: null,
+    meta: wanneer ? `${wat} · ${wanneer}` : wat, record: `${ov.divisionName}, plek ${ov.rank}`,
+    x: plek ? plek.x : undefined, y: plek ? plek.y : undefined,
+    goal: plek ? { kind: 'place', id: 'voetbal:' + (m.isHome ? ov.clubId : m.opponent), name: `Voetbal · ${plek.naam}`, sub: m.isHome ? 'Thuiswedstrijd' : 'Uitwedstrijd', x: plek.x, y: plek.y } : null,
+    detail: {
+      kicker: `Voetbal · seizoen ${ov.season}`,
+      text: 'Start de wedstrijd in het Voetbal-scherm onder Loopbanen of laat hem uitrekenen. Het doel wijst naar het park waar hij gespeeld wordt.',
+      rows: [['Club', ov.club], ['Stand', `${ov.divisionName}, plek ${ov.rank} met ${ov.points} punten`], ['Volgende', m ? `${wat}${wanneer ? `, ${wanneer}` : ''}` : wat], ...(plek ? [['Waar', plek.naam]] : [])],
+    },
   };
 }
 
