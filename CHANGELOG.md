@@ -9,6 +9,7 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ## [Unreleased]
 
+- Minimap: tijdens een voetbalwedstrijd toont hij het veld (lijnen, doelen, strafschopgebieden, beide ploegen in hun clubkleuren, de bal en jouw pijl; je valt altijd omhoog aan), bij padel de baan met net en glazen wanden, bij karten alleen het circuit met start/finish en de karts. Eindigt het spel (ook afbreken of sterven) dan staat de wereldkaart er weer; de volledige kaart (M) blijft de wereldkaart. Samen spelen: iedereen ziet zijn eigen lokale kaart met zijn mede- en tegenspelers als stippen; wie niet meedoet ziet de wereldkaart.
 - Garage: "Nog 55 te ontdekken" is een lege tegel in het raster (met een stippelrand, even groot als een voertuigkaart) in plaats van een losse regel naast je eerste auto. Samen spelen: per speler.
 - Prestaties: de kop heet "Je stand" (niet nog een keer Prestaties) en herhaalt "0 van 238 behaald" niet meer in een zin en een tweede balk; de vier getallen en de balk bovenaan blijven. Samen spelen: per speler.
 - Samen spelen: de vraag of je meedoet is een gewone kaart met de vraag als kop en de knoppen op één regel; Ja is de gele knop, Nee secundair (eerst waren het twee gele knoppen onder elkaar in een gestippeld vak). Het naamveld voor Samen spelen herhaalt zijn label niet meer als voorbeeldtekst ("Zo zien de anderen je") en de knop Toetsenbord staat naast het veld. Samen spelen: ieder ziet en beantwoordt de eigen vraag.
