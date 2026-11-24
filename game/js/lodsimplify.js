@@ -165,3 +165,23 @@ function expand(g) {
   for (let i = 0; i < I.length; i++) for (let a = 0; a < 3; a++) { pos[i * 3 + a] = P[I[i] * 3 + a]; if (col) col[i * 3 + a] = C[I[i] * 3 + a]; }
   return { position: pos, color: col, index: null };
 }
+
+// Een niveau dat dicht bij een doel in driehoeken uitkomt (24-11, voor zware voertuigen en treinen): per groep vertexclustering met één celgrootte
+// (een deel van de grootste maat) die in kleine stappen grover wordt, tot het hele model onder het doel blijft en het silhouet nog klopt.
+// Geeft { geom: { position, color, index: null }, groups, tris } of null als het doel niet te halen is zonder het silhouet te verliezen.
+export function simplifyToTarget(position, color, groups, doel, keepBox = 0.9) {
+  const box = bboxOf(position), size = Math.max(box[3] - box[0], box[4] - box[1], box[5] - box[2]) || 1;
+  for (let f = 0.004; f <= 0.12; f *= 1.05) {
+    const pos = [], col = [], gr = [];
+    for (const g of groups) {
+      const sub = { position: position.subarray(g.start * 3, (g.start + g.count) * 3), color: color.subarray(g.start * 3, (g.start + g.count) * 3), index: null };
+      const o = simplifyClustered(sub, size * f);
+      gr.push({ start: pos.length / 3, count: o.position.length / 3, materialIndex: g.materialIndex });
+      for (const v of o.position) pos.push(v);
+      for (const v of o.color) col.push(v);
+    }
+    if (!silhouetteKept(box, bboxOf(pos), keepBox)) return null;
+    if (pos.length / 9 <= doel) return { geom: { position: new Float32Array(pos), color: new Float32Array(col), index: null }, groups: gr.filter((x) => x.count), tris: pos.length / 9 };
+  }
+  return null;
+}

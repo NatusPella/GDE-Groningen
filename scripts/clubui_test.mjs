@@ -9,6 +9,7 @@ import * as C from '../game/js/voetbalcarriere.js';
 import * as V from '../game/js/voetbalcarrierelive.js';
 import * as L from '../game/js/loopbaanlive.js';
 import * as U from '../game/js/clubui.js';
+import * as KIT from '../game/js/footballkit.js';
 
 let n = 0;
 const t = (naam, f) => { try { f(); n++; } catch (e) { console.error('FAIL', naam); throw e; } };
@@ -20,10 +21,10 @@ const wereld = (money = 50000) => ({ money, clock: 12, msgs: [], addMessage(x) {
 
 t('zonder carrière en voor het eerste aandeel: een uitleg, geen leeg scherm', () => {
   const a = U.clubHtml({ career: C.newCareer(), money: 5000, getClub });
-  assert.match(a, /Club/); assert.match(a, /nog geen voetbalcarrière/);
+  assert.match(a, /Club/); assert.match(a, /[Nn]og geen voetbalcarrière/);
   const c = V.createNew(wereld(), 'anita');
   const b = U.clubHtml({ career: c, money: 5000, getClub });
-  assert.match(b, /3\.000/); assert.ok(!/data-cl=/.test(b), 'nog geen knoppen');
+  assert.match(b, /3\.000/); assert.ok(!/data-cl="(koop|verkoop)"/.test(b), "nog geen koopknoppen"); assert.match(b, /Aandeel kopen: nog dicht/);
 });
 
 t('na de ontgrendeling: koopknoppen voor de eigen club, uit als het geld er niet is; een tweede druk voor een koop', () => {
@@ -78,6 +79,28 @@ t('de menuregels: het tabblad staat in het pausemenu en de bezit-koppeling kent 
   assert.ok(menu.includes("['club', 'Club']") && menu.includes('data-of="boerderij" data-sub="club"'));
   assert.equal((menu.match(/club: q\('club'\)/g) || []).length, 2, 'beide renderplekken geven het paneel mee');
   assert.ok(fs.readFileSync(new URL('../game/js/bezitui.js', import.meta.url), 'utf8').includes('if (els.club) renderClubPanel(els.club, world)'));
+});
+
+
+t('Club-UI: het tenue als eigen kaart, sponsors aannemen, en het stadion alleen uit echte data', () => {
+  const c = V.getCareer();
+  const kit = U.clubView(wereld(), { career: c }).kit;
+  const h = U.clubHtml({ career: c, money: 100, getClub, kit });
+  assert.match(h, /Tenue/); assert.match(h, /data-cl="kitvar" data-id="thuis" aria-checked="true"/); assert.match(h, /data-cl="kitnum"/); assert.match(h, /aria-disabled="true" title="Een derde tenue krijg je vanaf Prof"/);
+  assert.match(h, /data-kit-shirt="/); assert.match(h, /Wapen en kleuren/);
+  const club = getClub(c.club);
+  assert.ok(!/Stadion en trainingsveld/.test(U.clubHtml({ career: c, money: 1, getClub: () => ({ ...club, park: null, trainingsvelden: [], stadion: null }) })), 'geen data, geen vlak');
+  const metData = U.clubHtml({ career: c, money: 1, getClub: () => ({ ...club, park: { f: 3 }, trainingsvelden: [{}, {}], stadion: null, plaats: 'Haren' }) });
+  assert.match(metData, /Stadion en trainingsveld/); assert.match(metData, />3<[^]*velden op het park in Haren/); assert.match(metData, />2<[^]*trainingsvelden erbij/);
+  assert.ok(!/plaatsen|capaciteit|tribune/i.test(metData), 'geen verzonnen aantallen');
+  const slot = c.sponsors.slots.find((x) => !x.accepted);
+  assert.ok(slot && new RegExp('data-cl="sponsor" data-id="' + slot.id + '"').test(h));
+  U.clubAct(wereld(), { cl: 'sponsor', id: slot.id });
+  assert.ok(V.getCareer().sponsors.slots.find((x) => x.id === slot.id).accepted); assert.equal(U.cui.msg, 'Sponsor getekend.');
+  U.clubAct(wereld(), { cl: 'kitvar', id: 'uit' }); assert.equal(KIT.kitChoice(V.getCareer()).variant, 'uit');
+  U.clubAct(wereld(), { cl: 'kitnum', id: '1' }); assert.equal(KIT.kitChoice(V.getCareer()).number, KIT.kitChoice(c).number + 1);
+  const gelukt = U.clubHtml({ career: V.getCareer(), money: 100, getClub });
+  assert.match(gelukt, /vb-sponsor vb-sponsor--aan/); assert.match(gelukt, /✓ Aangenomen/);
 });
 
 console.log(`clubui_test ok (${n} groepen)`);

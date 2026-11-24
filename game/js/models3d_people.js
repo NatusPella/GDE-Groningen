@@ -4,7 +4,7 @@ import { hash2 } from './rng.js';
 import { weaponLayers } from './models3d_weapons.js';
 import { footContact, turnLean, approachTo, wrapPi, fidgetAt, blinkAmount } from './gait.js';
 import { twoBoneIK, twoBoneFK, armIK, armFK, footPlant, wheelGrip, mouthShape, STEER_TURN } from './actorlife.js';
-import { animateModular, plantFeetModular, modularSeatContact, buildModularFromAppearance, modularReady, modularHandSocket, MODULAR_GRIP_AT, modularAttackPose, modularHoldPose, setModularGrip } from './modularpeople.js';
+import { animateModular, plantFeetModular, modularSeatContact, buildModularFromAppearance, modularReady, modularHandSocket, MODULAR_GRIP_AT, modularAttackPose, modularHoldPose, setModularGrip, modularReach, modularTurn, modularSetState, modularPlaceProp, modularHandPoint, setModularMood } from './modularpeople.js';
 import { idlePose } from './idleclips.js';
 import { attachAccessories } from './models3d_clothing.js';
 import { buildHairStyle } from './models3d_hair.js';
@@ -1185,10 +1185,12 @@ function pedalIK(group, k) {
   const ud = group.userData;
   const ph = (bike.pedalPhase || 0) + (k === 0 ? 0 : Math.PI);
   const sx = group.scale.x || 1, sy = group.scale.y || 1, lean = group.rotation.z;
-  const px = BIKE_BB.x + Math.cos(ph) * CRANK - group.position.x;
-  const py = BIKE_BB.y + Math.sin(ph) * CRANK + 0.07 - group.position.y - HIP_Y * sy;
+  // de rijder kantelt om zijn voeten (rotation.z = lean): eerst het pedaal in zijn eigen assen, dan pas de heup eraf
+  const bb = bike.riderLegs.bb || BIKE_BB; // de bakfiets heeft zijn trapas verder naar achteren
+  const px = bb.x + Math.cos(ph) * CRANK - group.position.x;
+  const py = bb.y + Math.sin(ph) * CRANK + 0.07 - group.position.y;
   const c = Math.cos(-lean), s = Math.sin(-lean);
-  legIK(k === 0 ? ud.legL : ud.legR, k === 0 ? ud.kneeL : ud.kneeR, (px * c - py * s) / sx, (px * s + py * c) / sy);
+  legIK(k === 0 ? ud.legL : ud.legR, k === 0 ? ud.kneeL : ud.kneeR, (px * c - py * s) / sx, (px * s + py * c) / sy - HIP_Y);
   return true;
 }
 
@@ -1259,12 +1261,38 @@ export function personPalette(shirt, skin, seed) {
 // kledingkast, het pashokje, het winkelvoorbeeld en bij medespelers. scene3d.js zet dit aan; zonder rigs blijft het procedureel.
 let modularPlayers = false;
 export function setModularPlayerLooks(on) { modularPlayers = !!on; }
+// De opties van buildPersonMesh als appearance voor de modulaire mens: de rol (clothing.js) geeft kleding, het zaad geslacht en maat.
+const hashS = (seed, k) => { const x = Math.sin(seed * 12.9898 + k * 78.233) * 43758.5453; return x - Math.floor(x); };
+function modularOptsFor(shirt, skin, opts) {
+  if (opts.character || opts.speler) return { ...opts, shirt, skin };
+  const seed = opts.seed !== undefined ? opts.seed : Math.floor(((shirt >>> 0) * 31 + (skin >>> 0)) % 9973);
+  const a = { ...opts, shirt, skin, seed, vary: true, skinVary: opts.skinVary ?? !!opts.role, variant: opts.variant || (hashS(seed, 1) < 0.5 ? 'female' : 'male') };
+  const cop = a.cop || shirt === 0x1c3fae || shirt === 0x1f3f8f;
+  if (opts.role && !opts.look && !cop) {
+    const old = hashS(seed, 23) < 0.2;
+    const n = npcLook(seed, opts.role, { ...(opts.outfitCtx || {}), hair: true, body: !opts.body, old }, {});
+    Object.assign(a, { shirt: n.shirt ?? shirt, pants: a.pants ?? n.pants, shoes: a.shoes ?? n.shoes, hair: a.hair ?? n.hair, hairStyle: a.hairStyle ?? n.hairStyle, body: a.body ?? n.body, look: { ...n.look, ...(old ? { age: 'old' } : {}) } });
+  }
+  return a;
+}
+// Telling van de procedurele mensen die er tijdens het spel nog bij komen terwijl de modulaire de standaard zijn (audit: personages2_wereld.js,
+// scripts/ui): per aanroeper het aantal en de reden. Alleen zwemkleding en opts.procedural horen er expres te zijn en tellen niet mee.
+const proceduralLog = new Map();
+function noteProcedural(opts, reden) {
+  const st = (new Error().stack || '').split(/\r?\n/).map((l) => l.trim()).filter((l) => l.startsWith('at ') && !/models3d_people\.js/.test(l));
+  const k = reden + ' | ' + (st[0] || '?').replace(/^at /, '').replace(/^.*[\\/]/, '').slice(0, 80);
+  proceduralLog.set(k, (proceduralLog.get(k) || 0) + 1);
+}
+export const proceduralStats = () => Object.fromEntries(proceduralLog);
 export function buildPersonMesh(shirt, skin, opts = {}) {
   // de speler (character) en de figuur van een medespeler (speler: coopspeler.js avatarLook, uit zijn kledingcode) worden in de spelerfase een modulaire mens
-  if (modularPlayers && opts && (opts.character || opts.speler) && !opts.swim && modularReady()) {
-    const q = buildModularFromAppearance({ ...opts, shirt, skin });
+  // en iedere andere figuur van de wereld (voorbijgangers, wachtenden, publiek, spelers van minigames, chauffeurs): ook modulair, met
+  // lengte, bouw en kleding uit het zaad en de rol. Alleen zwemkleding en opts.procedural blijven het eigen model.
+  if (modularPlayers && opts && !opts.swim && !opts.procedural && modularReady()) {
+    const q = buildModularFromAppearance(modularOptsFor(shirt, skin, opts));
     if (q) return q;
-  }
+    noteProcedural(opts, 'geen modulaire look');
+  } else if (modularPlayers && opts && !opts.swim && !opts.procedural) noteProcedural(opts, 'rigs niet geladen');
   const L = resolveLook(shirt, skin, opts);
   L.topColor = L.cop ? COP_NAVY : shirt;
   L.skirtColor = L.pants;
@@ -1391,6 +1419,7 @@ export function buildPersonMesh(shirt, skin, opts = {}) {
 
   group.scale.set(L.buildScale, L.heightScale, L.buildScale);
   if (opts.seed !== undefined) ud.lookSeed = opts.seed;
+  if (opts.swim || opts.procedural) ud.procedureelBewust = opts.swim ? 'zwemkleding' : 'opts.procedural';   // audit: dit blijft het eigen model, expres
   return group;
 }
 
@@ -2423,12 +2452,174 @@ const _uq = new THREE.Quaternion();
 // Shaft leans back and in so the canopy centres over the head.
 const UMBRELLA_TILT = new THREE.Quaternion().setFromEuler(new THREE.Euler(-0.06, 0, 0.17));
 
+// ---- houdingen van modulaire voorbijgangers (ADR 0051): zitten, bellen, praten, hurken, vissen, sjouwen, een kraam, muziek ---------------
+// De state-machine kiest de basis (zitten = de zit-clip, hurken = de hurkclip, praten = idle met gebaren); de armen volgen daarna met IK
+// naar punten in de assen van de mens (x voor, y omhoog, z naar rechts, ongeschaald), met een prop in de hand waar het hoort. Geen pose
+// zonder basis: wat geen eigen clip heeft blijft in rust met de ademhaling van de clip, nooit een stijve T-pose.
+const POSE_SIT = new Set(['sit', 'fish']);
+const MP_PHONE_GEO = markShared(new THREE.BoxGeometry(0.145, 0.019, 0.068));
+const _mpw = new THREE.Vector3();
+function modularProp(ud, key, mk) {
+  let m = ud.qProps && ud.qProps[key];
+  if (!m) { m = mk(); (ud.qProps || (ud.qProps = {}))[key] = m; }
+  m.visible = true;
+  return m;
+}
+function modularPropsOff(ud) { if (ud.qProps) for (const k in ud.qProps) ud.qProps[k].visible = false; }
+function modularPosed(mesh, ud, pose, speed, dt) {
+  if (pose) {
+    const p = ud.qPoseP || (ud.qPoseP = { seated: false, talk: false });
+    const t0 = performance.now() / 1000 + (ud.animOffset || 0);
+    p.seated = POSE_SIT.has(pose);
+    p.talk = pose === 'talk' || pose === 'angry' || (pose === 'vendor' && Math.sin(t0 * 0.35) > 0.2);
+    if (!ud.qParams || ud.qParams === p) ud.qParams = p;
+    if (pose === 'crouch') { ud.crouch = true; ud.qPoseCrouch = true; }
+    if (ud.qPosed !== pose && p.seated && !ud.qPosed) modularSetState(mesh, 'sit');   // geen opstaan-en-zitten bij het verschijnen
+    ud.qPosed = pose;
+    // de uitdrukking volgt de situatie: lachen bij praten, mokken bij boos
+    if (ud.qLod === 0) { const m = pose === 'talk' || pose === 'muziek' ? 'vrolijk' : pose === 'angry' ? 'mokkend' : null; if (m) setModularMood(mesh, m); else if (ud.qMoodBase) setModularMood(mesh, ud.qMoodBase); }
+  } else {
+    ud.qPosed = null;
+    if (ud.qMoodBase) setModularMood(mesh, ud.qMoodBase);
+    if (ud.qParams === ud.qPoseP) ud.qParams = null;
+    if (ud.qPoseCrouch) { ud.crouch = false; ud.qPoseCrouch = false; }
+    modularPropsOff(ud);
+  }
+  animateModular(mesh, pose ? 0 : speed, dt);
+  if (!pose) return;
+  if (ud.qLod > 0) { modularPropsOff(ud); return; }   // vanaf het eerste LOD-niveau (25 m): de basis van de houding, zonder IK en props
+  mesh.updateMatrixWorld(true);
+  modularPoseArms(mesh, ud, pose, 1);
+  mesh.updateMatrixWorld(true);
+}
+// De armen en props van een houding, met gewicht k (0..1: 1 bij een vaste houding, een verloop bij een alledaags gebaar).
+function modularPoseArms(mesh, ud, pose, k) {
+  const t = performance.now() / 1000 + (ud.animOffset || 0);
+  const R = (at, w = 1, pole) => modularReach(mesh, 'R', at, w * k, pole), L = (at, w = 1, pole) => modularReach(mesh, 'L', at, w * k, pole);
+  const turn = (n, a) => modularTurn(mesh, n, a * k);
+  const sw = (a, f, o = 0) => Math.sin(t * f + o) * a;
+  if (pose !== 'phone' && pose !== 'call' && ud.qProps && ud.qProps.phone) ud.qProps.phone.visible = false;
+  if (pose !== 'fish' && !/^hengel/.test(pose)) if (ud.qProps && ud.qProps.rod) ud.qProps.rod.visible = false;
+  if (pose !== 'muziek') if (ud.qProps && ud.qProps.guitar) ud.qProps.guitar.visible = false;
+  switch (pose) {
+    case 'phone':
+    case 'call':
+    case 'horloge':
+    case 'krabben': {
+      const call = pose === 'call';
+      if (pose === 'horloge') { turn('Head', -0.2); L([0.26, 1.2, -0.12], 1, [0, -1, 0.5]); break; }   // een blik op het horloge
+      if (pose === 'krabben') { turn('Head', 0.05); R([0.04, 1.62, 0.1], 1, [0, -1, 0.9]); break; }   // even achter het hoofd krabben
+      turn('Head', call ? 0.05 : -0.32 + sw(0.03, 0.9));
+      R(call ? [0.07, 1.57, 0.13] : [0.3, 1.24 + sw(0.01, 1.3), 0.05], 1, [0, -1, 0.9]);
+      if (call) L([0.1, 0.96, -0.2], 0.6, [0, -1, 0.6]);
+      const ph = modularProp(ud, 'phone', () => new THREE.Mesh(PHONE_GEO, PHONE_MAT));
+      modularPlaceProp(mesh, ph, 'WristR', modularHandPoint(mesh, 'R', _mpw, call ? [0.0, 0.0, 0.03] : [0.0, 0.03, 0.0]), call ? [0, 0, 0.12] : [0, Math.PI / 2, -0.55]);
+      break;
+    }
+    case 'fish':
+    case 'hengel':
+    case 'hengel-uit':
+    case 'hengel-ruk':
+    case 'hengel-haal': {
+      const poseT = Math.max(0, t - (ud.qPoseStart ?? (ud.qPoseStart = t)));
+      if (ud.qPoseName !== pose) { ud.qPoseName = pose; ud.qPoseStart = t; }
+      const h = pose === 'fish' ? null : hengelHouding(pose, Math.max(0, t - ud.qPoseStart));
+      const lift = h ? Math.max(0, Math.min(1.8, h.armR)) : 1.1 + sw(0.03, 1.4);
+      const seated = pose === 'fish';
+      R([0.16 + 0.2 * lift, (seated ? 0.78 : 0.88) + 0.12 * lift, 0.15], 1, [0, -1, 0.8]);
+      L([0.3, (seated ? 0.74 : 0.86) + 0.05 * lift + (pose === 'hengel-haal' ? sw(0.05, 9) : 0), -0.1], 1, [0, -1, 0.8]);
+      const rod = modularProp(ud, 'rod', () => new THREE.Mesh(ROD_GEO, ROD_MAT)), ang = 0.95 + 0.25 * (lift - 1.1);
+      modularPlaceProp(mesh, rod, 'WristR', modularHandPoint(mesh, 'R', _mpw, [-0.3 * Math.sin(ang), -0.3 * Math.cos(ang), 0.0]), [0, 0, -ang]);
+      break;
+    }
+    case 'haul': {
+      // trekken aan een touw: achterover, de handen laag voor je uit, het hele lijf in de ruk
+      const pull = (Math.sin(t * 2.2) + 1) * 0.5;
+      turn('Torso', 0.1 + 0.16 * pull);
+      R([0.5 - 0.1 * pull, 0.86, 0.16], 1, [0, -1, 0.7]);
+      L([0.5 - 0.1 * pull, 0.86, -0.16], 1, [0, -1, 0.7]);
+      break;
+    }
+    case 'angry': {
+      turn('Head', -0.08);
+      R([0.42, 1.78 + sw(0.05, 14), 0.2], 1, [0, -1, 0.8]);
+      L([0.1, 0.98, -0.3], 0.7, [0, -1, 0.9]);
+      break;
+    }
+    case 'vendor': {
+      // handen op het kraam- of krantenblad voor je, en af en toe een gebaar (het praten hierboven)
+      const rest = Math.sin(t * 0.35) <= 0.2 ? 1 : 0.15;
+      R([0.42, 0.98 + sw(0.01, 1.1), 0.2], rest, [0, -1, 0.8]);
+      L([0.42, 0.98 + sw(0.01, 1.7, 2), -0.2], rest, [0, -1, 0.8]);
+      break;
+    }
+    case 'muziek': {
+      const g = modularProp(ud, 'guitar', () => new THREE.Mesh(propGeometry('gitaar'), GUITAR_MAT));
+      mesh.localToWorld(_mpw.set(0.17, 0.9, 0.26));
+      modularPlaceProp(mesh, g, 'Chest', _mpw, [-1.13, 0, 0]);
+      const strum = Math.sin(t * 9);
+      R([0.3, 0.98 + strum * 0.04, 0.2], 1, [0, -1, 0.8]);
+      L([0.58, 1.2, -0.12], 1, [0, -1, 0.8]);
+      break;
+    }
+    default: break;   // sit, talk en crouch: de basis is genoeg
+  }
+}
+
+// Alledaagse gebaren van wie stilstaat (een wachtende, iemand bij een kruispunt): na een tijd stil even de telefoon, een blik op het
+// horloge, achter het hoofd krabben of rondkijken. Per mens een eigen ritme uit het zaad (6 tot 22 s tussen twee gebaren, nooit synchroon),
+// zachtjes erin en eruit (0,4 s), alleen dichtbij (LOD 0) en zonder vaste houding of eigen parameters van een beller.
+const frac = (x) => ((x % 1) + 1) % 1;
+const FIDGETS = [['phone', 6.5, 3], ['horloge', 2.6, 2], ['krabben', 2.2, 2], ['rond', 3.2, 3]];
+function modularFidget(mesh, ud, speed, dt) {
+  const f = ud.qFid || (ud.qFid = { still: 0, next: 6 + 16 * frac(Math.sin((ud.lookSeed || 0) * 12.9898 + 91.7) * 43758.5453), name: null, t: 0, dur: 0, k: 0 });
+  if (speed > 0.15 || ud.qLod > 0 || ud.qParams || ud.qPosed || ud.qInSeat) {
+    if (f.name) { f.name = null; f.k = 0; if (ud.qProps && ud.qProps.phone) ud.qProps.phone.visible = false; }
+    f.still = 0;
+    return;
+  }
+  f.still += dt;
+  if (!f.name) {
+    if (f.still < f.next) return;
+    const pick = FIDGETS[Math.floor(frac(Math.sin(f.still * 7.31 + (ud.lookSeed || 0) * 3.7) * 43758.5453) * FIDGETS.length) % FIDGETS.length];
+    f.name = pick[0]; f.dur = pick[1]; f.t = 0;
+  }
+  f.t += dt;
+  const e = Math.min(1, f.t / 0.4, (f.dur - f.t) / 0.4);
+  f.k = Math.max(0, e) * Math.max(0, e) * (3 - 2 * Math.max(0, e));
+  if (f.t >= f.dur) {
+    f.name = null; f.k = 0; f.still = 0; f.next = 6 + 16 * frac(Math.sin(f.t * 5.17 + (ud.lookSeed || 0)) * 43758.5453);
+    if (ud.qProps && ud.qProps.phone) ud.qProps.phone.visible = false;
+    return;
+  }
+  if (f.name === 'rond') {   // het hoofd langzaam naar links, dan naar rechts
+    const ph = f.t / f.dur;
+    modularTurn(mesh, 'Head', 0);
+    ud.qFidGaze = Math.sin(ph * Math.PI * 2) * 0.9 * f.k;
+    return;
+  }
+  mesh.updateMatrixWorld(true);
+  modularPoseArms(mesh, ud, f.name, f.k);
+  mesh.updateMatrixWorld(true);
+}
+
 // Walk/run cycle plus idle life (breathing, weight shift, glancing around)
 // for a mesh built by buildPersonMesh(). Phase advances with distance;
 // walk/run weights ease in and out so starts and stops blend smoothly.
 export function animatePersonWalk(mesh, speed, dt) {
   const ud = mesh && mesh.userData;
-  if (ud && ud.qRig) { animateModular(mesh, speed, dt); return; } // modulaire mens (modularpeople.js, ADR 0050, fase 1)
+  if (ud && ud.qRig) { // modulaire mens (modularpeople.js, ADR 0050)
+    const src = ud.lookSeed !== undefined && poseSources.size ? poseSources.get(ud.lookSeed) : null;
+    const pose = src && src.state !== 'dead' ? src.pose : null;
+    if (pose || ud.qPosed) modularPosed(mesh, ud, pose || null, speed, dt);
+    else {
+      // rondkijken: de blik van een wachtende (hieronder), bovenop de blik naar de speler (gait.js glanceAt)
+      if (ud.qFidGaze) { if (!(ud.gazeT === ud.gazeT) || ud.gazeT === undefined) ud.gazeT = ud.qFidGaze; ud.qFidGaze = 0; }
+      animateModular(mesh, speed, dt);
+      if (ud.qFidget && (ud.qLod === 0 && speed < 0.15 || (ud.qFid && ud.qFid.name))) modularFidget(mesh, ud, speed, dt);
+    }
+    return;
+  }
   if (!ud || !ud.legL || !ud.legR || !ud.armL || !ud.armR) return;
 
   const s = Number.isFinite(speed) ? Math.max(0, speed) : 0;

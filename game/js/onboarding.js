@@ -146,7 +146,7 @@ export function updateOnboarding(dt, w) {
   if (stepNow !== courseStep) { courseStep = stepNow; if (stepNow && w.stats.missionsDone > 0) course.count = Math.min(course.count, NUDGE.max - 1); }
   const lost = Number.isFinite(courseDist) ? trackCourse(course, w.storyGuide.step || 'doel', courseDist, dt) : (pauseCourse(course), '');
   if (playT < FIRST_AFTER || playT - lastAt < GAP || playT - missionEndT < AFTER_MISSION) return;
-  if (w.health <= 0 || w.pendingRespawn || w.wanted > 0) return;
+  if (w.health <= 0 || w.pendingRespawn || w.wanted > 0 || w.voetbalGame) return;   // tijdens een voetbalwedstrijd spreekt er hoogstens: scorebalk, een melding en de spelerskaart (Club-UI 24-11)
   // after the goal card, and only when nothing else speaks: the same one-at-a-time rule as the lessons
   if (lost && (seen.has('doel') || allSeen)) {
     if (!quiet() || cardsBusy() || !mayStart('card')) return;

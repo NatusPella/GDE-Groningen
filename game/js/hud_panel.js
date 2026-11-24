@@ -109,6 +109,8 @@ import { createNarrator } from './narration.js';
 import { heldBack } from './narrative.js';
 import { isPauseMenuOpen, openPauseMenu } from './pausestate.js';
 import { bindMinimapOpen } from './minimaptap.js'; // #985
+import { activeLocalMap } from './localmap.js'; // 24-11: binnen een veld, baan of circuit toont de minimap die plek
+import { drawLocalMap, resetLocalMapDraw } from './localmapdraw.js';
 let navVorig = null; // het doel dat vorig beeld actief was (navtarget.js HYSTERESE: geen flipperende pijl tussen twee gelijke doelen)
 import { hudExpensiveDue, intervalDue } from './hudgate.js';
 import { isOverlayHeld } from './overlayhold.js';
@@ -3010,7 +3012,7 @@ function drawVillageNames(ctx, player, radius, toScreen) {
 
 // De cadans (#804: dure kaart 20 fps, lichte 30 fps, stilstaand rustig) staat in minimapcadence.js.
 const MAX_POLITIE_ICONEN = 3;
-let mmLastAt = 0, mmCostMs = 0, mmPrev = null, mmSettling = true;
+let mmLastAt = 0, mmCostMs = 0, mmPrev = null, mmSettling = true, mmLokaal = false;
 
 function drawMinimap(dt, world) {
   syncMapPhase(world);
@@ -3028,6 +3030,17 @@ function drawMinimap(dt, world) {
 
   ctx.setTransform(1, 0, 0, 1, 0, 0);
   ctx.clearRect(0, 0, els.mmCanvas.width, els.mmCanvas.height);
+
+  // 24-11 (localmap.js): speelt de speler in een afgebakende plek (voetbalveld, padelbaan, kartcircuit), dan toont de minimap die plek; elke beurt opnieuw gevraagd, dus
+  // zodra de activiteit eindigt (hoe dan ook) staat de wereldkaart er weer. De volledige kaart (M) blijft de wereldkaart.
+  const lokaal = activeLocalMap(world);
+  if (lokaal) {
+    mmSettling = true; // de stippen bewegen: de lichte cadans
+    drawLocalMap(ctx, lokaal, { dt, dpr, maat: MINIMAP_SIZE, beperkt: reducedMotion(), eigen: (c, x, y, h) => drawMiniSpeler(c, x, y, h) });
+    mmLokaal = true;
+    return;
+  }
+  if (mmLokaal) { mmLokaal = false; resetLocalMapDraw(); mmPrev = null; }
 
   const speed = player.inVehicle ? Math.abs(player.inVehicle.speed || 0) : 0;
   mmMode = travelModeOf(world);

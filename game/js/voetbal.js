@@ -5,6 +5,7 @@ import { difficultyRecordKey, cleanDifficulty, footballLevel, footballDuration }
 import { getScene, disposeObject } from './scene3d.js';
 import { buildPersonMesh, animatePersonWalk, TAMMO_APPEARANCE, ANITA_APPEARANCE } from './models3d_people.js';
 import { actorLook } from './footballkit.js';
+import { overlayModularClip } from './modularpeople.js';
 import { kitOn, kitOff, gateKit } from './footballkitlive.js';
 import { levelPattern, levelOfDivision } from './clothingkit.js';
 import { showBanner } from './cinematics.js';
@@ -29,6 +30,8 @@ import { pushAudioEvent } from './pedgeom.js';
 import { sfxEvent } from './sfx/haken.js';
 import { registreerWedstrijd, zetWedGastHaken, wedNodigUit, wedNuStarten, wedLiveTik, wedHostLiveEind, wedGastVerlaat, wedGastReset } from './multiplayerwedstrijd.js';
 import { hoofdspeler } from './players.js';
+import { registerLocalMap } from './localmap.js';
+import { maakVoetbalKaart } from './localmapvelden.js';
 import { KEYS } from './storagekeys.js';
 import {
   PITCH, DUREN, FORMATEN, OPPONENTS, STIJLEN, zetFormaat, formationNames, cleanFormation, cleanStijl, leesVoorkeur, LAAD_S, leesInvoer, recordValue, recordTekst, MEDAILLE_TEKSTEN, voetbalBeloning,
@@ -36,7 +39,7 @@ import {
 import {
   makeMatch, tikWedstrijd, zetTactiek, verlaatVoetbal, uitslagVoetbal, medailleUitRij, liveVoetbal, makeFootballMirror, voerInVoetbal, tikVoetbalSpiegel,
 } from './voetbalmatch.js';
-import { voetbalHudModel, voetbalBoard, popVan, UITLEG_ID } from './voetbalstatus.js';
+import { voetbalHudModel, voetbalBoard, popVan, UITLEG_ID, toetsGroepenHtml } from './voetbalstatus.js';
 import { makeCommentaar, commentaarVoor, tikCommentaar, commentMvp, derbyVan } from './voetbalcommentaar.js';
 import { makeRegie, regieTik, cameraVoor, makeOpname, opnameTik, opnameClip, clipFrame, pasFrameToe, herstelStaat, planHerhaling, herhalingShot, nextMode, MODE_NAMES } from './voetbalregie.js';
 import { magOverslaan, carriereBannerRijen, scoreboardRow, opstellingHtml, rustHtml, eindHtml, radarHtml, subtitleHtml, guestEvents, guestState, leesTvVoorkeur, hex } from './voetbalpresentatie.js';
@@ -280,7 +283,7 @@ function makeActors(sim, kc = null) {
     else {
       const al = actorLook({ ...t, patroon: levelPattern(t.patroon, level) }, { level, role: p.rol, number: p.rol === 'keeper' ? 1 : 2 + (p.i % 20), seed: 9811 + p.id * 13, clubId: t.id || '', name: true, sponsors: p.team === 0 && kc ? kc.sponsors : [] });
       mesh = buildPersonMesh(al.shirt, 0xd9b48f, {
-        variant: vrouw ? 'female' : 'male', seed: 9811 + p.id * 13, pants: al.pants, shoes: al.shoes, shirtBands: al.shirtBands, ...(al.body ? { body: al.body } : {}), ...(al.hairStyle ? { hairStyle: al.hairStyle } : {}), ...(al.hair != null ? { hair: al.hair } : {}),
+        skinVary: true, variant: vrouw ? 'female' : 'male', seed: 9811 + p.id * 13, pants: al.pants, shoes: al.shoes, shirtBands: al.shirtBands, ...(al.body ? { body: al.body } : {}), ...(al.hairStyle ? { hairStyle: al.hairStyle } : {}), ...(al.hair != null ? { hair: al.hair } : {}),
         look: { ...al.look, age: 'adult', umbrella: null },
       });
     }
@@ -671,13 +674,13 @@ function tvTik(w, dt) {
   let paneel = null, hint = null;
   const cardPhase = sim.fase === 'intro' || sim.fase === 'rust' || sim.fase === 'eind' || sim.fase === 'klaar';
   if (cardPhase) {
-    if (g.paneelCache.fase !== sim.fase) g.paneelCache = { fase: sim.fase, html: sim.fase === 'intro' ? opstellingHtml(sim, plekTekst(g)) : sim.fase === 'rust' ? rustHtml(sim) : eindHtml(sim) };
+    if (g.paneelCache.fase !== sim.fase) g.paneelCache = { fase: sim.fase, html: sim.fase === 'intro' ? opstellingHtml(sim, plekTekst(g), { knop: !g.online }) : sim.fase === 'rust' ? rustHtml(sim) : eindHtml(sim) };
     paneel = g.paneelCache.html;
-    hint = g.online ? null : '{F} Doorgaan';
+    hint = g.online || sim.fase === 'intro' ? null : '{F} Doorgaan';
   } else g.paneelCache = { fase: '', html: '' };
   g.radarT -= dt;
   if (g.radarT <= 0) { g.radarT = 0.2; g.radarHtml = cardPhase || g.replay ? null : radarHtml(sim, eigenId(g)); }
-  g.tv.zet({ radar: g.radarHtml, paneel, hint, ondertitel: g.ondertitel ? g.ondertitel.html : null, herhaling: !!g.replay });
+  g.tv.zet({ radar: g.radarHtml, paneel, hint, ondertitel: g.ondertitel && sim.fase !== 'intro' ? g.ondertitel.html : null, herhaling: !!g.replay });
 }
 
 // De herhaling (alleen solo): na een doelpunt (of een grote kans) staat de wedstrijd even stil en zie je de opname van de laatste seconden vanaf de zijlijn en de doelcamera, op 80 procent snelheid.
@@ -793,7 +796,8 @@ function teken(w, dt) {
     a.mesh.rotation.z = p.duikT > 0 ? (p.duikDx || 0) * 1.15 : 0; // de keeper ligt languit (de kantelas is de wereld-z, zoals bij de penaltykeeper)
     a.mesh.position.y = ground + (p.duikT > 0 ? 0.35 : 0);
     if (p.tackleT > 0 || p.stun > 0) a.mesh.scale.y = 0.82; else a.mesh.scale.y = 1;
-    if (p.vier > 0 && ud && ud.armL && ud.armR) { const s = Math.sin(g.t * 9 + p.id); ud.armL.rotation.z = 2.4 + s * 0.4; ud.armR.rotation.z = -2.4 - s * 0.4; }
+    if (p.vier > 0 && ud && ud.qRig) overlayModularClip(a.mesh, 'Wave', (g.t * 0.7 + p.id * 0.13) % 1, 1);   // juichen: de zwaai van het pack
+    else if (p.vier > 0 && ud && ud.armL && ud.armR) { const s = Math.sin(g.t * 9 + p.id); ud.armL.rotation.z = 2.4 + s * 0.4; ud.armR.rotation.z = -2.4 - s * 0.4; }
   });
   const bq = toWorld(b.x, b.y);
   const fl = fld();
@@ -862,10 +866,10 @@ function updateHud(w) {
     hervat: sim.hervat ? sim.hervat.kind : null, tekst: g.online === 'gast' ? sim.flashTekst : sim.flash ? sim.flash.tekst : '', uitleg: !uitlegGezien(UITLEG_ID),
   };
   if (model.laad > 0.02) zetUitlegGezien(UITLEG_ID);
-  const boardModel = voetbalBoard({ ...model, help: keyTextHtml('{WASD} lopen · {F} pass · {E} lang · {SPATIE} schot · {CTRL} tackle · {Q} wissel · {1} stijl · {2} vorming · {3} camera · {BACKSPACE} stopt') });
+  const boardModel = voetbalBoard({ ...model, help: toetsGroepenHtml(keyTextHtml) });
   boardModel.row = scoreboardRow(sim);
   ensureBoard().set(boardModel);
-  simHudTik(0, voetbalHudModel({ ...model, formaatNaam: FORMATEN[sim.formaat].naam }));
+  simHudTik(0, sim.fase === 'intro' ? null : voetbalHudModel({ ...model, formaatNaam: FORMATEN[sim.formaat].naam }));   // de opstelling heeft het scherm: de spelerskaart komt na de aftrap
 }
 
 // --- einde ----------------------------------------------------------------------------------------------------------------------
@@ -1061,6 +1065,9 @@ zetWedGastHaken('voetbal', {
 
 // --- de activiteit --------------------------------------------------------------------------------------------------------------
 
+// De minimap toont tijdens de wedstrijd het veld in plaats van de wereld (localmap.js, localmapvelden.js); zonder wedstrijd (ook na afbreken of een verbroken verbinding) geeft dit null en staat de wereldkaart er weer.
+const lokaleKaart = maakVoetbalKaart();
+registerLocalMap('voetbal', () => game && game.sim && game.sim.spelers ? lokaleKaart.zet(game.sim, { site, toWorld, team: mijnTeam(game), eigenId: eigenId(game), pitch: PITCH }) : null);
 export const VOETBAL = {
   id: 'voetbal',
   layer: 'voetbal',

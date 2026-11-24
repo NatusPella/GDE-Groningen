@@ -522,6 +522,7 @@
     "sponsorpanden",
     "voetbalbezit",
     "voetbalcommentarycareer",
+    "voetbalwapen",
     "footballmusic"
    ],
    "eigenaar": "speler",
@@ -875,6 +876,7 @@
    "modules": [
     "map*",
     "minimap*",
+    "localmap*",
     "kaart*",
     "navtarget",
     "navpijl",
@@ -899,6 +901,7 @@
     "scripts/viewanchor_test.mjs",
     "scripts/kaartontdekking_test.mjs",
     "scripts/minimap_pijlen_test.mjs",
+    "scripts/localmap_test.mjs",
     "scripts/navtarget_test.mjs",
     "scripts/loadwait_test.mjs"
    ],
@@ -2071,10 +2074,6 @@
   {
    "glob": "modularwear",
    "reden": "Alleen beeld: kledingdelen (politiepet, uniformdetails) volgen uit de look; elke client bouwt ze zelf."
-  },
-  {
-   "glob": "voetbalwapen",
-   "reden": "Alleen beeld: het clubwapen als SVG uit kleur en patroon, per client getekend (club-ui, Refs #1106)."
   },
   {
    "glob": "spelbevestig",

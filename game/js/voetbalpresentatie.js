@@ -6,6 +6,8 @@
 import { clockText } from './voetbalrules.js';
 import { statistiekenVan, matchMvp, speelMinuut, cleanRules } from './voetbalextrarules.js';
 import { cleanModus } from './voetbalregie.js';
+import { crestSvg } from './voetbalwapen.js';
+import { knopToets } from './dsbutton.js';
 
 // De voorkeur voor de uitzending (de camera-regie en de regels kaarten, blessures, strafschoppen, buitenspel, wissels) staat onder `tv` in de eigen sleutel van de voetbalvoorkeur (alleen dit apparaat);
 // alles wat niet klopt wordt de standaard.
@@ -20,16 +22,10 @@ const esc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, (c) => ({ '&':
 export const hex = (n) => `#${((Number.isFinite(n) ? n : 0) >>> 0).toString(16).padStart(6, '0').slice(-6)}`;
 const initiaal = (naam) => String(naam || '?').replace(/^De\s+/i, '').charAt(0).toUpperCase();
 
-// Het verzonnen clublogo: een schild in de kleuren van het shirt en de broek, met het patroon van de club en de beginletter. Geen echt embleem, geen echte club.
+// Het verzonnen clubwapen (Club-UI 24-11): hetzelfde schild als in het Clubhuis (voetbalwapen.js: shirtkleur, accent en patroon van de club, met een symbool). Geen echt embleem, geen echte club.
 export function clubLogo(team, maat = 28) {
-  const a = hex(team.shirt), b = hex(team.broek != null ? team.broek : team.shirt), p = team.patroon || 'effen';
-  const clip = 'M4 3h24v13c0 7-5 11-12 14C9 27 4 23 4 16z';
-  let patroon = '';
-  if (p === 'brede-streep') patroon = `<rect x="11" y="3" width="10" height="28" fill="${b}"/>`;
-  else if (p === 'smalle-streep') patroon = `<rect x="9" y="3" width="3" height="28" fill="${b}"/><rect x="15" y="3" width="3" height="28" fill="${b}"/><rect x="21" y="3" width="3" height="28" fill="${b}"/>`;
-  else if (p === 'helften') patroon = `<rect x="16" y="3" width="14" height="28" fill="${b}"/>`;
-  else patroon = `<rect x="4" y="22" width="24" height="3" fill="${b}"/>`;
-  return `<svg class="vbtv-logo" width="${maat}" height="${maat}" viewBox="0 0 32 34" role="img" aria-label="Clubembleem van ${esc(team.kort || team.naam)}"><defs><clipPath id="vbc-${esc(team.id || initiaal(team.naam))}"><path d="${clip}"/></clipPath></defs><g clip-path="url(#vbc-${esc(team.id || initiaal(team.naam))})"><rect width="32" height="34" fill="${a}"/>${patroon}</g><path d="${clip}" fill="none" stroke="var(--ds-c-ink-inkt)" stroke-width="2"/><text x="16" y="19" text-anchor="middle" font-size="13" font-weight="800" fill="var(--ds-c-wit)" stroke="var(--ds-c-ink-inkt)" stroke-width="2.4" paint-order="stroke">${esc(initiaal(team.kort || team.naam))}</text></svg>`;
+  const klas = maat <= 26 ? 'xs' : maat <= 34 ? 's' : 'm';
+  return crestSvg({ id: team.id || team.kort || team.naam, naam: team.naam || team.kort, shirt: team.shirt, accent: team.accent != null ? team.accent : team.broek != null ? team.broek : team.shirt, patroon: team.patroon || 'effen', emblem: team.emblem }, [], klas).replace('class="vb-wapen ', 'class="vbtv-logo vb-wapen ');
 }
 export const cardIcon = (kleur) => `<span class="vbtv-kaart vbtv-kaart--${kleur === 'rood' ? 'rood' : 'geel'}" role="img" aria-label="${kleur === 'rood' ? 'Rode kaart' : 'Gele kaart'}"><i></i><b>${kleur === 'rood' ? 'rood' : 'geel'}</b></span>`;
 const blessureIcoon = () => '<span class="vbtv-blessure" role="img" aria-label="Blessure"><svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true"><path d="M5 1h4v4h4v4H9v4H5V9H1V5h4z" fill="var(--ds-c-wit)" stroke="var(--ds-c-ink-inkt)" stroke-width="1.4"/></svg></span>';
@@ -54,16 +50,28 @@ export function scoreboardRow(sim) {
 // ---------------------------------------------------------------- de opstelling bij de aftrap
 
 const ROL_KORT = { keeper: 'Keeper', verdediger: 'Verdediging', middenvelder: 'Middenveld', aanvaller: 'Aanval' };
+const ROL_KORT_ENKEL = { keeper: 'Keeper', verdediger: 'Verdediger', middenvelder: 'Middenvelder', aanvaller: 'Aanvaller' };
 function opstellingModel(sim) {
   const kant = (t) => ({ team: sim.teams[t], vorming: sim.tac && sim.tac[t] ? sim.tac[t].vorming : '', stijl: sim.tac && sim.tac[t] ? sim.tac[t].stijl : '',
     spelers: sim.spelers.filter((p) => p.team === t).map((p, k) => ({ nr: k + 1, naam: p.naam, rol: p.rol, rolNaam: ROL_KORT[p.rol] || '', jij: sim.mensen.some((x) => x.ctl === p.id && !x.weg) })) });
   return { thuis: kant(0), uit: kant(1), formaat: sim.formaat };
 }
-// `plek`: waar de aftrap is (een carrièrewedstrijd op een sportpark is niet in de Euroborg, 24-11).
-export function opstellingHtml(sim, plek = 'in de Euroborg') {
+// De opstelling bij de aftrap (Club-UI 24-11): één kaart met de twee teams naast elkaar op hetzelfde raster: de lijst van thuis, één formatieveld met beide teams en de lijst van uit. De kop gebruikt de korte
+// clubnaam (die breekt nooit over twee regels), de lijsten hebben dezelfde kolommen (#, positie, naam) en dezelfde rijhoogte. `plek`: waar de aftrap is (een carrièrewedstrijd op een sportpark is niet in de Euroborg, 24-11).
+// `knop`: de gele Aftrap met zijn toets (F) onderin; een gast kan niet doorgaan en krijgt hem niet.
+const POS_LETTER = { keeper: 'K', verdediger: 'V', middenvelder: 'M', aanvaller: 'A' };
+const posBadge = (rol) => `<span class="vb-pos vb-pos--${(POS_LETTER[rol] || 'M').toLowerCase()}" title="${esc(ROL_KORT[rol] || '')}">${POS_LETTER[rol] || ''}</span>`;
+const VELD_LIJNEN = '<svg class="vb-veld__lijnen" viewBox="0 0 105 68" preserveAspectRatio="none" aria-hidden="true"><rect x="2" y="2" width="101" height="64"/><path d="M52.5 2V66"/><circle cx="52.5" cy="34" r="9"/><rect x="2" y="14" width="16" height="40"/><rect x="87" y="14" width="16" height="40"/><rect x="2" y="25" width="5" height="18"/><rect x="98" y="25" width="5" height="18"/></svg>';
+export function opstellingHtml(sim, plek = 'in de Euroborg', { knop = true } = {}) {
   const m = opstellingModel(sim);
-  const kolom = (k, uit) => `<section class="vbtv-kolom${uit ? ' vbtv-kolom--uit' : ''}"><h3>${clubLogo(k.team, 34)} <span>${esc(k.team.naam)}</span></h3><p class="vbtv-sub">${esc(k.vorming)} · ${esc(k.stijl)}</p><ol>${k.spelers.map((s) => `<li${s.jij ? ' class="vbtv-jij"' : ''}><span class="vbtv-nr">${s.nr}</span><span>${esc(s.naam)}</span><em>${esc(s.rolNaam)}${s.jij ? ' · jij' : ''}</em></li>`).join('')}</ol></section>`;
-  return `<div class="vbtv-kop"><span class="vbtv-eyebrow">Aftrap ${esc(plek)}</span><h2>${esc(m.thuis.team.kort)} tegen ${esc(m.uit.team.kort)}</h2></div><div class="vbtv-twee">${kolom(m.thuis, false)}${kolom(m.uit, true)}</div>`;
+  const kant = (k, uit) => `<div class="vb-team${uit ? ' vb-team--uit' : ''}">${clubLogo(k.team, 48)}<div><h2 class="vbtv-teamnaam">${esc(k.team.kort)}</h2><p class="vbtv-sub"><span class="vb-thuisuit">${uit ? 'Uit' : 'Thuis'}</span><span>${esc(k.vorming)} · ${esc(k.stijl)}</span></p></div></div>`;
+  const lijst = (k) => `<div class="lijst11 vbtv-lijst" role="group" aria-label="Opstelling ${esc(k.team.kort)}"><div class="h"><span class="n">#</span><span>P</span><span>Speler</span></div><ol>${k.spelers.map((s) => `<li${s.jij ? ' class="jij vbtv-jij"' : ''}><span class="n">${s.nr}</span>${posBadge(s.rol)}<span class="nm">${esc(s.naam)}${s.jij ? ' · jij' : ''}</span></li>`).join('')}</ol></div>`;
+  const W = sim.perTeam > 6 ? 56 : 26, L = sim.perTeam > 6 ? 90 : 42, clamp = (v) => Math.max(3, Math.min(97, v));
+  const stip = sim.spelers.filter((p) => !p.rood).map((p) => { const jij = sim.mensen.some((x) => x.ctl === p.id && !x.weg); return `<span class="vb-spot vb-spot--klein${p.team === 0 ? ' vb-spot--tegen' : ''}${jij ? ' vb-spot--jij' : ''}" style="--spot-x:${clamp(50 + (p.y / L) * 100).toFixed(1)}%;--spot-y:${clamp(50 + (p.x / W) * 100).toFixed(1)}%"><span class="vb-spot__nr">${sim.spelers.filter((q) => q.team === p.team).indexOf(p) + 1}</span></span>`; }).join('');
+  const veld = `<div class="vb-veld vb-veld--breed" role="img" aria-label="Beide opstellingen op het veld">${VELD_LIJNEN}<span class="vb-veld__kop">${esc(m.thuis.team.kort)}</span><span class="vb-veld__kop vb-veld__kop--r">${esc(m.uit.team.kort)}</span>${stip}</div>`;
+  const jij = m.thuis.spelers.concat(m.uit.spelers).find((s) => s.jij);
+  const voet = `<div class="vbtv-voet"><span class="vbtv-sub">${jij ? `Jij speelt als <b>${esc(jij.naam)}</b>, ${esc((ROL_KORT_ENKEL[jij.rol] || '').toLowerCase())}, rugnummer ${jij.nr}.` : ''}</span>${knop ? `<span class="ds-z-knop ds-z-knop--toets vbtv-aftrap" aria-hidden="true"><span class="ds-z-knop__label">Aftrap</span>${knopToets('F')}</span>` : ''}</div>`;
+  return `<div class="vbtv-introkop">${kant(m.thuis, false)}<div class="vbtv-plek"><span class="vbtv-eyebrow">Aftrap ${esc(plek)}</span><b>${esc(m.thuis.team.kort)} tegen ${esc(m.uit.team.kort)}</b></div>${kant(m.uit, true)}</div><div class="vbtv-introrij">${lijst(m.thuis)}${veld}${lijst(m.uit)}</div>${voet}`;
 }
 
 // ---------------------------------------------------------------- de rustpauze en het eindverslag

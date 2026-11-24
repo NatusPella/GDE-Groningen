@@ -4,7 +4,7 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
 import { makeLodObject } from './lodkit3d.js';
 import { applyVehicleLook } from './vehiclelook3d.js'; // epic Autotuning (#1155): v.look komt er na het bouwen op
 import { HABBO_PALETTE, habboMaterial, GeoBuilder, vcMaterial, markShared, composeMatrix, tubeGeometry } from './pixelart3d.js';
-import { buildPersonMesh, PERSON_RIG, holdPhoneRiding, reachHandFromParent, steerHands } from './models3d_people.js';
+import { buildPersonMesh, seatPose, seatedY, PERSON_RIG, holdPhoneRiding, reachHandFromParent, steerHands } from './models3d_people.js';
 import { boatKind, boatHasCabin } from './boattypes.js';
 import { CANOPY, RAIL } from './boatdeck.js';
 import { midibusDeurXs } from './businterieur.js';
@@ -21,6 +21,16 @@ import { QCARS } from './models/qcars.js';
 import { hybrideSchaal, VOERTUIG_REGISTER } from './propregister.js';
 import { attachVehicleLods } from './vehiclelod3d.js';
 import { DitherLOD } from './lod3d.js';
+import * as VAN from './vehicle_van.js'; // bestelbus, ambulance en de cabine van de foodtruck (24-11)
+import { richWheelGeometry, splitGroupAtX } from './vehicle_kit.js';
+import { buildBakwagen } from './vehicle_truck.js'; // de bakwagen (24-11)
+import { foodtruckOnderdelen } from './vehicle_foodtruck.js'; // de opbouw van de foodtruck (24-11)
+import { wagonOnderdelen } from './vehicle_wagon.js'; // de stationwagen: opbouw op de SUV-romp (24-11)
+import { densify, hullShellRich, boatFinish, outboardRich } from './vehicle_boat.js';
+import { stepFrameParts, stepSteerParts, stepGripSpec, mopedFrameParts, mopedSteerParts, mopedGripSpec, scooterWheelRich } from './vehicle_scooter.js';
+import { bikeFrameParts, bikeSteerParts, bikeForkParts, bakfietsParts, bikeWheelRich, bikeCrankParts, bikeGripSpec, bikeStijlNaam, bikeLean, bikeHipX, bikeHipY, bikeExtras, BIKE_BB } from './vehicle_bike.js';
+import { buildMaaidorserGeo, maaidorserWheels, buildLaadmachineGeo, laadmachineWheel } from './vehicle_farm.js';
+import { busSection as busSectionQ, busBellows, busWheelGeometry, busDoorKnip } from './vehicle_bus.js';
 
 // Low-poly vehicles. Group origin = vehicle centre at ground level (y=0),
 // facing local +X, right-hand side on +Z; sized off v.model.len/wid.
@@ -47,6 +57,8 @@ const PLATE = 0xe3bb1c;
 const TIRE = 0x1b1b1c;
 const BLUE_TIRE = 0x2f6fb0; // de blauwe banden van de goedkope leenfiets
 const RIM = 0x9ea2a6;
+const VAN_K = { TIRE, RIM, CHROME, GLASS, HEADLAMP, TAIL, INDICATOR, PLATE, TRIM }; // kleuren voor vehicle_van.js en vehicle_kit.js
+const VAN_G = { BODY: G_BODY, GLASS: G_GLASS, LAMP: G_LAMP };
 
 // #658: begrensde cache (LRU) i.p.v. een onbegrensde Map
 const geoCache = new LRUCache(180);
@@ -131,11 +143,13 @@ function lampMaterial(color, emissiveIntensity = 0) {
 
 // --- shared wheels ------------------------------------------------------------
 
-function carWheelGeometry(r, w) {
-  return cached(`wheel|${r}|${w}`, () => {
+function carWheelGeometry(r, w, slijt = false) {
+  return cached(`wheel|${r}|${w}${slijt ? '|slijt' : ''}`, () => {
     const B = new GeoBuilder(1);
     const axleZ = (geo) => geo.rotateX(Math.PI / 2);
     B.geo(axleZ(new THREE.CylinderGeometry(r, r, w, 12, 1)), null, TIRE);
+    // versleten banden (Escapade): een verbleekt grijs vlak op de flank, de loopvlakrand is nog zwart
+    if (slijt) B.geo(axleZ(new THREE.CylinderGeometry(r * 0.9, r * 0.9, w + 0.008, 12, 1)), null, 0x4a4946);
     B.geo(axleZ(new THREE.CylinderGeometry(r * 0.64, r * 0.64, w + 0.02, 10, 1)), null, RIM);
     B.geo(axleZ(new THREE.CylinderGeometry(r * 0.18, r * 0.18, w + 0.05, 6, 1)), null, 0x6a6d70);
     // five radial spokes (72 deg symmetry; see SPIN_STEP) plus one dark lug so the roll reads
@@ -376,37 +390,34 @@ function buildCarGeometry(type, L, W, paint, opts) {
       // alleen op die plekken; de rest van het profiel blijft zoals het was
       : [[hl, P.nose - 0.08], [hl - 0.05, P.nose + 0.07], [hl - 0.22, P.hood], [(hl - 0.22 + P.xA) / 2, P.hood + 0.05], [P.xA, P.belt],
         [P.xD, P.belt], [-hl + Math.min(0.34, (P.xD + hl) * 0.5), P.deck + 0.03], [-hl + 0.08, P.deck - 0.05], [-hl, P.tail - 0.1]];
-  const outline = [...top, [-hl, sill + 0.08], ...archedSill(-hl, hl, sill, arches), [hl, sill + 0.08]];
+  const outline = P.van ? VAN.vanOutline(P, hl, xK, sill, archedSill(-hl, hl, sill, arches)) : [...top, [-hl, sill + 0.08], ...archedSill(-hl, hl, sill, arches), [hl, sill + 0.08]];
   // #923: bij een personenauto staat de raamband open (zie withoutBeltPlate), zodat het interieur
   // door het glas te zien is; de raamlijst (sideStrip, verderop) sluit de band langs de buitenkant
   // af. Een bestelbus houdt zijn vlak tussen voorruit en laadruimte: dat is de neus/dashboardplaat.
   // 23-11 (inspiratie: Quaternius' CC0-autopakket): een ronder koetswerk met een bredere afronding in twee stappen, zodat de
   // flanken naar het dak en de bodem toe inlopen in plaats van als een kist te eindigen
-  const bevel = P.boxy ? 0.035 : 0.075;
+  const bevel = P.van ? 0.12 : P.boxy ? 0.035 : 0.075; // de bus (24-11): een grote afronding in drie stappen
   // echte deuropeningen (eis eigenaar 23-11): de romp krijgt een gat waar een deur zit, zodat je bij een open deur de auto in
   // kijkt; de dichte deur vult het gat (vehicledoors3d.js, userData.deurenDicht). De opening blijft van de wielkasten af.
-  const gaten = doorHoles(opts.doorName, L, arches, P.belt);
-  let rompGeo = extrudeProfile(outline, W, bevel, 1, gaten.map((g) => g.rect));
+  const gaten = P.van ? [] : doorHoles(opts.doorName, L, arches, P.belt); // de bus knipt zijn deuren uit de flank (knipDeurgaten, onderaan)
+  let rompGeo = extrudeProfile(outline, W, bevel, P.van ? 2 : 1, gaten.map((g) => g.rect));
   // het plafond van de tunnel (de bovenkant van het gat) gaat eruit: daar kijk je door de ruiten in de auto
   for (const g of gaten) rompGeo = withoutBeltPlate(rompGeo, g.rect[3], g.rect[0], g.rect[2], 0.001);
   const body = P.van ? rompGeo : withoutBeltPlate(rompGeo, P.belt, P.xD, P.xA);
   B.geo(body, null, paint);
+  if (globalThis.__TEL) console.log("TEL romp", B.triangleCount);
   archLiners(B, arches, W);
+  const vanI = P.van ? new GeoBuilder(1) : null; // het cabine-interieur van de bus: een eigen geometrie
+  const vanCtx = P.van ? { I: vanI, amb: !!opts.ambulance, kaal: !!opts.ambulance || !!opts.variant, B, P, hl, hw, W, L, xK, paint, K: VAN_K, G: VAN_G, extrudeProfile, shadeHex, binnenDoos, THREE } : null;
+  if (P.van) VAN.arcFlares(B, vanCtx, arches);
+  if (globalThis.__TEL) console.log("TEL flares", B.triangleCount);
   const decorVanaf = B.groups[G_BODY].p.length / 9;
 
   if (P.van) {
-    const gh = [[P.xA + 0.03, P.belt - 0.03], [P.xB, P.roof - 0.12], [P.xB - 0.3, P.roof - 0.03], [xK + 0.01, P.roof - 0.03], [xK + 0.01, P.belt - 0.03]];
-    B.geo(extrudeProfile(gh, W * 0.9, 0.03), null, GLASS, G_GLASS);
-    B.geo(extrudeProfile([[P.xB + 0.03, P.roof - 0.14], [P.xB - 0.3, P.roof], [xK, P.roof], [xK, P.roof - 0.08]], W * 0.97, 0.025), null, paint);
-    const pz = W * 0.45;
-    for (const s of [1, -1]) {
-      sideStrip(B, P.xA + 0.02, P.belt - 0.01, P.xB + 0.03, P.roof - 0.12, s * pz, 0.07, 0.05, paint);
-      sideStrip(B, xK + 0.04, P.belt, xK + 0.04, P.roof - 0.02, s * pz, 0.08, 0.05, paint);
-      sideStrip(B, P.xA + 0.02, P.belt + 0.005, xK, P.belt + 0.005, s * (pz + 0.02), 0.025, 0.03, TRIM);
-      sideStrip(B, -hl + 1.6, 1.0, -hl + 1.6, P.roof - 0.1, s * (hw + 0.004), 0.015, 0.01, shadeHex(paint, 0.7));
-    }
-    B.box(-hl - 0.004, (P.belt + P.roof) / 2 + 0.2, 0, 0.012, 0.5, W * 0.06, TRIM);
-    for (const s of [1, -1]) B.box(-hl - 0.004, P.roof - 0.4, s * hw * 0.5, 0.012, 0.42, hw * 0.75, GLASS, G_GLASS);
+    VAN.vanCabin(B, vanCtx);
+    if (globalThis.__TEL) console.log("TEL cabine", B.triangleCount);
+    VAN.vanSides(B, vanCtx);
+    if (globalThis.__TEL) console.log("TEL zijkanten", B.triangleCount);
   } else {
     const gh = [[P.xA + 0.03, P.belt - 0.03], [P.xB, P.roof - 0.07], [P.xC, P.roof - 0.07], [P.xD + 0.03, P.belt - 0.03]];
     // De ruiten staan tot tegen de carrosserie (#463, beeldronde): op 0,84 van de breedte bleef er
@@ -440,28 +451,39 @@ function buildCarGeometry(type, L, W, paint, opts) {
   const bumper = P.boxy ? CHROME : shadeHex(paint, 0.9);
   const lip = 0x1f2022;
   const vcount = () => B.groups[G_BODY].p.length / 3;
-  const f0 = vcount();
-  B.box(hl + 0.02, 0.38, 0, 0.12, 0.14, W - 0.04, bumper);
-  B.box(hl + 0.085, 0.38, 0, 0.012, 0.1, 0.48, PLATE);
-  if (!P.boxy) for (const s of [1, -1]) B.box(hl - 0.08, 0.38, s * hw, 0.22, 0.14, 0.05, bumper); // de hoek van de bumper
-  B.box(hl + 0.035, 0.29, 0, 0.1, 0.045, W - 0.12, lip);
-  const f1 = vcount();
-  B.box(-hl - 0.02, 0.4, 0, 0.12, 0.14, W - 0.04, bumper);
-  if (!P.boxy) for (const s of [1, -1]) B.box(-hl + 0.08, 0.4, s * hw, 0.22, 0.14, 0.05, bumper);
-  B.box(-hl - 0.035, 0.31, 0, 0.1, 0.045, W - 0.12, lip);
-  const r1 = vcount();
-  // een lichte karakterlijn in de flank (de wielkastlijsten van de vorige ronde waren op afstand niet te zien en zijn eruit)
-  for (const s of [1, -1]) hboxSplit(B, (P.fw + P.rw) / 2, P.belt - 0.15, s * (hw + 0.002), P.fw - P.rw - 0.2, 0.014, 0.008, shadeHex(paint, 1.15), gaten);
-  B.box(-hl - 0.008, P.van ? 0.62 : Math.min(0.6, P.tail - 0.22), 0, 0.012, 0.1, 0.48, PLATE);
+  let f0 = vcount(), f1 = f0, r1 = f0;
   const lampY = P.nose - (P.boxy || P.van ? 0.06 : 0.13); // de ronde neus (23-11) loopt boven de lampen in
-  for (const s of [1, -1]) {
-    B.box(hl + 0.006, lampY, s * (hw - 0.26), 0.03, P.boxy ? 0.14 : 0.13, P.boxy ? 0.3 : 0.36, HEADLAMP, G_LAMP); // grotere, heldere koplampen (23-11)
-    B.box(hl + 0.006, lampY - (P.boxy ? 0.1 : 0.09), s * (hw - 0.1), 0.03, 0.05, 0.1, INDICATOR, G_LAMP);
-    const tailY = P.van ? 0.95 : P.tail - (P.boxy ? 0.1 : 0.19);
-    B.box(-hl - 0.006, tailY, s * (hw - 0.18), 0.03, P.van ? 0.3 : 0.12, P.van ? 0.14 : 0.3, TAIL, G_LAMP);
-    hboxSplit(B, (P.fw + P.rw) / 2, sill + 0.08, s * (hw + 0.005), (P.fw - P.rw) - R * 2 - 0.1, 0.1, 0.02, TRIM, gaten);
+  if (P.van) {
+    // de bestelbus, ambulance en foodtruck (24-11): bumpers, voor- en achterkant en flanken uit vehicle_van.js
+    VAN.vanBumpers(B, vanCtx, { f0: () => { f0 = vcount(); }, f1: () => { f1 = vcount(); }, r1: () => { r1 = vcount(); } });
+    if (globalThis.__TEL) console.log("TEL bumpers", B.triangleCount);
+    VAN.vanFront(B, vanCtx);
+    if (globalThis.__TEL) console.log("TEL voor", B.triangleCount);
+    VAN.vanRear(B, vanCtx);
+    if (globalThis.__TEL) console.log("TEL achter", B.triangleCount);
+    for (const s of [1, -1]) hboxSplit(B, (P.fw + P.rw) / 2, sill + 0.08, s * (hw + 0.005), (P.fw - P.rw) - R * 2 - 0.1, 0.1, 0.02, TRIM, gaten);
+  } else {
+    B.box(hl + 0.02, 0.38, 0, 0.12, 0.14, W - 0.04, bumper);
+    B.box(hl + 0.085, 0.38, 0, 0.012, 0.1, 0.48, PLATE);
+    if (!P.boxy) for (const s of [1, -1]) B.box(hl - 0.08, 0.38, s * hw, 0.22, 0.14, 0.05, bumper); // de hoek van de bumper
+    B.box(hl + 0.035, 0.29, 0, 0.1, 0.045, W - 0.12, lip);
+    f1 = vcount();
+    B.box(-hl - 0.02, 0.4, 0, 0.12, 0.14, W - 0.04, bumper);
+    if (!P.boxy) for (const s of [1, -1]) B.box(-hl + 0.08, 0.4, s * hw, 0.22, 0.14, 0.05, bumper);
+    B.box(-hl - 0.035, 0.31, 0, 0.1, 0.045, W - 0.12, lip);
+    r1 = vcount();
+    // een lichte karakterlijn in de flank (de wielkastlijsten van de vorige ronde waren op afstand niet te zien en zijn eruit)
+    for (const s of [1, -1]) hboxSplit(B, (P.fw + P.rw) / 2, P.belt - 0.15, s * (hw + 0.002), P.fw - P.rw - 0.2, 0.014, 0.008, shadeHex(paint, 1.15), gaten);
+    B.box(-hl - 0.008, Math.min(0.6, P.tail - 0.22), 0, 0.012, 0.1, 0.48, PLATE);
+    for (const s of [1, -1]) {
+      B.box(hl + 0.006, lampY, s * (hw - 0.26), 0.03, P.boxy ? 0.14 : 0.13, P.boxy ? 0.3 : 0.36, HEADLAMP, G_LAMP); // grotere, heldere koplampen (23-11)
+      B.box(hl + 0.006, lampY - (P.boxy ? 0.1 : 0.09), s * (hw - 0.1), 0.03, 0.05, 0.1, INDICATOR, G_LAMP);
+      const tailY = P.tail - (P.boxy ? 0.1 : 0.19);
+      B.box(-hl - 0.006, tailY, s * (hw - 0.18), 0.03, 0.12, 0.3, TAIL, G_LAMP);
+      hboxSplit(B, (P.fw + P.rw) / 2, sill + 0.08, s * (hw + 0.005), (P.fw - P.rw) - R * 2 - 0.1, 0.1, 0.02, TRIM, gaten);
+    }
   }
-  addDoorCuts(B, opts.doorName, L, hw, paint, CHROME, gaten.length > 0);
+  addDoorCuts(B, opts.doorName, L, hw, paint, CHROME, gaten.length > 0 || P.van);
 
   if (opts.police) {
     for (const s of [1, -1]) {
@@ -486,14 +508,8 @@ function buildCarGeometry(type, L, W, paint, opts) {
       const door0 = P.xB + 0.02, door1 = P.xA - 0.12, nd = 3, dw = (door1 - door0) / nd;
       for (let i = 0; i < nd; i++) B.box(door0 + dw * (i + 0.5), 0.92, z, dw, 0.18, 0.012, i % 2 ? WHITE : RED);
     }
-    // de hoge dakkap boven de patiëntenruimte, wit; de rand ervoor blauw
-    const roofX0 = P.xB - 0.45, rh = 0.48;
-    B.box((roofX0 - hl) / 2, P.roof + rh / 2 - 0.02, 0, roofX0 + hl, rh, W - 0.04, WHITE);
-    B.box(roofX0 + 0.02, P.roof + rh / 2, 0, 0.04, rh - 0.12, W * 0.7, 0x1d4fa3);
-    // lichtbalk op het cabinedak: donkere balk met blauwe uiteinden (de twee knipperende lampen staan er in assembleCar bovenop)
-    const barX = P.xB - 0.25;
-    B.box(barX, P.roof + 0.03, 0, 0.3, 0.06, W * 0.84, TRIM);
-    for (const s of [1, -1]) B.box(barX, P.roof + 0.1, s * W * 0.4, 0.26, 0.1, 0.12, 0x2f6bff, G_LAMP);
+    // de hoge dakkap, de lichtbalk, de airco en het embleem (24-11): vehicle_van.js
+    VAN.ambulanceRoof(B, vanCtx);
     // blauwe flitsers in de grille, en boven op de achterdeuren
     for (const s of [1, -1]) {
       B.box(hl + 0.012, P.nose + 0.2, s * (hw - 0.62), 0.02, 0.07, 0.22, 0x2f6bff, G_LAMP);
@@ -604,18 +620,25 @@ function buildCarGeometry(type, L, W, paint, opts) {
     for (const s of [1, -1]) B.box((P.xB + P.xC) / 2, P.roof + 0.065, s * W * 0.36, (P.xB - P.xC) * 0.8, 0.04, 0.04, TRIM); // boven het bolle dak
   }
   const deurDecor = gaten.length ? moveDoorDecor(B, decorVanaf, gaten, hw) : {};
+  // de bus knipt zijn cabinedeuren uit de flank (zoals de trekker): het uitgeknipte stuk is het deurblad, het interieur zit erachter
+  if (globalThis.__TEL) console.log("TEL pre-knip", B.triangleCount);
+  const knip = P.van ? knipDeurgaten(B, opts.doorName, L, W) : null;
+  if (P.van) for (const gi of [G_BODY, G_GLASS]) splitGroupAtX(B, gi, [hl - 0.55, hl - 0.28]); // de afronding van neus en kont (hieronder) kantelt anders de grote vlakken
+  if (globalThis.__TEL) console.log("TEL post-split", B.triangleCount);
   const geo = B.build();
+  if (vanI) geo.userData.interieurGeo = vanI.build();
+  if (knip) geo.userData.knip = { ...deurSchillen(knip, L), rects: knip.rects, zs: knip.zs };
   geo.userData.gaten = gaten;
   geo.userData.deurDecor = deurDecor;
   // 23-11 (vormtaal van het Quaternius-autopakket): van boven gezien lopen neus en kont rond in. De laatste halve meter aan
   // beide kanten wordt smaller (tot 13 % van de halve breedte, kwadratisch), het hele model mee: lak, bumpers, lampen en glas. Geen extra driehoeken;
   // de deuren liggen daarbuiten, dus hun naden en de deurtabel blijven kloppen. De materialen tekenen platte normalen (flatShading).
-  if (!P.boxy && !P.van && !(typeof process !== 'undefined' && process.env.GDE_GEEN_TAPER)) {
+  if (!P.boxy && !(typeof process !== 'undefined' && process.env.GDE_GEEN_TAPER)) {
     // een verschuiving in plaats van een schaal: alles in de buitenste helft schuift evenveel naar binnen, zodat lagen die
     // op het plaatwerk liggen (naden, strepen, belettering, lampen) hun afstand tot het plaatwerk houden
-    const pos = geo.attributes.position, a = pos.array, zone = 0.55, d = (P.van ? 0.07 : 0.13) * hw, binnen = hw * 0.55;
+    const pos = geo.attributes.position, a = pos.array, zone = 0.55, d = (P.van ? 0.1 : 0.13) * hw, binnen = hw * 0.55;
     for (let i = 0; i < a.length; i += 3) {
-      const t = Math.min(1, Math.max(0, (Math.abs(a[i]) - (hl - zone)) / zone));
+      const t = Math.min(1, Math.max(0, ((P.van ? a[i] : Math.abs(a[i])) - (hl - zone)) / zone)); // de bus: alleen de neus (de kont heeft opbouw en belettering die vlak moet blijven)
       if (t > 0 && Math.abs(a[i + 2]) > binnen) a[i + 2] -= Math.sign(a[i + 2]) * d * t * t;
     }
     pos.needsUpdate = true;
@@ -649,13 +672,17 @@ function assembleCar(type, L, W, paint, { police = false, ambulance = false, wre
   // grille and mirrors are their own meshes, so they can come off in a crash (#205)
   group.userData.loose = looseCarParts(type, L, W, color, P, mats, group);
   addRealDoors(group, body, geo.userData.gaten || [], doorName, L, W, color, P, type);
-  const wgeo = carWheelGeometry(wheelR, WHEEL_W);
+  if (geo.userData.knip) koppelDeurgaten(group, body, geo);
+  voegInterieurToe(group, body, geo);
+  if (P.van) group.userData.lodMax = ambulance ? 1500 : doorName === 'foodtruck' ? 1500 : 1300; // niveau 1 (vehiclelod3d.js): bovengrens, het model is zwaar
+  const wW = P.van ? 0.27 : WHEEL_W; // de bus (24-11): een dikker wiel met bolle flank, velg en spaken (vehicle_kit.js)
+  const wgeo = P.van ? cached(`wheel2|${wheelR}|${wW}`, () => richWheelGeometry(wheelR, wW, VAN_K)) : carWheelGeometry(wheelR, wW);
   const wheels = [];
-  for (const x of [P.fw, P.rw]) for (const s of [1, -1]) addWheel(group, wgeo, mats[0], x, wheelR, s * (W / 2 - WHEEL_W / 2 - 0.04), wheels);
+  for (const x of [P.fw, P.rw]) for (const s of [1, -1]) addWheel(group, wgeo, mats[0], x, wheelR, s * (W / 2 - wW / 2 - 0.04), wheels);
   group.userData.wheels = wheels;
   group.userData.frontWheels = wheels.slice(0, 2);
   group.userData.wheelRadius = wheelR;
-  group.userData.loose.sierdoppen = hubcaps(wheels, wheelR);
+  if (!P.van) group.userData.loose.sierdoppen = hubcaps(wheels, wheelR); // het wiel van de bus heeft zijn eigen velg, zonder losse sierdop
   if (police || ambulance) {
     // the ambulance's lamps sit on the cab roof, just ahead of its roof box
     const barY = P.roof + (ambulance ? 0.07 : 0.14);
@@ -820,9 +847,9 @@ function ambulanceOpschrift(group, P, L, W) {
 // Sierdoppen: een lichte schijf op elk wiel, samen één 'onderdeel' dat los kan raken (#205).
 // Naafkapjes zijn geen lichtbron: een MeshBasicMaterial bleef in het donker fel wit (playtestvideo 23-10).
 const CAP_MAT = new THREE.MeshLambertMaterial({ color: 0xc4c8cc });
-function hubcaps(wheels, r) {
+function hubcaps(wheels, r, zonder = []) {
   const geo = cached(`hubcap|${r}`, () => new THREE.CylinderGeometry(r * 0.5, r * 0.5, 0.03, 10, 1).rotateX(Math.PI / 2));
-  const caps = wheels.map((w) => {
+  const caps = wheels.filter((w, i) => !zonder.includes(i)).map((w) => {
     const c = new THREE.Mesh(geo, CAP_MAT);
     c.position.z = Math.sign(w.position.z || 1) * (WHEEL_W / 2 + 0.02);
     w.add(c);
@@ -840,12 +867,13 @@ function looseCarParts(type, L, W, paint, P, mats, group) {
     group.add(m);
     parts[id] = m;
   };
-  make('grille', (B) => B.box(hl + 0.005, P.nose - 0.12, 0, 0.03, 0.11, W * 0.42, TRIM));
+  make('grille', (B) => (P.van ? VAN.vanGrille(B, { P, hl, W, K: VAN_K }) : B.box(hl + 0.005, P.nose - 0.12, 0, 0.03, 0.11, W * 0.42, TRIM)));
   make('spiegels', (B) => {
     // een hybride romp heeft zijn eigen spiegels (aan de voordeur, ze gaan met de deur mee): geen tweede blok ernaast, alleen een
     // onzichtbaar stipje binnen de flank zodat de schade (fx3d.js) een plek heeft om de scherven van te laten vallen
     if (P.uitlaat) { for (const s of [1, -1]) B.box(P.xA - 0.08, P.belt, s * (hw - 0.12), 0.01, 0.01, 0.01, TRIM); return; }
-    const mx = P.van ? P.xA - 0.12 : P.xA - 0.08;
+    if (P.van) { VAN.vanMirrors(B, { P, hw, paint, K: VAN_K }); return; }
+    const mx = P.xA - 0.08;
     for (const s of [1, -1]) {
       B.box(mx, P.belt + 0.1, s * (hw + 0.08), 0.1, 0.09, 0.14, paint);
       B.box(mx + 0.02, P.belt + 0.05, s * (hw + 0.02), 0.05, 0.04, 0.06, TRIM);
@@ -933,11 +961,16 @@ function buildCarMesh(v) {
 // (1,15 tot 1,24 m), dus de hoogte wordt per model op de norm gezet, zodat een volwassene van 1,78 m erin past. De getekende lengte
 // en breedte kunnen van de botsmaat (v.model.len, wid) afwijken; de deuren rekenen met de getekende maat (userData.deurLen, deurWid).
 const hybData = new Map();
+// De Fjord Escapade (24-11) is een hybride op de romp van de kleine hatchback (qcars.js 'hatch'), 4,0 m lang: de extra lengte komt
+// uit een zone tussen de wielkasten (QREK, x in hun maat), zodat de wielkasten rond blijven en er niets over de wielen uitrekt.
+const QALIAS = { escapade: 'hatch', wagon: 'suv' }; // de stationwagen is de SUV-romp op wagenhoogte (vehicle_wagon.js)
+const QREK = { escapade: [-0.62, 0.70] };
+const qdata = (key) => QCARS[QALIAS[key] || key];
 function b64Bytes(s) { return typeof atob === 'function' ? Uint8Array.from(atob(s), (c) => c.charCodeAt(0)) : new Uint8Array(Buffer.from(s, 'base64')); }
 function hybridData(key) {
   let d = hybData.get(key);
   if (d) return d;
-  const auto = QCARS[key];
+  const auto = qdata(key);
   const pb = b64Bytes(auto.posities), ib = b64Bytes(auto.index);
   d = { auto, pos: new Int16Array(pb.buffer, pb.byteOffset, pb.byteLength / 2), idx: new Uint16Array(ib.buffer, ib.byteOffset, ib.byteLength / 2), rol: b64Bytes(auto.rol) };
   hybData.set(key, d);
@@ -954,12 +987,19 @@ function hybridRoofU(key) {
 }
 function hybridScale(auto, L, W, key) {
   const schaal = hybrideSchaal(key);
-  return { sx: L / auto.maat.len, sy: (schaal ? schaal.hoog : 1.45) / hybridRoofU(key), sz: W / auto.maat.wid };
+  const sy = (schaal ? schaal.hoog : 1.45) / hybridRoofU(key), sz = W / auto.maat.wid;
+  const rek = QREK[key], len = auto.maat.len;
+  if (!rek) { const sx = L / len; return { sx, sy, sz, mapx: (x) => x * sx }; }
+  // buiten de zone schaalt x met dezelfde factor als de hoogte (de wielkasten blijven rond), de zone vangt de rest op
+  const [a, b] = rek, vA = -L / 2 + (a + len / 2) * sy, vB = L / 2 - (len / 2 - b) * sy;
+  return { sx: L / len, sy, sz, mapx: (x) => (x <= a ? -L / 2 + (x + len / 2) * sy : x >= b ? L / 2 - (len / 2 - x) * sy : vA + (x - a) / (b - a) * (vB - vA)) };
 }
 // Welke hybride bij dit voertuig hoort, of null (dan onze eigen bouwer).
 export function hybridKey(v) {
-  if (!v || !v.model || v.model.hybride === false || v.isAmbulance || v.isHeroCar || v.look) return null;
-  if (v.model.qcar && QCARS[v.model.qcar]) return v.model.qcar; // een vaste keuze (register, contactblad)
+  if (!v || !v.model || v.model.hybride === false || v.isAmbulance) return null;
+  if (v.isHeroCar || v.model.name === 'escort') return 'escapade'; // de heldenauto houdt zijn romp ook met tuning (v.look)
+  if (v.look) return null;
+  if (v.model.qcar && qdata(v.model.qcar)) return v.model.qcar; // een vaste keuze (register, contactblad)
   if (v.model.name === 'police' || (v.isPolice && !v._commandeered)) return 'police';
   const variant = carVariant(v);
   if (variant === 'taxi') return 'taxi';
@@ -968,10 +1008,11 @@ export function hybridKey(v) {
   if (n === 'sedan') return 'sedan';
   if (n === 'hatch') return 'hatch';
   if (n === 'suv') return 'suv';
+  if (n === 'wagon') return 'wagon';
   if (n === 'sport') return hash2(typeof v.id === 'number' ? v.id : String(v.id).length, 3.7) < 0.5 ? 'sport' : 'sport2';
   return null;
 }
-const HYB_DOORS = { sedan: 'sedan', hatch: 'hatch', suv: 'suv', sport: 'sport', sport2: 'sport', taxi: 'taxi', police: 'police' };
+const HYB_DOORS = { escapade: 'escort', wagon: 'wagon', sedan: 'sedan', hatch: 'hatch', suv: 'suv', sport: 'sport', sport2: 'sport', taxi: 'taxi', police: 'police' };
 // De flank: waar een straal van buiten naar binnen (langs z) de romp raakt, op hoogte y en lengte x.
 function hybridSurface(tris, x, y, side) {
   let best = null;
@@ -991,10 +1032,10 @@ function hybridSurface(tris, x, y, side) {
 // De geschaalde driehoeken met hun rol, in onze assen.
 function hybridTris(key, L, W) {
   const { auto, pos, idx, rol } = hybridData(key);
-  const { sx, sy, sz } = hybridScale(auto, L, W, key);
+  const { sy, sz, mapx } = hybridScale(auto, L, W, key);
   const out = [];
   for (let t = 0; t < rol.length; t++) {
-    const v = [0, 1, 2].map((k) => { const i = idx[t * 3 + k] * 3; return [pos[i] / 1000 * sx, pos[i + 1] / 1000 * sy, pos[i + 2] / 1000 * sz]; });
+    const v = [0, 1, 2].map((k) => { const i = idx[t * 3 + k] * 3; return [mapx(pos[i] / 1000), pos[i + 1] / 1000 * sy, pos[i + 2] / 1000 * sz]; });
     out.push({ v, r: rol[t] });
   }
   return out;
@@ -1005,7 +1046,7 @@ export function hybridFit(key, L, W) {
     const tris = hybridTris(key, L, W), glas = [], lak = [];
     for (const t of tris) (t.r === 1 ? glas : t.r === 0 ? lak : []).push(...t.v);
     const ys = (a) => a.map((p) => p[1]), xs = (a) => a.map((p) => p[0]);
-    const { sy } = hybridScale(QCARS[key], L, W, key);
+    const { sy } = hybridScale(qdata(key), L, W, key);
     const roof = Math.max(...ys(glas)) + DAK * sy, belt = Math.min(...ys(glas));
     const xA = Math.max(...glas.filter((p) => p[1] < belt + 0.08).map((p) => p[0])), xD = Math.min(...glas.filter((p) => p[1] < belt + 0.08).map((p) => p[0]));
     const hoog = glas.filter((p) => p[1] > roof - 0.12);
@@ -1021,6 +1062,8 @@ export function hybridFit(key, L, W) {
 }
 function hybridBody(key, L, W, paint, doorName, police) {
   return cached(`hybride4|${key}|${L}|${W}|${paint}|${doorName}|${police}`, () => {
+    // Escapade: de bijrijdersdeur is een vervangend deel, een tint lichter dan de rest (een oude auto die ooit is gerepareerd)
+    const deurTint = key === 'escapade' ? { vr: shadeHex(paint, 1.14) } : {};
     const hl = L / 2, hw = W / 2;
     const tris = hybridTris(key, L, W);
     const fit = hybridFit(key, L, W);
@@ -1033,7 +1076,7 @@ function hybridBody(key, L, W, paint, doorName, police) {
     // de wielkasten: een portier begint achter de voorste wielkast en eindigt vóór de achterste (anders opent de deur een stuk
     // spatbord en zie je door het gat het wiel met zijn wieldop)
     const { auto } = hybridData(key), sc = hybridScale(auto, L, W, key), wr = auto.wielen[0].r * sc.sy;
-    const kasten = [...new Set(auto.wielen.map((w) => +(w.x * sc.sx).toFixed(3)))];
+    const kasten = [...new Set(auto.wielen.map((w) => +sc.mapx(w.x).toFixed(3)))];
     for (const d of defs) {
       const z = hybridSurface(lakTris, d.x * L, d.y0 + d.h / 2, d.side);
       if (z === null) continue;
@@ -1206,7 +1249,7 @@ function hybridBody(key, L, W, paint, doorName, police) {
       for (const Bx of [P2, alle]) {
         for (const rd of randen) if (rd[6] === d.id) randQuad(Bx, rd);
         for (const t of vlak[d.id]) {
-          Bx.tri(t.v[0], t.v[1], t.v[2], kleur[t.r], groep[t.r]);
+          Bx.tri(t.v[0], t.v[1], t.v[2], t.r === 0 && deurTint[d.id] ? deurTint[d.id] : kleur[t.r], groep[t.r]);
           const inn = t.v.map((p) => [p[0], p[1], p[2] - d.side * 0.035]);
           Bx.tri(inn[0], inn[2], inn[1], t.r === 1 ? GLASS : 0x2a2c30, t.r === 1 ? G_GLASS : G_BODY);
         }
@@ -1230,9 +1273,104 @@ function hybridBody(key, L, W, paint, doorName, police) {
     return geo;
   });
 }
+// De Fjord Escapade (24-11): karakter op de hybride romp. Vaste, gecachete geometrie (twee meshes): onderdelen (dakdrager met
+// opgerolde zeilen en een plank, trekhaak, kentekens met streepjes, zwart-geel plakband op de linker koplamp, knipperlichten waarvan
+// de linker kapot is) en vlakke lagen op de flank (roest op drempel en wielkasten, een deuk in het rechter voorspatbord, stickers).
+// De lagen liggen niet op een deur (ze zouden in een open opening blijven hangen).
+const NADEN_TOP = markShared(vcMaterial({ roughness: 0.6, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -10 }));
+function escapadeKarakter(L, W, paint, fit, rects, wielen) {
+  const hl = L / 2;
+  const tris = hybridTris('escapade', L, W);
+  const lak = tris.filter((t) => t.r === 0).map((t) => t.v);
+  const punten = tris.flatMap((t) => t.v);
+  const onderdelen = cached(`escapade-onderdelen|${L}|${W}`, () => {
+    const B = new GeoBuilder(1);
+    // dakdrager: twee langsliggers op voetjes, drie dwarsbalken, een opgerold zeil met twee riemen en een plank
+    const xm = (fit.xB + fit.xC) / 2, xl = Math.min(1.5, (fit.xB - fit.xC) * 0.92);
+    const zr = Math.max(0.36, Math.min(0.52, (hybridSurface(lak, xm, fit.roof - 0.05, 1) || 0.62) - 0.1));
+    const ry = fit.roof + 0.02;
+    for (const s of [1, -1]) {
+      B.box(xm, ry, s * zr, xl, 0.035, 0.04, 0x26282a);
+      for (const dx of [-0.5, 0.5]) B.box(xm + dx * xl * 0.88, ry - 0.03, s * zr, 0.05, 0.05, 0.05, 0x1b1c1d);
+    }
+    for (const dx of [-0.42, 0, 0.42]) B.box(xm + dx * xl, ry + 0.03, 0, 0.045, 0.03, zr * 2 + 0.1, 0x303234);
+    B.geo(new THREE.CylinderGeometry(0.115, 0.115, zr * 2 + 0.1, 10).rotateX(Math.PI / 2), composeMatrix(xm - 0.18 * xl, ry + 0.16, 0), 0x3f627c);
+    for (const zz of [-0.32, 0.32]) B.geo(new THREE.CylinderGeometry(0.135, 0.135, 0.035, 7).rotateX(Math.PI / 2), composeMatrix(xm - 0.18 * xl, ry + 0.16, zz), 0xc8b27a);
+    // trekhaak: balk onder de achterbumper met een kogel
+    const xR = Math.min(...punten.filter((p) => Math.abs(p[2]) < 0.3 && p[1] > 0.2 && p[1] < 0.9).map((p) => p[0]));
+    B.box(xR - 0.01, 0.3, 0, 0.34, 0.05, 0.07, 0x2a2b2d);
+    B.box(xR - 0.2, 0.34, 0, 0.05, 0.1, 0.05, 0x2a2b2d);
+    B.geo(new THREE.SphereGeometry(0.032, 8, 6), composeMatrix(xR - 0.2, 0.41, 0), 0xb9bcbf);
+    // kentekens: geel, blauwe rand links en streepjes in plaats van tekens (verzonnen, geen echt kenteken)
+    const xV = Math.max(...punten.filter((p) => Math.abs(p[2]) < 0.2 && p[1] > 0.22 && p[1] < 0.46).map((p) => p[0]));
+    const plaat = (x, y, uit) => {
+      B.box(x + uit * 0.006, y, 0, 0.012, 0.11, 0.5, PLATE);
+      B.box(x + uit * 0.012, y, -0.225, 0.006, 0.11, 0.05, 0x1f3f8f);
+      for (let i = 0; i < 6; i++) B.box(x + uit * 0.012, y, -0.14 + i * 0.075 + (i > 2 ? 0.04 : 0), 0.006, 0.06, 0.04, 0x1b1b1c);
+    };
+    plaat(xV, 0.37, 1);
+    plaat(xR + 0.04, 0.56, -1);
+    // zwart-geel plakband kruislings over de linker koplamp (gebarsten kap) en een kapot knipperlicht ernaast
+    const lamp = tris.filter((t) => t.r === 2 && t.v[0][2] < 0).flatMap((t) => t.v);
+    if (lamp.length) {
+      const lx = Math.max(...lamp.map((p) => p[0])), y0 = Math.min(...lamp.map((p) => p[1])), y1 = Math.max(...lamp.map((p) => p[1]));
+      const z0 = Math.min(...lamp.map((p) => p[2])), z1 = Math.max(...lamp.map((p) => p[2]));
+      const w = Math.hypot(z1 - z0, y1 - y0);
+      for (const sgn of [1, -1]) B.box(lx + 0.006, (y0 + y1) / 2, (z0 + z1) / 2, 0.008, 0.028, w * 0.92, sgn > 0 ? 0xd8b21f : 0x26261f, 0, sgn * Math.atan2(y1 - y0, z1 - z0), 0, 0);
+      for (const s of [1, -1]) {
+        const cz = s * ((Math.abs(z0) + Math.abs(z1)) / 2), kapot = s < 0;
+        B.box(lx - 0.04, y0 - 0.075, cz, 0.05, 0.05, 0.17, kapot ? 0xcfc9b4 : INDICATOR, 0);
+        if (kapot) { B.box(lx - 0.012, y0 - 0.075, cz, 0.008, 0.012, 0.19, 0x2a2a26, 0, 0.5, 0, 0); B.box(lx - 0.012, y0 - 0.075, cz + 0.02, 0.008, 0.012, 0.12, 0x2a2a26, 0, -0.7, 0, 0); }
+      }
+    }
+    return B.build();
+  });
+  const vlakken = cached(`escapade-vlakken|${L}|${W}|${paint}`, () => {
+    const D = new GeoBuilder(2); // groep 1: de bovenste laag (een eigen mesh met sterkere polygonOffset)
+    const hash = (a, b) => { const x = Math.sin(a * 127.1 + b * 311.7) * 43758.5453; return x - Math.floor(x); };
+    const op = (x, y, side) => !Object.entries(rects).some(([id, r]) => (id === 'vl' ? -1 : 1) === side && x > r[0] - 0.03 && x < r[2] + 0.03 && y > r[1] - 0.03 && y < r[3] + 0.03);
+    const blob = (cx, cy, side, rad, kl, n = 7, seed = 0, uit = 0.006, laag = 0) => {
+      const ring = [];
+      for (let k = 0; k < n; k++) {
+        const a = (k / n) * Math.PI * 2, rr = rad * (0.65 + 0.7 * hash(seed + k, cx * 7 + cy));
+        const x = cx + Math.cos(a) * rr, y = cy + Math.sin(a) * rr * 0.75, z = hybridSurface(lak, x, y, side);
+        if (z === null) return false;
+        ring.push([x, y, z + side * uit]);
+      }
+      const z0 = hybridSurface(lak, cx, cy, side);
+      if (z0 === null) return false;
+      const c = [cx, cy, z0 + side * uit];
+      for (let k = 0; k < n; k++) D.triOut(c, ring[k], ring[(k + 1) % n], [0, 0, side], kl, laag);
+      return true;
+    };
+    const ROEST = [0x8a4b22, 0x6f3a1a, 0xa05a2a, 0x7b4220];
+    let seed = 1;
+    for (const side of [1, -1]) {
+      // drempel: een rij vlekken langs de onderrand tussen de wielkasten
+      for (let x = -hl + 0.8; x < hl - 0.7; x += 0.16 + 0.1 * hash(seed, 3)) { seed++; if (op(x, 0.3, side)) blob(x, 0.3 + 0.025 * hash(seed, 9), side, 0.08 + 0.08 * hash(seed, 5), ROEST[seed % 4], 7, seed); }
+      // wielkasten: vlekken langs de bovenrand van elke kast
+      for (const w of wielen) {
+        for (let a = 15; a <= 165; a += 22) {
+          seed++;
+          const rad = w.r * (1.1 + 0.18 * hash(seed, 2)), x = w.x + Math.cos(a * Math.PI / 180) * rad, y = w.r + Math.sin(a * Math.PI / 180) * rad;
+          if (op(x, y, side) && hash(seed, 11) > 0.25) blob(x, y, side, 0.05 + 0.07 * hash(seed, 4), ROEST[seed % 4], 7, seed);
+        }
+      }
+    }
+    // een deuk in het rechter voorspatbord: een donkere kuil met een lichte rand erboven
+    const dx = hl - 0.55, dy = 0.63;
+    if (op(dx, dy, 1)) { blob(dx, dy, 1, 0.14, shadeHex(paint, 0.62), 9, 77, 0.005); blob(dx + 0.02, dy + 0.05, 1, 0.06, shadeHex(paint, 1.12), 7, 78, 0.009, 1); }
+    // stickers op het achterspatbord (rechts): een rond groen-wit plaatje en een smalle strip
+    const sx = -hl + 0.5;
+    if (op(sx, 0.66, 1)) { blob(sx, 0.66, 1, 0.075, 0x2f8f4a, 12, 5, 0.005); blob(sx, 0.66, 1, 0.045, 0xf0eee4, 12, 6, 0.009, 1); }
+    if (op(sx + 0.3, 0.5, 1)) blob(sx + 0.3, 0.5, 1, 0.07, 0xd9772b, 4, 15, 0.005);
+    return D.build();
+  });
+  return { onderdelen, vlakken };
+}
 function buildHybridCar(v, key, paint) {
   const schaal = hybrideSchaal(key), L = schaal.len, W = schaal.wid;
-  const auto = QCARS[key];
+  const auto = qdata(key);
   const police = key === 'police' && !!v.isPolice && !v._commandeered && !v.model.resprayed;
   const doorName = HYB_DOORS[key];
   const color = v.wrecked ? WRECKED_COLOR : paint;
@@ -1242,6 +1380,7 @@ function buildHybridCar(v, key, paint) {
   const body = new THREE.Mesh(geo, mats);
   group.add(body);
   group.userData.body = body;
+  if (key === 'wagon') group.userData.lodMax = 1300;
   group.userData.hybride = key;
   group.userData.deurZ = geo.userData.deurZ;
   group.userData.deurPanelen = geo.userData.deurPanelen;
@@ -1294,21 +1433,39 @@ function buildHybridCar(v, key, paint) {
   const P = { ...fit, van: false, uitlaat: { x: kontX, y: kontY } };
   group.userData.loose = looseCarParts('hyb-' + key, L, zSp ? zSp * 2 : W, color, P, mats, group);
   // wielen: onze wielgeometrie op hun plekken
-  const { sx, sy, sz } = hybridScale(auto, L, W, key);
+  const { sy, sz, mapx } = hybridScale(auto, L, W, key);
   const r = +(auto.wielen[0].r * sy).toFixed(3);
-  const wgeo = carWheelGeometry(r, WHEEL_W);
+  const escapade = key === 'escapade';
+  const wgeo = key === 'wagon' ? cached(`wheel2|${r}|0.25`, () => richWheelGeometry(r, 0.25, VAN_K)) : carWheelGeometry(r, WHEEL_W, escapade); // de stationwagen heeft het dikke wiel met velg van de bus
   const wheels = [], front = [];
   for (const w of auto.wielen) {
-    const m = addWheel(group, wgeo, mats[0], w.x * sx, r, w.z * sz * 0.97, wheels);
+    const m = addWheel(group, wgeo, mats[0], mapx(w.x), r, w.z * sz * 0.97, wheels);
     if (w.voor) front.push(m);
   }
   group.userData.wheels = wheels;
   group.userData.frontWheels = front;
   group.userData.wheelRadius = r;
-  group.userData.loose.sierdoppen = hubcaps(wheels, r);
+  if (key !== 'wagon') group.userData.loose.sierdoppen = hubcaps(wheels, r, escapade ? [1] : []); // de Escapade is een wieldop kwijt (linksachter)
+  if (escapade && !v.wrecked) {
+    const k = escapadeKarakter(L, W, color, fit, geo.userData.gatRects, auto.wielen.filter((w) => w.z > 0).map((w) => ({ x: mapx(w.x), r })));
+    const km = new THREE.Mesh(k.onderdelen, mats);
+    km.name = 'karakter';
+    body.add(km);
+    const kv = new THREE.Mesh(k.vlakken, [NADEN_MAT, NADEN_TOP]);
+    kv.name = 'karakterVlak';
+    body.add(kv);
+    group.userData.karakter = [km, kv];
+  }
+  if (key === 'wagon' && !v.wrecked) {
+    const lakW = hybridTris(key, L, W).filter((t) => t.r === 0).map((t) => t.v);
+    const wg = cached(`wagon-onderdelen|${L}|${W}|${color}`, () => { const B = new GeoBuilder(3); wagonOnderdelen(B, fit, (x, y) => hybridSurface(lakW, x, y, 1), (x) => Math.max(0, ...lakW.flat().filter((q) => Math.abs(q[0] - x) < 0.06).map((q) => q[1])), VAN_K, color, shadeHex); return B.build(); });
+    const wm = new THREE.Mesh(wg, mats);
+    wm.name = 'wagonOnderdelen';
+    body.add(wm);
+  }
   if (police && auto.lichtbalk) {
     const lamps = [];
-    const bx = auto.lichtbalk.x * sx, by = auto.lichtbalk.y * sy;
+    const bx = mapx(auto.lichtbalk.x), by = auto.lichtbalk.y * sy;
     const bar = new THREE.Mesh(cached(`hybbalk|${W}`, () => new THREE.BoxGeometry(0.3, 0.06, W * 0.62)), new THREE.MeshLambertMaterial({ color: TRIM }));
     bar.position.set(bx, by - 0.02, 0);
     body.add(bar);
@@ -1406,6 +1563,16 @@ function deurSchillen(res, L) {
   return { panelen, dicht: markShared(alle.build()) };
 }
 const linearRGBArr = (hex) => { const c = new THREE.Color(hex); return [c.r, c.g, c.b]; };
+// Het cabine-interieur van een romp met uitgeknipte deuren (bus, bakwagen, 24-11): een eigen mesh 'interieurSimpel' op de romp, zodat het op de
+// lagere LOD-niveaus (vehiclelod3d.js) en met de echte cabine (cabin3d.js, carinterior.js) verdwijnt.
+function voegInterieurToe(group, body, geo) {
+  if (!geo.userData.interieurGeo) return;
+  const ig = cached(`interieur|${geo.uuid}`, () => geo.userData.interieurGeo);
+  const im = new THREE.Mesh(ig, cabinFallbackMaterial());
+  im.name = 'interieurSimpel';
+  body.add(im);
+  group.userData.interieurSimpel = im;
+}
 // Hangt de dichte deuren aan de romp en zet wat de deur-rig en de tests nodig hebben (zoals addRealDoors en de hybride).
 function koppelDeurgaten(group, body, geo) {
   const k = geo.userData.knip;
@@ -1420,90 +1587,13 @@ function koppelDeurgaten(group, body, geo) {
   group.userData.deurZ = k.zs;
 }
 
-// Bakwagen: cab-over front with a box body.
+// Bakwagen (24-11: vehicle_truck.js): cab-over front with a box body. De tankwagen (model.tank) heeft een eigen opbouw en cabine.
+function truckKit() {
+  return { THREE, GeoBuilder, composeMatrix, K: VAN_K, G: VAN_G, WRECKED_COLOR, toHex, cached, extrudeProfile, shadeHex, binnenDoos, archedSill, addDoorCuts, knipDeurgaten, deurSchillen, koppelDeurgaten, vehicleMaterials, addWheel, richWheelGeometry, voegInterieurToe };
+}
 function buildTruckMesh(v) {
-  // de tankwagen (model.tank: Us Mem Vet, de stuntavond) heeft een eigen opbouw en cabine, zie buildTankerMesh
   if (v.model.tank) return buildTankerMesh(v);
-  const L = v.model.len, W = v.model.wid, hl = L / 2, hw = W / 2;
-  const paint = v.wrecked ? WRECKED_COLOR : toHex(v.model.color, 0xe8e6e0);
-  const r = 0.52;
-  const geo = cached(`truck3|${L}|${W}|${paint}`, () => {
-    const B = new GeoBuilder(3);
-    const cabL = 2.0, boxX0 = -hl, boxX1 = hl - cabL - 0.1;
-    B.box(0, 0.74, 0, L - 0.2, 0.22, W - 0.3, 0x2a2b2d);
-    const bx = (boxX0 + boxX1) / 2, bl = boxX1 - boxX0;
-    {
-      // de laadbak: panelen met verticale ribbels, aluminium randen boven en onder, hoekstijlen, twee achterdeuren met
-      // scharnieren en sluitstangen, en een onderrijbeveiliging achter en opzij
-      const bc = paint === WRECKED_COLOR ? paint : 0xeeeee8, alu = paint === WRECKED_COLOR ? paint : 0xa7adb3;
-      B.box(bx, 2.275, 0, bl, 2.75, W, bc);
-      const nRib = Math.max(3, Math.round(bl / 0.62));
-      for (const s of [1, -1]) {
-        for (let i = 1; i < nRib; i++) B.box(boxX0 + (bl * i) / nRib, 2.275, s * (hw + 0.017), 0.05, 2.6, 0.03, shadeHex(bc, 0.86));
-        B.box(bx, 3.6, s * (hw + 0.025), bl + 0.02, 0.1, 0.036, alu);
-        B.box(bx, 0.96, s * (hw + 0.025), bl + 0.02, 0.12, 0.036, alu);
-        for (const x of [boxX0 + 0.03, boxX1 - 0.03]) B.box(x, 2.275, s * (hw - 0.03), 0.09, 2.78, 0.09, alu);
-      }
-      B.box(bx, 3.66, 0, bl - 0.1, 0.03, W - 0.1, shadeHex(bc, 0.92));
-      const dw = W / 2 - 0.07;
-      for (const s of [1, -1]) {
-        B.box(-hl - 0.012, 2.25, s * (W / 4 + 0.005), 0.02, 2.5, dw, shadeHex(bc, 0.95));
-        for (const y of [1.25, 2.25, 3.25]) B.box(-hl - 0.03, y, s * (hw - 0.07), 0.04, 0.1, 0.07, 0x3a3d40);   // scharnieren
-        for (const z of [0.22, 0.72]) {
-          B.geo(new THREE.CylinderGeometry(0.018, 0.018, 2.5, 6), composeMatrix(-hl - 0.045, 2.25, s * z), alu); // sluitstang
-          B.box(-hl - 0.07, 1.6, s * z + (s > 0 ? -0.08 : 0.08), 0.03, 0.035, 0.18, 0x3a3d40);              // hendel
-          for (const y of [1.02, 3.48]) B.box(-hl - 0.045, y, s * z, 0.05, 0.05, 0.06, 0x3a3d40);            // nokken
-        }
-      }
-      B.box(-hl + 0.12, 0.45, 0, 0.12, 0.13, W - 0.2, 0x3a3d40);                                                  // onderrijbeveiliging
-      for (const s of [1, -1]) {
-        B.box(-hl + 0.33, 0.6, s * 0.6, 0.42, 0.06, 0.06, 0x3a3d40);
-        for (let i = 0; i < 3; i++) B.box(-hl + 0.059, 0.45, s * (0.2 + i * 0.35), 0.006, 0.08, 0.16, i % 2 ? 0xf2efe4 : 0xc8102e); // reflectiestrook
-        const sx0 = -hl + 1.7 + 0.62, sx1 = hl - 1.25 - 0.62;
-        for (const y of [0.52, 0.74]) B.box((sx0 + sx1) / 2, y, s * (hw - 0.06), sx1 - sx0, 0.08, 0.04, 0x3a3d40); // zijbeveiliging
-      }
-    }
-    // cab: solid below the windows, glass all round above them, then the roof
-    const cx = hl - cabL / 2;
-    B.box(cx, 1.325, 0, cabL, 1.05, W - 0.05, paint);
-    B.box(cx, 2.6, 0, cabL, 0.2, W - 0.05, paint);
-    B.box(cx - 0.02, 2.175, 0, cabL - 0.1, 0.65, W - 0.12, GLASS, G_GLASS);
-    B.box(hl - cabL + 0.04, 2.175, 0, 0.08, 0.65, W - 0.05, paint);
-    B.box(hl - cabL / 2 - 0.05, 2.75, 0, cabL - 0.3, 0.1, W - 0.25, shadeHex(paint, 0.85));
-    for (const s of [1, -1]) {
-      B.box(hl - 0.04, 2.175, s * (hw - 0.06), 0.08, 0.65, 0.08, paint);
-      B.box(hl - 1.05, 2.175, s * (hw - 0.05), 0.08, 0.65, 0.06, paint);
-      B.box(hl + 0.02, 0.95, s * (hw - 0.3), 0.03, 0.14, 0.32, HEADLAMP, G_LAMP);
-      B.box(-hl - 0.01, 0.95, s * (hw - 0.2), 0.02, 0.2, 0.18, TAIL, G_LAMP);
-      B.box(hl - 0.1, 2.35, s * (hw + 0.2), 0.06, 0.3, 0.1, TRIM);
-      B.box((boxX0 + boxX1) / 2, 2.4, s * (hw + 0.006), (boxX1 - boxX0) * 0.7, 0.55, 0.012, paint);
-    }
-    B.box(hl + 0.03, 0.64, 0, 0.1, 0.24, W - 0.1, 0x2a2b2d);
-    B.box(hl + 0.085, 0.64, 0, 0.012, 0.1, 0.48, PLATE);
-    B.box(-hl - 0.012, 0.7, 0, 0.012, 0.1, 0.48, PLATE);
-    addDoorCuts(B, 'truck', L, hw, paint, CHROME, true);
-    // de cabine van binnen: wanden, vloer, twee stoelen en het dashboard (zichtbaar door de open deur)
-    binnenDoos(B, hl - cabL / 2, 1.32, 0, cabL - 0.14, 1.02, W - 0.32, 0x3a3c40);
-    B.box(hl - cabL / 2, 0.83, 0, cabL - 0.16, 0.02, W - 0.4, 0x45474c);
-    for (const s of [1, -1]) { B.box(hl - 1.05, 1.05, s * 0.5, 0.5, 0.12, 0.5, 0x4d515c); B.box(hl - 1.33, 1.4, s * 0.5, 0.1, 0.6, 0.5, 0x4d515c); }
-    B.box(hl - 0.25, 1.62, 0, 0.35, 0.3, W - 0.3, 0x2b2d32);
-    const k = knipDeurgaten(B, 'truck', L, W);
-    const g = B.build();
-    g.userData.knip = { ...deurSchillen(k, L), rects: k.rects, zs: k.zs };
-    return g;
-  });
-  const mats = vehicleMaterials();
-  const group = new THREE.Group();
-  const body = new THREE.Mesh(geo, mats);
-  group.add(body);
-  group.userData.body = body;
-  koppelDeurgaten(group, body, geo);
-  const wgeo = carWheelGeometry(r, 0.3);
-  const wheels = [];
-  for (const x of [hl - 1.25, -hl + 1.7]) for (const s of [1, -1]) addWheel(group, wgeo, mats[0], x, r, s * (hw - 0.2), wheels);
-  group.userData.wheels = wheels;
-  group.userData.wheelRadius = r;
-  return group;
+  return buildBakwagen(v, truckKit());
 }
 
 // De tankwagen (vettruck 23-11): een bakwagen-chassis met een levensmiddelentank voor frituurvet, gebouwd als één gecachete romp met
@@ -1862,8 +1952,8 @@ function usMemVetTexture() {
 // Banden met profiel (de trekker-limo): een band met verspringende noppen links en rechts, een velg en
 // de vijf spaken van de gewone auto-wielen, zodat het draaien leesbaar blijft. `wall` geeft een crème
 // witte flank en een chromen wieldop (de limo-banden). Eén gedeelde geometrie per maat.
-function treadWheelGeometry(r, w, lugs, wall = false) {
-  return cached(`tread|${r}|${w}|${lugs}|${wall}`, () => {
+function treadWheelGeometry(r, w, lugs, wall = false, diep = 0.1) {
+  return cached(`tread|${r}|${w}|${lugs}|${wall}${diep === 0.1 ? '' : '|' + diep}`, () => {
     const B = new GeoBuilder(1);
     const axleZ = (geo) => geo.rotateX(Math.PI / 2);
     B.geo(axleZ(new THREE.CylinderGeometry(r, r, w, 14, 1)), null, TIRE);
@@ -1881,8 +1971,8 @@ function treadWheelGeometry(r, w, lugs, wall = false) {
     for (let k = 0; k < lugs; k++) {
       for (const s of [1, -1]) {
         const a = ((k + (s > 0 ? 0 : 0.5)) / lugs) * Math.PI * 2;
-        const tr = r + r * 0.03;
-        B.box(Math.cos(a) * tr, Math.sin(a) * tr, s * w * 0.24, r * 0.1, (Math.PI * 2 * r / lugs) * 0.5, w * 0.46, 0x101011, 0, 0, 0, a);
+        const tr = r + r * (diep === 0.1 ? 0.03 : -0.01);
+        B.box(Math.cos(a) * tr, Math.sin(a) * tr, s * w * (diep === 0.1 ? 0.24 : 0.26), r * diep, (Math.PI * 2 * r / lugs) * 0.5, w * (diep === 0.1 ? 0.46 : 0.36), 0x101011, 0, diep === 0.1 ? 0 : s * 0.45, 0, a);
       }
     }
     return B.build();
@@ -2089,6 +2179,13 @@ function addEggCrates(B, x, n) {
     B.box(x - 0.26, y, z, 0.02, 0.2, 0.3, LAT); // de lat langs de achterkant
   }
 }
+// Een spatbord als boogstuk (vlak profiel in x-y rond de wielas, hoeken in graden vanaf voor, tegen de klok in via de bovenkant).
+function fenderArc(rUit, rIn, a0, a1, stappen = 9) {
+  const pts = [];
+  for (let k = 0; k <= stappen; k++) { const a = (a0 + (a1 - a0) * k / stappen) * Math.PI / 180; pts.push([Math.cos(a) * rUit, Math.sin(a) * rUit]); }
+  for (let k = stappen; k >= 0; k--) { const a = (a0 + (a1 - a0) * k / stappen) * Math.PI / 180; pts.push([Math.cos(a) * rIn, Math.sin(a) * rIn]); }
+  return pts;
+}
 function buildTractorMesh(v) {
   const L = v.model.len, W = v.model.wid, hl = L / 2, hw = W / 2;
   const paint = v.wrecked ? WRECKED_COLOR : toHex(v.model.color, 0x3f7d3a);
@@ -2100,10 +2197,23 @@ function buildTractorMesh(v) {
     const gh = C.roof - C.belt, gy = (C.roof + C.belt) / 2;
     // hood over the engine, frame and front axle beneath it
     const hx0 = C.x1 - 0.05;
-    B.box((hx0 + hl) / 2, 1.27, 0, hl - hx0, 0.76, W * 0.55, paint);
-    B.box((hx0 + hl) / 2 + 0.05, 1.66, 0, hl - hx0 - 0.25, 0.04, W * 0.5, shadeHex(paint, 0.85));
+    // de kap (24-11): een afgeronde extrusie die naar voren afloopt (zijaanzicht), met de gleuf van de motorkap, luchtfilter, grille
+    // met lamellen, ronde koplampen en frontgewichten; de dikke zijpanelen onder de kap zijn de motorblok-flanken
+    B.geo(extrudeProfile([[hx0, 0.86], [hl - 0.04, 0.86], [hl, 0.98], [hl, 1.4], [hl - 0.35, 1.56], [hx0 + 0.55, 1.7], [hx0, 1.7]], W * 0.5, 0.07, 2), composeMatrix(0, 0, 0), paint);
+    B.box(hx0 + 0.6 + (hl - hx0 - 0.9) / 2, 1.745, 0, hl - hx0 - 0.9, 0.03, W * 0.16, shadeHex(paint, 0.8));
+    for (const s2 of [1, -1]) B.box(hx0 + 0.2 + (hl - hx0 - 0.4) / 2, 1.2, s2 * (W * 0.25 + 0.005), hl - hx0 - 0.4, 0.4, 0.02, shadeHex(paint, 0.88));
+    B.geo(new THREE.CylinderGeometry(0.075, 0.075, 0.38, 8), composeMatrix(hl - 0.55, 1.9, -W * 0.15), 0x2a2a2a);
+    B.geo(new THREE.CylinderGeometry(0.095, 0.095, 0.05, 8), composeMatrix(hl - 0.55, 2.11, -W * 0.15), 0x6b6e72);
+    B.box(hl + 0.006, 1.22, 0, 0.02, 0.4, W * 0.38, 0x1d1e20);
+    for (let k = 0; k < 5; k++) B.box(hl + 0.016, 1.07 + k * 0.077, 0, 0.012, 0.03, W * 0.34, 0x8f9296);
+    for (const s2 of [1, -1]) {
+      B.geo(new THREE.CylinderGeometry(0.095, 0.095, 0.06, 10).rotateZ(Math.PI / 2), composeMatrix(hl + 0.03, 1.36, s2 * W * 0.27), HEADLAMP, G_LAMP);
+    }
     B.box((C.x0 + hl) / 2, 0.78, 0, hl - C.x0 - 0.2, 0.5, W * 0.42, 0x2a2a2a);
     B.box(hl - 0.05, 1.2, 0, 0.08, 0.5, W * 0.48, 0x2a2a2a);
+    // frontgewichten onder de neus (een stapel platen) en een trekoog
+    B.box(hl + 0.14, 0.62, 0, 0.22, 0.42, W * 0.34, 0x3b3d40);
+    for (const dy of [-0.1, 0.1]) B.box(hl + 0.255, 0.62 + dy, 0, 0.012, 0.03, W * 0.3, 0xd9a521);
     // cab: solid up to the belt, glass all round above it, the roof
     B.box(cx, (C.floor + C.belt) / 2, 0, cl, C.belt - C.floor, W * 0.86, paint);
     B.box(cx, C.roof + 0.08, 0, cl, 0.16, W * 0.86, paint);
@@ -2114,8 +2224,12 @@ function buildTractorMesh(v) {
       for (const px of [C.x0 + 0.03, C.x1 - 0.03]) B.box(px, gy, s * (cz - 0.03), 0.06, gh, 0.06, paint);
       B.box(cx, gy, s * cz, cl - 0.1, gh, 0.02, GLASS, G_GLASS);
       // rear mudguards over the big wheels, a step up to the cab
-      B.box(C.rearX, TRACTOR_RR * 2 + 0.06, s * (hw - 0.02), 1.9, 0.08, 0.56, shadeHex(paint, 0.75));
-      B.box(C.rearX + 0.92, TRACTOR_RR * 1.55, s * (hw - 0.02), 0.08, TRACTOR_RR * 0.9, 0.56, shadeHex(paint, 0.75));
+      B.geo(extrudeProfile(fenderArc(TRACTOR_RR * 1.14 + 0.06, TRACTOR_RR * 1.14, 12, 168), 0.6, 0.02, 1), composeMatrix(C.rearX, TRACTOR_RR, s * (hw - 0.02)), shadeHex(paint, 0.75));
+      B.geo(extrudeProfile(fenderArc(TRACTOR_FR * 1.14 + 0.05, TRACTOR_FR * 1.14, 20, 160), 0.36, 0.015, 1), composeMatrix(C.frontX, TRACTOR_FR, s * (hw - 0.3)), shadeHex(paint, 0.75));
+      B.box(C.x1 + 0.04, C.belt + 0.34, s * (cz + 0.14), 0.03, 0.03, 0.3, 0x3a3c3e); // spiegelarm vanaf de voorstijl
+      B.box(C.x1 + 0.05, C.belt + 0.28, s * (cz + 0.3), 0.04, 0.3, 0.16, 0x1c1c1c); // spiegel
+      B.box(-hl + 0.1, 0.55, s * 0.44, 0.78, 0.055, 0.055, 0x2a2a2a); // onderste hefarm
+      B.box(-hl + 0.16, 0.72, s * 0.44, 0.04, 0.3, 0.04, 0x2a2a2a);
       B.box(C.x1 - 0.1, 0.62, s * (hw - 0.45), 0.3, 0.05, 0.25, 0x2a2a2a);
       B.box(hl + 0.01, 1.3, s * (W * 0.2), 0.02, 0.14, 0.2, HEADLAMP, G_LAMP);
       B.box(C.x0 - 0.05, C.belt - 0.15, s * (cz - 0.1), 0.04, 0.12, 0.1, TAIL, G_LAMP);
@@ -2123,7 +2237,11 @@ function buildTractorMesh(v) {
       B.box(-hl + 0.32, 0.72, s * 0.35, 0.64, 0.08, 0.08, 0x2a2a2a);
     }
     // exhaust up the front corner of the cab
-    B.box(C.x1 + 0.12, C.belt + 0.35, W * 0.22, 0.1, 1.5, 0.1, TRIM);
+    B.geo(new THREE.CylinderGeometry(0.045, 0.05, 1.5, 8), composeMatrix(C.x1 + 0.12, C.belt + 0.35, W * 0.22), TRIM);
+    B.box(C.x1 + 0.12, C.belt + 1.12, W * 0.22, 0.12, 0.03, 0.12, 0x3a3c3e);
+    B.geo(new THREE.CylinderGeometry(0.06, 0.07, 0.1, 8), composeMatrix(cx, C.roof + 0.3, 0), INDICATOR, G_LAMP);
+    B.box(-hl + 0.12, 0.95, 0, 0.5, 0.05, 0.05, 0x2a2a2a);
+    B.geo(new THREE.CylinderGeometry(0.05, 0.05, 0.3, 8).rotateZ(Math.PI / 2), composeMatrix(-hl - 0.05, 0.62, 0), 0x55585c);
     B.box(-hl + 0.12, 0.68, 0, 0.24, 0.3, W * 0.5, 0x2a2a2a);
     if (kratten) addEggCrates(B, -hl - 0.12, kratten);
     addDoorCuts(B, 'tractor', L, hw, paint, CHROME, true);
@@ -2143,7 +2261,7 @@ function buildTractorMesh(v) {
   group.userData.body = body;
   koppelDeurgaten(group, body, geo);
   const wheels = [];
-  const small = carWheelGeometry(TRACTOR_FR, 0.36), big = carWheelGeometry(TRACTOR_RR, 0.52);
+  const small = treadWheelGeometry(TRACTOR_FR, 0.36, 14, false, 0.22), big = treadWheelGeometry(TRACTOR_RR, 0.52, 18, false, 0.22);
   for (const s of [1, -1]) {
     addWheel(group, small, mats[0], C.frontX, TRACTOR_FR, s * (hw - 0.3), wheels);
     addWheel(group, big, mats[0], C.rearX, TRACTOR_RR, s * (hw - 0.02), wheels);
@@ -2157,22 +2275,54 @@ function buildTractorMesh(v) {
 function buildQuadMesh(v) {
   const L = v.model.len, W = v.model.wid, hl = L / 2, hw = W / 2;
   const paint = v.wrecked ? WRECKED_COLOR : toHex(v.model.color, 0xb8322a);
-  const geo = cached(`quad|${L}|${W}|${paint}`, () => {
+  const geo = cached(`quad2|${L}|${W}|${paint}`, () => {
     const B = new GeoBuilder(3);
-    B.box(0, 0.45, 0, L * 0.7, 0.2, W * 0.42, 0x2a2a2a);
-    B.box(hl - 0.42, 0.68, 0, 0.62, 0.22, W * 0.8, paint);
-    B.box(-hl + 0.42, 0.68, 0, 0.62, 0.22, W * 0.8, paint);
-    B.box(0.12, 0.7, 0, 0.7, 0.3, W * 0.42, paint);
-    B.box(-0.22, 0.86, 0, 0.62, 0.1, 0.36, 0x1c1c1c);
-    B.box(hl - 0.42, 0.84, 0, 0.5, 0.04, W * 0.7, 0x3a3a3a);
-    B.box(-hl + 0.42, 0.84, 0, 0.5, 0.04, W * 0.7, 0x3a3a3a);
-    B.box(0.42, 0.98, 0, 0.06, 0.36, 0.06, 0x2a2a2a);
-    B.box(0.44, 1.16, 0, 0.06, 0.04, W * 0.72, 0x2a2a2a);
+    const zw = hw - 0.13, fx = hl - 0.42, rx = -hl + 0.42, WR = 0.3;
+    const donker = shadeHex(paint, 0.74), STAAL = 0x2a2a2a, RUBBER = 0x1c1c1c;
+    // frame en motorblok (24-11): buisframe onder de plastic delen, de motor onder de zitting, voetplaten met ribbels
+    B.box(0, 0.45, 0, L * 0.7, 0.14, W * 0.3, STAAL);
+    B.box(-0.12, 0.55, 0, 0.5, 0.24, W * 0.32, 0x3a3c3f);
     for (const s of [1, -1]) {
-      B.box(hl - 0.08, 0.74, s * 0.2, 0.02, 0.1, 0.16, HEADLAMP, G_LAMP);
-      B.box(-hl + 0.105, 0.72, s * 0.24, 0.02, 0.08, 0.1, TAIL, G_LAMP);
-      B.box(-0.05, 0.42, s * (W * 0.26), 0.4, 0.04, 0.22, 0x2a2a2a);
+      B.box(-0.05, 0.4, s * (W * 0.27), 0.5, 0.05, 0.24, STAAL);
+      for (let k = 0; k < 4; k++) B.box(-0.2 + k * 0.13, 0.445, s * (W * 0.27), 0.03, 0.03, 0.22, RUBBER);
+      B.box(0, 0.42, s * (W * 0.16), 0.9, 0.04, 0.04, STAAL);
+      B.box(fx, 0.45, s * zw * 0.7, 0.05, 0.05, 0.5, STAAL); // wielophanging voor
+      B.box(rx, 0.45, s * zw * 0.7, 0.05, 0.05, 0.5, STAAL); // achter
     }
+    // voorkant: afgeronde neus (zijaanzicht uitgetrokken), voor- en achterspatborden als bogen over de wielen
+    B.geo(extrudeProfile([[0.1, 0.62], [hl - 0.1, 0.6], [hl - 0.02, 0.72], [hl - 0.08, 0.88], [0.5, 0.96], [0.1, 0.84]], W * 0.4, 0.05, 2), composeMatrix(0, 0, 0), paint);
+    B.geo(extrudeProfile([[-0.2, 0.6], [0.52, 0.64], [0.56, 0.95], [0.32, 1.03], [-0.02, 0.97], [-0.2, 0.88]], W * 0.36, 0.05, 2), composeMatrix(0, 0, 0), paint); // tank
+    for (const s of [1, -1]) {
+      B.geo(extrudeProfile(fenderArc(WR * 1.22 + 0.04, WR * 1.22, 5, 175), 0.34, 0.015, 1), composeMatrix(fx, WR, s * zw), donker);
+      B.geo(extrudeProfile(fenderArc(WR * 1.22 + 0.04, WR * 1.22, 5, 175), 0.34, 0.015, 1), composeMatrix(rx, WR, s * zw), donker);
+      B.box(fx + 0.02, 0.7, s * (zw - 0.12), 0.5, 0.04, 0.2, donker);
+      B.box(rx - 0.02, 0.7, s * (zw - 0.12), 0.5, 0.04, 0.2, donker);
+    }
+    // zitting: een ruime, naar achteren oplopende bank met een lichte rand
+    B.geo(extrudeProfile([[-0.6, 0.8], [0.0, 0.84], [0.12, 0.92], [-0.02, 1.0], [-0.5, 0.98], [-0.62, 0.9]], 0.38, 0.05, 2), composeMatrix(0, 0, 0), 0x1c1c1c);
+    B.box(-0.27, 0.8, 0, 0.62, 0.03, 0.42, 0x3a3a3a);
+    // stuur: kolom, stuurbuis, handvatten en remhendels, een ronde koplamp op de neus en een tweede lampje in de bumper
+    B.geo(new THREE.CylinderGeometry(0.03, 0.03, 0.4, 8), composeMatrix(0.5, 1.12, 0), STAAL);
+    B.geo(new THREE.CylinderGeometry(0.018, 0.018, W * 0.68, 8).rotateX(Math.PI / 2), composeMatrix(0.46, 1.3, 0), STAAL);
+    for (const s of [1, -1]) {
+      B.geo(new THREE.CylinderGeometry(0.026, 0.026, 0.14, 8).rotateX(Math.PI / 2), composeMatrix(0.46, 1.3, s * W * 0.31), RUBBER);
+      B.box(0.52, 1.27, s * W * 0.27, 0.12, 0.012, 0.014, 0x8f9296);
+      B.geo(new THREE.CylinderGeometry(0.075, 0.075, 0.06, 10).rotateZ(Math.PI / 2), composeMatrix(hl - 0.04, 0.8, s * 0.2), HEADLAMP, G_LAMP);
+      B.box(-hl + 0.1, 0.72, s * 0.24, 0.02, 0.09, 0.12, TAIL, G_LAMP);
+    }
+    B.box(0.48, 1.07, 0, 0.16, 0.14, 0.34, 0x1d1e20); // stuurkap met dashboard
+    B.box(0.57, 1.12, 0, 0.02, 0.04, 0.2, 0x2f6fb0, G_GLASS);
+    // bagagerekken voor en achter (buisframe met latten), bumperbuis en trekhaak
+    for (const [x, y] of [[hl - 0.25, 1.0], [-hl + 0.22, 0.98]]) {
+      for (const s of [1, -1]) { B.box(x, y, s * (W * 0.3), 0.44, 0.025, 0.025, STAAL); B.box(x, y - 0.1, s * (W * 0.3), 0.025, 0.2, 0.025, STAAL); }
+      for (let k = -2; k <= 2; k++) B.box(x + k * 0.09, y + 0.012, 0, 0.03, 0.02, W * 0.6, STAAL);
+    }
+    B.geo(new THREE.CylinderGeometry(0.02, 0.02, W * 0.62, 8).rotateX(Math.PI / 2), composeMatrix(hl - 0.02, 0.5, 0), STAAL);
+    B.geo(new THREE.CylinderGeometry(0.02, 0.02, W * 0.6, 8).rotateX(Math.PI / 2), composeMatrix(-hl + 0.02, 0.5, 0), STAAL);
+    B.geo(new THREE.SphereGeometry(0.028, 8, 6), composeMatrix(-hl - 0.04, 0.52, 0), 0xb9bcbf);
+    // uitlaat: een demper rechts onder de zitting
+    B.geo(new THREE.CylinderGeometry(0.05, 0.05, 0.5, 8).rotateZ(Math.PI / 2), composeMatrix(-0.5, 0.58, W * 0.22), 0x55585c);
+    B.box(-0.78, 0.58, W * 0.22, 0.06, 0.07, 0.07, 0x1b1b1c);
     return B.build();
   });
   const mats = vehicleMaterials(v.wrecked);
@@ -2196,48 +2346,21 @@ function buildQuadMesh(v) {
 function buildMaaidorserMesh(v) {
   const L = v.model.len, W = v.model.wid, hl = L / 2, hw = W / 2;
   const paint = v.wrecked ? WRECKED_COLOR : toHex(v.model.color, 0xc43d2b);
-  const geo = cached(`maaidorser|${L}|${W}|${paint}`, () => {
-    const B = new GeoBuilder(3);
-    const rond = shadeHex(paint, 0.82);
-    // maaitafel voorop met haspel en messenbalk, dorskast, graantank, lospijp, cabine
-    B.box(hl - 0.5, 0.62, 0, 1.0, 0.5, W, 0xd9b84a);
-    B.box(hl - 0.15, 0.4, 0, 0.18, 0.14, W, 0x6b6b6b);
-    B.box(hl - 0.45, 1.05, 0, 0.5, 0.5, W * 0.96, shadeHex(0xd9b84a, 0.8));
-    B.box(hl - 1.45, 1.5, 0, 1.6, 1.0, W * 0.62, rond);
-    B.box(-0.55, 1.55, 0, hl * 1.2, 1.1, W * 0.78, paint);
-    B.box(-1.2, 2.55, 0, 3.2, 1.0, W * 0.74, paint);
-    B.box(-1.2, 3.14, 0, 3.3, 0.14, W * 0.78, rond);
-    B.box(-0.2, 3.5, hw * 0.55, 3.4, 0.14, 0.16, 0x6b6b6b);
-    // De maaidorsers-cabine (#847): geen dichte plaatswerkdoos meer achter het glas, zodat het
-    // interieur op cabinehoogte (2,35-3,2 m) door de glasband te zien is. Onderpaneel tot de
-    // raamlijn, dakpaneel erboven en vier hoekstijlen ertussen; de glaspanelen zelf staan op
-    // dezelfde plek als voorheen (voor/achter op hl-1,64 en hl-3,16, zij op +/-W*0,35).
-    B.box(hl - 2.4, 2.175, 0, 1.5, 0.35, W * 0.7, paint);
-    B.box(hl - 2.4, 3.25, 0, 1.5, 0.1, W * 0.7, paint);
-    for (const px of [hl - 3.12, hl - 1.68]) for (const pz of [-1, 1]) B.box(px, 2.775, pz * (W * 0.35 - 0.03), 0.06, 0.85, 0.06, paint);
-    B.box(hl - 2.4, 3.36, 0, 1.6, 0.14, W * 0.76, rond);
-    B.box(hl - 1.64, 2.7, 0, 0.03, 1.0, W * 0.64, GLASS, G_GLASS);
-    B.box(hl - 3.16, 2.7, 0, 0.03, 1.0, W * 0.64, GLASS, G_GLASS);
-    for (const s of [1, -1]) {
-      B.box(hl - 2.4, 2.7, s * W * 0.35, 1.5, 1.0, 0.03, GLASS, G_GLASS);
-      B.box(hl - 0.04, 0.62, s * (hw - 0.3), 0.02, 0.14, 0.24, HEADLAMP, G_LAMP);
-      B.box(-hl + 0.03, 1.5, s * (hw * 0.5), 0.02, 0.14, 0.2, TAIL, G_LAMP);
-    }
-    return B.build();
-  });
+  const geo = cached(`maaidorser2|${L}|${W}|${paint}`, () => buildMaaidorserGeo(L, W, paint));
   const mats = vehicleMaterials(v.wrecked);
   const group = new THREE.Group();
   const body = new THREE.Mesh(geo, mats);
   group.add(body);
   group.userData.body = body;
   const wheels = [];
-  const big = carWheelGeometry(0.95, 0.7), small = carWheelGeometry(0.62, 0.5);
+  const { big, small } = { big: cached('maaidorser-big', () => maaidorserWheels().big), small: cached('maaidorser-small', () => maaidorserWheels().small) };
   for (const s of [1, -1]) {
     addWheel(group, big, mats[0], hl - 2.7, 0.95, s * (hw - 0.45), wheels);
     addWheel(group, small, mats[0], -hl + 1.0, 0.62, s * (hw - 0.55), wheels);
   }
   group.userData.wheels = wheels;
   group.userData.wheelRadius = 0.95;
+  group.userData.lodDoel = 1400;
   return group;
 }
 
@@ -2245,40 +2368,21 @@ function buildMaaidorserMesh(v) {
 function buildLaadmachineMesh(v) {
   const L = v.model.len, W = v.model.wid, hl = L / 2, hw = W / 2;
   const paint = v.wrecked ? WRECKED_COLOR : toHex(v.model.color, 0xe0a92b);
-  const geo = cached(`laadmachine|${L}|${W}|${paint}`, () => {
-    const B = new GeoBuilder(3);
-    const rond = shadeHex(paint, 0.8);
-    B.box(-hl + 0.7, 0.85, 0, 1.4, 0.7, W * 0.8, paint);
-    B.box(-hl + 0.45, 1.3, 0, 0.9, 0.3, W * 0.72, rond);
-    B.box(0.15, 0.62, 0, 1.6, 0.4, W * 0.62, 0x2a2a2a);
-    // cabine met kooi, de laadarm langs beide kanten en de bak
-    B.box(-0.1, 1.45, 0, 1.1, 0.12, W * 0.78, rond);
-    B.box(-0.1, 2.0, 0, 1.1, 0.08, W * 0.86, rond);
-    for (const s of [1, -1]) {
-      for (const px of [-0.6, 0.38]) B.box(px, 1.75, s * (hw * 0.78), 0.06, 0.66, 0.06, rond);
-      B.box(0.55, 1.2, s * (hw * 0.92), 1.7, 0.1, 0.1, 0x5a5a5a);
-      B.box(0.38, 1.76, s * (hw * 0.78), 0.02, 0.56, 0.02, GLASS, G_GLASS);
-      B.box(hl - 0.03, 0.9, s * (W * 0.3), 0.02, 0.12, 0.2, HEADLAMP, G_LAMP);
-      B.box(-hl + 0.02, 1.05, s * (W * 0.3), 0.02, 0.1, 0.18, TAIL, G_LAMP);
-    }
-    B.box(hl + 0.1, 0.45, 0, 0.8, 0.5, W * 1.02, 0x5a5a5a);
-    B.box(hl + 0.45, 0.72, 0, 0.1, 0.45, W * 1.02, 0x5a5a5a);
-    B.box(-0.1, 1.75, 0, 0.02, 0.56, W * 0.76, GLASS, G_GLASS);
-    return B.build();
-  });
+  const geo = cached(`laadmachine2|${L}|${W}|${paint}`, () => buildLaadmachineGeo(L, W, paint));
   const mats = vehicleMaterials(v.wrecked);
   const group = new THREE.Group();
   const body = new THREE.Mesh(geo, mats);
   group.add(body);
   group.userData.body = body;
   const wheels = [];
-  const wheel = carWheelGeometry(0.46, 0.5);
+  const wheel = cached('laadmachine-wiel', () => laadmachineWheel());
   for (const s of [1, -1]) {
     addWheel(group, wheel, mats[0], hl - 0.85, 0.46, s * (hw - 0.25), wheels);
     addWheel(group, wheel, mats[0], -hl + 0.7, 0.46, s * (hw - 0.25), wheels);
   }
   group.userData.wheels = wheels;
   group.userData.wheelRadius = 0.46;
+  group.userData.lodDoel = 1300;
   return group;
 }
 
@@ -2316,26 +2420,7 @@ function buildFoodtruckMesh(v) {
   if (wrecked) return group;
   const geo = cached(`foodtruck|${L}|${W}|${paint}`, () => {
     const B = new GeoBuilder(3);
-    // the hatch: a dark opening with a steel counter, the flap propped up as the awning
-    const x0 = -hl + 0.55, x1 = hl - 1.45;
-    const cx = (x0 + x1) / 2, cl = x1 - x0;
-    B.box(cx, 1.45, hw + 0.007, cl, 0.8, 0.01, 0x1c1d20);
-    B.box(cx, 1.3, hw + 0.012, cl * 0.9, 0.35, 0.01, 0xf2c230, G_LAMP);
-    B.box(cx, 1.03, hw + 0.16, cl + 0.1, 0.05, 0.32, CHROME);
-    for (let i = 0; i < 6; i++) {
-      const sx = x0 + (cl * (i + 0.5)) / 6;
-      B.box(sx, 1.98, hw + 0.42, cl / 6, 0.035, 0.9, i % 2 ? 0xf4f1e6 : 0x1f4f8f, 0, 0.5, 0, 0);
-    }
-    for (const x of [x0 + 0.05, x1 - 0.05]) B.geo(tubeGeometry([x, 1.86, hw + 0.8], [x, 1.1, hw + 0.03], 0.018, 0.018, 4), null, CHROME);
-    // snacks on the counter
-    for (let i = 0; i < 4; i++) B.box(cx - cl * 0.3 + i * cl * 0.2, 1.09, hw + 0.18, 0.12, 0.08, 0.1, [0xc9852e, 0xe8c24a, 0x8a4a22, 0xc9852e][i]);
-    // roof: sign frame, an extractor hood, and the eierbal
-    B.box(-0.3, 2.3, 0, L * 0.55, 0.06, 0.08, 0x2a2a2b);
-    for (const x of [-0.3 - L * 0.26, -0.3 + L * 0.26]) B.box(x, 2.22, 0, 0.06, 0.2, 0.06, 0x2a2a2b);
-    B.box(-hl + 0.7, 2.18, -hw * 0.45, 0.5, 0.18, 0.5, CHROME);
-    B.geo(new THREE.SphereGeometry(0.42, 12, 9), composeMatrix(hl - 1.25, 2.55, 0, 0, 0, 0, 1, 0.92, 1), 0xb8742c);
-    B.geo(new THREE.SphereGeometry(0.45, 12, 9, 0, Math.PI * 2, 0, 0.9), composeMatrix(hl - 1.25, 2.55, 0, 0, 0, 0, 1, 0.92, 1), 0xd89a44);
-    B.box(hl - 1.25, 2.12, 0, 0.5, 0.06, 0.5, 0x2a2a2b);
+    foodtruckOnderdelen(B, { L, hl, hw, K: VAN_K, G: VAN_G }); // luik, toonbank, zonnescherm, menubord, kap en eierbal (24-11)
     return B.build();
   });
   group.add(new THREE.Mesh(geo, vehicleMaterials()));
@@ -2373,87 +2458,27 @@ function poseRider(rider, legBase, armAngle, lean) {
   ud.legR.rotation.z = legBase;
 }
 
-// st: de studentenstaat als sleutel (staatSleutel: S scheef voorspatbord, L geen voorlicht)
-function buildBikeGeometry(color, fat, stepThrough, st = '', zonderStuur = false) {
-  return cached(`bike|${color}|${fat}|${stepThrough}|${st}|${zonderStuur}`, () => {
+// Het frame, de vorken, spatborden, drager en zadel (vehicle_bike.js). o: { color, stijl, stepThrough, st (studentenstaat, staatSleutel),
+// old, noLight, extra, hash, zonderStuur } - zonderStuur: het stuur is dichtbij een eigen onderdeel (stuurOverlay, #442)
+function buildBikeGeometry(o) {
+  const key = `bike|${o.color}|${o.stijl}|${o.stepThrough}|${o.st || ''}|${o.zonderStuur ? 1 : 0}|${o.old ? 1 : 0}|${o.noLight ? 1 : 0}|${o.old ? Math.floor((o.hash || 0) * 3) : 0}|${o.extra && o.extra.mand ? 'm' + o.extra.mandKleur : ''}${o.extra && o.extra.tassen ? 't' + o.extra.tasKleur : ''}`;
+  return cached(key, () => {
     const B = new GeoBuilder(3);
-    const r = fat ? 0.3 : 0.34;
-    const wb = fat ? 0.52 : 0.56;
-    const t = fat ? 0.028 : 0.018;
-    const F = [wb, r, 0], R = [-wb, r, 0];
-    const BB = [-0.05, 0.3, 0];
-    const S = [-0.24, fat ? 0.72 : 0.84, 0];
-    const H1 = [0.4, fat ? 0.82 : 0.93, 0], H0 = [0.45, fat ? 0.66 : 0.72, 0];
-    const tube = (a, b, rr = t, c = color) => B.geo(tubeGeometry(a, b, rr, rr, 5), null, c);
-    tube(H0, H1, t * 1.3);
-    tube(S, BB);
-    for (const s of [1, -1]) {
-      tube([BB[0], BB[1], s * 0.04], [R[0], R[1], s * 0.05], t * 0.8);
-      tube([S[0], S[1], s * 0.02], [R[0], R[1], s * 0.05], t * 0.8);
-      tube([H0[0], H0[1], s * 0.04], [F[0], F[1], s * 0.05], t * 0.85);
-    }
-    if (stepThrough && !fat) {
-      tube([0.42, 0.86, 0], [0.05, 0.4, 0]);
-      tube([0.05, 0.4, 0], BB);
-      tube([0.44, 0.78, 0], [0.12, 0.36, 0], t * 0.8);
-      tube([0.12, 0.36, 0], [-0.02, 0.29, 0], t * 0.8);
-    } else {
-      tube(H1, [S[0] + 0.02, S[1] - 0.02, 0]);
-      tube(H0, BB, t * 1.1);
-    }
-    const saddle = [S[0] - 0.03, S[1] + (fat ? 0.2 : 0.14), 0];
-    tube(S, saddle, 0.013, 0x8a8e92);
-    B.box(saddle[0] - 0.02, saddle[1] + 0.03, 0, 0.27, 0.06, 0.16, 0x2a1d14);
-    // stem and bars: drawn on their own when the bike is near (stuurOverlay), so they turn with the steering (#442)
-    const stemTop = [H1[0] - 0.02, H1[1] + 0.14, 0];
-    if (!zonderStuur) bikeStuurOnderdelen(B, fat, 0);
-    for (const [x] of [F, R]) {
-      const guard = new THREE.TorusGeometry(r + 0.03, fat ? 0.05 : 0.028, 3, 9, Math.PI * 0.85);
-      guard.scale(1, 1, fat ? 1.2 : 1);
-      // een scheef voorspatbord: omhoog gebogen, een stukje opzij en iets weg van het wiel
-      if (st.includes('S') && x === F[0]) B.geo(guard, composeMatrix(x + 0.06, r + 0.09, 0.07, 0.3, 0.32, Math.PI * 0.08 + 0.5), color);
-      else B.geo(guard, composeMatrix(x, r, 0, 0, 0, Math.PI * 0.08), color);
-    }
-    if (!fat) {
-      B.box(-0.33, 0.44, 0.075, 0.62, 0.13, 0.03, color, 0, 0, 0, 0.07);
-      B.box(-0.5, 0.78, 0, 0.44, 0.02, 0.15, 0x2a2a2b);
-      for (const s of [1, -1]) tube([-0.66, 0.78, s * 0.07], [R[0], R[1], s * 0.06], 0.01, 0x2a2a2b);
-      // geen voorlicht: de dynamo en de lamp zijn eraf
-      if (!st.includes('L')) {
-        B.geo(new THREE.CylinderGeometry(0.045, 0.035, 0.07, 7).rotateZ(Math.PI / 2), composeMatrix(H0[0] + 0.07, H0[1] + 0.04, 0), 0x2a2a2b);
-        B.box(H0[0] + 0.11, H0[1] + 0.04, 0, 0.01, 0.06, 0.06, HEADLAMP, G_LAMP);
-      }
-      B.box(-0.73, 0.76, 0, 0.01, 0.04, 0.06, TAIL, G_LAMP);
-    }
-    for (const s of [1, -1]) B.box(BB[0], BB[1], s * 0.1, 0.1, 0.02, 0.08, 0x2a2a2b);
+    bikeFrameParts(B, o);
+    if (!o.zonderStuur) bikeSteerParts(B, o, 0);
     return B.build();
   });
 }
+function bikeWheelGeometryRich(r, tire, tireColor = TIRE, disc = false) {
+  return cached(`bwheelr|${r}|${tire}|${tireColor}|${disc}`, () => bikeWheelRich(new GeoBuilder(1), r, tire, tireColor, { disc }).build());
+}
+function bikeCrankGeometry(stijl) {
+  return cached(`bcrank|${stijl}`, () => { const B = new GeoBuilder(3); bikeCrankParts(B, stijl); return B.build(); });
+}
 
-// Bakfiets: long frame with a wooden box between the rider and a small front wheel.
+// Bakfiets: lang frame met een houten bak tussen de rijder en een klein voorwiel (vehicle_bike.js).
 function buildBakfietsGeometry(color) {
-  return cached(`bakfiets|${color}`, () => {
-    const B = new GeoBuilder(3);
-    const t = 0.02;
-    const tube = (a, b, rr = t, c = color) => B.geo(tubeGeometry(a, b, rr, rr, 5), null, c);
-    const R = [-0.85, 0.34, 0], BB = [-0.45, 0.3, 0], S = [-0.62, 0.86, 0], H = [-0.25, 0.96, 0];
-    tube(R, BB);
-    tube(R, S, t * 0.8);
-    tube(BB, S, t * 1.2);
-    tube(BB, [0.95, 0.22, 0], t * 1.3);
-    tube([-0.2, 0.28, 0], H, t * 1.1);
-    for (const s of [1, -1]) tube(H, [H[0] - 0.12, H[1] + 0.05, s * 0.26], 0.012, 0x8a8e92);
-    B.box(S[0] - 0.02, S[1] + 0.1, 0, 0.26, 0.06, 0.16, 0x2a1d14);
-    B.box(0.45, 0.62, 0, 0.9, 0.04, 0.66, 0x7a5a38);
-    for (const s of [1, -1]) B.box(0.45, 0.82, s * 0.33, 0.9, 0.4, 0.03, 0x9a7048);
-    B.box(0.9, 0.82, 0, 0.03, 0.4, 0.66, 0x9a7048);
-    B.box(0.0, 0.82, 0, 0.03, 0.4, 0.66, 0x9a7048);
-    B.box(0.45, 1.03, 0.33, 0.9, 0.03, 0.04, 0x6b4a2a);
-    B.box(0.45, 1.03, -0.33, 0.9, 0.03, 0.04, 0x6b4a2a);
-    B.box(-0.97, 0.76, 0, 0.01, 0.04, 0.06, TAIL, G_LAMP);
-    B.box(0.93, 0.7, 0, 0.01, 0.06, 0.06, HEADLAMP, G_LAMP);
-    return B.build();
-  });
+  return cached(`bakfiets|${color}`, () => { const B = new GeoBuilder(3); bakfietsParts(B, color); return B.build(); });
 }
 
 // Delivery rider's big cube bag (invented chain colours, streetlifedata.js).
@@ -2516,20 +2541,28 @@ function buildBakfietsMesh(v) {
   const mats = vehicleMaterials();
   group.add(new THREE.Mesh(buildBakfietsGeometry(color), mats));
   const wheels = [];
-  addWheel(group, bikeWheelGeometry(0.34, 0.022), mats[0], -0.85, 0.34, 0, wheels);
-  addWheel(group, bikeWheelGeometry(0.25, 0.022), mats[0], 1.0, 0.25, 0, wheels);
+  addWheel(group, bikeWheelGeometryRich(0.34, 0.026), mats[0], -0.85, 0.34, 0, wheels);
+  addWheel(group, bikeWheelGeometryRich(0.25, 0.024), mats[0], 1.0, 0.25, 0, wheels);
   group.userData.wheels = wheels;
   group.userData.wheelRadius = 0.32;
-  group.userData.spinStep = 0.26; // 8 spaken (45 graden), en het kleine voorwiel draait sneller (spinK)
+  group.userData.spinStep = 0.2; // 16 spaken, en het kleine voorwiel draait sneller (spinK)
   wheels[0].userData.spinK = 0.32 / 0.34;
   wheels[1].userData.spinK = 0.32 / 0.25;
   const rider = riderFor(v, toHex(v.model.rider, HABBO_PALETTE.roofBlue));
-  rider.position.set(-0.68, 1.02 - 0.93 * rider.scale.y, 0);
+  const crank = new THREE.Mesh(bikeCrankGeometry('stad'), mats);
+  crank.position.set(-0.45, 0.3, 0);
+  group.add(crank);
+  group.userData.crank = crank;
+  const hipDrop = PERSON_RIG.HIP_Y * rider.scale.y;
+  rider.position.set(-0.68 + hipDrop * Math.sin(-0.05), 1.065 - hipDrop * Math.cos(-0.05), 0);
   poseRider(rider, 0.33, 0.7, -0.05);
+  // handen aan de handvatten (x -0,43; hoogte 1,045; halve breedte 0,26) en de voeten op de trappers bij de trapas van de bakfiets
   group.add(rider);
-  group.userData.riderLegs = { legs: [rider.userData.legL, rider.userData.legR], base: 0.33, amp: 0.2 };
+  bikeHands(rider, { x: -0.43, y: 1.045, z: 0.26, px: -0.28 }, 0);
+  group.userData.riderLegs = { legs: [rider.userData.legL, rider.userData.legR], base: 0.33, amp: 0.2, bb: { x: -0.45, y: 0.3 } };
   if (v.model.load) {
     group.add(new THREE.Mesh(buildBikeLoadGeometry(v.model.load), mats));
+    makeLodObject('vehicle', 'bakfiets', group);
     return group;
   }
   // a kid (or two) in the box
@@ -2541,6 +2574,7 @@ function buildBakfietsMesh(v) {
     if (kid.userData.legR) kid.userData.legR.rotation.z = 1.4;
     group.add(kid);
   }
+  makeLodObject('vehicle', 'bakfiets', group);
   return group;
 }
 
@@ -2552,7 +2586,7 @@ export function updateBikeStaat(mesh, v) {
   if (mesh.userData.staatSleutel === undefined || mesh.userData.staatSleutel === sleutel) return false;
   const frame = mesh.children[0];
   if (!frame || !frame.isMesh) return false;
-  frame.geometry = buildBikeGeometry(toHex(v.model.color, HABBO_PALETTE.black), false, hash2(v.id || 0, 4.2) < 0.5, sleutel);
+  frame.geometry = buildBikeGeometry({ ...mesh.userData.bikeOpts, st: sleutel });
   mesh.userData.staatSleutel = sleutel;
   return true;
 }
@@ -2561,33 +2595,45 @@ function buildBikeMesh(v) {
   if (v.model.cargo) return buildBakfietsMesh(v);
   const group = new THREE.Group();
   const fat = !!v.model.fat;
+  const stijl = bikeStijlNaam(v.model);
   const color = v.wrecked ? WRECKED_COLOR : toHex(v.model.color, HABBO_PALETTE.black);
   const stepThrough = hash2(v.id || 0, 4.2) < 0.5;
   const mats = vehicleMaterials();
   // de studentenstaat (#402): scheef spatbord, geen voorlicht, blauwe banden (en een klap voorop maakt het spatbord ook scheef)
   const staat = !fat && v.isBike ? fietsStaat(v) : null;
   const sleutel = staat ? staatSleutel(staat) : '';
-  const bikeBody = new THREE.Mesh(buildBikeGeometry(color, fat, stepThrough, sleutel), mats);
+  const extra = v.wrecked ? {} : bikeExtras(hash2(v.id || 0, 9.1), { old: !!v.model.old, share: !!v.model.share, delivery: !!v.model.delivery, stijl });
+  const bikeOpts = { color, stijl, stepThrough, st: sleutel, old: !!v.model.old && !v.wrecked, noLight: !!v.model.noLight, extra, hash: hash2(v.id || 0, 3.3) };
+  const bikeBody = new THREE.Mesh(buildBikeGeometry(bikeOpts), mats);
   group.add(bikeBody);
   group.userData.staatSleutel = sleutel;
-  group.userData.stuurSpec = { soort: 'fiets', color, fat, stepThrough, sleutel, body: bikeBody };
+  group.userData.bikeOpts = bikeOpts;
+  group.userData.stuurSpec = { soort: 'fiets', opts: bikeOpts, body: bikeBody };
   const r = fat ? 0.3 : 0.34;
   const wb = fat ? 0.52 : 0.56;
-  const wgeo = bikeWheelGeometry(r, fat ? 0.07 : 0.022, true, staat && staat.blauw ? BLUE_TIRE : TIRE);
+  const tire = fat ? 0.07 : stijl === 'race' ? 0.016 : stijl === 'mtb' ? 0.03 : 0.024;
+  const wgeo = bikeWheelGeometryRich(r, tire, staat && staat.blauw ? BLUE_TIRE : TIRE, stijl === 'race' || stijl === 'mtb');
   const wheels = [];
   addWheel(group, wgeo, mats[0], wb, r, 0, wheels);
   addWheel(group, wgeo, mats[0], -wb, r, 0, wheels);
   group.userData.wheels = wheels;
   group.userData.wheelRadius = r;
-  group.userData.spinStep = 0.34; // 4 spoke bars: 45 deg symmetry
+  group.userData.spinStep = 0.2; // 16 spaken (22,5 graden): de getekende draai per beeld blijft onder de halve spaakafstand
+  // de krukken met het kettingblad draaien met de trapfase (updateVehicleWheelSpin)
+  const crank = new THREE.Mesh(bikeCrankGeometry(stijl), mats);
+  crank.position.set(BIKE_BB[0], BIKE_BB[1], 0);
+  group.add(crank);
+  group.userData.crank = crank;
 
   const rider = riderFor(v, toHex(v.model.rider, HABBO_PALETTE.roofBlue));
-  const hipY = fat ? 0.93 : 1.02;
-  rider.position.set(fat ? -0.26 : -0.3, hipY - 0.93 * rider.scale.y, 0);
-  poseRider(rider, fat ? 0.55 : 0.33, fat ? 0.95 : 0.85, -0.08);
-  // handen aan het stuur (actorlife.js): de grepen van bikeStuurOnderdelen; dichtbij draaien ze mee met het stuur (voertuigbediening.js)
+  const hipY = bikeHipY(stijl);
+  // de rijder kantelt om zijn voeten: zet de heup op het zadel, ook bij een voorovergebogen racer
+  const lean = bikeLean(stijl), hipDrop = PERSON_RIG.HIP_Y * rider.scale.y;
+  rider.position.set(bikeHipX(stijl) + hipDrop * Math.sin(lean), hipY - hipDrop * Math.cos(lean), 0);
+  poseRider(rider, fat ? 0.55 : 0.33, fat ? 0.95 : 0.85, lean);
+  // handen aan het stuur (actorlife.js): de grepen van bikeSteerParts (vehicle_bike.js); dichtbij draaien ze mee met het stuur (voertuigbediening.js)
   group.userData.riderMesh = rider;
-  group.userData.riderGrip = bikeGrip(fat);
+  group.userData.riderGrip = bikeGripSpec(stijl);
   bikeHands(rider, group.userData.riderGrip, 0);
   if (!fat && v.isBike && v.driver !== 'player' && !v.wrecked && hash2((v.id || 0) * 1.9, 7.3) < 0.18) holdPhoneRiding(rider);
   group.add(rider);
@@ -2599,54 +2645,39 @@ function buildBikeMesh(v) {
   } else if (v.model.share && !v.wrecked) {
     group.add(new THREE.Mesh(buildShareTintGeometry(toHex(v.model.tint, 0xff6a4d), wb, r), mats));
   }
+  // centraal LOD-systeem (lodkit3d.js): frame, wielen en krukken krijgen lichtere niveaus; de rijder (SkinnedMesh) blijft zoals hij is
+  makeLodObject('vehicle', 'fiets:' + stijl, group);
   return group;
 }
 
+// De step en de snorscooter (vehicle_scooter.js); zonderStuur: het stuur met kap en vork is dichtbij een eigen onderdeel (stuurOverlay, #442)
 function buildScooterGeometry(color, zonderStuur = false) {
   return cached(`step|${color}|${zonderStuur}`, () => {
     const B = new GeoBuilder(3);
-    // deck with the battery pack slung underneath and grip tape on top
-    B.box(-0.04, 0.13, 0, 0.78, 0.05, 0.19, color);
-    B.box(-0.04, 0.095, 0, 0.62, 0.05, 0.15, 0x26272a);
-    B.box(-0.06, 0.158, 0, 0.64, 0.008, 0.155, 0x1d1d1e);
-    // steering neck and a thick stem
-    B.geo(tubeGeometry([0.3, 0.14, 0], [0.43, 0.12, 0], 0.028, 0.026, 6), null, color);
-    if (!zonderStuur) B.geo(tubeGeometry([0.43, 0.1, 0], [0.37, 1.02, 0], 0.034, 0.028, 8), null, color);
-    B.box(0.43, 0.2, 0, 0.06, 0.12, 0.05, 0x2a2a2b);
-    B.geo(tubeGeometry([0.43, 0.2, 0.03], [0.42, 0.11, 0.035], 0.012, 0.012, 4), null, 0x8a8e92);
-    B.geo(tubeGeometry([0.43, 0.2, -0.03], [0.42, 0.11, -0.035], 0.012, 0.012, 4), null, 0x8a8e92);
-    // bars, grips, the little display and a bell
-    if (!zonderStuur) scooterStuurOnderdelen(B, 0);
-    B.box(0.405, 0.42, 0, 0.035, 0.05, 0.07, HEADLAMP, G_LAMP);
-    // fenders over both wheels, tail light on the rear one, kickstand
-    const fender = new THREE.TorusGeometry(0.13, 0.024, 3, 8, Math.PI * 0.6);
-    B.geo(fender.clone(), composeMatrix(0.42, 0.11, 0, 0, 0, Math.PI * 0.25), color);
-    B.geo(fender, composeMatrix(-0.43, 0.11, 0, 0, 0, Math.PI * 0.15), color);
-    B.box(-0.52, 0.2, 0, 0.012, 0.025, 0.07, TAIL, G_LAMP);
-    B.geo(tubeGeometry([-0.14, 0.09, -0.08], [-0.26, 0.01, -0.13], 0.01, 0.01, 4), null, 0x2a2a2b);
+    stepFrameParts(B, color);
+    if (!zonderStuur) stepSteerParts(B, color, 0);
     return B.build();
   });
 }
-
-// Snorscooter: step-through body with a front shield, a long seat and small wheels.
 function buildMopedGeometry(color, zonderStuur = false) {
   return cached(`moped|${color}|${zonderStuur}`, () => {
     const B = new GeoBuilder(3);
-    const dark = 0x2a2b2e;
-    B.box(-0.38, 0.5, 0, 0.72, 0.36, 0.44, color);
-    B.box(-0.3, 0.73, 0, 0.7, 0.1, 0.32, 0x1b1b1c);
-    B.box(0.08, 0.3, 0, 0.62, 0.07, 0.36, dark);
-    B.box(0.42, 0.62, 0, 0.12, 0.62, 0.44, color);
-    B.box(0.48, 0.34, 0, 0.3, 0.1, 0.2, color);
-    if (!zonderStuur) mopedStuurOnderdelen(B, color, 0);
-    B.box(-0.76, 0.56, 0, 0.04, 0.08, 0.18, TAIL, G_LAMP);
-    B.box(-0.62, 0.8, 0, 0.26, 0.05, 0.3, dark);
-    B.geo(tubeGeometry([-0.3, 0.28, 0.16], [-0.72, 0.36, 0.2], 0.035, 0.03, 6), null, CHROME);
+    mopedFrameParts(B, color);
+    if (!zonderStuur) mopedSteerParts(B, color, 0);
     return B.build();
   });
 }
+function scooterWheelGeometry(r, tire, disc = false) {
+  return cached(`swheel|${r}|${tire}|${disc}`, () => scooterWheelRich(new GeoBuilder(1), r, tire, { disc }).build());
+}
 
 const MOPED_BODY_L = 1.53;
+// Een rijder op het zadel van een scooter: zijn heup op zadelhoogte en de benen via de zit-houding (voeten op de vloer), recline = voorover
+function seatScooterRider(rider, hipX, seatTop, spec, lean) {
+  seatPose(rider, spec);
+  rider.position.set(hipX, seatedY(rider, seatTop), 0);
+  rider.rotation.z = -Math.abs(lean || 0);
+}
 function buildMopedMesh(v) {
   const group = new THREE.Group();
   const color = v.wrecked ? WRECKED_COLOR : toHex(v.model.color, 0xe6e1d6);
@@ -2658,7 +2689,7 @@ function buildMopedMesh(v) {
   group.add(body);
   group.userData.stuurSpec = { soort: 'brommer', color, body, sx };
   const r = 0.23;
-  const wgeo = bikeWheelGeometry(r, 0.09, false);
+  const wgeo = scooterWheelGeometry(r, 0.07, true);
   const wheels = [];
   addWheel(group, wgeo, mats[0], 0.55 * sx, r, 0, wheels);
   addWheel(group, wgeo, mats[0], -0.52 * sx, r, 0, wheels);
@@ -2666,9 +2697,13 @@ function buildMopedMesh(v) {
   group.userData.wheelRadius = r;
   group.userData.spinStep = 0.28;
   const rider = riderFor(v, toHex(v.model.rider, HABBO_PALETTE.roofBlue));
-  rider.position.set(-0.22, 0.8 - 0.93 * rider.scale.y, 0);
-  poseRider(rider, 1.25, 1.0, -0.04);
+  // op het zadel (heup op 0,8 m), de voeten op de vloerplaat en de handen aan de handvatten van de stuurkap
+  seatScooterRider(rider, -0.2, 0.8, { recline: 0.04, footX: 0.5, footY: -0.5, arms: 'lap' }, 0.08);
   group.add(rider);
+  group.userData.riderMesh = rider;
+  group.userData.riderGrip = { ...mopedGripSpec(), x: mopedGripSpec().x };
+  bikeHands(rider, group.userData.riderGrip, 0);
+  makeLodObject('vehicle', 'bromfiets', group);
   return group;
 }
 
@@ -2870,7 +2905,7 @@ function buildScooterMesh(v) {
   group.add(stepBody);
   group.userData.stuurSpec = { soort: 'step', color, body: stepBody };
   const r = 0.11;
-  const wgeo = bikeWheelGeometry(r, 0.035, false);
+  const wgeo = scooterWheelGeometry(r, 0.04);
   const wheels = [];
   addWheel(group, wgeo, mats[0], 0.42, r, 0, wheels);
   addWheel(group, wgeo, mats[0], -0.43, r, 0, wheels);
@@ -2887,6 +2922,9 @@ function buildScooterMesh(v) {
   rider.userData.legL.position.z *= 0.6;
   rider.userData.legR.position.z *= 0.6;
   group.add(rider);
+  group.userData.riderMesh = rider;
+  group.userData.riderGrip = stepGripSpec();
+  bikeHands(rider, group.userData.riderGrip, 0);
   if (v.isPolice) {
     const lamps = [];
     for (const s of [1, -1]) {
@@ -2897,6 +2935,7 @@ function buildScooterMesh(v) {
     }
     group.userData.policeLamps = lamps;
   }
+  makeLodObject('vehicle', 'step', group);
   return group;
 }
 
@@ -2971,104 +3010,7 @@ const BUS_ROOF = 3.0;
 const BUS_SILL = 0.32;
 const BUS_WHEEL_R = 0.5;
 
-// One bus section from x0 (rear) to x1 (front); rounded roof edge at whichever
-// end is exposed. doorXs: door centre positions on the kerb (+Z) side.
-function spansBetween(x0, x1, arches, pad = 0.02) {
-  const out = [];
-  let a = x0;
-  for (const { x, r } of arches) {
-    if (x - r - pad > a) out.push([a, x - r - pad]);
-    a = Math.max(a, x + r + pad);
-  }
-  if (x1 > a) out.push([a, x1]);
-  return out;
-}
-
-function busSection(B, x0, x1, W, { front, rear, wheelXs, doorXs }) {
-  const hw = W / 2;
-  const R = BUS_WHEEL_R + 0.1;
-  const arches = wheelXs.slice().sort((a, b) => a - b).map((x) => ({ x, r: R, cy: BUS_WHEEL_R }));
-  const zs = hw + 0.006;
-  const winY0 = 1.15, winY1 = 2.6;
-  const inner0 = x0 + (rear ? 0.35 : 0.1), inner1 = x1 - (front ? 0.3 : 0.1);
-  // hollow between the window lines, so the driver shows through the glass
-  const top = [[x1, BUS_SILL + 0.1]];
-  if (front) top.push([x1 + 0.03, 1.0], [x1 + 0.03, winY0]);
-  else top.push([x1, winY0]);
-  top.push([x0, winY0], [x0, BUS_SILL + 0.1]);
-  B.geo(extrudeProfile([...top, ...archedSill(x0, x1, BUS_SILL, arches)], W, 0.06), null, BUS_WHITE);
-  const roof = [[x1, winY1]];
-  if (front) roof.push([x1, 2.7], [x1 - 0.25, BUS_ROOF]);
-  else roof.push([x1, BUS_ROOF]);
-  if (rear) roof.push([x0 + 0.25, BUS_ROOF], [x0, 2.75], [x0, winY1]);
-  else roof.push([x0, BUS_ROOF], [x0, winY1]);
-  B.geo(extrudeProfile(roof, W, 0.06), null, BUS_WHITE);
-  const midY = (winY0 + winY1) / 2, winH = winY1 - winY0;
-  for (const s of [1, -1]) {
-    B.box((x0 + inner0) / 2, midY, s * (hw - 0.03), inner0 - x0, winH, 0.06, BUS_WHITE);
-    B.box((inner1 + x1) / 2, midY, s * (hw - 0.03), x1 - inner1, winH, 0.06, BUS_WHITE);
-  }
-  if (rear) {
-    B.box(x0 + 0.03, (winY0 + 1.65) / 2, 0, 0.06, 1.65 - winY0, W, BUS_WHITE);
-    for (const s of [1, -1]) B.box(x0 + 0.03, (1.65 + winY1) / 2, s * (hw - 0.125), 0.06, winY1 - 1.65, 0.25, BUS_WHITE);
-  } else B.box(x0 + 0.03, midY, 0, 0.06, winH, W, BUS_WHITE);
-  if (!front) B.box(x1 - 0.03, midY, 0, 0.06, winH, W, BUS_WHITE);
-  B.box((x0 + x1) / 2, winY0 + 0.012, 0, x1 - x0 - 0.12, 0.02, W - 0.12, 0x3a3d42);
-  for (let x = inner0 + 0.6; x < inner1 - (front ? 1.2 : 0.4); x += 1.1) {
-    for (const s of [1, -1]) B.box(x, winY0 + 0.3, s * hw * 0.5, 0.08, 0.55, hw * 0.78, 0x2f4f7a);
-  }
-  archLiners(B, arches, W);
-
-  for (const s of [1, -1]) {
-    const z = s * zs;
-    for (const [a, b] of spansBetween(x0 + 0.03, x1 - 0.03, arches)) {
-      B.box((a + b) / 2, 0.55, z, b - a, 0.42, 0.012, BUS_GREEN);
-      B.box((a + b) / 2, 0.8, z, b - a, 0.07, 0.012, BUS_LIME);
-    }
-    B.box((inner0 + inner1) / 2, (winY0 + winY1) / 2, z, inner1 - inner0, winY1 - winY0, 0.012, GLASS, G_GLASS);
-    const n = Math.max(2, Math.round((inner1 - inner0) / 1.45));
-    for (let i = 0; i <= n; i++) {
-      const x = inner0 + ((inner1 - inner0) * i) / n;
-      B.box(x, (winY0 + winY1) / 2, s * (zs + 0.004), 0.09, winY1 - winY0 + 0.02, 0.01, TRIM);
-    }
-    B.box((inner0 + inner1) / 2, winY1 + 0.03, s * (zs + 0.004), inner1 - inner0, 0.05, 0.01, TRIM);
-    B.box((inner0 + inner1) / 2, winY0 - 0.02, s * (zs + 0.004), inner1 - inner0, 0.04, 0.01, TRIM);
-    if (s === 1) {
-      for (const dx of doorXs) {
-        // gesloten deurblad: lichtblauw glas boven een witte onderkant, dicht en dus niet door te kijken
-        // (vroeger donker doorzichtig glas voor een lege romp: een dichte bus zag er open uit)
-        B.box(dx, (BUS_SILL + 0.1 + 1.05) / 2, s * (zs + 0.008), 1.25, 1.05 - BUS_SILL - 0.1, 0.012, BUS_WHITE);
-        B.box(dx, (1.05 + winY1) / 2, s * (zs + 0.008), 1.25, winY1 - 1.05, 0.012, 0x5f8299);
-        B.box(dx, (BUS_SILL + 0.1 + winY1) / 2, s * (zs + 0.014), 0.05, winY1 - BUS_SILL - 0.05, 0.01, TRIM);
-        for (const e of [-0.64, 0.64]) B.box(dx + e, (BUS_SILL + 0.1 + winY1) / 2, s * (zs + 0.014), 0.06, winY1 - BUS_SILL, 0.012, TRIM);
-      }
-    }
-  }
-  if (front) {
-    B.box(x1 + 0.035, 1.8, 0, 0.012, 1.55, W - 0.24, GLASS, G_GLASS);
-    B.box(x1 + 0.04, 2.8, 0, 0.012, 0.22, W * 0.7, 0x1b1b1c);
-    B.box(x1 + 0.046, 2.8, 0, 0.01, 0.13, W * 0.55, 0xf0b33a, G_LAMP);
-    B.box(x1 + 0.018, 0.6, 0, 0.012, 0.35, W - 0.1, BUS_GREEN);
-    for (const s of [1, -1]) {
-      B.box(x1 + 0.03, 0.62, s * (hw - 0.28), 0.02, 0.14, 0.34, HEADLAMP, G_LAMP);
-      B.box(x1 - 0.35, 2.35, s * (hw + 0.28), 0.08, 0.34, 0.12, TRIM);
-      B.box(x1 - 0.2, 2.55, s * (hw + 0.14), 0.05, 0.04, 0.3, TRIM);
-    }
-    B.box(x1 + 0.03, 0.47, 0, 0.012, 0.1, 0.48, PLATE);
-  }
-  if (rear) {
-    B.box(x0 - 0.035, 2.1, 0, 0.012, 0.9, W - 0.5, GLASS, G_GLASS);
-    B.box(x0 - 0.04, 0.95, 0, 0.012, 0.5, W - 0.6, 0x3a3b3d);
-    for (const s of [1, -1]) {
-      B.box(x0 - 0.045, 0.75, s * (hw - 0.25), 0.02, 0.35, 0.18, TAIL, G_LAMP);
-      B.box(x0 - 0.045, 1.0, s * (hw - 0.25), 0.02, 0.1, 0.18, INDICATOR, G_LAMP);
-    }
-    B.box(x0 - 0.06, 0.45, 0, 0.012, 0.1, 0.48, PLATE);
-  }
-  const podLen = Math.min(4, (x1 - x0) * 0.45);
-  B.box((x0 + x1) / 2 + (front ? 0.6 : -0.3), BUS_ROOF + 0.14, 0, podLen, 0.28, W * 0.72, 0xd6d6d0);
-  B.box((x0 + x1) / 2 + (front ? 0.6 : -0.3), BUS_ROOF + 0.29, 0, podLen - 0.3, 0.03, W * 0.6, 0xa9aaa6);
-}
+// De bussecties (romp, ruiten, deuren, wielkasten, dak) bouwt vehicle_bus.js.
 
 function buildBusMesh(v) {
   const group = new THREE.Group();
@@ -3089,36 +3031,61 @@ function buildBusMesh(v) {
   const key = `bus|${len}|${wid}|${trailer}|${!!v.wrecked}`;
   const mats = vehicleMaterials(!!v.wrecked);
 
-  const frontGeo = cached(key + '|f', () => {
+  const dDefs = DEUR_DEFS_REF.bus.map((d) => ({ id: d.id, x: d.x * len }));
+  const frontDoors = [{ x: hl - 1.05, id: 'd1' }, { x: (fwX + mwX) / 2, id: 'd2' }];
+  const frontGeo = cached(key + '|f2', () => {
+    const B = new GeoBuilder(3), leafOut = {};
+    busSectionQ(B, x0f, hl, wid, { front: true, rear: false, wheelXs: [fwX, mwX], doors: frontDoors, leafOut });
+    busBellows(B, jointX, wid);
+    const g = B.build();
+    g.userData.knip = busDoorKnip(leafOut, wid / 2, dDefs);
+    return g;
+  });
+  const frontMesh = new THREE.Mesh(frontGeo, mats);
+  group.add(frontMesh);
+  group.userData.deurBody = frontMesh;
+  koppelDeurgaten(group, frontMesh, frontGeo);
+  // niveau 1 van de lodkit (vehiclelod3d.js): een eigen, eenvoudig gebouwde romp in plaats van een vereenvoudiging van het volle model
+  group.userData.lodRomp = cached(key + '|fl', () => {
     const B = new GeoBuilder(3);
-    busSection(B, x0f, hl, wid, { front: true, rear: false, wheelXs: [fwX, mwX], doorXs: [hl - 1.05, (fwX + mwX) / 2] });
-    const bel = new THREE.CylinderGeometry(wid / 2 * 0.96, wid / 2 * 0.96, BUS_ROOF - 0.45, 12, 1, true);
-    B.geo(bel, composeMatrix(jointX, (BUS_ROOF + 0.45) / 2, 0), 0x2a2a2c);
-    for (let i = 0; i < 3; i++) B.geo(new THREE.TorusGeometry(wid / 2 * 0.965, 0.025, 3, 12).rotateX(Math.PI / 2), composeMatrix(jointX, 0.9 + i * 0.75, 0), 0x3a3a3c);
+    busSectionQ(B, x0f, hl, wid, { front: true, rear: false, wheelXs: [fwX, mwX], doors: frontDoors, simple: true });
+    busBellows(B, jointX, wid, true);
     return B.build();
   });
-  group.add(new THREE.Mesh(frontGeo, mats));
 
   const rear = new THREE.Group();
   rear.position.x = jointX;
   group.add(rear);
-  const rearGeo = cached(key + '|r', () => {
+  const rearGeo = cached(key + '|r2', () => {
     const B = new GeoBuilder(3);
-    busSection(B, -BUS_JOINT_GAP - rearLen, -BUS_JOINT_GAP, wid, { front: false, rear: true, wheelXs: [rwX], doorXs: [-BUS_JOINT_GAP - (trailer ? 1.4 : 1.2)] });
+    busSectionQ(B, -BUS_JOINT_GAP - rearLen, -BUS_JOINT_GAP, wid, { front: false, rear: true, wheelXs: [rwX], doors: [{ x: -BUS_JOINT_GAP - (trailer ? 1.4 : 1.2), id: null }] });
     return B.build();
   });
-  rear.add(new THREE.Mesh(rearGeo, mats));
+  // de achterwagen heeft eigen materialen en een eigen LOD: met de materialen van de voorwagen verdween hij mee met het niveau van de voorwagen
+  const rearMats = vehicleMaterials(!!v.wrecked);
+  rear.add(new THREE.Mesh(rearGeo, rearMats));
+  rear.userData.lodRomp = cached(key + '|rl', () => {
+    const B = new GeoBuilder(3);
+    busSectionQ(B, -BUS_JOINT_GAP - rearLen, -BUS_JOINT_GAP, wid, { front: false, rear: true, wheelXs: [rwX], doors: [{ x: -BUS_JOINT_GAP - (trailer ? 1.4 : 1.2), id: null }], simple: true });
+    return B.build();
+  });
+  rear.userData.lodDoel = 0;
 
-  const wgeo = carWheelGeometry(BUS_WHEEL_R, 0.3);
+  const wgeo = cached('buswheel2', () => busWheelGeometry(BUS_WHEEL_R, 0.3));
   const wheels = [];
   const wz = wid / 2 - 0.2;
   for (const x of [fwX, mwX]) for (const s of [1, -1]) addWheel(group, wgeo, mats[0], x, BUS_WHEEL_R, s * wz, wheels);
-  for (const s of [1, -1]) addWheel(rear, wgeo, mats[0], rwX, BUS_WHEEL_R, s * wz, wheels);
+  const rearWheels = [];
+  for (const s of [1, -1]) addWheel(rear, wgeo, rearMats[0], rwX, BUS_WHEEL_R, s * wz, rearWheels);
+  wheels.push(...rearWheels);
+  rear.userData.wheels = rearWheels;
 
   group.userData.wheels = wheels;
   group.userData.frontWheels = wheels.slice(0, 2);
   group.userData.wheelRadius = BUS_WHEEL_R;
   group.userData.busRear = rear;
+  attachVehicleLods(rear, 'busrear');
+  group.userData.lodDoel = 1800; // niveau 1 van de lodkit: bussen rijden in groten getale op 60 tot 150 m
   group.userData.busSections = { frontLen, frontX, rearLen, rearX };
 
   if (v.isPolice) {
@@ -3592,7 +3559,7 @@ function dinghyFit(B, st, L) {
     B.box(x, 0.3, 0, 0.26, 0.04, h.hw * 2 - 0.08, WOOD);
   }
   for (const s of [1, -1]) B.geo(tubeGeometry([-0.6, 0.4, s * 0.38], [1.0, 0.36, s * 0.3], 0.018, 0.018, 4), null, 0x8a6440);
-  outboard(B, -hl, 0.45, 0.8);
+  outboardRich(B, -hl, 0.45, 1.0);
 }
 
 function outboard(B, x, y, k = 1) {
@@ -3620,7 +3587,7 @@ function rubberFit(B, st, L, W, tube, accent) {
   B.box(0.15, 0.36, 0, 0.36, 0.52, 0.42, shadeHex(accent, 0.9));
   B.box(0.26, 0.7, 0, 0.02, 0.18, 0.44, GLASS, G_GLASS, 0, 0, 0.4);
   B.box(-0.35, 0.3, 0, 0.36, 0.3, W - 0.8, 0x2a2a2b);
-  outboard(B, -hl + 0.02, 0.4, 1.1);
+  outboardRich(B, -hl + 0.02, 0.48, 1.25);
 }
 
 function waterfietsFit(B, L, W, color, accent) {
@@ -3823,7 +3790,8 @@ export function animateSkutsjeRig(v, trim, strike, t) {
 }
 
 // de hulpjes en kleuren van dit bestand voor zeeschip3d.js
-const SHIP_K = { GLASS, G_GLASS, G_LAMP, NAV_WHITE, NAV_RED, NAV_GREEN, shadeHex, hullAt };
+const SHIP_K = { GLASS, G_GLASS, G_LAMP, NAV_WHITE, NAV_RED, NAV_GREEN, shadeHex, hullAt, WOOD, DECK, KEEL };
+const RICH_HULLS = new Set(['sloep', 'rondvaart', 'kano', 'kajak', 'dinghy', 'rubberboot', 'skiff', 'acht', 'sup', 'skutsje']);
 
 function buildBoatGeometry(kind, L, W, hull, trim, cabin, police, soort = '') {
   return cached(`boat|${kind}|${L}|${W}|${hull}|${trim}|${cabin}|${police}|${soort}`, () => {
@@ -3834,8 +3802,11 @@ function buildBoatGeometry(kind, L, W, hull, trim, cabin, police, soort = '') {
       return B.build();
     }
     const S = HULL_SHAPES[kind] || HULL_SHAPES.sloep;
-    const st = hullStations(L, W, S);
-    hullShell(B, st, hull, trim, S.floor, !!S.deck);
+    // de kleine boten krijgen dichtere stations en een bolle kimming (vehicle_boat.js); de grote schepen houden hun eigen romp
+    const rich = RICH_HULLS.has(kind);
+    const st = hullStations(L, W, rich ? { ...S, ts: densify(S.ts) } : S);
+    if (rich) hullShellRich(B, st, hull, trim, S.floor, !!S.deck, SHIP_K);
+    else hullShell(B, st, hull, trim, S.floor, !!S.deck);
     switch (kind) {
       case 'rondvaart': rondvaartFit(B, st, L, W, hull, cabin || 0xe8e6e0); break;
       case 'kano': kanoFit(B, st, L, W, hull); break;
@@ -3851,6 +3822,7 @@ function buildBoatGeometry(kind, L, W, hull, trim, cabin, police, soort = '') {
       case 'sleper': sleperFit(B, st, L, W, hull, cabin || 0xe8e6e0, SHIP_K); break;
       default: sloepFit(B, st, L, W, hull, cabin, police);
     }
+    if (rich) boatFinish(B, kind, st, L, W, hull, trim, cabin, SHIP_K, police);
     if (kind === 'kano' || kind === 'kajak') {
       const x = -hl * 0.72;
       B.box(x, hullAt(st, x).top + (kind === 'kajak' ? 0.06 : 0.02), 0, 0.05, 0.05, 0.05, NAV_WHITE, G_LAMP);
@@ -3897,11 +3869,7 @@ export const buildShipMesh = (v) => { const mesh = buildBoatMesh(v); retainCache
 // Stuurstang, stuurpen en handvatten van een fiets, step en brommer als eigen onderdeel: dichtbij vervangt
 // voertuigbediening.js de carrosseriegeometrie door de variant zonder stuur en tekent dit onderdeel draaiend
 // om de stuurpen. Geometrie wordt gedeeld (cached); px = de x van de stuurpen (het draaipunt).
-// Het midden van een handvat (bikeStuurOnderdelen): x, hoogte en halve breedte in de assen van de fiets; px = de stuuras.
-function bikeGrip(fat) {
-  const H1y = fat ? 0.82 : 0.93;
-  return { x: 0.13, y: H1y + 0.115, z: 0.28, px: 0.38 };
-}
+// Het midden van een handvat (bikeSteerParts): x, hoogte en halve breedte in de assen van de fiets; px = de stuuras.
 // Beide handen van de fietser op de handvatten, het stuur gedraaid over hoek a (rad, zoals stuurstang.rotation.y).
 export function bikeHands(rider, grip, a) {
   if (!rider || !grip) return;
@@ -3912,37 +3880,6 @@ export function bikeHands(rider, grip, a) {
   }
 }
 
-function bikeStuurOnderdelen(B, fat, px) {
-  const H1 = [0.4, fat ? 0.82 : 0.93, 0];
-  const stemTop = [H1[0] - 0.02, H1[1] + 0.14, 0];
-  const tube = (a, b, rr, c) => B.geo(tubeGeometry([a[0] - px, a[1], a[2]], [b[0] - px, b[1], b[2]], rr, rr, 5), null, c);
-  tube(H1, stemTop, 0.014, 0x8a8e92);
-  for (const s of [1, -1]) {
-    const grip = [stemTop[0] - 0.2, stemTop[1] - 0.02, s * 0.28];
-    tube(stemTop, [stemTop[0] - 0.02, stemTop[1], s * 0.12], 0.012, 0x8a8e92);
-    tube([stemTop[0] - 0.02, stemTop[1], s * 0.12], grip, 0.012, 0x8a8e92);
-    tube(grip, [grip[0] - 0.1, grip[1] - 0.01, grip[2]], 0.018, 0x1b1b1c);
-  }
-}
-function scooterStuurOnderdelen(B, px, color = null) {
-  const tube = (a, b, r1, r2, sides, c) => B.geo(tubeGeometry([a[0] - px, a[1], a[2]], [b[0] - px, b[1], b[2]], r1, r2, sides), null, c);
-  if (color !== null) tube([0.43, 0.1, 0], [0.37, 1.02, 0], 0.034, 0.028, 8, color);
-  tube([0.37, 1.03, -0.25], [0.37, 1.03, 0.25], 0.016, 0.016, 6, 0x2a2a2b);
-  for (const s of [1, -1]) tube([0.37, 1.03, s * 0.17], [0.37, 1.03, s * 0.26], 0.022, 0.022, 6, 0x1b1b1c);
-  B.box(0.37 - px, 1.055, 0, 0.07, 0.025, 0.1, 0x1b1b1c);
-  B.box(0.35 - px, 1.07, 0, 0.012, 0.018, 0.07, 0x5fd0e0, G_LAMP);
-  B.geo(new THREE.CylinderGeometry(0.018, 0.022, 0.02, 8), composeMatrix(0.37 - px, 1.05, -0.13), 0xc8cbcf);
-}
-function mopedStuurOnderdelen(B, color, px) {
-  const dark = 0x2a2b2e;
-  const tube = (a, b, r1, r2, sides, c) => B.geo(tubeGeometry([a[0] - px, a[1], a[2]], [b[0] - px, b[1], b[2]], r1, r2, sides), null, c);
-  tube([0.46, 0.7, 0], [0.42, 1.04, 0], 0.032, 0.03, 6, dark);
-  tube([0.42, 1.04, -0.32], [0.42, 1.04, 0.32], 0.018, 0.018, 6, CHROME);
-  for (const s of [1, -1]) tube([0.42, 1.04, s * 0.22], [0.42, 1.04, s * 0.33], 0.024, 0.024, 6, 0x1b1b1c);
-  B.box(0.49 - px, 1.0, 0, 0.1, 0.12, 0.16, color);
-  B.box(0.545 - px, 1.0, 0, 0.02, 0.08, 0.1, HEADLAMP, G_LAMP);
-  for (const s of [1, -1]) B.box(0.43 - px, 1.12, s * 0.2, 0.02, 0.07, 0.05, CHROME);
-}
 // De bouwstenen voor het meedraaiende stuur van een fiets, step of brommer: { zonder: carrosserie zonder stuur,
 // stuur: het stuur om de stuurpen, px: x van de stuurpen, sx: schaal van de carrosserie } of null.
 export function stuurOverlay(spec) {
@@ -3952,11 +3889,15 @@ export function stuurOverlay(spec) {
   const owner = spec.body && spec.body.parent;
   const hold = (g) => { retainCachedGeometry(owner, g); return g; };
   if (spec.soort === 'fiets') {
-    const px = 0.38;
+    const px = 0.38, o = spec.opts, vorkPx = o.stijl === 'fat' ? 0.52 : 0.56;
+    const sk = `${o.stijl}|${o.old ? 1 : 0}|${o.extra && o.extra.mand ? 'm' + o.extra.mandKleur : ''}`;
     return {
       px, sx: 1,
-      zonder: hold(buildBikeGeometry(spec.color, spec.fat, spec.stepThrough, spec.sleutel, true)),
-      stuur: hold(cached(`stuur|fiets|${spec.fat}`, () => { const B = new GeoBuilder(3); bikeStuurOnderdelen(B, spec.fat, px); return B.build(); })),
+      zonder: hold(buildBikeGeometry({ ...o, zonderStuur: true })),
+      stuur: hold(cached(`stuur|fiets|${sk}`, () => { const B = new GeoBuilder(3); bikeSteerParts(B, o, px); return B.build(); })),
+      // de voorvork, het voorspatbord en de lamp draaien mee om de wielas (voertuigbediening.js)
+      vork: hold(cached(`vork|fiets|${o.color}|${o.stijl}|${o.st || ''}|${o.old ? 1 : 0}|${o.noLight ? 1 : 0}|${o.old ? Math.floor((o.hash || 0) * 3) : 0}`, () => { const B = new GeoBuilder(3); bikeForkParts(B, o, vorkPx); return B.build(); })),
+      vorkPx,
     };
   }
   if (spec.soort === 'step') {
@@ -3964,7 +3905,7 @@ export function stuurOverlay(spec) {
     return {
       px, sx: 1,
       zonder: hold(buildScooterGeometry(spec.color, true)),
-      stuur: hold(cached(`stuur|step|${spec.color}`, () => { const B = new GeoBuilder(3); scooterStuurOnderdelen(B, px, spec.color); return B.build(); })),
+      stuur: hold(cached(`stuur|step|${spec.color}`, () => { const B = new GeoBuilder(3); stepSteerParts(B, spec.color, px); return B.build(); })),
     };
   }
   if (spec.soort === 'brommer') {
@@ -3972,7 +3913,7 @@ export function stuurOverlay(spec) {
     return {
       px, sx: spec.sx || 1,
       zonder: hold(buildMopedGeometry(spec.color, true)),
-      stuur: hold(cached(`stuur|brommer|${spec.color}`, () => { const B = new GeoBuilder(3); mopedStuurOnderdelen(B, spec.color, px); return B.build(); })),
+      stuur: hold(cached(`stuur|brommer|${spec.color}`, () => { const B = new GeoBuilder(3); mopedSteerParts(B, spec.color, px); return B.build(); })),
     };
   }
   return null;
@@ -4023,6 +3964,7 @@ export function updateVehicleWheelSpin(mesh, speed, dt, steer = 0) {
     // de zwaai van dit beeld, voor een zitter van buiten dit model (coopzitten3d.js): zijn benen trappen mee (#434)
     ud.pedalSwing = sw;
   }
+  if (ud.crank) ud.crank.rotation.z = ud.crankPhaseFrom && ud.crankPhaseFrom.userData && ud.crankPhaseFrom.parent ? (ud.crankPhaseFrom.userData.qPedal || 0) + Math.PI / 2 : ud.pedalPhase || 0; // de modulaire voeten: hoek a van de voet links (-z) is a - 90 graden, de kruk links staat 180 graden verder
 }
 
 // Lekke band (#41): het wiel aan de trekkende kant wordt kleiner en zakt in; terug naar normaal na
@@ -4051,15 +3993,27 @@ export function applyFlatTire(mesh, v) {
 function buildMidiBusMesh(v) {
   const group = new THREE.Group();
   const len = v.model.len, wid = v.model.wid, hl = len / 2;
-  const fwX = hl - 1.9, rwX = -hl + 2.0;
-  const geo = cached(`midibus|${len}|${wid}|${!!v.wrecked}`, () => {
-    const B = new GeoBuilder(3);
-    busSection(B, -hl, hl, wid, { front: true, rear: true, wheelXs: [fwX, rwX], doorXs: midibusDeurXs(len) });
-    return B.build();
+  const fwX = hl - 2.45, rwX = -hl + 2.0;
+  const dDefs = DEUR_DEFS_REF.midibus.map((d) => ({ id: d.id, x: d.x * len }));
+  const mDoors = midibusDeurXs(len);
+  const geo = cached(`midibus2|${len}|${wid}|${!!v.wrecked}`, () => {
+    const B = new GeoBuilder(3), leafOut = {};
+    busSectionQ(B, -hl, hl, wid, { front: true, rear: true, wheelXs: [fwX, rwX], doors: [{ x: mDoors[0], id: 'd1' }, { x: mDoors[1], id: null }], leafOut });
+    const g = B.build();
+    g.userData.knip = busDoorKnip(leafOut, wid / 2, dDefs);
+    return g;
   });
   const mats = vehicleMaterials();
-  group.add(new THREE.Mesh(geo, mats));
-  const wgeo = carWheelGeometry(BUS_WHEEL_R, 0.3);
+  const bodyM = new THREE.Mesh(geo, mats);
+  group.add(bodyM);
+  group.userData.deurBody = bodyM;
+  group.userData.lodRomp = cached(`midibus2l|${len}|${wid}`, () => {
+    const B = new GeoBuilder(3);
+    busSectionQ(B, -hl, hl, wid, { front: true, rear: true, wheelXs: [fwX, rwX], doors: [{ x: mDoors[0], id: null }, { x: mDoors[1], id: null }], simple: true });
+    return B.build();
+  });
+  koppelDeurgaten(group, bodyM, geo);
+  const wgeo = cached('buswheel2', () => busWheelGeometry(BUS_WHEEL_R, 0.3));
   const wheels = [];
   for (const x of [fwX, rwX]) for (const s of [1, -1]) addWheel(group, wgeo, mats[0], x, BUS_WHEEL_R, s * (wid / 2 - 0.2), wheels);
   group.userData.wheels = wheels;
@@ -4079,7 +4033,7 @@ function buildVehicleMeshFor(v) {
   if (v.isBoat) return buildBoatMesh(v);
   if (v.isHeli) return buildHeliMesh(v);
   if (v.isPlane) return buildPlaneMesh(v);
-  if (v.isHeroCar) return buildFordEscortGroup(v.model.color, v.model.len, v.model.wid, v.wrecked);
+  if (v.isHeroCar && !hybridKey(v)) return buildFordEscortGroup(v.model.color, v.model.len, v.model.wid, v.wrecked);
   return buildCarMesh(v);
 }
 

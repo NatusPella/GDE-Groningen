@@ -124,11 +124,14 @@ function buildMarker(x, y) {
 // An old man (stooped build) for the Vismarkt; seeds are tried until the
 // random look comes out old and male.
 function buildFeeder() {
+  // een oude man (look.age 'old': gebogen, grijs haar) op zijn vaste zaad; het oude model zoekt een zaad dat gebogen uitvalt
+  const m = buildPersonMesh(0x5b5448, 0xe0b894, { seed: 300, variant: 'male', look: { age: 'old' } });
+  if (m.userData.qRig) return m;
   for (let seed = 300; seed < 360; seed++) {
-    const m = buildPersonMesh(0x5b5448, 0xe0b894, { seed, variant: 'male' });
-    if (m.userData.stoop > 0) return m;
+    const o = buildPersonMesh(0x5b5448, 0xe0b894, { seed, variant: 'male' });
+    if (o.userData.stoop > 0) return o;
   }
-  return buildPersonMesh(0x5b5448, 0xe0b894, { seed: 300, variant: 'male' });
+  return m;
 }
 
 function freeAround(map, x, y, r, a) {

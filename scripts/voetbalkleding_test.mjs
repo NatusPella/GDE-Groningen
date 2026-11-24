@@ -248,7 +248,7 @@ t('de carrière: het niveau volgt de klasse, promotie en degradatie geven een ni
   const view = VK.kitView(gekozen, getClub);
   assert.equal(view.variant, 'uit'); assert.equal(view.number, 23); assert.deepEqual(view.variants, ['thuis', 'uit']); assert.equal(view.naam, 'Amateur'); assert.match(view.shirt, /^voetbalshirt_effen\./);
   const html = CL.kitHtml(view);
-  assert.match(html, /Tenue: Amateur/); assert.match(html, /data-cl="kitvar"/); assert.match(html, /data-cl="kitnum"/); assert.match(html, /<kbd class="kc">1<\/kbd>/); assert.match(html, /data-kit-shirt="voetbalshirt_effen\./);
+  assert.match(html, /Niveau: Amateur/); assert.match(html, /data-cl="kitvar"/); assert.match(html, /data-cl="kitnum"/); assert.match(html, /<kbd class="ds-z-toets">1<[/]kbd>/); assert.match(html, /data-kit-shirt="voetbalshirt_effen\./);
   assert.equal(CL.kitHtml(null), '', 'zonder carrière geen tenue');
   // zonder club: een neutrale trainingsset voor beide personages
   C.resetClothing();

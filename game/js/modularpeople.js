@@ -69,7 +69,7 @@ export function registerModularRig(name, man, buf) {
   }
   // de zij-as (+z van de mens) in de assen van de ouder van armen en hoofd: om die as zwaait een arm naar voren en knikt het hoofd
   rig.sideAxis = {};
-  for (const n of ['UpperArmL', 'UpperArmR', 'LowerArmL', 'LowerArmR', 'Head', 'Neck']) {
+  for (const n of ['UpperArmL', 'UpperArmR', 'LowerArmL', 'LowerArmR', 'Head', 'Neck', 'Abdomen', 'Torso', 'Chest', 'UpperLegL', 'UpperLegR']) {
     const bb = tmp.bones[man.bones.findIndex((x) => x.name === n)];
     bb.parent.getWorldQuaternion(q);
     rig.sideAxis[n] = up.set(0, 0, 1).applyQuaternion(q.invert()).normalize().toArray();
@@ -136,7 +136,10 @@ export function buildModularFromAppearance(a) {
   // lengte: de look (verhaalfiguren) of het lichaam uit de kledingkast (BODY_TYPES.hs), binnen de norm van de rig
   const bt = look.body && BODY_TYPES[look.body];
   look.scale = (rig.man.schaal || 1) * Math.max(0.92, Math.min(1.08, ((a.look && a.look.heightScale) || 1) * (bt ? bt.hs : 1))) * (look.old ? 0.985 : 1);
+  // elke gewone figuur (geen verhaalfiguur of speler) krijgt lengte en bouw uit zijn zaad
+  if (a.vary) { const sz = personSize(rig, look.seed, { old: look.old, child: !!(a.look && a.look.age === 'child') }); look.scale = sz.scale * (bt ? Math.max(0.92, Math.min(1.08, bt.hs)) : 1); look.wide = sz.wide; }
   const g = buildModularPerson(look.seed, { look });
+  if (g && a.vary) g.userData.qFidget = true;   // alledaagse gebaren voor wie stilstaat: alleen de gewone figuren, niet de speler of een verhaalfiguur
   if (g && bt) { g.scale.x *= Math.max(0.9, Math.min(1.15, bt.bs || 1)); g.scale.z = g.scale.x; } // breder of smaller postuur
   return g;
 }
@@ -206,17 +209,32 @@ export function modularLook(seed, opts = {}) {
   const parts = {};
   MODULAR_SLOTS.forEach((s, k) => { parts[s] = pickWeighted(rig.slots[s], hashf(seed, 10 + k)).id; });
   // leeftijd: ongeveer een op de vijf is ouder (grijs of wit haar, iets kleiner, rustiger tempo); geverfd haar zelden (2%)
-  const old = opts.old !== undefined ? !!opts.old : hashf(seed, 23) < 0.2;
-  const dyed = !old && hashf(seed, 24) < 0.02;
+  const child = !!opts.child;
+  const old = !child && (opts.old !== undefined ? !!opts.old : hashf(seed, 23) < 0.2);
+  const dyed = !old && !child && hashf(seed, 24) < 0.02;
+  const { scale, wide } = opts.nominal ? { scale: (rig.man.schaal || 1) * (old ? 0.985 : 1), wide: 1 } : personSize(rig, seed, { child, old });   // nominal: de gemiddelde mens (audits van zitplekken)
+  // een hoofddeksel bij ongeveer een op de tien volwassenen (pet, en bij oudere mannen de platte pet)
+  let cap = null;
+  if (!child && opts.hat !== false && !/Punk|Farmer|Worker/.test(parts.hoofd) && hashf(seed, 50) < (opts.hatChance ?? 0.1)) cap = old && !female ? 'flatcap' : 'cap';
   return {
     seed, rig: rigName, parts,
     skin: opts.skin ?? 0xd9a47a, shirt: opts.shirt ?? null,
-    old,
+    old, child,
     hair: old ? HAIR_OLD[Math.floor(hashf(seed, 20) * HAIR_OLD.length)] : dyed ? HAIR_DYED[Math.floor(hashf(seed, 20) * HAIR_DYED.length)] : HAIR[Math.floor(hashf(seed, 20) * HAIR.length)], pants: PANTS[Math.floor(hashf(seed, 21) * PANTS.length)],
-    // importschaal per pack (quaternius_import.mjs RIGS) met een kleine variatie per zaad: man 1,75-1,85 m, vrouw 1,65-1,72 m
-    scale: (rig.man.schaal || 1) * (1 + (rig.man.variatie ?? 0.02) * (2 * hashf(seed, 22) - 1)) * (old ? 0.985 : 1),
+    cap, capColor: cap ? CAP_COLORS[Math.floor(hashf(seed, 51) * CAP_COLORS.length)] : null,
+    scale, wide,
   };
 }
+// De maat van een mens uit zijn zaad (stabiel, geloofwaardig): lengte (man ca. 1,70 tot 1,93 m, vrouw 1,58 tot 1,79 m, ouderen iets
+// kleiner), bouw (breedte van schouders en middel 0,94 tot 1,08 keer) en kinderen op 55 tot 80 procent van de lengte. Elke speler
+// rekent hetzelfde uit het zaad, dus een gast ziet dezelfde lengte en bouw.
+export function personSize(rig, seed, { child = false, old = false } = {}) {
+  const base = rig.man.schaal || 1;
+  if (child) return { scale: base * (0.56 + 0.22 * hashf(seed, 42)), wide: 0.93 + 0.06 * hashf(seed, 41) };
+  const tall = ((2 * hashf(seed, 22) - 1) + 0.5 * (2 * hashf(seed, 43) - 1)) / 1.5;   // iets klokvormig: de meesten rond het gemiddelde
+  return { scale: base * (1 + (rig.man.variatie ?? 0.02) * 2.3 * tall) * (old ? 0.985 : 1), wide: 0.94 + 0.14 * hashf(seed, 41) + (old ? 0.02 : 0) };
+}
+const CAP_COLORS = [0x2b2f36, 0x3a4d6e, 0x6e2f2f, 0x46563a, 0x7a6a4a, 0x8a8f98, 0xc8621e, 0x2f2f2f];
 
 // Een pet (Tammo, agent, pet of muts): een lage koepel van CAP_SEG x 3 vlakjes op de schedel en, bij een pet, een klep naar voren,
 // op het hoofdbot. Maten uit de gezichtspunten (ogen) van het hoofd; het haar eronder wordt bedekt door een iets ruimere koepel.
@@ -235,6 +253,48 @@ function squashHair(rig, p, P, v0, face, kind) {
     const r = Math.hypot(dx / f.rx, Math.max(0, dy) / f.ry, dz / f.rz);
     if (r > 0.85) { const k = 0.85 / r; P[o] = f.cx + dx * k; P[o + 1] = f.cy + Math.max(0, dy) * k; P[o + 2] = f.zc + dz * k; }
   }
+}
+// Uitdrukkingen (personages 2): het pack heeft geen mond in de kleuren en platte ogen; mond en wenkbrauwen komen als dunne vlakken
+// op het hoofdbot. look.mood: 'neutraal', 'vrolijk' (mondhoeken omhoog, wenkbrauwen iets op), 'mokkend' (mondhoeken omlaag, wenkbrauwen
+// schuin naar binnen omlaag) of 'verbaasd' (ronde open mond, wenkbrauwen hoog). Per look gekozen uit het zaad; setModularMood wisselt.
+export const MOODS = ['neutraal', 'vrolijk', 'mokkend', 'verbaasd'];
+const MOOD_SEG = 6, MOOD_V = (MOOD_SEG + 1) * 2 + 8, MOOD_I = MOOD_SEG * 6 + 12;
+function moodGeometry(face, look, P, C, SI, SW, I, v0, i0, headBone, skinRgb) {
+  const mood = look.mood || 'neutraal', [mx, my, mz] = face.mouth, x = face.eyes[0].x - 0.0005;
+  const put = (px, py, pz, c) => { P[v0 * 3] = px; P[v0 * 3 + 1] = py; P[v0 * 3 + 2] = pz; C[v0 * 3] = c[0]; C[v0 * 3 + 1] = c[1]; C[v0 * 3 + 2] = c[2]; SI[v0 * 4] = headBone; SW[v0 * 4] = 255; return v0++; };
+  const strip = (pts, t, c) => {   // een lijn langs punten [y, z] met toenemende z, dikte t
+    const base = v0;
+    for (const [py, pz] of pts) { put(x, py + t / 2, pz, c); put(x, py - t / 2, pz, c); }
+    for (let k = 0; k < pts.length - 1; k++) { const a = base + k * 2; I[i0++] = a; I[i0++] = a + 2; I[i0++] = a + 3; I[i0++] = a; I[i0++] = a + 3; I[i0++] = a + 1; }
+  };
+  const lip = [0.2, 0.07, 0.06], brow = [0.7, 0.7, 0.7];
+  _base.setHex(look.hair ?? 0x3b2a1e); _base.multiplyScalar(0.55); brow[0] = _base.r; brow[1] = _base.g; brow[2] = _base.b;
+  const hw = 0.026, v0s = v0, i0s = i0;
+  if (mood === 'verbaasd') {
+    const base = v0;
+    for (const [py, pz] of [[my + 0.009, mz - 0.007], [my + 0.009, mz + 0.007], [my - 0.009, mz + 0.007], [my - 0.009, mz - 0.007]]) put(x + 0.0005, py, pz, [0.12, 0.03, 0.03]);
+    for (const k of [0, 1, 2, 0, 2, 3]) I[i0++] = base + k;
+  } else {
+    const pts = [];
+    for (let k = 0; k <= MOOD_SEG; k++) {
+      const u = k / MOOD_SEG, e = (2 * u - 1) ** 2;
+      pts.push([mood === 'vrolijk' ? my + 0.011 * e - 0.004 : mood === 'mokkend' ? my - 0.009 * e + 0.003 : my - 0.002, mz - hw + 2 * hw * u]);
+    }
+    strip(pts, mood === 'neutraal' ? 0.0035 : 0.0045, lip);
+  }
+  // wenkbrauwen: een staafje boven elk oog; de binnenkant (naar het midden van het gezicht) staat bij mokkend lager
+  v0 = v0s + (MOOD_SEG + 1) * 2; i0 = i0s + MOOD_SEG * 6;   // vaste indeling: de mond heeft zijn eigen ruimte, ongebruikt blijft nul
+  const zm = (face.eyes[0].c[2] + face.eyes[1].c[2]) / 2;
+  const base = v0;
+  for (const e of face.eyes) {
+    const cz = e.c[2], by = e.c[1] + e.h / 2 + 0.017 + (mood === 'verbaasd' ? 0.013 : mood === 'vrolijk' ? 0.005 : 0), inner = cz > zm ? -1 : 1;   // inner = de kant van het midden langs z
+    const lo = mood === 'mokkend' ? -0.007 : 0, hi = mood === 'mokkend' ? 0.004 : mood === 'vrolijk' ? 0.003 : 0;
+    const yz = (side) => (side === inner ? lo : hi);   // side -1 = kleine z, +1 = grote z
+    const z0 = cz - 0.017, z1 = cz + 0.017, y0 = by + yz(-1), y1 = by + yz(1), t = 0.004;
+    put(x, y0 + t / 2, z0, brow); put(x, y1 + t / 2, z1, brow); put(x, y1 - t / 2, z1, brow); put(x, y0 - t / 2, z0, brow);
+  }
+  for (let k = 0; k < 2; k++) for (const j of [0, 1, 2, 0, 2, 3]) I[i0++] = base + k * 4 + j;
+  return { v: v0s + MOOD_V, i: i0s + MOOD_I };
 }
 const CAP_SEG = 10, CAP_RINGS = 3;
 const CAP_V = CAP_SEG * CAP_RINGS + 1 + 4, CAP_I = (CAP_SEG * (CAP_RINGS - 1) * 2 + CAP_SEG) * 3 + 6 + CAP_SEG * 0;
@@ -259,16 +319,18 @@ function capGeometry(face, kind, P, C, SI, SW, I, v0, i0, col, headBone) {
   }
   for (let s = 0; s < CAP_SEG; s++) tri(base + (CAP_RINGS - 1) * CAP_SEG + s, top, base + (CAP_RINGS - 1) * CAP_SEG + ((s + 1) % CAP_SEG));
   // klep (alleen een pet): een plat vlak naar voren, iets omlaag
-  const k0 = v0, y = cy - 0.012, w = kind === 'cap' || kind === 'tammo' || kind === 'police' ? 0.085 : 0;
-  put(cx + rx * 0.85, y, zc - w); put(cx + rx * 0.85, y, zc + w); put(cx + rx + 0.075, y - 0.02 * (w > 0 ? 1 : 0), zc + w * 0.8); put(cx + rx + 0.075, y - 0.02 * (w > 0 ? 1 : 0), zc - w * 0.8);
-  tri(k0, k0 + 1, k0 + 2); tri(k0, k0 + 2, k0 + 3);
+  // klep: een pet krijgt een lange, een platte pet een korte brede klep, een muts geen (zonder breedte was het een draadvlak: een spits puntje)
+  const k0 = v0, y = cy - 0.012, w = kind === 'cap' || kind === 'tammo' || kind === 'police' ? 0.085 : kind === 'flatcap' ? 0.075 : 0, ext = kind === 'flatcap' ? 0.035 : 0.075;
+  put(cx + rx * 0.85, y, zc - w); put(cx + rx * 0.85, y, zc + w); put(cx + rx + ext, y - 0.02 * (w > 0 ? 1 : 0), zc + w * 0.8); put(cx + rx + ext, y - 0.02 * (w > 0 ? 1 : 0), zc - w * 0.8);
+  if (w > 0) { tri(k0, k0 + 1, k0 + 2); tri(k0, k0 + 2, k0 + 3); }
   return { v: v0, i: i0 };
 }
 
 // Een kledingdeel (modularwear.js) voor deze look: botten in rust, het kader van de kruin, en het profiel van het lijf uit de delen van
 // de look (LOD 0), zodat een band om de arm of de heup precies op de stof ligt. Per rig, deel en combinatie van delen bewaard.
 function wearFor(rig, look, face, id) {
-  const ck = id + '|' + look.parts.hoofd + '|' + look.parts.romp + '|' + look.parts.benen;
+  const prm = id === 'voetbalshirt' ? look.kit : look.wearParams && look.wearParams[id];
+  const ck = id + '|' + look.parts.hoofd + '|' + look.parts.romp + '|' + look.parts.benen + '|' + JSON.stringify(prm || null);
   rig.wearCache = rig.wearCache || new Map();
   if (rig.wearCache.has(ck)) return rig.wearCache.get(ck);
   const bones = rig.man.bones;
@@ -303,7 +365,7 @@ function wearFor(rig, look, face, id) {
     }
     return [pt[0] + d.x * best, pt[1] + d.y * best, pt[2] + d.z * best];
   };
-  const w = buildWear(id, { cap: capFrame(face, 'police'), bone, profile, surface });
+  const w = buildWear(id, { cap: capFrame(face, 'police'), face, bone, profile, surface }, prm || null);
   rig.wearCache.set(ck, w);
   return w;
 }
@@ -318,7 +380,7 @@ export function resetModularGeoBudget() { geoBuildSpent = 0; geoBudgetOn = true;
 function geoCached(rig, look, lod, grip) { return !!rig.geoCache.get(geoKey(look, lod, !!(grip && lod === 0 && rig.grip))); }
 function geoKey(look, lod, grip) {
   const wearIds = look.wear && look.wear.length && lod < 2 ? look.wear : null;
-  return `${lod}${grip ? 'g' : ''}|${wearIds ? wearIds.join('+') : ''}|${look.cap || ''}|${look.capColor || ''}|${look.parts.hoofd}|${look.parts.romp}|${look.parts.benen}|${look.parts.voeten}|${look.skin}|${look.shirt}|${look.hair}|${look.pants}|${Math.floor(hashf(look.seed, 3) * 8)}`;
+  return `${lod}${grip ? 'g' : ''}|${wearIds ? wearIds.join('+') : ''}|${look.mood || ''}|${look.cap || ''}|${look.capColor || ''}|${look.kit ? JSON.stringify(look.kit) : ''}${look.wearParams ? JSON.stringify(look.wearParams) : ''}|${look.parts.hoofd}|${look.parts.romp}|${look.parts.benen}|${look.parts.voeten}|${look.skin}|${look.shirt}|${look.hair}|${look.pants}|${Math.floor(hashf(look.seed, 3) * 8)}`;
 }
 function geometryFor(rig, look, lod = 0, grip = false) {
   grip = !!(grip && lod === 0 && rig.grip);   // de LOD's houden een open hand (vanaf 25 m zie je geen vingers)
@@ -333,7 +395,8 @@ function geometryFor(rig, look, lod = 0, grip = false) {
   // de eenvoudige pet alleen als er geen kledingdeel voor het hoofd is (de politiepet komt uit modularwear.js)
   const wear = wearIds && face ? wearIds.map((id) => wearFor(rig, look, face, id)).filter(Boolean) : [];
   const capOn = !!(face && look.cap) && !wear.some((w) => w.id === 'politiepet');
-  const FV = (face ? 12 : 0) + (capOn ? CAP_V : 0) + wear.reduce((a, w) => a + w.pos.length / 3, 0), FI = (face ? 18 : 0) + (capOn ? CAP_I : 0) + wear.reduce((a, w) => a + w.idx.length, 0);
+  const moodOn = !!(face && lod < 2);   // mond en wenkbrauwen van de uitdrukking (vanaf 25 m niet meer te zien)
+  const FV = (face ? 12 : 0) + (moodOn ? MOOD_V : 0) + (capOn ? CAP_V : 0) + wear.reduce((a, w) => a + w.pos.length / 3, 0), FI = (face ? 18 : 0) + (moodOn ? MOOD_I : 0) + (capOn ? CAP_I : 0) + wear.reduce((a, w) => a + w.idx.length, 0);
   const nV = parts.reduce((s, p) => s + p.vCount, 0) + FV, nI = parts.reduce((s, p) => s + p.iCount, 0) + FI;
   const P = new Float32Array(nV * 3), C = new Float32Array(nV * 3), SI = new Uint8Array(nV * 4), SW = new Uint8Array(nV * 4);
   const I = nV < 65536 ? new Uint16Array(nI) : new Uint32Array(nI);
@@ -376,6 +439,10 @@ function geometryFor(rig, look, lod = 0, grip = false) {
     const [mx, my, mz] = face.mouth;
     quad(mx + 0.0025, my - 0.016, my, mz - 0.014, mz + 0.014, dark, MOUTH);
     for (const e of face.eyes) quad(e.x + 0.003, e.c[1] - e.h / 2 - 0.002, e.c[1] + e.h / 2 + 0.002, e.c[2] - e.w / 2 - 0.003, e.c[2] + e.w / 2 + 0.003, skin, LIDS);
+    if (moodOn) {
+      const res = moodGeometry(face, look, P, C, SI, SW, I, v0, i0, rig.man.bones.findIndex((b) => b.name === 'Head'), skin);
+      v0 = res.v; i0 = res.i;
+    }
     if (capOn) {
       _base.setHex(look.capColor ?? 0x2b2f36);
       const res = capGeometry(face, look.cap, P, C, SI, SW, I, v0, i0, [_base.r, _base.g, _base.b], rig.man.bones.findIndex((b) => b.name === 'Head'));
@@ -437,6 +504,15 @@ export function registerModularLods(register, seeds = [11, 22, 33, 44]) {
     n++;
   }
   return n;
+}
+// Zet de uitdrukking (MOODS) van een modulaire mens: neutraal, vrolijk, mokkend of verbaasd. Wisselt alleen als het verandert.
+export function setModularMood(mesh, mood) {
+  const ud = mesh && mesh.userData;
+  if (!ud || !ud.qRig || !ud.qLook || ud.qLook.mood === mood || !MOODS.includes(mood)) return false;
+  ud.qMoodBase = ud.qMoodBase || ud.qLook.mood || 'neutraal';
+  ud.qLook = { ...ud.qLook, mood };
+  swapGeometry(ud);
+  return true;
 }
 // Wisselt de geometrie van een modulaire mens naar niveau lod (alleen als het verandert; telt de gedeelde geometrie netjes af en op).
 export function setModularLod(mesh, lod) {
@@ -516,13 +592,17 @@ export function buildModularPerson(seed, opts = {}) {
   }
   group.updateMatrixWorld(true);
   mesh.bind(new THREE.Skeleton([...sk.bones, ...extra], inverses), new THREE.Matrix4());
+  if (look.face) { const hb = sk.bones[rig.man.bones.findIndex((b) => b.name === 'Head')]; hb.scale.x *= look.face[0]; hb.scale.y *= look.face[1]; hb.scale.z *= look.face[2]; }   // gezichtsvorm: smaller, breder, langer (uit het zaad)
+  if (look.child) sk.bones[rig.man.bones.findIndex((b) => b.name === 'Head')].scale.multiplyScalar(1.22);   // kinderen: groter hoofd bij het lijf
   for (const b of extra) b.scale.y = 0;   // pas na het binden (de inverse van schaal 0 bestaat niet): mond dicht, ogen open
   group.scale.setScalar(look.scale);
+  if (look.wide && look.wide !== 1) { group.scale.x *= look.wide; group.scale.z = group.scale.x; }   // bouw: breder of smaller (personSize)
   const ud = group.userData;
   ud.qRig = rig;
   ud.qBones = sk.bones;
   ud.qLook = look;
   ud.qLod = 0;
+  ud.qStoop = look.old ? 0.1 + 0.08 * hashf(seed, 44) : 0;   // ouderen lopen iets gebogen
   ud.body = mesh;
   ud.lookSeed = seed;
   ud.animOffset = hashf(seed, 9) * 100;
@@ -589,6 +669,14 @@ function accumulate(rig, c, u, w) {
 }
 
 const _qa = new THREE.Quaternion(), _axis = new THREE.Vector3();
+const IDX_SIT = STATE_IDS.indexOf('sit');
+// Draai een bot om de zij-as van de mens (+ = arm naar voren, hoofd en romp naar achteren): een kleine bijsturing bovenop de clip.
+export function modularTurn(mesh, name, angle) {
+  const ud = mesh && mesh.userData, rig = ud && ud.qRig, bi = ud && ud.qIdxBy[name];
+  if (!rig || bi === undefined || !rig.sideAxis[name] || Math.abs(angle) < 1e-4) return false;
+  ud.qBones[bi].quaternion.premultiply(_gq.setFromAxisAngle(_ax.fromArray(rig.sideAxis[name]), angle));
+  return true;
+}
 const SP0 = { ..._sp };
 // Gebaren bij praten (ADR 0051 bovenlijflaag 'talk'): om de zij-as van de mens; w = gewicht 0..1. Geen allocaties.
 const _ax = new THREE.Vector3(), _gq = new THREE.Quaternion();
@@ -731,6 +819,7 @@ export function animateModular(mesh, speed, dt) {
   // praten: gebaren met de armen (om en om een onderarm omhoog, een open hand) en het hoofd rechtop met een kleine knik
   st.talkW = crossfade(st.talkW || 0, ud.qParams && ud.qParams.talk ? 1 : 0, step, 0.3);
   if (st.talkW > 0.01) talkGestures(ud, rig, st.t, st.talkW);
+  if (ud.qStoop && !ud.qInSeat && sm.s !== IDX_SIT) modularTurn(mesh, 'Torso', -ud.qStoop);
   // knipperen (gait.js blinkAmount, zelfde ritme als het eigen model)
   if (ud.lids) { const bl = blinkAmount(st.t + ud.animOffset, ud.animOffset); if (ud.lids.scale.y !== bl) ud.lids.scale.y = bl; }
   // blik (gait.js glanceAt zet ud.gazeT, + = rechts): hoofd en nek draaien om de verticale as van de persoon, 40/60 verdeeld
@@ -854,15 +943,23 @@ function aimBone(bone, from, to, dir) {
   _bx.subVectors(_bw, _bv).normalize();
   rotateWorld(bone, _bq.setFromUnitVectors(_bx, dir));
 }
+// De greep k (0 = links, -z) van het stuur van een tweewieler in de wereld: het midden van het handvat (grip: x, y, z, px = de stuuras)
+// gedraaid met het stuur over dezelfde hoek als de voorwielen (voertuigbediening.js MAX_STUUR 0,5 rad).
+const _gp = new THREE.Vector3();
+function gripPoint(g, k, ctx, out) {
+  const a = -Math.max(-1, Math.min(1, ctx.steer || 0)) * 0.5, c = Math.cos(a), sn = Math.sin(a), z = k ? g.z : -g.z, dx = g.x - (g.px ?? g.x);
+  return ctx.toWorld((g.px ?? g.x) + dx * c + z * sn, g.y, -dx * sn + z * c, out);
+}
 const _dir = new THREE.Vector3(), _hp = new THREE.Vector3(), _tg = new THREE.Vector3(), _ft = new THREE.Vector3(), _c0 = new THREE.Vector3(), _ax1 = new THREE.Vector3(), _ax2 = new THREE.Vector3();
 function seatIK(mesh, seat, ctx = null) {
   const ud = mesh.userData, I = ud.qIdx, B = ud.qBones, pose = seat && seat.pose, rig = ud.qRig;
   const rider = !!(seat && seat.rider);
+  if (seat && seat.stand && !rider && seat.grip && ctx && ctx.toWorld) { standGrip(mesh, seat, ctx); return; }
   if ((!pose && !rider) || (seat.stand && !rider)) return;
   const bn = (n) => B[ud.qIdxBy[n]];
   const astride = !!(pose && pose.splay);
   const railSit = !!(pose && pose.arms === 'rail');
-  const T0 = rider ? SEAT_TARGETS.bike : railSit ? SEAT_TARGETS.rail : pose && pose.arms === 'wheel' ? SEAT_TARGETS.drive : SEAT_TARGETS.car;
+  const T0 = rider ? (seat.back ? { ...SEAT_TARGETS.bike, back: -seat.back } : SEAT_TARGETS.bike) : railSit ? SEAT_TARGETS.rail : pose && pose.arms === 'wheel' ? SEAT_TARGETS.drive : SEAT_TARGETS.car;
   // een sportstoel ligt verder achterover (pose.recline): de rug gaat mee, zodat de heuphoek open blijft
   const T = pose && !rider && !railSit && (pose.recline || 0) > 0.35 ? { ...T0, back: Math.min(0.48, T0.back + 0.045) } : T0;
   mesh.updateMatrixWorld(true);
@@ -928,7 +1025,7 @@ function seatIK(mesh, seat, ctx = null) {
   // van het eigen model), via de omzetting van het voertuig als die er is; zo hangt het niet meer van de zitclip af
   if (seat && !astride && ctx && ctx.toWorld) {
     mesh.updateMatrixWorld(true);
-    const top = rider ? seat.y + (0.93 - 0.17) * s : seat.y;
+    const top = rider ? (seat.saddle ?? seat.y + (0.93 - 0.17) * s) - (seat.bb ? Math.max(0, 1 - s / (rig.man.schaal || 1)) * 0.3 : 0) : seat.y;
     ctx.toWorld(seat.x, top, seat.z, _c0);
     bn('Hips').getWorldPosition(_bv);
     const dy = _c0.y + HIP_ABOVE_SEAT * s - _bv.y;
@@ -951,6 +1048,15 @@ function seatIK(mesh, seat, ctx = null) {
     up.getWorldPosition(_hp); mesh.worldToLocal(_hp);
     let fx, fy, fz = 0;
     if (astride) { fx = pose.footX ?? 0.3; fy = pose.footY ?? -0.6; fz = side * Math.sin(pose.splay) * Math.abs(fy); }
+    else if (rider && ctx && ctx.toWorld && (seat.bb || seat.feet)) {
+      // de echte trapas of voetplank van dit voertuig (24-11): de enkel op het pedaal (0,07 m erboven), de pedalen een crank van 17 cm
+      // rond de trapas (de voeten staan tegenover elkaar); een brommer: de voeten stil op de vloerplaat
+      if (seat.bb) {
+        const a = (ud.qPedal || 0) + (k ? Math.PI : 0);
+        ctx.toWorld(seat.bb.x + PEDAL_R * Math.sin(a), seat.bb.y + 0.07 - PEDAL_R * Math.cos(a), side * (seat.bb.z || 0.11), _tg);
+      } else ctx.toWorld(seat.feet.x, seat.feet.y, side * seat.feet.z, _tg);
+      fx = null;
+    }
     else if (rider) {
       // trappers: de voet op een crank van 17 cm rond de trapas; onderaan de slag is het been op de gewenste kniehoek gestrekt, de
       // twee voeten staan tegenover elkaar en draaien mee met de snelheid (stilstaand blijven ze waar ze waren)
@@ -981,7 +1087,7 @@ function seatIK(mesh, seat, ctx = null) {
       // de vloer is dieper dan het been reikt (hoge cabine): de dij bijna vlak, de knie op de gewenste hoek, de voet hangt boven de vloer (op een voetsteun)
       else { const t = 0.09, kx = l1 * Math.cos(t), ky = l1 * Math.sin(t), a = Math.PI - T.knee - t; fx = kx + l2 * Math.cos(a); fy = ky - l2 * Math.sin(a); }   // a = hoek van de scheen onder de horizontaal
     }
-    toW(_hp.x + fx / s, _hp.y + fy / s, _hp.z + fz / s, _tg);
+    if (fx !== null) toW(_hp.x + fx / s, _hp.y + fy / s, _hp.z + fz / s, _tg);
     shinEnd(rig, lo, k ? 'R' : 'L', s, _ft);
     ikTo(up, lo, _ft, _tg);
     if (astride) kneeOut(mesh, up, lo, _tg, side);
@@ -1009,7 +1115,10 @@ function seatIK(mesh, seat, ctx = null) {
   if (rider) {
     // handvatten: 0,43 m voor en 0,12 m boven de heup van het eigen model op het zadel, 0,28 m opzij
     bn('Hips').getWorldPosition(_hp); mesh.worldToLocal(_hp);
-    for (let k = 0; k < 2; k++) reach(k, toW(_hp.x + 0.43 / s, _hp.y + 0.12 / s, _hp.z + (k ? 0.28 : -0.28) / s, _tg));
+    for (let k = 0; k < 2; k++) {
+      if (seat.grip && ctx && ctx.toWorld) { gripPoint(seat.grip, k, ctx, _gp); reach(k, _gp); }
+      else reach(k, toW(_hp.x + 0.43 / s, _hp.y + 0.12 / s, _hp.z + (k ? 0.28 : -0.28) / s, _tg));
+    }
     return;
   }
   if (driver) {
@@ -1049,6 +1158,25 @@ function seatIK(mesh, seat, ctx = null) {
     dirW(0, 1, 0, _dir); _tg.addScaledVector(_dir, 0.07 * s);
     reach(k, _tg);
   }
+}
+
+// Een staander op een step: alleen de handen naar de handvatten van het stuur (de voeten staan op het dek).
+function standGrip(mesh, seat, ctx) {
+  const ud = mesh.userData, B = ud.qBones, I = ud.qIdx, s = mesh.scale.y || 1;
+  mesh.updateMatrixWorld(true);
+  const bn = (n) => B[ud.qIdxBy[n]];
+  for (let k = 0; k < 2; k++) {
+    const up = bn(k ? 'UpperArmR' : 'UpperArmL'), lo = bn(k ? 'LowerArmR' : 'LowerArmL'), wr = bn(k ? 'WristR' : 'WristL');
+    gripPoint(seat.grip, k, ctx, _gp);
+    for (let it = 0; it < 5; it++) {
+      wr.getWorldPosition(_ft);
+      _tg.copy(_gp);
+      if (it) { lo.getWorldPosition(_bv); _ax1.subVectors(_ft, _bv).normalize(); _tg.addScaledVector(_ax1, -HAND_PALM * s); }
+      ikTo(up, lo, _ft, _tg);
+      poleTo(mesh, up, lo, _tg, 0, -1, (k ? 1 : -1) * 0.6);
+    }
+  }
+  void I;
 }
 
 export function plantFeetModular(mesh, ground, w = 1) {
@@ -1134,7 +1262,7 @@ export function seatModular(mesh, seat, t, ctx = null) {
   animateModular(mesh, 0, dt);
   ud.qInSeat = false;
   // vuisten om het stuur (met de echte stuurpositie) of de stuurgreep van de fiets
-  setModularGrip(mesh, rider || arms === 'wheel');
+  setModularGrip(mesh, rider || arms === 'wheel' || !!(seat && seat.stand && seat.grip));
   if (!(ud.qLod > 0)) seatIK(mesh, seat, ctx);
   return true;
 }
@@ -1183,6 +1311,56 @@ export function modularHandSocket(mesh) {
   lo.add(sock);
   ud.qSocketR = sock;
   return sock;
+}
+// Een houder op een willekeurig bot (zonder draaiing), met dezelfde maat-regel als de handhouder: 1 eenheid = 1 m van de gewone mens.
+export function modularBoneSocket(mesh, name) {
+  const ud = mesh && mesh.userData;
+  if (!ud || !ud.qRig) return null;
+  ud.qSockets = ud.qSockets || {};
+  if (ud.qSockets[name]) return ud.qSockets[name];
+  const b = ud.qBones[ud.qIdxBy[name]];
+  mesh.updateMatrixWorld(true);
+  b.matrixWorld.decompose(_sp3, _sq3, _ss);
+  const sock = new THREE.Object3D();
+  sock.name = 'socket-' + name;
+  sock.scale.setScalar(mesh.scale.x / _ss.x);
+  b.add(sock);
+  return (ud.qSockets[name] = sock);
+}
+// Een prop (telefoon, hengel, gitaar) aan een bot, maar in de assen van de mens: world = de plek (wereld, bijvoorbeeld de handpalm uit
+// modularHandPoint), rot = [x, y, z] Euler in de assen van de mens (x voor, y omhoog, z naar rechts). Elk beeld opnieuw na de clip en de IK,
+// zodat de prop niet meedraait met de willekeurige assen van het bot.
+const _ppq = new THREE.Quaternion(), _ppe = new THREE.Euler(), _ppm = new THREE.Quaternion(), _ppb = new THREE.Quaternion(), _ppP = new THREE.Vector3(), _pps = new THREE.Vector3(), _ppw = new THREE.Vector3();
+export function modularPlaceProp(mesh, prop, boneName, world, rot) {
+  const ud = mesh && mesh.userData;
+  if (!ud || !ud.qRig) return false;
+  const b = ud.qBones[ud.qIdxBy[boneName]];
+  if (prop.parent !== b) b.add(prop);
+  b.matrixWorld.decompose(_ppP, _ppb, _pps);
+  mesh.getWorldQuaternion(_ppm);
+  prop.scale.setScalar(mesh.scale.x / _pps.x);
+  prop.position.copy(b.worldToLocal(_ppw.copy(world)));
+  prop.quaternion.copy(_ppb.invert().multiply(_ppm).multiply(_ppq.setFromEuler(_ppe.set(rot[0], rot[1], rot[2]))));
+  return true;
+}
+// De handpalm (wereld) van hand `side`: een stukje voorbij de pols langs de onderarm; extra = mesh-lokale verschuiving [x, y, z] (m, ongeschaald)
+const _hpA = new THREE.Vector3(), _hpB = new THREE.Vector3();
+export function modularHandPoint(mesh, side, out, extra = null) {
+  const ud = mesh.userData, wr = ud.qBones[ud.qIdxBy['Wrist' + side]], lo = ud.qBones[ud.qIdxBy['LowerArm' + side]];
+  wr.getWorldPosition(out); lo.getWorldPosition(_hpA);
+  out.addScaledVector(_hpB.subVectors(out, _hpA).normalize(), HAND_PALM * (mesh.scale.y || 1));
+  if (extra) { _hpB.set(extra[0], extra[1], extra[2]).multiplyScalar(mesh.scale.y || 1); mesh.getWorldQuaternion(_ppm); out.add(_hpB.applyQuaternion(_ppm)); }
+  return out;
+}
+// Zet een mens meteen in een toestand (zonder menging), bijvoorbeeld zittend bij het verschijnen.
+export function modularSetState(mesh, name) {
+  const ud = mesh && mesh.userData;
+  if (!ud || !ud.qSM) return false;
+  const i = STATE_IDS.indexOf(name);
+  if (i < 0) return false;
+  ud.qSM.s = ud.qSM.prev = i; ud.qSM.k = 1; ud.qSM.fade = 0; ud.qSM.t = 0; ud.qSM.nt = 0; ud.qSM.done = false;
+  if (ud.qState) { ud.qState.lastS = i; ud.qState.prevS = i; ud.qState.stateT = 0; }
+  return true;
 }
 // waar de handpalm in de houder zit (m): de greep van een wapen komt hier
 export const MODULAR_GRIP_AT = [0.01, -0.075, 0];
@@ -1244,6 +1422,28 @@ export function modularHoldPose(mesh, mode = 'front') {
   return true;
 }
 
+
+// Eén hand naar een punt (houdingen van voorbijgangers: bellen, hengelen, een kraam, een gitaar): at = [x, y, z] in de assen van de
+// mens (x voor, y omhoog, z naar rechts; de linkerhand krijgt zijn z dus negatief mee), w = hoeveel (0..1) van de weg van de hand
+// van de clip naar dit punt, pole = waar de elleboog heen wijst. mesh.updateMatrixWorld moet na de clip zijn gedaan.
+const _rw = new THREE.Vector3();
+export function modularReach(mesh, side, at, w = 1, pole = [0, -1, 0.6]) {
+  const ud = mesh && mesh.userData;
+  if (!ud || !ud.qRig || !(w > 0)) return false;
+  const B = ud.qBones, bn = (n) => B[ud.qIdxBy[n]];
+  const up = bn('UpperArm' + side), lo = bn('LowerArm' + side), wr = bn('Wrist' + side), k = side === 'R' ? 1 : -1;
+  mesh.localToWorld(_c0.set(at[0], at[1], at[2]));
+  for (let it = 0; it < 2; it++) {
+    wr.getWorldPosition(_ft);
+    _tg.copy(_c0);
+    if (it) { lo.getWorldPosition(_bv); _ax1.subVectors(_ft, _bv).normalize(); _tg.addScaledVector(_ax1, -HAND_PALM * (mesh.scale.y || 1)); }
+    if (w < 1) _tg.lerpVectors(_ft, _tg, w);
+    ikTo(up, lo, _ft, _tg);
+    poleTo(mesh, up, lo, _tg, pole[0], pole[1], k * Math.abs(pole[2]));
+  }
+  mesh.updateMatrixWorld(true);
+  return true;
+}
 
 // Eerste-persoonhanden (firstpersonhands.js) op het nieuwe model: de onderarm met de gesloten hand (grijpvariant) van een look als vaste
 // geometrie (position + color) in het assenstelsel van de arm in die module: oorsprong in de pols, -z naar de vingers, +x naar rechts

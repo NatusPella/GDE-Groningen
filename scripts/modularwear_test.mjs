@@ -12,7 +12,7 @@ let fails = 0, n = 0;
 const ok = (c, msg) => { n++; if (!c) { fails++; console.log('FAIL', msg); } };
 for (const r of ['man', 'vrouw']) M.registerModularRig(r, JSON.parse(fs.readFileSync(new URL(`../game/models/mensen/${r}.json`, import.meta.url))), fs.readFileSync(new URL(`../game/models/mensen/${r}.bin`, import.meta.url)));
 
-ok(W.wearIds().length >= 2 && W.wearIds().every((id) => { const e = W.WEAR_REGISTER[id]; return e.nl && e.slot && e.norm && e.norm.tris && e.norm.kleuren >= 3 && e.norm.eisen.length >= 3; }), 'elk kledingdeel heeft een naam, een slot en een norm met eisen');
+ok(W.wearIds().length >= 2 && W.wearIds().every((id) => { const e = W.WEAR_REGISTER[id]; return e.nl && e.slot && e.norm && e.norm.tris && e.norm.kleuren >= 1 && e.norm.eisen.length >= 2; }), 'elk kledingdeel heeft een naam, een slot en een norm met eisen');
 
 for (const variant of ['male', 'female']) {
   const m = M.buildModularFromAppearance({ cop: true, skin: 0xd9a47a, seed: 31, variant });
@@ -25,7 +25,7 @@ for (const variant of ['male', 'female']) {
   // de deelgeometrie terugvinden: de kledingdelen staan achteraan, na het gezicht
   const wearVerts = W.wearIds().reduce((a, id) => a, 0);
   ok(wearVerts === 0, 'hulpwaarde');
-  for (const id of W.wearIds()) {
+  for (const id of look.wear) {
     const e = W.WEAR_REGISTER[id];
     // opnieuw bouwen met dezelfde ctx als modularpeople.js (via de cache van de rig)
     const w = ud.qRig.wearCache && [...ud.qRig.wearCache.values()].find((x) => x && x.id === id);
@@ -75,6 +75,29 @@ const viaKleur = ML.lookFromAppearance({ shirt: 0x1c3fae, skin: 0xd9a47a, seed: 
 ok(viaKleur && viaKleur.wear && viaKleur.wear.includes('politiepet'), 'het korpsblauw van het eigen model maakt een agent');
 const tammo = ML.lookFromAppearance({ character: 'tammo', shirt: 0x1c3fae, skin: 0xd9a47a, seed: 3 }, M.modularPartIds());
 ok(tammo && !tammo.wear, 'Tammo in een blauw shirt is geen agent');
+
+// bril, sjaal, rugzak, schoudertas en het voetbalshirt (personages 2, 24-11): elk gebouwd op beide rigs, binnen de norm, eindig en dicht bij het lijf
+for (const variant of ['male', 'female']) for (const [naam, look, kit] of [
+  ['bril, sjaal, rugzak', { glasses: true, scarf: true, scarfColor: 0xc9a227, bag: 'backpack', bagColor: 0x2f3b52 }, null],
+  ['zonnebril, schoudertas', { glasses: true, shades: true, bag: 'shoulder', bagColor: 0x6b2a24 }, null],
+  ['voetbalshirt', {}, { bands: [[0, 0.5]], cells: [[1, 0.5, 1]], color: 0xffffff, number: 17, nameBar: true, sponsor: { color: 0x2255aa, size: 'groot' } }],
+]) {
+  const m = M.buildModularFromAppearance({ skin: 0xd9a47a, seed: 77, variant, shirt: 0x3f6ea8, look, ...(kit ? { shirtBands: kit } : {}) });
+  ok(m && m.userData.qRig && m.userData.qLook.wear && m.userData.qLook.wear.length, `${variant} ${naam}: modulaire mens met kledingdelen`);
+  if (!m) continue;
+  const bones = m.userData.qRig.man.bones;
+  for (const id of m.userData.qLook.wear) {
+    const e = W.WEAR_REGISTER[id], w = [...m.userData.qRig.wearCache.values()].find((x) => x && x.id === id);
+    ok(!!w, `${variant} ${naam} ${id}: gebouwd`);
+    if (!w) continue;
+    ok(w.tris >= e.norm.tris[0] && w.tris <= e.norm.tris[1], `${variant} ${naam} ${id}: ${w.tris} driehoeken binnen ${e.norm.tris.join('-')}`);
+    ok(new Set(w.col).size >= e.norm.kleuren, `${variant} ${naam} ${id}: kleuren`);
+    ok(w.pos.every(Number.isFinite) && w.bone.every((b) => b >= 0 && b < bones.length) && w.idx.every((i) => i >= 0 && i < w.pos.length / 3), `${variant} ${naam} ${id}: eindige punten, geldige botten en indices`);
+    let far = 0;
+    for (let i = 0; i < w.pos.length; i += 3) if (Math.hypot(w.pos[i], w.pos[i + 2]) > 0.55 || w.pos[i + 1] < 0.6 || w.pos[i + 1] > 1.95) far++;
+    ok(far === 0, `${variant} ${naam} ${id}: alles dicht bij het lijf (${far} punten te ver)`);
+  }
+}
 
 console.log(fails ? `${fails} van ${n} FAILED` : `modularwear: alle ${n} checks groen`);
 process.exit(fails ? 1 : 0);

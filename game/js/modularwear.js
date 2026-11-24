@@ -20,6 +20,15 @@ export const WEAR_REGISTER = {
     nl: 'Politie-uniform (details)', slot: 'romp',
     norm: { tris: [160, 900], kleuren: 5, eisen: ['reflecterende band om beide bovenarmen', 'koppel om de heup met tasjes en holster', 'epauletten op beide schouders', 'embleem op de linkerborst', 'naamplaatje op de rechterborst'] },
   },
+  bril: { nl: 'Bril', slot: 'hoofd', params: true, norm: { tris: [40, 220], kleuren: 1, eisen: ['monturen om beide ogen, voorop het gezicht', 'brug tussen de glazen', 'pootjes naar de oren', 'zonnebril: donkere glazen'] } },
+  sjaal: { nl: 'Sjaal', slot: 'romp', params: true, norm: { tris: [30, 180], kleuren: 1, eisen: ['band om de nek op het lijf', 'slip over de borst'] } },
+  rugzak: { nl: 'Rugzak', slot: 'romp', params: true, norm: { tris: [40, 200], kleuren: 2, eisen: ['bak op de rug', 'schouderbanden over beide schouders'] } },
+  schoudertas: { nl: 'Schoudertas', slot: 'romp', params: true, norm: { tris: [40, 200], kleuren: 2, eisen: ['tas op de heup', 'band schuin over de borst'] } },
+  baard: { nl: 'Baard of snor', slot: 'hoofd', params: true, norm: { tris: [20, 160], kleuren: 1, eisen: ['snor boven de mond', 'baard rond kin en kaken', 'kleur van het haar'] } },
+  voetbalshirt: {
+    nl: 'Voetbalshirt (patroon, rugnummer, sponsor)', slot: 'romp', params: true,
+    norm: { tris: [8, 520], kleuren: 2, eisen: ['strepen, helften en hoepels als vlakken 4 mm boven het shirt, voor en achter', 'rugnummer van zeven-segmentcijfers op de rug', 'naamstrook boven het nummer', 'sponsorpaneel op de borst'] },
+  },
 };
 
 const NAVY = 0x1d2433, NAVY_LIGHT = 0x2a3448, BAND = 0x101318, BLACK = 0x0b0c0f, GOLD = 0xc9a43a, REFLECT = 0xd9de48, WHITE = 0xe8e6de, LEATHER = 0x16171a;
@@ -172,11 +181,144 @@ function politieuniform(ctx) {
   return B;
 }
 
-const BUILDERS = { politiepet, politieuniform };
-export function buildWear(id, ctx) {
+// --- voetbalshirt: patroon, rugnummer, naamstrook en sponsorpaneel (spec = shirtBands uit clothing.js / footballkit.js) -----------------
+// Dunne vlakken 4 mm op het oppervlak van de romp, per rij en kolom van hoogstens 4 cm zodat ze de bocht volgen; zelfde rijen en cijfers
+// als het eigen model (models3d_people.js shirtBandGeometry), zodat een club er op beide modellen hetzelfde uitziet.
+const KIT_ROWS = [0.97, 1.1, 1.22, 1.34, 1.46], KIT_BONES = ['Hips', 'Abdomen', 'Torso', 'Chest', 'Body', 'Root'];
+const KIT_SEG = [[1, 1, 1, 0, 1, 1, 1], [0, 0, 1, 0, 0, 1, 0], [1, 0, 1, 1, 1, 0, 1], [1, 0, 1, 1, 0, 1, 1], [0, 1, 1, 1, 0, 1, 0], [1, 1, 0, 1, 0, 1, 1], [1, 1, 0, 1, 1, 1, 1], [1, 0, 1, 0, 0, 1, 0], [1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 0, 1, 1]];
+function voetbalshirt(ctx, spec) {
+  const B = builder(), ch = ctx.bone('Chest').i, N = 24, cache = new Map();
+  const col = (c, d) => (Number.isFinite(c) ? c : d);
+  const radii = (y) => { const k = Math.round(y * 100); if (!cache.has(k)) cache.set(k, ctx.profile([0, y, 0], [0, 1, 0], N, ['romp'], KIT_BONES)); return cache.get(k); };
+  const half = (y) => { const r = radii(y); return Math.max(0.1, (r[N / 4] + r[(3 * N) / 4]) / 2) * 0.97; };
+  // x van het oppervlak (voor of achter) op hoogte y en zijwaarts z; null buiten de romp
+  const surfX = (y, z, back) => {
+    const r = radii(y), wz = half(y) / 0.97;
+    if (Math.abs(z) > wz * 0.97) return null;
+    const th = Math.asin(Math.max(-1, Math.min(1, z / wz))), a = ((back ? Math.PI - th : th) + Math.PI * 2) % (Math.PI * 2), s = Math.round((a / (Math.PI * 2)) * N) % N;
+    return (back ? -1 : 1) * (r[s] * Math.cos(th) + 0.004);
+  };
+  const flat = (y0, y1, z0, z1, color, back) => {
+    const nc = Math.max(1, Math.ceil(Math.abs(z1 - z0) / 0.04));
+    for (let c = 0; c < nc; c++) {
+      const za = z0 + ((z1 - z0) * c) / nc, zb = z0 + ((z1 - z0) * (c + 1)) / nc;
+      const xa0 = surfX(y0, za, back), xb0 = surfX(y0, zb, back), xa1 = surfX(y1, za, back), xb1 = surfX(y1, zb, back);
+      if ([xa0, xb0, xa1, xb1].some((x) => x === null)) continue;
+      // één x voor de hele vierhoek (een vlak loodrecht op x): geen gedraaide vierhoek waarvan de helft de verkeerde kant op wijst
+      const xq = back ? Math.min(xa0, xb0, xa1, xb1) : Math.max(xa0, xb0, xa1, xb1);
+      B.quadDir(B.v([xq, y0, za], color, ch), B.v([xq, y0, zb], color, ch), B.v([xq, y1, zb], color, ch), B.v([xq, y1, za], color, ch), [back ? -1 : 1, 0, 0]);
+    }
+  };
+  const color = col(spec.color, 0xffffff);
+  const cells = [];
+  for (let i = 0; i < KIT_ROWS.length - 1; i++) {
+    for (const b of spec.bands || []) cells.push([i, b[0], b[1]]);
+    for (const c of spec.cells || []) if (c[0] === i) cells.push(c);
+  }
+  for (const [i, t0, t1] of cells) {
+    const y0 = KIT_ROWS[i] + 0.002, y1 = KIT_ROWS[i + 1] - 0.002, w = half((y0 + y1) / 2);
+    const za = -w + 2 * w * Math.min(t0, t1), zb = -w + 2 * w * Math.max(t0, t1);
+    flat(y0, y1, za, zb, color, false); flat(y0, y1, za, zb, color, true);
+  }
+  // rugnummer (zevensegmentcijfers), naamstrook en sponsorpaneel
+  if (spec.number) {
+    const digits = String(spec.number).split('').map(Number), n = digits.length, st = spec.numberStyle;
+    const big = st === 'speciaal' ? 1.2 : st === 'hand' ? 0.9 : 1, dh = 0.17 * big, dw = 0.06 * big, th = 0.017 * (st === 'hand' ? 0.8 : 1), yc = spec.nameBar ? 1.22 : 1.24;
+    digits.forEach((dg, di) => {
+      const zc = (di - (n - 1) / 2) * (dw + 0.02), s7 = KIT_SEG[dg] || KIT_SEG[8];
+      const parts = [[0, 0, dh / 2 - th / 2, dw, th], [1, -dw / 2 + th / 2, dh / 4, th, dh / 2 - th], [2, dw / 2 - th / 2, dh / 4, th, dh / 2 - th], [3, 0, 0, dw, th], [4, -dw / 2 + th / 2, -dh / 4, th, dh / 2 - th], [5, dw / 2 - th / 2, -dh / 4, th, dh / 2 - th], [6, 0, -dh / 2 + th / 2, dw, th]];
+      for (const [si, dz, dy, sw, sh] of parts) if (s7[si]) flat(yc + dy - sh / 2, yc + dy + sh / 2, zc + dz - sw / 2, zc + dz + sw / 2, color, true);
+    });
+    if (spec.nameBar) flat(1.362, 1.378, -0.06, 0.06, color, true);
+  }
+  if (spec.number || spec.sponsor) {   // clubembleem op de linkerborst (een kleine ruit), klein nummer rechts als er een nummer is
+    flat(1.36, 1.41, -0.12, -0.075, color, false);
+    if (spec.number && !spec.sponsor) flat(1.34, 1.4, 0.07, 0.11, color, false);
+  }
+  if (spec.sponsor) {
+    const big = spec.sponsor.size === 'groot' ? 1.3 : spec.sponsor.size === 'klein' ? 0.8 : 1, sc = col(spec.sponsor.color, 0xdddddd);
+    // sponsorpaneel op de borst (een effen blok, hoog op de borst), het clubembleem links erboven en een klein nummer rechts
+    flat(1.33 - 0.03 * big, 1.33 + 0.03 * big, -0.085 * big, 0.085 * big, sc, false);
+  }
+  return B;
+}
+
+// --- bril, sjaal, rugzak en schoudertas (kleding die het pack mist; look.glasses, look.scarf, look.bag uit clothing.js outfitToLook) -------
+const DARK = 0x16171a, AX3 = [[1, 0, 0], [0, 1, 0], [0, 0, 1]];
+// bril: twee monturen om de ogen (vier staafjes elk, of een donker glas bij een zonnebril), een brug en twee pootjes naar de oren
+function bril(ctx, p) {
+  const B = builder(), f = ctx.face, h = ctx.bone('Head').i, shades = !!(p && p.shades);
+  if (!f) return B;
+  const t = 0.0035, zm = (f.eyes[0].c[2] + f.eyes[1].c[2]) / 2;
+  for (const e of f.eyes) {
+    const cx = e.x + 0.006, cy = e.c[1], cz = e.c[2], hw = e.w / 2 + 0.014, hh = e.h / 2 + 0.012;
+    if (shades) box(B, [cx, cy, cz], [t, hh, hw], AX3, 0x0d0e10, h);
+    else {
+      box(B, [cx, cy + hh, cz], [t, t, hw + t], AX3, DARK, h); box(B, [cx, cy - hh, cz], [t, t, hw + t], AX3, DARK, h);
+      box(B, [cx, cy, cz + hw], [t, hh, t], AX3, DARK, h); box(B, [cx, cy, cz - hw], [t, hh, t], AX3, DARK, h);
+    }
+    const sd = cz > zm ? 1 : -1;
+    box(B, [cx - 0.07, cy + hh * 0.6, cz + sd * (hw + 0.012)], [0.07, t, t], AX3, DARK, h);   // het pootje langs de slaap
+  }
+  const my = (f.eyes[0].c[1] + f.eyes[1].c[1]) / 2, gap = Math.abs(f.eyes[0].c[2] - f.eyes[1].c[2]) / 2 - f.eyes[0].w / 2 - 0.014;
+  box(B, [f.eyes[0].x + 0.006, my + 0.005, zm], [t, t, Math.max(0.004, gap)], AX3, DARK, h);
+  return B;
+}
+// sjaal: een band om de nek met een slip over de borst; kleur uit p.color
+function sjaal(ctx, p) {
+  const B = builder(), nk = ctx.bone('Neck'), c = [nk.p[0], nk.p[1] + 0.015, nk.p[2]], color = p && Number.isFinite(p.color) ? p.color : 0x7a2e2e;
+  const radii = ctx.profile(c, [0, 1, 0], 12, ['hoofd', 'romp'], ['Neck', 'Head', 'Chest']).map((r) => Math.min(r, 0.1));
+  band(B, c, [0, 1, 0], radii, 0.085, 0.004, 0.03, color, nk.i);
+  const ch = ctx.bone('Chest'), front = ctx.surface([ch.p[0] - 0.1, ch.p[1] + 0.07, ch.p[2]], [1, 0, 0], ['romp']);
+  box(B, [front[0] + 0.012, ch.p[1], ch.p[2] + 0.03], [0.012, 0.13, 0.035], AX3, color, ch.i);
+  return B;
+}
+// rugzak: een bak op de rug met twee schouderbanden; kleur uit p.color
+function rugzak(ctx, p) {
+  const B = builder(), ch = ctx.bone('Chest'), color = p && Number.isFinite(p.color) ? p.color : 0x2f3b52;
+  const back = ctx.surface([ch.p[0] + 0.15, ch.p[1] - 0.02, ch.p[2]], [-1, 0, 0], ['romp']);
+  box(B, [back[0] - 0.085, ch.p[1] - 0.03, ch.p[2]], [0.085, 0.17, 0.125], AX3, color, ch.i);
+  box(B, [back[0] - 0.09, ch.p[1] - 0.17, ch.p[2]], [0.09, 0.04, 0.12], AX3, color, ch.i);
+  const front = ctx.surface([ch.p[0] - 0.15, ch.p[1] + 0.07, ch.p[2]], [1, 0, 0], ['romp']);
+  for (const s of [1, -1]) {
+    box(B, [back[0] - 0.005, ch.p[1] + 0.14, ch.p[2] + s * 0.1], [0.012, 0.13, 0.017], AX3, 0x1c1c1f, ch.i);
+    box(B, [(back[0] + front[0]) / 2, ch.p[1] + 0.2, ch.p[2] + s * 0.1], [Math.abs(front[0] - back[0]) / 2 + 0.01, 0.01, 0.017], AX3, 0x1c1c1f, ch.i);
+    box(B, [front[0] + 0.01, ch.p[1] + 0.08, ch.p[2] + s * 0.1], [0.01, 0.13, 0.017], AX3, 0x1c1c1f, ch.i);
+  }
+  return B;
+}
+// schoudertas: een tas op de linkerheup met een band schuin over de borst; kleur uit p.color
+function schoudertas(ctx, p) {
+  const B = builder(), ch = ctx.bone('Chest'), hp = ctx.bone('Hips'), color = p && Number.isFinite(p.color) ? p.color : 0x6b2a24;
+  const side = ctx.surface([hp.p[0], hp.p[1] + 0.02, hp.p[2]], [0, 0, -1], ['benen', 'romp']);
+  box(B, [hp.p[0] + 0.02, hp.p[1] - 0.02, side[2] - 0.03], [0.13, 0.1, 0.03], AX3, color, hp.i);
+  box(B, [hp.p[0] + 0.02, hp.p[1] + 0.05, side[2] - 0.03], [0.135, 0.045, 0.034], AX3, color, hp.i);
+  const n = 12;   // de band schuin over de borst, van de rechterschouder naar de linkerheup, in overlappende stukjes
+  for (let i = 0; i < n; i++) {
+    const u = i / (n - 1), y = ch.p[1] + 0.2 - u * 0.4, z = 0.09 - u * 0.2, fx = ctx.surface([ch.p[0] - 0.2, y, z], [1, 0, 0], ['romp'])[0];
+    box(B, [fx + 0.005, y, z], [0.005, 0.026, 0.014], AX3, 0x3a3a40, ch.i);
+  }
+  return B;
+}
+
+// baard, snor of sik (look.facial): dikke blokjes in de haarkleur om kin en kaak, p.kind 'baard' | 'snor' | 'sik'
+function baard(ctx, p) {
+  const B = builder(), f = ctx.face, h = ctx.bone('Head').i, kind = (p && p.kind) || 'baard', color = p && Number.isFinite(p.color) ? p.color : 0x3b2a1e;
+  if (!f) return B;
+  const [mx, my, mz] = f.mouth, ax = [[1, 0, 0], [0, 1, 0], [0, 0, 1]], fx = f.eyes[0].x - 0.012;
+  box(B, [fx - 0.001, my + 0.013, mz], [0.006, 0.005, 0.03], ax, color, h);   // snor
+  if (kind === 'snor') return B;
+  box(B, [fx - 0.014, my - 0.03, mz], [0.01, 0.02, kind === 'sik' ? 0.016 : 0.03], ax, color, h);   // kin
+  if (kind === 'baard') for (const s of [-1, 1]) box(B, [fx - 0.04, my - 0.012, mz + s * 0.056], [0.032, 0.034, 0.007], ax, color, h);   // kaken
+  return B;
+}
+
+const BUILDERS = { baard, politiepet, politieuniform, voetbalshirt, bril, sjaal, rugzak, schoudertas };
+export function buildWear(id, ctx, params = null) {
   const f = BUILDERS[id];
   if (!f || !WEAR_REGISTER[id]) return null;
-  const B = f(ctx);
+  const B = f(ctx, params);
+
   return { id, pos: B.pos, col: B.col, bone: B.bone, idx: B.idx, tris: B.idx.length / 3 };
 }
 export const wearIds = () => Object.keys(WEAR_REGISTER);

@@ -144,7 +144,9 @@ for (const [id, lijst] of Object.entries(sims)) {
 // ---- CSS: 13 px, geen hex, alleen tokens, uit bij verminderde beweging, lus van hooguit 1 s
 {
   const css = fs.readFileSync(path.join(ROOT, 'game/js/ds-components.css'), 'utf8');
-  const blok = css.slice(css.indexOf('/* ---- Uitleg met iconen en animatie')).replace(/\/\*[\s\S]*?\*\//g, '');
+  // alleen het uitleg-blok: tot het volgende kopje (de blokken erna gebruiken andere maten, per eigen test)
+  const kaal = css.slice(css.indexOf('/* ---- Uitleg met iconen en animatie'));
+  const blok = kaal.slice(0, kaal.indexOf('/* ---- Gedeelde set van het club')).replace(/\/\*[\s\S]*?\*\//g, '');
   ok(blok.length > 500, 'het uitleg-blok staat in ds-components.css');
   ok(!/#[0-9a-fA-F]{3,8}\b/.test(blok) && !/rgba?\(/.test(blok), 'geen hex of rgb: alleen tokens');
   const maten = [...blok.matchAll(/font-size:\s*([^;]+);/g)].map((m) => m[1]);

@@ -17,12 +17,12 @@ const finite = (g) => g.attributes.position.array.every(Number.isFinite);
 // Dezelfde soorten als railway.js TRAIN_TYPES, hier los zodat de test geen wereld hoeft te laden.
 const GTW = {
   label: 'Stoptrein', height: 3.75, doubleDeck: false, front: 'gtw',
-  body: 0xf2f4f3, stripe: 0x00a3ad, door: 0x00a3ad, nose: 0x00a3ad, accent: 0x0b3b4f,
+  body: 0xf2f4f3, stripe: 0xe36a1d, door: 0xe36a1d, nose: 0xe36a1d, accent: 0x3a2a1a,
   segments: [{ len: 17.5, kind: 'car', cab: 1 }, { len: 4.6, kind: 'power' }, { len: 17.5, kind: 'car', cab: -1 }],
 };
 const VIRM = {
   label: 'Intercity', height: 4.7, doubleDeck: true, front: 'virm',
-  body: 0xffc917, stripe: 0x003082, door: 0x003082, nose: 0xffc917, accent: 0xd52b1e,
+  body: 0xefe6c8, stripe: 0x1f5a3a, door: 0x1f5a3a, nose: 0x1f5a3a, accent: 0xe36a1d,
   segments: [{ len: 26.5, kind: 'car', cab: 1 }, { len: 26.5, kind: 'car' }, { len: 26.5, kind: 'car' }, { len: 26.5, kind: 'car', cab: -1 }],
 };
 const TRAIN_HALF_WIDTH = 1.45;
@@ -99,6 +99,8 @@ for (const [naam, cfg] of [['gtw', GTW], ['virm', VIRM]]) {
       const cy = (pos.getY(t) + pos.getY(t + 1) + pos.getY(t + 2)) / 3;
       const cz = Math.abs((pos.getZ(t) + pos.getZ(t + 1) + pos.getZ(t + 2)) / 3);
       if (cz < TRAIN_HALF_WIDTH - 0.15) continue;
+      // 24-11: smalle delen (raamstijlen tussen de ruiten, ruitrand, dikte van de wand rond het gat) tellen niet als dichte plaat: alleen vlakken breder dan 0,4 m
+      if (Math.max(...x) - Math.min(...x) < 0.4) continue;
       if (band.some((b) => cy > b.y0 + 0.1 && cy < b.y1 - 0.1)) dichtInBand++;
       if (cfg.doubleDeck && cy > band[0].y1 + 0.1 && cy < band[1].y0 - 0.1) dichtTussenBanden++;
     }

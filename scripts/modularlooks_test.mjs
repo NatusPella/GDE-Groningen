@@ -42,7 +42,8 @@ for (const style of H.HAIR_STYLE_IDS) for (const ch of ['tammo', 'anita']) {
 }
 ok(lookOf('tammo', { hair: 'mohawk.groen' }).parts.hoofd === 'Punk_Head', 'een hanenkam uit de kapper is een hanenkam');
 // pet: Tammo's eigen pet en een gewone pet
-ok(lookOf('tammo', {}).cap === 'tammo', 'Tammo zonder hoed in de kast: toch zijn pet (de basislook)');
+ok(lookOf('tammo', {}).cap === null, 'Tammo zonder hoed in de kast: geen pet (de look gaat voor, personages 2)');
+ok(L.lookFromAppearance({ character: 'tammo', variant: 'male', seed: 1, skin: 0xd9a47a, cap: 0xc8621e }, M.modularPartIds()).cap === 'tammo', 'Tammo zonder look: zijn eigen pet (de basislook)');
 // lichaam: lengte binnen de norm, breder postuur
 for (const body of H.BODY_IDS) {
   const a = { ...P.TAMMO_APPEARANCE, body };
@@ -63,7 +64,7 @@ for (const body of H.BODY_IDS) {
   P.setModularPlayerLooks(true);
   const t = P.buildPersonMesh(P.TAMMO_APPEARANCE.shirt, P.TAMMO_APPEARANCE.skin, P.TAMMO_APPEARANCE);
   const npc = P.buildPersonMesh(0x3f6ea8, 0xd9a47a, { seed: 4 });
-  ok(t.userData.qRig && !npc.userData.qRig, 'spelerfase: Tammo modulair, een voorbijganger via buildPersonMesh niet');
+  ok(t.userData.qRig && npc.userData.qRig, 'spelerfase: Tammo en elke andere figuur via buildPersonMesh modulair');
   P.setModularPlayerLooks(false);
   ok(!P.buildPersonMesh(P.TAMMO_APPEARANCE.shirt, P.TAMMO_APPEARANCE.skin, P.TAMMO_APPEARANCE).userData.qRig, 'zonder spelerfase: het eigen model');
 }

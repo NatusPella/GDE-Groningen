@@ -21,6 +21,7 @@ const _segB = new THREE.Vector3();
 import { buildBuildingMesh, setBuildingMap, setNightFactor, setPartsInUse, ownBuildingModel } from './models3d_buildings.js';
 import { updateDiscoLamp } from './discolight.js';
 import { buildVehicleMesh, updateVehicleWheelSpin, applyFlatTire, setBusRearAngle, updatePoliceLamps, updateIndicatorLamps, syncPoliceMount, riderSeatFor, attachHelmet, releaseVehicleGeometries } from './models3d_vehicles.js';
+import { bikeStijlNaam, bikeHipX, bikeHipY } from './vehicle_bike.js';
 import {
   buildVehicleImpactSparkMesh3D, updateVehicleImpactSparkMesh3D,
   vehicleNeedsFireEffect, vehicleSmokeOnly, buildVehicleFireMesh3D, updateVehicleFireMesh3D,
@@ -121,7 +122,7 @@ let viewCtx = 'stad';
 import { glanceAt, shareFeet } from './gait.js';
 import { lifeTier } from './actorlife.js';
 import { createFarCrowd, FAR_CROWD_FROM, FAR_CROWD_BACK } from './farcrowd3d.js';
-import { resetModularGeoBudget, loadModularPeople, buildModularPerson, buildModularFromAppearance, modularReady, setModularLod, lodForDistance, setModularLodPreset, mensenFase } from './modularpeople.js';
+import { resetModularGeoBudget, setModularMood, loadModularPeople, buildModularPerson, buildModularFromAppearance, modularReady, setModularLod, lodForDistance, setModularLodPreset, mensenFase } from './modularpeople.js';
 import { NEAR_MIN, cameraNearTarget, stepNear, parseNearFlag, parseFarFlag } from './cameranear.js';
 import { compareOpaque } from './drawpool.js';
 import { buildingBatcher, roadBatcher, facadeBatcher, shoreBatcher, drawHub } from './staticbatch3d.js';
@@ -140,7 +141,7 @@ import { createSkyUniforms, buildSkyDome, createEnvironmentUpdater, setStarOpaci
 import { computeLighting, dayState } from './daynight.js';
 import { shadowSoftness } from './sunrules.js';
 import { wijkProfileAt } from './trafficfleet.js';
-import { pedRole } from './clothing.js';
+import { pedRole, npcLook } from './clothing.js';
 import { monumentAreaKey } from './heritagearea.js';
 import { applyWorldGrade } from './worldgrade3d.js'; // wereldkleur (21-11): saturatie, tinten en mist van de dag
 import { createPostFX, setSpeedStreak } from './postfx3d.js';
@@ -819,7 +820,8 @@ function syncPlayerRider(pv, pvMesh, hide, t = 0) {  const want = pv && (pv.isBi
   } else {
     if (ud.helmet) { ud.head.remove(ud.helmet); ud.helmet = null; }
     const fat = !!pv.model.fat;
-    playerRider.position.set(fat ? -0.26 : -0.3, (fat ? 0.93 : 1.02) - 0.93 * playerRider.scale.y, 0);
+    const stijl = bikeStijlNaam(pv.model);
+    playerRider.position.set(bikeHipX(stijl), bikeHipY(stijl) - 0.93 * playerRider.scale.y, 0);
     playerRider.rotation.set(0, 0, -0.08);
     const arm = fat ? 0.95 : 0.85;
     // fietstrucs (#207): achterover bij een wheelie, voorover bij een stoppie, de armen omhoog zonder handen
@@ -857,10 +859,16 @@ function pinShaderPrograms(r) {
   };
 }
 
+// De belofte van het laden van de modulaire mensen: de start wacht erop (main.js), zodat wat bij het opstarten al een mens bouwt (de piloot
+// van de ballonjacht, de voerder van de duiven) meteen de nieuwe mens krijgt en niet voorgoed de oude.
+let modularLoad = null;
+export const modularPeopleLoaded = () => modularLoad || Promise.resolve();
+
 export function init3D(map) {
   liftMap = map;
   preloadLandmarkModels();
-  if (mensenFase(FLAGS.mensen) >= 1) loadModularPeople(); // fase 1 van ADR 0050: voorbijgangers als modulaire mensen (alleen met ?mensen=q)
+  if (mensenFase(FLAGS.mensen) >= 3) setModularPlayerLooks(true);   // ook alle figuren die niet de speler zijn (models3d_people.js buildPersonMesh)
+  if (mensenFase(FLAGS.mensen) >= 1) modularLoad = loadModularPeople(); // fase 1 van ADR 0050: voorbijgangers als modulaire mensen (alleen met ?mensen=q)
   setBuildingMap(map);
   canvas3 = document.getElementById('game3d');
   // laptops with two GPUs: the fast one
@@ -2585,6 +2593,16 @@ function pedOutfitOpts(p, world) {
   return { role: p._role, outfitCtx: p._outfitCtx };
 }
 
+// Een gewone voorbijganger als modulaire mens: de kleding volgt de rol van de buurt en het uur (clothing.js, zoals bij het eigen model),
+// het geslacht volgt de verre menigte (sd & 1), lengte en bouw het zaad.
+function pedModularAppearance(p, outfit, sd, skin) {
+  const female = (sd & 1) === 1, base = { seed: sd, skin, variant: female ? 'female' : 'male', vary: true, skinVary: !p.skin };
+  if (!outfit) return { ...base, shirt: p.clothing ? colorFromHex(p.clothing) : null };
+  const n = npcLook(p._lookSeed, outfit.role, { ...(outfit.outfitCtx || {}), hair: true, body: true, old: hashOld(sd) }, {});
+  return { ...base, shirt: p.clothing ? colorFromHex(p.clothing) : n.shirt, pants: n.pants, shoes: n.shoes, hair: n.hair, hairStyle: n.hairStyle, body: n.body, look: { ...n.look, age: hashOld(sd) ? 'old' : n.look.age } };
+}
+const hashOld = (sd) => ((Math.sin(sd * 12.9898 + 23 * 78.233) * 43758.5453) % 1 + 1) % 1 < 0.2;
+
 function buildPedActor(p, world) {
   // stable per-ped look, so a ped doesn't change clothes when it streams back in
   if (p._lookSeed === undefined) p._lookSeed = Math.random() * 1000;
@@ -2592,12 +2610,13 @@ function buildPedActor(p, world) {
   // fase 1 (ADR 0050, ?mensen=q): een gewone voorbijganger wordt een modulaire mens zodra de rigs geladen zijn; agenten,
   // politie in uniform (modularlooks.js, modularwear.js) en verhaalfiguren met een eigen look ook; een kind en wie een vaste houding heeft
   // blijven procedureel (de rigs zijn volwassen; de houdingen zitten nog alleen op het eigen rig)
-  if (mensenFase(FLAGS.mensen) >= 1 && modularReady() && !p.pose && !(p.look && p.look.age === 'child')) {
+  // iedereen is modulair (ook zitters, kraamhouders, vissers en kinderen): de houdingen volgen uit p.pose (models3d_people.js modularPosed)
+  if (mensenFase(FLAGS.mensen) >= 1 && modularReady()) {
     const sd = Math.floor(p._lookSeed * 7), skin = p.skin ? colorFromHex(p.skin) : 0xe0b48a;
     const q = p.isCop ? buildModularFromAppearance({ cop: true, skin, seed: sd, variant: sd % 5 === 0 ? 'female' : 'male' })
       : p.look ? buildModularFromAppearance({ shirt: p.clothing ? colorFromHex(p.clothing) : 0x6a6a6a, skin, seed: sd, variant: p.look.variant || p.variant || (sd & 1 ? 'female' : 'male'), hairStyle: p.look.hairStyle, look: p.look })
-      : buildModularPerson(p._lookSeed, { skin, shirt: p.clothing ? colorFromHex(p.clothing) : null });
-    if (q) { addBlobShadow(q, 0.85, 0.85); if (p.carry) attachCarry(q, p.carry); return enableShadows(q, false); }   // dragen en wapens: modularpeople.js modularHoldPose, modularHandSocket
+      : buildModularFromAppearance(pedModularAppearance(p, outfit, sd, skin));
+    if (q) { q.userData.lookSeed = p._lookSeed; addBlobShadow(q, 0.85, 0.85); if (p.carry) attachCarry(q, p.carry); return enableShadows(q, false); }   // lookSeed = de sleutel van houdingen (setPedPose) en de lijn van de hondenuitlater, zoals bij het eigen model   // dragen en wapens: modularpeople.js modularHoldPose, modularHandSocket
   }
   const mesh = buildPersonActor(p.clothing ? colorFromHex(p.clothing) : 0xcaa46a, p.skin ? colorFromHex(p.skin) : 0xe0b48a, p.look ? { seed: p._lookSeed, look: p.look } : outfit ? { seed: p._lookSeed, ...outfit } : { seed: p._lookSeed });
   if (p.carry) attachCarry(mesh, p.carry);
@@ -2743,6 +2762,7 @@ function syncPedestrianMeshes(world, player, animDt, fadeDt = animDt) {
     // ring are far (?perfoff=pedtier: as before, half rate beyond 45 m only on a CPU-bound machine, simload.js)
     const tier = pedTier(Math.abs(p.x - player.x) + Math.abs(p.y - player.y), p, world.time);
     if (ud.qRig) setModularLod(mesh, lodForDistance(Math.hypot(p.x - player.x, p.y - player.y), ud.qLod)); // LOD van een modulaire mens (ADR 0050)
+    if (ud.qRig && ud.qLod === 0 && (p.state === 'flee' || p.state === 'angry' || ud.qMoodScene)) { const want = p.state === 'flee' ? 'verbaasd' : p.state === 'angry' ? 'mokkend' : (ud.qMoodBase || ud.qLook.mood); if (setModularMood(mesh, want)) ud.qMoodScene = want !== (ud.qMoodBase || want); }   // verbaasd bij schrikken, mokkend bij boos
     if (tier > 1) {
       ud.animAcc = (ud.animAcc || 0) + animDt;
       ud.animTick = (ud.animTick || 0) + 1;

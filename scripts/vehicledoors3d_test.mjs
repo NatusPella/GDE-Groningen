@@ -37,8 +37,8 @@ for (const m of TRAFFIC_MODELS()) {
   scene.add(mesh);
   const defs = doorsFor(v);
   syncVehicleDoors(mesh, v, 1 / 60, null);
-  // een bus heeft bewust een gesloten deurblad (blauw glas boven wit, a3450b80); de rest tekent niets extra
-  check(m.name + ': gesloten zonder extra mesh', !mesh.userData.doorRig || (m.name === 'bus' ? visible(mesh) >= 1 : visible(mesh) === 0), 'zichtbaar ' + visible(mesh));
+  // ook de bus heeft sinds 24-11 echte deuropeningen met dichte bladen in de rig; niets extra zichtbaar
+  check(m.name + ': gesloten zonder extra mesh', !mesh.userData.doorRig || visible(mesh) === 0, 'zichtbaar ' + visible(mesh));
   if (!defs.length) { check(m.name + ': geen deuren, geen rig', !mesh.userData.doorRig); continue; }
   const rol = defs.some((d) => d.seat === 'bestuurder') ? 'bestuurder' : 'bijrijder';
   for (let i = 0; i < 30; i++) syncVehicleDoors(mesh, v, 1 / 60, { rol, open: true });

@@ -2,6 +2,7 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
 import { canvasTex as sharedCanvasTex } from './canvastex.js';
 import { getScene, disposeObject } from './scene3d.js';
 import { buildPersonMesh, animatePersonWalk, TAMMO_APPEARANCE, ANITA_APPEARANCE, PERSON_RIG } from './models3d_people.js';
+import { modularAttackPose } from './modularpeople.js';
 import { DURK_LOOK, DOUWE_LOOK } from './storycast.js';
 import { isMissionActive, getActiveRace } from './missionquery.js';
 import { isCinematicActive, showBanner } from './cinematics.js';
@@ -29,6 +30,8 @@ import { figuurLook } from './coopplayers.js';
 import { maakPadel, maakPadelSpiegel, voerInPadel, tikPadelSpiegel, livePadel, stapSnelheid } from './padelmatch.js';
 import { registreerWedstrijd, zetWedGastHaken, wedNodigUit, wedNuStarten, wedLiveTik, wedHostLiveEind, wedGastVerlaat, wedGastReset } from './multiplayerwedstrijd.js';
 import { hoofdspeler } from './players.js';
+import { registerLocalMap } from './localmap.js';
+import { maakPadelKaart } from './localmapvelden.js';
 
 // Padel courts where OSM has them (game/mapextras.json "padel", built by
 // scripts/add_map_extras.py): a glass cage with blue turf, a net and lights
@@ -409,6 +412,33 @@ export function getPadelMatchCount() {
 }
 
 // --- init --------------------------------------------------------------------------
+
+// De minimap toont tijdens het potje de baan in plaats van de wereld (localmap.js, localmapvelden.js); zonder potje geeft dit null.
+const lokaleKaart = maakPadelKaart();
+const _lkAnderen = [{ u: 0, v: 0, team: 0 }, { u: 0, v: 0, team: 0 }, { u: 0, v: 0, team: 0 }];
+const _lkBal = { u: 0, v: 0 };
+const _lkO = { f: null, toMap: null, team: 0, jij: { u: 0, v: 0 }, anderen: _lkAnderen, nAnderen: 0, bal: null };
+let _lkGame = null;
+_lkO.toMap = (u, v) => toMap(_lkGame.f, u, v);
+registerLocalMap('padel', () => {
+  const g = _lkGame = game;
+  if (!g || !g.f) return null;
+  const o = _lkO; o.f = g.f;
+  let n = 0, b = null;
+  if (g.sim) { // online: de stoelen van de wedstrijd, jij is je eigen stoel
+    const me = eigenStoel(g);
+    o.team = me.team; o.jij.u = me.u; o.jij.v = me.v;
+    for (const s of g.sim.stoelen) if (s !== me && n < 3) { const a = _lkAnderen[n++]; a.u = s.u; a.v = s.v; a.team = s.team; }
+    b = g.sim.ball;
+  } else {
+    o.team = 0; o.jij.u = g.me.u; o.jij.v = g.me.v;
+    for (let i = 0; i < 3; i++) { const a = i === 0 ? g.mate : g.opp[i - 1], t = _lkAnderen[n++]; t.u = a.u; t.v = a.v; t.team = a.side; }
+    b = g.ball;
+  }
+  o.nAnderen = n;
+  if (b) { _lkBal.u = b.u; _lkBal.v = b.v; o.bal = _lkBal; } else o.bal = null;
+  return lokaleKaart.zet(o);
+});
 
 export function initPadel(w) {
   const defs = (w.map.meta && w.map.meta.padel) || [];
@@ -966,7 +996,8 @@ function placeActors(w, dt) {
     a.mesh.rotation.y = -face;
     animatePersonWalk(a.mesh, a.speed || 0, dt);
     const ud = a.mesh.userData;
-    if (ud.armR) {
+    if (ud.qRig) { if (a.swing > 0) modularAttackPose(a.mesh, 'cross', 1 - a.swing / SWING_T); }   // modulaire mens: de slag uit de stootclip
+    else if (ud.armR) {
       const k = a.swing > 0 ? 1 - a.swing / SWING_T : -1;
       if (k >= 0) ud.armR.rotation.set(0, 0, -1.2 + 2.6 * Math.sin(k * Math.PI * 0.5));
       else ud.armR.rotation.set(0, 0, -0.5);
@@ -1203,7 +1234,8 @@ function placeOnline(w, dt) {
     a.mesh.rotation.y = -(s.team === 0 ? f.rot : f.rot + Math.PI);
     animatePersonWalk(a.mesh, s.speed || 0, dt);
     const ud = a.mesh.userData;
-    if (ud.armR) {
+    if (ud.qRig) { if (s.swing > 0) modularAttackPose(a.mesh, 'cross', 1 - s.swing / SWING_T); }
+    else if (ud.armR) {
       const k = s.swing > 0 ? 1 - s.swing / SWING_T : -1;
       if (k >= 0) ud.armR.rotation.set(0, 0, -1.2 + 2.6 * Math.sin(k * Math.PI * 0.5));
       else ud.armR.rotation.set(0, 0, -0.5);

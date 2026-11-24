@@ -4,6 +4,8 @@ import { boatSeats, boatCrewCount, boatKind } from './boattypes.js';
 import { busInterieur, midibusInterieur, coopPlek, VLOER } from './businterieur.js';
 import { WATER_Y } from './util.js';
 import { tractorCab } from './models3d_vehicles.js';
+import { bikeStijlNaam, bikeHipX, bikeHipY, bikeSaddleTop, bikeGripSpec, bikeBack, BIKE_BB } from './vehicle_bike.js';
+import { stepGripSpec, mopedGripSpec } from './vehicle_scooter.js';
 import { seatModular, modularSeatContact } from './modularpeople.js';
 // het zadel ligt zo ver onder het heupgewricht van het eigen model (fietsstoel: seat.y + HIP_Y is de heup, het zadel 0,84 bij 1,02)
 export const SADDLE_BELOW_HIP = 0.17;
@@ -17,7 +19,7 @@ function wheelCtx(v, seat, toWorld) {
   let w = null;
   if (wheelPoseOf && v && seat && seat.pose && seat.pose.arms === 'wheel') { try { w = wheelPoseOf(v, seat); } catch (e) { w = null; } }
   // speed: de snelheid van het voertuig (m/s), voor de trappers van een fietser (modularpeople.js)
-  return { wheel: w && Number.isFinite(w.x) ? { c: [w.x, w.y, w.z], r: w.r || 0.19, tilt: w.tilt || 0 } : null, toWorld, speed: v && Number.isFinite(v.speed) ? Math.abs(v.speed) : 0, pedals: !!(v && v.isBike) };
+  return { wheel: w && Number.isFinite(w.x) ? { c: [w.x, w.y, w.z], r: w.r || 0.19, tilt: w.tilt || 0 } : null, toWorld, speed: v && Number.isFinite(v.speed) ? Math.abs(v.speed) : 0, pedals: !!(v && v.isBike), steer: v && Number.isFinite(v.steer) ? v.steer : 0 };
 }
 import { hash2 as hash } from './rng.js';
 import { deurVoorStoel, instapKant, doorsFor, stapAnimatieAan } from './vehicledoors.js';
@@ -234,10 +236,11 @@ export function placeSeatedLocal(person, seat, t = 0) {
   const contact = person.userData.qRig ? modularSeatContact(person) : SEAT_CONTACT * sy;
   // een modulaire fietser zit (rijclip): het zitvlak op het zadel (seat.y is waar het eigen model zijn voeten zet, de heup 0,93 m hoger)
   const qRider = person.userData.qRig && seat.rider;
-  person.position.set(seat.x, qRider ? seat.y + (PERSON_RIG.HIP_Y - SADDLE_BELOW_HIP) * sy - contact : seat.stand ? seat.y : seat.y - contact, seat.z);
+  person.position.set(seat.x, qRider ? (seat.saddle ?? seat.y + (PERSON_RIG.HIP_Y - SADDLE_BELOW_HIP) * sy) - contact : seat.stand ? seat.y : seat.y - contact, seat.z);
   person.rotation.set(0, seat.face || 0, 0);
   if (person.userData.qRig) { // modulaire mens: zit- of rijclip (ADR 0051), met het stuur van het voertuig als de ouder het voertuig is
     const veh = person.parent && person.parent.userData && person.parent.userData.vehicleRef;
+    if (qRider && person.parent && person.parent.userData.crank) person.parent.userData.crankPhaseFrom = person;   // de krukken draaien met de modulaire voeten (models3d_vehicles.js)
     seatModular(person, seat, t, wheelCtx(veh, seat, (x, y, z, out) => (person.parent ? person.parent.localToWorld(out.set(x, y, z)) : out.set(x, y, z))));
     return;
   }
@@ -274,10 +277,13 @@ const HORSE_BUDDY_POSE = { recline: -0.1, footX: 0.08, footY: -0.72, splay: 0.6,
 function bikeRiderSeat(v) {
   if (v._mount === 'horse') return { x: -0.08, z: 0, y: HORSE_SADDLE_TOP, face: 0, pose: HORSE_POSE, horse: true };
   if (v.isScooter && v.model.motorbike) return { x: -0.3, z: 0, y: 0.82 - PERSON_RIG.HIP_Y, face: 0, stand: true, rider: true };
+  // saddle: de bovenkant van het zadel (modulaire mens); grip: het midden van de handvatten; feet/bb: waar de voeten staan (24-11)
+  if (v.isScooter && v.model.moped && !v.model.geared) return { x: -0.2, z: 0, y: 0.865 - PERSON_RIG.HIP_Y, face: 0, stand: true, rider: true, saddle: 0.8, grip: mopedGripSpec(), feet: { x: 0.15, y: 0.37, z: 0.13 } };
   if (v.isScooter && v.model.moped) return { x: -0.22, z: 0, y: 0.8 - PERSON_RIG.HIP_Y, face: 0, stand: true, rider: true };
-  if (v.isScooter) return { x: -0.08, z: 0, y: 0.155, face: 0, stand: true };
-  const fat = !!v.model.fat;
-  return { x: fat ? -0.26 : -0.3, z: 0, y: (fat ? 0.93 : 1.02) - PERSON_RIG.HIP_Y, face: 0, stand: true, rider: true };
+  if (v.isScooter) return { x: 0.06, z: 0, y: 0.155, face: 0, stand: true, grip: stepGripSpec() };
+  if (v.model.cargo) return { x: -0.68, z: 0, y: 1.065 - PERSON_RIG.HIP_Y, face: 0, stand: true, rider: true, saddle: 1.0, back: 0.3, grip: { x: -0.4, y: 1.08, z: 0.26, px: -0.28 }, bb: { x: -0.45, y: 0.3, z: 0.11 } };
+  const stijl = bikeStijlNaam(v.model);
+  return { x: bikeHipX(stijl), z: 0, y: bikeHipY(stijl) - PERSON_RIG.HIP_Y, face: 0, stand: true, rider: true, back: bikeBack(stijl), saddle: bikeSaddleTop(stijl), grip: bikeGripSpec(stijl), bb: { x: BIKE_BB[0], y: BIKE_BB[1], z: 0.11 } };
 }
 
 // Tammo/Tessa riding along: side-saddle on the rack ("achterop"), astride
@@ -325,10 +331,11 @@ export function placeSeated(person, vehMesh, v, seat, t = 0) {
   const sy = person.scale.y || 1;
   const contact = person.userData.qRig ? modularSeatContact(person) : SEAT_CONTACT * sy;
   const qRider = person.userData.qRig && seat.rider;
-  localToWorld(vehMesh, v, seat.x, qRider ? seat.y + (PERSON_RIG.HIP_Y - SADDLE_BELOW_HIP) * sy - contact : seat.stand ? seat.y : seat.y - contact, seat.z, person.position);
+  localToWorld(vehMesh, v, seat.x, qRider ? (seat.saddle ?? seat.y + (PERSON_RIG.HIP_Y - SADDLE_BELOW_HIP) * sy) - contact : seat.stand ? seat.y : seat.y - contact, seat.z, person.position);
   vehicleQuat(vehMesh, v, person.quaternion);
   if (seat.face) person.quaternion.multiply(_qy.setFromAxisAngle(_up, seat.face));
   if (person.userData.qRig) { // modulaire mens: zit- of rijclip (ADR 0051), handen aan het echte stuur
+    if (qRider && vehMesh.userData.crank) vehMesh.userData.crankPhaseFrom = person;
     seatModular(person, seat, t, wheelCtx(v, seat, (x, y, z, out) => localToWorld(vehMesh, v, x, y, z, out)));
     return;
   }

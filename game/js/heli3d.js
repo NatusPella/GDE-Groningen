@@ -1,5 +1,7 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { GeoBuilder, vcMaterial, markShared, composeMatrix } from './pixelart3d.js';
+import { makeLodObject } from './lodkit3d.js';
+import { heliExteriorParts, heliBladeParts } from './vehicle_heli.js';
 
 // 3D side of the own helicopter (heliflight.js): the Wieken Wubbo body,
 // its spinning rotors, the helipads (home roof, Rotor Roelf on Eelde) and
@@ -59,17 +61,9 @@ function bodyGeometry(paint, wrecked) {
   B.geo(new THREE.CylinderGeometry(0.07, 0.09, 0.34, 8), composeMatrix(-1.32, 2.28, 0.22, 0, 0, Math.PI / 2 - 0.35), 0x3a3836, G_BODY); // uitlaat, schuin naar achteren
   B.box(-0.9, 2.05, 0, 0.5, 0.025, 0.7, shadeHex2(P), G_BODY);                            // paneelnaad en ventilatieroosters in de motorkap
   B.geo(new THREE.CylinderGeometry(0.1, 0.13, 0.5, 8), composeMatrix(-0.2, 2.6, 0), TRIM, G_BODY);
-  // tail boom (tapered), fin, stabiliser, tail rotor guard
-  B.geo(new THREE.CylinderGeometry(0.1, 0.24, 3.7, 8), composeMatrix(-2.95, 1.62, 0, 0, 0, Math.PI / 2), P, G_BODY);
-  B.box(-2.4, 1.62, 0, 1.4, 0.06, 0.5, C, G_BODY);
-  B.box(TAIL_X + 0.05, 2.08, 0, 0.7, 1.0, 0.07, P, G_BODY, 0, 0, -0.35);
-  B.box(TAIL_X + 0.2, 1.2, 0, 0.45, 0.6, 0.06, P, G_BODY, 0, 0, 0.35);
-  B.box(TAIL_X + 0.4, 1.66, 0, 0.36, 0.05, 1.1, C, G_BODY);
-  // skids and struts
+  // staartboom, kielvin, stabilisator, rotorkop, motorkap, onderstel, kapramen en antennes (vehicle_heli.js)
+  heliExteriorParts(B, P, C, TRIM, wrecked, { G_BODY, G_GLASS, G_LAMP, GLASS, TAIL_X, shade: shadeHex2 });
   for (const s of [1, -1]) {
-    B.geo(new THREE.CylinderGeometry(0.055, 0.055, 3.4, 6), composeMatrix(0.2, 0.08, s * 0.98, 0, 0, Math.PI / 2), TRIM, G_BODY);
-    B.geo(new THREE.CylinderGeometry(0.055, 0.055, 0.5, 6), composeMatrix(2.0, 0.2, s * 0.98, 0, 0, -0.9), TRIM, G_BODY);
-    for (const x of [-0.7, 1.1]) B.geo(new THREE.CylinderGeometry(0.045, 0.045, 0.95, 5), composeMatrix(x, 0.52, s * 0.82, s * 0.32, 0, 0), TRIM, G_BODY);
     // door stripe and nav lights
     B.box(0.2, 1.3, s * 0.9, 1.6, 0.08, 0.02, C, G_BODY);
     B.box(-0.6, 1.95, s * 0.76, 0.12, 0.08, 0.04, s > 0 ? 0x2fd05a : 0xd83a2a, G_LAMP);
@@ -86,8 +80,6 @@ function bodyGeometry(paint, wrecked) {
   }
   B.box(2.0, 0.98, 0, 0.5, 0.04, 0.04, 0xb9bcbf, G_BODY);                                 // pitotbuis
   B.box(0.4, 0.9, 0, 0.18, 0.06, 0.18, 0xf2efe4, G_LAMP);                                 // witte flitser onder de buik
-  B.box(TAIL_X + 0.35, 1.5, 0, 0.22, 0.16, 0.2, TRIM, G_BODY);                            // staartrotorkast
-  B.box(TAIL_X + 0.1, 1.05, 0, 0.5, 0.03, 0.03, TRIM, G_BODY);                            // staartsteun
   B.box(TAIL_X - 0.05, 2.56, 0, 0.12, 0.1, 0.1, 0xd83a2a, G_LAMP);
   B.box(2.05, 0.8, 0, 0.06, 0.14, 0.3, 0xf2efe4, G_LAMP);
   g = markShared(B.build());
@@ -99,13 +91,7 @@ let bladeGeo = null, tailBladeGeo = null, discGeo = null;
 function sharedRotorGeos() {
   if (bladeGeo) return;
   // twee bladen met gele tippen, bladgrepen en een naaf (vertexkleuren, één draw)
-  const BB = new GeoBuilder(1);
-  BB.box(0, 0, 0, ROTOR_R * 2, 0.045, 0.26, 0x1c1d20);
-  for (const s of [1, -1]) {
-    BB.box(s * (ROTOR_R - 0.3), 0.003, 0, 0.6, 0.047, 0.262, 0xe8c93a);
-    BB.box(s * 0.62, 0.02, 0, 0.5, 0.05, 0.2, 0x3a3d42);
-  }
-  BB.geo(new THREE.CylinderGeometry(0.16, 0.2, 0.14, 8), composeMatrix(0, 0.06, 0), 0x2a2c30);
+  const BB = heliBladeParts(new GeoBuilder(1), ROTOR_R);
   bladeGeo = markShared(BB.build());
   tailBladeGeo = markShared(new THREE.BoxGeometry(0.07, 1.1, 0.03));
   discGeo = markShared(new THREE.CircleGeometry(ROTOR_R, 36).rotateX(-Math.PI / 2));
@@ -122,7 +108,11 @@ export function buildHeliMesh(v) {
     new THREE.MeshBasicMaterial({ vertexColors: true, color: wrecked ? 0x202020 : 0xffffff }),
   ];
   const group = new THREE.Group();
-  group.add(new THREE.Mesh(bodyGeometry(paint, wrecked), mats));
+  // de romp in een eigen groep voor het centrale LOD-systeem (lodkit3d.js): de rotor en de schijf schakelen zelf (poseHeliRotors)
+  const bodyHolder = new THREE.Group();
+  bodyHolder.add(new THREE.Mesh(bodyGeometry(paint, wrecked), mats));
+  group.add(bodyHolder);
+  makeLodObject('vehicle', 'heli', bodyHolder);
   const bladeMat = new THREE.MeshLambertMaterial({ color: wrecked ? 0x151515 : 0x1c1d20 });
   const rotorMat = new THREE.MeshLambertMaterial({ vertexColors: true, color: wrecked ? 0x555555 : 0xffffff });
   const rotor = new THREE.Group();
