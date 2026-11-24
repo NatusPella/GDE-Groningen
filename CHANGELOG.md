@@ -9,6 +9,9 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ## [Unreleased]
 
+- Voetbal: het publiek langs de lijn van een sportpark en de trainende ploegen op de velden van je club zijn echte mensen (in rust, juichend bij een doelpunt, joggend in het clubshirt) in plaats van gekleurde paaltjes; de trainende ploeg loopt nu een ruime ronde in plaats van als bosje op de middenstip te staan. Samen spelen: lokaal decor, per speler.
+- Voetbalcarrière: een trainingsoefening speel je op het trainingsveld van je club; eerder lag ze naast je, ook op straat of in huis, met hoepels door de gevel. Samen spelen: lokaal en per speler, zoals de training al was.
+- Voetbal: de balk bovenin noemt bij een carrièrewedstrijd de plaats van het sportpark en het formaat (11 tegen 11) in plaats van "Voetbal Euroborg, vijf tegen vijf". Samen spelen: alleen beeld.
 - Samen spelen, voetbalderby: wie in de andere ploeg speelt, kijkt nu vanaf zijn eigen kant en valt ook naar boven in beeld aan; vooruit op de stick is voor iedereen richting het doel van de tegenstander. Samen spelen: wie het spel opende rekent de stick van een gast in de andere ploeg om; geen protocolwijziging.
 - Voetbal: op de opstellingskaart bij de aftrap lopen de rollen in de rechterkolom (de uitploeg) niet meer over de namen heen, en de kaart zegt waar de aftrap is: op het sportpark van de thuisclub, of in de Euroborg. Samen spelen: alleen beeld, per speler.
 - Voetbalcarrière: Te doen heeft een rij voor je club met de stand en de volgende wedstrijd; kies hem en de route wijst naar het park waar gespeeld wordt. Samen spelen: per speler, uit de eigen carrière; een gast ziet zijn eigen club.

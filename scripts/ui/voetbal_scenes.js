@@ -123,6 +123,7 @@ await scene('menu', async (ev) => {
 await scene('todo', async (ev) => {
   open(); start();
   await menu('todo');
+  { const f = [...document.querySelectorAll('[data-panel="todo"] button, [data-panel="todo"] [role="tab"]')].find((b) => /^Loopbanen\s*\d/.test((b.textContent || '').trim())); ev.filter = !!f; if (f) { f.click(); await sleep(1000); } }
   const rij = [...document.querySelectorAll('[data-panel="todo"] *')].find((el) => el.children.length < 6 && /^Voetbal: /.test((el.textContent || '').trim()));
   ev.rij = rij ? rij.textContent.trim().slice(0, 120) : null;
   if (rij) { rij.scrollIntoView({ block: 'center' }); rij.click(); await sleep(800); }
@@ -177,6 +178,8 @@ await scene('wedstrijd', async (ev) => {
   ev.wedstrijd = m && { tegen: m.opponentName, thuis: m.isHome, park: !!m.park, stadion: !!m.stadium };
   const s = m && m.park ? siteOf(m) : null; ev.site = s;
   if (s) await jump(s.x + 10, s.y + 10, 3000);
+  // een sponsor aannemen (#1118): dan staan zijn borden langs de lijn
+  try { const c0 = CL.getCareer(), sl = c0.sponsors && c0.sponsors.slots[0]; if (sl) { const r = C.acceptSponsor(c0, sl.id, CL.getSponsorPandIndex(), CL.clubPlace(c0.club)); if (r.ok) CL.replaceCareer(r.career); ev.sponsor = sl.naam + (r.ok ? '' : ' (niet aangenomen: ' + r.reason + ')'); } } catch (e) { ev.sponsor = 'fout ' + e.message; }
   gehoord.clear();
   ev.gestart = !!VB.launchCareerMatch(w);
   if (!ev.gestart) return;
@@ -188,15 +191,14 @@ await scene('wedstrijd', async (ev) => {
   await sleep(6000); await shot('spel-later', 500);
   ev.ondertitel = (document.querySelector('.vbtv-ondertitel') || {}).textContent || null;
   ev.state = window.__voetbal.state();
-  if (s) {
-    const z = gh(s.x, s.y);
-    const a = toWorld(s, 56 / 2 + 22, -20), mid = toWorld(s, 56 / 2 + 2, 0);
-    cam(a.x, a.y, z + 6, mid.x, mid.y, z + 1, 50); await shot('publiek-zijlijn', 1500);
-    const b = toWorld(s, -(56 / 2 + 14), 10), mid2 = toWorld(s, 0, 0);
-    cam(b.x, b.y, z + 7, mid2.x, mid2.y, z + 1, 55); await shot('veld-overzijde', 1500);
-    cam(s.x, s.y + 0.1, z + 150, s.x, s.y, z, 55); await shot('veld-boven', 1500);
-  }
+  // de wedstrijd zet zelf de camera: met toets 3 door de standen (auto, speler, hoog, zijlijn, ...) voor het publiek en de borden langs de lijn
+  ev.camera = [];
+  for (let k = 0; k < 3; k++) { tap('3', 'Digit3'); await sleep(2500); ev.camera.push((document.querySelector('.mg-flash') || {}).textContent || ''); await shot('camera-' + (k + 1), 300); }
   ev.geluid = Object.fromEntries(gehoord);
+  // het echte park zonder het veld van de sim: na de wedstrijd van boven (de velden uit de kaart)
+  try { window.__voetbal.quit(); } catch (e) { /* al klaar */ }
+  await sleep(1500);
+  if (s) { const z = gh(s.x, s.y); cam(s.x, s.y + 0.1, z + 160, s.x, s.y, z, 55); await shot('park-van-boven', 2500); }
 });
 
 clearInterval(skipper); clearInterval(houd); clearInterval(audioTap);
