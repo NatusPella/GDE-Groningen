@@ -7,13 +7,15 @@ import * as SN from './snackvan.js';
 import { PERMIT_DAYS } from './pitch.js';
 import { euro } from './geldtekst.js';
 import { icoon } from './icons.js';
+import { sectionCard, missReason, holdingButton } from './holdingcards.js';
 
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 export const sui = { msg: '', confirm: null };
 const STATUS_TEXT = { jij: 'van jou', usmem: 'van Usmem Snacks', medespeler: 'van een medespeler', vrij: 'vrij' };
 // Kopen is de gele hoofdknop, de rest omlijnd: zonder eigen vorm leken ze lichtgrijze tekst of uitgeschakeld (#1248).
 const HOOFD = new Set(['koop-wagen', 'vergunning', 'neem-over']);
-const btn = (act, text, extra = '', uit = false) => `<button type="button" class="m-bt${HOOFD.has(act) ? ' bz-hoofd' : ''}" data-sn="${act}"${extra}${uit ? ' disabled' : ''}>${text}</button>`;
+// uit: true (slot) of een reden (slot en reden in de knop), zie holdingcards.js (#1272).
+const btn = (act, text, extra = '', uit = false) => holdingButton('data-sn', act, text, extra, uit, HOOFD.has(act));
 const key = (act, id) => `${act}:${id}`;
 const askOr = (act, id, text, sure, extra = '', uit = false) => (sui.confirm === key(act, id)
   ? `<span class="bd-zeker">${sure} ${btn(act, 'Ja', ` data-id="${esc(id)}" data-ok="1"${extra}`)} ${btn('annuleer', 'Nee')}</span>`
@@ -22,6 +24,8 @@ const askOr = (act, id, text, sure, extra = '', uit = false) => (sui.confirm ===
 // De reden achter een uitgeschakelde koopknop (verfijnronde bezit: grijs zonder uitleg).
 const miss = (money, price) => (money < price ? ` title="Je mist nog ${euro(price - money)}"` : '');
 const st = (v, k) => !!(v.stages && v.stages[k] && !v.stages[k].open);
+// De reden in een knop die uit staat (#1272): eerst het geld, dan een fase die het verhaal nog niet opende. Geen reden = false (knop aan).
+const why = (v, price, ...ks) => missReason(v.money, price) || (ks.some((k) => st(v, k)) ? 'Komt later in het verhaal' : false);
 const stNote = (v, ...ks) => ks.filter((k) => st(v, k)).map((k) => `<p class="mut" data-stage="${k}">${esc(v.stages[k].hint)}</p>`).join('');
 const hh = (h) => `${String(h % 24).padStart(2, '0')}:00`;
 const eur2 = (n) => String(n.toFixed(2)).replace('.', ',');
@@ -38,12 +42,13 @@ function eventHtml(v) {
   const left = Math.max(0, p.deadline - v.day);
   return `<div class="bz-keten" data-event="${esc(p.kind)}"><h4 class="m-h3">${esc(kinds[p.kind] || 'Gebeurtenis')}</h4><p>${esc(p.text)}</p>` +
     `<p class="mut">Nog ${left + 1} ${left === 0 ? 'dag' : 'dagen'} om te antwoorden${p.kind === 'bod' || p.kind === 'overkoop' ? '' : '; zonder antwoord geldt het gevolg al'}.${p.kind === 'vergunning' ? ' Hoe sterker je buurt achter je staat, hoe groter je kans in beroep.' : ''}${p.kind === 'bod' ? ` Het bod is ${euro(p.price)}.` : ''}</p>` +
-    `<div class="bz-bulk">${p.choices.map((c) => btn('antwoord', `${esc(c.label)}${c.cost ? ` (${euro(c.cost)})` : ''}`, ` data-choice="${esc(c.id)}"`, v.money < c.cost && p.kind !== 'bod')).join(' ')}</div></div>`;
+    `<div class="bz-bulk">${p.choices.map((c) => btn('antwoord', `${esc(c.label)}${c.cost ? ` (${euro(c.cost)})` : ''}`, ` data-choice="${esc(c.id)}"`, (p.kind !== 'bod' && missReason(v.money, c.cost)) || false)).join(' ')}</div></div>`;
 }
 
 function ownHtml(v) {
   const o = v.own;
-  if (!o.hasWagon) return `<h3 class="m-h3">Jouw snackwagen</h3><p class="mut">Je hebt nog geen snackwagen. Een kleine wagen kost ${euro(7500)} en draait zelf zodra hij op een standplaats staat.</p>${askOr('koop-wagen', 'snack', `Koop een snackwagen ${euro(7500)}`, `Voor ${euro(7500)}?`, miss(v.money, 7500), v.money < 7500)}`;
+  if (!o.hasWagon) return sectionCard('wagen', 'burger', 'Jouw snackwagen', `<p class="mut">Je hebt nog geen snackwagen.</p>${askOr('koop-wagen', 'snack', `Koop een snackwagen ${euro(7500)}`, `Voor ${euro(7500)}?`, miss(v.money, 7500), why(v, 7500))}`,
+    { info: `Een kleine wagen kost ${euro(7500)} en draait zelf zodra hij op een standplaats staat.` });
   const spot = o.spot ? v.spots.find((s) => s.id === o.spot) : null;
   const f = o.forecast;
   const next = SN.TIER_IDS[SN.TIER_IDS.indexOf(o.tier) + 1];
@@ -59,10 +64,10 @@ function ownHtml(v) {
     const own = m.chainOwn >= 0.5 ? ' (uit je eigen keten)' : '';
     return btn('menu', `${m.on ? 'Af: ' : 'Op: '}${esc(m.label)} €${eur2(m.price)}${own}`, ` data-id="${esc(m.id)}" data-on="${m.on ? 1 : 0}"`, !m.unlocked || st(v, 'menu'));
   }).join(' ')}</div>${stNote(v, 'menu')}<p class="mut">Menu: ${o.menu.length} van ${o.tierDef.slots} plekken. Per klant ongeveer €${eur2(o.numbers.ticket)} omzet en €${eur2(o.numbers.cogs)} inkoop.${v.menu.some((m) => !m.unlocked) ? ' Burger, milkshake en softy vragen koeling.' : ''}</p>`;
-  const up = SN.UPGRADE_IDS.map((id) => (v.up.includes(id) ? `<span class="mut">${esc(SN.UPGRADES[id].label)}: aanwezig</span>` : askOr('upgrade', id, `${esc(SN.UPGRADES[id].label)} ${euro(SN.UPGRADES[id].price)}`, `Voor ${euro(SN.UPGRADES[id].price)}?`, miss(v.money, SN.UPGRADES[id].price), v.money < SN.UPGRADES[id].price))).join(' ');
-  return `<h3 class="m-h3">Jouw snackwagen</h3><div class="bd-rij" data-own="1"><span class="bd-naam"><b>${esc(o.tierDef.label)}</b><span class="bd-feiten"><span>${spot ? esc(spot.short) : 'nog thuis'}</span><span>voorraad voor ${o.stockDays} ${o.stockDays === 1 ? 'dag' : 'dagen'}</span>` +
+  const up = SN.UPGRADE_IDS.map((id) => (v.up.includes(id) ? `<span class="mut">${esc(SN.UPGRADES[id].label)}: aanwezig</span>` : askOr('upgrade', id, `${esc(SN.UPGRADES[id].label)} ${euro(SN.UPGRADES[id].price)}`, `Voor ${euro(SN.UPGRADES[id].price)}?`, miss(v.money, SN.UPGRADES[id].price), why(v, SN.UPGRADES[id].price)))).join(' ');
+  return sectionCard('wagen', 'burger', 'Jouw snackwagen', `<div class="bd-rij" data-own="1"><span class="bd-naam"><b>${esc(o.tierDef.label)}</b><span class="bd-feiten"><span>${spot ? esc(spot.short) : 'nog thuis'}</span><span>voorraad voor ${o.stockDays} ${o.stockDays === 1 ? 'dag' : 'dagen'}</span>` +
     `${f ? `<span>vandaag ongeveer ${euro(f.net)} winst (${f.sold} klanten${f.unserved ? `, ${f.unserved} gemist` : ''})</span>` : ''}</span>${f ? `<small class="mut">${esc(f.note)}</small>` : ''}</span>` +
-    `<span class="bd-acties">${btn('vul', `Vul aan (${euro(SN.RESTOCK_FEE)})`, '', o.stockDays >= SN.STOCK_MAX)} ${next ? askOr('tier', 'own', `Grotere wagen ${euro(SN.TIERS[next].up)}`, `Voor ${euro(SN.TIERS[next].up)}?`, miss(v.money, SN.TIERS[next].up), v.money < SN.TIERS[next].up) : ''}</span></div>${knobs}${offeringsBlock}<div class="bz-bulk">${up}</div>`;
+    `<span class="bd-acties">${btn('vul', `Vul aan (${euro(SN.RESTOCK_FEE)})`, '', o.stockDays >= SN.STOCK_MAX)} ${next ? askOr('tier', 'own', `Grotere wagen ${euro(SN.TIERS[next].up)}`, `Voor ${euro(SN.TIERS[next].up)}?`, miss(v.money, SN.TIERS[next].up), why(v, SN.TIERS[next].up)) : ''}</span></div>${knobs}${offeringsBlock}<div class="bz-bulk">${up}</div>`);
 }
 
 // Het pictogram van een standplaats uit zijn naam: een stadion, een station, een markt, een strand of een park; anders een plek.
@@ -81,17 +86,18 @@ function spotsHtml(v) {
   const rows = v.spots.slice().sort((a, b) => b.foot - a.foot).map((s) => {
     const feiten = [esc(s.place), STATUS_TEXT[s.status] + (s.claim ? ` (${esc(s.claim.name)})` : ''), s.status === 'jij' ? `nog ${s.daysLeft} dagen, verlengen ${euro(s.renew)}` : '', s.wagon ? (s.wagon === 'own' ? 'jouw wagen staat er' : `wagen ${esc(s.wagon)} staat er`) : ''].filter(Boolean).map((x) => `<span>${x}</span>`).join('');
     let acts = btn('doel-plek', 'Op de kaart', ` data-id="${esc(s.id)}"`);
-    if (s.status === 'vrij') acts += ' ' + askOr('vergunning', s.id, `Vergunning ${euro(s.price)}`, `Voor ${euro(s.price)}?`, miss(v.money, s.price), v.money < s.price || st(v, 'stek'));
-    else if (s.status === 'usmem') acts += ' ' + askOr('neem-over', s.id, `Neem over ${euro(s.ask)}`, `Voor ${euro(s.ask)}?`, miss(v.money, s.ask), v.money < s.ask || st(v, 'keten'));
+    if (s.status === 'vrij') acts += ' ' + askOr('vergunning', s.id, `Vergunning ${euro(s.price)}`, `Voor ${euro(s.price)}?`, miss(v.money, s.price), why(v, s.price, 'stek'));
+    else if (s.status === 'usmem') acts += ' ' + askOr('neem-over', s.id, `Neem over ${euro(s.ask)}`, `Voor ${euro(s.ask)}?`, miss(v.money, s.ask), why(v, s.ask, 'keten'));
     else if (s.status === 'jij' && hasEmpty(s.id)) {
       if (v.own.hasWagon) acts += ' ' + btn('zet-wagen', 'Zet mijn wagen hier', ` data-id="${esc(s.id)}"`, st(v, 'standplaats'));
-      acts += ' ' + askOr('vloot', s.id, `Extra wagen ${euro(v.wagonPrice)}`, `Voor ${euro(v.wagonPrice)} met een medewerker?`, '', v.money < v.wagonPrice || v.fleet.length >= SN.MAX_FLEET || st(v, 'team') || (v.fleet.length >= 1 && st(v, 'keten')));
+      acts += ' ' + askOr('vloot', s.id, `Extra wagen ${euro(v.wagonPrice)}`, `Voor ${euro(v.wagonPrice)} met een medewerker?`, '', why(v, v.wagonPrice, 'team') || (v.fleet.length >= SN.MAX_FLEET ? 'Je hebt al het maximum aan wagens' : false) || (v.fleet.length >= 1 && st(v, 'keten') ? 'Komt later in het verhaal' : false));
     }
     // #1249: een plaatje per standplaats (het pictogram van het soort plek)
     return `<div class="bd-rij" data-spot="${esc(s.id)}" data-status="${s.status}"><span class="sn-plek-ic" aria-hidden="true">${icoon(spotIcon(s))}</span><span class="bd-naam"><b>${esc(s.name)}</b><span class="bd-feiten">${feiten}</span></span><span class="bd-acties">${acts}</span></div>`;
   }).join('');
   // #1249: de uitleg in één regel
-  return `<h3 class="m-h3">Standplaatsen</h3><p class="mut">Vergunning: ${PERMIT_DAYS} speldagen, verlengen kost een kwart.</p>${stNote(v, 'stek', 'standplaats', 'team', 'keten')}${rows}`;
+  return sectionCard('standplaatsen', 'plek', 'Standplaatsen', `<p class="mut">Vergunning: ${PERMIT_DAYS} speldagen, verlengen kost een kwart.</p>${stNote(v, 'stek', 'standplaats', 'team', 'keten')}${rows}`,
+    { count: v.spots.filter((s) => s.status === 'jij').length });
 }
 
 function fleetHtml(v) {
@@ -99,9 +105,10 @@ function fleetHtml(v) {
   const rows = v.fleet.map((f) => {
     const next = SN.TIER_IDS[SN.TIER_IDS.indexOf(f.tier) + 1];
     return `<div class="bd-rij" data-wagon="${esc(f.id)}"><span class="bd-naam"><b>${esc(f.tierDef.label)} bij ${f.spotName ? esc(f.spotName) : 'nergens'}</b><span class="bd-feiten"><span>${esc(f.staff.name)}, vaardigheid ${f.staff.skill}</span><span>${f.mode === 'aandeel' ? '30% van de winst' : `loon ${euro(f.wage)} per dag`}</span></span></span>` +
-      `<span class="bd-acties">${btn('modus', f.mode === 'aandeel' ? 'Naar vast loon' : 'Naar aandeel', ` data-id="${esc(f.id)}" data-mode="${f.mode === 'aandeel' ? 'loon' : 'aandeel'}"`)} ${next ? askOr('tier', f.id, `Groter ${euro(SN.TIERS[next].up)}`, `Voor ${euro(SN.TIERS[next].up)}?`, '', v.money < SN.TIERS[next].up) : ''} ${askOr('verkoop-vloot', f.id, 'Verkoop', 'Zeker?')}</span></div>`;
+      `<span class="bd-acties">${btn('modus', f.mode === 'aandeel' ? 'Naar vast loon' : 'Naar aandeel', ` data-id="${esc(f.id)}" data-mode="${f.mode === 'aandeel' ? 'loon' : 'aandeel'}"`)} ${next ? askOr('tier', f.id, `Groter ${euro(SN.TIERS[next].up)}`, `Voor ${euro(SN.TIERS[next].up)}?`, '', why(v, SN.TIERS[next].up)) : ''} ${askOr('verkoop-vloot', f.id, 'Verkoop', 'Zeker?')}</span></div>`;
   }).join('');
-  return `<h3 class="m-h3">Medewerkers-wagens</h3><p class="mut">Een wagen zonder jou draait op 85% en de aanvoer kost 15% extra; de opbrengst is passief en valt onder de rem van je andere passieve inkomen.</p>${rows}`;
+  return sectionCard('vloot', 'spelers', 'Medewerkers-wagens', rows, { count: v.fleet.length,
+    info: 'Een wagen zonder jou draait op 85% en de aanvoer kost 15% extra; de opbrengst is passief en valt onder de rem van je andere passieve inkomen.' });
 }
 
 // ---- Buurt en klanten: tevredenheid, goodwill, bondgenoten, vaste klanten en hulp aan de buurt (goodwill.js) ----
@@ -110,12 +117,12 @@ export function neighbourhoodHtml(v) {
   if (!g) return '';
   const allies = g.allies.length ? `Bondgenoten: ${g.allies.map(esc).join(', ')}.` : 'Nog geen bondgenoten: help de buurt op drie plekken in hetzelfde gebied.';
   const rows = g.spots.map((s) => `<div class="bd-rij" data-buurt="${esc(s.id)}"><span class="bd-naam"><b>${esc(s.short)}</b><span class="bd-feiten"><span>vaste klanten ${s.loyal} van ${s.cap}</span><span>${s.helped}x geholpen</span></span></span>` +
-    `<span class="bd-acties">${s.help.map((h) => askOr('help', `${s.id}|${h.id}`, `${esc(h.label)} ${euro(h.cost)}${h.wait ? ` (over ${h.wait} d)` : ''}`, `Voor ${euro(h.cost)}?`, ` data-spot="${esc(s.id)}" data-kind="${esc(h.id)}"`, v.money < h.cost || h.wait > 0)).join(' ')}</span></div>`).join('');
+    `<span class="bd-acties">${s.help.map((h) => askOr('help', `${s.id}|${h.id}`, `${esc(h.label)} ${euro(h.cost)}${h.wait ? ` (over ${h.wait} d)` : ''}`, `Voor ${euro(h.cost)}?`, ` data-spot="${esc(s.id)}" data-kind="${esc(h.id)}"`, missReason(v.money, h.cost) || h.wait > 0)).join(' ')}</span></div>`).join('');
   const helpers = g.helpers.length ? `<h4 class="m-h3">Meewerken bij een medespeler</h4>` + g.helpers.map((h) => `<div class="bd-rij" data-helper="${esc(h.id)}"><span class="bd-naam"><b>${esc(h.short)}</b><span class="bd-feiten"><span>van ${esc((h.claim && h.claim.name) || 'een medespeler')}</span></span></span><span class="bd-acties">${btn('meewerken', 'Meewerken (6 uur)', ` data-id="${esc(h.id)}"`, h.done)}</span></div>`).join('') : '';
-  return `<h3 class="m-h3">Buurt en klanten</h3><p class="mut">Jelle Terpstra speelt met formulieren, enveloppen en lage prijzen. Jij wint met oprechte interesse: tevreden klanten, vaste klanten en een buurt die je helpt omdat jij hen hielp.</p>` +
-    `<div class="bz-tegels"><span class="bz-tegel"><small>Tevreden klanten</small><b>${g.sat}%</b></span><span class="bz-tegel"><small>Goodwill</small><b>${g.goodwill}</b></span><span class="bz-tegel"><small>Geschillen gewonnen</small><b>${g.disputes.won} van ${g.disputes.won + g.disputes.lost}</b></span><span class="bz-tegel"><small>Reputatie van Usmem</small><b>${v.rival.rep}</b></span></div>` +
+  return sectionCard('buurt', 'handdruk', 'Buurt en klanten', `<div class="bz-tegels"><span class="bz-tegel"><small>Tevreden klanten</small><b>${g.sat}%</b></span><span class="bz-tegel"><small>Goodwill</small><b>${g.goodwill}</b></span><span class="bz-tegel"><small>Geschillen gewonnen</small><b>${g.disputes.won} van ${g.disputes.won + g.disputes.lost}</b></span><span class="bz-tegel"><small>Reputatie van Usmem</small><b>${v.rival.rep}</b></span></div>` +
     (v.reputatie && v.reputatie.line ? `<p class="mut">Op straat: "${esc(v.reputatie.line)}"${v.reputatie.jelle ? ` Jelle: "${esc(v.reputatie.jelle)}"` : ''} Rij bij je wagen: ${v.reputatie.queue} klanten.</p>` : '') +
-    `<p class="mut">${allies}${g.disputes.bribesFailed ? ` Een omkoping van Jelle is ${g.disputes.bribesFailed}x mislukt.` : ''}</p>${rows || '<p class="mut">Zodra je een standplaats hebt, kun je de buurt helpen.</p>'}${helpers}`;
+    `<p class="mut">${allies}${g.disputes.bribesFailed ? ` Een omkoping van Jelle is ${g.disputes.bribesFailed}x mislukt.` : ''}</p>${rows || '<p class="mut">Zodra je een standplaats hebt, kun je de buurt helpen.</p>'}${helpers}`,
+  { info: 'Jelle Terpstra speelt met formulieren, enveloppen en lage prijzen. Jij wint met oprechte interesse: tevreden klanten, vaste klanten en een buurt die je helpt omdat jij hen hielp.' });
 }
 
 export function snackHtml(v) {
@@ -127,7 +134,7 @@ export function snackHtml(v) {
   return `<div class="pm-pane-top"><span class="m-eb">Land en bedrijf</span><h2 class="m-h2 td-h2">Snackwagen</h2></div><div class="bz-tegels">${tiles}</div>` +
     // #1249 (hertest 24-11): één korte regel; de standplaatsen staan al in de tegel
     `<p class="mut">${esc(v.rival.name)}: ${v.rival.pand} panden, keten niveau ${v.rival.chain}. Jouw aandeel ${Math.round(v.score.share * 100)}%.</p>${war}${eventHtml(v)}` +
-    ownHtml(v) + fleetHtml(v) + spotsHtml(v) + neighbourhoodHtml(v) + `<h3 class="m-h3">Doelen</h3>${goals}<p class="bd-melding" aria-live="polite">${esc(sui.msg)}</p>`;
+    ownHtml(v) + fleetHtml(v) + spotsHtml(v) + neighbourhoodHtml(v) + sectionCard('doelen', 'vlag', 'Doelen', goals, { count: `${v.goals.filter((g) => g.done).length} van ${v.goals.length}` }) + `<p class="bd-melding" aria-live="polite">${esc(sui.msg)}</p>`;
 }
 
 // ---- binden ----

@@ -111,6 +111,20 @@
 .bd-feiten { display: flex; flex-wrap: wrap; gap: 0 var(--ds-s-4); color: var(--ds-tx-2); font-size: var(--ds-t-hulp); }
 .bd-acties { display: flex; flex-wrap: wrap; flex: none; gap: var(--ds-s-2); align-items: center; justify-content: flex-end; }
 .bz-chip { cursor: pointer; }
+/* #1272: elke sectie van Land en bedrijf is een DS3-kaart met kop (icoon, naam, getal), de uitleg achter een info-knop, en een knop die uit staat toont slot en reden */
+#pause-menu .bz-kaart { margin: var(--ds-s-4) 0; gap: var(--ds-s-2); }
+#pause-menu .bz-kaart-titel { display: inline-flex; align-items: center; gap: var(--ds-s-2); margin: 0; color: var(--ds-c-wit); }
+#pause-menu .bz-kaart-ic { width: var(--ds-s-5); height: var(--ds-s-5); flex: none; }
+#pause-menu .bz-kaart-n { margin-left: auto; padding-right: var(--ds-s-6); font-family: var(--ds-font-zeef-kop); font-weight: 800; font-size: var(--ds-t-subkop); font-variant-numeric: tabular-nums; }
+#pause-menu .bz-kaart > .bz-info > .bz-info-knop { position: absolute; top: var(--ds-s-1); right: var(--ds-s-2); display: grid; place-items: center; width: var(--ds-s-6); height: var(--ds-s-6); border-radius: var(--ds-r-pil); color: var(--ds-c-wit); cursor: pointer; list-style: none; }
+#pause-menu .bz-info-knop::-webkit-details-marker { display: none; }
+#pause-menu .bz-info-knop:hover, #pause-menu .bz-info[open] > .bz-info-knop { background: var(--ds-c-sel-vlak); color: var(--ds-zeef-tx); }
+#pause-menu .bz-info-ic { width: var(--ds-s-5); height: var(--ds-s-5); }
+#pause-menu .bz-info-tekst { margin: 0; padding: var(--ds-s-2) var(--ds-s-3); border-left: var(--ds-lijn-dik) solid var(--ds-c-ink-inkt); background: var(--ds-c-sel-vlak); font-family: var(--ds-font-zeef-tekst); font-size: var(--ds-t-hulp); line-height: var(--ds-lh-tekst); }
+#pause-menu .m-bt.bz-uit { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 0 var(--ds-s-1); }
+#pause-menu .bz-slot { width: var(--ds-s-4); height: var(--ds-s-4); flex: none; }
+#pause-menu .bz-reden { flex-basis: 100%; font-family: var(--ds-font-zeef-tekst); font-size: var(--ds-t-hulp); letter-spacing: 0; text-transform: none; }
+#pause-menu .bz-status { text-transform: none; }
 
 /* de tussenkoppen van Land en bedrijf in de DS3-kopletter, niet in de lichte standaardletter (#1246) */
 #pause-menu [data-panel="boerderij"] .m-h3 { font-family: var(--ds-font-zeef-kop); font-weight: 800; font-size: var(--ds-t-subkop); letter-spacing: var(--ds-ls-label); margin: var(--ds-s-5) 0 var(--ds-s-2); color: var(--ds-zeef-tx); }

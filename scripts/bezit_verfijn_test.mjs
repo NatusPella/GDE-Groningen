@@ -158,7 +158,7 @@ t('ketenuitbreiding vraagt een tweede druk; renovatie toont de prijs en vraagt e
   assert.match(b, /data-bz="reno"[^>]*>Renovatie €[\d.]+</);
   assert.match(b, /Verkoop €/);
   b = U.businessesHtml({ money: 5000, mine: mine(100) });
-  assert.match(b, /data-bz="reno"[^>]*disabled[^>]*>In orde</);
+  assert.match(b, /class="ds-z-chip bz-status" data-bz-status="reno"[^>]*>.*In orde</, 'een pand in orde is een status, geen grijze knop (#1272)');
   U.ui.confirm = 'reno:111';
   assert.match(U.businessesHtml({ money: 5000, mine: mine(40) }), /bd-zeker[^>]*>Voor €[\d.]+\? Je houdt/);
   U.ui.confirm = null;

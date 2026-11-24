@@ -130,8 +130,8 @@ const pm = lees('game/js/pausemenu.js');
 ok(/T: null, F8: null/.test(pm), 'pausemenu.js: de hints T en F8 tonen geen toetsenbordplaatje bij een controller');
 ok(hintsZonderPadToets(pm).length === 0, 'elke footerhint van het pauzemenu heeft een controllerknop of verdwijnt bij een controller', hintsZonderPadToets(pm));
 for (const f of ['bezitui.js', 'coopspelersui.js', 'samenhubui.js', 'veroverdpanel.js']) ok(/keepFocus\(/.test(lees('game/js/' + f)) && /restore\(\)/.test(lees('game/js/' + f)), `${f}: tekent de lijst opnieuw met focusbehoud`);
-// de keuzelijsten van Bezit zijn er nog en worden dus door gamepad.js bediend
-ok(selectElementen(lees('game/js/bezitui.js'), 'bezitui.js').length >= 1, 'Bezit heeft nog een keuzelijst (de koppeling per product, data-bz-bind; filter, sorteren, product en pand zijn sinds de Bezit-herziening chips): de A-stap blijft nodig');
+// Bezit heeft geen keuzelijst meer: ook de koppeling per schakel (data-bz-bind) is sinds #1272 een chip die met A doorschuift
+ok(selectElementen(lees('game/js/bezitui.js'), 'bezitui.js').length === 0, 'Bezit heeft geen native keuzelijst meer (filter, sorteren, product en koppeling per schakel zijn chips, #1272)');
 
 // ---------- 6. B, Start en de bumpers: een niveau terug en tabs, in elk scherm hetzelfde ----------
 ok(/k === 'Escape' \|\| k === 'Backspace'\) \{\s*consume\(e\);\s*goBack\(\)/.test(pm), 'pausemenu.js: Escape en Backspace (B) gaan een niveau terug via goBack');
