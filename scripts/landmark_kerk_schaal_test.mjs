@@ -38,6 +38,12 @@ for (const [naam, it] of gevallen) {
     check(h > 5 && h <= 70, `${naam} lod ${lod}: hoogte ${h.toFixed(1)} m is een kerk (5 tot 70 m)`);
     check(w <= Math.max(q.len + 8, 2 * rad + 20) && d <= Math.max(q.wid + 8, 2 * rad + 20), `${naam} lod ${lod}: ${w.toFixed(0)} x ${d.toFixed(0)} m past in voetafdruk plus wierde`);
     check(b.min.y >= -3, `${naam} lod ${lod}: niets diep onder de grond (${b.min.y.toFixed(1)})`);
+    // #1193: de kerkramen zijn glas in lood (blauwgrijs), geen egaal zwart gat: elk glashoekpunt (groep 2) heeft een kanaal boven 0,05 lineair
+    if (lod === K.LOD_FULL) {
+      const col = g.geometry.attributes.color; let glas = 0, zwart = 0;
+      for (const gr of g.geometry.groups) if (gr.materialIndex === 2) for (let i = gr.start; i < gr.start + gr.count; i++) { const v = g.geometry.index ? g.geometry.index.getX(i) : i; glas++; if (Math.max(col.getX(v), col.getY(v), col.getZ(v)) < 0.05) zwart++; }
+      check(glas > 0 && zwart === 0, `${naam}: ${glas} glashoekpunten, ${zwart} bijna zwart`);
+    }
   }
 }
 
