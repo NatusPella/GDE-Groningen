@@ -534,9 +534,21 @@ function laneOffset(road, v, half = road.width / 2, dir = 1) {
   }
   // the lane model (roadsurface.js laneLayout): the middle of the right lane
   const m = modelLane(road, dir, 'right');
-  if (m !== null) return clamp(m, 0, Math.max(0, half - halfWid - 0.2));
-  if (road.oneway) return clamp(half - halfWid - 1.2, 0, 1);
-  return clamp(half / 2, 0.3, Math.max(0.3, half - halfWid - 0.25));
+  let lane;
+  if (m !== null) lane = clamp(m, 0, Math.max(0, half - halfWid - 0.2));
+  else if (road.oneway) lane = clamp(half - halfWid - 1.2, 0, 1);
+  else lane = clamp(half / 2, 0.3, Math.max(0.3, half - halfWid - 0.25));
+  return fitLane(road, lane, halfWid);
+}
+
+// #1047: on a narrow street the facade can stand closer to the centreline than the right lane plus half a car
+// (roadfit.js road._fit.c, worked out once per road by canUseRoad): there the car keeps to the middle, so its
+// flank stays LANE_GAP off the wall instead of scraping it every lap (the audit's service roads at 1.5 m).
+const LANE_GAP = 0.25;
+function fitLane(road, lane, halfWid) {
+  const f = road._fit;
+  if (!f || (road.width || 0) > 7.5) return lane;
+  return Math.min(lane, Math.max(0, f.c - halfWid - LANE_GAP));
 }
 
 // The middle of the rightmost or leftmost lane for traffic going `dir` along

@@ -1097,6 +1097,13 @@ const PED_SEAT_OPTS = { ped: true, kick: false, skipSeats: true };
 
 const FAR_REACH = 14;
 
+// #1020: knocks this vehicle a pedestrian over, or only pushes him aside? A wreck or a slow vehicle pushes; so does a film car
+// (the taxi of a ride, the intro, a respawn scene: driver 'cine'), which never runs anyone over: no fall, blood or crime there
+// (constitution 6: zonder getoond geweld).
+export function vehicleKnocksPed(v) {
+  return !v.wrecked && Math.abs(v.speed) >= VEHICLE_HIT_SPEED && v.driver !== 'cine';
+}
+
 const _nearVeh = []; // #653: hergebruikte kandidatenlijst
 function checkVehicleImpact(ped, world) {
   // #653: buren uit de index; de afstands- en hoogtechecks hieronder blijven gelijk
@@ -1107,7 +1114,7 @@ function checkVehicleImpact(ped, world) {
     if (Math.abs((v.z || 0) - (ped.gz || 0)) > 2) continue;
     const push = pushCircleOutOfVehicle(ped.x, ped.y, ped.radius, v);
     if (!push) continue;
-    if (v.wrecked || Math.abs(v.speed) < VEHICLE_HIT_SPEED) {
+    if (!vehicleKnocksPed(v)) {
       if (ped.ragdoll) continue;
       [ped.x, ped.y] = resolveBuildingCollisions(push.x, push.y, ped.radius, world.map);
       if (v.wrecked) continue;

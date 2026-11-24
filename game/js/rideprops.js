@@ -1,5 +1,6 @@
 import { propsInRadius, claimProp } from './breakables.js';
 import { makeTwoWheeler } from './vehicle.js';
+import { insideBuilding } from './buildinghit.js';
 
 // The parked bikes and scooters of the street clutter are static props in a
 // merged cell mesh; taking one swaps that prop for a real, rideable vehicle
@@ -26,10 +27,20 @@ export function vrijeStart(map, x, y) {
   return Number.isFinite(sx) && Number.isFinite(sy) ? { x: sx, y: sy } : { x, y };
 }
 
+// Een rekfiets staat met zijn voorwiel naar de gevel: wie opstapt en vooruit trapt, staat tegen de muur en lijkt vast te zitten
+// (beeldcheck 24-11, #1018). Staat er recht voor de fiets een gevel en achter niet, dan draait hij om, met het voorwiel naar de straat.
+export function vrijeKoers(map, x, y, a) {
+  if (!map || (!map.buildingGrid && typeof map.buildingsNear !== 'function')) return a;
+  const muur = (d) => insideBuilding(map, x + Math.cos(a) * d, y + Math.sin(a) * d);
+  if (!(muur(0.9) || muur(1.5))) return a;
+  return muur(-0.9) || muur(-1.5) ? a : a + Math.PI;
+}
+
 export function rideProp(world, p) {
   if (!claimProp(p)) return null;
-  const spot = vrijeStart(world && world.map, p.x, p.y);
-  const v = makeTwoWheeler(p.kind === 'scooter' ? 'moped' : p.kind, spot.x, spot.y, p.face ?? p.angle ?? 0, p.tint);
+  const map = world && world.map;
+  const spot = vrijeStart(map, p.x, p.y);
+  const v = makeTwoWheeler(p.kind === 'scooter' ? 'moped' : p.kind, spot.x, spot.y, vrijeKoers(map, spot.x, spot.y, p.face ?? p.angle ?? 0), p.tint);
   // an unlocked bike against a wall is fair game in Groningen; a cracked lock is theft
   v.petty = !p.locked;
   world.vehicles.push(v);

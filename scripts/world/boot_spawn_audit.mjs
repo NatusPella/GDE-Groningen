@@ -1,13 +1,13 @@
 // Waar plaatst het spel boten, en is dat logisch? (boot-spawn 21-11, docs/BOOT-SPAWN-21-11.md)
 // Loopt alle bootplekken af (liggers in jachthavens, verhuursteigers, bijbaan- en missieboten, AI-boten over meerdere seeds,
-// decorboten op de maren) en meet ze met de regel van game/js/vehicle/boatspots.js: waterbreedte, soort water (sloot/vijver),
-// vaarnet, afstand tot kade of steiger. Rapporteert de afwijkers per categorie.
-//   node scripts/world/boot_spawn_audit.mjs [--cat=marina,verhuur,bijbaan,race,ai,sier] [--seeds=3] [--posities=24] [--max=0] [--lijst]
+// decorboten op de maren en de missieboten van akte 2 en 4) en meet ze met de regel van game/js/vehicle/boatspots.js: waterbreedte,
+// soort water (sloot/vijver), vaarnet, afstand tot kade of steiger. Rapporteert de afwijkers per categorie.
+//   node scripts/world/boot_spawn_audit.mjs [--cat=marina,verhuur,bijbaan,race,missie,ai,sier] [--seeds=3] [--posities=24] [--max=0] [--lijst]
 // Exit 1 bij meer dan --max afwijkers. Zonder game/world (provinciewereld) SKIP.
 import { maakAudit, samenvatting } from '../lib/bootaudit.mjs';
 
 const opt = (k, d) => { const a = process.argv.find((v) => v.startsWith(`--${k}=`)); return a ? a.slice(k.length + 3) : d; };
-const cats = opt('cat', 'marina,verhuur,bijbaan,race,ai,sier').split(',');
+const cats = opt('cat', 'marina,verhuur,bijbaan,race,missie,ai,sier').split(',');
 const MAX = Number(opt('max', 0));
 const A = await maakAudit();
 if (!A) { console.log('SKIP geen game/world met de provincielaag'); process.exit(0); }

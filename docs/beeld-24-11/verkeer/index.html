@@ -1,0 +1,1129 @@
+<!doctype html><meta charset="utf-8"><title>Verkeer en voertuigen in beeld, 24-11</title>
+<style>body{font:14px system-ui;margin:24px;background:#f6f4ee;color:#222}h2{margin-top:32px}figure{display:inline-block;margin:6px;vertical-align:top}img{width:480px;border:1px solid #999}figcaption{font-size:12px;max-width:480px}pre{background:#fff;border:1px solid #ccc;padding:8px;font-size:11px;white-space:pre-wrap;max-height:320px;overflow:auto}.k{display:flex;gap:12px}.k>div{flex:1}</style>
+<h1>Verkeer en voertuigen in beeld (branch verkeer-bugs-24-11, 24-11)</h1>
+<p>Electron-run via scripts/qa/verkeer_beeld.mjs. "Na" is de branch; "voor" (waar aanwezig) is dezelfde run op integratie-0.66 zonder de wijzigingen van deze branch. VOOR in een bestandsnaam: dezelfde scène vóór de fix van deze branch (rekfiets tegen de gevel, ambulance die je eraf gooide).</p><p>Let op: de camera van de beeldrun is een filmscène, en tijdens een filmscène verbergt het spel het verkeer (cinehide.js). Op de dakbeelden staat de speler daarom zichtbaar 1,5 m boven de straat zonder auto eronder; de metingen (opDak, afstand, gereden meters) komen uit de echte auto. Het polderbeeld bij Haren staat in de mist: de tegels waren daar nog niet geladen.</p><h2>#1019 Taxi in de reiskaart</h2><figure><img src="shots-1019-reiskaart-dichtbij-geld900.jpg"><figcaption>shots-1019-reiskaart-dichtbij-geld900.png</figcaption></figure><figure><img src="shots-1019-reiskaart-ver-geld2.jpg"><figcaption>shots-1019-reiskaart-ver-geld2.png</figcaption></figure><figure><img src="shots-1019-reiskaart-ver-geld900.jpg"><figcaption>shots-1019-reiskaart-ver-geld900.png</figcaption></figure><h3>Meting</h3><pre>{
+ "tabel": [
+  {
+   "geval": "ver, geld 900, wanted 0",
+   "taxi": {
+    "uit": false,
+    "reden": null,
+    "prijs": 16
+   }
+  },
+  {
+   "geval": "dichtbij, geld 900, wanted 0",
+   "taxi": {
+    "uit": true,
+    "reden": "Te dichtbij: loop of rij zelf",
+    "prijs": 5
+   }
+  },
+  {
+   "geval": "ver, geld 2, wanted 0",
+   "taxi": {
+    "uit": true,
+    "reden": "Je hebt € 14 te weinig",
+    "prijs": 16
+   }
+  },
+  {
+   "geval": "ver, geld 900, wanted 1",
+   "taxi": {
+    "uit": true,
+    "reden": "Niet tijdens een achtervolging: wacht tot de politie weg is",
+    "prijs": 16
+   }
+  }
+ ],
+ "ui": [
+  {
+   "naam": "ver",
+   "money": 900,
+   "reisknop": true,
+   "taxiZichtbaar": true,
+   "taxiUit": false,
+   "tekst": "Met de taxi aanbevolen Hij komt naar je toe en zet je af bij het doel. € 16 · ± 8 min",
+   "opties": [
+    "kies:taxi",
+    "kies:bus",
+    "kies:trein",
+    "kies:boot"
+   ]
+  },
+  {
+   "naam": "ver",
+   "money": 2,
+   "reisknop": true,
+   "taxiZichtbaar": true,
+   "taxiUit": true,
+   "tekst": "Met de taxi Hij komt naar je toe en zet je af bij het doel. € 16 · ± 8 min · Je hebt € 14 te weinig",
+   "opties": [
+    "kies:taxi",
+    "kies:bus",
+    "kies:trein",
+    "kies:boot"
+   ]
+  },
+  {
+   "naam": "dichtbij",
+   "money": 900,
+   "reisknop": true,
+   "taxiZichtbaar": true,
+   "taxiUit": true,
+   "tekst": "Met de taxi Hij komt naar je toe en zet je af bij het doel. € 5 · ± 2 min · Te dichtbij: loop of rij zelf",
+   "opties": [
+    "kies:taxi",
+    "kies:trein",
+    "kies:bus",
+    "kies:boot"
+   ]
+  }
+ ],
+ "duurS": 37
+}</pre><h2>#1020 Taxirit</h2><div class="k"><div><h3>Voor</h3><figure><img src="voor-shots-1020-taxi-Haren-1.jpg"><figcaption>shots-1020-taxi-Haren-1.png</figcaption></figure><figure><img src="voor-shots-1020-taxi-Haren-2.jpg"><figcaption>shots-1020-taxi-Haren-2.png</figcaption></figure><figure><img src="voor-shots-1020-taxi-Haren-3.jpg"><figcaption>shots-1020-taxi-Haren-3.png</figcaption></figure><figure><img src="voor-shots-1020-taxi-Hoogkerk-1.jpg"><figcaption>shots-1020-taxi-Hoogkerk-1.png</figcaption></figure><figure><img src="voor-shots-1020-taxi-Hoogkerk-2.jpg"><figcaption>shots-1020-taxi-Hoogkerk-2.png</figcaption></figure><figure><img src="voor-shots-1020-taxi-Hoogkerk-3.jpg"><figcaption>shots-1020-taxi-Hoogkerk-3.png</figcaption></figure></div><div><h3>Na</h3><figure><img src="na-shots-1020-taxi-Haren-1.jpg"><figcaption>shots-1020-taxi-Haren-1.png</figcaption></figure><figure><img src="na-shots-1020-taxi-Haren-2.jpg"><figcaption>shots-1020-taxi-Haren-2.png</figcaption></figure><figure><img src="na-shots-1020-taxi-Haren-3.jpg"><figcaption>shots-1020-taxi-Haren-3.png</figcaption></figure><figure><img src="na-shots-1020-taxi-Hoogkerk-1.jpg"><figcaption>shots-1020-taxi-Hoogkerk-1.png</figcaption></figure><figure><img src="na-shots-1020-taxi-Hoogkerk-2.jpg"><figcaption>shots-1020-taxi-Hoogkerk-2.png</figcaption></figure><figure><img src="na-shots-1020-taxi-Hoogkerk-3.jpg"><figcaption>shots-1020-taxi-Hoogkerk-3.png</figcaption></figure></div></div><h3>Meting voor</h3><pre>{
+ "ritten": [
+  {
+   "naam": "Haren",
+   "samples": 88,
+   "inGebouw": [],
+   "maxV": 19.99983755,
+   "pad": [
+    [
+     131,
+     -8
+    ],
+    [
+     165,
+     -21
+    ],
+    [
+     180,
+     -65
+    ],
+    [
+     178,
+     -98
+    ],
+    [
+     2759,
+     5270
+    ],
+    [
+     2776,
+     5300
+    ],
+    [
+     2795,
+     5325
+    ],
+    [
+     2814,
+     5346
+    ],
+    [
+     2830,
+     5363
+    ],
+    [
+     2843,
+     5363
+    ],
+    [
+     2844,
+     5363
+    ]
+   ],
+   "minHealth": 100,
+   "deuken": 0,
+   "duurS": 40,
+   "aangekomen": 0
+  },
+  {
+   "naam": "Hoogkerk",
+   "samples": 79,
+   "inGebouw": [],
+   "maxV": 19.999999061111108,
+   "pad": [
+    [
+     128,
+     -7
+    ],
+    [
+     162,
+     -20
+    ],
+    [
+     180,
+     -61
+    ],
+    [
+     178,
+     -98
+    ],
+    [
+     -4300,
+     460
+    ],
+    [
+     -4289,
+     499
+    ],
+    [
+     -4275,
+     534
+    ],
+    [
+     -4252,
+     556
+    ],
+    [
+     -4243,
+     565
+    ]
+   ],
+   "minHealth": 100,
+   "deuken": 0,
+   "voetgangersGeraakt": [
+    {
+     "dood": false,
+     "s": 9.9
+    }
+   ],
+   "duurS": 29.4,
+   "aangekomen": 0
+  }
+ ],
+ "duurS": 97
+}</pre><h3>Meting na</h3><pre>{
+ "ritten": [
+  {
+   "naam": "Haren",
+   "samples": 82,
+   "inGebouw": [],
+   "maxV": 19.999873327777777,
+   "minHealth": 100,
+   "deuken": 0,
+   "duurS": 32.8,
+   "aangekomen": 0
+  },
+  {
+   "naam": "Hoogkerk",
+   "samples": 79,
+   "inGebouw": [],
+   "maxV": 19.997565311111114,
+   "minHealth": 100,
+   "deuken": 0,
+   "duurS": 29.3,
+   "aangekomen": 0
+  }
+ ],
+ "duurS": 90
+}</pre><h2>#1018 Fiets uit het rek, omvergereden fiets</h2><figure><img src="shots-1018-VOOR-fiets-uit-rek.jpg"><figcaption>shots-1018-VOOR-fiets-uit-rek.png</figcaption></figure><figure><img src="shots-1018-fiets-omgereden.jpg"><figcaption>shots-1018-fiets-omgereden.png</figcaption></figure><figure><img src="shots-1018-fiets-prompt-rechtzetten.jpg"><figcaption>shots-1018-fiets-prompt-rechtzetten.png</figcaption></figure><figure><img src="shots-1018-fiets-uit-rek.jpg"><figcaption>shots-1018-fiets-uit-rek.png</figcaption></figure><h3>Meting</h3><pre>{
+ "pogingen": [
+  {
+   "prop": [
+    99.8,
+    -20.9
+   ],
+   "tegenGevel": false,
+   "opgestapt": true,
+   "fietsInGebouw": false,
+   "start": [
+    99.8,
+    -20.9
+   ],
+   "melding": "Aangekomen in Hoogkerk. Reistijd 6 min, € 13 armer.",
+   "na18s": [
+    97.8,
+    -24.8
+   ],
+   "verplaatst": 4.4
+  },
+  {
+   "prop": [
+    99.3,
+    -20.7
+   ],
+   "tegenGevel": false,
+   "opgestapt": true,
+   "fietsInGebouw": false,
+   "start": [
+    99.3,
+    -20.7
+   ],
+   "melding": "Aangekomen in Hoogkerk. Reistijd 6 min, € 13 armer.",
+   "na18s": [
+    97.8,
+    -23.8
+   ],
+   "verplaatst": 3.4
+  },
+  {
+   "prop": [
+    -93.7,
+    229.2
+   ],
+   "tegenGevel": false,
+   "opgestapt": true,
+   "fietsInGebouw": false,
+   "start": [
+    -93.8,
+    229.2
+   ],
+   "melding": "Aangekomen in Hoogkerk. Reistijd 6 min, € 13 armer.",
+   "na18s": [
+    -97.3,
+    230.2
+   ],
+   "verplaatst": 3.6
+  },
+  {
+   "prop": [
+    -93.5,
+    229.7
+   ],
+   "tegenGevel": false,
+   "opgestapt": false,
+   "fietsInGebouw": null,
+   "start": null,
+   "melding": "Aangekomen in Hoogkerk. Reistijd 6 min, € 13 armer."
+  }
+ ],
+ "omver": {
+  "fallen": false,
+  "health": 100,
+  "label": {
+   "label": "Opstappen"
+  },
+  "prompt": null,
+  "naEersteE": {
+   "fallen": false,
+   "opgestapt": true
+  },
+  "naTweedeE": {
+   "fallen": false,
+   "opgestapt": false
+  }
+ },
+ "duurS": 53,
+ "voorDeFix": [
+  {
+   "prop": [
+    99.8,
+    -20.9
+   ],
+   "tegenGevel": false,
+   "opgestapt": true,
+   "fietsInGebouw": false,
+   "start": [
+    99.8,
+    -20.9
+   ],
+   "melding": "Aangekomen in Hoogkerk. Reistijd 6 min, € 13 armer.",
+   "na18s": [
+    99.9,
+    -20.9
+   ],
+   "verplaatst": 0.1
+  },
+  {
+   "prop": [
+    99.3,
+    -20.7
+   ],
+   "tegenGevel": false,
+   "opgestapt": true,
+   "fietsInGebouw": false,
+   "start": [
+    99.9,
+    -20.9
+   ],
+   "melding": "Aangekomen in Hoogkerk. Reistijd 6 min, € 13 armer.",
+   "na18s": [
+    100,
+    -20.9
+   ],
+   "verplaatst": 0.1
+  },
+  {
+   "prop": [
+    -93.7,
+    229.2
+   ],
+   "tegenGevel": false,
+   "opgestapt": true,
+   "fietsInGebouw": false,
+   "start": [
+    -93.7,
+    229.2
+   ],
+   "melding": "Aangekomen in Hoogkerk. Reistijd 6 min, € 13 armer.",
+   "na18s": [
+    -97.8,
+    230.3
+   ],
+   "verplaatst": 4.3
+  },
+  {
+   "prop": [
+    -93.5,
+    229.7
+   ],
+   "tegenGevel": false,
+   "opgestapt": false,
+   "fietsInGebouw": null,
+   "start": null,
+   "melding": "Aangekomen in Hoogkerk. Reistijd 6 min, € 13 armer."
+  }
+ ]
+}</pre><h2>#1023 Meerijden op het dak van een AI-auto</h2><figure><img src="shots-1023-VOOR-dak-2-2.jpg"><figcaption>shots-1023-VOOR-dak-2-2.png</figcaption></figure><figure><img src="shots-1023-VOOR-dak-2-3.jpg"><figcaption>shots-1023-VOOR-dak-2-3.png</figcaption></figure><figure><img src="shots-1023-dak-1-1.jpg"><figcaption>shots-1023-dak-1-1.png</figcaption></figure><figure><img src="shots-1023-dak-1-2.jpg"><figcaption>shots-1023-dak-1-2.png</figcaption></figure><figure><img src="shots-1023-dak-1-3.jpg"><figcaption>shots-1023-dak-1-3.png</figcaption></figure><h3>Meting</h3><pre>{
+ "proeven": [
+  {
+   "model": "taxi",
+   "samples": [
+    {
+     "s": 0.3,
+     "v": 6.4,
+     "opDak": true,
+     "afstand": 0.3,
+     "z": 1.5
+    },
+    {
+     "s": 2.2,
+     "v": 10.2,
+     "opDak": true,
+     "afstand": 0.5,
+     "z": 1.5
+    },
+    {
+     "s": 4.2,
+     "v": 7.5,
+     "opDak": true,
+     "afstand": 0.2,
+     "z": 1.5
+    },
+    {
+     "s": 6.1,
+     "v": 5.6,
+     "opDak": true,
+     "afstand": 0.3,
+     "z": 1.5
+    },
+    {
+     "s": 7.2,
+     "v": 3.6,
+     "opDak": true,
+     "afstand": 0.1,
+     "z": 1.5
+    },
+    {
+     "s": 8.9,
+     "v": 2.2,
+     "opDak": true,
+     "afstand": 0,
+     "z": 1.5
+    },
+    {
+     "s": 10.1,
+     "v": 1.7,
+     "opDak": true,
+     "afstand": 0.1,
+     "z": 1.5
+    },
+    {
+     "s": 11.2,
+     "v": 1.3,
+     "opDak": true,
+     "afstand": 0,
+     "z": 1.5
+    }
+   ],
+   "start": [
+    310,
+    6
+   ],
+   "gereden": 53,
+   "afgegooidNaS": null,
+   "maxV": 10.7,
+   "maxAfstandOpDak": 0.5
+  },
+  {
+   "plek": [
+    -60,
+    210
+   ],
+   "fout": "geen rijdende AI-auto"
+  }
+ ],
+ "duurS": 91,
+ "voorDeFix": {
+  "proeven": [
+   {
+    "plek": [
+     262,
+     129
+    ],
+    "fout": "geen rijdende AI-auto"
+   },
+   {
+    "model": "ambulance",
+    "samples": [
+     {
+      "s": 0.2,
+      "v": 3.2,
+      "opDak": true,
+      "afstand": 0.2,
+      "z": 2.7
+     },
+     {
+      "s": 1.4,
+      "v": 0.6,
+      "opDak": false,
+      "afstand": 1.6,
+      "z": 2.6
+     },
+     {
+      "s": 3.2,
+      "v": 0.1,
+      "opDak": false,
+      "afstand": 1.6,
+      "z": 0
+     },
+     {
+      "s": 4.3,
+      "v": -0.1,
+      "opDak": false,
+      "afstand": 1.5,
+      "z": 0
+     },
+     {
+      "s": 6.1,
+      "v": 3.2,
+      "opDak": false,
+      "afstand": 4.8,
+      "z": 0
+     },
+     {
+      "s": 7.3,
+      "v": 0.6,
+      "opDak": false,
+      "afstand": 7.7,
+      "z": 0
+     },
+     {
+      "s": 9.1,
+      "v": 0.5,
+      "opDak": false,
+      "afstand": 7.7,
+      "z": 0
+     },
+     {
+      "s": 10.2,
+      "v": -3.5,
+      "opDak": false,
+      "afstand": 6.1,
+      "z": 0
+     },
+     {
+      "s": 11.3,
+      "v": 4.1,
+      "opDak": false,
+      "afstand": 5.7,
+      "z": 0
+     }
+    ],
+    "start": [
+     -52,
+     112
+    ],
+    "gereden": 3,
+    "afgegooidNaS": 1.4,
+    "maxV": 4.5,
+    "maxAfstandOpDak": 0.2
+   }
+  ],
+  "duurS": 83
+ }
+}</pre><h2>#1027 Fatbikes ontwijken: route</h2><figure><img src="shots-1027-fatbike-hud.jpg"><figcaption>shots-1027-fatbike-hud.png</figcaption></figure><h3>Meting</h3><pre>{
+ "gestart": true,
+ "missie": {
+  "index": 6,
+  "phase": "active",
+  "wp": 0,
+  "completed": [],
+  "armed": true,
+  "retry": false,
+  "heistSkip": false,
+  "stageInfo": null,
+  "player": {
+   "x": 117,
+   "y": -14,
+   "inVehicle": false
+  }
+ },
+ "marker": [
+  27,
+  -261
+ ],
+ "markerTotBrug": 3,
+ "routePunten": 17,
+ "routeEind": [
+  27,
+  -261
+ ],
+ "routeTotBaanMediaan": 0,
+ "routeTotBaanP90": 0,
+ "duurS": 24
+}</pre><h2>#1047 / #1049 AI-auto's in smalle straten</h2><figure><img src="shots-1047-verkeer-molenstreek-1.jpg"><figcaption>shots-1047-verkeer-molenstreek-1.png</figcaption></figure><figure><img src="shots-1047-verkeer-molenstreek-2.jpg"><figcaption>shots-1047-verkeer-molenstreek-2.png</figcaption></figure><figure><img src="shots-1047-verkeer-oosterstraat-1.jpg"><figcaption>shots-1047-verkeer-oosterstraat-1.png</figcaption></figure><figure><img src="shots-1047-verkeer-oosterstraat-2.jpg"><figcaption>shots-1047-verkeer-oosterstraat-2.png</figcaption></figure><figure><img src="shots-1047-verkeer-oosterwijk-service-1.jpg"><figcaption>shots-1047-verkeer-oosterwijk-service-1.png</figcaption></figure><figure><img src="shots-1047-verkeer-oosterwijk-service-2.jpg"><figcaption>shots-1047-verkeer-oosterwijk-service-2.png</figcaption></figure><figure><img src="shots-1047-verkeer-pelsterstraat-1.jpg"><figcaption>shots-1047-verkeer-pelsterstraat-1.png</figcaption></figure><figure><img src="shots-1047-verkeer-pelsterstraat-2.jpg"><figcaption>shots-1047-verkeer-pelsterstraat-2.png</figcaption></figure><h3>Meting</h3><pre>{
+ "plekken": [
+  {
+   "naam": "pelsterstraat",
+   "autos": 0,
+   "hoekInGebouw": 0,
+   "middenInGebouw": 0,
+   "voorbeelden": []
+  },
+  {
+   "naam": "oosterstraat",
+   "autos": 0,
+   "hoekInGebouw": 0,
+   "middenInGebouw": 0,
+   "voorbeelden": []
+  },
+  {
+   "naam": "oosterwijk-service",
+   "autos": 4,
+   "hoekInGebouw": 0,
+   "middenInGebouw": 0,
+   "voorbeelden": []
+  },
+  {
+   "naam": "molenstreek",
+   "autos": 1,
+   "hoekInGebouw": 0,
+   "middenInGebouw": 0,
+   "voorbeelden": []
+  }
+ ],
+ "duurS": 173
+}</pre><h2>#1083 Boten alleen op logische plekken</h2><figure><img src="shots-1083-boten-binnenstad-noorderhaven.jpg"><figcaption>shots-1083-boten-binnenstad-noorderhaven.png</figcaption></figure><figure><img src="shots-1083-boten-jachthaven-Jachthaven Zuiderstrand.jpg"><figcaption>shots-1083-boten-jachthaven-Jachthaven Zuiderstrand.png</figcaption></figure><figure><img src="shots-1083-boten-polder-haren.jpg"><figcaption>shots-1083-boten-polder-haren.png</figcaption></figure><figure><img src="shots-1083-boten-verhuursteiger-Hoge der A.jpg"><figcaption>shots-1083-boten-verhuursteiger-Hoge der A.png</figcaption></figure><h3>Meting</h3><pre>{
+ "plekken": [
+  {
+   "naam": "jachthaven-Jachthaven Zuiderstrand",
+   "x": -377,
+   "y": 457,
+   "boten": 16,
+   "ongeldig": [],
+   "voorbeeld": [
+    {
+     "kind": "kano",
+     "ok": true,
+     "reden": "vaarnet",
+     "breedte": 18,
+     "x": -377,
+     "y": 457,
+     "afgemeerd": true
+    },
+    {
+     "kind": "sloep",
+     "ok": true,
+     "reden": "vaarnet",
+     "breedte": 22,
+     "x": -376,
+     "y": 452,
+     "afgemeerd": true
+    },
+    {
+     "kind": "rubberboot",
+     "ok": true,
+     "reden": "vaarnet",
+     "breedte": 20,
+     "x": -377,
+     "y": 448,
+     "afgemeerd": true
+    },
+    {
+     "kind": "sloep",
+     "ok": true,
+     "reden": "vaarnet",
+     "breedte": 22,
+     "x": -376,
+     "y": 443,
+     "afgemeerd": true
+    },
+    {
+     "kind": "kano",
+     "ok": true,
+     "reden": "vaarnet",
+     "breedte": 22,
+     "x": -377,
+     "y": 439,
+     "afgemeerd": true
+    }
+   ]
+  },
+  {
+   "naam": "verhuursteiger-Hoge der A",
+   "x": -382,
+   "y": 192,
+   "boten": 16,
+   "ongeldig": [],
+   "voorbeeld": [
+    {
+     "kind": "kano",
+     "ok": true,
+     "reden": "vaarnet",
+     "breedte": 18,
+     "x": -377,
+     "y": 457,
+     "afgemeerd": true
+    },
+    {
+     "kind": "sloep",
+     "ok": true,
+     "reden": "vaarnet",
+     "breedte": 22,
+     "x": -376,
+     "y": 452,
+     "afgemeerd": true
+    },
+    {
+     "kind": "rubberboot",
+     "ok": true,
+     "reden": "vaarnet",
+     "breedte": 20,
+     "x": -377,
+     "y": 448,
+     "afgemeerd": true
+    },
+    {
+     "kind": "sloep",
+     "ok": true,
+     "reden": "vaarnet",
+     "breedte": 22,
+     "x": -376,
+     "y": 443,
+     "afgemeerd": true
+    },
+    {
+     "kind": "kano",
+     "ok": true,
+     "reden": "vaarnet",
+     "breedte": 22,
+     "x": -377,
+     "y": 439,
+     "afgemeerd": true
+    }
+   ]
+  },
+  {
+   "naam": "polder-haren",
+   "x": 3518,
+   "y": 5444,
+   "boten": 3,
+   "ongeldig": [
+    {
+     "kind": "sloep",
+     "ok": false,
+     "reden": "geen-vaarweg",
+     "breedte": 12,
+     "x": 3485,
+     "y": 5447,
+     "afgemeerd": false
+    }
+   ],
+   "voorbeeld": [
+    {
+     "kind": "waterfiets",
+     "ok": true,
+     "reden": "vaarnet",
+     "breedte": 32,
+     "x": 3499,
+     "y": 5438,
+     "afgemeerd": false
+    },
+    {
+     "kind": "sloep",
+     "ok": false,
+     "reden": "geen-vaarweg",
+     "breedte": 12,
+     "x": 3485,
+     "y": 5447,
+     "afgemeerd": false
+    },
+    {
+     "kind": "dinghy",
+     "ok": true,
+     "reden": "kade",
+     "breedte": 12,
+     "x": 3483,
+     "y": 5451,
+     "afgemeerd": false
+    }
+   ]
+  },
+  {
+   "naam": "binnenstad-noorderhaven",
+   "x": -289,
+   "y": -107,
+   "boten": 3,
+   "ongeldig": [],
+   "voorbeeld": [
+    {
+     "kind": "sloep",
+     "ok": true,
+     "reden": "vaarnet",
+     "breedte": 20,
+     "x": -96,
+     "y": -224,
+     "afgemeerd": false
+    },
+    {
+     "kind": "sup",
+     "ok": true,
+     "reden": "vaarnet",
+     "breedte": 34,
+     "x": -323,
+     "y": -109,
+     "afgemeerd": false
+    },
+    {
+     "kind": "dinghy",
+     "ok": true,
+     "reden": "vaarnet",
+     "breedte": 36,
+     "x": -379,
+     "y": -68,
+     "afgemeerd": false
+    }
+   ]
+  }
+ ],
+ "duurS": 76
+}</pre><h2>#958 Uit het water klimmen</h2><figure><img src="shots-958-klim-noorderhaven-eind.jpg"><figcaption>shots-958-klim-noorderhaven-eind.png</figcaption></figure><figure><img src="shots-958-klim-noorderhaven-klimt.jpg"><figcaption>shots-958-klim-noorderhaven-klimt.png</figcaption></figure><figure><img src="shots-958-klim-paddepoel-issue-eind.jpg"><figcaption>shots-958-klim-paddepoel-issue-eind.png</figcaption></figure><figure><img src="shots-958-klim-paddepoel-issue-klimt.jpg"><figcaption>shots-958-klim-paddepoel-issue-klimt.png</figcaption></figure><h3>Meting</h3><pre>{
+ "plekken": [
+  {
+   "naam": "paddepoel-issue",
+   "waterkant": [
+    -1329,
+    -989
+   ],
+   "startWater": "swim",
+   "trace": [
+    {
+     "s": 0.2,
+     "water": "swim",
+     "x": -1326.8,
+     "y": -989,
+     "z": -3.7,
+     "spot": [
+      -1327.8,
+      -990
+     ]
+    },
+    {
+     "s": 0.6,
+     "water": "climb",
+     "x": -1327.2,
+     "y": -989,
+     "z": -3.4,
+     "spot": [
+      -1328.6,
+      -989.6
+     ]
+    },
+    {
+     "s": 1.8,
+     "water": "land",
+     "x": -1329.8,
+     "y": -989.6,
+     "z": 0,
+     "spot": null
+    },
+    {
+     "s": 2.2,
+     "water": "land",
+     "x": -1330.9,
+     "y": -989.5,
+     "z": 0,
+     "spot": null
+    },
+    {
+     "s": 2.5,
+     "water": "land",
+     "x": -1331.9,
+     "y": -989.5,
+     "z": 0,
+     "spot": null
+    },
+    {
+     "s": 2.9,
+     "water": "land",
+     "x": -1332.9,
+     "y": -989.5,
+     "z": 0,
+     "spot": null
+    },
+    {
+     "s": 3.2,
+     "water": "land",
+     "x": -1333.9,
+     "y": -989.5,
+     "z": 0,
+     "spot": null
+    },
+    {
+     "s": 3.7,
+     "water": "land",
+     "x": -1335.2,
+     "y": -989.5,
+     "z": 0,
+     "spot": null
+    },
+    {
+     "s": 4,
+     "water": "land",
+     "x": -1336.3,
+     "y": -989.5,
+     "z": 0,
+     "spot": null
+    },
+    {
+     "s": 4.4,
+     "water": "land",
+     "x": -1337.4,
+     "y": -989.5,
+     "z": 0,
+     "spot": null
+    },
+    {
+     "s": 4.8,
+     "water": "land",
+     "x": -1338.5,
+     "y": -989.5,
+     "z": 0,
+     "spot": null
+    },
+    {
+     "s": 5.2,
+     "water": "land",
+     "x": -1339.6,
+     "y": -989.5,
+     "z": 0,
+     "spot": null
+    },
+    {
+     "s": 5.6,
+     "water": "land",
+     "x": -1340.7,
+     "y": -989.5,
+     "z": 0,
+     "spot": null
+    },
+    {
+     "s": 5.9,
+     "water": "land",
+     "x": -1341.7,
+     "y": -989.5,
+     "z": 0,
+     "spot": null
+    },
+    {
+     "s": 6.3,
+     "water": "land",
+     "x": -1342.7,
+     "y": -989.5,
+     "z": 0,
+     "spot": null
+    },
+    {
+     "s": 6.8,
+     "water": "land",
+     "x": -1344,
+     "y": -989.5,
+     "z": 0,
+     "spot": null
+    }
+   ],
+   "doorGebouw": false,
+   "wissels": 2,
+   "eind": {
+    "water": "land",
+    "x": -1345,
+    "y": -989.5,
+    "inGebouw": false,
+    "opDroog": true
+   }
+  },
+  {
+   "naam": "noorderhaven",
+   "waterkant": [
+    -299.2,
+    -111.2
+   ],
+   "startWater": "swim",
+   "trace": [
+    {
+     "s": 0.1,
+     "water": "swim",
+     "x": -301.2,
+     "y": -112,
+     "z": -3.7,
+     "spot": null
+    },
+    {
+     "s": 0.5,
+     "water": "swim",
+     "x": -300.7,
+     "y": -111.9,
+     "z": -3.4,
+     "spot": null
+    },
+    {
+     "s": 0.8,
+     "water": "swim",
+     "x": -300.2,
+     "y": -111.7,
+     "z": -3.3,
+     "spot": [
+      -299.2,
+      -110.5
+     ]
+    },
+    {
+     "s": 1.2,
+     "water": "swim",
+     "x": -299.9,
+     "y": -111.5,
+     "z": -3.2,
+     "spot": [
+      -298.6,
+      -111
+     ]
+    },
+    {
+     "s": 1.5,
+     "water": "swim",
+     "x": -299.9,
+     "y": -111.5,
+     "z": -3.2,
+     "spot": [
+      -298.6,
+      -111
+     ]
+    },
+    {
+     "s": 1.9,
+     "water": "swim",
+     "x": -299.9,
+     "y": -111.5,
+     "z": -3.3,
+     "spot": [
+      -298.6,
+      -111
+     ]
+    },
+    {
+     "s": 3.1,
+     "water": "land",
+     "x": -297.6,
+     "y": -110.5,
+     "z": 0,
+     "spot": null
+    },
+    {
+     "s": 3.4,
+     "water": "land",
+     "x": -296.6,
+     "y": -110.1,
+     "z": 0,
+     "spot": null
+    },
+    {
+     "s": 3.9,
+     "water": "land",
+     "x": -295.4,
+     "y": -109.8,
+     "z": 0,
+     "spot": null
+    },
+    {
+     "s": 4.2,
+     "water": "land",
+     "x": -294.4,
+     "y": -109.4,
+     "z": 0,
+     "spot": null
+    },
+    {
+     "s": 4.5,
+     "water": "land",
+     "x": -293.5,
+     "y": -109,
+     "z": 0,
+     "spot": null
+    },
+    {
+     "s": 5.4,
+     "water": "land",
+     "x": -292.5,
+     "y": -108.6,
+     "z": 0,
+     "spot": null
+    },
+    {
+     "s": 5.9,
+     "water": "land",
+     "x": -291.3,
+     "y": -108.1,
+     "z": 0,
+     "spot": null
+    },
+    {
+     "s": 6.3,
+     "water": "land",
+     "x": -290.2,
+     "y": -107.7,
+     "z": 0,
+     "spot": null
+    },
+    {
+     "s": 6.6,
+     "water": "land",
+     "x": -289.2,
+     "y": -107.3,
+     "z": 0,
+     "spot": null
+    },
+    {
+     "s": 6.9,
+     "water": "land",
+     "x": -288.4,
+     "y": -106.9,
+     "z": 0,
+     "spot": null
+    }
+   ],
+   "doorGebouw": false,
+   "wissels": 2,
+   "klimtoets": 2,
+   "eind": {
+    "water": "land",
+    "x": -287.9,
+    "y": -106.7,
+    "inGebouw": false,
+    "opDroog": true
+   }
+  },
+  {
+   "naam": "hoge-der-a",
+   "fout": "geen waterkant gevonden"
+  },
+  {
+   "naam": "oosterhaven",
+   "fout": "geen waterkant gevonden"
+  }
+ ],
+ "duurS": 65
+}</pre>

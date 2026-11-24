@@ -11,7 +11,8 @@ let n = 0, fails = 0;
 const ok = (c, naam, info = '') => { n++; if (!c) { fails++; console.log(`FAIL ${naam}${info ? ' (' + info + ')' : ''}`); } };
 
 const race = await A.alle.race();
-const vast = [...await A.alle.marina(), ...await A.alle.verhuur(), ...await A.alle.bijbaan(), ...race];
+const missie = await A.alle.missie();
+const vast = [...await A.alle.marina(), ...await A.alle.verhuur(), ...await A.alle.bijbaan(), ...race, ...missie];
 const ps = samenvatting(vast);
 ok(vast.length > 50, 'de vaste plekken zijn gemeten', String(vast.length));
 for (const [c, s] of Object.entries(ps)) ok(s.fout === 0, `${c}: geen boot buiten kade, steiger of vaarweg`, s.voorbeelden.join('; '));
@@ -20,6 +21,9 @@ ok(vast.every((r) => r.reden !== 'sloot' && r.reden !== 'vijver' && r.reden !== 
 // de wedstrijdboten (#1083): regatta op de Hoornse Plas, skutsjerace en bruggenrace staan op een vaarweg of open water
 ok(race.length >= 15 && race.every((r) => r.reden !== 'overgeslagen'), 'de wedstrijdplekken zijn gemeten', String(race.length));
 ok(race.some((r) => r.naam.startsWith('regatta plas')) && race.some((r) => r.naam.startsWith('skutsje')) && race.some((r) => r.naam.startsWith('bruggenrace')), 'regatta, skutsje en bruggenrace zitten er allemaal in');
+
+// de missieboten van akte 2 en 4 (#1083): ook die moeten op geldige plekken staan
+ok(missie.length >= 2 && missie.every((r) => r.reden !== 'overgeslagen'), 'de missieboten zijn gemeten', String(missie.length));
 
 // AI over 20 seeds op 12 plekken
 const ai = await A.alle.ai({ seeds: 20, posities: 12 });

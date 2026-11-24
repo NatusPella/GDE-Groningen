@@ -240,6 +240,13 @@ export function canUseRoad(v, r, map = fitMap) {
     if ((f.endWet & 1) && !(roadNode(map, r, 0) || []).some((e) => e.road !== r)) return false;
     if ((f.endWet & 2) && !(roadNode(map, r, r.pts.length - 1) || []).some((e) => e.road !== r)) return false;
   }
+  // #1049: een doodlopend einde waar de gevel binnen een autolengte plus 2 m staat: wie daar keert, schaaft langs de gevel (de
+  // keerboog zwaait de neus ruim uit; Molenstreek, servicewegen achter de garages in de audit)
+  if (f && f.endRoom && map && (r.width || 0) <= 7.5) {
+    const need = Math.min(6, (v.model.len || 4.4) + 2); // endRoom telt tot 6 m (roadfit.js CAP)
+    if (f.endRoom[0] < need && !(roadNode(map, r, 0) || []).some((e) => e.road !== r)) return false;
+    if (f.endRoom[1] < need && !(roadNode(map, r, r.pts.length - 1) || []).some((e) => e.road !== r)) return false;
+  }
   return true;
 }
 

@@ -64,7 +64,8 @@ function bouwTaxi(world, optie, dest) {
       try { const rp = []; for (let s = 0; s <= pad.len; s += 250) { const a = pad.at(s); rp.push([a.x, a.y]); } if (w.map && w.map.warmRoute) w.map.warmRoute(rp); } catch (e) { /* vooruitladen is een hulpmiddel */ }
       v = new Vehicle(q.x, q.y, q.a, carModel('taxi'));
       applyFleetFlags(v, 'taxi');
-      Object.assign(v, { road: null, plan: [], driver: 'cine', cineTemp: true, missionCar: true, z: zHoogte(w.map, q.x, q.y) });
+      // ghost (#1020): het verkeer botst niet met de taxi van de rit; anders kreeg hij deuken onderweg (beeldcheck 21-11)
+      Object.assign(v, { road: null, plan: [], driver: 'cine', cineTemp: true, missionCar: true, ghost: true, z: zHoogte(w.map, q.x, q.y) });
       w.vehicles.push(v);
       pushAudioEvent(w, { kind: 'door_close', x: q.x, y: q.y, auto: true }); // het portier gaat dicht (greep, deur): je zit
       w.ritTaxi = v; // scene3d tekent de cabine van Gele Gans voor de passagier (ritcabine3d.js)

@@ -160,3 +160,23 @@ niet gekozen (`ARC_STATS.wide` 0): de gevelcontrole grijpt zelden in. Niets is i
 
 **Samen spelen.** Verkeer is van wie het spel opende en gaat mee in de snapshot; de bogen zijn lokale padmeetkunde in `updateTrafficAI`, die alleen
 de kant draait die de wereld simuleert (gasten niet). Geen nieuw bericht, geen voortgang of beloning per speler; test: de pure tests hierboven.
+
+## 24-11: rijstrook langs de gevel en doodlopende einden (#1047, #1049)
+
+Met `verkeer_wereld_test --json=<bestand>` (elk schaafje met de ruimte tot de gevel, keren en afstand tot het weguiteinde) bleken de resterende schaafjes
+op een paar vaste plekken te zitten: servicewegen waar de gevel op 1,5 m van de hartlijn staat (de rechterrijstrook zette de flank tegen de gevel),
+en keren aan een doodlopend einde naast een pand (servicewegen achter garages, de stomp van de Molenstreek). Twee wijzigingen:
+
+- `vehicle.js laneOffset`: op een smalle weg (tot 7,5 m) blijft de rijstrook binnen `road._fit.c - halve breedte - 0,25 m`: de auto houdt het midden aan;
+- `roadfit.js endRoom` en `traffic.js canUseRoad`: een doodlopend einde met een voetafdruk binnen een autolengte plus 2 m (max 6 m) is niets voor een auto.
+
+| 24 zaden (7 tot 30) x 4 plekken x 180 s | integratie-0.66 | + rijstrook | + doodlopend einde |
+|---|---|---|---|
+| gevelschaafjes (som) | 861 (35,9 per zaad) | 800 | 632 (26,3 per zaad, -27%) |
+| auto met het midden in een gebouw | 4 | 5 | 0 |
+| meer dan 3,5 m naast het wegdek | 202 | 200 | 202 |
+| vast zonder reden | 1 | 1 | 0 |
+
+Wat blijft: kruispunthoeken op 6,5 m brede straten (Pelsterstraat bij 63,235, de Molenstreek bij 187,-2537 waar de stomp 6 m van een huis eindigt) en
+Stalstraat (gevel op 1,65 m van de hartlijn op een eenrichtingsweg). In beeld: scripts/qa/verkeer_beeld.mjs, docs/beeld-24-11/verkeer/.
+Samen spelen: verkeer is van wie het spel opende; de keuze van wegen en de rijstrook zijn lokale AI-meetkunde, geen nieuw bericht.

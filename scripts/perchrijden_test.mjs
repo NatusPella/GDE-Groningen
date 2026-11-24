@@ -106,6 +106,16 @@ const rij = (s, v0, sec) => {
   s.v.speed = 2; step(s, 1);
   check('een abrupte stop gooit je eraf', !s.p.perch);
 }
+// een AI-auto die vanaf 3 m/s in een paar beelden stopt (een rij, een licht): je blijft staan (beeldcheck 24-11)
+{
+  const s = scene();
+  s.p.startPerch(s.world, s.v, 0, 0);
+  step(s, 5);
+  rij(s, 3.2, 1);
+  for (const v of [2.4, 1.6, 0.8, 0]) { s.v.speed = v; step(s, 1); }
+  step(s, 30);
+  check('een stop vanaf 3 m/s: nog op het dak', !!s.p.perch);
+}
 // verlaten van het dak (over de rand stappen) stopt het meevoeren
 {
   const s = scene();
@@ -122,6 +132,8 @@ const rij = (s, v0, sec) => {
 // de pure regels
 check('perchThrown: rustig rijden is veilig', perchThrown({ speed: 10 }, 10, 1 / 60) === false);
 check('perchThrown: een rem van 12 m/s2 gooit je eraf', perchThrown({ speed: 8 }, 8 + 12 / 60, 1 / 60) === true);
+check('perchThrown: met weinig verlies (2 m/s) gooit dezelfde rem je er niet af', perchThrown({ speed: 8 }, 8 + 12 / 60, 1 / 60, 2) === false);
+check('perchThrown: met veel verlies (5 m/s) wel', perchThrown({ speed: 8 }, 8 + 12 / 60, 1 / 60, 5) === true);
 check('perchThrown: een rem net onder de grens niet', perchThrown({ speed: 8 }, 8 + (PERCH_BRAKE_LIMIT - 0.5) / 60, 1 / 60) === false);
 check('perchThrown: een scherpe bocht op snelheid wel', perchThrown({ speed: 12, yawRate: 1.5 }, 12, 1 / 60) === true);
 check('perchThrown: een scherpe bocht stapvoets niet', perchThrown({ speed: 3, yawRate: 1.5 }, 3, 1 / 60) === false);

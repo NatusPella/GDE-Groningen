@@ -7,6 +7,8 @@
 //   roadClearance(map, road)       { c, p, wet }: kleinste afstand hartlijn tot een voetafdruk (m, max 6; 0 = erdoor), en of de
 //                                  hartlijn door open water loopt zonder brug of tunnel
 //   (road._fit.endWet: bit 1 begin, bit 2 einde van de hartlijn ligt aan open water; de AI mijdt zo'n einde als het een doodlopend einde is)
+//   (road._fit.endRoom: [begin, einde] afstand van het uiteinde van de hartlijn tot de dichtstbijzijnde voetafdruk (m, max 6): ruimte
+//   om te keren; de AI mijdt een doodlopend einde waar een auto niet kan keren zonder langs de gevel te schaven, #1049)
 //   roadFitsBody(map, road, wid)   mag een voertuig van deze breedte (m) hier rijden
 
 import { pointInPolygon } from '../util.js';
@@ -66,7 +68,7 @@ export function roadClearance(map, road) {
     if (c0.wver !== wver) waterFit(map, road, c0);
     return c0;
   }
-  const out = { ver, wver, c: CAP, wet: false, p: CAP, endWet: 0 };
+  const out = { ver, wver, c: CAP, wet: false, p: CAP, endWet: 0, endRoom: [CAP, CAP] };
   road._fit = out;
   if (!road.pts || road.pts.length < 2) return out;
   waterFit(map, road, out);
@@ -95,6 +97,15 @@ export function roadClearance(map, road) {
         const d = distToPoly(x, y, b.pts);
         if (d < out.c) out.c = d;
       }
+    }
+  }
+  // ruimte om te keren aan elk uiteinde: de dichtstbijzijnde voetafdruk (een doorgang telt niet, daar keert niemand)
+  if (!grade) for (let e = 0; e < 2; e++) {
+    const [x, y] = e ? P[P.length - 1] : P[0];
+    for (const b of map.buildingsNear(x, y, CAP)) {
+      if (b.type === 'houseboat') continue;
+      const d = pointInPolygon(x, y, b.pts) ? 0 : distToPoly(x, y, b.pts);
+      if (d < out.endRoom[e]) out.endRoom[e] = d;
     }
   }
   return out;
