@@ -310,7 +310,7 @@ export class TileWorld extends GameMap {
       const job = this._tileJobs && this._tileJobs.get(tk);
       if (job) { job.cancelled = true; this._tileJobs.delete(tk); }
       // a reload that arrives before this queued drop runs has a job of its own: the drop removes the old rows and leaves that job alone
-      this.tileQueue.add(() => this.dropTile(tk, true), 0, `drop:${tk}`);
+      this._queueDrop(tk);
       // #762: de overlay-resident van deze stadstegel ('o' + plaats) is bij het laden
       // met de stad meegekomen en heeft geen eigen store-entry; hij valt dus nooit
       // via de store. Zonder deze drop blijven zijn gebouwen, wegen en bomen de hele
@@ -319,6 +319,18 @@ export class TileWorld extends GameMap {
       if (this.resident.has(ov)) this.tileQueue.add(() => this.dropTile(ov), 0, `drop:${ov}`);
     });
     return this;
+  }
+
+  _queueDrop(tk) {
+    const dropping = this._dropping || (this._dropping = new Set());
+    dropping.add(tk);
+    const steps = this.dropTileSteps(tk, true);
+    const step = () => {
+      const r = steps.next();
+      if (r.done) { dropping.delete(tk); return; }
+      this.tileQueue.add(step, 0, `drop:${tk}`); // volgende stuk, volgende frame
+    };
+    this.tileQueue.add(step, 0, `drop:${tk}`);
   }
 
   // #650: een gestroomde tegel is geen onbegrensd FrameQueue-item meer. De rijen
@@ -345,6 +357,8 @@ export class TileWorld extends GameMap {
     const step = () => {
       // (a cancelled job is already out of the books; the entry under this key may be the reload's job)
       if (job.cancelled) { if (this._tileJobs.get(tk) === job) this._tileJobs.delete(tk); return; }
+      // perf-r3: de drop van dezelfde tegel loopt nog in stukken: eerst die af
+      if (this._dropping && this._dropping.has(tk)) { job.queue.add(step, job.prio, `add:${tk}`); return; }
       const r = steps.next();
       if (r.done) { if (this._tileJobs.get(tk) === job) this._tileJobs.delete(tk); return; }
       job.queue.add(step, job.prio, `add:${tk}`); // volgende stuk, volgende frame
@@ -642,7 +656,18 @@ export class TileWorld extends GameMap {
 
   // keepJob: the store's own queued drop (attachStore) already cancelled the job of the load it drops; a job under this key now
   // belongs to a reload that came in since and must go on after the old rows are out
+  // de synchrone variant (de stad, de tests, een overlaytegel): dezelfde stappen in één keer
   dropTile(tk, keepJob = false) {
+    const steps = this.dropTileSteps(tk, keepJob);
+    let r = steps.next();
+    while (!r.done) r = steps.next();
+    return r.value;
+  }
+
+  // perf-r3 (24-11, profiel: dropTile/release tot 126 ms in één stap, vooral roadindex.remove): een gestroomde tegel die wegvalt,
+  // laat zijn rijen in stukken los (de klok elke 64 rijen, ROW_CHUNK_MS), net als addTileSteps. Een tegel die intussen opnieuw
+  // binnenkomt, wacht tot zijn drop klaar is (queueTile, _dropping).
+  *dropTileSteps(tk, keepJob = false) {
     const job = this._tileJobs && this._tileJobs.get(tk);
     if (job && !keepJob) { job.cancelled = true; this._tileJobs.delete(tk); }
     if (!this.resident.delete(tk)) return false;
@@ -683,9 +708,11 @@ export class TileWorld extends GameMap {
     const held = this._tileRows && this._tileRows.get(tk);
     if (held && !this.scanDrops) {
       this._tileRows.delete(tk);
+      let chunkT = performance.now();
       for (let i = 0; i < held.length; i += 2) {
         const e = this._res[held[i]].get(held[i + 1]);
         if (e) release(held[i], held[i + 1], e);
+        if ((i & 127) === 126 && performance.now() - chunkT >= ROW_CHUNK_MS) { yield; chunkT = performance.now(); }
       }
     } else {
       // a tile that came in with the pinned set (no list) and the A/B of the old way (scanDrops): every row of the world
