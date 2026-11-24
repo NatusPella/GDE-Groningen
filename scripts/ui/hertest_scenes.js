@@ -464,7 +464,11 @@ const draai = async () => {
   const camOff = () => { curPose = null; if (cine.isCinematicActive()) cine.skipCinematic(); w.cameraOverride = null; };
   const H = mk({
     D, w, p, map, stad, gh, PM, ev: null,
-    shot: async (name, wait = 1200) => { await sleep(wait); fix(); console.log('[capture] h' + H.ev.nr + '-' + name); H.ev.shots.push(name); await sleep(700); },
+    shot: async (name, wait = 1200) => {
+      await sleep(wait);
+      // een ander filmpje (plaatskaart, ontdekking) kan het eigen camerabeeld hebben vervangen: opnieuw zetten (wereldbugs 24-11)
+      if (curPose && !cine.isCinematicActive('ht-view')) { const q = curPose; curPose = null; H.cam(q.position.x, q.position.y, q.position.z, q.lookAt.x, q.lookAt.y, q.lookAt.z, q.fov); await sleep(900); }
+      fix(); console.log('[capture] h' + H.ev.nr + '-' + name); H.ev.shots.push(name); await sleep(700); },
     meet: (k, v) => { H.ev.metrics[k] = v; }, note: (t) => H.ev.notes.push(String(t)),
     wet: (x, y) => !!isInWater(map, x, y),
     zichtbaar: (re) => [...document.querySelectorAll('body *')].filter((e) => e.children.length === 0 && e.offsetParent !== null && re.test(e.textContent || '')).slice(0, 5).map((e) => e.textContent.trim().slice(0, 80)),
