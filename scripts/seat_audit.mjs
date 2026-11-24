@@ -125,7 +125,7 @@ function bodyBox(root) {
 // Een modulaire mens op de stoel: placeSeatedLocal speelt een tijdje de zit- of rijclip, dan dezelfde punten als hieronder uit
 // zijn eigen botten (hoofd 9 cm boven het hoofdbot, handen = polsen, voeten = voetbotten, knieën = onderbeen).
 function seatFigureModular(mesh, v, seat) {
-  const p = M.buildModularPerson(100 + modN, { female: modN++ % 2 === 1 });
+  const p = M.buildModularPerson(100 + modN, { female: modN++ % 2 === 1, nominal: true });   // de gemiddelde mens: lengte en bouw uit het zaad (personSize) wijken een paar graden af
   p.userData.isPerson = true;
   p.traverse((o) => { o.userData.person = true; });
   const host = mesh.userData.body || mesh;

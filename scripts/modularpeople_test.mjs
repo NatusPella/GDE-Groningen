@@ -235,7 +235,7 @@ for (const female of [false, true]) {
 // maten (eis eigenaar 23-11): lengte tot de kruin, ooghoogte, schouders, en of een stoel van 0,45 m en een deur van 2,05 m passen
 {
   const { measure } = await import('./people/mensen_maten.mjs');
-  const NORM = { man: [1.75, 1.85], vrouw: [1.65, 1.72] };
+  const NORM = { man: [1.70, 1.88], vrouw: [1.60, 1.74] };   // lengte uit het zaad (personSize): ouders en kinderen daargelaten, een gewone Nederlandse straat
   for (const female of [false, true]) {
     const rig = female ? 'vrouw' : 'man';
     let lo = 9, hi = 0, eyeMin = 9, eyeMax = 0, knee = 0, sh = 0, bad = 0;
@@ -249,7 +249,7 @@ for (const female of [false, true]) {
       sh = Math.max(sh, r.schouder);
     }
     ok(bad === 0, `${rig}: lengte binnen ${NORM[rig].join('-')} m (gemeten ${lo.toFixed(3)}-${hi.toFixed(3)})`);
-    if (!female) ok(eyeMin > 1.55 && eyeMax < 1.72, `${rig}: ooghoogte rond 1,62 m (${eyeMin.toFixed(3)}-${eyeMax.toFixed(3)})`);
+    if (!female) ok(eyeMin > 1.50 && eyeMax < 1.75, `${rig}: ooghoogte rond 1,62 m (${eyeMin.toFixed(3)}-${eyeMax.toFixed(3)})`);
     ok(knee > 0.4 && knee < 0.6, `${rig}: kniehoogte ${knee.toFixed(2)} m past bij een zitting van 0,45 m`);
     ok(hi < 2.05 - 0.1, `${rig}: past onder een deur van 2,05 m`);
     ok(sh > 0.38 && sh < 0.6, `${rig}: schouders ${sh.toFixed(2)} m`);
