@@ -117,3 +117,13 @@ export function roadFitsBody(map, road, wid) {
   if (f.wet) return false;
   return f.c >= wid / 2 + MARGE && f.p >= wid / 2;
 }
+
+// #1047: on a narrow street the facade can stand closer to the centreline than the right lane plus half a car
+// (road._fit.c, worked out once per road by canUseRoad): there the car keeps to the middle, so its flank stays
+// LANE_GAP off the wall instead of scraping it every lap (the audit's service roads at 1.5 m). Used by vehicle.js laneOffset.
+const LANE_GAP = 0.25;
+export function fitLane(road, lane, halfWid) {
+  const f = road._fit;
+  if (!f || (road.width || 0) > 7.5) return lane;
+  return Math.min(lane, Math.max(0, f.c - halfWid - LANE_GAP));
+}

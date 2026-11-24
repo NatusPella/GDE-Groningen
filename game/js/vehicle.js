@@ -22,6 +22,7 @@ import { setBusPopHost, manageBusPopulation, setBusLines, getBusLines, setLiveBu
 export { manageBusPopulation, setBusLines, getBusLines, setLiveBussen, busSpawnStats, detachLiveBus };
 import { playerTune, playerTopSpeed, speedCap, coastDrag, lateralGrip, maxYawRate, maxCurvature } from './vehicle/tuning.js';
 import { heavyLoad } from './vehicle/heavyload.js';
+import { fitLane } from './vehicle/roadfit.js';
 export { playerTopSpeed, speedCap, maxYawRate, maxCurvature };
 import { pushBusTrail, sampleBusTrail, stepBusTrailerAngle, busTrailerPose, TRAILER_MAX_ANGLE } from './vehicle/trailer.js';
 export { sampleBusTrail, stepBusTrailerAngle, busTrailerPose, TRAILER_MAX_ANGLE };
@@ -539,16 +540,6 @@ function laneOffset(road, v, half = road.width / 2, dir = 1) {
   else if (road.oneway) lane = clamp(half - halfWid - 1.2, 0, 1);
   else lane = clamp(half / 2, 0.3, Math.max(0.3, half - halfWid - 0.25));
   return fitLane(road, lane, halfWid);
-}
-
-// #1047: on a narrow street the facade can stand closer to the centreline than the right lane plus half a car
-// (roadfit.js road._fit.c, worked out once per road by canUseRoad): there the car keeps to the middle, so its
-// flank stays LANE_GAP off the wall instead of scraping it every lap (the audit's service roads at 1.5 m).
-const LANE_GAP = 0.25;
-function fitLane(road, lane, halfWid) {
-  const f = road._fit;
-  if (!f || (road.width || 0) > 7.5) return lane;
-  return Math.min(lane, Math.max(0, f.c - halfWid - LANE_GAP));
 }
 
 // The middle of the rightmost or leftmost lane for traffic going `dir` along
