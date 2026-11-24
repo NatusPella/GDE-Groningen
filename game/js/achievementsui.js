@@ -252,19 +252,19 @@ function nogNietTekst(catLabel) {
 // de tabrij en de vier getallen die er iets betekenen. Geen nieuwe definities: alles komt uit
 // getAchievementSummary en dezelfde view als de lijst eronder.
 function heroHtml(sum, near, verborgen) {
-  const pct = sum.total ? (sum.done / sum.total) * 100 : 0;
   const pctTekst = eerlijkPct(sum.total ? sum.done / sum.total : 0, sum.total > 0 && sum.done >= sum.total);
   const teGaan = Math.max(0, sum.total - sum.done);
   const klaar = sum.total > 0 && sum.done >= sum.total;
   const lead = klaar
     ? 'Alles gehaald. Grunn is van jou.'
-    : `${teGaan} ${teGaan === 1 ? 'prestatie' : 'prestaties'} te gaan${near.length ? `, ${near.length} ${near.length === 1 ? 'is' : 'zijn'} dichtbij` : ''}. Prestaties blijven bewaard, ook bij een nieuw spel.`;
+    // #999 (24-11): de getallen staan in de vier waarden hiernaast en de balk bovenaan; de zin herhaalt ze niet
+    : 'Prestaties blijven bewaard, ook bij een nieuw spel.';
   const cijfer = (n, woord) => `<span class="ds-z-waarde"><span class="ds-z-waarde__getal">${n}</span><span class="ds-z-waarde__eenheid">${woord}</span></span>`;
   return '<section class="ds-zeef ds-z-kaart ds-z-kaart--recht pa-hero" aria-label="Prestaties">' +
-    `<div class="ds-z-kaart__kop"><span class="ds-z-kaart__titel">Prestaties</span>${chip(klaar ? 'succes' : 'selectie', klaar ? 'ok' : 'ster', `${pctTekst}%`)}</div>` +
+    `<div class="ds-z-kaart__kop"><span class="ds-z-kaart__titel">Je stand</span>${chip(klaar ? 'succes' : 'selectie', klaar ? 'ok' : 'ster', `${pctTekst}%`)}</div>` +
     '<div class="pa-hero-rij">' + `<p class="ds-z-kaart__tekst">${esc(lead)}</p>` +
     '<div class="pa-hero-cijfers">' + cijfer(sum.done, 'behaald') + cijfer(teGaan, 'nog te gaan') + cijfer(near.length, 'bijna binnen') + cijfer(verborgen, 'nog geheim') + '</div></div>' +
-    streep(pct, `${sum.done} van ${sum.total} behaald`, true) + '</section>';
+    '</section>'; // #999: geen tweede balk "0 van 238 behaald": die staat al bovenaan naast de tabbladen
 }
 
 // DS3 (ds-micro.css, achievementunlock.js listPlan): de categorie-teller tikt op naar het nieuwe aantal, een balk vult van wat er
