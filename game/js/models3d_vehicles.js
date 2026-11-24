@@ -1,6 +1,7 @@
 import { FLAT_SCALE, flatWheelIndex } from './flatlook.js';
 import { LRUCache } from './lrucache.js';
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
+import { makeLodObject } from './lodkit3d.js';
 import { applyVehicleLook } from './vehiclelook3d.js'; // epic Autotuning (#1155): v.look komt er na het bouwen op
 import { HABBO_PALETTE, habboMaterial, GeoBuilder, vcMaterial, markShared, composeMatrix, tubeGeometry } from './pixelart3d.js';
 import { buildPersonMesh, PERSON_RIG, holdPhoneRiding, reachHandFromParent, steerHands } from './models3d_people.js';
@@ -3884,6 +3885,8 @@ function buildBoatMesh(v) {
     }
     group.userData.policeLamps = lamps;
   }
+  // centraal LOD-systeem (lodkit3d.js, 23-11): romp, tuig en lampen krijgen lichtere niveaus en verdwijnen voorbij de cull-afstand van 'boat'
+  makeLodObject('boat', 'boot:' + kind, group);
   return group;
 }
 

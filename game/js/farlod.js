@@ -5,6 +5,7 @@ import { perfOff } from './devflags.js';
 import { buildingLift, roadBaseAt } from './terrainlift.js';
 import { drawHub } from './multidraw3d.js';
 import { farBuildDist, createCooler, RING_KEEP_MAX } from './lodstable.js';
+import { GLSL_BAYER, GLSL_FAR_FRAG } from './buildingfade.js';
 
 // Far LOD layer: plain extruded buildings and flat ground (green, paths,
 // roads) merged per TILE x TILE metre tile, one draw call per tile and layer.
@@ -66,6 +67,7 @@ export function facadeBands(foot, top) {
   };
 }
 
+export const lodShared = () => shared; // de uniforms van de ring en de band, ook voor de detailgebouwen (scene3d.js, buildingfade.js)
 const shared = {
   uLodPlayer: { value: new THREE.Vector2() },
   uLodDetailR: { value: 140 },
@@ -74,6 +76,8 @@ const shared = {
   // hoeft dan niet naar het eerste wachtende gebouw te krimpen
   uLodKeep: { value: Array.from({ length: RING_KEEP_MAX }, () => new THREE.Vector2(1e9, 1e9)) },
   uLodKeepN: { value: 0 },
+  // de dither-overgang met de detailgebouwen (buildingfade.js): zoveel meter binnen de ring
+  uLodBand: { value: 0 }, // scene3d.js zet hem elke frame: BUILDING_FADE_BAND met een verre laag, anders 0 (de harde wissel)
   // a streamed tile's flat water is only drawn beyond this radius (see waterStreamMaterial)
   uLodWaterR: { value: 3800 },
   uNightGlow: { value: 0 },
@@ -93,24 +97,36 @@ uniform vec2 uLodPlayer;
 uniform float uLodDetailR;
 uniform vec2 uLodKeep[${RING_KEEP_MAX}];
 uniform int uLodKeepN;
+uniform float uLodBand;
 varying vec3 vFarW;
 varying float vFarSeed;
-varying vec2 vFarWall;`)
+varying vec2 vFarWall;
+varying float vFarFade;`)
       .replace('#include <project_vertex>', `#include <project_vertex>
+vFarFade = 1.0;
 vFarW = (modelMatrix * vec4(transformed, 1.0)).xyz;
 vFarWall = lodWall;
 vFarSeed = fract(sin(dot(lodCenter, vec2(12.9898, 78.233))) * 43758.5453);
-if (distance(lodCenter, uLodPlayer) <= uLodDetailR) {
+float lodDist = distance(lodCenter, uLodPlayer);
+if (lodDist <= uLodDetailR) {
   bool keepFar = false;
   for (int i = 0; i < ${RING_KEEP_MAX}; i++) { if (i >= uLodKeepN) break; if (distance(lodCenter, uLodKeep[i]) < 0.6) { keepFar = true; break; } }
-  if (!keepFar) gl_Position = vec4(0.0, 0.0, -2.0, 1.0);
+  // binnen de band dooft de kopie uit tegen het detailgebouw in (buildingfade.js); daarbinnen klapt hij in
+  if (!keepFar) {
+    if (uLodBand <= 0.0 || lodDist <= uLodDetailR - uLodBand) gl_Position = vec4(0.0, 0.0, -2.0, 1.0);
+    else vFarFade = (lodDist - (uLodDetailR - uLodBand)) / uLodBand;
+  }
 }`);
     shader.fragmentShader = shader.fragmentShader
       .replace('#include <common>', `#include <common>
 uniform float uNightGlow, uLitFrac;
 varying vec3 vFarW;
 varying float vFarSeed;
-varying vec2 vFarWall;`)
+varying vec2 vFarWall;
+varying float vFarFade;
+${GLSL_BAYER}`)
+      .replace('void main() {', `void main() {
+${GLSL_FAR_FRAG}`)
       .replace('#include <color_fragment>', `#include <color_fragment>
 {
   // flat roofs: panel seams every 24 m and a slightly different tone per panel, so a big hall is no empty grey plane (#260)

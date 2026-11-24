@@ -38,12 +38,19 @@ export const lodScaleFor = (preset) => LOD_SCALE[preset] || LOD_SCALE.vlot;
 
 // De opgave (lodlevels.js-vorm) van een soort voor een model met n echte niveaus, geschaald met de stand. Een model met minder niveaus
 // dan de soort (een al eenvoudig model) houdt zijn laatste niveau tot de weg-afstand: het verdwijnt niet al bij de afstand van LOD1.
+// gecachet: lodLevelsForFade loopt per instance bij elke herbouw (straatmeubilair, bomen), en een nieuw object per aanroep was afval voor de GC.
+// Het teruggegeven object is gedeeld: niet aanpassen.
+const specCache = new Map();
 export function lodSpec(kind, n = 3, scale = 1) {
+  const key = `${kind}|${n}|${scale}`;
+  let out = specCache.get(key);
+  if (out) return out;
   const k = LOD_KINDS[kind];
   if (!k) throw new Error(`onbekende LOD-soort: ${kind}`);
   const { grenzen, band, weg } = k.lod;
-  const out = { grenzen: grenzen.slice(0, Math.max(0, n - 1)).map((g) => g * scale), band };
+  out = { grenzen: grenzen.slice(0, Math.max(0, n - 1)).map((g) => g * scale), band };
   if (weg != null) out.weg = weg * scale;
+  specCache.set(key, Object.freeze(out));
   return out;
 }
 export const lodSpecError = (kind) => lodError(LOD_KINDS[kind].lod);

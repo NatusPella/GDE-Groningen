@@ -10,9 +10,9 @@ import { frameWorkMs } from './framecap.js';
 export const GFX_PRESETS = {
   laag: { quality: 'laag', shadows: false, drawDistance: 'kort', resolution: 0.75, autoResolution: true },
   middel: { quality: 'middel', shadows: true, drawDistance: 'normaal', resolution: 1, autoResolution: true },
-  // Hoog (sleutel 'vlot'): Ultra's look with a wide view of 600 m instead of 900 m (far LOD, far terrain and countryside, soft haze), so
-  // fewer far tiles and draw calls than Ultra. Until 24-11 this was 'kort' (150 m, a haze wall at 63 to 153 m).
-  vlot: { quality: 'hoog', shadows: true, drawDistance: 'ver', resolution: 1, autoResolution: true },
+  // Hoog (sleutel 'vlot'): Ultra's look with a view of 350 m ('normaal') instead of 900 m (far LOD, soft haze from 40% of the view), so
+  // clearly lighter than Ultra. Until 23-11 this was 'kort' (150 m, a haze wall at 63 to 153 m); 'ver' (600 m) was as heavy as Ultra.
+  vlot: { quality: 'hoog', shadows: true, drawDistance: 'normaal', resolution: 1, autoResolution: true },
   hoog: { quality: 'hoog', shadows: true, drawDistance: 'heelver', resolution: 1, autoResolution: true },
 };
 export const PRESET_ORDER = ['laag', 'middel', 'vlot', 'hoog'];
@@ -29,7 +29,7 @@ export const presetLabel = (name) => LABELS[name] || name;
 export const PRESET_HINTS = {
   laag: 'Lichtste stand: minder detail, korte zichtafstand, schaduwen uit',
   middel: 'Middenweg: schaduwen aan, normale zichtafstand, 1,5x resolutie',
-  vlot: 'De look van Ultra met een ruime zichtafstand en zachte mist: soepel op een sterke laptop',
+  vlot: 'De look van Ultra met een normale zichtafstand en zachte mist: duidelijk lichter dan Ultra',
   hoog: 'Alles op zijn mooist: verste zichtafstand en de grootste schaduwkaart',
 };
 
@@ -64,7 +64,7 @@ export function currentPreset(st = getSettings()) {
   return PRESET_ORDER.find((n) => Object.entries(GFX_PRESETS[n]).every(([k, v]) => st[k] === v)) || null;
 }
 
-// The out-of-the-box graphics: de preset Vlot (Hoog: Ultra's look met een ruime zichtafstand van 600 m),
+// The out-of-the-box graphics: de preset Vlot (Hoog: Ultra's look met een zichtafstand van 350 m),
 // zodat een eerste start op een iGPU-laptop speelbaar blijft.
 const GFX_DEFAULT = { ...GFX_PRESETS.vlot };
 export const isDefaultGfx = (st = getSettings()) => Object.entries(GFX_DEFAULT).every(([k, v]) => st[k] === v);

@@ -101,6 +101,9 @@ import { effectsFor, shakeAmount } from './a11ylogic.js';
 import { reducedMotion } from './motion.js';
 import { dynamicScale, cpuLevel, currentPreset } from './gfxprofile.js';
 import { setAnimalLodPreset } from './meshlod.js';
+import { setLodPreset, updateLodObjects, lodFadeMaterial, lodScale } from './lodkit3d.js';
+import { GLSL_DETAIL_HEAD_VERT, GLSL_DETAIL_VERT, GLSL_DETAIL_HEAD_FRAG, GLSL_DETAIL_FRAG, BUILDING_FADE_BAND } from './buildingfade.js';
+import { registerLodModel, lodLevelsForFade, lodSpec } from './lodregistry.js';
 import { adaptedShadowLevel } from './shadowlevel.js';
 import { treeSyncDue } from './treesync.js';
 import { roadBuildAllowed, createHeavyRoadGate, ROAD_BUILD_MAX_PER_FRAME } from './roadbudget.js';
@@ -146,7 +149,7 @@ import { litFraction, moonPhase, STAR_SHARE, foliageGlow } from './nightrules.js
 import { qualityLook, SKYLINE_FOG, sunGlow } from './weatherlook.js';
 import { buildCloudLayer, updateCloudLayer } from './cloud3d.js';
 import { initNightLights, setNightLightQuality, updateNightLights, isLightRigOn, nightPoolSize } from './nightlights3d.js';
-import { createFarLOD } from './farlod.js';
+import { createFarLOD, lodShared } from './farlod.js';
 import { SECTION, TILE_M, tileOrigin } from './gdt.js';
 import { initRailway3D, updateRailway3D, prewarmRailAt } from './railway3d.js';
 import { updateStationCrowd3D } from './stationlife3d.js';
@@ -1105,6 +1108,7 @@ function applyViewSettings(st, key) {
   shadowBaseLevel = level;
   applyShadowLevel(adaptedShadowLevel(level, dynamicScale(), cpuLevel(), st.drawDistance), levelChanged);
   applyViewDistance(st);
+  setLodPreset(currentPreset(st) || st.quality); // centraal LOD-systeem: de afstanden schalen met de stand (een eigen stand: de kwaliteit)
   setAnimalLodPreset(currentPreset(st) || st.quality); // de dier-LOD's: afstanden schalen met de stand (lodregistry.js, zoals setLodPreset op perf-ultra-23-11)
   cam.fov = baseFov = cameraVerticalFov(st.fov);
   cam.updateProjectionMatrix();
@@ -1491,6 +1495,12 @@ const TREE_TRUNK_GEO = new THREE.CylinderGeometry(0.14, 0.22, 1, 6).translate(0,
 const TREE_CANOPY_GEO = new THREE.IcosahedronGeometry(1, 1);
 // a conifer: a cone of radius 1 from y -1 to 1
 const TREE_CONE_GEO = new THREE.ConeGeometry(1, 2, 7);
+// centraal LOD-systeem (23-11): de verre kroon wordt voorbij de 'treecrown'-afstand een icosaëder zonder onderverdeling (20 in plaats van 80
+// driehoeken), met een dither-crossfade ertussen; bossen en parken bestaan op afstand vooral uit deze kronen
+const TREE_CANOPY_GEO0 = new THREE.IcosahedronGeometry(1, 0);
+// voorbij 260 m: een billboard (2 driehoeken, altijd naar de camera, een ronde kroon via de uv), tot de zichtafstand (syncTreeImpostors)
+const TREE_IMPOSTOR_GEO = new THREE.PlaneGeometry(2, 2);
+SHARED_GEOMETRIES.add(TREE_IMPOSTOR_GEO);
 // 23-11: een kroon met bobbels en een donkerder onderkant (greenery.js crownBump/crownShade); eenmalig, geen kosten per frame
 function shapeCrown(geo, bumpy) {
   const p = geo.attributes.position, c = new Float32Array(p.count * 3);
@@ -1505,15 +1515,24 @@ function shapeCrown(geo, bumpy) {
 }
 shapeCrown(TREE_CANOPY_GEO, true);
 shapeCrown(TREE_CONE_GEO, false);
-for (const g of [TREE_TRUNK_GEO, TREE_CANOPY_GEO, TREE_CONE_GEO]) SHARED_GEOMETRIES.add(g);
+shapeCrown(TREE_CANOPY_GEO0, false); // de verre kroon krijgt hetzelfde schaduwverloop (vertexkleur), zonder bobbels
+for (const g of [TREE_TRUNK_GEO, TREE_CANOPY_GEO, TREE_CONE_GEO, TREE_CANOPY_GEO0]) SHARED_GEOMETRIES.add(g);
 // a tree filled into a wood or park outline is drawn out to TREE_FAR, as its crown only
 const TREE_FAR = 260;
 const TREE_NEAR_R = loadRadius(TREE_DIST);
 // #1016: bomen doven uit in een band vóór hun tekenstraal en de lijst wordt een herbouwstap verder geladen (popinrules.js)
 for (const m of [TREE_TRUNK_MAT, TREE_CANOPY_MAT]) applyEdgeFade(m, ...fadeBand(TREE_DIST), perfOff('boomfade')); // ?perfoff=boomfade: bomen zonder discard (#1067)
 const TREE_FAR_MAT = edgeFadeClone(TREE_CANOPY_MAT, ...fadeBand(TREE_FAR, 24), perfOff('boomfade'));
+// de randfade van de verre kroon (TREE_FAR) doet nu de LOD-band naar de billboards (treecrown niveau 2), aanvullend: dus uit
+if (TREE_FAR_MAT.userData.edgeFade) TREE_FAR_MAT.userData.edgeFade.value.set(1e9, 1e9 + 1);
+const TREE_FAR_MATS = [lodFadeMaterial(TREE_FAR_MAT, 'treecrown', 0, 3), lodFadeMaterial(TREE_FAR_MAT, 'treecrown', 1, 3)];
+{
+  const tris = (g) => (g.index ? g.index.count : g.getAttribute('position').count) / 3;
+  registerLodModel('tree', 'boom', [tris(TREE_TRUNK_GEO) + 2 * tris(TREE_CANOPY_GEO), tris(TREE_CANOPY_GEO), tris(TREE_CANOPY_GEO0)]);
+  registerLodModel('treecrown', 'kroon', [tris(TREE_CANOPY_GEO), tris(TREE_CANOPY_GEO0), tris(TREE_IMPOSTOR_GEO)]);
+}
 for (const m of [TREE_TRUNK_MAT, TREE_CANOPY_MAT]) applyInteriorCut(m); // geen stam of kroon in een binnenruimte (interiorisolation.js)
-for (const m of [TREE_TRUNK_MAT, TREE_CANOPY_MAT, TREE_FAR_MAT]) SHARED_MATERIALS.add(m);
+for (const m of [TREE_TRUNK_MAT, TREE_CANOPY_MAT, TREE_FAR_MAT, ...TREE_FAR_MATS]) SHARED_MATERIALS.add(m);
 const _leaf = new THREE.Color(), _bark = new THREE.Color();
 const tumbleMats = new Map();
 function tumbleMat(hex) {
@@ -1607,7 +1626,8 @@ function ensureTreeCapacity(n) {
   make(TREE_TRUNK_GEO, TREE_TRUNK_MAT, treeCapacity);
   make(TREE_CANOPY_GEO, TREE_CANOPY_MAT, treeCapacity * 2);
   make(TREE_CONE_GEO, TREE_CANOPY_MAT, treeCapacity);
-  make(TREE_CANOPY_GEO, TREE_FAR_MAT, treeCapacity, false);
+  make(TREE_CANOPY_GEO, TREE_FAR_MATS[0], treeCapacity, false);
+  make(TREE_CANOPY_GEO0, TREE_FAR_MATS[1], treeCapacity, false);
 }
 
 // --- per-frame sync ------------------------------------------------------
@@ -2014,8 +2034,52 @@ function makeBuildingMesh(b) {
   const mesh = enableShadows(buildBuildingMesh(b), true, 2.5);
   if (liftMap && liftMap.terrainOn) mesh.position.y += buildingLift(liftMap, b);
   if (isSkyline(b)) useSkylineMaterials(mesh);
+  if (!b.landmark && !perfOff('gebouwfade')) addBuildingFade(mesh, b);
   freezeStatic(mesh);
   return mesh;
+}
+
+// 23-11 (centraal LOD-systeem): het detailgebouw dooft in de band binnen de ring uit tegen zijn kopie in de verre laag in, op hetzelfde
+// middelpunt (lodC = het midden van b.bounds, zoals lodCenter in farlod.js) en met dezelfde uniforms (buildingfade.js). Alleen eigen
+// geometrie van dit gebouw krijgt het attribuut (een gedeelde geometrie zonder lodC tekent gewoon vol, zoals voorheen). Het materiaal wordt
+// ter plekke uitgebreid (geen kloon: de nacht- en gevelregels die het materiaal aanpassen, blijven gelden); een geometrie zonder lodC
+// heeft (0, 0) en dithert niet.
+function addBuildingFade(mesh, b) {
+  const cx = (b.bounds[0] + b.bounds[2]) / 2, cy = (b.bounds[1] + b.bounds[3]) / 2;
+  mesh.traverse((o) => {
+    if (!o.isMesh || !o.geometry || !o.geometry.attributes.position) return;
+    const g = o.geometry;
+    if (SHARED_GEOMETRIES.has(g) || (g.userData && g.userData.shared)) return;
+    if (!g.attributes.lodC) {
+      const n = g.attributes.position.count, a = new Float32Array(n * 2);
+      for (let i = 0; i < n; i++) { a[i * 2] = cx; a[i * 2 + 1] = cy; }
+      g.setAttribute('lodC', new THREE.BufferAttribute(a, 2));
+    }
+    for (const m of Array.isArray(o.material) ? o.material : [o.material]) if (m) patchBuildingFade(m);
+  });
+}
+function patchBuildingFade(m) {
+  if (m.userData.buildingFade || !(m.isMeshStandardMaterial || m.isMeshLambertMaterial || m.isMeshPhongMaterial || m.isMeshBasicMaterial)) return;
+  m.userData.buildingFade = true;
+  const prev = m.onBeforeCompile;
+  const U = lodShared();
+  m.onBeforeCompile = (shader, r) => {
+    if (prev) prev.call(m, shader, r);
+    shader.uniforms.uLodPlayer = U.uLodPlayer;
+    shader.uniforms.uLodDetailR = U.uLodDetailR;
+    shader.uniforms.uLodBand = U.uLodBand;
+    shader.vertexShader = shader.vertexShader.replace('#include <common>', `#include <common>
+${GLSL_DETAIL_HEAD_VERT}`)
+      .replace('#include <project_vertex>', `#include <project_vertex>
+${GLSL_DETAIL_VERT}`);
+    shader.fragmentShader = shader.fragmentShader.replace('#include <common>', `#include <common>
+${GLSL_DETAIL_HEAD_FRAG}`)
+      .replace('void main() {', `void main() {
+${GLSL_DETAIL_FRAG}`);
+  };
+  const base = m.customProgramCacheKey ? m.customProgramCacheKey.bind(m) : null;
+  m.customProgramCacheKey = () => (base ? base() : '') + '|bldfade';
+  m.needsUpdate = true;
 }
 
 const isSkyline = (b) => b.landmarkKind === 'tower';
@@ -2272,6 +2336,73 @@ function syncRoads(world, px, py) {
   if (streamStat.r === 0) roadSyncIdle = { x: px, y: py, q: roadQuality, dist: DRAW_DIST, meshes: roadMeshes.size, frame: roadSyncFrame, geoVer: world.map.geoVer };
 }
 
+// --- billboards voor de verre bossen (23-11, centraal LOD-systeem: treecrown niveau 2) ----------------------------------------------------
+// De bomen van bossen en parken (TREE_FLAG.fill) van 260 m tot de weg-afstand van 'treecrown' (meeschalend met de stand, begrensd door de
+// zichtafstand): één InstancedMesh van vlakjes die in de vertexshader naar de camera draaien; de fragmentshader maakt er een ronde kroon
+// van. Een eigen, grove herberekening (elke 40 m), los van de bomen dichtbij, met een plafond.
+const TREE_IMPOSTOR_CAP = 40000, TREE_IMPOSTOR_MOVE = 40;
+let treeImpostors = null, impostorX = null, impostorY = null, impostorReach = 0, impostorMap = null, impostorVer;
+const _impQuery = [];
+function treeImpostorMaterial() {
+  const m = new THREE.MeshLambertMaterial({ color: 0xffffff, emissive: new THREE.Color(0x56844a).multiplyScalar(0.12) });
+  m.onBeforeCompile = (shader) => {
+    shader.vertexShader = shader.vertexShader
+      .replace('#include <common>', `#include <common>
+varying vec2 vImpUv;`)
+      .replace('#include <defaultnormal_vertex>', `#include <defaultnormal_vertex>
+transformedNormal = vec3(0.0, 0.0, 1.0);`)
+      .replace('#include <project_vertex>', `vec4 mvPosition = modelViewMatrix * instanceMatrix * vec4(0.0, 0.0, 0.0, 1.0);
+mvPosition.xy += position.xy * vec2(length(instanceMatrix[0].xyz), length(instanceMatrix[1].xyz));
+gl_Position = projectionMatrix * mvPosition;
+vImpUv = uv;`);
+    shader.fragmentShader = shader.fragmentShader
+      .replace('#include <common>', `#include <common>
+varying vec2 vImpUv;`)
+      .replace('void main() {', `void main() {
+  if (length(vImpUv * 2.0 - 1.0) > 1.0) discard;`);
+  };
+  m.customProgramCacheKey = () => 'treeimpostor';
+  m.userData.shared = true;
+  return lodFadeMaterial(m, 'treecrown', 2, 3);
+}
+const _impM = new THREE.Matrix4(), _impP = new THREE.Vector3(), _impS = new THREE.Vector3(), _impQ = new THREE.Quaternion(), _impC = new THREE.Color();
+function syncTreeImpostors(world, px, py) {
+  const map = world.map;
+  if (!map || !map.treeGrid) return;
+  const spec = lodSpec('treecrown', 3, lodScale());
+  const reach = perfOff('boombillboard') || viewDist <= DRAW_DIST + 20 ? 0 : Math.min(spec.weg, viewDist);
+  if (!treeImpostors) {
+    treeImpostors = new THREE.InstancedMesh(TREE_IMPOSTOR_GEO, treeImpostorMaterial(), TREE_IMPOSTOR_CAP);
+    treeImpostors.count = 0; treeImpostors.frustumCulled = false; treeImpostors.castShadow = false; treeImpostors.receiveShadow = false;
+    treeImpostors.name = 'trees:billboards';
+    treeImpostors.setColorAt(0, _impC.setRGB(1, 1, 1));
+    SHARED_MATERIALS.add(treeImpostors.material);
+    scene.add(treeImpostors);
+  }
+  if (impostorMap === map && impostorVer === map.geoVer && impostorReach === reach && impostorX !== null && Math.hypot(px - impostorX, py - impostorY) < TREE_IMPOSTOR_MOVE) return;
+  impostorMap = map; impostorVer = map.geoVer; impostorReach = reach; impostorX = px; impostorY = py;
+  treeImpostors.count = 0;
+  if (!reach) { treeImpostors.visible = false; return; }
+  treeImpostors.visible = true;
+  const n = map.treeGrid.queryRadiusInto(_impQuery, px, py, reach + spec.band);
+  const from = spec.grenzen[1] - spec.band / 2 - 12 - TREE_IMPOSTOR_MOVE; // de band rond 260 m, de marge speler/camera en de 40 m tussen twee herberekeningen
+  for (let i = 0; i < n && treeImpostors.count < TREE_IMPOSTOR_CAP; i++) {
+    const t = _impQuery[i];
+    if (t._broken || !(t[4] & TREE_FLAG.fill)) continue;
+    const dd = Math.hypot(t[0] - px, t[1] - py);
+    if (dd < from) continue;
+    const d = treeDims(t);
+    const ground = map.terrainOn ? map.terrainAt(t[0], t[1]) : 0;
+    _impP.set(t[0], ground + d.cy, t[1]);
+    _impS.set(d.r * 1.08, d.ry * 1.08, 1);
+    treeImpostors.setMatrixAt(treeImpostors.count, _impM.compose(_impP, _impQ, _impS));
+    treeColor(t, _impC);
+    treeImpostors.setColorAt(treeImpostors.count++, _impC);
+  }
+  treeImpostors.instanceMatrix.needsUpdate = true;
+  if (treeImpostors.instanceColor) treeImpostors.instanceColor.needsUpdate = true;
+}
+
 function syncTrees(world, px, py) {
   const map = world.map;
   // #786: een kaartwissel is een nieuwe bron; de eerste frame bouwt gewoon op
@@ -2284,7 +2415,7 @@ function syncTrees(world, px, py) {
   if (!treeSyncDue(px, py, treeSyncX, treeSyncY, hiddenChanged, map.geoVer, treeSyncGeoVer)) return;
   // the trees round the player, and further out the crowns of the woods
   // #760: dezelfde query in een herbruikbuffer i.p.v. een nieuwe array per aanroep
-  const n = map.treeGrid.queryRadiusInto(_treeQuery, px, py, loadRadius(TREE_FAR));
+  const n = map.treeGrid.queryRadiusInto(_treeQuery, px, py, loadRadius(TREE_FAR) + 20); // + de LOD-band naar de billboards
   const trees = [];
   for (let i = 0; i < n; i++) {
     const t = _treeQuery[i];
@@ -2301,7 +2432,7 @@ function syncTrees(world, px, py) {
   treeSyncGeoVer = map.geoVer;
   shownHiddenKey = camTreeHiddenKey;
   ensureTreeCapacity(trees.length);
-  const [trunks, crowns, cones, far] = treeInstanced;
+  const [trunks, crowns, cones, far, farthest] = treeInstanced;
   for (const m of treeInstanced) m.count = 0;
   crownShadowOnly.count = 0;
   const [trunk, canopy, lobe] = _treeParts;
@@ -2316,7 +2447,9 @@ function syncTrees(world, px, py) {
     const d = layoutTree(t, trunk, canopy, lobe);
     treeColor(t, _leaf);
     const dd = Math.hypot(t[0] - px, t[1] - py), near = dd <= TREE_NEAR_R;
-    if (!near || (t[4] & TREE_FLAG.fill && dd > TREE_DIST - 20)) put(far, canopy, _leaf); // far crown: no shadow; woods overlap it in the fade band
+    if (!near || (t[4] & TREE_FLAG.fill && dd > TREE_DIST - 20)) { // far crown: no shadow; woods overlap it in the fade band
+      for (const L of lodLevelsForFade('treecrown', dd, { levels: 3, scale: lodScale() })) if (L < 2) put(L ? farthest : far, canopy, _leaf); // niveau 2: de billboards
+    }
     if (!near) continue;
     _bark.setHex(SPECIES[d.sp].trunk);
     put(trunks, trunk, _bark);
@@ -2774,6 +2907,7 @@ export function update3D(dt, world) {
   if (!world.cinemaLean) updateStreetFurniture3D(focus.x, focus.y);
   probe.mark('3d:roads');
   syncTrees(world, focus.x, focus.y);
+  syncTreeImpostors(world, focus.x, focus.y);
   probe.mark('3d:trees');
   updateRailway3D(dt, world, focus, viewDist);
   if (!world.cinemaLean) updateStationCrowd3D(scene, world, railZ);
@@ -3115,6 +3249,8 @@ export function update3D(dt, world) {
   // while streaming catches up after a jump the far LOD stands in closer
   const lodR = viewDist > DRAW_DIST + 20 ? Math.min(DRAW_DIST, buildingDetailR, roadDetailR + 8) : DRAW_DIST;
   const flt0 = performance.now(), fl = streamLead(streamAhead);
+  // de dither-overgang detailgebouw / verre kopie (buildingfade.js) alleen als er een verre laag is; anders de harde wissel op de ring
+  lodShared().uLodBand.value = viewDist > DRAW_DIST + 20 && !perfOff('gebouwfade') ? BUILDING_FADE_BAND : 0;
   farLod.update(focus.x, focus.y, viewDist, Math.min(viewDist, scene.fog.far) + 20, lodR, { keep: ringKeep, budgetMs: plan.grant('far', 2.5), lead: fl.lead > 0 ? fl : null });
   plan.spend('far', performance.now() - flt0);
   probe.mark('3d:farlod');
@@ -3545,6 +3681,7 @@ export function update3D(dt, world) {
   progSortOn = !perfOff('progsort');
   probe.mark('3d:render:pre');
   cullOffscreenActors();
+  updateLodObjects(cam); // centraal LOD-systeem (lodkit3d.js): losse modellen (treinen, boten) op afstand tot de camera
   skipHiddenMatrixWalk();
   probe.mark('3d:render:cull');
   try { postfx.render(); } finally { restoreCulledActors(); }
@@ -3973,7 +4110,8 @@ function applyTimeOfDay(dt, world) {
   setStarOpacity(skyDome, L.night * (1 - cover));
   setNightFactor(1.5 * L.night, litFraction('wonen', L.hour), litFraction('winkel', L.hour), litFraction('kantoor', L.hour));
   // the leaves' emissive fill fades with the same night as the windows (#463)
-  TREE_FAR_MAT.emissiveIntensity = TREE_CANOPY_MAT.emissiveIntensity = foliageGlow(L.night);
+  TREE_FAR_MAT.emissiveIntensity = TREE_FAR_MATS[0].emissiveIntensity = TREE_FAR_MATS[1].emissiveIntensity = TREE_CANOPY_MAT.emissiveIntensity = foliageGlow(L.night);
+  if (treeImpostors) treeImpostors.material.emissiveIntensity = TREE_CANOPY_MAT.emissiveIntensity; // de billboards van de verre bossen gloeien mee
   farLod.setNight(1.5 * L.night, litFraction('wonen', L.hour));
   setCountryNight(1.5 * L.night, litFraction('wonen', L.hour));
   scene.fog.near = lightBase.fogNear;

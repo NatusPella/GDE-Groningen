@@ -22,6 +22,7 @@ import { markInstancesDirty } from './util.js';
 import { gridItems } from './spatialgrid.js';
 import { createCalmGate } from './tilestream.js';
 import { dropStaleTiles } from './tilecache.js';
+import { makeLodInstanced } from './lodkit3d.js';
 const tilesCalmGate = createCalmGate(); // wacht ook op de achtergrondwachtrij van de tegelwereld, hoogstens twee seconden achter elkaar (#1052)
 import { EDGE_CLASSES, edgeColour, edgeHeight } from './edgeclasses.js';
 import { applyInteriorCut } from './interiorcut3d.js';
@@ -43,7 +44,7 @@ let scene = null;
 let map = null;
 const tiles = new Map();    // key -> { items }
 let tilesGeoVer = null;     // de kaartstand waar de tegelcache bij hoort (#314 C2)
-const meshes = new Map();   // kind -> InstancedMesh
+const meshes = new Map();   // naam -> InstancedMesh (alle niveaus van alle soorten)
 let signMesh = null, signKey = '';
 let boardMesh = null, boardKey = '';
 let lastX = Infinity, lastY = Infinity, dirty = true;
@@ -118,24 +119,31 @@ function postGeo() { return mergeGeometries([tint(new THREE.BoxGeometry(0.08, 2.
 function bollardGeo() { return rotProp('paaltje', 0); }
 
 const GEOS = { guardrail: guardrailGeo, fence: fenceGeo, hedge: hedgeGeo, noise: noiseGeo, hectometer: hectometerGeo, speedbump: speedbumpGeo, gantry: gantryGeo, beam: beamGeo, bench: benchGeo, bin: binGeo, bikerack: rackGeo, shelter: shelterGeo, bollard: bollardGeo, placesign: postGeo, wegwijzer: postGeo };
+// het centrale LOD-systeem (lodkit3d.js): de modellen van het straatmeubilair, ook voor de audit (scripts/lod_audit_test.mjs)
+export const furnitureModels = () => Object.keys(GEOS).map((k) => [k, GEOS[k](), furnitureLodKind(k)]);
+// de LOD-soort: klein meubilair verdwijnt op 150 m, wat je van ver ziet (een portaal op 650 m, een geluidsscherm) houdt zijn eigen tekenafstand
+export const furnitureLodKind = (k) => ((LOD[k === 'beam' ? 'gantry' : k] || 0) > 150 ? 'propfar' : 'prop');
 // kinds whose instance is hidden once the collider is knocked out (breakables.js owns the tumbling copy)
 const BREAKABLE_DRAWN = new Set(['guardrail', 'fence', 'bench', 'bin', 'bikerack', 'placesign', 'wegwijzer']);
 const MAT = applyInteriorCut(new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.75, metalness: 0.15 })); // geen meubilair in een binnenruimte (interiorisolation.js)
 
-function meshOf(kind) {
-  let m = meshes.get(kind);
-  if (m) return m;
+// 23-11 (centraal LOD-systeem, lodkit3d.js): per soort een set InstancedMeshes, één per niveau, met een dither-crossfade ertussen en
+// niets meer voorbij de cull-afstand van de soort 'prop' (lodregistry.js); de eigen tekenafstand per soort (LOD) blijft daarbinnen gelden
+const sets = new Map();     // kind -> makeLodInstanced-set
+function setOf(kind) {
+  let set = sets.get(kind);
+  if (set) return set;
   const cap = kind === 'beam' ? CAP.gantry : CAP[kind] || 100;
-  m = new THREE.InstancedMesh(GEOS[kind](), MAT, cap);
-  m.count = 0;
-  m.castShadow = kind !== 'speedbump' && kind !== 'hectometer';
-  m.receiveShadow = true;
-  m.frustumCulled = false;
-  m.name = 'furniture:' + kind;
-  m.userData.cap = cap;
-  scene.add(m);
-  meshes.set(kind, m);
-  return m;
+  set = makeLodInstanced(furnitureLodKind(kind), 'furniture:' + kind, GEOS[kind](), MAT, cap, {
+    setup: (m) => {
+      m.castShadow = kind !== 'speedbump' && kind !== 'hectometer';
+      m.receiveShadow = true;
+      scene.add(m);
+      meshes.set(m.name, m);
+    },
+  });
+  sets.set(kind, set);
+  return set;
 }
 
 // --- signs: every visible gantry's two panels in one mesh over a canvas atlas
@@ -343,13 +351,11 @@ export function initStreetFurniture3D(sceneRef, mapRef) {
 
 const _m = new THREE.Matrix4(), _q = new THREE.Quaternion(), _p = new THREE.Vector3(), _s = new THREE.Vector3(), _up = new THREE.Vector3(0, 1, 0);
 function put(kind, x, z, y, angle, sx = 1, sy = 1, sz = 1) {
-  const m = meshOf(kind);
-  if (m.count >= m.userData.cap) return;
   _q.setFromAxisAngle(_up, -angle);
   _p.set(x, z, y);
   _s.set(sx, sy, sz);
   _m.compose(_p, _q, _s);
-  m.setMatrixAt(m.count++, _m);
+  setOf(kind).put(_m, Math.hypot(x - lastX, y - lastY));
 }
 
 export function updateStreetFurniture3D(px, py, force = false) {

@@ -70,7 +70,7 @@ t('een ouder bestand migreert gewoon en schrijft de huidige versie', async () =>
 t('de oude Hoog (zichtafstand kort) gaat mee naar de nieuwe Hoog (ver); een eigen keuze blijft', async () => {
   zetBestand({ v: 11, quality: 'hoog', shadows: true, resolution: 1, autoResolution: true, drawDistance: 'kort' });
   let S = await laad();
-  assert.equal(S.getSettings().drawDistance, 'ver', 'de oude Hoog wordt de nieuwe Hoog');
+  assert.equal(S.getSettings().drawDistance, 'normaal', 'de oude Hoog wordt de nieuwe Hoog');
   zetBestand({ v: 11, quality: 'hoog', shadows: true, resolution: 0.75, autoResolution: true, drawDistance: 'kort' });
   S = await laad();
   assert.equal(S.getSettings().drawDistance, 'kort', 'een eigen resolutie is een eigen keuze');

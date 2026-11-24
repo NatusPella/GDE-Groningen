@@ -392,11 +392,14 @@ function waitForStart(world, ready) {
     manageMotorPopulation(world, { spawnMin: 8 });
     manageBoatPopulation(world, { spawnMin: 5 });
   };
+  // hitchprobe-secties (t-*): de titel- en trailerlus (dezelfde systemen als de spellus, maar met eigen namen)
   const tick = (dt) => {
+    probe.mark('t-voor');
     world.time += dt;
     beginVehicleFrame(world); // #653: de actoren-index van dit frame
     updateAudio(dt, world);
     updateTrafficLights(dt, world);
+    probe.mark('t-audio+lichten');
     for (const v of world.vehicles) {
       if (v.driver === 'player' || v.isPolice || v.cineTemp) continue;
       if (v.isBoat) updateBoatAI(v, dt, world.map, world, Math.random);
@@ -406,12 +409,16 @@ function waitForStart(world, ready) {
       }
     }
     resolveVehicleVehicleCollisions(world.vehicles, world);
+    probe.mark('t-verkeer');
     tickBurningVehicles(world, dt);
     updateRailway(dt, world);
     updateMovableBridges(dt, world);
     updateSluizen(dt, world);
+    probe.mark('t-spoor+bruggen');
     updatePedestrians(dt, world);
+    probe.mark('t-voetgangers');
     updateWildlife(dt, world);
+    probe.mark('t-dieren');
     // in play combat.js expires these; the title screen and trailer only add
     if (world.particles.length) world.particles = world.particles.filter((pt) => pt.until === undefined || pt.until > world.time);
   };
@@ -422,8 +429,11 @@ function waitForStart(world, ready) {
   // garage and plinth, street furniture, name signs, billboards) also on the
   // title screen, so the menu shows the street as it is in play
   const render = (dt, fxDt = 0) => {
+    probe.mark('r-voor'); // hitchprobe: wat er vóór de render-aanroep zat (de spellus of het trailerframe)
     updateHomeExterior(dt, world);
+    probe.mark('r-home');
     updateStreetSigns(dt, world, getScene());
+    probe.mark('r-signs');
     updateCityProps(dt, world, getScene());
     updateFlavour3D(dt, world);
     updateFx3D(fxDt, world, getScene());
