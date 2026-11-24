@@ -24,6 +24,7 @@ export const WEAR_REGISTER = {
   sjaal: { nl: 'Sjaal', slot: 'romp', params: true, norm: { tris: [30, 180], kleuren: 1, eisen: ['band om de nek op het lijf', 'slip over de borst'] } },
   rugzak: { nl: 'Rugzak', slot: 'romp', params: true, norm: { tris: [40, 200], kleuren: 2, eisen: ['bak op de rug', 'schouderbanden over beide schouders'] } },
   schoudertas: { nl: 'Schoudertas', slot: 'romp', params: true, norm: { tris: [40, 200], kleuren: 2, eisen: ['tas op de heup', 'band schuin over de borst'] } },
+  baard: { nl: 'Baard of snor', slot: 'hoofd', params: true, norm: { tris: [20, 160], kleuren: 1, eisen: ['snor boven de mond', 'baard rond kin en kaken', 'kleur van het haar'] } },
   voetbalshirt: {
     nl: 'Voetbalshirt (patroon, rugnummer, sponsor)', slot: 'romp', params: true,
     norm: { tris: [8, 520], kleuren: 2, eisen: ['strepen, helften en hoepels als vlakken 4 mm boven het shirt, voor en achter', 'rugnummer van zeven-segmentcijfers op de rug', 'naamstrook boven het nummer', 'sponsorpaneel op de borst'] },
@@ -230,10 +231,14 @@ function voetbalshirt(ctx, spec) {
     });
     if (spec.nameBar) flat(1.362, 1.378, -0.06, 0.06, color, true);
   }
+  if (spec.number || spec.sponsor) {   // clubembleem op de linkerborst (een kleine ruit), klein nummer rechts als er een nummer is
+    flat(1.36, 1.41, -0.12, -0.075, color, false);
+    if (spec.number && !spec.sponsor) flat(1.34, 1.4, 0.07, 0.11, color, false);
+  }
   if (spec.sponsor) {
     const big = spec.sponsor.size === 'groot' ? 1.3 : spec.sponsor.size === 'klein' ? 0.8 : 1, sc = col(spec.sponsor.color, 0xdddddd);
-    flat(1.2 - 0.026 * big, 1.2 + 0.026 * big, -0.07 * big, 0.07 * big, sc, false);
-    flat(1.15 - 0.007, 1.15 + 0.007, -0.045 * big, 0.045 * big, sc, false);
+    // sponsorpaneel op de borst (een effen blok, hoog op de borst), het clubembleem links erboven en een klein nummer rechts
+    flat(1.33 - 0.03 * big, 1.33 + 0.03 * big, -0.085 * big, 0.085 * big, sc, false);
   }
   return B;
 }
@@ -296,7 +301,19 @@ function schoudertas(ctx, p) {
   return B;
 }
 
-const BUILDERS = { politiepet, politieuniform, voetbalshirt, bril, sjaal, rugzak, schoudertas };
+// baard, snor of sik (look.facial): dikke blokjes in de haarkleur om kin en kaak, p.kind 'baard' | 'snor' | 'sik'
+function baard(ctx, p) {
+  const B = builder(), f = ctx.face, h = ctx.bone('Head').i, kind = (p && p.kind) || 'baard', color = p && Number.isFinite(p.color) ? p.color : 0x3b2a1e;
+  if (!f) return B;
+  const [mx, my, mz] = f.mouth, ax = [[1, 0, 0], [0, 1, 0], [0, 0, 1]], fx = f.eyes[0].x - 0.012;
+  box(B, [fx - 0.001, my + 0.013, mz], [0.006, 0.005, 0.03], ax, color, h);   // snor
+  if (kind === 'snor') return B;
+  box(B, [fx - 0.014, my - 0.03, mz], [0.01, 0.02, kind === 'sik' ? 0.016 : 0.03], ax, color, h);   // kin
+  if (kind === 'baard') for (const s of [-1, 1]) box(B, [fx - 0.04, my - 0.012, mz + s * 0.056], [0.032, 0.034, 0.007], ax, color, h);   // kaken
+  return B;
+}
+
+const BUILDERS = { baard, politiepet, politieuniform, voetbalshirt, bril, sjaal, rugzak, schoudertas };
 export function buildWear(id, ctx, params = null) {
   const f = BUILDERS[id];
   if (!f || !WEAR_REGISTER[id]) return null;

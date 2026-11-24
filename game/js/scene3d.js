@@ -121,7 +121,7 @@ let viewCtx = 'stad';
 import { glanceAt, shareFeet } from './gait.js';
 import { lifeTier } from './actorlife.js';
 import { createFarCrowd, FAR_CROWD_FROM, FAR_CROWD_BACK } from './farcrowd3d.js';
-import { resetModularGeoBudget, loadModularPeople, buildModularPerson, buildModularFromAppearance, modularReady, setModularLod, lodForDistance, setModularLodPreset, mensenFase } from './modularpeople.js';
+import { resetModularGeoBudget, setModularMood, loadModularPeople, buildModularPerson, buildModularFromAppearance, modularReady, setModularLod, lodForDistance, setModularLodPreset, mensenFase } from './modularpeople.js';
 import { NEAR_MIN, cameraNearTarget, stepNear, parseNearFlag, parseFarFlag } from './cameranear.js';
 import { compareOpaque } from './drawpool.js';
 import { buildingBatcher, roadBatcher, facadeBatcher, shoreBatcher, drawHub } from './staticbatch3d.js';
@@ -2594,7 +2594,7 @@ function pedOutfitOpts(p, world) {
 // Een gewone voorbijganger als modulaire mens: de kleding volgt de rol van de buurt en het uur (clothing.js, zoals bij het eigen model),
 // het geslacht volgt de verre menigte (sd & 1), lengte en bouw het zaad.
 function pedModularAppearance(p, outfit, sd, skin) {
-  const female = (sd & 1) === 1, base = { seed: sd, skin, variant: female ? 'female' : 'male', vary: true };
+  const female = (sd & 1) === 1, base = { seed: sd, skin, variant: female ? 'female' : 'male', vary: true, skinVary: !p.skin };
   if (!outfit) return { ...base, shirt: p.clothing ? colorFromHex(p.clothing) : null };
   const n = npcLook(p._lookSeed, outfit.role, { ...(outfit.outfitCtx || {}), hair: true, body: true, old: hashOld(sd) }, {});
   return { ...base, shirt: p.clothing ? colorFromHex(p.clothing) : n.shirt, pants: n.pants, shoes: n.shoes, hair: n.hair, hairStyle: n.hairStyle, body: n.body, look: { ...n.look, age: hashOld(sd) ? 'old' : n.look.age } };
@@ -2760,6 +2760,7 @@ function syncPedestrianMeshes(world, player, animDt, fadeDt = animDt) {
     // ring are far (?perfoff=pedtier: as before, half rate beyond 45 m only on a CPU-bound machine, simload.js)
     const tier = pedTier(Math.abs(p.x - player.x) + Math.abs(p.y - player.y), p, world.time);
     if (ud.qRig) setModularLod(mesh, lodForDistance(Math.hypot(p.x - player.x, p.y - player.y), ud.qLod)); // LOD van een modulaire mens (ADR 0050)
+    if (ud.qRig && ud.qLod === 0 && (p.state === 'flee' || p.state === 'angry' || ud.qMoodScene)) { const want = p.state === 'flee' ? 'verbaasd' : p.state === 'angry' ? 'mokkend' : (ud.qMoodBase || ud.qLook.mood); if (setModularMood(mesh, want)) ud.qMoodScene = want !== (ud.qMoodBase || want); }   // verbaasd bij schrikken, mokkend bij boos
     if (tier > 1) {
       ud.animAcc = (ud.animAcc || 0) + animDt;
       ud.animTick = (ud.animTick || 0) + 1;

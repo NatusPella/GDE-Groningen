@@ -122,5 +122,40 @@ for (const pose of POSES) for (const female of [false, true]) {
   ok(!(m.userData.qFid && m.userData.qFid.name) && !(m.userData.qProps && m.userData.qProps.phone && m.userData.qProps.phone.visible), 'gebaren: weg zodra hij loopt');
 }
 
+// 7. een eigen kop per figuur: haarkleur, huidtint, baard, kaal, uitdrukking en gezichtsvorm uit het zaad; geen gedegenereerde petdelen
+{
+  const hair = new Set(), skin = new Set(), moods = new Set(), face = new Set(), combo = new Set();
+  let beards = 0, n = 0;
+  for (let i = 0; i < 400; i++) {
+    const m = P.buildPersonMesh(0x6a6a6a, 0xd9b48f, { seed: 6000 + i * 7, variant: i % 3 ? 'male' : 'female', role: 'voetganger' });
+    const l = m.userData.qLook; n++;
+    hair.add(l.hair); skin.add(l.skin); moods.add(l.mood); if (l.face) face.add(l.face.map((x) => x.toFixed(2)).join());
+    if (l.wear && l.wear.includes('baard')) beards++;
+    combo.add([l.parts.hoofd, l.hair, l.skin, l.face && l.face[0].toFixed(2)].join('|'));
+  }
+  ok(hair.size >= 8, `haarkleuren: ${hair.size}`);
+  ok(skin.size >= 6, `huidtinten: ${skin.size}`);
+  ok(moods.has('neutraal') && moods.has('vrolijk') && moods.has('mokkend'), `uitdrukkingen: ${[...moods].join(', ')}`);
+  ok(face.size > 100, `gezichtsvormen: ${face.size}`);
+  ok(beards >= 8 && beards <= 80, `baarden zijn er maar niet overal (${beards} van ${n})`);
+  ok(combo.size > 340, `bijna elke figuur een eigen kop (${combo.size} van ${n})`);
+  // twee spelers van een voetbalploeg (zelfde kit, ander zaad) hebben niet dezelfde kop
+  const heads = new Set();
+  for (let i = 0; i < 11; i++) { const m = P.buildPersonMesh(0xc8261e, 0xd9b48f, { seed: 9811 + i * 13, variant: 'male', skinVary: true, look: { age: 'adult', top: 'tee' } }); heads.add(m.userData.qLook.parts.hoofd + m.userData.qLook.hair + m.userData.qLook.skin); }
+  ok(heads.size >= 9, `een elftal: ${heads.size} verschillende koppen`);
+  // mood-wissel
+  const m = P.buildPersonMesh(0x6a6a6a, 0xd9b48f, { seed: 321, variant: 'male', role: 'voetganger' });
+  const t0 = m.userData.body.geometry.index.count;
+  ok(M.setModularMood(m, 'verbaasd') && M.setModularMood(m, 'mokkend') && !M.setModularMood(m, 'mokkend') && !M.setModularMood(m, 'boos'), 'uitdrukking wisselen kan, dubbel of onbekend niet');
+  ok(m.userData.body.geometry.index.count === t0, 'dezelfde driehoekentelling bij elke uitdrukking');
+  // geen draadvlakken in een pet of platte pet: elke driehoek heeft oppervlak
+  for (const cap of ['cap', 'flatcap', 'beanie']) {
+    const q = M.buildModularFromAppearance({ seed: 5, variant: 'male', skin: 0xd9a47a, look: { hat: cap, hatColor: 0x3a4d6e } }), g = q.userData.body.geometry, p = g.attributes.position, ix = g.index;
+    let bad = 0;
+    for (let t = 0; t < ix.count; t += 3) { const A = new THREE.Vector3().fromBufferAttribute(p, ix.getX(t)), B = new THREE.Vector3().fromBufferAttribute(p, ix.getX(t + 1)), C = new THREE.Vector3().fromBufferAttribute(p, ix.getX(t + 2)); if (ix.getX(t) !== ix.getX(t + 1) && new THREE.Vector3().crossVectors(B.sub(A), C.sub(A)).length() < 1e-9 && ix.getX(t) > 0) bad++; }
+    ok(bad === 0, `${cap}: geen draadvlakken (${bad})`);
+  }
+}
+
 console.log(fails ? `modularpose: ${fails} van ${n} FAILED` : `modularpose: alle ${n} checks groen`);
 process.exit(fails ? 1 : 0);

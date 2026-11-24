@@ -24,7 +24,7 @@ await (async () => {
     const D = window.__debug; const w = D.world; const p = w.player; const map = w.map;
     w.devInvuln = true; D.input.canLock = () => false; if (document.pointerLockElement) document.exitPointerLock();
     const { P } = await imp('worldframe'); const FP = await imp('firstperson');
-    const MP = await imp('models3d_people');
+    const MP = await imp('models3d_people'); const MOD = await imp('modularpeople');
     const THREE = await import('https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js');
     const fix = () => { w.clock = 14; w.weather = { active: false, timer: 1e9, kind: 'helder', peak: 0, intensity: 0, wet: 0, overcast: 0, mist: 0, windAngle: 0.9, elapsed: 0, duration: Infinity }; };
     const gh = (x, y) => (map.groundHeightAt ? map.groundHeightAt(x, y, 0) || 0 : 0);
@@ -66,27 +66,31 @@ await (async () => {
     const clear = () => { for (const m of rig) group.remove(m); rig.length = 0; };
     const hash = (a, b) => { const x = Math.sin(a * 12.9898 + b * 78.233) * 43758.5453; return x - Math.floor(x); };
     // een rij van n figuren op afstand dist, kijkend naar de camera; twee beelden: voor en (optioneel) achter
-    const row = async (naam, builds, back = true, dist = 4.2) => {
+    const row = async (naam, builds, back = true, dist = 4.2, lookH = 0.95, camH = 1.3) => {
       if (window.__p2Only && !naam.includes(window.__p2Only)) return;
       clear();
       const n = builds.length, gap = 1.25;
       builds.forEach((b, i) => {
         let m; try { m = b(); } catch (e) { note('fout-' + naam + '-' + i, String(e && e.message || e).slice(0, 120)); return; }
         const lat = (i - (n - 1) / 2) * gap, x = spot.x + spot.dx * dist - spot.dy * lat, y = spot.y + spot.dy * dist + spot.dx * lat;
-        m.position.set(x, gh(x, y), y); m.rotation.y = -Math.atan2(-spot.dy, -spot.dx);
+        m.position.set(x, gh(x, y), y); m.rotation.y = -Math.atan2(-spot.dy, -spot.dx) + (m.userData.p2rot || 0);
         group.add(m); rig.push(m);
       });
       await sleep(900);
       const cx = spot.x + spot.dx * dist, cy = spot.y + spot.dy * dist, gz = gh(cx, cy);
-      cam(spot.x, spot.y, gz + 1.3, cx, cy, gz + 0.95, Math.min(62, 24 + n * 5));
+      cam(spot.x, spot.y, gz + camH, cx, cy, gz + lookH, lookH > 1.2 ? Math.min(62, 14 + n * 6) : Math.min(62, 24 + n * 5));
       await shot(naam + '-voor', 700);
       if (back) {
-        for (const m of rig) m.rotation.y += Math.PI;
+        for (const m of rig) m.rotation.y += Math.PI * 0.75;
+        await sleep(300);
+        await shot(naam + '-schuin', 500);   // driekwart van achteren
+        for (const m of rig) m.rotation.y += Math.PI * 0.25;
         await sleep(300);
         await shot(naam + '-achter', 500);
       }
       camOff();
     };
+    const HAIRS = ['short.bruin', 'long.bruin', 'curly.zwart', 'bald.bruin', 'quiff.blond', 'ponytail.ros', 'afro.zwart', 'buzz.grijs', 'bob.blond', 'wavy.bruin', 'bun.zwart', 'undercut.bruin'];
     const app = (ch) => (ch === 'anita' ? MP.ANITA_APPEARANCE : MP.TAMMO_APPEARANCE);
     const items = (slot) => CD.ITEMS.filter((it) => it.slot === slot);
     const piece = (slot, r1, r2) => { const l = items(slot); const it = l[Math.floor(r1 * l.length)]; return it.id + '.' + it.colors[Math.floor(r2 * it.colors.length)]; };
@@ -96,7 +100,7 @@ await (async () => {
         const builds = [];
         for (let i = 0; i < 6; i++) {
           const k = r * 6 + i, h = (j) => hash(k * 7 + (ch === 'anita' ? 3 : 1), j);
-          const worn = { top: piece('top', h(1), h(2)), bottom: piece('bottom', h(3), h(4)), shoes: piece('shoes', h(5), h(6)) };
+          const worn = { top: piece('top', h(1), h(2)), bottom: piece('bottom', h(3), h(4)), shoes: piece('shoes', h(5), h(6)), hair: HAIRS[(k * 3 + (ch === 'anita' ? 1 : 0)) % HAIRS.length] };
           if (h(7) < 0.45) worn.outer = piece('outer', h(8), h(9));
           if (h(10) < 0.35) worn.hat = piece('hat', h(11), h(12));
           if (h(13) < 0.25) worn.back = piece('back', h(14), h(15));
@@ -117,6 +121,16 @@ await (async () => {
     const rest = Object.keys(MS.NPC).filter((k) => !star.includes(k)).map((k) => () => MP.buildPersonMesh(MS.NPC[k].shirt, MS.NPC[k].skin, MS.NPC[k]));
     const all = [...cast, ...rest];
     for (let i = 0; i < all.length; i += 9) await row('cast-' + (i / 9 + 1), all.slice(i, i + 9), false, 5.2);
+    // 2a. portretten van dichtbij: Femke, Gerda (Mem), Rikus, Jelle, Berend, Tammo en Tessa, en tien willekeurige gezichten met hun uitdrukking
+    const port = [['femke', MS.NPC.femke], ['gerda', SC.MEM_LOOK], ['rikus', SC.RIKUS_LOOK], ['jelle', SC.JELLE_LOOK], ['berend', MS.NPC.berend], ['tammo', MP.TAMMO_APPEARANCE], ['tessa', MP.ANITA_APPEARANCE]];
+    await row('portret-cast', port.map(([, L]) => () => MP.buildPersonMesh(L.shirt, L.skin, L)), false, 2.6);
+    const gez = (a, n) => Array.from({ length: n }, (_, i) => () => MP.buildPersonMesh(0x6a6a6a, 0xd9a47a, { seed: a + i * 17, variant: (a + i) % 2 ? 'female' : 'male', role: 'voetganger' }));
+    await row('portret-gezichten-1', gez(500, 7), false, 2.6);
+    await row('portret-gezichten-2', gez(900, 7), false, 2.6);
+    // 2a2. uitdrukkingen van dichtbij: dezelfde man en vrouw met neutraal, vrolijk, mokkend en verbaasd (tot 1,5 m van de lens)
+    for (const [vn, sd] of [['man', 612], ['vrouw', 615]]) await row('uitdrukking-' + vn, ['neutraal', 'vrolijk', 'mokkend', 'verbaasd'].map((md) => () => { const m = MP.buildPersonMesh(0x6a6a6a, 0xd9a47a, { seed: sd, variant: vn === 'man' ? 'male' : 'female', role: 'voetganger' }); MOD.setModularMood(m, md); return m; }), false, 1.7, 1.62, 1.62);
+    // 2a3. een kop van alle kanten (voor, links, achter, rechts), om losse punten in haar en kruisende vlakken te zoeken
+    for (const [vn, sd] of [['man-612', 612], ['man-31', 31], ['vrouw-615', 615]]) await row('kop-' + vn, [0, 1, 2, 3].map((q) => () => { const m = MP.buildPersonMesh(0x6a6a6a, 0xd9a47a, { seed: sd, variant: vn.startsWith('man') ? 'male' : 'female', role: 'voetganger' }); m.userData.p2rot = q * Math.PI / 2; return m; }), false, 1.7, 1.62, 1.62);
     // 2b. accessoires van dichtbij: bril, zonnebril, sjaal, rugzak, schoudertas, pet en platte pet
     const acc = [{ glasses: true }, { glasses: true, shades: true }, { scarf: true, scarfColor: 0xc9a227 }, { bag: 'backpack', bagColor: 0x2f3b52 }, { bag: 'shoulder', bagColor: 0x6b2a24 }, { hat: 'cap', hatColor: 0x3a4d6e }, { hat: 'flatcap', hatColor: 0x7a6a4a }];
     await row('accessoires', acc.flatMap((lk, i) => [0, 1].map((v) => () => MP.buildPersonMesh(0x6a8a9a, 0xd9a47a, { seed: 120 + i * 3 + v, variant: v ? 'female' : 'male', look: { top: 'tee', bottom: 'jeans', ...lk } }))), true, 4.8);

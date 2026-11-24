@@ -4,7 +4,7 @@ import { hash2 } from './rng.js';
 import { weaponLayers } from './models3d_weapons.js';
 import { footContact, turnLean, approachTo, wrapPi, fidgetAt, blinkAmount } from './gait.js';
 import { twoBoneIK, twoBoneFK, armIK, armFK, footPlant, wheelGrip, mouthShape, STEER_TURN } from './actorlife.js';
-import { animateModular, plantFeetModular, modularSeatContact, buildModularFromAppearance, modularReady, modularHandSocket, MODULAR_GRIP_AT, modularAttackPose, modularHoldPose, setModularGrip, modularReach, modularTurn, modularSetState, modularPlaceProp, modularHandPoint } from './modularpeople.js';
+import { animateModular, plantFeetModular, modularSeatContact, buildModularFromAppearance, modularReady, modularHandSocket, MODULAR_GRIP_AT, modularAttackPose, modularHoldPose, setModularGrip, modularReach, modularTurn, modularSetState, modularPlaceProp, modularHandPoint, setModularMood } from './modularpeople.js';
 import { idlePose } from './idleclips.js';
 import { attachAccessories } from './models3d_clothing.js';
 import { buildHairStyle } from './models3d_hair.js';
@@ -1264,7 +1264,7 @@ const hashS = (seed, k) => { const x = Math.sin(seed * 12.9898 + k * 78.233) * 4
 function modularOptsFor(shirt, skin, opts) {
   if (opts.character || opts.speler) return { ...opts, shirt, skin };
   const seed = opts.seed !== undefined ? opts.seed : Math.floor(((shirt >>> 0) * 31 + (skin >>> 0)) % 9973);
-  const a = { ...opts, shirt, skin, seed, vary: true, variant: opts.variant || (hashS(seed, 1) < 0.5 ? 'female' : 'male') };
+  const a = { ...opts, shirt, skin, seed, vary: true, skinVary: opts.skinVary ?? !!opts.role, variant: opts.variant || (hashS(seed, 1) < 0.5 ? 'female' : 'male') };
   const cop = a.cop || shirt === 0x1c3fae || shirt === 0x1f3f8f;
   if (opts.role && !opts.look && !cop) {
     const old = hashS(seed, 23) < 0.2;
@@ -2474,8 +2474,11 @@ function modularPosed(mesh, ud, pose, speed, dt) {
     if (pose === 'crouch') { ud.crouch = true; ud.qPoseCrouch = true; }
     if (ud.qPosed !== pose && p.seated && !ud.qPosed) modularSetState(mesh, 'sit');   // geen opstaan-en-zitten bij het verschijnen
     ud.qPosed = pose;
+    // de uitdrukking volgt de situatie: lachen bij praten, mokken bij boos
+    if (ud.qLod === 0) { const m = pose === 'talk' || pose === 'muziek' ? 'vrolijk' : pose === 'angry' ? 'mokkend' : null; if (m) setModularMood(mesh, m); else if (ud.qMoodBase) setModularMood(mesh, ud.qMoodBase); }
   } else {
     ud.qPosed = null;
+    if (ud.qMoodBase) setModularMood(mesh, ud.qMoodBase);
     if (ud.qParams === ud.qPoseP) ud.qParams = null;
     if (ud.qPoseCrouch) { ud.crouch = false; ud.qPoseCrouch = false; }
     modularPropsOff(ud);

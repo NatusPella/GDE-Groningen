@@ -254,6 +254,48 @@ function squashHair(rig, p, P, v0, face, kind) {
     if (r > 0.85) { const k = 0.85 / r; P[o] = f.cx + dx * k; P[o + 1] = f.cy + Math.max(0, dy) * k; P[o + 2] = f.zc + dz * k; }
   }
 }
+// Uitdrukkingen (personages 2): het pack heeft geen mond in de kleuren en platte ogen; mond en wenkbrauwen komen als dunne vlakken
+// op het hoofdbot. look.mood: 'neutraal', 'vrolijk' (mondhoeken omhoog, wenkbrauwen iets op), 'mokkend' (mondhoeken omlaag, wenkbrauwen
+// schuin naar binnen omlaag) of 'verbaasd' (ronde open mond, wenkbrauwen hoog). Per look gekozen uit het zaad; setModularMood wisselt.
+export const MOODS = ['neutraal', 'vrolijk', 'mokkend', 'verbaasd'];
+const MOOD_SEG = 6, MOOD_V = (MOOD_SEG + 1) * 2 + 8, MOOD_I = MOOD_SEG * 6 + 12;
+function moodGeometry(face, look, P, C, SI, SW, I, v0, i0, headBone, skinRgb) {
+  const mood = look.mood || 'neutraal', [mx, my, mz] = face.mouth, x = face.eyes[0].x - 0.0005;
+  const put = (px, py, pz, c) => { P[v0 * 3] = px; P[v0 * 3 + 1] = py; P[v0 * 3 + 2] = pz; C[v0 * 3] = c[0]; C[v0 * 3 + 1] = c[1]; C[v0 * 3 + 2] = c[2]; SI[v0 * 4] = headBone; SW[v0 * 4] = 255; return v0++; };
+  const strip = (pts, t, c) => {   // een lijn langs punten [y, z] met toenemende z, dikte t
+    const base = v0;
+    for (const [py, pz] of pts) { put(x, py + t / 2, pz, c); put(x, py - t / 2, pz, c); }
+    for (let k = 0; k < pts.length - 1; k++) { const a = base + k * 2; I[i0++] = a; I[i0++] = a + 2; I[i0++] = a + 3; I[i0++] = a; I[i0++] = a + 3; I[i0++] = a + 1; }
+  };
+  const lip = [0.2, 0.07, 0.06], brow = [0.7, 0.7, 0.7];
+  _base.setHex(look.hair ?? 0x3b2a1e); _base.multiplyScalar(0.55); brow[0] = _base.r; brow[1] = _base.g; brow[2] = _base.b;
+  const hw = 0.026, v0s = v0, i0s = i0;
+  if (mood === 'verbaasd') {
+    const base = v0;
+    for (const [py, pz] of [[my + 0.009, mz - 0.007], [my + 0.009, mz + 0.007], [my - 0.009, mz + 0.007], [my - 0.009, mz - 0.007]]) put(x + 0.0005, py, pz, [0.12, 0.03, 0.03]);
+    for (const k of [0, 1, 2, 0, 2, 3]) I[i0++] = base + k;
+  } else {
+    const pts = [];
+    for (let k = 0; k <= MOOD_SEG; k++) {
+      const u = k / MOOD_SEG, e = (2 * u - 1) ** 2;
+      pts.push([mood === 'vrolijk' ? my + 0.011 * e - 0.004 : mood === 'mokkend' ? my - 0.009 * e + 0.003 : my - 0.002, mz - hw + 2 * hw * u]);
+    }
+    strip(pts, mood === 'neutraal' ? 0.0035 : 0.0045, lip);
+  }
+  // wenkbrauwen: een staafje boven elk oog; de binnenkant (naar het midden van het gezicht) staat bij mokkend lager
+  v0 = v0s + (MOOD_SEG + 1) * 2; i0 = i0s + MOOD_SEG * 6;   // vaste indeling: de mond heeft zijn eigen ruimte, ongebruikt blijft nul
+  const zm = (face.eyes[0].c[2] + face.eyes[1].c[2]) / 2;
+  const base = v0;
+  for (const e of face.eyes) {
+    const cz = e.c[2], by = e.c[1] + e.h / 2 + 0.017 + (mood === 'verbaasd' ? 0.013 : mood === 'vrolijk' ? 0.005 : 0), inner = cz > zm ? -1 : 1;   // inner = de kant van het midden langs z
+    const lo = mood === 'mokkend' ? -0.007 : 0, hi = mood === 'mokkend' ? 0.004 : mood === 'vrolijk' ? 0.003 : 0;
+    const yz = (side) => (side === inner ? lo : hi);   // side -1 = kleine z, +1 = grote z
+    const z0 = cz - 0.017, z1 = cz + 0.017, y0 = by + yz(-1), y1 = by + yz(1), t = 0.004;
+    put(x, y0 + t / 2, z0, brow); put(x, y1 + t / 2, z1, brow); put(x, y1 - t / 2, z1, brow); put(x, y0 - t / 2, z0, brow);
+  }
+  for (let k = 0; k < 2; k++) for (const j of [0, 1, 2, 0, 2, 3]) I[i0++] = base + k * 4 + j;
+  return { v: v0s + MOOD_V, i: i0s + MOOD_I };
+}
 const CAP_SEG = 10, CAP_RINGS = 3;
 const CAP_V = CAP_SEG * CAP_RINGS + 1 + 4, CAP_I = (CAP_SEG * (CAP_RINGS - 1) * 2 + CAP_SEG) * 3 + 6 + CAP_SEG * 0;
 function capGeometry(face, kind, P, C, SI, SW, I, v0, i0, col, headBone) {
@@ -277,9 +319,10 @@ function capGeometry(face, kind, P, C, SI, SW, I, v0, i0, col, headBone) {
   }
   for (let s = 0; s < CAP_SEG; s++) tri(base + (CAP_RINGS - 1) * CAP_SEG + s, top, base + (CAP_RINGS - 1) * CAP_SEG + ((s + 1) % CAP_SEG));
   // klep (alleen een pet): een plat vlak naar voren, iets omlaag
-  const k0 = v0, y = cy - 0.012, w = kind === 'cap' || kind === 'tammo' || kind === 'police' ? 0.085 : 0;
-  put(cx + rx * 0.85, y, zc - w); put(cx + rx * 0.85, y, zc + w); put(cx + rx + 0.075, y - 0.02 * (w > 0 ? 1 : 0), zc + w * 0.8); put(cx + rx + 0.075, y - 0.02 * (w > 0 ? 1 : 0), zc - w * 0.8);
-  tri(k0, k0 + 1, k0 + 2); tri(k0, k0 + 2, k0 + 3);
+  // klep: een pet krijgt een lange, een platte pet een korte brede klep, een muts geen (zonder breedte was het een draadvlak: een spits puntje)
+  const k0 = v0, y = cy - 0.012, w = kind === 'cap' || kind === 'tammo' || kind === 'police' ? 0.085 : kind === 'flatcap' ? 0.075 : 0, ext = kind === 'flatcap' ? 0.035 : 0.075;
+  put(cx + rx * 0.85, y, zc - w); put(cx + rx * 0.85, y, zc + w); put(cx + rx + ext, y - 0.02 * (w > 0 ? 1 : 0), zc + w * 0.8); put(cx + rx + ext, y - 0.02 * (w > 0 ? 1 : 0), zc - w * 0.8);
+  if (w > 0) { tri(k0, k0 + 1, k0 + 2); tri(k0, k0 + 2, k0 + 3); }
   return { v: v0, i: i0 };
 }
 
@@ -337,7 +380,7 @@ export function resetModularGeoBudget() { geoBuildSpent = 0; geoBudgetOn = true;
 function geoCached(rig, look, lod, grip) { return !!rig.geoCache.get(geoKey(look, lod, !!(grip && lod === 0 && rig.grip))); }
 function geoKey(look, lod, grip) {
   const wearIds = look.wear && look.wear.length && lod < 2 ? look.wear : null;
-  return `${lod}${grip ? 'g' : ''}|${wearIds ? wearIds.join('+') : ''}|${look.cap || ''}|${look.capColor || ''}|${look.kit ? JSON.stringify(look.kit) : ''}${look.wearParams ? JSON.stringify(look.wearParams) : ''}|${look.parts.hoofd}|${look.parts.romp}|${look.parts.benen}|${look.parts.voeten}|${look.skin}|${look.shirt}|${look.hair}|${look.pants}|${Math.floor(hashf(look.seed, 3) * 8)}`;
+  return `${lod}${grip ? 'g' : ''}|${wearIds ? wearIds.join('+') : ''}|${look.mood || ''}|${look.cap || ''}|${look.capColor || ''}|${look.kit ? JSON.stringify(look.kit) : ''}${look.wearParams ? JSON.stringify(look.wearParams) : ''}|${look.parts.hoofd}|${look.parts.romp}|${look.parts.benen}|${look.parts.voeten}|${look.skin}|${look.shirt}|${look.hair}|${look.pants}|${Math.floor(hashf(look.seed, 3) * 8)}`;
 }
 function geometryFor(rig, look, lod = 0, grip = false) {
   grip = !!(grip && lod === 0 && rig.grip);   // de LOD's houden een open hand (vanaf 25 m zie je geen vingers)
@@ -352,7 +395,8 @@ function geometryFor(rig, look, lod = 0, grip = false) {
   // de eenvoudige pet alleen als er geen kledingdeel voor het hoofd is (de politiepet komt uit modularwear.js)
   const wear = wearIds && face ? wearIds.map((id) => wearFor(rig, look, face, id)).filter(Boolean) : [];
   const capOn = !!(face && look.cap) && !wear.some((w) => w.id === 'politiepet');
-  const FV = (face ? 12 : 0) + (capOn ? CAP_V : 0) + wear.reduce((a, w) => a + w.pos.length / 3, 0), FI = (face ? 18 : 0) + (capOn ? CAP_I : 0) + wear.reduce((a, w) => a + w.idx.length, 0);
+  const moodOn = !!(face && lod < 2);   // mond en wenkbrauwen van de uitdrukking (vanaf 25 m niet meer te zien)
+  const FV = (face ? 12 : 0) + (moodOn ? MOOD_V : 0) + (capOn ? CAP_V : 0) + wear.reduce((a, w) => a + w.pos.length / 3, 0), FI = (face ? 18 : 0) + (moodOn ? MOOD_I : 0) + (capOn ? CAP_I : 0) + wear.reduce((a, w) => a + w.idx.length, 0);
   const nV = parts.reduce((s, p) => s + p.vCount, 0) + FV, nI = parts.reduce((s, p) => s + p.iCount, 0) + FI;
   const P = new Float32Array(nV * 3), C = new Float32Array(nV * 3), SI = new Uint8Array(nV * 4), SW = new Uint8Array(nV * 4);
   const I = nV < 65536 ? new Uint16Array(nI) : new Uint32Array(nI);
@@ -395,6 +439,10 @@ function geometryFor(rig, look, lod = 0, grip = false) {
     const [mx, my, mz] = face.mouth;
     quad(mx + 0.0025, my - 0.016, my, mz - 0.014, mz + 0.014, dark, MOUTH);
     for (const e of face.eyes) quad(e.x + 0.003, e.c[1] - e.h / 2 - 0.002, e.c[1] + e.h / 2 + 0.002, e.c[2] - e.w / 2 - 0.003, e.c[2] + e.w / 2 + 0.003, skin, LIDS);
+    if (moodOn) {
+      const res = moodGeometry(face, look, P, C, SI, SW, I, v0, i0, rig.man.bones.findIndex((b) => b.name === 'Head'), skin);
+      v0 = res.v; i0 = res.i;
+    }
     if (capOn) {
       _base.setHex(look.capColor ?? 0x2b2f36);
       const res = capGeometry(face, look.cap, P, C, SI, SW, I, v0, i0, [_base.r, _base.g, _base.b], rig.man.bones.findIndex((b) => b.name === 'Head'));
@@ -456,6 +504,15 @@ export function registerModularLods(register, seeds = [11, 22, 33, 44]) {
     n++;
   }
   return n;
+}
+// Zet de uitdrukking (MOODS) van een modulaire mens: neutraal, vrolijk, mokkend of verbaasd. Wisselt alleen als het verandert.
+export function setModularMood(mesh, mood) {
+  const ud = mesh && mesh.userData;
+  if (!ud || !ud.qRig || !ud.qLook || ud.qLook.mood === mood || !MOODS.includes(mood)) return false;
+  ud.qMoodBase = ud.qMoodBase || ud.qLook.mood || 'neutraal';
+  ud.qLook = { ...ud.qLook, mood };
+  swapGeometry(ud);
+  return true;
 }
 // Wisselt de geometrie van een modulaire mens naar niveau lod (alleen als het verandert; telt de gedeelde geometrie netjes af en op).
 export function setModularLod(mesh, lod) {
@@ -535,6 +592,7 @@ export function buildModularPerson(seed, opts = {}) {
   }
   group.updateMatrixWorld(true);
   mesh.bind(new THREE.Skeleton([...sk.bones, ...extra], inverses), new THREE.Matrix4());
+  if (look.face) { const hb = sk.bones[rig.man.bones.findIndex((b) => b.name === 'Head')]; hb.scale.x *= look.face[0]; hb.scale.y *= look.face[1]; hb.scale.z *= look.face[2]; }   // gezichtsvorm: smaller, breder, langer (uit het zaad)
   if (look.child) sk.bones[rig.man.bones.findIndex((b) => b.name === 'Head')].scale.multiplyScalar(1.22);   // kinderen: groter hoofd bij het lijf
   for (const b of extra) b.scale.y = 0;   // pas na het binden (de inverse van schaal 0 bestaat niet): mond dicht, ogen open
   group.scale.setScalar(look.scale);

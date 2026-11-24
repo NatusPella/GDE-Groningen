@@ -280,7 +280,7 @@ function makeActors(sim, kc = null) {
     else {
       const al = actorLook({ ...t, patroon: levelPattern(t.patroon, level) }, { level, role: p.rol, number: p.rol === 'keeper' ? 1 : 2 + (p.i % 20), seed: 9811 + p.id * 13, clubId: t.id || '', name: true, sponsors: p.team === 0 && kc ? kc.sponsors : [] });
       mesh = buildPersonMesh(al.shirt, 0xd9b48f, {
-        variant: vrouw ? 'female' : 'male', seed: 9811 + p.id * 13, pants: al.pants, shoes: al.shoes, shirtBands: al.shirtBands, ...(al.body ? { body: al.body } : {}), ...(al.hairStyle ? { hairStyle: al.hairStyle } : {}), ...(al.hair != null ? { hair: al.hair } : {}),
+        skinVary: true, variant: vrouw ? 'female' : 'male', seed: 9811 + p.id * 13, pants: al.pants, shoes: al.shoes, shirtBands: al.shirtBands, ...(al.body ? { body: al.body } : {}), ...(al.hairStyle ? { hairStyle: al.hairStyle } : {}), ...(al.hair != null ? { hair: al.hair } : {}),
         look: { ...al.look, age: 'adult', umbrella: null },
       });
     }
