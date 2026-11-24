@@ -378,6 +378,26 @@ t('ondertitel: zonder tekst geen balk (review 22-11)', () => {
   assert.match(subtitleHtml({ naam: 'Jelle', tekst: 'Goal!' }), /<span>Goal!<\/span>/);
 });
 
+t('derby (#1114): wie in team 1 speelt kijkt vanaf de andere kant en zijn stick draait mee, vooruit is naar het doel van de tegenstander', () => {
+  const m = makeMatch([{ slot: 0, naam: 'Jij' }], { duur: 'kort', seed: 32, formaat: 'groot' }); tot(m, 'spel', 30);
+  m.bal.x = 6; m.bal.y = 12;
+  const mir = (q) => ({ ...q, x: -q.x, y: -q.y });
+  for (const shot of ['speler', 'hoog']) {
+    const a = cameraVoor(shot, m, 4, 5, { team1: true }), b = cameraVoor(shot, { ...m, bal: mir(m.bal), spelers: m.spelers.map(mir) }, 4, 5, {});
+    assert.deepEqual([a.pos.x, a.pos.y, a.pos.z, a.at.x, a.at.y], [-b.pos.x, -b.pos.y, b.pos.z, -b.at.x, -b.at.y], shot);
+    const gewoon = cameraVoor(shot, m, 4, 5, {});
+    assert.ok(Math.sign(a.at.y - a.pos.y) === -Math.sign(gewoon.at.y - gewoon.pos.y), shot + ': de kijkrichting is omgedraaid');
+  }
+  assert.deepEqual(cameraVoor('zijlijn', m, 4, 5, { team1: true }), cameraVoor('zijlijn', m, 4, 5, {}), 'een tv-shot blijft gewoon');
+  // dezelfde stick (vooruit) brengt een mens in team 0 en een in team 1 elk naar het doel van de tegenstander
+  for (const team of [0, 1]) {
+    const d = makeMatch([{ slot: 0, naam: 'Jij', team }], { duur: 'kort', seed: 9, formaat: 'groot' }); tot(d, 'spel', 30);
+    const me = d.spelers[d.mensen[0].ctl], y0 = me.y;
+    for (let i = 0; i < 40; i++) tikWedstrijd(d, DT, () => ({ mx: 0, my: -1, buttons: 0 }));
+    assert.ok((me.y - y0) * richtingVan(team) > 1, `team ${team}: ${y0.toFixed(1)} naar ${me.y.toFixed(1)}`);
+  }
+});
+
 t('stijl: de gespiegelde kolom van de opstelling geeft de rol niet de smalle kolom (#1110, 24-11: "KeepeAart" liep over de naam)', () => {
   const css = fs.readFileSync(new URL('../game/js/voetbaltv.css', import.meta.url), 'utf8');
   const thuis = /\.vbtv-kolom li \{[^}]*grid-template-columns:\s*([^;]+);/.exec(css), uit = /\.vbtv-kolom--uit li \{[^}]*grid-template-columns:\s*([^;]+);/.exec(css);

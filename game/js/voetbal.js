@@ -822,7 +822,7 @@ function camera(w) {
   const sim = g.sim, id = eigenId(g);
   // de tv-regie (voetbalregie.js) kiest het shot; het standaardshot is de camera achter je speler. De posities zijn veldcoördinaten.
   const shot = g.replay ? g.replaySnit : g.camShot;
-  const extra = shot === 'viering' ? { speler: g.regie.scorer } : g.regie.extra;
+  const extra = { ...(shot === 'viering' ? { speler: g.regie.scorer } : g.regie.extra), team1: mijnTeam(g) === 1 };   // derby (#1114): team 1 kijkt vanaf de andere kant
   const cv = g.replay && g.camReplay ? g.camReplay : cameraVoor(shot, sim, id, g.t, extra);
   const wp = (q) => { const t = toWorld(q.x, q.y); return { x: t.x, y: t.y, z: ground + q.z }; };
   const c = easeCamera(g, wp(cv.pos), wp(cv.at), shot === 'speler' ? 0.1 : shot === 'breed' ? 0.06 : 0.14);

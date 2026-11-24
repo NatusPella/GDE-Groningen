@@ -47,6 +47,13 @@ export function regieTik(r, sim, evs = [], dt = 0) {
 
 // De camera voor een shot: { pos: {x,y,z}, at: {x,y,z}, fov } in veldcoördinaten. eigenId: de speler die jij bestuurt (of -1); extra: { speler } voor viering en kaart.
 export function cameraVoor(shot, sim, eigenId = -1, t = 0, extra = {}) {
+  // derby (#1114): wie in team 1 speelt valt aan naar de andere kant; zijn eigen shots (achter de speler, hoog) draaien het veld een halve slag (bal en spelers gespiegeld door het midden),
+  // zodat ook hij naar boven in beeld aanvalt. De tv-shots (zijlijn, breed, doel, hoek) blijven gewoon.
+  if (extra && extra.team1 && (shot === 'speler' || shot === 'hoog')) {
+    const m = (q) => ({ ...q, x: -q.x, y: -q.y });
+    const r = cameraVoor(shot, { ...sim, bal: m(sim.bal), spelers: sim.spelers.map(m) }, eigenId, t, { ...extra, team1: false });
+    return { ...r, pos: m(r.pos), at: m(r.at) };
+  }
   const sc = schaal(sim), b = sim.bal, me = eigenId >= 0 ? sim.spelers[eigenId] : null;
   const H = PITCH.L / 2, W = PITCH.B / 2, sgn = (v) => (v < 0 ? -1 : 1);
   const groot = sim.formaat === 'groot';

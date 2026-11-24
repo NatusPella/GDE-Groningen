@@ -249,7 +249,8 @@ function wijsBesturing(m, dt, invoer) {
 // Wat een mens met zijn invoer doet: lopen, schot of voorzet laden en loslaten, een pass, een tackle, of (keeper) duiken.
 const laadK = (s) => kl(0.2 + 0.8 * Math.min(1, s / LAAD_S), 0.2, 1);
 function humanIntent(m, p, human, dt) {
-  const a = invoerNaarActie(human.inv), b = human.inv.buttons | 0;
+  // derby (#1114): wie in team 1 speelt kijkt vanaf de andere kant (cameraVoor met team1), dus zijn stick is ook gedraaid: vooruit is altijd naar het doel van de tegenstander
+  const a0 = invoerNaarActie(human.inv), a = p.team === 1 ? { ...a0, dx: -a0.dx, dy: -a0.dy } : a0, b = human.inv.buttons | 0;
   const edge = (bit) => (b & bit) && !(human.vorig & bit);
   const los = (bit) => !(b & bit) && (human.vorig & bit);
   const live = m.fase === 'spel' || (m.hervat && m.hervat.t >= m.hervat.pauze);
