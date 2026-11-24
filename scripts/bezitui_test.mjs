@@ -35,9 +35,9 @@ t('menu: doorverwijzing van de oude en de nieuwe naam, standaard op Boerderij', 
 t('overzicht: leeg bezit geeft een uitleg, geen fout', () => {
   reset();
   const h = U.summaryHtml(ctx(w()));
-  assert.ok(h.includes('Overzicht') && h.includes('Nog niets dringends') === false);
-  assert.ok(h.includes('Nog geen land') && h.includes('data-leeg="percelen"'), 'de volgende stap staat er');
-  assert.ok(/<button[^>]*data-goto-sub="boerderij:tekoop"[^>]*>Koop je eerste perceel<\/button>/.test(h), 'een echte knop naar Te koop (#1246)');
+  assert.ok(h.includes('Nog niets in bezit') && h.includes('data-stap="1"'), 'de volgende stap staat er (drie stappen, 24-11)');
+  assert.ok(/<button[^>]*data-goto-sub="boerderij:tekoop"[^>]*>Bekijk wat te koop is<\/button>/.test(h), 'een echte knop naar Te koop (#1246)');
+  assert.ok(/± €/.test(h) && !/Levert<\/dt><dd>€/.test(h), 'het rendement staat er alleen als schatting (met ±)');
   assert.ok(h.includes('<svg') && !h.includes('Open de kaart en kies de laag'), 'icoon in plaats van de lap uitleg');
   assert.ok(!h.includes('Stel beginner aan') && !h.includes('data-bz-cycle=') && !h.includes('bz-tegel'), 'leeg bezit toont geen personeel, filters of nulltegels (progressive disclosure)');
 });
@@ -47,7 +47,7 @@ t('overzicht: na een koop staat het perceel in de lijst met stand en Doel', () =
   assert.ok(L.koopPerceel(world, 'paaaaaaaaaaa1').ok);
   const h = U.summaryHtml(ctx(world));
   assert.ok(h.includes('data-row="paaaaaaaaaaa1"') && h.includes('data-bz="doel"') && h.includes('3 ha') && h.includes('Zelf'));
-  assert.ok(h.includes('Percelen') && h.includes('Hectare'));
+  assert.ok(h.includes('Percelen') && h.includes('data-pkaart="boerderij"') && h.includes('ha'), 'het portfolio toont de boerderijkaart');
 });
 t('te koop: lijst met prijs en Doel; kopen vraagt een bevestiging (tweede druk)', () => {
   reset();
@@ -123,7 +123,7 @@ t('#1246: lege secties zijn een icoon met een knop, geen lap uitleg; tegels drag
   const offer = L.parcelOffer('pbbbbbbbbbbb2');
   if (offer && offer.forSale) L.koopPerceel(world, 'pbbbbbbbbbbb2');
   const h = U.summaryHtml(ctx(world));
-  assert.ok(/class="bz-tegel"><small><svg[^>]*bz-tegel-ic/.test(h), 'elke tegel heeft een icoon');
+  assert.ok(/class="ds-z-kaart__titel"><svg[^>]*bz-ic/.test(h) && !h.includes('bz-tegel'), 'elke portfoliokaart heeft een icoon, geen tegels meer');
   assert.ok(!/0 medewerkers/.test(h), 'geen regel met nullen bij nul personeel');
   assert.ok(h.includes('Nog niemand in dienst.') && /data-bz="huur"/.test(h), 'één korte regel en de huurknoppen');
   const vee = U.veeHtml(L.getBezit(), [], 0);
@@ -226,7 +226,7 @@ await (async () => {
   try {
     reset();
     let renders = 0;
-    const el = () => ({ _h: '', set innerHTML(v) { this._h = v; if (++renders > 500) throw new Error('microtaaklus: renderBezitPanels herhaalt zichzelf'); }, get innerHTML() { return this._h; }, addEventListener() {} });
+    const el = () => ({ _h: '', set innerHTML(v) { this._h = v; if (++renders > 500) throw new Error('microtaaklus: renderBezitPanels herhaalt zichzelf'); }, get innerHTML() { return this._h; }, insertAdjacentHTML() {}, closest() { return null; }, addEventListener() {} });
     const els = { overzicht: el(), bedrijven: el(), tekoop: el(), snack: null };
     U.renderBezitPanels(els, w());
     for (let i = 0; i < 200; i++) await new Promise((r) => setImmediate(r));

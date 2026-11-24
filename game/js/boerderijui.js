@@ -17,6 +17,7 @@ import { dagKeuze, dagKeuzeTekst } from './boerderijdag.js';
 import { koopVraag, tweedeDruk } from './tweedruk.js';
 import { kaartenBlok, zetUitlegGezien } from './farmcards.js';
 import { getBezit } from './bezitlive.js';
+import { frameView, frameHtml } from './bezitframe.js';
 import { fpHtml, leegHtml, meerHtml } from './farmpicshtml.js';
 import { vulPlaatjes, showLive, ruimLive, ruimPlaatjes } from './farmpics.js';
 
@@ -438,7 +439,8 @@ export function renderBoerderijPanel(el, world, sluit = null) {
   // #1243: de onderdelen zijn een segmentbalk (ds-z-tabs), niet een tweede onderstreepte tabrij onder die van Land en bedrijf. Q en E werken op role="tab".
   const tabs = ONDERDELEN.map(([id, naam]) => `<button type="button" role="tab" class="ds-z-tab bd-seg-tab${gekozen === id ? ' sel' : ''}" data-bd="${id}" aria-selected="${gekozen === id}">${esc(naam)}${tel[id] != null ? `<small>${tel[id]}</small>` : ''}</button>`).join('');
   // De sfeernaam staat al in de band; hier alleen de chip en het geld.
-  el.innerHTML = `<div class="bd-seg-rij"><nav class="ds-z-tabs bd-seg" role="tablist" aria-label="Boerderij">${tabs}</nav><span class="m-grow"></span><span class="pa-total"><span class="lb-sfeer-chip" style="${sfeerStijl(SFEER)}" aria-hidden="true"></span><span class="mut">Je geld</span><span class="m-num">${euro(geld)}</span></span></div>` +
+  let kader = ''; try { kader = frameHtml(frameView(world)); } catch (e) { /* het kader is een extra; de boerderij werkt ook zonder */ }
+  el.innerHTML = kader + `<div class="bd-seg-rij"><nav class="ds-z-tabs bd-seg" role="tablist" aria-label="Boerderij">${tabs}</nav><span class="m-grow"></span><span class="pa-total"><span class="lb-sfeer-chip" style="${sfeerStijl(SFEER)}" aria-hidden="true"></span><span class="mut">Je geld</span><span class="m-num">${euro(geld)}</span></span></div>` +
     dagKaart() +
     `<div class="m-main bd-main"><aside class="m-pane pa-pane bd-pane" aria-live="polite">${detail(b, geld)}</aside></div>`;
   fillBars(el, bars);

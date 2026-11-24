@@ -9,6 +9,7 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ## [Unreleased]
 
+- Land en bedrijf heeft een vaste kop met je geld, je totale waarde, je dagbedrag en wat aandacht vraagt, en een strook met wat je nu moet doen; het overzicht toont je bezit als kaarten met een kaartje van je velden. Je bezit en je beheer blijven van jezelf, ook bij Samen spelen.
 - Garage: "Nog 55 te ontdekken" is een lege tegel in het raster (met een stippelrand, even groot als een voertuigkaart) in plaats van een losse regel naast je eerste auto. Samen spelen: per speler.
 - Prestaties: de kop heet "Je stand" (niet nog een keer Prestaties) en herhaalt "0 van 238 behaald" niet meer in een zin en een tweede balk; de vier getallen en de balk bovenaan blijven. Samen spelen: per speler.
 - Samen spelen: de vraag of je meedoet is een gewone kaart met de vraag als kop en de knoppen op één regel; Ja is de gele knop, Nee secundair (eerst waren het twee gele knoppen onder elkaar in een gestippeld vak). Het naamveld voor Samen spelen herhaalt zijn label niet meer als voorbeeldtekst ("Zo zien de anderen je") en de knop Toetsenbord staat naast het veld. Samen spelen: ieder ziet en beantwoordt de eigen vraag.

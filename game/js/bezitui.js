@@ -24,6 +24,9 @@ import { SPECIES, herdOffers, herdSellValue, herdsOf } from './livestock.js';
 import { icoon } from './icons.js';
 import { setLayer } from './mapfilters.js';
 import { sectionCard, missReason, holdingButton, statusChip } from './holdingcards.js';
+import { frameView, frameHtml, zetTabs } from './bezitframe.js';
+import { portfolioHtml, leegHtml } from './bezitoverzicht.js';
+import { kaartSvg } from './bezitkaart.js';
 
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const ha = (n) => String(Math.round(n * 10) / 10).replace('.', ',');
@@ -91,7 +94,8 @@ export function cycleChip(soort, label, opties, huidig, extra = '') {
 export const nextOption = (opties, huidig) => opties[(Math.max(0, opties.findIndex(([v]) => v === huidig)) + 1) % opties.length][0];
 
 // ---- Overzicht ----
-export function summaryHtml({ bezit, farm, money = 0, day = 0, news = null, chains = null, board = null, products = [] } = {}) {
+export function summaryHtml({ bezit, farm, money = 0, day = 0, news = null, chains = null, board = null, products = [], view = null } = {}) {
+  view = view || frameView({ money });
   const rows = H.holdingRows(bezit, farm, { regionOf: (id) => (L.parcelOffer(id) || {}).region });
   const own = rows.filter((r) => !((bezit.parcels[r.id] || {}).lg));
   const sum = H.summarize(rows);
@@ -100,8 +104,9 @@ export function summaryHtml({ bezit, farm, money = 0, day = 0, news = null, chai
   const shown = H.sortRows(H.filterRows(rows, { region: ui.filter.region || undefined, soort: ui.filter.soort || undefined, level: ui.filter.level || undefined }), ui.sort);
   const opt = H.filterOptions(rows);
   const sel = (key, label, items) => cycleChip('filter:' + key, label, [['', 'Alles'], ...items.map((v) => [v, v])], ui.filter[key] || '');
-  const tiles = [['Percelen', own.length], ['Hectare', ha(sum.ha)], ['Panden', bezit.buildings.size], ['Opbrengst per dag', euro(sum.incomeDay)], ...(staff.workers.length ? [['Loon per dag', euro(staffWages(staff))]] : [])].map(([k, v]) => `<span class="bz-tegel"><small>${TILE_ICON[k] ? icoon(TILE_ICON[k], { cls: 'bz-tegel-ic' }) : ''}${k}</small><b>${v}</b></span>`).join('');
-  const attention = points.length ? `<ul class="bz-lijst">${points.map((p) => `<li data-code="${p.code}">${esc(p.tekst)}</li>`).join('')}</ul>` : '<p class="mut">Niets dringends: alles loopt.</p>';
+  const tilesOud = [['Percelen', own.length], ['Hectare', ha(sum.ha)], ['Panden', bezit.buildings.size], ['Opbrengst per dag', euro(sum.incomeDay)], ...(staff.workers.length ? [['Loon per dag', euro(staffWages(staff))]] : [])].map(([k, v]) => `<span class="bz-tegel"><small>${TILE_ICON[k] ? icoon(TILE_ICON[k], { cls: 'bz-tegel-ic' }) : ''}${k}</small><b>${v}</b></span>`).join('');
+  const vlakken = rows.map((r) => { const o = L.parcelOffer(r.id); return o && o.parcel ? { id: r.id, shape: o.shape, x: o.parcel.x, y: o.parcel.y, statusId: r.statusId, level: r.level, naam: r.name } : null; }).filter(Boolean);
+  const portfolio = view ? portfolioHtml(view, { vlakken }) : '';
   const body = shown.slice(0, ui.more ? 200 : MAX_ROWS).map((r) => `<div class="bd-rij" data-row="${esc(r.id)}"><label class="bz-chk"><input type="checkbox" data-bz-sel="${esc(r.id)}"${ui.sel.has(r.id) ? ' checked' : ''} aria-label="Kies ${esc(r.name)}"></label>` +
     `<span class="bd-naam"><b>${esc(r.name)}</b><span class="bd-feiten"><span>${esc(r.soort)}</span><span>${ha(r.ha)} ha</span><span>${esc(r.stand)}</span><span>${H.LEVEL_NAME[r.level]}</span>${r.herd ? `<span>${r.herd.n} dieren</span>` : ''}${r.incomeDay ? `<span>${euro(r.incomeDay)} per dag</span>` : ''}</span></span>` +
     `<span class="bd-acties">${btn('doel', 'Route', ` data-id="${esc(r.id)}"`)}</span></div>`).join('');
@@ -120,12 +125,12 @@ export function summaryHtml({ bezit, farm, money = 0, day = 0, news = null, chai
   const empty = !own.length && !rows.length ? emptyState('gewas', 'Nog geen land', 'Een eerste perceel kost ongeveer twee uur werk.', ['boerderij:tekoop', 'Koop je eerste perceel'], 'percelen') : '';
   // Nog niets in bezit: één zin met de volgende stap. Nulltegels, filters, personeel, vee, ketens en markt zeggen nu niets (progressive disclosure).
   if (!rows.length && !own.length && !staff.workers.length && !bezit.buildings.size) {
-    return `<div class="pm-pane-top"><span class="m-eb">Land en bedrijf</span><h2 class="m-h2 td-h2">Overzicht</h2></div>${empty}${rapportHtml()}${newsHtml(news)}<p class="bd-melding" aria-live="polite">${esc(msgNow())}</p>`;
+    return `${leegHtml({ money, bedrijvenOpen: branchOpen('business'), snackOpen: branchOpen('snack') })}${rapportHtml()}<p class="bd-melding" aria-live="polite">${esc(msgNow())}</p>`;
   }
   const parcels = sectionCard('percelen', 'gewas', 'Percelen', `<div class="bz-filters" role="group" aria-label="Sorteren en filteren">${cycleChip('sort', 'Sorteren', H.SORTS.map((x) => [x, SORT_NAME[x]]), ui.sort)}` +
     `${sel('region', 'Streek', opt.regions || [])}${sel('soort', 'Soort', opt.soorten || [])}${sel('level', 'Beheer', H.LEVELS)}</div>` + bulk + `<div class="bz-rijen">${body}</div>` +
     (shown.length > MAX_ROWS && !ui.more ? `<p>${btn('meer', `Toon alle ${shown.length}`)}</p>` : ''), { count: shown.length });
-  return `<div class="pm-pane-top"><span class="m-eb">Land en bedrijf</span><h2 class="m-h2 td-h2">Overzicht</h2></div><div class="bz-tegels">${tiles}</div>${attention}${rapportHtml()}${newsHtml(news)}${empty}` +
+  return `${portfolio}${rapportHtml()}${newsHtml(news)}${empty}` +
     (rows.length ? parcels : '') + staffHtml + veeHtml(bezit, rows, money) + chainsHtml(chains, money) + marketHtml(board, products) + `<p class="bd-melding" aria-live="polite">${esc(msgNow())}</p>`;
 }
 
@@ -212,8 +217,7 @@ export function businessesHtml({ money = 0, mine = [], near = [], day = 0, mobil
   }).join('') : '<p class="mut">Nog geen bedrijf. Koop hieronder een pand in de buurt.</p>';
   const nearHtml = near.length ? near.map((o) => `<div class="bd-rij" data-osm="${o.osm}"><span class="bd-naam"><b>${esc(o.kind.type)} bij ${esc(o.town.name)}</b><span class="bd-feiten"><span>${Math.round(o.row.m2)} m2</span><span>${o.dist} m</span>${o.forSale ? `<span>${euro(o.price)}</span>` : `<span>${esc(o.reason)}</span>`}</span></span>` +
     `<span class="bd-acties">${o.mine ? '' : o.forSale ? buyAsk('koop-pand', o.osm, `Koop ${euro(o.price)}`, o.price, money) : ''}</span></div>`).join('') : '<p class="mut">Er staan geen koopbare bedrijfspanden binnen 250 meter van je.</p>';
-  return `<div class="pm-pane-top"><span class="m-eb">Land en bedrijf</span><h2 class="m-h2 td-h2">Bedrijven</h2></div>` +
-    sectionCard('bedrijven', 'winkel', 'Jouw bedrijven', mineHtml, { count: mine.length, info: 'Een winkel levert elke speldag omzet, ook als je er niet bent. Monumenten, ziekenhuizen, politie en verhaalgebouwen blijven van de wereld.' }) +
+  return sectionCard('bedrijven', 'winkel', 'Jouw bedrijven', mineHtml, { count: mine.length, info: 'Een winkel levert elke speldag omzet, ook als je er niet bent. Monumenten, ziekenhuizen, politie en verhaalgebouwen blijven van de wereld.' }) +
     snackVerwijsHtml(mobile) + sectionCard('buurt', 'gebouw', 'In de buurt', nearHtml, { count: near.length || null }) + homesHtml(homes, money) + `<p class="bd-melding" aria-live="polite">${esc(msgNow())}</p>`;
 }
 
@@ -252,8 +256,7 @@ export function forSaleHtml({ money = 0, offers = [], loading = false, laden = f
   if (!branchOpen('land')) return locked('land');
   const rows = offers.length ? offers.map((o) => `<div class="bd-rij" data-id="${esc(o.id)}"><span class="bd-naam"><b>${esc(o.name)}</b><span class="bd-feiten"><span>${esc(o.kindName)}</span><span>${ha(o.ha)} ha</span><span>bodem ${esc(o.soilWord)}</span><span>${o.dist} m</span><span>${euro(o.price)}</span></span></span>` +
     `<span class="bd-acties">${btn('doel-perceel', 'Route', ` data-id="${esc(o.id)}"`)} ${buyAsk('koop-perceel', o.id, `Koop ${euro(o.price)}`, o.price, money)}</span></div>`).join('') : leegTeKoop(loading || laden);
-  return `<div class="pm-pane-top"><span class="m-eb">Land en bedrijf</span><h2 class="m-h2 td-h2">Te koop</h2></div>` +
-    sectionCard('tekoop', 'kaart', 'Dichtbij', rows, { count: offers.length || null, info: 'Op de kaart zie je alle percelen met de laag Te koop. Wie veel land heeft, betaalt meer voor het volgende perceel.' }) + `<p class="bd-melding" aria-live="polite">${esc(msgNow())}</p>`;
+  return sectionCard('tekoop', 'kaart', 'Dichtbij', rows, { count: offers.length || null, info: 'Op de kaart zie je alle percelen met de laag Te koop. Wie veel land heeft, betaalt meer voor het volgende perceel.' }) + `<p class="bd-melding" aria-live="polite">${esc(msgNow())}</p>`;
 }
 
 // ---- de koppeling met de wereld ----
@@ -281,11 +284,14 @@ export function renderBezitPanels(els, world) {
   // Alleen wachten als de index er nog niet is: ensureIndex() geeft na het laden een al opgeloste belofte terug, en dan riep deze regel via rerender zichzelf
   // eindeloos aan in microtaken (het scherm Land en bedrijf bevroor de hele pagina).
   if (!L.getIndexNow()) L.ensureIndex().then(() => { if (els.rerender) els.rerender(); }).catch(() => {});
-  if (els.overzicht) els.overzicht.innerHTML = summaryHtml({ bezit, farm, money, day, news: L.newsView(world), chains: L.chainViews(), board: L.priceBoard(ui.product), products: L.marketProducts() });
-  if (els.bedrijven) { const p = playerPos(world); els.bedrijven.innerHTML = businessesHtml({ money, mine: L.myBusinesses(), near: L.buildingsNear(p.x, p.y), day, mobile: L.myMobile(), mobileOffers: L.mobileOffers(), homes: L.homesNear(p.x, p.y) }); }
-  if (els.tekoop) els.tekoop.innerHTML = forSaleHtml({ money, offers: nearbyOffers(world), loading: !L.getIndexNow() });
-  if (els.snack) renderSnackPanel(els.snack, world);
-  if (els.club) renderClubPanel(els.club, world);
+  const view = frameView(world), kader = frameHtml(view);
+  if (els.overzicht) els.overzicht.innerHTML = kader + summaryHtml({ bezit, farm, money, day, news: L.newsView(world), chains: L.chainViews(), board: L.priceBoard(ui.product), products: L.marketProducts(), view });
+  if (els.bedrijven) { const p = playerPos(world); els.bedrijven.innerHTML = businessesHtml({ money, mine: L.myBusinesses(), near: L.buildingsNear(p.x, p.y), day, mobile: L.myMobile(), mobileOffers: L.mobileOffers(), homes: L.homesNear(p.x, p.y) }); els.bedrijven.insertAdjacentHTML('afterbegin', kader); }
+  const aanbod = nearbyOffers(world);
+  if (els.tekoop) { els.tekoop.innerHTML = kader + forSaleHtml({ money, offers: aanbod, loading: !L.getIndexNow() }); }
+  if (els.snack) { renderSnackPanel(els.snack, world); els.snack.insertAdjacentHTML('afterbegin', kader); }
+  if (els.club) { renderClubPanel(els.club, world); els.club.insertAdjacentHTML('afterbegin', kader); }
+  zetTabs(els.overzicht && els.overzicht.closest('[data-panel]'), view, { boerderij: view.rows.length, bedrijven: view.panden.length, tekoop: aanbod.length });
   restore();
   const redo = () => renderBezitPanels(els, world);
   els.rerender = redo;
