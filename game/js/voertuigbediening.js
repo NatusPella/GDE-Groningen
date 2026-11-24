@@ -126,7 +126,15 @@ function bereidStuurstang(mesh) {
   stuur.position.set(ov.px * ov.sx, 0, 0);
   stuur.scale.x = ov.sx;
   mesh.add(stuur);
-  return { orig, zonder: ov.zonder, stuur, body: spec.body };
+  // de voorvork met het voorspatbord en de lamp (fiets): draait om de wielas mee met het stuur
+  let vork = null;
+  if (ov.vork) {
+    vork = new THREE.Mesh(ov.vork, spec.body.material);
+    vork.name = 'vork';
+    vork.position.set(ov.vorkPx, 0, 0);
+    mesh.add(vork);
+  }
+  return { orig, zonder: ov.zonder, stuur, vork, body: spec.body };
 }
 
 function bereidTrekker() {
@@ -201,7 +209,7 @@ export function syncVoertuigBediening(world, meshes, px, py, dt) {
       if (soort === 'fiets' || soort === 'scooter') {
         zetVoorwielen(ud, [0]);
         if (vb.sw === undefined) vb.sw = bereidStuurstang(mesh);
-        if (vb.sw) { vb.sw.body.geometry = vb.sw.zonder; vb.sw.stuur.visible = true; }
+        if (vb.sw) { vb.sw.body.geometry = vb.sw.zonder; vb.sw.stuur.visible = true; if (vb.sw.vork) vb.sw.vork.visible = true; }
       } else if (soort === 'trekker') {
         zetVoorwielen(ud, [0, 2]);
         if (!vb.tr) vb.tr = bereidTrekker();
@@ -217,9 +225,10 @@ export function syncVoertuigBediening(world, meshes, px, py, dt) {
     // per frame
     const steer = v.steer || 0;
     if (vb.sw) {
-      if (vb.sw.body.geometry !== vb.sw.zonder && vb.sw.body.geometry !== vb.sw.orig) { vb.sw.stuur.visible = false; continue; }
+      if (vb.sw.body.geometry !== vb.sw.zonder && vb.sw.body.geometry !== vb.sw.orig) { vb.sw.stuur.visible = false; if (vb.sw.vork) vb.sw.vork.visible = false; continue; }
       const fw = ud.frontWheels && ud.frontWheels[0];
       vb.sw.stuur.rotation.y = fw ? fw.rotation.y : -steer * MAX_STUUR;
+      if (vb.sw.vork) vb.sw.vork.rotation.y = vb.sw.stuur.rotation.y;
       // de handen van de fietser gaan mee met het stuur (actorlife.js); niet wie onderweg op zijn telefoon kijkt
       const r = ud.riderMesh;
       if (r && r.visible && ud.riderGrip && !(r.userData.phoneProp && r.userData.phoneProp.visible) && Math.abs(vb.sw.stuur.rotation.y - (vb.handA ?? 0)) > 0.005) {
@@ -252,6 +261,7 @@ function uitDeBuurt(ud, vb) {
   if (vb.sw) {
     if (vb.sw.body.geometry === vb.sw.zonder) vb.sw.body.geometry = vb.sw.orig;
     vb.sw.stuur.visible = false;
+    if (vb.sw.vork) vb.sw.vork.visible = false;
   }
   if (vb.tr) {
     if (vb.tr.cabine) vb.tr.cabine.visible = false;
