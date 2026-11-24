@@ -82,6 +82,11 @@ Sinds #528 is Samen spelen de standaard, niet iets wat je erbij doet (ADR 0022).
   voor (`vraagStop`/`stopverzoek`, J/N, net als de tijd). Een filmpje voor
   iedereen overslaan blijft de gedocumenteerde uitzondering van de opener; een
   gast slaat zijn eigen weergave over (ADR 0007).
+- **De moeilijkheid van de wereld is gezamenlijk (#1169).** Politie en verkeer
+  wijzigen vraagt akkoord van de groep. Ook een gast stelt het voor
+  (`vraagMoeilijkheid`/`moeilijkheidverzoek`, alleen de wereldopties); de opener
+  keurt het voorstel (`difficultyvote.js` `cleanWorldProposal`), legt het de groep
+  voor en stemt dan zelf ook met J of N; de vrager telt als ja.
 - **Een verhaal-keuze is een stemming van de groep (#686).** De gastheer opent de
   stemming, elke speler (opener op plek 0 en elke gast) stemt met het nummer van
   zijn optie; de meerderheid wint, een gelijkspel beslist de stem van de opener en

@@ -93,7 +93,7 @@ t('bedrijven: koopbare panden dichtbij met prijs, een kerk is niet te koop met r
   const mine = L.myBusinesses();
   assert.equal(mine.length, 1);
   const h2 = U.businessesHtml({ money: world.money, mine, near: L.buildingsNear(220150, 590150, 300) });
-  assert.ok(h2.includes('data-bz="reno"') && h2.includes('data-bz="verkoop-pand"'));
+  assert.ok(/data-bz(-status)?="reno"/.test(h2) && h2.includes('data-bz="verkoop-pand"'));
   const v = L.verkoopPand(world, 111);
   assert.ok(v.ok && v.refund < r.cost);
 });
@@ -180,7 +180,7 @@ const VIEW = { id: 'kaas', name: 'Melk naar kaas', margin: 0.15, sourceKg: 440, 
     { id: 'verkoop', label: 'Boerderijwinkel of markt', role: 'outlet', owned: false, ownable: true, fill: 0, stock: 0, cap: 1500, perDay: 400, trucks: 0, wage: 0, distance: 0, ref: null, options: [] }] };
 t('ketens: schakels met balk, eigen en niet eigen, zwakste schakel, koppelkiezer, wagens en bronnen; alles ontsnapt', () => {
   const h = U.chainsHtml([VIEW], 5000);
-  assert.match(h, /data-chain="kaas"/); assert.match(h, /data-bz-bind="kaas\|kaasmakerij"/); assert.match(h, /selected/);
+  assert.match(h, /data-chain="kaas"/); assert.match(h, /data-bz-bind="kaas\|kaasmakerij" data-bz-cycle="bind:kaas\|kaasmakerij"[^>]*data-cur="1001"/); assert.ok(!/<select/.test(h), 'geen native keuzelijst (#1272)');
   assert.match(h, /data-own="1"/); assert.match(h, /data-own="0"/); assert.match(h, /data-vol="1"/); assert.match(h, /Zwakste schakel: Melkvee/);
   assert.match(h, /extra marge 15%/); assert.match(h, /gesloten keten: 3 dagen/); assert.match(h, /data-bz="wagen-plus"/); assert.match(h, /data-bz="wagen-min"/); assert.match(h, /data-bz="keten-uit"/);
   assert.ok(!h.includes('<b>x</b>') && h.includes('&lt;b&gt;x'));

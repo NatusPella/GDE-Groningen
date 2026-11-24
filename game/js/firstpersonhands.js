@@ -22,9 +22,28 @@ import { mensenFase, modularReady, bakeModularForearm, modularLookFromAppearance
 export const HANDS_REST = { rx: 0.2, ry: -0.3, rz: -0.72, lx: -0.24, ly: -0.33, lz: -0.8 };
 // De eerstepersoonscamera heeft near 0,08 m (cameranear.js NEAR_FIRST_PERSON); de vuisten blijven
 // toch zo ver weg dat ook de mouw (ongeveer 0,11 m achter de vuist) ruim vóór de lens staat.
-// Muren knippen de handen niet meer af: de materialen testen de diepte niet (zie buildArm),
-// zoals een viewmodel in een overlay.
+// Muren knippen de handen niet af: vlak voor de handen wordt de dieptebuffer leeggemaakt (zie viewmodelMaterial).
 export const HANDS_MIN_DIST = 0.62;
+
+// Het viewmodel tekent als laatste (hertest 22-11): eerst de hele wereld, ook wat doorschijnend is (de gele routestrook, ramen,
+// markeringen), dan maakt een onzichtbaar merkje (VIEWMODEL_CLEAR_ORDER) de dieptebuffer leeg en daarna komen mouw, arm, vuist
+// en wapen MET dieptetest. Zo staat de routestrook niet meer over de handen en dekt de arm de achterkant van de vuist af;
+// zonder dieptetest tekende de vuist zijn donkere achtervlak dwars over de arm (de "grove donkere blokken").
+// De materialen staan op transparent (dekking 1), want three.js tekent de doorschijnende lijst pas na de dichte lijst.
+export const VIEWMODEL_CLEAR_ORDER = 29;
+export const VIEWMODEL_ORDER = 30;
+export function viewmodelMaterial(m) {
+  m.depthTest = true;
+  m.depthWrite = true;
+  m.transparent = true;
+  if (!(m.opacity < 1)) m.opacity = 1;
+  return m;
+}
+// Alleen de camera waar de handen aan hangen maakt de diepte leeg; een andere camera die de scène tekent (foto, spiegel)
+// laat de buffer staan. Puur, voor de test.
+export function shouldClearViewmodelDepth(camera, hands) {
+  return !!(camera && hands && hands.visible && hands.parent === camera);
+}
 // Duur van een uithaal per slagsoort; dezelfde namen als de derde-persoonstanden
 // (models3d_people.js SWING_S), zodat beeld en stand gelijk lopen.
 export const SWING_S = { jab: 0.32, bat: 0.55, slap: 0.45, sweep: 0.5, stab: 0.3, overhead: 0.55, thrust: 0.9, throw: 0.45 };
@@ -222,13 +241,20 @@ function buildArm(mats, mirror) {
   fist.position.set(0, 0, -0.15);
   const thumb = new THREE.Mesh(new THREE.BoxGeometry(0.035, 0.04, 0.07), mats.skin);
   thumb.position.set(-0.06 * s, 0.03, -0.14);
-  // overlay: geen dieptetest, dus volgorde via renderOrder (mouw, arm, [wapen 32], vuist, duim)
-  [sleeve, arm, fist, thumb].forEach((m, i) => {
+  // vier gekrulde vingers voor op de vuist, zodat het een hand is en geen blok (hertest 22-11); één gedeelde geometrie
+  const fingerGeo = new THREE.BoxGeometry(0.024, 0.04, 0.035);
+  const fingers = [0, 1, 2, 3].map((k) => {
+    const f = new THREE.Mesh(fingerGeo, mats.skin);
+    f.position.set((k - 1.5) * 0.027, -0.018 - (k === 0 || k === 3 ? 0.004 : 0), -0.222);
+    return f;
+  });
+  // na het leegmaken van de diepte, met dieptetest: de volgorde binnen het viewmodel komt uit de diepte, niet uit renderOrder
+  [sleeve, arm, fist, thumb, ...fingers].forEach((m, i) => {
     m.userData.box = true;
     m.castShadow = false;
     m.receiveShadow = false;
     m.frustumCulled = false;
-    m.renderOrder = [30, 31, 33, 34][i];
+    m.renderOrder = [30, 31, 33, 34][i] || 34;
     g.add(m);
   });
   return g;
@@ -236,8 +262,9 @@ function buildArm(mats, mirror) {
 
 function handsMaterials(character) {
   const app = character === 'anita' ? ANITA_APPEARANCE : TAMMO_APPEARANCE;
-  const skin = new THREE.MeshLambertMaterial({ color: app.skin, emissive: 0x1c1a18, flatShading: true, depthTest: false, depthWrite: false });
-  const shirt = new THREE.MeshLambertMaterial({ color: app.shirt, emissive: 0x14161a, flatShading: true, depthTest: false, depthWrite: false });
+  // iets meer eigen licht dan het figuur: de handen krijgen geen schaduw, dus een vlak van de zon af werd bijna zwart
+  const skin = viewmodelMaterial(new THREE.MeshLambertMaterial({ color: app.skin, emissive: 0x2a2520, flatShading: true }));
+  const shirt = viewmodelMaterial(new THREE.MeshLambertMaterial({ color: app.shirt, emissive: 0x1e2026, flatShading: true }));
   return { skin, shirt };
 }
 
@@ -253,12 +280,19 @@ function buildFirstPersonHands(character = 'tammo') {
   const weaponPivot = new THREE.Group();
   weaponPivot.position.set(0, 0, -0.15);
   right.add(weaponPivot);
-  // de muzzle flash: een klein laag-poly lichtje aan de loop, zonder dieptetest (overlay)
-  const flash = new THREE.Mesh(new THREE.OctahedronGeometry(0.06, 0), new THREE.MeshBasicMaterial({ color: 0xffe9a8, depthTest: false, depthWrite: false }));
+  // de muzzle flash: een klein laag-poly lichtje aan de loop, zonder dieptetest en als laatste getekend (over de loop heen)
+  const flash = new THREE.Mesh(new THREE.OctahedronGeometry(0.06, 0), new THREE.MeshBasicMaterial({ color: 0xffe9a8, depthTest: false, depthWrite: false, transparent: true }));
   flash.renderOrder = 40; flash.frustumCulled = false; flash.visible = false;
   weaponPivot.add(flash);
   root.userData.flash = flash;
-  root.add(right, left);
+  // het merkje dat de diepte leegmaakt: tekent geen kleur en geen diepte, maar komt in de doorschijnende lijst vlak voor de handen
+  const clear = new THREE.Mesh(new THREE.PlaneGeometry(0.01, 0.01), new THREE.MeshBasicMaterial({ colorWrite: false, depthWrite: false, depthTest: false, transparent: true }));
+  clear.name = 'viewmodel-diepte';
+  clear.position.set(0, 0, -1);
+  clear.renderOrder = VIEWMODEL_CLEAR_ORDER; clear.frustumCulled = false; clear.castShadow = false; clear.receiveShadow = false;
+  clear.onBeforeRender = (renderer, _scene, camera) => { if (shouldClearViewmodelDepth(camera, root)) renderer.clearDepth(); };
+  root.userData.clear = clear;
+  root.add(clear, right, left);
   root.userData.right = right;
   root.userData.left = left;
   root.userData.weaponPivot = weaponPivot;
@@ -284,7 +318,7 @@ function applyModularHands(h, character) {
       const look = modularLookFromAppearance(character === 'anita' ? ANITA_APPEARANCE : TAMMO_APPEARANCE);
       const g = look && bakeModularForearm(look, side === 'right' ? 'R' : 'L');
       if (g && g.attributes.position.count) {
-        if (!ud.qMat) ud.qMat = new THREE.MeshLambertMaterial({ vertexColors: true, flatShading: true, depthTest: false, depthWrite: false, emissive: 0x1c1a18 });
+        if (!ud.qMat) ud.qMat = viewmodelMaterial(new THREE.MeshLambertMaterial({ vertexColors: true, flatShading: true, emissive: 0x2a2520 }));
         mesh = new THREE.Mesh(g, ud.qMat);
         mesh.position.set(0, 0, Q_WRIST_Z);
         mesh.renderOrder = 33; mesh.frustumCulled = false; mesh.castShadow = false; mesh.receiveShadow = false;
@@ -311,14 +345,13 @@ export function showFirstPersonWeapon(hands, key) {
     if (!mesh) { ud.weapons[ud.weaponKey] = null; ud.weaponKey = null; return null; }
     // buildWeaponMesh legt de loop langs +x; in de camera is vooruit -z
     mesh.rotation.y = Math.PI / 2;
-    // de materialen zijn gedeeld met het derde-persoonfiguur: kopieer ze voor de overlay
+    // de materialen zijn gedeeld met het derde-persoonfiguur: kopieer ze voor het viewmodel
     let i = 0;
     mesh.traverse((o) => {
       if (!o.isMesh) return;
       o.castShadow = false; o.receiveShadow = false; o.frustumCulled = false;
       o.renderOrder = 32 + 0.01 * i++;
-      o.material = o.material.clone();
-      o.material.depthTest = false; o.material.depthWrite = false;
+      o.material = viewmodelMaterial(o.material.clone());
     });
     g = new THREE.Group();
     g.add(mesh);

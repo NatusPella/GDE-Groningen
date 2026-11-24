@@ -23,6 +23,7 @@ import { renderClubPanel } from './clubui.js';   // het tabblad Club: clubaandel
 import { SPECIES, herdOffers, herdSellValue, herdsOf } from './livestock.js';
 import { icoon } from './icons.js';
 import { setLayer } from './mapfilters.js';
+import { sectionCard, missReason, holdingButton, statusChip } from './holdingcards.js';
 
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const ha = (n) => String(Math.round(n * 10) / 10).replace('.', ',');
@@ -38,7 +39,8 @@ const ROLE_NAME = { source: 'grondstof', processor: 'verwerking', outlet: 'verko
 
 // De hoofdacties (kopen, aannemen) zijn de gele knop; de rest een omlijnde knop. Zonder eigen vorm leken ze lichtgrijze tekst of uitgeschakeld (#1248).
 const HOOFD = new Set(['koop-pand', 'koop-perceel', 'koop-mobiel', 'huur']);
-const btn = (act, text, extra = '', uit = false) => `<button type="button" class="m-bt${HOOFD.has(act) ? ' bz-hoofd' : ''}" data-bz="${act}"${extra}${uit ? ' disabled' : ''}>${text}</button>`;
+// uit: true (slot) of een reden (slot en reden in de knop), zie holdingcards.js (#1272).
+const btn = (act, text, extra = '', uit = false) => holdingButton('data-bz', act, text, extra, uit, HOOFD.has(act));
 // Een lege sectie (#1246): icoon, korte kop, één zin en zo mogelijk een knop naar de volgende stap, in plaats van een lap uitleg.
 // knop: [sectie:onderdeel, tekst] gaat via data-goto-sub van het pauzemenu naar dat onderdeel.
 export const emptyState = (ic, kop, tekst, knop = null, data = '') => `<div class="ds-z-leeg ds-zeef bz-leeg"${data ? ` data-leeg="${esc(data)}"` : ''}><span class="ds-z-leeg__beeld bz-leeg-ic">${icoon(ic)}</span><h3 class="ds-z-leeg__kop">${esc(kop)}</h3><p class="ds-z-leeg__tekst">${esc(tekst)}</p>` +
@@ -47,7 +49,7 @@ const TILE_ICON = { Percelen: 'gewas', Hectare: 'kaart', Panden: 'gebouw', 'Opbr
 const locked = (branch) => `<div class="pm-pane-top"><h2 class="m-h2 td-h2">Nog dicht</h2></div><p class="mut">${esc(branchHint(branch))}</p>`;
 const confirmKey = (act, id = '') => `${act}:${id}`;
 // Een koop met de reden achter een uitgeschakelde knop ("Je mist nog ...") en wat je na de koop overhoudt (verfijnronde bezit: de knop was grijs zonder uitleg).
-const buyAsk = (act, id, text, price, money, extra = '') => askOr(act, id, text, `Voor ${euro(price)}? Je houdt ${euro(money - price)} over.`, money < price ? ` title="Je mist nog ${euro(price - money)}"${extra}` : extra, money < price);
+const buyAsk = (act, id, text, price, money, extra = '') => askOr(act, id, text, `Voor ${euro(price)}? Je houdt ${euro(money - price)} over.`, money < price ? ` title="${missReason(money, price)}"${extra}` : extra, missReason(money, price) || false);
 const askOr = (act, id, text, sure, extra = '', uit = false) => (ui.confirm === confirmKey(act, id)
   ? `<span class="bd-zeker">${sure} ${btn(act, 'Ja', ` data-id="${esc(id)}" data-ok="1"${extra}`)} ${btn('annuleer', 'Nee')}</span>`
   : btn(act, text, ` data-id="${esc(id)}"${extra}`, uit));
@@ -72,15 +74,16 @@ function rapportHtml() {
 // Renovatie met de prijs op de knop (voorheen pas na de druk te zien) en een tweede druk; bij een pand in orde staat de knop uit.
 function renoBtn(act, id, biz, money) {
   const cost = renovationCost(biz);
-  return cost > 0 ? buyAsk(act, id, `Renovatie ${euro(cost)}`, cost, money) : btn(act, 'In orde', ` data-id="${esc(id)}"`, true);
+  // een pand in orde is een status, geen grijze knop (#1272)
+  return cost > 0 ? buyAsk(act, id, `Renovatie ${euro(cost)}`, cost, money) : statusChip('In orde', ` data-bz-status="${act}" data-id="${esc(id)}"`);
 }
 
 // Een keuze als chip die bij elke klik naar de volgende optie springt (#1245): de native keuzelijst had browseropmaak en een systeemletter.
 // opties: [[waarde, tekst]]; soort: filter:<sleutel> | sort | product.
-export function cycleChip(soort, label, opties, huidig) {
+export function cycleChip(soort, label, opties, huidig, extra = '') {
   const i = Math.max(0, opties.findIndex(([v]) => v === huidig));
   const [, tekst] = opties[i] || ['', 'Alles'];
-  return `<button type="button" class="ds-z-chip ds-z-chip--selectie bz-chip" data-bz-cycle="${esc(soort)}" data-opts="${esc(JSON.stringify(opties))}" data-cur="${esc(huidig)}" aria-label="${esc(label)}: ${esc(tekst)}. Klik voor de volgende keuze">${esc(label)}: ${esc(tekst)}</button>`;
+  return `<button type="button" class="ds-z-chip ds-z-chip--selectie bz-chip"${extra} data-bz-cycle="${esc(soort)}" data-opts="${esc(JSON.stringify(opties))}" data-cur="${esc(huidig)}" aria-label="${esc(label)}: ${esc(tekst)}. Klik voor de volgende keuze">${esc(label)}: ${esc(tekst)}</button>`;
 }
 export const nextOption = (opties, huidig) => opties[(Math.max(0, opties.findIndex(([v]) => v === huidig)) + 1) % opties.length][0];
 
@@ -105,19 +108,22 @@ export function summaryHtml({ bezit, farm, money = 0, day = 0, news = null, chai
     ` ${btn('bulk-verzeker', 'Verzeker tegen stortbui', ' title="3 euro per ha per speldag; dekt 80% van het verlies, geldt vanaf morgen"', !selN)} ${btn('bulk-onverzeker', 'Zeg verzekering op', '', !selN)}` +
     ` ${bulkBtn('bulk-mieren', 'Bestrijd mieren', ' title="15 euro per ha, houdt tien speldagen stand"', !selN)} ${bulkBtn('bulk-wespen', 'Haal wespennest weg', ' title="40 euro per boomgaard, houdt tien speldagen stand"', !selN)}</div>` : '';
   // Zonder personeel één korte regel; de uitleg over capaciteit en 80% pas als er iemand werkt (#1246).
-  const staffLine = staff.workers.length ? `${staff.workers.length} ${staff.workers.length === 1 ? 'medewerker' : 'medewerkers'} · ${staffCapacity(staff)} ha per speldag · een arbeider haalt hooguit 80% van jouw werk.` : 'Nog niemand in dienst.';
-  const staffHtml = `<h3 class="m-h3">Personeel</h3><p class="mut">${staffLine}</p>` +
+  // #1272: de kop draagt het aantal; de uitleg over 80% staat achter de info-knop
+  const staffLine = staff.workers.length ? `${staff.workers.length} ${staff.workers.length === 1 ? 'medewerker' : 'medewerkers'} · ${staffCapacity(staff)} ha per speldag` : 'Nog niemand in dienst.';
+  const staffHtml = sectionCard('personeel', 'spelers', 'Personeel', `<p class="mut">${staffLine}</p>` +
     staff.workers.map((w) => `<div class="bd-rij"><span class="bd-naam"><b>${esc(w.name)}</b><span class="bd-feiten"><span>${SKILL_NAME[w.skill]}</span><span>${euro(wageOf(w))} per dag</span></span></span><span class="bd-acties">${askOr('ontsla', w.id, 'Ontslaan', 'Zeker?')}</span></div>`).join('') +
-    `<div class="bz-bulk">${[1, 2, 3].map((k) => btn('huur', `Stel ${SKILL_NAME[k]} aan · ${euro(wageOf({ skill: k }))}`, ` data-skill="${k}"`, money < wageOf({ skill: k }))).join(' ')}</div>`;
+    `<div class="bz-bulk">${[1, 2, 3].map((k) => btn('huur', `Stel ${SKILL_NAME[k]} aan · ${euro(wageOf({ skill: k }))}`, ` data-skill="${k}"`, missReason(money, wageOf({ skill: k })) || false)).join(' ')}</div>`,
+  { count: staff.workers.length, info: 'Personeel werkt de percelen op Personeel. Een arbeider haalt hooguit 80% van wat jij zelf haalt; het loon gaat elke speldag van je geld af.' });
   const empty = !own.length && !rows.length ? emptyState('gewas', 'Nog geen land', 'Een eerste perceel kost ongeveer twee uur werk.', ['boerderij:tekoop', 'Koop je eerste perceel'], 'percelen') : '';
   // Nog niets in bezit: één zin met de volgende stap. Nulltegels, filters, personeel, vee, ketens en markt zeggen nu niets (progressive disclosure).
   if (!rows.length && !own.length && !staff.workers.length && !bezit.buildings.size) {
     return `<div class="pm-pane-top"><span class="m-eb">Land en bedrijf</span><h2 class="m-h2 td-h2">Overzicht</h2></div>${empty}${rapportHtml()}${newsHtml(news)}<p class="bd-melding" aria-live="polite">${esc(msgNow())}</p>`;
   }
-  return `<div class="pm-pane-top"><span class="m-eb">Land en bedrijf</span><h2 class="m-h2 td-h2">Overzicht</h2></div><div class="bz-tegels">${tiles}</div>${attention}${rapportHtml()}${newsHtml(news)}${empty}` +
-    `<div class="bz-filters" role="group" aria-label="Sorteren en filteren">${cycleChip('sort', 'Sorteren', H.SORTS.map((x) => [x, SORT_NAME[x]]), ui.sort)}` +
+  const parcels = sectionCard('percelen', 'gewas', 'Percelen', `<div class="bz-filters" role="group" aria-label="Sorteren en filteren">${cycleChip('sort', 'Sorteren', H.SORTS.map((x) => [x, SORT_NAME[x]]), ui.sort)}` +
     `${sel('region', 'Streek', opt.regions || [])}${sel('soort', 'Soort', opt.soorten || [])}${sel('level', 'Beheer', H.LEVELS)}</div>` + bulk + `<div class="bz-rijen">${body}</div>` +
-    (shown.length > MAX_ROWS && !ui.more ? `<p>${btn('meer', `Toon alle ${shown.length}`)}</p>` : '') + staffHtml + veeHtml(bezit, rows, money) + chainsHtml(chains, money) + marketHtml(board, products) + `<p class="bd-melding" aria-live="polite">${esc(msgNow())}</p>`;
+    (shown.length > MAX_ROWS && !ui.more ? `<p>${btn('meer', `Toon alle ${shown.length}`)}</p>` : ''), { count: shown.length });
+  return `<div class="pm-pane-top"><span class="m-eb">Land en bedrijf</span><h2 class="m-h2 td-h2">Overzicht</h2></div><div class="bz-tegels">${tiles}</div>${attention}${rapportHtml()}${newsHtml(news)}${empty}` +
+    (rows.length ? parcels : '') + staffHtml + veeHtml(bezit, rows, money) + chainsHtml(chains, money) + marketHtml(board, products) + `<p class="bd-melding" aria-live="polite">${esc(msgNow())}</p>`;
 }
 
 // ---- Vee (#1101): kuddes op je weilanden, een kudde kopen (past op de grootte van het perceel) of verkopen; per speler (#429) ----
@@ -134,7 +140,7 @@ export function veeHtml(bezit, rows, money = 0) {
   const leeg = !weiden.length ? emptyState('koe', 'Nog geen vee', 'Vee loopt op een weiland van jou.', ['boerderij:tekoop', 'Koop een weiland'], 'vee')
     : !kuddes.length && !vrij.length ? '<p class="mut">Je weilanden zijn te klein voor vee.</p>' : '';
   const meer = vrij.length > MAX_VEE_ROWS ? `<p class="mut">En nog ${vrij.length - MAX_VEE_ROWS} weilanden zonder vee.</p>` : '';
-  return `<h3 class="m-h3">Vee</h3>${leeg}${kudde}${aanbod}${meer}`;
+  return sectionCard('vee', 'koe', 'Vee', `${leeg}${kudde}${aanbod}${meer}`, { count: kuddes.length || null });
 }
 
 // ---- Nieuws van het land (bezitnews.js): hoogstens vijf regels, de buurman met een keuze en de trekkertrek ----
@@ -144,23 +150,25 @@ export function newsHtml(news) {
   const sc = news.scene;
   const scene = sc ? `<div class="bd-rij" data-scene="${esc(sc.id)}"><span class="bd-naam"><b>De buren</b><span>${esc(sc.text)}</span></span><span class="bd-acties">${sc.choices.map((c) => btn('buur', `${esc(c.label)}${c.cost ? ` (${euro(c.cost)})` : ''}`, ` data-choice="${esc(c.id)}"`)).join(' ')}</span></div>` : '';
   const pull = (news.pull || []).map((p) => `<p class="mut" data-pull="${esc(p.region)}">${esc(p.label)} bij ${esc(p.name)} in ${esc(districtName(p.region))}: ${p.classes.map((c) => `${esc(c.label)}, inleg ${euro(c.fee)}, prijs tot ${euro(c.top)}`).join('; ')}. De wedstrijd zelf is nog niet te spelen.</p>`).join('');
-  return `<h3 class="m-h3">Nieuws van het land</h3>${lines}${scene}${pull}`;
+  return sectionCard('nieuws', 'nieuws', 'Nieuws van het land', `${lines}${scene}${pull}`);
 }
 
 // ---- Ketens: grondstof, verwerking en verkooppunt per keten (supplychain.js, bezitchain.js) ----
 export function chainsHtml(chains, money = 0) {
   if (!chains || !chains.length) return '';
   // Niets van jou in een keten, geen bron en geen pand om te koppelen: één lege staat met de weg naar Bedrijven, niet de hele schakelrij met nullen (#1246).
-  if (chains.every((c) => !c.sourceKg && !c.links.some((l) => l.owned || (l.options && l.options.length)))) return `<h3 class="m-h3">Ketens</h3>${emptyState('fabriek', 'Nog geen keten', 'Een eigen verwerker of verkooppunt geeft extra marge.', ['boerderij:bedrijven', 'Naar Bedrijven'], 'ketens')}`;
+  if (chains.every((c) => !c.sourceKg && !c.links.some((l) => l.owned || (l.options && l.options.length)))) return sectionCard('ketens', 'fabriek', 'Ketens', emptyState('fabriek', 'Nog geen keten', 'Een eigen verwerker of verkooppunt geeft extra marge.', ['boerderij:bedrijven', 'Naar Bedrijven'], 'ketens'));
   const body = chains.map((c) => {
     const meta = [`Bron: ${nl(c.sourceKg)} kg per speldag${c.sourceCount ? ` uit ${c.sourceCount} ${c.sourceCount === 1 ? 'perceel of kudde' : 'percelen of kuddes'}` : ' (nog niets op Personeel of in de stal)'}`,
       `extra marge ${Math.round(c.margin * 100)}%`, c.last ? `laatste dag ${euro(c.last.net)} extra` : '', c.closedDays ? `gesloten keten: ${c.closedDays} ${c.closedDays === 1 ? 'dag' : 'dagen'}` : ''].filter(Boolean).join(' · ');
     const links = c.links.map((l, i) => {
       const last = i === c.links.length - 1;
       const bound = l.ref !== null && l.ref !== undefined;
-      const pick = l.ownable ? `<label class="bz-sel">Van jou<select data-bz-bind="${esc(c.id)}|${esc(l.id)}"><option value="">${l.options.length ? 'Kies een pand' : 'Geen passend pand'}</option>${l.options.map((o) => `<option value="${esc(o.ref)}"${String(l.ref) === String(o.ref) ? ' selected' : ''}>${esc(o.label)}</option>`).join('')}</select></label>${bound ? ' ' + btn('keten-los', 'Los', ` data-chain="${esc(c.id)}" data-link="${esc(l.id)}"`) : ''}` : '';
+      // #1272: het pand van een schakel is een keuzechip (elke druk het volgende pand, daarna weer los), geen native keuzelijst meer
+      const pick = !l.ownable ? '' : !l.options.length ? '<small class="mut">Geen passend pand van jou</small>'
+        : `${bindChip(c.id, l)}${bound ? ' ' + btn('keten-los', 'Los', ` data-chain="${esc(c.id)}" data-link="${esc(l.id)}"`) : ''}`;
       const trucks = !last ? `${btn('wagen-plus', 'Wagen erbij', ` data-chain="${esc(c.id)}" data-link="${esc(l.id)}"`)} ${l.trucks ? btn('wagen-min', 'Wagen weg', ` data-chain="${esc(c.id)}" data-link="${esc(l.id)}"`) : ''}` : '';
-      const up = l.owned ? askOr('keten-uit', `${c.id}|${l.id}`, `Uitbreiden ${euro(800)}`, `Voor ${euro(800)}? Doorvoer en buffer +25%.`, ` data-chain="${esc(c.id)}" data-link="${esc(l.id)}"`, money < 800) : '';
+      const up = l.owned ? askOr('keten-uit', `${c.id}|${l.id}`, `Uitbreiden ${euro(800)}`, `Voor ${euro(800)}? Doorvoer en buffer +25%.`, ` data-chain="${esc(c.id)}" data-link="${esc(l.id)}"`, missReason(money, 800) || false) : '';
       const src = i === 0 && c.sources && c.sources.length ? `<details><summary>Bronnen kiezen (${c.picked ? `${c.picked} gekozen` : 'alles wat past'})</summary>${c.sources.map((s) => `<div>${btn('keten-bron', `${s.picked ? 'Uit: ' : 'Kies: '}${esc(s.name)} (${nl(s.kg)} kg)`, ` data-chain="${esc(c.id)}" data-id="${esc(s.id)}"`)}</div>`).join('')}</details>` : '';
       return `<div class="bz-schakel" data-link="${esc(l.id)}" data-own="${l.owned ? 1 : 0}"><b>${esc(l.label)}</b><small>${ROLE_NAME[l.role]} · ${l.owned ? 'van jou' : l.ownable ? 'niet van jou' : 'vast'}${l.trucks ? ` · ${l.trucks} ${l.trucks === 1 ? 'wagen' : 'wagens'} (${euro(l.wage)} per dag)` : ''}</small>` +
         `<div class="bz-balk" role="img" aria-label="Voorraad ${Math.round(l.fill * 100)}%"${l.fill >= 0.9 ? ' data-vol="1"' : ''}><i style="width:${Math.round(l.fill * 100)}%"></i></div>` +
@@ -168,7 +176,15 @@ export function chainsHtml(chains, money = 0) {
     }).join('');
     return `<div class="bz-keten" data-chain="${esc(c.id)}"><h4 class="m-h3">${esc(c.name)}</h4><p class="mut">${esc(meta)}</p>${c.weakest ? `<p class="bz-zwak" data-kind="${esc(c.weakest.kind)}">Zwakste schakel: ${esc(c.weakest.text)}</p>` : ''}<div class="bz-schakels">${links}</div></div>`;
   }).join('');
-  return `<h3 class="m-h3">Ketens</h3><p class="mut">Een eigen verwerker of verkooppunt geeft extra marge: +15% voor een, +35% voor beide. Boven 500 m heb je wagens met chauffeur nodig.</p>${body}`;
+  return sectionCard('ketens', 'fabriek', 'Ketens', body, { count: chains.filter((c) => c.links.some((l) => l.owned)).length || null,
+    info: 'Een eigen verwerker of verkooppunt geeft extra marge: +15% voor een, +35% voor beide. Boven 500 m heb je wagens met chauffeur nodig.' });
+}
+
+// De koppeling van een schakel aan een pand van jou als chip: Geen, dan elk passend pand, en weer rond (#1272).
+export function bindChip(chainId, link) {
+  const opties = [['', 'geen'], ...link.options.map((o) => [String(o.ref), o.label])];
+  const cur = link.ref === null || link.ref === undefined ? '' : String(link.ref);
+  return cycleChip(`bind:${chainId}|${link.id}`, 'Van jou', opties, cur, ` data-bz-bind="${esc(chainId)}|${esc(link.id)}"`);
 }
 
 // ---- Prijzen vandaag per streek (areamarket.js) ----
@@ -178,7 +194,9 @@ export function marketHtml(board, products = []) {
   const rows = board.rows.map((r, i) => `<tr data-region="${esc(r.region)}"${i === 0 ? ' data-best="1"' : ''}><td>${esc(districtName(r.region))}</td><td>${euro(r.price)} per kg</td><td>${Math.round(r.factor * 100)}%</td><td>${TREND[r.trend] || ''}</td></tr>`).join('');
   const pick = cycleChip('product', 'Product', products.map((p) => [p, p]), board.product);
   const auction = board.auction ? `<p class="mut">${esc(board.auction.text)}</p>` : '';
-  return `<h3 class="m-h3">Prijzen vandaag per streek</h3><p class="mut">Wat je levert drukt de prijs in die streek (3% per 1.000 kg, herstel 25% per dag): spreid je leveringen.${board.best ? ` Nu het beste: ${esc(districtName(board.best.region))}.` : ''}</p>${pick}${auction}<table class="bz-prijzen"><thead><tr><th>Streek</th><th>Prijs</th><th>Marktfactor</th><th>Trend</th></tr></thead><tbody>${rows}</tbody></table>`;
+  const best = board.best ? `<p class="mut">Nu het beste: ${esc(districtName(board.best.region))}.</p>` : '';
+  return sectionCard('prijzen', 'geld', 'Prijzen vandaag per streek', `${pick}${best}${auction}<table class="bz-prijzen"><thead><tr><th>Streek</th><th>Prijs</th><th>Marktfactor</th><th>Trend</th></tr></thead><tbody>${rows}</tbody></table>`,
+    { info: 'Wat je levert drukt de prijs in die streek (3% per 1.000 kg, herstel 25% per dag): spreid je leveringen.' });
 }
 
 // ---- Bedrijven ----
@@ -188,24 +206,25 @@ export function businessesHtml({ money = 0, mine = [], near = [], day = 0, mobil
     const b = m.biz;
     return `<div class="bd-rij" data-osm="${m.osm}"><span class="bd-naam"><b>${esc(m.kind.type)} bij ${esc(m.place)}</b><span class="bd-feiten"><span>onderhoud ${Math.round(b.q)}%</span><span>waarde ${euro(Math.round(b.p))}</span>${b.cls === 'rent' && b.type === 'woning' ? `<span>${esc((L.rentView(b, day) || {}).text || '')}</span>` : ''}</span></span>` +
       `<span class="bd-acties">${renoBtn('reno', m.osm, b, money)} ${askOr('verkoop-pand', m.osm, `Verkoop ${euro(P.sellValue(b.p))}`, 'Zeker?')}</span></div>`;
-  }).join('') : '<p class="mut">Je hebt nog geen bedrijf. Koop hieronder een pand in de buurt: een winkel levert elke speldag omzet, ook als je er niet bent.</p>';
+  }).join('') : '<p class="mut">Nog geen bedrijf. Koop hieronder een pand in de buurt.</p>';
   const nearHtml = near.length ? near.map((o) => `<div class="bd-rij" data-osm="${o.osm}"><span class="bd-naam"><b>${esc(o.kind.type)} bij ${esc(o.town.name)}</b><span class="bd-feiten"><span>${Math.round(o.row.m2)} m2</span><span>${o.dist} m</span>${o.forSale ? `<span>${euro(o.price)}</span>` : `<span>${esc(o.reason)}</span>`}</span></span>` +
     `<span class="bd-acties">${o.mine ? '' : o.forSale ? buyAsk('koop-pand', o.osm, `Koop ${euro(o.price)}`, o.price, money) : ''}</span></div>`).join('') : '<p class="mut">Er staan geen koopbare bedrijfspanden binnen 250 meter van je.</p>';
-  return `<div class="pm-pane-top"><span class="m-eb">Land en bedrijf</span><h2 class="m-h2 td-h2">Bedrijven</h2></div><p class="mut">Monumenten, ziekenhuizen, politie en verhaalgebouwen blijven van de wereld.</p>` +
-    `<h3 class="m-h3">Jouw bedrijven</h3>${mineHtml}${snackVerwijsHtml(mobile)}<h3 class="m-h3">In de buurt</h3>${nearHtml}${homesHtml(homes, money)}<p class="bd-melding" aria-live="polite">${esc(msgNow())}</p>`;
+  return `<div class="pm-pane-top"><span class="m-eb">Land en bedrijf</span><h2 class="m-h2 td-h2">Bedrijven</h2></div>` +
+    sectionCard('bedrijven', 'winkel', 'Jouw bedrijven', mineHtml, { count: mine.length, info: 'Een winkel levert elke speldag omzet, ook als je er niet bent. Monumenten, ziekenhuizen, politie en verhaalgebouwen blijven van de wereld.' }) +
+    snackVerwijsHtml(mobile) + sectionCard('buurt', 'gebouw', 'In de buurt', nearHtml, { count: near.length || null }) + homesHtml(homes, money) + `<p class="bd-melding" aria-live="polite">${esc(msgNow())}</p>`;
 }
 
 // ---- de snackwagen (id frietwagen; business.js, mobiel bedrijf): kopen, standplaats kiezen, verkopen ----
 export function mobileHtml(mobile = [], offers = [], money = 0, day = 0) {
   const own = mobile.map((m) => `<div class="bd-rij" data-mobile="${esc(m.id)}"><span class="bd-naam"><b>${esc(m.def.label)}</b><span class="bd-feiten"><span>${esc(m.spotLabel)}</span><span>onderhoud ${Math.round(m.biz.q)}%</span><span>waarde ${euro(m.value)}</span>${m.forecast ? `<span>ongeveer ${euro(m.forecast.revenue)} omzet per dag</span>` : ''}</span><small class="mut">${esc(m.def.story)}</small></span>` +
-    `<span class="bd-acties">${Object.keys(MOBILE_SPOTS).map((k) => btn('plek', esc(MOBILE_SPOTS[k].label), ` data-id="${esc(m.id)}" data-spot="${esc(k)}"`, k === m.spot)).join(' ')} ${renoBtn('reno-mobiel', m.id, m.biz, money)} ${askOr('verkoop-mobiel', m.id, `Verkoop ${euro(Math.round((m.biz.p * 0.75) / 5) * 5)}`, 'Zeker?')}</span></div>`).join('');
-  const shop = offers.map((o) => `<div class="bd-rij" data-offer="${esc(o.id)}"><span class="bd-naam"><b>${esc(o.label)} te koop</b><span class="bd-feiten"><span>${euro(o.price)}</span><span>geen pand nodig: je kiest zelf de standplaats</span></span><small class="mut">${esc(o.story)}</small></span><span class="bd-acties">${askOr('koop-mobiel', o.id, `Koop ${euro(o.price)}`, `Voor ${euro(o.price)}?`, '', money < o.price)}</span></div>`).join('');
-  return `<h3 class="m-h3">Snackwagen</h3>${own}${shop}`;
+    `<span class="bd-acties">${Object.keys(MOBILE_SPOTS).map((k) => (k === m.spot ? statusChip(MOBILE_SPOTS[k].label, ` data-spot="${esc(k)}" aria-current="true"`) : btn('plek', esc(MOBILE_SPOTS[k].label), ` data-id="${esc(m.id)}" data-spot="${esc(k)}"`))).join(' ')} ${renoBtn('reno-mobiel', m.id, m.biz, money)} ${askOr('verkoop-mobiel', m.id, `Verkoop ${euro(Math.round((m.biz.p * 0.75) / 5) * 5)}`, 'Zeker?')}</span></div>`).join('');
+  const shop = offers.map((o) => `<div class="bd-rij" data-offer="${esc(o.id)}"><span class="bd-naam"><b>${esc(o.label)} te koop</b><span class="bd-feiten"><span>${euro(o.price)}</span><span>geen pand nodig: je kiest zelf de standplaats</span></span><small class="mut">${esc(o.story)}</small></span><span class="bd-acties">${askOr('koop-mobiel', o.id, `Koop ${euro(o.price)}`, `Voor ${euro(o.price)}?`, '', missReason(money, o.price) || false)}</span></div>`).join('');
+  return sectionCard('snack', 'burger', 'Snackwagen', `${own}${shop}`);
 }
 
 // De snackwagen koop en beheer je op het tabblad Snackwagen; hier alleen een verwijzing, zodat dezelfde Koop-knop niet op twee plekken staat (#1250).
 export function snackVerwijsHtml(mobile = []) {
-  return `<h3 class="m-h3">Snackwagen</h3><p class="mut" data-verwijs="snack">${mobile.length ? 'Je snackwagen draait.' : 'Je hebt nog geen snackwagen.'} Kopen, standplaats en menu staan op het tabblad Snackwagen.</p>`;
+  return sectionCard('snack', 'burger', 'Snackwagen', `<p class="mut" data-verwijs="snack">${mobile.length ? 'Je snackwagen draait.' : 'Je hebt nog geen snackwagen.'} Kopen, standplaats en menu staan op het tabblad Snackwagen.</p>`);
 }
 
 // ---- woningen in de buurt (housing.js): kopen, verhuren (automatisch) en verkopen ----
@@ -213,7 +232,7 @@ export function homesHtml(homes = [], money = 0) {
   if (!homes.length) return '';
   const rows = homes.map((o) => `<div class="bd-rij" data-osm="${o.osm}" data-home="1"><span class="bd-naam"><b>Woning bij ${esc(o.town.name)}</b><span class="bd-feiten"><span>${Math.round(o.row.m2)} m2 grondvlak</span><span>${o.dist} m</span><span>${o.forSale ? euro(o.price) : esc(o.reason)}</span></span></span>` +
     `<span class="bd-acties">${o.forSale ? buyAsk('koop-pand', o.osm, `Koop ${euro(o.price)}`, o.price, money) : ''}</span></div>`).join('');
-  return `<h3 class="m-h3">Woningen in de buurt</h3><p class="mut">Een gekochte woning wordt verhuurd: elke speldag huur, tenzij de huurder verhuist (dan staat hij even leeg).</p>${rows}`;
+  return sectionCard('woningen', 'thuis', 'Woningen in de buurt', rows, { count: homes.length, info: 'Een gekochte woning wordt verhuurd: elke speldag huur, tenzij de huurder verhuist (dan staat hij even leeg).' });
 }
 
 // Twee lege toestanden die niet door elkaar mogen lopen: de lijst laadt nog, of er is hier niets te koop (#1251).
@@ -230,7 +249,8 @@ export function forSaleHtml({ money = 0, offers = [], loading = false, laden = f
   if (!branchOpen('land')) return locked('land');
   const rows = offers.length ? offers.map((o) => `<div class="bd-rij" data-id="${esc(o.id)}"><span class="bd-naam"><b>${esc(o.name)}</b><span class="bd-feiten"><span>${esc(o.kindName)}</span><span>${ha(o.ha)} ha</span><span>bodem ${esc(o.soilWord)}</span><span>${o.dist} m</span><span>${euro(o.price)}</span></span></span>` +
     `<span class="bd-acties">${btn('doel-perceel', 'Route', ` data-id="${esc(o.id)}"`)} ${buyAsk('koop-perceel', o.id, `Koop ${euro(o.price)}`, o.price, money)}</span></div>`).join('') : leegTeKoop(loading || laden);
-  return `<div class="pm-pane-top"><span class="m-eb">Land en bedrijf</span><h2 class="m-h2 td-h2">Te koop</h2></div><p class="mut">De dichtstbijzijnde percelen. Op de kaart zie je ze allemaal met de laag Te koop. Wie veel land heeft, betaalt meer voor het volgende perceel.</p>${rows}<p class="bd-melding" aria-live="polite">${esc(msgNow())}</p>`;
+  return `<div class="pm-pane-top"><span class="m-eb">Land en bedrijf</span><h2 class="m-h2 td-h2">Te koop</h2></div>` +
+    sectionCard('tekoop', 'kaart', 'Dichtbij', rows, { count: offers.length || null, info: 'Op de kaart zie je alle percelen met de laag Te koop. Wie veel land heeft, betaalt meer voor het volgende perceel.' }) + `<p class="bd-melding" aria-live="polite">${esc(msgNow())}</p>`;
 }
 
 // ---- de koppeling met de wereld ----
@@ -240,6 +260,12 @@ export function nearbyOffers(world, max = 10) {
   if (!ix) return [];
   const p = playerPos(world);
   return ix.parcels.inRect(p.x - 3000, p.y - 3000, p.x + 3000, p.y + 3000).filter((c) => c.access !== 'geen').map((c) => ({ c, d: Math.hypot(c.x - p.x, c.y - p.y) })).sort((a, b) => a.d - b.d).slice(0, max).map((e) => ({ ...L.parcelOffer(e.c.id), dist: Math.round(e.d) })).filter((o) => o.id && o.forSale);
+}
+
+// Eén druk op de koppelchip van een schakel: het volgende pand koppelen, of bij 'geen' weer los. Geeft de melding terug.
+export function bindStep(sleutel, ref) {
+  const [ch, lk] = String(sleutel).split('|');
+  return (ref ? L.koppelSchakel(ch, lk, ref) : L.ontkoppelSchakel(ch, lk)).text;
 }
 
 let bound = null;
@@ -266,9 +292,8 @@ export function renderBezitPanels(els, world) {
     if (!el) continue;
     el.addEventListener('change', (e) => {
       const f = e.target.closest('[data-bz-filter]'), s = e.target.closest('[data-bz-sort]'), c = e.target.closest('[data-bz-sel]');
-      const bd = e.target.closest('[data-bz-bind]'), pr = e.target.closest('[data-bz-product]');
-      if (bd) { const [ch, lk] = bd.dataset.bzBind.split('|'); ui.msg = bd.value ? L.koppelSchakel(ch, lk, bd.value).text : L.ontkoppelSchakel(ch, lk).text; }
-      else if (pr) ui.product = pr.value;
+      const pr = e.target.closest('[data-bz-product]');
+      if (pr) ui.product = pr.value;
       else if (f) ui.filter[f.dataset.bzFilter] = f.value;
       else if (s) ui.sort = s.value;
       else if (c) { if (c.checked) ui.sel.add(c.dataset.bzSel); else ui.sel.delete(c.dataset.bzSel); }
@@ -278,8 +303,10 @@ export function renderBezitPanels(els, world) {
       const cy = e.target.closest('[data-bz-cycle]');
       if (cy) {
         const opts = JSON.parse(cy.dataset.opts || '[]'), nxt = opts.length ? nextOption(opts, cy.dataset.cur) : '';
-        const [soort, sleutel] = cy.dataset.bzCycle.split(':');
+        const raw = cy.dataset.bzCycle, at = raw.indexOf(':');
+        const soort = at < 0 ? raw : raw.slice(0, at), sleutel = at < 0 ? '' : raw.slice(at + 1);
         if (soort === 'filter') ui.filter[sleutel] = nxt; else if (soort === 'sort') ui.sort = nxt; else if (soort === 'product') ui.product = nxt;
+        else if (soort === 'bind') { ui.msg = bindStep(sleutel, nxt); ui.msgAt = ui.msg ? Date.now() : 0; }
         els.rerender();
         return;
       }

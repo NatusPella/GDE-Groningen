@@ -41,12 +41,53 @@ ok(!V.touchesWorld(null) && !V.touchesWorld({ type: 'onzin' }), 'onbekende wijzi
   V.changeWithGroup(w, { type: 'option', key: 'damageTaken' }, () => k++, std);
   ok(vraag === null && k === 2, 'een eigen optie vraagt niemand iets');
 }
-// gast: kan de wereld niet zelf wijzigen, maar zijn eigen opties wel
+// gast (#1169, elke speler is gelijkwaardig): zijn eigen deel verandert meteen, de wereld stelt hij de groep voor
 {
-  let k = 0; const msgs = [];
-  const w = { coopNet: { role: 'client' }, addMessage: (t) => msgs.push(t) };
-  ok(V.changeWithGroup(w, { type: 'option', key: 'trafficDensity' }, () => k++, std) === false && k === 0 && msgs.length === 1 && msgs[0] === V.WORLD_GUEST_TEXT, 'gast: een wereldoptie wordt geweigerd met een melding');
-  ok(V.changeWithGroup(w, { type: 'option', key: 'fines' }, () => k++, std) === true && k === 1, 'gast: een eigen optie gaat gewoon door');
+  let k = 0; const msgs = [], sent = [];
+  D.setActiveDifficulty(std);
+  const w = { coopNet: { role: 'client' }, addMessage: (t) => msgs.push(t), coopMoeilijkheidVoorstel: (o) => { sent.push(o); return true; } };
+  const apply = () => { k++; D.setActiveOption('trafficDensity', 0.5); };
+  ok(V.changeWithGroup(w, { type: 'option', key: 'trafficDensity' }, apply, std) === true && k === 1, 'gast: zijn eigen profiel past zich meteen aan');
+  ok(sent.length === 1 && JSON.stringify(sent[0]) === '{"trafficDensity":0.5}', 'gast: alleen de gewijzigde wereldoptie gaat als voorstel', sent);
+  ok(msgs[0] === V.WORLD_GUEST_SENT, 'gast: hij hoort dat de groep stemt', msgs);
+  ok(V.changeWithGroup(w, { type: 'option', key: 'fines' }, () => k++, std) === true && k === 2 && sent.length === 1, 'gast: een eigen optie gaat gewoon door, zonder voorstel');
+  // een oudere host zonder het bericht (of een sessie die net stopt): de oude melding, en het eigen deel is wel aangepast
+  const oud = { coopNet: { role: 'client' }, addMessage: (t) => msgs.push(t) };
+  ok(V.changeWithGroup(oud, { type: 'option', key: 'policeUnits' }, () => k++, std) === false && k === 3 && msgs[msgs.length - 1] === V.WORLD_GUEST_TEXT, 'gast zonder voorstelhaak: melding, eigen deel wel aangepast');
+  D.setActiveDifficulty(std);
+}
+// het voorstel: wat gaat er mee, wat keurt de opener, wat wordt er gezet
+{
+  const hard = { level: 'uitdagend', custom: {} };
+  const p = V.worldProposal({ type: 'level', naar: 'uitdagend' }, hard);
+  ok(p && Object.keys(p).join() === V.WORLD_OPTIONS.join() && p.policeEscape === D.presetValue('uitdagend', 'policeEscape'), 'een niveau stelt alle wereldopties van dat niveau voor', p);
+  ok(V.worldProposal({ type: 'option', key: 'damageTaken' }, hard) === null && V.worldProposal(null) === null, 'een eigen optie is geen voorstel');
+  ok(JSON.stringify(V.cleanWorldProposal({ policeEscape: 1.25, trafficDensity: 1, damageTaken: 0.5 }, std)) === '{"policeEscape":1.25}', 'de opener houdt alleen wereldopties die anders zijn dan nu');
+  ok(V.cleanWorldProposal({ policeEscape: 9 }, std) === null && V.cleanWorldProposal({ trafficDensity: 1 }, std) === null && V.cleanWorldProposal('x', std) === null && V.cleanWorldProposal([1], std) === null, 'een vreemde waarde, niets nieuws of rommel: geen stemming');
+  const gezet = [];
+  ok(V.applyWorldProposal({ policeEscape: 1.25, trafficDensity: 0.5 }, (key, v) => { gezet.push([key, v]); return true; }) === 2 && gezet.length === 2, 'na ja zet de opener de voorgestelde waarden');
+  ok(/Politie kwijtraken: Langer/.test(V.describeWorldProposal({ policeEscape: 1.25 })) && /Verkeersdrukte: Rustig/.test(V.describeWorldProposal({ trafficDensity: 0.5 })), 'de melding noemt optie en stap in gewone woorden');
+}
+// de stemming over een voorstel van een gast: de opener stemt mee, de vrager telt als ja
+{
+  const st = G.stemBegin(1, 'moeilijkheid', 'x', [1, 2], 10, { metOpener: true, vrager: 1 });
+  ok(st.keuze[0] === 'wacht' && st.keuze[1] === 'ja' && st.keuze[2] === 'wacht' && !st.uitslag, 'opener en andere gast moeten nog antwoorden', st.keuze);
+  G.stemAntwoord(st, 2, true);
+  ok(!st.uitslag, 'zonder de opener is het nog niet rond');
+  G.stemAntwoord(st, 0, false);
+  ok(st.uitslag === 'nee', 'een nee van de opener is nee');
+  const alleen = G.stemBegin(2, 'moeilijkheid', 'x', [1], 10, { metOpener: true, vrager: 1 });
+  G.stemAntwoord(alleen, 0, true);
+  ok(alleen.uitslag === 'ja', 'met z\'n tweeën: ja van de opener is akkoord');
+  const oud = G.stemBegin(3, 'slapen', 'x', [1, 2]);
+  ok(!(0 in oud.keuze) && oud.keuze[1] === 'wacht', 'een tijdsprong die de opener zelf vraagt blijft zoals hij was');
+}
+// bedrading van het bericht (coopnet.js)
+{
+  const cn = fs.readFileSync(new URL('../game/js/coopnet.js', import.meta.url), 'utf8');
+  ok(/case 'moeilijkheidverzoek'/.test(cn) && /cleanWorldProposal\(body\.opties\)/.test(cn) && /metOpener: true, vrager: van/.test(cn), 'de host keurt het voorstel en legt het de groep voor, met zijn eigen stem');
+  ok(/world\.coopMoeilijkheidVoorstel = \(opties\) => vraagMoeilijkheid/.test(cn) && /k: 'moeilijkheidverzoek'/.test(cn), 'de gast stuurt het voorstel');
+  ok(/export function hostStem/.test(cn) && /slot >= 1 && !nu\.has\(slot\)/.test(cn), 'de host antwoordt met J of N en valt niet uit zijn eigen stemming');
 }
 // bedrading
 {

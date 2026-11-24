@@ -249,7 +249,7 @@ t('het menu: ketens, prijzen, nieuws, frietwagen en woningen staan in de panelen
   L.koopPand(w, 1001);
   const els = { overzicht: { innerHTML: '', addEventListener() {} }, bedrijven: { innerHTML: '', addEventListener() {} }, tekoop: { innerHTML: '', addEventListener() {} } };
   UI.renderBezitPanels(els, w);
-  assert.match(els.overzicht.innerHTML, /Nieuws van het land/); assert.match(els.overzicht.innerHTML, /<h3 class="m-h3">Ketens<\/h3>/); assert.match(els.overzicht.innerHTML, /Prijzen vandaag per streek/);
+  assert.match(els.overzicht.innerHTML, /Nieuws van het land/); assert.match(els.overzicht.innerHTML, /data-sectie="ketens"/); assert.match(els.overzicht.innerHTML, /Prijzen vandaag per streek/);
   assert.match(els.overzicht.innerHTML, /data-chain="kaas"/); assert.match(els.overzicht.innerHTML, /data-bz-bind="kaas\|kaasmakerij"/);
   assert.match(els.bedrijven.innerHTML, /Snackwagen te koop|Snackwagen/); assert.match(els.bedrijven.innerHTML, /tabblad Snackwagen/); assert.ok(!/data-bz="koop-mobiel"/.test(els.bedrijven.innerHTML), 'de snackwagen koop je alleen op zijn eigen tabblad (#1250)');
 });
