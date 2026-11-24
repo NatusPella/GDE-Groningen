@@ -1,0 +1,58 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Voertuigen groot 24-11: voor en na</title>
+<style>
+  body { margin: 0; padding: 24px; background: #17301f; color: #f0ede4; font: 15px/1.45 system-ui, sans-serif; max-width: 1500px; }
+  h1 { font-size: 22px; margin: 0 0 6px; } h2 { font-size: 17px; margin: 26px 0 6px; color: #3fc97a; }
+  .rij { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px; } .rij figure { margin: 0; }
+  img { width: 100%; display: block; border: 1px solid rgba(240,237,228,.16); } figcaption { font-size: 12px; opacity: .7; }
+  table { border-collapse: collapse; } td, th { border: 1px solid rgba(240,237,228,.2); padding: 4px 10px; text-align: left; vertical-align: top; }
+  .klein { opacity: .75; font-size: 13px; }
+</style>
+<h1>Voertuigen groot 24-11: voor (links) en na (rechts)</h1>
+<p class="klein">Headless Chrome met <code>pagina.html</code> (1920x1080, vaste camerapunten, geen spelbelichting); niets hiervan is in het spel zelf bekeken. Opnieuw maken: <code>VB_MAP=voertuigen-groot node scripts/voertuigbeeld.mjs voor|na &lt;voertuig&gt; &lt;weergaven&gt;</code>. Bussen tonen het interieur van businterieur3d.js (stoelen, stangen); bij de laadmachine en maaidorser is de weergave "cabine" een schuin beeld op de cabine. Het beeld "achter" is een schuin beeld langs de zijkant (de camera staat niet echt achter het voertuig). De tram bestaat niet in het spel en is overgeslagen.</p>
+<h2>Oordeel (1-10, eerlijk) en driehoeken</h2>
+<table>
+<tr><th>Voertuig</th><th>Voor</th><th>Na</th><th>Wat</th></tr>
+<tr><td>Stadsbus en gelede bus</td><td>6,5</td><td>8,5</td><td>Afgeronde neus, koepeldak, wielkasten met flarderanden, ruitgaten met glas, echte deurgaten met schuifbladen, balg met draaitafel, spiegels, dakunits, bestuurderscabine; interieur door businterieur3d.js</td></tr>
+<tr><td>Midibus</td><td>6</td><td>8</td><td>Zelfde bouwer; voorwiel iets naar achteren zodat de voordeur vrij van de wielkast ligt</td></tr>
+<tr><td>Maaidorser</td><td>3</td><td>7</td><td>Maaitafel met haspel, voerschroef en messenbalk, cabine met rondom glas en stoel, graantank, lospijp, trap, motorruimte met rooster, noppenbanden</td></tr>
+<tr><td>Laadmachine</td><td>3</td><td>7</td><td>Knikgewricht, laadarmen met cilinders, bak met tanden, cabine met kooi en glas, spatborden, noppenbanden</td></tr>
+<tr><td>Stoptrein (gtw)</td><td>4</td><td>7,5</td><td>Afgeronde cabine met schuine voorruit, bumperkast met koppeling, ruit- en deurgaten met schuifdeuren, koepeldak, pantograaf, draaistellen</td></tr>
+<tr><td>Intercity (virm)</td><td>4</td><td>7</td><td>Idem, dubbeldekker met twee raamrijen; verzonnen kleuren (crème en groen)</td></tr>
+</table>
+<p class="klein">Driehoeken niveau 0 / 1 / 2 (centrale LOD, zonder interieur en zonder de wielen van het model waar die apart staan): gelede bus 8.288 / 3.756 / 92 (voorheen ca. 2.400); midibus 4.826 / 3.094 / 92; maaidorser 6.072 / 2.770 / 92 (voorheen 1.472); laadmachine 4.480 / 1.828 / 92 (voorheen 1.370). Trein per rijtuig: stoptrein 3.038 (cabine) en 1.678 (tussenmodule), intercity 5.800 tot 5.950; voorheen 100 tot 200 per rijtuig (dozen). Materialen: bus 3 plus wielen, farm 3, trein 3 (romp met vertexkleuren, salonglas, cabineglas). Draw calls niveau 0: gelede bus 14, midibus 9, maaidorser 7, laadmachine 7, trein 3 tot 6 per rijtuig.</p>
+<h2>Stadsbus en gelede bus</h2>
+<div class="rij"><figure><img src="voor-bus-buiten.png"><figcaption>voor, buiten</figcaption></figure><figure><img src="na-bus-buiten.png"><figcaption>na, buiten</figcaption></figure></div>
+<div class="rij"><figure><img src="voor-bus-schuin.png"><figcaption>voor, schuin</figcaption></figure><figure><img src="na-bus-schuin.png"><figcaption>na, schuin</figcaption></figure></div>
+<div class="rij"><figure><img src="voor-bus-achter.png"><figcaption>voor, achter</figcaption></figure><figure><img src="na-bus-achter.png"><figcaption>na, achter</figcaption></figure></div>
+<div class="rij"><figure><img src="voor-bus-open.png"><figcaption>voor, open</figcaption></figure><figure><img src="na-bus-open.png"><figcaption>na, open</figcaption></figure></div>
+<div class="rij"><figure><img src="voor-bus-binnen.png"><figcaption>voor, binnen</figcaption></figure><figure><img src="na-bus-binnen.png"><figcaption>na, binnen</figcaption></figure></div>
+<h2>Midibus</h2>
+<div class="rij"><figure><img src="voor-midibus-buiten.png"><figcaption>voor, buiten</figcaption></figure><figure><img src="na-midibus-buiten.png"><figcaption>na, buiten</figcaption></figure></div>
+<div class="rij"><figure><img src="voor-midibus-schuin.png"><figcaption>voor, schuin</figcaption></figure><figure><img src="na-midibus-schuin.png"><figcaption>na, schuin</figcaption></figure></div>
+<div class="rij"><figure><img src="voor-midibus-achter.png"><figcaption>voor, achter</figcaption></figure><figure><img src="na-midibus-achter.png"><figcaption>na, achter</figcaption></figure></div>
+<div class="rij"><figure><img src="voor-midibus-open.png"><figcaption>voor, open</figcaption></figure><figure><img src="na-midibus-open.png"><figcaption>na, open</figcaption></figure></div>
+<div class="rij"><figure><img src="voor-midibus-binnen.png"><figcaption>voor, binnen</figcaption></figure><figure><img src="na-midibus-binnen.png"><figcaption>na, binnen</figcaption></figure></div>
+<h2>Maaidorser</h2>
+<div class="rij"><figure><img src="voor-maaidorser-buiten.png"><figcaption>voor, buiten</figcaption></figure><figure><img src="na-maaidorser-buiten.png"><figcaption>na, buiten</figcaption></figure></div>
+<div class="rij"><figure><img src="voor-maaidorser-schuin.png"><figcaption>voor, schuin</figcaption></figure><figure><img src="na-maaidorser-schuin.png"><figcaption>na, schuin</figcaption></figure></div>
+<div class="rij"><figure><img src="voor-maaidorser-achter.png"><figcaption>voor, achter</figcaption></figure><figure><img src="na-maaidorser-achter.png"><figcaption>na, achter</figcaption></figure></div>
+<div class="rij"><figure><img src="voor-maaidorser-cabine.png"><figcaption>voor, cabine</figcaption></figure><figure><img src="na-maaidorser-cabine.png"><figcaption>na, cabine</figcaption></figure></div>
+<h2>Laadmachine</h2>
+<div class="rij"><figure><img src="voor-laadmachine-buiten.png"><figcaption>voor, buiten</figcaption></figure><figure><img src="na-laadmachine-buiten.png"><figcaption>na, buiten</figcaption></figure></div>
+<div class="rij"><figure><img src="voor-laadmachine-schuin.png"><figcaption>voor, schuin</figcaption></figure><figure><img src="na-laadmachine-schuin.png"><figcaption>na, schuin</figcaption></figure></div>
+<div class="rij"><figure><img src="voor-laadmachine-achter.png"><figcaption>voor, achter</figcaption></figure><figure><img src="na-laadmachine-achter.png"><figcaption>na, achter</figcaption></figure></div>
+<div class="rij"><figure><img src="voor-laadmachine-cabine.png"><figcaption>voor, cabine</figcaption></figure><figure><img src="na-laadmachine-cabine.png"><figcaption>na, cabine</figcaption></figure></div>
+<h2>Stoptrein (gtw)</h2>
+<div class="rij"><figure><img src="voor-gtw-lang.png"><figcaption>voor, lang</figcaption></figure><figure><img src="na-gtw-lang.png"><figcaption>na, lang</figcaption></figure></div>
+<div class="rij"><figure><img src="voor-gtw-kop.png"><figcaption>voor, kop</figcaption></figure><figure><img src="na-gtw-kop.png"><figcaption>na, kop</figcaption></figure></div>
+<div class="rij"><figure><img src="voor-gtw-deur.png"><figcaption>voor, deur</figcaption></figure><figure><img src="na-gtw-deur.png"><figcaption>na, deur</figcaption></figure></div>
+<div class="rij"><figure><img src="voor-gtw-dak.png"><figcaption>voor, dak</figcaption></figure><figure><img src="na-gtw-dak.png"><figcaption>na, dak</figcaption></figure></div>
+<div class="rij"><figure><img src="voor-gtw-wielen.png"><figcaption>voor, wielen</figcaption></figure><figure><img src="na-gtw-wielen.png"><figcaption>na, wielen</figcaption></figure></div>
+<h2>Intercity (virm)</h2>
+<div class="rij"><figure><img src="voor-virm-lang.png"><figcaption>voor, lang</figcaption></figure><figure><img src="na-virm-lang.png"><figcaption>na, lang</figcaption></figure></div>
+<div class="rij"><figure><img src="voor-virm-kop.png"><figcaption>voor, kop</figcaption></figure><figure><img src="na-virm-kop.png"><figcaption>na, kop</figcaption></figure></div>
+<div class="rij"><figure><img src="voor-virm-deur.png"><figcaption>voor, deur</figcaption></figure><figure><img src="na-virm-deur.png"><figcaption>na, deur</figcaption></figure></div>
+<div class="rij"><figure><img src="voor-virm-dak.png"><figcaption>voor, dak</figcaption></figure><figure><img src="na-virm-dak.png"><figcaption>na, dak</figcaption></figure></div>
+<div class="rij"><figure><img src="voor-virm-wielen.png"><figcaption>voor, wielen</figcaption></figure><figure><img src="na-virm-wielen.png"><figcaption>na, wielen</figcaption></figure></div>

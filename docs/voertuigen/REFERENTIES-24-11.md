@@ -19,3 +19,15 @@ Regels voor de bouw (stijl): lage polygoncount maar geen krap budget (hoofdvoert
 vertexkleuren zonder textuur, afgeronde grote vlakken met vaste facetten (`extrudeProfile` met bevel), dikke wielen, ruiten als donker
 glas, spiegels, bumpers en lampen als blokjes in een contrastkleur. Meer detail wordt gekocht met geometrie (bogen, stijlen, rekken),
 niet met textuur; de lichtere niveaus komen uit het centrale LOD-systeem (`vehiclelod3d.js`, soort `vehicle`).
+
+## Tweede ronde (voertuigen-groot-24-11)
+
+Alleen gelezen (maten en herkenningspunten), niets overgenomen; in het spel staan verzonnen namen (Korenwolf M3, Laadkabouter L45, een verzonnen vervoerder met wit en oranje en crème en groen).
+
+| Voertuig | Bron | Maten (echt) | Maat in het spel |
+|---|---|---|---|
+| Wiellader (compact) | https://www.cat.com/en_US/products/new/equipment/wheel-loaders/compact-wheel-loaders/116320.html, https://bobcatoftherockies.com/showroom-machines/bobcat-l85-compact-wheel-loader/ en https://construction.newholland.com/en-us/northamerica/products/light-construction-equipment/small-articulated-loaders/ml22x | lengte 3,0 tot 5,5 m met bak, breedte over de banden 1,2 tot 2,0 m, wielbasis 1,6 tot 2,2 m; knikgewricht, laadarmen boven de wielen | 3,4 m + bak, 1,8 breed, wielstraal 0,46 |
+| Maaidorser | https://www.veritread.com/specs/agriculture/combine-harvesters/john-deere/6600 en https://en.wikipedia.org/wiki/Fortschritt_E_514 | 7,4 tot 8,9 m lang, 2,9 tot 4,5 m breed, hoogte 3,7 tot 3,8 m (kleinere machines); maaitafel met haspel voorop, cabine boven de invoer, graantank met lospijp | 7,4 x 3,3 x 3,8 m |
+| Intercity (dubbeldekker) | https://en.wikipedia.org/wiki/NS_VIRM (alleen de maten) | breedte 3,02 m, hoogte 4,67 m, treinlengte 107,6 m (vier delen, ca. 26 m per rijtuig); lage en hoge raamrij, pantograaf op een stuurstandrijtuig | 26,5 m per rijtuig, hoogte 4,7 m |
+| Stadsbus (herhaald) | https://en.wikipedia.org/wiki/Solaris_Urbino_18 | 18 m, 2,55 breed; balg met draaitafel, twee dubbele deuren | 11,2 + 6,8 m |
+| Tram | niet opgezocht | Bestaat niet als gebouwd model in het spel (alleen `isTram`-controles in de code); overgeslagen | |
