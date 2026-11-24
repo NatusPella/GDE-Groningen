@@ -11,7 +11,11 @@
 export function groepInSpel(world) {
   const n = world && world.coopNet, w = world && world.coopWissel;
   if (n && n.role === 'host' && n.hub && n.hub.roster && n.hub.roster.spelers.some((x) => x.slot !== 0 && x.verbinding !== 'lost')) return true;
-  return !!(w && (w.val || w.verbindt || w.overname || (w.nieuw && w.nieuw.bezig)));
+  // (#1059) wie net host werd door een overname of overdracht heeft de groep nog niet terug: de anderen sluiten pas seconden later aan.
+  // Zonder dit speelde in die seconden de opening van zijn eigen nieuwe spel (klok naar 05:45, de speler naar zijn nieuwe thuis) en de
+  // groep kwam daarna in die wereld binnen. De sessie van de groep (groepNet) houdt de opening tegen zolang ze loopt.
+  if (n && w && w.groepNet === n) return true;
+  return !!(w && (w.val || w.verbindt || w.overname || w.solo || w.aansluit || (w.nieuw && w.nieuw.bezig)));
 }
 export function openingBlockers(s) {
   const out = [];

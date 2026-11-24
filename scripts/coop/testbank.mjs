@@ -638,8 +638,8 @@ if (gW && hW && SUITE !== 'gastacties') { // (bij gastacties staat de host steed
   check(d < 6, `gast ziet Tammo op ${d.toFixed(1)} m van de host`);
 }
 // de laatste keer dat de gast echt meespeelde (daarna speelt hij weer in zijn eigen spel, met zijn eigen klok) tegen de host op hetzelfde moment
-const klokVerschil = (g) => { const h = samples('host').filter((s) => Number.isFinite(s.uur)), q = samples(g).filter((s) => Number.isFinite(s.uur) && s.slot >= 0 && (s.status === 'ok' || s.status === 'lag')); if (!h.length || !q.length) return null; const l = last(q), hh = h.reduce((b, x) => (Math.abs(x.wall - l.wall) < Math.abs(b.wall - l.wall) ? x : b), h[0]); return Math.abs(((l.uur - hh.uur + 36) % 24) - 12); };
-for (const g of NAMES.filter((x) => x !== 'host')) { const d = klokVerschil(g); if (d != null) check(d < 0.3, `speelklok ${g}: ${d.toFixed(2)} u verschil`); }
+const klokVerschil = (g, ref = 'host') => { const h = samples(ref).filter((s) => Number.isFinite(s.uur)), q = samples(g).filter((s) => Number.isFinite(s.uur) && s.slot >= 0 && (s.status === 'ok' || s.status === 'lag')); if (!h.length || !q.length) return null; const l = last(q), hh = h.reduce((b, x) => (Math.abs(x.wall - l.wall) < Math.abs(b.wall - l.wall) ? x : b), h[0]); return Math.abs(((l.uur - hh.uur + 36) % 24) - 12); };
+if (SUITE !== 'overname') for (const g of NAMES.filter((x) => x !== 'host')) { const d = klokVerschil(g); if (d != null) check(d < 0.3, `speelklok ${g}: ${d.toFixed(2)} u verschil`); } // bij 'overname' is de host dood: daar telt de klok van de opvolger (zie de suite)
 for (const g of NAMES.filter((x) => x !== 'host')) {
   let vorige = 0; const bad = samples(g).filter((s) => { const nieuw = (s.desyncN || 0) > vorige; vorige = Math.max(vorige, s.desyncN || 0); return nieuw && s.ph !== 'desync' && s.ph !== 'netsim' && !(SUITE === 'net' && s.ph === 'uitval') && !(SUITE === 'gastacties' && s.ph === 'gastrit' && (s.desync || []).every((v) => v === 'wanted')); });
   check(bad.length === 0, `${g} meldt een desync buiten de afwijkingsfase: ${JSON.stringify((bad[0] || {}).desync)} (fase ${(bad[0] || {}).ph})`);
@@ -859,6 +859,16 @@ if (SUITE === 'overname') {
   const unieke = (n) => { const x = samples(n).slice(-1)[0]; const namen = ((x && x.partners) || []).map((p) => p[1]); return namen.length === new Set(namen).size; };
   for (const n of gasten) check(unieke(n), `overname: ${n} ziet een dubbele speler`);
   for (const n of gasten) { const l = st(n); check(!l.length || l[l.length - 1].geld >= 500, `overname: ${n} verloor geld (${l.length && l[l.length - 1].geld})`); }
+  // de klok loopt door (#1059, ov3 24-11): de opvolger speelde de opening van zijn eigen nieuwe spel (05:45, naar zijn nieuwe thuis) en de groep kwam daar binnen
+  const laatsteUur = (n) => { const l = samples(n).filter((x) => Number.isFinite(x.uur)); return l.length ? l[l.length - 1].uur : null; };
+  const uurVerschil = (a, b) => Math.abs(((a - b + 36) % 24) - 12);
+  const hostUur = laatsteUur('host');
+  if (hosts.length === 1 && hostUur != null) {
+    const nh = hosts[0], na = laatsteUur(nh);
+    note(`klok: de host stopte op ${hostUur.toFixed(2)} u, de opvolger ${nh} staat aan het eind op ${na == null ? '?' : na.toFixed(2)} u`);
+    check(na != null && uurVerschil(na, hostUur) < 3, `overname: de klok van de opvolger ${nh} sprong (host ${hostUur.toFixed(2)} u, opvolger ${na == null ? '?' : na.toFixed(2)} u)`);
+    for (const n of gasten) if (n !== nh) { const d = klokVerschil(n, nh); if (d != null) check(d < 0.3, `overname: speelklok ${n} wijkt ${d.toFixed(2)} u af van de opvolger`); }
+  }
   for (const n of gasten) { let v = 0; const bad = samples(n).filter((x) => { const nieuw = (x.desyncN || 0) > v; v = Math.max(v, x.desyncN || 0); return nieuw; }); note(`desyncN ${n}: ${v}`); }
 }
 

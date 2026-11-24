@@ -9,6 +9,7 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ## [Unreleased]
 
+- Samen spelen: valt wie het spel opende weg en neem jij het over, dan speelt niet meer de opening van je eigen nieuwe spel voordat de anderen er weer zijn. Eerder sprong de klok dan naar de ochtend, stond je ineens bij je nieuwe thuis en kwam de groep daar binnen. Samen spelen: alleen bij wie het spel overneemt; geen nieuw bericht.
 - Samen spelen: een gast die terugkomt nadat de verbinding even haperde, krijgt geen dubbele meldingen meer en blijft niet hangen op een oud bericht van voor de hapering. Een gast die blijft aankloppen krijgt nog maar één welkom per seconde in plaats van één per bericht. Samen spelen: alleen de netlaag aan beide kanten, geen nieuw bericht; een oudere tegenspeler merkt niets anders.
 - Snackwagen: Jelles bedrijf heet overal Us Mem Snacks (op het tabblad Snackwagen, de kaartlaag Standplaatsen, de prestatie en het bord op zijn wagens stond nog Usmem). Samen spelen: alleen tekst, per speler.
 - Land en bedrijf: het icoon van een lege staat (Overzicht, Te koop) heeft een vaste maat en vult niet meer het hele paneel; Te koop toont een wegwijzerbord in plaats van een gestippeld vakje. Samen spelen: per speler.
