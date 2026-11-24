@@ -48,6 +48,10 @@ const CSS = `${SFEER_BAND_CSS}
 .vb-soorten .rec { grid-column: 1 / -1; font-size: max(14px, var(--menu-min, 14px)); color: var(--g, #3fc97a); }
 /* #1270 (hertest 24-11): de kop "Per water" als groepskop van het menu, en het detail als drie getallen en twee korte regels */
 .vb-groep { margin: var(--ds-s-4) 0 var(--ds-s-1); }
+/* #1270 (hertest 24-11): de Loopbanen-CSS zet .lb-list op een raster van kolommen van 250 px; in het Visboek gaf dat drie smalle kolommen met
+   namen als "All..." en "Pl...". Het Visboek is één kolom, met de volle naam (geen afkapping). */
+#pause-menu .m-list.lb-list.vb-list { display: flex; flex-direction: column; gap: var(--ds-s-1); }
+#pause-menu .vb-list .vb-li .nm .one { white-space: normal; overflow: visible; text-overflow: clip; }
 .vb-feiten { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--ds-s-2); margin: var(--ds-s-2) 0; }
 .vb-feit { display: flex; flex-direction: column; gap: 2px; padding: var(--ds-s-2) var(--ds-s-3); border: var(--ds-lijn) solid var(--ds-c-ink-inkt); border-radius: var(--ds-r); }
 .vb-feit b { font-family: var(--ds-font-zeef-kop); font-size: 26px; line-height: 1; }
@@ -128,7 +132,7 @@ export function renderVisboekPanel(el) {
   const lijst = rij('alles', 'Alle vis', { gevangen: sam.gevangen, totaal: sam.totaal, deel: sam.gevangen / sam.totaal }) +
     `<div class="m-gh vb-groep"><span>Per water</span><span>${WATERTYPEN.length} wateren</span></div>` + WATERTYPEN.map((t) => rij(t.id, t.naam, typeRegel(boek, t.id))).join('');
   el.innerHTML = `<div class="m-tabs"><span class="m-grow"></span><span class="pa-total"><span class="lb-sfeer-chip" style="${sfeerStijl(SFEER)}" aria-hidden="true"></span><span class="mut">${esc(sfeerVan(SFEER).naam)}</span><span class="m-num">${sam.gevangen}</span><span class="mut">van ${sam.totaal} soorten</span></span></div>` +
-    `<div class="m-main"><div class="m-list pa-list lb-list">${lijst}</div><aside class="m-pane pa-pane lb-pane vb-pane" aria-live="polite">${detailHtml(boek, gekozen)}</aside></div>`;
+    `<div class="m-main"><div class="m-list pa-list lb-list vb-list">${lijst}</div><aside class="m-pane pa-pane lb-pane vb-pane" aria-live="polite">${detailHtml(boek, gekozen)}</aside></div>`;
   fillBars(el, bars);
   if (!el.dataset.bound) {
     el.dataset.bound = '1';
