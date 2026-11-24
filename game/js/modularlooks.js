@@ -36,8 +36,12 @@ const CAPS = new Set(['cap', 'tammo', 'beanie', 'flatcap', 'police']);
 // het blauw van het uniform (zelfde tint als models3d_people.js COP_NAVY)
 export const COP_NAVY = 0x1d2433;
 
+const hashf = (seed, k) => { const x = Math.sin(seed * 12.9898 + k * 78.233) * 43758.5453; return x - Math.floor(x); };
+const OLD_HAIR = [0x8a8580, 0xb4afa6, 0xd2cec6, 0x6e6a66];
 const pick = (rigParts, list) => { for (const id of list) if (rigParts.has(id)) return id; return null; };
 
+// Eén van de passende delen: de eerste twee zijn de beste (de rest is een minder passende terugval), dus hash over de eerste twee.
+const pickVary = (rigParts, list, u, wide) => { const ok = [...new Set(list)].filter((id) => rigParts.has(id)); if (!ok.length) return null; const n = wide ? Math.min(ok.length, 3) : Math.min(ok.length, 2); return ok[Math.floor(u * n) % n]; };
 // appearance = wat buildPersonMesh krijgt (een vaste look zoals TAMMO_APPEARANCE of JELLE_LOOK). partIds = Set van de deel-id's van
 // de rig (modularpeople.js levert ze). Geeft { rig, parts, skin, shirt, hair, pants, cap, capColor, old } of null als het niet kan.
 export function lookFromAppearance(a, partIds) {
@@ -56,15 +60,17 @@ export function lookFromAppearance(a, partIds) {
   let shoe = cop ? 'leather' : L.shoeType || (a.character === 'tammo' ? 'sneaker' : a.character === 'anita' ? 'boot' : null);
   const hairStyle = a.hairStyle || L.hairStyle || (cop && !female ? 'buzz' : null);
   if (L.bottom === 'dress') top = 'dress';
-  const choose = (slot, kind) => pick(ids, [...((kind && M[slot][kind]) || []), ...M[slot].default]) || [...ids].find((id) => id.endsWith(slot === 'benen' ? '_Legs' : slot === 'voeten' ? '_Feet' : slot === 'hoofd' ? '_Head' : '_Body'));
+  // a.vary (gewone figuren, geen verhaalfiguur): kies uit de passende delen op het zaad, zodat niet elke 'korte haar' hetzelfde hoofd is
+  const SLOT_K = { hoofd: 61, romp: 62, benen: 63, voeten: 64 };
+  const choose = (slot, kind) => (a.vary ? pickVary(ids, [...((kind && M[slot][kind]) || []), ...M[slot].default], hashf(a.seed ?? 1, SLOT_K[slot]), slot === 'hoofd') : pick(ids, [...((kind && M[slot][kind]) || []), ...M[slot].default])) || [...ids].find((id) => id.endsWith(slot === 'benen' ? '_Legs' : slot === 'voeten' ? '_Feet' : slot === 'hoofd' ? '_Head' : '_Body'));
   const parts = { hoofd: choose('hoofd', hairStyle), romp: choose('romp', top), benen: choose('benen', bottom), voeten: choose('voeten', shoe) };
   if (!parts.hoofd || !parts.romp || !parts.benen || !parts.voeten) return null;
   const hat = a.character === 'tammo' ? 'tammo' : cop ? 'police' : L.hat;
   return {
     seed: a.seed ?? 1, rig, parts,
-    skin: a.skin ?? 0xd9a47a, shirt: cop ? COP_NAVY : L.topColor ?? a.shirt ?? null, hair: a.hair ?? 0x3b2a1e, pants: cop ? COP_NAVY : a.pants ?? 0x2f3b52,
+    skin: a.skin ?? 0xd9a47a, shirt: cop ? COP_NAVY : L.topColor ?? a.shirt ?? null, hair: a.vary && L.age === 'old' ? OLD_HAIR[Math.floor(hashf(a.seed ?? 1, 20) * OLD_HAIR.length)] : a.hair ?? 0x3b2a1e, pants: cop ? COP_NAVY : a.pants ?? 0x2f3b52,
     wear: cop ? ['politiepet', 'politieuniform'] : null,
     cap: CAPS.has(hat) ? hat : null, capColor: a.character === 'tammo' ? (a.cap ?? 0xc8621e) : (L.hatColor ?? L.capColor ?? 0x2b2f36),
-    old: L.age === 'old', scale: null, body: a.body || null,
+    old: L.age === 'old', child: L.age === 'child', scale: null, body: a.body || null,
   };
 }

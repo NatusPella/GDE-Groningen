@@ -140,7 +140,7 @@ import { createSkyUniforms, buildSkyDome, createEnvironmentUpdater, setStarOpaci
 import { computeLighting, dayState } from './daynight.js';
 import { shadowSoftness } from './sunrules.js';
 import { wijkProfileAt } from './trafficfleet.js';
-import { pedRole } from './clothing.js';
+import { pedRole, npcLook } from './clothing.js';
 import { monumentAreaKey } from './heritagearea.js';
 import { applyWorldGrade } from './worldgrade3d.js'; // wereldkleur (21-11): saturatie, tinten en mist van de dag
 import { createPostFX, setSpeedStreak } from './postfx3d.js';
@@ -860,6 +860,7 @@ function pinShaderPrograms(r) {
 export function init3D(map) {
   liftMap = map;
   preloadLandmarkModels();
+  if (mensenFase(FLAGS.mensen) >= 3) setModularPlayerLooks(true);   // ook alle figuren die niet de speler zijn (models3d_people.js buildPersonMesh)
   if (mensenFase(FLAGS.mensen) >= 1) loadModularPeople(); // fase 1 van ADR 0050: voorbijgangers als modulaire mensen (alleen met ?mensen=q)
   setBuildingMap(map);
   canvas3 = document.getElementById('game3d');
@@ -2585,6 +2586,16 @@ function pedOutfitOpts(p, world) {
   return { role: p._role, outfitCtx: p._outfitCtx };
 }
 
+// Een gewone voorbijganger als modulaire mens: de kleding volgt de rol van de buurt en het uur (clothing.js, zoals bij het eigen model),
+// het geslacht volgt de verre menigte (sd & 1), lengte en bouw het zaad.
+function pedModularAppearance(p, outfit, sd, skin) {
+  const female = (sd & 1) === 1, base = { seed: sd, skin, variant: female ? 'female' : 'male', vary: true };
+  if (!outfit) return { ...base, shirt: p.clothing ? colorFromHex(p.clothing) : null };
+  const n = npcLook(p._lookSeed, outfit.role, { ...(outfit.outfitCtx || {}), hair: true, body: true, old: hashOld(sd) }, {});
+  return { ...base, shirt: p.clothing ? colorFromHex(p.clothing) : n.shirt, pants: n.pants, shoes: n.shoes, hair: n.hair, hairStyle: n.hairStyle, body: n.body, look: { ...n.look, age: hashOld(sd) ? 'old' : n.look.age } };
+}
+const hashOld = (sd) => ((Math.sin(sd * 12.9898 + 23 * 78.233) * 43758.5453) % 1 + 1) % 1 < 0.2;
+
 function buildPedActor(p, world) {
   // stable per-ped look, so a ped doesn't change clothes when it streams back in
   if (p._lookSeed === undefined) p._lookSeed = Math.random() * 1000;
@@ -2592,11 +2603,12 @@ function buildPedActor(p, world) {
   // fase 1 (ADR 0050, ?mensen=q): een gewone voorbijganger wordt een modulaire mens zodra de rigs geladen zijn; agenten,
   // politie in uniform (modularlooks.js, modularwear.js) en verhaalfiguren met een eigen look ook; een kind en wie een vaste houding heeft
   // blijven procedureel (de rigs zijn volwassen; de houdingen zitten nog alleen op het eigen rig)
-  if (mensenFase(FLAGS.mensen) >= 1 && modularReady() && !p.pose && !(p.look && p.look.age === 'child')) {
+  // iedereen is modulair (ook zitters, kraamhouders, vissers en kinderen): de houdingen volgen uit p.pose (models3d_people.js modularPosed)
+  if (mensenFase(FLAGS.mensen) >= 1 && modularReady()) {
     const sd = Math.floor(p._lookSeed * 7), skin = p.skin ? colorFromHex(p.skin) : 0xe0b48a;
     const q = p.isCop ? buildModularFromAppearance({ cop: true, skin, seed: sd, variant: sd % 5 === 0 ? 'female' : 'male' })
       : p.look ? buildModularFromAppearance({ shirt: p.clothing ? colorFromHex(p.clothing) : 0x6a6a6a, skin, seed: sd, variant: p.look.variant || p.variant || (sd & 1 ? 'female' : 'male'), hairStyle: p.look.hairStyle, look: p.look })
-      : buildModularPerson(p._lookSeed, { skin, shirt: p.clothing ? colorFromHex(p.clothing) : null });
+      : buildModularFromAppearance(pedModularAppearance(p, outfit, sd, skin));
     if (q) { addBlobShadow(q, 0.85, 0.85); if (p.carry) attachCarry(q, p.carry); return enableShadows(q, false); }   // dragen en wapens: modularpeople.js modularHoldPose, modularHandSocket
   }
   const mesh = buildPersonActor(p.clothing ? colorFromHex(p.clothing) : 0xcaa46a, p.skin ? colorFromHex(p.skin) : 0xe0b48a, p.look ? { seed: p._lookSeed, look: p.look } : outfit ? { seed: p._lookSeed, ...outfit } : { seed: p._lookSeed });

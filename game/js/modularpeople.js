@@ -69,7 +69,7 @@ export function registerModularRig(name, man, buf) {
   }
   // de zij-as (+z van de mens) in de assen van de ouder van armen en hoofd: om die as zwaait een arm naar voren en knikt het hoofd
   rig.sideAxis = {};
-  for (const n of ['UpperArmL', 'UpperArmR', 'LowerArmL', 'LowerArmR', 'Head', 'Neck']) {
+  for (const n of ['UpperArmL', 'UpperArmR', 'LowerArmL', 'LowerArmR', 'Head', 'Neck', 'Abdomen', 'Torso', 'Chest', 'UpperLegL', 'UpperLegR']) {
     const bb = tmp.bones[man.bones.findIndex((x) => x.name === n)];
     bb.parent.getWorldQuaternion(q);
     rig.sideAxis[n] = up.set(0, 0, 1).applyQuaternion(q.invert()).normalize().toArray();
@@ -136,6 +136,8 @@ export function buildModularFromAppearance(a) {
   // lengte: de look (verhaalfiguren) of het lichaam uit de kledingkast (BODY_TYPES.hs), binnen de norm van de rig
   const bt = look.body && BODY_TYPES[look.body];
   look.scale = (rig.man.schaal || 1) * Math.max(0.92, Math.min(1.08, ((a.look && a.look.heightScale) || 1) * (bt ? bt.hs : 1))) * (look.old ? 0.985 : 1);
+  // elke gewone figuur (geen verhaalfiguur of speler) krijgt lengte en bouw uit zijn zaad
+  if (a.vary) { const sz = personSize(rig, look.seed, { old: look.old, child: !!(a.look && a.look.age === 'child') }); look.scale = sz.scale * (bt ? Math.max(0.92, Math.min(1.08, bt.hs)) : 1); look.wide = sz.wide; }
   const g = buildModularPerson(look.seed, { look });
   if (g && bt) { g.scale.x *= Math.max(0.9, Math.min(1.15, bt.bs || 1)); g.scale.z = g.scale.x; } // breder of smaller postuur
   return g;
@@ -206,17 +208,32 @@ export function modularLook(seed, opts = {}) {
   const parts = {};
   MODULAR_SLOTS.forEach((s, k) => { parts[s] = pickWeighted(rig.slots[s], hashf(seed, 10 + k)).id; });
   // leeftijd: ongeveer een op de vijf is ouder (grijs of wit haar, iets kleiner, rustiger tempo); geverfd haar zelden (2%)
-  const old = opts.old !== undefined ? !!opts.old : hashf(seed, 23) < 0.2;
-  const dyed = !old && hashf(seed, 24) < 0.02;
+  const child = !!opts.child;
+  const old = !child && (opts.old !== undefined ? !!opts.old : hashf(seed, 23) < 0.2);
+  const dyed = !old && !child && hashf(seed, 24) < 0.02;
+  const { scale, wide } = personSize(rig, seed, { child, old });
+  // een hoofddeksel bij ongeveer een op de tien volwassenen (pet, en bij oudere mannen de platte pet)
+  let cap = null;
+  if (!child && opts.hat !== false && !/Punk|Farmer|Worker/.test(parts.hoofd) && hashf(seed, 50) < (opts.hatChance ?? 0.1)) cap = old && !female ? 'flatcap' : 'cap';
   return {
     seed, rig: rigName, parts,
     skin: opts.skin ?? 0xd9a47a, shirt: opts.shirt ?? null,
-    old,
+    old, child,
     hair: old ? HAIR_OLD[Math.floor(hashf(seed, 20) * HAIR_OLD.length)] : dyed ? HAIR_DYED[Math.floor(hashf(seed, 20) * HAIR_DYED.length)] : HAIR[Math.floor(hashf(seed, 20) * HAIR.length)], pants: PANTS[Math.floor(hashf(seed, 21) * PANTS.length)],
-    // importschaal per pack (quaternius_import.mjs RIGS) met een kleine variatie per zaad: man 1,75-1,85 m, vrouw 1,65-1,72 m
-    scale: (rig.man.schaal || 1) * (1 + (rig.man.variatie ?? 0.02) * (2 * hashf(seed, 22) - 1)) * (old ? 0.985 : 1),
+    cap, capColor: cap ? CAP_COLORS[Math.floor(hashf(seed, 51) * CAP_COLORS.length)] : null,
+    scale, wide,
   };
 }
+// De maat van een mens uit zijn zaad (stabiel, geloofwaardig): lengte (man ca. 1,70 tot 1,93 m, vrouw 1,58 tot 1,79 m, ouderen iets
+// kleiner), bouw (breedte van schouders en middel 0,94 tot 1,08 keer) en kinderen op 55 tot 80 procent van de lengte. Elke speler
+// rekent hetzelfde uit het zaad, dus een gast ziet dezelfde lengte en bouw.
+export function personSize(rig, seed, { child = false, old = false } = {}) {
+  const base = rig.man.schaal || 1;
+  if (child) return { scale: base * (0.56 + 0.22 * hashf(seed, 42)), wide: 0.93 + 0.06 * hashf(seed, 41) };
+  const tall = ((2 * hashf(seed, 22) - 1) + 0.5 * (2 * hashf(seed, 43) - 1)) / 1.5;   // iets klokvormig: de meesten rond het gemiddelde
+  return { scale: base * (1 + (rig.man.variatie ?? 0.02) * 2.3 * tall) * (old ? 0.985 : 1), wide: 0.94 + 0.14 * hashf(seed, 41) + (old ? 0.02 : 0) };
+}
+const CAP_COLORS = [0x2b2f36, 0x3a4d6e, 0x6e2f2f, 0x46563a, 0x7a6a4a, 0x8a8f98, 0xc8621e, 0x2f2f2f];
 
 // Een pet (Tammo, agent, pet of muts): een lage koepel van CAP_SEG x 3 vlakjes op de schedel en, bij een pet, een klep naar voren,
 // op het hoofdbot. Maten uit de gezichtspunten (ogen) van het hoofd; het haar eronder wordt bedekt door een iets ruimere koepel.
@@ -516,13 +533,16 @@ export function buildModularPerson(seed, opts = {}) {
   }
   group.updateMatrixWorld(true);
   mesh.bind(new THREE.Skeleton([...sk.bones, ...extra], inverses), new THREE.Matrix4());
+  if (look.child) sk.bones[rig.man.bones.findIndex((b) => b.name === 'Head')].scale.multiplyScalar(1.22);   // kinderen: groter hoofd bij het lijf
   for (const b of extra) b.scale.y = 0;   // pas na het binden (de inverse van schaal 0 bestaat niet): mond dicht, ogen open
   group.scale.setScalar(look.scale);
+  if (look.wide && look.wide !== 1) { group.scale.x *= look.wide; group.scale.z = group.scale.x; }   // bouw: breder of smaller (personSize)
   const ud = group.userData;
   ud.qRig = rig;
   ud.qBones = sk.bones;
   ud.qLook = look;
   ud.qLod = 0;
+  ud.qStoop = look.old ? 0.1 + 0.08 * hashf(seed, 44) : 0;   // ouderen lopen iets gebogen
   ud.body = mesh;
   ud.lookSeed = seed;
   ud.animOffset = hashf(seed, 9) * 100;
@@ -589,6 +609,14 @@ function accumulate(rig, c, u, w) {
 }
 
 const _qa = new THREE.Quaternion(), _axis = new THREE.Vector3();
+const IDX_SIT = STATE_IDS.indexOf('sit');
+// Draai een bot om de zij-as van de mens (+ = arm naar voren, hoofd en romp naar achteren): een kleine bijsturing bovenop de clip.
+export function modularTurn(mesh, name, angle) {
+  const ud = mesh && mesh.userData, rig = ud && ud.qRig, bi = ud && ud.qIdxBy[name];
+  if (!rig || bi === undefined || !rig.sideAxis[name] || Math.abs(angle) < 1e-4) return false;
+  ud.qBones[bi].quaternion.premultiply(_gq.setFromAxisAngle(_ax.fromArray(rig.sideAxis[name]), angle));
+  return true;
+}
 const SP0 = { ..._sp };
 // Gebaren bij praten (ADR 0051 bovenlijflaag 'talk'): om de zij-as van de mens; w = gewicht 0..1. Geen allocaties.
 const _ax = new THREE.Vector3(), _gq = new THREE.Quaternion();
@@ -731,6 +759,7 @@ export function animateModular(mesh, speed, dt) {
   // praten: gebaren met de armen (om en om een onderarm omhoog, een open hand) en het hoofd rechtop met een kleine knik
   st.talkW = crossfade(st.talkW || 0, ud.qParams && ud.qParams.talk ? 1 : 0, step, 0.3);
   if (st.talkW > 0.01) talkGestures(ud, rig, st.t, st.talkW);
+  if (ud.qStoop && !ud.qInSeat && sm.s !== IDX_SIT) modularTurn(mesh, 'Torso', -ud.qStoop);
   // knipperen (gait.js blinkAmount, zelfde ritme als het eigen model)
   if (ud.lids) { const bl = blinkAmount(st.t + ud.animOffset, ud.animOffset); if (ud.lids.scale.y !== bl) ud.lids.scale.y = bl; }
   // blik (gait.js glanceAt zet ud.gazeT, + = rechts): hoofd en nek draaien om de verticale as van de persoon, 40/60 verdeeld
@@ -1184,6 +1213,56 @@ export function modularHandSocket(mesh) {
   ud.qSocketR = sock;
   return sock;
 }
+// Een houder op een willekeurig bot (zonder draaiing), met dezelfde maat-regel als de handhouder: 1 eenheid = 1 m van de gewone mens.
+export function modularBoneSocket(mesh, name) {
+  const ud = mesh && mesh.userData;
+  if (!ud || !ud.qRig) return null;
+  ud.qSockets = ud.qSockets || {};
+  if (ud.qSockets[name]) return ud.qSockets[name];
+  const b = ud.qBones[ud.qIdxBy[name]];
+  mesh.updateMatrixWorld(true);
+  b.matrixWorld.decompose(_sp3, _sq3, _ss);
+  const sock = new THREE.Object3D();
+  sock.name = 'socket-' + name;
+  sock.scale.setScalar(mesh.scale.x / _ss.x);
+  b.add(sock);
+  return (ud.qSockets[name] = sock);
+}
+// Een prop (telefoon, hengel, gitaar) aan een bot, maar in de assen van de mens: world = de plek (wereld, bijvoorbeeld de handpalm uit
+// modularHandPoint), rot = [x, y, z] Euler in de assen van de mens (x voor, y omhoog, z naar rechts). Elk beeld opnieuw na de clip en de IK,
+// zodat de prop niet meedraait met de willekeurige assen van het bot.
+const _ppq = new THREE.Quaternion(), _ppe = new THREE.Euler(), _ppm = new THREE.Quaternion(), _ppb = new THREE.Quaternion(), _ppP = new THREE.Vector3(), _pps = new THREE.Vector3(), _ppw = new THREE.Vector3();
+export function modularPlaceProp(mesh, prop, boneName, world, rot) {
+  const ud = mesh && mesh.userData;
+  if (!ud || !ud.qRig) return false;
+  const b = ud.qBones[ud.qIdxBy[boneName]];
+  if (prop.parent !== b) b.add(prop);
+  b.matrixWorld.decompose(_ppP, _ppb, _pps);
+  mesh.getWorldQuaternion(_ppm);
+  prop.scale.setScalar(mesh.scale.x / _pps.x);
+  prop.position.copy(b.worldToLocal(_ppw.copy(world)));
+  prop.quaternion.copy(_ppb.invert().multiply(_ppm).multiply(_ppq.setFromEuler(_ppe.set(rot[0], rot[1], rot[2]))));
+  return true;
+}
+// De handpalm (wereld) van hand `side`: een stukje voorbij de pols langs de onderarm; extra = mesh-lokale verschuiving [x, y, z] (m, ongeschaald)
+const _hpA = new THREE.Vector3(), _hpB = new THREE.Vector3();
+export function modularHandPoint(mesh, side, out, extra = null) {
+  const ud = mesh.userData, wr = ud.qBones[ud.qIdxBy['Wrist' + side]], lo = ud.qBones[ud.qIdxBy['LowerArm' + side]];
+  wr.getWorldPosition(out); lo.getWorldPosition(_hpA);
+  out.addScaledVector(_hpB.subVectors(out, _hpA).normalize(), HAND_PALM * (mesh.scale.y || 1));
+  if (extra) { _hpB.set(extra[0], extra[1], extra[2]).multiplyScalar(mesh.scale.y || 1); mesh.getWorldQuaternion(_ppm); out.add(_hpB.applyQuaternion(_ppm)); }
+  return out;
+}
+// Zet een mens meteen in een toestand (zonder menging), bijvoorbeeld zittend bij het verschijnen.
+export function modularSetState(mesh, name) {
+  const ud = mesh && mesh.userData;
+  if (!ud || !ud.qSM) return false;
+  const i = STATE_IDS.indexOf(name);
+  if (i < 0) return false;
+  ud.qSM.s = ud.qSM.prev = i; ud.qSM.k = 1; ud.qSM.fade = 0; ud.qSM.t = 0; ud.qSM.nt = 0; ud.qSM.done = false;
+  if (ud.qState) { ud.qState.lastS = i; ud.qState.prevS = i; ud.qState.stateT = 0; }
+  return true;
+}
 // waar de handpalm in de houder zit (m): de greep van een wapen komt hier
 export const MODULAR_GRIP_AT = [0.01, -0.075, 0];
 
@@ -1244,6 +1323,28 @@ export function modularHoldPose(mesh, mode = 'front') {
   return true;
 }
 
+
+// Eén hand naar een punt (houdingen van voorbijgangers: bellen, hengelen, een kraam, een gitaar): at = [x, y, z] in de assen van de
+// mens (x voor, y omhoog, z naar rechts; de linkerhand krijgt zijn z dus negatief mee), w = hoeveel (0..1) van de weg van de hand
+// van de clip naar dit punt, pole = waar de elleboog heen wijst. mesh.updateMatrixWorld moet na de clip zijn gedaan.
+const _rw = new THREE.Vector3();
+export function modularReach(mesh, side, at, w = 1, pole = [0, -1, 0.6]) {
+  const ud = mesh && mesh.userData;
+  if (!ud || !ud.qRig || !(w > 0)) return false;
+  const B = ud.qBones, bn = (n) => B[ud.qIdxBy[n]];
+  const up = bn('UpperArm' + side), lo = bn('LowerArm' + side), wr = bn('Wrist' + side), k = side === 'R' ? 1 : -1;
+  mesh.localToWorld(_c0.set(at[0], at[1], at[2]));
+  for (let it = 0; it < 2; it++) {
+    wr.getWorldPosition(_ft);
+    _tg.copy(_c0);
+    if (it) { lo.getWorldPosition(_bv); _ax1.subVectors(_ft, _bv).normalize(); _tg.addScaledVector(_ax1, -HAND_PALM * (mesh.scale.y || 1)); }
+    if (w < 1) _tg.lerpVectors(_ft, _tg, w);
+    ikTo(up, lo, _ft, _tg);
+    poleTo(mesh, up, lo, _tg, pole[0], pole[1], k * Math.abs(pole[2]));
+  }
+  mesh.updateMatrixWorld(true);
+  return true;
+}
 
 // Eerste-persoonhanden (firstpersonhands.js) op het nieuwe model: de onderarm met de gesloten hand (grijpvariant) van een look als vaste
 // geometrie (position + color) in het assenstelsel van de arm in die module: oorsprong in de pols, -z naar de vingers, +x naar rechts

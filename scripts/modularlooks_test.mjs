@@ -63,7 +63,7 @@ for (const body of H.BODY_IDS) {
   P.setModularPlayerLooks(true);
   const t = P.buildPersonMesh(P.TAMMO_APPEARANCE.shirt, P.TAMMO_APPEARANCE.skin, P.TAMMO_APPEARANCE);
   const npc = P.buildPersonMesh(0x3f6ea8, 0xd9a47a, { seed: 4 });
-  ok(t.userData.qRig && !npc.userData.qRig, 'spelerfase: Tammo modulair, een voorbijganger via buildPersonMesh niet');
+  ok(t.userData.qRig && npc.userData.qRig, 'spelerfase: Tammo en elke andere figuur via buildPersonMesh modulair');
   P.setModularPlayerLooks(false);
   ok(!P.buildPersonMesh(P.TAMMO_APPEARANCE.shirt, P.TAMMO_APPEARANCE.skin, P.TAMMO_APPEARANCE).userData.qRig, 'zonder spelerfase: het eigen model');
 }
