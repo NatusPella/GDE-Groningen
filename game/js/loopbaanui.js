@@ -190,7 +190,15 @@ const CSS = `${SFEER_BAND_CSS}
 .lb-volg { flex: none; padding: 1px 8px; border-radius: 999px; font-family: var(--ds-font-zeef-tekst); font-size: max(13px, var(--menu-min, 13px)); letter-spacing: 0.08em; text-transform: uppercase; background: color-mix(in srgb, var(--g) 18%, transparent); color: var(--g); }
 .lb-bz-link { border-top: 1px solid color-mix(in srgb, var(--ink) 9%, transparent); padding-top: 4px; margin-top: 2px; }
 .lb-leeg { margin: 4px 0 0; }
-.lb-start { padding: 10px 14px; border-radius: 10px; background: color-mix(in srgb, var(--g) 10%, transparent); box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--g) 40%, transparent); }
+/* #999 (24-11): de eerste klus als kaart op papier met een inktrand: kop, plek, chips, een vouw voor het waarom; geen groen vlak met zinnen */
+.lb-start { padding: var(--ds-s-3) var(--ds-s-4); border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); border-left: var(--ds-status-rand) solid var(--ds-c-ink-bord); background: var(--ds-zeef-bg); box-shadow: var(--ds-schaduw-hard-klein); }
+.lb-start .lb-start-t { margin: 2px 0 6px; font-family: var(--ds-font-zeef-kop); font-weight: 800; font-size: var(--ds-t-subkop); line-height: var(--ds-lh-kop); }
+.lb-start .lb-start-waar { display: flex; align-items: center; gap: var(--ds-s-2); color: var(--mut); }
+.lb-start .lb-start-waar svg { flex: none; }
+.lb-start .lb-start-chips { display: flex; flex-wrap: wrap; gap: var(--ds-s-2); margin: var(--ds-s-2) 0; background: none; }
+.lb-start .lb-waarom > summary { cursor: pointer; min-height: var(--ds-doel-aanraken); display: flex; align-items: center; font-weight: 700; }
+.lb-start .lb-waarom > summary:focus-visible { outline: var(--ds-focus-dikte) solid var(--ds-focus); outline-offset: var(--ds-focus-afstand); }
+.lb-start .lb-waarom p { color: var(--mut); }
 .lb-start p { margin: 4px 0; }
 .lb-start .lb-link { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-top: 8px; }
 .lb-start .ds-z-knop { flex-direction: row; min-height: var(--ds-doel-aanraken); font-size: var(--ds-t-label); }
@@ -274,15 +282,26 @@ function startHtml(profiel, id) {
   const step = stap && STEP_BY_ID.get(stap);
   // de carrière-tour (careertour.js): wie is hier goed en kunnen ze samenwerken; een gesloten vak is een zachte hint van het personage (unlockgate.js)
   const fit = CAREER_FIT[id];
-  const tour = fit ? `<p class="mut">Wie is hier goed: ${esc(FIT[fit.fit])}. ${fit.together ? 'Samen lukt het.' : 'Samen werken lukt hier niet goed.'} ${esc(fit.why)}</p>` : '';
   const hint = !gestart ? storyGateHint(id) : null;
   const poort = hint ? `<p class="mut">${esc(hint)}</p>` : '';
-  const verhaal = (step ? `<p class="mut">In het verhaal: ${esc(step.title)}${gestart ? ' · telt als gedaan' : ''}</p>` : '') + tour + poort;
-  if (gestart) return `<div class="lb-start klaar"><p class="m-eb">Begonnen</p>${verhaal}</div>`;
+  if (gestart) {
+    const tour = fit ? `<p class="mut">Wie is hier goed: ${esc(FIT[fit.fit])}. ${fit.together ? 'Samen lukt het.' : 'Samen werken lukt hier niet goed.'} ${esc(fit.why)}</p>` : '';
+    return `<div class="lb-start klaar"><p class="m-eb">Begonnen</p>${step ? `<p class="mut">In het verhaal: ${esc(step.title)} · telt als gedaan</p>` : ''}${tour}${poort}</div>`;
+  }
+  // #999 (24-11): de kaart van een nieuw vak was een muur van zes zinnen in een groen vlak. Nu: wat de klus is (kop), waar
+  // (één regel met een plekicoon), drie chips (verhaalstap, wie hier goed is, samen) en het waarom achter een vouw.
+  const chips = [
+    step ? `<span class="ds-z-chip">${icoon('verhaal', { cls: 'ds-z-chip__icoon', maat: 's' })}${esc(step.title)}</span>` : '',
+    fit ? `<span class="ds-z-chip">Goed in: ${esc(FIT[fit.fit])}</span>` : '',
+    fit ? `<span class="ds-z-chip${fit.together ? ' ds-z-chip--succes' : ''}">${fit.together ? 'Samen: ja' : 'Samen: lastig'}</span>` : '',
+  ].filter(Boolean).join('');
+  const waarom = fit && fit.why ? `<details class="lb-waarom"><summary>Wie is hier goed: ${esc(FIT[fit.fit])}</summary><p>${esc(fit.why)}</p></details>` : '';
   const baan = s.baan && doelen.has(s.baan)
     ? `<button type="button" class="ds-z-knop ds-z-knop--secundair" data-todo-goal="job:${esc(s.baan)}">Eerste klus als doel</button>` : '';
-  return `<div class="lb-start"><p class="m-eb">Begin met deze loopbaan</p>` +
-    `<p><b>Eerste klus:</b> ${esc(s.klus)}</p><p class="mut">${esc(s.plek)}${s.baan ? ' · loop erheen en druk E, of start hier' : ''}</p>${verhaal}` +
+  return `<div class="lb-start"><p class="m-eb">Eerste klus</p>` +
+    `<p class="lb-start-t">${esc(s.klus)}</p>` +
+    `<p class="lb-start-waar">${icoon('plek', { maat: 's' })}<span>${esc(s.plek)}${s.baan ? ' · of start hier' : ''}</span></p>` +
+    (chips ? `<p class="lb-start-chips ds-zeef">${chips}</p>` : '') + waarom + poort +
     (baan ? `<p class="lb-link ds-zeef">${baan}</p>` : '') + '</div>';
 }
 

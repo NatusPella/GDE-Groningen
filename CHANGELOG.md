@@ -9,6 +9,7 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ## [Unreleased]
 
+- Loopbanen: de kaart van een vak dat je nog niet begon is geen groen vlak met zes zinnen meer, maar een kaart met de eerste klus als kop, de plek op één regel, chips voor de verhaalstap, wie hier goed is en of het samen kan, en het waarom achter een uitklapper. Samen spelen: per speler.
 - Startkaart van een activiteit (kartbaan, discgolf, vissen en de rest): een kort overzicht met een label per regel (Doel, Toetsen, Medailles, Beloning, Daarna) in plaats van negen zinnen onder elkaar; de medailles zijn drie plaatjes met B, Z en G en de eis, de stand, samen en je record staan als chips onderaan. De kaart is daardoor korter en staat samen met een melding als "Nieuwe streek" in de linkerkolom. Samen spelen: elke speler ziet zijn eigen kaart; de chip Samen zegt of de activiteit met de groep kan.
 - Activiteiten: de filters (soort en Dichtbij) staan bovenaan in plaats van onder de kaarten, en de telling staat er nog één keer (in de kopregel) in plaats van drie keer; Begin hier heeft geen zin meer die de eerste kaart naleest. Verhaal > Opdrachten: de zin over de huidige missie staat niet meer links én rechts. Samen spelen: alleen weergave, per speler.
 - Heli-opdrachten (Ballonjacht, Het staat niet in het rooster): de routekaart bovenin valt niet meer achter de heli-gids, en meldingen en de missiekaart staan onder het heli-paneel in plaats van erachter. Samen spelen: alleen beeld, per speler.
