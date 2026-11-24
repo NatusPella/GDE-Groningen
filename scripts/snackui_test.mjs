@@ -75,7 +75,7 @@ t('de knoppen: renderSnackPanel bindt een klik en doet de actie (met een nepelem
   click({ sn: 'open', patch: 'hours:12' }); assert.equal(L.snackState().own.hours, 12);
   click({ sn: 'vul' }); assert.equal(L.snackState().own.stockDays, 5);
   click({ sn: 'menu', id: 'souffle' }); assert.match(U.sui.msg, /vol/);
-  U.renderSnackPanel(el, w); assert.match(el.innerHTML, /Snackwagen/);
+  U.renderSnackPanel(el, w); assert.match(el.innerHTML, /Imperium/);
 });
 t('Tegels (#1273): "Reputatie" toont een getal van 100, geen "Naam" met een kaal getal; geen NaN, geen lege waarde; de plekknop heet "Op de kaart"', () => {
   reset(); const w = wereld(); SL.buyVan(w); SL.koopVergunning(w, 'park');
