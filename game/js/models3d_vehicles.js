@@ -1984,8 +1984,8 @@ function usMemVetTexture() {
 // Banden met profiel (de trekker-limo): een band met verspringende noppen links en rechts, een velg en
 // de vijf spaken van de gewone auto-wielen, zodat het draaien leesbaar blijft. `wall` geeft een crème
 // witte flank en een chromen wieldop (de limo-banden). Eén gedeelde geometrie per maat.
-function treadWheelGeometry(r, w, lugs, wall = false) {
-  return cached(`tread|${r}|${w}|${lugs}|${wall}`, () => {
+function treadWheelGeometry(r, w, lugs, wall = false, diep = 0.1) {
+  return cached(`tread|${r}|${w}|${lugs}|${wall}${diep === 0.1 ? '' : '|' + diep}`, () => {
     const B = new GeoBuilder(1);
     const axleZ = (geo) => geo.rotateX(Math.PI / 2);
     B.geo(axleZ(new THREE.CylinderGeometry(r, r, w, 14, 1)), null, TIRE);
@@ -2003,8 +2003,8 @@ function treadWheelGeometry(r, w, lugs, wall = false) {
     for (let k = 0; k < lugs; k++) {
       for (const s of [1, -1]) {
         const a = ((k + (s > 0 ? 0 : 0.5)) / lugs) * Math.PI * 2;
-        const tr = r + r * 0.03;
-        B.box(Math.cos(a) * tr, Math.sin(a) * tr, s * w * 0.24, r * 0.1, (Math.PI * 2 * r / lugs) * 0.5, w * 0.46, 0x101011, 0, 0, 0, a);
+        const tr = r + r * (diep === 0.1 ? 0.03 : -0.01);
+        B.box(Math.cos(a) * tr, Math.sin(a) * tr, s * w * (diep === 0.1 ? 0.24 : 0.26), r * diep, (Math.PI * 2 * r / lugs) * 0.5, w * (diep === 0.1 ? 0.46 : 0.36), 0x101011, 0, diep === 0.1 ? 0 : s * 0.45, 0, a);
       }
     }
     return B.build();
@@ -2211,6 +2211,13 @@ function addEggCrates(B, x, n) {
     B.box(x - 0.26, y, z, 0.02, 0.2, 0.3, LAT); // de lat langs de achterkant
   }
 }
+// Een spatbord als boogstuk (vlak profiel in x-y rond de wielas, hoeken in graden vanaf voor, tegen de klok in via de bovenkant).
+function fenderArc(rUit, rIn, a0, a1, stappen = 9) {
+  const pts = [];
+  for (let k = 0; k <= stappen; k++) { const a = (a0 + (a1 - a0) * k / stappen) * Math.PI / 180; pts.push([Math.cos(a) * rUit, Math.sin(a) * rUit]); }
+  for (let k = stappen; k >= 0; k--) { const a = (a0 + (a1 - a0) * k / stappen) * Math.PI / 180; pts.push([Math.cos(a) * rIn, Math.sin(a) * rIn]); }
+  return pts;
+}
 function buildTractorMesh(v) {
   const L = v.model.len, W = v.model.wid, hl = L / 2, hw = W / 2;
   const paint = v.wrecked ? WRECKED_COLOR : toHex(v.model.color, 0x3f7d3a);
@@ -2222,10 +2229,23 @@ function buildTractorMesh(v) {
     const gh = C.roof - C.belt, gy = (C.roof + C.belt) / 2;
     // hood over the engine, frame and front axle beneath it
     const hx0 = C.x1 - 0.05;
-    B.box((hx0 + hl) / 2, 1.27, 0, hl - hx0, 0.76, W * 0.55, paint);
-    B.box((hx0 + hl) / 2 + 0.05, 1.66, 0, hl - hx0 - 0.25, 0.04, W * 0.5, shadeHex(paint, 0.85));
+    // de kap (24-11): een afgeronde extrusie die naar voren afloopt (zijaanzicht), met de gleuf van de motorkap, luchtfilter, grille
+    // met lamellen, ronde koplampen en frontgewichten; de dikke zijpanelen onder de kap zijn de motorblok-flanken
+    B.geo(extrudeProfile([[hx0, 0.86], [hl - 0.04, 0.86], [hl, 0.98], [hl, 1.4], [hl - 0.35, 1.56], [hx0 + 0.55, 1.7], [hx0, 1.7]], W * 0.5, 0.07, 2), composeMatrix(0, 0, 0), paint);
+    B.box(hx0 + 0.6 + (hl - hx0 - 0.9) / 2, 1.745, 0, hl - hx0 - 0.9, 0.03, W * 0.16, shadeHex(paint, 0.8));
+    for (const s2 of [1, -1]) B.box(hx0 + 0.2 + (hl - hx0 - 0.4) / 2, 1.2, s2 * (W * 0.25 + 0.005), hl - hx0 - 0.4, 0.4, 0.02, shadeHex(paint, 0.88));
+    B.geo(new THREE.CylinderGeometry(0.075, 0.075, 0.38, 8), composeMatrix(hl - 0.55, 1.9, -W * 0.15), 0x2a2a2a);
+    B.geo(new THREE.CylinderGeometry(0.095, 0.095, 0.05, 8), composeMatrix(hl - 0.55, 2.11, -W * 0.15), 0x6b6e72);
+    B.box(hl + 0.006, 1.22, 0, 0.02, 0.4, W * 0.38, 0x1d1e20);
+    for (let k = 0; k < 5; k++) B.box(hl + 0.016, 1.07 + k * 0.077, 0, 0.012, 0.03, W * 0.34, 0x8f9296);
+    for (const s2 of [1, -1]) {
+      B.geo(new THREE.CylinderGeometry(0.095, 0.095, 0.06, 10).rotateZ(Math.PI / 2), composeMatrix(hl + 0.03, 1.36, s2 * W * 0.27), HEADLAMP, G_LAMP);
+    }
     B.box((C.x0 + hl) / 2, 0.78, 0, hl - C.x0 - 0.2, 0.5, W * 0.42, 0x2a2a2a);
     B.box(hl - 0.05, 1.2, 0, 0.08, 0.5, W * 0.48, 0x2a2a2a);
+    // frontgewichten onder de neus (een stapel platen) en een trekoog
+    B.box(hl + 0.14, 0.62, 0, 0.22, 0.42, W * 0.34, 0x3b3d40);
+    for (const dy of [-0.1, 0.1]) B.box(hl + 0.255, 0.62 + dy, 0, 0.012, 0.03, W * 0.3, 0xd9a521);
     // cab: solid up to the belt, glass all round above it, the roof
     B.box(cx, (C.floor + C.belt) / 2, 0, cl, C.belt - C.floor, W * 0.86, paint);
     B.box(cx, C.roof + 0.08, 0, cl, 0.16, W * 0.86, paint);
@@ -2236,8 +2256,12 @@ function buildTractorMesh(v) {
       for (const px of [C.x0 + 0.03, C.x1 - 0.03]) B.box(px, gy, s * (cz - 0.03), 0.06, gh, 0.06, paint);
       B.box(cx, gy, s * cz, cl - 0.1, gh, 0.02, GLASS, G_GLASS);
       // rear mudguards over the big wheels, a step up to the cab
-      B.box(C.rearX, TRACTOR_RR * 2 + 0.06, s * (hw - 0.02), 1.9, 0.08, 0.56, shadeHex(paint, 0.75));
-      B.box(C.rearX + 0.92, TRACTOR_RR * 1.55, s * (hw - 0.02), 0.08, TRACTOR_RR * 0.9, 0.56, shadeHex(paint, 0.75));
+      B.geo(extrudeProfile(fenderArc(TRACTOR_RR * 1.14 + 0.06, TRACTOR_RR * 1.14, 12, 168), 0.6, 0.02, 1), composeMatrix(C.rearX, TRACTOR_RR, s * (hw - 0.02)), shadeHex(paint, 0.75));
+      B.geo(extrudeProfile(fenderArc(TRACTOR_FR * 1.14 + 0.05, TRACTOR_FR * 1.14, 20, 160), 0.36, 0.015, 1), composeMatrix(C.frontX, TRACTOR_FR, s * (hw - 0.3)), shadeHex(paint, 0.75));
+      B.box(C.x1 + 0.04, C.belt + 0.34, s * (cz + 0.14), 0.03, 0.03, 0.3, 0x3a3c3e); // spiegelarm vanaf de voorstijl
+      B.box(C.x1 + 0.05, C.belt + 0.28, s * (cz + 0.3), 0.04, 0.3, 0.16, 0x1c1c1c); // spiegel
+      B.box(-hl + 0.1, 0.55, s * 0.44, 0.78, 0.055, 0.055, 0x2a2a2a); // onderste hefarm
+      B.box(-hl + 0.16, 0.72, s * 0.44, 0.04, 0.3, 0.04, 0x2a2a2a);
       B.box(C.x1 - 0.1, 0.62, s * (hw - 0.45), 0.3, 0.05, 0.25, 0x2a2a2a);
       B.box(hl + 0.01, 1.3, s * (W * 0.2), 0.02, 0.14, 0.2, HEADLAMP, G_LAMP);
       B.box(C.x0 - 0.05, C.belt - 0.15, s * (cz - 0.1), 0.04, 0.12, 0.1, TAIL, G_LAMP);
@@ -2245,7 +2269,11 @@ function buildTractorMesh(v) {
       B.box(-hl + 0.32, 0.72, s * 0.35, 0.64, 0.08, 0.08, 0x2a2a2a);
     }
     // exhaust up the front corner of the cab
-    B.box(C.x1 + 0.12, C.belt + 0.35, W * 0.22, 0.1, 1.5, 0.1, TRIM);
+    B.geo(new THREE.CylinderGeometry(0.045, 0.05, 1.5, 8), composeMatrix(C.x1 + 0.12, C.belt + 0.35, W * 0.22), TRIM);
+    B.box(C.x1 + 0.12, C.belt + 1.12, W * 0.22, 0.12, 0.03, 0.12, 0x3a3c3e);
+    B.geo(new THREE.CylinderGeometry(0.06, 0.07, 0.1, 8), composeMatrix(cx, C.roof + 0.3, 0), INDICATOR, G_LAMP);
+    B.box(-hl + 0.12, 0.95, 0, 0.5, 0.05, 0.05, 0x2a2a2a);
+    B.geo(new THREE.CylinderGeometry(0.05, 0.05, 0.3, 8).rotateZ(Math.PI / 2), composeMatrix(-hl - 0.05, 0.62, 0), 0x55585c);
     B.box(-hl + 0.12, 0.68, 0, 0.24, 0.3, W * 0.5, 0x2a2a2a);
     if (kratten) addEggCrates(B, -hl - 0.12, kratten);
     addDoorCuts(B, 'tractor', L, hw, paint, CHROME, true);
@@ -2265,7 +2293,7 @@ function buildTractorMesh(v) {
   group.userData.body = body;
   koppelDeurgaten(group, body, geo);
   const wheels = [];
-  const small = carWheelGeometry(TRACTOR_FR, 0.36), big = carWheelGeometry(TRACTOR_RR, 0.52);
+  const small = treadWheelGeometry(TRACTOR_FR, 0.36, 14, false, 0.22), big = treadWheelGeometry(TRACTOR_RR, 0.52, 18, false, 0.22);
   for (const s of [1, -1]) {
     addWheel(group, small, mats[0], C.frontX, TRACTOR_FR, s * (hw - 0.3), wheels);
     addWheel(group, big, mats[0], C.rearX, TRACTOR_RR, s * (hw - 0.02), wheels);
