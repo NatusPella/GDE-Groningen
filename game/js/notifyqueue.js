@@ -53,7 +53,7 @@ export const KINDS = Object.freeze({
 });
 
 // De kaartsoorten van hudcards.js (Nederlandse sleutels in de kaartdata) op de soorten van de wachtrij.
-export const CARD_KIND_MAP = Object.freeze({
+const CARD_KIND_MAP = Object.freeze({
   politie: 'police', gevaar: 'danger', missie: 'mission', bijbaan: 'sidejob', reis: 'mission',
   geld: 'money', prestatie: 'achievement', tip: 'tip',
 });
