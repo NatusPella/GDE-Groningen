@@ -30,10 +30,8 @@ export const SPECS_AKTE2 = {};
 {
   // behind the wall: the tanker between two guard cars, a queue of the town with empty pans on the street
   SPECS_AKTE2['M07.intro'] = {
-    // as-sprongen hersteld (180-gradenregel): deze shots vervangen de gegenereerde (missionScene, spec.shotFix)
-    shotFix: [
-      { t: 'L6+0.1', shot: 'cut', at: [0.95, 1.89, 1.6], look: 'mid:tessa,tammo@1.3', fov: 42 },
-    ],
+    // regieronde #1325: de sprekers van voren over de schouder van de ander (geen achterhoofd, geen as-sprong); het wereldlicht
+    coverage: 'ots',
     duo: { tammo: { at: [0, 0.8], face: 0, anim: 'idle' }, tessa: { at: [0.2, -0.7], face: 10, anim: 'idle' } },
     cast: {
       pan1: { key: 'snackbar', at: [-3.2, 6.5], face: 270, anim: 'idle', bg: true, gest: ['shrug', 'idle'] },
@@ -70,7 +68,7 @@ export const SPECS_AKTE2 = {};
       { on: 'Zie je. Daar kun je', dt: 0.6, actor: 'tessa', walk: [[3.2, -1.4]], speed: 1.8 },
       { on: 'Zie je. Daar kun je', dt: 0.6, actor: 'tammo', walk: [[2.8, 0.9]], speed: 1.8 },
     ],
-    shots: [{ on: 'En de Krolbrug?', dt: 0.1, shot: 'cut', at: [-1.2, 1.6, 1.6], look: 'mid:tessa,tammo@1.3', fov: 42 }],
+    shots: [],
     wide: { from: [-5.5, 3.6, 3.4], to: [-2.8, 2.6, 2.6], look: 'mid:tank,wacht1@1.2', fov: 52, until: 2 },
   };
 
@@ -248,6 +246,9 @@ export const SPECS_AKTE2 = {};
 // --- M10 Een trekker-limo op de wierde --------------------------------------------------------
 {
   SPECS_AKTE2['M10.intro'] = {
+    // regieronde #1325: Jelle komt aan; tegenspraak van voren over de schouder, Durk loopt om de neus van de limo heen; hard zijlicht
+    coverage: 'ots',
+    light: 'spanning',
     // de drie stappen aan de zijkant van de limo uit (de deuren), niet midden uit de romp (de limo ligt op x 5,8 tot 11,4, y 3 tot 5)
     cast: {
       jelle: { key: 'jelle', at: [7.4, 5.3], face: 200, anim: 'walk', gest: ['talk', 'hips', 'point', 'shrug'], carry: 'koffer' },
@@ -263,7 +264,7 @@ export const SPECS_AKTE2 = {};
     open: [
       // out of the limo, to the pair
       { actor: 'jelle', walk: [[5.2, 5.4], [3.4, 0.4]], speed: 1.1 },
-      { actor: 'durk', walk: [[4.8, 1.8]], speed: 1.1 },
+      { actor: 'durk', walk: [[5.0, 5.7], [4.8, 1.8]], speed: 1.1 },
       { actor: 'douwe', walk: [[4.9, -1.0]], speed: 1.1 },
       { actor: 'tessa', face: 'actor:jelle' },
     ],
@@ -282,7 +283,7 @@ export const SPECS_AKTE2 = {};
       { on: 'Uithuizen heeft een sloot', dt: 0.3, actor: 'tessa', walk: [[-2.4, -1.4]], speed: 2.8 },
       { on: 'Uithuizen heeft een sloot', dt: 0.3, actor: 'tammo', walk: [[-2.2, 0.8]], speed: 2.8 },
     ],
-    shots: [{ on: 'Je hebt hem dus echt', shot: 'cut', at: [-2.0, -1.6, 1.6], look: 'tammo@1.3', fov: 36 }],
+    shots: [],
     wide: { from: [-5.6, 4.8, 3.2], to: [-3.0, 3.4, 2.6], look: 'mid:limo,tessa@1.4', endLook: 'mid:tessa,tammo@1.2', fov: 50, until: 1 },
   };
 }
@@ -393,6 +394,10 @@ SPECS_AKTE2['M11.5'] = {
 };
 
 SPECS_AKTE2['M11.6'] = {
+  // regieronde #1325: de lange blik; van voren over de schouder van de ander, avondlicht dat warmer wordt bij de sterren
+  coverage: 'ots',
+  light: 'avond-buiten',
+  lights: [{ on: 'Je kijkt naar mij', light: 'gouden-uur' }, { on: 'Kijk naar de sterren', light: 'warm-intiem' }],
   cast: {},
   props: {},
   open: [{ actor: 'tessa', face: 'actor:tammo' }, { actor: 'tammo', face: 'actor:tessa' }, { t: 0.2, actor: 'tammo', walk: [[1.8, 0.6]], speed: 0.7 }],

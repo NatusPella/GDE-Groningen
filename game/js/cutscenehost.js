@@ -39,9 +39,44 @@ import { showNameCard } from './namecard.js';
 import { audioPlan, planEvent, warmKeys, sceneAmbience } from './cutaudio.js';
 import { lineVoiceFor } from './linevoice.js';
 import { plannedVoiceLines } from './voicetiming.js';
+import { applyShotLight, resolveShotLight, rimOf, rimPosition } from './shotlight.js';
+import { adoptSetLight } from './setlights.js';
+import { getSettings } from './settings.js';
 import { cutPakket, cutHostId, cutHostStart, cutHostEnd, cutHostTik, cutGastTik, cutsceneScene, cutsceneVerdeling, acteurRol, cutSpoor } from './coopcut.js';
 
 const STEL = { tempo: setCinematicRate, tijd: setCinematicTime };
+
+// Licht per shot (#1323, shotlight.js): world.lightMood krijgt het licht van het huidige shot bovenop een eventuele andere stemming
+// (een cutscene zonder licht laat het wereldlicht staan). Het tegenlicht is één geleende lamp (setlights.js), alleen als een shot er
+// een heeft en niet op kwaliteit 'laag' (daar zou hij een echt extra licht zijn: een nieuw programma per materiaal).
+const _rimAt = { x: 0, y: 0, z: 0 };
+function shotLightRig(def, group, w) {
+  const specs = [def.light, ...(def.shots || []).map((s) => s.light)].filter((l) => l != null);
+  if (!specs.length || !w) return null;
+  const prev = w.lightMood || null;
+  let cur = null, cam = null;
+  const mood = (L) => { if (prev) prev(L); if (cur) applyShotLight(L, cur, cam); };
+  w.lightMood = mood;
+  let rim = null;
+  if (specs.some((l) => rimOf(resolveShotLight(l, null))) && getSettings().quality !== 'laag') {
+    rim = adoptSetLight(new THREE.PointLight(0xffffff, 0, 7, 1.8));
+    group.add(rim);
+  }
+  return {
+    frame(camera) {
+      cur = (camera && camera.light) || null;
+      cam = camera;
+      if (!rim) return;
+      const r = rimOf(cur);
+      if (!r || !camera) { rim.intensity = 0; return; }
+      rim.color.setRGB(r.r, r.g, r.b, THREE.SRGBColorSpace);
+      rim.intensity = r.intensity * 4;
+      rimPosition(camera, _rimAt);
+      rim.position.set(_rimAt.x, _rimAt.z, _rimAt.y);
+    },
+    dispose() { if (w.lightMood === mood) w.lightMood = prev; },
+  };
+}
 
 // The game side of the cutscene direction language (cutscript.js): puts the
 // sampled actors and props on meshes, feeds the camera pose to cinematics.js
@@ -136,6 +171,7 @@ function disposeTree(o) {
 function buildScriptRun(def, scene, anchor, env = null, w = null, noKit = false) {
   const group = new THREE.Group();
   group.name = 'cutscript-' + def.id;
+  const lightRig = shotLightRig(def, group, w);
   const actors = {}, props = {};
   const propVehicleNames = [];
   for (const [id, a] of Object.entries(def.actors || {})) {
@@ -253,6 +289,7 @@ function buildScriptRun(def, scene, anchor, env = null, w = null, noKit = false)
     scene, group, actors, props, anchor, env, kit,
     frame(t, dt) {
       const s = scene.sample(t, anchor, env);
+      if (lightRig) lightRig.frame(s.camera);
       setFrame(t);
       // #956: de serverkamer heeft eigen beweging (knipperende ledjes, koel licht)
       if (kit && typeof kit.frame === 'function') kit.frame(t);
@@ -308,6 +345,7 @@ function buildScriptRun(def, scene, anchor, env = null, w = null, noKit = false)
       // die gingen nooit mee de deur uit. `kit.dispose()` ruimt ze op, zoals intromontage.js al doet.
       if (kit && typeof kit.dispose === 'function') kit.dispose();
       if (w && w.cutsceneAmb === amb) w.cutsceneAmb = null;
+      if (lightRig) lightRig.dispose();
       for (const c of crowds) disposeCrowd(c);
       for (const v of verborgen) v.hideInScene = false;
       group.removeFromParent();

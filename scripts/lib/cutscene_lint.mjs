@@ -55,6 +55,13 @@ export const RULES = {
   'CS-V03': { categorie: 'visueel', ernst: 'belangrijk', laag: 'lint', titel: 'Positie of pose onlogisch', uitleg: 'Geen figuren in elkaar, niet staand in een voertuig, niet buiten bereik van de scène.' },
   'CS-V04': { categorie: 'visueel', ernst: 'belangrijk', laag: 'lint', titel: 'Gebaar past niet bij de tekst', uitleg: 'Knikken bij "Nee", hoofdschudden bij "Ja" en vergelijkbare tegenspraak.' },
   'CS-V05': { categorie: 'visueel', ernst: 'belangrijk', laag: 'lint', titel: 'Kijkrichting', uitleg: 'Wie praat tegen een ander kijkt die kant op (niet meer dan 120 graden ervan af, tenzij hij loopt).' },
+  // --- regieregels van #1324 (camera en blik; met een baseline die alleen mag dalen: scripts/release/cutscene-regie-baseline.json)
+  'CS-C11': { categorie: 'camera', ernst: 'belangrijk', laag: 'lint', titel: 'Afgekapt hoofd', uitleg: 'Wie praat heeft zijn hoofd in het kader: niet de schouders in beeld en het gezicht boven of onder de rand (mens ca. 1,78 m).' },
+  'CS-C12': { categorie: 'camera', ernst: 'belangrijk', laag: 'lint', titel: 'Camera in of achter geometrie', uitleg: 'De camera staat niet in een prop of set-object, het zicht op de spreker gaat niet door een object, geen object vóór het onderwerp vult meer dan 30% van het kader en geen object erachter meer dan 60% (behalve een insert op dat object).' },
+  'CS-C13': { categorie: 'camera', ernst: 'belangrijk', laag: 'lint', titel: 'Spreker van achteren', uitleg: 'Wie praat zien we van voren of over de schouder van de luisteraar, niet op zijn achterhoofd (meer dan 115 graden van de camera af gedraaid in een medium- of close-shot).' },
+  'CS-C14': { categorie: 'camera', ernst: 'belangrijk', laag: 'lint', titel: 'Te snelle snedes', uitleg: 'Hooguit drie snedes in elke 4 s; een shot korter dan 1,2 s (behalve het laatste) is een losse nit.' },
+  'CS-T11': { categorie: 'tekst', ernst: 'belangrijk', laag: 'lint', titel: 'Ondertitel te kort in beeld', uitleg: 'De werkelijke tijd van een ondertitel (tot de volgende regel begint) geeft hooguit 20 tekens per seconde.' },
+  'CS-V06': { categorie: 'visueel', ernst: 'belangrijk', laag: 'lint', titel: 'Loopt door een object', uitleg: 'Een lopend personage loopt niet door een prop of door een ander personage heen.' },
   // --- smaak (nooit een oordeel; alleen structuur en labels)
   'CS-H01': { categorie: 'smaak', ernst: 'nit', laag: 'lint', titel: 'Grap uitgelegd', uitleg: 'Een regel legt een voorgaande grap uit ("dat was een grap", "haha, snap je") en doodt hem; structuur, geen smaakoordeel.' },
   'CS-H02': { categorie: 'smaak', ernst: 'nit', laag: 'lint', titel: 'Geen ruimte na de punch', uitleg: 'Na een kort punch-antwoord komt de volgende regel binnen 0,2 s zonder reactie in beeld (geen stilte, geen reactieshot).' },
@@ -516,6 +523,194 @@ export function checkVisual(unit) {
   return out;
 }
 
+// ---------------------------------------------------------------- regieregels (#1324): kader, geometrie, blik, tempo
+
+// Maten van een mens (de personages van het spel, ca. 1,78 m): het midden van het hoofd, de kruin en de schouders, in m boven de voeten.
+export const MENS = { hoofd: 1.66, kruin: 1.79, schouder: 1.45, zitHoofd: 0.72, zitSchouder: 0.48 };
+export const hoofdZ = (a) => (a.h || 0) + (a.sit ? a.sit + MENS.zitHoofd : MENS.hoofd);
+const schouderZ = (a) => (a.h || 0) + (a.sit ? a.sit + MENS.zitSchouder : MENS.schouder);
+export const REGIE_DREMPELS = { objectVulling: 0.3, achtergrondVulling: 0.6, achterHoek: 115, achterHoofdMin: 0.06, snedesPerVenster: 3, venster: 4, kortShot: 1.2, tekensPerSeconde: 20, deelVanRegel: 0.5 };
+
+// De camera als projector: kader(p) -> { x, y } in [-1, 1] binnen het beeld (x rechts, y boven), z = diepte; null achter de camera.
+// Rechts in beeld is omhoog x vooruit in spelcoördinaten (zie scripts/lib/contactvel_schets.mjs).
+export function kaderVan(c, aspect = 16 / 9) {
+  let fx = c.lookAt.x - c.position.x, fy = c.lookAt.y - c.position.y, fz = c.lookAt.z - c.position.z;
+  const fl = Math.hypot(fx, fy, fz) || 1; fx /= fl; fy /= fl; fz /= fl;
+  let rx = -fy, ry = fx; const rl = Math.hypot(rx, ry) || 1; rx /= rl; ry /= rl;
+  const ux = -fz * ry, uy = fz * rx, uz = fx * ry - fy * rx;
+  const tv = Math.tan((c.fov * Math.PI) / 360), th = tv * aspect;
+  return (p, near = 0.05) => {
+    const vx = p.x - c.position.x, vy = p.y - c.position.y, vz = p.z - c.position.z;
+    const z = vx * fx + vy * fy + vz * fz;
+    if (z < near) return null;
+    return { x: (vx * rx + vy * ry) / (z * th), y: (vx * ux + vy * uy + vz * uz) / (z * tv), z };
+  };
+}
+const binnen = (q) => q && Math.abs(q.x) <= 1 && Math.abs(q.y) <= 1;
+
+// De doos van een prop (voetafdruk uit cutscenemodels.js): ligt punt (x, y, z) erin (met marge)?
+function inDoos(p, foot, x, y, z, marge = 0) {
+  const dx = x - p.x, dy = y - p.y, c = Math.cos(-(p.a || 0)), s = Math.sin(-(p.a || 0));
+  const lx = dx * c - dy * s, ly = dx * s + dy * c;
+  return Math.abs(lx) < foot[0] / 2 - marge && Math.abs(ly) < foot[1] / 2 - marge && z > (p.h || 0) && z < (p.h || 0) + foot[2];
+}
+// Snijdt het lijnstuk a -> b de doos van een prop? (slab-methode in de lokale assen van de prop)
+function lijnDoorDoos(p, foot, a, b) {
+  const c = Math.cos(-(p.a || 0)), s = Math.sin(-(p.a || 0));
+  const loc = (q) => { const dx = q.x - p.x, dy = q.y - p.y; return [dx * c - dy * s, dx * s + dy * c, q.z - (p.h || 0)]; };
+  const A = loc(a), B = loc(b);
+  const lo = [-foot[0] / 2, -foot[1] / 2, 0], hi = [foot[0] / 2, foot[1] / 2, foot[2]];
+  let t0 = 0, t1 = 1;
+  for (let k = 0; k < 3; k++) {
+    const d = B[k] - A[k];
+    if (Math.abs(d) < 1e-9) { if (A[k] < lo[k] || A[k] > hi[k]) return false; continue; }
+    let u = (lo[k] - A[k]) / d, v = (hi[k] - A[k]) / d;
+    if (u > v) [u, v] = [v, u];
+    t0 = Math.max(t0, u); t1 = Math.min(t1, v);
+    if (t0 > t1) return false;
+  }
+  return true;
+}
+// Het deel van het kader dat de doos van een prop vult: een raster van 16 x 9 kijkstralen door het kader, het deel dat de doos raakt
+// (ook goed als de camera er vlak naast of half in staat, waar een projectie van de hoeken niet werkt).
+export function kaderVulling(c, p, foot, { aspect = 16 / 9, achtergrond = false } = {}) {
+  let fx = c.lookAt.x - c.position.x, fy = c.lookAt.y - c.position.y, fz = c.lookAt.z - c.position.z;
+  const fl = Math.hypot(fx, fy, fz) || 1; fx /= fl; fy /= fl; fz /= fl;
+  let rx = -fy, ry = fx; const rl = Math.hypot(rx, ry) || 1; rx /= rl; ry /= rl;
+  const ux = -fz * ry, uy = fz * rx, uz = fx * ry - fy * rx;
+  const tv = Math.tan((c.fov * Math.PI) / 360), th = tv * aspect;
+  const diep = achtergrond ? 80 : fl * 0.85; // standaard alleen wat VOOR het onderwerp (het kijkpunt) staat; achtergrond: alles
+  let raak = 0, n = 0;
+  for (let iy = 0; iy < 9; iy++) for (let ix = 0; ix < 16; ix++) {
+    const x = ((ix + 0.5) / 16) * 2 - 1, y = ((iy + 0.5) / 9) * 2 - 1;
+    const dx = fx + rx * x * th + ux * y * tv, dy = fy + ry * x * th + uy * y * tv, dz = fz + uz * y * tv;
+    n++;
+    if (lijnDoorDoos(p, foot, c.position, { x: c.position.x + dx * diep, y: c.position.y + dy * diep, z: c.position.z + dz * diep })) raak++;
+  }
+  return raak / n;
+}
+// Een shot dat bewust op een prop staat (insert, of zijn look/target noemt de prop)
+const shotOpProp = (sh, pid) => !!sh && (sh.shot === 'insert' || [sh.look, sh.target, sh.at].some((v) => typeof v === 'string' && new RegExp(`(^|[:,])${pid.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}($|[,@])`).test(v)));
+
+export function checkRegie(unit) {
+  const out = [];
+  if (!unit.scene || !unit.def) return out;
+  const D = REGIE_DREMPELS;
+  const frames = sampleScene(unit);
+  const shots = shotsVan(frames);
+  const defShots = unit.def.shots || [];
+  const regels = unit.lines || [];
+  const foot = (kind) => (unit.footOf ? unit.footOf(kind) : null);
+  const offscreen = (idx) => offscreenToegestaan(unit, idx);
+
+  // C11, C13 en het zicht-deel van C12: per gesproken regel, over de frames van die regel
+  regels.forEach((l, i) => {
+    if (isOff(l) || l.dur < 1.2) return;
+    const id = speakerActorId(unit, l.speaker);
+    if (!id) return;
+    let n = 0, kop = 0, rug = 0, geblokt = 0, blokNaam = null;
+    for (const { t, s } of frames) {
+      if (t < l.at || t >= l.at + l.dur) continue;
+      const a = s.actors[id];
+      if (!a || a.visible === false || offscreen(s.camera.shotIndex)) continue;
+      const kader = kaderVan(s.camera);
+      const h = kader({ x: a.x, y: a.y, z: hoofdZ(a) }), sch = kader({ x: a.x, y: a.y, z: schouderZ(a) });
+      if (!binnen(h) && !binnen(sch)) continue; // niet in beeld: dat is C05
+      n++;
+      if (binnen(sch) && h && Math.abs(h.x) <= 1 && Math.abs(h.y) > 1) kop++;
+      // van achteren: de kijkrichting van het hoofd tegenover de richting naar de camera, alleen als het hoofd groot genoeg in beeld is
+      if (h && binnen(h) && 0.25 / (h.z * Math.tan((s.camera.fov * Math.PI) / 360)) / 2 > D.achterHoofdMin) {
+        const kijk = (a.a || 0) + (a.gaze || 0);
+        const naar = Math.atan2(s.camera.position.y - a.y, s.camera.position.x - a.x);
+        if (Math.abs(Math.atan2(Math.sin(naar - kijk), Math.cos(naar - kijk))) * 180 / Math.PI > D.achterHoek) rug++;
+      }
+      // zicht op het hoofd door een prop heen
+      const doel = { x: a.x, y: a.y, z: hoofdZ(a) };
+      const dl = Math.hypot(doel.x - s.camera.position.x, doel.y - s.camera.position.y, doel.z - s.camera.position.z) || 1;
+      const eind = { x: doel.x - ((doel.x - s.camera.position.x) / dl) * 0.35, y: doel.y - ((doel.y - s.camera.position.y) / dl) * 0.35, z: doel.z - ((doel.z - s.camera.position.z) / dl) * 0.35 };
+      for (const [pid, p] of Object.entries(s.props || {})) {
+        const f = p.visible !== false && foot(p.kind);
+        if (!f || a.carrying === pid) continue;
+        if (lijnDoorDoos(p, f, s.camera.position, eind)) { geblokt++; blokNaam = `${pid} (${p.kind})`; break; }
+      }
+    }
+    if (!n) return;
+    if (kop / n >= D.deelVanRegel) out.push(vondst(unit, 'CS-C11', `${l.speaker} praat (regel ${i}) met de schouders in beeld en het hoofd buiten het kader (${Math.round((kop / n) * 100)}% van de regel)`, { t: l.at, regelNr: i }));
+    if (rug / n >= D.deelVanRegel) out.push(vondst(unit, 'CS-C13', `${l.speaker} praat (regel ${i}) en we zien vooral zijn achterhoofd (${Math.round((rug / n) * 100)}% van de regel); film van voren of over de schouder van de luisteraar`, { t: l.at, regelNr: i }));
+    if (geblokt / n >= D.deelVanRegel) out.push(vondst(unit, 'CS-C12', `het zicht op ${l.speaker} (regel ${i}) gaat door ${blokNaam}`, { t: l.at, regelNr: i }));
+  });
+
+  // C12: de camera in een prop, of een prop die meer dan 30% van het kader vult (per shot, in het midden)
+  {
+    const gemeld = new Set();
+    for (const sh of shots) {
+      const midden = sh.frames[Math.floor(sh.frames.length / 2)];
+      const s = midden.s, c = s.camera;
+      for (const [pid, p] of Object.entries(s.props || {})) {
+        const f = p.visible !== false && foot(p.kind);
+        if (!f || gemeld.has(`${sh.idx}|${pid}`)) continue;
+        if (inDoos(p, f, c.position.x, c.position.y, c.position.z, 0.02)) { gemeld.add(`${sh.idx}|${pid}`); out.push(vondst(unit, 'CS-C12', `de camera staat in ${pid} (${p.kind}) in shot ${sh.idx}`, { t: sh.t0 })); continue; }
+        if (shotOpProp(defShots[sh.idx], pid)) continue;
+        const vul = kaderVulling(c, p, f), achter = vul > D.objectVulling ? 0 : kaderVulling(c, p, f, { achtergrond: true });
+        if (vul > D.objectVulling) { gemeld.add(`${sh.idx}|${pid}`); out.push(vondst(unit, 'CS-C12', `${pid} (${p.kind}) staat voor het onderwerp en vult ${Math.round(Math.min(1, vul) * 100)}% van het kader in shot ${sh.idx} (de camera staat erachter of ertegenaan)`, { t: sh.t0 })); }
+        else if (achter > D.achtergrondVulling) { gemeld.add(`${sh.idx}|${pid}`); out.push(vondst(unit, 'CS-C12', `${pid} (${p.kind}) vult als achtergrond ${Math.round(achter * 100)}% van het kader in shot ${sh.idx} (een muur van ${p.kind}: kies een ander standpunt)`, { t: sh.t0 })); }
+      }
+    }
+  }
+
+  // C14: te snelle snedes
+  {
+    const t0s = shots.map((s) => s.t0);
+    let venster = null;
+    for (let i = 0; i < t0s.length; i++) {
+      const j = t0s.findIndex((t) => t > t0s[i] + D.venster - 1e-6);
+      const snedes = (j < 0 ? t0s.length : j) - i - (i === 0 ? 1 : 0);
+      if (snedes > D.snedesPerVenster && !venster) venster = { t: t0s[i], n: snedes };
+    }
+    if (venster) out.push(vondst(unit, 'CS-C14', `${venster.n} snedes binnen ${D.venster} s vanaf ${venster.t.toFixed(1)} s`, { t: venster.t }));
+    shots.forEach((sh, i) => {
+      if (i + 1 >= shots.length) return;
+      const dur = shots[i + 1].t0 - sh.t0;
+      if (dur >= 0.8 && dur < D.kortShot) out.push(vondst(unit, 'CS-C14', `shot ${sh.idx} staat maar ${dur.toFixed(1)} s in beeld`, { t: sh.t0, ernst: 'nit' }));
+    });
+  }
+
+  // V06: lopen door een prop of door een ander personage
+  {
+    const gemeld = new Set();
+    for (const { t, s } of frames) {
+      const lopers = Object.entries(s.actors).filter(([, a]) => a.visible !== false && !a.sit && a.speed > 0.05 && a.anim !== 'ride');
+      for (const [id, a] of lopers) {
+        for (const [pid, p] of Object.entries(s.props || {})) {
+          const f = p.visible !== false && foot(p.kind);
+          if (!f || f[2] < 0.25 || (p.h || 0) > 0.3 || a.carrying === pid || gemeld.has(`${id}|${pid}`)) continue;
+          if (inDoos(p, f, a.x, a.y, (p.h || 0) + 0.1, 0.12)) { gemeld.add(`${id}|${pid}`); out.push(vondst(unit, 'CS-V06', `${id} loopt door ${pid} (${p.kind}) op ${t.toFixed(1)} s`, { t })); }
+        }
+        for (const [oid, o] of Object.entries(s.actors)) {
+          if (oid === id || o.visible === false || o.sit || gemeld.has([id, oid].sort().join('|'))) continue;
+          if (dist2(a.x, a.y, o.x, o.y) < 0.3) { gemeld.add([id, oid].sort().join('|')); out.push(vondst(unit, 'CS-V06', `${id} loopt door ${oid} heen op ${t.toFixed(1)} s`, { t })); }
+        }
+      }
+    }
+  }
+  return out;
+}
+
+// T11: de werkelijke tijd van een ondertitel (tot de volgende regel begint); een regel die T01 al te snel vindt, telt hier niet nog eens
+export function checkLeestijd(unit) {
+  const out = [];
+  const regels = unit.lines || [];
+  regels.forEach((l, i) => {
+    const tekens = String(l.text || '').length;
+    const volgende = regels[i + 1];
+    if (!tekens || !volgende || !(l.dur > 0)) return;
+    const eff = Math.min(l.dur, volgende.at - l.at);
+    if (!(eff > 0) || tekens / l.dur > REGIE_DREMPELS.tekensPerSeconde) return;
+    if (tekens / eff > REGIE_DREMPELS.tekensPerSeconde) out.push(vondst(unit, 'CS-T11', `regel ${i} staat maar ${eff.toFixed(1)} s in beeld voor ${tekens} tekens (${(tekens / eff).toFixed(0)} per seconde): de volgende regel begint te vroeg`, { t: l.at, regelNr: i }));
+  });
+  return out;
+}
+
 // De projectiemetingen van laag 3 zonder pixels (simulateRecords): spreker op het scherm en ondertitel over de spreker, per shot één
 // vondst. Een R03 die een C05 op hetzelfde moment al meldt, komt er niet nog eens bij.
 function projectieVondsten(unit, bestaand) {
@@ -546,6 +741,7 @@ export function lintUnit(unit, ctx = {}) {
   try { v.push(...checkCamera(unit)); } catch (e) { v.push(vondst(unit, 'CS-C08', 'bemonsteren faalde: ' + String(e.message || e).slice(0, 120))); }
   try { v.push(...projectieVondsten(unit, v)); } catch (e) { v.push(vondst(unit, 'CS-C08', 'projectiemeting faalde: ' + String(e.message || e).slice(0, 120))); }
   try { v.push(...checkVisual(unit)); } catch (e) { v.push(vondst(unit, 'CS-C08', 'visuele controle faalde: ' + String(e.message || e).slice(0, 120))); }
+  try { v.push(...checkRegie(unit), ...checkLeestijd(unit)); } catch (e) { v.push(vondst(unit, 'CS-C08', 'regiecontrole faalde: ' + String(e.message || e).slice(0, 120))); }
   return v;
 }
 

@@ -236,10 +236,13 @@ function attach(win, { gameDir }) {
             // screenshotjacht: console.log('[capture] jpg:<naam>') schrijft <map van smoke>/<naam>.jpg (kwaliteit 80) en meldt de pixelcijfers
             // (zwart, transparant, magenta, gemiddelde helderheid, een 16x9-vingerafdruk) als regel in het --bot-events-bestand
             if (capName.startsWith('jpg:')) {
-              const nm = capName.slice(4).replace(/[^\w.-]/g, '_');
+              // 'jpg:<naam>@<breedte>' schrijft een kleinere versie (16:9), bijvoorbeeld de contactvellen van scripts/cutscene_contactvel.mjs
+              const at = /@(\d{3,4})$/.exec(capName);
+              const bw = at ? Math.max(320, Math.min(1920, Number(at[1]))) : 1280, bh = Math.round((bw * 9) / 16);
+              const nm = capName.slice(4).replace(/@\d+$/, '').replace(/[^\w.-]/g, '_');
               let img2 = await win.webContents.capturePage();
               const sz = img2.getSize();
-              if (sz.width !== 1280 || sz.height !== 720) img2 = img2.resize({ width: 1280, height: 720, quality: 'good' });
+              if (sz.width !== bw || sz.height !== bh) img2 = img2.resize({ width: bw, height: bh, quality: 'good' });
               fsSync.writeFileSync(path.join(path.dirname(smoke), nm + '.jpg'), img2.toJPEG(80));
               if (botEvents) {
                 const bm = img2.toBitmap(); let black = 0, clear = 0, mag = 0, sum = 0; const n = bm.length >> 2;

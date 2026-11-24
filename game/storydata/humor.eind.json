@@ -121,7 +121,7 @@
    "variants": [
     "...Dat is de eerste prijs die ik niet kon onderhandelen.",
     "...Geen staffel, geen korting. Dit is een vreemd systeem.",
-    "...Een prijs zonder bijlage. Wie doet dat?",
+    "...Ik heb nog nooit de vraagprijs betaald.",
     "...Eerlijk. Dat is lang geleden. Dank je."
    ],
    "neutral": "...Goed. Eén euro vijftig.",
@@ -131,7 +131,7 @@
      2,
      3
     ],
-    "reason": "Bureaucratisch verbaasd, zonder uitleg.",
+    "reason": "Bureaucratisch verbaasd, zonder uitleg. 24-11: de gekozen regel liep niet; vervangen door het voorstel van de verhaal-agent (via de coördinator).",
     "certainty": "hoog"
    }
   },

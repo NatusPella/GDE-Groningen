@@ -57,6 +57,42 @@ export async function runLint({ uitzonderingen = null } = {}) {
   return { rapporten, data, uitzonderingFouten: fouten };
 }
 
+// ---------------------------------------------------------------- de regiebaseline (#1324)
+// De camera- en blikregels (as, kader, geometrie, achterhoofd, snedes, leestijd, kijkrichting, door objecten) tellen per cutscene; de
+// stand staat in scripts/release/cutscene-regie-baseline.json en mag alleen dalen. Een cutscene die op een regel boven zijn stand komt
+// (of een nieuwe cutscene met een vondst) faalt; --baseline=schrijf zet een lagere stand vast en weigert een hogere.
+export const BASELINE = path.join(ROOT, 'scripts', 'release', 'cutscene-regie-baseline.json');
+export const REGIE_REGELS = ['CS-C06', 'CS-C11', 'CS-C12', 'CS-C13', 'CS-C14', 'CS-T11', 'CS-V05', 'CS-V06'];
+
+export function regieTelling(rapporten) {
+  const t = {};
+  for (const r of rapporten) for (const v of r.vondsten) {
+    if (v.uitzondering || !REGIE_REGELS.includes(v.regel)) continue;
+    const per = t[v.regel] = t[v.regel] || {};
+    per[r.id] = (per[r.id] || 0) + 1;
+  }
+  for (const k of Object.keys(t)) t[k] = Object.fromEntries(Object.entries(t[k]).sort(([a], [b]) => a.localeCompare(b)));
+  return Object.fromEntries(REGIE_REGELS.filter((k) => t[k]).map((k) => [k, t[k]]));
+}
+
+export function vergelijkBaseline(telling, baseline) {
+  const stijging = [], daling = [];
+  for (const regel of REGIE_REGELS) {
+    const nu = telling[regel] || {}, was = (baseline && baseline[regel]) || {};
+    for (const id of new Set([...Object.keys(nu), ...Object.keys(was)])) {
+      const a = was[id] || 0, b = nu[id] || 0;
+      if (b > a) stijging.push({ regel, cutscene: id, was: a, nu: b });
+      else if (b < a) daling.push({ regel, cutscene: id, was: a, nu: b });
+    }
+  }
+  return { stijging, daling };
+}
+
+export function leesBaseline(pad = BASELINE) {
+  if (!fs.existsSync(pad)) return null;
+  return JSON.parse(fs.readFileSync(pad, 'utf8')).telling || {};
+}
+
 function perRegel(rapporten) {
   const t = {};
   for (const r of rapporten) for (const v of r.vondsten) {
@@ -122,6 +158,30 @@ async function main() {
   if (only.length) for (const o of rapporten) for (const v of o.vondsten) console.log(`    [${v.uitzondering ? 'uitgezonderd' : v.ernst}] ${id(v.regel)} ${v.bericht}`);
   let fout = false;
   for (const f of uitzonderingFouten) { fout = true; console.log(`FAIL uitzonderingen: ${f}`); }
+  // de regiebaseline: alleen over de hele lijst (niet met --only)
+  if (!only.length && arg('baseline') !== 'uit') {
+    const telling = regieTelling(alle);
+    const basis = leesBaseline();
+    const { stijging, daling } = vergelijkBaseline(telling, basis || {});
+    if (arg('baseline') === 'schrijf') {
+      if (basis && stijging.length) {
+        fout = true;
+        for (const s of stijging.slice(0, 15)) console.log(`FAIL baseline omhoog geweigerd: ${s.cutscene} ${id(s.regel)} van ${s.was} naar ${s.nu}`);
+        console.log('cutscene_lint: de regiebaseline mag alleen dalen; los de nieuwe vondsten op.');
+      } else {
+        const totaal = Object.values(telling).reduce((s, per) => s + Object.values(per).reduce((a, b) => a + b, 0), 0);
+        fs.writeFileSync(BASELINE, JSON.stringify({ uitleg: 'Regiebaseline van scripts/cutscene_lint.mjs (#1324): vondsten per regel per cutscene; mag alleen dalen (node scripts/cutscene_lint.mjs --baseline=schrijf).', regels: REGIE_REGELS, totaal, telling }, null, 1) + '\n');
+        console.log(`cutscene_lint: regiebaseline geschreven (${totaal} vondsten, ${daling.length} lager dan de vorige stand)`);
+      }
+    } else if (basis) {
+      if (stijging.length) {
+        fout = true;
+        for (const s of stijging.slice(0, 15)) console.log(`FAIL regie boven de baseline: ${s.cutscene} ${id(s.regel)} ${s.was} -> ${s.nu} (${RULES[s.regel].titel})`);
+        console.log(`cutscene_lint: ${stijging.length} regievondst(en) boven de baseline (scripts/release/cutscene-regie-baseline.json); los ze op, de baseline mag alleen dalen.`);
+      }
+      if (daling.length && !arg('quiet')) console.log(`cutscene_lint: ${daling.length} regieteller(s) onder de baseline; zet hem lager met --baseline=schrijf`);
+    }
+  }
   const blok = rapporten.flatMap((r) => r.vondsten.filter((v) => v.ernst === 'blokkerend' && !v.uitzondering && v.categorie !== 'smaak').map((v) => `${r.id} ${id(v.regel)} ${v.bericht}`));
   if (arg('strict') && blok.length) {
     fout = true;

@@ -27,6 +27,9 @@ S['M17.intro'] = {
   wide: WIDE([-5, 4.2, 3.2], [-3, 3, 2.4], 'mid:wubbo,tessa@1'),
 };
 S['M17.outro'] = {
+  // regieronde #1325: de sprekers van voren over de schouder van wie ze aanspreken (geen achterhoofd, geen as-sprong); het wereldlicht bij de brug, avond onder brug elf
+  coverage: 'ots',
+  lights: [{ on: 'Wubbo zei dat jullie kwamen', light: 'avond-buiten' }],
   cast: {
     wubbo: { key: 'wubbo', at: [3, 0.2], face: 180, anim: 'idle', gest: ['talk', 'point', 'hips'] },
     // inspiratiepakket: Stien, de frituurhoudster onder brug elf (M17.5)
@@ -53,7 +56,8 @@ S['M17.outro'] = {
     { on: 'Nee. Maar het is een begin', actor: 'stien', anim: 'shrug' },
   ],
   shots: [],
-  wide: WIDE([-4.5, 4, 3], [-2.5, 2.8, 2.3], 'mid:wubbo,tammo@1'),
+  // #1325: de opening van opzij (het paar kijkt naar Wubbo): Tammo's eerste regel van voren, niet zijn rug
+  wide: WIDE([2.5, 5.5, 3.0], [1.8, 4.0, 2.4], 'mid:wubbo,tammo@1'),
 };
 
 // --- M18 Wiebelwerk: the office on Laan Corpus den Hoorn in the Stad, a desk with a screen ---
@@ -193,6 +197,9 @@ S['M20.intro'] = {
   wide: WIDE([-5.5, 4.5, 3.4], [-3.5, 3.2, 2.5], 'mid:berend,tessa@1'),
 };
 S['M20.outro'] = {
+  // regieronde #1325: de sprekers van voren over de schouder van wie ze aanspreken (geen achterhoofd, geen as-sprong); de klomp in het late licht
+  coverage: 'ots',
+  light: 'gouden-uur',
   cast: {
     trijntje: { key: 'trijntje', at: [3.4, 1.2], face: 180, anim: 'idle', gest: ['talk', 'hips'] },
     mem: { key: 'mem', at: [3.6, -1.2], face: 175, anim: 'idle', gest: ['talk', 'shrug'] },
@@ -225,8 +232,10 @@ S['M20.outro'] = {
     { on: '"Tige tank foar de auto', dt: 0.2, shot: 'dolly', from: [0.8, -2.9, 1.0], to: [1.7, -2.2, 1.15], look: 'tammo@1.3', fov: 34 },
     // sleutelscène (de ruzie): Tammo's gezicht na "Jij zegt nooit iets!", Tessa na Berends tel, Tammo's lege handen aan het eind (R-21)
     { on: 'Jij zegt nooit iets!', dt: 1.2, shot: 'close', target: 'tammo', dist: 1.3, side: 0.2, fov: 28, offscreen: 'reaction: Tessa is te horen, Tammo is te zien' },
-    { on: 'Twee keer', dt: 2.2, shot: 'close', target: 'tessa', dist: 1.3, side: 0.2, fov: 28, offscreen: 'reaction: Berend is te horen, Tessa is te zien' },
-    { on: 'Eén zin, jong', dt: 0.2, shot: 'close', target: 'tammo', dist: 1.4, side: 0.2, fov: 28, offscreen: 'reaction: Oma Trijntje is te horen, Tammo is te zien' },
+    { on: 'Twee keer', dt: 0.1, shot: 'close', target: 'berend', dist: 2.2, side: 0.3, fov: 32 }, // #1325: wie telt, is eerst te zien
+    { on: 'Nee, dat klopt niet', dt: -0.15, shot: 'close', target: 'tessa', dist: 1.3, side: 0.2, fov: 28 }, // Tessa na Berends tel
+    { on: 'Eén zin, jong', dt: 0.1, shot: 'close', target: 'trijntje', dist: 2.0, side: 0.3, fov: 32 }, // #1325: Oma zegt het in beeld
+    { on: 'Ik heb er geen', dt: 0.1, shot: 'close', target: 'tammo', dist: 1.4, side: 0.2, fov: 28 },
   ],
   wide: WIDE([-5.5, 4.5, 3.4], [-3.5, 3.2, 2.5], 'mid:tammo,tessa@1'),
 };
@@ -350,6 +359,9 @@ S['M25.intro'] = {
   wide: WIDE([-3.9, 2.4, 2.8], [-2.4, 1.8, 2.2], 'mid:trijntje,mem@1'),
 };
 S['M25.outro'] = {
+  // regieronde #1325: de sprekers van voren over de schouder van wie ze aanspreken (geen achterhoofd, geen as-sprong); het familiediner laat op de avond
+  coverage: 'ots',
+  lights: [{ on: 'We waren in de buurt', light: 'avond-binnen' }],
   set: 'omakeuken',
   cast: {
     trijntje: { key: 'trijntje', at: [2.4, 0.8], face: 180, anim: 'idle', gest: ['talk', 'point'] },
@@ -425,11 +437,9 @@ S['M26.intro'] = {
   wide: WIDE([-5.5, 4.5, 3.4], [-3.5, 3.2, 2.5], 'mid:berend,tessa@1'),
 };
 S['M26.outro'] = {
-  // as-sprongen hersteld (180-gradenregel): deze shots vervangen de gegenereerde (missionScene, spec.shotFix)
-  shotFix: [
-    { t: 'L10+1.3', shot: 'dolly', from: [3, 1.9, 1.4], to: [2, 0.9, 1.5], look: 'mid:tammo,tessa@1.45', fov: 38 },
-    { t: 'L17', shot: 'cut', at: [2.6, 3.19, 2], look: 'mid:tammo,tessa@1.3', fov: 40 },
-  ],
+  // regieronde #1325: de sprekers van voren over de schouder van wie ze aanspreken (geen achterhoofd, geen as-sprong); de vijf woorden, de kus warm, Jelle 's avonds
+  coverage: 'ots',
+  lights: [{ on: '…Ik heb geen woorden meer', light: 'warm-intiem' }, { on: 'Moai dien, Grinzers', light: 'avond-buiten' }],
   cast: {
     rikus: { key: 'rikus', at: [4.4, 2], face: 190, anim: 'idle', bg: true, gest: ['talk', 'point'] },
     // WP6: Berend telt de kus hardop in de menigte
@@ -458,12 +468,13 @@ S['M26.outro'] = {
   ],
   // sleutelscène (de vijf woorden en de kus): close-ups, een reactieshot op Tessa na de zin die ertoe doet en een trage ronde om de kus
   shots: [
-    { on: 'Tammo. Iedereen luistert', dt: 0.2, shot: 'close', target: 'tessa', dist: 1.25, side: 0.2, fov: 28 },
-    { on: '…Woist ja wel', dt: 0.2, shot: 'close', target: 'tammo', dist: 1.15, side: 0.2, fov: 26 },
-    { on: 'Ik wil bij jou blijven', dt: 0.1, shot: 'close', target: 'tammo', dist: 1.05, side: 0.2, fov: 24 },
-    { on: 'Dat bedoelde ik ook', dt: 0.15, shot: 'close', target: 'tessa', dist: 1.1, side: 0.2, fov: 24 },
+    // #1325: de eerste twee als strakke over-de-schouder (de ander blijft half in beeld: geen spreker buiten beeld bij de wissel)
+    { on: 'Tammo. Iedereen luistert', dt: 0.2, shot: 'ots', from: 'tammo', target: 'tessa', dist: 1.5, side: -0.5, fov: 30 },
+    { on: '…Woist ja wel', dt: 0.2, shot: 'ots', from: 'tessa', target: 'tammo', dist: 1.4, side: 0.5, fov: 28 },
+    { on: 'Ik wil bij jou blijven', dt: 0.1, shot: 'close', target: 'tammo', dist: 1.2, side: -0.35, fov: 24 }, // de vijf woorden: een echte close-up, van voren
+    { on: 'Dat bedoelde ik ook', dt: 0.15, shot: 'ots', from: 'tammo', target: 'tessa', dist: 1.3, side: -0.45, fov: 24 },
     { on: 'Kon veel minder', dt: 1.3, shot: 'dolly', from: [-3.0, 1.9, 1.4], to: [-2.0, 0.9, 1.5], look: 'mid:tammo,tessa@1.45', fov: 38 },
-    { on: '…Ik heb geen woorden meer', dt: 0.2, shot: 'close', target: 'tammo', dist: 1.3, side: 0.25, fov: 28 },
+    { on: '…Ik heb geen woorden meer', dt: 0.2, shot: 'close', target: 'tammo', dist: 1.4, side: -0.35, fov: 28 }, // na de kus: zijn gezicht
   ],
   wide: WIDE([-4.8, 3.4, 2.8], [-2.8, 2.6, 2.1], 'mid:tammo,tessa@1'),
 };
@@ -500,6 +511,9 @@ S['M20.2'] = {
 
 // M20.3 the powder cellar: Mem takes the ball from her son
 S['M20.3'] = {
+  // regieronde #1325: de sprekers van voren over de schouder van wie ze aanspreken (geen achterhoofd, geen as-sprong); de kruitkelder bij lamplicht
+  coverage: 'ots',
+  light: 'avond-binnen',
   cast: {
     mem: { key: 'mem', at: [2.4, 0.6], face: 180, anim: 'idle', gest: ['talk', 'point', 'hips', 'nod'] },
     trijntje: { key: 'trijntje', at: [2.6, -0.8], face: 180, anim: 'idle', gest: ['talk', 'point'] },
@@ -595,6 +609,10 @@ S['M22.2'] = {
 
 // M22.4 the barn at night: the two of them apologise beside the car, Tinus walks across the yard
 S['M22.4'] = {
+  // regieronde #1325: de sprekers van voren over de schouder van wie ze aanspreken (geen achterhoofd, geen as-sprong); de schuur 's avonds; warm vanaf Tessa's bekentenis
+  coverage: 'ots',
+  light: 'avond-binnen',
+  lights: [{ on: 'Ik moet je iets vertellen', light: 'warm-intiem' }],
   // #861: Tinus liep dwars door de geparkeerde trekker; hij start nu verder weg en loopt er met een
   // boog omheen (t 0-6,25 s zat hij in de voetafdruk van de trekker).
   cast: { tinus: { key: 'tinus', at: [11.6, 4.4], face: 200, anim: 'idle', bg: true, gest: ['look', 'nod'] } },
@@ -661,6 +679,9 @@ S['M23.3'] = {
 
 // M25.3 Oma's kitchen: Jelle makes his offer, the answer is not money
 S['M25.3'] = {
+  // regieronde #1325: de sprekers van voren over de schouder van wie ze aanspreken (geen achterhoofd, geen as-sprong); het bod: hard zijlicht
+  coverage: 'ots',
+  light: 'spanning',
   set: 'omakeuken',
   cast: {
     jelle: { key: 'jelle', at: [4.0, 1.6], face: 190, anim: 'idle', gest: ['nod', 'hips', 'point', 'shrug'] },
@@ -688,16 +709,20 @@ S['M25.3'] = {
 
 // M26.5 the Oude Boteringestraat: Jelle loses to his own permit and a warm eierbal (Tessa and Tammo), then Mem takes over
 S['M26.5'] = {
+  // regieronde #1325: de sprekers van voren over de schouder van wie ze aanspreken (geen achterhoofd, geen as-sprong); Mem tegenover Jelle: zacht, zonder drama in het licht
+  coverage: 'ots',
+  light: 'bewolkt-zacht',
   cast: {
     // WP6: Mem komt pas aanlopen als Jelle de eierbal proeft: ze begint aan het eind van de straat
     mem: { key: 'mem', at: [9.4, 3.2], face: 200, anim: 'idle', gest: ['point', 'hips', 'talk'] },
     jelle: { key: 'jelle', at: [3.4, -1.0], face: 160, anim: 'idle', gest: ['shrug', 'hips', 'shake'] },
-    ...PASSER('toerist', 'toerist', [7, -6], [-3, -6.5], 1.0, 'phone').cast,
+    ...PASSER('toerist', 'toerist', [7, -4.6], [-3, -5.2], 1.0, 'phone').cast,
   },
   // #734 (F20): de limo van Jelle is de trekker-limo, net als in M26.4; een gewone auto was de Escapade.
   // de vergunning in Tessa's hand (klembord) en het bakje met de eierbal in die van Tammo
-  props: { limo: { kind: 'limo', at: [5.6, -3.4, 0], face: 80 }, vergunning: { kind: 'klembord', at: [0.4, -0.6, 1] }, bakje: { kind: 'doos', at: [0.4, 0.6, 1] } },
-  open: [{ actor: 'tessa', face: 'actor:jelle' }, { actor: 'tammo', face: 'actor:jelle' }, { actor: 'tessa', carry: 'vergunning' }, { actor: 'tammo', carry: 'bakje' }, ...PASSER('toerist', 'toerist', [7, -6], [-3, -6.5], 1.0, 'phone').cues],
+  props: { limo: { kind: 'limo', at: [7.0, -8.2, 0], face: 0 }, // #1325: opzij geparkeerd, geen muur achter Jelle
+     vergunning: { kind: 'klembord', at: [0.4, -0.6, 1] }, bakje: { kind: 'doos', at: [0.4, 0.6, 1] } },
+  open: [{ actor: 'tessa', face: 'actor:jelle' }, { actor: 'tammo', face: 'actor:jelle' }, { actor: 'tessa', carry: 'vergunning' }, { actor: 'tammo', carry: 'bakje' }, ...PASSER('toerist', 'toerist', [7, -4.6], [-3, -5.2], 1.0, 'phone').cues],
   beats: [
     { on: 'Je eigen vergunning', actor: 'tessa', anim: 'point' },
     { on: 'Voor mijn vlag', actor: 'jelle', anim: 'shake' },
@@ -783,6 +808,8 @@ S['M26.12'] = vote([
   { on: 'Drie tegen twee', actor: 'jelle', anim: 'shrug' },
 ]);
 S['M26.13'] = {
+  // regieronde #1325: de sprekers van voren over de schouder van wie ze aanspreken (geen achterhoofd, geen as-sprong); de uitslag
+  coverage: 'ots',
   cast: JURY_CAST(), props: {}, open: juryOpen,
   beats: [
     { on: 'Gerda. Jouw eierbal', actor: 'trijntje', anim: 'point' },

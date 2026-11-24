@@ -31,6 +31,7 @@ export const ACTOR_ANIMS = ['idle', 'walk', 'run', 'talk', 'wave', 'point', 'shr
 import { propKindIssue, propFoot, CARRY_LOW } from './cutscenemodels.js';
 import { CUTSCENE_PROPS } from './propregister.js';
 import { calmShots } from './cineshots.js';
+import { lightIssues, resolveShotLight } from './shotlight.js';
 import { crowdSpecIssue } from './crowdplan.js';
 import { isClip, isCatClip, clipLayers, clipDuration, CLIP_STOP } from './poseclips.js';
 export const PROP_KINDS = [
@@ -159,7 +160,9 @@ export function validateScene(def, opts = {}) {
       if (s.ease !== undefined && !['smooth', 'lin', 'in', 'out'].includes(s.ease)) err(`${what}: ease is smooth, lin, in of out`);
     }
     if (s.fov !== undefined && !(isNum(s.fov) && s.fov >= 14 && s.fov <= 90)) err(`${what}: fov buiten 14-90`);
+    for (const m of lightIssues(s.light, `${what}: light`)) err(m); // licht per shot (#1323, shotlight.js)
   });
+  for (const m of lightIssues(def.light, 'light')) err(m);
   if (shots.length && st[0] !== 0) err('het eerste shot moet op t = 0 beginnen');
   for (let i = 1; i < st.length; i++) if (st[i] != null && st[i - 1] != null && st[i] <= st[i - 1]) err(`shot ${i}: tijden moeten oplopen`);
   // regie-kwaliteit: geen kale lange shots, niemand die te lang stilstaat
@@ -209,6 +212,7 @@ export function compileScene(def, opts = {}) {
   const cues = (def.cues || []).map((c) => ({ ...c, t: T(c.t) })).sort((a, b) => a.t - b.t);
   // pan-budget (cineshots.js): hooguit één zichtbare pan per scène, de rest een rustige drift
   const shots = calmShots((def.shots || []).map((s) => ({ ...s, t: T(s.t) })).sort((a, b) => a.t - b.t), duration);
+  const lightOf = shots.map((s) => resolveShotLight(def.light, s.light));
 
   // per actor: movement segments [{t0, t1, pts}], anim/gaze/face/carry events
   const track = {};
@@ -420,7 +424,8 @@ export function compileScene(def, opts = {}) {
         const af = actorFacing(id, t);
         const d = sh.dist ?? (sh.shot === 'close' ? 1.2 : 1.8);
         const side = sh.side ?? (sh.shot === 'close' ? 0.18 : 0.4);
-        pos = { f: c.f - Math.cos(af) * d + Math.cos(af + Math.PI / 2) * side, s: c.s - Math.sin(af) * d + Math.sin(af + Math.PI / 2) * side, h: c.h + (sh.hEye ?? 0.12) };
+        // #1325: de camera staat VOOR het gezicht (in de kijkrichting), niet erachter: een close-up of reactie toonde het achterhoofd
+        pos = { f: c.f + Math.cos(af) * d + Math.cos(af + Math.PI / 2) * side, s: c.s + Math.sin(af) * d + Math.sin(af + Math.PI / 2) * side, h: c.h + (sh.hEye ?? 0.12) };
         look = { f: c.f, s: c.s, h: c.h + 0.02 };
         sh.fov = sh.fov ?? (sh.shot === 'close' ? 30 : 36);
         break;
@@ -635,6 +640,8 @@ export function compileScene(def, opts = {}) {
       position: clearOfTrees(cam, { x: L.x, y: L.y, z: z0 + look.h }, env),
       lookAt: { x: L.x, y: L.y, z: z0 + look.h },
       fov: fovNow ?? sh.fov ?? 46, cut: u === 0 || (t - sh.t) < 1 / 30, shotIndex: i,
+      // licht per shot (#1323): het eigen licht van het shot of dat van de scène; null = het wereldlicht
+      light: lightOf[i] ?? null,
     };
   }
 
