@@ -69,6 +69,7 @@ export const NETWERK_GOEDGEKEURD = {
 // Lokaal lezen van wereldbestanden (zelfde herkomst, geen webadres, geen spelergegevens): een fetch zonder URL is geen externe verbinding.
 export const NETWERK_LOKAAL = {
   'game/js/bezitlive.js': { reden: 'de Bezit-index (bezit-percelen.json en bezit-panden.json naast de tegels, epic #1095) lui laden uit world/; geen webadres' },
+  'game/js/modularpeople.js': { reden: 'de omgezette mensen (game/models/mensen/*.json en *.bin, Quaternius CC0, ADR 0050) laden uit de eigen spelmap via import.meta.url; geen webadres' },
   'game/js/animalmodels.js': { reden: 'de omgezette diermodellen (game/models/dieren/*.json, Quaternius CC0, ADR 0050/0053) laden uit de eigen spelmap; geen webadres' },
 };
 const THREE_CDN = /from\s+(['"])https:\/\/cdn\.jsdelivr\.net\/npm\/three@[\w.]+\/build\/three\.module\.js\1/;
