@@ -170,6 +170,7 @@ await scene('nan', async (ev) => {
   if (k) { k.click(); await sleep(3000); }
   const kader = k && k.closest('.ds-m-tabs'), lijn = kader && kader.querySelector('.ds-m-tabs__lijn');
   if (k && lijn) { const a = k.getBoundingClientRect(), b = lijn.getBoundingClientRect(); ev.tab = { club: [Math.round(a.left), Math.round(a.right)], streep: [Math.round(b.left), Math.round(b.right)] }; }
+  if (kader && lijn) { const kr = kader.getBoundingClientRect(), cs = getComputedStyle(kader), ls = getComputedStyle(lijn); ev.meting = { kader: [Math.round(kr.left), Math.round(kr.width)], pos: cs.position, x: kader.style.getPropertyValue('--ds-m-tab-x'), w: kader.style.getPropertyValue('--ds-m-tab-w'), ouder: lijn.offsetParent && (lijn.offsetParent.tagName + '.' + String(lijn.offsetParent.className).slice(0, 40)), transform: ls.transform, overgang: ls.transition.slice(0, 60), kaderPad: cs.paddingLeft + '/' + cs.borderLeftWidth, scroll: kader.scrollLeft, lijnCss: ['left', 'right', 'width', 'margin-left', 'scale', 'translate', 'transform-origin', 'position', 'animation-name', 'display'].map((k2) => k2 + '=' + ls.getPropertyValue(k2)).join(' '), lijnKlasse: lijn.className, lijnOffset: [lijn.offsetLeft, lijn.offsetWidth] }; }
   await shot('club-tab', 500);
   BG.computeBoundingBox = oud.box; BG.computeBoundingSphere = oud.bol;
   try { const EL = await imp('errorlog'); ev.geweigerd = (String(EL.errorReport()).match(/Voorbeeld van [^\n]*/g) || []).slice(0, 3); } catch (e) { ev.geweigerd = 'fout ' + e.message; }
