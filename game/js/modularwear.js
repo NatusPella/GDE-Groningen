@@ -286,10 +286,10 @@ function schoudertas(ctx, p) {
   const side = ctx.surface([hp.p[0], hp.p[1] + 0.02, hp.p[2]], [0, 0, -1], ['benen', 'romp']);
   box(B, [hp.p[0] + 0.02, hp.p[1] - 0.02, side[2] - 0.03], [0.13, 0.1, 0.03], AX3, color, hp.i);
   box(B, [hp.p[0] + 0.02, hp.p[1] + 0.05, side[2] - 0.03], [0.135, 0.045, 0.034], AX3, color, hp.i);
-  const n = 7;
+  const n = 12;   // de band schuin over de borst, van de rechterschouder naar de linkerheup, in overlappende stukjes
   for (let i = 0; i < n; i++) {
     const u = i / (n - 1), y = ch.p[1] + 0.2 - u * 0.4, z = 0.09 - u * 0.2, fx = ctx.surface([ch.p[0] - 0.2, y, z], [1, 0, 0], ['romp'])[0];
-    box(B, [fx + 0.006, y, z], [0.006, 0.035, 0.017], AX3, 0x2a2a2e, ch.i);
+    box(B, [fx + 0.005, y, z], [0.005, 0.026, 0.014], AX3, 0x3a3a40, ch.i);
   }
   return B;
 }

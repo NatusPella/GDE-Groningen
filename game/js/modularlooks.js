@@ -62,7 +62,7 @@ export function lookFromAppearance(a, partIds) {
   if (L.bottom === 'dress') top = 'dress';
   // a.vary (gewone figuren, geen verhaalfiguur): kies uit de passende delen op het zaad, zodat niet elke 'korte haar' hetzelfde hoofd is
   const SLOT_K = { hoofd: 61, romp: 62, benen: 63, voeten: 64 };
-  const choose = (slot, kind) => (a.vary ? pickVary(ids, [...((kind && M[slot][kind]) || []), ...M[slot].default], hashf(a.seed ?? 1, SLOT_K[slot]), slot === 'hoofd') : pick(ids, [...((kind && M[slot][kind]) || []), ...M[slot].default])) || [...ids].find((id) => id.endsWith(slot === 'benen' ? '_Legs' : slot === 'voeten' ? '_Feet' : slot === 'hoofd' ? '_Head' : '_Body'));
+  const choose = (slot, kind) => (a.vary && !cop ? pickVary(ids, [...((kind && M[slot][kind]) || []), ...M[slot].default], hashf(a.seed ?? 1, SLOT_K[slot]), slot === 'hoofd') : pick(ids, [...((kind && M[slot][kind]) || []), ...M[slot].default])) || [...ids].find((id) => id.endsWith(slot === 'benen' ? '_Legs' : slot === 'voeten' ? '_Feet' : slot === 'hoofd' ? '_Head' : '_Body'));
   const parts = { hoofd: choose('hoofd', hairStyle), romp: choose('romp', top), benen: choose('benen', bottom), voeten: choose('voeten', shoe) };
   if (!parts.hoofd || !parts.romp || !parts.benen || !parts.voeten) return null;
   // voetbalshirt met patroon, rugnummer en sponsor (footballkit.js): het patroon komt als kledingdeel op de romp (modularwear.js)

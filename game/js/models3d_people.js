@@ -2611,7 +2611,7 @@ export function animatePersonWalk(mesh, speed, dt) {
       // rondkijken: de blik van een wachtende (hieronder), bovenop de blik naar de speler (gait.js glanceAt)
       if (ud.qFidGaze) { if (!(ud.gazeT === ud.gazeT) || ud.gazeT === undefined) ud.gazeT = ud.qFidGaze; ud.qFidGaze = 0; }
       animateModular(mesh, speed, dt);
-      if (ud.qLod === 0 && speed < 0.15) modularFidget(mesh, ud, speed, dt); else if (ud.qFid && ud.qFid.name) modularFidget(mesh, ud, speed, dt);
+      if (ud.qFidget && (ud.qLod === 0 && speed < 0.15 || (ud.qFid && ud.qFid.name))) modularFidget(mesh, ud, speed, dt);
     }
     return;
   }

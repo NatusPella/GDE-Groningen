@@ -139,6 +139,7 @@ export function buildModularFromAppearance(a) {
   // elke gewone figuur (geen verhaalfiguur of speler) krijgt lengte en bouw uit zijn zaad
   if (a.vary) { const sz = personSize(rig, look.seed, { old: look.old, child: !!(a.look && a.look.age === 'child') }); look.scale = sz.scale * (bt ? Math.max(0.92, Math.min(1.08, bt.hs)) : 1); look.wide = sz.wide; }
   const g = buildModularPerson(look.seed, { look });
+  if (g && a.vary) g.userData.qFidget = true;   // alledaagse gebaren voor wie stilstaat: alleen de gewone figuren, niet de speler of een verhaalfiguur
   if (g && bt) { g.scale.x *= Math.max(0.9, Math.min(1.15, bt.bs || 1)); g.scale.z = g.scale.x; } // breder of smaller postuur
   return g;
 }
