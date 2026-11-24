@@ -58,10 +58,21 @@ t('de rekwisieten bouwen de stapel, de kraan en de rollen op die plekken', () =>
   assert.match(lees('heist.js'), /placeContainerTerminal\(world, THREE\)/, 'de bare-missie zet de rekwisieten neer');
 });
 
-t('de kabelrol krijgt zijn straal, niet het hele rolobject (NaN-geometrie bij de start van M13, #955)', () => {
+t('de kabelhaspel krijgt zijn straal uit het plan, niet het hele rolobject (NaN-geometrie bij de start van M13, #955)', () => {
   const bron = lees('containerterminal.js');
-  assert.ok(bron.includes('new T.CylinderGeometry(r.r, r.r, 2.2, 14)'));
-  assert.ok(!bron.includes('new T.CylinderGeometry(r, r,'));
+  assert.ok(bron.includes("prop(g, 'kabelhaspel', r.x, r.y, 0, { schaal: r.r / 1.2 })"));
+});
+
+t('#1328: de loskade komt uit het prop-register, zonder losse dozen of cilinders, en staat op de grond', () => {
+  const bron = lees('containerterminal.js').replace(/\/\/.*$/gm, '');
+  assert.ok(!/new T\.(BoxGeometry|CylinderGeometry|SphereGeometry)/.test(bron), 'geen losse primitieven in de scenecode');
+  for (const id of ['container20', 'container40', 'havenkraan', 'havenhek', 'lichtmast', 'heftruck', 'kabelhaspel', 'bolder']) {
+    assert.ok(bron.includes(`'${id}'`), id + ' staat op de kade');
+    assert.ok(lees('propregister.js').includes(`  ${id}: {`), id + ' staat in het register');
+  }
+  assert.match(bron, /VOERTUIG_REGISTER\.truck\.model/, 'de vrachtwagen komt uit het voertuigregister');
+  assert.match(bron, /map\.surfaceAt\(x, y, st\)/, 'de hoogte komt uit de ene hoogtevraag van de kaart');
+  assert.match(bron, /verharding\(root, M13_CONTAINER\.x, M13_CONTAINER\.y, 46, 26\)/, 'de verharding ligt over het containerveld uit m13Footprints');
 });
 
 // Een nagebootste map met dezelfde vragen als TileWorld: een weg, een gebouw en een waterstrook (NIET de echte wereld).

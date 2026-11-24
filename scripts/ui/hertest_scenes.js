@@ -486,7 +486,19 @@ const draai = async () => {
     camOff,
     sluit: async () => { for (let i = 0; i < 3; i++) { tap('Escape', 'Escape'); await sleep(300); } try { PM.closePauseMenu(); } catch (e) { /* weg */ } try { SHUI.closeShopMenu({ save: false }); } catch (e) { /* weg */ } await sleep(400); },
     menu: async (name, tab, opts, wait = 1800) => { PM.openPauseMenu(tab, opts || {}); await H.shot(name, wait); await H.sluit(); },
-    close: async () => { camOff(); w.wanted = 0; await H.sluit(); },
+    // tussen twee scenes alles terug naar gewoon lopen (hertest 24-11: een voetbalwedstrijd liep door in de volgende beelden): minigames en
+    // activiteiten stoppen, duif, eerste persoon en voertuig uit, wapen weg, geen film, geen pauze, klok en weer terug
+    close: async () => {
+      camOff(); w.wanted = 0;
+      try { (await imp('busy')).quitRunningActivities(w); } catch (e) { /* niets actief */ }
+      try { if (window.__voetbal) window.__voetbal.quit(); } catch (e) { /* geen wedstrijd */ }
+      try { if (w.pigeonMode) (await imp('pigeonmode')).stopPigeonMode(w); } catch (e) { /* geen duif */ }
+      try { (await imp('firstperson')).setFirstPerson(w, false); } catch (e) { /* geen eerste persoon */ }
+      if (p.inVehicle) { try { p.exitVehicle(map, w); } catch (e) { /* al uit */ } }
+      for (let i = 0; i < 20 && cine.isCinematicActive(); i++) { cine.skipCinematic(); await sleep(150); }
+      w.weapon = 'fists'; w.cinematicHidePlayers = false; w.cinematicHideNav = false; w.cameraOverride = null; w.paused = false;
+      await H.sluit(); fix();
+    },
   });
   H.key = key;
   for (const s of todo.filter((x) => !x.early)) await runScene(s, H);

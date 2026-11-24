@@ -376,4 +376,12 @@ t('ondertitel: zonder tekst geen balk (review 22-11)', () => {
   assert.match(subtitleHtml({ naam: 'Jelle', tekst: 'Goal!' }), /<span>Goal!<\/span>/);
 });
 
+t('#1110: een verborgen kaart van de tv-laag blijft verborgen (geen lege witte balk over het veld)', () => {
+  const fs = process.getBuiltinModule('node:fs');
+  const css = fs.readFileSync(new URL('../game/js/voetbaltv.css', import.meta.url), 'utf8').replace(/\/\*[\s\S]*?\*\//g, '');
+  // .vbtv-paneel.ds-z-kaart zet display: grid; de verbergregel moet zwaarder wegen dan die twee klassen
+  assert.match(css, /\.vbtv \.ds-z-kaart\[hidden\][^{]*\{\s*display:\s*none/);
+  assert.match(css, /\.vbtv-paneel\.ds-z-kaart\s*\{[^}]*display:\s*grid/);
+});
+
 console.log(`voetbal_uitzending_test ok (${n} groepen)`);

@@ -176,6 +176,10 @@ ok(/\.bm-band > \.bm-klein \{ margin-bottom: var\(--ds-s-2\); \}/.test(css), 'he
   const m = bouwMoment(momentVanBanner({ kind: 'fail', title: 'Sikkom.', reason: 'Dat ging mis.', reward: 250 }));
   ok(m.beloning === '' && m.beloningWaarde === 0 && !/Beloning|250/.test(m.aria), 'mislukt: geen beloningsregel, ook niet met reward 250', m.aria);
   ok(bouwMoment(momentVanBanner({ kind: 'pass', title: 'X', reason: 'y', reward: 250 })).beloning === '€ 250', 'geslaagd houdt de beloning');
+  // #1332: ook rechtstreeks (showBigMoment met soort mislukt en een beloning) blijft de beloning weg
+  const d = bouwMoment({ soort: 'mislukt', titel: 'Sikkom', beloning: 400 });
+  ok(d.beloning === '' && d.beloningWaarde === 0 && !/Beloning|400/.test(d.aria), 'mislukt direct: geen beloning op de kaart', JSON.stringify(d));
+  ok(bouwMoment({ soort: 'geslaagd', beloning: 400 }).beloning === '€ 400' && bouwMoment({ soort: 'opgepakt', beloning: -50 }).beloning !== '', 'geslaagd en opgepakt houden hun bedrag');
 }
 // #1188: achter een schermvullende eindkaart verdwijnt de doelbalk en zwijgen de sleutelhints
 {

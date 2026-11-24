@@ -2,7 +2,8 @@
    Het uiterlijk komt van ds-tokens.css en ds-components.css; dit bestand regelt alleen de plaats en de indeling. Niets neemt een klik. De kleur van een club komt als inline stijl van het embleem
    (identiteitskleur, nooit het enige signaal: de naam en het patroon staan er ook). */
 .vbtv { position: fixed; inset: 0; z-index: 6; pointer-events: none; font-family: var(--ds-font-tekst); }
-.vbtv [hidden] { display: none; }
+/* #1110: drie klassen, zodat een verborgen kaart (.vbtv-paneel.ds-z-kaart zet display: grid) niet als lege witte balk over het veld blijft staan */
+.vbtv [hidden], .vbtv .ds-z-kaart[hidden] { display: none; }
 /* de veldradar: linksboven, klein, in de rol "binnenkomend werk" (tijdens de wedstrijd komt daar niets anders) */
 .vbtv-radar.ds-z-kaart { position: absolute; left: var(--ds-s-4); top: var(--ds-s-4); padding: var(--ds-s-2); width: max-content; }
 .vbtv-radar svg { display: block; }

@@ -28,6 +28,13 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 - Land en bedrijf > Boerderij: de naam van de boerderij en 'Boerenzakdoek' liggen niet meer over elkaar in de band, en de veldkaart toont de hele naam van het veld (het gewasplaatje in de kop is kleiner, de standchip mag eronder). Samen spelen: alleen beeld, per speler.
 - Samen spelen: de eerste keuze (Meedoen of Open je spel) toont twee tegels met een groot icoon en een duidelijke kop in plaats van twee lege vlakken met een klein tekentje. Samen spelen: alleen menubeeld, niets aan het netwerk.
 - Menu: op een kleiner scherm (1280x720) staat de groene streep onder het tabblad dat open is, en niet meer twee tabbladen verderop. Samen spelen: alleen beeld, per speler.
+- Eindkaart: bij een mislukte missie staat er nooit een beloning op de kaart. Samen spelen: de kaart is per speler.
+- Voetbal: tijdens een wedstrijd hangt er geen lege witte balk meer midden over het veld. Samen spelen: alleen beeld, per speler.
+- Marktdagen en evenementen: de mensen op de Vismarkt, de Grote Markt en in het Noorderplantsoen zijn echte mensen in plaats van gekleurde cilinders met een bol, staan op de grond en lopen met een looppas. Samen spelen: iedere speler ziet dezelfde mensen (vast per zaad), puur beeld.
+- Eerste persoon: de mouwen van je armen zijn gewoon mouwen, ook met een wapen in de hand, in plaats van gescheurde puntige vlakken. Samen spelen: alleen je eigen beeld.
+- Filmpjes: voorbijgangers die net verschijnen of verdwijnen staan niet meer de hele scène halfdoorzichtig in beeld. Samen spelen: alleen beeld.
+- Fietsenrekken langs een straat met stoep en de fietsnietjes van een voetgangersstraat staan helemaal op de stoep, zodat de wielen niet meer in de stoeprand zakken (zwarte "spinnen" bij de Vismarkt). Samen spelen: decor, op elke client gelijk.
+- M13, het containerlabyrint: de Eemshaven is een echte loskade met een havenkraan, containers met ribben en deuren, hekken, lichtmasten, een heftruck, een vrachtwagen, kabelhaspels en bolders, op betonverharding die in het gras overloopt. Samen spelen: decor van de wereld, elke client bouwt hem zelf op dezelfde plek.
 - Snackwagen: Jelles bedrijf heet overal Us Mem Snacks (op het tabblad Snackwagen, de kaartlaag Standplaatsen, de prestatie en het bord op zijn wagens stond nog Usmem). Samen spelen: alleen tekst, per speler.
 - Land en bedrijf: het icoon van een lege staat (Overzicht, Te koop) heeft een vaste maat en vult niet meer het hele paneel; Te koop toont een wegwijzerbord in plaats van een gestippeld vakje. Samen spelen: per speler.
 - Visboek: de wateren staan in één kolom met hun volle naam in plaats van drie smalle kolommen met afgekapte namen. Samen spelen: per speler.
