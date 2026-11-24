@@ -22,7 +22,10 @@ for (const id of ['snoek', 'baars', 'paling', 'voorn', 'brasem', 'karper']) {
   let lod = null;
   g.traverse((o) => { if (!lod && o.userData && o.userData.lod) lod = o.userData.lod; });
   const tris = lod ? lod.geos.map((x) => Math.round((x.index ? x.index.count : x.attributes.position.count) / 3)) : [];
-  check(`${id}: drie LOD's met duidelijk minder driehoeken (${tris.join('/')})`, tris.length === 3 && tris[1] <= tris[0] * 0.8 && tris[2] <= tris[0] * 0.55);
+  // perf-r3 (24-11): een niveau telt alleen als het silhouet blijft (meshlod.js animalLods, geos.silhouette); een lange dunne vis
+  // als de paling houdt dan zijn vorige niveau in plaats van plat te worden
+  const silhouet = !!(lod && lod.geos && lod.geos.silhouette);
+  check(`${id}: drie LOD's met duidelijk minder driehoeken (${tris.join('/')}${silhouet ? ', silhouet bewaard' : ''})`, tris.length === 3 && (silhouet ? tris[1] <= tris[0] && tris[2] <= tris[1] : tris[1] <= tris[0] * 0.8 && tris[2] <= tris[0] * 0.55));
   let ok = true;
   for (const state of ['zwem', 'vangst']) {
     for (let t = 0; t < 2; t += 0.1) FM.animateFishModel(g, { state, speed: 0.5 }, t);

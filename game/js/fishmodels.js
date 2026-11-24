@@ -117,7 +117,9 @@ function ownTemplate(id) {
   g.name = 'vis_' + id;
   g.computeBoundingBox();
   const sz = g.boundingBox.getSize(new THREE.Vector3());
-  const geos = animalLods(g, Math.max(sz.x, sz.y, sz.z), 'vis_' + id).map((x) => markShared(x));
+  const lods = animalLods(g, Math.max(sz.x, sz.y, sz.z), 'vis_' + id);
+  const geos = lods.map((x) => markShared(x));
+  geos.silhouette = lods.silhouette; // perf-r3: het silhouet bleef bewaard (een niveau zonder minder driehoeken), zie meshlod.js
   t = { geos, xs: id === 'snoek' ? PIKE_BONES : EEL_BONES };
   ownGeo.set(id, t);
   return t;
