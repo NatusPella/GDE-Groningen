@@ -19,3 +19,18 @@ Regels voor de bouw (stijl): lage polygoncount maar geen krap budget (hoofdvoert
 vertexkleuren zonder textuur, afgeronde grote vlakken met vaste facetten (`extrudeProfile` met bevel), dikke wielen, ruiten als donker
 glas, spiegels, bumpers en lampen als blokjes in een contrastkleur. Meer detail wordt gekocht met geometrie (bogen, stijlen, rekken),
 niet met textuur; de lichtere niveaus komen uit het centrale LOD-systeem (`vehiclelod3d.js`, soort `vehicle`).
+
+## Tweede ronde: fietsen, scooters, boten en de helikopter (24-11)
+
+Alleen gelezen (zoekresultaten en productpagina's), niets gedownload; in het spel staan verzonnen namen en eigen modellen.
+
+| Voertuig | Bron | Maten (echt) | Gebruikt in het spel |
+|---|---|---|---|
+| Stadsfiets (28 inch) | https://idealbikes.co.uk/bikes/9-ideal-citylife-bike.html, https://www.linusbike.com/products/dutchi-3 en https://www.amazon.co.uk/Mengtu-Holland-Dutch-Female-Bicycles/dp/B0D1R6CXHK | wielbasis 1,10 tot 1,19 m, kettingstag 0,46 m, stuur 4 tot 7 cm boven het zadel, zadelhoogte ca. 1,0 m, totale lengte 1,86 tot 1,90 m, lage instap ca. 0,56 m | wielbasis 1,12 m, zadel 0,98 m, stuur 1,07 m, lengte 1,75 m; achterdrager, kettingkast, ringslot |
+| Racefiets, mountainbike, e-bike | niet apart opgezocht; bekende verhoudingen (dropstuur ca. 0,4 m breed, zadel voor de trapas, accu op de drager, vering voor) | zie vehicle_bike.js (STIJL) | nieuwe soorten voor het verkeer (model.stijl) |
+| Bakfiets | niet apart opgezocht (eigen maat van het spel, 2,55 m lang) | | houten bak, bankje, dubbele standaard |
+| Scooter (snorscooter) | https://www.1000ps.com/en-us/model/2968/vespa-px-150 en https://www.cyclechaos.com/wiki/Vespa_PX | 1,78 tot 1,81 m lang, 0,74 m breed, wielbasis 1,25 m, zadel 0,81 m, wiel 10 inch | 1,7 m lang, zadel 0,8 m, wielen 0,23 m; beenschild, stuurkap, spiegels, demper |
+| Step | niet opgezocht (eigen maat, 1,1 m lang) | | dek met accu, scharnier, rem en display |
+| Rondvaartboot en sloep | https://alle.travel/en/amsterdam/pages/amsterdam-boats-for-canal-cruises en https://alle.travel/en/amsterdam/pages/flagship-amsterdam-boats | rondvaartboot 18 m lang en 3,75 m breed, kleine salonboot 7 m x 2,5 m, sloep 9 m x 2,5 m | spel: rondvaart 14 x 3,3 m, sloep 5,5 x 2,0 m (kleiner, past op de grachten van het spel) |
+| Skûtsje, kano, kajak, rubberboot | niet opgezocht (eigen maten in boattypes.js) | | dolboord, schuurlijst, kikkers, boegoog, spanten |
+| Helikopter (lichte tweezitter) | https://www.heli-archive.ch/en/helicopters/in-depth-articles/bell-47g en https://aerocorner.com/aircraft/bell-47/ | rotor 10,2 tot 11,3 m, romp 8,3 tot 9,9 m lang, hoogte 2,7 tot 2,8 m, driehoekige staartboom | rotor 10 m, romp 8,8 m, hoogte 3 m; staartboom, kielvin, kruisbuisonderstel |

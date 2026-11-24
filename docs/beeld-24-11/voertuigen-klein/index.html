@@ -1,0 +1,84 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Kleine voertuigen 24-11: voor en na</title>
+<style>
+ body{margin:0;padding:24px;background:#17301f;color:#f0ede4;font:15px/1.45 system-ui,sans-serif;max-width:1500px}
+ h1{font-size:22px;margin:0 0 6px}h2{font-size:17px;margin:26px 0 6px;color:#3fc97a}
+ .rij{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px}.rij figure{margin:0}
+ img{width:100%;display:block;border:1px solid rgba(240,237,228,.16)}figcaption{font-size:12px;opacity:.7}
+ table{border-collapse:collapse}td,th{border:1px solid rgba(240,237,228,.2);padding:4px 10px;text-align:left;vertical-align:top}.klein{opacity:.75;font-size:13px}
+</style>
+<h1>Kleine voertuigen 24-11: voor (links) en na (rechts)</h1>
+<p class="klein">Headless Chrome met <code>pagina.html</code> (1920x1080, vaste camerapunten, eigen belichting, geen spel); in het spel zelf nog niet bekeken. Weergaven: buiten, schuin, achter, dicht (rijder en stuur). Opnieuw maken: <code>node scripts/voertuigklein_beeld.mjs voor|na &lt;voertuig&gt;</code>.</p>
+<h2>Driehoeken en oordeel</h2>
+<table><tr><th>Voertuig</th><th>Voor (totaal)</th><th>Na (totaal, LOD0 / LOD1 / LOD2)</th><th>Oordeel voor</th><th>Oordeel na</th></tr>
+<tr><td>fiets</td><td>2810 (6 draws)</td><td>4844 / 2747 / 2114 (7 draws)</td><td>6</td><td>8</td></tr>
+<tr><td>fiets2</td><td>3242 (5 draws)</td><td>5320 / 3178 / 2542 (6 draws)</td><td>nieuw</td><td></td></tr>
+<tr><td>fietsoud</td><td>3162 (5 draws)</td><td>5204 / 3095 / 2462 (6 draws)</td><td>5.5</td><td>7.5</td></tr>
+<tr><td>fatbike</td><td>2702 (4 draws)</td><td>5024 / 2745 / 2551 (6 draws)</td><td>5.5</td><td>7</td></tr>
+<tr><td>bakfiets</td><td>4338 (6 draws)</td><td>6112 / 4563 / 4263 (7 draws)</td><td>5.5</td><td>7.5</td></tr>
+<tr><td>bezorger</td><td>2870 (7 draws)</td><td>4904 / 2773 / 2140 (8 draws)</td><td>nieuw</td><td></td></tr>
+<tr><td>deelfiets</td><td>2988 (7 draws)</td><td>5142 / 2891 / 2202 (8 draws)</td><td>5.5</td><td>7.5</td></tr>
+<tr><td>fietsrace</td><td>nieuw</td><td>4586 / 3137 / 2740 (6 draws)</td><td>nieuw</td><td>7.5</td></tr>
+<tr><td>fietsmtb</td><td>nieuw</td><td>4490 / 3100 / 2705 (6 draws)</td><td>nieuw</td><td>7.5</td></tr>
+<tr><td>fietsebike</td><td>nieuw</td><td>5220 / 3101 / 2521 (6 draws)</td><td>nieuw</td><td>7.5</td></tr>
+<tr><td>step</td><td>2714 (5 draws)</td><td>3944 / 2786 / 2364 (5 draws)</td><td>4</td><td>7</td></tr>
+<tr><td>bromfiets</td><td>2594 (5 draws)</td><td>4744 / 2835 / 2422 (5 draws)</td><td>4</td><td>7</td></tr>
+<tr><td>sloep</td><td>445 (3 draws)</td><td>1617 / 342 / 146 (3 draws)</td><td>3.5</td><td>6.5</td></tr>
+<tr><td>sloepkap</td><td>445 (3 draws)</td><td>1617 / 342 / 146 (3 draws)</td><td>nieuw</td><td></td></tr>
+<tr><td>rondvaart</td><td>1749 (3 draws)</td><td>3297 / 507 / 193 (3 draws)</td><td>5</td><td>7</td></tr>
+<tr><td>kano</td><td>240 (2 draws)</td><td>946 / 647 / 647 (2 draws)</td><td>4</td><td>6.5</td></tr>
+<tr><td>kajak</td><td>236 (2 draws)</td><td>654 / 245 / 164 (2 draws)</td><td>nieuw</td><td>6.5</td></tr>
+<tr><td>waterfiets</td><td>576 (2 draws)</td><td>576 / 237 / 104 (2 draws)</td><td>nieuw</td><td>5</td></tr>
+<tr><td>rubberboot</td><td>1127 (3 draws)</td><td>2830 / 749 / 212 (3 draws)</td><td>5</td><td>6.5</td></tr>
+<tr><td>dinghy</td><td>261 (2 draws)</td><td>988 / 290 / 136 (2 draws)</td><td>nieuw</td><td>6</td></tr>
+<tr><td>skutsje</td><td>1069 (7 draws)</td><td>2131 / 439 / 222 (7 draws)</td><td>6</td><td>7</td></tr>
+<tr><td>sup</td><td>nieuw</td><td>309 / 206 / 106 (1 draws)</td><td>nieuw</td><td></td></tr>
+<tr><td>skiff</td><td>nieuw</td><td>464 / 244 / 94 (2 draws)</td><td>nieuw</td><td></td></tr>
+<tr><td>heli</td><td>1987 (10 draws)</td><td>2878 / 750 / 572 (6 draws)</td><td>5.5</td><td>7</td></tr>
+</table><p class="klein">Totalen bevatten de rijder (ca. 1.760 driehoeken, eigen skinned mesh; zonder rijder: fiets 3.080, step 2.180, bromfiets 2.980). Niet aangepast: waterfiets, supboard, skiff, de klassieke versnellingsbrommer (snor) en de motoren; zie het rapport.</p>
+<h2>Stadsfiets (oma/heren)</h2>
+<div class="rij"><figure><img src="voor-fiets-buiten.png"><figcaption>voor, buiten</figcaption></figure><figure><img src="na-fiets-buiten.png"><figcaption>na, buiten</figcaption></figure></div>
+<div class="rij"><figure><img src="voor-fiets-schuin.png"><figcaption>voor, schuin</figcaption></figure><figure><img src="na-fiets-schuin.png"><figcaption>na, schuin</figcaption></figure></div>
+<div class="rij"><figure><img src="voor-fiets-achter.png"><figcaption>voor, achter</figcaption></figure><figure><img src="na-fiets-achter.png"><figcaption>na, achter</figcaption></figure></div>
+<div class="rij"><figure><img src="voor-fiets-dicht.png"><figcaption>voor, dicht</figcaption></figure><figure><img src="na-fiets-dicht.png"><figcaption>na, dicht</figcaption></figure></div>
+<h2>Oude fiets (roest, ander spatbord)</h2>
+<div class="rij"><figure><img src="voor-fietsoud-buiten.png"><figcaption>voor, buiten</figcaption></figure><figure><img src="na-fietsoud-buiten.png"><figcaption>na, buiten</figcaption></figure></div>
+<div class="rij"><figure><img src="voor-fietsoud-schuin.png"><figcaption>voor, schuin</figcaption></figure><figure><img src="na-fietsoud-schuin.png"><figcaption>na, schuin</figcaption></figure></div>
+<div class="rij"><figure><img src="voor-fietsoud-achter.png"><figcaption>voor, achter</figcaption></figure><figure><img src="na-fietsoud-achter.png"><figcaption>na, achter</figcaption></figure></div>
+<h2>Fatbike</h2>
+<div class="rij"><figure><img src="voor-fatbike-schuin.png"><figcaption>voor, schuin</figcaption></figure><figure><img src="na-fatbike-schuin.png"><figcaption>na, schuin</figcaption></figure></div>
+<div class="rij"><figure><img src="voor-fatbike-buiten.png"><figcaption>voor, buiten</figcaption></figure><figure><img src="na-fatbike-buiten.png"><figcaption>na, buiten</figcaption></figure></div>
+<h2>Bakfiets</h2>
+<div class="rij"><figure><img src="voor-bakfiets-schuin.png"><figcaption>voor, schuin</figcaption></figure><figure><img src="na-bakfiets-schuin.png"><figcaption>na, schuin</figcaption></figure></div>
+<div class="rij"><figure><img src="voor-bakfiets-achter.png"><figcaption>voor, achter</figcaption></figure><figure><img src="na-bakfiets-achter.png"><figcaption>na, achter</figcaption></figure></div>
+<h2>Bezorgfiets en deelfiets</h2>
+<div class="rij"><figure><img src="voor-deelfiets-schuin.png"><figcaption>voor, schuin</figcaption></figure><figure><img src="na-deelfiets-schuin.png"><figcaption>na, schuin</figcaption></figure></div>
+<h2>Racefiets (nieuw)</h2>
+<div class="rij"><figure><figcaption>geen voor (nieuwe soort)</figcaption></figure><figure><img src="na-fietsrace-buiten.png"><figcaption>na, buiten</figcaption></figure></div>
+<div class="rij"><figure><figcaption>geen voor (nieuwe soort)</figcaption></figure><figure><img src="na-fietsrace-dicht.png"><figcaption>na, dicht</figcaption></figure></div>
+<h2>Mountainbike (nieuw)</h2>
+<div class="rij"><figure><figcaption>geen voor (nieuwe soort)</figcaption></figure><figure><img src="na-fietsmtb-buiten.png"><figcaption>na, buiten</figcaption></figure></div>
+<div class="rij"><figure><figcaption>geen voor (nieuwe soort)</figcaption></figure><figure><img src="na-fietsmtb-schuin.png"><figcaption>na, schuin</figcaption></figure></div>
+<h2>E-bike (nieuw)</h2>
+<div class="rij"><figure><figcaption>geen voor (nieuwe soort)</figcaption></figure><figure><img src="na-fietsebike-buiten.png"><figcaption>na, buiten</figcaption></figure></div>
+<h2>Step</h2>
+<div class="rij"><figure><img src="voor-step-schuin.png"><figcaption>voor, schuin</figcaption></figure><figure><img src="na-step-schuin.png"><figcaption>na, schuin</figcaption></figure></div>
+<div class="rij"><figure><img src="voor-step-buiten.png"><figcaption>voor, buiten</figcaption></figure><figure><img src="na-step-buiten.png"><figcaption>na, buiten</figcaption></figure></div>
+<h2>Snorscooter</h2>
+<div class="rij"><figure><img src="voor-bromfiets-schuin.png"><figcaption>voor, schuin</figcaption></figure><figure><img src="na-bromfiets-schuin.png"><figcaption>na, schuin</figcaption></figure></div>
+<div class="rij"><figure><img src="voor-bromfiets-buiten.png"><figcaption>voor, buiten</figcaption></figure><figure><img src="na-bromfiets-buiten.png"><figcaption>na, buiten</figcaption></figure></div>
+<h2>Sloep</h2>
+<div class="rij"><figure><img src="voor-sloep-schuin.png"><figcaption>voor, schuin</figcaption></figure><figure><img src="na-sloep-schuin.png"><figcaption>na, schuin</figcaption></figure></div>
+<div class="rij"><figure><img src="voor-sloep-achter.png"><figcaption>voor, achter</figcaption></figure><figure><img src="na-sloep-achter.png"><figcaption>na, achter</figcaption></figure></div>
+<h2>Rondvaartboot</h2>
+<div class="rij"><figure><img src="voor-rondvaart-schuin.png"><figcaption>voor, schuin</figcaption></figure><figure><img src="na-rondvaart-schuin.png"><figcaption>na, schuin</figcaption></figure></div>
+<h2>Kano en kajak</h2>
+<div class="rij"><figure><img src="voor-kano-schuin.png"><figcaption>voor, schuin</figcaption></figure><figure><img src="na-kano-schuin.png"><figcaption>na, schuin</figcaption></figure></div>
+<h2>Rubberboot</h2>
+<div class="rij"><figure><img src="voor-rubberboot-schuin.png"><figcaption>voor, schuin</figcaption></figure><figure><img src="na-rubberboot-schuin.png"><figcaption>na, schuin</figcaption></figure></div>
+<h2>Skutsje</h2>
+<div class="rij"><figure><img src="voor-skutsje-schuin.png"><figcaption>voor, schuin</figcaption></figure><figure><img src="na-skutsje-schuin.png"><figcaption>na, schuin</figcaption></figure></div>
+<h2>Helikopter</h2>
+<div class="rij"><figure><img src="voor-heli-schuin.png"><figcaption>voor, schuin</figcaption></figure><figure><img src="na-heli-schuin.png"><figcaption>na, schuin</figcaption></figure></div>
+<div class="rij"><figure><img src="voor-heli-achter.png"><figcaption>voor, achter</figcaption></figure><figure><img src="na-heli-achter.png"><figcaption>na, achter</figcaption></figure></div>
