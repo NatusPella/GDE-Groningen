@@ -321,3 +321,25 @@
 .lijst11 .nm { font-family: var(--ds-font-zeef-kop); font-weight: 800; font-size: var(--ds-t-label); letter-spacing: var(--ds-ls-label); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .lijst11 li.jij { background: var(--ds-zeef-primair); box-shadow: inset var(--ds-status-rand) 0 0 var(--ds-c-ink-bord); }
 .vb-veld--breed .vb-spot { left: var(--spot-x); top: var(--spot-y); bottom: auto; }
+
+/* ---- Op een smal paneel (720p) past het Overzicht zonder scroll: een kleinere titel, een wapen van 72 px in de held-kaart ---- */
+.vb-pane .ds-z-kopband__titel { font-size: calc(var(--ds-t-kop) * 0.8); }
+.vb-pane .ds-z-kopband--compact .ds-z-kopband__titel { font-size: var(--ds-t-subkop); }
+.vb-team__naam { font-size: var(--ds-t-subkop); }
+.vb-hero__teams { gap: var(--ds-s-3); }
+.vb-team { gap: var(--ds-s-3); }
+/* ---- De toetsregel op het bord tijdens de wedstrijd: groepen achter elkaar zonder streepjes, de naam van de groep vooraan ---- */
+.mg-help .vb-hint__groep { display: inline-flex; align-items: center; gap: var(--ds-s-1); margin-right: var(--ds-s-3); padding: 0; border: 0; white-space: nowrap; }
+.mg-help .vb-hint__groep + .vb-hint__groep { padding-left: 0; border-left: 0; }
+/* ---- Een klein venster (1280 breed): het veld krijgt alleen nummers, de gekozen plek zijn naam; de keuzes zijn compacter ---- */
+@media (max-width: 1400px) {
+  .vb-tactiek { grid-template-columns: minmax(0, 330px) minmax(0, 1fr); gap: var(--ds-s-4); }
+  .vb-tactiek .vb-spot { width: calc(var(--ds-s-8) * 1.1); }
+  .vb-tactiek .vb-spot__naam { display: none; }
+  .vb-tactiek .vb-spot[aria-pressed="true"] .vb-spot__naam { display: block; position: absolute; top: 100%; z-index: 2; }
+  .vb-tactiek__rechts .ds-z-segment > button { padding: 0 var(--ds-s-2); font-size: var(--ds-t-hulp); letter-spacing: 0; }
+  .vb-vorming > button { padding: var(--ds-s-1) var(--ds-s-2); }
+}
+@media (max-height: 800px) {
+  .lijst11 > .h, .lijst11 li { height: calc(var(--ds-s-6) * 1.12); }
+}

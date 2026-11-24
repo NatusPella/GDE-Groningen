@@ -677,7 +677,7 @@ function tvTik(w, dt) {
   } else g.paneelCache = { fase: '', html: '' };
   g.radarT -= dt;
   if (g.radarT <= 0) { g.radarT = 0.2; g.radarHtml = cardPhase || g.replay ? null : radarHtml(sim, eigenId(g)); }
-  g.tv.zet({ radar: g.radarHtml, paneel, hint, ondertitel: g.ondertitel ? g.ondertitel.html : null, herhaling: !!g.replay });
+  g.tv.zet({ radar: g.radarHtml, paneel, hint, ondertitel: g.ondertitel && sim.fase !== 'intro' ? g.ondertitel.html : null, herhaling: !!g.replay });
 }
 
 // De herhaling (alleen solo): na een doelpunt (of een grote kans) staat de wedstrijd even stil en zie je de opname van de laatste seconden vanaf de zijlijn en de doelcamera, op 80 procent snelheid.
@@ -865,7 +865,7 @@ function updateHud(w) {
   const boardModel = voetbalBoard({ ...model, help: toetsGroepenHtml(keyTextHtml) });
   boardModel.row = scoreboardRow(sim);
   ensureBoard().set(boardModel);
-  simHudTik(0, voetbalHudModel({ ...model, formaatNaam: FORMATEN[sim.formaat].naam }));
+  simHudTik(0, sim.fase === 'intro' ? null : voetbalHudModel({ ...model, formaatNaam: FORMATEN[sim.formaat].naam }));   // de opstelling heeft het scherm: de spelerskaart komt na de aftrap
 }
 
 // --- einde ----------------------------------------------------------------------------------------------------------------------

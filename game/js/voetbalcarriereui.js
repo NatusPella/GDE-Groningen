@@ -60,7 +60,7 @@ const leagueOf = (c, id) => { const d = S.divisionOf(c.world, id); return d && c
 function kop(c, ov, env, compact) {
   const lg = c.leagues[ov.division], n = lg ? lg.clubs.length : 8, vorm = S.formOf(lg, c.club);
   return `<header class="ds-z-kopband${compact ? ' ds-z-kopband--compact' : ''} ds-m-binnen on">${crest(c, env, c.club, compact ? 'm' : 'l')}<div><h2 class="ds-z-kopband__titel">${esc(ov.club)}</h2>` +
-    `<p class="ds-z-kopband__sub"><b>${esc(ov.divisionName)}</b><span>plek ${ov.rank} van ${n}</span><span>·</span><span>ronde ${Math.min(ov.round + 1, ROUNDS)} van ${ROUNDS}</span><span>·</span><span>rol ${esc(C.ROLES[c.role])}</span></p></div>` +
+    `<p class="ds-z-kopband__sub"><b>${esc(ov.divisionName)}</b><span>plek ${ov.rank} van ${n}</span><span>·</span><span>ronde ${Math.min(ov.round + 1, ROUNDS)} van ${ROUNDS}</span></p></div>` +
     `<div class="ds-z-kopband__rechts"><div class="ds-z-status ds-z-status--blok"><span class="ds-z-status__l">Plek</span><span class="ds-z-status__w">${ov.rank}<small>van ${n}</small></span></div><div class="ds-z-status ds-z-status--blok"><span class="ds-z-status__l">Vorm</span><span class="ds-z-status__w">${pips(vorm)}</span></div>` +
     `<div class="ds-z-status ds-z-status--blok"><span class="ds-z-status__l">Geld</span><span class="ds-z-status__w">${euro(env.money || 0)}</span></div></div></header>`;
 }
@@ -81,7 +81,7 @@ function viewOverzicht(c, env) {
     const plaats = m.stadium ? (m.stadium === 'euroborg' ? 'Euroborg' : String(m.stadium)) : m.parkPlaats ? `Sportpark ${m.parkPlaats}` : '';
     const lgMy = leagueOf(c, c.club), lgOpp = leagueOf(c, m.opponent);
     const rankMy = lgMy ? S.rankOf(lgMy, c.club) : 0, rankOpp = lgOpp && lgOpp === lgMy ? S.rankOf(lgOpp, m.opponent) : 0;
-    const team = (id, naam, thuis, rank, vorm, uit) => `<div class="vb-team${uit ? ' vb-team--uit' : ''}">${crest(c, env, id, 'xl')}<div><h3 class="vb-team__naam">${esc(kort(env, id, naam))}</h3><p class="vb-team__vol">${esc(naam)}</p><p class="vb-team__sub"><span class="vb-thuisuit">${thuis ? 'Thuis' : 'Uit'}</span>${rank ? `<span>plek ${rank}</span>` : ''}${pips(vorm)}</p></div></div>`;
+    const team = (id, naam, thuis, rank, vorm, uit) => `<div class="vb-team${uit ? ' vb-team--uit' : ''}">${crest(c, env, id, 'l')}<div><h3 class="vb-team__naam">${esc(kort(env, id, naam))}</h3><p class="vb-team__vol">${esc(naam)}</p><p class="vb-team__sub"><span class="vb-thuisuit">${thuis ? 'Thuis' : 'Uit'}</span>${rank ? `<span>plek ${rank}</span>` : ''}${pips(vorm)}</p></div></div>`;
     const mijn = team(c.club, ov.club, m.isHome, rankMy, S.formOf(lgMy, c.club), !m.isHome), tegen = team(m.opponent, m.opponentName, !m.isHome, rankOpp, S.formOf(lgOpp, m.opponent), m.isHome);
     const speelTekst = m.kind === 'league'
       ? `Winst levert ${euro(pay.winst)}, gelijk ${euro(pay.gelijk)}, verlies ${euro(pay.verlies)}.` : `Winst levert ${euro(pay.winst)}, gelijk ${euro(pay.gelijk)}, verlies ${euro(pay.verlies)}; alleen meedoen levert ${euro(pay.verlies)}.`;
