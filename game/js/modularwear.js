@@ -20,6 +20,10 @@ export const WEAR_REGISTER = {
     nl: 'Politie-uniform (details)', slot: 'romp',
     norm: { tris: [160, 900], kleuren: 5, eisen: ['reflecterende band om beide bovenarmen', 'koppel om de heup met tasjes en holster', 'epauletten op beide schouders', 'embleem op de linkerborst', 'naamplaatje op de rechterborst'] },
   },
+  voetbalshirt: {
+    nl: 'Voetbalshirt (patroon, rugnummer, sponsor)', slot: 'romp', params: true,
+    norm: { tris: [8, 520], kleuren: 3, eisen: ['strepen, helften en hoepels als vlakken 4 mm boven het shirt, voor en achter', 'rugnummer van zeven-segmentcijfers op de rug', 'naamstrook boven het nummer', 'sponsorpaneel op de borst'] },
+  },
 };
 
 const NAVY = 0x1d2433, NAVY_LIGHT = 0x2a3448, BAND = 0x101318, BLACK = 0x0b0c0f, GOLD = 0xc9a43a, REFLECT = 0xd9de48, WHITE = 0xe8e6de, LEATHER = 0x16171a;
@@ -172,11 +176,68 @@ function politieuniform(ctx) {
   return B;
 }
 
-const BUILDERS = { politiepet, politieuniform };
-export function buildWear(id, ctx) {
+// --- voetbalshirt: patroon, rugnummer, naamstrook en sponsorpaneel (spec = shirtBands uit clothing.js / footballkit.js) -----------------
+// Dunne vlakken 4 mm op het oppervlak van de romp, per rij en kolom van hoogstens 4 cm zodat ze de bocht volgen; zelfde rijen en cijfers
+// als het eigen model (models3d_people.js shirtBandGeometry), zodat een club er op beide modellen hetzelfde uitziet.
+const KIT_ROWS = [0.97, 1.1, 1.22, 1.34, 1.46], KIT_BONES = ['Hips', 'Abdomen', 'Torso', 'Chest', 'Body', 'Root'];
+const KIT_SEG = [[1, 1, 1, 0, 1, 1, 1], [0, 0, 1, 0, 0, 1, 0], [1, 0, 1, 1, 1, 0, 1], [1, 0, 1, 1, 0, 1, 1], [0, 1, 1, 1, 0, 1, 0], [1, 1, 0, 1, 0, 1, 1], [1, 1, 0, 1, 1, 1, 1], [1, 0, 1, 0, 0, 1, 0], [1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 0, 1, 1]];
+function voetbalshirt(ctx, spec) {
+  const B = builder(), ch = ctx.bone('Chest').i, N = 24, cache = new Map();
+  const col = (c, d) => (Number.isFinite(c) ? c : d);
+  const radii = (y) => { const k = Math.round(y * 100); if (!cache.has(k)) cache.set(k, ctx.profile([0, y, 0], [0, 1, 0], N, ['romp'], KIT_BONES)); return cache.get(k); };
+  const half = (y) => { const r = radii(y); return Math.max(0.1, (r[N / 4] + r[(3 * N) / 4]) / 2) * 0.97; };
+  // x van het oppervlak (voor of achter) op hoogte y en zijwaarts z; null buiten de romp
+  const surfX = (y, z, back) => {
+    const r = radii(y), wz = half(y) / 0.97;
+    if (Math.abs(z) > wz * 0.97) return null;
+    const th = Math.asin(Math.max(-1, Math.min(1, z / wz))), a = ((back ? Math.PI - th : th) + Math.PI * 2) % (Math.PI * 2), s = Math.round((a / (Math.PI * 2)) * N) % N;
+    return (back ? -1 : 1) * (r[s] * Math.cos(th) + 0.004);
+  };
+  const flat = (y0, y1, z0, z1, color, back) => {
+    const nc = Math.max(1, Math.ceil(Math.abs(z1 - z0) / 0.04));
+    for (let c = 0; c < nc; c++) {
+      const za = z0 + ((z1 - z0) * c) / nc, zb = z0 + ((z1 - z0) * (c + 1)) / nc;
+      const xa0 = surfX(y0, za, back), xb0 = surfX(y0, zb, back), xa1 = surfX(y1, za, back), xb1 = surfX(y1, zb, back);
+      if ([xa0, xb0, xa1, xb1].some((x) => x === null)) continue;
+      B.quadDir(B.v([xa0, y0, za], color, ch), B.v([xb0, y0, zb], color, ch), B.v([xb1, y1, zb], color, ch), B.v([xa1, y1, za], color, ch), [back ? -1 : 1, 0, 0]);
+    }
+  };
+  const color = col(spec.color, 0xffffff);
+  const cells = [];
+  for (let i = 0; i < KIT_ROWS.length - 1; i++) {
+    for (const b of spec.bands || []) cells.push([i, b[0], b[1]]);
+    for (const c of spec.cells || []) if (c[0] === i) cells.push(c);
+  }
+  for (const [i, t0, t1] of cells) {
+    const y0 = KIT_ROWS[i] + 0.002, y1 = KIT_ROWS[i + 1] - 0.002, w = half((y0 + y1) / 2);
+    const za = -w + 2 * w * Math.min(t0, t1), zb = -w + 2 * w * Math.max(t0, t1);
+    flat(y0, y1, za, zb, color, false); flat(y0, y1, za, zb, color, true);
+  }
+  // rugnummer (zevensegmentcijfers), naamstrook en sponsorpaneel
+  if (spec.number) {
+    const digits = String(spec.number).split('').map(Number), n = digits.length, st = spec.numberStyle;
+    const big = st === 'speciaal' ? 1.2 : st === 'hand' ? 0.9 : 1, dh = 0.17 * big, dw = 0.06 * big, th = 0.017 * (st === 'hand' ? 0.8 : 1), yc = spec.nameBar ? 1.22 : 1.24;
+    digits.forEach((dg, di) => {
+      const zc = (di - (n - 1) / 2) * (dw + 0.02), s7 = KIT_SEG[dg] || KIT_SEG[8];
+      const parts = [[0, 0, dh / 2 - th / 2, dw, th], [1, -dw / 2 + th / 2, dh / 4, th, dh / 2 - th], [2, dw / 2 - th / 2, dh / 4, th, dh / 2 - th], [3, 0, 0, dw, th], [4, -dw / 2 + th / 2, -dh / 4, th, dh / 2 - th], [5, dw / 2 - th / 2, -dh / 4, th, dh / 2 - th], [6, 0, -dh / 2 + th / 2, dw, th]];
+      for (const [si, dz, dy, sw, sh] of parts) if (s7[si]) flat(yc + dy - sh / 2, yc + dy + sh / 2, zc + dz - sw / 2, zc + dz + sw / 2, color, true);
+    });
+    if (spec.nameBar) flat(1.362, 1.378, -0.06, 0.06, color, true);
+  }
+  if (spec.sponsor) {
+    const big = spec.sponsor.size === 'groot' ? 1.3 : spec.sponsor.size === 'klein' ? 0.8 : 1, sc = col(spec.sponsor.color, 0xdddddd);
+    flat(1.2 - 0.026 * big, 1.2 + 0.026 * big, -0.07 * big, 0.07 * big, sc, false);
+    flat(1.15 - 0.007, 1.15 + 0.007, -0.045 * big, 0.045 * big, sc, false);
+  }
+  return B;
+}
+
+const BUILDERS = { politiepet, politieuniform, voetbalshirt };
+export function buildWear(id, ctx, params = null) {
   const f = BUILDERS[id];
   if (!f || !WEAR_REGISTER[id]) return null;
-  const B = f(ctx);
+  const B = f(ctx, params);
+
   return { id, pos: B.pos, col: B.col, bone: B.bone, idx: B.idx, tris: B.idx.length / 3 };
 }
 export const wearIds = () => Object.keys(WEAR_REGISTER);
