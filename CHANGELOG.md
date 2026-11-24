@@ -9,6 +9,7 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ## [Unreleased]
 
+- Samen spelen: de vraag "Meedoen met ...?" is een gewone kaart met de vraag als kop en de knoppen op één regel; Ja is de gele knop, Nee secundair (eerst waren het twee gele knoppen onder elkaar in een gestippeld vak). Het naamveld voor Samen spelen herhaalt zijn label niet meer als voorbeeldtekst ("Zo zien de anderen je") en de knop Toetsenbord staat naast het veld. Samen spelen: elke speler ziet en beantwoordt zijn eigen vraag.
 - Veroverd: "Gebieden: 0 van 72 veroverd" staat niet meer in de kop én in de eerste tegel eronder. Samen spelen: per speler.
 - Loopbanen: de kaart van een vak dat je nog niet begon is geen groen vlak met zes zinnen meer, maar een kaart met de eerste klus als kop, de plek op één regel, chips voor de verhaalstap, wie hier goed is en of het samen kan, en het waarom achter een uitklapper. Samen spelen: per speler.
 - Startkaart van een activiteit (kartbaan, discgolf, vissen en de rest): een kort overzicht met een label per regel (Doel, Toetsen, Medailles, Beloning, Daarna) in plaats van negen zinnen onder elkaar; de medailles zijn drie plaatjes met B, Z en G en de eis, de stand, samen en je record staan als chips onderaan. De kaart is daardoor korter en staat samen met een melding als "Nieuwe streek" in de linkerkolom. Samen spelen: elke speler ziet zijn eigen kaart; de chip Samen zegt of de activiteit met de groep kan.
