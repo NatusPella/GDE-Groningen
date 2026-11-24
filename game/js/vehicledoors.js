@@ -59,7 +59,7 @@ export const DEUR_DEFS = {
     ...cab(0.2, 0.75, 0.4, 1.52),
     laadklep(0.45, 1.5),
   ],
-  truck: cab(0.33, 0.8, 0.5, 1.2).map((d) => ({ ...d, zij: 0.49 })), // de cabine is W - 0,05 breed
+  truck: cab(0.376, 1.1, 1.15, 1.5).map((d) => ({ ...d, zij: 0.49 })), // de cabine is W - 0,05 breed; de deur zit boven de wielkast (24-11)
   foodtruck: cab(0.33, 0.8, 0.5, 1.2),
   tractor: [{ id: 'vr', side: 1, x: -0.17, w: 0.9, y0: 1.0, h: 1.65, soort: 'scharnier', seat: 'bijrijder', zij: 0.435 },
     { id: 'vl', side: -1, x: -0.17, w: 0.9, y0: 1.0, h: 1.65, soort: 'scharnier', seat: 'bestuurder', zij: 0.435 }],

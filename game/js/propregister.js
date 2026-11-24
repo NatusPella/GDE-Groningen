@@ -170,7 +170,7 @@ export const VOERTUIG_REGISTER = {
   },
   truck: {
     nl: 'Bakwagen', model: { name: 'truck', len: 8.5, wid: 2.5, color: 0xe8e6e0 },
-    norm: { tris: [1500, 4000], kleuren: 10, eisen: ['laadbak met ribbels, aluminium randen en hoekstijlen', 'achterdeuren met scharnieren, sluitstangen en hendels', 'onderrijbeveiliging achter en opzij', 'cabinedeuren met naad'] },
+    norm: { tris: [3500, 7000], kleuren: 10, eisen: ['afgeronde laadbak met ribbels, aluminium randen en hoekstijlen', 'achterdeuren met scharnieren, sluitstangen en hendels', 'onderrijbeveiliging achter en opzij', 'kantelcabine met wielkast, raked voorruit, spiegels, grille en koplampen', 'cabinedeur met zijraam (echt deurgat)', 'chassis met tank, assen en dikke wielen met velg'] },
   },
   // De hybride auto's (23-11): de Quaternius-romp (CC0) met onze functies. `schaal` is de getekende maat in meter (lengte, breedte,
   // hoogte van de romp zonder daklicht of taxibord); de romp wordt daarop geschaald (zie VOERTUIG_NORM en voertuigschaal_test.mjs).
