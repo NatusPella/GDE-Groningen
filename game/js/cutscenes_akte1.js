@@ -578,8 +578,6 @@ Object.assign(SPECS, SPECS_AKTE2);
 
   // M03.2: Jelle buys the queue, the Bewaarder stamps
   SPECS['M03.2'] = {
-    // akte 1 op eindniveau (23-11, CS-C06): Jelles laatste woorden en zijn vertrek aan dezelfde kant van de as als de rest van het gesprek
-    shotFix: [{ t: 'L8', shot: 'orbit', target: 'speaker', radius: 2.6, start: 30, sweep: -38, h0: 1.5, h1: 1.8, look: 'speaker', fov: 38 }],
     set: 'loket',
     cast: {
       jelle: { key: 'jelle', at: [2.6, 0.7], face: 190, anim: 'idle', gest: ['talk', 'point', 'hips'] },

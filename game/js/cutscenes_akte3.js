@@ -103,6 +103,11 @@ S['M13.outro'] = {
 S['M14.intro'] = {
   // regieronde #1325: de sprekers van voren over de schouder van wie ze aanspreken (geen achterhoofd, geen as-sprong); Jelle aan de dijk in de ochtend
   coverage: 'ots',
+  // integratie 0.66: na 'Ik rij' loopt Tammo weg en draait de as; de laatste twee regels van de kant van het openingsbeeld
+  shotFix: [
+    { t: 'L10', shot: 'cut', at: [-4.2, 3.8, 2.9], look: 'mid:tammo,tessa@1.3', fov: 44 },
+    { t: 'L11', shot: 'cut', at: [-3.0, 4.6, 2.4], look: 'tammo@1.4', fov: 36 },
+  ],
   light: 'ochtend',
   cast: {
     jelle: { key: 'jelle', at: [4.6, 1.2], face: 185, anim: 'hips', gest: ['hips', 'talk', 'point', 'shrug'] },

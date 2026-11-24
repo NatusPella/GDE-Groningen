@@ -75,7 +75,7 @@ S.F2 = {
     { on: 'Ik bak. Jij rijdt', dt: 1.0, actor: 'tessa', anim: 'lean' },
     { on: 'Dat was mijn plan al', actor: 'tammo', anim: 'nod' },
   ],
-  shots: [CLOSE('Is dat een knop of een gebed', 'tammo', { dist: 1.3 }), { on: 'Ik bak. Jij rijdt', dt: 0.2, shot: 'dolly', from: [-0.2, -2.6, 1.5], to: [1.0, -2.0, 1.55], look: 'mid:tammo,tessa@1.35', fov: 36 }],
+  shots: [CLOSE('Is dat een knop of een gebed', 'tammo', { dist: 1.3, side: 0.6 }), { on: 'Ik bak. Jij rijdt', dt: 0.2, shot: 'dolly', from: [-0.2, -2.6, 1.5], to: [1.0, -2.0, 1.55], look: 'mid:tammo,tessa@1.35', fov: 36 }],
   wide: WIDE([-1.2, 2.6, 2.4], [0.4, 1.8, 2.0], 'mid:tammo,tessa@1.2'),
 };
 
