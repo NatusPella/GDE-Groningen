@@ -28,8 +28,9 @@ import {
   unmetRequirement, requirementMet, requirementPlace, isNight, setMissionProgress, getMissionProgress, missionDebug,
   activeMissionIndex, failActiveMission, rideFirst,
 } from './missions.js';
-import { getShopVisits, getShopsForRender, grantStoryItem, shopCounterOf } from './shops.js';
-const COUNTER_NEAR_M = 6; // m van de winkelmarker: vanaf de deur wijst de gids naar de toonbank
+import { getShopVisits, getShopsForRender, grantStoryItem, shopEntryOf } from './shops.js';
+import { shopSpot } from './shopentry.js';
+const DOOR_NEAR_M = 30; // m van de winkelmarker: dichterbij wijst de gids naar de deur van een inloopwinkel (binnen: naar de toonbank)
 import { getPigeonFlight, stopPigeonMode } from './pigeonmode.js';
 import { isHeliRunActive, abortHeliRun } from './helirun.js';
 import { jumpPrep, jumpSpot, openRond } from './storyjump.js';
@@ -422,10 +423,11 @@ function refreshGuide() {
     if ((need || far > RIDE_FIRST_M) && Math.hypot(ride.x - p.x, ride.y - p.y) < far + 40) { why = `Eerst naar ${ride.name}, dan: ${why}`; place = ride; }
   }
   const shopId = place && place.type && place.id ? place.id : null;
-  // a walk-in shop sells at its counter, not at the door: from the door (or inside) the guide points there (spelbot 23-11, M05 Trap & Toeter)
+  // a walk-in shop (shopentry.js): close by the guide points at its door, inside at its counter (spelbot 23-11, M05 Trap & Toeter: the guide
+  // stood on the marker, where E did nothing); the prompt at the marker and the 10 s fallback (shops.js) make sure the purchase always works
   if (shopId) {
-    const c = shopCounterOf(place), p = hoofdspeler(world);
-    if (c && (c.inside || Math.hypot(place.x - p.x, place.y - p.y) < COUNTER_NEAR_M)) place = { ...place, x: c.x, y: c.y };
+    const e = shopEntryOf(place), p = hoofdspeler(world);
+    if (e && (e.inside || Math.hypot(place.x - p.x, place.y - p.y) < DOOR_NEAR_M)) { const at = shopSpot(place, e); place = { ...place, x: at.x, y: at.y }; }
   }
   // a choice (r-trein): the route goes to the nearest option, the others are named
   let alt = '';

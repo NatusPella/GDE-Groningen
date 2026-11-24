@@ -119,15 +119,14 @@ t('de hengelhoek staat in de Avondwinkel en aan de steiger, en een gast koopt er
   }
 });
 
-t('een inloopwinkel: de toonbank komt uit het interieur, de verhaalgids wijst er vanaf de deur heen (spelbot 23-11, M05)', () => {
-  assert.equal(S.shopCounterOf({ x: 1, y: 2 }), null, 'zonder bron geen toonbank');
-  S.setShopCounterSource((s) => ({ x: s.x + 4, y: s.y, inside: false }));
-  assert.deepEqual(S.shopCounterOf({ x: 1, y: 2 }), { x: 5, y: 2, inside: false });
-  S.setShopCounterSource(() => { throw new Error('plan nog niet klaar'); });
-  assert.equal(S.shopCounterOf({ x: 1, y: 2 }), null, 'een fout in de bron is geen toonbank');
-  S.setShopCounterSource(null);
-  assert.ok(/setShopCounterSource\(shopCounterAt\)/.test(read('interiors.js')), 'interiors.js levert de toonbank');
-  assert.ok(/shopCounterOf\(place\)[\s\S]{0,200}COUNTER_NEAR_M/.test(read('story.js')), 'story.js wijst vanaf de deur naar de toonbank');
+t('een inloopwinkel: de ingang (deur, toonbank) komt uit het interieur; een fout in de bron is geen ingang (spelbot 23-11, M05)', () => {
+  assert.equal(S.shopEntryOf({ x: 1, y: 2 }), null, 'zonder bron geen ingang');
+  S.setShopEntrySource((s) => ({ door: { x: s.x + 4, y: s.y }, counter: null, live: true, inside: false }));
+  assert.deepEqual(S.shopEntryOf({ x: 1, y: 2 }).door, { x: 5, y: 2 });
+  S.setShopEntrySource(() => { throw new Error('plan nog niet klaar'); });
+  assert.equal(S.shopEntryOf({ x: 1, y: 2 }), null, 'een fout in de bron is geen ingang');
+  S.setShopEntrySource(null);
+  assert.equal(S.SHOP_USE_RADIUS, 2.6, 'de straal van een gewone winkel blijft');
 });
 
 opnieuw();

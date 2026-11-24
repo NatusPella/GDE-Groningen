@@ -41,6 +41,7 @@ import { buildHelipadMesh, buildHeliMesh } from './heli3d.js';
 import { noteMoney } from './finance.js';
 import { euro } from './geldtekst.js';
 import { winkelMagVoorGast, MELDING_WINKEL } from './coopgast.js';
+import { shopReach, shopSpot, nearStoryShop, makeStoryShopWait, STORY_SHOP_RADIUS } from './shopentry.js'; // marker, deur en toonbank; de terugval van de verhaalwinkel
 import { hoofdspeler } from './spelersregister.js';
 import {
   effectiveWorn, outfitToLook, getClothingSave, applyClothingSave, forceStoryLook, storyLookKey, ownsAll, ownedPieces, givePiece, setBonus,
@@ -57,7 +58,7 @@ import { sfxEvent } from './sfx/haken.js';
 import { wantedClearCooldownLeft, markWantedCleared } from './heatcooldown.js'; // #838: spuiterij-cooldown
 import { munitieWinst, munitiePrijs, gunResale } from './ammorules.js'; // een bijna vol magazijn kost evenredig
 
-export const SHOP_USE_RADIUS = 2.6;
+export { SHOP_USE_RADIUS } from './shopentry.js';
 const OUTFIT_WANTED_COOLDOWN = 60;
 export const REDELIVERY_FEE = 10;
 
@@ -606,20 +607,26 @@ export function removeOwnedEntry(world, key) {
 // Interiors (interiors.js, #1150): a shop whose building has an interior with a counter is bought at in there, not at the marker outside.
 let interiorCheck = null;
 export function setShopInteriorCheck(fn) { interiorCheck = typeof fn === 'function' ? fn : null; }
-// the counter of a walk-in shop (interiors.js shopCounterAt): where the story guide points once you are at the door
-let counterSource = null;
-export function setShopCounterSource(fn) { counterSource = typeof fn === 'function' ? fn : null; }
-export function shopCounterOf(s) { try { return counterSource && s ? counterSource(s) : null; } catch (e) { return null; } }
+// the entry of a walk-in shop (interiors.js shopEntryAt): its door, its counter, whether the room lives and whether you are in it
+let entrySource = null;
+export function setShopEntrySource(fn) { entrySource = typeof fn === 'function' ? fn : null; }
+export function shopEntryOf(s) { try { return entrySource && s ? entrySource(s) || null : null; } catch (e) { return null; } }
+// the shop the story sends you to (a purchase it waits on): a wide trigger, at the marker and at the door (shopentry.js)
+const isStoryShop = (world, s) => !!(world && world.storyGuide && world.storyGuide.buy && world.storyGuide.shopId === s.id);
 
+// The shop whose prompt stands here, outside (shopentry.js shopReach): the marker, or the door of a walk-in shop; inside a walk-in shop
+// the counter sells (interiors.js). Spelbot 23-11, M05: the walk-in Trap & Toeter had no prompt outside, and its door could stay shut.
 export function nearestShop(world) {
   const h = hoofdspeler(world);
   if (!shops.length || h.inVehicle || h.swimming) return null;
   const { x, y } = h;
-  let best = null, bestD = SHOP_USE_RADIUS;
+  const box = STORY_SHOP_RADIUS + 20;   // the door of a walk-in shop can stand a few metres from its marker
+  let best = null, bestD = Infinity;
   for (const s of shops) {
-    if (Math.abs(s.x - x) > bestD || Math.abs(s.y - y) > bestD) continue;
-    const d = dist(x, y, s.x, s.y);
-    if (d <= bestD && !(interiorCheck && interiorCheck(s))) { best = s; bestD = d; }
+    if (Math.abs(s.x - x) > box || Math.abs(s.y - y) > box) continue;
+    const walkIn = !!(interiorCheck && interiorCheck(s));
+    const d = shopReach(x, y, s, walkIn ? shopEntryOf(s) : null, { story: isStoryShop(world, s), walkIn });
+    if (d !== null && d < bestD) { best = s; bestD = d; }
   }
   return best;
 }
@@ -667,8 +674,9 @@ export function shopPrimaryPrompt(world) {
   if (g) return { id: 'paint-' + g.x, x: g.x, y: g.y, h: 2.6, key: 'R', label: 'Nieuwe lak', sub: `Spuit & Klaar: kies een kleur, ${euro(PAINT_PRICE)}`, ring: true };
   const ws = workshopFor(world);
   if (ws) return { id: 'ws-' + ws.id, x: ws.x, y: ws.y, h: 2.75, key: 'R', label: ws.type === 'tuning' ? 'Laten tunen' : ws.type === 'boot' ? 'Boot tunen' : 'Laten sleutelen', sub: storyHere(world, ws) || (ws.type === 'boot' ? `${ws.name}: de werf` : ws.name), ring: true };
-  const s = nearestShop(world);
-  if (!s) return null;
+  const s0 = nearestShop(world);
+  if (!s0) return null;
+  const at = shopSpot(s0, interiorCheck && interiorCheck(s0) ? shopEntryOf(s0) : null), s = { ...s0, x: at.x, y: at.y };   // the ring stands at the door of a walk-in shop
   if (world.coopRole === 'client' && !winkelMagVoorGast(s.type)) return { id: 'shop-' + s.id, x: s.x, y: s.y, h: 2.75, key: 'E', label: 'Alleen eigen spel', sub: s.name, ring: true, dim: true }; // samen spelen (#291)
   if (policeWatching(world)) return { id: 'shop-' + s.id, x: s.x, y: s.y, h: 2.75, key: 'E', label: 'Binnenlopen', sub: `${s.name}: deur op slot, politie op je hielen`, ring: true, dim: true };
   return { id: 'shop-' + s.id, x: s.x, y: s.y, h: 2.75, key: 'E', label: s.type === 'boot' ? 'Bootje huren' : s.type === 'heli' ? 'Helikopters bekijken' : 'Binnenlopen', sub: storyHere(world, s) || `${s.name}: ${SHOP_TYPES[s.type].label.toLowerCase()}`, ring: true };
@@ -2039,7 +2047,23 @@ function claimUnlocks(world) {
   }
 }
 
+// The fallback of the story's shop (shopentry.js): 10 s at its door or inside without buying, and the shop's card opens by itself, so a
+// purchase the story waits on can never get stuck on a door that stays shut or a counter you cannot find (spelbot 23-11, M05).
+const storyShopWait = makeStoryShopWait();
+export function storyShopFallback(dt, world) {
+  const s = storyTargetShop(world), h = hoofdspeler(world);
+  const walkIn = !!(s && interiorCheck && interiorCheck(s));
+  const near = !!(s && h && !h.swimming && nearStoryShop(h.x, h.y, s, walkIn ? shopEntryOf(s) : null));
+  const blocked = !h || !!h.inVehicle || isShopOpen() || isCinematicActive() || !!world.paused || policeWatching(world) || (world.coopRole === 'client' && s && !winkelMagVoorGast(s.type));
+  if (storyShopWait.tick(dt, { shopId: s ? s.id : null, near, blocked }) !== 'open') return false;
+  shopVisits[s.type] = (shopVisits[s.type] || 0) + 1;
+  prepareStoryShop();
+  openShopMenu(world, shopMenu(world, s));
+  return true;
+}
+
 export function updateShops(dt, world) {
+  storyShopFallback(dt, world);
   upkeepTimer -= dt;
   syncOwnedRiders(world, upkeepTimer <= 0);
   if ((unlockTimer -= dt) <= 0) { unlockTimer = 2; claimUnlocks(world); }

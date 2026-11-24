@@ -32,7 +32,7 @@ import { buildPersonMesh, animatePersonWalk, registerPoseSource, unregisterPoseS
 import { FAC } from './facilities.js';
 import { PROMPT, LOCKED_HOME, clerkLine, HOME_LOOK, FITTING, HAIRCUT, CHURCH_CANDLE, TICKET_LINES, LEZEN, BOUGHT, TOO_POOR, NOT_FOR_SALE } from './interiortexts.js';
 import { productFor, buyProduct, DESK_SUBS } from './interiorbuy.js';
-import { getShopsForRender, openShopFromInterior, setShopInteriorCheck, setShopCounterSource, openFittingRoom, openClothingCounter } from './shops.js';
+import { getShopsForRender, openShopFromInterior, setShopInteriorCheck, setShopEntrySource, openFittingRoom, openClothingCounter } from './shops.js';
 import { setHorecaInteriorCheck } from './horeca.js';
 import { distToRing } from './shopbind.js';
 import { noteMoney } from './finance.js';
@@ -122,18 +122,20 @@ function buildingOfMarker(m) {
   return best;
 }
 const hasCounter = (plan) => plan.layout.use.some((u) => ['kopen', 'bestellen', 'balie', 'kappen'].includes(u.id));
-// true when the marker's building has an interior with a counter: the buying happens there, not at the marker on the street
-// The counter of a walk-in shop in world coordinates (the story guide points there once you are at the door: outside the marker the shop
-// prompt is off, inside only the counter sells; spelbot 23-11, M05 Trap & Toeter). null when the shop has no interior (yet).
-export function shopCounterAt(m) {
+// The entry of a walk-in shop (shopentry.js): the door in world coordinates, the counter, whether the room lives now (the door can open)
+// and whether the player is in it. Only from a plan that is already made (no planning here: shops.js asks this a few times a second).
+// null when the shop has no interior with a counter. Spelbot 23-11, M05 Trap & Toeter: the guide pointed at the marker, not at the door.
+export function shopEntryAt(m) {
   const b = buildingOfMarker(m);
-  const rec = b && planReady(b) ? planOf(b) : null;
+  const rec = b ? S.plans.get(b) : null;
   if (!rec || !rec.ok || !hasCounter(rec.plan)) return null;
+  const fr = rec.plan.frame;
   const s = rec.plan.layout.use.find((u) => ['kopen', 'bestellen', 'balie', 'kappen'].includes(u.id));
-  const [x, y] = toWorld(rec.plan.frame, s.u, s.v);
-  return { x, y, inside: !!(S.inside && S.inside.b === b) };
+  const [cx, cy] = toWorld(fr, s.u, s.v);
+  return { door: { x: fr.ox, y: fr.oy }, counter: { x: cx, y: cy }, live: S.live.has(b), inside: !!(S.inside && S.inside.b === b) };
 }
 
+// true when the marker's building has an interior with a counter: the buying happens there, not at the marker on the street
 export function markerHasInterior(m) {
   const b = buildingOfMarker(m);
   if (!b) return false;
@@ -529,7 +531,7 @@ export function tryInteriorInteract(w) {
 export function initInteriors(w) {
   S.world = w;
   setShopInteriorCheck(markerHasInterior);
-  setShopCounterSource(shopCounterAt);
+  setShopEntrySource(shopEntryAt);
   setHorecaInteriorCheck(markerHasInterior);
   for (const ls of [...S.live.values()]) drop(w, ls);
   S.inside = null;

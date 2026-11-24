@@ -9,6 +9,7 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ## [Unreleased]
 
+- Winkel van het verhaal (zoals de fiets voor de KEI-weekrace bij Trap & Toeter): de prompt staat nu bij de deur én bij de marker, binnen wijst de route naar de kassa, en wie tien tellen bij de deur staat krijgt de winkel vanzelf; je kunt daar niet meer vastlopen.
 - Missie mislukt: Enter op de kaart start meteen een nieuwe poging, zoals de kaart zegt (eerst moest je wachten tot hij weg was en nog eens drukken).
 - Eindkaart: de cijfers van de uitslag staan nu leesbaar onder de kaart in plaats van half erachter.
 - In de flat hoor je nu een zachte kamertoon, de koelkast in de keuken en de stad gedempt door het glas.
