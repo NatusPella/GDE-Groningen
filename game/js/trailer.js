@@ -1273,7 +1273,7 @@ function buildShots(w) {
       if (!s.banged) {
         s.banged = true;
         flash(false);
-        spawnExplosionFx(mond.x + vc * 0.5, mond.z + vs * 0.5, mond.y, 0x8a9197, 0.75);
+        spawnExplosionFx(mond.x + vc * 0.5, mond.z + vs * 0.5, mond.y, 0x8a9197, 0.3);
         for (let i = 0; i < 18; i++) spawnFxPuff(mond.x, mond.y, mond.z, vc * (2 + Math.random() * 6) + (Math.random() - 0.5) * 2, 0.4 + Math.random() * 1.6, vs * (2 + Math.random() * 6) + (Math.random() - 0.5) * 2, 1.2 + Math.random() * 1.2, 0.35, 1.8, 0.86, 0.85, 0.82, 0.55, 1.4, 0.3);
         for (let i = 0; i < 6; i++) spawnFxPuff(mond.x, mond.y, mond.z, vc * (5 + Math.random() * 4), Math.random(), vs * (5 + Math.random() * 4), 0.18, 0.15, 0.6, 1, 0.75, 0.3, 1, 3, 0, 1);
       }
@@ -1285,10 +1285,11 @@ function buildShots(w) {
     },
     exit(r, s) { if (s.erf) { const { bus, deksel, thuis } = s.erf.userData; bus.add(deksel); deksel.position.copy(thuis); } },
     cam(u) {
-      // low beside the row of churns, the yard and the onlookers behind; after the knal the lens drifts with the lid
-      const a = FW(lerp(3.2, 4.4, u), lerp(-7.4, -7.9, u)), l = FW(lerp(-0.5, 3, smooth(Math.max(0, u - 0.3) / 0.7)), -1.2);
+      // from the road side over the row of churns onto the yard (the intro's first shot, carbidintro.js): churns, onlookers behind
+      // the fence, the shed and the farm, the sun from the side; a slow dolly in
+      const a = FW(lerp(-10, -8.6, u), lerp(-10.5, -9.6, u)), l = FW(lerp(2.5, 3.2, u), lerp(8.5, 8.0, u));
       const z = gz(veld.x, veld.y);
-      return { position: P(a.x, a.y, z + lerp(1.3, 1.65, u)), lookAt: P(l.x, l.y, z + 0.9), fov: 46, shake: 0.05 };
+      return { position: P(a.x, a.y, z + lerp(5.6, 4.7, u)), lookAt: P(l.x, l.y, z + 1.3), fov: 50, shake: 0.05 };
     },
   };
 

@@ -33,16 +33,16 @@ export const CARBID_INTRO = {
   // licht als data: zomeravond (gouden uur), geen regen. Per shot kan `licht` de klok of de fakkel aanpassen.
   licht: { klok: 20.4, weer: 'helder' },
   shots: [
-    { id: 'erf', t: 0, from: [-21, 12.5, 6.2], to: [-16.5, 10, 4.6], look: [2, -1.5, 0.6], fov: 50 },
-    { id: 'ontsteking', t: 3.2, from: [-0.95, 1.35, 1.0], to: [-0.75, 1.15, 0.92], look: [-0.45, -0.35, 0.85], fov: 40, licht: { fakkel: 1 } },
+    { id: 'erf', t: 0, from: [-10, -10.5, 5.8], to: [-8, -9.5, 4.4], look: [3, 9, 1.4], fov: 52 },
+    { id: 'ontsteking', t: 3.2, from: [-0.2, 1.7, 1.35], to: [-0.35, 1.45, 1.2], look: [-1.05, -0.75, 1.0], fov: 44, licht: { fakkel: 1 } },
     { id: 'knal', t: 5.6, from: [3.4, -7.2, 1.25], to: [4.6, -7.6, 1.6], look: 'deksel', fov: 46, schud: 0.16 },
-    { id: 'reactie', t: 8.0, from: [-0.9, 2.2, 1.55], to: [-1.2, 2.5, 1.6], look: [-3.2, 5.2, 1.45], fov: 42 },
+    { id: 'reactie', t: 8.0, from: [-3.6, 1.5, 1.6], to: [-3.9, 1.8, 1.65], look: [-1.0, 5.4, 1.45], fov: 42 },
   ],
   // de mensen van de scène (veldcoördinaten, phi: kijkrichting)
   cast: {
-    roelf: { at: [-2.05, -1.45], kap: true },
-    tammo: { at: [-3.4, 5.0], phi: -2.2 },
-    tessa: { at: [-2.6, 5.6], phi: -2.05, kap: true },
+    roelf: { at: [-1.85, -1.3], kap: true },
+    tammo: { at: [-1.6, 5.2], phi: -1.27 },
+    tessa: { at: [-0.6, 5.7], phi: -1.47, kap: true },
   },
   regels: [
     { at: 3.4, dur: 2.0, speaker: 'Boer Roelf', text: 'Kiek uut, hai gaait!' },
@@ -107,7 +107,7 @@ export function speelCarbidIntro(ctx) {
     const rA = Math.atan2(gat.z - D.cast.roelf.at[1], gat.x - D.cast.roelf.at[0]);
     roelf.rotation.y = -(ctx.fieldRot + rA);
     animateActor(roelf, { anim: s < 0 ? 'point' : s < 1.2 ? 'lean' : 'laugh', speed: 0, gaze: 0, t, dt });
-    animateActor(tammo, { anim: s < 0 ? 'idle' : 'cheer', speed: 0, gaze: 0, t, dt });
+    animateActor(tammo, { anim: s < 0 ? 'idle' : s < 1.5 ? 'laugh' : 'wave', speed: 0, gaze: 0, t, dt });
     animateActor(tessa, { anim: s < 0 ? 'look' : s < 2 ? 'laugh' : 'clap', speed: 0, gaze: 0, t, dt });
     animateCarbidSet(set, dt, s < 0.3 ? null : 'clap');
     if (ctx.boeren.Hilje) animateActor(ctx.boeren.Hilje, { anim: s < 0 ? 'idle' : 'cheer', speed: 0, gaze: 0, t, dt });
@@ -126,11 +126,12 @@ export function speelCarbidIntro(ctx) {
     stok.position.copy(tip).addScaledVector(dir.normalize(), -LONT);
     stok.quaternion.copy(_q.setFromUnitVectors(X, dir));
     stok.visible = len > 0.3;
+    if (typeof window !== 'undefined') window.__carbidIntroDebug = { gat: gat.toArray(), hand: hand.toArray(), tip: tip.toArray(), stok: stok.position.toArray(), len };
     // het vuur aan de fakkel (tot de knal) en het licht dat erbij hoort
     const fakkel = stok.localToWorld(new THREE.Vector3(LONT + 0.04, 0.035, 0));
     vlam.position.copy(root.worldToLocal(fakkel.clone()));
     vlam.intensity = s < 0 ? 2.2 + Math.sin(t * 23) * 0.5 + Math.sin(t * 37) * 0.3 : Math.max(0, 6 * (1 - s / 0.35));
-    if (s < 0 && dt > 0) for (let k = 0; k < 2; k++) spawnFxPuff(fakkel.x, fakkel.y + 0.02, fakkel.z, (Math.random() - 0.5) * 0.15, 0.5 + Math.random() * 0.4, (Math.random() - 0.5) * 0.15, 0.32, 0.05, 0.13, 1, 0.55 + Math.random() * 0.2, 0.18, 0.9, 1.2, 0.6, 1);
+    if (s < 0 && dt > 0) for (let k = 0; k < 2; k++) spawnFxPuff(fakkel.x, fakkel.y + 0.02, fakkel.z, (Math.random() - 0.5) * 0.1, 0.25 + Math.random() * 0.2, (Math.random() - 0.5) * 0.1, 0.2, 0.05, 0.1, 1, 0.55 + Math.random() * 0.2, 0.18, 0.9, 1.6, 0.2, 1);
     // het deksel: in de mond, na de knal in de lucht
     if (s < 0) {
       if (deksel.parent !== bus) { bus.add(deksel); deksel.position.copy(bus.userData.dekselThuis); deksel.rotation.set(0, 0, -Math.PI / 2); }
@@ -146,7 +147,7 @@ export function speelCarbidIntro(ctx) {
       const m = bus.userData.mond.getWorldPosition(new THREE.Vector3());
       const c = Math.cos(ctx.fieldRot), sn = Math.sin(ctx.fieldRot);
       pushAudioEvent(w, { kind: 'weapon', sub: 'carbid', x: m.x, y: m.z });
-      spawnExplosionFx(m.x + c * 0.5, m.z + sn * 0.5, m.y, 0x8a9197, 0.75);
+      spawnExplosionFx(m.x + c * 0.5, m.z + sn * 0.5, m.y, 0x8a9197, 0.3);
       flashMuzzleLight(m.x, m.y + 0.4, m.z, 4);
       for (let k = 0; k < 18; k++) spawnFxPuff(m.x, m.y, m.z, c * (2 + Math.random() * 6) + (Math.random() - 0.5) * 2, 0.4 + Math.random() * 1.6, sn * (2 + Math.random() * 6) + (Math.random() - 0.5) * 2, 1.2 + Math.random() * 1.2, 0.35, 1.8, 0.86, 0.85, 0.82, 0.55, 1.4, 0.3);
       // een trage wolk die blijft hangen (in het reactieshot drijft hij nog voor de bomen)

@@ -26,21 +26,22 @@ export const BUS_AS = BOK_WIEG + MELKBUS.r + 0.008;
 // De rij bussen naast die van het spel (v), elk een eigen bok, deksel en emmer; de bus van het spel staat op v = 0
 export const RIJ = [-2.6, -5.2, 2.7];
 
-// Wat er op het erf staat (u, v, phi). Alles staat achter de bus (u < 1) of naast de schietlijn: het veld zelf blijft vrij.
+// Wat er op het erf staat (u, v, phi). Achter de bus loopt een sloot (gemeten op de echte kaart, 24-11) en links de weg: het erf
+// ligt rechts van de schietlijn (+v), de boerderij met haar romp langs het veld. Het veld zelf (v < 6) blijft vrij.
 export const ERF = {
-  hekken: [[-9, 6.6, Math.PI / 2], [-5, 6.6, Math.PI / 2], [-1, 6.6, Math.PI / 2], [-9, -8.8, -Math.PI / 2], [-5, -8.8, -Math.PI / 2]],
+  hekken: [[-9, 6.6, Math.PI / 2], [-5, 6.6, Math.PI / 2], [-1, 6.6, Math.PI / 2], [3, 6.6, Math.PI / 2]],
   tafel: [-6.2, 4.3, 0],
-  trekker: [-12.5, -6.2, 0.15],
-  balen: [[-17.5, -10.5, 0], [-16.2, -10.5, 0], [-16.85, -10.5, 0, 1.2]],
-  loods: [-24, -4, Math.PI / 2],
-  boerderij: [-30, 19, Math.PI],
-  bomen: [[-21, 11, 'rond'], [-25.5, 12.5, 'rond'], [-14, 13, 'rond'], [-34, -12, 'rond'], ...[-30, -24, -18, -12, -6].map((u) => [u, -15.5, 'populier'])],
+  trekker: [6, 13.5, Math.PI],
+  balen: [[-10.5, 11.5, 0], [-10.5, 12.9, 0], [-10.5, 12.2, 0, 1.2]],
+  loods: [-3, 15.5, Math.PI],
+  boerderij: [-8, 32, 0],
+  bomen: [[-13, 22, 'rond'], [-14, 39, 'rond'], [46, 28, 'rond'], [20, 9.5, 'rond'], ...[-10, 0, 10, 20, 30, 40].map((u) => [u, 48, 'populier'])],
   // de toeschouwers achter het hek (op afstand), met gehoorkappen voor wie dichtbij staat
   publiek: [
-    { u: -9.6, v: 7.6, rol: 'boer', seed: 7311, anim: 'idle', kap: false },
-    { u: -8.4, v: 7.9, rol: 'voetganger', seed: 7323, anim: 'phone', kap: false },
-    { u: -5.8, v: 7.5, rol: 'feestganger', seed: 7337, anim: 'idle', kap: true },
-    { u: -2.4, v: 7.7, rol: 'boer', seed: 7349, anim: 'hips', kap: true },
+    { u: -9.6, v: 7.6, rol: 'boer', seed: 7311, anim: 'idle', kap: false, shirt: 0x2f5a3a, skin: 0xe2b48c, variant: 'male', hairStyle: 'short', look: { age: 'old', hat: 'flatcap', hatColor: 0x3a3a34 } },
+    { u: -8.4, v: 7.9, rol: 'voetganger', seed: 7323, anim: 'phone', kap: false, shirt: 0xc9a227, skin: 0xb98a62, variant: 'female', hairStyle: 'long' },
+    { u: -5.8, v: 7.5, rol: 'feestganger', seed: 7337, anim: 'idle', kap: true, shirt: 0xb8352a, skin: 0xd9b48f, variant: 'male', hairStyle: 'curly' },
+    { u: -2.4, v: 7.7, rol: 'boer', seed: 7349, anim: 'hips', kap: true, shirt: 0x6a4a8a, skin: 0x8a5a3c, variant: 'female', hairStyle: 'bun' },
   ],
 };
 
@@ -73,10 +74,16 @@ export function setMens(look) {
 
 // Gehoorkappen op een hoofd (de scène én het publiek)
 export function zetGehoorkap(mens) {
+  // op de kruin van de mens (de hoogte uit zijn eigen omhullende: modulair en procedureel hebben verschillende hoofdbotten), de kappen
+  // op oorhoogte, langs z (opzij); de mens kijkt naar +x
   const kap = prop('gehoorkap');
-  const head = mens.userData && mens.userData.head;
-  if (head) { kap.position.set(0, 0.14, 0); head.add(kap); }
-  else { kap.position.set(0, 1.5, 0); mens.add(kap); }
+  mens.updateMatrixWorld(true);
+  const box = new THREE.Box3().setFromObject(mens);
+  const voet = mens.getWorldPosition(new THREE.Vector3()).y;
+  const kruin = Number.isFinite(box.max.y) ? (box.max.y - voet) / (mens.scale.y || 1) : 1.78;
+  kap.position.set(0.0, kruin - 0.19, 0);
+  kap.scale.setScalar(1.12);
+  mens.add(kap);
   return kap;
 }
 
@@ -156,7 +163,7 @@ export function buildCarbidSet(root, { vrij = () => true } = {}) {
   // het publiek achter het hek
   for (const p of ERF.publiek) {
     if (!vrij(p.u, p.v, 0.5)) continue;
-    const m = setMens({ shirt: 0x5a6a7a, skin: 0xd9b48f, seed: p.seed, role: p.rol, outfitCtx: { hot: true, detail: true } });
+    const m = setMens({ shirt: p.shirt, skin: p.skin, seed: p.seed, variant: p.variant, hairStyle: p.hairStyle, look: p.look || {}, role: p.rol, outfitCtx: { hot: true, detail: true } });
     put(G, m, p.u, p.v, 0, -Math.PI / 2 + (p.u % 1) * 0.3);
     if (p.kap) zetGehoorkap(m);
     set.publiek.push({ mesh: m, anim: p.anim, t: p.seed % 7 });
