@@ -116,7 +116,8 @@
 :root .cp-meedoen .cp-meedoen-knop { min-height: var(--ds-doel-aanraken); display: inline-flex; align-items: center; gap: var(--ds-s-2); }
 /* #1001 (24-11): een uitnodiging is een gewone kaart (een stippelrand betekent leeg of niet beschikbaar), de vraag als kop links en
    de knoppen rechts op één regel; Ja is de ene gele knop, Nee secundair. In een smal venster loopt het netjes door. */
-:root .cp-meedoen { border-style: solid; max-width: min(760px, 94vw); width: max-content; justify-content: flex-start; text-align: left; padding: var(--ds-s-3) var(--ds-s-3) var(--ds-s-3) var(--ds-s-5); }
+/* boven de onderste HUD-rij (minimap en plaatskaart): op 1280x720 lag de kaart over de plaatsnaam */
+:root .cp-meedoen { bottom: max(96px, 21vh); border-style: solid; max-width: min(760px, 94vw); width: max-content; justify-content: flex-start; text-align: left; padding: var(--ds-s-3) var(--ds-s-3) var(--ds-s-3) var(--ds-s-5); }
 :root .cp-meedoen .cp-meedoen-tekst { flex: 1 1 auto; min-width: 0; margin-right: var(--ds-s-3); font-family: var(--ds-font-zeef-kop); font-weight: 800; font-size: var(--ds-t-subkop); line-height: var(--ds-lh-kop); }
 
 /* De spelerslijst bij Tab en in het pauzemenu (.cs-*) staat in coopspelersui.js; hier alleen de kop-chip. */
