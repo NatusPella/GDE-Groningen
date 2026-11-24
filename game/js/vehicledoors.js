@@ -50,13 +50,13 @@ export const DEUR_DEFS = {
   escort: [...car2(0.08), kap(0.34, 0.9, 0.82), klep(-0.4, 0.55, 0.94)],
   police: [...car4(0.14, -0.13), kap(0.34, 0.95, 0.85), laadklep(0.55, 0.85)],
   van: [
-    ...cab(0.2, 0.75, 0.4, 0.75),
+    ...cab(0.2, 0.75, 0.4, 1.52), // de deur draagt het zijraam (24-11)
     laadklep(0.45, 1.5),
     { id: 'sl', side: 1, x: -0.08, w: 1.0, y0: 0.45, h: 1.3, soort: 'schuif', seat: 'achter', dir: -1 },
   ],
-  cashvan: cab(0.2, 0.75, 0.4, 0.75),
+  cashvan: cab(0.2, 0.75, 0.4, 1.52),
   ambulance: [
-    ...cab(0.2, 0.75, 0.4, 0.75),
+    ...cab(0.2, 0.75, 0.4, 1.52),
     laadklep(0.45, 1.5),
   ],
   truck: cab(0.33, 0.8, 0.5, 1.2).map((d) => ({ ...d, zij: 0.49 })), // de cabine is W - 0,05 breed
