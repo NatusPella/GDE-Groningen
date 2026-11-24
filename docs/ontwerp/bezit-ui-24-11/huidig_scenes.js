@@ -7,7 +7,7 @@ const ONLY = (window.__dsOnly || []);
 const loading = () => document.querySelector('.ls.on:not(.out)');
 const ready = () => window.__debug && window.__debug.world && window.__debug.world.map && document.body.classList.contains('game-started') && !loading();
 const out = [];
-for (let i = 0; i < 240 && !ready(); i++) { if (!document.body.classList.contains('game-started') && i % 8 === 7) tap('Enter', 'Enter'); await sleep(1000); }
+for (let i = 0; i < 700 && !ready(); i++) { if (!document.body.classList.contains('game-started') && i % 8 === 7) tap('Enter', 'Enter'); await sleep(1000); }
 const cine = await imp('cinematics');
 const skipper = setInterval(() => { if (cine.isCinematicActive()) cine.skipCinematic(); }, 100);
 for (let i = 0; i < 40 && cine.isCinematicActive(); i++) await sleep(250);

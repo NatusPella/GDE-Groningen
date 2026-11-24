@@ -11,7 +11,7 @@ const { out, profile, tmp } = runner.prepareRunDir(OUT);
 const script = path.join(out, `_page-${size}.js`);
 fs.writeFileSync(script, `window.__dsOnly = ${JSON.stringify(only)};\n` + scenes);
 const env = { ...runner.electronEnv({ profile, tmp }), GDE_NO_THROTTLE: '1', GDE_GAME_DIR: path.resolve(arg('game')) };
-const r = await runner.runElectron({ electron, cwd: path.join(ROOT, 'desktop'), env, out, timeoutMin: 14, slot: { label: 'bezit-ui ' + size },
+const r = await runner.runElectron({ electron, cwd: path.join(ROOT, 'desktop'), env, out, timeoutMin: 24, slot: { label: 'bezit-ui ' + size },
   args: ['.', '--windowed', '--stil', '--force-device-scale-factor=1', `--window-size=${size}`, '--in-process-gpu', '--disable-renderer-backgrounding', '--disable-backgrounding-occluded-windows', '--disable-background-timer-throttling', '--disable-features=CalculateNativeWinOcclusion', `--smoke-test=${path.join(out, size + '.png')}`, `--perf-script=${script}`] });
 runner.removeProfile(profile);
 console.log(size, r.perfScript ? String(r.perfScript).slice(0, 2000) : 'geen resultaat', 'exit', r.code);
