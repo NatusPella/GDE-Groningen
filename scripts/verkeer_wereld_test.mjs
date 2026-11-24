@@ -11,6 +11,9 @@ import './node3d.mjs';
 const verbose = process.argv.includes('--verbose');
 const secsArg = process.argv.find((a) => a.startsWith('--secs='));
 const TT = secsArg ? +secsArg.slice(7) : 240;
+// --json=<bestand>: elk gevelschaafje met de oorzaakvelden (rijstrook, ruimte tot de gevel, keren, afstand tot het weguiteinde) voor de analyse
+const jsonArg = process.argv.find((a) => a.startsWith('--json='));
+const wallLog = [];
 let seed = +(process.env.SEED || 777);
 Math.random = () => { seed = (seed * 1664525 + 1013904223) >>> 0; return seed / 4294967296; };
 let virtueleMs = 0;
@@ -87,7 +90,13 @@ for (const [name, sx, sy] of SPOTS) {
         // het midden van de auto in een voetafdruk (voor het wegduwen): de AI-baan loopt dan door het gebouw
         // (behalve op een tunnelweg: de garage-inrit van een winkel of kantoor ligt bewust onder of in de voetafdruk, #1047)
         if (!(v.z > 3) && !v.road.tunnel && map.buildingsNear(v.x, v.y, 3).some((b) => pointInPolygon(v.x, v.y, b.pts) && !inPassage(map, b, v.x, v.y, 0.35, 'car'))) note('inside', v, t, `v ${v.speed.toFixed(1)} cat ${v.road.cat}`);
-        if (V.resolveVehicleBuildingCollision(v, map, DT) && Math.abs(v.speed) > 1.5) note('wall', v, t, `v ${v.speed.toFixed(1)} cat ${v.road.cat} w ${v.road.width} ${wallInfo(v)}`);
+        if (V.resolveVehicleBuildingCollision(v, map, DT) && Math.abs(v.speed) > 1.5) {
+          if (jsonArg && !seen.wall.has(v.id)) {
+            const P = v.road.pts, eind = Math.min(Math.hypot(P[0][0] - v.x, P[0][1] - v.y), Math.hypot(P[P.length - 1][0] - v.x, P[P.length - 1][1] - v.y));
+            wallLog.push({ plek: name, t: Math.round(t), model: v.model && v.model.name, x: +v.x.toFixed(1), y: +v.y.toFixed(1), v: +v.speed.toFixed(1), weg: v.road.name || v.road.type, cat: v.road.cat, breedte: v.road.width, eenrichting: !!v.road.oneway, keren: !!v.tightTurn, ruimte: v.road._fit ? +v.road._fit.c.toFixed(2) : null, halfWid: v.halfWid, halfLen: v.halfLen, totEinde: +eind.toFixed(1), info: wallInfo(v) });
+          }
+          note('wall', v, t, `v ${v.speed.toFixed(1)} cat ${v.road.cat} w ${v.road.width} ${wallInfo(v)}`);
+        }
       }
     }
     V.resolveVehicleVehicleCollisions(world.vehicles, world);
@@ -122,6 +131,7 @@ for (const [name, sx, sy] of SPOTS) {
   console.log(`${name}: ${world.vehicles.length} voertuigen aan het eind; in gebouw ${seen.inside.size}, schaaf ${seen.wall.size}, water ${seen.water.size}, naast weg ${seen.offroad.size}, vast ${seen.stuck.size}, blijvende overlap ${longOverlap}`);
 }
 for (const r of report) console.log('  ' + r);
+if (jsonArg) (await import('node:fs')).writeFileSync(jsonArg.slice(7), JSON.stringify(wallLog, null, 1));
 // De streefwaarde is overal 0 (STRICT=1); de standaardgrenzen zijn de gemeten stand na de wegtoets van #1047 (zie docs/VERKEER-AUDIT-21-11.md),
 // zodat een verslechtering de test laat falen terwijl de restpunten (hoekensnijden bij kruispunten, doodlopende landpaden aan de sloot) open staan.
 // Gevelschaafjes en 'naast het wegdek' zijn tellingen over een willekeurige stroom: een kleine wijziging in de wegkeuze verschuift ze (69 naar 64 bij de zijwaterstoets).
