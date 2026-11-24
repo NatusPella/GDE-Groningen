@@ -98,6 +98,21 @@ export function checkAudio(dir) {
   return { ok: problems.length === 0, files: refs.size, problems };
 }
 
+// De twee rigs van de modulaire mensen (ADR 0050, modularpeople.js loadModularPeople): zonder deze bestanden bouwt het spel stil
+// de oude procedurele mensen, voor de speler, Tessa en elke voorbijganger (controle coördinator 24-11, #1330). Een stage of een
+// release zonder rigs is dus stuk; de build stopt erop.
+export const MODULAR_RIG_FILES = ['models/mensen/man.json', 'models/mensen/man.bin', 'models/mensen/vrouw.json', 'models/mensen/vrouw.bin'];
+export function checkModularRigs(dir) {
+  const problems = [];
+  for (const rel of MODULAR_RIG_FILES) {
+    let size = -1;
+    try { size = fs.statSync(path.join(dir, rel)).size; } catch (err) { problems.push(`rigbestand ontbreekt (${rel})`); continue; }
+    if (size < (rel.endsWith('.bin') ? 100000 : 1000)) problems.push(`rigbestand te klein (${rel}: ${size} bytes)`);
+    else if (rel.endsWith('.json')) { try { JSON.parse(fs.readFileSync(path.join(dir, rel), 'utf8')); } catch (err) { problems.push(`rigbestand onleesbaar (${rel})`); } }
+  }
+  return { ok: problems.length === 0, problems };
+}
+
 export const formatProblems = (problems) => problems.map((p) => '  ' + p).join('\n');
 
 // Niets in de stage mag bij het laden nog van internet komen (#593 punt 7). De build

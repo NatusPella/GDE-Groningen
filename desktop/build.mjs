@@ -8,7 +8,7 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { BUILD_ONLY } from '../scripts/lib/buildonly.mjs';
-import { checkWorld, checkAudio, checkOffline, formatProblems } from '../scripts/lib/stagecheck.mjs';
+import { checkWorld, checkAudio, checkOffline, checkModularRigs, formatProblems } from '../scripts/lib/stagecheck.mjs';
 import { withModulePreload, reachableFromMain } from '../web/preload.mjs';
 import { assertStageOut } from '../scripts/lib/stageout.mjs';
 import { loadLock, lockProblem, serializeLock, sha256, LOCK_FILE } from '../scripts/lib/vendorlock.mjs';
@@ -221,6 +221,9 @@ async function main() {
   // the vendored three.js and fonts must ship with their licence texts
   fs.copyFileSync(path.join(HERE, '..', 'NOTICE.md'), path.join(OUT, 'NOTICE.md'));
   fs.cpSync(path.join(HERE, '..', 'licenses'), path.join(OUT, 'licenses'), { recursive: true });
+  // de mensen (ADR 0050): zonder de twee rigs valt het hele spel stil terug op de oude procedurele mensen; een stage of release
+  // zonder die bestanden is stuk, dus stoppen in plaats van stil bouwen (controle coördinator 24-11, #1330)
+  { const rigs = checkModularRigs(OUT); if (!rigs.ok) throw new Error('de mensen ontbreken in de stage: ' + formatProblems(rigs.problems)); }
 
   // 1. which CDN modules does the game use?
   const texts = walk(OUT).filter((f) => /\.(js|mjs|html)$/.test(f));

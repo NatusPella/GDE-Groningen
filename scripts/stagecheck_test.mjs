@@ -5,8 +5,9 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import zlib from 'node:zlib';
-import { checkWorld, checkAudio, checkOffline } from './lib/stagecheck.mjs';
+import { checkWorld, checkAudio, checkOffline, checkModularRigs, MODULAR_RIG_FILES } from './lib/stagecheck.mjs';
 import { encodeTerrain, TERRAIN_FILE } from '../game/js/terraincache.js';
 
 const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'gde-stage-test-'));
@@ -194,6 +195,19 @@ t('een uitzondering met reden is de enige manier om een externe URL toe te staan
   const r = checkOffline(path.join(dir, 'offline'), { allow: [{ match: /^https:\/\/www\.openstreetmap\.org\//, why: 'attributie' }] });
   assert.equal(r.ok, true, r.problems.join('; '));
   assert.equal(checkOffline(path.join(dir, 'offline')).ok, false, 'zonder uitzondering is het een fout');
+});
+
+// --- de mensen (#1330, controle coördinator 24-11)
+t('de rigs van de modulaire mensen staan in de bron en de build stopt zonder', () => {
+  const game = new URL('../game/', import.meta.url);
+  const bron = checkModularRigs(fileURLToPath(game));
+  assert.equal(bron.ok, true, bron.problems.join('; '));
+  write('rigs/models/mensen/man.json', '{}');
+  const kapot = checkModularRigs(path.join(dir, 'rigs'));
+  assert.equal(kapot.ok, false);
+  assert.ok(kapot.problems.some((p) => p.includes('vrouw.bin')) && kapot.problems.some((p) => p.includes('man.json')), kapot.problems.join('; '));
+  assert.equal(MODULAR_RIG_FILES.length, 4);
+  assert.match(fs.readFileSync(new URL('../desktop/build.mjs', import.meta.url), 'utf8'), /checkModularRigs\(OUT\)/, 'desktop/build.mjs controleert de rigs');
 });
 
 console.log(`stagecheck_test: ${n}/${n} ok`);
