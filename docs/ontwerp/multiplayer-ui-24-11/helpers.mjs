@@ -52,9 +52,9 @@ export function hints(lijst) {
 }
 export const HINT_STD = [['↑+↓', 'kiezen'], ['Enter', 'doen'], ['Q+E', 'tabblad'], ['Esc', 'terug']];
 
-// de tabrij van Spel: zonder sessie Overzicht, Samen spelen, Opslaan & stoppen; in een sessie vervangen Spelers, Uitnodigen en Sessie het ene tabblad Samen spelen (geen tweede tabrij meer)
-export const TABS_ZONDER = [['overzicht', 'Overzicht'], ['samen', 'Samen spelen'], ['opslaan', 'Opslaan & stoppen']];
-export const tabsMet = (n) => [['overzicht', 'Overzicht'], ['spelers', 'Spelers', n], ['uitnodigen', 'Uitnodigen'], ['sessie', 'Sessie'], ['praten', 'Praten · later', null, 'uit'], ['opslaan', 'Opslaan & stoppen']];
+// de tabrij van Spel: zonder sessie Overzicht, Samen spelen, Opslaan en stoppen; in een sessie vervangen Spelers, Uitnodigen en Sessie het ene tabblad Samen spelen (geen tweede tabrij meer)
+export const TABS_ZONDER = [['overzicht', 'Overzicht'], ['samen', 'Samen spelen'], ['opslaan', 'Opslaan en stoppen']];
+export const tabsMet = (n) => [['overzicht', 'Overzicht'], ['spelers', 'Spelers', n], ['uitnodigen', 'Uitnodigen'], ['sessie', 'Sessie'], ['praten', 'Praten · later', null, 'uit'], ['opslaan', 'Opslaan en stoppen']];
 
 // de kopband: eyebrow, titel, onderregel en rechts de statusblokken
 export function kop({ eb = 'Spel', titel = 'Samen spelen', sub = '', rechts = '' }) {
@@ -67,16 +67,31 @@ export function tabrij(tabs, actief) {
   return `<nav class="mp-tabs" role="tablist" aria-label="Spel"><span class="mp-tabs__q">${toets('Q')}</span>` + tabs.map(([id, t, n, uit, aandacht]) => `<button type="button" role="tab" class="mp-tab${aandacht ? ' mp-tab--aandacht' : ''}" aria-selected="${id === actief}"${uit ? ' aria-disabled="true"' : ''}>${esc(t)}${n != null ? `<small>${n}</small>` : ''}</button>`).join('') + `<span class="mp-tabs__e">${toets('E')}</span></nav>`;
 }
 
-// het pauzemenu eromheen: rail en paneel (bestaand, nagebootst); in een sessie toont Spel het aantal spelers
-export function frame({ tabs = TABS_ZONDER, actief = 'samen', koptekst, inhoud, hint = HINT_STD, overlay = '', rail = 'Spel', sessieN = 0, rust = false }) {
-  const railHtml = `<aside class="rail"><span class="rail__logo">GDE</span><span class="rail__datum">Vrijdag 14 augustus · 08:07</span>` +
-    RAIL.map(([g, items]) => `<div class="rail__groep">${g}</div>` + items.map((t) => `<div class="rail__item"${t === rail ? ' aria-current="true"' : ''}>${t}${t === 'Spel' && sessieN ? `<small>${I('spelers', 'mp-ic--s')}${sessieN}</small>` : ''}</div>`).join('')).join('') + '</aside>';
-  return `<div class="stage ds-zeef${rust ? ' ds-rustig' : ''}">${railHtml}<main class="pane">${koptekst}${tabrij(tabs, actief)}${inhoud}</main>${hints(hint)}${overlay}</div>`;
+// het pauzemenu eromheen (afgestemd met het Spel-ontwerp, docs/ontwerp/SPEL-UI-24-11.md): de rail zonder kop boven een groep van één, de tijd rechtsboven, Doorgaan secundair
+// zodra het paneel een eigen gele knop heeft, een rode ruit bij nieuws en Afsluiten met de versie onderaan
+const NAV = { Spel: 'spel', Verhaal: 'verhaal', Activiteiten: 'todo', Loopbanen: 'loopbaan', Kaart: 'kaart', Spullen: 'spullen', Garage: 'garage', 'Land en bedrijf': 'boerderij', Veroverd: 'veroverd', Prestaties: 'prestaties', "Foto's": 'fotos', Instellingen: 'instellingen' };
+export function rail({ actief = 'Spel', doorgaan = 'primair', sessieN = 0, punt = ['Verhaal', 'Garage'] } = {}) {
+  const item = (t) => `<div class="rail__item"${t === actief ? ' aria-current="true"' : ''}>${I(NAV[t])}<span>${t}</span>${t === 'Spel' && sessieN ? `<span class="n">${I('spelers', 'mp-ic--s')} ${sessieN}</span>` : punt.includes(t) ? '<i class="punt" aria-label="nieuw"></i>' : ''}</div>`;
+  const groep = (g, items) => `<div class="rail__groep">${g}</div>` + items.map(item).join('');
+  return `<aside class="rail"><div class="rail__kop"><span class="rail__logo">GDE</span><span class="rail__tijd"><b>08:07</b>Vrijdag 14 augustus</span></div>` +
+    `<div class="rail__go">${knop(I('hervat') + 'Doorgaan', doorgaan === 'primair' ? '' : 'secundair')}${knop(I('zoek'), 'secundair', 'rail__zoek')}</div>` +
+    item('Spel') + '<div class="rail__sp"></div>' + groep('Doen', ['Verhaal', 'Activiteiten', 'Loopbanen', 'Kaart']) + '<div class="rail__sp"></div>' + groep('Bezit', ['Spullen', 'Garage', 'Land en bedrijf']) + '<div class="rail__sp"></div>' + groep('Voortgang', ['Veroverd', 'Prestaties', "Foto's"]) +
+    `<div class="rail__lijn"></div>${item('Instellingen')}<div class="rail__rek"></div><div class="rail__voet"><div class="rail__item">${I('uitgang')}<span>Afsluiten</span></div><span class="rail__ver">v0.66.0</span></div></aside>`;
 }
-// een scherm van de sessie (Spelers, Uitnodigen, Sessie): kopband met drie statusblokken, tabrij, inhoud
-export function sessieFrame({ actief, rol = 'opener', n = 4, verb = 'goed', zicht = 'Privé', naam = 'Zomeravond', inhoud, hint = HINT_STD, overlay = '', tabs = null, sub = null }) {
-  const onderregel = sub || (rol === 'opener' ? `<b>${esc(naam)}</b> · jij opende het spel` : `<b>${esc(naam)}</b> · Sem opende het spel`);
-  return frame({ tabs: tabs || tabsMet(n), actief, koptekst: kop({ sub: onderregel, rechts: kopRechts({ n, verb, zicht }) }), inhoud, hint, overlay, sessieN: n });
+// de Aandacht-strook onder de tabs: hoogstens drie regels, elk één doel met een woord (NU rood, VANDAAG geel streepje, NIEUW bordgroen) en een pijl; leeg = weg
+const URG = { nu: ['NU', 'waarschuwing'], vandaag: ['VANDAAG', 'tijd'], nieuw: ['NIEUW', 'bericht'] };
+export const aandacht = (items = []) => (items.length ? `<div class="mp-aandacht"><div class="mp-aandacht__kop">${I('klembord')}<span>Aandacht</span></div>${items.map(([u, kopTekst, sub], i) => `<button type="button" class="mp-klus mp-klus--${u}">${status(u === 'nieuw' ? 'goed' : u === 'nu' ? 'probleem' : '', URG[u][0], URG[u][1])}<span class="mp-klus__tekst"><b>${esc(kopTekst)}</b><span>${esc(sub)}</span></span>${I('pijl_rechts')}</button>`).join('')}</div>` : '');
+export function frame({ tabs = TABS_ZONDER, actief = 'samen', koptekst, inhoud, hint = HINT_STD, overlay = '', railNaam = 'Spel', sessieN = 0, rust = false, strook = '', doorgaan = null }) {
+  const eigenGeel = /<button[^>]*class="ds-z-knop(?! ds-z-knop--)[^"]*"/.test(inhoud);
+  const railHtml = rail({ actief: railNaam, doorgaan: doorgaan || (eigenGeel ? 'secundair' : 'primair'), sessieN });
+  return `<div class="stage ds-zeef${rust ? ' ds-rustig' : ''}">${railHtml}<main class="pane">${koptekst}${tabrij(tabs, actief)}${strook}${inhoud}</main>${hints(hint)}${overlay}</div>`;
+}
+// de kopband van Spel (Spel-ontwerp): titel is het tabblad, rechts Geld, Gezondheid en Gezocht, op elk tabblad gelijk
+export const spelKop = (titel, eb = 'Spel') => kop({ eb, titel, rechts: blokStatus('Geld', '€12.840', 'geld') + blokStatus('Gezondheid', '100%', 'hart') + blokStatus('Gezocht', 'Niet', 'politie') });
+// een scherm van de sessie (Spelers, Uitnodigen, Sessie): de kopband van Spel met de sessie in de eyebrow, de tabrij, een Aandacht-strook en de inhoud
+export function sessieFrame({ actief, rol = 'opener', n = 4, naam = 'Zomeravond', inhoud, hint = HINT_STD, overlay = '', tabs = null, strook = [], titel = null }) {
+  const titels = { spelers: 'Spelers', uitnodigen: 'Uitnodigen', sessie: 'Sessie', praten: 'Praten' };
+  return frame({ tabs: tabs || tabsMet(n), actief, koptekst: spelKop(titel || titels[actief] || 'Samen spelen', `Spel · ${naam} · ${n} van 8 spelers`), inhoud, hint, overlay, sessieN: n, strook: aandacht(strook) });
 }
 
 // in het spel (HUD): de schermfoto van de wereld als achtergrond

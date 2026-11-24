@@ -13,13 +13,27 @@ html, body { margin: 0; height: 100%; background: var(--ds-c-glas); overflow: hi
 .mp-ic--xl { width: 32px; height: 32px; }
 
 /* ---------- het pauzemenu eromheen (bestaand, hier nagebootst) ---------- */
-.rail { position: absolute; left: 76px; top: 75px; width: 260px; height: 806px; background: var(--ds-c-ink-papier); border-radius: var(--ds-r); padding: 14px 20px; display: flex; flex-direction: column; gap: 2px; overflow: hidden; }
-.rail__logo { font-family: var(--ds-font-logo); font-weight: 900; font-size: 30px; color: var(--ds-c-ink-bord); border: 2px solid var(--ds-c-ink-inkt); border-radius: 6px; padding: 0 8px; align-self: flex-start; line-height: 1.1; }
-.rail__datum { font-size: var(--ds-t-hulp); margin: 6px 0 8px; }
-.rail__groep { font-family: var(--ds-font-zeef-kop); font-weight: 800; font-size: 14px; letter-spacing: var(--ds-ls-label); text-transform: uppercase; margin: 12px 0 2px; }
-.rail__item { display: flex; align-items: center; gap: 10px; height: 40px; padding: 0 8px; font-family: var(--ds-font-zeef-kop); font-weight: 800; font-size: 22px; color: var(--ds-c-ink-bord); }
-.rail__item small { margin-left: auto; font-size: 15px; font-family: var(--ds-font-zeef-kop); color: var(--ds-c-ink-inkt); display: inline-flex; align-items: center; gap: 4px; }
-.rail__item[aria-current="true"] { background: var(--ds-c-sel-vlak); box-shadow: inset 4px 0 0 var(--ds-c-ink-bord); margin: 0 -20px; padding: 0 28px; }
+.rail { position: absolute; left: 76px; top: 75px; width: 260px; height: 806px; background: var(--ds-c-ink-papier); border-radius: var(--ds-r); padding: 12px 0 10px; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35); }
+.rail__kop { display: flex; align-items: center; justify-content: space-between; padding: 0 16px 0 20px; }
+.rail__logo { font-family: var(--ds-font-logo); font-weight: 900; font-size: 30px; color: var(--ds-c-ink-bord); border: 2px solid var(--ds-c-ink-inkt); border-radius: 6px; padding: 0 8px; line-height: 1.1; }
+.rail__tijd { font-size: 14px; text-align: right; line-height: 1.15; color: var(--ds-c-inkt-zacht); }
+.rail__tijd b { display: block; font-family: var(--ds-font-zeef-kop); font-weight: 800; font-size: 17px; color: var(--ds-zeef-tx); letter-spacing: var(--ds-ls-label); }
+.rail__go { display: flex; gap: 8px; padding: 10px 14px 6px 16px; }
+.rail__go .ds-z-knop { flex: 1; min-height: 46px; font-size: 22px; padding: 0 12px; }
+.rail__go .ds-z-knop--secundair { box-shadow: var(--ds-schaduw-hard-klein); }
+.rail__zoek { width: 46px; min-width: 46px; padding: 0 !important; flex: none !important; }
+.rail__groep { font-family: var(--ds-font-zeef-kop); font-weight: 800; font-size: 14px; letter-spacing: var(--ds-ls-label); text-transform: uppercase; color: var(--ds-c-ink-bord); padding: 10px 20px 2px; }
+.rail__item { position: relative; display: flex; align-items: center; gap: 10px; height: 40px; padding: 0 20px; font-family: var(--ds-font-zeef-kop); font-weight: 800; font-size: 22px; color: var(--ds-c-inkt-zacht); letter-spacing: 0.01em; }
+.rail__item .mp-ic { width: 22px; height: 22px; }
+.rail__item[aria-current="true"] { background: var(--ds-c-sel-vlak); box-shadow: inset 4px 0 0 var(--ds-c-ink-bord); color: var(--ds-zeef-tx); }
+.rail__item .n { margin-left: auto; font-size: 14px; letter-spacing: 0; font-weight: 800; }
+.rail__item .punt { margin-left: auto; width: 10px; height: 10px; background: var(--ds-c-rood); border: 2px solid var(--ds-c-ink-inkt); transform: rotate(45deg); }
+.rail__sp { height: 6px; flex: none; }
+.rail__lijn { border-top: var(--ds-lijn-dik) solid var(--ds-c-ink-inkt); margin: 8px 20px 4px; }
+.rail__rek { flex: 1; }
+.rail__voet { display: flex; flex-direction: column; padding: 2px 0 0; font-size: 14px; color: var(--ds-c-inkt-zacht); }
+.rail__voet .rail__item { height: 36px; font-size: 20px; }
+.rail__ver { padding: 0 20px; font-size: 13px; }
 .pane { position: absolute; left: 384px; top: 75px; width: 1444px; height: 806px; background: var(--ds-c-ink-papier); border-radius: var(--ds-r); padding: 18px 28px 0; display: flex; flex-direction: column; gap: 10px; overflow: hidden; box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35); }
 .hints { position: absolute; left: 384px; top: 902px; width: 1444px; display: flex; gap: 28px; align-items: center; color: var(--ds-c-wit); font-size: var(--ds-t-hulp); }
 .hints span { display: inline-flex; align-items: center; gap: 8px; }
@@ -203,3 +217,39 @@ html, body { margin: 0; height: 100%; background: var(--ds-c-glas); overflow: hi
 .mp-zo span { font-size: 17px; }
 .mp-tabel--s .ds-z-tabel tbody tr { height: 46px; }
 .mp-tabel--s .ds-z-tabel td { padding-top: 4px; padding-bottom: 4px; }
+
+/* de Aandacht-strook (zelfde vorm als Nu te doen in Land en bedrijf, label Aandacht; afgestemd met het Spel-ontwerp) */
+.mp-aandacht { display: flex; align-items: stretch; gap: 10px; }
+.mp-aandacht__kop { display: flex; flex-direction: column; justify-content: center; font-family: var(--ds-font-zeef-kop); font-weight: 800; font-size: 14px; letter-spacing: var(--ds-ls-label); text-transform: uppercase; width: 64px; line-height: 1.1; flex: none; }
+.mp-klus { flex: 1; min-width: 0; display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 10px; padding: 3px 12px; min-height: 46px; background: var(--ds-zeef-bg); border: var(--ds-lijn-dik) solid var(--ds-c-ink-inkt); border-left: var(--ds-status-rand) solid var(--ds-c-ink-inkt); border-radius: var(--ds-r); cursor: pointer; text-align: left; }
+.mp-klus--nu { border-left-color: var(--ds-c-rood); background: var(--ds-c-rood-vlak); }
+.mp-klus--vandaag { border-left-color: var(--ds-c-ink-geel); }
+.mp-klus--later { border-left-style: dashed; border-left-color: var(--ds-c-inkt-zacht); border-style: dashed; }
+.mp-klus__tekst { display: flex; flex-direction: column; min-width: 0; line-height: 1.15; }
+.mp-klus__tekst b { font-family: var(--ds-font-zeef-kop); font-weight: 800; font-size: 18px; letter-spacing: 0.02em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mp-klus__tekst span { font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mp-klus__meer { flex: none; display: inline-flex; align-items: center; justify-content: center; padding: 0 14px; font-family: var(--ds-font-zeef-kop); font-weight: 800; font-size: 16px; text-transform: uppercase; letter-spacing: var(--ds-ls-label); border: 2px dashed var(--ds-c-ink-inkt); border-radius: var(--ds-r); }
+/* de bevestiging: wat je verliest en wat blijft; de veilige keuze is geel met de focus, het onomkeerbare is rood en vraagt vasthouden (afgestemd met het Spel-ontwerp) */
+.mp-bevestig { width: 760px; display: flex; flex-direction: column; gap: 14px; padding: 22px 26px; background: var(--ds-c-ink-papier); border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); border-radius: var(--ds-r); box-shadow: var(--ds-schaduw-hard); }
+.mp-bevestig__kop { font-family: var(--ds-font-zeef-kop); font-weight: 800; font-size: 40px; line-height: 1; text-shadow: var(--ds-misdruk); }
+.mp-bevestig p { font-size: 19px; line-height: 1.35; }
+.mp-bevestig__acties { display: flex; gap: 14px; align-items: center; flex-wrap: wrap; margin-top: 4px; }
+.mp-bevestig__acties .ds-z-knop { min-height: 52px; padding: 0 22px; font-size: 22px; }
+.mp-bevestig__acties .mp-rechts { margin-left: auto; }
+.sp-vergelijk { display: grid; grid-template-columns: 1fr 44px 1fr; align-items: stretch; gap: 0; }
+.sp-vergelijk__zij { display: flex; flex-direction: column; gap: 6px; padding: 10px 12px; border: var(--ds-lijn-dik) solid var(--ds-c-ink-inkt); border-radius: var(--ds-r); background: var(--ds-zeef-bg); }
+.sp-vergelijk__zij--weg { border-color: var(--ds-c-rood); background: var(--ds-c-rood-vlak); }
+.sp-vergelijk__zij .sp-thumb { width: 100%; height: auto; aspect-ratio: 16 / 9; }
+.sp-vergelijk__pijl { display: grid; place-items: center; font-family: var(--ds-font-zeef-kop); font-weight: 800; font-size: 28px; }
+.sp-vergelijk__zij b { font-family: var(--ds-font-zeef-kop); font-weight: 800; font-size: 20px; letter-spacing: var(--ds-ls-label); text-transform: uppercase; }
+.sp-vergelijk__zij span { font-size: 16px; }
+.mp-verlies { display: flex; flex-direction: column; gap: 6px; padding: 10px 14px; border: var(--ds-lijn-dik) solid var(--ds-c-ink-inkt); border-radius: var(--ds-r); background: var(--ds-zeef-bg); }
+.mp-verlies--weg { border-color: var(--ds-c-rood); }
+.mp-verlies__regel { display: flex; align-items: baseline; gap: 10px; font-size: 18px; }
+.mp-verlies__regel .mp-ic { align-self: center; }
+.mp-verlies__regel b { font-family: var(--ds-font-zeef-kop); font-weight: 800; letter-spacing: var(--ds-ls-label); text-transform: uppercase; font-size: 16px; min-width: 120px; }
+.mp-vasthoud { position: relative; overflow: hidden; }
+.mp-vasthoud::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: var(--vul, 0%); background: var(--ds-c-rood-vlak); z-index: 0; }
+.mp-vasthoud > * { position: relative; z-index: 1; }
+.mp-focus { outline: var(--ds-focus-dikte) solid var(--ds-zeef-tx); outline-offset: 3px; }
+.mp-stat { display: inline-flex; align-items: center; gap: 6px; }

@@ -1,5 +1,5 @@
 // Schermen C: toestemming, in het spel (Tab, naamplaten, kaart), Meedoen?, gezamenlijke keuzes, hostwissel, verbindingsverlies, hervatten, beloning, praten (gereserveerd), instellingen, toestanden, bediening.
-import { I, esc, toets, knop, klein, link, tussenkop, status, blokStatus, seg, stapper, feiten, notitie, vink, sig, vorm, standTekst, P, frame, kop, tabrij, hints, HINT_STD, TABS_ZONDER, hudFrame, sessieFrame, tabsMet } from './helpers.mjs';
+import { spelKop, I, esc, toets, knop, klein, link, tussenkop, status, blokStatus, seg, stapper, feiten, notitie, vink, sig, vorm, standTekst, P, frame, kop, tabrij, hints, HINT_STD, TABS_ZONDER, hudFrame, sessieFrame, tabsMet } from './helpers.mjs';
 
 const nu = (t) => `<span class="mp-naamplaat">${t}</span>`;
 const kaartKop = (titel, ic) => `<div class="kop">${ic ? I(ic) : ''}${esc(titel)}</div>`;
@@ -9,7 +9,7 @@ const tijdBalk = (pct, tekst) => `<div class="mp-rij" style="gap:10px"><div clas
 export default function (S) {
   // ---- toestemming bij het verbinden: eerlijk, per dienst, zonder jargon in de koppen
   S['j-toestemming'] = () => frame({
-    actief: 'samen', koptekst: kop({ sub: 'Voor je verbindt: dit gaat er naar buiten en naar wie.', rechts: blokStatus('Nu', 'Nog niets', 'slot', 'goed') }),
+    actief: 'samen', koptekst: spelKop('Samen spelen'),
     inhoud: `<div class="mp-kol" style="gap:10px;margin-top:6px"><table class="mp-wie"><thead><tr><th>Wie</th><th>Wat zien ze</th><th>Waarom</th></tr></thead><tbody>
         <tr><td>Je medespelers<small>de mensen in jouw sessie</small></td><td>Je naam, je kleur en je IP-adres.</td><td>Een rechtstreekse verbinding tussen jullie computers kan niet zonder.</td></tr>
         <tr><td>Hulpservers om elkaar te vinden<small>openbaar, niet van ons</small></td><td>Je IP-adres, en dat je een verbinding zoekt. Net als elke server die je bereikt.</td><td>Ze vertellen je computer hoe die van buiten te bereiken is.</td></tr>
@@ -40,7 +40,7 @@ export default function (S) {
   S['k2-kaart'] = () => {
     const mark = (x, y, p, ex = '') => `<span class="mp-vorm mp-vorm--s" style="position:absolute;left:${x}px;top:${y}px;--k:${p.k};${ex}">${p.v}</span><span class="mp-naamplaat" style="position:absolute;left:${x + 30}px;top:${y}px;font-size:16px;padding:0 8px">${p.naam}</span>`;
     return frame({
-      rail: 'Kaart', actief: 'kaart', tabs: [['kaart', 'Kaart'], ['plekken', 'Plekken'], ['route', 'Route']], koptekst: kop({ eb: 'Doen', titel: 'Kaart', sub: 'Groningen · 08:07', rechts: blokStatus('Spelers op de kaart', '5', 'spelers') }),
+      railNaam: 'Kaart', actief: 'kaart', tabs: [['kaart', 'Kaart'], ['plekken', 'Plekken'], ['route', 'Route']], koptekst: kop({ eb: 'Doen', titel: 'Kaart', sub: 'Groningen · 08:07', rechts: blokStatus('Spelers op de kaart', '5', 'spelers') }),
       inhoud: `<div class="mp-md" style="grid-template-columns:1fr 380px;margin-top:6px"><div class="kaartvlak" style="height:100%"><svg viewBox="0 0 900 560" preserveAspectRatio="none"><rect width="900" height="560" fill="var(--ds-c-papier-2)"/><path d="M0,330 C150,300 250,380 400,350 S700,300 900,340 L900,420 C700,380 550,430 400,430 S120,410 0,420Z" fill="var(--ds-c-glas)" opacity=".55"/>${[[80, 40, 700, 40], [80, 150, 700, 150], [120, 40, 120, 520], [330, 40, 330, 520], [560, 40, 560, 520], [750, 40, 750, 520], [80, 250, 860, 250]].map(([a, b, c, d]) => `<line x1="${a}" y1="${b}" x2="${c}" y2="${d}" stroke="var(--ds-c-ink-inkt)" stroke-width="6" opacity=".25"/>`).join('')}</svg>
         <div style="position:absolute;inset:0">${mark(420, 200, P[0])}${mark(560, 120, P[1])}${mark(470, 330, P[2], 'opacity:.7')}${mark(300, 170, P[4])}<span class="mp-vorm mp-vorm--s mp-vorm--weg" style="position:absolute;left:180px;top:250px;--k:#ff9a62">♥</span><span class="mp-hulp" style="position:absolute;left:215px;top:252px;background:var(--ds-c-ink-papier);padding:0 6px">Liv · laatst gezien</span>
         <div class="mp-rij" style="position:absolute;left:12px;bottom:12px;gap:8px;background:var(--ds-c-ink-papier);border:2px solid var(--ds-c-ink-inkt);border-radius:6px;padding:4px 10px;font-size:15px">${toets('S')} spelers tonen of verbergen</div></div></div>
@@ -105,7 +105,7 @@ export default function (S) {
 
   // ---- Instellingen, Samen spelen
   S['s-instellingen'] = () => frame({
-    rail: 'Instellingen', actief: 'samen', tabs: [['beeld', 'Beeld'], ['geluid', 'Geluid'], ['regels', 'Spelregels'], ['moeilijk', 'Moeilijkheid'], ['besturing', 'Besturing'], ['interface', 'Interface'], ['hints', 'Hints'], ['toegank', 'Toegankelijkheid'], ['samen', 'Samen spelen']],
+    railNaam: 'Instellingen', actief: 'samen', tabs: [['beeld', 'Beeld'], ['geluid', 'Geluid'], ['regels', 'Spelregels'], ['moeilijk', 'Moeilijkheid'], ['besturing', 'Besturing'], ['interface', 'Interface'], ['hints', 'Hints'], ['toegank', 'Toegankelijkheid'], ['samen', 'Samen spelen']],
     koptekst: kop({ eb: 'Systeem', titel: 'Instellingen', sub: 'Samen spelen: je naam, je akkoord en wat je deelt.', rechts: blokStatus('Akkoord', 'Gegeven', 'vinkje', 'goed') }),
     inhoud: `<div class="mp-md" style="grid-template-columns:1fr 1fr;margin-top:6px"><div class="mp-kol" style="gap:12px">${tussenkop('Zo zien anderen je')}<div class="mp-veld"><span class="mp-label">Je naam</span><div class="mp-input mp-input--ok"><span>Sem</span><button type="button" class="ds-z-knop ds-z-knop--secundair">Toetsenbord</button></div></div><div class="mp-rij" style="gap:10px;background:var(--ds-c-ink-inkt);border-radius:var(--ds-r);padding:10px 14px"><span class="mp-naamplaat">${vorm('#4fb3ff', '●', 's')}Sem</span><span style="color:var(--ds-c-wit);font-size:15px">zo staat het boven je figuur</span></div>${seg([['b', 'Blauw ●'], ['g', 'Groen ★'], ['y', 'Geel ✚'], ['o', 'Oranje ♥']], 'b', '', 'Kleur')}<span class="mp-hulp">Meer kleuren en vormen bij “Je figuur”.</span>
         ${tussenkop('Snelle zinnen')}${vink('Snelle zinnen aan (Kom hier, Help!, Kijk daar en meer)', true)}<span class="mp-hulp">Vaste Nederlandse zinnen, geen vrije tekst. Je dempt of blokkeert per speler bij Spelers.</span></div>
@@ -114,11 +114,24 @@ export default function (S) {
     hint: [['↑+↓', 'kiezen'], ['←+→', 'wijzigen'], ['Q+E', 'tabblad'], ['Esc', 'terug']],
   });
 
+
+  // ---- bevestigingen (afgestemd met het Spel-ontwerp): wat je verliest en wat blijft; de veilige keuze is geel met de focus, het onomkeerbare is rood en vraagt vasthouden
+  S['v-bevestig'] = () => {
+    const bev = (titel, regel, verliest, blijft, veilig, rood, gewoon) => `<section class="mp-bevestig" style="width:640px;padding:18px 22px;gap:10px"><h2 class="mp-bevestig__kop" style="font-size:32px">${titel}</h2><p>${regel}</p><div class="mp-verlies mp-verlies--weg"><div class="mp-verlies__regel">${I('waarschuwing', 'mp-ic--s')}<b>Je verliest</b><span>${verliest}</span></div></div><div class="mp-verlies"><div class="mp-verlies__regel">${I('vinkje', 'mp-ic--s')}<b>Blijft</b><span>${blijft}</span></div></div><div class="mp-bevestig__acties">${knop(veilig + ' ' + toets('Enter'), '', 'mp-focus')}${rood ? knop(rood + ' ' + toets('Enter'), 'gevaar', 'mp-vasthoud mp-rechts') : ''}${gewoon ? knop(gewoon, 'secundair', 'mp-rechts') : ''}</div></section>`;
+    const kaarten = `<div class="scherm"><div style="display:grid;grid-template-columns:640px 640px;gap:22px;align-items:start">
+      ${bev('Tijn uit het spel zetten?', 'Hij verlaat de sessie en speelt weer zijn eigen spel.', 'de sessie en de race; zonder hem gaat die door', 'zijn geld, zijn voortgang en zijn eigen spel. Hij kan later opnieuw meedoen.', 'Nee, laat hem', 'Houd vast om hem uit het spel te zetten')}
+      ${bev('Weer privé maken?', 'Je sessie verdwijnt uit de lijst en krijgt een nieuwe code.', 'de oude code: wie hem heeft kan niet meer binnenkomen', 'iedereen die al in de sessie zit, en jullie spel.', 'Nee, laat openbaar', 'Houd vast om privé te maken')}
+      ${bev('Akkoord intrekken?', 'Samen spelen is dan uit tot je opnieuw akkoord geeft.', 'de sessie: je speelt weer je eigen spel', 'je naam, je voortgang en je eigen spel.', 'Nee, houd akkoord', 'Houd vast om in te trekken')}
+      ${bev('Het spel verlaten?', 'Iris neemt het spel over en jullie blijven samen.', 'wat de anderen doen; je speelt weer in je eigen spel', 'tijd, weer en opdracht voor de anderen, en al je eigen voortgang.', 'Nee, blijf', null, 'Ja, verlaat het spel')}
+    </div></div>`;
+    return S['g1-spelers-opener']().replace(/<\/div>\s*$/, kaarten + '</div>');
+  };
+
   // ---- toestanden
   S['t-toestanden'] = () => {
     const kaart = (titel, tekst, acties = '', mod = '') => `<section class="hudkaart hudkaart--kop" style="box-shadow:none;min-height:150px"><div class="kop"${mod ? ' style="background:var(--ds-c-rood)"' : ''}>${titel}</div><span style="font-size:17px">${tekst}</span>${acties ? `<div class="mp-actie">${acties}</div>` : ''}</section>`;
     return frame({
-      actief: 'samen', koptekst: kop({ sub: 'Elk scherm heeft een toestand voor laden, leeg en fout, met altijd een volgende stap.' }),
+      actief: 'samen', koptekst: spelKop('Samen spelen'),
       inhoud: `<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;padding-top:6px;align-content:start">
         <section class="mp-kol" style="gap:6px"><div class="mp-label">Lijst laden</div><div class="mp-skel" style="height:34px"></div><div class="mp-skel" style="height:34px"></div><div class="mp-skel" style="height:34px"></div><span class="mp-hulp">De lijst wordt opgehaald. Dit duurt hooguit 3 seconden.</span></section>
         ${kaart('Geen openbare sessies', 'Nu is er niemand die zijn spel deelt. Open zelf een spel, of vraag een vriend om zijn code.', knop('Open je spel') + link('Kamercode typen'))}
@@ -138,7 +151,7 @@ export default function (S) {
   S['u-bediening'] = () => {
     const rij = (w, t, c, a) => `<tr><td class="l"><b style="font-size:19px">${w}</b></td><td class="l">${t}</td><td class="l">${c}</td><td class="l">${a}</td></tr>`;
     return frame({
-      actief: 'spelers', tabs: tabsMet(5), koptekst: kop({ sub: 'Alles kan met toetsenbord, controller en aanraking; één focusring, elk doel minstens 44 px.', rechts: '' }),
+      actief: 'spelers', tabs: tabsMet(5), koptekst: spelKop('Spelers', 'Spel · Zomeravond · 5 van 8 spelers'),
       inhoud: `<div class="mp-kol" style="gap:10px;margin-top:6px"><div class="mp-tabel"><table class="ds-z-tabel"><thead><tr><th class="l">Wat</th><th class="l">Toetsenbord</th><th class="l">Controller</th><th class="l">Aanraking</th></tr></thead><tbody>
         ${rij('Tabblad wisselen', toets('Q') + ' ' + toets('E'), 'LB en RB', 'tik op het tabblad')}${rij('Speler kiezen', toets('↑') + ' ' + toets('↓'), 'D-pad', 'tik op de rij')}${rij('Acties van een speler', toets('Enter'), 'A', 'tik')}${rij('Terug', toets('Esc'), 'B', 'terugknop')}
         ${rij('Ja of nee (Meedoen?, stemmen)', toets('J') + ' ' + toets('N'), 'A en B', 'tik op Ja of Nee')}${rij('Spelerslijst in het spel', toets('Tab') + ' vasthouden', 'R3', 'knop Spelers')}${rij('Roepen', toets('7') + toets('8') + toets('9'), 'radiaal: R1', 'radiaal')}${rij('Code kopiëren', toets('Enter') + ' op de code', 'A', 'tik op Kopieer')}</tbody></table></div>

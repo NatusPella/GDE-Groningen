@@ -1,7 +1,7 @@
 // Schermen A: de start. Waar speel je, Samen spelen starten, meedoen via code of lijst, eerste keer, openen (privé of openbaar), sessienaam, verbinden, je figuur.
-import { I, esc, toets, knop, klein, link, tussenkop, status, blokStatus, seg, stapper, feiten, notitie, vink, sig, vorm, standTekst, P, frame, kop, tabrij, hints, HINT_STD, TABS_ZONDER, hudFrame } from './helpers.mjs';
+import { spelKop, I, esc, toets, knop, klein, link, tussenkop, status, blokStatus, seg, stapper, feiten, notitie, vink, sig, vorm, standTekst, P, frame, kop, tabrij, hints, HINT_STD, TABS_ZONDER, hudFrame } from './helpers.mjs';
 
-const KOP_START = kop({ sub: 'Met vrienden in dezelfde wereld. Jullie houden elk je eigen geld en verhaal.', rechts: blokStatus('Nu', 'Alleen', 'solo', 'zacht') + blokStatus('Over jou naar buiten', 'Niets', 'slot', 'goed') });
+const KOP_START = spelKop('Samen spelen');
 
 export default function (S) {
   // 1. Samen spelen starten, zonder sessie: twee doelen, een code gewoon op het scherm
@@ -52,7 +52,7 @@ export default function (S) {
 
   // 3a. Open je spel, privé
   const hostForm = (openbaar, naamState) => frame({
-    koptekst: kop({ sub: 'Je opent een wereld. Anderen komen erbij met een code.', rechts: blokStatus('Zichtbaar', openbaar ? 'Openbaar' : 'Privé', openbaar ? 'wifi' : 'slot', openbaar ? '' : 'goed') }),
+    koptekst: spelKop('Samen spelen'),
     inhoud: `<div class="mp-md" style="grid-template-columns:1fr 520px;margin-top:6px">
       <div class="mp-kol" style="gap:14px">
         ${tussenkop('Wie mag meedoen')}
@@ -78,7 +78,7 @@ export default function (S) {
 
   // 3b. Sessienamen: de drie toestanden van het veld, met de lijst verboden woorden in gewone taal
   S['c3-sessienaam'] = () => frame({
-    koptekst: kop({ sub: 'Een naam voor je openbare sessie. Hij staat voor iedereen in de lijst.', rechts: blokStatus('Zichtbaar', 'Openbaar', 'wifi') }),
+    koptekst: spelKop('Samen spelen'),
     inhoud: `<div class="mp-grid2" style="margin-top:8px;gap:22px;align-content:start">
       <div class="mp-kol" style="gap:18px">
         ${tussenkop('Toegestaan')}
@@ -102,7 +102,7 @@ export default function (S) {
   S['d1-lijst'] = () => {
     const rijen = [['Zomeravond', '3/8', '0.66.0', true, 'Ontspannen', ''], ['Pannenkoeken', '1/4', '0.66.0', true, 'Standaard', ''], ['Fietsen in Grunn', '2/6', '0.66.0', true, 'Standaard', 'ster'], ['Late dienst', '8/8', '0.66.0', false, 'Uitdagend', 'vol'], ['Terpentijn', '2/8', '0.65.2', false, 'Standaard', 'versie']];
     return frame({
-      koptekst: kop({ sub: 'Sessies die hun eigenaar zelf openbaar maakte. Alles hier komt van spelers.', rechts: blokStatus('Gevonden', '5', 'wifi') + blokStatus('Kunnen meedoen', '3', 'vinkje', 'goed') }),
+      koptekst: spelKop('Samen spelen'),
       inhoud: `<div class="mp-rij" style="gap:14px;margin-top:4px"><div class="mp-input" style="flex:1;min-height:42px;font-size:19px"><span class="mp-zacht">Zoek op naam</span><button type="button" class="ds-z-knop ds-z-knop--secundair">Toetsenbord</button></div>${seg([['k', 'Kan meedoen'], ['f', 'Favorieten'], ['a', 'Alles']], 'k', 'ds-z-segment--klein', 'Filter')}<span class="ds-z-stapper"><button type="button">‹</button><span>Sorteren: Meeste spelers</span><button type="button">›</button></span></div>
       <div class="mp-md" style="grid-template-columns:1fr 440px">
         <div class="mp-tabel"><table class="ds-z-tabel"><thead><tr><th class="c" style="width:48px"></th><th class="l">Sessie</th><th>Spelers</th><th>Wereld</th><th class="l">Versie</th></tr></thead><tbody>${rijen.map(([n, sp, v, kan, niv, x], i) => `<tr${i === 0 ? ' aria-selected="true"' : ''}${!kan ? ' class="is-weg"' : ''}><td class="c">${x === 'ster' ? I('ster_vol') : I('ster', 'mp-zacht')}</td><td class="l"><b style="font-size:20px">${esc(n)}</b></td><td>${sp}</td><td>${niv}</td><td class="l">${x === 'versie' ? `<span class="ds-z-status ds-z-status--probleem">${I('waarschuwing', 'mp-ic--s')}${v} (jij 0.66.0)</span>` : x === 'vol' ? `<span class="ds-z-status ds-z-status--zacht">Vol</span>` : `<span class="ds-z-status ds-z-status--goed">${I('vinkje', 'mp-ic--s')}${v} gelijk</span>`}</td></tr>`).join('')}</tbody></table></div>
@@ -118,7 +118,7 @@ export default function (S) {
     const kaart = (titel, inhoud, acties, mod = '') => `<section class="hudkaart hudkaart--kop" style="box-shadow:none"><div class="kop"${mod ? ' style="background:var(--ds-c-rood)"' : ''}>${titel}</div><div class="mp-kol" style="gap:10px">${inhoud}<div class="mp-actie">${acties}</div></div></section>`;
     const lijst = (...s) => `<ul class="mp-kol" style="gap:6px;padding:0">${s.join('')}</ul>`;
     return frame({
-      koptekst: kop({ sub: 'Vier toestanden van het meedoen, allemaal met een volgende stap.', rechts: blokStatus('Code', 'K3J9D-8F2MN', 'sleutel') }),
+      koptekst: spelKop('Samen spelen'),
       inhoud: `<div class="mp-grid2" style="gap:16px;margin-top:6px;align-content:start">
         ${kaart('Verbinden', lijst(stap('De kamer zoeken', 'klaar'), stap('Contact leggen met Sem', 'bezig'), stap('Binnenkomen', 'later')) + `<div class="mp-tijd"><b style="width:55%"></b></div><span class="mp-hulp">Dit duurt meestal minder dan een halve minuut.</span>`, knop('Annuleren', 'secundair'))}
         ${kaart('De sessie vraagt een wachtwoord', `<p>Wie het spel opende heeft er een op gezet. Je vraagt het hem gewoon.</p><div class="mp-veld"><span class="mp-label">Wachtwoord</span><div class="mp-input"><span>••••••</span><button type="button" class="ds-z-knop ds-z-knop--secundair">Toetsenbord</button></div></div>`, knop('Probeer opnieuw') + knop('Terug', 'secundair'))}
@@ -132,7 +132,7 @@ export default function (S) {
 
   // 6. Je figuur: naam, kleur, vorm, personage en kleding bij het meedoen, met een voorbeeld zoals anderen je zien
   S['e-figuur'] = () => frame({
-    koptekst: kop({ sub: 'Zo zien anderen je. Je speelt je eigen verhaal; dit is alleen je plek in hun beeld.', rechts: blokStatus('Naam', 'Iris', 'speler') + blokStatus('Voortgang', 'Van jou', 'vinkje', 'goed') }),
+    koptekst: spelKop('Samen spelen'),
     inhoud: `<div class="mp-md" style="grid-template-columns:460px 1fr;margin-top:6px">
       <div class="mp-hero" style="align-items:center;gap:12px"><div class="mp-label" style="align-self:flex-start">Voorbeeld</div>
         <div style="width:100%;height:330px;border:var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt);border-radius:var(--ds-r);background:var(--ds-c-papier-2);display:grid;place-items:center;position:relative;overflow:hidden"><div style="position:relative;display:flex;flex-direction:column;align-items:center;gap:8px"><span class="mp-naamplaat">${vorm('#5bd6a0', '★', 's')}Iris</span><div style="width:110px;height:200px;background:var(--ds-c-ink-papier);border:3px solid var(--ds-c-ink-inkt);border-radius:55px 55px 8px 8px;display:grid;place-items:center" class="mp-zacht">3D</div></div></div>

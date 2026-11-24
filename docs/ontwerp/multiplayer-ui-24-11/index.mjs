@@ -43,6 +43,8 @@ const RIJEN = [
     review: 'Eén kaart zonder titelband, drie knoppen zonder rangorde en “Verbinding testen” op een moment dat je dat niet wilt. “Dan verwijder je Liv” is een kick onder de naam “Niet wachten”. Niet te zien hoe lang het al duurt en wat er met je eigen voortgang gebeurt. Een hervatvenster bestaat niet.' },
   { id: 'beloning', titel: 'Beloning en voortgang na een gezamenlijke activiteit', nu: [], ont: ['q-beloning'],
     review: 'Bestaat niet. Een gezamenlijke opdracht eindigt met losse meldingen; nergens staat samengevat wat je verdiende, wat de groepsbonus deed en dat het in je eigen spel is bewaard.' },
+  { id: 'bevestig', titel: 'Bevestigingen: uit het spel zetten, privé maken, intrekken, verlaten', nu: [], ont: ['v-bevestig'],
+    review: 'Uit het spel zetten vraagt “Zeker weten?” op dezelfde knop en zegt niet wat er blijft. Akkoord intrekken en weer privé maken (een nieuwe code, de oude werkt niet meer) hebben geen bevestiging die uitlegt wat er gebeurt. Het Spel-ontwerp heeft hier één taal voor: wat je verliest, wat blijft, de veilige keuze geel met de focus en het onomkeerbare rood met vasthouden.' },
   { id: 'praten', titel: 'Praten: de gereserveerde plek (#451)', nu: [], ont: ['r-praten'],
     review: 'Bestaat niet. Alleen dempen en blokkeren (pictogrammen) en vaste zinnen (opt-in) zijn er; er is geen plek waar chat of voice later zonder herontwerp bij kan.' },
   { id: 'instellingen', titel: 'Instellingen, Samen spelen', nu: [EL('A7-instellingen-samen')], ont: ['s-instellingen'],
