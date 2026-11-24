@@ -1436,3 +1436,7 @@ html.pad-active #pause-menu.gm [data-panel="settings"] .m-tablist .m-tab:focus {
   #pause-menu.gm [data-panel="settings"] .pm-inner.pm-settings > .m-tabs .m-tablist { gap: 0 22px; }
   #pause-menu.gm [data-panel="settings"] .m-tablist .m-tab { height: 50px; font-size: max(18px, var(--menu-min)); }
 }
+
+/* Doorgaan is secundair zodra het paneel zijn eigen gele knop heeft (24-11): omlijnd, zonder geel */
+#pause-menu.pm-eigen-primair .pm-rail-go .pm-go { background: var(--ds-zeef-bg); color: var(--ds-zeef-tx); border: var(--ds-lijn-dik) solid var(--ds-c-ink-inkt); box-shadow: none; }
+#pause-menu.pm-eigen-primair .pm-rail-go .pm-go:hover:not(:disabled) { background: var(--ds-c-sel-vlak); }

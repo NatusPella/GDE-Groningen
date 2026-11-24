@@ -1017,6 +1017,11 @@ export function initPauseMenu(w) {
   root.setAttribute('aria-modal', 'true');
   root.setAttribute('aria-labelledby', 'pm-title');
   root.dataset.level = 'section';
+  // Eén gele knop per scherm (24-11): heeft het zichtbare paneel een eigen primaire knop, dan wordt Doorgaan in de rail een secundaire (omlijnde) knop.
+  const PRIMAIR = '.m-bp:not(:disabled), .ds-z-knop:not(.ds-z-knop--secundair, .ds-z-knop--ghost, .ds-z-knop--gevaar, :disabled, [aria-disabled="true"]), .m-bt.bz-hoofd:not(:disabled)';
+  let syncGepland = false;
+  const syncRailPrimair = () => { syncGepland = false; const p = root && root.querySelector('.pm-panel:not([hidden])'); root.classList.toggle('pm-eigen-primair', !!(p && p.querySelector(PRIMAIR))); };
+  if (typeof MutationObserver === 'function') new MutationObserver(() => { if (!syncGepland) { syncGepland = true; requestAnimationFrame(syncRailPrimair); } }).observe(root, { childList: true, subtree: true, attributes: true, attributeFilter: ['hidden', 'disabled', 'class'] });
   const railBtn = (id) => { const [, label] = sectionOf(id); return `<button type="button" class="ra ds-m-nieuw" data-goto="${id}" aria-current="false">${icon(id, 'pm-ic ra-ic')}<span class="ra-t">${label}</span><span class="n" data-n="${id}"></span></button>`; };
   // #911: elke groep met een eigen kop en het aantal onderdelen erachter; de telling volgt in
   // showTab wat er echt in de rail staat (het hoofdmenu toont er maar drie).

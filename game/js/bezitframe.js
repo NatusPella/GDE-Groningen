@@ -12,6 +12,7 @@ import { euro } from './geldtekst.js';
 import { waarden } from './bezitwaarden.js';
 import { klussen, strook, tabAandacht, URGENTIE_NAAM } from './bezitklussen.js';
 import { eigenPandPerDag } from './bezitrendement.js';
+import { plaatHtml, kopRij } from './bezitplaat.js';
 
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const IC = (n, cls) => icoon(n, { cls });
@@ -32,7 +33,7 @@ export function frameView(world) {
 }
 
 // ---- de HTML (puur) ----
-export const plaatHtml = (ic, getal, label, mod = '') => `<span class="ds-z-waarde bz-plaat${mod ? ` ds-z-waarde--${mod}` : ''}" data-plaat="${esc(label)}">${IC(ic, 'ds-z-waarde__icoon')}<span class="bz-plaat__tekst"><span class="ds-z-waarde__getal">${esc(getal)}</span><small>${esc(label)}</small></span></span>`;
+export { plaatHtml };
 const plus = (n) => (n >= 0 ? '+' : '−') + euro(Math.abs(n));
 
 // In het pauzemenu staat de titel al in de kop van het paneel: zonder titel blijven alleen de plaatjes over (rechts uitgelijnd).

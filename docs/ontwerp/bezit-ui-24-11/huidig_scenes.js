@@ -59,10 +59,12 @@ if (fase('gevuld')) {
   await open('boerderij', 'boerderij');
   for (const id of ['team', 'machines', 'erf', 'kas']) { if (await klik('[data-bd="' + id + '"]')) await shot('C-vol-boerderij-' + id, 500); }
   await open('boerderij', 'boerderij'); { const v = document.querySelectorAll('[data-vd="vink"]'); for (let i = 0; i < Math.min(2, v.length); i++) { v[i].click(); await sleep(500); } await shot('C-vol-velden-bulk', 400); }
-  // aankoopbevestiging
-  await open('boerderij', 'tekoop'); const kb = document.querySelector('[data-bz="koop-perceel"]'); if (kb) { kb.click(); await sleep(600); await shot('C-vol-tekoop-bevestig', 300); }
+  // aankoopbevestiging (nieuw: Kopen opent de bevestigingskaart)
+  await open('boerderij', 'tekoop'); { const kb = document.querySelector('[data-kp="koop"]') || document.querySelector('[data-bz="koop-perceel"]'); if (kb) { kb.click(); await sleep(700); } await shot('C-vol-tekoop-bevestig', 300); }
   await open('boerderij', 'overzicht'); const ck = document.querySelector('[data-bz-sel]'); if (ck) { ck.click(); await sleep(500); } await shot('C-vol-overzicht-gekozen', 300);
   await sluit();
+  // de andere menuschermen (voor en na de Doorgaan-wijziging)
+  for (const m of ['spel', 'verhaal', 'map', 'settings']) { await open(m); await shot('E-menu-' + m, 500); }
   // spullen en garage
   for (const s of ['spullen', 'garage']) { await open(s); await shot('D-' + s); }
   await sluit();

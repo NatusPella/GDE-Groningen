@@ -5,6 +5,7 @@
 // on it, or it has keyboard or controller focus, or (touch) it was tapped.
 // Stills, turntable and viewer all come from vehiclepreview.js's one shared
 // renderer, so the garage never opens a WebGL context of its own.
+import { plaatHtml, kopRij } from './bezitplaat.js';
 import { icoon } from './icons.js';
 import { glyphHtml, plainKeyText } from './keycap.js';
 import { getGarageCatalog, whereText, actieBevestiging } from './ownedvehicles.js';
@@ -545,8 +546,8 @@ export function renderGaragePanel(el, world, msg = '') {
   if (tabsNu.length && (!view.eigen || !tabsNu.some((t) => t.id === view.cat))) view.cat = tabsNu.some((t) => t.id === 'all') && !view.eigen ? 'all' : tabsNu.some((t) => t.id === view.cat) ? view.cat : tabsNu[0].id;
   lastList = list;
   lastVerborgen = telling.verborgen;
-  el.dataset.sub = knownText(telling);
-  el.innerHTML = `<div class="m-tabs">${tabsHtml(list)}</div>` +
+  el.dataset.sub = '';   // de aantallen staan in de waardeplaatjes van de kop (24-11)
+  el.innerHTML = kopRij(plaatHtml('auto', String(list.length), 'voertuigen') + (telling.verborgen ? plaatHtml('vraag', String(telling.verborgen), 'nog te ontdekken') : '')) + `<div class="m-tabs">${tabsHtml(list)}</div>` +
     '<div class="m-main"><div class="m-list gar-list"></div><aside class="m-pane gar-viewer" aria-live="polite" aria-label="Details"></aside></div>';
   aim.hover = null;
   disposeGarageViewer();

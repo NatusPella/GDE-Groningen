@@ -11,6 +11,7 @@
 // WebGL-context); welk model staat in spullen3d.js, de nieuwe modellen in models3d_spullen.js.
 // Zonder model of zonder WebGL blijft het icoon staan. The in-world TV overlay in
 // furniture.js is HUD, not this screen (#610).
+import { plaatHtml, kopRij } from './bezitplaat.js';
 import { WEAPONS, hasWeapon, isMeleeWeapon } from './combat.js';
 import { WEAPON_STOCK, wearClothing, takeOffClothing, CAR_UPGRADES, BIKE_UPGRADES, MOTO_UPGRADES, inventoryShopState, upgradeListForStock } from './shops.js';
 import { VEHICLE_STOCK } from './shopdata.js';
@@ -570,7 +571,11 @@ export function renderSpullen(panel, w) {
   zetDetail(panel);
   const owned = items.filter((it) => it.cat !== 'geld' && it.cat !== 'kaart').length;
   const kop = zichtbaar.length === items.length ? '' : `${zichtbaar.length} van ${items.length} · `;
-  return `${kop}${owned} dingen in bezit · ${euro(Math.max(0, Math.floor(w.money)))} contant`;
+  // de kop van Bezit (24-11): de aantallen staan in waardeplaatjes boven de lijst, niet meer in de eyebrow
+  const plaatjes = kopRij(plaatHtml('tas', String(owned), 'dingen') + plaatHtml('geld', euro(Math.max(0, Math.floor(w.money))), 'contant'));
+  const huidig = panel.querySelector(':scope > .bz-kop');
+  if (huidig) huidig.outerHTML = plaatjes; else if (panel.insertAdjacentHTML) panel.insertAdjacentHTML('afterbegin', plaatjes);
+  return kop ? kop.replace(/ · $/, '') : '';
 }
 
 // De zoekopdracht en het gekozen deel komen uit het paneel (pausemenu.js) en
