@@ -112,7 +112,13 @@ await (async () => {
     const cast = [() => MP.buildPersonMesh(MP.TAMMO_APPEARANCE.shirt, MP.TAMMO_APPEARANCE.skin, MP.TAMMO_APPEARANCE), () => MP.buildPersonMesh(MP.ANITA_APPEARANCE.shirt, MP.ANITA_APPEARANCE.skin, MP.ANITA_APPEARANCE),
       ...star.map((k) => () => MP.buildPersonMesh(MS.NPC[k].shirt, MS.NPC[k].skin, MS.NPC[k])),
       ...[SC.JELLE_LOOK, SC.DURK_LOOK, SC.DOUWE_LOOK, SC.RIKUS_LOOK, SC.MEM_LOOK, SC.BEPPE_LOOK, SC.ROTOR_LOOK, SC.ROELF_LOOK, SC.HILJE_LOOK].map((L) => () => MP.buildPersonMesh(L.shirt, L.skin, L))];
-    for (let i = 0; i < cast.length; i += 7) await row('cast-' + (i / 7 + 1), cast.slice(i, i + 7), false);
+    // en alle andere figuren uit missionstory.js NPC (Femke, Gerda-achtigen, de bijrollen), in rijen van negen
+    const rest = Object.keys(MS.NPC).filter((k) => !star.includes(k)).map((k) => () => MP.buildPersonMesh(MS.NPC[k].shirt, MS.NPC[k].skin, MS.NPC[k]));
+    const all = [...cast, ...rest];
+    for (let i = 0; i < all.length; i += 9) await row('cast-' + (i / 9 + 1), all.slice(i, i + 9), false, 5.2);
+    // 2b. accessoires van dichtbij: bril, zonnebril, sjaal, rugzak, schoudertas, pet en platte pet
+    const acc = [{ glasses: true }, { glasses: true, shades: true }, { scarf: true, scarfColor: 0xc9a227 }, { bag: 'backpack', bagColor: 0x2f3b52 }, { bag: 'shoulder', bagColor: 0x6b2a24 }, { hat: 'cap', hatColor: 0x3a4d6e }, { hat: 'flatcap', hatColor: 0x7a6a4a }];
+    await row('accessoires', acc.flatMap((lk, i) => [0, 1].map((v) => () => MP.buildPersonMesh(0x6a8a9a, 0xd9a47a, { seed: 120 + i * 3 + v, variant: v ? 'female' : 'male', look: { top: 'tee', bottom: 'jeans', ...lk } }))), true, 4.8);
     // 3. rolkleding (loopbaan) en uniformen
     const roles = ['voetganger', 'chauffeur', 'ambulance', 'voetballer', 'toerist', 'feestganger', 'boer', 'student'];
     for (let r = 0; r < 2; r++) await row('rollen-' + (r + 1), roles.slice(r * 4, r * 4 + 4).flatMap((role, j) => [0, 1].map((v) => () => MP.buildPersonMesh(0x6a6a6a, 0xd9a47a, { seed: 40 + j * 5 + v, variant: v ? 'female' : 'male', role }))), false);

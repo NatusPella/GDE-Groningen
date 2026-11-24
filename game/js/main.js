@@ -147,7 +147,7 @@ import { updateSluizen, getSluizen } from './sluizen.js';
 import { updateBridgeHits, resetBridgeDamage, startBridgeCrashDemo, stepBridgeCrashDemo } from './bridgehitworld.js';
 import { geoWorkerActive } from './geojobs.js';
 import { preloadRoadWorker } from './roadsurface.js';
-import { init3D, update3D, resize3D, getScene, getRenderer, toggleLightRig, disposeObject, setHoldMaterials, releaseHeldMaterials, setCinematicBatches, warmWaterIndex, setMenuCover, MENU_FRAME_S, refreshRenderScale, terrainReady, canvasFrameCount, prewarmStreamAt, prewarmPending, precompilePrograms, precompileKit, streamPending, queueWarmupObject, prewarmBusy, takeWarmupSamples, releaseWarmupSamples, getCamera, getFollowPose, setRouteLinks } from './scene3d.js';
+import { modularPeopleLoaded, init3D, update3D, resize3D, getScene, getRenderer, toggleLightRig, disposeObject, setHoldMaterials, releaseHeldMaterials, setCinematicBatches, warmWaterIndex, setMenuCover, MENU_FRAME_S, refreshRenderScale, terrainReady, canvasFrameCount, prewarmStreamAt, prewarmPending, precompilePrograms, precompileKit, streamPending, queueWarmupObject, prewarmBusy, takeWarmupSamples, releaseWarmupSamples, getCamera, getFollowPose, setRouteLinks } from './scene3d.js';
 import { programsPending, programsTotal } from './programwarm.js';
 import { planPrecompile, runPlanner, stepIdleCompile } from './launchcompile.js';
 import { programWatch } from './programwatch.js';
@@ -865,6 +865,7 @@ async function boot() {
   await yieldToPaint();
   markLoad('prepared');
   init3D(map);
+  await Promise.race([modularPeopleLoaded(), new Promise((r) => setTimeout(r, 8000))]);   // de nieuwe mensen zijn er voordat de wereld mensen bouwt
   resize3D();
   markLoad('init3D');
   setBootStep('wereld', 0.8);

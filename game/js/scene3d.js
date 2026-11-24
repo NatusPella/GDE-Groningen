@@ -857,11 +857,16 @@ function pinShaderPrograms(r) {
   };
 }
 
+// De belofte van het laden van de modulaire mensen: de start wacht erop (main.js), zodat wat bij het opstarten al een mens bouwt (de piloot
+// van de ballonjacht, de voerder van de duiven) meteen de nieuwe mens krijgt en niet voorgoed de oude.
+let modularLoad = null;
+export const modularPeopleLoaded = () => modularLoad || Promise.resolve();
+
 export function init3D(map) {
   liftMap = map;
   preloadLandmarkModels();
   if (mensenFase(FLAGS.mensen) >= 3) setModularPlayerLooks(true);   // ook alle figuren die niet de speler zijn (models3d_people.js buildPersonMesh)
-  if (mensenFase(FLAGS.mensen) >= 1) loadModularPeople(); // fase 1 van ADR 0050: voorbijgangers als modulaire mensen (alleen met ?mensen=q)
+  if (mensenFase(FLAGS.mensen) >= 1) modularLoad = loadModularPeople(); // fase 1 van ADR 0050: voorbijgangers als modulaire mensen (alleen met ?mensen=q)
   setBuildingMap(map);
   canvas3 = document.getElementById('game3d');
   // laptops with two GPUs: the fast one
@@ -2609,7 +2614,7 @@ function buildPedActor(p, world) {
     const q = p.isCop ? buildModularFromAppearance({ cop: true, skin, seed: sd, variant: sd % 5 === 0 ? 'female' : 'male' })
       : p.look ? buildModularFromAppearance({ shirt: p.clothing ? colorFromHex(p.clothing) : 0x6a6a6a, skin, seed: sd, variant: p.look.variant || p.variant || (sd & 1 ? 'female' : 'male'), hairStyle: p.look.hairStyle, look: p.look })
       : buildModularFromAppearance(pedModularAppearance(p, outfit, sd, skin));
-    if (q) { addBlobShadow(q, 0.85, 0.85); if (p.carry) attachCarry(q, p.carry); return enableShadows(q, false); }   // dragen en wapens: modularpeople.js modularHoldPose, modularHandSocket
+    if (q) { q.userData.lookSeed = p._lookSeed; addBlobShadow(q, 0.85, 0.85); if (p.carry) attachCarry(q, p.carry); return enableShadows(q, false); }   // lookSeed = de sleutel van houdingen (setPedPose) en de lijn van de hondenuitlater, zoals bij het eigen model   // dragen en wapens: modularpeople.js modularHoldPose, modularHandSocket
   }
   const mesh = buildPersonActor(p.clothing ? colorFromHex(p.clothing) : 0xcaa46a, p.skin ? colorFromHex(p.skin) : 0xe0b48a, p.look ? { seed: p._lookSeed, look: p.look } : outfit ? { seed: p._lookSeed, ...outfit } : { seed: p._lookSeed });
   if (p.carry) attachCarry(mesh, p.carry);

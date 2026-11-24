@@ -285,7 +285,8 @@ function capGeometry(face, kind, P, C, SI, SW, I, v0, i0, col, headBone) {
 // Een kledingdeel (modularwear.js) voor deze look: botten in rust, het kader van de kruin, en het profiel van het lijf uit de delen van
 // de look (LOD 0), zodat een band om de arm of de heup precies op de stof ligt. Per rig, deel en combinatie van delen bewaard.
 function wearFor(rig, look, face, id) {
-  const ck = id + '|' + look.parts.hoofd + '|' + look.parts.romp + '|' + look.parts.benen + (id === 'voetbalshirt' ? '|' + JSON.stringify(look.kit || null) : '');
+  const prm = id === 'voetbalshirt' ? look.kit : look.wearParams && look.wearParams[id];
+  const ck = id + '|' + look.parts.hoofd + '|' + look.parts.romp + '|' + look.parts.benen + '|' + JSON.stringify(prm || null);
   rig.wearCache = rig.wearCache || new Map();
   if (rig.wearCache.has(ck)) return rig.wearCache.get(ck);
   const bones = rig.man.bones;
@@ -320,7 +321,7 @@ function wearFor(rig, look, face, id) {
     }
     return [pt[0] + d.x * best, pt[1] + d.y * best, pt[2] + d.z * best];
   };
-  const w = buildWear(id, { cap: capFrame(face, 'police'), bone, profile, surface }, id === 'voetbalshirt' ? look.kit : null);
+  const w = buildWear(id, { cap: capFrame(face, 'police'), face, bone, profile, surface }, prm || null);
   rig.wearCache.set(ck, w);
   return w;
 }
@@ -335,7 +336,7 @@ export function resetModularGeoBudget() { geoBuildSpent = 0; geoBudgetOn = true;
 function geoCached(rig, look, lod, grip) { return !!rig.geoCache.get(geoKey(look, lod, !!(grip && lod === 0 && rig.grip))); }
 function geoKey(look, lod, grip) {
   const wearIds = look.wear && look.wear.length && lod < 2 ? look.wear : null;
-  return `${lod}${grip ? 'g' : ''}|${wearIds ? wearIds.join('+') : ''}|${look.cap || ''}|${look.capColor || ''}|${look.kit ? JSON.stringify(look.kit) : ''}|${look.parts.hoofd}|${look.parts.romp}|${look.parts.benen}|${look.parts.voeten}|${look.skin}|${look.shirt}|${look.hair}|${look.pants}|${Math.floor(hashf(look.seed, 3) * 8)}`;
+  return `${lod}${grip ? 'g' : ''}|${wearIds ? wearIds.join('+') : ''}|${look.cap || ''}|${look.capColor || ''}|${look.kit ? JSON.stringify(look.kit) : ''}${look.wearParams ? JSON.stringify(look.wearParams) : ''}|${look.parts.hoofd}|${look.parts.romp}|${look.parts.benen}|${look.parts.voeten}|${look.skin}|${look.shirt}|${look.hair}|${look.pants}|${Math.floor(hashf(look.seed, 3) * 8)}`;
 }
 function geometryFor(rig, look, lod = 0, grip = false) {
   grip = !!(grip && lod === 0 && rig.grip);   // de LOD's houden een open hand (vanaf 25 m zie je geen vingers)

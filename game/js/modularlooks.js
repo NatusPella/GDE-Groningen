@@ -67,12 +67,19 @@ export function lookFromAppearance(a, partIds) {
   if (!parts.hoofd || !parts.romp || !parts.benen || !parts.voeten) return null;
   // voetbalshirt met patroon, rugnummer en sponsor (footballkit.js): het patroon komt als kledingdeel op de romp (modularwear.js)
   const sb = a.shirtBands, kit = sb && ((sb.bands && sb.bands.length) || (sb.cells && sb.cells.length) || sb.number || sb.sponsor) ? sb : null;
-  const hat = a.character === 'tammo' ? 'tammo' : cop ? 'police' : L.hat;
+  // kleding die het pack mist (modularwear.js): bril, sjaal, rugzak en schoudertas; de kleur komt uit de look
+  const extras = kit ? ['voetbalshirt'] : [], wearParams = {};
+  if (L.glasses || L.shades) { extras.push('bril'); wearParams.bril = { shades: !!L.shades }; }
+  if (L.scarf) { extras.push('sjaal'); wearParams.sjaal = { color: L.scarfColor }; }
+  if (L.bag === 'backpack') { extras.push('rugzak'); wearParams.rugzak = { color: L.bagColor }; }
+  else if (L.bag === 'shoulder') { extras.push('schoudertas'); wearParams.schoudertas = { color: L.bagColor }; }
+  // de hoed van de look gaat voor (een uitgeklede Tammo draagt zijn pet niet); zonder look.hat draagt Tammo zijn eigen pet
+  const hat = 'hat' in L && !cop ? L.hat : a.character === 'tammo' ? 'tammo' : cop ? 'police' : L.hat;
   return {
     seed: a.seed ?? 1, rig, parts,
     skin: a.skin ?? 0xd9a47a, shirt: cop ? COP_NAVY : L.topColor ?? a.shirt ?? null, hair: a.vary && L.age === 'old' ? OLD_HAIR[Math.floor(hashf(a.seed ?? 1, 20) * OLD_HAIR.length)] : a.hair ?? 0x3b2a1e, pants: cop ? COP_NAVY : a.pants ?? 0x2f3b52,
-    wear: cop ? ['politiepet', 'politieuniform'] : kit ? ['voetbalshirt'] : null, kit,
-    cap: CAPS.has(hat) ? hat : null, capColor: a.character === 'tammo' ? (a.cap ?? 0xc8621e) : (L.hatColor ?? L.capColor ?? 0x2b2f36),
+    wear: cop ? ['politiepet', 'politieuniform'] : extras.length ? extras : null, kit, wearParams: cop ? null : wearParams,
+    cap: CAPS.has(hat) ? hat : null, capColor: hat === 'tammo' ? (a.cap ?? L.capColor ?? 0xc8621e) : (L.hatColor ?? L.capColor ?? 0x2b2f36),
     old: L.age === 'old', child: L.age === 'child', scale: null, body: a.body || null,
   };
 }

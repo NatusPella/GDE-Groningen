@@ -1417,6 +1417,7 @@ export function buildPersonMesh(shirt, skin, opts = {}) {
 
   group.scale.set(L.buildScale, L.heightScale, L.buildScale);
   if (opts.seed !== undefined) ud.lookSeed = opts.seed;
+  if (opts.swim || opts.procedural) ud.procedureelBewust = opts.swim ? 'zwemkleding' : 'opts.procedural';   // audit: dit blijft het eigen model, expres
   return group;
 }
 
@@ -2481,6 +2482,7 @@ function modularPosed(mesh, ud, pose, speed, dt) {
   }
   animateModular(mesh, pose ? 0 : speed, dt);
   if (!pose) return;
+  if (ud.qLod > 0) { modularPropsOff(ud); return; }   // vanaf het eerste LOD-niveau (25 m): de basis van de houding, zonder IK en props
   mesh.updateMatrixWorld(true);
   modularPoseArms(mesh, ud, pose, 1);
   mesh.updateMatrixWorld(true);

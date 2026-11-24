@@ -65,7 +65,7 @@ await (async () => {
         if (o.isInstancedMesh && o.name === 'farcrowd' && o.visible) r.ver += o.count;
         const ud = o.userData;
         if (ud && ud.qRig) { r.modulair++; if (ud.qPosed) r.poses[ud.qPosed] = (r.poses[ud.qPosed] || 0) + 1; }
-        else if (ud && ud.body && ud.body.isSkinnedMesh && ud.body.skeleton && ud.legL) { r.procedureel++; r.proc.push([o.position.x | 0, o.position.z | 0, o.name || '', ud.lookSeed === undefined ? '' : Math.round(ud.lookSeed)]); }
+        else if (ud && ud.body && ud.body.isSkinnedMesh && ud.body.skeleton && ud.legL) { if (ud.procedureelBewust) r.bewust = (r.bewust || 0) + 1; else r.procedureel++; r.proc.push([o.position.x | 0, o.position.z | 0, ud.procedureelBewust || 'NIET BEWUST', ud.lookSeed === undefined ? '' : Math.round(ud.lookSeed)]); }
       });
       for (const q of w.pedestrians) { const k = q.scene ? q.scene.kind : q.isCop ? 'agent' : q.pose ? 'pose-' + q.pose : q.carry ? 'draagt' : 'voetganger'; r.kinds[k] = (r.kinds[k] || 0) + 1; }
       return r;
@@ -87,6 +87,7 @@ await (async () => {
       w.clock = 14;
       await jump(sp.x - Math.cos(sp.angle) * 9, sp.y - Math.sin(sp.angle) * 9, 8000);
       for (let i = 0; i < 6 && !w.pedestrians.some((q) => q.scene && q.scene.kind === kind); i++) { w.clock = 14; await sleep(2000); }
+      await sleep(3500);   // de figuur is dan helemaal ingefade
       // de dichtstbijzijnde echte figuur van deze soort (de plek zelf kan leeg zijn): camera van voren
       const sc = w.pedestrians.filter((q) => q.scene && q.scene.kind === kind).sort((a, b) => Math.hypot(a.x - p.x, a.y - p.y) - Math.hypot(b.x - p.x, b.y - p.y))[0];
       note('spot-' + kind, { at: [sp.x | 0, sp.y | 0], gevonden: !!sc, ...telDetail(), procStats: MPe.proceduralStats() });
