@@ -4,6 +4,7 @@
 import { updateSpelersOverlay } from './coopspelersui.js';
 import { updatePhrasesRadial } from './multiplayerphrasesradial.js';
 import { uitnodigingVorm, MEEDOEN_WACHT } from './coopmeedoen.js';
+import { beloningHtml } from './samenbeloning.js';
 import { sendKey } from './input.js';
 import { updateSamenHints } from './contexthints.js';
 
@@ -106,4 +107,22 @@ function updateStemKaart(world) {
   const rest = Number(q.rest) || 10, over = Math.max(0, 1 - (Date.now() - stemT0) / 1000 / rest);
   const balk = stemEl.querySelector('.cp-meedoen-tijd b'); if (balk) balk.style.width = (over * 100) + '%';
   stemEl.style.display = '';
+}
+
+// De beloningskaart na een gezamenlijke activiteit (samenbeloning.js): één kaart, Doorgaan (Enter) of Esc sluit hem. Alleen een weergave; de betaling is al gebeurd.
+let beloningEl = null;
+export function toonBeloningKaart(gegevens) {
+  if (typeof document === 'undefined' || !gegevens) return false;
+  if (beloningEl) beloningEl.remove();
+  beloningEl = document.createElement('div');
+  beloningEl.className = 'sb-scherm';
+  beloningEl.innerHTML = beloningHtml(gegevens);
+  const sluit = () => { if (beloningEl) { beloningEl.remove(); beloningEl = null; } document.removeEventListener('keydown', toets, true); };
+  const toets = (e) => { if (e.key === 'Enter' || e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); sluit(); } };
+  beloningEl.addEventListener('click', (e) => { if (e.target.closest && e.target.closest('[data-beloning-door]')) sluit(); });
+  document.addEventListener('keydown', toets, true);
+  document.body.appendChild(beloningEl);
+  const b = beloningEl.querySelector('[data-beloning-door]'); if (b && b.focus) b.focus({ preventScroll: true });
+  setTimeout(sluit, 20000);
+  return true;
 }

@@ -359,3 +359,18 @@ html.touch-device :is(#pause-menu .pm-samen, .coop-hold, .cp-overlay) .coop-toet
 :root .cp-meedoen-tijd b { display: block; height: 100%; background: var(--ds-c-ink-geel); transition: width 0.4s linear; }
 :root .cp-meedoen-knoppen { display: flex; gap: var(--ds-s-3); flex-wrap: nowrap; }
 html.reduce-motion .cp-meedoen-tijd b { transition: none; }
+
+/* De beloningskaart (samenbeloning.js, ontwerp 24-11) */
+.sb-scherm { position: fixed; inset: 0; z-index: 7100; display: grid; place-items: center; background: color-mix(in srgb, var(--ds-c-ink-inkt) 55%, transparent); }
+.sb-kaart { width: min(1000px, 94vw); background: var(--ds-c-ink-papier); color: var(--ds-c-ink-inkt); border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); border-radius: var(--ds-r); box-shadow: var(--ds-schaduw-hard); overflow: hidden; display: flex; flex-direction: column; gap: var(--ds-s-3); padding-bottom: var(--ds-s-4); }
+.sb-kop { padding: var(--ds-s-2) var(--ds-s-5); background: var(--ds-c-ink-bord); color: var(--ds-c-wit); font-family: var(--ds-font-zeef-kop); font-weight: 800; font-size: var(--ds-t-kop-klein, 28px); letter-spacing: var(--ds-ls-label); text-transform: uppercase; }
+.sb-md { display: grid; grid-template-columns: 1.2fr 1fr; gap: var(--ds-s-5); margin: 0 var(--ds-s-5); }
+.sb-kol { display: flex; flex-direction: column; gap: var(--ds-s-2); min-width: 0; }
+.sb-rij { display: flex; align-items: center; gap: var(--ds-s-3); padding: var(--ds-s-1) var(--ds-s-2); border-bottom: var(--ds-lijn) solid var(--ds-c-ink-inkt); font-size: var(--ds-t-subkop); }
+.sb-rij--jij { background: var(--ds-c-sel-vlak); border-left: var(--ds-status-rand) solid var(--ds-c-ink-bord); }
+.sb-plek { font-family: var(--ds-font-zeef-kop); font-weight: 800; width: 1.5em; }
+.sb-tijd { margin-left: auto; font-family: var(--ds-font-zeef-kop); font-weight: 800; font-variant-numeric: tabular-nums; }
+.sb-kijk, .sb-hulp { margin: 0; font-size: var(--ds-t-hulp); color: var(--ds-c-inkt-zacht); }
+.sb-feiten { display: grid; grid-template-columns: auto 1fr; gap: var(--ds-s-1) var(--ds-s-4); margin: 0; }
+.sb-feiten dd { margin: 0; text-align: right; font-family: var(--ds-font-zeef-kop); font-weight: 800; }
+.sb-acties { display: flex; gap: var(--ds-s-3); margin: 0 var(--ds-s-5); }

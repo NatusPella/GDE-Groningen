@@ -28,7 +28,8 @@ import { findEnterableVehicle } from './vehicle.js';
 import { findRideableProp, rideProp } from './rideprops.js';
 import { isHoldOpen, checkHold, openHold } from './coophold.js';
 import { sessionBootTick, sessionBootDone, sessionBootBezig } from './sessionboot.js'; // een sessie vanaf de start (#528, ADR 0022)
-import { updatePartnerChip } from './coophud.js';
+import { updatePartnerChip, toonBeloningKaart } from './coophud.js';
+import { beloningGegevens } from './samenbeloning.js';
 import { syncFigures, hasFigureMeshes } from './coopfigures3d.js';
 import { syncHostEntities, hasHostEntities, clearHostEntities } from './coopentities3d.js';
 import { syncExtra, hasExtra, clearExtra } from './coopextra3d.js';
@@ -1317,7 +1318,10 @@ try { const slot = ensureLatestSlot(); const info = slot ? readSaveInfo() : null
     }
     if (world.coopNet || world.coopWissel) tickCoopNet(world, dt); // samen spelen (#95), alleen na een bewuste uitnodiging
     if (isHoldOpen()) checkHold(world);
-    if (world.coopNet || world.coopPartner !== undefined) updatePartnerChip(world);
+    if (world.coopNet || world.coopPartner !== undefined) {
+      if (!world.coopToonBeloning) world.coopToonBeloning = (d) => { const rijen = world.coopSpelers || []; toonBeloningKaart(beloningGegevens({ ...d, mijnSlot: 0, uitslag: (d.slots || [0]).map((s) => rijen.find((r) => r.slot === s)).filter(Boolean).map((r) => ({ slot: r.slot, naam: r.naam, kleur: r.kleur, vorm: r.vorm })), kijkers: rijen.filter((r) => !(d.slots || [0]).includes(r.slot)).map((r) => r.naam) })); }; // de beloningskaart (samenbeloning.js)
+      updatePartnerChip(world);
+    }
     if (world.coopNet || hasFigureMeshes()) syncFigures(world, dt); // de figuren van de andere spelers (#95)
     if (world.coopNet || hasPingMeshes()) syncPings(world); // de roepjes van de spelers (#367)
     if (world.coopRole === 'client') { syncHostEntities(world, dt); syncExtra(world, dt); takeAnimalHits(world, damagePlayer); } else { if (hasHostEntities()) clearHostEntities(); if (hasExtra()) clearExtra(); if (world.coopSirenUnits) world.coopSirenUnits = null; } // voertuigen, doel, voetgangers, dieren, lichten en kapotte objecten van de host bij een gast (#428)
