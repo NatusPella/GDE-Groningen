@@ -78,27 +78,54 @@ function image(k, key) {
   return null;
 }
 
+// #1191: which coarser tile stands in for each loading tile of level `want`: the finest level below it whose tile
+// there is in (inLevel(k, key)), clipped to the loading tiles it covers. A level without a tile on that spot has
+// nothing to show there, so the search goes on to a coarser one. Pure (the level spans come from M), for the test.
+// pending: [[x, y, span], ...] in world metres. Returns [{ k, tx, ty, rects }].
+export function fallbackPlan(want, pending, inLevel) {
+  if (!M || !pending.length) return [];
+  const plan = new Map();
+  for (const r of pending) {
+    const cx = r[0] + r[2] / 2, cy = r[1] + r[2] / 2;
+    for (let k = want - 1; k >= 0; k--) {
+      const span = M.tile * M.levels[k].m;
+      const tx = Math.floor((cx - M.x0) / span), ty = Math.floor((cy - M.y0) / span);
+      const key = `${tx}_${ty}`;
+      if (!M.have[k].has(key) || !inLevel(k, key)) continue;
+      const id = `${k}-${key}`;
+      let p = plan.get(id);
+      if (!p) plan.set(id, (p = { k, tx, ty, rects: [] }));
+      p.rects.push(r);
+      break;
+    }
+  }
+  return [...plan.values()];
+}
+
+// Start loading every level coarser than the finest (#1191), so a tile that is still coming in has a near stand-in
+// instead of the 160 m mosaic. A few small images; the map asks for it when it opens.
+export function preloadProvinceMap() {
+  if (!M) return;
+  for (let k = 0; k < M.levels.length - 1; k++) for (const key of M.have[k]) image(k, key);
+}
+
 // Draw the base map over the world window [x0, x1] x [y0, y1] into a
 // world-transformed context.
 export function drawProvinceBase(ctx, x0, y0, x1, y1, pxPerM) {
   if (!M) return;
   const want = levelFor(pxPerM);
-  const draw = (k, only) => {
+  const draw = (k) => {
     const L = M.levels[k], span = M.tile * L.m;
     const tx0 = Math.max(0, Math.floor((x0 - M.x0) / span)), ty0 = Math.max(0, Math.floor((y0 - M.y0) / span));
     const tx1 = Math.floor((x1 - M.x0) / span), ty1 = Math.floor((y1 - M.y0) / span);
-    let missing = 0;
     for (let ty = ty0; ty <= ty1; ty++) {
       for (let tx = tx0; tx <= tx1; tx++) {
         const key = `${tx}_${ty}`;
         if (!M.have[k].has(key)) continue;
-        if (only && !only(tx, ty, span)) continue;
         const im = image(k, key);
-        if (!im) { missing++; continue; }
-        ctx.drawImage(im, M.x0 + tx * span, M.y0 + ty * span, (im.naturalWidth || im.width) * L.m, (im.naturalHeight || im.height) * L.m);
+        if (im) ctx.drawImage(im, M.x0 + tx * span, M.y0 + ty * span, (im.naturalWidth || im.width) * L.m, (im.naturalHeight || im.height) * L.m);
       }
     }
-    return missing;
   };
   ctx.save();
   ctx.imageSmoothingEnabled = true;
@@ -113,12 +140,20 @@ export function drawProvinceBase(ctx, x0, y0, x1, y1, pxPerM) {
       }
     }
   }
-  for (let k = want - 1; k >= 0 && pending.length; k--) {
-    draw(k, (tx, ty, span) => {
-      const bx = M.x0 + tx * span, by = M.y0 + ty * span;
-      return pending.some(([px, py, ps]) => px < bx + span && px + ps > bx && py < by + span && py + ps > by);
-    });
+  // #1191: per loading tile only the finest coarser level that is in, and only inside that tile. Before, every
+  // coarser level was drawn over the whole window, the coarsest (160 m a pixel) last and on top: a coarse mosaic
+  // with hard square edges over the finer stand-in and over tiles that were already in.
+  for (const { k, tx, ty, rects } of fallbackPlan(want, pending, (k, key) => !!image(k, key))) {
+    const L = M.levels[k], span = M.tile * L.m;
+    const im = image(k, `${tx}_${ty}`);
+    if (!im) continue;
+    ctx.save();
+    ctx.beginPath();
+    for (const [px, py, ps] of rects) ctx.rect(px, py, ps, ps);
+    ctx.clip();
+    ctx.drawImage(im, M.x0 + tx * span, M.y0 + ty * span, (im.naturalWidth || im.width) * L.m, (im.naturalHeight || im.height) * L.m);
+    ctx.restore();
   }
-  draw(want, null);
+  draw(want);
   ctx.restore();
 }
