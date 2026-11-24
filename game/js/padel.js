@@ -29,6 +29,8 @@ import { figuurLook } from './coopplayers.js';
 import { maakPadel, maakPadelSpiegel, voerInPadel, tikPadelSpiegel, livePadel, stapSnelheid } from './padelmatch.js';
 import { registreerWedstrijd, zetWedGastHaken, wedNodigUit, wedNuStarten, wedLiveTik, wedHostLiveEind, wedGastVerlaat, wedGastReset } from './multiplayerwedstrijd.js';
 import { hoofdspeler } from './players.js';
+import { registerLocalMap } from './localmap.js';
+import { maakPadelKaart } from './localmapvelden.js';
 
 // Padel courts where OSM has them (game/mapextras.json "padel", built by
 // scripts/add_map_extras.py): a glass cage with blue turf, a net and lights
@@ -409,6 +411,33 @@ export function getPadelMatchCount() {
 }
 
 // --- init --------------------------------------------------------------------------
+
+// De minimap toont tijdens het potje de baan in plaats van de wereld (localmap.js, localmapvelden.js); zonder potje geeft dit null.
+const lokaleKaart = maakPadelKaart();
+const _lkAnderen = [{ u: 0, v: 0, team: 0 }, { u: 0, v: 0, team: 0 }, { u: 0, v: 0, team: 0 }];
+const _lkBal = { u: 0, v: 0 };
+const _lkO = { f: null, toMap: null, team: 0, jij: { u: 0, v: 0 }, anderen: _lkAnderen, nAnderen: 0, bal: null };
+let _lkGame = null;
+_lkO.toMap = (u, v) => toMap(_lkGame.f, u, v);
+registerLocalMap('padel', () => {
+  const g = _lkGame = game;
+  if (!g || !g.f) return null;
+  const o = _lkO; o.f = g.f;
+  let n = 0, b = null;
+  if (g.sim) { // online: de stoelen van de wedstrijd, jij is je eigen stoel
+    const me = eigenStoel(g);
+    o.team = me.team; o.jij.u = me.u; o.jij.v = me.v;
+    for (const s of g.sim.stoelen) if (s !== me && n < 3) { const a = _lkAnderen[n++]; a.u = s.u; a.v = s.v; a.team = s.team; }
+    b = g.sim.ball;
+  } else {
+    o.team = 0; o.jij.u = g.me.u; o.jij.v = g.me.v;
+    for (let i = 0; i < 3; i++) { const a = i === 0 ? g.mate : g.opp[i - 1], t = _lkAnderen[n++]; t.u = a.u; t.v = a.v; t.team = a.side; }
+    b = g.ball;
+  }
+  o.nAnderen = n;
+  if (b) { _lkBal.u = b.u; _lkBal.v = b.v; o.bal = _lkBal; } else o.bal = null;
+  return lokaleKaart.zet(o);
+});
 
 export function initPadel(w) {
   const defs = (w.map.meta && w.map.meta.padel) || [];

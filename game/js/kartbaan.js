@@ -30,6 +30,8 @@ import { medailleBedrag, volgendePlek } from './medalrules.js';
 import { registreerWedstrijd, zetWedGastHaken, wedNodigUit, wedNuStarten, wedRaceTik, wedHostEind, wedGastVerlaat, wedGastReset, tikSpiegel, eindstand, beloning, raceStand } from './multiplayerwedstrijd.js';
 import { figuurLook } from './coopplayers.js';
 import { hoofdspeler } from './players.js';
+import { registerLocalMap } from './localmap.js';
+import { maakKartKaart } from './localmapvelden.js';
 import { simHudTik, simHudPop, uitlegGezien, zetUitlegGezien } from './simhud.js';
 import { kartHudModel, rondePop, boostPop, UITLEG_ID } from './kartstatus.js';
 import { maakSimKolom, zetSimKolom } from './simkolom3d.js';
@@ -875,6 +877,18 @@ export function getKartMapState() {
 }
 
 // --- the activity ---------------------------------------------------------------------------------------------------
+
+// De minimap toont tijdens de race alleen het circuit (localmap.js, localmapvelden.js); zonder race geeft dit null.
+const lokaleKaart = maakKartKaart(TRACK, (u, v) => FR.toW(u, v), WIDTH);
+const _lkK = { karts: [] };
+registerLocalMap('kartbaan', () => {
+  const g = game;
+  if (!g || !g.karts || !g.karts.length) return null;
+  const l = _lkK.karts;
+  for (let i = 0; i < g.karts.length; i++) { const k = g.karts[i], q = FR.toW(k.u, k.v), s = l[i] || (l[i] = { x: 0, y: 0, a: 0 }); s.x = q.x; s.y = q.y; s.a = k.a; }
+  l.length = g.karts.length;
+  return lokaleKaart.zet(_lkK);
+});
 
 export const KARTBAAN = {
   id: 'kartbaan',
