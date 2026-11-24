@@ -252,6 +252,9 @@ function attach(win, { gameDir }) {
             }
             const img = await win.webContents.capturePage();
             fsSync.writeFileSync(smoke.replace(/\.png$/, `-${capName}.png`), img.toPNG());
+            // bevestiging voor het script: window.__capAck telt de opgeslagen beelden, zodat een scene kan wachten tot zijn beeld er
+            // echt is (op een drukke machine komen de consoleberichten met tientallen seconden vertraging aan; beeldbugs 24-11)
+            win.webContents.executeJavaScript('window.__capAck = (window.__capAck || 0) + 1').catch(() => {});
           });
           const body = scriptBody;
           await win.webContents.executeJavaScript(`(async () => {
