@@ -1020,7 +1020,9 @@ export function initPauseMenu(w) {
   // Eén gele knop per scherm (24-11): heeft het zichtbare paneel een eigen primaire knop, dan wordt Doorgaan in de rail een secundaire (omlijnde) knop.
   const PRIMAIR = '.m-bp:not(:disabled), .ds-z-knop:not(.ds-z-knop--secundair, .ds-z-knop--ghost, .ds-z-knop--gevaar, :disabled, [aria-disabled="true"]), .m-bt.bz-hoofd:not(:disabled)';
   let syncGepland = false;
-  const syncRailPrimair = () => { syncGepland = false; const p = root && root.querySelector('.pm-panel:not([hidden])'); root.classList.toggle('pm-eigen-primair', !!(p && [...p.querySelectorAll(PRIMAIR)].some((e) => e.offsetParent !== null))); };
+  // Een knop telt alleen als eigen hoofdactie als hij ook echt de gele hoofdkleur draagt (een klein m-bp-chipje of badge niet).
+  const geelKleur = () => { const t = document.createElement('i'); t.style.cssText = 'position:absolute;visibility:hidden;background:var(--ds-zeef-primair)'; root.appendChild(t); const c = getComputedStyle(t).backgroundColor; t.remove(); return c; };
+  const syncRailPrimair = () => { syncGepland = false; const p = root && root.querySelector('.pm-panel:not([hidden])'); let geel = null; root.classList.toggle('pm-eigen-primair', !!(p && [...p.querySelectorAll(PRIMAIR)].some((e) => e.offsetParent !== null && (geel = geel || geelKleur()) === getComputedStyle(e).backgroundColor))); };
   if (typeof MutationObserver === 'function') new MutationObserver(() => { if (!syncGepland) { syncGepland = true; requestAnimationFrame(syncRailPrimair); } }).observe(root, { childList: true, subtree: true, attributes: true, attributeFilter: ['hidden', 'disabled', 'class'] });
   const railBtn = (id) => { const [, label] = sectionOf(id); return `<button type="button" class="ra ds-m-nieuw" data-goto="${id}" aria-current="false">${icon(id, 'pm-ic ra-ic')}<span class="ra-t">${label}</span><span class="n" data-n="${id}"></span></button>`; };
   // #911: elke groep met een eigen kop en het aantal onderdelen erachter; de telling volgt in
