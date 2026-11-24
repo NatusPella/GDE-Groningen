@@ -155,7 +155,7 @@ export async function openHoofdmenu({ index = 0 } = {}) {
   const doe = (id) => {
     if (id === 'doorgaan' || id === 'samen') { sluit(uitkomstVan(id)); return; }
     if (id === 'nieuw') {
-      const plan = nieuwSpelPlan({ heeftSave: metSave, vrijePlek: !!freeSlot(null) });
+      const plan = nieuwSpelPlan({ heeftSave: metSave || (aantal > 0 && !SG.isFreshStart()), vrijePlek: !!freeSlot(null) });
       if (plan.actie === 'vol') { zegt(plan.tekst); return; }
       if (plan.actie === 'nieuwe-plek' && !startNewSlot()) { zegt('Er kon geen nieuwe plek worden gemaakt; je spellen zijn niet veranderd.'); return; }
       sluit('alleen');
@@ -165,7 +165,7 @@ export async function openHoofdmenu({ index = 0 } = {}) {
       openSaveSlots({
         mode: 'start', solo: true, eyebrow: 'Hoofdmenu', titel: 'Opgeslagen spellen',
         onLoad: (n) => { const p = ladenPlan(n); if (p.actie === 'stay') markStay(null, p.n); sluit('alleen'); },
-        onNew: () => { if (metSave && !startNewSlot()) { zegt('Er kon geen nieuwe plek worden gemaakt; je spellen zijn niet veranderd.'); return; } sluit('alleen'); },
+        onNew: () => { if ((metSave || (aantal > 0 && !SG.isFreshStart())) && !startNewSlot()) { zegt('Er kon geen nieuwe plek worden gemaakt; je spellen zijn niet veranderd.'); return; } sluit('alleen'); },
         onClose: () => zet(nu),
       });
       return;

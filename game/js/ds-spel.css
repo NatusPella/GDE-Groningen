@@ -220,3 +220,6 @@
   .sp-ov .sp-held__titel { font-size: 34px; }
 }
 .sp-slot--leeg .sp-ikoon { margin-bottom: 4px; }
+#online-start.sp-hm .sp-hm-wrap .gm-stage.ds-zeef { background: transparent; }
+.sp-doorgaan__kop .ds-z-knop__toets { font-size: 16px; line-height: 1; }
+.sp-menu .sp-keuze b { color: var(--ds-c-ink-inkt); }

@@ -11,7 +11,7 @@ const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&l
 const heeft = (p) => fs.existsSync(path.join(HERE, p));
 const MATEN = ['1920x1080', '1280x720', '1280x800'];
 const voor = (m, n) => `huidig/r${m}/${m}-${n}.png`;
-const na = (m, n) => `na/d${m}/${m}-${n}.png`;
+const na = (m, n) => (m === "1920x1080" && heeft(`na/e${m}/${m}-${n}.png`) ? `na/e${m}/${m}-${n}.png` : `na/d${m}/${m}-${n}.png`);
 const start = (map, m, n) => `start2/${map}/${m}-${n}.png`;
 
 const RIJEN = [
@@ -23,11 +23,11 @@ const RIJEN = [
   { id: 'overschrijven', titel: 'Overschrijven: oud tegenover nieuw', beeld: (m) => [voor(m, 'G-slots-menu'), na(m, 'G-overschrijven')] },
   { id: 'verwijderen', titel: 'Verwijderen', beeld: (m) => [voor(m, 'G-slots-menu'), na(m, 'G-verwijderen')] },
   { id: 'laden', titel: 'Laden met niet-bewaarde voortgang', beeld: (m) => [voor(m, 'G-slots'), na(m, 'G-laden-ongeslagen')] },
-  { id: 'hoofdmenu', titel: 'Hoofdmenu (met een save)', beeld: (m) => [m === '1920x1080' ? 'huidig/rstart/1920x1080-S-keuzekaart.png' : '', m === '1920x1080' ? start('c2', m, 'c2-hoofdmenu') : m === '1280x720' ? start('hm720', m, 'hm-hoofdmenu') : start('hm800', m, 'hm-hoofdmenu')] },
+  { id: 'hoofdmenu', titel: 'Hoofdmenu (met een save)', beeld: (m) => [m === '1920x1080' ? 'huidig/rstart/1920x1080-S-keuzekaart.png' : '', `start3/hm${m}/${m}-hm-hoofdmenu.png`] },
   { id: 'hoofdmenu-nieuw', titel: 'Hoofdmenu zonder save en de niveaukaart bij Nieuw spel', beeld: (m) => [m === '1920x1080' ? 'huidig/rstart/1920x1080-S-moeilijkheid.png' : '', m === '1920x1080' ? start('c1', m, 'c1-hoofdmenu') : ''] },
   { id: 'niveau', titel: 'Hoe pittig moet het zijn? (in de flow van Nieuw spel)', beeld: (m) => ['', m === '1920x1080' ? start('c1', m, 'c1-niveau') : ''] },
   { id: 'slots-start', titel: 'Opgeslagen spellen vanuit het hoofdmenu', beeld: (m) => ['', m === '1920x1080' ? start('c3', m, 'c3-slots') : ''] },
-  { id: 'instellingen', titel: 'Instellingen vanuit het hoofdmenu (prestart)', beeld: (m) => ['', m === '1280x720' ? start('hm720', m, 'hm-instellingen') : m === '1280x800' ? start('hm800', m, 'hm-instellingen') : ''] },
+  { id: 'instellingen', titel: 'Instellingen vanuit het hoofdmenu (prestart)', beeld: (m) => ['', `start3/hm${m}/${m}-hm-instellingen.png`] },
   { id: 'opgepakt', titel: 'Opgepakt (bon)', beeld: (m) => [voor(m, 'M-opgepakt'), na(m, 'M-opgepakt')] },
   { id: 'buiten-westen', titel: 'Buiten westen (bon)', beeld: (m) => [voor(m, 'M-buiten-westen'), na(m, 'M-buiten-westen')] },
   { id: 'recap', titel: 'Waar waren we? (recap)', beeld: (m) => [voor(m, 'M-recap'), m === '1920x1080' ? start('c2', m, 'c2-recap') : na(m, 'M-recap')] },
