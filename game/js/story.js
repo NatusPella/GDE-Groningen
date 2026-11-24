@@ -1518,6 +1518,9 @@ export function devJumpTo(id, opts = {}) {
     if (s.unlocks) state.flags.add(s.unlocks);
     for (const fl of milestoneFlagsFor(s.id)) state.flags.add(fl);
   }
+  // the gate a player has at this step (24-11): open what the story opened up to this act, the rest stays shut. Without it a jump had no gate,
+  // which counts as an old save with everything open: the football club's invite came in act 1 (spelbot --from=M05, QA images of a new game)
+  state.gate = stampGate(newGate(), progressFrom({ stepId: STEPS[k].id, gate: newGate() }));
   // a jump into Deel 4: the finale card of act 5 has played, or the gate (nextStoryStep) would send the story back to it
   if (PARTS[STEPS[k].part].after) state.cards.add(PARTS[STEPS[k].part].after);
   const completed = prior.filter((s) => s.kind === 'mission' && missionIdx(s) >= 0).map(missionIdx);

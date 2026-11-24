@@ -9,7 +9,7 @@ import PARKDATA from '../game/js/voetbalparkendata.js';
 import * as V from '../game/js/voetbalcarrierelive.js';
 import * as L from '../game/js/loopbaanlive.js';
 import { registerStoryQueries } from '../game/js/storyquery.js';
-import { progressFrom, newGate } from '../game/js/unlockgate.js';
+import { progressFrom, newGate, stampGate } from '../game/js/unlockgate.js';
 import { STEPS } from '../game/js/storyarc.js';
 
 let bad = 0, n = 0;
@@ -47,6 +47,18 @@ ok(/const gate = state\.gate \|\| \(state\.done\.size === 0 && \(!c \|\| c\.part
 ok(/registerStoryQueries\(\{[^}]*storyGateProgress/.test(story), 'story.js geeft zijn poortstand aan storyquery');
 const live = fs.readFileSync(new URL('../game/js/voetbalcarrierelive.js', import.meta.url), 'utf8');
 ok(/storyGateProgress\(\)/.test(live) && !/gate: w \? w\.gate : undefined\), dev/.test(live.split('let sv = { end: false };')[0]), 'voetbalcarrierelive.js vraagt eerst de poort van het verhaal, niet w.gate');
+
+// 2b. een sprong naar een stap (devJumpTo: spelbot --from, QA-beelden) krijgt de poort die een speler daar heeft; in akte 1 zonder voetbal
+ok(/state\.gate = stampGate\(newGate\(\), progressFrom\(\{ stepId: STEPS\[k\]\.id, gate: newGate\(\) \}\)\);/.test(story), 'story.js devJumpTo zet de poort van de stap');
+for (const id of ['M01', 'M05', 'M06']) {
+  const g = stampGate(newGate(), progressFrom({ stepId: id, gate: newGate() }));
+  ok(!g.open.includes('voetbal'), `na een sprong naar ${id}: voetbal dicht`, g.open.join(','));
+  V.useStorage(mem());
+  stand = progressFrom({ stepId: id, ended: false, gate: g, begun: () => false });
+  const wj = wereld('tammo');
+  for (let i = 0; i < 10; i++) { wj.time += 60; V.updateBeats(3, wj); }
+  ok(wj.msgs.length === 0, `na een sprong naar ${id}: geen voetbaltip`, wj.msgs.join(' | '));
+}
 
 // 3. het verhaal opent hem: in akte 4 ('zuid') komt de uitnodiging wel
 V.useStorage(mem());
