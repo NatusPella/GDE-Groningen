@@ -116,7 +116,7 @@ holdBackground(false);
   const sg = fs.readFileSync(new URL('../game/js/savegame.js', import.meta.url), 'utf8');
   ok(/installActivityProbe\(\(\) => playerBusy\(world, \[[^\]]*'missionPhase'[^\]]*\]\)\.busy\)/.test(main), 'main.js hangt de activiteitssonde aan playerBusy (missie, bijbaan, wedstrijd, minigame)');
   ok(!/'cinematic'/.test(main.match(/installActivityProbe\(.*/)[0]), 'een cutscene alleen telt niet als activiteit (die houdt achtergrondwerk juist vast)');
-  ok(/if \(r\.ok\) \{ bewarenUit = false; noteRestore\(\); return true; \}/.test(sg), 'savegame.js meldt een geslaagde lading met noteRestore');
+  ok(/if \(r\.ok\) \{ bewarenUit = false; (?:clearSafe\(\); )?noteRestore\(\); return true; \}/.test(sg), // #1295: clearSafe ervoor 'savegame.js meldt een geslaagde lading met noteRestore');
 }
 
 console.log(`placementurgency_test: ${n} controles groen`);
