@@ -481,7 +481,7 @@ export function checkDesignLine({ file, line, text } = {}, opts = {}) {
 // met een toetsnaam) zonder glyph. scripts/key_literals_test.mjs gebruikt dezelfde regex en bestandslijst.
 export const KEY_WORD_RE = /\b(Spatie|Spatiebalk|Esc|Enter|Shift|Tab|Ctrl|WASD|LMB|RMB|F(?:[1-9]|1[0-2])|pijltjes(?! op de green)|pijltoetsen|muiswiel|scrollwiel|linkermuis|rechtermuis|muisknop|Del|Backspace)\b/g;
 // Bestanden waarvan de tekst nooit door de speler wordt gelezen (dev, tools, protocol) of die de tokens zelf renderen.
-export const KEY_SKIP_FILES = /(^|\/)(devflags|storydev|gdt|botlogic|trailer|input|assistlive|controls|inputglyphs|inputglyphs_data|keycap|glyphs|testmenu|storytest)\.js$/;
+export const KEY_SKIP_FILES = /(^|\/)(devflags|storydev|gdt|botlogic|trailer|input|assistlive|controls|inputglyphs|inputglyphs_data|keycap|glyphs|testmenu|storytest|cutscenesfx)\.js$/; // cutscenesfx.js: scène-id's (story-F1) en geluidsankers, geen spelertekst
 // Ingesproken regels en ondertitels: de tekst op het scherm volgt de clip (geen nieuwe TTS, ADR 0041).
 export const KEY_SPOKEN_FILES = /(^|\/)(minigamelines2?3?|subtitles|missions_defs|missions_nieuw|missions_akte3|heistrollen|banterlines\w*)\.js$/;
 const KEY_TOKEN_RE = /\{[A-Z0-9]+\}/g;
