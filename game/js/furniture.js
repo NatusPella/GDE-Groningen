@@ -9,7 +9,7 @@ import { playStoryVoice, stopStoryVoice } from './audio.js';
 import { requestSearchlight } from './nightlights3d.js';
 import { setUserWaypoint, formatDistance } from './routing.js';
 import { getShopsForRender } from './shops.js';
-import { furnitureShopHook, jobBonusHook } from './latehooks.js';
+import { furnitureShopHook, jobBonusHook, furnitureNightHook } from './latehooks.js';
 import { SHOP_TYPES } from './shopdata.js';
 import { getSideJobSpotsForRender } from './sidejobs.js';
 import { getGaragesForRender } from './garages.js';
@@ -336,10 +336,17 @@ function furnitureJobBonus() {
   return has('bureau') ? JOB_BONUS : 1;
 }
 
-// home.js sleep, after the clock moved on.
-export function furnitureSlept(w, fromHour, toHour) {
+// A sleep anywhere (home, a safe house) that ends on or before the hour it began is a night: the furniture's day moves
+// on (the cutting of the plant grows). prevHour follows, so updateFurniture does not count the same night again (#1297).
+export function furnitureNight(fromHour, toHour) {
   if (toHour <= fromHour) newDay();
   prevHour = toHour;
+}
+furnitureNightHook.slept = furnitureNight; // safehuizen.js cannot import this module (import cycle via activities.js)
+
+// home.js sleep, after the clock moved on.
+export function furnitureSlept(w, fromHour, toHour) {
+  furnitureNight(fromHour, toHour);
   if (!has('bed')) return;
   w.armor = Math.max(w.armor, BED_ARMOR);
   sayOnce(w, 'bed', 'Wat een bed. Hier kom ik nooit meer uit.');

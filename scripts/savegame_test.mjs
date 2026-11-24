@@ -282,14 +282,14 @@ const startNewSlot = (scope) => new Function('scope', `with (scope) {
 
 ok(() => {
   const calls = [];
-  const scope = { newSlotName: () => 'Spel van 19 nov', takenNames: () => [], createSlot: (ls, name, want, fresh) => { calls.push(['create', ls, want, fresh]); return 4; }, bindSlot: () => calls.push(['bind']) };
+  const scope = { newSlotName: () => 'Spel van 19 nov', takenNames: () => [], createSlot: (ls, name, want, fresh) => { calls.push(['create', ls, want, fresh]); return 4; }, bindSlot: () => calls.push(['bind']), clearSafe: () => calls.push(['clear']), legacyCardSeen: false };
   assert.equal(startNewSlot(scope)(), true);
-  assert.deepEqual(calls, [['create', null, 0, true], ['bind']], 'een nieuw spel maakt een lege plek met de vlag en bindt die');
+  assert.deepEqual(calls, [['create', null, 0, true], ['clear'], ['bind']], 'een nieuw spel maakt een lege plek, leegt laatsteGoed en bindt die');
 }, 'nieuw spel: lege plek met de vlag');
 
 ok(() => {
   const calls = [];
-  const scope = { newSlotName: () => 'x', takenNames: () => [], createSlot: () => { calls.push('create'); return 0; }, bindSlot: () => calls.push('bind') };
+  const scope = { newSlotName: () => 'x', takenNames: () => [], createSlot: () => { calls.push('create'); return 0; }, bindSlot: () => calls.push('bind'), clearSafe: () => {}, legacyCardSeen: false };
   assert.equal(startNewSlot(scope)(), false);
   assert.deepEqual(calls, ['create'], 'zonder vrije plek wordt er niets gewist en niets gebonden');
   assert.doesNotMatch(sg, /localStorage\.removeItem\(slotKey\(saveTarget\(\)\)\)/, 'de save van het spel dat je speelt wordt niet meer stil gewist');

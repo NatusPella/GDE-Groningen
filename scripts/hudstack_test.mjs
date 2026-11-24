@@ -126,8 +126,11 @@ t('de CSS gebruikt de getallen van de zones (links onder het paneel, toetsbalk r
   const pf = fs.readFileSync(new URL('../game/js/phonefeed.css', import.meta.url), 'utf8');
   assert.match(pm, new RegExp(`\\.ph-card \\{ position: absolute; top: ${LINKS_KAART_TOP}px; left: ${LINKS_RAND}px; width: min\\(calc\\(30vw / var\\(--ui, 1\\)\\), ${LINKS_KAART_BREED}px\\)`), 'prestatiekaart in de linkerzone');
   assert.match(pm, new RegExp(`\\.ph-hints \\{ position: absolute; left: ${HINTS_LINKS}px; right: ${LINKS_RAND}px;`), 'toetsbalk in zijn zone');
-  assert.match(hc, new RegExp(`body\\.pigeon-mode #hud \\.hud-cards, body\\.heli-run #hud \\.hud-cards \\{ top: ${LINKS_KAART_TOP}px;`), 'missiekaart onder het paneel van duif en heli (#1058)');
-  assert.match(pf, new RegExp(`body\\.pigeon-mode #hud \\.phonefeed, body\\.heli-run #hud \\.phonefeed \\{ top: ${LINKS_KAART_TOP}px;`), 'nieuwsregel in dezelfde zone');
+  assert.match(hc, new RegExp(`body\\.pigeon-mode #hud \\.hud-cards \\{ top: ${LINKS_KAART_TOP}px;`), 'missiekaart onder het paneel van de duif (#1058)');
+  assert.match(pf, new RegExp(`body\\.pigeon-mode #hud \\.phonefeed \\{ top: ${LINKS_KAART_TOP}px;`), 'nieuwsregel in dezelfde zone');
+  // #1033: het heli-paneel is hoger (vijf regels, ca. 240 px); daar staan kaart en nieuwsregel op 256 px (gezien in Electron: eronder)
+  assert.match(hc, /body\.heli-run #hud \.hud-cards \{ top: 256px;/, 'missiekaart onder het heli-paneel');
+  assert.match(pf, /body\.heli-run #hud \.phonefeed \{ top: 256px;/, 'nieuwsregel onder het heli-paneel');
   assert.match(hc, /body\.pg-melding #hud \.hud-cards, body\.pg-melding #hud \.phonefeed \{ visibility: hidden; \}/, 'de prestatiekaart gaat voor');
 });
 

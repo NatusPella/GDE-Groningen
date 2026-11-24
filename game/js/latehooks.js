@@ -6,6 +6,7 @@ export const walkPathHook = { find: () => null };              // routing.js -> 
 export const throwablesHook = { update3D: () => {} };          // throwables.js -> gunfx3d.js (updateThrowables3D)
 export const furnitureShopHook = { items: () => [], note: () => '' }; // furniture.js -> shops.js (Woonafdeling)
 export const jobBonusHook = { get: () => 1 };                  // furniture.js -> sidejobs.js (Bureau bonus)
+export const furnitureNightHook = { slept: () => {} };          // furniture.js -> safehuizen.js (a night in a safe house, #1297)
 // cinematics.js asks respawn.js and scene3d.js through this (respawn.js and main.js fill it via setCinematicLinks)
 // getGrenzen: the real wijk boundaries (gebiedenbronnen.js), for the wijk card's highlights (#725)
 export const cinematicLinks = { startRespawnScene: () => false, respawnFade: () => {}, getFollowPose: () => null, prewarmStreamAt: () => {}, prewarmPending: () => 0, streamPending: () => null, getGrenzen: () => null };

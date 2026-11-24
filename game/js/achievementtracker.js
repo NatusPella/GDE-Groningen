@@ -78,6 +78,8 @@ let crossingT = 0;
 const fineSeen = new Map();
 let run = null;
 let retroT = 0;
+// the done missions for updateGebieden: one function, not a new closure every frame (#1287)
+const doneMissionIds = () => getMissionList().filter((m) => m.done).map((m) => m.id);
 let eggs = [];
 let eggGroup = null;
 
@@ -161,7 +163,7 @@ export function updateAchievementTracker(dt, w) {
     trackSocial(w);
     trackRail(dt, w, p, pv);
     trackMission(dt, w, pv);
-    updateGebieden(dt, w, () => getMissionList().filter((m) => m.done).map((m) => m.id));
+    updateGebieden(dt, w, doneMissionIds);
     probeerIntocht(dt, w); // #705: de intocht speelt zodra de speler rustig is
     trackBezoek(dt, w);
     syncGebiedStats(dt, w);

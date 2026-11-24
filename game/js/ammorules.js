@@ -12,12 +12,13 @@ export function munitieWinst(have, pack, cap) {
 }
 
 // De prijs van een bijna-vol pak: een heel pak kost de volle prijs, een deel een evenredig deel (minstens 1 euro, nooit meer
-// dan de volle prijs). Zo betaal je niet 25 euro voor 3 patronen die er nog bij passen.
+// dan de volle prijs). Zo betaal je niet 25 euro voor 3 patronen die er nog bij passen. Als je niets krijgt (winst <= 0),
+// betaal je ook niets (#1285).
 export function munitiePrijs(price, pack, winst) {
   const pr = Math.max(0, Math.floor(Number(price) || 0));
   const p = Math.max(1, Math.floor(Number(pack) || 1));
   if (winst >= p || pr === 0) return pr;
-  if (winst <= 0) return pr;
+  if (winst <= 0) return 0;
   return Math.min(pr, Math.max(1, Math.ceil((pr * winst) / p)));
 }
 

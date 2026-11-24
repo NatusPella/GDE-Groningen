@@ -9,6 +9,11 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ## [Unreleased]
 
+- Heli-opdrachten (Ballonjacht, Het staat niet in het rooster): de routekaart bovenin valt niet meer achter de heli-gids, en meldingen en de missiekaart staan onder het heli-paneel in plaats van erachter. Samen spelen: alleen beeld, per speler.
+- Samen spelen: jaagt de politie op een medespeler, dan raak je je eigen sterren kwijt als er geen politie bij jou in de buurt is; de afkoeltijd van de een schuift die van de ander niet meer door. Alleen bij wie het spel opende; een gast ziet de sterren van het doelwit zoals voorheen.
+- Safehuis: wie overdag gaat slapen tot de ochtend of de middag, wordt net als thuis de volgende dag wakker; de datum en de stek van de plant gaan mee. Samen spelen: slapen blijft een gezamenlijke keuze; de datum volgt de wereld van wie het spel opende.
+- Wapens: een slag met uithaal (knuppel, hockeystick, klomp) landt niet meer als je doodgaat, wordt opgepakt of in een voertuig stapt voordat de slag terechtkomt. Samen spelen: lokaal, geen invloed op andere spelers.
+- Opslaan: een wijziging van vlak voor een taxi- of treinrit wordt na de rit alsnog automatisch bewaard (de autosave was tijdens de rit verbruikt), en na het laden van een ander spel komt bij een haperend onderdeel nooit meer een stuk van het vorige spel in de save. Samen spelen: alleen de opener bewaart zo; een gast ongewijzigd.
 - Snackwagen: Jelles bedrijf heet overal Us Mem Snacks (op het tabblad Snackwagen, de kaartlaag Standplaatsen, de prestatie en het bord op zijn wagens stond nog Usmem). Samen spelen: alleen tekst, per speler.
 - Land en bedrijf: het icoon van een lege staat (Overzicht, Te koop) heeft een vaste maat en vult niet meer het hele paneel; Te koop toont een wegwijzerbord in plaats van een gestippeld vakje. Samen spelen: per speler.
 - Visboek: de wateren staan in één kolom met hun volle naam in plaats van drie smalle kolommen met afgekapte namen. Samen spelen: per speler.
