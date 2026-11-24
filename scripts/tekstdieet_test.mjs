@@ -47,9 +47,9 @@ ok(!('uitleg' in O.EERSTE_START) && !('naamHint' in O.EERSTE_START), 'naamscherm
 {
   const h = OUI.onlineStartHtml({ terug: true });
   const t = zichtbaar(h);
-  ok(t.length <= 150, 'naamscherm: alle zichtbare tekst ≤ 150 tekens', [t.length, t]);
-  ok(/<details class="os-info">/.test(h) && !/<details[^>]*\bopen\b/.test(h), 'naamscherm: de uitleg zit in een uitklapper die dicht staat');
-  ok(/IP-adres/.test(O.EERSTE_START.consent + O.EERSTE_START.info) && /STUN/.test(O.EERSTE_START.info), 'naamscherm: de privacy-uitleg staat er nog wel (achter Meer info)');
+  ok(t.length <= 1000, 'naamscherm: de zichtbare tekst blijft kort: een vinkzin en de tabel Wie ziet wat (ontwerp 24-11, 5c)', [t.length, t]);
+  ok(/class="os-wie"/.test(h) && !/<details/.test(h), 'naamscherm: de privacy-uitleg staat als tabel Wie ziet wat in beeld, niet achter een uitklapper');
+  ok(/IP-adres/.test(O.EERSTE_START.consent) && O.WIE_ZIET_WAT.length === 5 && /Wij/.test(h), 'naamscherm: de tabel noemt vijf partijen, ook wat de makers zien (niets)');
   ok(!/class="os-uitleg"|class="os-hint"/.test(h), 'naamscherm: geen losse uitlegalinea');
 }
 
@@ -58,8 +58,8 @@ ok(L.TOESTEMMING_TEKST.titel.length <= 40 && L.TOESTEMMING_TEKST.consent.length 
 {
   const h = UI.toestemmingHtml();
   const t = zichtbaar(h);
-  ok(t.length <= 170, 'toestemming: alle zichtbare tekst ≤ 170 tekens', [t.length, t]);
-  ok(/<details class="os-info">/.test(h) && /STUN-server en openbare brokers/.test(h) && /class="m-sw os-consent-vink"/.test(h), 'toestemming: vinkje blijft, uitleg achter Meer info');
+  ok(t.length <= 1300, 'toestemming: de zichtbare tekst blijft beperkt: vinkzin, een zin en de tabel Wie ziet wat', [t.length, t]);
+  ok(/class="os-wie"/.test(h) && /Hulpservers/.test(h) && /class="m-sw os-consent-vink"/.test(h), 'toestemming: vinkje blijft, de tabel Wie ziet wat noemt de hulpservers');
 }
 
 // 4. moeilijkheidskaart: korte niveau-omschrijvingen
@@ -83,7 +83,7 @@ ok(C.CARD_TEXT.optiesUitleg.length <= 60, 'moeilijkheid: inleiding van de opties
   const ui = read('saveslotsui.js'), css = read('saveslots.css');
   const kaart = ui.slice(ui.indexOf('const card = (s)'), ui.indexOf('const emptyCard'));
   ok(!/ssl-part|ssl-prog|Volgende stap|storySummary/.test(kaart), 'opgeslagen spellen: geen verhaaldeel, balk of tip per rij');
-  ok(/ssl-nm[\s\S]*ssl-meta[\s\S]*ssl-chips[\s\S]*ssl-go/.test(kaart), 'opgeslagen spellen: naam, één regel, tags, actie');
+  ok(/ssl-card sp-slot/.test(ui) && /sp-slot__naam/.test(ui) && /sp-slot__meta/.test(ui) && /ssl-main/.test(ui), 'opgeslagen spellen: naam, één regel, tags, actie (Spel-ontwerp 24-11)');
   ok(/\.ssl-grid \{[^}]*repeat\(2,/.test(css) && /\.ssl-go \{[^}]*display: inline-flex/.test(css), 'opgeslagen spellen: twee brede kolommen en de actie altijd zichtbaar');
 }
 

@@ -88,7 +88,7 @@ export function stapWaar({ rijen = [], meedoen = null, eigenId = '', sessie = nu
         ? 'Op het aansluitscherm zie je de openbare sessies en het veld voor een kamercode.'
         : aantal
           ? `${aantal} ${aantal === 1 ? 'sessie past' : 'sessies passen'} bij je${k.sessie && k.sessie.naam ? `, de drukste is "${k.sessie.naam}"` : ''}.`
-          : (k.reden || 'Er is nu geen sessie om bij aan te sluiten.');
+          : (k.reden || 'Geen sessie om bij aan te sluiten.');
   // #1222: de korte regel staat op de kaart; waarom, staat achter het info-icoon (meer), geen tekstmuur.
   const meedoenMeer = !sessie && meedoen !== true
     ? 'Het aansluitscherm vraagt je toestemming voor online spelen. Pas daarna gaat er iets naar buiten.'

@@ -1,6 +1,7 @@
 // Samen spelen: de tabbladen Uitnodigen en Sessie van de kamer (ontwerp 24-11, hoofdstuk 5i). De HTML is puur (samenspelers.js); dit bestand haalt de gegevens uit de sessie
 // en bindt de knoppen: de code kopiëren, weer privé maken (vasthouden), voorstellen om te stoppen (een gezamenlijke keuze, geen hostrecht) en het spel verlaten.
 // Nooit een IP-adres: alleen de kamercode of de naam van een openbare sessie. Niet door een mens in een echte sessie bekeken.
+import { KOPIEER } from './playerstatus.js';
 import { uitnodigenHtml, sessieHtml } from './samenspelers.js';
 import { readSession } from './coopsave.js';
 import { groepAkkoord } from './coopgroep.js';
@@ -31,7 +32,7 @@ function monteer(root, world, soort) {
       const k = e.target.closest && e.target.closest('[data-kopieer]');
       if (k) {
         const c = k.getAttribute('data-kopieer');
-        const klaar = (ok) => { k.textContent = ok ? 'Gekopieerd' : 'Kopiëren lukte niet: selecteer de code en kopieer hem zelf.'; };
+        const klaar = (ok) => { k.textContent = ok ? 'Gekopieerd' : KOPIEER.mislukt; };
         try { navigator.clipboard.writeText(c).then(() => klaar(true), () => klaar(false)); } catch (er) { klaar(false); }
         return;
       }

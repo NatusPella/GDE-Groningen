@@ -10,4 +10,5 @@ export const BUILD_ONLY = [
   'padscreens.js',
   'randaudit.js', 'streekaudit.js', 'terrainaudit.js', // wereldaudits (scripts/world)
   'missioncurve.js', // #829: branch-aware missiecurve voor audit/tests, niet in het spel
+  'agendaregels.js', // de agenda-regel van Overzicht (#985); het nieuwe Spel-Overzicht (24-11) toont geen agenda meer, de pure regel blijft voor agendaregels_test
 ];

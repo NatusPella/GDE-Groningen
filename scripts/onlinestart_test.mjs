@@ -88,8 +88,8 @@ await t('Instellingen: de naam wijzigen met dezelfde filter, het akkoord intrekk
 await t('de kaart heeft een naamveld en precies één knop Doorgaan', async () => {
   const html = onlineStartHtml({ naam: '', fout: '' });
   assert.match(html, /Je naam voor Samen spelen/);
-  assert.match(html, /gaat naar je medespeler en naar de openbare servers/);
-  assert.match(html, /STUN-server en openbare brokers/);
+  assert.match(html, /Hulpservers[\s\S]*openbaar, om elkaar te vinden/, "de tabel Wie ziet wat noemt de hulpservers (ontwerp 24-11, 5c)");
+  assert.match(html, /Postbussen[\s\S]*Alleen versleutelde berichten/, "en de postbussen met alleen versleutelde berichten");
   assert.match(html, new RegExp(`>${EERSTE_START.doorgaan} <span class="sk-toets-in">`), 'Doorgaan met zijn toets in de knop (#1225)');
   assert.equal((html.match(/<button\b[^>]*class="os-knop/g) || []).length, 1, 'één antwoordknop: Doorgaan (naast het Meer info-schakelaartje)');
   assert.ok(!/data-keuze|Meedoen<|Alleen spelen|Later</.test(html), 'geen tweede antwoord of uitstelknop');

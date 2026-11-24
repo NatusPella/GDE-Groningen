@@ -2,6 +2,7 @@
 // Pure HTML-functies, geen DOM en geen netwerk: coopspelersui.js zet het resultaat in het paneel en bindt de knoppen. De acties staan bij de gekozen speler
 // (Ga erheen, Spel overdragen, Dempen of blokkeren, Uit het spel zetten) en niet drie keer per rij. Verbinding staat in gewone woorden (samensignaal.js);
 // nooit milliseconden, nooit een IP-adres. Kleur is nooit het enige: de vorm en het woord staan er altijd naast.
+import { keyTextHtml } from './keycap.js';
 import { VORM_TEKEN, kanEruitZetten, kanOverdragen, overdragenKnopTekst, eruitGezetTekst, veiligeKleur } from './coopspelers.js';
 import { NIVEAU_TEKST, verbindingUitleg } from './samensignaal.js';
 
@@ -53,7 +54,7 @@ export function detailHtml(r, { rol = null, muteStaat = () => 'gewoon', openerNa
 // jouw stand (passief of actief) en roepen, onder de tabel. kan = de stand is te kiezen (de host kent hem); passief = jouw stand
 export function jijStrookHtml({ passief = true, kan = true, tekstUitleg = '', roep = [] } = {}) {
   const stand = kan ? `<section class="ss-blok"><span class="ss-label">Jouw stand</span><div class="ds-z-segment ds-z-segment--blok" role="radiogroup" aria-label="Jouw stand"><button type="button" role="radio" aria-checked="${passief}" data-passief="1">Passief</button><button type="button" role="radio" aria-checked="${!passief}" data-passief="0">Actief (PvP)</button></div><span class="ss-hulp">${esc(tekstUitleg)}</span></section>` : '';
-  const roepen = roep.length ? `<section class="ss-blok"><span class="ss-label">Roepen naar de anderen</span><div class="ss-roep">${roep.map((k) => `<button type="button" class="ss-roepknop" data-ping="${esc(k.soort)}"><span class="ds-z-toets">${esc(k.toets)}</span> ${esc(k.tekst)}</button>`).join('')}</div><span class="ss-hulp">Tab in het spel toont dezelfde lijst, kort.</span></section>` : '';
+  const roepen = roep.length ? `<section class="ss-blok"><span class="ss-label">Roepen naar de anderen</span><div class="ss-roep">${roep.map((k) => `<button type="button" class="ss-roepknop" data-ping="${esc(k.soort)}"><span class="ds-z-toets">${esc(k.toets)}</span> ${esc(k.tekst)}</button>`).join('')}</div><span class="ss-hulp">${keyTextHtml('{TAB} in het spel toont dezelfde lijst, kort.')}</span></section>` : '';
   return stand || roepen ? `<div class="ss-strook">${stand}${roepen}</div>` : '';
 }
 

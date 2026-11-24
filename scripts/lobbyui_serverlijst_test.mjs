@@ -35,7 +35,7 @@ const { maakSleutelpaar, sleutelTekst } = await import('../game/js/net/sigcrypto
 
 let n = 0;
 const t = async (name, f) => { await f(); n++; };
-const tick = (ms = 20) => new Promise((r) => setTimeout(r, ms));
+const tick = (ms = 20) => new Promise((r) => setTimeout(r, ms * 3)); // x3: de sleutel van de host kost onder belasting meer dan de oude marges
 // #795: de hostsleutel van de sessie; de aankondiging draagt de publieke helft, de hub de poort het paar.
 const HOST_KEY = await sleutelTekst(await maakSleutelpaar());
 const HOST_PAIR = await maakSleutelpaar(); // een tweede paar voor de gastheerhub in deze test
@@ -143,6 +143,7 @@ await t('geen enkele broker bereikbaar: de lijst zegt dat in gewone taal', async
 await t('host: standaard privé; de knop vraagt eerst toestemming; er wordt niets van de lijst geplaatst voor het akkoord', async () => {
   const s0 = start(); const root = fakeRoot(); const lobby = mountLobby(root, hooks());
   root.click('kies-host'); root.click('route-kamer'); root.click('akkoord'); await tick(80);
+  for (let i = 0; i < 60 && lobby.state().step === 'host-maakt-code'; i++) await tick(50); // de code komt na het maken van de sleutel: dat duurt onder belasting langer dan 80 ms
   assert.equal(lobby.state().step, 'host-wacht'); assert.equal(lobby.state().openbaar, false);
   assert.match(root.innerHTML, /Maak deze sessie openbaar/);
   assert.ok(!/gde\/lijst/.test(alleVerzonden(s0)), 'een privé sessie plaatst niets op de lijst');

@@ -235,7 +235,7 @@ t('#390: Missie stoppen (missions.js, safety.js, pausemenu.js, todoui.js): eerst
   assert.match(pm, /a === 'mission-stop' \|\| a === 'mission-stop-no'/, 'de knop en Nee gaan naar de vraag');
   assert.match(pm, /if \(stop && !stop\.hidden\)/, 'Esc sluit eerst de vraag');
   const td = bron('todoui.js');
-  for (const tekst of ['Missie stoppen', 'Missie stoppen?', 'Ja, stoppen', 'Nee, doorgaan', 'Missie bezig']) assert.ok(td.includes(tekst), tekst + ' in het menu');
+  for (const tekst of ['Missie stoppen', 'Missie stoppen?', 'Ja, stoppen', 'Nee, doorgaan', 'Je bent bezig']) assert.ok(td.includes(tekst), tekst + ' in het menu');
   assert.match(td, /data-stop-confirm hidden/, 'de vraag staat dicht tot je op de knop drukt');
   assert.match(bron('helpoverview.js'), /Missie stoppen/, 'de uitleg noemt de nieuwe knop');
   const cn = bron('coopnet.js');
