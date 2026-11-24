@@ -18,7 +18,7 @@ t('prijs: heel pak vol, deel evenredig, minstens 1, nooit meer dan vol', () => {
   assert.equal(M.munitiePrijs(25, 36, 36), 25);
   assert.equal(M.munitiePrijs(25, 36, 10), 7);
   assert.equal(M.munitiePrijs(25, 36, 1), 1);
-  assert.equal(M.munitiePrijs(25, 36, 0), 25, 'zonder winst blijft de prijs staan (de knop is dan toch uit)');
+  assert.equal(M.munitiePrijs(25, 36, 0), 0, 'zonder winst is de prijs ook 0 (#1285)');
   assert.equal(M.munitiePrijs(0, 36, 10), 0);
   for (let w = 1; w <= 36; w++) { const p = M.munitiePrijs(25, 36, w); assert.ok(p >= 1 && p <= 25, `w=${w} p=${p}`); }
   for (let w = 1; w < 36; w++) assert.ok(M.munitiePrijs(25, 36, w) <= M.munitiePrijs(25, 36, w + 1), 'monotoon');
