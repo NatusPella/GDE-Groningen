@@ -107,10 +107,24 @@ async function kpMain() {
         hud(true);
         await rustig(p.id + ' (wereld eronder)');
         const ls = M.load.startLoadScreen(world, { kind: 'travel', x: d.x, y: d.y });
-        for (let k = 0; k < (p.beelden || 60); k++) await advance({ capture: false });
+        // Het echte scherm sluit zelf zodra de plek geladen is (hier al meteen), dus vóór de foto weg. Net als
+        // scripts/qa/menufoto.page.js: een kopie van het echte scherm vasthouden, met een vaste balk en stap en
+        // zonder animatie, zodat het beeld deterministisch is.
+        const LL = await import('/js/loadlogic.js');
+        const kloon = ls && ls.el ? ls.el.cloneNode(true) : null;
+        if (!kloon) throw new Error('geen laadscherm-element');
+        // de opmaak hangt aan #load-screen: de kopie krijgt die id, het echte scherm tijdelijk een andere
+        const echtId = ls.el.id; ls.el.id = 'load-screen-echt';
+        kloon.id = 'load-screen'; kloon.classList.add('on', 'instant'); kloon.classList.remove('out'); kloon.style.zIndex = '99999';
+        const BALK = p.balk != null ? p.balk : 0.55;
+        const fill = kloon.querySelector('.ls-bar i'); if (fill) fill.style.transform = 'scaleX(' + BALK + ')';
+        const stap = kloon.querySelector('.ls-step'); if (stap && LL.loadStepAt) stap.textContent = LL.loadStepAt(BALK, 'travel').label;
+        const stil = document.createElement('style'); stil.textContent = '#load-screen, #load-screen * { animation: none !important; transition: none !important; }';
+        document.head.appendChild(stil); document.body.appendChild(kloon);
+        ls.el.style.visibility = 'hidden';
+        for (let k = 0; k < (p.beelden || 30); k++) await advance({ capture: false });
         await png(p.id);
-        // startLoadScreen geeft { done: Promise, el }: het scherm sluit zelf als het streamen klaar is
-        if (ls && typeof ls.done === 'function') ls.done();
+        kloon.remove(); stil.remove(); ls.el.id = echtId; ls.el.style.visibility = '';
         for (let k = 0; k < 40; k++) await advance({ capture: false });
         meld(p.id, { ok: true, ms: Math.round(rt.now() - t0) });
         continue;

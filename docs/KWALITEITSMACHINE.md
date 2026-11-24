@@ -51,7 +51,7 @@ Exitcodes die de scripts aanhouden: 0 klaar, 1 fout, 2 verkeerd gebruik, 3 geen 
 
 ## 2. Beeldregressie op vaste camerapunten
 
-`scripts/kwaliteit/camerapunten.json` beschrijft elf punten op **1920x1080**: twee beelden uit het openingsfilmpje (op 2 s en 7 s), de stad van boven, de Grote Markt, de Martinitoren, het appartement van Tammo en Tessa (House of Groningen, Paddepoel), de garage (pauzemenu), de kaart (zoom 3 rond de Martinitoren), de HUD tijdens het rijden (Escapade, stilstaand), de minikaart (uitsnede van de HUD) en het laadscherm. `--lijst` toont ze.
+`scripts/kwaliteit/camerapunten.json` beschrijft elf punten op **1920x1080**: twee beelden uit het openingsfilmpje (op 2 s en 13 s), de stad van boven, de Grote Markt, de Martinitoren, het appartement van Tammo en Tessa (House of Groningen, Paddepoel), de garage (pauzemenu), de kaart (zoom 3 rond de Martinitoren), de HUD tijdens het rijden (Escapade, stilstaand), de minikaart (uitsnede van de HUD) en het laadscherm. `--lijst` toont ze.
 
 **Deterministisch.** Eén Electron in `--clip`-modus (het venster is precies 1920x1080, zonder rand), `--autoplay=<seed>` (Math.random met vaste seed, opslag alleen in het geheugen), klok en weer vast (`klok`, `weer`), de wereld alleen via de vaste tijdstap van `scripts/trailer/lib/clip.page.js`, en een beeld pas als het streamen rond de camera klaar is plus een vast aantal beelden. Voertuigen rond het doel worden weggehaald; wat dan nog beweegt (voetgangers, water) vangen de drempels op.
 
