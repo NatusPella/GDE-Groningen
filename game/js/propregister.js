@@ -100,6 +100,39 @@ export const PROP_REGISTER = {
     nl: 'Poster', bouwer: 'poster', gebruik: ['interieur'],
     norm: { tris: [150, 400], kleuren: 6, maat: [0.01, 0.7, 0.5], eisen: ['verzonnen ontwerp met vlakken en een fiets in lijnen', 'plakband op de hoeken', 'geen tekst of merk'] },
   },
+  // de haven van M13 (#1328, containerterminal.js): een herkenbare loskade in plaats van kale dozen, cilinders en een kraan als blokje
+  container20: {
+    nl: 'Zeecontainer (20 voet)', bouwer: 'container20', gebruik: ['haven'],
+    norm: { tris: [600, 1400], kleuren: 6, maat: [6.24, 2.59, 2.44], eisen: ['golfplaat met ribben op de lange zijden en de kopse kant', 'frame met hoekstijlen, regels en acht hoekstukken', 'twee deuren met naad, scharnieren, vier sluitstangen met hendels en nokhouders', 'typeplaatje en vorkgaten'] },
+  },
+  container40: {
+    nl: 'Zeecontainer (40 voet)', bouwer: 'container40', gebruik: ['haven'],
+    norm: { tris: [1100, 2400], kleuren: 5, maat: [12.37, 2.59, 2.44], eisen: ['golfplaat met ribben op de lange zijden en de kopse kant', 'frame met hoekstijlen, regels en acht hoekstukken', 'twee deuren met naad, scharnieren, vier sluitstangen met hendels en nokhouders', 'dak met dwarsdeuken'] },
+  },
+  havenkraan: {
+    nl: 'Havenkraan met kraankooi', bouwer: 'havenkraan', gebruik: ['haven'],
+    norm: { tris: [700, 1800], kleuren: 7, maat: [20.0, 12.4, 4.0], eisen: ['portaal op vier poten met voeten, balken en schoren', 'draaikrans met machinehuis, roosters en contragewicht met strepen', 'cabine met ramen rondom, bordes en leuning', 'bok met tuien en een vakwerkgiek', 'kabel met haakblok en een ladder langs een poot'] },
+  },
+  havenhek: {
+    nl: 'Havenhek (gaaspaneel)', bouwer: 'havenhek', gebruik: ['haven'],
+    norm: { tris: [300, 700], kleuren: 6, maat: [0.62, 2.04, 3.5], eisen: ['buizenframe', 'gaas van staanders en liggers', 'twee betonnen voeten', 'bordje'] },
+  },
+  lichtmast: {
+    nl: 'Lichtmast', bouwer: 'lichtmast', gebruik: ['haven'],
+    norm: { tris: [120, 360], kleuren: 5, maat: [1.4, 10.25, 0.9], eisen: ['betonpoer met voetplaat en bouten', 'taps toelopende mast met luikje', 'kopbalk met vier schuine schijnwerpers en lichte lenzen'] },
+  },
+  heftruck: {
+    nl: 'Heftruck', bouwer: 'heftruck', gebruik: ['haven'],
+    norm: { tris: [400, 1000], kleuren: 8, maat: [3.5, 2.5, 1.2], eisen: ['chassis met contragewicht en motorkap', 'stoel, stuur en een kooi met roosterdak', 'hefmast met regels, vorkbord en twee vorken', 'wielen met naven, achterlichten en werklamp'] },
+  },
+  kabelhaspel: {
+    nl: 'Kabelhaspel', bouwer: 'kabelhaspel', gebruik: ['haven'],
+    norm: { tris: [500, 1100], kleuren: 5, maat: [2.6, 2.4, 2.2], eisen: ['twee houten flenzen met planknaden', 'opgerolde kabel met windingen', 'as-einden en een los kabeleinde'] },
+  },
+  bolder: {
+    nl: 'Bolder', bouwer: 'bolder', gebruik: ['haven'],
+    norm: { tris: [80, 220], kleuren: 4, maat: [0.6, 0.71, 0.6], eisen: ['voetplaat met bouten', 'gietijzeren paal', 'kraag en kop'] },
+  },
   laptop: {
     nl: 'Laptop', bouwer: 'laptop', gebruik: ['interieur'],
     norm: { tris: [50, 140], kleuren: 5, maat: [0.29, 0.22, 0.33], eisen: ['onderkant met toetsenbord en trackpad', 'scherm schuin achterover met een licht beeld', 'scharnier en camerapuntje'] },

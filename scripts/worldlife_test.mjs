@@ -64,7 +64,7 @@ ok(regenDagen > 20 && !regenFout, 'bij regen geen straatartiest, wandelgroep of 
 ok(!zwaluwFout, 'zwaluwen alleen op heldere, zachte, briesachtige of hete dagen');
 
 // -- het beeldbudget: vast plafond, nooit meer dan het aantal instanties en draw calls van de limiet --------------------------------------
-ok(W.LIFE_LIMITS.extraDrawCalls === 3 && W.LIFE_LIMITS.maxPeople <= 96 && W.LIFE_LIMITS.maxAnimals <= 64 && W.LIFE_LIMITS.maxBubbles === 2, 'LIFE_LIMITS: 3 draw calls, 96 mensen, 64 dieren, 2 bubbels');
+ok(W.LIFE_LIMITS.extraDrawCalls === 25 && W.LIFE_LIMITS.maxPeople <= 96 && W.LIFE_LIMITS.maxAnimals <= 64 && W.LIFE_LIMITS.maxBubbles === 2, 'LIFE_LIMITS: 25 draw calls (24 mensmeshes en de dieren), 96 mensen, 64 dieren, 2 bubbels');
 let maxP = 0, maxA = 0;
 for (let d = 1; d <= 90; d++) for (let u = 0; u < 24; u += 0.5) {
   const r = W.lifeRoster(d, u);
@@ -74,7 +74,9 @@ for (let d = 1; d <= 90; d++) for (let u = 0; u < 24; u += 0.5) {
 ok(maxP <= W.LIFE_LIMITS.maxPeople && maxA <= W.LIFE_LIMITS.maxAnimals, 'op elke dag en elk uur binnen de instantielimiet', `${maxP}/${maxA}`);
 ok(maxP >= 30 && maxA >= 15, 'het mag ook echt druk worden (anders is het geen evenement)', `${maxP}/${maxA}`);
 const src3d = lees('../game/js/worldlife3d.js'), code3d = strip(src3d);
-ok((code3d.match(/new THREE\.InstancedMesh\(/g) || []).length === 3, 'worldlife3d.js bouwt precies drie InstancedMesh-objecten');
+ok((code3d.match(/new THREE\.InstancedMesh\(/g) || []).length === 2, 'worldlife3d.js bouwt de mensen en de dieren als InstancedMesh (twee plekken in de code)');
+// #1330: mensen uit het echte personagesysteem (gebakken Quaternius-mensen), geen cilinders met een bol
+ok(/bakeModularPose\(/.test(code3d) && !/CylinderGeometry|SphereGeometry/.test(code3d), 'worldlife3d.js tekent echte mensen, geen cilinders of bollen');
 ok(!/new THREE\.(Mesh|Sprite|Points|Line|PointLight|SpotLight)\(/.test(code3d) && !/\.clone\(/.test(code3d), 'geen losse Mesh, Sprite, Points of lichten per acteur');
 ok(/instanceMatrix\.setUsage|DynamicDrawUsage/.test(code3d) && /LIFE_LIMITS\.maxPeople/.test(code3d), 'de instanties hebben de limiet als grootte');
 ok(/updateWorldLife\(scene, world, px, py, dt\)/.test(lees('../game/js/weather.js')), 'weather.js roept updateWorldLife aan (een plek in de renderlus)');
@@ -99,7 +101,7 @@ const rollen = new Set();
 for (let d = 1; d <= 20; d++) for (const u of [8, 12, 15, 21]) for (const a of W.lifeRoster(d, u)) if (a.role) rollen.add(a.role);
 ok([...rollen].every((r) => ROLE_POOLS[r]), 'elke rol in het wereldleven bestaat in ROLE_POOLS van de kleding', [...rollen].join(','));
 for (const r of ['winkelier', 'voetganger', 'toerist', 'student', 'feestganger', 'wandelaar', 'sporter']) ok(rollen.has(r), `rol ${r} komt voor`);
-ok(!/models3d_people|buildPersonMesh/.test(code3d) && /npcOutfit/.test(code3d), 'de kleur komt uit npcOutfit (de rolpools), niet uit een eigen tabel');
+ok(!/models3d_people|buildPersonMesh/.test(code3d) && /bakeModularPose/.test(code3d) && !/SKIN\s*=|setColorAt\(i, color\.setHex\(bodyColor/.test(code3d), 'kleding en huid komen uit het personagesysteem (modularpeople.js, per zaad), niet uit een eigen tabel (#1330)');
 
 // -- bubbels: hoogstens twee, dichtbij, deterministisch, alleen eigen regels ------------------------------------------------------------------
 const r12 = W.lifeRoster(1, 12), mid = r12.find((a) => a.ev === 'markt');

@@ -21,7 +21,7 @@ import { LIFE_LINES, ANIMAL_LINES } from './worldlifelines.js';
 
 // Fixed limits (the test guards them): the layer adds at most this to the picture.
 export const LIFE_LIMITS = Object.freeze({
-  extraDrawCalls: 3, // people bodies, people heads, animals: three InstancedMesh objects. Bubbles are DOM (world.extraSpeakers), 0 calls
+  extraDrawCalls: 25, // #1330: real people (2 rigs x 3 looks x 4 poses, worldlife3d.js PEOPLE_MESHES, only the used ones draw) + animals. Bubbles are DOM, 0 calls
   maxPeople: 96,
   maxAnimals: 64,
   maxBubbles: 2, // at most two bubbles at once

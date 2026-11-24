@@ -1,4 +1,4 @@
-// Wereld levend, tekenkant (game/js/worldlife3d.js, 21-11): drie instanced meshes, de limieten, de bubbels in world.extraSpeakers.
+// Wereld levend, tekenkant (game/js/worldlife3d.js, 21-11): instanced meshes voor de mensen (echte mensen, #1330) en de dieren, de limieten, de bubbels in world.extraSpeakers.
 // Heeft de gebundelde three nodig (cd desktop && npm run stage); zonder die slaat de test zichzelf over.
 // node scripts/worldlife3d_test.mjs
 import './node3d.mjs';
@@ -23,11 +23,21 @@ for (let f = 0; f < 600; f++) {
 const group = added[0];
 ok(added.length === 1 && group && group.name === 'wereldleven', 'een groep in de scène');
 const meshes = group.children;
-ok(meshes.length === 3 && meshes.every((m) => m.isInstancedMesh), 'precies drie InstancedMesh-objecten');
-ok(calls === 3, 'op een marktdag kost het drie draw calls', String(calls));
-ok(meshes[0].count > 8 && meshes[0].count <= W.LIFE_LIMITS.maxPeople && meshes[0].count === meshes[1].count, 'mensen: lichamen en hoofden gelijk en binnen de limiet', String(meshes[0].count));
-ok(meshes[2].count > 0 && meshes[2].count <= W.LIFE_LIMITS.maxAnimals, 'dieren binnen de limiet', String(meshes[2].count));
-ok(meshes.every((m) => m.instanceMatrix.count === (m === meshes[2] ? W.LIFE_LIMITS.maxAnimals : W.LIFE_LIMITS.maxPeople)), 'de buffers hebben de vaste limiet als grootte');
+// #1330: in node zijn de rigs van het personagesysteem niet geladen: dan geen mensen (nooit een cilinder als invaller), wel de dieren
+const beasts = meshes.find((m) => m.name === 'wereldleven-dieren');
+ok(meshes.length === 1 && beasts && beasts.isInstancedMesh, 'zonder rigs: alleen de dieren, geen invallers voor de mensen', String(meshes.length));
+ok(calls === 1, 'op een marktdag zonder rigs kost het een draw call (de dieren)', String(calls));
+ok(beasts.count > 0 && beasts.count <= W.LIFE_LIMITS.maxAnimals, 'dieren binnen de limiet', String(beasts.count));
+ok(beasts.instanceMatrix.count === W.LIFE_LIMITS.maxAnimals, 'de dierenbuffer heeft de vaste limiet als grootte');
+ok(W3.PEOPLE_MESHES + 1 <= W.LIFE_LIMITS.extraDrawCalls, 'alle mensmeshes en de dieren passen in het draw-callplafond', `${W3.PEOPLE_MESHES}`);
+// de mesh van een acteur: vast per zaad (elke client dezelfde mens), de houding volgt de pose, lopen wisselt tussen twee fasen
+{
+  const slots = new Set();
+  for (let s = 0; s < 60; s++) for (const pk of [0, 1, 2]) for (const st of [0, 1]) { const k = W3.peopleSlot(s, pk, st); ok(k >= 0 && k < W3.PEOPLE_MESHES, 'slot binnen de meshes'); slots.add(k); }
+  ok(slots.size === W3.PEOPLE_MESHES, 'alle meshes worden gebruikt', String(slots.size));
+  ok(W3.peopleSlot(7, 0, 0) === W3.peopleSlot(7, 0, 1) && W3.peopleSlot(7, 1, 0) !== W3.peopleSlot(7, 1, 1), 'staan heeft een houding, lopen twee fasen');
+  ok(W3.peopleSlot(7, 2, 0) === W3.peopleSlot(7, 2, 5), 'iets doen heeft een houding');
+}
 ok(maxSpeak >= 1 && maxSpeak <= 2 && !naam, 'bubbels: 1 tot 2 tegelijk, zonder sprekernaam', String(maxSpeak));
 ok(world.extraSpeakers.every((e) => e.mgTag !== 'wereldleven' || (e.speechUntil > world.time - 0.01 && typeof e.speechText === 'string')), 'elke bubbel heeft tekst en een einde');
 // ver weg: niets tekenen, geen bubbels, geen draw calls

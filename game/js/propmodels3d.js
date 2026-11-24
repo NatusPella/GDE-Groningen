@@ -514,7 +514,198 @@ function laptop() {
   return B.build();
 }
 
-const MAKERS = { bank, afvalbak, fietsenrek: () => fietsenrek(4), bushokje, paaltje, autostoel, dashboard, vetvat, jerrycan, kraampje, ijscokar, gitaarkoffer, gitaar, tv, frituurpan, buisradio, boekenkast, droogrek, verhuisdozen, lijst, poster, laptop };
+// --- De haven van M13 (#1328): een loskade met echte onderdelen in plaats van kale dozen en cilinders ------------------------------
+
+// Een zeecontainer: +x is de deurkant, de lengte langs x en de breedte langs z. De romp staat lichtgrijs in de vertexkleur: de kleur van
+// de (verzonnen) rederij komt van het materiaal (vertexkleur maal materiaalkleur), zodat een kleur geen eigen geometrie kost.
+function zeecontainer(L) {
+  const B = new GeoBuilder(1);
+  const W = 2.44, H = 2.59, body = 0xd6d6d6, rib = 0xbcbcbc, frame = 0x8c8c8c, dark = 0x3a3a3a, steel = 0xa6a8a6;
+  B.box(0, H / 2, 0, L - 0.16, H - 0.2, W - 0.1, body);                                          // de romp
+  // golfplaat op de lange zijden: om de 28 cm een uitstekende rib
+  const n = Math.floor((L - 0.5) / 0.28);
+  for (let i = 0; i < n; i++) {
+    const x = -L / 2 + 0.32 + i * 0.28;
+    for (const s of [-1, 1]) B.box(x, H / 2, s * (W / 2 - 0.035), 0.13, H - 0.34, 0.03, rib);
+  }
+  // het dak met lichte dwarsdeuken, de kopse kant met vijf ribben
+  for (let x = -L / 2 + 0.5; x < L / 2 - 0.3; x += 0.9) B.box(x, H - 0.085, 0, 0.3, 0.02, W - 0.2, rib);
+  for (let k = 0; k < 5; k++) B.box(-L / 2 + 0.06, H / 2, -0.9 + k * 0.45, 0.03, H - 0.34, 0.16, rib);
+  // het frame: hoekstijlen, boven- en onderregels, en de acht hoekstukken waar de kraan hem pakt
+  for (const sx of [-1, 1]) for (const sz of [-1, 1]) B.box(sx * (L / 2 - 0.08), H / 2, sz * (W / 2 - 0.08), 0.16, H, 0.16, frame);
+  for (const y of [0.08, H - 0.08]) {
+    for (const sz of [-1, 1]) B.box(0, y, sz * (W / 2 - 0.06), L - 0.3, 0.16, 0.12, frame);
+    for (const sx of [-1, 1]) B.box(sx * (L / 2 - 0.06), y, 0, 0.12, 0.16, W - 0.3, frame);
+  }
+  for (const sx of [-1, 1]) for (const sz of [-1, 1]) for (const y of [0.095, H - 0.095]) B.box(sx * (L / 2 - 0.095), y, sz * (W / 2 - 0.095), 0.19, 0.19, 0.19, dark);
+  // de deuren: twee vleugels met een naad, scharnieren, vier sluitstangen met hendels en een typeplaatje
+  for (const sz of [-1, 1]) B.box(L / 2 - 0.02, H / 2, sz * (W / 4 - 0.01), 0.04, H - 0.32, W / 2 - 0.08, rib);
+  B.box(L / 2 + 0.002, H / 2, 0, 0.02, H - 0.32, 0.03, dark);
+  for (const sz of [-1, 1]) for (const y of [0.45, 1.05, 1.65, 2.2]) B.box(L / 2 + 0.01, y, sz * (W / 2 - 0.13), 0.05, 0.09, 0.06, dark);
+  for (const z of [-0.95, -0.35, 0.35, 0.95]) {
+    B.box(L / 2 + 0.03, H / 2, z, 0.035, H - 0.3, 0.035, steel);                                 // sluitstang
+    B.box(L / 2 + 0.06, 1.15, z + (z < 0 ? 0.1 : -0.1), 0.03, 0.05, 0.22, steel);                // hendel
+    for (const y of [0.2, H - 0.2]) B.box(L / 2 + 0.03, y, z, 0.06, 0.08, 0.07, dark);           // nokhouder
+  }
+  B.box(L / 2 + 0.005, 1.75, -0.6, 0.01, 0.12, 0.22, 0xe8e2c8);                                  // typeplaatje
+  // vorkgaten onderin bij een korte container (een lege rijdt op een heftruck)
+  if (L < 8) for (const x of [-1.05, 1.05]) for (const sz of [-1, 1]) B.box(x, 0.1, sz * (W / 2 - 0.02), 0.36, 0.1, 0.04, dark);
+  return B.build();
+}
+
+// De havenkraan (de kraankooi van M13): een portaal op vier poten, een draaibare bovenbouw met machinehuis, contragewicht en cabine,
+// een bok en een vakwerkgiek langs +x met een haakblok aan de kabel. Geel gelakt staal met donkere details; oorsprong midden tussen de poten.
+function havenkraan() {
+  const B = new GeoBuilder(1);
+  const geel = 0xe2bb2e, geelD = 0xb8941f, staal = 0x4a4d4f, glas = 0x2b3b4a, rood = 0xb53a2a, wit = 0xe8e6e0;
+  const P = 1.6, top = 6.0;
+  for (const sx of [-1, 1]) for (const sz of [-1, 1]) {
+    B.box(sx * P, top / 2, sz * P, 0.34, top, 0.34, geel);                                         // poot
+    B.box(sx * P, 0.12, sz * P, 0.7, 0.24, 0.7, staal);                                            // voet met railwielkast
+  }
+  for (const s of [-1, 1]) {
+    B.box(0, top - 0.25, s * P, 2 * P + 0.34, 0.5, 0.3, geel);                                    // portaalbalken
+    B.box(s * P, top - 0.25, 0, 0.3, 0.5, 2 * P + 0.34, geel);
+    B.geo(tubeGeometry([-P, 0.5, s * P], [P, top - 0.6, s * P], 0.07), null, geelD);                // schoren
+    B.geo(tubeGeometry([s * P, 0.5, -P], [s * P, top - 0.6, P], 0.07), null, geelD);
+  }
+  B.geo(new THREE.CylinderGeometry(1.5, 1.6, 0.4, 16), composeMatrix(0, top + 0.2, 0), staal);       // draaikrans
+  B.box(-0.6, top + 1.45, 0, 3.6, 2.1, 2.6, geel);                                                 // machinehuis
+  B.box(-0.6, top + 2.55, 0, 3.7, 0.12, 2.7, geelD);                                               // dakrand
+  for (const x of [-1.6, -0.9, -0.2]) for (const s of [-1, 1]) B.box(x, top + 1.6, s * 1.31, 0.45, 0.5, 0.02, staal); // roosters in de zijwanden
+  B.box(-2.75, top + 1.0, 0, 0.9, 1.6, 2.4, 0x5c5f60);                                             // contragewicht
+  for (const y of [0.6, 1.0, 1.4]) B.box(-3.21, top + y, 0, 0.02, 0.08, 2.3, wit);                // waarschuwingsstrepen
+  // de cabine vooraan, met ramen rondom (donker glas) en een loopbordes
+  B.box(1.5, top + 1.25, 1.0, 1.5, 1.7, 1.2, geel);
+  B.box(2.26, top + 1.45, 1.0, 0.02, 0.9, 1.0, glas);
+  B.box(1.5, top + 1.45, 1.61, 1.2, 0.9, 0.02, glas);
+  B.box(1.5, top + 1.45, 0.39, 1.2, 0.9, 0.02, glas);
+  B.box(1.6, top + 0.42, 1.0, 1.9, 0.06, 1.7, staal);                                              // bordes
+  for (const z of [0.15, 1.85]) B.box(1.6, top + 0.95, z, 1.9, 0.04, 0.04, geel);                 // leuning
+  // de bok: twee schuine benen naar de top, met de tuien naar de giekpunt en het contragewicht
+  const bok = [-0.4, top + 6.2, 0];
+  for (const sz of [-0.9, 0.9]) B.geo(tubeGeometry([0.6, top + 2.6, sz], bok, 0.12), null, geel);
+  B.geo(tubeGeometry([-2.6, top + 2.0, 0], bok, 0.1), null, geelD);
+  B.box(bok[0], bok[1], 0, 0.5, 0.4, 0.5, geelD);
+  // de vakwerkgiek: vier gordingen van de voet tot de punt, met dwarsstaven en diagonalen
+  const voet = 1.0, punt = 15.5, yv = top + 1.2, yp = top + 4.2;
+  const at = (t, dy, dz) => [voet + (punt - voet) * t, yv + (yp - yv) * t + dy, dz];
+  const h0 = 0.55, w0 = 0.5;
+  for (const [dy, dz] of [[0, -w0], [0, w0], [h0, -w0 * 0.6], [h0, w0 * 0.6]]) B.geo(tubeGeometry(at(0, dy, dz), at(1, dy * 0.4, dz * 0.4), 0.06), null, geel);
+  for (let i = 0; i <= 8; i++) {
+    const t = i / 8, k = 1 - 0.6 * t;
+    B.geo(tubeGeometry(at(t, 0, -w0 * k), at(t, 0, w0 * k), 0.035), null, geelD);
+    B.geo(tubeGeometry(at(t, 0, (i % 2 ? -1 : 1) * w0 * k), at(t, h0 * k, 0), 0.035), null, geelD);
+  }
+  B.geo(tubeGeometry(bok, at(1, h0 * 0.4, 0), 0.03), null, staal);                                 // tui naar de punt
+  B.box(punt + 0.1, yp, 0, 0.5, 0.45, 0.45, geelD);                                                // kop met schijven
+  // de kabel en het haakblok, met een rode hijsbalk
+  B.geo(tubeGeometry([punt + 0.1, yp - 0.2, 0], [punt + 0.1, 2.6, 0], 0.025), null, staal);
+  B.box(punt + 0.1, 2.3, 0, 0.5, 0.6, 0.35, rood);
+  B.geo(new THREE.TorusGeometry(0.16, 0.05, 4, 8, Math.PI * 1.4), composeMatrix(punt + 0.1, 1.8, 0, 0, 0, Math.PI * 0.8), staal);
+  // de ladder langs een poot naar het portaal
+  for (const dz of [-0.2, 0.2]) B.box(P + 0.3, top / 2, P + dz, 0.04, top, 0.04, staal);
+  for (let y = 0.5; y < top; y += 0.35) B.box(P + 0.3, y, P, 0.03, 0.03, 0.4, staal);
+  return B.build();
+}
+
+// Een havenhek: een paneel van 3,5 m gaas in een buizenframe op twee betonnen voeten, met een bordje. Breedte langs z.
+function havenhek() {
+  const B = new GeoBuilder(1);
+  const L = 3.5, H = 2.0, buis = 0x8d9295, draad = 0x9fa5a8, beton = 0xb9b4a8, bord = 0xe8c93a;
+  for (const z of [-L / 2 + 0.05, L / 2 - 0.05]) {
+    B.box(0, 0.09, z, 0.62, 0.18, 0.22, beton);                                                    // betonvoet
+    B.box(0, 0.19, z, 0.5, 0.02, 0.18, 0x9f9a8f);
+  }
+  B.geo(tubeGeometry([0, 0.2, -L / 2 + 0.05], [0, H, -L / 2 + 0.05], 0.022), null, buis);
+  B.geo(tubeGeometry([0, 0.2, L / 2 - 0.05], [0, H, L / 2 - 0.05], 0.022), null, buis);
+  B.geo(tubeGeometry([0, H, -L / 2 + 0.05], [0, H, L / 2 - 0.05], 0.022), null, buis);
+  B.geo(tubeGeometry([0, 0.22, -L / 2 + 0.05], [0, 0.22, L / 2 - 0.05], 0.022), null, buis);
+  // het gaas: dunne staanders en drie liggers
+  for (let z = -L / 2 + 0.2; z < L / 2 - 0.1; z += 0.15) B.box(0, (H + 0.22) / 2, z, 0.008, H - 0.22, 0.008, draad);
+  for (const y of [0.6, 1.1, 1.6]) B.box(0, y, 0, 0.008, 0.008, L - 0.1, draad);
+  B.box(0.02, 1.35, 0.6, 0.01, 0.3, 0.45, bord);                                                   // bordje (verboden toegang, als pictogram)
+  B.box(0.026, 1.35, 0.6, 0.004, 0.12, 0.12, 0x1f1f1f);
+  return B.build();
+}
+
+// Een lichtmast: betonpoer, taps toelopende mast, een kop met vier schijnwerpers en een onderhoudsluikje.
+function lichtmast() {
+  const B = new GeoBuilder(1);
+  const staal = 0x8a8f93, donker = 0x34383a;
+  B.box(0, 0.25, 0, 0.9, 0.5, 0.9, 0xb5b0a4);                                                     // betonpoer
+  B.box(0, 0.52, 0, 0.5, 0.04, 0.5, donker);                                                      // voetplaat met bouten
+  for (const [x, z] of [[0.2, 0.2], [-0.2, 0.2], [0.2, -0.2], [-0.2, -0.2]]) B.box(x, 0.56, z, 0.05, 0.06, 0.05, 0x5a5e60);
+  B.geo(new THREE.CylinderGeometry(0.09, 0.16, 9.6, 8), composeMatrix(0, 5.34, 0), staal);
+  B.box(0.15, 1.4, 0, 0.02, 0.4, 0.12, donker);                                                   // luikje
+  B.box(0, 10.2, 0, 1.4, 0.1, 0.5, staal);                                                         // kopbalk
+  for (const x of [-0.5, -0.17, 0.17, 0.5]) {
+    B.box(x, 10.0, 0.1, 0.3, 0.26, 0.22, donker, 0, -0.5, 0, 0);                                  // schijnwerper, schuin omlaag
+    B.box(x, 9.93, 0.21, 0.26, 0.2, 0.02, 0xfff3cc, 0, -0.5, 0, 0);                               // de lens
+  }
+  return B.build();
+}
+
+// Een heftruck: chassis, contragewicht, stoel en stuur onder een veiligheidskooi, een hefmast met vorkbord en twee vorken langs +x.
+function heftruck() {
+  const B = new GeoBuilder(1);
+  const oranje = 0xe07a1f, donker = 0x2c2e30, staal = 0x6d7174, band = 0x1c1c1c, stoel = 0x232323;
+  B.box(0, 0.55, 0, 1.9, 0.6, 1.1, oranje);                                                        // chassis
+  B.box(-0.95, 0.75, 0, 0.5, 0.95, 1.12, donker);                                                  // contragewicht
+  B.box(-0.6, 1.0, 0, 0.6, 0.12, 1.0, oranje);                                                     // motorkap
+  B.box(-0.45, 1.25, 0, 0.45, 0.12, 0.5, stoel); B.box(-0.68, 1.5, 0, 0.1, 0.5, 0.5, stoel);       // stoel
+  B.geo(tubeGeometry([0.35, 0.95, 0], [0.2, 1.45, 0], 0.03), null, donker);                        // stuurkolom
+  B.geo(new THREE.TorusGeometry(0.17, 0.025, 4, 12), composeMatrix(0.2, 1.47, 0, 0, 0, 1.2), donker); // stuur
+  for (const [x, z] of [[0.55, 0.5], [0.55, -0.5], [-0.75, 0.5], [-0.75, -0.5]]) B.geo(tubeGeometry([x, 0.85, z], [x * 0.95, 2.15, z * 0.95], 0.035), null, donker); // kooi
+  B.box(-0.1, 2.17, 0, 1.4, 0.05, 1.0, donker);
+  for (let z = -0.35; z <= 0.36; z += 0.175) B.box(-0.1, 2.2, z, 1.35, 0.02, 0.03, staal);        // roosterdak
+  for (const sz of [-1, 1]) {
+    B.geo(new THREE.CylinderGeometry(0.3, 0.3, 0.24, 12), composeMatrix(0.55, 0.3, sz * 0.48, Math.PI / 2, 0, 0), band); // voorwielen
+    B.geo(new THREE.CylinderGeometry(0.24, 0.24, 0.2, 12), composeMatrix(-0.7, 0.24, sz * 0.48, Math.PI / 2, 0, 0), band); // achterwielen
+    B.geo(new THREE.CylinderGeometry(0.13, 0.13, 0.25, 8), composeMatrix(0.55, 0.3, sz * 0.49, Math.PI / 2, 0, 0), 0x9a9da0); // naven
+    B.box(1.05, 1.25, sz * 0.32, 0.12, 2.5, 0.1, staal);                                           // mastprofielen
+  }
+  for (const y of [0.5, 1.5, 2.45]) B.box(1.05, y, 0, 0.1, 0.08, 0.74, staal);                    // dwarsregels van de mast
+  B.box(1.14, 0.45, 0, 0.06, 0.5, 0.95, donker);                                                   // vorkbord
+  for (const sz of [-1, 1]) {
+    B.box(1.2, 0.45, sz * 0.3, 0.06, 0.5, 0.12, donker);                                           // vorkrug
+    B.box(1.75, 0.22, sz * 0.3, 1.1, 0.05, 0.12, staal);                                           // vork
+  }
+  for (const sz of [-1, 1]) B.box(-1.2, 1.0, sz * 0.3, 0.04, 0.12, 0.12, 0xd93a2a);               // achterlichten
+  B.box(0.55, 1.9, 0.48, 0.08, 0.1, 0.1, 0xfff3cc);                                                // werklamp
+  return B.build();
+}
+
+// Een kabelhaspel aan de kade: twee houten flenzen met een stalen as en kabel op de kern; ligt op zijn rand, as langs z.
+function kabelhaspel() {
+  const B = new GeoBuilder(1);
+  const hout = 0x8a6a44, houtD = 0x6e5236, kabel = 0x2a2a2a;
+  const R = 1.2;
+  for (const s of [-1, 1]) {
+    B.geo(new THREE.CylinderGeometry(R, R, 0.1, 18), composeMatrix(0, R, s * 0.95, Math.PI / 2, 0, 0), hout);
+    for (let k = 0; k < 6; k++) B.box(0, R, s * 1.005, 2 * R - 0.15, 0.06, 0.02, houtD, 0, 0, 0, (k / 6) * Math.PI); // planknaden
+    B.geo(new THREE.CylinderGeometry(0.12, 0.12, 0.08, 8), composeMatrix(0, R, s * 1.04, Math.PI / 2, 0, 0), 0x6d7174); // as-eind
+  }
+  B.geo(new THREE.CylinderGeometry(0.85, 0.85, 1.8, 16), composeMatrix(0, R, 0, Math.PI / 2, 0, 0), kabel); // opgerolde kabel
+  for (let k = 0; k < 5; k++) B.geo(new THREE.TorusGeometry(0.86, 0.025, 3, 16), composeMatrix(0, R, -0.72 + k * 0.36), 0x3a3a3a); // windingen
+  B.geo(tubeGeometry([0.6, R - 0.6, 0.5], [1.4, 0.03, 0.9], 0.04), null, kabel);                   // los einde naar de grond
+  return B.build();
+}
+
+// Een bolder aan de kaderand: gietijzeren paal met kraag en kop op een voetplaat.
+function bolder() {
+  const B = new GeoBuilder(1);
+  const ijzer = 0x2b2f2a, kop = 0x3d423c;
+  B.box(0, 0.03, 0, 0.6, 0.06, 0.6, 0x55595e);
+  for (const [x, z] of [[0.22, 0.22], [-0.22, 0.22], [0.22, -0.22], [-0.22, -0.22]]) B.box(x, 0.075, z, 0.06, 0.03, 0.06, 0x8a8d90);
+  B.geo(new THREE.CylinderGeometry(0.18, 0.22, 0.5, 10), composeMatrix(0, 0.31, 0), ijzer);
+  B.geo(new THREE.CylinderGeometry(0.26, 0.2, 0.1, 10), composeMatrix(0, 0.6, 0), kop);
+  B.geo(new THREE.CylinderGeometry(0.24, 0.26, 0.06, 10), composeMatrix(0, 0.68, 0), kop);
+  return B.build();
+}
+
+const MAKERS = { bank, afvalbak, fietsenrek: () => fietsenrek(4), bushokje, paaltje, autostoel, dashboard, vetvat, jerrycan, kraampje, ijscokar, gitaarkoffer, gitaar, tv, frituurpan, buisradio, boekenkast, droogrek, verhuisdozen, lijst, poster, laptop,
+  container20: () => zeecontainer(6.06), container40: () => zeecontainer(12.19), havenkraan, havenhek, lichtmast, heftruck, kabelhaspel, bolder };
 // de props met lichtere LOD-niveaus (de opgave staat in propregister.js PROP_REGISTER[id].lod)
 const LOD_MAKERS = new Set(['vetvat', 'jerrycan']);
 const cache = new Map();

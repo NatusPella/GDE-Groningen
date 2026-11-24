@@ -2654,7 +2654,7 @@ function partyPose(mesh, p, now) {
     juichOverlay(mesh, now, h.links, h.rechts, h.spring, k);
   }
 }
-function syncPedestrianMeshes(world, player, animDt) {
+function syncPedestrianMeshes(world, player, animDt, fadeDt = animDt) {
   pedClock += animDt || 1e-4;
   pedView.camX = cam.position.x;
   pedView.camY = cam.position.z;
@@ -2710,7 +2710,7 @@ function syncPedestrianMeshes(world, player, animDt) {
     const mesh = pedMeshes.get(p);
     if (!mesh) continue;
     const ud = mesh.userData;
-    ud.fade = Math.min(1, ud.fade + animDt / PED_FADE_TIME);
+    ud.fade = Math.min(1, ud.fade + fadeDt / PED_FADE_TIME);
     const edge = (pedRange - Math.hypot(p.x - player.x, p.y - player.y)) / PED_EDGE_FADE;
     applyPedFade(mesh, warm ? (FADE_STEPS - 1) / FADE_STEPS : Math.min(ud.fade, edge));
     if (p.gibbed) { mesh.visible = false; continue; }
@@ -2771,7 +2771,7 @@ function syncPedestrianMeshes(world, player, animDt) {
 
   for (let i = pedFadingOut.length - 1; i >= 0; i--) {
     const mesh = pedFadingOut[i];
-    mesh.userData.fade = Math.min(mesh.userData.fade, 1) - animDt / PED_FADE_TIME;
+    mesh.userData.fade = Math.min(mesh.userData.fade, 1) - fadeDt / PED_FADE_TIME;
     if (instant || mesh.userData.fade <= 0) {
       disposePedMesh(mesh);
       pedFadingOut.splice(i, 1);
@@ -3104,7 +3104,9 @@ export function update3D(dt, world) {
   });
 
   probe.mark('3d:vehfx');
-  syncPedestrianMeshes(world, player, animDt);
+  // #1331: het in- en uitfaden loopt op de echte tijd, ook als het spel stilstaat (een verhaalfilm met pause): anders bleef een
+  // voorbijganger die net aan het verschijnen of verdwijnen was de hele scene halfdoorzichtig in beeld staan (spookvoetganger)
+  syncPedestrianMeshes(world, player, animDt, dt);
   probe.mark('3d:peds');
   syncSpeechBubbles(world);
 
