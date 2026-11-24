@@ -16,13 +16,16 @@
   // Hash: #<voertuig>. De driver (scripts/voertuigbeeld.mjs) roept window.neem(weergave) aan en haalt de PNG op.
   // Weergaven: buiten (recht van opzij), schuin (voor), achter (schuin van achter), binnen (uit de stoel, deuren open), open (deuren open).
   const root = location.href.replace(/docs\/beeld-24-11\/voertuigen\/pagina\.html.*$/, '');
+  if (location.hash.includes("zondersub")) globalThis.__GEEN_SUB = true;
   const THREE = await import('https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js');
   // #oud: de bouwer van voor deze ronde (een tijdelijke kopie game/js/_oud_voertuigen_tmp.js uit git, niet ingecheckt)
   const { buildVehicleMesh } = await import(root + (location.hash.includes('oud') ? 'game/js/_oud_voertuigen_tmp.js' : 'game/js/models3d_vehicles.js'));
   const { BOAT_KINDS } = await import(root + 'game/js/boattypes.js');
+  const { zetLodAfstand } = await import(root + 'game/js/vehiclelod3d.js');
+  window.lod = (d) => zetLodAfstand(m, d); // vergelijking van niveau 0 en 1 (afstand in m)
   const { syncVehicleDoors } = await import(root + 'game/js/vehicledoors3d.js');
   const { HERO_CAR_MODEL } = await import(root + 'game/js/vehicle.js');
-  const naam = (location.hash || '#escapade').slice(1).replace('oud', '');
+  const naam = (location.hash || '#escapade').slice(1).replace('oud', '').replace('zondersub', '');
   const car = (name, len, wid, color, extra = {}) => ({ model: { name, len, wid, color }, ...extra });
   const SPECS = {
     escapade: { model: { ...HERO_CAR_MODEL }, isHeroCar: true },
@@ -68,6 +71,8 @@
     schuin: () => ({ p: [R * 1.35, size.y * 0.95 + 0.3, R * 1.5], t: [0, size.y * 0.4, 0] }),
     achter: () => ({ p: [-R * 1.35, size.y * 0.95 + 0.3, R * 1.5], t: [0, size.y * 0.4, 0] }),
     open: () => ({ p: [R * 0.5, size.y * 1.6 + 0.4, R * 1.5], t: [0, size.y * 0.3, 0], doors: true }),
+    // cabine (24-11): uit de cabine zelf, deuren open (de bus, ambulance, foodtruck en bakwagen hebben hun stoelen voorin)
+    cabine: () => { const C = { van: [[0.9, 1.5, 0], [2.3, 1.1, 0]], ambulance: [[0.95, 1.5, 0], [2.4, 1.1, 0]], foodtruck: [[0.95, 1.5, 0], [2.4, 1.1, 0]], truck: [[1.0, 3.2, 3.6], [3.3, 1.5, 0]], wagon: [[-0.3, 1.15, 0], [1.8, 0.95, 0]] }[naam]; return C ? { p: C[0], t: C[1], fov: 74, doors: true } : VIEWS.binnen(); },
     binnen: () => ({ p: [-size.x * 0.2, Math.min(size.y * 0.78, 1.2), 0], t: [size.x * 0.35, Math.min(size.y * 0.5, 0.8), 0], fov: 72, doors: true }),
   };
   window.neem = (weergave) => {
@@ -81,6 +86,8 @@
   };
   let tris = 0;
   m.traverse((o) => { if (o.isMesh && o.visible) { const g = o.geometry; tris += (g.index ? g.index.count : g.attributes.position.count) / 3; } });
-  window.info = { tris: Math.round(tris), size: size.toArray().map((x) => +x.toFixed(2)), naam };
+  const delen = [];
+  m.traverse((o) => { if (o.isMesh) { const g = o.geometry; const n = Math.round((g.index ? g.index.count : g.attributes.position.count) / 3); const keten = []; for (let q = o; q && q !== m; q = q.parent) keten.unshift(q.name || q.type); delen.push(keten.join('>') + ':' + n + (Array.isArray(o.material) ? '/m' + o.material.length : '')); } });
+  window.info = { tris: Math.round(tris), size: size.toArray().map((x) => +x.toFixed(2)), naam, delen };
   document.title = 'klaar:' + naam;
 </script>

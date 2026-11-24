@@ -21,6 +21,11 @@ import { QCARS } from './models/qcars.js';
 import { hybrideSchaal, VOERTUIG_REGISTER } from './propregister.js';
 import { attachVehicleLods } from './vehiclelod3d.js';
 import { DitherLOD } from './lod3d.js';
+import * as VAN from './vehicle_van.js'; // bestelbus, ambulance en de cabine van de foodtruck (24-11)
+import { richWheelGeometry, splitGroupAtX } from './vehicle_kit.js';
+import { buildBakwagen } from './vehicle_truck.js'; // de bakwagen (24-11)
+import { foodtruckOnderdelen } from './vehicle_foodtruck.js'; // de opbouw van de foodtruck (24-11)
+import { wagonOnderdelen } from './vehicle_wagon.js'; // de stationwagen: opbouw op de SUV-romp (24-11)
 
 // Low-poly vehicles. Group origin = vehicle centre at ground level (y=0),
 // facing local +X, right-hand side on +Z; sized off v.model.len/wid.
@@ -47,6 +52,8 @@ const PLATE = 0xe3bb1c;
 const TIRE = 0x1b1b1c;
 const BLUE_TIRE = 0x2f6fb0; // de blauwe banden van de goedkope leenfiets
 const RIM = 0x9ea2a6;
+const VAN_K = { TIRE, RIM, CHROME, GLASS, HEADLAMP, TAIL, INDICATOR, PLATE, TRIM }; // kleuren voor vehicle_van.js en vehicle_kit.js
+const VAN_G = { BODY: G_BODY, GLASS: G_GLASS, LAMP: G_LAMP };
 
 // #658: begrensde cache (LRU) i.p.v. een onbegrensde Map
 const geoCache = new LRUCache(180);
@@ -378,37 +385,34 @@ function buildCarGeometry(type, L, W, paint, opts) {
       // alleen op die plekken; de rest van het profiel blijft zoals het was
       : [[hl, P.nose - 0.08], [hl - 0.05, P.nose + 0.07], [hl - 0.22, P.hood], [(hl - 0.22 + P.xA) / 2, P.hood + 0.05], [P.xA, P.belt],
         [P.xD, P.belt], [-hl + Math.min(0.34, (P.xD + hl) * 0.5), P.deck + 0.03], [-hl + 0.08, P.deck - 0.05], [-hl, P.tail - 0.1]];
-  const outline = [...top, [-hl, sill + 0.08], ...archedSill(-hl, hl, sill, arches), [hl, sill + 0.08]];
+  const outline = P.van ? VAN.vanOutline(P, hl, xK, sill, archedSill(-hl, hl, sill, arches)) : [...top, [-hl, sill + 0.08], ...archedSill(-hl, hl, sill, arches), [hl, sill + 0.08]];
   // #923: bij een personenauto staat de raamband open (zie withoutBeltPlate), zodat het interieur
   // door het glas te zien is; de raamlijst (sideStrip, verderop) sluit de band langs de buitenkant
   // af. Een bestelbus houdt zijn vlak tussen voorruit en laadruimte: dat is de neus/dashboardplaat.
   // 23-11 (inspiratie: Quaternius' CC0-autopakket): een ronder koetswerk met een bredere afronding in twee stappen, zodat de
   // flanken naar het dak en de bodem toe inlopen in plaats van als een kist te eindigen
-  const bevel = P.boxy ? 0.035 : 0.075;
+  const bevel = P.van ? 0.12 : P.boxy ? 0.035 : 0.075; // de bus (24-11): een grote afronding in drie stappen
   // echte deuropeningen (eis eigenaar 23-11): de romp krijgt een gat waar een deur zit, zodat je bij een open deur de auto in
   // kijkt; de dichte deur vult het gat (vehicledoors3d.js, userData.deurenDicht). De opening blijft van de wielkasten af.
-  const gaten = doorHoles(opts.doorName, L, arches, P.belt);
-  let rompGeo = extrudeProfile(outline, W, bevel, 1, gaten.map((g) => g.rect));
+  const gaten = P.van ? [] : doorHoles(opts.doorName, L, arches, P.belt); // de bus knipt zijn deuren uit de flank (knipDeurgaten, onderaan)
+  let rompGeo = extrudeProfile(outline, W, bevel, P.van ? 2 : 1, gaten.map((g) => g.rect));
   // het plafond van de tunnel (de bovenkant van het gat) gaat eruit: daar kijk je door de ruiten in de auto
   for (const g of gaten) rompGeo = withoutBeltPlate(rompGeo, g.rect[3], g.rect[0], g.rect[2], 0.001);
   const body = P.van ? rompGeo : withoutBeltPlate(rompGeo, P.belt, P.xD, P.xA);
   B.geo(body, null, paint);
+  if (globalThis.__TEL) console.log("TEL romp", B.triangleCount);
   archLiners(B, arches, W);
+  const vanI = P.van ? new GeoBuilder(1) : null; // het cabine-interieur van de bus: een eigen geometrie
+  const vanCtx = P.van ? { I: vanI, amb: !!opts.ambulance, kaal: !!opts.ambulance || !!opts.variant, B, P, hl, hw, W, L, xK, paint, K: VAN_K, G: VAN_G, extrudeProfile, shadeHex, binnenDoos, THREE } : null;
+  if (P.van) VAN.arcFlares(B, vanCtx, arches);
+  if (globalThis.__TEL) console.log("TEL flares", B.triangleCount);
   const decorVanaf = B.groups[G_BODY].p.length / 9;
 
   if (P.van) {
-    const gh = [[P.xA + 0.03, P.belt - 0.03], [P.xB, P.roof - 0.12], [P.xB - 0.3, P.roof - 0.03], [xK + 0.01, P.roof - 0.03], [xK + 0.01, P.belt - 0.03]];
-    B.geo(extrudeProfile(gh, W * 0.9, 0.03), null, GLASS, G_GLASS);
-    B.geo(extrudeProfile([[P.xB + 0.03, P.roof - 0.14], [P.xB - 0.3, P.roof], [xK, P.roof], [xK, P.roof - 0.08]], W * 0.97, 0.025), null, paint);
-    const pz = W * 0.45;
-    for (const s of [1, -1]) {
-      sideStrip(B, P.xA + 0.02, P.belt - 0.01, P.xB + 0.03, P.roof - 0.12, s * pz, 0.07, 0.05, paint);
-      sideStrip(B, xK + 0.04, P.belt, xK + 0.04, P.roof - 0.02, s * pz, 0.08, 0.05, paint);
-      sideStrip(B, P.xA + 0.02, P.belt + 0.005, xK, P.belt + 0.005, s * (pz + 0.02), 0.025, 0.03, TRIM);
-      sideStrip(B, -hl + 1.6, 1.0, -hl + 1.6, P.roof - 0.1, s * (hw + 0.004), 0.015, 0.01, shadeHex(paint, 0.7));
-    }
-    B.box(-hl - 0.004, (P.belt + P.roof) / 2 + 0.2, 0, 0.012, 0.5, W * 0.06, TRIM);
-    for (const s of [1, -1]) B.box(-hl - 0.004, P.roof - 0.4, s * hw * 0.5, 0.012, 0.42, hw * 0.75, GLASS, G_GLASS);
+    VAN.vanCabin(B, vanCtx);
+    if (globalThis.__TEL) console.log("TEL cabine", B.triangleCount);
+    VAN.vanSides(B, vanCtx);
+    if (globalThis.__TEL) console.log("TEL zijkanten", B.triangleCount);
   } else {
     const gh = [[P.xA + 0.03, P.belt - 0.03], [P.xB, P.roof - 0.07], [P.xC, P.roof - 0.07], [P.xD + 0.03, P.belt - 0.03]];
     // De ruiten staan tot tegen de carrosserie (#463, beeldronde): op 0,84 van de breedte bleef er
@@ -442,28 +446,39 @@ function buildCarGeometry(type, L, W, paint, opts) {
   const bumper = P.boxy ? CHROME : shadeHex(paint, 0.9);
   const lip = 0x1f2022;
   const vcount = () => B.groups[G_BODY].p.length / 3;
-  const f0 = vcount();
-  B.box(hl + 0.02, 0.38, 0, 0.12, 0.14, W - 0.04, bumper);
-  B.box(hl + 0.085, 0.38, 0, 0.012, 0.1, 0.48, PLATE);
-  if (!P.boxy) for (const s of [1, -1]) B.box(hl - 0.08, 0.38, s * hw, 0.22, 0.14, 0.05, bumper); // de hoek van de bumper
-  B.box(hl + 0.035, 0.29, 0, 0.1, 0.045, W - 0.12, lip);
-  const f1 = vcount();
-  B.box(-hl - 0.02, 0.4, 0, 0.12, 0.14, W - 0.04, bumper);
-  if (!P.boxy) for (const s of [1, -1]) B.box(-hl + 0.08, 0.4, s * hw, 0.22, 0.14, 0.05, bumper);
-  B.box(-hl - 0.035, 0.31, 0, 0.1, 0.045, W - 0.12, lip);
-  const r1 = vcount();
-  // een lichte karakterlijn in de flank (de wielkastlijsten van de vorige ronde waren op afstand niet te zien en zijn eruit)
-  for (const s of [1, -1]) hboxSplit(B, (P.fw + P.rw) / 2, P.belt - 0.15, s * (hw + 0.002), P.fw - P.rw - 0.2, 0.014, 0.008, shadeHex(paint, 1.15), gaten);
-  B.box(-hl - 0.008, P.van ? 0.62 : Math.min(0.6, P.tail - 0.22), 0, 0.012, 0.1, 0.48, PLATE);
+  let f0 = vcount(), f1 = f0, r1 = f0;
   const lampY = P.nose - (P.boxy || P.van ? 0.06 : 0.13); // de ronde neus (23-11) loopt boven de lampen in
-  for (const s of [1, -1]) {
-    B.box(hl + 0.006, lampY, s * (hw - 0.26), 0.03, P.boxy ? 0.14 : 0.13, P.boxy ? 0.3 : 0.36, HEADLAMP, G_LAMP); // grotere, heldere koplampen (23-11)
-    B.box(hl + 0.006, lampY - (P.boxy ? 0.1 : 0.09), s * (hw - 0.1), 0.03, 0.05, 0.1, INDICATOR, G_LAMP);
-    const tailY = P.van ? 0.95 : P.tail - (P.boxy ? 0.1 : 0.19);
-    B.box(-hl - 0.006, tailY, s * (hw - 0.18), 0.03, P.van ? 0.3 : 0.12, P.van ? 0.14 : 0.3, TAIL, G_LAMP);
-    hboxSplit(B, (P.fw + P.rw) / 2, sill + 0.08, s * (hw + 0.005), (P.fw - P.rw) - R * 2 - 0.1, 0.1, 0.02, TRIM, gaten);
+  if (P.van) {
+    // de bestelbus, ambulance en foodtruck (24-11): bumpers, voor- en achterkant en flanken uit vehicle_van.js
+    VAN.vanBumpers(B, vanCtx, { f0: () => { f0 = vcount(); }, f1: () => { f1 = vcount(); }, r1: () => { r1 = vcount(); } });
+    if (globalThis.__TEL) console.log("TEL bumpers", B.triangleCount);
+    VAN.vanFront(B, vanCtx);
+    if (globalThis.__TEL) console.log("TEL voor", B.triangleCount);
+    VAN.vanRear(B, vanCtx);
+    if (globalThis.__TEL) console.log("TEL achter", B.triangleCount);
+    for (const s of [1, -1]) hboxSplit(B, (P.fw + P.rw) / 2, sill + 0.08, s * (hw + 0.005), (P.fw - P.rw) - R * 2 - 0.1, 0.1, 0.02, TRIM, gaten);
+  } else {
+    B.box(hl + 0.02, 0.38, 0, 0.12, 0.14, W - 0.04, bumper);
+    B.box(hl + 0.085, 0.38, 0, 0.012, 0.1, 0.48, PLATE);
+    if (!P.boxy) for (const s of [1, -1]) B.box(hl - 0.08, 0.38, s * hw, 0.22, 0.14, 0.05, bumper); // de hoek van de bumper
+    B.box(hl + 0.035, 0.29, 0, 0.1, 0.045, W - 0.12, lip);
+    f1 = vcount();
+    B.box(-hl - 0.02, 0.4, 0, 0.12, 0.14, W - 0.04, bumper);
+    if (!P.boxy) for (const s of [1, -1]) B.box(-hl + 0.08, 0.4, s * hw, 0.22, 0.14, 0.05, bumper);
+    B.box(-hl - 0.035, 0.31, 0, 0.1, 0.045, W - 0.12, lip);
+    r1 = vcount();
+    // een lichte karakterlijn in de flank (de wielkastlijsten van de vorige ronde waren op afstand niet te zien en zijn eruit)
+    for (const s of [1, -1]) hboxSplit(B, (P.fw + P.rw) / 2, P.belt - 0.15, s * (hw + 0.002), P.fw - P.rw - 0.2, 0.014, 0.008, shadeHex(paint, 1.15), gaten);
+    B.box(-hl - 0.008, Math.min(0.6, P.tail - 0.22), 0, 0.012, 0.1, 0.48, PLATE);
+    for (const s of [1, -1]) {
+      B.box(hl + 0.006, lampY, s * (hw - 0.26), 0.03, P.boxy ? 0.14 : 0.13, P.boxy ? 0.3 : 0.36, HEADLAMP, G_LAMP); // grotere, heldere koplampen (23-11)
+      B.box(hl + 0.006, lampY - (P.boxy ? 0.1 : 0.09), s * (hw - 0.1), 0.03, 0.05, 0.1, INDICATOR, G_LAMP);
+      const tailY = P.tail - (P.boxy ? 0.1 : 0.19);
+      B.box(-hl - 0.006, tailY, s * (hw - 0.18), 0.03, 0.12, 0.3, TAIL, G_LAMP);
+      hboxSplit(B, (P.fw + P.rw) / 2, sill + 0.08, s * (hw + 0.005), (P.fw - P.rw) - R * 2 - 0.1, 0.1, 0.02, TRIM, gaten);
+    }
   }
-  addDoorCuts(B, opts.doorName, L, hw, paint, CHROME, gaten.length > 0);
+  addDoorCuts(B, opts.doorName, L, hw, paint, CHROME, gaten.length > 0 || P.van);
 
   if (opts.police) {
     for (const s of [1, -1]) {
@@ -488,14 +503,8 @@ function buildCarGeometry(type, L, W, paint, opts) {
       const door0 = P.xB + 0.02, door1 = P.xA - 0.12, nd = 3, dw = (door1 - door0) / nd;
       for (let i = 0; i < nd; i++) B.box(door0 + dw * (i + 0.5), 0.92, z, dw, 0.18, 0.012, i % 2 ? WHITE : RED);
     }
-    // de hoge dakkap boven de patiëntenruimte, wit; de rand ervoor blauw
-    const roofX0 = P.xB - 0.45, rh = 0.48;
-    B.box((roofX0 - hl) / 2, P.roof + rh / 2 - 0.02, 0, roofX0 + hl, rh, W - 0.04, WHITE);
-    B.box(roofX0 + 0.02, P.roof + rh / 2, 0, 0.04, rh - 0.12, W * 0.7, 0x1d4fa3);
-    // lichtbalk op het cabinedak: donkere balk met blauwe uiteinden (de twee knipperende lampen staan er in assembleCar bovenop)
-    const barX = P.xB - 0.25;
-    B.box(barX, P.roof + 0.03, 0, 0.3, 0.06, W * 0.84, TRIM);
-    for (const s of [1, -1]) B.box(barX, P.roof + 0.1, s * W * 0.4, 0.26, 0.1, 0.12, 0x2f6bff, G_LAMP);
+    // de hoge dakkap, de lichtbalk, de airco en het embleem (24-11): vehicle_van.js
+    VAN.ambulanceRoof(B, vanCtx);
     // blauwe flitsers in de grille, en boven op de achterdeuren
     for (const s of [1, -1]) {
       B.box(hl + 0.012, P.nose + 0.2, s * (hw - 0.62), 0.02, 0.07, 0.22, 0x2f6bff, G_LAMP);
@@ -606,18 +615,25 @@ function buildCarGeometry(type, L, W, paint, opts) {
     for (const s of [1, -1]) B.box((P.xB + P.xC) / 2, P.roof + 0.065, s * W * 0.36, (P.xB - P.xC) * 0.8, 0.04, 0.04, TRIM); // boven het bolle dak
   }
   const deurDecor = gaten.length ? moveDoorDecor(B, decorVanaf, gaten, hw) : {};
+  // de bus knipt zijn cabinedeuren uit de flank (zoals de trekker): het uitgeknipte stuk is het deurblad, het interieur zit erachter
+  if (globalThis.__TEL) console.log("TEL pre-knip", B.triangleCount);
+  const knip = P.van ? knipDeurgaten(B, opts.doorName, L, W) : null;
+  if (P.van) for (const gi of [G_BODY, G_GLASS]) splitGroupAtX(B, gi, [hl - 0.55, hl - 0.28]); // de afronding van neus en kont (hieronder) kantelt anders de grote vlakken
+  if (globalThis.__TEL) console.log("TEL post-split", B.triangleCount);
   const geo = B.build();
+  if (vanI) geo.userData.interieurGeo = vanI.build();
+  if (knip) geo.userData.knip = { ...deurSchillen(knip, L), rects: knip.rects, zs: knip.zs };
   geo.userData.gaten = gaten;
   geo.userData.deurDecor = deurDecor;
   // 23-11 (vormtaal van het Quaternius-autopakket): van boven gezien lopen neus en kont rond in. De laatste halve meter aan
   // beide kanten wordt smaller (tot 13 % van de halve breedte, kwadratisch), het hele model mee: lak, bumpers, lampen en glas. Geen extra driehoeken;
   // de deuren liggen daarbuiten, dus hun naden en de deurtabel blijven kloppen. De materialen tekenen platte normalen (flatShading).
-  if (!P.boxy && !P.van && !(typeof process !== 'undefined' && process.env.GDE_GEEN_TAPER)) {
+  if (!P.boxy && !(typeof process !== 'undefined' && process.env.GDE_GEEN_TAPER)) {
     // een verschuiving in plaats van een schaal: alles in de buitenste helft schuift evenveel naar binnen, zodat lagen die
     // op het plaatwerk liggen (naden, strepen, belettering, lampen) hun afstand tot het plaatwerk houden
-    const pos = geo.attributes.position, a = pos.array, zone = 0.55, d = (P.van ? 0.07 : 0.13) * hw, binnen = hw * 0.55;
+    const pos = geo.attributes.position, a = pos.array, zone = 0.55, d = (P.van ? 0.1 : 0.13) * hw, binnen = hw * 0.55;
     for (let i = 0; i < a.length; i += 3) {
-      const t = Math.min(1, Math.max(0, (Math.abs(a[i]) - (hl - zone)) / zone));
+      const t = Math.min(1, Math.max(0, ((P.van ? a[i] : Math.abs(a[i])) - (hl - zone)) / zone)); // de bus: alleen de neus (de kont heeft opbouw en belettering die vlak moet blijven)
       if (t > 0 && Math.abs(a[i + 2]) > binnen) a[i + 2] -= Math.sign(a[i + 2]) * d * t * t;
     }
     pos.needsUpdate = true;
@@ -651,13 +667,17 @@ function assembleCar(type, L, W, paint, { police = false, ambulance = false, wre
   // grille and mirrors are their own meshes, so they can come off in a crash (#205)
   group.userData.loose = looseCarParts(type, L, W, color, P, mats, group);
   addRealDoors(group, body, geo.userData.gaten || [], doorName, L, W, color, P, type);
-  const wgeo = carWheelGeometry(wheelR, WHEEL_W);
+  if (geo.userData.knip) koppelDeurgaten(group, body, geo);
+  voegInterieurToe(group, body, geo);
+  if (P.van) group.userData.lodMax = ambulance ? 1500 : doorName === 'foodtruck' ? 1500 : 1300; // niveau 1 (vehiclelod3d.js): bovengrens, het model is zwaar
+  const wW = P.van ? 0.27 : WHEEL_W; // de bus (24-11): een dikker wiel met bolle flank, velg en spaken (vehicle_kit.js)
+  const wgeo = P.van ? cached(`wheel2|${wheelR}|${wW}`, () => richWheelGeometry(wheelR, wW, VAN_K)) : carWheelGeometry(wheelR, wW);
   const wheels = [];
-  for (const x of [P.fw, P.rw]) for (const s of [1, -1]) addWheel(group, wgeo, mats[0], x, wheelR, s * (W / 2 - WHEEL_W / 2 - 0.04), wheels);
+  for (const x of [P.fw, P.rw]) for (const s of [1, -1]) addWheel(group, wgeo, mats[0], x, wheelR, s * (W / 2 - wW / 2 - 0.04), wheels);
   group.userData.wheels = wheels;
   group.userData.frontWheels = wheels.slice(0, 2);
   group.userData.wheelRadius = wheelR;
-  group.userData.loose.sierdoppen = hubcaps(wheels, wheelR);
+  if (!P.van) group.userData.loose.sierdoppen = hubcaps(wheels, wheelR); // het wiel van de bus heeft zijn eigen velg, zonder losse sierdop
   if (police || ambulance) {
     // the ambulance's lamps sit on the cab roof, just ahead of its roof box
     const barY = P.roof + (ambulance ? 0.07 : 0.14);
@@ -842,12 +862,13 @@ function looseCarParts(type, L, W, paint, P, mats, group) {
     group.add(m);
     parts[id] = m;
   };
-  make('grille', (B) => B.box(hl + 0.005, P.nose - 0.12, 0, 0.03, 0.11, W * 0.42, TRIM));
+  make('grille', (B) => (P.van ? VAN.vanGrille(B, { P, hl, W, K: VAN_K }) : B.box(hl + 0.005, P.nose - 0.12, 0, 0.03, 0.11, W * 0.42, TRIM)));
   make('spiegels', (B) => {
     // een hybride romp heeft zijn eigen spiegels (aan de voordeur, ze gaan met de deur mee): geen tweede blok ernaast, alleen een
     // onzichtbaar stipje binnen de flank zodat de schade (fx3d.js) een plek heeft om de scherven van te laten vallen
     if (P.uitlaat) { for (const s of [1, -1]) B.box(P.xA - 0.08, P.belt, s * (hw - 0.12), 0.01, 0.01, 0.01, TRIM); return; }
-    const mx = P.van ? P.xA - 0.12 : P.xA - 0.08;
+    if (P.van) { VAN.vanMirrors(B, { P, hw, paint, K: VAN_K }); return; }
+    const mx = P.xA - 0.08;
     for (const s of [1, -1]) {
       B.box(mx, P.belt + 0.1, s * (hw + 0.08), 0.1, 0.09, 0.14, paint);
       B.box(mx + 0.02, P.belt + 0.05, s * (hw + 0.02), 0.05, 0.04, 0.06, TRIM);
@@ -937,7 +958,7 @@ function buildCarMesh(v) {
 const hybData = new Map();
 // De Fjord Escapade (24-11) is een hybride op de romp van de kleine hatchback (qcars.js 'hatch'), 4,0 m lang: de extra lengte komt
 // uit een zone tussen de wielkasten (QREK, x in hun maat), zodat de wielkasten rond blijven en er niets over de wielen uitrekt.
-const QALIAS = { escapade: 'hatch' };
+const QALIAS = { escapade: 'hatch', wagon: 'suv' }; // de stationwagen is de SUV-romp op wagenhoogte (vehicle_wagon.js)
 const QREK = { escapade: [-0.62, 0.70] };
 const qdata = (key) => QCARS[QALIAS[key] || key];
 function b64Bytes(s) { return typeof atob === 'function' ? Uint8Array.from(atob(s), (c) => c.charCodeAt(0)) : new Uint8Array(Buffer.from(s, 'base64')); }
@@ -982,10 +1003,11 @@ export function hybridKey(v) {
   if (n === 'sedan') return 'sedan';
   if (n === 'hatch') return 'hatch';
   if (n === 'suv') return 'suv';
+  if (n === 'wagon') return 'wagon';
   if (n === 'sport') return hash2(typeof v.id === 'number' ? v.id : String(v.id).length, 3.7) < 0.5 ? 'sport' : 'sport2';
   return null;
 }
-const HYB_DOORS = { escapade: 'escort', sedan: 'sedan', hatch: 'hatch', suv: 'suv', sport: 'sport', sport2: 'sport', taxi: 'taxi', police: 'police' };
+const HYB_DOORS = { escapade: 'escort', wagon: 'wagon', sedan: 'sedan', hatch: 'hatch', suv: 'suv', sport: 'sport', sport2: 'sport', taxi: 'taxi', police: 'police' };
 // De flank: waar een straal van buiten naar binnen (langs z) de romp raakt, op hoogte y en lengte x.
 function hybridSurface(tris, x, y, side) {
   let best = null;
@@ -1353,6 +1375,7 @@ function buildHybridCar(v, key, paint) {
   const body = new THREE.Mesh(geo, mats);
   group.add(body);
   group.userData.body = body;
+  if (key === 'wagon') group.userData.lodMax = 1300;
   group.userData.hybride = key;
   group.userData.deurZ = geo.userData.deurZ;
   group.userData.deurPanelen = geo.userData.deurPanelen;
@@ -1408,7 +1431,7 @@ function buildHybridCar(v, key, paint) {
   const { sy, sz, mapx } = hybridScale(auto, L, W, key);
   const r = +(auto.wielen[0].r * sy).toFixed(3);
   const escapade = key === 'escapade';
-  const wgeo = carWheelGeometry(r, WHEEL_W, escapade);
+  const wgeo = key === 'wagon' ? cached(`wheel2|${r}|0.25`, () => richWheelGeometry(r, 0.25, VAN_K)) : carWheelGeometry(r, WHEEL_W, escapade); // de stationwagen heeft het dikke wiel met velg van de bus
   const wheels = [], front = [];
   for (const w of auto.wielen) {
     const m = addWheel(group, wgeo, mats[0], mapx(w.x), r, w.z * sz * 0.97, wheels);
@@ -1417,7 +1440,7 @@ function buildHybridCar(v, key, paint) {
   group.userData.wheels = wheels;
   group.userData.frontWheels = front;
   group.userData.wheelRadius = r;
-  group.userData.loose.sierdoppen = hubcaps(wheels, r, escapade ? [1] : []); // de Escapade is een wieldop kwijt (linksachter)
+  if (key !== 'wagon') group.userData.loose.sierdoppen = hubcaps(wheels, r, escapade ? [1] : []); // de Escapade is een wieldop kwijt (linksachter)
   if (escapade && !v.wrecked) {
     const k = escapadeKarakter(L, W, color, fit, geo.userData.gatRects, auto.wielen.filter((w) => w.z > 0).map((w) => ({ x: mapx(w.x), r })));
     const km = new THREE.Mesh(k.onderdelen, mats);
@@ -1427,6 +1450,13 @@ function buildHybridCar(v, key, paint) {
     kv.name = 'karakterVlak';
     body.add(kv);
     group.userData.karakter = [km, kv];
+  }
+  if (key === 'wagon' && !v.wrecked) {
+    const lakW = hybridTris(key, L, W).filter((t) => t.r === 0).map((t) => t.v);
+    const wg = cached(`wagon-onderdelen|${L}|${W}|${color}`, () => { const B = new GeoBuilder(3); wagonOnderdelen(B, fit, (x, y) => hybridSurface(lakW, x, y, 1), (x) => Math.max(0, ...lakW.flat().filter((q) => Math.abs(q[0] - x) < 0.06).map((q) => q[1])), VAN_K, color, shadeHex); return B.build(); });
+    const wm = new THREE.Mesh(wg, mats);
+    wm.name = 'wagonOnderdelen';
+    body.add(wm);
   }
   if (police && auto.lichtbalk) {
     const lamps = [];
@@ -1528,6 +1558,16 @@ function deurSchillen(res, L) {
   return { panelen, dicht: markShared(alle.build()) };
 }
 const linearRGBArr = (hex) => { const c = new THREE.Color(hex); return [c.r, c.g, c.b]; };
+// Het cabine-interieur van een romp met uitgeknipte deuren (bus, bakwagen, 24-11): een eigen mesh 'interieurSimpel' op de romp, zodat het op de
+// lagere LOD-niveaus (vehiclelod3d.js) en met de echte cabine (cabin3d.js, carinterior.js) verdwijnt.
+function voegInterieurToe(group, body, geo) {
+  if (!geo.userData.interieurGeo) return;
+  const ig = cached(`interieur|${geo.uuid}`, () => geo.userData.interieurGeo);
+  const im = new THREE.Mesh(ig, cabinFallbackMaterial());
+  im.name = 'interieurSimpel';
+  body.add(im);
+  group.userData.interieurSimpel = im;
+}
 // Hangt de dichte deuren aan de romp en zet wat de deur-rig en de tests nodig hebben (zoals addRealDoors en de hybride).
 function koppelDeurgaten(group, body, geo) {
   const k = geo.userData.knip;
@@ -1542,90 +1582,13 @@ function koppelDeurgaten(group, body, geo) {
   group.userData.deurZ = k.zs;
 }
 
-// Bakwagen: cab-over front with a box body.
+// Bakwagen (24-11: vehicle_truck.js): cab-over front with a box body. De tankwagen (model.tank) heeft een eigen opbouw en cabine.
+function truckKit() {
+  return { THREE, GeoBuilder, composeMatrix, K: VAN_K, G: VAN_G, WRECKED_COLOR, toHex, cached, extrudeProfile, shadeHex, binnenDoos, archedSill, addDoorCuts, knipDeurgaten, deurSchillen, koppelDeurgaten, vehicleMaterials, addWheel, richWheelGeometry, voegInterieurToe };
+}
 function buildTruckMesh(v) {
-  // de tankwagen (model.tank: Us Mem Vet, de stuntavond) heeft een eigen opbouw en cabine, zie buildTankerMesh
   if (v.model.tank) return buildTankerMesh(v);
-  const L = v.model.len, W = v.model.wid, hl = L / 2, hw = W / 2;
-  const paint = v.wrecked ? WRECKED_COLOR : toHex(v.model.color, 0xe8e6e0);
-  const r = 0.52;
-  const geo = cached(`truck3|${L}|${W}|${paint}`, () => {
-    const B = new GeoBuilder(3);
-    const cabL = 2.0, boxX0 = -hl, boxX1 = hl - cabL - 0.1;
-    B.box(0, 0.74, 0, L - 0.2, 0.22, W - 0.3, 0x2a2b2d);
-    const bx = (boxX0 + boxX1) / 2, bl = boxX1 - boxX0;
-    {
-      // de laadbak: panelen met verticale ribbels, aluminium randen boven en onder, hoekstijlen, twee achterdeuren met
-      // scharnieren en sluitstangen, en een onderrijbeveiliging achter en opzij
-      const bc = paint === WRECKED_COLOR ? paint : 0xeeeee8, alu = paint === WRECKED_COLOR ? paint : 0xa7adb3;
-      B.box(bx, 2.275, 0, bl, 2.75, W, bc);
-      const nRib = Math.max(3, Math.round(bl / 0.62));
-      for (const s of [1, -1]) {
-        for (let i = 1; i < nRib; i++) B.box(boxX0 + (bl * i) / nRib, 2.275, s * (hw + 0.017), 0.05, 2.6, 0.03, shadeHex(bc, 0.86));
-        B.box(bx, 3.6, s * (hw + 0.025), bl + 0.02, 0.1, 0.036, alu);
-        B.box(bx, 0.96, s * (hw + 0.025), bl + 0.02, 0.12, 0.036, alu);
-        for (const x of [boxX0 + 0.03, boxX1 - 0.03]) B.box(x, 2.275, s * (hw - 0.03), 0.09, 2.78, 0.09, alu);
-      }
-      B.box(bx, 3.66, 0, bl - 0.1, 0.03, W - 0.1, shadeHex(bc, 0.92));
-      const dw = W / 2 - 0.07;
-      for (const s of [1, -1]) {
-        B.box(-hl - 0.012, 2.25, s * (W / 4 + 0.005), 0.02, 2.5, dw, shadeHex(bc, 0.95));
-        for (const y of [1.25, 2.25, 3.25]) B.box(-hl - 0.03, y, s * (hw - 0.07), 0.04, 0.1, 0.07, 0x3a3d40);   // scharnieren
-        for (const z of [0.22, 0.72]) {
-          B.geo(new THREE.CylinderGeometry(0.018, 0.018, 2.5, 6), composeMatrix(-hl - 0.045, 2.25, s * z), alu); // sluitstang
-          B.box(-hl - 0.07, 1.6, s * z + (s > 0 ? -0.08 : 0.08), 0.03, 0.035, 0.18, 0x3a3d40);              // hendel
-          for (const y of [1.02, 3.48]) B.box(-hl - 0.045, y, s * z, 0.05, 0.05, 0.06, 0x3a3d40);            // nokken
-        }
-      }
-      B.box(-hl + 0.12, 0.45, 0, 0.12, 0.13, W - 0.2, 0x3a3d40);                                                  // onderrijbeveiliging
-      for (const s of [1, -1]) {
-        B.box(-hl + 0.33, 0.6, s * 0.6, 0.42, 0.06, 0.06, 0x3a3d40);
-        for (let i = 0; i < 3; i++) B.box(-hl + 0.059, 0.45, s * (0.2 + i * 0.35), 0.006, 0.08, 0.16, i % 2 ? 0xf2efe4 : 0xc8102e); // reflectiestrook
-        const sx0 = -hl + 1.7 + 0.62, sx1 = hl - 1.25 - 0.62;
-        for (const y of [0.52, 0.74]) B.box((sx0 + sx1) / 2, y, s * (hw - 0.06), sx1 - sx0, 0.08, 0.04, 0x3a3d40); // zijbeveiliging
-      }
-    }
-    // cab: solid below the windows, glass all round above them, then the roof
-    const cx = hl - cabL / 2;
-    B.box(cx, 1.325, 0, cabL, 1.05, W - 0.05, paint);
-    B.box(cx, 2.6, 0, cabL, 0.2, W - 0.05, paint);
-    B.box(cx - 0.02, 2.175, 0, cabL - 0.1, 0.65, W - 0.12, GLASS, G_GLASS);
-    B.box(hl - cabL + 0.04, 2.175, 0, 0.08, 0.65, W - 0.05, paint);
-    B.box(hl - cabL / 2 - 0.05, 2.75, 0, cabL - 0.3, 0.1, W - 0.25, shadeHex(paint, 0.85));
-    for (const s of [1, -1]) {
-      B.box(hl - 0.04, 2.175, s * (hw - 0.06), 0.08, 0.65, 0.08, paint);
-      B.box(hl - 1.05, 2.175, s * (hw - 0.05), 0.08, 0.65, 0.06, paint);
-      B.box(hl + 0.02, 0.95, s * (hw - 0.3), 0.03, 0.14, 0.32, HEADLAMP, G_LAMP);
-      B.box(-hl - 0.01, 0.95, s * (hw - 0.2), 0.02, 0.2, 0.18, TAIL, G_LAMP);
-      B.box(hl - 0.1, 2.35, s * (hw + 0.2), 0.06, 0.3, 0.1, TRIM);
-      B.box((boxX0 + boxX1) / 2, 2.4, s * (hw + 0.006), (boxX1 - boxX0) * 0.7, 0.55, 0.012, paint);
-    }
-    B.box(hl + 0.03, 0.64, 0, 0.1, 0.24, W - 0.1, 0x2a2b2d);
-    B.box(hl + 0.085, 0.64, 0, 0.012, 0.1, 0.48, PLATE);
-    B.box(-hl - 0.012, 0.7, 0, 0.012, 0.1, 0.48, PLATE);
-    addDoorCuts(B, 'truck', L, hw, paint, CHROME, true);
-    // de cabine van binnen: wanden, vloer, twee stoelen en het dashboard (zichtbaar door de open deur)
-    binnenDoos(B, hl - cabL / 2, 1.32, 0, cabL - 0.14, 1.02, W - 0.32, 0x3a3c40);
-    B.box(hl - cabL / 2, 0.83, 0, cabL - 0.16, 0.02, W - 0.4, 0x45474c);
-    for (const s of [1, -1]) { B.box(hl - 1.05, 1.05, s * 0.5, 0.5, 0.12, 0.5, 0x4d515c); B.box(hl - 1.33, 1.4, s * 0.5, 0.1, 0.6, 0.5, 0x4d515c); }
-    B.box(hl - 0.25, 1.62, 0, 0.35, 0.3, W - 0.3, 0x2b2d32);
-    const k = knipDeurgaten(B, 'truck', L, W);
-    const g = B.build();
-    g.userData.knip = { ...deurSchillen(k, L), rects: k.rects, zs: k.zs };
-    return g;
-  });
-  const mats = vehicleMaterials();
-  const group = new THREE.Group();
-  const body = new THREE.Mesh(geo, mats);
-  group.add(body);
-  group.userData.body = body;
-  koppelDeurgaten(group, body, geo);
-  const wgeo = carWheelGeometry(r, 0.3);
-  const wheels = [];
-  for (const x of [hl - 1.25, -hl + 1.7]) for (const s of [1, -1]) addWheel(group, wgeo, mats[0], x, r, s * (hw - 0.2), wheels);
-  group.userData.wheels = wheels;
-  group.userData.wheelRadius = r;
-  return group;
+  return buildBakwagen(v, truckKit());
 }
 
 // De tankwagen (vettruck 23-11): een bakwagen-chassis met een levensmiddelentank voor frituurvet, gebouwd als één gecachete romp met
@@ -2498,26 +2461,7 @@ function buildFoodtruckMesh(v) {
   if (wrecked) return group;
   const geo = cached(`foodtruck|${L}|${W}|${paint}`, () => {
     const B = new GeoBuilder(3);
-    // the hatch: a dark opening with a steel counter, the flap propped up as the awning
-    const x0 = -hl + 0.55, x1 = hl - 1.45;
-    const cx = (x0 + x1) / 2, cl = x1 - x0;
-    B.box(cx, 1.45, hw + 0.007, cl, 0.8, 0.01, 0x1c1d20);
-    B.box(cx, 1.3, hw + 0.012, cl * 0.9, 0.35, 0.01, 0xf2c230, G_LAMP);
-    B.box(cx, 1.03, hw + 0.16, cl + 0.1, 0.05, 0.32, CHROME);
-    for (let i = 0; i < 6; i++) {
-      const sx = x0 + (cl * (i + 0.5)) / 6;
-      B.box(sx, 1.98, hw + 0.42, cl / 6, 0.035, 0.9, i % 2 ? 0xf4f1e6 : 0x1f4f8f, 0, 0.5, 0, 0);
-    }
-    for (const x of [x0 + 0.05, x1 - 0.05]) B.geo(tubeGeometry([x, 1.86, hw + 0.8], [x, 1.1, hw + 0.03], 0.018, 0.018, 4), null, CHROME);
-    // snacks on the counter
-    for (let i = 0; i < 4; i++) B.box(cx - cl * 0.3 + i * cl * 0.2, 1.09, hw + 0.18, 0.12, 0.08, 0.1, [0xc9852e, 0xe8c24a, 0x8a4a22, 0xc9852e][i]);
-    // roof: sign frame, an extractor hood, and the eierbal
-    B.box(-0.3, 2.3, 0, L * 0.55, 0.06, 0.08, 0x2a2a2b);
-    for (const x of [-0.3 - L * 0.26, -0.3 + L * 0.26]) B.box(x, 2.22, 0, 0.06, 0.2, 0.06, 0x2a2a2b);
-    B.box(-hl + 0.7, 2.18, -hw * 0.45, 0.5, 0.18, 0.5, CHROME);
-    B.geo(new THREE.SphereGeometry(0.42, 12, 9), composeMatrix(hl - 1.25, 2.55, 0, 0, 0, 0, 1, 0.92, 1), 0xb8742c);
-    B.geo(new THREE.SphereGeometry(0.45, 12, 9, 0, Math.PI * 2, 0, 0.9), composeMatrix(hl - 1.25, 2.55, 0, 0, 0, 0, 1, 0.92, 1), 0xd89a44);
-    B.box(hl - 1.25, 2.12, 0, 0.5, 0.06, 0.5, 0x2a2a2b);
+    foodtruckOnderdelen(B, { L, hl, hw, K: VAN_K, G: VAN_G }); // luik, toonbank, zonnescherm, menubord, kap en eierbal (24-11)
     return B.build();
   });
   group.add(new THREE.Mesh(geo, vehicleMaterials()));

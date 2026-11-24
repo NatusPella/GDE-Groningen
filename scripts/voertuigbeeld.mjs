@@ -17,7 +17,7 @@ async function run(naam) {
   const port = 9400 + Math.floor(Math.random() * 500);
   const profiel = path.join(ROOT, '.scr', 'chrome-' + process.pid + '-' + naam);
   fs.mkdirSync(profiel, { recursive: true });
-  const url = 'file:///' + path.join(MAP, 'pagina.html').replace(/\\/g, '/') + '#' + naam + (fase === 'voor-oud' ? 'oud' : '');
+  const url = 'file:///' + path.join(MAP, 'pagina.html').replace(/\\/g, '/') + '#' + naam + (fase === 'voor-oud' ? 'oud' : '') + (process.env.ZONDERSUB ? 'zondersub' : '');
   const chrome = spawn(CHROME, ['--headless=new', `--remote-debugging-port=${port}`, `--user-data-dir=${profiel}`, '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist', '--hide-scrollbars', '--allow-file-access-from-files', '--no-first-run', '--window-size=1920,1080', url], { stdio: 'ignore' });
   try {
     let ws = null;
@@ -36,8 +36,11 @@ async function run(naam) {
     if (!titel.startsWith('klaar')) { console.log('MISLUKT', naam, titel.slice(0, 600)); return; }
     console.log(naam, JSON.stringify(await ev('window.info')));
     for (const w of weergaven.split(',')) {
-      const data = await ev(`window.neem(${JSON.stringify(w)})`);
-      fs.writeFileSync(path.join(MAP, `${fase === 'voor-oud' ? 'voor' : fase}-${naam}-${w}.png`), Buffer.from(data.split(',')[1], 'base64'));
+      // weergave@lod0 of weergave@lod1: het niveau dat het centrale systeem op 5 of 70 m kiest
+      const [w0, niv] = w.split('@');
+      if (niv) await ev(`window.lod(${niv === 'lod1' ? 70 : 5})`);
+      const data = await ev(`window.neem(${JSON.stringify(w0)})`);
+      fs.writeFileSync(path.join(MAP, `${fase === 'voor-oud' ? 'voor' : fase}-${naam}-${w.replace('@', '-')}.png`), Buffer.from(data.split(',')[1], 'base64'));
     }
     sock.close();
   } finally {
