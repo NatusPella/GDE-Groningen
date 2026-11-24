@@ -22,7 +22,7 @@ const meshes = new Map(); // plek -> { mesh, char, label, prev }
 // #872: het naamlabel past op de vaste kaart. Een online-naam mag 16 tekens zijn en de
 // spelerslijst leest er 24; zonder meten viel een lange naam buiten het tekstvlak.
 const LABEL_B = 256, LABEL_H = 64, LABEL_VLAK = 236;
-function makeLabel(spec) {
+export function makeLabel(spec) { // ook voor de gastheer bij een gast (scene3d.js, world.companion)
   const c = document.createElement('canvas'); c.width = LABEL_B; c.height = LABEL_H;
   const g = c.getContext('2d');
   const font = (px) => `bold ${px}px "Arial Narrow", Arial, sans-serif`;

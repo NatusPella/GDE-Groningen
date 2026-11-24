@@ -30,6 +30,7 @@ import {
 } from './vehicle.js';
 import { DEAD_DURATION } from './pedconst.js';
 import { attachCarry, carryPose } from './streetlife3d.js';
+import { gastheerAvatar, metgezelSleutel } from './coopclient.js'; import { avatarLook, avatarLabel } from './coopspeler.js'; import { makeLabel } from './coopfigures3d.js'; // de gastheer bij een gast als zijn online-avatar (#455)
 import { buildPersonMesh, setModularPlayerLooks, releasePersonGeometry, animatePersonWalk, plantFeet, applyAttackPose, applyHitReaction, setHeldWeapon, seatPose, seatedY, waveOverlay, juichOverlay, carryOverlay, TAMMO_APPEARANCE, ANITA_APPEARANCE, fistOverlay } from './models3d_people.js';
 import { syncDoorsNear, vraagVoorAnim } from './vehicledoors3d.js';
 import { syncCabins } from './cabin3d.js';
@@ -3228,11 +3229,19 @@ export function update3D(dt, world) {
   const comp = world.coop && world.coop.remote ? null : world.companion;
   if (!comp && companionMesh) companionMesh.visible = false; // geen computermetgezel: geen tweede Tessa in beeld (#502)
   if (comp) {
-    if (comp.character !== companionCharacter) {
-      companionCharacter = comp.character;
-      const appearance = companionCharacter === 'anita' ? ANITA_APPEARANCE : TAMMO_APPEARANCE;
+    const compKey = metgezelSleutel(world); // op een gast is dit de gastheer: zijn online-avatar met naamlabel (#455), anders de verhaalrol
+    if (compKey !== companionCharacter) {
+      companionCharacter = compKey;
       if (companionMesh) { scene.remove(companionMesh); disposeObject(companionMesh); } // #788
-      companionMesh = buildPersonActor(appearance.shirt, appearance.skin, appearance);
+      const hostAv = gastheerAvatar(world);
+      if (hostAv) {
+        const look = avatarLook(hostAv);
+        companionMesh = buildPersonActor(look.shirt, look.skin, look.opts);
+        companionMesh.add(makeLabel(avatarLabel(hostAv)));
+      } else {
+        const appearance = comp.character === 'anita' ? ANITA_APPEARANCE : TAMMO_APPEARANCE;
+        companionMesh = buildPersonActor(appearance.shirt, appearance.skin, appearance);
+      }
       scene.add(companionMesh);
     }
     const cv = comp.coopBestuurt ? null : comp.inVehicle; // een gast die zelf stuurt: coopzitten3d.js zet hem op stoel 0 (#434)

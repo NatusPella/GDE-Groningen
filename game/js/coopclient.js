@@ -39,6 +39,22 @@ export function bodyFor(world, me, slot) {
   return figures(world)[slot] || null;                       // alle anderen: figuren (ook plek 1 op de gastheer, #502)
 }
 
+// Op een gast is world.companion het lichaam van de gastheer (bodyFor). Zoals elke medespeler ziet de gast hem als zijn
+// online-avatar (#455: naam, kleur, kleding), niet als de verhaalrol Tammo of Tessa. -> de avatar (avatarVan) of null
+// (bij de gastheer zelf, alleen spelen of zonder lijst met spelers: dan is world.companion de computermetgezel).
+// Gevonden in twee echte vensters (samen-qa 24-11): de gast zag de gastheer als Tessa, zonder naamlabel.
+export function gastheerAvatar(world) {
+  if (!world || world.coopRole !== 'client' || !world.companion) return null;
+  const r = (world.coopRoster || []).find((x) => x && x.slot === 0);
+  return r ? avatarVan(r, 0) : null;
+}
+// De sleutel waarop scene3d.js het model van world.companion opnieuw bouwt: de verhaalrol, of de avatar van de gastheer.
+export function metgezelSleutel(world) {
+  const av = gastheerAvatar(world);
+  if (av) return `avatar:${av.char}:${av.naam}:${av.kleur}:${av.outfit || ''}`;
+  return world && world.companion ? world.companion.character || null : null;
+}
+
 // Zet de lichamen op hun eigen verhaalrol (#455): de rol hoort bij de speler, niet
 // bij de plek, dus plek 0 en 1 hebben geen vaste Tammo/Tessa meer. De tweede
 // verhaalrol is lokaal de metgezel. Extra spelers houden een eigen online-avatar.

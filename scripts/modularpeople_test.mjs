@@ -327,5 +327,22 @@ for (const female of [false, true]) {
   ok(us < 60, 'animatie blijft goedkoop');
 }
 
+// Samen spelen (samen-qa 24-11): in de spelerfase is ook de figuur van een medespeler een modulaire mens, gebouwd uit zijn
+// kledingcode (coopspeler.js avatarLook). In twee vensters zag de gastheer de gast als het oude model, zonder zijn kleding.
+{
+  const SP = await import('../game/js/coopspeler.js'), C = await import('../game/js/clothing.js');
+  const code = C.localOutfitCode();
+  P.setModularPlayerLooks(true);
+  const met = SP.avatarLook(SP.avatarVan({ avatar: { naam: 'Gast', outfit: code } }, 1));
+  const m1 = P.buildPersonMesh(met.shirt, met.skin, met.opts);
+  ok(!!m1.userData.qRig, 'medespeler met kledingcode: modulaire mens');
+  const zonder = SP.avatarLook(SP.avatarVan({ avatar: { naam: 'Gast' } }, 2));
+  const m2 = P.buildPersonMesh(zonder.shirt, zonder.skin, zonder.opts);
+  ok(!!m2.userData.qRig, 'medespeler zonder kledingcode: modulaire mens');
+  P.setModularPlayerLooks(false);
+  const oud = P.buildPersonMesh(met.shirt, met.skin, met.opts);
+  ok(!oud.userData.qRig, 'zonder spelerfase (?mensen=oud) het oude model');
+}
+
 console.log(fails ? `${fails} van ${n} FAILED` : `modularpeople: alle ${n} checks groen`);
 process.exit(fails ? 1 : 0);

@@ -6,6 +6,7 @@
 //           gastacties (#291: een gast winkelt met zijn eigen geld, krijgt het stuur, stapt uit en in),
 //           menustroom: tekstveld, wachtkamer, de opening samen bekijken, overslaan alleen door de gastheer)
 //           alles (rooktest 21-11, docs/COOP-SWEEP-21-11.md: host + 2 gasten, ping, waypoint, outfit, tuning, bezit, winkel, bijbaan, cutscene)
+//           samenqa (samen-qa 24-11: groepswarp, wolf, levende stad, bushalte, raakbevestiging, zitpose; host + 1 gast)
 //           fatbikes, penaltyserie, duivenspot, plaatsbord, filmpjewissel (route kamer), besloten, venster (alles na elkaar) (#1061: vensterstappen_check.mjs)
 //   --gasten=1|2 (Electron-gasten, host + gasten <= 3 sloten), --mock=N (extra headless gasten in dit proces, voor de 4e speler)
 //   --menu: begin bij het hoofdmenu (ingang Samen spelen), --duration=20, --invuln
@@ -46,12 +47,22 @@ const LOCKS = process.env.GDE_LOCKS || path.join(os.homedir(), 'gde-locks');
 // één keer per minuut (backgroundThrottling, #656); deze vlaggen zetten dat uit, zodat een
 // testbank-run niet op machinelast of windowbeheer vastloopt:
 //   GDE_COOP_ELECTRON_ARGS=--disable-background-timer-throttling,--disable-renderer-backgrounding,--disable-backgrounding-occluded-windows
-const EXTRA_ARGS = (process.env.GDE_COOP_ELECTRON_ARGS || '').split(',').map((x) => x.trim()).filter(Boolean);
+// Met een ';' erin scheidt ';' de vlaggen, zodat een vlag zelf komma's mag hebben (--preset=quality:laag,drawDistance:kort: minder geheugen per venster)
+const EXTRA_ARGS = (process.env.GDE_COOP_ELECTRON_ARGS || '').split((process.env.GDE_COOP_ELECTRON_ARGS || '').includes(';') ? ';' : ',').map((x) => x.trim()).filter(Boolean);
 const ELECTRON = process.env.ELECTRON_EXE || path.join(ROOT, 'desktop', 'node_modules', 'electron', 'dist', process.platform === 'win32' ? 'electron.exe' : 'Electron');
 fs.mkdirSync(OUT, { recursive: true });
 const EXPECT = 2 + (GASTEN - 1) + MOCK; // aantal spelers in totaal
 const SPELERS_ELECTRON = GASTEN >= 3 ? ['host', 'gast', 'gast2', 'gast3'] : ['host', 'gast', 'gast2']; // #1011: ook de derde Electron-gast heeft een programma (anders eindigt hij meteen en valt hij weg)
 
+// samen-qa 24-11: de fasen met hun duur; --fasen kiest een deel, in deze volgorde
+const SAMENQA_FASEN = [['qamensen', 14], ['qawarp', 60], ['qaboot', 60], ['qadier', 34], ['qastad', 24], ['qahalte', 60], ['qatreffer', 16], ['qazit', 40], ['gastrit', 90]];
+function samenQaProgramma(me, keuze) {
+  const wil = keuze ? keuze.split(',') : SAMENQA_FASEN.map(([n]) => n);
+  const prog = [[0, 'wacht', { s: 6 }]]; let t = 8;
+  for (const [n, s] of SAMENQA_FASEN) if (wil.includes(n)) { prog.push([t, n, { s }]); t += s + 2; }
+  if (me === 'host') prog.push([t + 4, 'stopHost', {}]);
+  return prog;
+}
 // ---------------------------------------------------------------- programma per instantie (seconden na "iedereen erbij")
 const P = {
   basis: { host: [[0, 'wacht', { s: DURATION }]], gast: [[0, 'wacht', { s: DURATION }]], gast2: [[0, 'wacht', { s: DURATION }]], gast3: [[0, 'wacht', { s: DURATION }]] },
@@ -108,6 +119,9 @@ const P = {
     [170, 'filmpje', { s: 8 }], [178, 'allesstap', { stap: 'zinnen', wie: 'gast', s: 3 }], [182, 'allesstap', { stap: 'doel', wie: 'gast', s: 3 }], [186, 'allesstap', { stap: 'geld', s: 2 }], [188, 'allesstap', { stap: 'radio', wie: 'host', s: 2 }], [192, 'opslagcheck', {}], [194, 'wacht', { s: 4 }],
     ...(me === 'host' ? [[200, 'stopHost', {}]] : []),
   ]])),
+  // samen-qa 24-11: wat op 23-11 alleen puur getest was, in twee echte vensters (host + 1 gast, route direct): mensen tegenover elkaar, groepswarp (M11, M20, M06-vluchtboot), de wolf (beet per speler), levende stad (straatgebeurtenis), een lijnbus bij de halte, raakbevestiging voor de kogel van een gast (#1290) en de zitpose bij het meerijden (gastrit)
+  // --fasen=qadier,qastad: alleen die fasen achter elkaar (korter, minder geheugen: een warp laadt een tweede stuk wereld)
+  samenqa: Object.fromEntries(SPELERS_ELECTRON.map((me) => [me, samenQaProgramma(me, arg('fasen', ''))])),
   touch: { host: [[0, 'kijk', { s: 16 }]], gast: [[0, 'touch', { s: 12 }]], gast2: [[0, 'wacht', { s: 16 }]] },
   // #1061: wat tot nu toe alleen puur of over TCP bewezen was, in echte vensters (keuring: vensterstappen_check.mjs). Elke suite los, of alles na elkaar in `venster` (host + 1 of 2 gasten, route direct)
   fatbikes: Object.fromEntries(SPELERS_ELECTRON.map((me) => [me, [[0, 'wacht', { s: 6 }], [8, 'fatbikes', { s: 150 }], ...(me === 'host' ? [[162, 'stopHost', {}]] : [])]])), // Fatbikes ontwijken (M08): de groep loopt de baan, tellers per speler

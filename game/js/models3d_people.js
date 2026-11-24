@@ -1260,7 +1260,8 @@ export function personPalette(shirt, skin, seed) {
 let modularPlayers = false;
 export function setModularPlayerLooks(on) { modularPlayers = !!on; }
 export function buildPersonMesh(shirt, skin, opts = {}) {
-  if (modularPlayers && opts && opts.character && !opts.swim && modularReady()) {
+  // de speler (character) en de figuur van een medespeler (speler: coopspeler.js avatarLook, uit zijn kledingcode) worden in de spelerfase een modulaire mens
+  if (modularPlayers && opts && (opts.character || opts.speler) && !opts.swim && modularReady()) {
     const q = buildModularFromAppearance({ ...opts, shirt, skin });
     if (q) return q;
   }

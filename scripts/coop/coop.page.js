@@ -99,7 +99,7 @@ async function act(name, ms = 8000) {
 async function wizard(wijze) {
   for (let i = 0; i < 6; i++) {
     const b = buttons();
-    if (b.includes('wie-verder')) { await act('wie-verder'); continue; }
+    if (b.includes('wie-verder')) { log('wie-ben-jij', { titel: title(), tekst: panel().innerText.slice(0, 300) }); shot('wie-' + CFG.role); await act('wie-verder'); continue; }
     if (b.includes('wijze-' + wijze)) { await act('wijze-' + wijze); return; }
     if (b.includes('route-direct') || b.includes('route-kamer') || (title() !== 'Wie ben jij?' && panel() && panel().querySelector('.coop-input'))) return;
     await sleep(400);
@@ -194,6 +194,19 @@ async function configureRoute() {
   log('route-ingesteld', { trackers: nc.TRACKERS.length, stun: nc.ICE_SERVERS.length });
 }
 
+// 22-11 (#1120): de kaart met naam en akkoord (onlineconsentui.js), ingevuld zoals een speler
+async function vulNaamkaart() {
+  const veld = document.querySelector('.os-naam');
+  veld.value = CFG.role === 'host' ? 'Bouwer' : 'Gastspeler';
+  veld.dispatchEvent(new Event('input', { bubbles: true }));
+  const vink = document.querySelector('.os-consent-vink'); if (vink && !vink.checked) vink.click();
+  await sleep(300);
+  log('naamkaart', { naam: veld.value, vink: !!(vink && vink.checked) });
+  shot('naamkaart-' + CFG.role);
+  document.querySelector('.os-kaart [data-doorgaan]').click();
+  await sleep(600);
+}
+
 async function toLobby() {
   await until(() => W() && W().player, 90000, 'world (spel geladen)');
   if (CFG.viaMenu) {
@@ -211,15 +224,7 @@ async function toLobby() {
     // de menustroom (#95): Samen spelen -> Gastheer worden / Meedoen -> (gastheer) kies een opgeslagen spel of Nieuw spel
     // 22-11 (#1120): bij het eerste Samen spelen komt eerst de kaart met naam en akkoord (onlineconsentui.js); de testbank vult hem zoals een speler
     const eerst = await until(() => document.querySelector('.os-kaart') || document.querySelector('#samenkeuze .sk-item'), 8000, 'de naamkaart of het scherm Samen spelen (keuze)');
-    if (eerst.closest && eerst.closest('.os-kaart') || eerst.classList.contains('os-kaart')) {
-      const veld = document.querySelector('.os-naam');
-      veld.value = CFG.role === 'host' ? 'Bouwer' : 'Gastspeler';
-      veld.dispatchEvent(new Event('input', { bubbles: true }));
-      const vink = document.querySelector('.os-consent-vink'); if (vink && !vink.checked) vink.click();
-      await sleep(300);
-      log('naamkaart', { naam: veld.value, vink: !!(vink && vink.checked) });
-      document.querySelector('.os-kaart [data-doorgaan]').click();
-    }
+    if (eerst.closest && eerst.closest('.os-kaart') || eerst.classList.contains('os-kaart')) await vulNaamkaart();
     const keuze = await until(() => document.querySelector('#samenkeuze .sk-item'), 8000, 'het scherm Samen spelen (keuze)');
     log('samenkeuze', { knoppen: [...document.querySelectorAll('#samenkeuze .sk-item')].map((b) => b.dataset.act).join(','), tekst: document.querySelector('#samenkeuze').innerText.slice(0, 300) });
     await sleep(1200); // het menu en zijn stijlen laden eerst; dan pas de schermafbeelding
@@ -257,6 +262,9 @@ async function toLobby() {
     for (let i = 0; i < 60 && (W().cameraOverride || W().pendingRespawn || document.getElementById('cine') && document.getElementById('cine').classList.contains('on')); i++) { if (i > 6 && i % 4 === 0) { try { window.__story.skip(true); } catch (e) { /* geen verhaal-API */ } } await holdSkip(); await sleep(300); }
     log('speelklaar', { cameraOverride: !!W().cameraOverride, respawn: !!W().pendingRespawn });
     await openSamen();
+    // 22-11 (#1120): zonder naam en akkoord toont het onderdeel Samen eerst de naamkaart (samenpanel.js); zonder die stap vond de testbank geen knoppen
+    const kaart = await until(() => document.querySelector('.os-kaart') || buttons().length, 8000, 'de naamkaart of de knoppen van Samen spelen').catch(() => null);
+    if (kaart && kaart.classList && kaart.classList.contains('os-kaart')) { await vulNaamkaart(); await until(() => buttons().length, 8000, 'knoppen van Samen spelen na de naamkaart'); }
   }
 }
 
@@ -382,6 +390,23 @@ function simulate(sim) {
   }
   return links().length;
 }
+// samen-qa 24-11: hulpjes voor de fasen qa* (een klok per fase, de figuur van de gast bij de gastheer, de gastheer in de snapshot bij de gast)
+let qaStart = 0;
+const qaT0 = () => qaStart;
+const qaKlok = () => { qaStart = performance.now(); const t0 = qaStart; return (sec) => sleep(Math.max(0, sec * 1000 - (performance.now() - t0))); };
+const qaR = (v) => Math.round(v * 10) / 10;
+const qaGastFig = () => Object.values((W() || {}).coopFigures || {}).find((f) => f && f.slot >= 1) || null;
+const qaIk = async () => (await imp('spelersregister')).hoofdspeler(W());
+const qaHost = () => { try { const s = W().coopNet.session.world(); return s ? (s.players || []).find((p) => p.slot === 0) || null : null; } catch (e) { return null; } };
+const qaMsgs = () => { const w = W(); window.__qaMsgs = window.__qaMsgs || []; if (!w.__qaHaak) { const o = w.addMessage.bind(w); w.addMessage = (t, ...a) => { window.__qaMsgs.push(String(t)); return o(t, ...a); }; w.__qaHaak = true; } return window.__qaMsgs; };
+// opzij: een beetje schuin, anders staat het doel precies achter de eigen figuur (de camera kijkt over de schouder)
+const qaKijk = (x, y, opzij = 0.45) => { const w = W(), me = w.lokaalLichaam || w.player; if (me && Number.isFinite(x) && Number.isFinite(y)) w.camYaw = Math.atan2(y - me.y, x - me.x) + opzij; };
+// een plek waar een voetganger kan staan (pedestrians.js walkerSpotClear), in ringen rond x, y
+const qaVrij = async (x, y) => {
+  const P = await imp('pedestrians'), map = W().map;
+  for (let r = 0; r <= 24; r += 2) for (let a = 0; a < 6.28; a += 0.4) { const px = x + Math.cos(a) * r, py = y + Math.sin(a) * r; if (P.walkerSpotClear(map, px, py)) return { x: px, y: py }; if (r === 0) break; }
+  return { x, y };
+};
 const simStats = () => links().map((l) => ({ in: l.__sim ? l.__sim.dropIn || 0 : 0, out: l.__sim ? l.__sim.dropOut || 0 : 0 }));
 
 const PHASES = {
@@ -1735,6 +1760,10 @@ const PHASES = {
       log('gastrit-host-in', { via, host: !!w.player.inVehicle, tessa: !!w.companion.inVehicle, voertuigen: [v0, (w.vehicles || []).length] });
       shot('gastrit-host-in');
       await sleep(4000);
+      { // samen-qa 24-11: hoe zit de gast erin, gezien door de gastheer (zitpose op het modulaire model)
+        const vv = w.player.inVehicle, zit = Object.values(w.coopFigures || {}).filter((f) => f && f.inVeh && f.inVeh === vv).map((f) => [f.slot, f.stoel]);
+        log('gastrit-host-ziet-gast', { zit, binnen: !!w.firstPerson }); if (vv) { w.camYaw = (vv.angle || 0) + Math.PI * 0.75; await sleep(700); } shot('gastrit-host-ziet-gast');
+      }
       const v = w.player.inVehicle;
       // geef het stuur (Y); de host doet zelf niets meer met de stick
       await B.press('y', 120); await sleep(1500);
@@ -1789,6 +1818,294 @@ const PHASES = {
     log('gastrit-gast-weer-in', { inVoertuig: !!w.coopInVoertuig, meldingen: window.__gastMsgs.slice(-3), t: sec() });
     shot('gastrit-gast-weer-in');
     await sleep(3000);
+  },
+  // ---- samen-qa 24-11 (testbank --suite=samenqa): wat op 23-11 alleen puur getest was, in twee echte vensters. Elke fase legt
+  // vast wat de gastheer deed en wat de gast zag, met een schermafbeelding van beide kanten (qa-<fase>-host / qa-<fase>-gast).
+  // Mensen: de gastheer en de gast staan tegenover elkaar (modulaire mensen, kleding uit de kledingcode van de avatar).
+  async qamensen({ s = 14 }) {
+    const w = W(), tot = qaKlok();
+    if (CFG.role === 'host') {
+      const p = w.player, g = qaGastFig();
+      if (g) { g.x = p.x + 3.2; g.y = p.y + 0.4; g.vx = 0; g.vy = 0; g.verTijd = 0; g.vastTijd = 0; }
+      await tot(3); if (g) qaKijk(g.x, g.y);
+      await tot(5);
+      const labels = []; // het naamlabel boven de figuur van de gast (coopfigures3d.js makeLabel): waar en hoe groot in de wereld
+      try { const SC = (await imp('scene3d')).getScene(); if (SC) SC.traverse((o) => { if (o.isSprite && o.renderOrder === 10 && o.parent) { const THREE = o.constructor; const wp = o.getWorldPosition(new o.position.constructor()), ws = o.getWorldScale(new o.position.constructor()), pw = o.parent.getWorldScale(new o.position.constructor()); labels.push({ pos: [qaR(wp.x), qaR(wp.y), qaR(wp.z)], schaal: [qaR(ws.x * 100) / 100, qaR(ws.y * 100) / 100], ouderSchaal: qaR(pw.x * 100) / 100, ouder: o.parent.type, gastXY: g ? [qaR(g.x), qaR(g.y)] : null }); } }); } catch (e) { labels.push({ fout: e.message }); }
+      log('qa-mensen-label', { labels: labels.slice(0, 4) });
+      log('qa-mensen-host', { gast: g ? { char: g.char || null, outfit: !!(g.avatar && g.avatar.outfit) } : null, roster: (w.coopRoster || []).map((r) => ({ slot: r.slot, char: r.char, outfit: r.avatar && r.avatar.outfit ? String(r.avatar.outfit).slice(0, 40) : null })) });
+      shot('qa-mensen-host');
+    } else {
+      await tot(5);
+      const h = qaHost(); if (h) qaKijk(h.x, h.y);
+      await tot(7);
+      const me = await qaIk();
+      const c = w.companion; // op een gast is de gastheer world.companion (coopclient.js bodyFor): met welk model en welk label?
+      log('qa-mensen-gast-host', { companion: c ? { character: c.character || null, coopChar: c.coopChar || null, opHost: h ? qaR(Math.hypot(c.x - h.x, c.y - h.y)) : null } : null, figuren: Object.keys(w.coopFigures || {}) });
+      log('qa-mensen-gast', { host: h ? { afstand: qaR(Math.hypot(h.x - me.x, h.y - me.y)) } : null, roster: (w.coopRoster || []).map((r) => ({ slot: r.slot, char: r.char, outfit: r.avatar && r.avatar.outfit ? String(r.avatar.outfit).slice(0, 40) : null })) });
+      shot('qa-mensen-gast');
+    }
+    await tot(s);
+  },
+  // Groepswarp (groepwarp.js): M11 (een warp of reisscène: storytravel.placeParty), M20 (landing na de sprong: warpGasten) en
+  // M06 (de vluchtboot: gastenMeeAanBoord). De gastheer meet in dezelfde tik waar de gast staat, dus niet de band van 110 m.
+  async qaboot(a) { return PHASES.qawarp({ ...a, alleenBoot: true }); }, // alleen M06 (de vluchtboot), vanaf het beginpunt: een warp laadt een tweede stuk wereld
+  async qawarp({ s = 60, alleenBoot = false }) {
+    const w = W(), tot = qaKlok(), b = alleenBoot ? -18 : 0; // b: de boot meteen, zonder de twee warps ervoor
+    if (CFG.role === 'host') {
+      const ST = await imp('storytravel'), GW = await imp('groepwarp'), S = await imp('shops'), p = w.player;
+      const winkels = (S.getShopsForRender() || []).map((q) => ({ q, d: Math.hypot(q.x - p.x, q.y - p.y) })).filter((o) => o.d > 300 && o.d < 900).sort((a, b) => a.d - b.d);
+      await tot(3); // de gast legt eerst zijn plek vast
+      let dest = { x: p.x, y: p.y };
+      if (!alleenBoot) {
+      dest = await qaVrij(winkels.length ? winkels[0].q.x : p.x + 500, winkels.length ? winkels[0].q.y : p.y);
+      const g0 = qaGastFig(), voor = g0 ? qaR(Math.hypot(g0.x - dest.x, g0.y - dest.y)) : null;
+      ST.placeParty(w, dest);
+      const g1 = qaGastFig();
+      log('qa-warp-m11-host', { dest: [Math.round(dest.x), Math.round(dest.y)], gastVoor: voor, gastNa: g1 ? qaR(Math.hypot(g1.x - dest.x, g1.y - dest.y)) : null, host: qaR(Math.hypot(p.x - dest.x, p.y - dest.y)) });
+      await tot(6); if (g1) qaKijk(g1.x, g1.y); await tot(7); shot('qa-warp-m11-host');
+      await tot(14);
+      const land = await qaVrij(p.x + 16, p.y + 8);
+      p.x = land.x; p.y = land.y; p.vx = 0; p.vy = 0;
+      const n20 = GW.warpGasten(w, land), g2 = qaGastFig();
+      log('qa-warp-m20-host', { n: n20, gastAfstand: g2 ? qaR(Math.hypot(g2.x - land.x, g2.y - land.y)) : null });
+      await tot(19); if (g2) qaKijk(g2.x, g2.y); await tot(20); shot('qa-warp-m20-host');
+      }
+      await tot(24 + b);
+      const boten = (w.vehicles || []).filter((v) => v && v.isBoat && !v.driver && !v.wrecked && !v.sinking).sort((a, b) => Math.hypot(a.x - p.x, a.y - p.y) - Math.hypot(b.x - p.x, b.y - p.y));
+      let boot = boten[0] && Math.hypot(boten[0].x - p.x, boten[0].y - p.y) < 400 ? boten[0] : null, gemaakt = false;
+      if (!boot) { // geen boot in de buurt: een rubberboot als die van M06 (heist.js GETAWAY_BOAT) op het dichtstbijzijnde brede water
+        const { isInWater } = await import('./js/util.js'), V = await imp('vehicle'), BT = await imp('boattypes');
+        let wp = null;
+        for (let r = 6; r <= 600 && !wp; r += 6) for (let a = 0; a < 6.283 && !wp; a += 0.12) { const x = p.x + Math.cos(a) * r, y = p.y + Math.sin(a) * r; if ([0, 4, 8].every((d) => isInWater(w.map, x + Math.cos(a) * d, y + Math.sin(a) * d)) && isInWater(w.map, x - Math.sin(a) * 3, y + Math.cos(a) * 3) && isInWater(w.map, x + Math.sin(a) * 3, y - Math.cos(a) * 3)) wp = { x: x + Math.cos(a) * 4, y: y + Math.sin(a) * 4, a }; }
+        if (wp) { boot = new V.Vehicle(wp.x, wp.y, wp.a, { ...BT.BOAT_KINDS.rubberboot, maxSpeed: 7.5, accel: 3.2, color: '#1c1f22', cabin: '#d9412b' }); boot.isBoat = true; boot.missionCar = true; boot.speed = 0; w.vehicles.push(boot); gemaakt = true; }
+      }
+      if (!boot) log('qa-warp-m06-host', { geenBoot: true, voertuigen: (w.vehicles || []).length });
+      else {
+        const afstand = Math.round(Math.hypot(boot.x - p.x, boot.y - p.y));
+        p.x = boot.x; p.y = boot.y; p.vx = 0; p.vy = 0;
+        const g = qaGastFig(); if (g) { g.x = boot.x + 4; g.y = boot.y + 2; g.vx = 0; g.vy = 0; }
+        await sleep(2500);
+        if (p.water) { p.water = null; p.swimming = false; p.z = 0; }
+        if (p.inVehicle !== boot) p.enterVehicle(boot, w);
+        const n06 = GW.gastenMeeAanBoord(w), g3 = qaGastFig();
+        log('qa-warp-m06-host', { n: n06, afstand, gemaakt, hostInBoot: p.inVehicle === boot, gast: g3 ? { inBoot: g3.inVeh === boot, stoel: g3.stoel ?? null } : null, model: boot.model && boot.model.name });
+        await tot(36 + b); qaKijk(boot.x + 6, boot.y + 6); shot('qa-warp-m06-host');
+        await tot(46 + b);
+        // terug aan wal (handBack 'moor'): wie in de boot zat stapt mee uit
+        p.exitVehicle(w.map, w); p.x = dest.x; p.y = dest.y; p.water = null; p.swimming = false;
+        const nUit = GW.warpGasten(w, dest, { alleen: (l) => l.inVeh === boot }), g4 = qaGastFig();
+        log('qa-warp-m06-uit-host', { n: nUit, gastUit: g4 ? !g4.inVeh : null, afstand: g4 ? qaR(Math.hypot(g4.x - dest.x, g4.y - dest.y)) : null });
+      }
+    } else {
+      const msgs = qaMsgs(), me = await qaIk(), p0 = [me.x, me.y];
+      let h = null;
+      if (!alleenBoot) {
+      await tot(5);
+      h = qaHost();
+      log('qa-warp-m11-gast', { verplaatst: qaR(Math.hypot(me.x - p0[0], me.y - p0[1])), afstandHost: h ? qaR(Math.hypot(h.x - me.x, h.y - me.y)) : null, meldingen: msgs.slice(-3) });
+      if (h) qaKijk(h.x, h.y); await tot(7.5); shot('qa-warp-m11-gast');
+      await tot(19); h = qaHost();
+      log('qa-warp-m20-gast', { afstandHost: h ? qaR(Math.hypot(h.x - me.x, h.y - me.y)) : null, meldingen: msgs.slice(-3) });
+      if (h) qaKijk(h.x, h.y); await tot(20.5); shot('qa-warp-m20-gast');
+      }
+      await tot(34 + b); h = qaHost();
+      log('qa-warp-m06-gast', { inVoertuig: !!w.coopInVoertuig, afstandHost: h ? qaR(Math.hypot(h.x - me.x, h.y - me.y)) : null, meldingen: msgs.slice(-3) });
+      if (h) qaKijk(h.x, h.y); await tot(36.5 + b); shot('qa-warp-m06-gast');
+      await tot(52 + b);
+      log('qa-warp-m06-uit-gast', { inVoertuig: !!w.coopInVoertuig, zwemt: !!(me.swimming || me.water), meldingen: msgs.slice(-3) });
+    }
+    await tot(s);
+  },
+  // Provinciedieren en de wolf (ADR 0053): de gastheer zet een wolf naast de gast (hij richt zich op de dichtstbijzijnde speler), daarna een
+  // tweede naast zichzelf. Schade per speler: de gast neemt zijn eigen beet uit de aanvalsstand in het dierbericht (coopextra3d.js).
+  async qadier({ s = 34 }) {
+    const w = W(), tot = qaKlok();
+    const wolf = (x, y) => ({ kind: 'wolf', x, y, angle: 0, speed: 0, stride: 0, bobSeed: 1, wanderTarget: { x, y }, homeX: x, homeY: y, homeRadius: 40, waypointTimer: 2, state: 'zwerf', howled: true, tracks: true, bites: 0, biteT: 0 });
+    if (CFG.role === 'host') {
+      const p = w.player, g = qaGastFig(); if (!w.wildlife) w.wildlife = [];
+      if (!g) { log('qa-wolf-host', { geenGast: true }); await tot(s); return; }
+      const plek = await qaVrij(p.x + 14, p.y); // dichtbij genoeg voor een beeld, de gast blijft de dichtstbijzijnde speler
+      g.x = plek.x; g.y = plek.y; g.vx = 0; g.vy = 0; g.verTijd = 0; g.vastTijd = 0;
+      await tot(2);
+      const a = wolf(g.x + 7, g.y + 2); w.wildlife.push(a); qaKijk(g.x, g.y, 0.15);
+      const st = [];
+      for (let i = 0; i < 20; i++) { await sleep(500); st.push([a.state, a.bites || 0, qaR(Math.hypot(a.x - g.x, a.y - g.y))]); if (i === 2) shot('qa-wolf1-host'); if (i === 5) shot('qa-wolf1-host-b'); }
+      log('qa-wolf1-host', { verloop: st.filter((x, i) => i % 3 === 0), beten: a.bites || 0 });
+      a.gone = true;
+      await tot(16);
+      const hp0 = w.health, b = wolf(p.x + 6, p.y + 1); w.wildlife.push(b);
+      for (let i = 0; i < 16; i++) { await sleep(500); if (i < 8) qaKijk(b.x, b.y, 0.3); if (i === 3) shot('qa-wolf2-host'); }
+      log('qa-wolf2-host', { hpVoor: Math.round(hp0), hpNa: Math.round(w.health), beten: b.bites || 0, staat: b.state });
+      b.gone = true; w.health = Math.max(w.health, hp0);
+    } else {
+      const hp0 = w.health, wolven = () => (w.coopExtra && w.coopExtra.dieren ? [...w.coopExtra.dieren.values()].filter((d) => d && d.soort === 'wolf') : []);
+      let gezien = 0, aanval = 0;
+      for (let i = 0; i < 26; i++) { await sleep(500); const l = wolven(); if (l.length) gezien++; if (l.some((d) => d.aux === 2)) aanval++; if (l[0] && i < 12) qaKijk(l[0].x, l[0].y, 0.25); if (i === 3) shot('qa-wolf1-gast'); if (i === 6) shot('qa-wolf1-gast-b'); }
+      log('qa-wolf1-gast', { hpVoor: Math.round(hp0), hpNa: Math.round(w.health), wolfGezien: gezien, aanvalsstand: aanval });
+      await tot(26);
+      const hp1 = w.health;
+      log('qa-wolf2-gast', { hp: Math.round(hp1), wolven: wolven().map((d) => [d.aux, qaR(d.x), qaR(d.y)]) });
+      w.health = Math.max(w.health, hp0);
+    }
+    await tot(s);
+  },
+  // Levende stad (#1314-#1316): de gastheer zet de klok op 15 uur en start een straatgebeurtenis; de gast staat naast hem en ziet de figuren,
+  // tekstballonnen en de rekwisieten (kraam, ijscokar, gitaarkoffer) via het EXTRA-bericht.
+  async qastad({ s = 24 }) {
+    const w = W(), tot = qaKlok();
+    if (CFG.role === 'host') {
+      const p = w.player, g = qaGastFig(), SE = await imp('streeteventlive');
+      w.clock = 15;
+      if (g) { g.x = p.x + 2.5; g.y = p.y + 1; g.vx = 0; g.vy = 0; }
+      await tot(2);
+      let ev = null; const geprobeerd = [];
+      for (const id of ['ijscokar', 'muzikant', 'kraampje', 'toeristen', 'parkeerruzie', 'lekkeband', 'hond']) { geprobeerd.push(id); try { ev = SE.forceStreetEvent(w, id); } catch (e) { log('qa-stad-fout', { id, msg: e.message }); } if (ev) break; }
+      window.__qaEv = ev ? { x: ev.x, y: ev.y } : null;
+      log('qa-stad-host', { ev: ev ? ev.id : null, geprobeerd, afstand: ev ? qaR(Math.hypot(ev.x - p.x, ev.y - p.y)) : null, rollen: ev ? ev.rollen.length : 0, props: ev ? (ev.props || []).length : 0, klok: w.clock, stats: SE.streetEventStats() });
+      if (ev) { const bij = await qaVrij(ev.x + 9, ev.y + 5); p.x = bij.x; p.y = bij.y; p.vx = 0; p.vy = 0; if (g) { g.x = bij.x + 1.5; g.y = bij.y + 2; g.vx = 0; g.vy = 0; } } // beide spelers op een paar meter van de scène
+      await tot(8); if (ev) qaKijk(ev.x, ev.y, 0.2); await tot(10); shot('qa-stad-host');
+      await tot(16);
+      log('qa-stad-host-na', { stats: SE.streetEventStats(), spraak: (w.pedestrians || []).filter((q) => q.eventActor && q.speechText).map((q) => q.speechText).slice(0, 3) });
+    } else {
+      const EX = await imp('coopextra');
+      await tot(9);
+      const st = w.coopExtra, m = st && st.misc && (st.misc.get(EX.MISC_REKWISIETEN) || st.misc.get(EX.MISC_REKWISIETEN2));
+      const rekw = st && m ? EX.standRekwisieten(st, m.at) : [];
+      const straat = rekw.filter((r) => ['kraampje', 'ijscokar', 'gitaarkoffer'].includes(r.soort));
+      const spraak = st && st.spraak ? [...st.spraak.values()].map((x) => x.tekst).filter(Boolean).slice(0, 5) : [];
+      log('qa-stad-gast', { rekwisieten: rekw.map((r) => r.soort), straat: straat.map((r) => [r.soort, qaR(r.x), qaR(r.y)]), spraak, klok: Math.round((w.clock || 0) * 10) / 10, voetgangers: st && st.voetgangers ? st.voetgangers.size : null });
+      const doel = straat[0] || qaHost(); if (doel) qaKijk(doel.x, doel.y, 0.2);
+      await tot(11); shot('qa-stad-gast');
+    }
+    await tot(s);
+  },
+  // Bushaltes (#bushaltes-23-11): de gastheer zoekt een lijnbus die een halte nadert en zet beide spelers naast het stoppunt; de gast ziet de bus
+  // uit de snapshot stoppen (knipperlicht, stilstand) en tekent zelf de in- en uitstappers (boarding3d.js).
+  async qahalte({ s = 60 }) {
+    const w = W(), tot = qaKlok(), IN = await imp('boarding3d');
+    if (CFG.role === 'host') {
+      const p = w.player, BS = await imp('busstop');
+      let bus = null, ronde = 0; const fasen = {};
+      while (!bus && performance.now() < qaT0() + 36000) {
+        ronde++;
+        for (const v of w.vehicles || []) if (v && v.busRun) { const k = (v.halteStaat && v.halteStaat.fase) || 'geen'; fasen[k] = (fasen[k] || 0) + 1; }
+        const nad = (w.vehicles || []).filter((v) => v && v.busRun && v.halteStaat && v.halteStaat.fase === 'nadering' && v.halteStaat.stop);
+        bus = nad.map((v) => ({ v, d: BS.halteAfstand(v.busRun, v.halteStaat.stop) })).filter((o) => o.d > 12 && o.d < 90).sort((a, b) => b.d - a.d)[0] || null;
+        if (!bus) await sleep(400);
+      }
+      if (!bus) { log('qa-halte-host', { geenBus: true, rondes: ronde, fasen, bussen: (w.vehicles || []).filter((v) => v && v.busRun).map((v) => ({ afstand: Math.round(Math.hypot(v.x - p.x, v.y - p.y)), v: qaR(v.speed || 0), lijn: v.busRun.line && v.busRun.line.name || null, live: !!v.liveId })) }); await tot(s); return; }
+      const v = bus.v, c = Math.cos(v.angle || 0), sn = Math.sin(v.angle || 0);
+      const stop = { x: v.x + c * bus.d, y: v.y + sn * bus.d };
+      const plek = { x: stop.x - sn * 8 + c * 6, y: stop.y + c * 8 + sn * 6 };
+      p.x = plek.x; p.y = plek.y; p.vx = 0; p.vy = 0;
+      const g = qaGastFig(); if (g) { g.x = plek.x + c * 2; g.y = plek.y + sn * 2; g.vx = 0; g.vy = 0; }
+      window.__qaHalte = stop;
+      log('qa-halte-host-bus', { d: Math.round(bus.d), snelheid: qaR(v.speed || 0), fase: v.halteFase, lijn: v.busRun.line && v.busRun.line.name || null, t: qaR((performance.now() - qaT0()) / 1000) });
+      const verloop = []; let maxWissel = 0, beeld = 0;
+      for (let i = 0; i < 60; i++) {
+        await sleep(500);
+        qaKijk(v.x, v.y);
+        const ist = IN.instapStats(); maxWissel = Math.max(maxWissel, ist.wissels);
+        if (i % 4 === 0) verloop.push([qaR(v.speed || 0), v.halteFase, v.indForce || '-', v.deurenDicht ? 'dicht' : 'open', ist.wissels, ist.wachtend]);
+        if (v.halteFase === 'staan' && beeld === 0) { beeld = 1; await sleep(1200); shot('qa-halte-host-staan'); }
+        if (v.halteFase === 'invoegen' && beeld === 1) { beeld = 2; shot('qa-halte-host-invoegen'); }
+      }
+      if (!beeld) shot('qa-halte-host-staan');
+      log('qa-halte-host', { verloop, maxWissel });
+    } else {
+      await tot(4);
+      const me = await qaIk(); const bussen = () => ((w.coopHost && w.coopHost.voertuigen) || []).filter((x) => x.soort === 'bus').sort((a, b) => Math.hypot(a.x - me.x, a.y - me.y) - Math.hypot(b.x - me.x, b.y - me.y));
+      const verloop = []; let maxWissel = 0, stil = 0, knipper = 0, beeld = 0;
+      for (let i = 0; i < 100 && performance.now() < qaT0() + (s - 3) * 1000; i++) {
+        await sleep(500);
+        const b = bussen()[0], ist = IN.instapStats(); maxWissel = Math.max(maxWissel, ist.wissels);
+        if (b) { qaKijk(b.x, b.y); if (Math.abs(b.snelheid) < 0.3 && Math.hypot(b.x - me.x, b.y - me.y) < 40) stil++; if (b.ind) knipper++; }
+        if (i % 4 === 0) verloop.push(b ? [qaR(b.snelheid), b.ind || '-', qaR(Math.hypot(b.x - me.x, b.y - me.y)), ist.wissels, ist.wachtend] : ['geen bus', ist.wissels, ist.wachtend]);
+        if (ist.wissels > 0 && beeld === 0) { beeld = 1; await sleep(600); shot('qa-halte-gast-instappers'); }
+      }
+      if (!beeld) shot('qa-halte-gast-instappers');
+      log('qa-halte-gast', { verloop, maxWissel, stilTellen: stil, knipperTellen: knipper });
+    }
+    await tot(s);
+  },
+  // Raakbevestiging voor de kogel van een gast (#1290): de gastheer zet een geparkeerde auto 7 m voor de gast; de gast schiet met een pistool
+  // (eigen patronen). De gastheer rekent de kogel uit en stuurt 'raak'; de gast tekent de streepjes (world.hitMark).
+  async qatreffer({ s = 16 }) {
+    const w = W(), tot = qaKlok();
+    if (CFG.role === 'host') {
+      const g = qaGastFig(); let raak = 0; const oud = w.coopRaak;
+      if (typeof oud === 'function') w.coopRaak = (...a) => { raak++; return oud(...a); };
+      const auto = g ? (w.vehicles || []).filter((v) => v && !v.driver && !v.isBoat && !v.isBus && !v.isTrain && !v.isHeli && !v.isPlane && !v.isBike && !v.wrecked && !v.isPolice).sort((a, b) => Math.hypot(a.x - g.x, a.y - g.y) - Math.hypot(b.x - g.x, b.y - g.y))[0] : null;
+      if (auto) { const plek = await qaVrij(g.x + 7, g.y); auto.x = plek.x; auto.y = plek.y; auto.speed = 0; window.__qaAuto = auto; }
+      const p = w.player; p.x = g ? g.x - 3 : p.x; p.y = g ? g.y + 3 : p.y;
+      await tot(4);
+      const meet = { kogels: 0, wapens: null, knop: 0, hoek: null, gastAfstand: null }; let geschoten = false;
+      for (let i = 0; i < 90; i++) { // wat de gastheer van de aanval van de gast ziet: invoer, zijn wapenstand en de kogels met een dader
+        const kog = (w.bullets || []).filter((b) => b && b.dader).length; meet.kogels = Math.max(meet.kogels, kog);
+        const lijst = w.coopWapens; if (lijst) meet.wapens = JSON.parse(JSON.stringify(Object.fromEntries(Object.entries(lijst).map(([k, v]) => [k, { w: v.w, n: v.n, teller: v.teller }]))));
+        const inp = g && g.input;
+        if (inp && ((inp.buttons | 0) & 16)) { meet.knop++; meet.hoek = qaR(inp.yaw || 0); }
+        if (g && auto) meet.gastAfstand = qaR(Math.hypot(auto.x - g.x, auto.y - g.y));
+        if (kog && !geschoten) { geschoten = true; if (auto) qaKijk(auto.x, auto.y, 0.3); shot('qa-treffer-host'); }
+        await sleep(100);
+      }
+      if (!geschoten) { if (auto) qaKijk(auto.x, auto.y, 0.3); shot('qa-treffer-host'); }
+      log('qa-treffer-host-meting', { ...meet, autoHoek: g && auto ? qaR(Math.atan2(auto.y - g.y, auto.x - g.x)) : null });
+      await tot(s - 2);
+      if (typeof oud === 'function') w.coopRaak = oud;
+      log('qa-treffer-host', { auto: !!auto, raakBerichten: raak, autoSchade: auto ? Math.round(auto.health ?? auto.hp ?? -1) : null, gastWapen: g ? g.coopWapen || '' : null });
+    } else {
+      await tot(3);
+      if (!w.ammo) w.ammo = {};
+      w.ammo.pistol = 60; w.weapon = 'pistol';
+      await tot(5);
+      const me = await qaIk(); const auto = ((w.coopHost && w.coopHost.voertuigen) || []).filter((x) => x.soort !== 'bus').sort((a, b) => Math.hypot(a.x - me.x, a.y - me.y) - Math.hypot(b.x - me.x, b.y - me.y))[0];
+      if (auto) qaKijk(auto.x, auto.y, 0); // recht op de auto: de gast schiet waar zijn camera heen kijkt
+      const mark0 = w.hitMark ? w.hitMark.at : null, ammo0 = w.ammo.pistol;
+      const inp = w.input; let shotGemaakt = false;
+      for (let i = 0; i < 18; i++) { if (inp && inp.mouse) inp.mouse.down = true; await sleep(100); if (i === 9 && !shotGemaakt) { shotGemaakt = true; shot('qa-treffer-gast'); } }
+      if (inp && inp.mouse) inp.mouse.down = false;
+      await sleep(900);
+      const m = w.hitMark;
+      log('qa-treffer-gast', { auto: auto ? qaR(Math.hypot(auto.x - me.x, auto.y - me.y)) : null, wapen: w.weapon, patronen: [ammo0, w.ammo.pistol], raakNieuw: !!(m && m.at !== mark0), mark: m ? { at: qaR(m.at || 0), kind: m.kind || null } : null });
+      shot('qa-treffer-gast-na');
+      w.weapon = 'fists';
+    }
+    await tot(s);
+  },
+  // Meerijden en de zitpose (modulaire mensen, coopzitten3d.js): de gastheer stapt in een geparkeerde auto, de gast stapt in via dezelfde weg als E
+  // (coopnet.js figGebruik), beide kanten leggen vast hoe de ander zit; daarna rijdt de gastheer een stukje en stapt de gast weer uit.
+  async qazit({ s = 40 }) {
+    const w = W(), tot = qaKlok();
+    if (CFG.role === 'host') {
+      const p = w.player, g = qaGastFig(), N = await imp('coopnet');
+      const auto = (w.vehicles || []).filter((v) => v && !v.driver && !v.isBoat && !v.isBus && !v.isTrain && !v.isHeli && !v.isPlane && !v.isBike && !v.isScooter && !v.wrecked && !v.isPolice && !v.missionCar).sort((a, b) => Math.hypot(a.x - p.x, a.y - p.y) - Math.hypot(b.x - p.x, b.y - p.y))[0];
+      if (!auto || !g) { log('qa-zit-host', { geenAuto: !auto, geenGast: !g }); await tot(s); return; }
+      p.x = auto.x + 2; p.y = auto.y; g.x = auto.x - 2; g.y = auto.y; g.vx = 0; g.vy = 0;
+      await sleep(1200);
+      p.enterVehicle(auto, w);
+      await sleep(800);
+      const ok = N.figGebruik(w, g.slot);
+      log('qa-zit-host', { hostIn: p.inVehicle === auto, gastIn: ok, stoel: g.stoel ?? null, model: auto.model && auto.model.name, plekken: N.figuurPlekken(auto) });
+      await tot(6); qaKijk(auto.x, auto.y, 0.9); await tot(7.5); shot('qa-zit-host');
+      w.firstPerson = false;
+      await tot(16); // de gastheer rijdt een stukje
+      const B = window.__bot; if (B) { B.stick(0, -1); await sleep(1500); B.stick(0, 0); B.down(' '); await sleep(1500); B.up(' '); }
+      await tot(22); shot('qa-zit-host-rijdt');
+      await tot(28);
+      auto.speed = 0; const uit = N.figGebruik(w, g.slot);
+      log('qa-zit-host-uit', { gastUit: uit, inVeh: !!g.inVeh });
+      await tot(31); p.exitVehicle(w.map, w);
+    } else {
+      await tot(6);
+      const h = qaHost(); if (h) qaKijk(h.x, h.y, 0.9);
+      log('qa-zit-gast', { inVoertuig: !!w.coopInVoertuig, zitters: (w.coopZitters || []).map((z) => [z.slot, z.voertuig, z.stoel, z.bestuurder]) });
+      await tot(8); shot('qa-zit-gast');
+      await tot(22); shot('qa-zit-gast-rijdt');
+      await tot(30);
+      log('qa-zit-gast-uit', { inVoertuig: !!w.coopInVoertuig });
+    }
+    await tot(s);
   },
   // de spelbot speelt het verhaal (alleen de host); de gasten lopen mee
   async verhaal({ s = 1500, until = 'T1', speed = 1 }) {
@@ -1858,6 +2175,16 @@ if (window.__coopPhases) Object.assign(PHASES, window.__coopPhases({ CFG, sleep,
 // ---------------------------------------------------------------- hoofdprogramma
 try {
   startSampler();
+  if (CFG.role !== 'host' && (CFG.program || []).some((p) => p[1] === 'qamensen')) { // samen-qa: de gast draagt iets anders dan de gastheer, zodat de kledingcode zichtbaar meereist
+    try {
+      const C = await imp('clothing'), D = await imp('clothingdata');
+      const top = D.ITEMS.find((it) => it.slot === 'top' && it.colors.length > 1 && !Object.values(C.wornPieces('tammo')).some((p) => String(p).startsWith(it.id + '.')));
+      const stuk = top ? top.id + '.' + top.colors[top.colors.length - 1] : null;
+      if (stuk) { C.givePiece('tammo', stuk); C.wearPiece('tammo', stuk); }
+      C.takeOffSlot('tammo', 'head');
+      log('qa-kleding-gast', { stuk, code: C.localOutfitCode() });
+    } catch (e) { log('qa-kleding-gast', { fout: e.message }); }
+  }
   await connect();
   state.allIn = true;
   // wachten tot iedereen erbij is (de host ziet het in zijn lijst, een gast in de lijst van de host)
