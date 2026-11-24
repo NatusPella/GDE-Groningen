@@ -1,5 +1,6 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { RangeAllocator, frustumPlanes, cullRanges } from './drawpool.js';
+import { perfOff } from './devflags.js';
 
 // The multi-draw pool for static world geometry (#246). The static batchers (staticbatch3d.js) merge the buildings
 // and roads of a 48 to 96 m cell into one mesh per material; a street still held a hundred of those meshes, each a
@@ -226,8 +227,14 @@ function copyOf(mat) {
     // 24-11: the copy follows the original's patch at compile time, not the one it had when the copy was made: a wall material that
     // got the building fade (scene3d.js patchBuildingFade) after its first pooled use otherwise kept drawing without it (syncMaterials
     // recompiles the copy when the original's version changes)
-    c.onBeforeCompile = function (shader, renderer) { if (mat.onBeforeCompile) mat.onBeforeCompile.call(this, shader, renderer); };
-    c.customProgramCacheKey = () => (mat.customProgramCacheKey ? mat.customProgramCacheKey() : '') + '|pool';
+    if (perfOff('poolkopielive')) { // het oude gedrag (vóór 24-11): de patch van het moment van kopiëren
+      c.onBeforeCompile = mat.onBeforeCompile;
+      const ck = mat.customProgramCacheKey;
+      c.customProgramCacheKey = () => (ck ? ck.call(mat) : '') + '|pool';
+    } else {
+      c.onBeforeCompile = function (shader, renderer) { if (mat.onBeforeCompile) mat.onBeforeCompile.call(this, shader, renderer); };
+      c.customProgramCacheKey = () => (mat.customProgramCacheKey ? mat.customProgramCacheKey() : '') + '|pool';
+    }
     c.userData = { ...mat.userData, shared: true, poolOf: mat, srcVersion: mat.version };
     copies.set(mat, c);
   }

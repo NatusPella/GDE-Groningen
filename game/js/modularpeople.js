@@ -309,10 +309,21 @@ function wearFor(rig, look, face, id) {
 }
 
 const GEO_CACHE_MAX = 120;
+// perf-r3 (24-11, profiel: geometryFor 73 ms in één beeld na een sprong): een LOD-wissel van een modulaire mens bouwt zijn
+// geometrie pas als die nog niet in de cache staat; per beeld hoogstens GEO_BUILD_MS daarvan. Is het budget op, dan wacht de wissel
+// een beeld (de mens houdt zijn huidige niveau). Een NIEUWE mens (buildModularPerson) bouwt altijd: die moet er staan.
+const GEO_BUILD_MS = 3;
+let geoBuildSpent = 0, geoBudgetOn = false; // aan zodra de spellus het budget per beeld terugzet (tests en losse bouw: geen budget)
+export function resetModularGeoBudget() { geoBuildSpent = 0; geoBudgetOn = true; }
+function geoCached(rig, look, lod, grip) { return !!rig.geoCache.get(geoKey(look, lod, !!(grip && lod === 0 && rig.grip))); }
+function geoKey(look, lod, grip) {
+  const wearIds = look.wear && look.wear.length && lod < 2 ? look.wear : null;
+  return `${lod}${grip ? 'g' : ''}|${wearIds ? wearIds.join('+') : ''}|${look.cap || ''}|${look.capColor || ''}|${look.parts.hoofd}|${look.parts.romp}|${look.parts.benen}|${look.parts.voeten}|${look.skin}|${look.shirt}|${look.hair}|${look.pants}|${Math.floor(hashf(look.seed, 3) * 8)}`;
+}
 function geometryFor(rig, look, lod = 0, grip = false) {
   grip = !!(grip && lod === 0 && rig.grip);   // de LOD's houden een open hand (vanaf 25 m zie je geen vingers)
   const wearIds = look.wear && look.wear.length && lod < 2 ? look.wear : null;   // kledingdelen (modularwear.js); op LOD 2 niet
-  const key = `${lod}${grip ? 'g' : ''}|${wearIds ? wearIds.join('+') : ''}|${look.cap || ''}|${look.capColor || ''}|${look.parts.hoofd}|${look.parts.romp}|${look.parts.benen}|${look.parts.voeten}|${look.skin}|${look.shirt}|${look.hair}|${look.pants}|${Math.floor(hashf(look.seed, 3) * 8)}`;
+  const key = geoKey(look, lod, grip); // dezelfde sleutel als geoCached
   let g = rig.geoCache.get(key);
   if (g) { rig.geoCache.delete(key); rig.geoCache.set(key, g); return g; }
   // per deel het bereik van dit LOD-niveau (0 = het origineel, 1 en 2 uit de importpijplijn, LOD_CELLS)
@@ -431,8 +442,12 @@ export function registerModularLods(register, seeds = [11, 22, 33, 44]) {
 export function setModularLod(mesh, lod) {
   const ud = mesh && mesh.userData;
   if (!ud || !ud.qRig || ud.qLod === lod) return false;
+  const cached = geoCached(ud.qRig, ud.qLook, lod, ud.qGrip);
+  if (!cached && geoBudgetOn && geoBuildSpent >= GEO_BUILD_MS) return false; // het budget van dit beeld is op: volgende beeld
+  const t0 = cached ? 0 : performance.now();
   ud.qLod = lod;
   swapGeometry(ud);
+  if (!cached) geoBuildSpent += performance.now() - t0;
   return true;
 }
 // Gesloten handen (eis coördinator 23-11): aan het stuur of de stuurgreep krullen de vingers om de stang (de grijpvariant uit de

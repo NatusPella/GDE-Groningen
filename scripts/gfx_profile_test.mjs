@@ -93,9 +93,11 @@ eq('changes vlot->laag', describeChanges('laag', OLD_HOOG), 'kwaliteit laag · s
 
 // adaptive resolution: frames(i) -> [interval ms, main-thread ms]; the scale
 // steps taken over `secs` seconds of play
-function steps(secs, frames) {
+// warm: eerst zoveel seconden vlotte beelden (24-11: cpuLevel stapt niet in de eerste 45 s van het oordelen, gfxprofile.js CPU_WARM_MS)
+function steps(secs, frames, warm = 0) {
   resetDynamic();
   const seen = [];
+  for (let w = 0; w < warm * 1000; w += 10) noteFrame(10, 5);
   let t = 0;
   for (let i = 0; t < secs * 1000; i++) {
     const [ms, cpu] = frames(i);
@@ -107,13 +109,16 @@ function steps(secs, frames) {
 eq('fast GPU with hitches: no steps', steps(120, (i) => (i % 40 === 0 ? [180, 170] : i % 9 === 0 ? [60, 12] : [7, 4])), []);
 eq('fast GPU, a slow second now and then: no steps', steps(120, (i) => (i % 1000 < 30 ? [34, 6] : [7, 4])), []);
 eq('GPU-bound on hoog: steps after 3 s', steps(4.5, () => [35, 8]), ['0.9/0']);
-eq('CPU-bound: detail first, not resolution', steps(5, () => [35, 30]), ['1/1']);
-eq('weak machine (CPU-bound for good): level 1, 2, then 3', steps(30, () => [80, 70]), ['1/1', '1/2', '1/3']);
+eq('CPU-bound in de opwarming (de eerste 45 s): geen cpuLevel', steps(20, () => [35, 30]), []);
+eq('CPU-bound: detail first, not resolution', steps(5, () => [35, 30], 46), ['1/1']);
+eq('weak machine (CPU-bound for good): level 1, 2, then 3', steps(30, () => [80, 70], 46), ['1/1', '1/2', '1/3']);
 eq('weak machine stays on level 3', cpuLevel(), 3);
-eq('a machine at 3 fps is not ignored: steps within 8 s', steps(8, () => [330, 300]).length >= 2, true);
-eq('far over budget steps faster than 35 ms frames', steps(4, () => [90, 80])[0], '1/1');
-eq('level 3: the shortest view', viewDistanceFor('heelver', 1, 3), 150);
-eq('level 3: the shortest view for ver too', viewDistanceFor('ver', 1, 3), 150);
+eq('a machine at 3 fps is not ignored: a step within 4 s, two within 10 s', steps(4, () => [330, 300], 46).length >= 1 && steps(10, () => [330, 300], 46).length >= 2, true);
+eq('far over budget steps faster than 35 ms frames', steps(4, () => [90, 80], 46)[0], '1/1');
+// 24-11: cpuLevel 3 zakt hooguit één trap en nooit onder 'normaal' (geen mistsoep op Hoog onder last)
+eq('level 3: one step down from heel ver', viewDistanceFor('heelver', 1, 3), 600);
+eq('level 3: ver goes to normaal, not kort', viewDistanceFor('ver', 1, 3), 350);
+eq('level 3: normaal stays normaal', viewDistanceFor('normaal', 1, 3), 350);
 // slow for 4 s every 30 s: it settles low; each step back up waits longer
 eq('flapping: at most 9 steps in 3 min', steps(180, (i) => (i % 2350 < 115 ? [35, 8] : [12, 6])).length <= 9, true);
 // #561: de zuinige modus is een bewuste beeldcap, geen trage GPU. De cap levert op 60 Hz ~33,4 ms
@@ -121,7 +126,7 @@ eq('flapping: at most 9 steps in 3 min', steps(180, (i) => (i % 2350 < 115 ? [35
 setSetting('zuinig', true);
 eq('zuinige modus op een snelle machine: geen stap omlaag', steps(120, () => [33.4, 5]), []);
 eq('zuinige modus op een 144 Hz-scherm: ook geen stap omlaag', steps(120, () => [34.7, 5]), []);
-eq('zuinige modus op een trage machine: een echt traag beeld stapt wel', steps(6, () => [80, 60]).length > 0, true);
+eq('zuinige modus op een trage machine: een echt traag beeld stapt wel', steps(6, () => [80, 60], 46).length > 0, true);
 setSetting('zuinig', false);
 eq('zonder zuinige modus is 33,4 ms wel traag', steps(6, () => [33.4, 5]).length > 0, true);
 resetDynamic();

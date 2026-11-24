@@ -411,6 +411,7 @@ function waitForStart(world, ready) {
         resolveVehicleBuildingCollision(v, world.map, dt);
       }
     }
+    probe.mark('t-verkeer:ai');
     resolveVehicleVehicleCollisions(world.vehicles, world);
     probe.mark('t-verkeer');
     tickBurningVehicles(world, dt);

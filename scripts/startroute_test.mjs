@@ -61,7 +61,7 @@ ok(iStart !== -1 && /markLoad\('gameStart'\)/.test(main.slice(iStart, iStart + 2
 const scene = read('game/js/scene3d.js');
 ok(/prewarmStreamAt\(x, y, secs = 4, radius = PREWARM_R\)/.test(scene), 'de prewarm heeft een eigen radius');
 ok(/export function prewarmPending\(\)/.test(scene), 'scene3d kan zeggen hoeveel voorlaadwerk er nog openstaat');
-ok(/export function precompilePrograms\(/.test(scene) && /precompile\(scene\)/.test(scene), 'scene3d kan alle shaders van de scène compileren');
+ok(/export function precompilePrograms\(/.test(scene) && /precompileNow\(scene\)/.test(scene), 'scene3d kan alle shaders van de scène compileren (ongedoseerd, perf-r3)');
 ok(/export function setCinematicBatches/.test(scene) && /function drainCineBatches/.test(read('game/js/scene3d.js')), 'scene3d kan batches tijdens de film gespreid compileren en tonen');
 ok(/setCinematicBatches\(true\)/.test(read('game/js/intromontage.js')) && /setCinematicBatches\(false\)/.test(read('game/js/intromontage.js')), 'de film zet de gespreide batches aan en na de film weer uit');
 ok(/for \(const p of programs\.values\(\)\) if \(!programLinked\(p\)\)/.test(scene) && /programLinked\(p\)/.test(read('game/js/scene3d.js')), 'batches wachten niet-blokkerend op shaderlinks (geen secondenfreeze in het eerste filmbeeld)');

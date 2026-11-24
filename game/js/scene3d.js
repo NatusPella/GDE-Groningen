@@ -121,7 +121,7 @@ let viewCtx = 'stad';
 import { glanceAt, shareFeet } from './gait.js';
 import { lifeTier } from './actorlife.js';
 import { createFarCrowd, FAR_CROWD_FROM, FAR_CROWD_BACK } from './farcrowd3d.js';
-import { loadModularPeople, buildModularPerson, buildModularFromAppearance, modularReady, setModularLod, lodForDistance, setModularLodPreset, mensenFase } from './modularpeople.js';
+import { resetModularGeoBudget, loadModularPeople, buildModularPerson, buildModularFromAppearance, modularReady, setModularLod, lodForDistance, setModularLodPreset, mensenFase } from './modularpeople.js';
 import { NEAR_MIN, cameraNearTarget, stepNear, parseNearFlag, parseFarFlag } from './cameranear.js';
 import { compareOpaque } from './drawpool.js';
 import { buildingBatcher, roadBatcher, facadeBatcher, shoreBatcher, drawHub } from './staticbatch3d.js';
@@ -852,7 +852,7 @@ function pinShaderPrograms(r) {
   const programs = r.info.programs;
   const push = programs.push;
   programs.push = function (...added) {
-    for (const p of added) { p.usedTimes++; probe.program(p); programWatch.note(p); if (!perfOff('linkuitstel')) guardFirstUse(p); }
+    for (const p of added) { p.usedTimes++; probe.program(p); programWatch.note(p); if (!perfOff('linkuitstel')) guardFirstUse(p); programsThisFrame++; }
     return push.apply(this, added);
   };
 }
@@ -976,12 +976,12 @@ export function init3D(map) {
   // a pool of a material not seen before links its program in the background before its first cell draws
   drawHub.onPool = (p) => {
     if (perfOff('bouwklaar')) return;
-    precompile(p);
+    precompileNow(p);
     if (p.customDepthMaterial) {
       const d = new THREE.Mesh(p.geometry, p.customDepthMaterial);
       d.isBatchedMesh = true;
       d._matricesTexture = p._matricesTexture;
-      precompile(d);
+      precompileNow(d);
     }
   };
 
@@ -1007,7 +1007,7 @@ export function init3D(map) {
   billboardRoot = document.getElementById('hud');
 
   postfx = createPostFX(renderer, scene, cam);
-  bindPrewarmHost({ scene, renderer, cam, postfx, sun });
+  bindPrewarmHost({ scene, renderer, cam, postfx, sun, gpuBusy: () => programsThisFrame > 0 || compileQueue.size > 0, linked: (p) => programLinked(p) });
   bindCullHost({ scene, cam, vehicleMeshes, pedMeshes, wildlifeMeshes, sunDir });
   zetVrachtStencilProbe(() => postfx.hasStencil);
   initNightLights(scene);
@@ -1861,7 +1861,7 @@ function drainCineBatches() {
   const t0 = performance.now();
   while (cineQueue.length && performance.now() - t0 < 2.5) {
     const { group, o } = cineQueue.shift();
-    precompile(o);
+    precompileNow(o); // de filmwachtrij doseert zelf (2,5 ms per beeld)
     let klaar = true;
     for (const q of cineQueue) if (q.group === group) { klaar = false; break; }
     if (klaar) cinePend.delete(group);
@@ -2043,8 +2043,8 @@ export function precompilePrograms(opts = {}) {
     if (renderer && scene && cam) {
       // materiaal zonder geometry laat renderer.compile() crashen (#804): launchcompile.js parkeert het even
       const n = withParkedMaterials(scene, () => {
-        precompile(scene);
-        if (opts.filmLicht && !perfOff('filmlicht')) withLightRig(!isLightRigOn(), () => precompile(scene));
+        precompileNow(scene);
+        if (opts.filmLicht && !perfOff('filmlicht')) withLightRig(!isLightRigOn(), () => precompileNow(scene));
       });
       if (n) console.warn('shaders voorcompileren: materiaal zonder geometry overgeslagen', n);
     }
@@ -2052,7 +2052,7 @@ export function precompilePrograms(opts = {}) {
   return performance.now() - t0;
 }
 // #1046: de onderdelen voor launchcompile.js planPrecompile (porties met tijdbudget i.p.v. één blokkerende aanroep)
-export const precompileKit = () => ({ scene, compile: precompile, withLightRig, lightRigOn: isLightRigOn, filmOff: perfOff('filmlicht') });
+export const precompileKit = () => ({ scene, compile: precompileNow, withLightRig, lightRigOn: isLightRigOn, filmOff: perfOff('filmlicht') });
 
 const BUILDING_PREFETCH = 30;
 const BUILDING_PREFETCH_MS = 1.5;
@@ -2873,6 +2873,8 @@ function syncSpeechBubbles(world) {
 }
 
 export function update3D(dt, world) {
+  drainCompileQueue(); // perf-r3: de teller nieuwe programma's per beeld terug en een deel van de compilewachtrij
+  resetModularGeoBudget(); // perf-r3: het bouwbudget voor LOD-wissels van modulaire mensen
   // animations freeze with gameplay (pause, cutscenes); the camera keeps using dt
   const animDt = world.paused ? 0 : dt;
   jumpLoading = !!world.cineJumpLoading && !perfOff('poortbudget');
@@ -2927,12 +2929,15 @@ export function update3D(dt, world) {
     if (!reliefPatches) reliefPatches = new ReliefPatches(scene);
     reliefPatches.sync(world);
   }
+  probe.mark('3d:roads:reliëf'); // hitchprobe (perf-r3): de delen van 3d:roads
   syncRoads(world, focus.x, focus.y);
+  probe.mark('3d:roads:sync');
   // movable bridges (movablebridges3d.js): the static road of a span that is
   // not lying closed is hidden and left out of the road batches
   if (!bridgeViews) { initMovableBridges3D(scene, world.map); bridgeViews = true; }
   syncMovableBridges3D(focus.x, focus.y, world.map);
   openBridgeRoads(openSpans);
+  probe.mark('3d:roads:bruggen');
   if (!NO_BATCH) roadBatcher.update({ scene, meshes: roadMeshes, hidden: openSpans.size ? openSpans : null, px: focus.x, py: focus.y, detailR: DRAW_DIST, drawDist: DRAW_DIST, withDetail: true, compile: batchCompile, ready: batchReady, budgetMs: 3 });
   // de open span en elke tweede weg die erop ligt (#967: anders blijft daar de verf in de lucht
   // hangen); komt de brug weer dicht, dan worden ze allebei weer zichtbaar
@@ -2941,8 +2946,9 @@ export function update3D(dt, world) {
   for (const r of openSpans) { hiddenSpans.add(r); const m = roadMeshes.get(r); if (m) m.visible = false; }
   updateMovableBridges3D(focus.x, focus.y, waterNight);
   updateSluizen3D(scene, focus.x, focus.y, waterNight);
+  probe.mark('3d:roads:batch+sluizen');
   if (!world.cinemaLean) updateStreetFurniture3D(focus.x, focus.y);
-  probe.mark('3d:roads');
+  probe.mark('3d:roads:meubilair');
   syncTrees(world, focus.x, focus.y);
   syncTreeImpostors(world, focus.x, focus.y);
   probe.mark('3d:trees');
@@ -3153,7 +3159,7 @@ export function update3D(dt, world) {
         mesh.rotation.y = -a.angle - (a.draai || 0);   // a.lift en a.draai: een schaap in de straal van een schotel (#333)
         // 24-11: de LOD volgt ook de camera (de kleinste van de twee afstanden): in een filmpje, de benchmark of een beeldrun staat de
         // camera ver van de speler, en dan stond een duif vlak voor de lens op het lichtste niveau
-        { const fx = a.x - focus.x, fy = a.y - focus.y, cx = a.x - cam.position.x, cy = a.y - cam.position.z, cz = y - cam.position.y; mesh.userData.lodD2 = Math.min(fx * fx + fy * fy, cx * cx + cy * cy + cz * cz); mesh.userData.ver = mesh.userData.lodD2 > 45 * 45; }   // ver weg: de lichte animatie
+        { const fx = a.x - focus.x, fy = a.y - focus.y, cx = a.x - cam.position.x, cy = a.y - cam.position.z, cz = y - cam.position.y; mesh.userData.lodD2 = perfOff('dierlodcamera') ? fx * fx + fy * fy : Math.min(fx * fx + fy * fy, cx * cx + cy * cy + cz * cz); mesh.userData.ver = mesh.userData.lodD2 > 45 * 45; }   // ver weg: de lichte animatie
         animateWildlifeMesh3D(mesh, a, world.time);
       }
     }
@@ -3291,7 +3297,7 @@ export function update3D(dt, world) {
   // de dither-overgang detailgebouw / verre kopie (buildingfade.js) alleen als er een verre laag is; anders de harde wissel op de ring
   // 24-11 (beeldregressie 'stad'): alleen in beweging; stilstaand krimpt de band in BAND_SETTLE_S naar 0 (temporele overgang), zodat een
   // gebouw dat toevallig in de band staat niet blijvend half detail, half verre kopie is
-  lodShared().uLodBand.value = fadeBandStep(lodShared().uLodBand.value, viewDist > DRAW_DIST + 20 && !perfOff('gebouwfade') ? BUILDING_FADE_BAND : 0, focusSpeed, dt);
+  { const want = viewDist > DRAW_DIST + 20 && !perfOff('gebouwfade') ? BUILDING_FADE_BAND : 0; lodShared().uLodBand.value = perfOff('bandstil') ? want : fadeBandStep(lodShared().uLodBand.value, want, focusSpeed, dt); }
   farLod.update(focus.x, focus.y, viewDist, Math.min(viewDist, scene.fog.far) + 20, lodR, { keep: ringKeep, budgetMs: plan.grant('far', 2.5), lead: fl.lead > 0 ? fl : null });
   plan.spend('far', performance.now() - flt0);
   probe.mark('3d:farlod');
@@ -3771,7 +3777,36 @@ function skipHiddenMatrixWalk() {
 // Starts compiling (in the background, KHR_parallel_shader_compile) the
 // programs of an object that will enter the scene soon, e.g. a prefetched
 // building, so its first frame doesn't link them synchronously.
-function precompile(obj) {
+// perf-r3 (24-11): nieuwe shadercompiles gedoseerd. Een burst van tientallen nieuwe programma's in één beeld (de start van de benchmark:
+// 100 tot 150 in een paar seconden) liet het GPU-proces seconden vastlopen (rAF-gat tot 2,6 s zonder JavaScript). Een voorbereidende
+// compile (precompile) mag per beeld hoogstens COMPILES_PER_FRAME nieuwe programma's laten ontstaan (ook die van de draws tellen mee);
+// de rest wacht in compileQueue en komt de volgende beelden aan de beurt, het dichtst bij de camera eerst. Wie op de link wacht
+// (meshProgramsReady, de batchwacht) ziet dan nog geen programma en wacht gewoon langer. ?perfoff=compiledosis is het oude gedrag.
+const COMPILES_PER_FRAME = 6;
+const loadScreenUp = () => typeof document !== 'undefined' && !!document.getElementById('load-screen');
+let programsThisFrame = 0;
+const compileQueue = new Set();
+const _cqPos = new THREE.Vector3();
+function compileDosed(obj) {
+  if (perfOff('compiledosis') || programsThisFrame < COMPILES_PER_FRAME || loadScreenUp()) { precompileNow(obj); return; } // achter het laadscherm niet doseren: de boot wacht erop
+  compileQueue.add(obj);
+}
+// aan het begin van elk beeld: de teller terug en een deel van de wachtrij, het dichtst bij de camera eerst
+function drainCompileQueue() {
+  programsThisFrame = 0;
+  if (!compileQueue.size) return;
+  const list = [];
+  for (const o of compileQueue) { o.getWorldPosition(_cqPos); list.push([o, _cqPos.distanceToSquared(cam.position)]); }
+  list.sort((a, b) => a[1] - b[1]);
+  for (const [o] of list) {
+    if (programsThisFrame >= COMPILES_PER_FRAME) break;
+    compileQueue.delete(o);
+    precompileNow(o);
+  }
+}
+export const compileQueueSize = () => compileQueue.size;
+function precompile(obj) { compileDosed(obj); }
+function precompileNow(obj) {
   const prev = renderer.getRenderTarget();
   renderer.setRenderTarget(postfx.sceneTarget);
   programWatch.begin(); // #1008: programma's die hier ontstaan zijn bewust voorbereid; de rest ontstaat bij het tekenen

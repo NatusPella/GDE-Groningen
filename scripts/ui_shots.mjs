@@ -24,7 +24,7 @@ const timeoutS = Number(arg('timeout', 240)) || 240;
 // screen, devtools.js --emulate-view) in a window of 0.45 of the size (it must fit the screen); the picture is that much smaller
 const emulate = Number(arg('emulate', '0')) || 0;
 // --flags=touch=1,...: extra ?-switches of devflags.js (touch controls on a desktop window, #96 #227)
-const flags = arg('flags', '');
+const flags = ['dynvast', ...arg('flags', '').split(',').filter(Boolean)].join(','); // dynvast: geen adaptieve terugval (mist) in beelden onder last (24-11)
 // --rustig: zet Rustig drukwerk (instelling rustigDrukwerk, html.rustig-drukwerk) aan in het wegwerpprofiel voordat de scenes beginnen (#994, #992)
 const rustig = process.argv.includes('--rustig');
 const RUSTIG_VOORAF = "{ const S = await import('/js/settings.js'); S.setSetting('rustigDrukwerk', true); await new Promise((r) => setTimeout(r, 300)); }\n";

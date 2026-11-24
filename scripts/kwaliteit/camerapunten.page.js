@@ -14,7 +14,9 @@ async function kpMain() {
   const NA = K.naSettle || 30; // vaste beelden na een rustige wereld
   const want = (p) => !K.only || !K.only.length || K.only.includes(p.id);
   const punten = K.punten.filter(want);
-  const meld = (id, r) => { uit.punten[id] = r; logc(id + ': ' + JSON.stringify(r).slice(0, 200)); };
+  // 24-11: bij elk beeld de mist (near/far) en de adaptieve stand, zodat een beeld onder last met terugvalmist te herkennen is
+  const mist = () => { try { const f = window.__scene3d && window.__scene3d.scene.fog; const d = window.__gfxDyn || {}; return { fog: f ? [Math.round(f.near), Math.round(f.far)] : null, cpuLevel: d.cpuLevel || 0, schaal: d.scale || 1 }; } catch (e) { return null; } };
+  const meld = (id, r) => { uit.punten[id] = { ...r, beeld: mist() }; logc(id + ': ' + JSON.stringify(uit.punten[id]).slice(0, 240)); };
   await loadModules();
   const PM = await import('/js/pausemenu.js');
   const MV = await import('/js/mapview.js');

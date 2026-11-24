@@ -992,7 +992,7 @@ export function walkRoute(ped, world, dt, dPlayer) {
         const intro = typeof document !== 'undefined' && document.body && (document.body.classList.contains('intro-montage') || document.body.classList.contains('cine-hide-hud'));
         const tilesCalm = tilesCalmGate(map);
         probe.mark("t-voetgangers:route");
-        if (tilesCalm && !intro && !sitesBuild && !patchSites(map)) { if (sites) sitesBuild = buildSitesSteps(map); else buildSites(map); }
+        if (tilesCalm && !intro && !sitesBuild && !patchSites(map)) sitesBuild = buildSitesSteps(map); // ook de eerste keer in stappen (profiel: 194 ms); tot dan geen sites
         probe.mark("t-voetgangers:sites");
       }
       r.cross.site = siteKind(r.cross);
