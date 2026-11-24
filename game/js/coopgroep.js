@@ -37,9 +37,11 @@ export const klokSprongMag = (world) => !meerSpelers(world);
 
 // ---- stemming (host)
 // st: { id, soort, tekst, rest, keuze: { slot: 'wacht'|'ja'|'nee' }, uitslag: null|'ja'|'nee', reden }
-export function stemBegin(id, soort, tekst, slots, sec = STEM_SEC) {
+// Een voorstel van een gast (#1169, moeilijkheid): `metOpener` laat de opener (plek 0) ook stemmen, en de gast die het vroeg (`vrager`) telt als ja.
+export function stemBegin(id, soort, tekst, slots, sec = STEM_SEC, { metOpener = false, vrager = null } = {}) {
   const st = { id, soort, tekst: String(tekst || '').slice(0, 90), rest: sec, keuze: {}, uitslag: null, reden: '' };
-  for (const s of slots || []) if (Number.isInteger(s) && s >= 1) st.keuze[s] = 'wacht';
+  if (metOpener) st.keuze[0] = 'wacht';
+  for (const s of slots || []) if (Number.isInteger(s) && s >= 1) st.keuze[s] = s === vrager ? 'ja' : 'wacht';
   beoordeel(st);
   return st;
 }

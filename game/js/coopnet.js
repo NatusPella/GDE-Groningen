@@ -17,6 +17,7 @@ import { bindCoop } from './coopglue.js';
 import { ververs } from './spelersregister.js';
 import { partnersInfo, createPings, addPing, tickPings, pingEvent, vergeetPings } from './partnerhud.js';
 import { getDifficultyLevel } from './difficulty.js'; // #1169: het niveau van de wereld in het welkom
+import { WORLD_OPTIONS, cleanWorldProposal, applyWorldProposal, describeWorldProposal } from './difficultyvote.js'; // #1169: een gast stelt de wereldmoeilijkheid voor
 import { holdBeleid, vereistVoor, leesLijstEvent, leesOutfitsEvent, voegOutfitsSamen, leesWelkomstLijst, lijst, zetAvatar } from './coopplayers.js';
 import { cameraRelative, stepSlot2, sharedCamera } from './coop.js';
 import { coopStep, missieGastVerzoek } from './coopglue.js';
@@ -276,7 +277,7 @@ function endCoop(world) {
   world.coopOpdrachtDoor = null; world.coopMeespelers = null; // (#452)
   world.coopMeld = null; world.coopRaak = null; world.coopDeel = null; world.coopBijbaanStart = null; world.coopBijbaanBeloning = null; world.coopBijbaanEind = null; world.coopBijbaanHostMee = null; world.coopHelpers = null; world.coopBijbaanHelpers = null; world.coopSideJobs = null; world.coopBijbaanStop = null; world.coopUitslag = null; world.coopPingMarks = []; world.coopSpelers = []; world.coopGebruik = false; world.coopWielSlot = null; world.coopWielVraag = null; world.coopWiel = false; world.coopInVoertuig = false; world.coopBestuurder = false; world.coopRadioGroep = null; // (#291, #434)
   world.coopTreinMeld = null; world.coopTrein = null; world.coopTreinDeur = false; world.coopTreinWaak = false; world.coopTreinWalk = null; world.coopTreinWalkMeld = null; // de treinpassagier-haak, -stand, de deuren/waak en de looppositie van de conducteur horen bij de sessie (#492)
-  world.coopVraag = null; world.coopStem = null; world.coopStemBeantwoord = null; world.coopKeuze = null; // gezamenlijke keuzes (#452, #686)
+  world.coopVraag = null; world.coopStem = null; world.coopStemBeantwoord = null; world.coopKeuze = null; world.coopMoeilijkheidVoorstel = null; // gezamenlijke keuzes (#452, #686, #1169)
   world.coopBezit = null; world.coopBezitVraag = null; // eigen voertuigen meenemen en delen (#449)
   if (world.companion) { world.companion.coopUit = false; world.companion.coopBestuurt = false; world.companion.coopTrein = false; }
 }
@@ -513,6 +514,7 @@ export function startClient(world, transport, info, opts = {}) {
   world.coopNet = { role: 'client', wens, code, session, stash, fade, joined: false, fixed: false, route, info, klok: new KlokVolger(), desync: new DesyncMonitor(), lokaal: 0, tSpelers: 1 };
   koppelOutfit(world); // wie later andere kleding aandoet, meldt het aan de rest
   world.coopBijbaanStop = () => bijbaanGastStop(world); // Stoppen in het pausemenu stopt je eigen baan bij de host (#492)
+  world.coopMoeilijkheidVoorstel = (opties) => vraagMoeilijkheid(world, opties); // #1169: politie en verkeer van de wereld voorstellen (difficultyvote.js)
   // de looppositie van de conducteur gaat met het bestaande trein-bericht naar de gastheer (#492): geen nieuw bericht
   world.coopTreinWalkMeld = (w, walk) => {
     try {
@@ -975,24 +977,39 @@ export const kanPassiefKiezen = (world) => { const n = world.coopNet; return !!n
 export const passiefStandVan = (world) => { const n = world.coopNet; return n && world.coopPvp ? isPassief(world.coopPvp, n.role === 'host' ? 0 : (n.session && n.session.slot) || 1) : true; };
 function bezigWeg(world, slot) { const n = world.coopNet; if (n && n.role === 'host') bezigMelden(world, n, slot, null); }
 // ---- gezamenlijke keuzes (#452, coopgroep.js): een tijdsprong (slapen, onderduiken) gebeurt pas als alle andere spelers J zeggen.
-// Geen antwoord binnen STEM_SEC seconden is nee. Wie weggaat tijdens de stemming telt niet meer mee. De host stemt niet: wie het vraagt is akkoord.
+// Geen antwoord binnen STEM_SEC seconden is nee. Wie weggaat tijdens de stemming telt niet meer mee. Vraagt de host het zelf, dan stemt hij niet:
+// wie het vraagt is akkoord. Een voorstel van een gast (`opts.vrager`, #1169) laat de host wel stemmen (`opts.metOpener`, J of N in zijn eigen scherm).
 const verbondenGasten = (n) => n.hub.roster.spelers.filter((s) => s.slot !== 0 && s.verbinding !== 'lost').map((s) => s.slot);
-function stemStart(world, soort, tekst, naAkkoord, naNee) {
+function stemStart(world, soort, tekst, naAkkoord, naNee, opts = {}) {
   const n = world.coopNet; if (!n || n.role !== 'host') return false;
   if (n.stem) { if (world.addMessage) world.addMessage(STEM_HOST.bezig, 3); return false; }
-  const st = stemBegin((n.stemTeller = (n.stemTeller | 0) + 1), soort, tekst, verbondenGasten(n));
+  const st = stemBegin((n.stemTeller = (n.stemTeller | 0) + 1), soort, tekst, verbondenGasten(n), undefined, opts);
   if (st.uitslag === 'ja') { if (naAkkoord) naAkkoord(); return true; } // niemand meer te vragen
   n.stem = { st, ok: naAkkoord || null, nee: naNee || null };
-  for (const slot of Object.keys(st.keuze).map(Number)) n.hub.announce(stemEvent(st), slot);
-  if (world.addMessage) world.addMessage(STEM_HOST.wacht, 4);
+  for (const slot of Object.keys(st.keuze).map(Number)) if (slot >= 1 && st.keuze[slot] === 'wacht') n.hub.announce(stemEvent(st), slot);
+  if (st.keuze[0] === 'wacht') { // de host stemt mee: dezelfde J/N-vraag als bij een gast (controls.js coopVraag leest world.coopStem)
+    world.coopStem = { id: st.id, soort, tekst: st.tekst, rest: st.rest, host: true };
+    if (world.addMessage) world.addMessage(stemVraagTekst(st.tekst), Math.min(30, st.rest));
+  } else if (world.addMessage) world.addMessage(STEM_HOST.wacht, 4);
   return true;
+}
+// De host antwoordt zelf op een voorstel van een gast (J of N).
+export function hostStem(world, ja) {
+  const n = world.coopNet, q = world.coopStem;
+  if (!n || n.role !== 'host' || !n.stem || !q || !q.host || q.id !== n.stem.st.id) return false;
+  world.coopStem = null;
+  if (world.addMessage) world.addMessage(ja ? 'Je stemde ja.' : 'Je stemde nee.', 3);
+  return stemAntwoord(n.stem.st, 0, ja);
 }
 function stemTikHost(world, n, dt) {
   const s = n.stem, st = s.st, nu = new Set(verbondenGasten(n));
-  for (const slot of Object.keys(st.keuze).map(Number)) if (!nu.has(slot)) stemVerval(st, slot);
+  for (const slot of Object.keys(st.keuze).map(Number)) if (slot >= 1 && !nu.has(slot)) stemVerval(st, slot);
+  const inp = world.input;
+  if (world.coopStem && world.coopStem.host && inp && inp.wasPressed) { if (inp.wasPressed('j')) hostStem(world, true); else if (inp.wasPressed('n')) hostStem(world, false); }
   stemTik(st, dt);
   if (!st.uitslag) return;
   n.stem = null;
+  if (world.coopStem && world.coopStem.host) world.coopStem = null;
   const ok = st.uitslag === 'ja';
   for (const slot of nu) n.hub.announce(stemUitslagEvent(st.id, ok, st.reden), slot);
   if (world.addMessage) world.addMessage(stemUitslagTekst(ok, st.reden, st.soort), 4);
@@ -1522,6 +1539,14 @@ export function handleEvent(world, body, van = 0) {
       const sp = (n.hub && n.hub.roster && n.hub.roster.spelers.find((s) => s.slot === van)) || null;
       return stemStart(world, 'stoppen', STEM_TEKST.stoppen((sp && sp.naam) || 'Een speler'), () => stopCoopNet(world), null);
     }
+    case 'moeilijkheidverzoek': { // #1169: een gast stelt politie en verkeer van de wereld voor; de host legt het de groep voor en stemt zelf mee
+      if (!n || n.role !== 'host' || van < 1) return false;
+      const opties = cleanWorldProposal(body.opties);
+      if (!opties) { if (world.coopMeld) world.coopMeld(van, 'De wereld staat al zo.'); return false; }
+      const naam = gastNaam(world, van);
+      if (world.addMessage) world.addMessage(`${naam} stelt voor: ${describeWorldProposal(opties)}.`, 6);
+      return stemStart(world, 'moeilijkheid', STEM_TEKST.moeilijkheid(naam), () => applyWorldProposal(opties), null, { metOpener: true, vrager: van });
+    }
     case 'wielvraag': { // de gast vraagt om het stuur; de bestuurder geeft het met Y (#291, elke gast sinds #502)
       if (!n || n.role !== 'host' || van < 1) return false;
       const vraag = figures(world)[van];
@@ -1972,6 +1997,15 @@ export function vraagStart(world) {
   const n = world && world.coopNet;
   if (!n || n.role !== 'client' || !n.session) return false;
   try { return !!n.session.sendEvent({ k: 'startverzoek' }); } catch (e) { return false; }
+}
+// #1169: een gast stelt politie en verkeer van de wereld voor; alleen de wereldopties gaan mee, de host keurt ze (cleanWorldProposal).
+export function vraagMoeilijkheid(world, opties) {
+  const n = world && world.coopNet;
+  if (!n || n.role !== 'client' || !n.session || !opties || typeof opties !== 'object') return false;
+  const schoon = {};
+  for (const k of WORLD_OPTIONS) if (Object.prototype.hasOwnProperty.call(opties, k) && Number.isFinite(opties[k])) schoon[k] = opties[k];
+  if (!Object.keys(schoon).length) return false;
+  try { return !!n.session.sendEvent({ k: 'moeilijkheidverzoek', opties: schoon }); } catch (e) { return false; }
 }
 export function vraagStop(world) {
   const n = world && world.coopNet;
