@@ -17,6 +17,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import zlib from 'node:zlib';
 import { fileURLToPath } from 'node:url';
+import { worldDir } from '../lib/worldlocator.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
 const arg = (name, d) => {
@@ -25,7 +26,7 @@ const arg = (name, d) => {
   const i = process.argv.indexOf('--' + name);
   return i >= 0 && i + 1 < process.argv.length ? process.argv[i + 1] : d;
 };
-const WORLD = path.resolve(arg('world', process.env.GDE_WORLD_DIR || path.join(ROOT, 'game', 'world')));
+const WORLD = path.resolve(arg('world', process.env.GDE_WORLD_DIR || worldDir()));
 const OUT = path.resolve(arg('out', path.join(WORLD, 'terrain.bin')));
 const CHECK = process.argv.includes('--check');
 const QUIET = process.argv.includes('--quiet');

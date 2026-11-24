@@ -24,6 +24,7 @@ import path from 'node:path';
 import zlib from 'node:zlib';
 import { fileURLToPath } from 'node:url';
 import '../node3d.mjs';
+import { worldDir } from '../lib/worldlocator.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const G = await import('../../game/js/gdt.js');
@@ -385,7 +386,7 @@ export function sumWindows(list) {
 async function main() {
   const args = process.argv.slice(2);
   const opt = (n, d) => { const i = args.indexOf('--' + n); return i >= 0 ? Number(args[i + 1]) : d; };
-  const out = path.join(ROOT, 'game/world');
+  const out = worldDir();
   const file = path.join(out, 'index-provincie.json');
   if (!fs.existsSync(file)) { console.log('SKIP geen game/world met de provinciegegevens: draai cd desktop && npm run stage'); return; }
   const index = JSON.parse(fs.readFileSync(file, 'utf8'));

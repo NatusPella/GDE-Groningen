@@ -51,7 +51,7 @@ export function mountSamenHub(root, opts = {}, stap = STAP.WAAR) {
       <span class="pm-hub-ico" aria-hidden="true">${icoon(KEUZE_ICOON[k.act] || 'info', { maat: 'm' })}</span>
       <span class="pm-hub-kt">${esc(k.label)}</span>
       ${k.kan ? '' : nietChip}
-      <small>${esc(k.uitleg)}</small></button>`).join('')}</div>`;
+      <small>${esc(k.uitleg)}${k.meer ? ` <span class="pm-hub-meer" title="${esc(k.meer)}">${icoon('info', { maat: 's' })}<span class="pm-sr">${esc(k.meer)}</span></span>` : ''}</small></button>`).join('')}</div>`;
   const rijen = (v) => `<ul class="pm-hub-rijen">${(v.rijen || []).map((r) => `<li data-hub-rij="${r.soort}"><span>${esc(r.tekst)}</span></li>`).join('')}</ul>`;
   const knoppen = (v) => (v.knoppen || []).map((k) => `<button type="button" class="ds-z-knop${k.primary ? ' pm-hub-primary' : ' ds-z-knop--secundair'} pm-hub-knop" data-hub-act="${k.act}"${k.disabled ? ' disabled aria-disabled="true"' : ''}>${esc(k.label)}</button>`).join('')
     + (nu === STAP.WAAR ? '' : '<button type="button" class="ds-z-knop ds-z-knop--secundair pm-hub-knop" data-hub-act="terug-stap">Vorige stap</button>');

@@ -9,10 +9,11 @@ import path from 'node:path';
 import { coastKinds, borderByData } from '../../game/js/worldedge.js';
 import { auditEdge } from '../../game/js/randaudit.js';
 import { tileIndexOf, tileKey } from '../../game/js/gdt.js';
+import { worldDir } from '../lib/worldlocator.mjs';
 
 const ROOT = path.resolve(path.dirname(new URL(import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, '$1')), '..', '..');
 const i = process.argv.indexOf('--world');
-const dir = i >= 0 ? path.resolve(process.argv[i + 1]) : path.join(ROOT, 'game/world');
+const dir = i >= 0 ? path.resolve(process.argv[i + 1]) : worldDir();
 const f = path.join(dir, 'index-provincie.json');
 if (!fs.existsSync(f)) { console.log('SKIP geen index-provincie.json in ' + dir); process.exit(0); }
 const idx = JSON.parse(fs.readFileSync(f, 'utf8'));
