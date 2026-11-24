@@ -626,7 +626,7 @@ const comCtx = (g) => ({ carriere: g.cctx || null, fase: g.sim.fase, helft: g.si
 
 function tvInit(w, g) {
   const sim = g.sim;
-  g.com = makeCommentaar({ seed: (sim.seed | 0) + runs, teams: [sim.teams[0].kort, sim.teams[1].kort], ids: [sim.teams[0].id, sim.teams[1].id], duurHelft: sim.duurHelft });
+  g.com = makeCommentaar({ seed: (sim.seed | 0) + runs, teams: [sim.teams[0].kort, sim.teams[1].kort], ids: [sim.teams[0].id, sim.teams[1].id], duurHelft: sim.duurHelft, buiten: !!(g.career && g.career.site) });
   g.derby = derbyVan(sim.teams[0].id, sim.teams[1].id);
   g.regie = makeRegie({ modus: leesTv().camera });
   g.op = makeOpname(); g.replay = null; g.replayWacht = null; g.lastKans = -999; g.camShot = 'breed'; g.camReplay = null; g.evs = [];

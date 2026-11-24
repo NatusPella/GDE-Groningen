@@ -398,6 +398,17 @@ t('derby (#1114): wie in team 1 speelt kijkt vanaf de andere kant en zijn stick 
   }
 });
 
+t('commentaar op een sportpark (beeld 24-11): geen regel over de Euroborg, en geen over de Stadjers als die niet spelen', () => {
+  for (let seed = 1; seed <= 40; seed++) {
+    const c = makeCommentaar({ seed, teams: ['Dorkwerd', 'Roodehaan'], ids: ['lc1', 'lc2'], buiten: true });
+    const regels = [];
+    for (const ev of [{ type: 'aftrap', team: 0 }, { type: 'goal', team: 0, speler: 3 }, { type: 'fluit', helft: 1 }, { type: 'goal', team: 1, speler: 14 }, { type: 'einde', winnaar: 0 }]) regels.push(...commentaarVoor(c, ev, { helft: 1, score: [1, 0], naamVan: () => 'Aart' }));
+    for (const r of regels) assert.ok(!/Euroborg|Stadjers/.test(r.tekst), r.tekst);
+  }
+  const thuis = makeCommentaar({ seed: 1, teams: ['Stadjers', 'Wadlopers'], ids: ['stadjers', 'wadlopers'] });
+  assert.equal(thuis.mijd, null, 'in de Euroborg met de Stadjers mag alles');
+});
+
 t('stijl: de gespiegelde kolom van de opstelling geeft de rol niet de smalle kolom (#1110, 24-11: "KeepeAart" liep over de naam)', () => {
   const css = fs.readFileSync(new URL('../game/js/voetbaltv.css', import.meta.url), 'utf8');
   const thuis = /\.vbtv-kolom li \{[^}]*grid-template-columns:\s*([^;]+);/.exec(css), uit = /\.vbtv-kolom--uit li \{[^}]*grid-template-columns:\s*([^;]+);/.exec(css);
