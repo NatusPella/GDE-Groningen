@@ -20,7 +20,7 @@ import { doorsFor } from './vehicledoors.js';
 // Same shapes and colours as before; no per-box emissive, the shared material lifts the
 // whole cabin out of the shadow (emissive 0x20232a, like cabin3d.js).
 
-const DARK = 0x23262b, GREY = 0x3a3f46, SEAT = 0x4a4f58, TRIM = 0x6a707a;
+const DARK = 0x23262b, GREY = 0x3a3f46, SEAT = 0x4a4f58, TRIM = 0x6a707a, MIRROR = 0x9fb0bd;
 // de kooi van binnen (#833): dezelfde kleuren als de cabine van buiten (cabin3d.js)
 const FLOOR = 0x23262b, WALL = 0x383d44;
 
@@ -124,8 +124,12 @@ function buildStaticGeometry(seat, len, wid, klasse, romp, naam = '') {
   const R = L.roof;
   const hemel = !L.shell || L.hemel !== false;
   if (hemel) {
-    const m = L.mirror;
-    B.box(m.x, m.y, m.z, 0.03, 0.07, 0.2, DARK);
+    // binnenspiegel (mensen 23-11, eerste-persoonsbeeld): een smal donker huis met een lichte spiegel naar de bestuurder en een voetje
+    // naar de voorruit, 6 cm verder naar voren; een kale zwarte doos las in eerste persoon als een groot zwart vlak in de bovenhoek
+    const m = L.mirror, mx = m.x + 0.06;
+    B.box(mx, m.y, m.z, 0.025, 0.055, 0.19, DARK);
+    B.box(mx - 0.0135, m.y, m.z, 0.003, 0.042, 0.172, MIRROR);
+    B.box(mx + 0.03, m.y + 0.04, m.z, 0.05, 0.02, 0.02, DARK);
     B.box((R.x0 + R.x1) / 2, R.y, 0, R.x1 - R.x0, 0.04, R.w, GREY);
   }
   for (const p of R.pillars) {
@@ -247,12 +251,26 @@ export function updateCarInterior(mesh, v, show) {
   if (!g && show) g = buildInterior(mesh, v);
   if (!g) return false;
   g.visible = !!show;
+  // het eenvoudige interieur in de romp van een hybride auto (models3d_vehicles.js userData.interieurSimpel, integratie-0.66) staat er
+  // anders dubbel onder: een tweede stuur en stoelblokken in eerste persoon. Weg zolang het detailinterieur staat. (cabin3d.js syncCabins
+  // zet het terug zodra de cabine er niet is; na het samenvoegen ook 'en het detailinterieur niet', zie de notitie bij de merge.)
+  const simpel = mesh.userData.interieurSimpel;
+  if (simpel) simpel.visible = !show && simpel.visible;
+  mesh.userData.interiorShown = !!show;   // voor cabin3d.js syncCabins: het eenvoudige interieur blijft weg zolang dit staat
   if (show) {
     g.userData.wheel.rotation.x = -(v.steer || 0) * 2.2;
     const st = v.doors;
     for (const t of g.userData.trims) t.group.visible = !(st && ((st.open[t.id] || 0) > 0.2 || st.loose[t.id]));
   }
   return !!show;
+}
+
+// (mensen 23-11, besluit coördinator) De binnencamera kijkt per klasse iets omlaag (rad, - = omlaag), zodat het stuur, dat nu
+// waar een bestuurder het echt vasthoudt staat (cabin3d.js WHEEL_REACH), onderin beeld valt en niet onder de rand.
+export const INTERIOR_PITCH = { auto: -0.13, taxi: -0.13, politie: -0.13, sport: -0.15, bestel: -0.16, ambulance: -0.16, vrachtwagen: -0.15, bus: -0.14, trekker: -0.15 };
+export function interiorCamPitch(v) {
+  if (!v || !v.model) return 0;
+  return INTERIOR_PITCH[interiorKlasse(v)] ?? 0;
 }
 
 // Eye pose (map x, y, height z) and look direction for the cinematics camera.
@@ -264,5 +282,5 @@ export function interiorEyePose(v) {
   const a = v.angle, c = Math.cos(a), s = Math.sin(a);
   // vehicle-local +x forward, +z right; map y runs with local +z
   const x = v.x + e.x * c - e.z * s, y = v.y + e.x * s + e.z * c;
-  return { x, y, z: (v.z || 0) + e.y, fx: c, fy: s };
+  return { x, y, z: (v.z || 0) + e.y, fx: c, fy: s, pitch: interiorCamPitch(v) };
 }

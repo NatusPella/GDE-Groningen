@@ -18,6 +18,8 @@ import { crateGeometry, cartGeometry } from './streetlife3d.js';
 import { decorateScenePed } from './streetlife.js';
 import { pannenkoekenschipGeometry } from './pannenkoekenschip.js';
 import { dayState } from './daynight.js';
+import { readClock, terraceShare } from './dailyrhythm.js';
+import { registerTerraceSlots, unregisterTerraceSlots, claimLive } from './terraceseats.js';
 import { applyInteriorCut } from './interiorcut3d.js';
 import { propGeometry, fietsenrekGeometry } from './propmodels3d.js'; // bank, afvalbak en fietsenrek: het ene register (propregister.js)
 
@@ -717,6 +719,7 @@ function scareSlotPed(slot) {
 function buildCellMeshes(cell) {
   cell.props = [];
   cell.active = true;
+  registerTerraceSlots(cell.cx + ',' + cell.cy, cell.slots);   // voorbijgangers mogen op een vrije terrasstoel (terraceseats.js)
   const token = cell.buildToken = (cell.buildToken || 0) + 1;
   // near: the merge of the cell at the player's feet goes before one far behind
   // (geojobs.js queue), and at speed the cells ahead come first (#247)
@@ -762,6 +765,7 @@ function dropCell(cell) {
   }
   cell.mesh = cell.marketMesh = null;
   cell.active = false;
+  unregisterTerraceSlots(cell.cx + ',' + cell.cy);
   for (const s of cell.slots) removeSlotPed(s);
 }
 
@@ -776,16 +780,22 @@ function removeSlotPed(slot) {
 
 const isNight = () => dayState(world).isNight;
 
+// de bezetting van de terrassen volgt het dagritme (dailyrhythm.js terraceShare: leeg in de ochtend, vol tussen de middag
+// en 's avonds, minder bij regen); één keer per ronde van updateSlots gezet
+const rhythm = { hour: 14, weekday: 3, wet: 0 };
+let terraceNow = 0.4;
 function slotWanted(slot, night) {
   if (slot.propKey && isPropBroken(slot.propKey)) return false;
   if (slot.kind === 'vendor') return !night;
-  if (slot.kind === 'terrace') return slot.occ < (night ? 0.8 : 0.4);
+  if (slot.kind === 'terrace') return slot.occ < terraceNow && !claimLive(slot);
   if (slot.kind === 'fisher' || slot.kind === 'seller' || slot.kind === 'magnet') return !night;
   return true;
 }
 
 function updateSlots(activeCells) {
   const night = isNight();
+  readClock(world, rhythm);
+  terraceNow = terraceShare(rhythm.hour, rhythm.weekday, rhythm.wet);
   const alive = new Set(world.pedestrians);
   let count = 0;
   for (const cell of activeCells) for (const s of cell.slots) if (s.ped && s.ped.scene && alive.has(s.ped)) count++;
@@ -801,7 +811,13 @@ function updateSlots(activeCells) {
         s.cooldownUntil = world.time + 90;
       }
       const want = slotWanted(s, night);
-      if (s.ped && !want) { removeSlotPed(s); count--; continue; }
+      if (s.ped && !want) {
+        // een terrasgast die opstapt terwijl je kijkt staat op en loopt weg (dagritme); verder verdwijnt hij uit beeld
+        if (s.kind === 'terrace' && !isSpawnHidden(world, s.x, s.y) && s.ped.state === 'idle') { const ped = s.ped; s.ped = null; releaseFromScene(ped); ped.state = 'wander'; s.cooldownUntil = world.time + 60; }
+        else removeSlotPed(s);
+        count--;
+        continue;
+      }
       if (s.ped || !want || count >= MAX_SCENE_PEDS || world.time < (s.cooldownUntil || 0)) continue;
       if (dist(s.x, s.y, p.x, p.y) < 25 && world.time > 5) continue;
       if (world.time > 5 && !isSpawnHidden(world, s.x, s.y)) continue;
@@ -900,6 +916,7 @@ export function updateCityProps(dt, w, scene) {
   // generating a cell and building its meshes are both several ms: at most
   // one of the two per frame, except for the cell the player stands in
   let busy = false;
+  probe.mark('cp-in');
 
   for (let gx = pcx - span; gx <= pcx + span; gx++) {
     for (let gy = pcy - span; gy <= pcy + span; gy++) {
@@ -916,6 +933,7 @@ export function updateCityProps(dt, w, scene) {
     }
   }
 
+  probe.mark('cp-cellen'); // de cellen rond de speler, met hoogstens één buildCellMeshes
   genQueue = genQueue.filter((key) => {
     const [gx, gy] = key.split(',').map(Number);
     return Math.hypot(p.x - (gx + 0.5) * CELL, p.y - (gy + 0.5) * CELL) < BUILD_RADIUS + CELL;
@@ -934,6 +952,7 @@ export function updateCityProps(dt, w, scene) {
     probe.mark('cp-gen');
   }
 
+  probe.mark('cp-gen-rest');
   const night = isNight();
   for (const cell of cells.values()) {
     if (!cell.active) continue;

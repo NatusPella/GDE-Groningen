@@ -10,6 +10,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import '../node3d.mjs';
 import { loadTiles, mapOf, judge } from './prop_conflict_audit.mjs';
+import { worldDir } from '../lib/worldlocator.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const G = await import('../../game/js/gdt.js');
@@ -51,7 +52,7 @@ export async function auditParks(worldDir, plekkenFile) {
 async function main() {
   const args = process.argv.slice(2);
   const wi = args.indexOf('--world');
-  const worldDir = wi >= 0 ? args[wi + 1] : path.join(ROOT, 'game/world');
+  const worldDir = wi >= 0 ? args[wi + 1] : worldDir();
   const plekkenFile = fs.existsSync(path.join(ROOT, 'game/streekplekken.json')) ? path.join(ROOT, 'game/streekplekken.json') : path.join(worldDir, '../streekplekken.json');
   if (!fs.existsSync(path.join(worldDir, 'index-provincie.json')) || !fs.existsSync(plekkenFile)) { console.log('SKIP geen tegels of streekplekken.json'); return; }
   const r = await auditParks(worldDir, plekkenFile);

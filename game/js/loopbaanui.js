@@ -57,8 +57,9 @@ const loopbaanIcoon = (naam, cls = 'pa-ico') => `<span class="${cls}"><svg viewB
 
 
 const CSS = `${SFEER_BAND_CSS}
-.lb-balk { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: var(--ds-s-2) var(--ds-s-5); flex: none; margin: 0 0 var(--ds-s-3); padding: 0 var(--ds-s-1); }
-.lb-balk__t { display: flex; align-items: baseline; gap: var(--ds-s-3); min-width: 0; }
+/* #999 (hertest 22-11): kicker, titel en ondertitel staan onder elkaar links; de ondertitel zweefde los in het midden en de kicker stond op een andere basislijn naast de titel */
+.lb-balk { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--ds-s-2) var(--ds-s-5); flex: none; margin: 0 0 var(--ds-s-3); padding: 0 var(--ds-s-1); }
+.lb-balk__t { display: flex; flex-direction: column; align-items: flex-start; gap: var(--ds-s-1); min-width: 0; }
 .lb-balk__t > b { font-family: var(--ds-font-zeef-kop); font-weight: normal; font-size: var(--ds-t-kop); line-height: 1.05; letter-spacing: var(--ds-ls-kop); text-transform: uppercase; overflow-wrap: break-word; }
 .lb-balk__s { display: flex; flex-wrap: wrap; gap: var(--ds-s-1) var(--ds-s-4); font-size: max(14px, var(--menu-min, 14px)); color: var(--mut); }
 .lb-balk__s b { color: var(--ink); font-weight: 700; }
@@ -403,7 +404,9 @@ function detailHtml(profiel, id, w = null) {
     // de ene gele hoofdknop (Doorgaan of Nu starten) staat direct bij de titel, met de voortgang en de drie feiten
     actieHtml(profiel, id) + '</div>' +
     '<div class="lb-d-kol"><div class="lb-d-a">' + (gestartNu ? '' : start) + trap + '</div>' +
-    '<div class="lb-d-b">' + `<div class="lb-next${stap && stap.klaar ? ' klaar' : ''}">${stapHtml}</div>` +
+    // #1264: een vak dat je nog niet begon heeft één volgende stap: de kaart "Begin met deze loopbaan" links; de punten-stap
+    // ("Nog 50 punten tot niveau 2") staat dan niet nog eens rechts (de eis staat al bij de ladder)
+    '<div class="lb-d-b">' + (gestartNu ? `<div class="lb-next${stap && stap.klaar ? ' klaar' : ''}">${stapHtml}</div>` : '') +
     (gestartNu ? start : '') +
     bezigheden +
     (vaardigheid || kaartjes || dienst ? `<div class="lb-blok">${vaardigheid}${kaartjes}${dienst}</div>` : '') +
@@ -445,7 +448,9 @@ export function renderLoopbaanPanel(el, sluit = null, w = null) {
   // De kop: titel (hooguit 30 tekens), één ondertitel (hooguit 40) en de wissel Tour of Vakken. Geen hero en geen alinea's meer (DS3, tekstdieet).
   const titel = leeg ? 'Nog geen vak gekozen' : sam.hoogste.titel; // #1264: de kop "Je loopbaan" staat al als kicker
   const onder = leeg ? 'Kies een vak en doe een eerste klus' : eerste.klaar ? `${L.DUIZENDPOOT_TITEL} · alle ${eerste.totaal} gedaan` : `${eerste.gedaan} van ${eerste.totaal} eerste klussen`;
-  const kop = `<header class="lb-balk" aria-label="Je loopbaan"><span class="lb-balk__t"><span class="m-eb">Je loopbaan</span><b>${esc(titel)}</b></span><span class="lb-balk__s">${esc(onder)}</span>` +
+  // #1264 (hertest 24-11): zonder vak geen tweede kop onder "Loopbanen" ("Je loopbaan · Nog geen vak gekozen · Kies een vak ..."): de
+  // lijst en de kaart "Begin met deze loopbaan" zeggen dat al. Alleen de wissel Tour of Vakken blijft staan.
+  const kop = `<header class="lb-balk${leeg ? ' lb-balk--leeg' : ''}" aria-label="Je loopbaan">` + (leeg ? '<span class="lb-balk__t"></span>' : `<span class="lb-balk__t"><span class="m-eb">Je loopbaan</span><b>${esc(titel)}</b><span class="lb-balk__s">${esc(onder)}</span></span>`) +
     `<span class="lb-wissel" role="group" aria-label="Weergave">${wisselKnop('tour', 'Tour', weergave === 'tour')}${wisselKnop('vakken', 'Vakken', weergave === 'vakken')}</span></header>`;
   // de tour opent bij de stop waar je nu bent, tot je zelf een vak kiest
   if (!gekozenDoorSpeler) {

@@ -128,10 +128,28 @@ function trap(M, grp, r, nm, masts) {
   const mast = (o) => { masts.push([bx + nx * o, 1.6, by + ny * o]); };
   mast(-hw - 0.1); mast(hw + 0.1);
   const tex = bordTexture(`Naar ${nm.toLowerCase()}`);
-  const bord = new THREE.Mesh(new THREE.PlaneGeometry(hw * 2 + 0.6, 0.7), tex ? new THREE.MeshBasicMaterial({ map: tex, side: THREE.DoubleSide }) : new THREE.MeshBasicMaterial({ color: BORD_BLAUW, side: THREE.DoubleSide }));
+  // hertest 24-11: twee vlakken rug aan rug, elk met de voorkant naar buiten; een dubbelzijdig vlak toonde de naam in spiegelschrift
+  const bordMat = tex ? new THREE.MeshBasicMaterial({ map: tex }) : new THREE.MeshBasicMaterial({ color: BORD_BLAUW });
+  const bord = new THREE.Mesh(tweeKanten(new THREE.PlaneGeometry(hw * 2 + 0.6, 0.7)), bordMat);
   bord.position.set(bx, 3.0, by);
   bord.rotation.y = Math.atan2(ux, uy);
   grp.add(bord);
+}
+
+// Een vlak en zijn omgedraaide kopie in één geometrie (één draw call): de tekst leest van beide kanten goed, zonder spiegelbeeld.
+function tweeKanten(voor) {
+  const achter = voor.clone().rotateY(Math.PI);
+  const g = new THREE.BufferGeometry();
+  for (const naam of ['position', 'normal', 'uv']) {
+    const a = voor.getAttribute(naam), b = achter.getAttribute(naam);
+    const arr = new Float32Array(a.array.length + b.array.length);
+    arr.set(a.array, 0); arr.set(b.array, a.array.length);
+    g.setAttribute(naam, new THREE.BufferAttribute(arr, a.itemSize));
+  }
+  const ia = voor.getIndex().array, ib = achter.getIndex().array, n = voor.getAttribute('position').count;
+  g.setIndex([...ia, ...Array.from(ib, (i) => i + n)]);
+  voor.dispose(); achter.dispose();
+  return g;
 }
 
 // De groep met alle perrons van de kaart; de paaltjes aan de voet van de trappen worden vaste hindernissen.

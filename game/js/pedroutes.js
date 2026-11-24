@@ -6,8 +6,13 @@ import { findProps, isPropBroken } from './breakables.js';
 import { SpatialGrid } from './spatialgrid.js';
 import { walkPathHook } from './latehooks.js';
 import { markZebraUser, zebraSpeedLimit } from './trafficyield.js';
-import { poiLayerPlaces } from './facilities.js';
+import { poiLayerPlaces, FAC } from './facilities.js';
+import { DEST_KINDS, NIGHTLIFE_SPOTS, pickDestKind, paceFor, arrivalPlan } from './dailyrhythm.js';
+import { PARKS } from './parkplekken.js';
+import { haltesInBeeld, halteplek } from './boarding.js';
+import { freeTerraceSeat, claimTerraceSeat, releaseTerraceSeat } from './terraceseats.js';
 import { createCalmGate } from './tilestream.js';
+import { tileOrigin, TILE_M } from './gdt.js';
 const tilesCalmGate = createCalmGate(); // wacht ook op de achtergrondwachtrij van de tegelwereld, hoogstens twee seconden achter elkaar (#1052)
 export { zebraSpeedLimit };
 
@@ -37,33 +42,84 @@ const pedNavStats = {
   planned: 0, failed: 0, totalLen: 0, planMsMax: 0, planMsTotal: 0,
   arrivals: 0, entered: 0, crossWaits: 0, replans: 0, stuckSkips: 0, queue: 0,
   crossings: 0, atSite: 0, detours: 0, detourExtra: 0, zebraCross: 0, benchSits: 0,
+  terraceSits: 0, bikeLocks: 0, talks: 0, rhythm: {},
 };
 
-let pool = null;
+// Bestemmingen per soort (dailyrhythm.js DEST_KINDS) uit de bestaande data: horeca, winkels, bezienswaardigheden,
+// stations, parken, buurten en de bushaltes rond de speler. Eén keer gebouwd (opnieuw zodra facilities.json binnen is).
+let pool = null, poolFac = false;
+const FAC_SHOPS = ['supermarket', 'bakery', 'clothes', 'shoes', 'convenience', 'variety_store', 'butcher', 'kiosk', 'newsagent', 'second_hand'];
+const SCHOOL_RE = /academie|forum|universiteit|school|zernike/i;
+const PARK_RE = /plantsoen|tuin|park/i;
 function destPool(map) {
-  if (pool) return pool;
-  pool = [];
+  if (pool && (poolFac || !FAC.ready)) return pool;
+  poolFac = !!FAC.ready;
+  pool = { all: [] };
+  for (const k of DEST_KINDS) pool[k] = [];
+  const add = (kind, x, y, n = 1) => {
+    if (!Number.isFinite(x) || !Number.isFinite(y)) return;
+    for (let i = 0; i < n; i++) { const d = { x, y, kind }; pool[kind].push(d); pool.all.push(d); }
+  };
   const meta = map.meta || {};
-  for (const h of meta.horeca || []) pool.push({ x: h.x, y: h.y, kind: 'horeca' });
-  for (const p of poiLayerPlaces(map, 'pois.health')) pool.push({ x: p.x, y: p.y, kind: 'shop' });
-  for (const l of meta.landmarks || []) for (let k = 0; k < 4; k++) pool.push({ x: l.x, y: l.y, kind: 'landmark' });
-  for (const s of map.stations || []) for (let k = 0; k < 6; k++) pool.push({ x: s.x, y: s.y, kind: 'station' });
+  for (const h of meta.horeca || []) {
+    const out = NIGHTLIFE_SPOTS.some((s) => dist(h.x, h.y, s.x, s.y) < s.r);
+    add(out ? 'uitgaan' : 'horeca', h.x, h.y);
+    if (out) pool.horeca.push({ x: h.x, y: h.y, kind: 'horeca' });   // de kroeg in de uitgaanskern is overdag gewoon horeca
+  }
+  for (const p of poiLayerPlaces(map, 'pois.health')) add('winkel', p.x, p.y);
+  for (const s of meta.shops || []) { add('winkel', s.x, s.y); add('werk', s.x, s.y); }
+  for (const k of FAC_SHOPS) for (const f of (FAC.byKind && FAC.byKind.get(k)) || []) add('winkel', f.x, f.y);
+  for (const l of meta.landmarks || []) {
+    const name = l.name || '';
+    add(SCHOOL_RE.test(name) ? 'school' : PARK_RE.test(name) ? 'park' : 'werk', l.x, l.y, 4);
+  }
+  for (const c of meta.careSites || []) add('werk', c.x, c.y, 2);
+  for (const s of map.stations || []) add('station', s.x, s.y, 6);
+  for (const pk of PARKS) add('park', pk.x, pk.y, 4);
+  for (const b of meta.neighbourhoodPoints || []) add('huis', b.x, b.y);
   return pool;
 }
 
-// Prefers destinations roughly ahead, so a walker that just finished (or just
-// spawned facing along the street) doesn't turn straight around.
-function pickDestination(map, ped, preferAhead) {
-  const P = destPool(map);
-  const hx = Math.cos(ped.angle), hy = Math.sin(ped.angle);
+// De klok van de dagritmes: pedestrians.js zet hem één keer per beeld (speluur, weekdag van de kalender, nat 0..1).
+const clock = { hour: 12, weekday: 3, wet: 0 };
+export function setRhythmClock(hour, weekday, wet = 0) { clock.hour = hour; clock.weekday = weekday; clock.wet = wet; }
+// wat de dagritmes opleveren (scripts/levendestad_wereld_test.mjs): per soort bestemming, terras, bank, fiets, praten
+export const pedRhythmStats = () => pedNavStats;
+
+// halte: de haltes rond de speler (bushalte.js meldt ze via boarding.js), op de plek van de paal
+const _haltes = [];
+function haltesNow() {
+  _haltes.length = 0;
+  for (const h of haltesInBeeld()) { const p = halteplek(h); if (p) _haltes.push({ x: p.x, y: p.y, kind: 'halte' }); }
+  return _haltes;
+}
+
+function sampleFrom(list, ped, hx, hy, preferAhead) {
   let fallback = null;
-  for (let k = 0; k < 24 && P.length; k++) {
-    const d = P[Math.floor(Math.random() * P.length)];
+  for (let k = 0; k < 16 && list.length; k++) {
+    const d = list[Math.floor(Math.random() * list.length)];
     const dd = dist(ped.x, ped.y, d.x, d.y);
     if (dd < DEST_MIN || dd > DEST_MAX) continue;
     if (!preferAhead || ((d.x - ped.x) * hx + (d.y - ped.y) * hy) / dd > -0.2) return d;
     fallback = fallback || d;
   }
+  return fallback;
+}
+
+// Prefers destinations roughly ahead, so a walker that just finished (or just
+// spawned facing along the street) doesn't turn straight around. Which kind of
+// place follows the hour and the day (dailyrhythm.js, #1314).
+function pickDestination(map, ped, preferAhead) {
+  const P = destPool(map);
+  const hx = Math.cos(ped.angle), hy = Math.sin(ped.angle);
+  const nav = navOf(ped);
+  nav.pace = paceFor(clock.hour, clock.weekday);
+  const kind = pickDestKind(clock.hour, clock.weekday, Math.random(), (k) => (k === 'halte' ? haltesInBeeld().length > 0 : P[k].length > 0));
+  if (kind) {
+    const d = sampleFrom(kind === 'halte' ? haltesNow() : P[kind], ped, hx, hy, preferAhead);
+    if (d) { pedNavStats.rhythm[kind] = (pedNavStats.rhythm[kind] || 0) + 1; return kind === 'halte' ? { x: d.x, y: d.y, kind } : d; }
+  }
+  const fallback = sampleFrom(P.all, ped, hx, hy, preferAhead);
   if (fallback && Math.random() < 0.5) return fallback;
   const a = ped.angle + (preferAhead ? (Math.random() - 0.5) * 2.4 : Math.random() * Math.PI * 2);
   const r = DEST_MIN + Math.random() * (DEST_MAX - DEST_MIN);
@@ -254,12 +310,65 @@ function addSite(x, y, kind) {
 }
 
 function buildSites(map) {
-  sitesGeo = { map, ver: map._roadVer !== undefined ? map._roadVer : map.geoVer };
+  const roads = map.orderedRoads ? map.orderedRoads() : map['roads'] || [];
+  sitesGeo = { map, ver: map._roadVer !== undefined ? map._roadVer : map.geoVer, geo: map.geoVer, roads: new Set(roads) };
   sites = new SpatialGrid(SITE_CELL);
+  // platte testkaarten zonder raster vallen terug op hun eigen wegenlijst
+  addRoadSites(roads, null);
+  for (const h of getTrafficLights()) if (h.crossing || h.bike) addSite(h.ax, h.ay, 'signal');
+}
+
+// 24-11 (profiel benchmark: buildSites 10% van de spellus, bij elke nieuwe wegentegel over ALLE wegen): alleen wat sinds de vorige bouw
+// veranderde, opnieuw. Per gewijzigde tegel (map.geoLog, tileworld.js) de wegen die nu zijn vlak raken tegen de wegen die er bij de vorige
+// bouw waren: een site verandert alleen op een punt van een weg die erbij kwam of wegging. In de box van zo'n weg gaan de sites eruit en
+// leveren alle wegen die die box raken de knopen opnieuw (een knoop in de box heeft al zijn wegen in die zoekvraag). False: alles opnieuw.
+const inRect = (R, x, y) => x >= R[0] && x <= R[2] && y >= R[1] && y <= R[3];
+function patchSites(map) {
+  const log = map.geoLog, since = sitesGeo && sitesGeo.geo;
+  if (!sites || !sitesGeo || sitesGeo.map !== map || since == null || !map.roadGrid || !log || !log.length || !(log[0] <= since + 1)) return false;
+  const known = sitesGeo.roads;
+  if (!known) return false;
+  const changed = [];
+  for (let n = 0; n < log.length; n += 2) {
+    if (log[n] <= since) continue;
+    const [i, j] = String(log[n + 1]).replace(/^o/, '').split(',').map(Number);
+    if (!Number.isFinite(i) || !Number.isFinite(j)) return false;
+    const [ox, oy] = tileOrigin(i, j);
+    const T = [ox - 0.5, oy - 0.5, ox + TILE_M + 0.5, oy + TILE_M + 0.5];
+    const now = new Set(map.roadGrid.query(T[0], T[1], T[2], T[3]));
+    for (const r of now) if (!known.has(r)) { known.add(r); changed.push(r); }
+    for (const r of known) {
+      const b = r.bounds;
+      if (!b || b[2] < T[0] || b[0] > T[2] || b[3] < T[1] || b[1] > T[3]) continue;
+      if (!now.has(r)) { known.delete(r); changed.push(r); }
+    }
+  }
+  for (const r of changed) {
+    const b = r.bounds;
+    if (!b) return false;
+    const R = [b[0] - 0.5, b[1] - 0.5, b[2] + 0.5, b[3] + 0.5];
+    for (const st of sites.query(R[0], R[1], R[2], R[3])) if (inRect(R, st.x, st.y)) sites.removePoint(st, st.x, st.y);
+  }
+  for (const r of changed) {
+    const b = r.bounds;
+    const R = [b[0] - 0.5, b[1] - 0.5, b[2] + 0.5, b[3] + 0.5];
+    // geen dubbele sites: een knoop in de box van twee gewijzigde wegen komt er één keer bij
+    addRoadSites(map.roadGrid.query(R[0], R[1], R[2], R[3]), R, true);
+    for (const h of getTrafficLights()) if ((h.crossing || h.bike) && inRect(R, h.ax, h.ay)) addSiteOnce(h.ax, h.ay, 'signal');
+  }
+  sitesGeo = { map, ver: map._roadVer !== undefined ? map._roadVer : map.geoVer, geo: map.geoVer, roads: known };
+  return true;
+}
+
+function addSiteOnce(x, y, kind) {
+  for (const st of sites.query(x, y, x, y)) if (st.x === x && st.y === y && st.kind === kind) return;
+  addSite(x, y, kind);
+}
+// de zebra's en kruisingen van deze wegen; R: alleen knopen binnen dit vlak (null: alle); once: niet als hij er al staat
+function addRoadSites(roads, R, once = false) {
   const nodes = new Map();
   const key = (p) => Math.round(p[0] * 10) * 1e6 + Math.round(p[1] * 10);
-  // platte testkaarten zonder raster vallen terug op hun eigen wegenlijst
-  for (const r of (map.orderedRoads ? map.orderedRoads() : map['roads'] || [])) {
+  for (const r of roads) {
     r.pts.forEach((p, i) => {
       const k = key(p);
       let a = nodes.get(k);
@@ -280,9 +389,8 @@ function buildSites(map) {
       } else if (r.cat === 'foot' && interior) foot = true;
     }
     // same rule roadsurface.js uses to paint zebra stripes
-    if (car && branches >= 3) addSite(car[0], car[1], busy && foot ? 'zebra' : 'junction');
+    if (car && branches >= 3 && (!R || inRect(R, car[0], car[1]))) (once ? addSiteOnce : addSite)(car[0], car[1], busy && foot ? 'zebra' : 'junction');
   }
-  for (const h of getTrafficLights()) if (h.crossing || h.bike) addSite(h.ax, h.ay, 'signal');
 }
 
 function sitesNear(x, y, r, out) {
@@ -537,6 +645,7 @@ function releaseSeat(ped) {
   const S = ped.nav && ped.nav.sit;
   if (!S) return;
   if (seatClaims.get(S.key) === ped) seatClaims.delete(S.key);
+  if (S.slot) releaseTerraceSeat(S.slot, ped);
   ped.nav.sit = null;
 }
 
@@ -574,8 +683,9 @@ function stepSit(ped, world, nav, dt) {
       return true;
     }
     S.phase = 'sit';
-    S.until = S.follow ? Infinity : t + 15 + Math.random() * 45;
-    pedNavStats.benchSits++;
+    S.until = S.follow ? Infinity : t + (S.dur || 15 + Math.random() * 45);
+    if (S.slot) pedNavStats.terraceSits++;
+    else pedNavStats.benchSits++;
   }
   const L = ped.leader;
   const leaderUp = S.follow && !(L && L.nav && L.nav.sit && L.nav.sit.phase === 'sit' && L.state === 'wander');
@@ -610,6 +720,8 @@ function resync(ped, world, nav, keep = false) {
   if (nav.idleUntil) {
     nav.idleUntil = 0;
     nav.enter = false;
+    nav.talking = false;
+    if (ped.pose === 'phone' || ped.pose === 'talk') setPedPose(ped, null);
     requestPlan(ped, pickDestination(world.map, ped, false));
     return;
   }
@@ -634,17 +746,85 @@ function arrive(ped, world, nav) {
   pedNavStats.arrivals++;
   const dest = nav.route.dest;
   nav.route = null;
+  const t = world.time;
+  // wat hij hier doet volgt het dagritme (dailyrhythm.js arrivalPlan): naar binnen, op een terras of bank, de fiets op slot,
+  // even bellen, met zijn metgezel praten of wachten (bij de halte langer)
   const nearBuilding = world.map.buildingsNear(ped.x, ped.y, 6).length > 0;
-  const goesIn = dest.kind !== 'landmark' && nearBuilding && Math.random() < (dest.kind === 'street' ? 0.2 : 0.4);
-  if (!goesIn && Math.random() < 0.35) {
-    const seat = findSeat(world, ped, 25);
-    if (seat) { goSit(ped, world, seat, false); return; }
+  const horeca = dest.kind === 'horeca' || dest.kind === 'uitgaan';
+  const terrace = horeca ? freeTerraceSeat(ped.x, ped.y, 22, t, isPropBroken) : null;
+  const bike = nearBuilding && Math.random() < 0.5 ? nearestParkedBike(ped.x, ped.y, 9) : null;
+  const plan = arrivalPlan(clock.hour, clock.weekday, dest.kind === 'street' ? 'park' : dest.kind, [Math.random(), Math.random(), Math.random()],
+    { terrace: !!terrace, bench: true, bike: !!bike, building: nearBuilding, companion: !!ped.hasCompanion });
+  if (plan.act === 'terras' && terrace) {
+    const seat = terraceSeatFor(world, ped, terrace, plan.dur);
+    if (seat) { claimTerraceSeat(terrace, ped, t); goSit(ped, world, seat, false); return; }
   }
+  if (plan.act === 'bank') {
+    const seat = findSeat(world, ped, 25);
+    if (seat) { goSit(ped, world, seat, false); nav.sit.dur = plan.dur; return; }
+  }
+  if (plan.act === 'fiets' && bike) {
+    // naar de fiets in het rek, even hurken bij het slot, daarna (meestal) naar binnen
+    const s = bike.angle + Math.PI / 2, sx = bike.x + Math.cos(s) * 0.55, sy = bike.y + Math.sin(s) * 0.55;
+    if (walkable(world.map, sx, sy)) {
+      nav.act = { x: sx, y: sy, face: s + Math.PI, pose: 'crouch', dur: plan.dur, phase: 'go', goUntil: t + dist(ped.x, ped.y, sx, sy) / 0.8 + 4, until: 0, enter: Math.random() < 0.7 };
+      return;
+    }
+  }
+  const goesIn = plan.act === 'binnen';
   nav.enter = goesIn;
-  nav.idleUntil = world.time + (goesIn ? 0.6 + Math.random() * 1.2 : 4 + Math.random() * 8);
+  nav.idleUntil = t + plan.dur;
   if (dist(ped.x, ped.y, dest.x, dest.y) < 40) nav.faceX = dest.x, nav.faceY = dest.y;
   else nav.faceX = null;
-  if (!goesIn && Math.random() < 0.4) setPedPose(ped, 'phone');
+  if (plan.act === 'telefoon') setPedPose(ped, 'phone');
+  else if (plan.act === 'praten') { setPedPose(ped, 'talk'); nav.talking = true; pedNavStats.talks++; }
+}
+
+// De dichtstbijzijnde geparkeerde fiets in een rek (cityprops.js, soort 'bike'), of null.
+function nearestParkedBike(x, y, r) {
+  let best = null, bd = r;
+  for (const b of findProps(x, y, r)) {
+    if (b.kind !== 'bike' || isPropBroken(b.key)) continue;
+    const d = dist(x, y, b.x, b.y);
+    if (d < bd) { bd = d; best = b; }
+  }
+  return best;
+}
+
+// Een terrasstoel als zitplek (terraceseats.js): zelfde vorm als een bankplek, met de stoel als "bank" (kapot = opstaan).
+function terraceSeatFor(world, ped, slot, dur) {
+  const back = slot.angle + Math.PI, stand = [slot.x + Math.cos(back) * 0.75, slot.y + Math.sin(back) * 0.75];
+  if (!walkable(world.map, stand[0], stand[1])) { stand[0] = slot.x - Math.sin(slot.angle) * 0.7; stand[1] = slot.y + Math.cos(slot.angle) * 0.7; }
+  const d = dist(ped.x, ped.y, stand[0], stand[1]);
+  if (d > 2 && detectCrossing(world.map, ped.x, ped.y, stand[0], stand[1])) return null;
+  return { d, bench: { cell: true, key: slot.propKey, x: slot.x, y: slot.y }, key: 'terras#' + slot.propKey, sx: slot.x, sy: slot.y, face: slot.angle, stand, slot, dur };
+}
+
+// Een korte handeling op een plek (de fiets op slot zetten): ernaartoe lopen, de houding even aannemen en verder.
+// Geeft null als er niets (meer) te doen is.
+function stepAct(ped, world, nav, dt) {
+  const A = nav.act, t = world.time;
+  if (A.phase === 'go') {
+    const d = dist(ped.x, ped.y, A.x, A.y);
+    if (t > A.goUntil) { nav.act = null; return null; }
+    if (d > 0.35) {
+      turnToward(ped, Math.atan2(A.y - ped.y, A.x - ped.x), dt * 1.5);
+      ped.speed = ped.walkSpeed * (d < 2 ? 0.6 : 0.9);
+      return true;
+    }
+    A.phase = 'do';
+    A.until = t + A.dur;
+    pedNavStats.bikeLocks++;
+  }
+  ped.speed = 0;
+  turnToward(ped, A.face, dt * 2);
+  if (t < A.until) { if (ped.pose !== A.pose) setPedPose(ped, A.pose); return false; }
+  setPedPose(ped, null);
+  nav.act = null;
+  nav.enter = A.enter;
+  nav.idleUntil = t + (A.enter ? 0.8 : 2 + Math.random() * 3);
+  nav.faceX = null;
+  return false;
 }
 
 function followLeader(ped, world, dt) {
@@ -656,14 +836,25 @@ function followLeader(ped, world, dt) {
   const LS = Ln && Ln.sit;
   if (LS && LS.phase === 'sit' && !ped.nav.sit && world.time > (ped.nav.benchAt || 0)) {
     ped.nav.benchAt = world.time + 3;
-    const seat = findSeat(world, ped, 6, LS.bench);
-    if (seat) { goSit(ped, world, seat, false, true); return true; }
+    // op een terras de stoel ernaast of ertegenover, op een bank een plek op dezelfde bank
+    const slot = LS.slot ? freeTerraceSeat(LS.sx, LS.sy, 3, world.time, isPropBroken) : null;
+    const seat = LS.slot ? (slot && terraceSeatFor(world, ped, slot, 0)) : findSeat(world, ped, 6, LS.bench);
+    if (seat) { if (slot) claimTerraceSeat(slot, ped, world.time); goSit(ped, world, seat, false, true); return true; }
   }
+  if (ped.pose === 'talk' && !(L.pose === 'talk' && !L.speed)) setPedPose(ped, null);
   const side = ped.pairSide || 1;
   // een groepje (vrijgezellen.js) loopt in een brokje: pairK keer de afstand opzij en pairBack meter erachter; een paar heeft geen van beide
   const k = ped.pairK || 1, back = ped.pairBack || 0;
   const tx = L.x - Math.sin(L.angle) * PAIR_SPACING * side * k - Math.cos(L.angle) * back, ty = L.y + Math.cos(L.angle) * PAIR_SPACING * side * k - Math.sin(L.angle) * back;
   const d = dist(ped.x, ped.y, tx, ty);
+  if (!L.speed && L.pose === 'talk') {
+    // de leider staat stil en praat: naar elkaar toe gedraaid, allebei met gebaren (dailyrhythm.js 'praten')
+    ped.speed = 0;
+    turnToward(ped, Math.atan2(L.y - ped.y, L.x - ped.x), dt);
+    if (Ln) { Ln.faceX = ped.x; Ln.faceY = ped.y; }
+    if (ped.pose !== 'talk') setPedPose(ped, 'talk');
+    return false;
+  }
   if (!L.speed && d < 0.6) {
     ped.speed = 0;
     turnToward(ped, L.angle, dt);
@@ -687,6 +878,11 @@ export function walkRoute(ped, world, dt, dPlayer) {
     const s = stepSit(ped, world, nav, dt);
     if (s !== null) return s;
   }
+  if (nav.act) {
+    const a = gap <= RESYNC_GAP_S ? stepAct(ped, world, nav, dt) : (nav.act = null);
+    if (a !== null) return a;
+    if (ped.pose === 'crouch') setPedPose(ped, null);
+  }
   if (ped.leader) {
     const f = followLeader(ped, world, dt);
     if (f !== null) return f;
@@ -700,6 +896,7 @@ export function walkRoute(ped, world, dt, dPlayer) {
       return false;
     }
     nav.idleUntil = 0;
+    nav.talking = false;
     if (ped.pose) setPedPose(ped, null);
     if (nav.enter) {
       pedNavStats.entered++;
@@ -740,7 +937,7 @@ export function walkRoute(ped, world, dt, dPlayer) {
       if (!sites || sitesGeo.map !== map || sitesGeo.ver !== ver) {
         const intro = typeof document !== 'undefined' && document.body && (document.body.classList.contains('intro-montage') || document.body.classList.contains('cine-hide-hud'));
         const tilesCalm = tilesCalmGate(map);
-        if (tilesCalm && !intro) buildSites(map);
+        if (tilesCalm && !intro && !patchSites(map)) buildSites(map);
       }
       r.cross.site = siteKind(r.cross);
       const mayDetour = !a.detour && !tgt.detour && (r.detours || 0) < 6;
@@ -799,16 +996,20 @@ export function walkRoute(ped, world, dt, dPlayer) {
 
   const want = Math.atan2(tgt[1] - ped.y, tgt[0] - ped.x);
   turnToward(ped, want + avoidBias(ped, want), thinkDt);
-  ped.speed = ped.walkSpeed;
+  ped.speed = ped.walkSpeed * (nav.pace || 1);   // in de spits met haast, 's avonds slenterend (dailyrhythm.js paceFor)
   return true;
 }
 
 // A companion that walks next to `leader` for as long as the leader walks.
 export function makeCompanion(ped, leader) {
   ped.leader = leader;
+  leader.hasCompanion = true;
   ped.pairSide = Math.random() < 0.5 ? 1 : -1;
   ped.angle = leader.angle;
   navOf(ped);
 }
 
 
+
+// voor scripts/pedsites_test.mjs: de site-index alles opnieuw tegen alleen de gewijzigde tegels
+export const pedSitesForTest = { build: (map) => buildSites(map), patch: (map) => patchSites(map), list: (R) => (sites ? sites.query(R[0], R[1], R[2], R[3]).map((s) => `${s.kind}@${s.x},${s.y}`).sort() : []) };

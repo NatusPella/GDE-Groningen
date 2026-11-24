@@ -39,7 +39,7 @@ export function roleOfModelName(name) {
 
 // Hoogste kruissnelheid (m/s) en het deel van de topsnelheid dat de AI mag gebruiken: geen onmogelijke snelheid, een eerlijke kans.
 export const CRUISE_MAX = 22;
-export const CRUISE_SHARE = 0.85;
+const CRUISE_SHARE = 0.85;
 export function eerlijkeCruise(cruise, maxSpeed) {
   const c = Number.isFinite(cruise) ? cruise : 14;
   const top = Number.isFinite(maxSpeed) ? maxSpeed * CRUISE_SHARE : CRUISE_MAX;

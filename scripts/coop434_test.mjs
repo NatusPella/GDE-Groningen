@@ -80,6 +80,9 @@ t('de band zet een gast in de boot als er geen droge plek is', () => {
   assert.equal(N.zetInBoot(w, w.companion), false, 'de plek van Tessa is bezet');
   const fig = { slot: 2, x: 0, y: 0 }; w.coopFigures[2] = fig;
   assert.equal(N.zetInBoot(w, fig), true); assert.equal(fig.inVeh, boot);
+  assert.ok(fig.stoel >= 2, 'een gast zit achterin, niet op de stoel van de bestuurder (0) of de bijrijder (1): ' + fig.stoel);
+  const fig2 = { slot: 3, x: 0, y: 0 }; w.coopFigures[3] = fig2;
+  assert.equal(N.zetInBoot(w, fig2), true); assert.ok(fig2.stoel >= 2 && fig2.stoel !== fig.stoel, 'twee gasten op twee stoelen');
   const w2 = mk(); w2.player.inVehicle = { x: 0, y: 0, model: { len: 4 } }; // een auto: nooit
   assert.equal(N.zetInBoot(w2, w2.companion), false);
 });

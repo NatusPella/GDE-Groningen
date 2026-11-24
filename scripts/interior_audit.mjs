@@ -7,10 +7,11 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { worldDir } from './lib/worldlocator.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const arg = (k, d = null) => { const a = process.argv.find((x) => x.startsWith(`--${k}=`)); return a ? a.slice(k.length + 3) : d; };
-const WORLD = path.resolve(arg('world', path.join(ROOT, 'game/world')));
+const WORLD = path.resolve(arg('world', worldDir()));
 if (!fs.existsSync(path.join(WORLD, 'index-provincie.json'))) { console.log('SKIP geen game/world met de provinciegegevens (--world=<map>)'); process.exit(0); }
 const SAMPLE = Math.max(1, Number(arg('sample', 15)));
 const MAX_TILES = Number(arg('tiles', 1e9));

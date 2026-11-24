@@ -6,6 +6,8 @@ import { isMissionActive, getActiveRace } from './missionquery.js';
 import { isCinematicActive } from './cinematics.js';
 import { isShopOpen } from './shopui.js';
 import { startPigeonMode, isPigeonActive, addPigeonLoft, buildPigeonBird, posePigeonBird } from './pigeonmode.js';
+// de maat van een duif op de voerplek t.o.v. het model (0,6 m van snavel tot staart): 0,64 geeft een stadsduif van ca. 0,38 m (#1195)
+export const GROUND_PIGEON_SCALE = 0.64;
 import { isInWater } from './util.js';
 import { playerBusy } from './busy.js';
 import { waarschuwVoorStart } from './coopstatus.js';
@@ -163,6 +165,9 @@ function placeSpot(map, def, scene) {
     const p = freeAround(map, spot.x, spot.y, 1.2 + Math.random() * 0.9, a);
     if (!p) continue;
     const mesh = buildPigeonBird('pigeon', TINTS[(i + spot.id.length) % TINTS.length]);
+    // #1195 (hertest 24-11): buildPigeonBird zet de maat van de speelbare duif (1,5x het model van 0,6 m: 0,9 m, kniehoogte naast een mens).
+    // Een duif op de keien is een gewone stadsduif van ca. 0,38 m, net als de duiven van wildlife.js (PIGEON_K)
+    mesh.scale.setScalar(GROUND_PIGEON_SCALE);
     // on the ground height there (pavement, square), not on 0: a pigeon stood half in the cobbles (#1195)
     mesh.position.set(p[0], (map.groundHeightAt && map.groundHeightAt(p[0], p[1], 0)) || 0, p[1]);
     const yaw = Math.random() * Math.PI * 2;

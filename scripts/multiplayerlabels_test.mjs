@@ -61,7 +61,7 @@ t('leeg, onzin en een ontbrekende meetfunctie vallen veilig terug', () => {
 });
 
 t('de 3D-labels gebruiken de meting met het juiste vlak', () => {
-  const figuur = fs.readFileSync(new URL('../game/js/coopfigures3d.js', import.meta.url), 'utf8');
+  const figuur = fs.readFileSync(new URL('../game/js/avatarlabel3d.js', import.meta.url), 'utf8'); // het label van coopfigures3d.js en scene3d.js (24-11)
   assert.match(figuur, /import \{ pasLabel \} from '\.\/multiplayerlabels\.js';/);
   assert.match(figuur, /LABEL_VLAK = 236/);
   assert.match(figuur, /pasLabel\(spec\.tekst, \{ maxBreedte: LABEL_VLAK/);

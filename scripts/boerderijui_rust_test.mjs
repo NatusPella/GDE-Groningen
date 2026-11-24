@@ -43,6 +43,18 @@ t('elke subpagina opent met een sfeerband en zonder lange alinea', () => {
   assert.ok(!/hooguit twintig procent boven of onder de basisprijs/.test(src), 'geen lange uitleg meer bij Gewas');
 });
 
+t('#1243: één tabrij; de onderdelen zijn een segmentbalk en de band draagt de naam van de boerderij', () => {
+  klik({ bd: 'perceel' });
+  const html = el.innerHTML;
+  assert.match(html, /<nav class="ds-z-tabs bd-seg" role="tablist" aria-label="Boerderij">/, 'segmentbalk, nog steeds role=tablist voor Q en E');
+  assert.ok(!/class="m-tablist"/.test(html), 'geen tweede onderstreepte tabrij');
+  assert.match(html, /role="tab" class="ds-z-tab bd-seg-tab sel" data-bd="perceel" aria-selected="true"/);
+  assert.equal((html.match(/Boerenzakdoek/g) || []).length, 1, 'de sfeernaam staat één keer, in de band');
+  assert.match(html, /lb-sfeer-klein">Boerderij De Zonnehoek, bij Hoogkerk</, 'de band draagt de naam: geen losse kop erboven');
+  const css = fs.readFileSync(new URL('../game/js/farm.css', import.meta.url), 'utf8');
+  assert.match(css, /\.bd-pane \.lb-sfeer \{ min-height: var\(--ds-s-8\); \}/, 'de band is laag, de hoofdactie staat hoger');
+});
+
 t('de toetsen van het land staan als toetsplaatje', () => {
   klik({ bd: 'machines' });
   for (const k of ['E', 'G', 'T', 'X', 'R']) assert.match(el.innerHTML, new RegExp(`class="m-kc">${k}</span>`), `toets ${k} als plaatje`);

@@ -259,7 +259,7 @@ wachten van de zuinige modus telt daarbij niet mee (`capIdleMs` in `game/js/fram
 **Regels.** Zes weertypen: helder, bewolkt, mist, motregen, regenbui en onweer
 (`game/js/weatherstate.js:18`); sneeuw, ijs en vorst bestaan niet. De dag duurt 24 minuten
 (`daynight.js:12`). Sterren en maan volgen `cover = max(storm, bewolkt × 1,5, mist)`
-(`game/js/scene3d.js:3699`). Een gast volgt het weer en de dagstand van de gastheer (#378).
+(`game/js/scene3d.js:3886`). Een gast volgt het weer en de dagstand van de gastheer (#378).
 
 **Bestanden.** `weatherstate.js`, `weerdag.js`, `sunrules.js`, `daynight.js`, `sky3d.js`,
 `scene3d.js`.
@@ -302,6 +302,23 @@ standaardfouten telt. De machine was nooit leeg; absolute ms zijn ruw en verhoud
 Conflicten in één regel: de samenvatting noemt draw calls de grootste post (`:161`), terwijl Vervolg 9
 een draw call op circa 2 µs zet en 46% minder draw calls maar 0,7 ms oplevert (`:417`); de vervolgen
 zijn de latere meting (#477).
+
+## Levende stad (epic, #1314, #1315, #1316)
+
+**Doel.** Een stad met een dag: voetgangers met een ritme, verkeer dat terugpraat en af en toe iets kleins op straat.
+
+**Regels.** Hoeveel voetgangers er zijn blijft van `simlagen.js`; `dailyrhythm.js` zegt alleen waarheen
+(werk, school, station, halte, winkel, horeca, park, uitgaan, huis, per dagdeel en weekdag) en wat ze bij
+aankomst doen; de terrassen vullen zich naar `terraceShare`. `trafficreact.js` geeft het verkeer een stem
+(toeter, uitwijken, gebaar) zonder het remgedrag te veranderen. `streetevents.js` houdt de scènes zeldzaam
+(gemiddeld drie tot vijf per speeluur), kort en zonder geweld; figuren zijn gewone voetgangers, props komen
+uit het propregister (`propregister.js`, gebruik `straat`). Alles is van de wereld van wie het spel opende.
+
+**Bestanden.** `dailyrhythm.js`, `pedroutes.js`, `terraceseats.js`, `trafficreact.js`, `vehicle/traffic.js`,
+`streetevents.js`, `streeteventlive.js`, `streetevents3d.js`.
+
+**Tests.** `dailyrhythm_test.mjs`, `trafficreact_test.mjs`, `streetevents_test.mjs`, `levendestad_wereld_test.mjs`
+(echte tegels: bestemmingen per dagdeel en de kosten per beeld).
 
 ## Regels voor een nieuw systeem
 

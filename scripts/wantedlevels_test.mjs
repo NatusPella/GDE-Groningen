@@ -1,6 +1,6 @@
 // Pure rules of wanted per star level and bystander budget (#43, #52).
 //   node scripts/wantedlevels_test.mjs
-import { levelOf, chaseLayers, npcBudget, bystanderReaction, isInterceptorSlot, INTERCEPTOR } from '../game/js/wantedlevels.js';
+import { levelOf, cooldownOf, zoekTeller, chaseLayers, npcBudget, bystanderReaction, isInterceptorSlot, INTERCEPTOR } from '../game/js/wantedlevels.js';
 let fails = 0, n = 0;
 const ok = (c, name) => { n++; if (!c) { fails++; console.log('FAIL', name); } };
 let prev = null;
@@ -31,5 +31,20 @@ console.log(`${n - fails}/${n} ok`);
   c(![0, 1, 2, 3, 4, 5].some((s) => isInterceptorSlot(2, s)), 'onder 3 sterren geen interceptors');
   c(INTERCEPTOR.boost > 1 && INTERCEPTOR.boost < 1.3, 'boost is bescheiden');
   if (bad2) process.exitCode = 1; else console.log('interceptor ok');
+}
+{
+  // #989: de zoektocht als teller: rest en totaal in seconden, buiten de cirkel gemarkeerd; lege invoer geeft geen NaN
+  let bad3 = 0; const c = (cond, m) => { if (!cond) { bad3++; console.log('FAIL', m); } };
+  const tot = cooldownOf(levelOf(2));
+  const z = zoekTeller(2, 3, 10, 50);
+  c(z.totaal === tot && Math.abs(z.rest - (tot - 3)) < 1e-9 && z.buiten === false, 'teller: rest is de cooldown min de klok, binnen de cirkel');
+  c(zoekTeller(2, 3, 80, 50).buiten === true, 'teller: buiten de cirkel');
+  c(zoekTeller(2, tot + 5, 0, 50).rest === 0, 'teller: nooit onder nul');
+  const leeg = zoekTeller(undefined, undefined, undefined, undefined);
+  c(Number.isFinite(leeg.rest) && Number.isFinite(leeg.totaal) && leeg.totaal === cooldownOf(levelOf(1)), 'teller: lege invoer valt terug op een ster, zonder NaN');
+  const hud = (await import('node:fs')).readFileSync(new URL('../game/js/hud_panel.js', import.meta.url), 'utf8');
+  c(/maakWidget\('teller', els\.objRegel, \{ eenheid: 's', label: 'Tot een ster minder' \}\)/.test(hud), 'HUD: de zoektocht staat als tellerwidget onder de doelregel');
+  c(!/\$\{rest\}s uit het zicht voor een ster minder/.test(hud), 'HUD: de seconden staan niet meer in de zin');
+  if (bad3) process.exitCode = 1; else console.log('zoekteller ok');
 }
 process.exit(fails ? 1 : process.exitCode || 0);

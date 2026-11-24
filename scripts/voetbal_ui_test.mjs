@@ -2,6 +2,7 @@
 // een ontworpen lege staat, een ontgrendelhint, alles Nederlands, "Grunn" nooit "de Grunn". Niet in beeld bekeken: zie docs/VOETBAL-CARRIERE-VERIFICATIE-21-11.md.
 import PARKDATA from '../game/js/voetbalparkendata.js';
 import assert from 'node:assert/strict';
+import fs from 'node:fs';
 import { wgsToWorld } from '../game/js/rdnew.js';
 import { makeParkIndex, HOME_WGS } from '../game/js/voetbalparken.js';
 import * as C from '../game/js/voetbalcarriere.js';
@@ -101,5 +102,10 @@ t('Training: de trainingsknop draagt zijn toets (Enter) in de knop en de oefenin
   assert.deepEqual(buttonsWithoutGlyph(tr), []);
   assert.match(tr, /Oefening: /); assert.match(tr, /data-vb="train:snel"/);
   assert.match(viewHtml(C.train(c, 'pace').career, 'training', env), /data-vb="train:snel"[^>]*aria-disabled="true"/);
+});
+t('#1110 (hertest 22-11): brede kaarten in de body liggen recht, met lucht tot de chips en de kop eronder', () => {
+  const src = fs.readFileSync(new URL('../game/js/voetbalcarriereui.js', import.meta.url), 'utf8');
+  assert.match(src, /\.vb-body > \.ds-z-kaart \{ transform: none; \}/);
+  assert.match(src, /\.vb-body \{ display: grid; gap: var\(--ds-s-3\); \}/);
 });
 console.log(`voetbal_ui_test ok (${n} groepen)`);

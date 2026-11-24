@@ -8,8 +8,9 @@
 // Heeft game/world met de provinciewereld nodig; zonder dat SKIP.
 import './node3d.mjs';
 import fs from 'node:fs';
+import { worldDirUrl } from './lib/worldlocator.mjs';
 
-const root = new URL('../game/world/', import.meta.url);
+const root = worldDirUrl();
 if (!fs.existsSync(new URL('index-provincie.json', root))) { console.log('SKIP no game/world with the province layer'); process.exit(0); }
 const { setCountryBounds } = await import('../game/js/countryfield.js');
 const { waterClearance } = await import('../game/js/waterindex.js');

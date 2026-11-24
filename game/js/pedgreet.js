@@ -2,15 +2,15 @@
 // Pure regels, Node-safe, zonder wereld: pedestrians.js roept ze aan en zet greetUntil (scene3d tekent de zwaaiende arm).
 // Samen spelen: lokaal per speler (de groet is sfeer, geen voortgang); een gast ziet de zwaai via de bestaande V_GROET-vlag in coopextra.
 
-export const GREET_MIN_DIST = 2.2;      // m: dichterbij is een botsing, geen groet
-export const GREET_MAX_DIST = 7;        // m
+const GREET_MIN_DIST = 2.2;      // m: dichterbij is een botsing, geen groet
+const GREET_MAX_DIST = 7;        // m
 export const GREET_MAX_PLAYER_SPEED = 4.5; // m/s: wie sprint of rijdt wordt niet gegroet
 export const GREET_PED_COOLDOWN_S = 90; // dezelfde passant groet niet meteen weer
 export const GREET_GLOBAL_GAP_S = 7;    // nooit een koor van groeten
-export const GREET_CHANCE = 0.16;       // per passant die in bereik komt (de scan loopt elke 0,5 s)
+const GREET_CHANCE = 0.16;       // per passant die in bereik komt (de scan loopt elke 0,5 s)
 export const GREET_SCAN_S = 0.5;
 export const GREET_LINES = ['Moi!', 'Goedemorgen!', 'Moi moi!', 'Mooie dag, hè?', 'Hoi!', 'Goeie zomer!'];
-export const GREET_ARM_S = 2.2;
+const GREET_ARM_S = 2.2;
 
 export function makeGreetState() { return { nextScanAt: 0, lastGreetAt: -99 }; }
 
@@ -38,8 +38,8 @@ export function markGreeted(g, p, now) { g.lastGreetAt = now; p._greetedAt = now
 
 // --- rakelings voorbij gerend (22-11) -------------------------------------------------------------------
 // Wie op een paar decimeter langs een passant sprint (zonder aan te raken: dat is checkBump) krijgt een geschrokken "Hé!" na.
-export const SPRINT_PASS_MIN_SPEED = 5.5;   // m/s: wandelen is 2-3, rennen ruim erboven
-export const SPRINT_PASS_MAX_GAP = 1.1;     // m tussen de randen van de twee lichamen
+const SPRINT_PASS_MIN_SPEED = 5.5;   // m/s: wandelen is 2-3, rennen ruim erboven
+const SPRINT_PASS_MAX_GAP = 1.1;     // m tussen de randen van de twee lichamen
 export const SPRINT_PASS_COOLDOWN_S = 14;
 export const SPRINT_PASS_LINES = ['Hé, kijk uit!', 'Rustig aan, joh!', 'Waar ren jij naartoe?', 'Hé! Niet zo snel!'];
 

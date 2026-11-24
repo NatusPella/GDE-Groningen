@@ -30,7 +30,8 @@ import {
 } from './vehicle.js';
 import { DEAD_DURATION } from './pedconst.js';
 import { attachCarry, carryPose } from './streetlife3d.js';
-import { buildPersonMesh, releasePersonGeometry, animatePersonWalk, applyAttackPose, applyHitReaction, setHeldWeapon, seatPose, seatedY, waveOverlay, juichOverlay, carryOverlay, TAMMO_APPEARANCE, ANITA_APPEARANCE } from './models3d_people.js';
+import { gastheerAvatar, metgezelSleutel } from './coopclient.js'; import { avatarLook, avatarLabel } from './coopspeler.js'; import { makeLabel } from './avatarlabel3d.js'; // de gastheer bij een gast als zijn online-avatar (#455)
+import { buildPersonMesh, setModularPlayerLooks, releasePersonGeometry, animatePersonWalk, plantFeet, applyAttackPose, applyHitReaction, setHeldWeapon, seatPose, seatedY, waveOverlay, juichOverlay, carryOverlay, TAMMO_APPEARANCE, ANITA_APPEARANCE, fistOverlay } from './models3d_people.js';
 import { syncDoorsNear, vraagVoorAnim } from './vehicledoors3d.js';
 import { syncCabins } from './cabin3d.js';
 import { updateRitCabine, syncTreinKader } from './ritcabine3d.js';
@@ -39,7 +40,7 @@ import { syncAutoStuur } from './autointerieur.js';
 import { syncVoertuigBediening } from './voertuigbediening.js';
 import { syncHaltefiguren } from './haltefiguren3d.js';
 import { seatedOf } from './occupants.js';
-import { vehicleSeat, placeSeated, makeSeatTracker, trackSeat, drawTransition, syncBoatCrew } from './seating3d.js';
+import { vehicleSeat, placeSeated, placeSeatedLocal, makeSeatTracker, trackSeat, drawTransition, syncBoatCrew } from './seating3d.js';
 import { vehicleHeight } from './vaultkit.js';
 // #497: de pure camera-meetkunde (volgcam buiten de wagen, prop- en boomray, ellipsoïde) staat in cammath.js.
 import { camClearOfVehicle, rayCylinder, segHitsEllipsoid, vehicleCamRig } from './cammath.js';
@@ -100,6 +101,9 @@ import { effectsFor, shakeAmount } from './a11ylogic.js';
 import { reducedMotion } from './motion.js';
 import { dynamicScale, cpuLevel, currentPreset } from './gfxprofile.js';
 import { setAnimalLodPreset } from './meshlod.js';
+import { setLodPreset, updateLodObjects, lodFadeMaterial, lodScale } from './lodkit3d.js';
+import { GLSL_DETAIL_HEAD_VERT, GLSL_DETAIL_VERT, GLSL_DETAIL_HEAD_FRAG, GLSL_DETAIL_FRAG, BUILDING_FADE_BAND } from './buildingfade.js';
+import { registerLodModel, lodLevelsForFade, lodSpec } from './lodregistry.js';
 import { adaptedShadowLevel } from './shadowlevel.js';
 import { treeSyncDue } from './treesync.js';
 import { roadBuildAllowed, createHeavyRoadGate, ROAD_BUILD_MAX_PER_FRAME } from './roadbudget.js';
@@ -113,6 +117,9 @@ import { streamLead } from './streambudget.js';
 import { fadeBand, loadRadius } from './popinrules.js';
 import { VIEW_DISTANCES, viewDistanceFor, detailDistanceFor, fogRange, DETAIL_BASE } from './viewdist.js';
 import { glanceAt, shareFeet } from './gait.js';
+import { lifeTier } from './actorlife.js';
+import { createFarCrowd, FAR_CROWD_FROM, FAR_CROWD_BACK } from './farcrowd3d.js';
+import { loadModularPeople, buildModularPerson, buildModularFromAppearance, modularReady, setModularLod, lodForDistance, setModularLodPreset, mensenFase } from './modularpeople.js';
 import { NEAR_MIN, cameraNearTarget, stepNear, parseNearFlag, parseFarFlag } from './cameranear.js';
 import { compareOpaque } from './drawpool.js';
 import { buildingBatcher, roadBatcher, facadeBatcher, shoreBatcher, drawHub } from './staticbatch3d.js';
@@ -142,7 +149,7 @@ import { litFraction, moonPhase, STAR_SHARE, foliageGlow } from './nightrules.js
 import { qualityLook, SKYLINE_FOG, sunGlow } from './weatherlook.js';
 import { buildCloudLayer, updateCloudLayer } from './cloud3d.js';
 import { initNightLights, setNightLightQuality, updateNightLights, isLightRigOn, nightPoolSize } from './nightlights3d.js';
-import { createFarLOD } from './farlod.js';
+import { createFarLOD, lodShared } from './farlod.js';
 import { SECTION, TILE_M, tileOrigin } from './gdt.js';
 import { initRailway3D, updateRailway3D, prewarmRailAt } from './railway3d.js';
 import { updateStationCrowd3D } from './stationlife3d.js';
@@ -761,12 +768,12 @@ function ensurePassengerFigure(mesh, v, dist, deadline) {
 function detachPlayerRider(mesh) {
   if (playerRider && mesh && playerRider.parent === mesh) mesh.remove(playerRider);
 }
-function syncPlayerRider(pv, pvMesh, hide) {  const want = pv && (pv.isBike || pv.isScooter) && pv._mount !== 'horse' && pvMesh && !pv.riderOff && !pv.sinking;
+function syncPlayerRider(pv, pvMesh, hide, t = 0) {  const want = pv && (pv.isBike || pv.isScooter) && pv._mount !== 'horse' && pvMesh && !pv.riderOff && !pv.sinking;
   if (!want) {
     if (playerRider && playerRider.parent) playerRider.parent.remove(playerRider);
     return;
   }
-  if (!playerRider || playerRiderChar !== playerCharacter) {
+  if (!playerRider || playerRiderChar !== playerCharacter || !!playerRider.userData.qRig !== (mensenFase(FLAGS.mensen) >= 3 && modularReady())) {
     if (playerRider) {
       if (playerRider.parent) playerRider.parent.remove(playerRider);
       disposeObject(playerRider); // #788: de oude look geeft zijn gedeelde rompgeometrie terug
@@ -777,6 +784,17 @@ function syncPlayerRider(pv, pvMesh, hide) {  const want = pv && (pv.isBike || p
   }
   const ud = playerRider.userData;
   if (playerRider.parent !== pvMesh) pvMesh.add(playerRider);
+  if (ud.qRig) {
+    // spelerfase (?mensen=q3): de modulaire mens zit op het zadel met de rijclip, handen aan het stuur en voeten bij de trappers
+    // (seating3d.js placeSeatedLocal); de ingebouwde procedurele fietser van het model wordt verborgen, zoals hieronder
+    pvMesh.userData.vehicleRef = pv;   // snelheid voor de trappers (seating3d.js wheelCtx)
+    placeSeatedLocal(playerRider, vehicleSeat(pv, true), t);
+    const figQ = pvMesh.userData.riderFig || pvMesh.children.find((c) => c !== playerRider && c.userData && (c.userData.legL || c.userData.qRig));
+    if (figQ && figQ !== playerRider) figQ.visible = false;
+    if (pvMesh.userData.riderMesh && pvMesh.userData.riderMesh !== playerRider) pvMesh.userData.riderMesh.visible = false;
+    playerRider.visible = !hide;
+    return;
+  }
   const seat = pv.isScooter ? riderSeatFor(pv.model) : null;
   if (seat) {
     playerRider.position.set(seat.x, seat.y - 0.93 * playerRider.scale.y, 0);
@@ -840,6 +858,7 @@ function pinShaderPrograms(r) {
 export function init3D(map) {
   liftMap = map;
   preloadLandmarkModels();
+  if (mensenFase(FLAGS.mensen) >= 1) loadModularPeople(); // fase 1 van ADR 0050: voorbijgangers als modulaire mensen (alleen met ?mensen=q)
   setBuildingMap(map);
   canvas3 = document.getElementById('game3d');
   // laptops with two GPUs: the fast one
@@ -1076,6 +1095,7 @@ function applyViewSettings(st, key) {
   wantRatio = renderPixelRatio(st, preset);
   resize3D();
   setNightLightQuality(level);
+  setModularLodPreset(level); // LOD-afstanden van de modulaire mensen schalen met de stand (lodregistry.js)
   starShare = STAR_SHARE[level] ?? 1;
   if (skyDome) setStarShare(skyDome, starShare);
   setCountryFacadeLevel(level);
@@ -1088,6 +1108,7 @@ function applyViewSettings(st, key) {
   shadowBaseLevel = level;
   applyShadowLevel(adaptedShadowLevel(level, dynamicScale(), cpuLevel(), st.drawDistance), levelChanged);
   applyViewDistance(st);
+  setLodPreset(currentPreset(st) || st.quality); // centraal LOD-systeem: de afstanden schalen met de stand (een eigen stand: de kwaliteit)
   setAnimalLodPreset(currentPreset(st) || st.quality); // de dier-LOD's: afstanden schalen met de stand (lodregistry.js, zoals setLodPreset op perf-ultra-23-11)
   cam.fov = baseFov = cameraVerticalFov(st.fov);
   cam.updateProjectionMatrix();
@@ -1474,6 +1495,12 @@ const TREE_TRUNK_GEO = new THREE.CylinderGeometry(0.14, 0.22, 1, 6).translate(0,
 const TREE_CANOPY_GEO = new THREE.IcosahedronGeometry(1, 1);
 // a conifer: a cone of radius 1 from y -1 to 1
 const TREE_CONE_GEO = new THREE.ConeGeometry(1, 2, 7);
+// centraal LOD-systeem (23-11): de verre kroon wordt voorbij de 'treecrown'-afstand een icosaëder zonder onderverdeling (20 in plaats van 80
+// driehoeken), met een dither-crossfade ertussen; bossen en parken bestaan op afstand vooral uit deze kronen
+const TREE_CANOPY_GEO0 = new THREE.IcosahedronGeometry(1, 0);
+// voorbij 260 m: een billboard (2 driehoeken, altijd naar de camera, een ronde kroon via de uv), tot de zichtafstand (syncTreeImpostors)
+const TREE_IMPOSTOR_GEO = new THREE.PlaneGeometry(2, 2);
+SHARED_GEOMETRIES.add(TREE_IMPOSTOR_GEO);
 // 23-11: een kroon met bobbels en een donkerder onderkant (greenery.js crownBump/crownShade); eenmalig, geen kosten per frame
 function shapeCrown(geo, bumpy) {
   const p = geo.attributes.position, c = new Float32Array(p.count * 3);
@@ -1488,15 +1515,24 @@ function shapeCrown(geo, bumpy) {
 }
 shapeCrown(TREE_CANOPY_GEO, true);
 shapeCrown(TREE_CONE_GEO, false);
-for (const g of [TREE_TRUNK_GEO, TREE_CANOPY_GEO, TREE_CONE_GEO]) SHARED_GEOMETRIES.add(g);
+shapeCrown(TREE_CANOPY_GEO0, false); // de verre kroon krijgt hetzelfde schaduwverloop (vertexkleur), zonder bobbels
+for (const g of [TREE_TRUNK_GEO, TREE_CANOPY_GEO, TREE_CONE_GEO, TREE_CANOPY_GEO0]) SHARED_GEOMETRIES.add(g);
 // a tree filled into a wood or park outline is drawn out to TREE_FAR, as its crown only
 const TREE_FAR = 260;
 const TREE_NEAR_R = loadRadius(TREE_DIST);
 // #1016: bomen doven uit in een band vóór hun tekenstraal en de lijst wordt een herbouwstap verder geladen (popinrules.js)
 for (const m of [TREE_TRUNK_MAT, TREE_CANOPY_MAT]) applyEdgeFade(m, ...fadeBand(TREE_DIST), perfOff('boomfade')); // ?perfoff=boomfade: bomen zonder discard (#1067)
 const TREE_FAR_MAT = edgeFadeClone(TREE_CANOPY_MAT, ...fadeBand(TREE_FAR, 24), perfOff('boomfade'));
+// de randfade van de verre kroon (TREE_FAR) doet nu de LOD-band naar de billboards (treecrown niveau 2), aanvullend: dus uit
+if (TREE_FAR_MAT.userData.edgeFade) TREE_FAR_MAT.userData.edgeFade.value.set(1e9, 1e9 + 1);
+const TREE_FAR_MATS = [lodFadeMaterial(TREE_FAR_MAT, 'treecrown', 0, 3), lodFadeMaterial(TREE_FAR_MAT, 'treecrown', 1, 3)];
+{
+  const tris = (g) => (g.index ? g.index.count : g.getAttribute('position').count) / 3;
+  registerLodModel('tree', 'boom', [tris(TREE_TRUNK_GEO) + 2 * tris(TREE_CANOPY_GEO), tris(TREE_CANOPY_GEO), tris(TREE_CANOPY_GEO0)]);
+  registerLodModel('treecrown', 'kroon', [tris(TREE_CANOPY_GEO), tris(TREE_CANOPY_GEO0), tris(TREE_IMPOSTOR_GEO)]);
+}
 for (const m of [TREE_TRUNK_MAT, TREE_CANOPY_MAT]) applyInteriorCut(m); // geen stam of kroon in een binnenruimte (interiorisolation.js)
-for (const m of [TREE_TRUNK_MAT, TREE_CANOPY_MAT, TREE_FAR_MAT]) SHARED_MATERIALS.add(m);
+for (const m of [TREE_TRUNK_MAT, TREE_CANOPY_MAT, TREE_FAR_MAT, ...TREE_FAR_MATS]) SHARED_MATERIALS.add(m);
 const _leaf = new THREE.Color(), _bark = new THREE.Color();
 const tumbleMats = new Map();
 function tumbleMat(hex) {
@@ -1590,7 +1626,8 @@ function ensureTreeCapacity(n) {
   make(TREE_TRUNK_GEO, TREE_TRUNK_MAT, treeCapacity);
   make(TREE_CANOPY_GEO, TREE_CANOPY_MAT, treeCapacity * 2);
   make(TREE_CONE_GEO, TREE_CANOPY_MAT, treeCapacity);
-  make(TREE_CANOPY_GEO, TREE_FAR_MAT, treeCapacity, false);
+  make(TREE_CANOPY_GEO, TREE_FAR_MATS[0], treeCapacity, false);
+  make(TREE_CANOPY_GEO0, TREE_FAR_MATS[1], treeCapacity, false);
 }
 
 // --- per-frame sync ------------------------------------------------------
@@ -1997,8 +2034,52 @@ function makeBuildingMesh(b) {
   const mesh = enableShadows(buildBuildingMesh(b), true, 2.5);
   if (liftMap && liftMap.terrainOn) mesh.position.y += buildingLift(liftMap, b);
   if (isSkyline(b)) useSkylineMaterials(mesh);
+  if (!b.landmark && !perfOff('gebouwfade')) addBuildingFade(mesh, b);
   freezeStatic(mesh);
   return mesh;
+}
+
+// 23-11 (centraal LOD-systeem): het detailgebouw dooft in de band binnen de ring uit tegen zijn kopie in de verre laag in, op hetzelfde
+// middelpunt (lodC = het midden van b.bounds, zoals lodCenter in farlod.js) en met dezelfde uniforms (buildingfade.js). Alleen eigen
+// geometrie van dit gebouw krijgt het attribuut (een gedeelde geometrie zonder lodC tekent gewoon vol, zoals voorheen). Het materiaal wordt
+// ter plekke uitgebreid (geen kloon: de nacht- en gevelregels die het materiaal aanpassen, blijven gelden); een geometrie zonder lodC
+// heeft (0, 0) en dithert niet.
+function addBuildingFade(mesh, b) {
+  const cx = (b.bounds[0] + b.bounds[2]) / 2, cy = (b.bounds[1] + b.bounds[3]) / 2;
+  mesh.traverse((o) => {
+    if (!o.isMesh || !o.geometry || !o.geometry.attributes.position) return;
+    const g = o.geometry;
+    if (SHARED_GEOMETRIES.has(g) || (g.userData && g.userData.shared)) return;
+    if (!g.attributes.lodC) {
+      const n = g.attributes.position.count, a = new Float32Array(n * 2);
+      for (let i = 0; i < n; i++) { a[i * 2] = cx; a[i * 2 + 1] = cy; }
+      g.setAttribute('lodC', new THREE.BufferAttribute(a, 2));
+    }
+    for (const m of Array.isArray(o.material) ? o.material : [o.material]) if (m) patchBuildingFade(m);
+  });
+}
+function patchBuildingFade(m) {
+  if (m.userData.buildingFade || !(m.isMeshStandardMaterial || m.isMeshLambertMaterial || m.isMeshPhongMaterial || m.isMeshBasicMaterial)) return;
+  m.userData.buildingFade = true;
+  const prev = m.onBeforeCompile;
+  const U = lodShared();
+  m.onBeforeCompile = (shader, r) => {
+    if (prev) prev.call(m, shader, r);
+    shader.uniforms.uLodPlayer = U.uLodPlayer;
+    shader.uniforms.uLodDetailR = U.uLodDetailR;
+    shader.uniforms.uLodBand = U.uLodBand;
+    shader.vertexShader = shader.vertexShader.replace('#include <common>', `#include <common>
+${GLSL_DETAIL_HEAD_VERT}`)
+      .replace('#include <project_vertex>', `#include <project_vertex>
+${GLSL_DETAIL_VERT}`);
+    shader.fragmentShader = shader.fragmentShader.replace('#include <common>', `#include <common>
+${GLSL_DETAIL_HEAD_FRAG}`)
+      .replace('void main() {', `void main() {
+${GLSL_DETAIL_FRAG}`);
+  };
+  const base = m.customProgramCacheKey ? m.customProgramCacheKey.bind(m) : null;
+  m.customProgramCacheKey = () => (base ? base() : '') + '|bldfade';
+  m.needsUpdate = true;
 }
 
 const isSkyline = (b) => b.landmarkKind === 'tower';
@@ -2255,6 +2336,73 @@ function syncRoads(world, px, py) {
   if (streamStat.r === 0) roadSyncIdle = { x: px, y: py, q: roadQuality, dist: DRAW_DIST, meshes: roadMeshes.size, frame: roadSyncFrame, geoVer: world.map.geoVer };
 }
 
+// --- billboards voor de verre bossen (23-11, centraal LOD-systeem: treecrown niveau 2) ----------------------------------------------------
+// De bomen van bossen en parken (TREE_FLAG.fill) van 260 m tot de weg-afstand van 'treecrown' (meeschalend met de stand, begrensd door de
+// zichtafstand): één InstancedMesh van vlakjes die in de vertexshader naar de camera draaien; de fragmentshader maakt er een ronde kroon
+// van. Een eigen, grove herberekening (elke 40 m), los van de bomen dichtbij, met een plafond.
+const TREE_IMPOSTOR_CAP = 40000, TREE_IMPOSTOR_MOVE = 40;
+let treeImpostors = null, impostorX = null, impostorY = null, impostorReach = 0, impostorMap = null, impostorVer;
+const _impQuery = [];
+function treeImpostorMaterial() {
+  const m = new THREE.MeshLambertMaterial({ color: 0xffffff, emissive: new THREE.Color(0x56844a).multiplyScalar(0.12) });
+  m.onBeforeCompile = (shader) => {
+    shader.vertexShader = shader.vertexShader
+      .replace('#include <common>', `#include <common>
+varying vec2 vImpUv;`)
+      .replace('#include <defaultnormal_vertex>', `#include <defaultnormal_vertex>
+transformedNormal = vec3(0.0, 0.0, 1.0);`)
+      .replace('#include <project_vertex>', `vec4 mvPosition = modelViewMatrix * instanceMatrix * vec4(0.0, 0.0, 0.0, 1.0);
+mvPosition.xy += position.xy * vec2(length(instanceMatrix[0].xyz), length(instanceMatrix[1].xyz));
+gl_Position = projectionMatrix * mvPosition;
+vImpUv = uv;`);
+    shader.fragmentShader = shader.fragmentShader
+      .replace('#include <common>', `#include <common>
+varying vec2 vImpUv;`)
+      .replace('void main() {', `void main() {
+  if (length(vImpUv * 2.0 - 1.0) > 1.0) discard;`);
+  };
+  m.customProgramCacheKey = () => 'treeimpostor';
+  m.userData.shared = true;
+  return lodFadeMaterial(m, 'treecrown', 2, 3);
+}
+const _impM = new THREE.Matrix4(), _impP = new THREE.Vector3(), _impS = new THREE.Vector3(), _impQ = new THREE.Quaternion(), _impC = new THREE.Color();
+function syncTreeImpostors(world, px, py) {
+  const map = world.map;
+  if (!map || !map.treeGrid) return;
+  const spec = lodSpec('treecrown', 3, lodScale());
+  const reach = perfOff('boombillboard') || viewDist <= DRAW_DIST + 20 ? 0 : Math.min(spec.weg, viewDist);
+  if (!treeImpostors) {
+    treeImpostors = new THREE.InstancedMesh(TREE_IMPOSTOR_GEO, treeImpostorMaterial(), TREE_IMPOSTOR_CAP);
+    treeImpostors.count = 0; treeImpostors.frustumCulled = false; treeImpostors.castShadow = false; treeImpostors.receiveShadow = false;
+    treeImpostors.name = 'trees:billboards';
+    treeImpostors.setColorAt(0, _impC.setRGB(1, 1, 1));
+    SHARED_MATERIALS.add(treeImpostors.material);
+    scene.add(treeImpostors);
+  }
+  if (impostorMap === map && impostorVer === map.geoVer && impostorReach === reach && impostorX !== null && Math.hypot(px - impostorX, py - impostorY) < TREE_IMPOSTOR_MOVE) return;
+  impostorMap = map; impostorVer = map.geoVer; impostorReach = reach; impostorX = px; impostorY = py;
+  treeImpostors.count = 0;
+  if (!reach) { treeImpostors.visible = false; return; }
+  treeImpostors.visible = true;
+  const n = map.treeGrid.queryRadiusInto(_impQuery, px, py, reach + spec.band);
+  const from = spec.grenzen[1] - spec.band / 2 - 12 - TREE_IMPOSTOR_MOVE; // de band rond 260 m, de marge speler/camera en de 40 m tussen twee herberekeningen
+  for (let i = 0; i < n && treeImpostors.count < TREE_IMPOSTOR_CAP; i++) {
+    const t = _impQuery[i];
+    if (t._broken || !(t[4] & TREE_FLAG.fill)) continue;
+    const dd = Math.hypot(t[0] - px, t[1] - py);
+    if (dd < from) continue;
+    const d = treeDims(t);
+    const ground = map.terrainOn ? map.terrainAt(t[0], t[1]) : 0;
+    _impP.set(t[0], ground + d.cy, t[1]);
+    _impS.set(d.r * 1.08, d.ry * 1.08, 1);
+    treeImpostors.setMatrixAt(treeImpostors.count, _impM.compose(_impP, _impQ, _impS));
+    treeColor(t, _impC);
+    treeImpostors.setColorAt(treeImpostors.count++, _impC);
+  }
+  treeImpostors.instanceMatrix.needsUpdate = true;
+  if (treeImpostors.instanceColor) treeImpostors.instanceColor.needsUpdate = true;
+}
+
 function syncTrees(world, px, py) {
   const map = world.map;
   // #786: een kaartwissel is een nieuwe bron; de eerste frame bouwt gewoon op
@@ -2267,7 +2415,7 @@ function syncTrees(world, px, py) {
   if (!treeSyncDue(px, py, treeSyncX, treeSyncY, hiddenChanged, map.geoVer, treeSyncGeoVer)) return;
   // the trees round the player, and further out the crowns of the woods
   // #760: dezelfde query in een herbruikbuffer i.p.v. een nieuwe array per aanroep
-  const n = map.treeGrid.queryRadiusInto(_treeQuery, px, py, loadRadius(TREE_FAR));
+  const n = map.treeGrid.queryRadiusInto(_treeQuery, px, py, loadRadius(TREE_FAR) + 20); // + de LOD-band naar de billboards
   const trees = [];
   for (let i = 0; i < n; i++) {
     const t = _treeQuery[i];
@@ -2284,7 +2432,7 @@ function syncTrees(world, px, py) {
   treeSyncGeoVer = map.geoVer;
   shownHiddenKey = camTreeHiddenKey;
   ensureTreeCapacity(trees.length);
-  const [trunks, crowns, cones, far] = treeInstanced;
+  const [trunks, crowns, cones, far, farthest] = treeInstanced;
   for (const m of treeInstanced) m.count = 0;
   crownShadowOnly.count = 0;
   const [trunk, canopy, lobe] = _treeParts;
@@ -2299,7 +2447,9 @@ function syncTrees(world, px, py) {
     const d = layoutTree(t, trunk, canopy, lobe);
     treeColor(t, _leaf);
     const dd = Math.hypot(t[0] - px, t[1] - py), near = dd <= TREE_NEAR_R;
-    if (!near || (t[4] & TREE_FLAG.fill && dd > TREE_DIST - 20)) put(far, canopy, _leaf); // far crown: no shadow; woods overlap it in the fade band
+    if (!near || (t[4] & TREE_FLAG.fill && dd > TREE_DIST - 20)) { // far crown: no shadow; woods overlap it in the fade band
+      for (const L of lodLevelsForFade('treecrown', dd, { levels: 3, scale: lodScale() })) if (L < 2) put(L ? farthest : far, canopy, _leaf); // niveau 2: de billboards
+    }
     if (!near) continue;
     _bark.setHex(SPECIES[d.sp].trunk);
     put(trunks, trunk, _bark);
@@ -2346,6 +2496,10 @@ function syncActors(list, cache, builder, idOf, seen = new Set()) {
 // Peds never pop: they spawn out of sight (pedestrians.js asks world.pedView),
 // fade in/out with a screen-door dither, thin out towards DRAW_DIST, and
 // their meshes (~2 ms each) are built a few per frame instead of in bursts.
+// verre menigte (farcrowd3d.js): gewone voorbijgangers voorbij FAR_CROWD_FROM m als instances met een gebakken pose (alleen modulaire mensen)
+let farCrowd = null;
+const _pedFar = new Set();
+const farCrowdOk = (p) => !p.isCop && !p.look && !p.carry && !p.pose && !p.heldWeapon && !p.ragdoll && !p.hideMesh && !p.gibbed && p.state !== 'dead' && !p.attackFx && !p.hitReact;
 const _wildlifeNear = [], _wildlifeSeen = new Set(), _pedSeen = new Set(), _bubbleSeen = new Set(), _fireSeen = new Set();
 const PED_FADE_TIME = 0.6;
 const PED_EDGE_FADE = 14;
@@ -2404,6 +2558,16 @@ function buildPedActor(p, world) {
   // stable per-ped look, so a ped doesn't change clothes when it streams back in
   if (p._lookSeed === undefined) p._lookSeed = Math.random() * 1000;
   const outfit = pedOutfitOpts(p, world);
+  // fase 1 (ADR 0050, ?mensen=q): een gewone voorbijganger wordt een modulaire mens zodra de rigs geladen zijn; agenten,
+  // politie in uniform (modularlooks.js, modularwear.js) en verhaalfiguren met een eigen look ook; een kind en wie een vaste houding heeft
+  // blijven procedureel (de rigs zijn volwassen; de houdingen zitten nog alleen op het eigen rig)
+  if (mensenFase(FLAGS.mensen) >= 1 && modularReady() && !p.pose && !(p.look && p.look.age === 'child')) {
+    const sd = Math.floor(p._lookSeed * 7), skin = p.skin ? colorFromHex(p.skin) : 0xe0b48a;
+    const q = p.isCop ? buildModularFromAppearance({ cop: true, skin, seed: sd, variant: sd % 5 === 0 ? 'female' : 'male' })
+      : p.look ? buildModularFromAppearance({ shirt: p.clothing ? colorFromHex(p.clothing) : 0x6a6a6a, skin, seed: sd, variant: p.look.variant || p.variant || (sd & 1 ? 'female' : 'male'), hairStyle: p.look.hairStyle, look: p.look })
+      : buildModularPerson(p._lookSeed, { skin, shirt: p.clothing ? colorFromHex(p.clothing) : null });
+    if (q) { addBlobShadow(q, 0.85, 0.85); if (p.carry) attachCarry(q, p.carry); return enableShadows(q, false); }   // dragen en wapens: modularpeople.js modularHoldPose, modularHandSocket
+  }
   const mesh = buildPersonActor(p.clothing ? colorFromHex(p.clothing) : 0xcaa46a, p.skin ? colorFromHex(p.skin) : 0xe0b48a, p.look ? { seed: p._lookSeed, look: p.look } : outfit ? { seed: p._lookSeed, ...outfit } : { seed: p._lookSeed });
   if (p.carry) attachCarry(mesh, p.carry);
   return enableShadows(mesh, false);
@@ -2411,6 +2575,24 @@ function buildPedActor(p, world) {
 
 // how many frames a walker's pose stays: 1 (every frame), 2 or 4. Manhattan distance to the player in metres (a Euclid distance of up to 1.4 less).
 const PED_TIER_2 = 55, PED_TIER_4 = 130;
+// Voeten op de grond (actorlife.js, plantFeet): één hoogtevraag per voet op de laag waar de mens op staat (map.surfaceAt), alleen
+// dichtbij (lifeTier 0) en alleen waar de kaart hoogte heeft. Geen allocaties: de vraag hergebruikt één toestand.
+const _footSt = { z: 0, ribbon: null, kind: 'ground' };
+const Q_KNOCKED = Object.freeze({ knocked: true }); // parameters voor de state-machine van een uitgeschakelde modulaire mens
+let _footMap = null, _footEnt = null;
+function footGround(x, y) {
+  _footSt.z = _footEnt.gz || 0;
+  _footSt.ribbon = _footEnt.surf ? _footEnt.surf.ribbon : null;
+  return _footMap.surfaceAt(x, y, _footSt).z;
+}
+function groundFeet(mesh, ent, world) {
+  const map = world.map;
+  if (!map || !map.surfaceAt || !map.elev || !map.elev.has || perfOff('voetik')) return;
+  _footMap = map; _footEnt = ent;
+  plantFeet(mesh, footGround, 1);
+  _footEnt = null;
+}
+
 function pedTier(manhattan, p, now) {
   if (p.ragdoll || p.pose || p.carry || p.party || p.heldWeapon || p.attackFx || p.hitReact || p.greetUntil > now) return 1;
   if (perfOff('pedtier')) return simLevel() && manhattan > 45 ? 2 : 1;
@@ -2456,8 +2638,19 @@ function syncPedestrianMeshes(world, player, animDt) {
   const pedRange = perfOff('persoonsbereik') ? DRAW_DIST : Math.max(Math.min(DRAW_DIST, PED_RANGE_FAST), DRAW_DIST - Math.max(0, focusSpeed - PED_RANGE_FROM) * PED_RANGE_SLOPE);
   const seen = _pedSeen; seen.clear(); const pt0 = performance.now(), deadline = pt0 + plan.grant('actors', PED_BUILD_BUDGET_MS);
   let built = 0;
+  if (!farCrowd && mensenFase(FLAGS.mensen) >= 1) farCrowd = createFarCrowd(scene);
+  const farOn = !!(farCrowd && modularReady() && !perfOff('verremenigte') && farCrowd.ready);
+  if (farOn) farCrowd.begin();
+  _pedFar.clear();
   for (const p of world.pedestrians) {
-    { const dx = p.x - player.x, dy = p.y - player.y; if (dx * dx + dy * dy >= (pedRange > 0 ? pedRange * pedRange : 0)) continue; } // #985: kwadraten, Math.hypot is ~12x trager
+    const dx = p.x - player.x, dy = p.y - player.y, d2 = dx * dx + dy * dy;
+    if (d2 >= (pedRange > 0 ? pedRange * pedRange : 0)) continue; // #985: kwadraten, Math.hypot is ~12x trager
+    // ver weg: een plek in de verre menigte in plaats van een eigen gehuide mens (met hysterese: wie al een mens heeft, houdt hem tot FAR_CROWD_FROM)
+    if (farOn && d2 > (pedMeshes.has(p) ? FAR_CROWD_FROM * FAR_CROWD_FROM : FAR_CROWD_BACK * FAR_CROWD_BACK) && farCrowdOk(p)) {
+      if (p._lookSeed === undefined) p._lookSeed = Math.random() * 1000;
+      const sd = Math.floor(p._lookSeed * 7);
+      if (farCrowd.add(p.x, p.gz || 0, p.y, p.angle || 0, sd, (sd & 1) === 1)) { _pedFar.add(p); continue; }
+    }
     seen.add(p);
     if (pedMeshes.has(p)) continue;
     const over = built > 0 && performance.now() > deadline;
@@ -2469,10 +2662,11 @@ function syncPedestrianMeshes(world, player, animDt) {
     built++;
   }
   plan.spend('actors', performance.now() - pt0);
+  if (farOn) farCrowd.end(world.time || 0);
   for (const [p, mesh] of pedMeshes) {
     if (seen.has(p)) continue;
     pedMeshes.delete(p);
-    if (instant || !mesh.visible) disposePedMesh(mesh);
+    if (instant || !mesh.visible || _pedFar.has(p)) disposePedMesh(mesh);   // naar de verre menigte: meteen weg, anders staat hij er dubbel
     else pedFadingOut.push(mesh);
   }
 
@@ -2491,6 +2685,14 @@ function syncPedestrianMeshes(world, player, animDt) {
     if (p.gibbed) { mesh.visible = false; continue; }
     if (p.hideMesh) { mesh.visible = false; ud.fadeLevel = -1; continue; } // fierljep.js draws its own actor
     if (driveRagdoll(p, mesh, world, animDt)) continue;
+    if (p.state === 'dead' && ud.qRig) {
+      // een modulaire mens zakt in met de val uit de state-machine (knockdown, zonder bloed; ADR 0051) en blijft liggen
+      mesh.position.set(p.x, p.gz || 0, p.y);
+      mesh.rotation.set(0, -p.angle, 0);
+      ud.qParams = Q_KNOCKED;
+      animatePersonWalk(mesh, 0, animDt);
+      continue;
+    }
     if (p.state === 'dead') {
       // topple backwards over ~0.3s, then lie flat until the ped is removed
       const fall = Math.min(1, (world.time - (p.deadUntil - DEAD_DURATION)) / 0.3);
@@ -2509,6 +2711,7 @@ function syncPedestrianMeshes(world, player, animDt) {
     // skinned mesh whose bones the renderer works out and uploads as a texture at every draw (~20 GL calls a person), and most of the people in the
     // ring are far (?perfoff=pedtier: as before, half rate beyond 45 m only on a CPU-bound machine, simload.js)
     const tier = pedTier(Math.abs(p.x - player.x) + Math.abs(p.y - player.y), p, world.time);
+    if (ud.qRig) setModularLod(mesh, lodForDistance(Math.hypot(p.x - player.x, p.y - player.y), ud.qLod)); // LOD van een modulaire mens (ADR 0050)
     if (tier > 1) {
       ud.animAcc = (ud.animAcc || 0) + animDt;
       ud.animTick = (ud.animTick || 0) + 1;
@@ -2517,7 +2720,11 @@ function syncPedestrianMeshes(world, player, animDt) {
       holdSkeleton(mesh, false); ud.gazeT = NaN;
       animatePersonWalk(mesh, p.speed || 0, ud.animAcc);
       ud.animAcc = 0;
-    } else { holdSkeleton(mesh, false); glanceAt(ud, p, player, world.time); animatePersonWalk(mesh, p.speed || 0, animDt); } // gait.js: a walker near you glances at you now and then
+    } else {
+      holdSkeleton(mesh, false); glanceAt(ud, p, player, world.time); animatePersonWalk(mesh, p.speed || 0, animDt); // gait.js: a walker near you glances at you now and then
+      const fx = p.x - player.x, fy = p.y - player.y;
+      if (!p.pose && !p.ragdoll && lifeTier(fx * fx + fy * fy) === 0) groundFeet(mesh, p, world); // voeten op een helling of trap (actorlife.js)
+    }
     shareFeet(p, ud, world.time); // the heel contact of the drawn walk cycle for sfx/foley.js (out of the frame or far off: its stride counter)
     if (p.carry && !p.pose) carryPose(mesh, p.carry);
     // a road-rager (roadrage.js) holds what he brought and swings it
@@ -2700,6 +2907,7 @@ export function update3D(dt, world) {
   if (!world.cinemaLean) updateStreetFurniture3D(focus.x, focus.y);
   probe.mark('3d:roads');
   syncTrees(world, focus.x, focus.y);
+  syncTreeImpostors(world, focus.x, focus.y);
   probe.mark('3d:trees');
   updateRailway3D(dt, world, focus, viewDist);
   if (!world.cinemaLean) updateStationCrowd3D(scene, world, railZ);
@@ -2780,6 +2988,9 @@ export function update3D(dt, world) {
       ensureDriverFigure(mesh, v, driverDist, driverDeadline);
       const df = mesh.userData.driverFigure;
       if (df) df.visible = hasAiDriver(v) && hystVisible(df.visible, driverDist, DRIVER_FIGURE_DIST);   // met hysterese: een auto die rond 70 m rijdt laat zijn bestuurder niet aan en uit knipperen
+      // een boos gebaar achter het stuur als de speler sneed of rakelings langs scheurde (trafficreact.js, #1315)
+      if (df && df.visible && v.gestureUntil > world.time && world.time >= v.gestureFrom) { fistOverlay(df, world.time); df.userData.gesturing = true; }
+      else if (df && df.userData.gesturing) { df.userData.gesturing = false; seatPose(df, vehicleSeat(v, true).pose); }
       ensurePassengerFigure(mesh, v, driverDist, driverDeadline);
       const pf = mesh.userData.passengerFigure;
       if (pf) pf.visible = df ? df.visible && seatedOf(v).passengers.length > 0 : false;
@@ -3038,16 +3249,23 @@ export function update3D(dt, world) {
   // while streaming catches up after a jump the far LOD stands in closer
   const lodR = viewDist > DRAW_DIST + 20 ? Math.min(DRAW_DIST, buildingDetailR, roadDetailR + 8) : DRAW_DIST;
   const flt0 = performance.now(), fl = streamLead(streamAhead);
+  // de dither-overgang detailgebouw / verre kopie (buildingfade.js) alleen als er een verre laag is; anders de harde wissel op de ring
+  lodShared().uLodBand.value = viewDist > DRAW_DIST + 20 && !perfOff('gebouwfade') ? BUILDING_FADE_BAND : 0;
   farLod.update(focus.x, focus.y, viewDist, Math.min(viewDist, scene.fog.far) + 20, lodR, { keep: ringKeep, budgetMs: plan.grant('far', 2.5), lead: fl.lead > 0 ? fl : null });
   plan.spend('far', performance.now() - flt0);
   probe.mark('3d:farlod');
 
-  if (player.character !== playerCharacter) {
+  // spelerfase (?mensen=q3, ADR 0050): de speler wordt een modulaire mens zodra de rigs geladen zijn
+  const playerQ = mensenFase(FLAGS.mensen) >= 3 && modularReady();
+  if (playerQ) setModularPlayerLooks(true);
+  if (player.character !== playerCharacter || (playerQ && !playerMesh.userData.qRig)) {
     playerCharacter = player.character;
     scene.remove(playerMesh);
     disposeObject(playerMesh); // #788: de oude look geeft zijn gedeelde rompgeometrie terug
     const appearance = playerCharacter === 'anita' ? ANITA_APPEARANCE : TAMMO_APPEARANCE;
-    playerMesh = buildPersonActor(appearance.shirt, appearance.skin, appearance);
+    const q = playerQ ? buildModularFromAppearance(appearance) : null;
+    if (q) addBlobShadow(q, 0.85, 0.85);
+    playerMesh = q ? enableShadows(q, false) : buildPersonActor(appearance.shirt, appearance.skin, appearance);
     scene.add(playerMesh);
   }
 
@@ -3080,6 +3298,7 @@ export function update3D(dt, world) {
     if (seated) {
       playerMeshPlaced = true;
       playerMesh.scale.y = 1;
+      playerMesh.userData.steer = pv.isBike || pv.isScooter ? 0 : pv.steer || 0; // handen aan het stuur (actorlife.js, seatPose 'wheel')
       placeSeated(playerMesh, pvMesh, pv, vehicleSeat(pv, true), world.time);
       playerMesh.userData.shadow.visible = false;
     }
@@ -3094,9 +3313,15 @@ export function update3D(dt, world) {
       playerMesh.rotation.y = -player.angle;
       playerMesh.scale.y = 1;
       playerMesh.userData.crouch = !!player.crouching;
+      if (playerMesh.userData.qRig) { // de parameters van de state-machine (ADR 0051): water, in de lucht, op de bank
+        const qp = playerMesh.userData.qPlayerP || (playerMesh.userData.qPlayerP = {});
+        qp.water = !!player.swimming; qp.grounded = !(player.z > 0.25) && !player.vault; qp.vy = player.vz || 0; qp.jump = player.z > 0.05 && player.vz > 0; qp.seated = player.sofaSeat != null; qp.climbing = player.water === 'climb';
+        playerMesh.userData.qParams = qp;
+      }
       playerMesh.userData.air = player.vault ? player.airPose || 0 : !player.perch && !player.swimming && player.z > 0.25 ? 0.45 : 0;
       playerMesh.userData.shadow.position.y = 0.02 - (player.z || 0) / playerMesh.scale.y;
       animatePersonWalk(playerMesh, Math.hypot(player.vx, player.vy), animDt); shareFeet(player, playerMesh.userData, world.time); // gait.js: the heel contact for sfx/foley.js
+      if (!player.swimming && !player.vault && !player.perch && !(player.z > 0.02) && !player.wade) groundFeet(playerMesh, player, world); // voeten op de grond (actorlife.js)
       if (player.vault && Number.isFinite(player.vaultU)) vaultPose(playerMesh, player.vaultU, !!player.vault.climb, world.time);
       else if (player.swimming && !player.inVehicle) {
         // zwemmen (#207): schoolslag bij beweging, rustig watertrappelen als je stilligt; uit het water
@@ -3140,11 +3365,19 @@ export function update3D(dt, world) {
   const comp = world.coop && world.coop.remote ? null : world.companion;
   if (!comp && companionMesh) companionMesh.visible = false; // geen computermetgezel: geen tweede Tessa in beeld (#502)
   if (comp) {
-    if (comp.character !== companionCharacter) {
-      companionCharacter = comp.character;
-      const appearance = companionCharacter === 'anita' ? ANITA_APPEARANCE : TAMMO_APPEARANCE;
+    const compKey = metgezelSleutel(world); // op een gast is dit de gastheer: zijn online-avatar met naamlabel (#455), anders de verhaalrol
+    if (compKey !== companionCharacter) {
+      companionCharacter = compKey;
       if (companionMesh) { scene.remove(companionMesh); disposeObject(companionMesh); } // #788
-      companionMesh = buildPersonActor(appearance.shirt, appearance.skin, appearance);
+      const hostAv = gastheerAvatar(world);
+      if (hostAv) {
+        const look = avatarLook(hostAv);
+        companionMesh = buildPersonActor(look.shirt, look.skin, look.opts);
+        companionMesh.add(makeLabel(avatarLabel(hostAv)));
+      } else {
+        const appearance = comp.character === 'anita' ? ANITA_APPEARANCE : TAMMO_APPEARANCE;
+        companionMesh = buildPersonActor(appearance.shirt, appearance.skin, appearance);
+      }
       scene.add(companionMesh);
     }
     const cv = comp.coopBestuurt ? null : comp.inVehicle; // een gast die zelf stuurt: coopzitten3d.js zet hem op stoel 0 (#434)
@@ -3448,6 +3681,7 @@ export function update3D(dt, world) {
   progSortOn = !perfOff('progsort');
   probe.mark('3d:render:pre');
   cullOffscreenActors();
+  updateLodObjects(cam); // centraal LOD-systeem (lodkit3d.js): losse modellen (treinen, boten) op afstand tot de camera
   skipHiddenMatrixWalk();
   probe.mark('3d:render:cull');
   try { postfx.render(); } finally { restoreCulledActors(); }
@@ -3876,7 +4110,8 @@ function applyTimeOfDay(dt, world) {
   setStarOpacity(skyDome, L.night * (1 - cover));
   setNightFactor(1.5 * L.night, litFraction('wonen', L.hour), litFraction('winkel', L.hour), litFraction('kantoor', L.hour));
   // the leaves' emissive fill fades with the same night as the windows (#463)
-  TREE_FAR_MAT.emissiveIntensity = TREE_CANOPY_MAT.emissiveIntensity = foliageGlow(L.night);
+  TREE_FAR_MAT.emissiveIntensity = TREE_FAR_MATS[0].emissiveIntensity = TREE_FAR_MATS[1].emissiveIntensity = TREE_CANOPY_MAT.emissiveIntensity = foliageGlow(L.night);
+  if (treeImpostors) treeImpostors.material.emissiveIntensity = TREE_CANOPY_MAT.emissiveIntensity; // de billboards van de verre bossen gloeien mee
   farLod.setNight(1.5 * L.night, litFraction('wonen', L.hour));
   setCountryNight(1.5 * L.night, litFraction('wonen', L.hour));
   scene.fog.near = lightBase.fogNear;

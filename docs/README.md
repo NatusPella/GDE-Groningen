@@ -49,6 +49,7 @@ De werkafspraken en de constitutie staan in [../AGENTS.md](../AGENTS.md); die wi
 | [AI-TELLS-23-11.md](<AI-TELLS-23-11.md>) | Waar lezers en publishers AI-tekst aan herkennen (met bronnen), hoe scripts/ai_tells_scan.mjs dat in de speltekst telt, de stand voor en na en wat bewust blijft. Regels: [`ui-taal.md`](../.specs-fire/standards/ui-taal.md). |
 | [CUTSCENE-ISSUES-23-11.md](<CUTSCENE-ISSUES-23-11.md>) | Visuele en regievondsten in de cutscenes (23-11, twee rondes): wat er mis was in beeld, wat is opgelost en wat nog open staat. |
 | [AI-TELLS-BEELD-23-11.md](<AI-TELLS-BEELD-23-11.md>) | Beeld-audit op AI-kenmerken (23-11): gevel, deur, markies, bord, bomen, straatgroen en schaal, met de meting en wat is aangepast. |
+| [ART-DIRECTION.md](<ART-DIRECTION.md>) | Canonieke stijlgids voor de 3D-wereld: kleurpaletten, licht, materialen, vormen en kwaliteitsnormen, met scripts/artdirection_audit.mjs als controle. |
 | [ANDROID.md](<ANDROID.md>) | Lokaal bouwbare debug-APK van het spel (Capacitor-WebView rond de webversie). Alleen voor testen: niets upl… |
 | [ARCHITECTUUR-STAD-NAAR-TEGELS.md](<ARCHITECTUUR-STAD-NAAR-TEGELS.md>) | *Migratieplan voor issue #90, 17 oktober 2026 (stand 0.34 + Unreleased). Historisch: de migratie is |
 | [BAG-LOD22.md](<BAG-LOD22.md>) | Besluit van de eigenaar: de 3D BAG-modellen (LoD 2.2: echte daken met dakkapellen, overstekken en schoorste… |
@@ -266,6 +267,7 @@ De werkafspraken en de constitutie staan in [../AGENTS.md](../AGENTS.md); die wi
 | [INTERIEURS-VERIFICATIE-21-11.md](<INTERIEURS-VERIFICATIE-21-11.md>) | Interieurs: de lijst van wat in beeld en in het spel nog gecontroleerd moet worden (deur, gevel, licht, camera, mensen, kosten). |
 | [PAGES-BUILD-21-11.md](<PAGES-BUILD-21-11.md>) | Proefbouw van de webversie voor GitHub Pages (lokaal, 21-11): bouwen, subpad, grootte (599 MB), wat getest is en wat niet, livebussen (CORS). |
 | [PAGES-WORKFLOW-21-11.md](<PAGES-WORKFLOW-21-11.md>) | De handmatige Pages-workflow voor spel en marketing (#1090, ADR 0048): wereld uit de release, alleen Opus, spel onder /play/, hoe de coördinator deployt, wat er in web niet werkt, privacy. |
+| [LOD-SYSTEEM-23-11.md](<LOD-SYSTEEM-23-11.md>) | Het centrale LOD-systeem (23-11): lodlevels, lodregistry, lodkit3d en lod3d, de afstanden per soort en stand, de dither-overgang en de LOD-audit. |
 | [MODEL-LICENTIES.md](<MODEL-LICENTIES.md>) | Licenties van 3D-modellen van derden die (omgezet) in de repo staan: bron, licentie (CC0), auteurshandle en waar ze in het spel zitten. |
 | [MISSIE-AAA-AKTE1-2.md](<MISSIE-AAA-AKTE1-2.md>) | AAA voor akte 1 en 2 (#955, #963): auditkaart per missie (nu, mist, AAA-versie, kosten, stand), de tussen-beats en nasleep, de aankleding bij start en doel, wachten met een tweede wachtende, wat niet is gedaan of bekeken. |
 | [MISSIE-AAA-AKTE3-4.md](<MISSIE-AAA-AKTE3-4.md>) | AAA-auditkaarten voor de missies van akte 3 en 4 (M12 tot M21): wat er was, wat er bij kwam (openingsbeeld, tussenbeats, nasleep, aankleding, wachtspullen), de zes grensgevallen van de missieprop-audit en wat nog niet in beeld is bekeken. |
@@ -277,6 +279,7 @@ De werkafspraken en de constitutie staan in [../AGENTS.md](../AGENTS.md); die wi
 | [SFX-KOPPELING-21-11.md](<SFX-KOPPELING-21-11.md>) | SFX ronde 6: van 39 naar 76 van de 100 gebeurtenissen gekoppeld aan echte spelacties, per koppelpunt met Samen-spelen-beleid, en de 24 die nog niet kunnen met de reden. |
 | [SFX-LUISTERLIJST.md](<SFX-LUISTERLIJST.md>) | Wat een mens moet beluisteren van de nieuwe geluiden: waar je ze in het spel hoort, wat er niet goed mag klinken en hoe je het meldt. |
 | [AUDIO-LICENTIES.md](<AUDIO-LICENTIES.md>) | Alle geluidsopnames met bron-URL, Freesound-id, titel, auteurshandle, licentie (CC0 of CC BY), bewerking, sha256 en datum; gegenereerd uit het manifest (ADR 0039). |
+| [ANIMATIE-LICENTIES.md](<ANIMATIE-LICENTIES.md>) | Modellen en animatiesets van de mensen (Quaternius Ultimate Modular Men/Women en Universal Animation Library, CC0): bron, licentie, wat in de repo staat en hoe het is omgezet (ADR 0050). |
 | [SPRINT-22-11-GEBIED.md](<SPRINT-22-11-GEBIED.md>) | Sprint 22-11 graphics (mensen, voertuigen, dieren): echte kippen, kudde-poses, vier schaapsoorten, bestuurder met hysterese, kleurrijker verkeer; voor en na en wat nog in beeld bekeken moet worden. |
 | [AUDIO-GLITCHES-21-11.md](<AUDIO-GLITCHES-21-11.md>) | Melding van Nikky over glitches en ruis: hypotheses, wat bewezen is, de limiter en de diagnose, en een checklist voor het apparaat. |
 | [VERFIJNING-22-11-AUDIO.md](<VERFIJNING-22-11-AUDIO.md>) | Verfijnronde geluid, muziek en radio: de randgevallen in de zuivere audiomodules, wat er is vastgezet en wat bewust niet. |

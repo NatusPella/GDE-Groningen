@@ -857,6 +857,7 @@ html.touch-device #pause-menu .sp-tabkey { display: none; }
 #pause-menu .pm-hub-kt { overflow-wrap: anywhere; min-width: 0; display: block; font-family: var(--ds-font-kop); font-size: var(--ds-t-subkop); line-height: var(--ds-lh-kop); letter-spacing: var(--ds-ls-kop); text-transform: uppercase; }
 #pause-menu .pm-hub-staat { justify-self: end; align-self: start; min-height: 28px; padding: 0 var(--ds-s-3); }
 #pause-menu .pm-hub-keuze small { grid-column: 2 / -1; font-size: var(--ds-t-body); line-height: var(--ds-lh-tekst); color: var(--ds-tx-zacht); }
+#pause-menu .pm-hub-meer { display: inline-flex; vertical-align: middle; color: var(--ds-tx-zacht); cursor: help; } /* #1222: de uitleg achter een info-icoon */
 #pause-menu .pm-hub-rijen { display: flex; flex-direction: column; gap: 6px; margin: 0; padding: 0; list-style: none; max-width: 820px; }
 #pause-menu .pm-hub-rijen li { display: flex; align-items: baseline; gap: 10px; padding: 8px 12px; border-radius: 8px; background: color-mix(in srgb, var(--ds-c-creme) 4%, transparent); font-size: 20px; line-height: 1.35; }
 #pause-menu .pm-hub-rijen li::before { flex: none; width: 20px; text-align: center; color: var(--g); }
@@ -1009,7 +1010,7 @@ html.touch-device #pause-menu .sp-tabkey { display: none; }
 .coop-profiel-label, .coop-wachtwoord-label { display: flex; gap: 8px; align-items: center; }
 .coop-profiel-naam { min-width: 0; flex: 1; max-width: 260px; }
 .coop-kleuren { display: flex; flex-wrap: wrap; gap: 6px; }
-.coop-kleuren .coop-kleur { min-height: 44px; }
+.coop-kleuren .coop-kleur { min-height: 44px; min-width: 44px; padding-inline: var(--ds-s-2); } /* #1223: een stip, geen naam */
 .coop-profiel-hint { margin: 0; }
 .coop-wachtwoord-veld .coop-wachtwoord-label { max-width: 560px; } /* #1011: het veld mag naar een eigen regel, anders kapte de plaatshouder af */
 .coop-wachtwoord { min-width: 13em; flex: 1 1 16em; text-overflow: ellipsis; }
@@ -1436,3 +1437,9 @@ html.pad-active #pause-menu.gm :is(.ra, .m-li, .m-tab, .m-bp, .m-bg, .m-bt, .m-c
 #pause-menu .pm-settab .pm-slist .m-gh:not(:first-child) { margin-top: 12px; padding-top: 14px; border-top: var(--ds-lijn-zeef, 2px) solid color-mix(in srgb, var(--ds-c-ink-inkt) 18%, transparent); }
 #pause-menu.gm .pm-settab .pm-slist .m-li .nm > .mut { color: var(--ds-c-inkt-zacht); }
 html.pad-active #pause-menu.gm [data-panel="settings"] .m-tablist .m-tab:focus { outline-width: 2px; outline-offset: -2px; }
+/* #1200 (hertest 24-11): de tien tabbladen van Instellingen stonden krap en klein (16 px) op een regel. Op een breed scherm is er ruimte:
+   groter en met meer lucht ertussen; op een smaller scherm blijft de compacte rij. */
+@media (min-width: 1600px) and (min-height: 900px) {
+  #pause-menu.gm [data-panel="settings"] .pm-inner.pm-settings > .m-tabs .m-tablist { gap: 0 22px; }
+  #pause-menu.gm [data-panel="settings"] .m-tablist .m-tab { height: 50px; font-size: max(18px, var(--menu-min)); }
+}

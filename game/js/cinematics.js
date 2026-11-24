@@ -1435,7 +1435,7 @@ function cinemaCamPose(w) {
       const e = interiorEyePose(v);
       if (!e) return { position: W(x + fx * 2.8, 0.85, y + fy * 2.8), lookAt: W(x + fx * 30, 1, y + fy * 30), fov: 68, cut: true };
       const ca = v.angle != null ? v.angle : eigen.angle, cx = Math.cos(ca), cy = Math.sin(ca);
-      return { position: W(e.x, e.z, e.y), lookAt: W(e.x + cx * 30, e.z - 0.4, e.y + cy * 30), fov: 74, cut: true, interior: true };
+      return { position: W(e.x, e.z, e.y), lookAt: W(e.x + cx * 30, e.z - 0.4 + 30 * Math.tan(e.pitch || 0), e.y + cy * 30), fov: 74, cut: true, interior: true };
     }
     default: return null;
   }

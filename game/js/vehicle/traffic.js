@@ -10,7 +10,8 @@ import { stapBusHalte, wisBusHalte } from './busstopai.js';
 import { trafficSignalsNear, trafficLightPhaseMove } from '../trafficlights.js';
 import { roadPriority, junctionArm } from '../junctions.js';
 import { sirenYield, zebraSpeedLimit } from '../trafficyield.js';
-import { hornYield, hornAsideSpeed, HORN_ASIDE_HOLD, HORN_BACK_DELAY, HORN_BACK_LEN, HORN_BACK_COOLDOWN } from '../hornreact.js';
+import { hornYield, hornAsideSpeed, drivenVehicles, HORN_ASIDE_HOLD, HORN_BACK_DELAY, HORN_BACK_LEN, HORN_BACK_COOLDOWN } from '../hornreact.js';
+import { classify, reaction } from '../trafficreact.js';
 import { bridgeSpeedLimit } from '../movablebridges.js';
 import { vehicleHooks } from '../vehiclehooks.js';
 import { hoofdspeler } from '../players.js';
@@ -972,6 +973,32 @@ function resolveDeadlocks(v, dt, world, follow, lightV) {
   v.ignoreId = -1;
 }
 
+// A human driver (host or guest) cuts in, comes at us on our side of the road or skims past (trafficreact.js, #1315):
+// a horn after a short reaction time, an angry gesture from behind the wheel (scene3d.js draws it), and towards a
+// wrong-way driver a swerve to the kerb. Braking for the car in the lane is followSpeedLimit's job already.
+const trafficReactStats = { snijden: 0, spookrijder: 0, rakelings: 0 };
+function reactToHumanDrivers(v, world) {
+  const ds = drivenVehicles(world);
+  if (!ds.length || v.isPolice || v.isBus || v.isBike) return;
+  const now = world.time;
+  for (let i = 0; i < ds.length; i++) {
+    const kind = classify(v, ds[i]);
+    if (!kind) continue;
+    const r = reaction(kind, v, now, Math.random());
+    if (!r) continue;
+    v._reactAt = now;
+    if (r.honk) { v.reactHornAt = now + 0.35; v.reactHornUntil = now + 0.35 + r.honk; }
+    if (r.gesture) { v.gestureFrom = now + 0.3; v.gestureUntil = now + 0.3 + r.gesture; }
+    if (r.swerve) { v.laneMode = 'yield'; v.laneModeUntil = now + r.swerve; v.yieldHard = false; v.yieldSoft = false; }
+    if (r.line) {
+      const p = hoofdspeler(world);
+      if (Math.abs(p.x - v.x) + Math.abs(p.y - v.y) < 30) (world.extraSpeakers || (world.extraSpeakers = [])).push({ x: v.x, y: v.y, h: 1.9, speechText: r.line, speechUntil: now + 2.6, follow: v });
+    }
+    trafficReactStats[kind]++;
+    return;
+  }
+}
+
 // opts.goal ({x, y}) steers junction choices toward a target; opts.chase
 // drives faster, tighter and ignores traffic lights (police pursuit).
 export function updateTrafficAI(v, dt, map, world, rng = Math.random, opts = null) {
@@ -1022,6 +1049,7 @@ export function updateTrafficAI(v, dt, map, world, rng = Math.random, opts = nul
   const honked = !yielding && !chase && !v.sirenOn ? hornYield(v, world) : null;
   if (honked === 'aside') { v.laneMode = 'yield'; v.laneModeUntil = world.time + HORN_ASIDE_HOLD; v.yieldHard = false; v.yieldSoft = true; }
   else if (honked === 'honk' && world.time > (v.hornBackAt || -99) + HORN_BACK_COOLDOWN) v.hornBackAt = world.time + HORN_BACK_DELAY;
+  if (!yielding && !chase) reactToHumanDrivers(v, world);
   if (yielding) { v.laneMode = 'yield'; v.laneModeUntil = world.time + 1.2; v.yieldHard = yielding === 'stop'; v.yieldSoft = false; }
   else if (!small0 && !chase && (!v.laneMode || v.laneMode === 'left')) v.laneMode = wantsTurnLane(v) ? 'left' : null;
   if (goal && world.time - (v.planAt || 0) > 1.5) {
@@ -1093,7 +1121,8 @@ export function updateTrafficAI(v, dt, map, world, rng = Math.random, opts = nul
   }
   const blockedByPlayer = (walkerV < 0.5 || (!!o && o.driver === 'player' && follow.vmax < 0.5)) && Math.abs(v.speed) < 0.5;
   v.hornFor = blockedByPlayer ? (v.hornFor || 0) + dt : 0;
-  v.horn = (v.hornFor > 1.5 && v.hornFor < 2.2) || (v.hornBackAt != null && world.time >= v.hornBackAt && world.time < v.hornBackAt + HORN_BACK_LEN);
+  v.horn = (v.hornFor > 1.5 && v.hornFor < 2.2) || (v.hornBackAt != null && world.time >= v.hornBackAt && world.time < v.hornBackAt + HORN_BACK_LEN) ||
+    (v.reactHornAt != null && world.time >= v.reactHornAt && world.time < v.reactHornUntil);
   v.stuckFor = Math.abs(v.speed) < 0.6 && vTarget > 2 ? (v.stuckFor || 0) + dt : 0;
   // what holds a car that wants to stand still (the junction sim test reads it)
   v._why = vTarget >= 0.5 ? null : follow.vmax < 0.5 ? 'queue' : lightV < 0.5 ? 'light' : walkerV < 0.5 ? 'walker' : yieldV < 0.5 ? 'yield' : 'other';

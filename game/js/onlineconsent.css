@@ -71,7 +71,10 @@
 
 /* Naamkaart en keuzekaart staan onderaan, zodat het GDE-logo van het laadscherm erboven zichtbaar blijft; de laadstatus
    (balk en regel) is dan weg, want er wordt niet meer geladen dat de speler hoeft te zien. */
-.os-overlay { place-items: end center; padding-bottom: max(24px, 4vh); }
+/* #1228 (hertest 24-11): alleen zolang dat logo er staat. Zonder laadscherm (de keuze in een lopend spel, de afsluitvraag, de
+   moeilijkheidskaart na het laden) of op een laag scherm waar het logo verborgen is, staat de kaart gewoon gecentreerd. */
+body:has(#loading:not(.done)) .os-overlay { place-items: end center; padding-bottom: max(24px, 4vh); }
+@media (max-height: 860px) { body:has(#loading:not(.done)) .os-overlay { place-items: center; padding-bottom: 24px; } }
 body:has(#online-start) #loading .bt-load { visibility: hidden; }
 @media (max-height: 860px) { body:has(#online-start) #loading .bt-logo { visibility: hidden; } }
 

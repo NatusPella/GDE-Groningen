@@ -23,6 +23,7 @@ export const WARM = {
   tileRadiusM: 400, // de straal waarin tegels vooraf worden gevraagd
   lifeS: 8,         // zo lang blijft een warm-plek beschermd
   maxWaitMs: 1200,  // een harde sprong wacht hoogstens zo lang (vanaf de cut, uit- en induiken niet meegeteld)
+  startWaitMs: 4000, // #1171: de sprong bij het begin van een film (nog niets gezien, het beeld begint zwart) mag langer wachten
   minWaitMs: 120,   // zo lang onder zwart wachten, zodat de streams hun focus gevolgd hebben voor "klaar" telt
   dipOutMs: 240,    // naar zwart (DS3-ritme: <= 300 ms)
   dipInMs: 260,     // terug uit zwart
@@ -56,6 +57,23 @@ export function jumpsFromStops(stops, p = WARM) {
     if (kind !== 'none') out.push({ idx: i, t: b.t, from, to, dist: d, kind });
   }
   return out;
+}
+
+// #1171 (hertest 24-11): de opening begon met een leeg grijsgroen beeld. Het eerste shot (de Martinitoren) ligt ver van waar de speler staat
+// (het nieuwe thuis in Paddepoel), maar het eerste shot had geen sprong: de montage gooide de shots op t <= 0 weg en jumpsFromStops slaat
+// het eerste over. Dit zet de plek van de speler vooraan (van daar springt de camera echt) en het shot dat bij de start in beeld is op een
+// heel klein beetje na 0, zodat de wachtpoort bij de eerste stap meteen onder zwart wacht tot de toren er staat.
+// stops: [{ t, x, y, ex?, ey? }] in filmtijd (t < 0: al voorbij); from: { x, y } of null. Puur.
+export const FIRST_JUMP_T = 0.001; // net na 0: de eerste stap van de film (t 0 naar een frame verder) arm de poort al
+export function stopsFromStart(stops, from) {
+  const geldig = (stops || []).filter((q) => q && finite(q.t) && finite(q.x) && finite(q.y));
+  const voorbij = geldig.filter((q) => q.t <= 0);
+  const nu = voorbij.length ? voorbij[voorbij.length - 1] : null;
+  const rest = geldig.filter((q) => q.t > 0);
+  const out = [];
+  if (from && finite(from.x) && finite(from.y)) out.push({ t: -1, x: from.x, y: from.y });
+  if (nu) out.push({ ...nu, t: FIRST_JUMP_T });
+  return out.concat(rest.map((q) => (q.t < FIRST_JUMP_T * 2 && nu ? { ...q, t: FIRST_JUMP_T * 2 } : q)));
 }
 
 // Sprongen uit een gecompileerde scène (cutscript.js compileScene: .shots[{ t }], .sample(t, anchor) -> camera): per cut het
@@ -139,7 +157,7 @@ export function createJumpGate(p = WARM) {
         const waited = now - t0;
         const quick = waited - Math.max(0, p.dipOutMs) < p.minWaitMs;
         if (!quick && ready) reason = 'klaar';
-        else if (waited >= p.maxWaitMs) { reason = 'time-out'; stats.timeouts++; }
+        else if (waited >= (jump && jump.t <= FIRST_JUMP_T && p.startWaitMs ? p.startWaitMs : p.maxWaitMs)) { reason = 'time-out'; stats.timeouts++; }
         if (reason) {
           stats.waitedMs += waited; stats.maxWaitedMs = Math.max(stats.maxWaitedMs, waited);
           phase = 'in'; tPhase = now;
@@ -195,7 +213,7 @@ export function createJumpRunner(jumps, env, { p = WARM, skipGate = false } = {}
             if (rd(j, false).ready) { note({ ev: 'cut', idx: j.idx, t: j.t, dist: Math.round(j.dist), ready: true }); break; } // op tijd klaar: een gewone cut
             gateAt = now;
             note({ ev: 'gate', idx: j.idx, t: j.t, dist: Math.round(j.dist), why: rd(j, false).reason });
-            const r = gate.arm(j, now, { instant: false });
+            const r = gate.arm(j, now, { instant: j.t <= FIRST_JUMP_T }); // #1171: bij het begin meteen zwart, geen uitduik over een leeg beeld
             apply(r);
             allowed = Math.max(0, j.t - p.hold);
             break;

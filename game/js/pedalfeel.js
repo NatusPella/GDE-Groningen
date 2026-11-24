@@ -23,7 +23,7 @@ export function pedalAxis(gas, brake) {
 }
 
 // --- stick steering ----------------------------------------------------------------------
-export const STEER_EXPO = 0.45; // share of the cubic part: 0 is linear, 1 is fully cubic
+const STEER_EXPO = 0.45; // share of the cubic part: 0 is linear, 1 is fully cubic
 
 // Expo curve for the steering stick: small deflections steer finer (lane changes at speed
 // without sawing), full deflection is still full lock. Odd and monotonic.

@@ -327,7 +327,10 @@ function renderDetail() {
   co.innerHTML = probleem ? calloutHtml(probleem) : '';
   bar.classList.toggle('ds-z-kaart--probleem', !!probleem);
   const btn = bar.querySelector('.sm-buy');
-  btn.innerHTML = `<span class="sm-buy-tekst">${esc(buyLabel(it))}</span>` + (it.disabled ? '' : `<span class="ds-z-knop__sub">${toetsHint()}${esc(isArmed ? ' nog eens om te bevestigen' : it.income > 0 ? ' om te verkopen' : it.price > 0 ? ' om te kopen' : ' om te kiezen')}</span>`);
+  // #1258 (hertest 24-11): de toets staat IN de knop (DS3, zoals elke knop met een toets), zonder de kleine hint "om te kopen" eronder;
+  // het label zegt al wat er gebeurt ("Kopen voor", "Zeker? Nog eens: ...")
+  btn.innerHTML = `<span class="sm-buy-tekst ds-z-knop__label">${esc(buyLabel(it))}</span>` + (it.disabled ? '' : `<span class="ds-z-knop__toets" aria-hidden="true">${toetsHint()}</span>`);
+  btn.classList.toggle('ds-z-knop--toets', !it.disabled);
   btn.setAttribute('aria-disabled', it.disabled ? 'true' : 'false');
   btn.classList.toggle('armed', isArmed);
   // risicovol: omlijnd in plaats van geel, met de reden eronder; de ene gele knop blijft voor "kan nu"

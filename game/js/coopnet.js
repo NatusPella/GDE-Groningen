@@ -749,9 +749,8 @@ export function zetInBoot(world, lichaam) {
     return true;
   }
   if (Object.values(figures(world)).filter((f) => f.inVeh === v).length >= figuurPlekken(v)) return false;
-  const bezet = new Set(Object.values(figures(world)).filter((f) => f.inVeh === v).map((f) => f.stoel));
-  let stoel = 0; while (bezet.has(stoel)) stoel++;
-  lichaam.inVeh = v; lichaam.coopVoertuig = true; lichaam.stoel = stoel; lichaam.x = v.x; lichaam.y = v.y; lichaam.vx = 0; lichaam.vy = 0;
+  // dezelfde stoelen als bij de band (vrijeStoel: 2 en hoger); stoel 0 is de bestuurder, dus daar zat de gast in de gastheer (samen-qa 24-11, M06)
+  lichaam.inVeh = v; lichaam.coopVoertuig = true; lichaam.stoel = vrijeStoel(world, lichaam, v); lichaam.x = v.x; lichaam.y = v.y; lichaam.vx = 0; lichaam.vy = 0;
   return true;
 }
 const BOOT_MELD = 'Je zit weer in de boot.'; zetGroepWarpHaken({ inBoot: zetInBoot }); // groepwarp.js: de vluchtboot van M06 neemt de gasten mee

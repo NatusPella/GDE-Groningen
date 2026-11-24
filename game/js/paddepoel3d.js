@@ -1,4 +1,5 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
+import { plainBack } from './canvastex.js';
 import { GeoBuilder, markShared, vcMaterial } from './pixelart3d.js';
 import { LANDMARK_MATERIALS } from './landmarkmaterials.js';
 import { closestPointOnSegment, pointInPolygon } from './util.js';
@@ -357,7 +358,7 @@ function signMaterial() {
   const tex = new THREE.CanvasTexture(c);
   tex.colorSpace = THREE.SRGBColorSpace;
   tex.anisotropy = 4;
-  signMat = markShared(new THREE.MeshStandardMaterial({ map: tex, emissiveMap: tex, emissive: 0xffffff, emissiveIntensity: 0, roughness: 0.6, side: THREE.DoubleSide }));
+  signMat = markShared(plainBack(new THREE.MeshStandardMaterial({ map: tex, emissiveMap: tex, emissive: 0xffffff, emissiveIntensity: 0, roughness: 0.6 }))); // hertest 24-11: de achterkant is een effen bordrug, geen spiegelschrift (canvastex.js plainBack)
   return signMat;
 }
 

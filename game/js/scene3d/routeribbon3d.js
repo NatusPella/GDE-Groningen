@@ -63,6 +63,13 @@ function buildChevronTexture() {
   ctx.lineTo(6, 36);
   ctx.closePath();
   ctx.fill();
+  // #1178 (hertest 22-11): een donkere rand om elke chevron, zodat hij op licht klinker en op asfalt als pijl leest en
+  // niet als een kaal geel vlak (de textuur wordt met de routekleur vermenigvuldigd: de rand wordt een donkere tint)
+  const CHEVRON_RAND = 'rgba(30,24,8,0.85)'; // de donkere rand: textuur van het routelint, geen UI-kleur
+  ctx.lineJoin = 'round';
+  ctx.lineWidth = 3;
+  ctx.strokeStyle = CHEVRON_RAND;
+  ctx.stroke();
   const tex = new THREE.CanvasTexture(c);
   tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
   tex.anisotropy = 4;

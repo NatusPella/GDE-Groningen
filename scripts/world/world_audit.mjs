@@ -13,6 +13,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import zlib from 'node:zlib';
 import { fileURLToPath } from 'node:url';
+import { worldDir } from '../lib/worldlocator.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 await import('../node3d.mjs');
@@ -336,7 +337,7 @@ export function overCaps(R) {
 async function main() {
   const args = process.argv.slice(2);
   const wi = args.indexOf('--world');
-  const out = wi >= 0 ? path.resolve(args[wi + 1]) : path.join(ROOT, 'game/world');
+  const out = wi >= 0 ? path.resolve(args[wi + 1]) : worldDir();
   if (!fs.existsSync(path.join(out, 'index-provincie.json'))) { console.log('SKIP geen game/world met de provinciegegevens'); return; }
   const R = await runAudit(out);
   if (args.includes('--json')) console.log(JSON.stringify(R));

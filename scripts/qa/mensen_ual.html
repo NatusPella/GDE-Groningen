@@ -1,0 +1,49 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Mensen: UAL-clips op het Quaternius-skelet</title>
+<script type="importmap">{ "imports": { "https://cdn.jsdelivr.net/npm/": "/cdn/" } }</script>
+<style>html,body{margin:0;background:#222;color:#eee;font:13px system-ui,sans-serif}canvas{display:block}#info{position:absolute;left:8px;top:4px;white-space:pre;text-shadow:0 1px 2px #000}</style>
+<canvas id="c" width="1600" height="1400"></canvas>
+<div id="info">laden...</div>
+<script>window.addEventListener('error', (e) => fetch('/__klaar', { method: 'POST', body: JSON.stringify({ fout: e.message }) }));
+window.addEventListener('unhandledrejection', (e) => fetch('/__klaar', { method: 'POST', body: JSON.stringify({ fout: String(e.reason && e.reason.stack || e.reason) }) }));</script>
+<script type="module">
+// Controle van het retargeten (quaternius_import.mjs retargetUAL): per clip een man en een vrouw op twee momenten, zijaanzicht.
+import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
+const M = await import('/game/js/modularpeople.js');
+await M.loadModularPeople('/game/models/mensen/');
+const canvas = document.getElementById('c');
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, preserveDrawingBuffer: true });
+renderer.setPixelRatio(1);
+renderer.setScissorTest(true);
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0xa9c7de);
+scene.add(new THREE.HemisphereLight(0xdfeaff, 0x7a6f5c, 1.5));
+const sun = new THREE.DirectionalLight(0xfff0d8, 2.2); sun.position.set(2, 4, 3); scene.add(sun);
+const ground = new THREE.Mesh(new THREE.PlaneGeometry(80, 80), new THREE.MeshStandardMaterial({ color: 0x8a8f86, roughness: 1 }));
+ground.rotation.x = -Math.PI / 2; scene.add(ground);
+const CLIPS = ['Idle', 'Walk', 'UAL_Sprint_Loop', 'UAL_Jog_Fwd_Loop', 'UAL_Idle_Talking_Loop', 'UAL_Sitting_Idle_Loop', 'UAL_Driving_Loop', 'UAL_Swim_Fwd_Loop', 'UAL_Jump_Loop', 'UAL_Crouch_Idle_Loop', 'UAL_Crouch_Fwd_Loop', 'UAL_Push_Loop', 'UAL_PickUp_Table', 'UAL_Hit_Chest', 'UAL_Death01', 'UAL_Dance_Loop'];
+const COLS = 8, ROWS = Math.ceil(CLIPS.length / COLS) * 2, W = 1600 / COLS, H = 1400 / ROWS;
+const cam = new THREE.PerspectiveCamera(30, W / H, 0.1, 100); cam.position.set(1.2, 1.1, 4.2); cam.lookAt(0, 0.85, 0);
+const labels = [];
+renderer.setClearColor(0x222222); renderer.setScissor(0, 0, 1600, 1400); renderer.setViewport(0, 0, 1600, 1400); renderer.clear();
+CLIPS.forEach((clip, i) => {
+  for (const female of [false, true]) {
+    const g = new THREE.Group();
+    const m = M.buildModularPerson(55, { female, skin: 0xd9a47a, shirt: 0x3f6ea8 });
+    const u = clip === 'UAL_Death01' ? 0.98 : 0.35;
+    if (!M.poseModularClip(m, clip, u)) labels.push('ontbreekt ' + clip);
+    m.rotation.y = -0.35;
+    g.add(m); scene.add(g);
+    const col = i % COLS, row = Math.floor(i / COLS) * 2 + (female ? 1 : 0);
+    const x = col * W, y = 1400 - (row + 1) * H;
+    renderer.setViewport(x, y, W, H); renderer.setScissor(x, y, W, H);
+    renderer.render(scene, cam);
+    scene.remove(g);
+  }
+});
+renderer.setScissor(0, 0, 1600, 1400); renderer.setViewport(0, 0, 1600, 1400);
+document.getElementById('info').textContent = 'kolommen: ' + CLIPS.join(', ') + (labels.length ? '\n' + labels.join('\n') : '');
+window.__klaar = true;
+fetch('/__klaar', { method: 'POST', body: JSON.stringify({ clips: CLIPS, ontbreekt: labels }) }).catch(() => {});
+</script>

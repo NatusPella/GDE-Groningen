@@ -8,7 +8,7 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
 import { makeCloudNoise } from './cloudnoise.js';
 
 let sharedTex = null;
-export function cloudTexture() {
+function cloudTexture() {
   if (!sharedTex) {
     sharedTex = new THREE.DataTexture(makeCloudNoise(256), 256, 256, THREE.RGBAFormat);
     sharedTex.wrapS = sharedTex.wrapT = THREE.RepeatWrapping;

@@ -48,6 +48,10 @@ export const HERITAGE_AREAS = [
     tint: { warm: 0.06 },
     // de aankleding (monumentdecor.js)
     decor: true,
+    // #1203 (hertest 24-11): het Marktplein is een bestraat plein met een kring linden langs de rand, geen grasveld met bomen in het
+    // midden. Binnen deze straal: klinkers (monumentdecor3d.js), geen grasplukken (grass.js) en geen kaartbomen (tilegreenery.js); de
+    // linden staan op de ring met een hoge stam, zodat hun kruinen boven het beeld van het monument blijven.
+    plein: { at: [42470, 22806], radius: 21, ring: 18.5 },
   },
 ];
 
@@ -78,6 +82,15 @@ export function monumentRoadSurface(road, mid) {
   const z = mid && heritageAreaAt(mid[0], mid[1]);
   if (!z || !road) return null;
   return z.roads.surface[road.type] || z.roads.fallback;
+}
+
+// Het bestrate plein van een monumentgebied op (x, y), of null (#1203). pad: extra marge in meters.
+export function monumentPleinAt(x, y, pad = 0) {
+  for (const z of HERITAGE_AREAS) {
+    const p = z.plein;
+    if (p && Math.hypot(x - p.at[0], y - p.at[1]) <= p.radius + pad) return p;
+  }
+  return null;
 }
 
 // Mag dit straatmeubilair-soort (furniture k) hier staan?

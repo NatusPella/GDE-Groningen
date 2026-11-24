@@ -1243,6 +1243,34 @@
    "prio": "-"
   },
   {
+   "id": "levendestad",
+   "naam": "Levende stad: dagritmes, verkeersreacties en straatgebeurtenissen",
+   "groep": "Wereld",
+   "modules": [
+    "dailyrhythm",
+    "terraceseats",
+    "trafficreact",
+    "streetevents",
+    "streeteventlive"
+   ],
+   "eigenaar": "wereld",
+   "gast": "Dezelfde voetgangers, auto's en scènes van de host via de snapshot (plek, toetervlag, tekstballon), de losgebroken hond in de dierenlijst en de kraam, ijscokar of gitaarkoffer als tijdelijke rekwisieten; houdingen (zitten, bellen, praten) en het gebaar achter het stuur tekent alleen de host.",
+   "beloning": "Geen: sfeer, geen geld of voortgang.",
+   "wegval": "Niets te bewaren: een gast die later aansluit ziet de lopende scène; bij een hostwissel begint de nieuwe host met een lege scène op zijn eigen klok.",
+   "test": [
+    "scripts/dailyrhythm_test.mjs",
+    "scripts/trafficreact_test.mjs",
+    "scripts/streetevents_test.mjs",
+    "scripts/levendestad_wereld_test.mjs"
+   ],
+   "regel": {
+    "doc": "docs/COOP-GAST.md",
+    "zoek": "## Levende stad: dagritmes, verkeersreacties en straatgebeurtenissen"
+   },
+   "status": "OK",
+   "prio": "-"
+  },
+  {
    "id": "wapens",
    "naam": "Wapens, PvP en passive mode",
    "groep": "Wereld",
@@ -1934,6 +1962,10 @@
    "reden": "Alleen beeld: elke client bouwt zijn eigen decor."
   },
   {
+   "glob": "buildingfade",
+   "reden": "Alleen beeld (perf-ultra 23-11): de dither-overgang tussen een detailgebouw en de verre laag, per client; geen spelstaat en geen netwerk."
+  },
+  {
    "glob": "facadefront",
    "reden": "Alleen beeld (AI-tells beeld 23-11): de voorgevel van winkelpanden (deur, pui, markies); elke client bouwt zijn eigen gevels."
   },
@@ -1992,6 +2024,34 @@
   {
    "glob": "fishmodels",
    "reden": "Alleen beeld: het model van een vis (de vangst in de hand, de vissen van het visboek) bouwt elke speler zelf; geen spelstaat en geen netwerk."
+  },
+  {
+   "glob": "actorlife",
+   "reden": "Alleen beeld: procedurele IK, lipsync en blik op de eigen meshes van elke client."
+  },
+  {
+   "glob": "animstate",
+   "reden": "Alleen beeld: de animatietoestand rekent elke client zelf uit uit de spelstaat (snelheid, voertuig, water); de 4-byte-codering is voor later en reist nu niet mee."
+  },
+  {
+   "glob": "modularlooks",
+   "reden": "Alleen beeld: de look volgt deterministisch uit de bestaande kledingkeuze (avatar.outfit), dus een gast ziet dezelfde mens."
+  },
+  {
+   "glob": "modularpeople",
+   "reden": "Alleen beeld: elke client bouwt en animeert zijn eigen modulaire mensen."
+  },
+  {
+   "glob": "lodregistry",
+   "reden": "Alleen beeld: LOD-afstanden per client."
+  },
+  {
+   "glob": "lodlevels",
+   "reden": "Alleen beeld: LOD-afstanden per client."
+  },
+  {
+   "glob": "modularwear",
+   "reden": "Alleen beeld: kledingdelen (politiepet, uniformdetails) volgen uit de look; elke client bouwt ze zelf."
   }
  ],
  "opslag": {

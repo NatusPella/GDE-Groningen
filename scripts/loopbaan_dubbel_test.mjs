@@ -24,4 +24,8 @@ const eerste = detail.match(/Eerste klus:/g) || [];
 assert.ok(eerste.length <= 1, `de eerste klus staat hooguit één keer (nu ${eerste.length})`);
 assert.doesNotMatch(detail, /<h2 class="m-h2 td-h2"><svg|<h2 class="m-h2 td-h2"><span class="[^"]*pa-ico/, 'de kop draagt niet nog een keer het icoon van de band');
 assert.ok(L.MAX_NIVEAU >= 1);
+// #1264 (hertest 24-11): geen tweede kop onder Loopbanen zonder vak, en de volgende stap van een nog niet begonnen vak staat één keer
+assert.doesNotMatch(html, /Nog geen vak gekozen|Kies een vak en doe een eerste klus/, 'zonder vak geen tweede kop "Je loopbaan · Nog geen vak gekozen"');
+assert.match(html, /lb-balk lb-balk--leeg/, 'de kop houdt alleen de wissel Tour of Vakken');
+assert.doesNotMatch(detail, /Eerstvolgende stap:/, 'een nog niet begonnen vak heeft geen tweede volgende stap naast "Begin met deze loopbaan"');
 console.log(`loopbaan_dubbel_test: detail met ${niveaus.length} niveauregel en ${eerste.length} eersteklusregel`);

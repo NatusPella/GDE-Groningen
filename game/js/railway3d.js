@@ -3,6 +3,7 @@ import { hoofdspeler } from './players.js';
 // crossings with half barriers and flashing lights, and the trains from
 // railway.js.
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
+import { makeLodObject } from './lodkit3d.js';
 import { syncTreinInterieur, syncTreinLodInterieur, hideTreinLodInterieur, TREIN_LOD_BUILD_BUDGET } from './treininterieur.js';
 import { gastTreinVan } from './cooptrein.js';
 import { raamband } from './treinlayout.js';
@@ -774,6 +775,8 @@ function buildTrainView(t) {
   const cars = t.cars.map((car) => {
     const m = buildCar(t.cfg, car.seg);
     group.add(m);
+    // centraal LOD-systeem (lodkit3d.js): per wagen lichtere niveaus naast elke mesh, gewisseld op afstand tot de camera
+    makeLodObject('train', 'wagen', m);
     return m;
   });
   scene.add(group);

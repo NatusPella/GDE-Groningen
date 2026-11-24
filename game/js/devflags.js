@@ -58,6 +58,7 @@ export const FLAGS = Object.freeze({
   near: val('near'),
   far: val('far'),
   vlakbruggen: has('vlakbruggen'),
+  mensen: val('mensen'),
   nobatch: has('nobatch'),
   shaderdebug: has('shaderdebug'),
   noworker: has('noworker'),
@@ -81,6 +82,7 @@ export const FLAGS = Object.freeze({
   brugbotsing: has('brugbotsing'),
   sfxtest: has('sfxtest'),
   perfoff: val('perfoff'),
+  benchwacht: val('benchwacht'),
   startkeuze: val('startkeuze'),
   moeilijkheid: val('moeilijkheid'),
 });
@@ -117,6 +119,7 @@ export const FLAG_DOCS = Object.freeze({
   frames: 'Trailer: sla beeld voor beeld op',
   video: 'Trailer: neem video op (alleen desktop)',
   vlakbruggen: 'Provinciebruggen en viaducten vlak op straatniveau, zonder de hoogteprofielen uit de tegels (om te vergelijken)',
+  mensen: 'mensen=oud: de oude, procedurele mensen (noodschakelaar; standaard zijn alle mensen modulair, ADR 0050, modularpeople.js); q: alleen voorbijgangers modulair; q2: ook cutscenes en decorsets',
   near: 'Zet het near-vlak van de camera vast op zoveel meter (0,1 tot 10), in plaats van 0,5 op de grond en groter in de lucht (#917, cameranear.js); voor z-fight-metingen',
   far: 'Zet het far-vlak van de camera vast op zoveel meter (100 tot 20000), in plaats van het afgeleide uit de zichtafstand (#917); voor z-fight-metingen',
   terrain: 'Het AHN-reliëf (dijken, wierden, heuvels) rijst uit de grond; wegen, gebouwen en bomen liggen erop (#269; props, gras, water en de verre weergave blijven vlak)',
@@ -143,6 +146,7 @@ export const FLAG_DOCS = Object.freeze({
   zonderreizen: 'Zet de reisbeats uit (zie reizen)',
   moeilijkheid: "Kaart 'Hoe pittig moet het zijn?' bij een nieuw spel (difficultycard.js, #1169): moeilijkheid=vraag toont hem ook in een testrun; moeilijkheid=ontspannen|standaard|uitdagend zet dat niveau zonder kaart (devtools zet moeilijkheid=standaard in elke testrun)",
   startkeuze: "Startkaart Alleen of Samen spelen (launchchoice.js): startkeuze=alleen slaat de kaart over en speelt alleen, zonder netwerk (devtools zet dit in elke testrun behalve --coop); startkeuze=vraag toont de kaart ook in een testrun (beeld en tests)",
+  benchwacht: 'benchwacht=0: de benchmark wacht tussen twee shots niet tot de volgende plek geladen is (de oude meting, om te vergelijken)',
   perfoff: 'A/B-meting: zet prestatiestappen uit, namen gescheiden door +, bv. perfoff=schaduw+actoren (devflags.js, scripts/perf/ab.mjs)',
 });
 

@@ -2,6 +2,7 @@
 // panden; een medespeler krijgt zijn kleur en naam. Alles MeshBasic, geen licht en geen nieuwe shader; de borden delen hun materialen per tekst, en wat wegvalt wordt netjes
 // opgeruimd (geometrie en materiaal vrijgegeven). De planning (bezitmarker.js) is puur; dit bestand is alleen de THREE-kant en wordt elke 0,5 s getikt, niet elk beeld.
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
+import { plainBack } from './canvastex.js';
 import { getScene } from './scene3d.js';
 import { getBezit, getIndexNow, parcelOffer } from './bezitlive.js';
 import { planMarkers, diffMarkers, applyDiff, needsReplan, bezitVersion, planOutlines, outlineSegments } from './bezitmarker.js';
@@ -33,7 +34,7 @@ function boardMaterial(m) {
   g.font = '500 18px system-ui, sans-serif'; g.fillStyle = edge; g.fillText(String(m.sub).slice(0, 26), 128, 72);
   const tex = new THREE.CanvasTexture(cv);
   tex.colorSpace = THREE.SRGBColorSpace;
-  mat = new THREE.MeshBasicMaterial({ map: tex, side: THREE.DoubleSide });
+  mat = plainBack(new THREE.MeshBasicMaterial({ map: tex })); // hertest 24-11: de achterkant is een effen bordrug, geen spiegelschrift (canvastex.js plainBack)
   if (matCache.size >= TEX_MAX) { const old = matCache.keys().next().value; const o = matCache.get(old); if (o.map) o.map.dispose(); o.dispose(); matCache.delete(old); }
   matCache.set(key, mat);
   return mat;

@@ -1,7 +1,7 @@
 // De melding "oogstklaar" (verfijnronde bezit, 22-11): één veld krijgt zijn eigen melding, meer velden tegelijk (na slapen, reizen of een grote boerderij) één
 // samenvatting in plaats van een rij meldingen die elkaar wegdrukt. Puur: geen DOM, geen klok. Per speler, lokaal (#429).
 // items: [{ gewas: 'Aardappelen', plek: 'Zonnehoek Noord' }]
-export const SINGLE_TAIL = 'Zoek de lichtkolom en oogst met de maaidorser.';
+const SINGLE_TAIL = 'Zoek de lichtkolom en oogst met de maaidorser.';
 export function harvestReadyLine(items) {
   const list = (Array.isArray(items) ? items : []).filter((i) => i && typeof i === 'object');
   if (!list.length) return null;

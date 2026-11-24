@@ -9,6 +9,8 @@
 import * as THREE from 'three';
 import { getScene } from './scene3d.js';
 import { buildPersonMesh, releasePersonGeometry } from './models3d_people.js';
+import { buildModularFromAppearance, modularReady, mensenFase } from './modularpeople.js';
+import { FLAGS } from './devflags.js';
 import { animateActor } from './actoranim.js';
 import { canvasTex, signBothSides } from './canvastex.js';
 import { hoofdspeler } from './players.js';
@@ -390,7 +392,10 @@ export function buildMissionDressing(world, kind, at, targetScene = null) {
   for (const p of plan.people) {
     if (!spot(p.along, p.side)) continue;
     // look.hairStyle en look.extra (zoals { age: 'old' }) laten een vaste figuur herkenbaar zijn (Oma Trijntje, M08)
-    const m = buildPersonMesh(p.look.shirt, p.look.skin, { seed: p.look.seed, variant: p.look.variant, ...(p.look.hairStyle ? { hairStyle: p.look.hairStyle } : {}), ...(p.look.extra ? { look: p.look.extra } : {}), ...(p.look.role ? { role: p.look.role, outfitCtx: { hot: true, detail: true } } : {}) });
+    // decorsets (ADR 0050 fase 2): een vaste figuur als modulaire mens met dezelfde kleding-identiteit; een kind blijft procedureel
+    const q = mensenFase(FLAGS.mensen) >= 2 && modularReady() && !(p.look.extra && p.look.extra.age === 'child')
+      ? buildModularFromAppearance({ shirt: p.look.shirt, skin: p.look.skin, seed: p.look.seed, variant: p.look.variant, hairStyle: p.look.hairStyle, look: p.look.extra || {} }) : null;
+    const m = q || buildPersonMesh(p.look.shirt, p.look.skin, { seed: p.look.seed, variant: p.look.variant, ...(p.look.hairStyle ? { hairStyle: p.look.hairStyle } : {}), ...(p.look.extra ? { look: p.look.extra } : {}), ...(p.look.role ? { role: p.look.role, outfitCtx: { hot: true, detail: true } } : {}) });
     place(m, p.along, p.side);
     m.rotation.y = -a + (p.a || 0);
     if (p.h) m.scale.y = p.h;

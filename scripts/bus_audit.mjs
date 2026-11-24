@@ -13,6 +13,7 @@ import './node3d.mjs';
 import fs from 'node:fs';
 import path from 'node:path';
 import { loadCityWorld } from './lib/loadworld.mjs';
+import { worldDirUrl } from './lib/worldlocator.mjs';
 
 const arg = (k, d = null) => { const a = process.argv.find((x) => x.startsWith(`--${k}=`)); return a ? a.slice(k.length + 3) : d; };
 const SIM = process.argv.includes('--sim');
@@ -24,7 +25,7 @@ const STEP = 10;           // m tussen de steekproeven langs de lijn
 const DT = 0.25;
 
 const B = await import('../game/js/busroutes.js');
-const binFile = new URL('../game/world/provincie-bus.json', import.meta.url);
+const binFile = new URL('provincie-bus.json', worldDirUrl());
 if (!fs.existsSync(binFile)) { console.log('SKIP bus_audit: geen game/world/provincie-bus.json (bouw de wereld of kopieer hem)'); process.exit(0); }
 const raw = JSON.parse(fs.readFileSync(binFile, 'utf8')).bus;
 let lines = B.prepareLines(raw);

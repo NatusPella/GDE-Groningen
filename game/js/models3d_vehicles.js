@@ -1,9 +1,10 @@
 import { FLAT_SCALE, flatWheelIndex } from './flatlook.js';
 import { LRUCache } from './lrucache.js';
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
+import { makeLodObject } from './lodkit3d.js';
 import { applyVehicleLook } from './vehiclelook3d.js'; // epic Autotuning (#1155): v.look komt er na het bouwen op
 import { HABBO_PALETTE, habboMaterial, GeoBuilder, vcMaterial, markShared, composeMatrix, tubeGeometry } from './pixelart3d.js';
-import { buildPersonMesh, PERSON_RIG, holdPhoneRiding } from './models3d_people.js';
+import { buildPersonMesh, PERSON_RIG, holdPhoneRiding, reachHandFromParent, steerHands } from './models3d_people.js';
 import { boatKind, boatHasCabin } from './boattypes.js';
 import { CANOPY, RAIL } from './boatdeck.js';
 import { midibusDeurXs } from './businterieur.js';
@@ -583,7 +584,7 @@ function buildCarGeometry(type, L, W, paint, opts) {
     B.box(rx, P.roof + 0.36, 0, 0.05, 0.72, 0.05, 0x2a2b2d);
     B.box(rx + 0.12, P.roof + 0.78, 0, 0.42, 0.22, 0.26, 0x2a2b2d);
     B.box(rx + 0.36, P.roof + 0.78, 0, 0.1, 0.14, 0.14, 0x9fb4d8, G_GLASS);
-    B.geo(new THREE.CylinderGeometry(0.26, 0.04, 0.1, 10), composeMatrix(rx - 0.45, P.roof + 0.14, 0, 0, 0, 0.5), 0xdfe3e6);
+    B.geo(new THREE.CylinderGeometry(0.26, 0.04, 0.1, 10), composeMatrix(rx - 0.45, P.roof + 0.14, 0, 0, 0, 0.5), 0xd6d6d1);
     B.box(rx - 0.45, P.roof + 0.07, 0, 0.05, 0.1, 0.05, 0x2a2b2d);
     B.box(rx + 0.42, P.roof + 0.78, 0, 0.02, 0.05, 0.05, ORANGE, G_LAMP);
   } else if (variant === 'pakket') {
@@ -1528,7 +1529,7 @@ function buildTankerMesh(v) {
   const geo = cached(`tankwagen|${L}|${W}|${paint}`, () => {
     const B = new GeoBuilder(3);
     const K = (c) => (wrecked ? WRECKED_COLOR : c); // een wrak is overal zwartgeblakerd
-    const STEEL = K(0xc9ced3), STEEL_HI = K(0xe2e6e9), STEEL_LO = K(0x9ba2a8), FRAME = K(0x26282b), DARK = K(0x3a3d40), ALU = K(0xa7adb3);
+    const STEEL = K(0xc9ced3), STEEL_HI = K(0xe6e6e1), STEEL_LO = K(0x9ba2a8), FRAME = K(0x26282b), DARK = K(0x3a3d40), ALU = K(0xa7adb3);
     const RUBBER = K(0x161718), RAIL = K(0xd9b92e), WIT = K(0xf4f2ec), ROOD = K(0xc8102e);
     const cabL = T.cabL, cx0 = hl - cabL, cx = hl - cabL / 2;
     const ellipse = (len, seg = 22) => new THREE.CylinderGeometry(1, 1, len, seg, 1, true).rotateZ(Math.PI / 2);
@@ -2584,6 +2585,10 @@ function buildBikeMesh(v) {
   const hipY = fat ? 0.93 : 1.02;
   rider.position.set(fat ? -0.26 : -0.3, hipY - 0.93 * rider.scale.y, 0);
   poseRider(rider, fat ? 0.55 : 0.33, fat ? 0.95 : 0.85, -0.08);
+  // handen aan het stuur (actorlife.js): de grepen van bikeStuurOnderdelen; dichtbij draaien ze mee met het stuur (voertuigbediening.js)
+  group.userData.riderMesh = rider;
+  group.userData.riderGrip = bikeGrip(fat);
+  bikeHands(rider, group.userData.riderGrip, 0);
   if (!fat && v.isBike && v.driver !== 'player' && !v.wrecked && hash2((v.id || 0) * 1.9, 7.3) < 0.18) holdPhoneRiding(rider);
   group.add(rider);
   group.userData.riderLegs = { legs: [rider.userData.legL, rider.userData.legR], base: fat ? 0.55 : 0.33, amp: 0.2 };
@@ -3208,7 +3213,7 @@ export function updatePoliceLamps(mesh, time, chasing, id = 0) {
 // the group at water level). Flags are the Groningen city flag (green, white,
 // green); nav lights sit in the lamp group so nightlights3d can make them glow.
 
-const NAV_RED = 0xff2a1a, NAV_GREEN = 0x26ff5a, NAV_WHITE = 0xfff4dc;
+const NAV_RED = 0xff2a1a, NAV_GREEN = 0x26ff5a, NAV_WHITE = 0xf2ead2;
 const GRN_FLAG = 0x1f8a3c, WHITE_FLAG = 0xf2f0ea;
 const WOOD = 0x9a7048, DECK = 0xb08658, KEEL = 0x5a2a22;
 
@@ -3880,6 +3885,8 @@ function buildBoatMesh(v) {
     }
     group.userData.policeLamps = lamps;
   }
+  // centraal LOD-systeem (lodkit3d.js, 23-11): romp, tuig en lampen krijgen lichtere niveaus en verdwijnen voorbij de cull-afstand van 'boat'
+  makeLodObject('boat', 'boot:' + kind, group);
   return group;
 }
 
@@ -3890,6 +3897,21 @@ export const buildShipMesh = (v) => { const mesh = buildBoatMesh(v); retainCache
 // Stuurstang, stuurpen en handvatten van een fiets, step en brommer als eigen onderdeel: dichtbij vervangt
 // voertuigbediening.js de carrosseriegeometrie door de variant zonder stuur en tekent dit onderdeel draaiend
 // om de stuurpen. Geometrie wordt gedeeld (cached); px = de x van de stuurpen (het draaipunt).
+// Het midden van een handvat (bikeStuurOnderdelen): x, hoogte en halve breedte in de assen van de fiets; px = de stuuras.
+function bikeGrip(fat) {
+  const H1y = fat ? 0.82 : 0.93;
+  return { x: 0.13, y: H1y + 0.115, z: 0.28, px: 0.38 };
+}
+// Beide handen van de fietser op de handvatten, het stuur gedraaid over hoek a (rad, zoals stuurstang.rotation.y).
+export function bikeHands(rider, grip, a) {
+  if (!rider || !grip) return;
+  const c = Math.cos(a), s = Math.sin(a), dx = grip.x - grip.px;
+  for (const k of [0, 1]) {
+    const z = k === 0 ? grip.z : -grip.z;
+    reachHandFromParent(rider, k, grip.px + dx * c + z * s, grip.y, -dx * s + z * c);
+  }
+}
+
 function bikeStuurOnderdelen(B, fat, px) {
   const H1 = [0.4, fat ? 0.82 : 0.93, 0];
   const stemTop = [H1[0] - 0.02, H1[1] + 0.14, 0];
@@ -3976,6 +3998,12 @@ export function updateVehicleWheelSpin(mesh, speed, dt, steer = 0) {
   const cap = ud.spinStep || SPIN_STEP;
   const shown = Math.max(-cap, Math.min(cap, delta));
   for (const w of wheels) w.rotation.z -= shown * (w.userData.spinK || 1);
+  // de bestuurder draait mee aan het stuur (actorlife.js), alleen als hij te zien is en het stuur echt bewoog
+  const df = ud.driverFigure;
+  if (df && df.visible && df.userData.wheelArms && Math.abs(steer - (df.userData.steer || 0)) > 0.02) {
+    df.userData.steer = steer;
+    steerHands(df, steer);
+  }
   const fw = ud.frontWheels;
   if (fw) {
     const a = -steer * MAX_STEER_ANGLE;

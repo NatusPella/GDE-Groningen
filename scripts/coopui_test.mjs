@@ -105,5 +105,10 @@ t('wachtkamer: geen inline stijl meer, profiel en wachtwoord op klassen (#634)',
   assert.match(css, /\.coop-kleur-0 \{ color: (?:#4fb3ff|var\(--ds-c-id-1\)); \}/); // sinds 21-11 een palettoken (--ds-c-id-1 is #4fb3ff)
   assert.match(css, /\.coop-chip\[aria-pressed="true"\]/);
 });
+t('#1223: de kleurknoppen zijn stippen zonder naam (naam voor de voorlezer), het profiel is één regel', () => {
+  const ui = fs.readFileSync(new URL('../game/js/lobbyui.js', import.meta.url), 'utf8');
+  assert.match(ui, /coop-kleur" data-kleur="\$\{c\.hex\}" aria-pressed="[^"]+" aria-label="\$\{esc\(c\.naam\)\}" title="\$\{esc\(c\.naam\)\}"><span class="coop-id coop-kleur-stip[^>]*>●<\/span><\/button>/);
+  assert.match(ui, /<p class="coop-profiel-hint">\$\{esc\(v\.profiel\.tekst\)\}<\/p>/, 'geen drie zinnen onder de kleuren');
+});
 
 console.log(`coopui_test: ${n}/${n} ok`);

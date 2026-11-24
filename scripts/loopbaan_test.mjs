@@ -483,6 +483,8 @@ t('#1010: het Loopbanen-scherm heeft een koprij, kaarten met hoofdactie en een d
   const ui = fs.readFileSync(JS + 'loopbaanui.js', 'utf8');
   assert.match(ui, /Kies een vak en doe een eerste klus/, 'zonder voortgang staat in de kop één korte uitnodiging');
   assert.match(ui, /lb-balk/, 'de stand staat in één kop met de wissel Tour of Vakken');
+  assert.match(ui, /<span class="lb-balk__t"><span class="m-eb">Je loopbaan<\/span><b>\$\{esc\(titel\)\}<\/b><span class="lb-balk__s">/, '#999: de ondertitel staat onder de titel, niet los in het midden');
+  assert.match(ui, /\.lb-balk__t \{ display: flex; flex-direction: column;/, '#999: kicker en titel onder elkaar, niet op twee basislijnen naast elkaar');
   assert.match(ui, /lb-kaart/, 'elke loopbaan is een kaart');
   assert.match(ui, /lb-feiten/, 'het detail heeft eis, verdiensten en volgende beloning');
   assert.doesNotMatch(ui, /lb-gn|lb-kpi/, 'geen aantallen achter de groepskoppen en geen oude KPI-strook');

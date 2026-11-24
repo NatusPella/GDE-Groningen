@@ -1,0 +1,75 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Mensen: eigen model naast Quaternius (fase 0)</title>
+<style>
+html,body{margin:0;background:#1d1f22;color:#e8e4da;font:14px/1.45 system-ui,sans-serif}
+main{display:grid;grid-template-columns:1fr 1fr;gap:16px;padding:16px}
+h1{font-size:20px;margin:16px 16px 0}h2{font-size:16px;margin:0 0 8px}
+section{background:#2a2d31;border-radius:6px;padding:12px}
+canvas,img{width:100%;display:block;border-radius:4px;background:#a9c7de}
+table{border-collapse:collapse;width:100%;margin-top:8px}td,th{border-top:1px solid #444;padding:4px 6px;text-align:left;vertical-align:top}
+.advies{grid-column:1 / span 2}
+small{color:#a9a395}
+</style>
+<h1>Mensen: ons procedurele model naast Quaternius Ultimate Modular (fase 0, vóór de import)</h1>
+<main>
+<section>
+  <h2>Nu: eigen model (models3d_people.js, live gerenderd)</h2>
+  <canvas id="c" width="800" height="560"></canvas>
+  <table id="ons"></table>
+</section>
+<section>
+  <h2>Quaternius Ultimate Modular Men en Women (CC0)</h2>
+  <img alt="Ultimate Modular Men, voorbeeld van de maker" src="https://quaternius.com/assets/images/fullres/modularcharacters.jpg">
+  <img alt="Ultimate Modular Women, voorbeeld van de maker" src="https://quaternius.com/assets/images/fullres/modularwomen.jpg" style="margin-top:8px">
+  <small>Voorbeeldbeelden van quaternius.com (niet in de repo, alleen gelinkt). Een eigen render naast de onze volgt zodra de packs lokaal staan (fase 1).</small>
+  <table>
+    <tr><th>Licentie</th><td>CC0 1.0, op de packpagina's gecontroleerd 23-11-2026 (docs/ANIMATIE-LICENTIES.md)</td></tr>
+    <tr><th>Inhoud</th><td>Men: 11 figuren, Women: 10 figuren; elk in 4 wisselbare delen; 24 animaties per pack; FBX, OBJ, glTF, Blend; ongetextureerd (materiaalkleuren); ook een humanoïde-rigversie</td></tr>
+    <tr><th>Nog te meten</th><td>driehoeken, botten, clipnamen en -lengtes, draw calls per figuur (pas na de download)</td></tr>
+  </table>
+</section>
+<section class="advies">
+  <h2>Afweging</h2>
+  <table>
+    <tr><th></th><th>(a) alleen animaties</th><th>(b) modellen + animaties als nieuwe basis</th><th>(c) alleen referentie</th></tr>
+    <tr><th>Skelet</th><td>retarget van een humanoïde rig naar onze 13 scharnierbotten verliest pols, voet, ruggengraat en draaiing om de lengteas</td><td>hun skelet wordt het onze; onze IK, blik en lipsync rekenen met lengtes en hoeken en liggen erbovenop</td><td>niets verandert</td></tr>
+    <tr><th>Kleding</th><td>ongewijzigd</td><td>hun 4 delen per figuur moeten in ons kledingsysteem passen (mix &amp; match, kapsels, kleur per zaad); Tammo, Tessa en Jelle moeten herkenbaar blijven</td><td>ongewijzigd</td></tr>
+    <tr><th>Kosten per mens</th><td>klein</td><td>meer botten (skeletupload per mens), clips via een mixer: meten tegen ~1900 driehoeken, 1 draw call, ~10 µs lopen nu</td><td>geen</td></tr>
+    <tr><th>Risico</th><td>laag, matige winst</td><td>groot (alle mensen, cutscenes, stoelen en kleding), daarom gefaseerd achter een vlag</td><td>geen, geen winst in silhouet</td></tr>
+  </table>
+  <p><b>Besluit eigenaar 23-11:</b> (b), gefaseerd: eerst voorbijgangers, dan cutscenes, dan spelers, elke fase met een vergelijkingspagina en metingen.</p>
+</section>
+</main>
+<script type="module">
+import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
+const P = await import('/game/js/models3d_people.js');
+const canvas = document.getElementById('c');
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, preserveDrawingBuffer: true });
+renderer.setPixelRatio(1);
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0xa9c7de);
+scene.add(new THREE.HemisphereLight(0xdfeaff, 0x7a6f5c, 1.5));
+const sun = new THREE.DirectionalLight(0xfff0d8, 2.2); sun.position.set(2, 4, 3); scene.add(sun);
+const ground = new THREE.Mesh(new THREE.PlaneGeometry(60, 60), new THREE.MeshStandardMaterial({ color: 0x8a8f86, roughness: 1 }));
+ground.rotation.x = -Math.PI / 2; scene.add(ground);
+const looks = [[P.TAMMO_APPEARANCE.shirt, P.TAMMO_APPEARANCE.skin, P.TAMMO_APPEARANCE], [P.ANITA_APPEARANCE.shirt, P.ANITA_APPEARANCE.skin, P.ANITA_APPEARANCE]];
+const SKINS = [0xf1c9a5, 0xd9a47a, 0xa8754f, 0x6e4a33];
+const SHIRTS = [0x3f6ea8, 0x9e3027, 0x4a7a4a, 0xc9a227, 0x5c3f7a];
+const people = [];
+looks.forEach(([s, k, o]) => people.push(P.buildPersonMesh(s, k, o)));
+for (let i = 0; i < 6; i++) people.push(P.buildPersonMesh(SHIRTS[i % 5], SKINS[i % 4], { seed: 300 + i * 17 }));
+let tris = 0;
+people.forEach((m, i) => {
+  m.position.set((i - (people.length - 1) / 2) * 0.95, 0, 0); m.rotation.y = -1.2;
+  for (let f = 0; f < 30; f++) P.animatePersonWalk(m, i % 3 === 2 ? 1.4 : 0, 1 / 60);
+  m.traverse((o) => { if (o.isSkinnedMesh) tris += (o.geometry.index ? o.geometry.index.count : o.geometry.attributes.position.count) / 3; });
+  scene.add(m);
+});
+const cam = new THREE.PerspectiveCamera(30, 800 / 560, 0.1, 100); cam.position.set(0, 1.2, 9); cam.lookAt(0, 0.95, 0);
+renderer.render(scene, cam);
+const bones = people[0].userData.body.skeleton.bones.length;
+document.getElementById('ons').innerHTML = `<tr><th>Driehoeken</th><td>gem ${(tris / people.length).toFixed(0)} per mens (deze ${people.length})</td></tr><tr><th>Botten</th><td>${bones}</td></tr><tr><th>Draw calls</th><td>1 per mens (één SkinnedMesh, gedeeld materiaal)</td></tr><tr><th>Animatie</th><td>procedureel (gait.js, actoranim.js) + actorlife.js (IK, blik, lipsync)</td></tr>`;
+window.__info = { tris: tris / people.length, bones };
+window.__klaar = true;
+</script>

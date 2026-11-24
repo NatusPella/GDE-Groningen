@@ -21,6 +21,7 @@ import { auditSurface, auditWaterLevels, SURFACE } from '../../game/js/terrainau
 import { SpatialGrid } from '../../game/js/spatialgrid.js';
 import { pointInPolygon } from '../../game/js/polygon.js';
 import { SHIPPING_DECK_Z } from './province_profile.mjs';
+import { worldDir } from '../lib/worldlocator.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const args = process.argv.slice(2);
@@ -28,7 +29,7 @@ const opt = (n, d) => { const a = args.find((q) => q.startsWith('--' + n + '='))
 const flat = args.includes('--flat');
 const listN = args.includes('--list') ? 10 : Number(opt('list', 0));
 
-const dir = path.resolve(opt('world', '') || ['game/world', 'desktop/build/game/world'].map((d) => path.join(ROOT, d)).find((d) => fs.existsSync(path.join(d, 'index.json'))) || '');
+const dir = path.resolve(opt('world', '') || [worldDir(), path.join(ROOT, 'desktop/build/game/world')].find((d) => fs.existsSync(path.join(d, 'index.json'))) || '');
 if (!fs.existsSync(path.join(dir, 'index.json'))) { console.log('SKIP geen gebouwde wereld (cd desktop && npm run stage, of --world=<map>)'); process.exit(0); }
 const index = JSON.parse(fs.readFileSync(path.join(dir, 'index.json'), 'utf8'));
 // the province's and the proefstrook's tiles join the city's (tileworld.js mergeIndex: a tile the index already has stays)

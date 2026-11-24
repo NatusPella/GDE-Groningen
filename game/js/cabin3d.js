@@ -258,8 +258,20 @@ export function cabinWheelPose(seat, len, wid, klasse, romp = null, naam = '') {
   const K = klasseStijl(klasse, L, seat);
   const sh = cockpit ? 0 : -Math.max(0, L.dash.x + L.dash.d / 2 - (len / 2 - 0.12));
   const w = { ...L.wheel, ...K.wheel };
+  // (mensen 23-11, besluit coördinator) het stuur waar een bestuurder het echt heeft: het middelpunt WHEEL_REACH voor de heup
+  // (seat.x) en boven de zitting (seat.y), het vlak 20-25 graden gekanteld bij een auto, vlakker bij een vrachtwagen of bus. De
+  // indeling zette het 0,6-0,7 m voor de heup: buiten bereik met gebogen ellebogen. Alleen de stuurpositie verandert; het dashboard niet.
+  const reach = WHEEL_REACH[klasse];
+  if (reach && seat && Number.isFinite(seat.x)) return { x: seat.x + reach.x, y: seat.y + reach.y, z: w.z, r: w.r, tilt: reach.tilt ?? w.tilt };
   return { x: w.x + sh, y: w.y, z: w.z, r: w.r, tilt: w.tilt };
 }
+// Per klasse: x voor de heup, y boven de zitting (m), tilt (rad, 0 = rechtop naar de bestuurder). Heli, vliegtuig en machine houden
+// hun eigen indeling (cyclic, yoke, hendels).
+export const WHEEL_REACH = {
+  auto: { x: 0.31, y: 0.33, tilt: 0.4 }, taxi: { x: 0.31, y: 0.33, tilt: 0.4 }, politie: { x: 0.31, y: 0.33, tilt: 0.4 },
+  sport: { x: 0.29, y: 0.33, tilt: 0.45 }, ambulance: { x: 0.28, y: 0.33, tilt: 0.55 }, bestel: { x: 0.28, y: 0.33, tilt: 0.55 },
+  vrachtwagen: { x: 0.285, y: 0.33, tilt: 0.75 }, bus: { x: 0.27, y: 0.33, tilt: 0.85 }, trekker: { x: 0.29, y: 0.35, tilt: 0.6 },
+};
 
 // auto's, bestelbussen, vrachtwagens en de cockpitklassen (#847) tonen een cabine van buiten; de
 // stadsbus heeft zijn eigen passagiersruimte en een wrak krijgt de wrakvariant (hieronder). Deze
@@ -324,9 +336,9 @@ export function syncCabins(world, meshes, px, py) {
       if (!wanted) setWreckGlass(mesh, false);
       continue;
     }
-    // de binnenin-camera tekent zijn eigen interieur
+    // de binnenin-camera tekent zijn eigen interieur (ook als carinterior.js het toont zonder eigen groep: interiorShown, personages-leven 23-11)
     const inner = mesh.userData.interior;
-    if (inner && inner.visible) { if (cab) cab.visible = false; continue; }
+    if ((inner && inner.visible) || mesh.userData.interiorShown) { if (cab) cab.visible = false; continue; }
     const wreck = !!v.wrecked;
     if (!cab || mesh.userData.cabinLod !== lod || !!mesh.userData.cabinWreck !== wreck) {
       const cached = geoCache.size;

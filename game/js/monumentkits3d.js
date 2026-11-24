@@ -19,14 +19,17 @@ export function setMonumentLantern(on, color = GLOW_ON) {
 }
 export const monumentLanternMaterial = glassMat;
 
+// #1203 (hertest 24-11): een plein-linde heeft een hoge, opgekroonde stam (kruin vanaf ca. 5 m, zoals de linden op het Marktplein):
+// de kruinen staan boven het beeld van wie op het plein staat in plaats van de bovenhelft te vullen.
+export const LINDE_KRUIN_ONDER = 5.1;
 export function linde() {
   const g = new THREE.Group();
-  g.add(cyl(0.2, 0.28, 3.4, 0x5a4028, 0, 1.7, 0));
-  const crown = new THREE.Mesh(new THREE.IcosahedronGeometry(2.5, 0), mat(0x4f7a3c));
-  crown.position.set(0, 5.1, 0);
+  g.add(cyl(0.2, 0.3, 5.4, 0x5a4028, 0, 2.7, 0));
+  const crown = new THREE.Mesh(new THREE.IcosahedronGeometry(2.6, 0), mat(0x4f7a3c));
+  crown.position.set(0, 7.3, 0);
   crown.scale.set(1, 0.85, 1);
   const top = new THREE.Mesh(new THREE.IcosahedronGeometry(1.7, 0), mat(0x6b8f43));
-  top.position.set(0.6, 6.6, -0.3);
+  top.position.set(0.6, 8.8, -0.3);
   g.add(crown, top);
   return g;
 }

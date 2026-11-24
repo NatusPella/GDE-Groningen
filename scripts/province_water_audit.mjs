@@ -10,13 +10,14 @@ import fs from 'node:fs';
 import path from 'node:path';
 import zlib from 'node:zlib';
 import { fileURLToPath } from 'node:url';
+import { worldDir } from './lib/worldlocator.mjs';
 
 const G = await import('../game/js/gdt.js');
 const { polyArea, WATER_KINDS } = await import('../game/js/waterlevels.js');
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const args = process.argv.slice(2);
-const out = path.resolve(ROOT, args.includes('--out') ? args[args.indexOf('--out') + 1] : 'game/world');
+const out = path.resolve(ROOT, args.includes('--out') ? args[args.indexOf('--out') + 1] : worldDir());
 const file = path.join(out, 'index-provincie.json');
 if (!fs.existsSync(file)) { console.log(`no province layer in ${path.relative(ROOT, out)}: run scripts/world/build_province.mjs`); process.exit(0); }
 const index = JSON.parse(fs.readFileSync(file, 'utf8'));

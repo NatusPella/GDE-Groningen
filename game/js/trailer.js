@@ -2343,7 +2343,7 @@ export function runTrailer(world, { mode = 'opname', cut = 'vol', shot = null, f
       last = now;
       const dt = mode === 'opname' ? STEP : Math.min(0.1, realMs / 1000);
       const hold = frozen && r.T >= frozen.T;
-      const gated = mode === 'benchmark' && !hold && benchGate(now, dt);
+      const gated = mode === 'benchmark' && FLAGS.benchwacht !== '0' && !hold && benchGate(now, dt);
       if (!hold && !gated) r.T += dt;
       if (r.T >= total) { end(false); return; }
       probe.begin(now);

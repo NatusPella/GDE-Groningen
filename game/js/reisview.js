@@ -41,6 +41,30 @@ export function panelState(beat, pick, seen = {}) {
   };
 }
 
+// #1216 (hertest 24-11): de reisvraag tekent dezelfde reiskaart als Reis erheen op de grote kaart (kaartactieui.js reisKaartHtml): kop, rijen
+// met icoon, uitleg, duur en cijfertoets, en onderaan de knop met Enter erin. Dit is het model daarvoor; puur (scripts/reisview_test.mjs).
+const RIT_ICOON = { trein: 'trein', bus: 'bus', boot: 'boot', heli: 'vliegtuig', lift: 'auto' };
+const ZELF_ICOON = { auto: 'auto', trekker: 'auto', fiets: 'fiets', lopen: 'lopen', boot: 'boot', bus: 'bus', trein: 'trein' };
+export function reisKaartModel(beat, pick, seen = {}) {
+  const r = travelOptions(beat);
+  const keys = { meerijden: '1', zelf: '2', overslaan: '3' };
+  const lengte = Number.isFinite(+beat.length) ? +beat.length : 0;
+  const bekend = heeftAfstand(lengte);
+  const gekozen = pick || r.def;
+  const icoonVan = (o) => (o.id === 'meerijden' ? RIT_ICOON[beat.ride] || 'auto' : o.id === 'zelf' ? ZELF_ICOON[beat.selfMode || 'auto'] || 'auto' : 'volgende');
+  const rijen = r.options.map((o) => ({
+    id: o.id, icoon: icoonVan(o), label: o.label, uitleg: o.uitleg,
+    kosten: o.id === 'zelf' && bekend && selfReward(lengte) > 0 ? `+ € ${selfReward(lengte)}` : '',
+    duur: bekend ? o.eta : '', aanbevolen: o.id === r.def, toets: keys[o.id], disabled: null,
+  }));
+  const keuze = rijen.find((x) => x.id === gekozen);
+  return {
+    hud: true, kicker: 'Reizen', titel: `Naar ${beat.to}`, naam: '', afstand: bekend ? `${km(lengte)} km` : '',
+    uitleg: wantsExplain(seen, TRAVEL_HELP_ID) ? 'De klok loopt altijd door.' : '',
+    rijen, gekozen, melding: '', reis: { label: keuze ? keuze.label.replace(/ ·.*$/, '') : 'Kies' }, terug: null,
+  };
+}
+
 // key (1/2/3) -> option id among the options the beat has
 export function pickFromKey(beat, key) {
   const id = { 1: 'meerijden', 2: 'zelf', 3: 'overslaan' }[key];

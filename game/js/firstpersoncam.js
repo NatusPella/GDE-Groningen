@@ -5,7 +5,7 @@
 // positionele argumenten en module-tijdelijke objecten, zodat een eerste-persoonframe niets
 // alloceert. Zo blijft scene3d.js onder zijn omvangsgrens (#497).
 import { initFirstPerson, syncFirstPerson, noteVehicleChange, addLookPitch, clampPitch, lookVector, firstPersonEye, useStanceEye, cabinEyeY, EYE_ABOVE_NECK } from './firstperson.js';
-import { updateCarInterior, interiorRoofY } from './carinterior.js';
+import { updateCarInterior, interiorRoofY, interiorCamPitch } from './carinterior.js';
 import { syncFirstPersonHands, hideFirstPersonHands } from './firstpersonhands.js';
 import { getSettings } from './settings.js';
 import { normalizeAngle } from './util.js';
@@ -149,7 +149,8 @@ export function fpCamera(world, cam, player, playerMesh, playerMeshPlaced, looki
     firstPersonEye(player, _altEye);
     cam.position.set(_altEye.x, _altEye.y, _altEye.z);
   }
-  lookVector(camAngle, clampPitch(st.pitch), _dir);
+  // in de auto kijkt de binnencamera per klasse iets omlaag (het stuur onderin beeld); de muis telt daarbij op
+  lookVector(camAngle, clampPitch(st.pitch + (interiorMesh && player && player.inVehicle ? interiorCamPitch(player.inVehicle) : 0)), _dir);
   out.x = cam.position.x + _dir.x * FP_LOOK_DIST;
   out.y = cam.position.y + _dir.y * FP_LOOK_DIST;
   out.z = cam.position.z + _dir.z * FP_LOOK_DIST;

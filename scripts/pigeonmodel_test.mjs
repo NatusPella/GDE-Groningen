@@ -249,5 +249,38 @@ t('voerplek-duiven staan op de grondhoogte (pigeonspots.js)', () => {
   assert.match(src('pigeonspots.js'), /mesh\.position\.set\(p\[0\], \(map\.groundHeightAt && map\.groundHeightAt\(p\[0\], p\[1\], 0\)\) \|\| 0, p\[1\]\)/);
 });
 
+// #1195 (hertest 24-11): duiven op de keien waren 0,9 m (de maat van de speelbare duif) en een landende duif cirkelde laag en scheef rond zijn plek
+t('#1195: een duif op de voerplek en in de zwerm is een stadsduif van 0,25 tot 0,45 m', () => {
+  const spot = P.buildPigeonBird('pigeon', null);
+  const S = Number(src('pigeonspots.js').match(/export const GROUND_PIGEON_SCALE = ([\d.]+)/)[1]);
+  spot.scale.setScalar(S);
+  spot.updateMatrixWorld(true);
+  // snavel tot staart: romp, kop en staart (de vleugels liggen in de bindhouding gespreid en tellen niet mee)
+  const b = new THREE.Box3();
+  for (const o of [spot.userData.body.children[0], spot.userData.head, spot.userData.tail]) b.expandByObject(o);
+  const lang = b.getSize(new THREE.Vector3()).x;
+  assert.ok(lang > 0.3 && lang < 0.45, `voerplekduif ${lang.toFixed(2)} m van snavel tot staart`);
+  assert.match(src('pigeonspots.js'), /mesh\.scale\.setScalar\(GROUND_PIGEON_SCALE\)/, 'de voerplek zet de maat van de stadsduif');
+  const f = B.makeBirds(new THREE.Group(), 0, 0, 2, 1);
+  f.body.geometry.computeBoundingBox();
+  const z = f.body.geometry.boundingBox.getSize(new THREE.Vector3()).x;
+  assert.ok(z > 0.25 && z < 0.45, `zwermduif ${z.toFixed(2)} m`);
+});
+
+t('#1195: een landende duif vlak boven de grond helt niet om en cirkelt niet eindeloos rond zijn plek', () => {
+  const m = W.buildPigeonMesh3D(0);
+  const a = { kind: 'pigeon', state: 'land', z: 0.2, angle: 0, speed: 1, bobSeed: 0.3 };
+  for (let i = 0; i < 20; i++) { a.angle += 0.15; W.animateWildlifeMesh3D(m, a, i / 30); }
+  const rx = Math.abs(m.userData.bones.body.rotation.x);
+  assert.ok(rx < 0.1, `helling vlak boven de grond ${rx.toFixed(2)} rad`);
+  const hoog = W.buildPigeonMesh3D(0);
+  const b = { ...a, z: 4, angle: 0 };
+  for (let i = 0; i < 20; i++) { b.angle += 0.15; W.animateWildlifeMesh3D(hoog, b, i / 30); }
+  assert.ok(Math.abs(hoog.userData.bones.body.rotation.x) > 0.1, 'hoog in de lucht helt hij wel in de bocht');
+  const w = src('wildlife.js');
+  assert.match(w, /a\.speed = Math\.max\(d < 1\.5 \? 0\.3 : 1/, 'dicht bij de landingsplek remt hij af');
+  assert.match(w, /a\.landT > 6 && a\.z < PIGEON_STAND_Y \+ 0\.8/, 'na zes seconden laag rondvliegen landt hij gewoon');
+});
+
 console.log(`\npigeonmodel_test: ${n - fails}/${n} ok`);
 process.exit(fails ? 1 : 0);

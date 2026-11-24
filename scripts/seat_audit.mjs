@@ -6,7 +6,9 @@
 //   reach    the hands are ahead of the hip (on the wheel, not behind it)
 //   floor    the feet stay above the sill and inside the body
 // Bikes, scooters and boats are checked against the saddle / deck height.
-//   node scripts/seat_audit.mjs [--verbose]
+//   node scripts/seat_audit.mjs [--verbose] [--modulair]
+// --modulair: dezelfde controles met een modulaire mens (Quaternius, ADR 0050; man en vrouw om en om) op de stoel via
+// seating3d.js placeSeatedLocal, zoals de spelerfase (?mensen=q3) hem neerzet: zit- of rijclip, zitvlak op de zitting.
 // Needs the vendored three.js once: cd desktop && npm run stage
 import './node3d.mjs';
 
@@ -19,7 +21,25 @@ const { vehicleSeat } = await import('../game/js/seating3d.js');
 const { buildPersonMesh, seatPose, seatedY, standBehindPose, supPose, PERSON_RIG } = await import('../game/js/models3d_people.js');
 const { TRAFFIC_MODELS, MOPED_MODEL } = await import('../game/js/vehicle.js');
 const { BOAT_KINDS } = await import('../game/js/boattypes.js');
-const VERBOSE = process.argv.includes('--verbose');
+const VERBOSE = process.argv.includes("--verbose");
+const MODULAR = process.argv.includes('--modulair');
+let M = null, placeSeatedLocal = null, SADDLE_BELOW_HIP = 0.17, wheelPoseFor = null;
+if (MODULAR) {
+  const fs = await import('node:fs');
+  M = await import('../game/js/modularpeople.js');
+  for (const r of ['man', 'vrouw']) M.registerModularRig(r, JSON.parse(fs.readFileSync(new URL(`../game/models/mensen/${r}.json`, import.meta.url))), fs.readFileSync(new URL(`../game/models/mensen/${r}.bin`, import.meta.url)));
+  ({ placeSeatedLocal, SADDLE_BELOW_HIP } = await import('../game/js/seating3d.js'));
+  await import('../game/js/autointerieur.js');   // registreert het stuur voor placeSeatedLocal
+  const { cabinWheelPose } = await import('../game/js/cabin3d.js');
+  const { interiorKlasse } = await import('../game/js/carinteriorlayout.js');
+  const { isCockpitKlasse } = await import('../game/js/cockpitlayout.js');
+  const { carBodyFit } = await import('../game/js/models3d_vehicles.js');
+  wheelPoseFor = (v, seat) => { const k = interiorKlasse(v); if (k === 'heli' || k === 'vliegtuig' || v.isBoat) return null; return cabinWheelPose(seat, v.model.len, v.model.wid, k, isCockpitKlasse(k) ? null : carBodyFit(v), v.model.name || ''); };
+}
+let modN = 0;
+// --modulair: de kleinste marge per maat tot zijn grens over alle stoelen (eis coördinator 23-11: binnen de grenzen MET marge)
+const margins = {};
+const noteMargin = (name, arr, lo, hi, label) => { for (const a of [].concat(arr)) { const m = Math.min(a - lo, hi - a); if (!margins[name] || m < margins[name].m) margins[name] = { m, a, label }; } };
 
 const car = (name, len, wid, extra = {}) => ({ model: { name, len, wid, color: '#888888', ...extra.model }, ...extra.v });
 const CASES = [
@@ -101,7 +121,66 @@ function bodyBox(root) {
   return box;
 }
 
+// Een modulaire mens op de stoel: placeSeatedLocal speelt een tijdje de zit- of rijclip, dan dezelfde punten als hieronder uit
+// zijn eigen botten (hoofd 9 cm boven het hoofdbot, handen = polsen, voeten = voetbotten, knieën = onderbeen).
+function seatFigureModular(mesh, v, seat) {
+  const p = M.buildModularPerson(100 + modN, { female: modN++ % 2 === 1 });
+  p.userData.isPerson = true;
+  p.traverse((o) => { o.userData.person = true; });
+  const host = mesh.userData.body || mesh;
+  host.userData.vehicleRef = v;   // zodat placeSeatedLocal het echte stuur van dit voertuig vindt (autointerieur.js)
+  host.add(p);
+  for (let i = 0; i < 90; i++) placeSeatedLocal(p, seat, i / 60);
+  mesh.updateMatrixWorld(true);
+  const B = p.userData.qBones, I = p.userData.qIdx, bn = (n) => B[p.userData.qRig.man.bones.findIndex((b) => b.name === n)];
+  const w = (b, dy = 0) => { const q = new THREE.Vector3(); b.getWorldPosition(q); q.y += dy; return q; };
+  const head = w(B[I.head], 0.09), headTop = w(B[I.head], 0.24), hip = w(bn('Hips'));
+  const hands = [w(bn('WristL')), w(bn('WristR'))], feet = [w(B[I.footL]), w(B[I.footR])], knees = [w(B[I.loL]), w(B[I.loR])];
+  // het zitvlak: het laagste punt van het lijf binnen 15 cm (in het grondvlak) van de heup en onder de heup; de zitting: seat.y
+  // in de assen van het voertuig (een fietser: het zadel, SADDLE_BELOW_HIP onder de heup van het eigen model)
+  const body = p.userData.body, g = body.geometry, v3 = new THREE.Vector3();
+  let butt = Infinity;
+  for (let i = 0; i < g.attributes.position.count; i++) {
+    v3.fromBufferAttribute(g.attributes.position, i); body.applyBoneTransform(i, v3); v3.applyMatrix4(body.matrixWorld);
+    // alleen het zitvlak: onder en achter de heup (de dijen lopen naar voren), het voertuig staat recht (hoek 0)
+    // voor of achter in de assen van de mens zelf (een passagier kan achteruit zitten)
+    const lv = p.worldToLocal(v3.clone()), lh = p.worldToLocal(hip.clone());
+    if (lv.y < lh.y && lv.y > lh.y - 0.2 / (p.scale.y || 1) && lv.x < lh.x + 0.03 && Math.abs(lv.z - lh.z) < 0.15) butt = Math.min(butt, v3.y);
+  }
+  const seatW = worldOf(mesh.userData.body || mesh, seat.x, seat.rider ? seat.y + PERSON_RIG.HIP_Y - SADDLE_BELOW_HIP : seat.y, seat.z), seatY = seatW.y;
+  const deg = (x) => x * 180 / Math.PI;
+  const ang3 = (a, b, c) => deg(a.clone().sub(b).angleTo(c.clone().sub(b)));   // hoek bij b
+  const knee = (k) => ang3(w(B[k ? I.upR : I.upL]), w(B[k ? I.loR : I.loL]), feet[k]);
+  // in de assen van de mens: x voor, y op
+  const loc = (q) => p.worldToLocal(q.clone());
+  const hipL = loc(hip), neckL = loc(w(bn('Neck')));
+  const backDeg = deg(Math.atan2(-(neckL.x - hipL.x), neckL.y - hipL.y));   // + = achterover
+  const thigh = (k) => { const a = loc(w(B[k ? I.upR : I.upL])), b = loc(w(B[k ? I.loR : I.loL])); return deg(Math.atan2(b.y - a.y, Math.abs(b.x - a.x))); };
+  // heuphoek in het zijaanzicht (de assen van de mens, z weggelaten): tussen rug (heup naar nek) en dij
+  const flat = (q) => { const l = loc(q); l.z = 0; return l; };
+  const hipAng = (k) => ang3(flat(w(bn('Neck'))), flat(w(B[k ? I.upR : I.upL])), flat(w(B[k ? I.loR : I.loL])));
+  const elbow = (k) => ang3(w(bn(k ? 'UpperArmR' : 'UpperArmL')), w(bn(k ? 'LowerArmR' : 'LowerArmL')), w(bn(k ? 'WristR' : 'WristL')));
+  // de handpalm (7,5 cm voorbij de pols) tegen de rand van het echte stuur
+  let wheelGap = null;
+  if (seat.pose && seat.pose.arms === 'wheel' && wheelPoseFor) {
+    const wp = wheelPoseFor(v, seat);
+    if (wp) {
+      const c = worldOf(host, wp.x, wp.y, wp.z);
+      const n = new THREE.Vector3(Math.cos(wp.tilt || 0), Math.sin(wp.tilt || 0), 0).transformDirection(host.matrixWorld);   // as van het wiel
+      wheelGap = [0, 1].map((k) => {
+        const wr = w(bn(k ? 'WristR' : 'WristL')), lo = w(bn(k ? 'LowerArmR' : 'LowerArmL'));
+        const palm = wr.clone().add(wr.clone().sub(lo).normalize().multiplyScalar(0.075));
+        const d = palm.clone().sub(c), axial = d.dot(n), radial = d.clone().addScaledVector(n, -axial).length();
+        return Math.hypot(axial, radial - (wp.r || 0.19));
+      });
+    }
+  }
+  p.removeFromParent();
+  return { head, headTop, hip, hands, feet, knees, butt, seatY, seatX: seatW.x, kneeDeg: [knee(0), knee(1)], backDeg, thighDeg: [thigh(0), thigh(1)], hipDeg: [hipAng(0), hipAng(1)], elbowDeg: [elbow(0), elbow(1)], wheelGap, modular: true };
+}
+
 function seatFigure(mesh, v, seat) {
+  if (MODULAR) return seatFigureModular(mesh, v, seat);
   const p = buildPersonMesh(0x5a6470, 0xd9aa82, { seed: 3 });
   p.userData.isPerson = true;
   p.traverse((o) => { o.userData.person = true; });
@@ -160,6 +239,43 @@ function check(label, v, driver) {
       if (ft.x > body.max.x - 0.05 || ft.x < body.min.x) issues.push(`foot x ${ft.x.toFixed(2)} outside the body`);
     }
   }
+  if (f.modular && !seat.stand || (f.modular && seat.rider)) {
+    // eis 23-11: zitvlak op de zitting (minder dan 5 cm ertussen), rug rechtop (hoofd boven de heup), knieën gebogen bij een stoel
+    // een fietser: de heup boven het zadel (de benen hangen langs het zadel, het zitvlak is daar niet te meten)
+    if (seat.rider) f.butt = f.hip.y - 0.065;
+    if (Math.abs(f.butt - f.seatY) > 0.05) issues.push(`zitvlak ${f.butt.toFixed(2)} niet op de zitting ${f.seatY.toFixed(2)} (${((f.butt - f.seatY) * 100).toFixed(0)} cm)`);
+    if (!seat.rider && Math.abs(f.hip.x - f.seatX) > 0.15) issues.push(`heup ${((f.hip.x - f.seatX) * 100).toFixed(0)} cm voor de zitting (de stoel en het stuur van dit voertuig passen niet bij elkaar)`);
+    if (f.head.y - f.hip.y < 0.5 || Math.abs(f.head.x - f.hip.x) > 0.3) issues.push(`rug niet rechtop (hoofd ${(f.head.y - f.hip.y).toFixed(2)} m boven en ${(f.head.x - f.hip.x).toFixed(2)} m voor de heup)`);
+    // eis 23-11 (referentie autozit): rug 15-30 graden achterover, heuphoek 90-115, dijen -5 tot 35 graden, knie 105-135, ellebogen
+    // 115-150 met de handpalm minder dan 3 cm van de rand van het echte stuur; fiets: romp voorover, knie onderaan 140-170
+    const r0 = (a) => a.map((x) => x.toFixed(0)).join('/');
+    const out = (arr, lo, hi) => arr.some((a) => a < lo || a > hi);
+    const carSeat = !seat.horse && !seat.rider && seat.pose && !seat.pose.splay && (seat.pose.arms === 'wheel' || seat.pose.arms === 'lap');
+    const lbl = label + (driver ? ' bestuurder' : ' passagier');
+    if (carSeat) {
+      noteMargin('rug', f.backDeg, 15, 30, lbl); noteMargin('heup', f.hipDeg, 90, 115, lbl); noteMargin('dij', f.thighDeg, -5, 35, lbl); noteMargin('knie', f.kneeDeg, 105, 135, lbl);
+      if (seat.pose.arms === 'wheel') noteMargin('elleboog', f.elbowDeg, 115, 150, lbl);
+      if (VERBOSE) console.log(`       rug ${f.backDeg.toFixed(0)} heup ${r0(f.hipDeg)} dij ${r0(f.thighDeg)} knie ${r0(f.kneeDeg)}` + (seat.pose.arms === 'wheel' ? ` elleboog ${r0(f.elbowDeg)}` : ''));
+      if (f.backDeg < 15 || f.backDeg > 30) issues.push(`rug ${f.backDeg.toFixed(0)} graden achterover (15-30)`);
+      if (out(f.hipDeg, 90, 115)) issues.push(`heuphoek ${r0(f.hipDeg)} graden (90-115)`);
+      if (out(f.thighDeg, -5, 35)) issues.push(`dij ${r0(f.thighDeg)} graden boven horizontaal (-5 tot 35)`);
+      if (out(f.kneeDeg, 105, 135)) issues.push(`knie ${r0(f.kneeDeg)} graden (105-135)`);
+      if (seat.pose.arms === 'wheel') {
+        if (out(f.elbowDeg, 115, 150)) issues.push(`elleboog ${r0(f.elbowDeg)} graden (115-150)`);
+        if (f.wheelGap && f.wheelGap.some((g2) => g2 > 0.03)) issues.push(`hand ${f.wheelGap.map((g2) => (g2 * 100).toFixed(0)).join('/')} cm van het stuur (< 3)`);
+      }
+    }
+    if (seat.rider) {
+      // trappers (modularpeople.js PEDAL_R): het been onderaan de slag 135-172 graden, het andere (bovenaan) niet dichter dan 70
+      const kLo = Math.max(...f.kneeDeg), kHi = Math.min(...f.kneeDeg);
+      noteMargin('fietser romp', -f.backDeg, 8, 50, lbl); noteMargin('fietser knie', kLo, 135, 172, lbl); noteMargin('fietser knie boven', kHi, 70, 172, lbl);
+      if (f.backDeg > -8 || f.backDeg < -50) issues.push(`fietser: romp ${(-f.backDeg).toFixed(0)} graden voorover (8-50)`);
+      if (kLo < 135 || kLo > 172) issues.push(`fietser: knie onderaan ${kLo.toFixed(0)} graden (135-172)`);
+      if (kHi < 70) issues.push(`fietser: knie bovenaan ${kHi.toFixed(0)} graden (minstens 70)`);
+    }
+    if (seat.pose && seat.pose.arms === 'rail' && !seat.stand) noteMargin('achterop knie', f.kneeDeg, 70, 100, lbl);
+    if (seat.pose && seat.pose.arms === 'rail' && !seat.stand && out(f.kneeDeg, 70, 100)) issues.push(`achterop: knie ${r0(f.kneeDeg)} graden (70-100)`);
+  }
   if (!seat.horse && (f.hip.x > body.max.x || f.hip.x < body.min.x || Math.abs(f.hip.z) > Math.max(body.max.z, -body.min.z))) issues.push('hip outside the body');
   problems += issues.length ? 1 : 0;
   const tag = `${label.padEnd(24)} ${driver ? 'driver ' : 'passngr'}`;
@@ -184,5 +300,6 @@ const HORSE = { name: 'horse', len: 2.4, wid: 0.75, maxSpeed: 9.2, accel: 3.2, b
 for (const d of [true, false]) check('politiepaard', { model: { ...HORSE }, isBike: true, _mount: 'horse' }, d);
 for (const [k, m] of Object.entries(BOAT_KINDS)) for (const d of [true, false]) check('boat ' + k, { model: { ...m }, isBoat: true }, d);
 check('politieboot', { model: { ...BOAT_KINDS.sloep, cabin: '#12294f' }, isBoat: true, isPolice: true }, true);
+if (MODULAR) console.log('\nkleinste marge tot de grens (graden): ' + Object.entries(margins).map(([k, v]) => `${k} ${v.m.toFixed(1)} (${v.a.toFixed(0)}, ${v.label})`).join('; '));
 console.log(problems ? `\n${problems} seat(s) with problems` : '\nall seats ok');
 process.exitCode = problems ? 1 : 0;

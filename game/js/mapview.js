@@ -63,7 +63,7 @@ import { getSideJobSpotsForRender } from './sidejobs.js';
 import { getEierbalTips } from './furniture.js';
 import { drawRailsOnMap } from './railway.js';
 import { drawCountryBase, drawCountryDetail, villageLabels, syncMapPhase, MAP_STYLE, builtUpAt } from './countrymap.js';
-import { drawProvinceBase, provinceMapOn, provinceMapBounds, onProvinceMapLoad } from './provincemap.js';
+import { drawProvinceBase, provinceMapOn, provinceMapBounds, onProvinceMapLoad, preloadProvinceMap } from './provincemap.js';
 import { ROAD_ORDER, ZOOM, EMPHASIS, INK, inkA, inkCss, kaartTekst, kaartRandTekst, labelHalo, roadWidthPx, layersAtZoom, ICON_MIN_ZOOM, modeLook, baseFilter, baseDimOverlay } from './mapstyle.js';
 import { drawSea, drawOutside, regionLabels, regionEdgeLabels, areaNameAt, placeNameAt, regionName, regionBorderColor } from './regions.js';
 import { borderPlaceLabels, borderPlaceAt } from './borderplaces.js';
@@ -3257,6 +3257,7 @@ function openMap(world) {
   initDiscovery(world);
   if (discovery) refreshDiscovery(true);
   state.cam = null;
+  preloadProvinceMap(); // #1191: de grovere lagen staan klaar als invaller, geen mozaïek van 160 m
   ensureLevel0();
   state.dirty = true;
   syncKaartUitleg(world);

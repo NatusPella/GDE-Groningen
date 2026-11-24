@@ -205,7 +205,7 @@ export const STAND_LABEL = { laag: 'Laag', middel: 'Midden', vlot: 'Hoog', hoog:
 const STAND_EXPLAIN = {
   laag: 'Laag houdt het spel soepel op deze computer: kortere zichtafstand, geen schaduwen en een lagere resolutie.',
   middel: 'Midden is de balans: schaduwen aan en normale zichtafstand, met genoeg ruimte voor drukke scènes.',
-  vlot: 'Hoog heeft de look van Ultra met een ruime zichtafstand en zachte mist: soepel op de meeste computers.',
+  vlot: 'Hoog heeft de look van Ultra met een normale zichtafstand en zachte mist: soepel op de meeste computers.',
   hoog: 'Ultra laat Grunn zien zoals bedoeld, met de verste zichtafstand. Deze computer houdt dat bij.',
 };
 // #1015: two things that make a low result say nothing about the settings. (1) Preset-insensitive: the next lower preset (measured on the slowest

@@ -15,7 +15,7 @@ ok(uitlegHtml({ gast: true }).length > html.length, 'een gast leest er een regel
 
 // de hoofdoorzaak: .mapview-overlay heeft pointer-events: none en alleen de kinderen die klikbaar moeten zijn zetten auto; .mv-help erfde none en liet elke klik door naar het doek
 const css = src('game/js/kaartactieui.js');
-ok(/\.mapview-overlay :is\(\.mv-help, \.mv-reispop\) \{[^}]*pointer-events: auto/.test(css), 'de uitleg zet pointer-events: auto (anders klikt alles door naar het doek)');
+ok(/(?:\.mapview-overlay|:is\(\.mapview-overlay, \.reis-hud\)) :is\(\.mv-help, \.mv-reispop\) \{[^}]*pointer-events: auto/.test(css), 'de uitleg zet pointer-events: auto (anders klikt alles door naar het doek)');
 
 const mv = src('game/js/mapview.js');
 ok(/let uitlegGezien = false;/.test(mv) && /if \(uitlegGezien\) return true;/.test(mv), 'kaartGezien onthoudt het ook in het geheugen');
@@ -61,9 +61,9 @@ ok(/\.mv-help-box, \.mv-reispop-box\) \{ width: min\(460px, 100%\)/.test(mvCss),
 const helpBlok = mvCss.slice(mvCss.indexOf('/* de uitleg en de reispopup')).split('\n').filter((l) => /mv-help|mv-reispop/.test(l));
 const maten = helpBlok.flatMap((l) => [...l.matchAll(/font-size:\s*([^;}]+)[;}]/g)].map((m) => m[1].trim()));
 ok(maten.length >= 8 && maten.every((m) => /^(max\((1[3-9]|[2-9]\d)px|var\(--ds-t-label\))/.test(m)), 'alle tekst in de uitleg en de reispopup is 13 px of meer (tekst 15 px)', maten.join(' | '));
-ok(helpBlok.filter((l) => /font-size:\s*max\(1[0-4]px/.test(l)).every((l) => /mv-aanb/.test(l)), 'alleen het label Aanbevolen staat op 13 px, de rest op 15 px of meer');
+ok(helpBlok.filter((l) => /font-size:\s*max\(1[0-4]px/.test(l)).every((l) => /mv-aanb|mv-reispop-eb/.test(l)), 'alleen de labels (Aanbevolen en de kicker boven de reiskaart, hertest 24-11) staan op 13 px, de rest op 15 px of meer');
 ok(!helpBlok.some((l) => /hud-key[^{]*\{[^}]*(width|height|font-size):\s*\d+px/.test(l)), 'geen vaste px-maten voor toetsen in de uitleg');
-ok(/prefers-reduced-motion[^\n]*mv-help/.test(mvCss) && /html\.reduce-motion \.mapview-overlay :is\(\.mv-help/.test(mvCss) && /html\.rustig-drukwerk \.mapview-overlay :is\(\.mv-help/.test(mvCss), 'de binnenkomst staat stil bij verminderde beweging en Rustig drukwerk');
+ok(/prefers-reduced-motion[^\n]*mv-help/.test(mvCss) && /html\.reduce-motion (?:\.mapview-overlay|:is\(\.mapview-overlay, \.reis-hud\)) :is\(\.mv-help/.test(mvCss) && /html\.rustig-drukwerk (?:\.mapview-overlay|:is\(\.mapview-overlay, \.reis-hud\)) :is\(\.mv-help/.test(mvCss), 'de binnenkomst staat stil bij verminderde beweging en Rustig drukwerk');
 ok(!/backdrop-filter:\s*blur/.test(mvCss), 'geen vervaging achter de kaart');
 // rustig: Lagen dicht zolang de uitleg openstaat, de dim 45 %, de wijzers in de eigen laag
 ok(/toggleLegend\(false\);\s*plaatsWijzers\(\);/.test(mv), 'bij het openen van de uitleg gaat Lagen dicht en komen de wijzers');

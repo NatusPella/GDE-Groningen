@@ -353,6 +353,8 @@ function toppleRandomBike(world) {
 const _moodTarget = { wad: 0, lauwers: 0, veen: 0 }, _moodW = { wad: NaN, lauwers: NaN, veen: NaN }; // NaN: the first frame takes the target at once (easeTo)
 const _mood = { tint: [1, 1, 1], haze: 0, glow: 1 };
 const _moodTint = new THREE.Color(1, 1, 1);
+const _moodZenith = new THREE.Color(1, 1, 1);
+export const MOOD_ZENITH_K = 0.6; // het deel van de streektint dat ook het zenit kleurt (#1291)
 
 export function applyWeatherToScene3D(scene, renderer, world, dt, px, py, cam = null) {
   const w = world.weather;
@@ -380,6 +382,7 @@ export function applyWeatherToScene3D(scene, renderer, world, dt, px, py, cam = 
   _moodW.veen = easeTo(_moodW.veen, _moodTarget.veen, dt, MOOD_EASE_S);
   areaMoodLook(_moodW, world.dayNight ? world.dayNight.sunElevation : 30, _mood);
   _moodTint.setRGB(_mood.tint[0], _mood.tint[1], _mood.tint[2]);
+  _moodZenith.setRGB(1 + (_mood.tint[0] - 1) * MOOD_ZENITH_K, 1 + (_mood.tint[1] - 1) * MOOD_ZENITH_K, 1 + (_mood.tint[2] - 1) * MOOD_ZENITH_K);
   scene.userData.areaMood = _mood;
 
   // Base (clear-weather) mood is written by scene3d every frame from the
@@ -416,7 +419,8 @@ export function applyWeatherToScene3D(scene, renderer, world, dt, px, py, cam = 
   const sky = scene.userData.sky;
   if (sky) {
     const u = sky.uniforms;
-    u.uZenith.value.copy(base.zenith).lerp(_stormZenith, cloud * 0.9).lerp(_mist, mist * 0.85).lerp(LIGHTNING_COLOR, flash * 0.6);
+    // #1291 (hertest 24-11): ook de lucht boven je krijgt de streekkleur (zachter dan de horizon), anders is de avondlucht overal hetzelfde roze
+    u.uZenith.value.copy(base.zenith).multiply(_moodZenith).lerp(_stormZenith, cloud * 0.9).lerp(_mist, mist * 0.85).lerp(LIGHTNING_COLOR, flash * 0.6);
     u.uHorizon.value.copy(base.horizon).multiply(_moodTint).lerp(_stormFog, cloud * 0.9).lerp(_mist, mist).lerp(LIGHTNING_COLOR, flash * 0.5);
     // #840: een regenboog na een bui, zacht en alleen als de lucht weer opklaart.
     if (u.uSunDir && u.uRainbow) {

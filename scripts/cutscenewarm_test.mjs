@@ -263,5 +263,31 @@ ok(budgetFor(40, { cine: true, cineWarm: true }) === PLAN.floorMs, 'een trage fr
   ok(play(createJumpRunner(js, m3.env), m3.clock, 24).frames > 0, 'een kapotte meetfunctie hindert de scene niet');
 }
 
+// #1171 (hertest 24-11): het eerste shot van de opening ligt ver van de speler; dat is ook een sprong, met een meteen zwart begin
+{
+  const { stopsFromStart, FIRST_JUMP_T } = await import('../game/js/cutscenewarm.js');
+  const shots = [{ t: 0, x: 214, y: 10 }, { t: 5.2, x: 16, y: 256 }, null, { t: 9.6, x: 1309, y: -805 }];
+  const st = stopsFromStart(shots, { x: 2400, y: -2600 });
+  ok(st.length === 4 && st[0].t < 0 && st[1].t === FIRST_JUMP_T && st[1].x === 214, 'de speler vooraan, het eerste shot net na 0', JSON.stringify(st));
+  const js0 = jumpsFromStops(st);
+  ok(js0.length >= 1 && js0[0].idx === 1 && js0[0].kind === 'hard' && js0[0].t === FIRST_JUMP_T, 'de sprong van de speler naar de toren is hard', JSON.stringify(js0[0]));
+  const oud = jumpsFromStops(shots.filter((q) => q && q.t > 0));
+  ok(!oud.some((j) => j.to.x === 214), 'zonder stopsFromStart had de toren geen sprong (de oorzaak van het lege beeld)');
+  const later = stopsFromStart([{ t: -3, x: 1, y: 1 }, { t: -0.5, x: 214, y: 10 }, { t: 2, x: 16, y: 256 }], { x: 214, y: 12 });
+  ok(later[1].x === 214 && later[1].t === FIRST_JUMP_T && later.length === 3, 'midden in de film beginnen: het shot dat nu loopt telt, de eerdere niet');
+  ok(stopsFromStart(null, null).length === 0 && stopsFromStart([{ t: 1, x: NaN, y: 0 }], { x: 0, y: 0 }).length === 1, 'kapotte invoer: niets of alleen de speler');
+  // de poort: bij het begin meteen zwart (geen uitduik over het lege beeld) en hij mag langer wachten dan bij een gewone cut
+  const m = mkEnv({ tilesMissing: 99 });
+  const r = createJumpRunner(js0, m.env);
+  const p = play(r, m.clock, 1);
+  ok(m.calls.fade.length && m.calls.fade[0][0] === 1 && m.calls.fade[0][1] === 0, 'het begin gaat meteen op zwart', JSON.stringify(m.calls.fade[0]));
+  const heldMs = p.heldFrames * 1000 / 60;
+  ok(heldMs >= WARM.startWaitMs - 60 && heldMs <= WARM.startWaitMs + 60, 'nooit klaar: bij het begin hoogstens startWaitMs', String(heldMs));
+  const m2 = mkEnv({ tilesMissing: 9 });
+  const r2 = createJumpRunner(js0, m2.env);
+  play(r2, m2.clock, 1, { onFrame: (f) => { if (f === 30) m2.set({ tilesMissing: 0 }); } });
+  ok(r2.gate.stats.timeouts === 0 && r2.gate.stats.gates === 1, 'klaar: de film begint zodra de plek er staat');
+}
+
 console.log(`${n - fails}/${n} cutscenewarm-controles`);
 process.exit(fails ? 1 : 0);

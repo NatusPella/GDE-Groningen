@@ -3,7 +3,7 @@ import { volgendeTredeRij } from './medalrules.js';
 import { getSettings } from './settings.js';
 import { cleanDifficulty, difficultyRecordKey, scaleTimeLimit } from './difficulty.js'; // #800: stand en records per stand
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
-import { canvasTex } from './canvastex.js';
+import { canvasTex, plainBack } from './canvastex.js';
 import { getScene } from './scene3d.js';
 import { buildPersonMesh, animatePersonWalk } from './models3d_people.js';
 import { showBanner } from './cinematics.js';
@@ -75,7 +75,7 @@ function buildSite() {
   // a jetty out over the water
   add(new THREE.BoxGeometry(7, 0.18, 2.6), std(0x8a6a44), 3.5, SURF + 0.35, 0);
   for (const x of [0.5, 3.5, 6.5]) for (const z of [-1.1, 1.1]) add(new THREE.CylinderGeometry(0.08, 0.08, 1.2, 6), std(0x5a4a38), x, SURF - 0.1, z);
-  const sign = new THREE.Mesh(new THREE.PlaneGeometry(4.2, 1.4), new THREE.MeshBasicMaterial({ map: signTexture(), side: THREE.DoubleSide }));
+  const sign = new THREE.Mesh(new THREE.PlaneGeometry(4.2, 1.4), plainBack(new THREE.MeshBasicMaterial({ map: signTexture() }))); // hertest 24-11: de achterkant is een effen bordrug, geen spiegelschrift (canvastex.js plainBack)
   sign.position.set(-3.5, 2.6, 3.4);
   sign.rotation.y = Math.PI / 2;
   grp.add(sign);

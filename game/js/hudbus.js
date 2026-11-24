@@ -325,6 +325,7 @@ export const SURFACES = {
   status: { files: ['hud_panel.js', 'hudgps.js', 'lowhealth.js'], p: P2, own: 'decideHud (hudrules.js) zet sterren, geld, kaart, voertuig, doel en balken neer' },
   opgeslagen: { files: ['savegame.js'], zone: 'F', p: P3, own: 'het kleine Opgeslagen-vinkje bij de plaatsnaam, links onder; een eigen DOM-element, geen kaart' },
   recapkaart: { files: ['recapcardrun.js'], own: 'de recapkaart Waar waren we? na Doorgaan: wacht op een rustig moment (geen scene, geen verhaalbeat), houdt de wereld stil (uiPaused) en sluit via de knop of de terugtoets; alleen lokaal, niets in het opgeslagen spel' },
+  reiskeuze: { files: ['reispanel.js', 'kaartactieui.js'], own: 'de reiskeuze bij een reisstap (#97, #1216): dezelfde reiskaart als Reis erheen op de grote kaart, in de HUD onder de doelbalk; de speler kiest meerijden, zelf of overslaan, geen melding' },
   vertrekbordtijdlijn: { files: ['departuretimelineui.js'], own: 'de tijdlijn op het vertrekbord van een station (#1085): een element in het bord zelf, geen kaart of melding op de HUD' },
   voetbaltv: { files: ['voetbaltvlayer.js'], own: 'de tv-laag van de voetbalwedstrijd (voetbal.js): ondertitel van het commentaar, veldradar, herhalinglabel en de kaarten van de uitzending (opstelling, rust, einde); alleen tijdens de wedstrijd, geen melding en geen klik' },
   voetbalcarriere: { files: ['voetbalcarriereui.js'], own: 'het kindscherm Voetbal onder Loopbanen in het pauzemenu: de speler opent het zelf, geen melding en geen HUD-kaart' },

@@ -1,6 +1,7 @@
 import { gridItems } from './spatialgrid.js';
 import { hoofdspeler } from './players.js';
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
+import { plainBack } from './canvastex.js';
 import { getScene } from './scene3d.js';
 import { isInWater } from './util.js';
 import { isInsideBuilding } from './pedgeom.js';
@@ -72,7 +73,7 @@ export function updateMarktSigns(dt, w) {
   group = new THREE.Group();
   const tex = plateTexture();
   const poleMat = new THREE.MeshStandardMaterial({ color: 0x4a4e52, metalness: 0.5, roughness: 0.6 });
-  const faceMat = new THREE.MeshBasicMaterial({ map: tex, side: THREE.DoubleSide });
+  const faceMat = plainBack(new THREE.MeshBasicMaterial({ map: tex })); // hertest 24-11: de achterkant is een effen bordrug, geen spiegelschrift (canvastex.js plainBack)
   for (const s of signSpots(w.map)) {
     const g = new THREE.Group();
     const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.035, 0.035, 2.5, 6), poleMat);

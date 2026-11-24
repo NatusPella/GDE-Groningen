@@ -40,7 +40,8 @@ export const SHOP_ICONS = {
   kl_sieraad: P('M12 4l4 4-4 12-4-12zM8 8h8', 'M12 4l4 4H8z', 'M12 8l4 0-4 12z'),
   kl_horloge: P('M9 2h6l1 4v12l-1 4H9l-1-4V6zM10 8h4v8h-4z', 'M9 2h6l1 4H8z', 'M10 8h4v3h-4z'),
   kl_hand: P('M7 11V6h2v4h1V4h2v6h1V5h2v6h1V8h2v8a5 5 0 0 1-5 5h-1a5 5 0 0 1-5-5z', 'M7 11V6h2v4h1V4h2v6z', 'M12 14h6v2a5 5 0 0 1-5 5h-1z'),
-  kl_outfit: P('M6 3h12l2 6-3 1v11H7V10L4 9zM10 3a2 2 0 0 0 4 0', 'M6 3h12l-6 7z', 'M7 10h5v11H7z'),
+  // #1237 (hertest 24-11): een set is een kleerhanger met een kledingstuk eraan, niet nog een shirt (de rij van Sets leek één lijst shirts)
+  kl_outfit: P('M11 2h2v3l9 6v2H2v-2l9-6zM5 14h14l-1.5 7h-11z', 'M12 5l9 6v2h-9z', 'M5 14h7v7H6.5z'),
   kl_sok: P('M9 3h6v9l5 5v4H7v-4l2-2z', 'M9 3h3v9l-3 3z', 'M13 12l7 5v4h-6z'),
   kl_scheen: P('M8 3h8l-1 18H9z', 'M8 3h4v18H9z', 'M12 3h4l-1 18h-3z'),
   kl_postuur: P('M12 3a3 3 0 1 1 0 6 3 3 0 0 1 0-6zM6 11h12l-2 4v6h-3v-5h-2v5H8v-6z', 'M6 11h12l-6 3z', 'M8 15h3v6H8z'),

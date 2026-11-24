@@ -166,7 +166,9 @@ t('ketenuitbreiding vraagt een tweede druk; renovatie toont de prijs en vraagt e
 t('te koop: laden en leeg zijn twee verschillende zinnen', () => {
   reset();
   assert.match(U.forSaleHtml({ money: 1, offers: [], loading: true }), /data-leeg="laden"/);
-  assert.match(U.forSaleHtml({ money: 1, offers: [] }), /data-leeg="niets"[^>]*>(?:<h3[^>]*>)?Niets te koop/);
+  assert.match(U.forSaleHtml({ money: 1, offers: [] }), /data-leeg="niets"[^>]*>(?:<span[^>]*>.*?<\/span>)?(?:<h3[^>]*>)?Niets te koop/);
+  // #1251 (hertest 24-11): de lege staat heeft een icoon en een knop naar de kaartlaag Te koop
+  assert.match(U.forSaleHtml({ money: 1, offers: [] }), /bz-leeg-ic[\s\S]*data-bz="kaart-tekoop" data-goto="map"/);
 });
 t('overzicht: met personeel staat het loon per dag erbij', () => {
   reset(); const world = w(80000);

@@ -72,7 +72,7 @@ const css = ui.slice(ui.indexOf('/* de uitleg en de reispopup'));
 ok(/mv-reispop-box \{ width: min\(520px, 100%\)/.test(css), 'de popup is 520 px breed, de plekkaart niet breder dan ze was');
 ok(/mv-reispop \.mv-keuze \{ min-height: var\(--ds-doel-aanraken\)/.test(css), 'elke keuze is een aanraakdoel (44 px)');
 ok(!/mv-reispop[^{]*hud-key[^{]*\{/.test(css), 'geen eigen toetsmaten in de popup: het keycap-systeem bepaalt');
-ok(/html\.rustig-drukwerk \.mapview-overlay :is\(\.mv-help, \.mv-reispop/.test(css), 'Rustig drukwerk en Beweging beperken zetten de binnenkomst uit');
+ok(/html\.rustig-drukwerk :is\(\.mapview-overlay, \.reis-hud\) :is\(\.mv-help, \.mv-reispop/.test(css), 'Rustig drukwerk en Beweging beperken zetten de binnenkomst uit');
 
 // #1215: een rij zonder icoonnaam krijgt het icoon van haar vervoerswijze (geen vraagteken), een kaal getal als kosten is een bedrag en
 // label, kosten en duur plakken in de leestekst niet aan elkaar ("Trein 12", niet "Trein12")

@@ -16,6 +16,7 @@ import { NODATA, TerrainField } from '../../game/js/terrainraster.js';
 import { decodeRoadNet } from '../../game/js/roadgraph.js';
 import { wgsToWorld } from '../../game/js/rdnew.js';
 import * as G from '../../game/js/gdt.js';
+import { worldDir } from '../lib/worldlocator.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const args = process.argv.slice(2);
@@ -24,7 +25,7 @@ const fail = (m) => { hard++; console.log('FAIL ' + m); };
 const pct = (a, q) => { const s = [...a].sort((x, y) => x - y); return s.length ? s[Math.min(s.length - 1, Math.floor(q * s.length))] : 0; };
 
 const rasters = loadTerrainRasters(ROOT);
-const provIdx = ['game/world', 'desktop/build/game/world'].map((d) => path.join(ROOT, d, 'index-provincie.json')).find((f) => fs.existsSync(f));
+const provIdx = [worldDir(), path.join(ROOT, 'desktop/build/game/world')].map((d) => path.join(d, 'index-provincie.json')).find((f) => fs.existsSync(f));
 if (!rasters.size) { console.log('SKIP no rasters (python scripts/world/fetch_ahn.py --province --fetch)'); process.exit(0); }
 
 // coverage and integrity
@@ -72,7 +73,7 @@ console.log(`border steps (6 m across): median ${pct(steps, 0.5).toFixed(2)} m, 
 if (pct(steps, 0.99) > 3) fail('tiles step more than 3 m at their borders (p99)');
 
 // bridges of the province road net: filled terrain smooth between the ends
-const roadsFile = ['game/world', 'desktop/build/game/world'].map((d) => path.join(ROOT, d, 'provincie-roads.json.gz')).find((f) => fs.existsSync(f));
+const roadsFile = [worldDir(), path.join(ROOT, 'desktop/build/game/world')].map((d) => path.join(d, 'provincie-roads.json.gz')).find((f) => fs.existsSync(f));
 if (roadsFile) {
   const rows = decodeRoadNet(JSON.parse(zlib.gunzipSync(fs.readFileSync(roadsFile)).toString()));
   let n = 0, rough = 0, worst = 0;

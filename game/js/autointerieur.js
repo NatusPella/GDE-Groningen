@@ -7,17 +7,26 @@
 // hoort); de heli en het vliegtuig hebben een cyclic/yoke en geen stuurwiel, en een wrak heeft er geen.
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { GeoBuilder, markShared } from './pixelart3d.js';
-import { vehicleSeat } from './seating3d.js';
+import { vehicleSeat, setWheelPoseProvider } from './seating3d.js';
 import { interiorKlasse } from './carinteriorlayout.js';
 import { cabinWheelPose } from './cabin3d.js';
 import { carBodyFit } from './models3d_vehicles.js';
 import { isCockpitKlasse } from './cockpitlayout.js';
+
+// de handen van een modulaire bestuurder (seating3d.js) zoeken hetzelfde stuur als hier getekend wordt
+setWheelPoseProvider((v, seat) => {
+  const klasse = interiorKlasse(v);
+  if (GEEN_STUURWIEL_KLASSE.has(klasse) || v.isBoat) return null;   // een boot heeft zijn eigen stuur (bootinterieur.js)
+  const romp = isCockpitKlasse(klasse) ? null : carBodyFit(v);
+  return cabinWheelPose(seat, v.model.len, v.model.wid, klasse, romp, (v.model && v.model.name) || '');
+});
 
 export const STUUR_R = 12;       // m: verder weg is het draaien van het stuur niet te zien
 export const STUUR_HOEK = 2.2;   // rad stuurdraaiing bij volle stuurinvoer (zelfde als de binnenin-camera)
 const DARK = 0x23262b, GREY = 0x3a3f46, TRIM = 0x6a707a;
 // de cockpitklassen met een echt stuurwiel; een heli en een vliegtuig hebben een cyclic/yoke
 const GEEN_STUURWIEL = new Set(['heli', 'vliegtuig']);
+const GEEN_STUURWIEL_KLASSE = GEEN_STUURWIEL;
 const geoCache = new Map();
 let material = null;
 

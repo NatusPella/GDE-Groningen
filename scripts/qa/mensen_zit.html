@@ -1,0 +1,99 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Mensen fase 3: zitten en rijden (modulair)</title>
+<script type="importmap">{ "imports": { "https://cdn.jsdelivr.net/npm/": "/cdn/", "three": "/cdn/three@0.160.0/build/three.module.js", "three/addons/": "/cdn/three@0.160.0/examples/jsm/" } }</script>
+<style>html,body{margin:0;background:#222;color:#eee;font:13px system-ui,sans-serif}canvas{display:block}#info{position:absolute;left:8px;top:4px;white-space:pre;text-shadow:0 1px 2px #000}</style>
+<canvas id="c" width="1600" height="1400"></canvas>
+<div id="info">laden...</div>
+<script>window.addEventListener('error', (e) => fetch('/__klaar', { method: 'POST', body: JSON.stringify({ fout: e.message }) }));
+window.addEventListener('unhandledrejection', (e) => fetch('/__klaar', { method: 'POST', body: JSON.stringify({ fout: String(e.reason && e.reason.stack || e.reason) }) }));</script>
+<script type="module">
+// Spelerfase (?mensen=q3): modulaire mensen op hun stoel via seating3d.js placeSeatedLocal (zoals het spel), met de carrosserie half
+// doorzichtig. Bovenste rij bestuurders (handen aan het stuur, stuur half naar rechts), onderste rij passagiers en achterop.
+import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
+await import('/game/js/player.js');
+const V = await import('/game/js/models3d_vehicles.js');
+const AI = await import('/game/js/autointerieur.js');   // registreert ook het stuur voor de handen (seating3d.js)
+const CAB = await import('/game/js/cabin3d.js');
+const CIL = await import('/game/js/carinteriorlayout.js');
+const CPL = await import('/game/js/cockpitlayout.js');
+const CI = await import('/game/js/carinterior.js');   // de kanteling van de binnencamera per klasse
+// het echte stuur van het voertuig (cabin3d.js cabinWheelPose) en een zitting en pedalen, zodat de houding te beoordelen is
+function props(host, v, seat, driver) {
+  const mat = new THREE.MeshStandardMaterial({ color: 0x6b4a2a });
+  if (!seat.stand && !seat.rider) {
+    const cushion = new THREE.Mesh(new THREE.BoxGeometry(0.48, 0.08, 0.46), mat); cushion.position.set(seat.x, seat.y - 0.04, seat.z);
+    const back = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.6, 0.46), mat); back.position.set(seat.x - 0.28 * Math.cos(seat.face || 0), seat.y + 0.3, seat.z - 0.28 * Math.sin(-(seat.face || 0))); back.rotation.z = -0.38;
+    host.add(cushion, back);
+  }
+  if (driver && seat.pose && seat.pose.arms === 'wheel') {
+    const k = CIL.interiorKlasse(v);
+    const wp = CAB.cabinWheelPose(seat, v.model.len, v.model.wid, k, CPL.isCockpitKlasse(k) ? null : V.carBodyFit(v), v.model.name || '');
+    const w = AI.bouwStuurwiel(wp, new THREE.MeshStandardMaterial({ color: 0x23262b }));
+    AI.draaiStuurwiel(w, 0.5, 1);
+    host.add(w);
+    const ped = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.02, 0.1), new THREE.MeshStandardMaterial({ color: 0x999999 }));
+    ped.position.set(seat.x + 0.78, seat.y + (seat.pose.footY ?? -0.3) - 0.03, seat.z); host.add(ped);
+  }
+}
+const S = await import('/game/js/seating3d.js');
+const M = await import('/game/js/modularpeople.js');
+const { TRAFFIC_MODELS } = await import('/game/js/vehicle.js');
+await M.loadModularPeople('/game/models/mensen/');
+const canvas = document.getElementById('c');
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, preserveDrawingBuffer: true });
+renderer.setPixelRatio(1); renderer.setScissorTest(true);
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0xa9c7de);
+scene.add(new THREE.HemisphereLight(0xdfeaff, 0x7a6f5c, 1.5));
+const sun = new THREE.DirectionalLight(0xfff0d8, 2.2); sun.position.set(2, 4, 3); scene.add(sun);
+const ground = new THREE.Mesh(new THREE.PlaneGeometry(80, 80), new THREE.MeshStandardMaterial({ color: 0x8a8f86, roughness: 1 }));
+ground.rotation.x = -Math.PI / 2; scene.add(ground);
+const car = (name, len, wid, v = {}) => ({ id: 1, x: 0, y: 0, angle: 0, model: { name, len, wid, color: '#888888' }, ...v });
+const bike = TRAFFIC_MODELS().find((m) => m.name === 'bike' && !m.fat);
+const CASES = [['hatch', car('hatch', 3.8, 1.7)], ['van', car('van', 5.0, 2.0)], ['sport', car('sport', 4.1, 1.85)], ['bus', car('bus', 11.2, 2.55, { isBus: true })], ['fiets', { id: 2, x: 0, y: 0, angle: 0, model: { ...bike }, isBike: true }]];
+const W = 1600 / CASES.length, H = 500;
+let n = 0;
+renderer.setClearColor(0x222222); renderer.setScissor(0, 0, 1600, 1400); renderer.setViewport(0, 0, 1600, 1400); renderer.clear();
+CASES.forEach(([label, v], i) => {
+  for (const driver of [true, false]) {
+    const mesh = V.buildVehicleMesh(v);
+    mesh.traverse((o) => { if (o.isMesh && !o.isSkinnedMesh) { const ms = Array.isArray(o.material) ? o.material : [o.material]; o.material = ms.map((m) => { const c = m.clone(); c.transparent = true; c.opacity = 0.35; c.depthWrite = false; return c; }); if (o.material.length === 1) o.material = o.material[0]; } });
+    if (mesh.userData.riderMesh) mesh.userData.riderMesh.visible = false; // zoals het spel bij de modulaire vlag (scene3d.js syncPlayerRider)
+    const seat = S.vehicleSeat(v, driver);
+    const p = M.buildModularPerson(500 + n, { female: n++ % 2 === 1 });
+    p.userData.steer = 0.5;
+    const host = mesh.userData.body || mesh;
+    host.userData.vehicleRef = v;
+    props(host, v, seat, driver);
+    host.add(p);
+    for (let f = 0; f < 90; f++) S.placeSeatedLocal(p, seat, f / 60);
+    scene.add(mesh);
+    const len = v.model.len || 2;
+    const cam = new THREE.PerspectiveCamera(30, W / H, 0.1, 100);
+    const sx = seat.x;
+    // de fiets helemaal in beeld (wielen tot hoofd): verder weg en lager richten
+    if (v.isBike) { cam.position.set(sx + 0.2, 1.05, (driver ? -1 : 1) * 4.6); cam.lookAt(sx + 0.1, 0.95, 0); }   // de fiets staat op de grond: wielen tot hoofd
+    else { cam.position.set(sx + 0.4, (seat.y || 0) + 1.3, (seat.z || 0) + (driver ? -1 : 1) * 3.2); cam.lookAt(sx + 0.2, (seat.y || 0) + 0.45, seat.z || 0); }
+    const x = i * W, y = driver ? 900 : 400;
+    renderer.setViewport(x, y, W, H); renderer.setScissor(x, y, W, H);
+    renderer.render(scene, cam);
+    // derde rij: de binnencamera van de bestuurder (oog 0,62 m boven de zitting, kijkt vooruit): het stuur onderaan in beeld
+    if (driver && !v.isBike) {
+      p.visible = false;
+      const eye = new THREE.Vector3(seat.x + 0.05, seat.y + 0.62, seat.z);   // het oog van carinteriorlayout.js (de binnencamera)
+      const pitch = CI.interiorCamPitch(v);   // zoals firstpersoncam.js en cinematics.js: per klasse iets omlaag
+      const look = new THREE.Vector3(seat.x + 3 * Math.cos(pitch), seat.y + 0.62 + 3 * Math.sin(pitch), seat.z);
+      const ic = new THREE.PerspectiveCamera(74, W / 400, 0.05, 100); ic.position.copy(eye); ic.lookAt(look);
+      renderer.setViewport(x, 0, W, 400); renderer.setScissor(x, 0, W, 400);
+      renderer.render(scene, ic);
+      p.visible = true;
+    }
+    scene.remove(mesh);
+  }
+});
+renderer.setScissor(0, 0, 1600, 1400); renderer.setViewport(0, 0, 1600, 1400);
+document.getElementById('info').textContent = 'boven: bestuurder (stuur half naar rechts); midden: passagier; onder: binnencamera bestuurder. ' + CASES.map((c) => c[0]).join(', ');
+window.__klaar = true;
+fetch('/__klaar', { method: 'POST', body: JSON.stringify({ ok: true }) }).catch(() => {});
+</script>

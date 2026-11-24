@@ -8,8 +8,9 @@
 //   node scripts/bridge_support_test.mjs --lijst  toon de dekken zonder steun
 import fs from 'node:fs';
 import './node3d.mjs';
+import { worldDirUrl } from './lib/worldlocator.mjs';
 
-const root = new URL('../game/world/', import.meta.url);
+const root = worldDirUrl();
 if (!fs.existsSync(new URL('index-provincie.json', root))) { console.log('SKIP bridge_support_test: geen game/world met de provincie'); process.exit(0); }
 
 const S = await import('../game/js/tilestore.js');

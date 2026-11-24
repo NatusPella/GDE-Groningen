@@ -141,5 +141,5 @@ export const COLOR_BLIND_LABELS = {
 export const DRUNK_FX_CHOICES = ['aan', 'mild', 'uit'];
 export const RUMBLE_STRENGTH_RANGE = [0.25, 1.5];
 // the shake preview: how far the sample box moves for a mode, in pixels (the real shake is a camera, the sample is 2D)
-export const SHAKE_PREVIEW_PX = 6;
+const SHAKE_PREVIEW_PX = 6;
 export const shakePreviewPx = (factor) => Math.round(SHAKE_PREVIEW_PX * Math.max(0, Number(factor) || 0) * 10) / 10;

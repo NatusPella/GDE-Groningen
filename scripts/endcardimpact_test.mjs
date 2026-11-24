@@ -80,6 +80,14 @@ ok(!/\b\d+(?:\.\d+)?m?s\b/.test(blok.replace(/\/\*[\s\S]*?\*\//g, '')), 'css: ge
 ok(!/#[0-9a-fA-F]{3,8}\b|rgba?\(/.test(blok.replace(/\/\*[\s\S]*?\*\//g, '')), 'css: geen losse kleuren');
 ok(/prefers-reduced-motion: reduce\)[^}]*\.bm-i[^}]*animation: none/.test(blok) && /html\.reduce-motion \.bm-i/.test(blok) && /rustig-drukwerk \.bm-i/.test(blok), 'css: prefers-reduced-motion, Beweging beperken en Rustig drukwerk zetten de animatie uit');
 ok(/\.bm-i\.bm-klaar[^{]*\{[^}]*animation: none/.test(blok), 'css: overslaan toont de eindstand');
+// #1081 (hertest 22-11): de regel was tijdens het infaden geel op geel; nu een veeg zonder doorzichtigheid
+const binnen = (blok.match(/@keyframes bm-binnen \{[^\n]*/) || [''])[0];
+ok(/clip-path: inset\(0 100% 0 0\)/.test(binnen) && !/opacity/.test(binnen), 'css: bm-binnen veegt de regel binnen zonder opacity, dus altijd volle inkt op geel');
+ok(/\.bm-i\.bm-klaar[^{]*\{[^}]*clip-path: none/.test(blok), 'css: overslaan haalt de veeg weg');
+const bmCss = fs.readFileSync(new URL('../game/js/bigmoment.css', import.meta.url), 'utf8');
+ok(/\.bm-band \{ display: grid; grid-template-columns: minmax\(0, 1fr\) auto;/.test(bmCss), 'css: de band heeft twee kolommen, geen leeg geel vlak rechts');
+ok(/\.bm-band > \.bm-meta \{ grid-column: 2;/.test(bmCss), 'css: beloning en tijd staan rechts');
+ok(/@media \(max-width: 900px\) \{\s*\.bm-band \{ grid-template-columns: minmax\(0, 1fr\); \}/.test(bmCss), 'css: op een smal scherm één kolom');
 ok(/endcardimpact.css/.test(fs.readFileSync(new URL('../game/js/bigmoment.js', import.meta.url), 'utf8')), 'css: wordt door bigmoment.js geladen');
 const js = fs.readFileSync(new URL('../game/js/bigmoment.js', import.meta.url), 'utf8');
 ok(!/from '\.\/audio\.js'/.test(js), 'bigmoment.js blijft zonder audio-import (testbaar)');
