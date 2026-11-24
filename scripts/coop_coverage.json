@@ -2071,6 +2071,10 @@
   {
    "glob": "modularwear",
    "reden": "Alleen beeld: kledingdelen (politiepet, uniformdetails) volgen uit de look; elke client bouwt ze zelf."
+  },
+  {
+   "glob": "voetbalwapen",
+   "reden": "Alleen beeld: het clubwapen als SVG uit kleur en patroon, per client getekend (club-ui, Refs #1106)."
   }
  ],
  "opslag": {
