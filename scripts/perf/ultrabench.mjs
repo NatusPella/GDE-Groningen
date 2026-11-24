@@ -79,10 +79,10 @@ for (let r = 1; r <= ROUNDS; r++) {
 const med = (a) => { const s = a.filter(Number.isFinite).sort((x, y) => x - y); const h = s.length >> 1; return !s.length ? NaN : s.length % 2 ? s[h] : (s[h - 1] + s[h]) / 2; }; // even aantal: het gemiddelde van de middelste twee
 const f1 = (x) => (Number.isFinite(x) ? x.toFixed(1).replace('.', ',') : '-');
 console.log(`\n${TAG}, stand ${STAND}, ${ROUNDS} rondes, mediaan (vlaggen ${FLAGS})`);
-console.log('build'.padEnd(10) + ['gem fps', '1%-low', '>50ms/min', 'grootste ms', 'prog', 'calls', 'stil'].map((h) => h.padStart(12)).join(''));
+console.log('build'.padEnd(10) + ['gem fps', '1%-low', '>50ms/min', 'grootste ms', 'prog', 'calls', 'max prog/beeld', 'stil'].map((h) => h.padStart(12)).join(''));
 for (const b of builds) {
   const rs = all.filter((x) => x.build === b.name && !x.error);
-  console.log(b.name.padEnd(10) + [med(rs.map((x) => x.avg)), med(rs.map((x) => x.low1)), med(rs.map((x) => x.spikes[0])), med(rs.map((x) => x.raf.max)), med(rs.map((x) => x.info && x.info.prog)), med(rs.map((x) => x.callsCity))].map((v) => f1(v).padStart(12)).join('') + `${rs.filter((x) => x.stil).length}/${rs.length}`.padStart(12));
+  console.log(b.name.padEnd(10) + [med(rs.map((x) => x.avg)), med(rs.map((x) => x.low1)), med(rs.map((x) => x.spikes[0])), med(rs.map((x) => x.raf.max)), med(rs.map((x) => x.info && x.info.prog)), med(rs.map((x) => x.callsCity)), med(rs.map((x) => x.progPerFrame && x.progPerFrame.max))].map((v) => f1(v).padStart(12)).join('') + `${rs.filter((x) => x.stil).length}/${rs.length}`.padStart(12));
   if (rs.some((x) => x.drawsCity)) { const d = rs.find((x) => x.drawsCity).drawsCity; console.log(`  draws in de stad (${b.name}): ` + d.slice(0, 14).map(([k, v]) => `${k} ${v}`).join(', ')); }
 }
 const cats = [...new Set(all.flatMap((x) => Object.keys(x.cats || {})))];

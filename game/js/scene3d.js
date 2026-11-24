@@ -121,7 +121,7 @@ let viewCtx = 'stad';
 import { glanceAt, shareFeet } from './gait.js';
 import { lifeTier } from './actorlife.js';
 import { createFarCrowd, FAR_CROWD_FROM, FAR_CROWD_BACK } from './farcrowd3d.js';
-import { loadModularPeople, buildModularPerson, buildModularFromAppearance, modularReady, setModularLod, lodForDistance, setModularLodPreset, mensenFase } from './modularpeople.js';
+import { resetModularGeoBudget, loadModularPeople, buildModularPerson, buildModularFromAppearance, modularReady, setModularLod, lodForDistance, setModularLodPreset, mensenFase } from './modularpeople.js';
 import { NEAR_MIN, cameraNearTarget, stepNear, parseNearFlag, parseFarFlag } from './cameranear.js';
 import { compareOpaque } from './drawpool.js';
 import { buildingBatcher, roadBatcher, facadeBatcher, shoreBatcher, drawHub } from './staticbatch3d.js';
@@ -852,7 +852,7 @@ function pinShaderPrograms(r) {
   const programs = r.info.programs;
   const push = programs.push;
   programs.push = function (...added) {
-    for (const p of added) { p.usedTimes++; probe.program(p); programWatch.note(p); if (!perfOff('linkuitstel')) guardFirstUse(p); }
+    for (const p of added) { p.usedTimes++; probe.program(p); programWatch.note(p); if (!perfOff('linkuitstel')) guardFirstUse(p); programsThisFrame++; }
     return push.apply(this, added);
   };
 }
@@ -976,12 +976,12 @@ export function init3D(map) {
   // a pool of a material not seen before links its program in the background before its first cell draws
   drawHub.onPool = (p) => {
     if (perfOff('bouwklaar')) return;
-    precompile(p);
+    precompileNow(p);
     if (p.customDepthMaterial) {
       const d = new THREE.Mesh(p.geometry, p.customDepthMaterial);
       d.isBatchedMesh = true;
       d._matricesTexture = p._matricesTexture;
-      precompile(d);
+      precompileNow(d);
     }
   };
 
@@ -1007,7 +1007,7 @@ export function init3D(map) {
   billboardRoot = document.getElementById('hud');
 
   postfx = createPostFX(renderer, scene, cam);
-  bindPrewarmHost({ scene, renderer, cam, postfx, sun });
+  bindPrewarmHost({ scene, renderer, cam, postfx, sun, gpuBusy: () => programsThisFrame > 0 || compileQueue.size > 0, linked: (p) => programLinked(p) });
   bindCullHost({ scene, cam, vehicleMeshes, pedMeshes, wildlifeMeshes, sunDir });
   zetVrachtStencilProbe(() => postfx.hasStencil);
   initNightLights(scene);
@@ -1861,7 +1861,7 @@ function drainCineBatches() {
   const t0 = performance.now();
   while (cineQueue.length && performance.now() - t0 < 2.5) {
     const { group, o } = cineQueue.shift();
-    precompile(o);
+    precompileNow(o); // de filmwachtrij doseert zelf (2,5 ms per beeld)
     let klaar = true;
     for (const q of cineQueue) if (q.group === group) { klaar = false; break; }
     if (klaar) cinePend.delete(group);
@@ -2043,8 +2043,8 @@ export function precompilePrograms(opts = {}) {
     if (renderer && scene && cam) {
       // materiaal zonder geometry laat renderer.compile() crashen (#804): launchcompile.js parkeert het even
       const n = withParkedMaterials(scene, () => {
-        precompile(scene);
-        if (opts.filmLicht && !perfOff('filmlicht')) withLightRig(!isLightRigOn(), () => precompile(scene));
+        precompileNow(scene);
+        if (opts.filmLicht && !perfOff('filmlicht')) withLightRig(!isLightRigOn(), () => precompileNow(scene));
       });
       if (n) console.warn('shaders voorcompileren: materiaal zonder geometry overgeslagen', n);
     }
@@ -2052,7 +2052,7 @@ export function precompilePrograms(opts = {}) {
   return performance.now() - t0;
 }
 // #1046: de onderdelen voor launchcompile.js planPrecompile (porties met tijdbudget i.p.v. één blokkerende aanroep)
-export const precompileKit = () => ({ scene, compile: precompile, withLightRig, lightRigOn: isLightRigOn, filmOff: perfOff('filmlicht') });
+export const precompileKit = () => ({ scene, compile: precompileNow, withLightRig, lightRigOn: isLightRigOn, filmOff: perfOff('filmlicht') });
 
 const BUILDING_PREFETCH = 30;
 const BUILDING_PREFETCH_MS = 1.5;
@@ -2873,6 +2873,8 @@ function syncSpeechBubbles(world) {
 }
 
 export function update3D(dt, world) {
+  drainCompileQueue(); // perf-r3: de teller nieuwe programma's per beeld terug en een deel van de compilewachtrij
+  resetModularGeoBudget(); // perf-r3: het bouwbudget voor LOD-wissels van modulaire mensen
   // animations freeze with gameplay (pause, cutscenes); the camera keeps using dt
   const animDt = world.paused ? 0 : dt;
   jumpLoading = !!world.cineJumpLoading && !perfOff('poortbudget');
@@ -3767,7 +3769,36 @@ function skipHiddenMatrixWalk() {
 // Starts compiling (in the background, KHR_parallel_shader_compile) the
 // programs of an object that will enter the scene soon, e.g. a prefetched
 // building, so its first frame doesn't link them synchronously.
-function precompile(obj) {
+// perf-r3 (24-11): nieuwe shadercompiles gedoseerd. Een burst van tientallen nieuwe programma's in één beeld (de start van de benchmark:
+// 100 tot 150 in een paar seconden) liet het GPU-proces seconden vastlopen (rAF-gat tot 2,6 s zonder JavaScript). Een voorbereidende
+// compile (precompile) mag per beeld hoogstens COMPILES_PER_FRAME nieuwe programma's laten ontstaan (ook die van de draws tellen mee);
+// de rest wacht in compileQueue en komt de volgende beelden aan de beurt, het dichtst bij de camera eerst. Wie op de link wacht
+// (meshProgramsReady, de batchwacht) ziet dan nog geen programma en wacht gewoon langer. ?perfoff=compiledosis is het oude gedrag.
+const COMPILES_PER_FRAME = 6;
+const loadScreenUp = () => typeof document !== 'undefined' && !!document.getElementById('load-screen');
+let programsThisFrame = 0;
+const compileQueue = new Set();
+const _cqPos = new THREE.Vector3();
+function compileDosed(obj) {
+  if (perfOff('compiledosis') || programsThisFrame < COMPILES_PER_FRAME || loadScreenUp()) { precompileNow(obj); return; } // achter het laadscherm niet doseren: de boot wacht erop
+  compileQueue.add(obj);
+}
+// aan het begin van elk beeld: de teller terug en een deel van de wachtrij, het dichtst bij de camera eerst
+function drainCompileQueue() {
+  programsThisFrame = 0;
+  if (!compileQueue.size) return;
+  const list = [];
+  for (const o of compileQueue) { o.getWorldPosition(_cqPos); list.push([o, _cqPos.distanceToSquared(cam.position)]); }
+  list.sort((a, b) => a[1] - b[1]);
+  for (const [o] of list) {
+    if (programsThisFrame >= COMPILES_PER_FRAME) break;
+    compileQueue.delete(o);
+    precompileNow(o);
+  }
+}
+export const compileQueueSize = () => compileQueue.size;
+function precompile(obj) { compileDosed(obj); }
+function precompileNow(obj) {
   const prev = renderer.getRenderTarget();
   renderer.setRenderTarget(postfx.sceneTarget);
   programWatch.begin(); // #1008: programma's die hier ontstaan zijn bewust voorbereid; de rest ontstaat bij het tekenen

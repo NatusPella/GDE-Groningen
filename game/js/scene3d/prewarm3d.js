@@ -8,8 +8,9 @@
 // binnen, dus er is geen modulecyclus.
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { isLightRigOn, setLightRigVisible } from '../nightlights3d.js';
+import { perfOff } from '../devflags.js';
 
-const host = { scene: null, renderer: null, cam: null, postfx: null, sun: null };
+const host = { scene: null, renderer: null, cam: null, postfx: null, sun: null, gpuBusy: () => false, linked: null };
 export function bindPrewarmHost(h) { Object.assign(host, h); }
 
 // Every lit material has two program variants: with the night-light rig and
@@ -28,6 +29,10 @@ const PREWARM_SLICE_QUIET = 12;
 let prewarmFound = 0, prewarmQuiet = 0, prewarmLastVariant = null;
 const PREWARM_WAIT_MS = 20000;
 const PREWARM_POLL_MS = 250;
+// perf-r3 (24-11): hoogstens zoveel stand-ins per batch (was 64): een batch van 44 nieuwe programma's in één beeld liet het
+// GPU-proces seconden vastlopen; samen met de compiledosering van scene3d.js (COMPILES_PER_FRAME)
+const PREWARM_BATCH_BOOT = 64;
+const prewarmBatchSize = () => (perfOff('compiledosis') || (typeof document !== 'undefined' && !!document.getElementById('load-screen')) ? PREWARM_BATCH_BOOT : 8); // achter het laadscherm (#load-screen) de oude 64 (de boot wacht erop), daarna 8
 const prewarmed = { true: new Set(), false: new Set() };
 const prewarmRoot = new THREE.Group();
 const prewarmQueue = [];
@@ -175,7 +180,7 @@ function prewarmCamera() {
 function startPrewarmBatch() {
   const variant = prewarmQueue[0].variant;
   const items = [];
-  for (let i = 0; i < prewarmQueue.length && items.length < 64;) {
+  for (let i = 0; i < prewarmQueue.length && items.length < prewarmBatchSize();) {
     if (prewarmQueue[i].variant !== variant) { i++; continue; }
     const { proxy } = prewarmQueue.splice(i, 1)[0];
     if (!prewarmProxyDead(proxy)) items.push(proxy);
@@ -243,15 +248,20 @@ export function prewarmLightVariants() {
     if (now - B.since < PREWARM_WAIT_MS) {
       if (now < B.nextCheck) return;
       B.nextCheck = now + PREWARM_POLL_MS;
+      // perf-r3 (24-11, profiel: isReady 133 ms in één beeld): de vraag is een synchrone rondgang naar het GPU-proces die zijn
+      // achterstand afwacht. Niet vragen in een beeld waarin het spel net nieuwe programma's liet compileren (dan is die achterstand
+      // het grootst) of terwijl de compilewachtrij nog loopt; en via de gedeelde, gedoseerde vraag van scene3d.js (programLinked,
+      // COMPLETION_STATUS, hoogstens één rondgang per 25 ms voor alles).
+      if (host.gpuBusy() && (B.skips = (B.skips || 0) + 1) <= 4) return; // hoogstens 4 keer (1 s) overslaan: de bootwacht hangt aan deze batch
       for (const p of B.programs) {
-        if (!p.isReady()) return;
+        if (!(host.linked ? host.linked(p) : p.isReady())) return;
         B.programs.delete(p);
       }
     }
     drawPrewarmBatch();
     prewarmBatch = null;
   }
-  if (prewarmQueue.length) startPrewarmBatch();
+  if (prewarmQueue.length) startPrewarmBatch(); // (niet wachten op gpuBusy: de bootwacht (prewarmQueued) liep dan nooit leeg)
 }
 
 

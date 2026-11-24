@@ -46,7 +46,11 @@
     if (s.startsWith('[trailer] benchmark ')) { benchT1 = performance.now(); queueMicrotask(emit); } // the app quits right after the run: emit before any timer
     return log(...a);
   };
+  // nieuwe shaderprogramma's per beeld (renderer.info.programs groeit alleen: three bewaart ze, scene3d pint ze)
+  let progPrev = -1;
+  const progNew = []; // [t, aantal nieuwe programma's in dit beeld]
   const tick = (now) => {
+    { const r = ren(); const n = r ? (r.info.programs || []).length : -1; if (progPrev >= 0 && n > progPrev) progNew.push([now, n - progPrev]); if (n >= 0) progPrev = n; }
     if (lastT) gaps.push([now, now - lastT]);
     if (!benchT1 && window.__trailer && window.__trailer.lastStats) { benchT1 = now; emit(); } // the app quits 0,5 s after the run
     lastT = now;
@@ -80,6 +84,8 @@
       cats: Object.fromEntries(Object.entries(s.cats || {}).map(([k, v]) => [k, { avg: +v.avg.toFixed(1), low1: +v.low1.toFixed(1) }])),
       shots: (s.shots || []).map((x) => ({ label: x.label, fps: +x.fps.toFixed(1), idx: x.idx })).sort((a, b) => a.idx - b.idx),
       raf: { frames: ms.length, durS: +durS.toFixed(1), max: Math.round(Math.max(0, ...ms)), over50: ms.filter((x) => x > 50).length, over100: ms.filter((x) => x > 100).length, over50PerMin: +(ms.filter((x) => x > 50).length / (durS / 60)).toFixed(1) },
+      progPerFrame: (() => { const w = progNew.filter(([t]) => t > benchT0 && t <= benchT1).map((x) => x[1]); return { frames: w.length, total: w.reduce((a, v) => a + v, 0), max: Math.max(0, ...w), over6: w.filter((v) => v > 6).length, over12: w.filter((v) => v > 12).length }; })(),
+      progStart: progNew.filter(([t]) => t > benchT0 && t <= benchT0 + 10000).map(([t, n]) => [+((t - benchT0) / 1000).toFixed(2), n]),
       callsCity, shadowCity, drawsCity, benchT0s: +(benchT0 / 1000).toFixed(2), longest, longtasks: lts.filter(([t]) => t > benchT0 && t <= benchT1).length, progAt, info, hitch,
       enters: enters.map(([t, i, l]) => [+((t - benchT0) / 1000).toFixed(1), i, l || '']),
     };
