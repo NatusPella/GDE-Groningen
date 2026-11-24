@@ -44,7 +44,10 @@ async function once(b, round) {
     onLine: (r) => { if (r.startsWith('[trailer] ubstats ')) { line = r.slice(18); setTimeout(() => runner.killTree(childOf(dir)), 0); } },
   }).catch((e) => ({ error: e.message }));
   runner.removeProfile(profile);
-  const j = line ? JSON.parse(line) : null;
+  // a long line can arrive in several stdout chunks: read it back from electron.log
+  let j = null;
+  try { const l = fs.readFileSync(path.join(dir, 'electron.log'), 'utf8').split('\n').map((x) => x.replace(/\r$/, '')).find((x) => x.startsWith('[trailer] ubstats ')); if (l) j = JSON.parse(l.slice(18)); } catch (e) { j = null; }
+  if (!j && line) { try { j = JSON.parse(line); } catch (e) { /* afgekapt */ } }
   const rec = { build: b.name, round, stand: STAND, flags: FLAGS, machine: res && res.quiet ? res.quiet.last : null, error: res.error || (j ? null : 'geen ubstats'), ...(j || {}) };
   fs.writeFileSync(`${dir}.json`, JSON.stringify(rec));
   log(`${b.name} ronde ${round}: ${j ? `gem ${j.avg.toFixed(1)} fps, 1%-low ${j.low1.toFixed(1)}, >50 ms ${j.spikes[0]}/min, grootste ${j.raf.max} ms, prog ${j.info && j.info.prog}` : rec.error}`);

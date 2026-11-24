@@ -364,20 +364,32 @@ function patchSites(map) {
   const known = sitesGeo.roads;
   if (!known) return false;
   const changed = [];
+  // perf-r3 (24-11, t-voetgangers:sites tot ~130 ms na een sprong): elke tegel één keer, en één ronde over de bekende wegen voor alle
+  // tegels samen in plaats van een ronde per logregel (zelfde uitkomst: een weg in het raster die een tegel raakt, zit in zijn zoekvraag)
+  const rects = [], seen = new Set(), now = new Set();
   for (let n = 0; n < log.length; n += 2) {
     if (log[n] <= since) continue;
-    const [i, j] = String(log[n + 1]).replace(/^o/, '').split(',').map(Number);
+    const id = String(log[n + 1]).replace(/^o/, '');
+    if (seen.has(id)) continue;
+    seen.add(id);
+    const [i, j] = id.split(',').map(Number);
     if (!Number.isFinite(i) || !Number.isFinite(j)) return false;
     const [ox, oy] = tileOrigin(i, j);
     const T = [ox - 0.5, oy - 0.5, ox + TILE_M + 0.5, oy + TILE_M + 0.5];
-    const now = new Set(map.roadGrid.query(T[0], T[1], T[2], T[3]));
-    for (const r of now) if (!known.has(r)) { known.add(r); changed.push(r); }
+    rects.push(T);
+    for (const r of map.roadGrid.query(T[0], T[1], T[2], T[3])) now.add(r);
+  }
+  const gone = [];
+  if (rects.length) {
     for (const r of known) {
+      if (now.has(r)) continue;
       const b = r.bounds;
-      if (!b || b[2] < T[0] || b[0] > T[2] || b[3] < T[1] || b[1] > T[3]) continue;
-      if (!now.has(r)) { known.delete(r); changed.push(r); }
+      if (!b) continue;
+      for (const T of rects) if (!(b[2] < T[0] || b[0] > T[2] || b[3] < T[1] || b[1] > T[3])) { gone.push(r); break; }
     }
   }
+  for (const r of gone) { known.delete(r); changed.push(r); }
+  for (const r of now) if (!known.has(r)) { known.add(r); changed.push(r); }
   for (const r of changed) {
     const b = r.bounds;
     if (!b) return false;
