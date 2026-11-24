@@ -337,19 +337,11 @@ html.sub-box #pause-menu .pm-subtxt { background: color-mix(in srgb, var(--ds-c-
 #pause-menu .td-chapter-open .td-pbar { margin: 0 24px 10px; }
 #pause-menu .td-current { background: color-mix(in srgb, var(--ds-c-licht-groen) 14%, transparent); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--ds-c-licht-groen) 45%, transparent); }
 #pause-menu .td-why { max-width: 640px; padding-bottom: 8px; }
-
+/* Activiteiten (#907, #999): bovenaan de filters (soort en Dichtbij), daaronder Begin hier en de lijst per soort; de telling staat in de bladregel. */
 /* Activiteiten (#907): een kop met de telling, daaronder de filters en de lijst per soort. */
 #pause-menu .td-acthero { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px 16px; margin: 0 24px 12px; padding: 4px 0; flex: none; }
-#pause-menu .td-acthero-main { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
-#pause-menu .td-acthero-t { font-family: var(--ds-font-kop); font-weight: normal; font-size: 30px; line-height: 1; letter-spacing: 0.03em; }
-#pause-menu .td-acthero-lead { font-size: 16px; line-height: 1.3; color: var(--mut); }
-#pause-menu .td-acthero-facts { display: flex; gap: 8px; flex-wrap: wrap; }
-#pause-menu .td-acttools { display: flex; flex-direction: column; margin: 0 0 4px; }
-#pause-menu .td-acttools .m-gh { padding: 4px 24px 8px; }
-#pause-menu .td-acttools .m-chips { padding: 0 24px 10px; }
 #pause-menu .td-begin { margin: 0 24px 16px; padding: 14px 16px 8px; border-radius: 12px; background: color-mix(in srgb, var(--ds-c-creme) 4%, transparent); box-shadow: inset 0 0 0 1px var(--line); }
 #pause-menu .td-begin .m-gh { padding: 0 0 4px; }
-#pause-menu .td-begin-lead { padding: 0 0 8px; }
 #pause-menu .td-begin-list { display: flex; flex-direction: column; gap: 4px; }
 #pause-menu .td-begin-item { display: grid; grid-template-columns: 26px minmax(0, 1fr); align-items: center; gap: 4px; }
 #pause-menu .td-begin-nr { font-family: var(--ds-font-kop); font-size: 22px; line-height: 1; text-align: center; color: var(--g); }
@@ -395,7 +387,6 @@ html.sub-box #pause-menu .pm-subtxt { background: color-mix(in srgb, var(--ds-c-
   #pause-menu .pm-stat b { font-size: 28px; }
   #pause-menu .pm-stat span { font-size: 15px; }
   #pause-menu .td-acthero { padding: 12px 16px; margin-bottom: 10px; }
-  #pause-menu .td-acthero-t { font-size: 32px; }
   #pause-menu .td-next { margin-bottom: 12px; padding: 12px 16px; }
   #pause-menu .td-next-t { font-size: 28px; }
   #pause-menu .td-begin, #pause-menu .td-passport { margin-bottom: 10px; padding: 10px 12px 4px; }

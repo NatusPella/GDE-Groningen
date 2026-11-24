@@ -9,6 +9,7 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ## [Unreleased]
 
+- Activiteiten: de filters (soort en Dichtbij) staan bovenaan in plaats van onder de kaarten, en de telling staat er nog één keer (in de kopregel) in plaats van drie keer; Begin hier heeft geen zin meer die de eerste kaart naleest. Verhaal > Opdrachten: de zin over de huidige missie staat niet meer links én rechts. Samen spelen: alleen weergave, per speler.
 - Heli-opdrachten (Ballonjacht, Het staat niet in het rooster): de routekaart bovenin valt niet meer achter de heli-gids, en meldingen en de missiekaart staan onder het heli-paneel in plaats van erachter. Samen spelen: alleen beeld, per speler.
 - Samen spelen: jaagt de politie op een medespeler, dan raak je je eigen sterren kwijt als er geen politie bij jou in de buurt is; de afkoeltijd van de een schuift die van de ander niet meer door. Alleen bij wie het spel opende; een gast ziet de sterren van het doelwit zoals voorheen.
 - Safehuis: wie overdag gaat slapen tot de ochtend of de middag, wordt net als thuis de volgende dag wakker; de datum en de stek van de plant gaan mee. Samen spelen: slapen blijft een gezamenlijke keuze; de datum volgt de wereld van wie het spel opende.
