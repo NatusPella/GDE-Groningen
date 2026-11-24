@@ -3416,6 +3416,14 @@ export function update3D(dt, world) {
         if (companionMesh.userData.shadow) companionMesh.userData.shadow.visible = !comp.swimming;
         companionMesh.rotation.y = -comp.angle;
         companionMesh.userData.crouch = !!comp.crouching;
+        // #1178 (hertest 24-11): de state-machine van een modulaire mens leest ud.qParams; seatPose (de bank in het flat) en
+        // seatModular (bijrijder) laten daar een zit-toestand achter. Zonder eigen parameters bleef Tessa na het flat of na
+        // het uitstappen in de lucht zitten. Net als bij de speler: elke frame de eigen parameters, zitten alleen op de bank.
+        if (companionMesh.userData.qRig) {
+          const qc = companionMesh.userData.qCompP || (companionMesh.userData.qCompP = {});
+          qc.water = !!comp.swimming; qc.grounded = !(comp.z > 0.25); qc.vy = comp.vz || 0; qc.jump = false; qc.seated = comp.sofaSeat != null; qc.climbing = comp.water === 'climb';
+          companionMesh.userData.qParams = qc;
+        }
         animatePersonWalk(companionMesh, Math.hypot(comp.vx, comp.vy), animDt);
         if (comp.sofaSeat != null) { seatPose(companionMesh); companionMesh.position.y = seatedY(companionMesh, (comp.gz || 0) + comp.sofaSeat); }
         if (comp.carrying) carryOverlay(companionMesh);
