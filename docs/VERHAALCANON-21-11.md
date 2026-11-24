@@ -79,6 +79,8 @@ Wie wil wat en waarom: **Tessa ontdekt dat ze een frietwagen wil** en vindt het 
 
 ## 5. Sloganopties (voor de eigenaar)
 
+> **Besloten (23-11, bevestigd 24-11):** de slogan is *Een zomer in Grunn. Kon minder.* De opties hieronder zijn geschiedenis. Ook sectie 4 is bijgesteld door de eigenaar: de snackwagen is een late twist (akte 5); de motor van elke missie is een eigen plekje in de wereld en de carrière-tour, met hun eerste baantjes als volwassenen (zie `verhaal/RUGGENGRAAT.md`).
+
 1. **Twee afgestudeerden. Eén frietwagen. Geen plek.** (voorlopig gekozen: houdt de haak "geen plek" en de drieslag; nu in trailer, Steam-blurb, YouTube-afbeeldingen en test)
 2. Net afgestudeerd. Nog geen plan. Wel een frietwagen.
 3. Tammo rijdt. Tessa bakt. Samen sta je ergens.

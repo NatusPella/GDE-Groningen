@@ -119,7 +119,7 @@ export const STEP_ALIAS = {
 
 const keep = (k, o) => ({ ...OUD_CHARACTERS[k], ...o });
 export const CHARACTERS = {
-  anita: keep('anita', { step: 'M00', bio: 'Snel, ad rem en de baas van het duo. Nederlandse, niet in Stad geboren, zomers in Ljouwert naast Mem. Ze droomt van de snackwagen, een eigen frietwagen, en regelt alles zelf. Ook de flat in Paddepoel, met Tammo als huisgenoot.' }),
+  anita: keep('anita', { step: 'M00', bio: 'Snel, ad rem en de baas van het duo. Nederlandse, niet in Stad geboren, zomers in Ljouwert naast Mem. Tekent soms een wagen met een luik op een bierviltje en zegt dan dat het een tekening is. Regelt alles zelf. Ook de flat in Paddepoel, met Tammo als huisgenoot.' }),
   tammo: keep('tammo', { step: 'M00', bio: 'Stadjer uit het Oosterpark, droog, met een rode Fjord Escapade die nauwelijks rijdt. Net afgestudeerd en al sinds de studie verliefd op zijn beste vriendin, en sinds de verhuisdag van 14 augustus haar huisgenoot in Paddepoel. Hij zegt het nooit.' }),
   rikus: keep('rikus', { step: 'M00' }),
   berend: keep('berend', { step: 'M01' }),
@@ -250,7 +250,7 @@ export const BRIDGES = [
   { id: 'O3', after: 'M06', via: 'car', scene: 'O3' },    // na de kraak: eerlijk winnen, Oma's 1953
   { id: 'O4', after: 'M08', via: 'car', scene: 'O4' },    // Mem belt Tessa (1): de jas
   { id: 'O5', after: 'M10', via: 'phone', scene: 'O5' },  // Mem belt Tessa (2): "Straks"
-  { id: 'O6', after: 'M13', via: 'phone', scene: 'O6' },  // Jelle biedt op de snackwagen
+  { id: 'O6', after: 'M13', via: 'phone', scene: 'O6' },  // Jelle biedt op Oma's recept (de wagen bestaat dan nog niet)
   { id: 'O7', after: 'M16', via: 'car', scene: 'O7' },    // "Over zaterdag"
   { id: 'O8', after: 'M18', via: 'phone', scene: 'O8' },  // Rikus: de politie zoekt twee Stadjers; bewaar het logboek
   { id: 'O9', after: 'M21', via: 'phone', scene: 'O9' },  // apart: "Ik heb de auto"

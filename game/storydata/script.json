@@ -14779,11 +14779,10 @@
     {
      "speaker": "Rikus",
      "key": "rikus",
-     "text": "Bewaar het. Ik heb dit niet gezegd.",
+     "text": "Bewaar het. En trek morgen iets kleurigs aan.",
      "tag": "NIEUW",
      "channel": "telefoon",
-     "textOnly": false,
-     "rec": "lines"
+     "textOnly": true
     }
    ]
   },
@@ -22170,11 +22169,10 @@
     {
      "speaker": "Mem Terpstra",
      "key": "mem",
-     "text": "Dan eet je in de gang. Op een Fries mat.",
+     "text": "Dan eet je in de gang. Op een Friese mat.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": false,
-     "rec": "lines"
+     "textOnly": true
     },
     {
      "speaker": "Beppe",
@@ -24151,21 +24149,19 @@
     {
      "speaker": "Tessa",
      "key": "A",
-     "text": "Samen.",
+     "text": "Zeg maar van wel.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": false,
-     "rec": "lines",
+     "textOnly": true,
      "voice": "Anita"
     },
     {
      "speaker": "Tammo",
      "key": "T",
-     "text": "Samen.",
+     "text": "Als ze van het luik afblijven.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": false,
-     "rec": "story"
+     "textOnly": true
     }
    ]
   },

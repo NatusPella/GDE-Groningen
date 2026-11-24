@@ -178,7 +178,7 @@ RIKUS (telefoon): Tammo. De politie zoekt twee Stadjers in het zwart. Dat heb je
 TAMMO (telefoon): Wij zijn niet de dieven. {ov=0.4} [NIEUW]
 RIKUS (telefoon): Dat weet ik. Hebben jullie dat logboek nog? [NIEUW]
 TESSA: Geprint. [NIEUW]
-RIKUS (telefoon): Bewaar het. Ik heb dit niet gezegd. [NIEUW]
+RIKUS (telefoon): Bewaar het. En trek morgen iets kleurigs aan. [NIEUW]
 
 ## [N9] Nacht op een dijk – Oldambt, de dijk bij de Dollard – Rikus' busje
 (regie: maandagnacht, na de dag van de camera's in Veendam. De politie zoekt twee Stadjers in het zwart, dus Rikus leende hun zijn oude busje en wees een dijk aan waar niemand komt. De achterdeuren staan open naar het wad. Geen lichtje in de verte, alleen sterren. Tessa ligt achterin op een matras, Tammo naast haar met zijn handen onder zijn hoofd. De radio staat zacht.)

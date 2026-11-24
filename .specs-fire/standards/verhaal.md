@@ -31,7 +31,7 @@ zomer en in de stem van de vaste cast; tekst is data (canon, script, build, spel
 4. **Spel**: `game/js/storytext.js` leest `game/storydata/script.json`;
    `game/js/storyarc.js` is de enige facade voor de rest van het spel (`:7`, `:16`).
 
-De data: 275 scènes, 2.123 regels in act 1 tot en met 6; 57 zijn stille appjes en 57 hebben geen opname (de 37 appjes zijn bewust stil; 4 regels wachten sinds de verhaalcanon van 21-11 op een nieuwe opname, zie docs/VERHAALCANON-21-11.md; de
+De data: 275 scènes, 2.123 regels in act 1 tot en met 6; 57 zijn stille appjes en 61 hebben geen opname (de 37 appjes zijn bewust stil; 4 regels wachten sinds de verhaalcanon van 21-11 op een nieuwe opname, zie docs/VERHAALCANON-21-11.md; de
 1.390 andere gesproken regels hebben een opname, stand 21-11). Een regel zonder opname toont
 het spel als ondertitel met leestijd (`game/js/storytext.js:53`). Een `[BEHOUDEN]`-regel heeft een opname: één andere
 letter maakt hem stil. Nieuwe opnames komen er in rondes bij op Flash-Lite (ADR 0019,
