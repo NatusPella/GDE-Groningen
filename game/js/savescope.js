@@ -16,7 +16,7 @@ export const SCOPED_KEYS = [
   'bezit', 'dieren', 'voetbalCarriere', 'beleid', 'reputatie', 'tuning', 'tuningLook', 'snackChain', 'recap',
   'help', 'wijkenSeen',
 ];
-export const META_KEY = KEYS.saveScope;
+const META_KEY = KEYS.saveScope;
 const stashKey = (n, k) => `gde-scope-${n}:${k}`;
 const workKeys = () => SCOPED_KEYS.map((k) => KEYS[k]).filter(Boolean);
 
