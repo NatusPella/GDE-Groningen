@@ -9,6 +9,7 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ## [Unreleased]
 
+- Bijbanen in een nieuw spel komen vrij met het verhaal (#1131): een bijbaan uit een latere akte heeft een gedimd startpunt en een gedimd icoon op de kaart, en bij E zegt het personage dat het vak inleidt waar je moet zijn ("Kapitein Klaas leent je een boot."). Een vak dat je al begon, een bijbaan die je al deed en een oude save blijven open. Samen spelen: de poort is per speler; een gast die bij de host een bijbaan start wordt niet tegengehouden (de host kent zijn verhaal niet), en wie later aansluit of wegvalt verliest niets.
 - Snackwagen: Jelles bedrijf heet overal Us Mem Snacks (op het tabblad Snackwagen, de kaartlaag Standplaatsen, de prestatie en het bord op zijn wagens stond nog Usmem). Samen spelen: alleen tekst, per speler.
 - Land en bedrijf: het icoon van een lege staat (Overzicht, Te koop) heeft een vaste maat en vult niet meer het hele paneel; Te koop toont een wegwijzerbord in plaats van een gestippeld vakje. Samen spelen: per speler.
 - Visboek: de wateren staan in één kolom met hun volle naam in plaats van drie smalle kolommen met afgekapte namen. Samen spelen: per speler.
