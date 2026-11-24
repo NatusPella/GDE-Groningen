@@ -38,6 +38,8 @@ export const REASON_TEXT = {
 
 export const RTO_TRAAG = 2; // s tussen herhalingen bij een weggevallen gast
 
+// Tijdperken lopen 1..255 en daarna weer 1 (Reliable.reset): a is nieuwer dan b als het hoogstens 127 stappen vooruit ligt (#1293).
+export const epochNewer = (a, b) => { const d = (((a - b) % 255) + 255) % 255; return d >= 1 && d <= 127; };
 // Betrouwbare gebeurtenissen: in volgorde, zonder dubbele aflevering.
 export class Reliable {
   constructor({ rto = 0.2, maxPending = 32, maxAhead = 32 } = {}) {
@@ -70,6 +72,11 @@ export class Reliable {
   receive(msg, emit) {
     const out = [];
     const e = msg.epoch === undefined ? this.recvEpoch : msg.epoch;
+    // #1293: een laat bericht 1 van een OUDER tijdperk (het kanaal is ongeordend, een herhaling was nog onderweg toen de zender opnieuw begon)
+    // zette de ontvanger terug: dat bericht kwam dubbel aan, de bevestigingen droegen het oude tijdperk (die de zender negeert) en de nieuwe stroom
+    // bleef liggen tot zijn bericht 1 opnieuw kwam (en dat werd dan ook dubbel afgeleverd). Een zender telt alleen vooruit (reset: 1..255, rond),
+    // dus alleen een nieuwer tijdperk telt; recvEpoch 0 (een nieuwe sessie, session.js) neemt elk tijdperk aan.
+    if (e !== this.recvEpoch && this.recvEpoch !== 0 && !epochNewer(e, this.recvEpoch)) { emit(encodeSimple(T.ACK, this.recvEpoch, 0, this.expected)); return out; }
     if (e !== this.recvEpoch) { if (msg.seq !== 1) return out; this.recvEpoch = e; this.expected = 1; this.ahead.clear(); }
     const d = seqDiff(msg.seq, this.expected);
     if (d === 0) {

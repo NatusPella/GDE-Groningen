@@ -237,7 +237,7 @@ function schakelNaarHost(world) {
   zetPlekTerug(world, plek);
   pasMomentopnameToe(world, m, d, { slot: eigenSlot, eigenPlek: true }); // geen sprong: de nieuwe host ziet zijn eigen plek, niet die van de oude
   o.hub = hub; for (const tr of o.wachtrij.splice(0)) N.addGuest(world, tr);
-  w.nieuwEinde = w.nieuw.id; w.rol = 'host'; w.overname = null; w.rm = o.rm;
+  w.nieuwEinde = w.nieuw.id; w.rol = 'host'; w.overname = null; w.rm = o.rm; w.groepNet = world.coopNet; // (#1059) deze sessie is van de groep: geen eigen opening (openingstart.js groepInSpel)
   w.aansluit = { id: w.nieuw.id, tot: w.nu + AANSLUIT_S + 3, terug, wens, aangesloten: false, fase: 'wacht', t: 0 }; // wie het spel opende moet nu aansluiten (hw-aangesloten), anders terugval
   eindPauze(world); meld(world, jijTekst, 6); ui(world).einde = { tekst: jijTekst };
 }
@@ -439,7 +439,7 @@ async function startEigen(world, v, kand) {
     zetPlekTerug(world, v.plek); // de gast blijft staan waar hij stond (geen sprong van de eigenlijke plek naar de oude)
     if (v.m) pasMomentopnameToe(world, v.m, d, { slot: v.ik, eigenKlokWeer: true, eigenPlek: true }); // zonder momentopname (de terugval van wie het spel opende) is de eigen wereld al goed
     for (const tr of wachtrij.splice(0)) N.addGuest(world, tr);
-    v.klaar = true; w.rol = 'host'; w.rm = rm; w.overgenomen = (w.overgenomen || 0) + 1;
+    v.klaar = true; w.rol = 'host'; w.rm = rm; w.overgenomen = (w.overgenomen || 0) + 1; w.groepNet = world.coopNet; // (#1059) ook voor de anderen er zijn: geen eigen opening (groepInSpel)
     // Wie niet de eerste van de lijst is, is een tijdelijke host zolang er een rechtmatiger opvolger kan verschijnen (#1059, split-brain):
     // zie soloTik. De eerste van de lijst (en de terugval van wie het spel opende, plek <= 0) heeft niemand om aan toe te geven.
     const idx = v.lijst.findIndex((r) => r.slot === v.ik);

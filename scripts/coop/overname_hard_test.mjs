@@ -164,5 +164,23 @@ await t('de opening is van wie hem zelf start: met medespelers of midden in een 
   assert.ok(groepInSpel({ coopWissel: { val: {} } }), 'midden in een overname');
 });
 
-console.log(`overname_hard_test: ${n}/9 ok`);
+await t('wie net host werd door een overname speelt zijn eigen opening niet, ook niet voor de anderen er weer zijn (#1059, testbank ov3 24-11)', async () => {
+  // In drie echte vensters werd de opvolger host en had hij een paar seconden nog geen gasten: groepInSpel was onwaar, de opening van
+  // zijn eigen nieuwe spel speelde (klok naar 05:45, speler naar zijn nieuwe thuis) en de groep kwam daarna binnen in die wereld.
+  const { groepInSpel } = await import('../../game/js/openingstart.js');
+  const s = avond({ gasten: 2 }); await s.step(14);
+  s.valWeg();
+  let gezien = 0, leeg = 0, vrij = 0;
+  await s.step(45, () => {
+    const h = hosts(s.gs)[0]; if (!h) return false;
+    gezien++; if (h.coopNet.hub.sessions.size === 0) { leeg++; if (!groepInSpel(h)) vrij++; }
+    return s.gs.every((g) => rol(g) === 'host' || (g.coopNet && g.coopNet.joined));
+  });
+  assert.ok(gezien > 0 && leeg > 0, 'de opvolger was even host zonder gasten (' + gezien + '/' + leeg + ')');
+  assert.equal(vrij, 0, 'in die tijd hield groepInSpel de opening tegen');
+  const h = hosts(s.gs)[0]; assert.ok(groepInSpel(h), 'met de groep erbij ook');
+  N.stopCoopNet(h); assert.ok(!groepInSpel(h), 'na het stoppen van die sessie mag zijn eigen opening weer');
+});
+
+console.log(`overname_hard_test: ${n}/10 ok`);
 process.exit(0);

@@ -494,15 +494,16 @@ const PHASES = {
   },
   // #1011: een bijbaan door een gast, in een echte sessie. De gast (args.wie) staat bij het startpunt en drukt E; de anderen
   // krijgen "Meedoen?" en zeggen J. Gelogd: wie meedoet, de stand van de baan en het geld per speler (elke meedoende krijgt het volle bedrag).
-  async gastbijbaan({ s = 45, wie = 'gast', id = 'krantenwijk', beloon = 0, bied = 0 }) {
+  async gastbijbaan({ s = 45, wie = 'gast', id = 'krantenwijk', beloon = 0, bied = 0, fotos = [] }) {
     const w = W(); const SJ = await import('./js/sidejobs.js'); const CB = await import('./js/coopbijbaan.js'); let beloond = false, wisselBod = false, wisselJ = false;
     const spot = SJ.getSideJobSpotsForRender().find((x) => x.job && x.job.id === id);
     const geld0 = w.money | 0; let jGestuurd = false, deelde = false, verzoek = false; const slotVan = { gast: 1, gast2: 2, gast3: 3 }[wie] || 1;
     log('gastbijbaan-begin', { wie: CFG.name, spot: spot ? [Math.round(spot.x), Math.round(spot.y)] : null, geld: geld0 });
     if (!spot) { await sleep(s * 1000); return; }
-    const t0 = performance.now(); let laatsteLog = 0;
+    const t0 = performance.now(); let laatsteLog = 0; const fotoRest = fotos.slice(); // fotos: seconden na het begin waarop elk venster een beeld maakt (overname: voor en na het wegvallen)
     while (performance.now() - t0 < s * 1000) {
       const G = w.coopBijbaanGast;
+      if (fotoRest.length && performance.now() - t0 > fotoRest[0] * 1000) shot('gastbijbaan-' + fotoRest.shift() + 's');
       // de plek van een gast is van de gastheer: de host zet de figuur van de gast bij het startpunt (de gast loopt er zelf niet heen)
       if (CFG.role === 'host' && performance.now() - t0 < 9000) { const f = (w.coopFigures || {})[slotVan]; if (f) { f.x = spot.x + 0.8; f.y = spot.y; f.vx = 0; f.vy = 0; f.verTijd = 0; f.vastTijd = 0; } }
       if (CFG.name === wie && !verzoek && performance.now() - t0 > 6000) { key('e', 'KeyE'); verzoek = true; log('gastbijbaan-e', { wie: CFG.name, pos: [Math.round(w.player.x), Math.round(w.player.y)], spot: [Math.round(spot.x), Math.round(spot.y)], msg: (w.messages || []).slice(-2).map((m) => m.text || m) }); }
@@ -724,7 +725,7 @@ const PHASES = {
     log('uitval-host-na', { hold: houdOpen(), uiPaused: !!W().coopHold, paused: !!W().paused, roster: (W().coopRoster || []).map((r) => [r.slot, r.verbinding]) });
   },
   // de verbinding van de gast gaat dicht (TCP weg): wachtscherm, 'Opnieuw verbinden', de code opnieuw invoeren, akkoord: zoals een speler
-  async herverbind({ wie = 'gast' }) {
+  async herverbind({ wie = 'gast', wachtS = 0 }) {
     if (CFG.name !== wie) { await sleep(28000); return; }
     const ses = net() && net().session;
     if (!ses) { log('herverbind-geen-sessie', {}); return; }
@@ -733,6 +734,7 @@ const PHASES = {
     await until(hold, 20000, 'wachtscherm na het sluiten van de verbinding');
     log('herverbind-hold', { hold: true, paused: !!W().paused, coopHold: !!W().coopHold, status: ses.status });
     shot('herverbind-hold');
+    if (wachtS) { await sleep(wachtS * 1000); log('herverbind-lang-weg', { s: wachtS, hold: !!hold(), status: ses.status }); shot('herverbind-lang-weg'); } // #1293: langer weg dan het hervatvenster (120 s): de host geeft de plek een nieuwe sessie
     const knop = (act) => hold() && hold().querySelector('[data-act="' + act + '"]');
     await until(() => knop('hervat'), 5000, 'knop Opnieuw verbinden'); knop('hervat').click(); await sleep(400);
     const veld = await until(() => hold().querySelector('.coop-input'), 5000, 'invoerveld voor de code');
@@ -1994,8 +1996,8 @@ const PHASES = {
         const nad = (w.vehicles || []).filter((v) => v && v.busRun && v.halteStaat && v.halteStaat.fase === 'nadering' && v.halteStaat.stop);
         nadLog = nad.map((v) => Math.round(BS.halteAfstand(v.busRun, v.halteStaat.stop)));
         const staat = (w.vehicles || []).find((v) => v && v.busRun && v.halteStaat && v.halteStaat.fase === 'staan' && v.halteStaat.stop); // een bus die al bij een halte staat: meteen erheen
-        if (staat && performance.now() > qaT0() + 25000) { bus = { v: staat, d: 0 }; break; } // pas als er na 25 s geen naderende bus is
-        bus = nad.map((v) => ({ v, d: BS.halteAfstand(v.busRun, v.halteStaat.stop) })).filter((o) => o.d > 25 && o.d < 90).sort((a, b) => b.d - a.d)[0] || null; // ver genoeg weg: dan zie je hem aankomen en stoppen
+        if (staat && performance.now() > qaT0() + 14000) { bus = { v: staat, d: 0 }; break; } // pas als er na 14 s geen naderende bus is (25 s liet in twee van vier runs geen bus over)
+        bus = nad.map((v) => ({ v, d: BS.halteAfstand(v.busRun, v.halteStaat.stop) })).filter((o) => o.d > 15 && o.d < 90).sort((a, b) => b.d - a.d)[0] || null; // ver genoeg weg: dan zie je hem aankomen en stoppen
         if (!bus) await sleep(400);
       }
       if (!bus) { log('qa-halte-host', { geenBus: true, rondes: ronde, fasen, naderingD: nadLog, bussen: (w.vehicles || []).filter((v) => v && v.busRun).map((v) => ({ afstand: Math.round(Math.hypot(v.x - p.x, v.y - p.y)), v: qaR(v.speed || 0), lijn: v.busRun.line && v.busRun.line.name || null, live: !!v.liveId })) }); await tot(s); return; }
@@ -2024,12 +2026,12 @@ const PHASES = {
       for (let i = 0; i < 100 && performance.now() < qaT0() + (s - 3) * 1000; i++) {
         await sleep(500);
         const b = bussen()[0], ist = IN.instapStats(); maxWissel = Math.max(maxWissel, ist.wissels);
-        if (b) { qaKijk(b.x, b.y); if (Math.abs(b.snelheid) < 0.3 && Math.hypot(b.x - me.x, b.y - me.y) < 40) stil++; if (b.ind) knipper++; }
+        if (b) { qaKijk(b.x, b.y); if (Math.abs(b.snelheid) < 0.3 && Math.hypot(b.x - me.x, b.y - me.y) < 40) { stil++; if (stil === 3) shot('qa-halte-gast-bus-stil'); } if (b.ind) knipper++; } // ook een beeld van de stilstaande bus zelf, niet alleen als er reizigers zijn
         if (i % 4 === 0) verloop.push(b ? [qaR(b.snelheid), b.ind || '-', qaR(Math.hypot(b.x - me.x, b.y - me.y)), ist.wissels, ist.wachtend] : ['geen bus', ist.wissels, ist.wachtend]);
         if (ist.wissels > 0 && beeld === 0) { beeld = 1; await sleep(600); shot('qa-halte-gast-instappers'); }
       }
       if (!beeld) shot('qa-halte-gast-instappers');
-      log('qa-halte-gast', { verloop, maxWissel, stilTellen: stil, knipperTellen: knipper });
+      log('qa-halte-gast', { verloop, maxWissel, stilTellen: stil, knipperTellen: knipper, wachtend: IN.instapStats().wachtend });
     }
     await tot(s);
   },

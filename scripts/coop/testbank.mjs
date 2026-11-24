@@ -7,6 +7,7 @@
 //           menustroom: tekstveld, wachtkamer, de opening samen bekijken, overslaan alleen door de gastheer)
 //           alles (rooktest 21-11, docs/COOP-SWEEP-21-11.md: host + 2 gasten, ping, waypoint, outfit, tuning, bezit, winkel, bijbaan, cutscene)
 //           samenqa (samen-qa 24-11: groepswarp, wolf, levende stad, bushalte, raakbevestiging, zitpose; host + 1 gast)
+//           langweg (#1293: de gast komt terug na het hervatvenster van 120 s; host + 1 gast, route direct)
 //           fatbikes, penaltyserie, duivenspot, plaatsbord, filmpjewissel (route kamer), besloten, venster (alles na elkaar) (#1061: vensterstappen_check.mjs)
 //   --gasten=1|2 (Electron-gasten, host + gasten <= 3 sloten), --mock=N (extra headless gasten in dit proces, voor de 4e speler)
 //   --menu: begin bij het hoofdmenu (ingang Samen spelen), --duration=20, --invuln
@@ -108,9 +109,10 @@ const P = {
   ]])),
   overname: Object.fromEntries(['host', 'gast', 'gast2', 'gast3'].map((me) => [me, [ // #1011: de host valt hard weg (het proces wordt gedood) midden in een bijbaan van een gast: de opvolger neemt over (route kamer)
     [0, 'wacht', { s: 6 }],
-    [8, 'gastbijbaan', { s: 120, wie: 'gast', id: 'krantenwijk' }],
+    [8, 'gastbijbaan', { s: 120, wie: 'gast', id: 'krantenwijk', fotos: [24, 50, 75, 112] }], // beelden: voor het wegvallen (de host stopt 30 s na het begin) en erna
     [130, 'wacht', { s: 8 }],
   ]])),
+  langweg: { host: [[0, 'wacht', { s: 6 }], [8, 'wacht', { s: 200 }], [212, 'stopHost', {}]], gast: [[0, 'wacht', { s: 6 }], [8, 'herverbind', { wie: 'gast', wachtS: 135 }], [190, 'wacht', { s: 16 }]] }, // #1293: de gast is langer weg dan het hervatvenster (120 s) en komt terug via Opnieuw verbinden; zijn wereld mag niet stilstaan
   alles: Object.fromEntries(SPELERS_ELECTRON.map((me) => [me, [ // rooktest 21-11 (docs/COOP-SWEEP-21-11.md): host en twee gasten (3 echte vensters) spelen een kort scenario met zoveel mogelijk systemen
     [0, 'wacht', { s: 6 }],
     [8, 'allesstap', { stap: 'ping', wie: 'gast', s: 6 }], [18, 'allesstap', { stap: 'waypoint', wie: 'gast', s: 4 }],
@@ -630,14 +632,14 @@ for (const n of NAMES) {
   check(full.length > 3, `${n}: ziet niet alle ${EXPECT - 1} medespelers (max ${Math.max(0, ...samples(n).map((s) => (s.partners || []).length))})`);
 }
 // positie van Tammo bij de gast, speelklok, desync
-const gW = [...gs].filter((q) => q.role === 'client' && q.companion && (q.ph === 'wacht' || q.ph === '')).pop(), hW = gW && hs.filter((q) => q.me && Math.abs(q.t - gW.t) < 1.5)[0]; // aan het begin, terwijl beiden stilstaan
+const gW = [...gs].filter((q) => q.role === 'client' && q.companion && (q.ph === 'wacht' || q.ph === '')).pop(), hW = gW && hs.filter((q) => q.me && Math.abs(q.wall - gW.wall) < 1500)[0]; // op dezelfde wandklok: t telt per venster vanaf zijn eigen start (samenqa 24-11: 101 s bij de host was 45 s voor 102 s bij de gast, 215 m na een warp)
 if (gW && hW && SUITE !== 'gastacties') { // (bij gastacties staat de host steeds ergens anders)
   const d = Math.hypot(gW.companion.x - hW.me.x, gW.companion.y - hW.me.y);
   check(d < 6, `gast ziet Tammo op ${d.toFixed(1)} m van de host`);
 }
 // de laatste keer dat de gast echt meespeelde (daarna speelt hij weer in zijn eigen spel, met zijn eigen klok) tegen de host op hetzelfde moment
-const klokVerschil = (g) => { const h = samples('host').filter((s) => Number.isFinite(s.uur)), q = samples(g).filter((s) => Number.isFinite(s.uur) && s.slot >= 0 && (s.status === 'ok' || s.status === 'lag')); if (!h.length || !q.length) return null; const l = last(q), hh = h.reduce((b, x) => (Math.abs(x.wall - l.wall) < Math.abs(b.wall - l.wall) ? x : b), h[0]); return Math.abs(((l.uur - hh.uur + 36) % 24) - 12); };
-for (const g of NAMES.filter((x) => x !== 'host')) { const d = klokVerschil(g); if (d != null) check(d < 0.3, `speelklok ${g}: ${d.toFixed(2)} u verschil`); }
+const klokVerschil = (g, ref = 'host') => { const h = samples(ref).filter((s) => Number.isFinite(s.uur)), q = samples(g).filter((s) => Number.isFinite(s.uur) && s.slot >= 0 && (s.status === 'ok' || s.status === 'lag')); if (!h.length || !q.length) return null; const l = last(q), hh = h.reduce((b, x) => (Math.abs(x.wall - l.wall) < Math.abs(b.wall - l.wall) ? x : b), h[0]); return Math.abs(((l.uur - hh.uur + 36) % 24) - 12); };
+if (SUITE !== 'overname') for (const g of NAMES.filter((x) => x !== 'host')) { const d = klokVerschil(g); if (d != null) check(d < 0.3, `speelklok ${g}: ${d.toFixed(2)} u verschil`); } // bij 'overname' is de host dood: daar telt de klok van de opvolger (zie de suite)
 for (const g of NAMES.filter((x) => x !== 'host')) {
   let vorige = 0; const bad = samples(g).filter((s) => { const nieuw = (s.desyncN || 0) > vorige; vorige = Math.max(vorige, s.desyncN || 0); return nieuw && s.ph !== 'desync' && s.ph !== 'netsim' && !(SUITE === 'net' && s.ph === 'uitval') && !(SUITE === 'gastacties' && s.ph === 'gastrit' && (s.desync || []).every((v) => v === 'wanted')); });
   check(bad.length === 0, `${g} meldt een desync buiten de afwijkingsfase: ${JSON.stringify((bad[0] || {}).desync)} (fase ${(bad[0] || {}).ph})`);
@@ -857,7 +859,31 @@ if (SUITE === 'overname') {
   const unieke = (n) => { const x = samples(n).slice(-1)[0]; const namen = ((x && x.partners) || []).map((p) => p[1]); return namen.length === new Set(namen).size; };
   for (const n of gasten) check(unieke(n), `overname: ${n} ziet een dubbele speler`);
   for (const n of gasten) { const l = st(n); check(!l.length || l[l.length - 1].geld >= 500, `overname: ${n} verloor geld (${l.length && l[l.length - 1].geld})`); }
+  // de klok loopt door (#1059, ov3 24-11): de opvolger speelde de opening van zijn eigen nieuwe spel (05:45, naar zijn nieuwe thuis) en de groep kwam daar binnen
+  const laatsteUur = (n) => { const l = samples(n).filter((x) => Number.isFinite(x.uur)); return l.length ? l[l.length - 1].uur : null; };
+  const uurVerschil = (a, b) => Math.abs(((a - b + 36) % 24) - 12);
+  const hostUur = laatsteUur('host');
+  if (hosts.length === 1 && hostUur != null) {
+    const nh = hosts[0], na = laatsteUur(nh);
+    note(`klok: de host stopte op ${hostUur.toFixed(2)} u, de opvolger ${nh} staat aan het eind op ${na == null ? '?' : na.toFixed(2)} u`);
+    check(na != null && uurVerschil(na, hostUur) < 3, `overname: de klok van de opvolger ${nh} sprong (host ${hostUur.toFixed(2)} u, opvolger ${na == null ? '?' : na.toFixed(2)} u)`);
+    for (const n of gasten) if (n !== nh) { const d = klokVerschil(n, nh); if (d != null) check(d < 0.3, `overname: speelklok ${n} wijkt ${d.toFixed(2)} u af van de opvolger`); }
+  }
   for (const n of gasten) { let v = 0; const bad = samples(n).filter((x) => { const nieuw = (x.desyncN || 0) > v; v = Math.max(v, x.desyncN || 0); return nieuw; }); note(`desyncN ${n}: ${v}`); }
+}
+
+// ----- suite 'langweg' (#1293): de gast komt terug na het hervatvenster; zijn wereld mag niet stilstaan
+if (SUITE === 'langweg') {
+  const weg = of(G, 'herverbind-lang-weg')[0], klaar = of(G, 'herverbind-klaar')[0];
+  check(!!weg, 'langweg: de gast was niet lang genoeg weg (geen herverbind-lang-weg)');
+  check(!!klaar && klaar.coopNet && !klaar.hold, 'langweg: de gast kwam niet terug in het spel: ' + JSON.stringify(klaar || null));
+  const na = klaar ? samples('gast').filter((x) => x.t > klaar.t + 2) : [];
+  const klok = na.filter((x) => Number.isFinite(x.clock)).map((x) => x.clock);
+  note(`langweg: ${na.length} samples na terugkeer, klok ${klok.length ? klok[0].toFixed(1) + ' -> ' + klok[klok.length - 1].toFixed(1) : '?'}`);
+  check(klok.length >= 6 && klok[klok.length - 1] - klok[0] > 3, 'langweg: de klok van de gast loopt na terugkeer niet (bevroren wereld)');
+  check(na.some((x) => (x.partners || []).length >= 1), 'langweg: de gast ziet de host niet na terugkeer');
+  const hna = klaar ? samples('host').filter((x) => x.wall > klaar.wall + 2000) : [];
+  check(hna.some((x) => (x.roster || []).some((r) => r[0] >= 1 && r[2] === 'ok')), 'langweg: de host ziet de gast niet terug als verbonden');
 }
 
 // ----- suite 'overdracht' (#1011): de hostwissel midden in een bijbaan
