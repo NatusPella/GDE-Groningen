@@ -9,6 +9,7 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ## [Unreleased]
 
+- Voertuigen: de Fjord Escapade is opnieuw gebouwd op een Quaternius-romp (een kleine hatchback, CC0) met echte deurgaten, een interieur achter de open deur en eigen karakter: sleten en roest op drempels en wielkasten, een deuk in het rechter voorspatbord, een dakdrager met opgerold zeil, een trekhaak, een verzonnen geel kenteken, zwart-geel plakband op de linker koplamp, een kapot knipperlicht, een wieldop kwijt en een bijrijdersdeur in een andere tint rood. Kleur, tuning en opslag blijven werken. Samen spelen: iedereen ziet dezelfde Escapade (het model hangt aan het voertuig, niet aan de speler).
 - Garage: "Nog 55 te ontdekken" is een lege tegel in het raster (met een stippelrand, even groot als een voertuigkaart) in plaats van een losse regel naast je eerste auto. Samen spelen: per speler.
 - Prestaties: de kop heet "Je stand" (niet nog een keer Prestaties) en herhaalt "0 van 238 behaald" niet meer in een zin en een tweede balk; de vier getallen en de balk bovenaan blijven. Samen spelen: per speler.
 - Samen spelen: de vraag of je meedoet is een gewone kaart met de vraag als kop en de knoppen op één regel; Ja is de gele knop, Nee secundair (eerst waren het twee gele knoppen onder elkaar in een gestippeld vak). Het naamveld voor Samen spelen herhaalt zijn label niet meer als voorbeeldtekst ("Zo zien de anderen je") en de knop Toetsenbord staat naast het veld. Samen spelen: ieder ziet en beantwoordt de eigen vraag.

@@ -131,11 +131,13 @@ function lampMaterial(color, emissiveIntensity = 0) {
 
 // --- shared wheels ------------------------------------------------------------
 
-function carWheelGeometry(r, w) {
-  return cached(`wheel|${r}|${w}`, () => {
+function carWheelGeometry(r, w, slijt = false) {
+  return cached(`wheel|${r}|${w}${slijt ? '|slijt' : ''}`, () => {
     const B = new GeoBuilder(1);
     const axleZ = (geo) => geo.rotateX(Math.PI / 2);
     B.geo(axleZ(new THREE.CylinderGeometry(r, r, w, 12, 1)), null, TIRE);
+    // versleten banden (Escapade): een verbleekt grijs vlak op de flank, de loopvlakrand is nog zwart
+    if (slijt) B.geo(axleZ(new THREE.CylinderGeometry(r * 0.9, r * 0.9, w + 0.008, 12, 1)), null, 0x4a4946);
     B.geo(axleZ(new THREE.CylinderGeometry(r * 0.64, r * 0.64, w + 0.02, 10, 1)), null, RIM);
     B.geo(axleZ(new THREE.CylinderGeometry(r * 0.18, r * 0.18, w + 0.05, 6, 1)), null, 0x6a6d70);
     // five radial spokes (72 deg symmetry; see SPIN_STEP) plus one dark lug so the roll reads
@@ -820,9 +822,9 @@ function ambulanceOpschrift(group, P, L, W) {
 // Sierdoppen: een lichte schijf op elk wiel, samen één 'onderdeel' dat los kan raken (#205).
 // Naafkapjes zijn geen lichtbron: een MeshBasicMaterial bleef in het donker fel wit (playtestvideo 23-10).
 const CAP_MAT = new THREE.MeshLambertMaterial({ color: 0xc4c8cc });
-function hubcaps(wheels, r) {
+function hubcaps(wheels, r, zonder = []) {
   const geo = cached(`hubcap|${r}`, () => new THREE.CylinderGeometry(r * 0.5, r * 0.5, 0.03, 10, 1).rotateX(Math.PI / 2));
-  const caps = wheels.map((w) => {
+  const caps = wheels.filter((w, i) => !zonder.includes(i)).map((w) => {
     const c = new THREE.Mesh(geo, CAP_MAT);
     c.position.z = Math.sign(w.position.z || 1) * (WHEEL_W / 2 + 0.02);
     w.add(c);
@@ -933,11 +935,16 @@ function buildCarMesh(v) {
 // (1,15 tot 1,24 m), dus de hoogte wordt per model op de norm gezet, zodat een volwassene van 1,78 m erin past. De getekende lengte
 // en breedte kunnen van de botsmaat (v.model.len, wid) afwijken; de deuren rekenen met de getekende maat (userData.deurLen, deurWid).
 const hybData = new Map();
+// De Fjord Escapade (24-11) is een hybride op de romp van de kleine hatchback (qcars.js 'hatch'), 4,0 m lang: de extra lengte komt
+// uit een zone tussen de wielkasten (QREK, x in hun maat), zodat de wielkasten rond blijven en er niets over de wielen uitrekt.
+const QALIAS = { escapade: 'hatch' };
+const QREK = { escapade: [-0.62, 0.70] };
+const qdata = (key) => QCARS[QALIAS[key] || key];
 function b64Bytes(s) { return typeof atob === 'function' ? Uint8Array.from(atob(s), (c) => c.charCodeAt(0)) : new Uint8Array(Buffer.from(s, 'base64')); }
 function hybridData(key) {
   let d = hybData.get(key);
   if (d) return d;
-  const auto = QCARS[key];
+  const auto = qdata(key);
   const pb = b64Bytes(auto.posities), ib = b64Bytes(auto.index);
   d = { auto, pos: new Int16Array(pb.buffer, pb.byteOffset, pb.byteLength / 2), idx: new Uint16Array(ib.buffer, ib.byteOffset, ib.byteLength / 2), rol: b64Bytes(auto.rol) };
   hybData.set(key, d);
@@ -954,12 +961,19 @@ function hybridRoofU(key) {
 }
 function hybridScale(auto, L, W, key) {
   const schaal = hybrideSchaal(key);
-  return { sx: L / auto.maat.len, sy: (schaal ? schaal.hoog : 1.45) / hybridRoofU(key), sz: W / auto.maat.wid };
+  const sy = (schaal ? schaal.hoog : 1.45) / hybridRoofU(key), sz = W / auto.maat.wid;
+  const rek = QREK[key], len = auto.maat.len;
+  if (!rek) { const sx = L / len; return { sx, sy, sz, mapx: (x) => x * sx }; }
+  // buiten de zone schaalt x met dezelfde factor als de hoogte (de wielkasten blijven rond), de zone vangt de rest op
+  const [a, b] = rek, vA = -L / 2 + (a + len / 2) * sy, vB = L / 2 - (len / 2 - b) * sy;
+  return { sx: L / len, sy, sz, mapx: (x) => (x <= a ? -L / 2 + (x + len / 2) * sy : x >= b ? L / 2 - (len / 2 - x) * sy : vA + (x - a) / (b - a) * (vB - vA)) };
 }
 // Welke hybride bij dit voertuig hoort, of null (dan onze eigen bouwer).
 export function hybridKey(v) {
-  if (!v || !v.model || v.model.hybride === false || v.isAmbulance || v.isHeroCar || v.look) return null;
-  if (v.model.qcar && QCARS[v.model.qcar]) return v.model.qcar; // een vaste keuze (register, contactblad)
+  if (!v || !v.model || v.model.hybride === false || v.isAmbulance) return null;
+  if (v.isHeroCar || v.model.name === 'escort') return 'escapade'; // de heldenauto houdt zijn romp ook met tuning (v.look)
+  if (v.look) return null;
+  if (v.model.qcar && qdata(v.model.qcar)) return v.model.qcar; // een vaste keuze (register, contactblad)
   if (v.model.name === 'police' || (v.isPolice && !v._commandeered)) return 'police';
   const variant = carVariant(v);
   if (variant === 'taxi') return 'taxi';
@@ -971,7 +985,7 @@ export function hybridKey(v) {
   if (n === 'sport') return hash2(typeof v.id === 'number' ? v.id : String(v.id).length, 3.7) < 0.5 ? 'sport' : 'sport2';
   return null;
 }
-const HYB_DOORS = { sedan: 'sedan', hatch: 'hatch', suv: 'suv', sport: 'sport', sport2: 'sport', taxi: 'taxi', police: 'police' };
+const HYB_DOORS = { escapade: 'escort', sedan: 'sedan', hatch: 'hatch', suv: 'suv', sport: 'sport', sport2: 'sport', taxi: 'taxi', police: 'police' };
 // De flank: waar een straal van buiten naar binnen (langs z) de romp raakt, op hoogte y en lengte x.
 function hybridSurface(tris, x, y, side) {
   let best = null;
@@ -991,10 +1005,10 @@ function hybridSurface(tris, x, y, side) {
 // De geschaalde driehoeken met hun rol, in onze assen.
 function hybridTris(key, L, W) {
   const { auto, pos, idx, rol } = hybridData(key);
-  const { sx, sy, sz } = hybridScale(auto, L, W, key);
+  const { sy, sz, mapx } = hybridScale(auto, L, W, key);
   const out = [];
   for (let t = 0; t < rol.length; t++) {
-    const v = [0, 1, 2].map((k) => { const i = idx[t * 3 + k] * 3; return [pos[i] / 1000 * sx, pos[i + 1] / 1000 * sy, pos[i + 2] / 1000 * sz]; });
+    const v = [0, 1, 2].map((k) => { const i = idx[t * 3 + k] * 3; return [mapx(pos[i] / 1000), pos[i + 1] / 1000 * sy, pos[i + 2] / 1000 * sz]; });
     out.push({ v, r: rol[t] });
   }
   return out;
@@ -1005,7 +1019,7 @@ export function hybridFit(key, L, W) {
     const tris = hybridTris(key, L, W), glas = [], lak = [];
     for (const t of tris) (t.r === 1 ? glas : t.r === 0 ? lak : []).push(...t.v);
     const ys = (a) => a.map((p) => p[1]), xs = (a) => a.map((p) => p[0]);
-    const { sy } = hybridScale(QCARS[key], L, W, key);
+    const { sy } = hybridScale(qdata(key), L, W, key);
     const roof = Math.max(...ys(glas)) + DAK * sy, belt = Math.min(...ys(glas));
     const xA = Math.max(...glas.filter((p) => p[1] < belt + 0.08).map((p) => p[0])), xD = Math.min(...glas.filter((p) => p[1] < belt + 0.08).map((p) => p[0]));
     const hoog = glas.filter((p) => p[1] > roof - 0.12);
@@ -1021,6 +1035,8 @@ export function hybridFit(key, L, W) {
 }
 function hybridBody(key, L, W, paint, doorName, police) {
   return cached(`hybride4|${key}|${L}|${W}|${paint}|${doorName}|${police}`, () => {
+    // Escapade: de bijrijdersdeur is een vervangend deel, een tint lichter dan de rest (een oude auto die ooit is gerepareerd)
+    const deurTint = key === 'escapade' ? { vr: shadeHex(paint, 1.14) } : {};
     const hl = L / 2, hw = W / 2;
     const tris = hybridTris(key, L, W);
     const fit = hybridFit(key, L, W);
@@ -1033,7 +1049,7 @@ function hybridBody(key, L, W, paint, doorName, police) {
     // de wielkasten: een portier begint achter de voorste wielkast en eindigt vóór de achterste (anders opent de deur een stuk
     // spatbord en zie je door het gat het wiel met zijn wieldop)
     const { auto } = hybridData(key), sc = hybridScale(auto, L, W, key), wr = auto.wielen[0].r * sc.sy;
-    const kasten = [...new Set(auto.wielen.map((w) => +(w.x * sc.sx).toFixed(3)))];
+    const kasten = [...new Set(auto.wielen.map((w) => +sc.mapx(w.x).toFixed(3)))];
     for (const d of defs) {
       const z = hybridSurface(lakTris, d.x * L, d.y0 + d.h / 2, d.side);
       if (z === null) continue;
@@ -1206,7 +1222,7 @@ function hybridBody(key, L, W, paint, doorName, police) {
       for (const Bx of [P2, alle]) {
         for (const rd of randen) if (rd[6] === d.id) randQuad(Bx, rd);
         for (const t of vlak[d.id]) {
-          Bx.tri(t.v[0], t.v[1], t.v[2], kleur[t.r], groep[t.r]);
+          Bx.tri(t.v[0], t.v[1], t.v[2], t.r === 0 && deurTint[d.id] ? deurTint[d.id] : kleur[t.r], groep[t.r]);
           const inn = t.v.map((p) => [p[0], p[1], p[2] - d.side * 0.035]);
           Bx.tri(inn[0], inn[2], inn[1], t.r === 1 ? GLASS : 0x2a2c30, t.r === 1 ? G_GLASS : G_BODY);
         }
@@ -1230,9 +1246,104 @@ function hybridBody(key, L, W, paint, doorName, police) {
     return geo;
   });
 }
+// De Fjord Escapade (24-11): karakter op de hybride romp. Vaste, gecachete geometrie (twee meshes): onderdelen (dakdrager met
+// opgerolde zeilen en een plank, trekhaak, kentekens met streepjes, zwart-geel plakband op de linker koplamp, knipperlichten waarvan
+// de linker kapot is) en vlakke lagen op de flank (roest op drempel en wielkasten, een deuk in het rechter voorspatbord, stickers).
+// De lagen liggen niet op een deur (ze zouden in een open opening blijven hangen).
+const NADEN_TOP = markShared(vcMaterial({ roughness: 0.6, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -10 }));
+function escapadeKarakter(L, W, paint, fit, rects, wielen) {
+  const hl = L / 2;
+  const tris = hybridTris('escapade', L, W);
+  const lak = tris.filter((t) => t.r === 0).map((t) => t.v);
+  const punten = tris.flatMap((t) => t.v);
+  const onderdelen = cached(`escapade-onderdelen|${L}|${W}`, () => {
+    const B = new GeoBuilder(1);
+    // dakdrager: twee langsliggers op voetjes, drie dwarsbalken, een opgerold zeil met twee riemen en een plank
+    const xm = (fit.xB + fit.xC) / 2, xl = Math.min(1.5, (fit.xB - fit.xC) * 0.92);
+    const zr = Math.max(0.36, Math.min(0.52, (hybridSurface(lak, xm, fit.roof - 0.05, 1) || 0.62) - 0.1));
+    const ry = fit.roof + 0.02;
+    for (const s of [1, -1]) {
+      B.box(xm, ry, s * zr, xl, 0.035, 0.04, 0x26282a);
+      for (const dx of [-0.5, 0.5]) B.box(xm + dx * xl * 0.88, ry - 0.03, s * zr, 0.05, 0.05, 0.05, 0x1b1c1d);
+    }
+    for (const dx of [-0.42, 0, 0.42]) B.box(xm + dx * xl, ry + 0.03, 0, 0.045, 0.03, zr * 2 + 0.1, 0x303234);
+    B.geo(new THREE.CylinderGeometry(0.115, 0.115, zr * 2 + 0.1, 10).rotateX(Math.PI / 2), composeMatrix(xm - 0.18 * xl, ry + 0.16, 0), 0x3f627c);
+    for (const zz of [-0.32, 0.32]) B.geo(new THREE.CylinderGeometry(0.135, 0.135, 0.035, 7).rotateX(Math.PI / 2), composeMatrix(xm - 0.18 * xl, ry + 0.16, zz), 0xc8b27a);
+    // trekhaak: balk onder de achterbumper met een kogel
+    const xR = Math.min(...punten.filter((p) => Math.abs(p[2]) < 0.3 && p[1] > 0.2 && p[1] < 0.9).map((p) => p[0]));
+    B.box(xR - 0.01, 0.3, 0, 0.34, 0.05, 0.07, 0x2a2b2d);
+    B.box(xR - 0.2, 0.34, 0, 0.05, 0.1, 0.05, 0x2a2b2d);
+    B.geo(new THREE.SphereGeometry(0.032, 8, 6), composeMatrix(xR - 0.2, 0.41, 0), 0xb9bcbf);
+    // kentekens: geel, blauwe rand links en streepjes in plaats van tekens (verzonnen, geen echt kenteken)
+    const xV = Math.max(...punten.filter((p) => Math.abs(p[2]) < 0.2 && p[1] > 0.22 && p[1] < 0.46).map((p) => p[0]));
+    const plaat = (x, y, uit) => {
+      B.box(x + uit * 0.006, y, 0, 0.012, 0.11, 0.5, PLATE);
+      B.box(x + uit * 0.012, y, -0.225, 0.006, 0.11, 0.05, 0x1f3f8f);
+      for (let i = 0; i < 6; i++) B.box(x + uit * 0.012, y, -0.14 + i * 0.075 + (i > 2 ? 0.04 : 0), 0.006, 0.06, 0.04, 0x1b1b1c);
+    };
+    plaat(xV, 0.37, 1);
+    plaat(xR + 0.04, 0.56, -1);
+    // zwart-geel plakband kruislings over de linker koplamp (gebarsten kap) en een kapot knipperlicht ernaast
+    const lamp = tris.filter((t) => t.r === 2 && t.v[0][2] < 0).flatMap((t) => t.v);
+    if (lamp.length) {
+      const lx = Math.max(...lamp.map((p) => p[0])), y0 = Math.min(...lamp.map((p) => p[1])), y1 = Math.max(...lamp.map((p) => p[1]));
+      const z0 = Math.min(...lamp.map((p) => p[2])), z1 = Math.max(...lamp.map((p) => p[2]));
+      const w = Math.hypot(z1 - z0, y1 - y0);
+      for (const sgn of [1, -1]) B.box(lx + 0.006, (y0 + y1) / 2, (z0 + z1) / 2, 0.008, 0.028, w * 0.92, sgn > 0 ? 0xd8b21f : 0x26261f, 0, sgn * Math.atan2(y1 - y0, z1 - z0), 0, 0);
+      for (const s of [1, -1]) {
+        const cz = s * ((Math.abs(z0) + Math.abs(z1)) / 2), kapot = s < 0;
+        B.box(lx - 0.04, y0 - 0.075, cz, 0.05, 0.05, 0.17, kapot ? 0xcfc9b4 : INDICATOR, 0);
+        if (kapot) { B.box(lx - 0.012, y0 - 0.075, cz, 0.008, 0.012, 0.19, 0x2a2a26, 0, 0.5, 0, 0); B.box(lx - 0.012, y0 - 0.075, cz + 0.02, 0.008, 0.012, 0.12, 0x2a2a26, 0, -0.7, 0, 0); }
+      }
+    }
+    return B.build();
+  });
+  const vlakken = cached(`escapade-vlakken|${L}|${W}|${paint}`, () => {
+    const D = new GeoBuilder(2); // groep 1: de bovenste laag (een eigen mesh met sterkere polygonOffset)
+    const hash = (a, b) => { const x = Math.sin(a * 127.1 + b * 311.7) * 43758.5453; return x - Math.floor(x); };
+    const op = (x, y, side) => !Object.entries(rects).some(([id, r]) => (id === 'vl' ? -1 : 1) === side && x > r[0] - 0.03 && x < r[2] + 0.03 && y > r[1] - 0.03 && y < r[3] + 0.03);
+    const blob = (cx, cy, side, rad, kl, n = 7, seed = 0, uit = 0.006, laag = 0) => {
+      const ring = [];
+      for (let k = 0; k < n; k++) {
+        const a = (k / n) * Math.PI * 2, rr = rad * (0.65 + 0.7 * hash(seed + k, cx * 7 + cy));
+        const x = cx + Math.cos(a) * rr, y = cy + Math.sin(a) * rr * 0.75, z = hybridSurface(lak, x, y, side);
+        if (z === null) return false;
+        ring.push([x, y, z + side * uit]);
+      }
+      const z0 = hybridSurface(lak, cx, cy, side);
+      if (z0 === null) return false;
+      const c = [cx, cy, z0 + side * uit];
+      for (let k = 0; k < n; k++) D.triOut(c, ring[k], ring[(k + 1) % n], [0, 0, side], kl, laag);
+      return true;
+    };
+    const ROEST = [0x8a4b22, 0x6f3a1a, 0xa05a2a, 0x7b4220];
+    let seed = 1;
+    for (const side of [1, -1]) {
+      // drempel: een rij vlekken langs de onderrand tussen de wielkasten
+      for (let x = -hl + 0.8; x < hl - 0.7; x += 0.16 + 0.1 * hash(seed, 3)) { seed++; if (op(x, 0.3, side)) blob(x, 0.3 + 0.025 * hash(seed, 9), side, 0.08 + 0.08 * hash(seed, 5), ROEST[seed % 4], 7, seed); }
+      // wielkasten: vlekken langs de bovenrand van elke kast
+      for (const w of wielen) {
+        for (let a = 15; a <= 165; a += 22) {
+          seed++;
+          const rad = w.r * (1.1 + 0.18 * hash(seed, 2)), x = w.x + Math.cos(a * Math.PI / 180) * rad, y = w.r + Math.sin(a * Math.PI / 180) * rad;
+          if (op(x, y, side) && hash(seed, 11) > 0.25) blob(x, y, side, 0.05 + 0.07 * hash(seed, 4), ROEST[seed % 4], 7, seed);
+        }
+      }
+    }
+    // een deuk in het rechter voorspatbord: een donkere kuil met een lichte rand erboven
+    const dx = hl - 0.55, dy = 0.63;
+    if (op(dx, dy, 1)) { blob(dx, dy, 1, 0.14, shadeHex(paint, 0.62), 9, 77, 0.005); blob(dx + 0.02, dy + 0.05, 1, 0.06, shadeHex(paint, 1.12), 7, 78, 0.009, 1); }
+    // stickers op het achterspatbord (rechts): een rond groen-wit plaatje en een smalle strip
+    const sx = -hl + 0.5;
+    if (op(sx, 0.66, 1)) { blob(sx, 0.66, 1, 0.075, 0x2f8f4a, 12, 5, 0.005); blob(sx, 0.66, 1, 0.045, 0xf0eee4, 12, 6, 0.009, 1); }
+    if (op(sx + 0.3, 0.5, 1)) blob(sx + 0.3, 0.5, 1, 0.07, 0xd9772b, 4, 15, 0.005);
+    return D.build();
+  });
+  return { onderdelen, vlakken };
+}
 function buildHybridCar(v, key, paint) {
   const schaal = hybrideSchaal(key), L = schaal.len, W = schaal.wid;
-  const auto = QCARS[key];
+  const auto = qdata(key);
   const police = key === 'police' && !!v.isPolice && !v._commandeered && !v.model.resprayed;
   const doorName = HYB_DOORS[key];
   const color = v.wrecked ? WRECKED_COLOR : paint;
@@ -1294,21 +1405,32 @@ function buildHybridCar(v, key, paint) {
   const P = { ...fit, van: false, uitlaat: { x: kontX, y: kontY } };
   group.userData.loose = looseCarParts('hyb-' + key, L, zSp ? zSp * 2 : W, color, P, mats, group);
   // wielen: onze wielgeometrie op hun plekken
-  const { sx, sy, sz } = hybridScale(auto, L, W, key);
+  const { sy, sz, mapx } = hybridScale(auto, L, W, key);
   const r = +(auto.wielen[0].r * sy).toFixed(3);
-  const wgeo = carWheelGeometry(r, WHEEL_W);
+  const escapade = key === 'escapade';
+  const wgeo = carWheelGeometry(r, WHEEL_W, escapade);
   const wheels = [], front = [];
   for (const w of auto.wielen) {
-    const m = addWheel(group, wgeo, mats[0], w.x * sx, r, w.z * sz * 0.97, wheels);
+    const m = addWheel(group, wgeo, mats[0], mapx(w.x), r, w.z * sz * 0.97, wheels);
     if (w.voor) front.push(m);
   }
   group.userData.wheels = wheels;
   group.userData.frontWheels = front;
   group.userData.wheelRadius = r;
-  group.userData.loose.sierdoppen = hubcaps(wheels, r);
+  group.userData.loose.sierdoppen = hubcaps(wheels, r, escapade ? [1] : []); // de Escapade is een wieldop kwijt (linksachter)
+  if (escapade && !v.wrecked) {
+    const k = escapadeKarakter(L, W, color, fit, geo.userData.gatRects, auto.wielen.filter((w) => w.z > 0).map((w) => ({ x: mapx(w.x), r })));
+    const km = new THREE.Mesh(k.onderdelen, mats);
+    km.name = 'karakter';
+    body.add(km);
+    const kv = new THREE.Mesh(k.vlakken, [NADEN_MAT, NADEN_TOP]);
+    kv.name = 'karakterVlak';
+    body.add(kv);
+    group.userData.karakter = [km, kv];
+  }
   if (police && auto.lichtbalk) {
     const lamps = [];
-    const bx = auto.lichtbalk.x * sx, by = auto.lichtbalk.y * sy;
+    const bx = mapx(auto.lichtbalk.x), by = auto.lichtbalk.y * sy;
     const bar = new THREE.Mesh(cached(`hybbalk|${W}`, () => new THREE.BoxGeometry(0.3, 0.06, W * 0.62)), new THREE.MeshLambertMaterial({ color: TRIM }));
     bar.position.set(bx, by - 0.02, 0);
     body.add(bar);
@@ -4079,7 +4201,7 @@ function buildVehicleMeshFor(v) {
   if (v.isBoat) return buildBoatMesh(v);
   if (v.isHeli) return buildHeliMesh(v);
   if (v.isPlane) return buildPlaneMesh(v);
-  if (v.isHeroCar) return buildFordEscortGroup(v.model.color, v.model.len, v.model.wid, v.wrecked);
+  if (v.isHeroCar && !hybridKey(v)) return buildFordEscortGroup(v.model.color, v.model.len, v.model.wid, v.wrecked);
   return buildCarMesh(v);
 }
 

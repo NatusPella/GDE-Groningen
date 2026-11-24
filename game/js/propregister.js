@@ -179,6 +179,7 @@ export const VOERTUIG_REGISTER = {
   hybrideSuv: { nl: 'SUV (hybride)', model: { name: 'suv', len: 4.7, wid: 1.95, color: 0x23262a }, hybride: 'suv', schaal: { len: 4.55, wid: 1.85, hoog: 1.7 }, norm: HYB_NORM },
   hybrideSport: { nl: 'Sportauto (hybride)', model: { name: 'sport', len: 4.1, wid: 1.85, color: 0xb93a32, qcar: 'sport' }, hybride: 'sport', schaal: { len: 4.25, wid: 1.82, hoog: 1.42 }, norm: HYB_NORM },
   hybrideSport2: { nl: 'Sportauto 2 (hybride)', model: { name: 'sport', len: 4.1, wid: 1.85, color: 0xe8e6e0, qcar: 'sport2' }, hybride: 'sport2', schaal: { len: 4.25, wid: 1.82, hoog: 1.42 }, norm: HYB_NORM },
+  hybrideEscapade: { nl: 'Fjord Escapade (hybride)', model: { name: 'escort', len: 4.0, wid: 1.65, color: 0xa11f1f, qcar: 'escapade' }, hybride: 'escapade', schaal: { len: 4.0, wid: 1.65, hoog: 1.4 }, maatNorm: { len: [3.9, 4.1], wid: [1.6, 1.7], wielbasis: [2.35, 2.55] }, norm: HYB_NORM }, // een oude compacte hatchback: de botsmaat van het verhaal (4,0 x 1,65)
   hybrideTaxi: { nl: 'Taxi (hybride)', model: { name: 'taxi', len: 4.6, wid: 1.8, color: 0xe8c93a }, isTaxi: true, hybride: 'taxi', schaal: { len: 4.5, wid: 1.8, hoog: 1.45 }, norm: HYB_NORM },
   hybridePolitie: { nl: 'Politieauto (hybride)', model: { name: 'police', len: 4.3, wid: 1.8, color: 0x1c1c1c }, isPolice: true, hybride: 'police', schaal: { len: 4.3, wid: 1.8, hoog: 1.45 }, norm: HYB_NORM },
   // vettruck 23-11: de tankwagen van Us Mem Vet (M07, de cutscenes, de trailer en de winkel), opnieuw gebouwd in plaats van drie
@@ -193,7 +194,7 @@ export const VOERTUIG_REGISTER = {
 // De botsmaat volgt de getekende maat (23-11): een gewone personenauto die als hybride getekend wordt (hybridKey in
 // models3d_vehicles.js: geen roest, elektrisch, tokkie, belettering of model.hybride === false), botst met de lengte en breedte uit het
 // register. Puur, zodat vehicle.js het bij het bouwen van een Vehicle kan toepassen. null: de maat van het model blijft.
-const HYB_PER_NAAM = { sedan: 'sedan', hatch: 'hatch', suv: 'suv', sport: 'sport', taxi: 'taxi', police: 'police' };
+const HYB_PER_NAAM = { escort: 'escapade', sedan: 'sedan', hatch: 'hatch', suv: 'suv', sport: 'sport', taxi: 'taxi', police: 'police' };
 export function getekendeMaat(model) {
   if (!model || model.hybride === false || model.rusty || model.electric || model.tokkie || model.livery) return null;
   const key = model.qcar || HYB_PER_NAAM[model.name];
