@@ -385,6 +385,26 @@ ok(() => {
   } finally { document.body = oudBody; }
 }, 'een autosave die tijdens een reisrit afloopt, wordt na de rit alsnog geschreven');
 
+{
+  const { TOONBANK } = await import('../game/js/eten.js');
+  const snack = TOONBANK[0][0];
+  ok(() => {
+    // #1295: struikelt een onderdeel bij het opslaan, dan valt dat veld terug op de laatste goede waarde. Die lijst bleef na het
+    // laden van een andere plek staan: het veld van het vorige spel kwam in de save van het geladen spel.
+    schoon(); SS.setActive(null, 1); SG.bindSlot();
+    const w = mk({ eten: { [snack]: 3 } });
+    assert.equal(sla(w, { toast: false }), true);
+    assert.equal(lees(1).eten[snack], 3, 'plek 1 heeft drie snacks');
+    zet({ ...kloon(BASIS), eten: {} }, 2);
+    const [geladen] = zonderMelding(() => laadPlek(w, 2));
+    assert.equal(geladen, true, 'plek 2 laadt');
+    Object.defineProperty(w, 'eten', { get() { throw new Error('eten stuk'); }, configurable: true });
+    zonderMelding(() => sla(w, { toast: false }));
+    const eten2 = lees(2).eten || {};
+    assert.equal(eten2[snack], undefined, 'de snacks van plek 1 lekken niet naar plek 2');
+  }, 'een struikelend onderdeel zet na het laden van een andere plek geen veld van de vorige plek in de save');
+}
+
 ok(() => {
   const sleutels = Object.keys(serializeSleutels());
   for (const s of sleutels) assert.ok(!/rit|opening|cutscene|cinema|film|wacht|stage|reis|prop|tijdelijk/i.test(s), `${s}: geen tijdelijke staat in de save`);

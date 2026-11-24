@@ -207,6 +207,8 @@ export function markLegacyCardSeen(n = activeSlot()) {
 // niets en zegt de aanroeper het: de save van het spel dat je speelt wordt niet stil gewist.
 export function startNewSlot(name) {
   if (!createSlot(null, name || newSlotName(takenNames(null)), 0, true)) return false;
+  // #1295: de laatste goede velden horen bij het vorige spel; een struikelend onderdeel mag die niet in dit spel zetten
+  clearSafe();
   legacyCardSeen = false;
   bindSlot();
   return true;
@@ -277,7 +279,8 @@ export function currentSlot() {
 
 // 22-11: een module waarvan de save-functie struikelt blokkeert niet meer de hele save (saveveilig.js): dat veld valt terug op
 // de laatste goede waarde of het veld uit de vorige save op deze plek; de fout komt één keer per veld in het Foutrapport.
-const veilig = makeSafe({
+// #1295: clearSafe leegt de laatste goede waarden bij laden en nieuw spel, zodat ze niet naar een andere plek lekken
+const { veilig, clearSafe } = makeSafe({
   log: (t) => logError('error', t),
   terugval: (naam) => { const r = readSlot(null, saveTarget()); return r.data ? r.data[naam] : undefined; },
 });
@@ -646,7 +649,9 @@ export function applySave(w, d) {
   try { voor = serialize(w); } catch (e) { voor = null; }
   const was = { loadedFromSave: w.loadedFromSave, loadCount: w.loadCount, boundSlot, lastSig, dirtyIn, missionSaveIn, playSeconds, lastMissionsDone };
   const r = laadMetTerugval((x) => applySaveRaw(w, x), d, voor, (t, e) => console.error(t, e));
-  if (r.ok) { bewarenUit = false; noteRestore(); return true; }
+  // #1295: pas na een gelukte lading weg met de laatste goede waarden (de terugvalkopie hierboven vulde ze met de oude
+  // stand); anders kwam bij een struikelend onderdeel het veld van de vorige plek in de save van deze
+  if (r.ok) { bewarenUit = false; clearSafe(); noteRestore(); return true; }
   // niet geladen: de schrijfplek blijft die van vóór de poging (de terugval bindt de net gekozen slot
   // anders aan de stand van de oude), en de bewaartimers staan terug of, bij een kapotte wereld, uit
   w.loadedFromSave = was.loadedFromSave;

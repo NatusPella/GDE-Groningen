@@ -9,7 +9,7 @@
 export function makeSafe({ log = () => {}, terugval = () => undefined } = {}) {
   const laatsteGoed = new Map();
   const reported = new Set();
-  return function veilig(naam, fn) {
+  function veilig(naam, fn) {
     try {
       const v = fn();
       laatsteGoed.set(naam, v);
@@ -22,7 +22,13 @@ export function makeSafe({ log = () => {}, terugval = () => undefined } = {}) {
       if (laatsteGoed.has(naam)) return laatsteGoed.get(naam);
       try { return terugval(naam); } catch (e3) { return undefined; }
     }
-  };
+  }
+  // #1295: bij het laden van een andere save moet laatsteGoed worden geleegd, anders lekt de vorige save
+  function clearSafe() {
+    laatsteGoed.clear();
+    reported.clear();
+  }
+  return { veilig, clearSafe };
 }
 
 // The health a save stores. A save made while the player is down (dead or arrested, waiting for the

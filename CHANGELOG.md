@@ -9,6 +9,7 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ## [Unreleased]
 
+- Opslaan: een wijziging van vlak voor een taxi- of treinrit wordt na de rit alsnog automatisch bewaard (de autosave was tijdens de rit verbruikt), en na het laden van een ander spel komt bij een haperend onderdeel nooit meer een stuk van het vorige spel in de save. Samen spelen: alleen de opener bewaart zo; een gast ongewijzigd.
 - Snackwagen: Jelles bedrijf heet overal Us Mem Snacks (op het tabblad Snackwagen, de kaartlaag Standplaatsen, de prestatie en het bord op zijn wagens stond nog Usmem). Samen spelen: alleen tekst, per speler.
 - Land en bedrijf: het icoon van een lege staat (Overzicht, Te koop) heeft een vaste maat en vult niet meer het hele paneel; Te koop toont een wegwijzerbord in plaats van een gestippeld vakje. Samen spelen: per speler.
 - Visboek: de wateren staan in één kolom met hun volle naam in plaats van drie smalle kolommen met afgekapte namen. Samen spelen: per speler.
