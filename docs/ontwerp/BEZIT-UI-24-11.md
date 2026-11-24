@@ -145,3 +145,11 @@ node docs/ontwerp/bezit-ui-24-11/index.mjs         # .scr/bezit-ontwerp/index.ht
 ```
 
 De stage is 1920 ontwerppixels breed (`--mz`); de hulptekst krijgt de vloer van 13 echte pixels (`--menu-min`), zoals `menu.css`, dus op 1280x720 groeit die naar 19,5 stage-px: de strakste maat, hierop is getoetst. Op 1280x800 is de stage 1920x1200. De beelden van de huidige schermen komen uit `huidig_beeld.mjs` met `huidig_scenes.js` (Electron via `electronrunner.cjs`, een gestagede game-map met een wereld, een uitvoermap binnen `.claude/worktrees`).
+
+## 11. Stand van de bouw (fase 2, 24-11)
+
+Besluiten van de coördinator verwerkt: totale waarde is een som van waarden; rendement is een pure functie die met een ± wordt getoond en wegvalt zonder gegevens; land blijft twee registers met alleen een presentatie-adapter (de Zonnehoek-percelen staan al in `bezit.parcels` met de vlag `lg`, dus het portfolio toont ze al samen); "+n meer" is een uitklappende lijst achter de strook.
+
+Klaar (commits `bfa689284` en `568d5253c`): stap 2 (pure modules `bezitwaarden.js`, `bezitklussen.js`, `bezitrendement.js`, `bezitkaart.js` met `scripts/bezitkader_test.mjs`), stap 3 (kader: `bezitframe.js`, de waardeplaatjes en de strook boven alle zes de tabbladen, getallen en ruit in de tabs) en stap 4 (portfolio-overzicht en de lege stappen, `bezitoverzicht.js`). `ds-bezit.css` bevat alleen tokens. De gedeelde componenten van het clubontwerp zijn nog niet gecommit door de club-agent; daarom is er geen tweede versie gebouwd: `bz-stand` is de platte status tot `ds-z-status` er is.
+
+Nog niet gebouwd: stap 1 (gedeelde componenten, wacht op de club-agent), stap 5 (Velden met kaart en groeifasen, Team, Machines, Erf, Kasboek), stap 6 (Bedrijven en Te koop met vergelijking en vasthouden-om-te-kopen), stap 7 (Snackwagen), stap 8 (kop van Spullen en Garage) en de secundaire Doorgaan-knop met voor/na-beelden van alle menuschermen. Tot stap 5 staat de oude perceellijst met bulkknoppen nog onder het portfolio op Overzicht en zijn de Boerderij, Bedrijven, Te koop en Snackwagen inhoudelijk ongewijzigd (alleen het nieuwe kader erboven).
