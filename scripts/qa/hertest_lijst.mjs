@@ -1,6 +1,6 @@
 // Hertest in beeld (kwaliteitsmachine, docs/KWALITEITSMACHINE.md): één Electron-run per groep via scripts/lib/electronrunner.cjs
 // (slot, hartslag, --no-sandbox, wegwerpprofiel in de uitvoermap). Drie modi:
-//   --modus=lijst    --lijst=<json> [--groep=a,b] [--issues=1202,1291]  werkt scripts/qa/hertest_lijst.page.js af (plek, menu, hud, js)
+//   --modus=lijst    --lijst=<json> [--groep=a,b] [--issues=1202,1291] [--ontgrendel]  werkt scripts/qa/hertest_lijst.page.js af (plek, menu, hud, js)
 //   --modus=scenes   --only=917,919                                    draait de scenes uit scripts/ui/hertest_scenes.js (ronde 22-11)
 //   --modus=cutscene --only=M04.outro,M05.intro [--spot=x,y,hoek]      één beeld per shot via scripts/qa/cutscene_shots.page.js
 // Gemeen: --out=<map> (niet in de systeem-temp) --game-dir=<gestagede game> [--formaat=1920x1080] [--limiet-min=40] [--jpg=85]
@@ -19,8 +19,8 @@ const opt = (k, d = null) => { const a = process.argv.find((v) => v.startsWith(`
 const lijstVan = (s) => String(s || '').split(',').map((x) => x.trim()).filter(Boolean);
 
 // Bouwt de body van het page-script per modus; puur, zodat een test hem zonder Electron kan nalopen.
-export function bouwPagina(modus, { items = [], only = [], spot = null } = {}) {
-  if (modus === 'lijst') return `window.__hl = ${JSON.stringify({ items })};\n` + fs.readFileSync(path.join(HERE, 'hertest_lijst.page.js'), 'utf8');
+export function bouwPagina(modus, { items = [], only = [], spot = null, ontgrendel = false } = {}) {
+  if (modus === 'lijst') return `window.__hl = ${JSON.stringify({ items, ontgrendel })};\n` + fs.readFileSync(path.join(HERE, 'hertest_lijst.page.js'), 'utf8');
   if (modus === 'scenes') return `window.__shotsOnly = ${JSON.stringify(only.join(','))};\n` + fs.readFileSync(path.join(ROOT, 'scripts', 'ui', 'hertest_scenes.js'), 'utf8');
   if (modus === 'cutscene') {
     const cs = { only, settle: 6000 };
@@ -72,7 +72,7 @@ async function main() {
   let electron;
   try { electron = R.findElectron(ROOT); } catch (e) { log(e.message); return 4; }
   const script = path.join(out, `_page-${modus}.js`);
-  fs.writeFileSync(script, bouwPagina(modus, { items, only: lijstVan(opt('only')), spot: opt('spot') }));
+  fs.writeFileSync(script, bouwPagina(modus, { items, only: lijstVan(opt('only')), spot: opt('spot'), ontgrendel: process.argv.includes('--ontgrendel') }));
   const formaat = opt('formaat', '1920x1080');
   const args = ['.', '--windowed', '--stil', '--force-device-scale-factor=1', `--window-size=${formaat}`,
     '--disable-renderer-backgrounding', '--disable-backgrounding-occluded-windows', '--disable-background-timer-throttling', '--disable-features=CalculateNativeWinOcclusion',

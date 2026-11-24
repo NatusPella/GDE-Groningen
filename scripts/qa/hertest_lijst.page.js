@@ -27,6 +27,13 @@ await sleep(3000);
 const D = window.__debug; const w = D.world; const p = w.player; const map = w.map;
 w.devInvuln = true; D.input.canLock = () => false; if (document.pointerLockElement) document.exitPointerLock();
 const PM = await imp('pausemenu'); const DN = await imp('daynight'); const { P } = await imp('worldframe');
+// CFG.ontgrendel: debug-unlock in dit wegwerpspel, zodat schermen die het verhaal pas later opent (Land en bedrijf, Visboek,
+// Voetbal, Cheats) echt gerenderd worden. Raakt alleen de sessie, niet de opslag van de speler.
+if (CFG.ontgrendel) {
+  const FR = await imp('featurereveal'); FR.setRevealSource({ open: () => true, owns: () => true });
+  const CH = await imp('cheats'); const CL = await imp('cheatlist');
+  CH.applyCheatSave({ open: true, unlocked: CL.CHEATS.map((c) => c.id), on: [] }, {});
+}
 let SHUI = null; try { SHUI = await imp('shopui'); } catch (e) { /* geen winkel-ui */ }
 const beat = setInterval(() => console.error('[hertest-lijst] hartslag ' + Math.round(performance.now() / 1000)), 10000);
 const index = await fetch('/world/index-provincie.json').then((r) => r.json()).then((j) => j.global).catch(() => ({ places: [] }));
