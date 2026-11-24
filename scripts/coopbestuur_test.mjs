@@ -254,6 +254,25 @@ t('de politie ziet de gast als speler: world.player en world.wanted wisselen tij
   assert.equal(G.politieMetDoelwit(1 / 60, w, (dt, wr) => { eigen = wr.player; }), 0); assert.equal(eigen, host, 'host als doelwit: ongewijzigd');
 });
 
+t('#1296: jaagt de politie op een gast, dan koelt het eigen niveau van de host af als er geen politie bij hem is, met een eigen klok', () => {
+  B.zetBestuurHaken(haken());
+  const w = mkWorld(); const v = auto(5, 2, 1); w.vehicles = [v];
+  B.bestuurGebruik(w, 1); v.x = 40; v.y = 30; v.speed = 0;
+  w.coopWanted = { 1: 3 }; w.wanted = 1; w.wantedDecayTimer = 0;
+  // de zoektocht naar de gast laat zijn eigen afkoelklok lopen (police.js stepUnseen); die mag niet bij de host terechtkomen
+  const jacht = (dt, wr) => { wr.wantedDecayTimer += dt; };
+  // eerst met een agent naast de host: zijn ster blijft en zijn klok staat stil
+  w.pedestrians = [{ isCop: true, state: 'ok', x: w.player.x + 5, y: w.player.y }];
+  for (let i = 0; i < 60 * 30; i++) G.politieMetDoelwit(1 / 60, w, jacht);
+  assert.equal(G.wantedVan(w, 1), 3, 'de gast blijft het doelwit');
+  assert.equal(w.wanted, 1, 'met politie vlakbij blijft de ster van de host staan');
+  assert.ok(w.wantedDecayTimer < 0.5, `de klok van de gast loopt niet in die van de host (${w.wantedDecayTimer.toFixed(2)})`);
+  // geen politie bij de host: na de afkoeltijd van één ster is die weg
+  w.pedestrians = [];
+  for (let i = 0; i < 60 * 30; i++) G.politieMetDoelwit(1 / 60, w, jacht);
+  assert.equal(w.wanted, 0, 'na de afkoeltijd van één ster, zonder politie bij de host: de ster is weg');
+});
+
 t('de politie haalt een gast in: gepakt bij de gast, niet bij de host, zijn voertuig staat stil achter', () => {
   B.zetBestuurHaken(haken());
   const w = mkWorld({ pendingRespawn: null });

@@ -9,6 +9,7 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ## [Unreleased]
 
+- Samen spelen: jaagt de politie op een medespeler, dan raak je je eigen sterren kwijt als er geen politie bij jou in de buurt is; de afkoeltijd van de een schuift die van de ander niet meer door. Alleen bij wie het spel opende; een gast ziet de sterren van het doelwit zoals voorheen.
 - Safehuis: wie overdag gaat slapen tot de ochtend of de middag, wordt net als thuis de volgende dag wakker; de datum en de stek van de plant gaan mee. Samen spelen: slapen blijft een gezamenlijke keuze; de datum volgt de wereld van wie het spel opende.
 - Wapens: een slag met uithaal (knuppel, hockeystick, klomp) landt niet meer als je doodgaat, wordt opgepakt of in een voertuig stapt voordat de slag terechtkomt. Samen spelen: lokaal, geen invloed op andere spelers.
 - Opslaan: een wijziging van vlak voor een taxi- of treinrit wordt na de rit alsnog automatisch bewaard (de autosave was tijdens de rit verbruikt), en na het laden van een ander spel komt bij een haperend onderdeel nooit meer een stuk van het vorige spel in de save. Samen spelen: alleen de opener bewaart zo; een gast ongewijzigd.

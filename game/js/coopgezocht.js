@@ -6,6 +6,7 @@ import { hoofdspeler } from './players.js';
 // of het voertuig van het doelwit en world.wanted voor zijn niveau; daarna staat alles weer terug.
 // Pure logica zonder three.js, getest in scripts/coopbestuur_test.mjs.
 import { lichaamVan } from './coopbestuur.js';
+import { levelOf, cooldownOf } from './wantedlevels.js';
 
 export const GEZOCHT_TEKST = {
   gast: (n) => `De politie zoekt je: ${n} ${n === 1 ? 'ster' : 'sterren'}.`,
@@ -113,13 +114,32 @@ export function politieMetDoelwit(dt, world, update) {
   if (!proxy) { update(dt, world); return 0; }
   world.coopJachtDoel = proxy; // de agenten te voet (pedestrians.js updateCop) jagen ook op hem
   const eigenSpeler = hoofdspeler(world), eigenWanted = world.wanted, voor = d.level;
-  world.player = proxy; world.wanted = d.level;
+  // #1296: de afkoelklok (wantedDecayTimer) is per speler: die van de gast loopt in de zoektocht naar hem, die van de host blijft de zijne
+  const klokken = world.coopKoelKlok || (world.coopKoelKlok = {});
+  const eigenKlok = world.wantedDecayTimer || 0;
+  world.player = proxy; world.wanted = d.level; world.wantedDecayTimer = klokken[d.slot] || 0;
   try { update(dt, world); } finally {
     const na = world.wanted | 0;
-    world.player = eigenSpeler; world.wanted = eigenWanted;
+    klokken[d.slot] = na > 0 ? world.wantedDecayTimer || 0 : 0;
+    world.player = eigenSpeler; world.wanted = eigenWanted; world.wantedDecayTimer = eigenKlok;
     zetWantedVan(world, d.slot, na);
     world.coopStil = false;
   }
+  koelHost(dt, world);
   return d.slot;
+}
+
+// #1296: zolang de politie op een gast jaagt, zoekt niemand de host. Staat er geen politie bij hem, dan koelt zijn eigen niveau af
+// zoals buiten de zoekcirkel van police.js (een ster per afkoeltijd van dat niveau); met politie vlakbij blijft het staan.
+export const HOST_KOEL_AFSTAND = 60; // m
+function koelHost(dt, world) {
+  const n = world.wanted | 0;
+  if (n <= 0) { world.wantedDecayTimer = 0; return; }
+  if (politieAfstand(world, 0) < HOST_KOEL_AFSTAND) return;
+  world.wantedDecayTimer = (world.wantedDecayTimer || 0) + dt;
+  if (world.wantedDecayTimer < cooldownOf(levelOf(n))) return;
+  world.wanted = n - 1;
+  world.wantedDecayTimer = 0;
+  if (world.wanted === 0 && world.addMessage) world.addMessage(GEZOCHT_TEKST.kwijt, 3);
 }
 
