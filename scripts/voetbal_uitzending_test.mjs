@@ -2,6 +2,7 @@
 // De aanvullende spelregels (kaarten, blessures, wissels, strafschoppen, buitenspel), het commentaar (afwisselend, niet herhalend, 200+ regels), de TV-regie (camera en herhaling) en de
 // presentatie (rustpauze, eindsamenvatting, Man van de match, opstelling). Geen THREE, geen DOM, geen Electron.
 import assert from 'node:assert/strict';
+import fs from 'node:fs';
 import { PITCH, zetFormaat, richtingVan } from '../game/js/voetbalrules.js';
 import { makeMatch, tikWedstrijd, setupResume, snapVoetbal, leesLiveVoetbal, makeFootballMirror, voerInVoetbal } from '../game/js/voetbalmatch.js';
 import { DEFAULT_RULES, NO_RULES, cleanRules, penaltySpot, judgeFoul, pasBeoordelingToe, substitute, rustWissels, blessureWissels, offsideAtKick, matchMvp, statistiekenVan, speelMinuut } from '../game/js/voetbalextrarules.js';
@@ -335,6 +336,7 @@ t('presentatie: opstelling, rustpauze en eindsamenvatting met Man van de match',
   const em = eindModel(m), eind = eindHtml(m);
   assert.ok(em.mvp && eind.includes('Man van de match') && eind.includes(m.spelers[em.mvp.id].naam.replace(/&/g, '&amp;')) && ['Gewonnen', 'Verloren', 'Gelijkspel'].includes(em.uitslag));
   assert.ok(eind.includes('Eindsignaal'));
+  assert.ok(op.includes('Aftrap in de Euroborg'), 'zonder plek: de Euroborg'); assert.ok(opstellingHtml(m, 'op het sportpark in <Ten Boer>').includes('Aftrap op het sportpark in &lt;Ten Boer&gt;'), 'een park: de plaats, ontsnapt');
   const spiegel = makeFootballMirror({ deeln: [{ slot: 0, naam: 'Jij' }] }, 0, { formaat: 'groot' });
   assert.equal(eindModel(spiegel).mvp, null, 'een gast heeft geen statistieken (die zijn van de host)'); assert.ok(!eindHtml(spiegel).includes('vbtv-stats'));
 });
@@ -374,6 +376,14 @@ t('de nieuwe regels veranderen de bestaande aanpak niet: met alles uit is de wed
 t('ondertitel: zonder tekst geen balk (review 22-11)', () => {
   assert.equal(subtitleHtml(null), ''); assert.equal(subtitleHtml({ naam: 'Jelle', tekst: '' }), ''); assert.equal(subtitleHtml({ naam: 'Jelle', tekst: '  ' }), '');
   assert.match(subtitleHtml({ naam: 'Jelle', tekst: 'Goal!' }), /<span>Goal!<\/span>/);
+});
+
+t('stijl: de gespiegelde kolom van de opstelling geeft de rol niet de smalle kolom (#1110, 24-11: "KeepeAart" liep over de naam)', () => {
+  const css = fs.readFileSync(new URL('../game/js/voetbaltv.css', import.meta.url), 'utf8');
+  const thuis = /\.vbtv-kolom li \{[^}]*grid-template-columns:\s*([^;]+);/.exec(css), uit = /\.vbtv-kolom--uit li \{[^}]*grid-template-columns:\s*([^;]+);/.exec(css);
+  assert.ok(thuis && uit, 'beide kolommen hebben een raster');
+  assert.equal(uit[1].trim(), thuis[1].trim(), 'rtl spiegelt de volgorde al: dezelfde kolommen als thuis');
+  assert.match(css, /\.vbtv-kolom--uit li \{[^}]*direction:\s*rtl/);
 });
 
 console.log(`voetbal_uitzending_test ok (${n} groepen)`);

@@ -32,8 +32,11 @@
 .vbtv-kolom--uit .vbtv-sub { text-align: right; }
 .vbtv-kolom ol { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--ds-s-1); }
 .vbtv-kolom li { display: grid; grid-template-columns: var(--ds-s-5) 1fr auto; gap: var(--ds-s-2); align-items: baseline; font-size: var(--ds-t-label); }
-.vbtv-kolom--uit li { grid-template-columns: auto 1fr var(--ds-s-5); direction: rtl; }
+/* gespiegeld met direction: rtl, dus kolom 1 staat rechts: dezelfde kolommen als thuis (nummer smal, naam breed, rol naar inhoud). Andersom kreeg de rol de
+   smalle kolom en liep "Keeper" over de naam (#1110, 24-11). */
+.vbtv-kolom--uit li { grid-template-columns: var(--ds-s-5) 1fr auto; direction: rtl; }
 .vbtv-kolom--uit li > * { direction: ltr; }
+.vbtv-kolom--uit li > span:not(.vbtv-nr) { text-align: right; }
 .vbtv-kolom li em { font-style: normal; font-size: var(--ds-t-hulp); color: var(--ds-tx-zacht); }
 .vbtv-nr { font-family: var(--ds-font-kop); font-weight: 800; text-align: center; }
 .vbtv-jij { background: var(--ds-zeef-primair); color: var(--ds-zeef-tx); border-radius: var(--ds-r); padding: 0 var(--ds-s-1); }

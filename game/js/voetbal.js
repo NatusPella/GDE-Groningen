@@ -657,6 +657,8 @@ function sayLine(w, r) {
 }
 
 // Elke frame: het commentaar afspelen, de kaart van het moment (opstelling, rust, einde), de radar en de ondertitel.
+// Waar de aftrap is, voor de opstellingskaart: een carrièrewedstrijd op een sportpark ligt in de plaats van de thuisclub, de rest in de Euroborg.
+const plekTekst = (g) => { const m = g.career && g.career.site && g.career.match; const pl = m && m.parkPlaats; return pl ? `op het sportpark in ${pl}` : 'in de Euroborg'; };
 function tvTik(w, dt) {
   const g = game, sim = g.sim;
   g.bezitT -= dt;
@@ -668,7 +670,7 @@ function tvTik(w, dt) {
   let paneel = null, hint = null;
   const cardPhase = sim.fase === 'intro' || sim.fase === 'rust' || sim.fase === 'eind' || sim.fase === 'klaar';
   if (cardPhase) {
-    if (g.paneelCache.fase !== sim.fase) g.paneelCache = { fase: sim.fase, html: sim.fase === 'intro' ? opstellingHtml(sim) : sim.fase === 'rust' ? rustHtml(sim) : eindHtml(sim) };
+    if (g.paneelCache.fase !== sim.fase) g.paneelCache = { fase: sim.fase, html: sim.fase === 'intro' ? opstellingHtml(sim, plekTekst(g)) : sim.fase === 'rust' ? rustHtml(sim) : eindHtml(sim) };
     paneel = g.paneelCache.html;
     hint = g.online ? null : '{F} Doorgaan';
   } else g.paneelCache = { fase: '', html: '' };

@@ -59,10 +59,11 @@ function opstellingModel(sim) {
     spelers: sim.spelers.filter((p) => p.team === t).map((p, k) => ({ nr: k + 1, naam: p.naam, rol: p.rol, rolNaam: ROL_KORT[p.rol] || '', jij: sim.mensen.some((x) => x.ctl === p.id && !x.weg) })) });
   return { thuis: kant(0), uit: kant(1), formaat: sim.formaat };
 }
-export function opstellingHtml(sim) {
+// `plek`: waar de aftrap is (een carrièrewedstrijd op een sportpark is niet in de Euroborg, 24-11).
+export function opstellingHtml(sim, plek = 'in de Euroborg') {
   const m = opstellingModel(sim);
   const kolom = (k, uit) => `<section class="vbtv-kolom${uit ? ' vbtv-kolom--uit' : ''}"><h3>${clubLogo(k.team, 34)} <span>${esc(k.team.naam)}</span></h3><p class="vbtv-sub">${esc(k.vorming)} · ${esc(k.stijl)}</p><ol>${k.spelers.map((s) => `<li${s.jij ? ' class="vbtv-jij"' : ''}><span class="vbtv-nr">${s.nr}</span><span>${esc(s.naam)}</span><em>${esc(s.rolNaam)}${s.jij ? ' · jij' : ''}</em></li>`).join('')}</ol></section>`;
-  return `<div class="vbtv-kop"><span class="vbtv-eyebrow">Aftrap in de Euroborg</span><h2>${esc(m.thuis.team.kort)} tegen ${esc(m.uit.team.kort)}</h2></div><div class="vbtv-twee">${kolom(m.thuis, false)}${kolom(m.uit, true)}</div>`;
+  return `<div class="vbtv-kop"><span class="vbtv-eyebrow">Aftrap ${esc(plek)}</span><h2>${esc(m.thuis.team.kort)} tegen ${esc(m.uit.team.kort)}</h2></div><div class="vbtv-twee">${kolom(m.thuis, false)}${kolom(m.uit, true)}</div>`;
 }
 
 // ---------------------------------------------------------------- de rustpauze en het eindverslag
