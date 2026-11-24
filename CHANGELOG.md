@@ -9,6 +9,9 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ## [Unreleased]
 
+- Voetbal: op de opstellingskaart bij de aftrap lopen de rollen in de rechterkolom (de uitploeg) niet meer over de namen heen, en de kaart zegt waar de aftrap is: op het sportpark van de thuisclub, of in de Euroborg. Samen spelen: alleen beeld, per speler.
+- Voetbalcarrière: Te doen heeft een rij voor je club met de stand en de volgende wedstrijd; kies hem en de route wijst naar het park waar gespeeld wordt. Samen spelen: per speler, uit de eigen carrière; een gast ziet zijn eigen club.
+- Voetbalcarrière: de kaartlaag Voetbal toont de sportparken uit de provincie met hun (verzonnen) club, gedimd naast je eigen club en je volgende tegenstander; alleen in gebied dat je al kent. Samen spelen: lokaal, uit de eigen carrière.
 - Heli-opdrachten (Ballonjacht, Het staat niet in het rooster): de routekaart bovenin valt niet meer achter de heli-gids, en meldingen en de missiekaart staan onder het heli-paneel in plaats van erachter. Samen spelen: alleen beeld, per speler.
 - Samen spelen: jaagt de politie op een medespeler, dan raak je je eigen sterren kwijt als er geen politie bij jou in de buurt is; de afkoeltijd van de een schuift die van de ander niet meer door. Alleen bij wie het spel opende; een gast ziet de sterren van het doelwit zoals voorheen.
 - Safehuis: wie overdag gaat slapen tot de ochtend of de middag, wordt net als thuis de volgende dag wakker; de datum en de stek van de plant gaan mee. Samen spelen: slapen blijft een gezamenlijke keuze; de datum volgt de wereld van wie het spel opende.

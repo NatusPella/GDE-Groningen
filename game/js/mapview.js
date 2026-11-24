@@ -48,6 +48,7 @@ import { startMeerijden } from './reisrit.js';
 import { VILLAGES } from './ommelandlines.js';
 import { ommelandMapSpots } from './ommelandmap.js';
 import { beppeMapSpot } from './beppe_garden.js';
+import { parkMapSpots as voetbalParkSpots } from './voetbalcarrierelive.js'; // #1117: de sportparken in de laag Voetbal
 import { markerVisible } from './featurereveal.js'; // 22-11: Percelen en Te koop staan pas na het verhaal op de kaart
 import { perceelMapSpots, eigenPerceelVlakken, tekenVeldBadge } from './perceelmap.js';
 import { forSaleView, parcelOffer, koopPerceel, verkoopPerceel, bezitOpen, ensureIndex } from './bezitlive.js';
@@ -2044,6 +2045,8 @@ function drawDynamicMarkers(ctx, world) {
   const beppe = beppeMapSpot();
   if (beppe) icon(null, beppe.kind, beppe.x, beppe.y, beppe.name, {}, beppe.sub, { goal: beppe.goal, todo: beppe.todo });
   if (markerVisible('percelen')) for (const q of perceelMapSpots()) { if (onbekend(q.x, q.y) && !q.kind.startsWith('perceel-eigen')) continue; icon('percelen', q.kind, q.x, q.y, q.name, {}, q.sub, { goal: q.goal }); }
+  // de kaartlaag Voetbal (#1117): de sportparken uit de kaart met hun verzonnen club, gedimd naast de eigen club en de volgende tegenstander (die komen van de activiteit)
+  if (markerVisible('voetbalclub')) for (const q of voetbalParkSpots()) { if (onbekend(q.x, q.y)) continue; icon('voetbal', 'act-voetbal', q.x, q.y, q.name, { alpha: 0.55 }, q.sub, { goal: q.goal }); }
   for (const e of getEierbalTips()) { if (onbekend(e.x, e.y)) continue; icon(null, 'eierbalTip', e.x, e.y, 'Eierbal-tip', {}, 'Uit de Buukenkaas: hier ligt er eentje verstopt'); }
 
   const c = world.companion;

@@ -124,4 +124,17 @@ t('prestaties: elf ids bestaan in achievements.js en de koppeling geeft de juist
   for (const id of ['vc_promotie', 'vc_kampioen_terp', 'vc_beker', 'vc_kroon', 'vc_kapitein', 'vc_waddenbeker', 'vc_trainer', 'vc_manager']) assert.ok(l.includes(id), id);
   assert.deepEqual(V.achievementsFor(C0(), {}), []);
 });
+t('de kaartlaag Voetbal (#1117): elk sportpark met zijn verzonnen club, zonder de eigen club en de volgende tegenstander; geen plekken uit de terugval', () => {
+  V.useStorage(mem());
+  const alle = V.parkMapSpots();
+  assert.equal(alle.length, PARKDATA.plaatsen.length, 'zonder carrière: een plek per plaats met een park');
+  assert.ok(alle.every((q) => Number.isFinite(q.x) && Number.isFinite(q.y) && q.name && q.sub.startsWith('Voetbalclub in ') && q.goal.kind === 'place'));
+  assert.ok(!alle.some((q) => /\b(VV|SV|FC|SC|RKSV)\b/.test(q.name)), 'geen echte clubafkortingen');
+  V.createNew(wereld(), 'tammo', 0);
+  const c = V.getCareer(), mijn = V.parkMapSpots(), nm = C0m.nextMatch(c, V.getClub);
+  const weg = 1 + (nm && !nm.isHome ? 1 : 0);
+  assert.equal(mijn.length, alle.length - weg, 'de eigen club en een uittegenstander staan al via de activiteit op de kaart');
+  assert.ok(!mijn.some((q) => q.id === 'voetbal:' + c.club));
+  useParkData(null); assert.deepEqual(V.parkMapSpots(), [], 'de terugval ligt niet op de kaart'); useParkData(PARKDATA);
+});
 console.log(`voetbal_carrierelive_test ok (${n} groepen)`);
