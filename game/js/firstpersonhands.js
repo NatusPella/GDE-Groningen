@@ -318,7 +318,10 @@ function applyModularHands(h, character) {
       const look = modularLookFromAppearance(character === 'anita' ? ANITA_APPEARANCE : TAMMO_APPEARANCE);
       const g = look && bakeModularForearm(look, side === 'right' ? 'R' : 'L');
       if (g && g.attributes.position.count) {
-        if (!ud.qMat) ud.qMat = viewmodelMaterial(new THREE.MeshLambertMaterial({ vertexColors: true, flatShading: true, emissive: 0x2a2520 }));
+        // #943 (hertest 3): de mouw is aan de elleboogkant open en die kant wijst naar de lens; met alleen de voorkant zag je door de
+        // opening de binnenkant niet en bleven er losse scherven buitenkant over (gescheurde, puntige mouwen). Dubbelzijdig is de
+        // binnenkant van de mouw gewoon stof.
+        if (!ud.qMat) ud.qMat = viewmodelMaterial(new THREE.MeshLambertMaterial({ vertexColors: true, flatShading: true, emissive: 0x2a2520, side: THREE.DoubleSide }));
         mesh = new THREE.Mesh(g, ud.qMat);
         mesh.position.set(0, 0, Q_WRIST_Z);
         mesh.renderOrder = 33; mesh.frustumCulled = false; mesh.castShadow = false; mesh.receiveShadow = false;
