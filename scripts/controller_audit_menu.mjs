@@ -39,7 +39,9 @@ const STATISCH = new Set(['div', 'span', 'li', 'p', 'td', 'tr', 'img', 'svg', 's
 // Attributen die structuur dragen en geen klikdoel (closest('[data-sub]') zoekt een ouder, het element zelf is geen knop).
 const STRUCTUUR = /^data-(panel|sub|of|search|fold-body|options|count|reset-confirm|reset-undo|bench-banner|bench-confirm|gpu-warn|gpu-help|keys-changed|keys-text|cam-now|hintprev|hintprev-row|g-raw|channels-wrap|sub-preview|online-instelling|preset-(now|hint|desc|fps|bars)|bench-note|reset-undo-text|bench-text|gpu-warn-text)$/;
 
-const TAG = /<([a-zA-Z][\w-]*)((?:[^<>"'`]|"[^"]*"|'[^']*'|\$\{[^}]*\})*)>/g;
+// een $ hoort óf bij ${...} óf staat los: zonder die scheiding liep de regex exponentieel terug op een open tag met veel ${...}
+// (bezitui.js na wensen-m 23-11: controller_menu_test hing)
+const TAG = /<([a-zA-Z][\w-]*)((?:[^<>"'`$]|\$(?!\{)|"[^"]*"|'[^']*'|\$\{[^}]*\})*)>/g;
 
 function regelVan(tekst, index) { return tekst.slice(0, index).split('\n').length; }
 
