@@ -59,12 +59,15 @@ ok(() => {
 
 ok(() => assert.match(BEWAREN_UIT_TEKST, /Er wordt niets bewaard/), 'de melding is Nederlands en zegt wat er gebeurt');
 
-// #1298: bronregex op savegame.js vervangen door gedragstest. De pure logica (laadMetTerugval, hierboven)
-// is gedekt; de bedrading in savegame.js wordt gedekt door compat_saves_test.mjs en opslag_rondgang_test.mjs
-// die de volledige load/save cyclus draaien en terugvallen testen. Een beschadigde save (compat_saves_test)
-// en een mislukte applySave (opslag_dood_test) dekken het gedrag in de praktijk.
-console.log('OPMERKING: bronregex op savegame.js is configuratietest; gedrag gedekt door compat_saves_test');
-n += 8; // 8 bronregex-checks die nu als gedekt gelden
+// bedrading in savegame.js (#1298: bronregex nodig; pure logica hierboven gedekt)
+ok(() => assert.match(sg, /laadMetTerugval\(\(x\) => applySaveRaw\(w, x\), d, voor/), 'applySave laadt via laadMetTerugval met een snapshot van vóór de lading');
+ok(() => assert.match(sg, /try \{ voor = serialize\(w\); \} catch/), 'de snapshot mag zelf falen zonder de lading te blokkeren');
+ok(() => assert.match(sg, /boundSlot = was\.boundSlot;/), 'de schrijfplek gaat terug naar die van vóór de poging (de terugval bindt anders de nieuwe slot)');
+ok(() => assert.match(sg, /if \(r\.kapot\) \{\s*bewarenUit = true;/), 'bij een kapotte terugval staat bewaren uit');
+ok(() => assert.match(sg, /if \(r\.ok\) \{ bewarenUit = false; noteRestore\(\); return true; \}/), 'een geslaagde lading zet bewaren weer aan');
+ok(() => assert.match(sg, /export function saveGame\([^)]*\) \{\s*if \(!w\) return false;\s*\/\/[^\n]*\n\s*if \(bewarenUit\)/), 'saveGame schrijft niets zolang bewaren uit staat (autosave, sluiten en gast)');
+ok(() => assert.doesNotMatch(sg, /console\.error\('Save laden mislukt', e\);\s*return false;/), 'de oude catch die de gemengde stand liet staan is weg');
+ok(() => assert.match(sg, /if \(!applySave\(w, info\.data\)\) \{ setActive\(null, was\); return false; \}/), 'loadSlot zet bij een mislukte lading de actieve slot terug');
 
 console.log(`${n - fails}/${n} geslaagd`);
 process.exit(fails ? 1 : 0);

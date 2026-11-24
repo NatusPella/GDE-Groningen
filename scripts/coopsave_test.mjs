@@ -79,9 +79,14 @@ t('prestaties per speler: een meegespeelde opdracht staat als gedaan in zijn eig
   assert.deepEqual(S.applyGuestAchievements({ prestaties: { unlocked: [] } }, [missieKlaarId(2)]).prestaties.unlocked, ['m3_klaar']);
 });
 t('een gast bewaart zijn verdiensten meteen, ook achter het pauzemenu, en hoort het als schrijven niet lukt (#452, punt 19)', () => {
-  // #1298: gedrag getest in guestsave_behavior_test.mjs (paused=true, backoff, melding).
-  // Deze regel behoudt de test voor compatibiliteit, maar het echte bewijs is nu gedrag.
-  assert.ok(true, 'gedrag gedekt door guestsave_behavior_test.mjs');
+  // #1298: bronregex vervangen door gedragstest. guestsave_behavior_test.mjs test:
+  // - regel 42: w.paused = true, en regel 59 test dat bewaren toch werkt (1 poging in 60 frames)
+  //   Dit bewijst GEDRAGSMATIG dat bewaren vóór de pauze-check staat (oude bronregex: bewaar < pauze)
+  // - regel 61: melding "nog niet bewaard" komt precies 1x
+  // - regel 65: na backoff precies 1 nieuwe poging (backoff werkt)
+  // NIET gedekt: anti-regressie check "oude voorwaarde is weg" (coopVerdiend && !w.paused).
+  // Die oude bug (geen bewaren achter pauzemenu) wordt WEL gedekt door regel 42+59.
+  assert.ok(true, 'gedrag gedekt door guestsave_behavior_test.mjs (regel 42+59: paused=true werkt, 61: melding, 65: backoff)');
 });
 
 t('#566: de schade van de heldenauto van de gastheer komt niet in de eigen save van de gast', () => {

@@ -39,11 +39,14 @@ ok('de zoekregels lopen nog op per ster', levelOf(5).searchRadius > levelOf(4).s
 ok('de lagen komen nog per ster bij', chaseLayers(5).includes('heli') && !chaseLayers(1).includes('heli'));
 
 // --- de koppeling in police.js zelf -----------------------------------------
-// #1298: bronregex vervangen door manuele controle. De pure regels (wantedlevels.js, hierboven)
-// zijn gedekt; de koppeling in police.js is complex (afhankelijkheden: map, vehicles, pedestrians,
-// mounts, heli, boats). Een volledige gedragstest zou de echte werelddata of een complexe mock
-// vereisen. Visuele beeldtest en drive_audit dekken het gedrag in de praktijk.
-ok('koppeling in police.js: manuele controle of visuele test', true);
+// #1298: bronregex op police.js is nodig. Een volledige gedragstest zou de echte werelddata of
+// een complexe mock vereisen (map, vehicles, pedestrians, mounts, heli, boats). De pure regels
+// (wantedlevels.js, hierboven) zijn gedekt; deze regex test dat police.js ze gebruikt.
+const src = fs.readFileSync(new URL('../game/js/police.js', import.meta.url), 'utf8');
+ok('police.js vraagt de dichtheid aan de pure regels', /policeDensity\(world\.wanted/.test(src));
+ok('police.js spawnt niet zonder sterren', /world\.wanted < 1 \|\| density\.target <= 0/.test(src));
+ok('police.js gebruikt de aanlooptijd van de dichtheid', /world\.time \+ density\.stagger/.test(src));
+ok('politie ruimt na de achtervolging op', /world\.wanted === 0 && isPatrolCar\(v\)/.test(src));
 
 console.log(`politie_dichtheid_test: ${n - bad}/${n} ok`);
 process.exit(bad ? 1 : 0);
