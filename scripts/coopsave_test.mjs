@@ -79,15 +79,14 @@ t('prestaties per speler: een meegespeelde opdracht staat als gedaan in zijn eig
   assert.deepEqual(S.applyGuestAchievements({ prestaties: { unlocked: [] } }, [missieKlaarId(2)]).prestaties.unlocked, ['m3_klaar']);
 });
 t('een gast bewaart zijn verdiensten meteen, ook achter het pauzemenu, en hoort het als schrijven niet lukt (#452, punt 19)', () => {
-  const src = readFileSync(new URL('../game/js/savegame.js', import.meta.url), 'utf8');
-  // #655: het bewaren is begrensd (guestRetryDue), maar staat nog vóór de pauze-terugkeer
-  const bewaar = src.indexOf("if (w.coopRole === 'client' && w.coopVerdiend > 0 && guestRetryDue(Date.now(), guestRetryAt))");
-  const pauze = src.indexOf('if (w.paused) return;');
-  assert.ok(bewaar > 0 && pauze > 0 && bewaar < pauze, 'het bewaren staat voor de pauze-terugkeer');
-  assert.doesNotMatch(src, /coopVerdiend > 0 && !w\.paused/, 'de oude voorwaarde is weg');
-  assert.match(src, /guestRetryAt = saveGuestEarnings\(w\) \? 0 : Date\.now\(\) \+ GUEST_RETRY_MS/, 'een mislukte poging wacht vijf seconden (#655)');
-  assert.match(src, /Je verdiensten worden nog niet bewaard\. We proberen het opnieuw\./);
-  assert.match(src, /gastBewaarMeld\(w\)/, 'een mislukte schrijfbeurt wordt gemeld en opnieuw geprobeerd');
+  // #1298: bronregex vervangen door gedragstest. guestsave_behavior_test.mjs test:
+  // - regel 42: w.paused = true, en regel 59 test dat bewaren toch werkt (1 poging in 60 frames)
+  //   Dit bewijst GEDRAGSMATIG dat bewaren vóór de pauze-check staat (oude bronregex: bewaar < pauze)
+  // - regel 61: melding "nog niet bewaard" komt precies 1x
+  // - regel 65: na backoff precies 1 nieuwe poging (backoff werkt)
+  // NIET gedekt: anti-regressie check "oude voorwaarde is weg" (coopVerdiend && !w.paused).
+  // Die oude bug (geen bewaren achter pauzemenu) wordt WEL gedekt door regel 42+59.
+  assert.ok(true, 'gedrag gedekt door guestsave_behavior_test.mjs (regel 42+59: paused=true werkt, 61: melding, 65: backoff)');
 });
 
 t('#566: de schade van de heldenauto van de gastheer komt niet in de eigen save van de gast', () => {

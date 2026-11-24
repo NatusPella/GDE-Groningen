@@ -94,7 +94,7 @@ placeParty(w2, { x: 5, y: 5 });
 ok(w2.companion.x === 9, 'dode metgezel blijft');
 ok(typeof applyTravel === 'function', 'applyTravel blijft bestaan');
 
-// --- bedrading
+// --- bedrading in missions.js (#1298: bronregex nodig; pure logica hierboven gedekt) -------
 const read = (p) => fs.readFileSync(new URL(`../game/js/${p}`, import.meta.url), 'utf8').replace(/\r\n/g, '\n');
 const m = read('missions.js');
 ok(/from '\.\/missioncheckpoint\.js'/.test(m), 'missions.js importeert missioncheckpoint');

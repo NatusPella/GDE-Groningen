@@ -59,7 +59,7 @@ ok(() => {
 
 ok(() => assert.match(BEWAREN_UIT_TEKST, /Er wordt niets bewaard/), 'de melding is Nederlands en zegt wat er gebeurt');
 
-// bedrading in savegame.js
+// bedrading in savegame.js (#1298: bronregex nodig; pure logica hierboven gedekt)
 ok(() => assert.match(sg, /laadMetTerugval\(\(x\) => applySaveRaw\(w, x\), d, voor/), 'applySave laadt via laadMetTerugval met een snapshot van vóór de lading');
 ok(() => assert.match(sg, /try \{ voor = serialize\(w\); \} catch/), 'de snapshot mag zelf falen zonder de lading te blokkeren');
 ok(() => assert.match(sg, /boundSlot = was\.boundSlot;/), 'de schrijfplek gaat terug naar die van vóór de poging (de terugval bindt anders de nieuwe slot)');
