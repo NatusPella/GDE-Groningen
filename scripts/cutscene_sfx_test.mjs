@@ -59,7 +59,7 @@ const playable = [
   ...VIGNETTEN.map((v) => 'terugkeer-' + v.id),
 ];
 for (const id of playable) ok(!!sceneSfx(id), id + ': staat in cutscenesfx.js');
-for (const id of Object.keys(CUT_SFX)) ok(playable.includes(id) || ['story-avond', 'story-wachten', 'story-eikea'].includes(id), id + ': is een scene die de game speelt');
+for (const id of Object.keys(CUT_SFX)) ok(playable.includes(id) || ['story-avond', 'story-wachten'].includes(id), id + ': is een scene die de game speelt');
 for (const g of GATEN) ok(!!sceneSfx(g.scene) && typeof g.wat === 'string' && g.wat.length > 10, 'gat beschreven: ' + g.scene);
 
 // 3. zichtbare geluidsmomenten hebben hun cue (de regels die een spec of def zelf laat zien)

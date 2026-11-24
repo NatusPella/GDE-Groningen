@@ -76,7 +76,7 @@ export function sceneCues(id, lines, duration) {
     if (t0 == null || !base) return;
     const at = Array.isArray(c.at) && c.at.length >= 2 ? [c.at[0], c.at[1]] : null;
     const extra = {};
-    for (const k of ['auto', 'wood', 'steam', 'strength']) if (c[k] !== undefined) extra[k] = c[k];
+    for (const k of ['auto', 'wood', 'strength']) if (c[k] !== undefined) extra[k] = c[k];
     if (base.kind === 'sample' && base.surface) {
       const n = Math.max(1, Math.min(16, Math.round(c.n || 1))), every = Number.isFinite(c.every) ? c.every : 0.5;
       for (let i = 0; i < n; i++) {

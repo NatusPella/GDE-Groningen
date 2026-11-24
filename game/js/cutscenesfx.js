@@ -19,7 +19,7 @@
 //   id    the sfx id: 'fx:<fxbank name>', 'sfx:<sfxmap key>', 'ev:<event kind>[/<sub>]' or 'stap:<surface>' (sfx/sfxlist.js)
 //   at    [f, s] where it sounds, local to the scene like the props (default: the anchor)
 //   n, every   footsteps: n steps, every s apart (only for 'stap:')
-//   gain, auto, wood, steam   passed on to the audio event (auto: the recorded car door, wood: a wooden door, steam: a steam whistle)
+//   gain, auto, wood, strength   passed on to the audio event (auto: the recorded car door, wood: a wooden door, strength: applause)
 
 // footsteps in a scene are someone else's feet: a bit under the player's own
 export const STEP_GAIN = 0.6;
@@ -408,7 +408,6 @@ S['terugkeer-f3-kopje'].cues.push({ t: 'L0', id: 'stap:binnen', n: 2, every: 0.6
 // ===== flat scenes and the end card (cutscenes.js) =====
 S['story-avond'] = { amb: 'binnen:woning', cues: [] };
 S['story-wachten'] = { amb: 'binnen:woning', cues: [] };
-S['story-eikea'] = { amb: 'binnen:woning', cues: [] };
 S['story-card'] = { amb: 'stad', cues: [] };
 
 // What the game has no sound for (so a scene stays silent there): noted for the next sound round, never filled with a made-up source.
