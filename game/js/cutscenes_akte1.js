@@ -19,6 +19,9 @@
 //   light   the light of the whole scene (#1323, shotlight.js): a preset name ('gouden-uur', 'avond-binnen', 'warm-intiem', 'spanning',
 //           'ochtend', 'avond-buiten', 'bewolkt-zacht', 'tl-binnen', 'nacht-straat', 'dag') or { preset, key: { kelvin, intensity,
 //           azimuth, elevation }, fill: { kelvin, intensity }, rim: { kelvin, intensity }, exposure, saturation, mix }; none = the world's light
+//   coverage 'ots'   OPT-IN (#1325): the automatic coverage films each speaker from the front over the shoulder of the one he talks to,
+//           always on one side of the line between them (otsDist, otsSide tune it); forced `shots`, `cuts` and `shotFix` still win
+//   coverage 'front' OPT-IN (#1325): people side by side looking the same way; every camera on their front (front: { f, h, lookH, fov })
 //   lights  [{ on, dt, light }]   the light from that line on: every shot that cuts in at or after that moment, until the next entry
 //           (a shot in `shots`, `shotFix` or `cuts` with its own `light` keeps it)
 // A key with '#from-to' ('M26.4#7-14') is a slice of a script scene: a stage scene that plays lines 7 to 13 of M26.4.
@@ -713,6 +716,26 @@ export function missionScene(key, lines, { looks = {}, spec: given = null } = {}
     for (let t = 2.5 + k * 1.7, j = k; t < endT; t += 5.5 + (j++ % 3)) cues.push({ t: Math.round(t * 10) / 10, actor: id, anim: BG[j % BG.length] });
   });
 
+  // #1325 (opt-in, spec.coverage 'ots'): the speaker from the front over the shoulder of the one he talks to (the last other speaker,
+  // else the next), always on the same side of the line between the two (the sorted pair fixes the sign), so no axis jump and no
+  // back of a head; a bystander (bg) is never the shoulder
+  const otsShot = (i, me) => {
+    const ander = (q) => { const a = speakerActor(q.speaker); return a && a !== me && actors[a] && !meta[a].bg ? a : null; };
+    const other = lines.slice(0, i).reverse().map(ander).find(Boolean) || lines.slice(i + 1).map(ander).find(Boolean);
+    if (!other) return null;
+    const sign = [me, other].sort()[0] === me ? 1 : -1;
+    return { shot: 'ots', from: other, target: me, dist: spec.otsDist ?? 1.7, side: sign * (spec.otsSide ?? 0.55), fov: 34 };
+  };
+  // #1325 (opt-in, spec.coverage 'front'): people side by side who look the same way (a bench, two crates, a counter): every camera on
+  // their front side (spec.front: { f, h, lookH, fov } in the scene's local metres), the speaker in a single, now and then a two-shot
+  const frontShot = (i, me, k) => {
+    const fr = { f: 1.4, h: 1.6, lookH: 1.55, fov: 30, ...(spec.front || {}) };
+    const s = actors[me].at[1];
+    const ids = primary.filter((id) => actors[id] && actors[id].at);
+    const mid = ids.reduce((m, id) => m + actors[id].at[1], 0) / (ids.length || 1);
+    if (k % 3 === 2 && ids.length >= 2) return { shot: 'cut', at: [fr.f - 0.5, mid + (s - mid) * 0.3, fr.h + 0.1], look: `mid:${ids.slice(0, 2).join(',')}@${fr.lookH}`, fov: fr.fov + 12 };
+    return { shot: 'cut', at: [fr.f, s + (s - mid) * 0.8, fr.h], look: `${me}@${fr.lookH}`, fov: fr.fov };
+  };
   // camera: an establishing shot over the set, then coverage that follows the speaker
   const shots = [];
   const w = spec.wide;
@@ -728,12 +751,19 @@ export function missionScene(key, lines, { looks = {}, spec: given = null } = {}
     if (!forced && i === first && w && first === 0) return;
     // short exchanges stay in the shot; a new speaker or a long speech gets a new frame
     const same = me === lastSpeaker && me != null;
-    if (!forced && l.at - lastT < (me != null && me !== lastSpeaker ? 1.0 : 2.0) && i > 0) return; // a new speaker gets a frame at once (cutscenes_audit)
+    if (!forced && l.at - lastT < (me != null && me !== lastSpeaker ? (spec.coverage === 'ots' ? 0.7 : 1.0) : 2.0) && i > 0) return; // a new speaker gets a frame at once (cutscenes_audit)
     if (!forced && same && l.dur < 4.5 && i - lastIdx < 3) return;
     const duoSide = 1; // one side of the axis for the whole scene (#1146: the camera does not jump over the line between the speakers)
     let shot;
     if (forced) { const { on, dt, ...rest } = forced; shot = { ...rest }; if (dt) shot.dt = dt; }
     else if (me == null) shot = { shot: 'cut', at: [[3.6, 0.6, 1.7], [3.2, -0.7, 1.6], [4.0, 0.1, 2.0]][i % 3], look: 'mid:tammo,tessa@1.3', fov: 40 };
+    else if (spec.coverage === 'ots' && otsShot(i, me)) {
+      shot = otsShot(i, me);
+      // the same speaker over the same shoulder again: the wider variant, so the cut is not a jump cut
+      const prev = shots[shots.length - 1];
+      if (prev && prev.shot === 'ots' && prev.from === shot.from && prev.target === shot.target && prev.dist === shot.dist) shot = { ...shot, dist: 2.7, side: Math.sign(shot.side) * 1.0, fov: 42 };
+    }
+    else if (spec.coverage === 'front' && actors[me]) shot = frontShot(i, me, variant++);
     else {
       const k = variant++ % 5;
       const farSide = me === 'tammo' || me === 'tessa';
@@ -782,6 +812,9 @@ export function missionScene(key, lines, { looks = {}, spec: given = null } = {}
     const pos = (q) => (q && (q.at || q.from)) || null;
     const apart = (c) => near.every((q) => { const a = pos(q), b = pos(c); return !a || !b || Math.hypot(a[0] - b[0], a[1] - b[1]) > 0.6; });
     if (me == null) { const offs = [[3.6, 0.6, 1.7], [3.2, -0.7, 1.6], [4.0, 0.1, 2.0], [4.4, -1.2, 2.3]].map((at) => ({ shot: 'cut', at, look: 'mid:tammo,tessa@1.3', fov: 40 })); return offs.find(apart) || offs[3]; }
+    // #1325: in ots-coverage a long line gets a wider over-the-shoulder on the same side (no axis jump, no jump cut)
+    if (spec.coverage === 'ots') { const o = otsShot(i, me); if (o) return { ...o, dist: 2.7, side: Math.sign(o.side) * 1.0, fov: 42 }; }
+    if (spec.coverage === 'front' && actors[me]) return frontShot(i, me, 2);
     const duoSide = 1; // one side of the axis for the whole scene (#1146: the camera does not jump over the line between the speakers)
     const far = me === 'tammo' || me === 'tessa';
     // a pose that differs from the shots around it (no jump cut): the first candidate that stands more than 0.6 m from both

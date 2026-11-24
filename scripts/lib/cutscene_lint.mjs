@@ -57,7 +57,7 @@ export const RULES = {
   'CS-V05': { categorie: 'visueel', ernst: 'belangrijk', laag: 'lint', titel: 'Kijkrichting', uitleg: 'Wie praat tegen een ander kijkt die kant op (niet meer dan 120 graden ervan af, tenzij hij loopt).' },
   // --- regieregels van #1324 (camera en blik; met een baseline die alleen mag dalen: scripts/release/cutscene-regie-baseline.json)
   'CS-C11': { categorie: 'camera', ernst: 'belangrijk', laag: 'lint', titel: 'Afgekapt hoofd', uitleg: 'Wie praat heeft zijn hoofd in het kader: niet de schouders in beeld en het gezicht boven of onder de rand (mens ca. 1,78 m).' },
-  'CS-C12': { categorie: 'camera', ernst: 'belangrijk', laag: 'lint', titel: 'Camera in of achter geometrie', uitleg: 'De camera staat niet in een prop of set-object, het zicht op de spreker gaat niet door een object, en geen object vult meer dan 30% van het kader (behalve een insert op dat object).' },
+  'CS-C12': { categorie: 'camera', ernst: 'belangrijk', laag: 'lint', titel: 'Camera in of achter geometrie', uitleg: 'De camera staat niet in een prop of set-object, het zicht op de spreker gaat niet door een object, geen object vóór het onderwerp vult meer dan 30% van het kader en geen object erachter meer dan 60% (behalve een insert op dat object).' },
   'CS-C13': { categorie: 'camera', ernst: 'belangrijk', laag: 'lint', titel: 'Spreker van achteren', uitleg: 'Wie praat zien we van voren of over de schouder van de luisteraar, niet op zijn achterhoofd (meer dan 115 graden van de camera af gedraaid in een medium- of close-shot).' },
   'CS-C14': { categorie: 'camera', ernst: 'belangrijk', laag: 'lint', titel: 'Te snelle snedes', uitleg: 'Hooguit drie snedes in elke 4 s; een shot korter dan 1,2 s (behalve het laatste) is een losse nit.' },
   'CS-T11': { categorie: 'tekst', ernst: 'belangrijk', laag: 'lint', titel: 'Ondertitel te kort in beeld', uitleg: 'De werkelijke tijd van een ondertitel (tot de volgende regel begint) geeft hooguit 20 tekens per seconde.' },
@@ -525,7 +525,7 @@ export function checkVisual(unit) {
 export const MENS = { hoofd: 1.66, kruin: 1.79, schouder: 1.45, zitHoofd: 0.72, zitSchouder: 0.48 };
 export const hoofdZ = (a) => (a.h || 0) + (a.sit ? a.sit + MENS.zitHoofd : MENS.hoofd);
 const schouderZ = (a) => (a.h || 0) + (a.sit ? a.sit + MENS.zitSchouder : MENS.schouder);
-export const REGIE_DREMPELS = { objectVulling: 0.3, achterHoek: 115, achterHoofdMin: 0.06, snedesPerVenster: 3, venster: 4, kortShot: 1.2, tekensPerSeconde: 20, deelVanRegel: 0.5 };
+export const REGIE_DREMPELS = { objectVulling: 0.3, achtergrondVulling: 0.6, achterHoek: 115, achterHoofdMin: 0.06, snedesPerVenster: 3, venster: 4, kortShot: 1.2, tekensPerSeconde: 20, deelVanRegel: 0.5 };
 
 // De camera als projector: kader(p) -> { x, y } in [-1, 1] binnen het beeld (x rechts, y boven), z = diepte; null achter de camera.
 // Rechts in beeld is omhoog x vooruit in spelcoördinaten (zie scripts/lib/contactvel_schets.mjs).
@@ -569,18 +569,19 @@ function lijnDoorDoos(p, foot, a, b) {
 }
 // Het deel van het kader dat de doos van een prop vult: een raster van 16 x 9 kijkstralen door het kader, het deel dat de doos raakt
 // (ook goed als de camera er vlak naast of half in staat, waar een projectie van de hoeken niet werkt).
-export function kaderVulling(c, p, foot, aspect = 16 / 9) {
+export function kaderVulling(c, p, foot, { aspect = 16 / 9, achtergrond = false } = {}) {
   let fx = c.lookAt.x - c.position.x, fy = c.lookAt.y - c.position.y, fz = c.lookAt.z - c.position.z;
   const fl = Math.hypot(fx, fy, fz) || 1; fx /= fl; fy /= fl; fz /= fl;
   let rx = -fy, ry = fx; const rl = Math.hypot(rx, ry) || 1; rx /= rl; ry /= rl;
   const ux = -fz * ry, uy = fz * rx, uz = fx * ry - fy * rx;
   const tv = Math.tan((c.fov * Math.PI) / 360), th = tv * aspect;
+  const diep = achtergrond ? 80 : fl * 0.85; // standaard alleen wat VOOR het onderwerp (het kijkpunt) staat; achtergrond: alles
   let raak = 0, n = 0;
   for (let iy = 0; iy < 9; iy++) for (let ix = 0; ix < 16; ix++) {
     const x = ((ix + 0.5) / 16) * 2 - 1, y = ((iy + 0.5) / 9) * 2 - 1;
     const dx = fx + rx * x * th + ux * y * tv, dy = fy + ry * x * th + uy * y * tv, dz = fz + uz * y * tv;
     n++;
-    if (lijnDoorDoos(p, foot, c.position, { x: c.position.x + dx * 80, y: c.position.y + dy * 80, z: c.position.z + dz * 80 })) raak++;
+    if (lijnDoorDoos(p, foot, c.position, { x: c.position.x + dx * diep, y: c.position.y + dy * diep, z: c.position.z + dz * diep })) raak++;
   }
   return raak / n;
 }
@@ -646,8 +647,9 @@ export function checkRegie(unit) {
         if (!f || gemeld.has(`${sh.idx}|${pid}`)) continue;
         if (inDoos(p, f, c.position.x, c.position.y, c.position.z, 0.02)) { gemeld.add(`${sh.idx}|${pid}`); out.push(vondst(unit, 'CS-C12', `de camera staat in ${pid} (${p.kind}) in shot ${sh.idx}`, { t: sh.t0 })); continue; }
         if (shotOpProp(defShots[sh.idx], pid)) continue;
-        const vul = kaderVulling(c, p, f);
-        if (vul > D.objectVulling) { gemeld.add(`${sh.idx}|${pid}`); out.push(vondst(unit, 'CS-C12', `${pid} (${p.kind}) vult ${Math.round(Math.min(1, vul) * 100)}% van het kader in shot ${sh.idx} (de camera staat erachter of ertegenaan)`, { t: sh.t0 })); }
+        const vul = kaderVulling(c, p, f), achter = vul > D.objectVulling ? 0 : kaderVulling(c, p, f, { achtergrond: true });
+        if (vul > D.objectVulling) { gemeld.add(`${sh.idx}|${pid}`); out.push(vondst(unit, 'CS-C12', `${pid} (${p.kind}) staat voor het onderwerp en vult ${Math.round(Math.min(1, vul) * 100)}% van het kader in shot ${sh.idx} (de camera staat erachter of ertegenaan)`, { t: sh.t0 })); }
+        else if (achter > D.achtergrondVulling) { gemeld.add(`${sh.idx}|${pid}`); out.push(vondst(unit, 'CS-C12', `${pid} (${p.kind}) vult als achtergrond ${Math.round(achter * 100)}% van het kader in shot ${sh.idx} (een muur van ${p.kind}: kies een ander standpunt)`, { t: sh.t0 })); }
       }
     }
   }

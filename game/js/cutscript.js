@@ -424,7 +424,8 @@ export function compileScene(def, opts = {}) {
         const af = actorFacing(id, t);
         const d = sh.dist ?? (sh.shot === 'close' ? 1.2 : 1.8);
         const side = sh.side ?? (sh.shot === 'close' ? 0.18 : 0.4);
-        pos = { f: c.f - Math.cos(af) * d + Math.cos(af + Math.PI / 2) * side, s: c.s - Math.sin(af) * d + Math.sin(af + Math.PI / 2) * side, h: c.h + (sh.hEye ?? 0.12) };
+        // #1325: de camera staat VOOR het gezicht (in de kijkrichting), niet erachter: een close-up of reactie toonde het achterhoofd
+        pos = { f: c.f + Math.cos(af) * d + Math.cos(af + Math.PI / 2) * side, s: c.s + Math.sin(af) * d + Math.sin(af + Math.PI / 2) * side, h: c.h + (sh.hEye ?? 0.12) };
         look = { f: c.f, s: c.s, h: c.h + 0.02 };
         sh.fov = sh.fov ?? (sh.shot === 'close' ? 30 : 36);
         break;
