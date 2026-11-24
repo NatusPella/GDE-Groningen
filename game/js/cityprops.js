@@ -254,6 +254,15 @@ function place(x, y, angle, y0 = 0) {
 function propItem(geo, kind, x, y, angle, axis = angle, extra = null) {
   return { geo, m: place(x, y, angle), prop: { kind, x, y, face: angle, axis, ...extra } };
 }
+// the same item lifted to height y0 (on the pavement beside a street with a kerb)
+function atHeight(it, y0) {
+  if (y0) it.m = place(it.prop.x, it.prop.y, it.prop.face, y0);
+  return it;
+}
+// de stoep langs een straat (roadsurface.js): SIDEWALK_EXTRA = 1,8 m breed, de bovenkant op 0,005 + KERB_H (0,13) m. Een rek staat
+// midden op die strook, zodat een fiets van 1,7 m (van 0,1 tot 1,8 m van de rand) er helemaal op past.
+export const KERB_TOP = 0.135;
+export const RACK_ON_KERB = 0.95;
 
 // --- cell generation --------------------------------------------------------
 
@@ -386,7 +395,12 @@ function generateCell(map, cx, cy) {
       if (rng.next() > (centreD < 450 ? 0.5 : 0.25)) return;
       const side = rng.next() < 0.5 ? 1 : -1;
       const nx = -Math.sin(segA) * side, ny = Math.cos(segA) * side;
-      const off = (r.width || 6) / 2 + 1.7;
+      // #1329: naast een straat met stoep (roadsurface.js: SIDEWALK_EXTRA breed, KERB_H hoog) staat het rek met de fietsen helemaal
+      // op de stoep en op stoephoogte. Op 1,7 m van de rand stond het over de buitenste stoeprand heen op straathoogte: de wielen
+      // zakten half in de stoep en wat overbleef waren zwarte haken ("spinnen").
+      const stoep = r.cat === 'major' || r.cat === 'normal' || r.cat === 'minor'; // roadsurface.js SIDEWALK_CATS
+      const off = (r.width || 6) / 2 + (stoep ? RACK_ON_KERB : 1.7);
+      const y0 = stoep ? KERB_TOP : 0;
       const rx = x + nx * off, ry = y + ny * off;
       const n = 3 + Math.floor(rng.next() * 4);
       const len = n * 0.7;
@@ -395,8 +409,10 @@ function generateCell(map, cx, cy) {
       if (!clear(rx, ry, len / 2 + 0.5)) return;
       if (!isFree(map, rx + nx * 0.6, ry + ny * 0.6, 0.5) || !isFree(map, rx - nx * 0.6, ry - ny * 0.6, 0.3)) return;
       if (ends.some(([ex, ey]) => !isFree(map, ex, ey, 0.4))) return;
+      // een fiets staat niet half op een fietspad of voetpad (die liggen lager dan de stoep: de wielen zakten erin)
+      if ([1, -1].some((s) => isOnRoad(map, rx + nx * 0.9 * s, ry + ny * 0.9 * s, 0.05, ['cycle', 'foot']))) return;
       take(rx, ry, len / 2 + 0.5);
-      items.push(propItem(protos.rails[n - 3], 'rail', rx, ry, segA + Math.PI / 2, segA, { half: len / 2 }));
+      items.push(atHeight(propItem(protos.rails[n - 3], 'rail', rx, ry, segA + Math.PI / 2, segA, { half: len / 2 }), y0));
       const bikeA = Math.atan2(ny, nx);
       for (let i = 0; i < n; i++) {
         if (rng.next() < 0.18) continue;
@@ -404,7 +420,7 @@ function generateCell(map, cx, cy) {
         const bx = rx + fx * t, by = ry + fy * t;
         const geo = protos.bikes[Math.floor(rng.next() * protos.bikes.length)];
         const ba = bikeA + (i % 2 ? Math.PI : 0) + rng.range(-0.08, 0.08);
-        items.push(propItem(geo, 'bike', bx, by, ba, ba, { locked: true, tint: geo.userData.tint }));
+        items.push(atHeight(propItem(geo, 'bike', bx, by, ba, ba, { locked: true, tint: geo.userData.tint }), y0));
       }
     });
     roadSamples(roads, cx0, cy0, ['normal', 'minor'], 55, rng, (r, x, y, segA) => {

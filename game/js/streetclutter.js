@@ -723,6 +723,8 @@ function samples(roads, cx0, cy0, CELL, filter, spacing, rng, fn) {
 }
 
 const hasSidewalk = (r) => r.cat === 'major' || r.cat === 'normal';
+// de stoep langs een straat (roadsurface.js SIDEWALK_EXTRA, 1,8 m) plus een kleine marge: daar staat geen fietsnietje van een voetgangersstraat
+const SIDEWALK_BAND = 2.0;
 const edgeOff = (r) => (r.width || 5) / 2 + (hasSidewalk(r) ? 0.15 : 0);
 const probeFrom = (r) => Math.max(0.5, (r.width || 5) / 2 - 1);
 const isPedestrian = (r) => r.cat === 'foot' && (r.type === 'pedestrian' || r.type === 'living_street');
@@ -891,6 +893,12 @@ export function generateClutter(ctx) {
       const tx = Math.cos(segA), ty = Math.sin(segA);
       const n = 3 + Math.floor(rng.next() * 4);
       const a = Math.atan2(ny, nx);
+      // #1329: een voetgangersstraat naast een straat met stoep: de nietjes en hun fietsen (0,85 m naar elke kant) blijven van die
+      // stoep en zijn rand af. Daar stonden ze over de stoeprand, op straathoogte, en zakten de wielen in de stoep (zwarte "spinnen").
+      for (let i = 0; i < n; i++) {
+        const s = -(n - 1) * 0.5 + i, bx = cx + tx * s, by = cy + ty * s;
+        if ([1, -1].some((k) => isOnRoad(map, bx + nx * 0.85 * k, by + ny * 0.85 * k, SIDEWALK_BAND, ['major', 'normal', 'minor']))) return;
+      }
       if (!row(ctx, P.nietje, 'nietje', cx, cy, tx, ty, n, 1.0, a, 0.45, { half: 0.35 })) return;
       for (let i = 0; i < n; i++) {
         const s = -(n - 1) * 0.5 + i;
