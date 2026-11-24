@@ -7,7 +7,7 @@ import './node3d.mjs';
 const THREE = await import('three');
 await import('../game/js/player.js');
 const { buildVehicleMesh, carBodyFit } = await import('../game/js/models3d_vehicles.js');
-const { VOERTUIG_REGISTER, VOERTUIG_NORM: N } = await import('../game/js/propregister.js');
+const { VOERTUIG_REGISTER, VOERTUIG_NORM: N0 } = await import('../game/js/propregister.js');
 const { vehicleSeat } = await import('../game/js/seating3d.js');
 const { DEUR_DEFS } = await import('../game/js/vehicledoors.js');
 
@@ -18,6 +18,7 @@ const r2 = (x) => x.toFixed(2);
 
 for (const [id, e] of Object.entries(VOERTUIG_REGISTER)) {
   if (!e.hybride) continue;
+  const N = { ...N0, ...(e.maatNorm || {}) }; // de Escapade is een oude compacte hatchback (maatNorm in het register)
   const v = { id: 'schaal-' + id, model: { ...e.model }, health: 100, isTaxi: !!e.isTaxi, isPolice: !!e.isPolice };
   const mesh = buildVehicleMesh(v);
   check(id + ': gebouwd als hybride', mesh.userData.hybride === e.hybride, String(mesh.userData.hybride));
