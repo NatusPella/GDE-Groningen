@@ -1939,6 +1939,7 @@ function updateMissionsAlgemeen(dt, world) {
   updateRetiredRacers(dt, world);
 }
 
+const _rijdend = []; // updateMissionKern: the riders of the group, reused every frame (#1287)
 // Eén groep: de keten van de sleutel die de missielus net op de wereld heeft gezet.
 function updateMissionKern(dt, world) {
   const def = chainState().defs[chainState().index];
@@ -2004,7 +2005,8 @@ function updateMissionKern(dt, world) {
     // mission only fails when nobody of the group is on foot; a guest driving costs the host his
     // mission not. Alone the group is one body, so the old rule stands word for word.
     const groep = groepsActeurs(world);
-    const rijdend = [];
+    const rijdend = _rijdend; // #1287: one reused list, no filter per frame
+    rijdend.length = 0;
     for (let i = 0; i < groep.length; i++) if (groep[i].inVehicle) rijdend.push(groep[i]);
     if (rijdend.length) {
       chainState().run.inVehT = (chainState().run.inVehT || 0) + dt;

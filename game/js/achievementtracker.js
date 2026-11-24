@@ -26,8 +26,6 @@ import { noteMoney } from './finance.js';
 import { initVisboek } from './visboeklive.js';
 import { initLoopbaan, loopbaanOpStat, loopbaanKm, loopbaanTel, getProfiel } from './loopbaanlive.js';
 import { initGebieden, updateGebieden, gebiedenOpVondst, getOverzicht, bezoekPlek } from './gebiedenlive.js';
-// Hergebruikte functie voor updateGebieden (#1287)
-const getDoneMissions = () => getMissionList().filter((m) => m.done).map((m) => m.id);
 import { probeerIntocht } from './intochten.js';
 import { maakBron } from './gebiedenbronnen.js';
 // #820: het album van de herkenningspunten in de provincie (kerken, molens, borgen en meer).
@@ -80,6 +78,8 @@ let crossingT = 0;
 const fineSeen = new Map();
 let run = null;
 let retroT = 0;
+// the done missions for updateGebieden: one function, not a new closure every frame (#1287)
+const doneMissionIds = () => getMissionList().filter((m) => m.done).map((m) => m.id);
 let eggs = [];
 let eggGroup = null;
 
@@ -163,7 +163,7 @@ export function updateAchievementTracker(dt, w) {
     trackSocial(w);
     trackRail(dt, w, p, pv);
     trackMission(dt, w, pv);
-    updateGebieden(dt, w, getDoneMissions);
+    updateGebieden(dt, w, doneMissionIds);
     probeerIntocht(dt, w); // #705: de intocht speelt zodra de speler rustig is
     trackBezoek(dt, w);
     syncGebiedStats(dt, w);
