@@ -10,6 +10,7 @@
 import { careerTalk } from './careerbeats.js';
 import { storyWorldOpen, storyGateHint } from './storyquery.js';
 import { KEYS } from './storagekeys.js';
+import { LATER_IN_VERHAAL } from './sidejobgate.js';
 import { euro } from './geldtekst.js';
 import { noteMoney } from './finance.js';
 import { zetGarageKorting } from './economy.js';
@@ -182,7 +183,7 @@ export function startLoopbaan(w, vak) {
   if (!info) return { gestart: false, nieuw: false, start: null };
   // de ontgrendelpoort (unlockgate.js, #1131): een nieuw spel opent een loopbaan via het verhaal; een begonnen vak of een oude save is nooit dicht
   if (!L.isGestart(getProfiel(), vak) && !storyWorldOpen(vak)) {
-    if (w && w.addMessage) w.addMessage(storyGateHint(vak) || 'Dit komt later in het verhaal.', 4.5, { kind: 'missie', key: 'loopbaan-poort-' + vak });
+    if (w && w.addMessage) w.addMessage(storyGateHint(vak) || LATER_IN_VERHAAL, 4.5, { kind: 'missie', key: 'loopbaan-poort-' + vak });
     return { gestart: false, nieuw: false, start: null };
   }
   const r = L.startVak(getProfiel(), vak);

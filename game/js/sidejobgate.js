@@ -9,6 +9,9 @@
 // test: scripts/sidejobgate_test.mjs.
 import { vakVanBaan } from './loopbaan.js';
 
+// de standaardzin bij een gesloten poort zonder eigen hint (ook loopbaanlive.js)
+export const LATER_IN_VERHAAL = 'Dit komt later in het verhaal.';
+
 export function sideJobGate(jobId, gate, { owner = 0, played = false } = {}) {
   if (!jobId || !gate || owner > 0 || played) return null;
   const trade = vakVanBaan(jobId);
@@ -18,5 +21,5 @@ export function sideJobGate(jobId, gate, { owner = 0, played = false } = {}) {
   } catch (e) { return null; } // a failing source never closes
   let hint = null;
   try { hint = typeof gate.hint === 'function' ? gate.hint(trade) : null; } catch (e) { hint = null; }
-  return hint || 'Dit komt later in het verhaal.';
+  return hint || LATER_IN_VERHAAL;
 }

@@ -353,9 +353,9 @@ S['story-M26.6'] = {
     { on: 'Goud. …Valt mie', dt: -0.6, id: 'fx:horeca_hap' },
   ],
 };
-S['story-M26.10'] = { amb: 'stad', cues: [{ on: 'Tam & Tes. Vijf van de vijf', dt: 0.6, id: 'ev:applause', strength: 1 }] };
-S['story-M26.11'] = { amb: 'stad', cues: [{ on: 'Tam & Tes. Vier van de vijf', dt: 0.6, id: 'ev:applause', strength: 0.85 }] };
-S['story-M26.12'] = { amb: 'stad', cues: [{ on: 'Tam & Tes. Drie van de vijf', dt: 0.6, id: 'ev:applause', strength: 0.6 }] };
+S['story-M26.10'] = { amb: 'stad', cues: [{ on: 'Tam & Tes. Vijf van', dt: 0.6, id: 'ev:applause', strength: 1 }] };
+S['story-M26.11'] = { amb: 'stad', cues: [{ on: 'Tam & Tes. Vier van', dt: 0.6, id: 'ev:applause', strength: 0.85 }] };
+S['story-M26.12'] = { amb: 'stad', cues: [{ on: 'Tam & Tes. Drie van', dt: 0.6, id: 'ev:applause', strength: 0.6 }] };
 S['story-M26.13'] = { amb: 'stad', cues: [] };
 S['story-M26.14'] = { amb: 'stad', cues: [] };
 S['story-M26.15'] = { amb: 'stad', cues: [] };
