@@ -8,10 +8,13 @@ import { VERSION } from './version.js';
 import { watchContext } from './blackframe.js';
 import { KEYS } from './storagekeys.js';
 import { previewVehicle } from './garagepics.js';
+import { logError } from './errorlog.js';
 import { tickVehicleLook } from './vehiclelook3d.js';
 import { farmBody } from './farmmodels3d.js';
 
-const OBJECT_KINDS = new Set(['weapon', 'person', 'product', 'spul', 'piece', 'pieceset', 'piecefig']);
+// 'farm' (farmpics.js: dier, gewasveld, werktuig, gebouw) hoort hier: zonder stond hij er niet in en viel elk boerderijplaatje door naar de
+// voertuigbouwer, als auto zonder maat (len en wid undefined): een romp vol NaN en twaalf three.js-waarschuwingen bij Land en bedrijf (beeld 24-11)
+export const OBJECT_KINDS = new Set(['weapon', 'person', 'product', 'spul', 'farm', 'piece', 'pieceset', 'piecefig']);
 // a person seen from the front, the face turned a little into the screen
 // (the model faces its local -x)
 export const PORTRAIT_ANGLE = -1.55;
@@ -90,6 +93,24 @@ function groundShadow(box) {
   return m;
 }
 
+// Heeft elke geometrie in de boom eindige posities? (puur op three, getest in scripts/vehiclepreview_nan_test.mjs)
+export function meshIsFinite(root) {
+  let ok = true;
+  root.traverse((o) => {
+    const a = ok && o.geometry && o.geometry.attributes && o.geometry.attributes.position;
+    if (!a || !a.array) return;
+    for (let i = 0; i < a.array.length; i++) if (!Number.isFinite(a.array[i])) { ok = false; return; }
+  });
+  return ok;
+}
+const gemeld = new Set();
+function meldKapotVoorbeeld(spec) {
+  const m = spec && spec.model, sleutel = `${spec && spec.kind}|${m && m.name}`;
+  if (gemeld.has(sleutel)) return;
+  gemeld.add(sleutel);
+  try { const t = `Voorbeeld van ${sleutel} niet getekend: geometrie met NaN (len ${m && m.len}, wid ${m && m.wid}, vlaggen ${Object.keys((spec && spec.flags) || {}).join(',') || 'geen'})`; logError('warn', t); if (typeof console !== 'undefined') console.warn('[voorbeeld] ' + t); } catch (e) { /* melden is een extraatje */ }
+}
+
 // { mesh, body, fit } for a spec, or null. sphereFit: frame vehicles by
 // their bounding sphere too (any canvas shape, tall buses and bikes).
 function buildObject(spec, sphereFit = false) {
@@ -117,6 +138,9 @@ function buildObject(spec, sphereFit = false) {
     return { mesh, body, fit };
   }
   const mesh = buildVehicleMesh(previewVehicle(spec));
+  // vangnet (beeld 24-11): een voertuig met een kapotte maat (NaN in de romp) tekenen we niet, want NaN in geometrie laat de verhaaltest falen;
+  // de kaart houdt dan zijn icoon en het foutlog zegt welk model het was
+  if (!meshIsFinite(mesh)) { meldKapotVoorbeeld(spec); disposeMesh(mesh); return null; }
   // spec.tune: de uiterlijk-tuning (vehiclelook.js); het voorbeeld laat de underglow altijd zien (alsof het nacht is)
   if (spec.tune) tickVehicleLook(mesh, 0, 1);
   const live = spec.tune ? mesh : null;

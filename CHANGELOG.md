@@ -9,6 +9,7 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ## [Unreleased]
 
+- Land en bedrijf: de plaatjes van dieren, gewassen, werktuigen en gebouwen worden weer getekend; ze vielen door naar de voertuigbouwer en gaven een leeg vak en waarschuwingen over kapotte geometrie. Samen spelen: alleen beeld.
 - Menu: de onderstreping van de tabbladen staat weer onder het gekozen tabblad, ook als een tabblad ervoor later breder wordt (bijvoorbeeld Club onder Land en bedrijf). Samen spelen: alleen beeld.
 - Voetbalcarrière: in het tabblad Trainer zijn de gekozen vorming en speelstijl gemarkeerd. Samen spelen: alleen beeld, per speler.
 - Voetbal: het commentaar bij een carrièrewedstrijd op een sportpark heet je niet meer welkom "in de Euroborg" en juicht niet meer voor de Stadjers als die niet meespelen. Samen spelen: per speler, zoals het commentaar al was.
