@@ -87,7 +87,9 @@ export function bouwMoment(opts = {}) {
   const kop = titel || d.kop;
   const lang = kop.length > 16; // #1217: een missienaam als titel is langer dan een uitroep: kleinere letter, geen afgebroken woorden
   const regelNl = klemWoorden(opts.regelNl || d.regelNl);
-  const beloning = formatBeloning(opts.beloning);
+  // #1332: de kaart zelf toont bij mislukt nooit een beloning, ook niet als een aanroeper er een meegeeft (niet alleen momentVanBanner)
+  const beloningIn = soort === 'mislukt' ? 0 : opts.beloning;
+  const beloning = formatBeloning(beloningIn);
   const tijd = formatTijd(opts.tijd);
   const sterren = Number.isFinite(opts.sterren) ? Math.max(0, Math.min(5, Math.round(opts.sterren))) : null;
   const beloningLabel = cut(opts.beloningLabel, 16) || (soort === 'opgepakt' ? 'Boete' : 'Beloning');
@@ -103,7 +105,7 @@ export function bouwMoment(opts = {}) {
   if (opnieuw) delen.push('Opnieuw proberen kan meteen.');
   return {
     opnieuw,
-    soort, vorm: d.vorm, schermvullend: d.schermvullend, klein, kop, lang, regelNl, beloning, beloningWaarde: Number.isFinite(opts.beloning) ? opts.beloning : null, beloningLabel, tijd, sterren, compact, ms: compact ? Math.round(d.ms * 0.65) : d.ms,
+    soort, vorm: d.vorm, schermvullend: d.schermvullend, klein, kop, lang, regelNl, beloning, beloningWaarde: Number.isFinite(beloningIn) ? beloningIn : null, beloningLabel, tijd, sterren, compact, ms: compact ? Math.round(d.ms * 0.65) : d.ms,
     aria: delen.join(' '),
   };
 }
