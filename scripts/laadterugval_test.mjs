@@ -64,7 +64,7 @@ ok(() => assert.match(sg, /laadMetTerugval\(\(x\) => applySaveRaw\(w, x\), d, vo
 ok(() => assert.match(sg, /try \{ voor = serialize\(w\); \} catch/), 'de snapshot mag zelf falen zonder de lading te blokkeren');
 ok(() => assert.match(sg, /boundSlot = was\.boundSlot;/), 'de schrijfplek gaat terug naar die van vóór de poging (de terugval bindt anders de nieuwe slot)');
 ok(() => assert.match(sg, /if \(r\.kapot\) \{\s*bewarenUit = true;/), 'bij een kapotte terugval staat bewaren uit');
-ok(() => assert.match(sg, /if \(r\.ok\) \{ bewarenUit = false; noteRestore\(\); return true; \}/), 'een geslaagde lading zet bewaren weer aan');
+ok(() => assert.match(sg, /if \(r\.ok\) \{ bewarenUit = false; (?:clearSafe\(\); )?noteRestore\(\); return true; \}/), 'een geslaagde lading zet bewaren weer aan'); // logica-bugs 24-11 (#1295): clearSafe wist de laatste goede velden van het vorige spel
 ok(() => assert.match(sg, /export function saveGame\([^)]*\) \{\s*if \(!w\) return false;\s*\/\/[^\n]*\n\s*if \(bewarenUit\)/), 'saveGame schrijft niets zolang bewaren uit staat (autosave, sluiten en gast)');
 ok(() => assert.doesNotMatch(sg, /console\.error\('Save laden mislukt', e\);\s*return false;/), 'de oude catch die de gemengde stand liet staan is weg');
 ok(() => assert.match(sg, /if \(!applySave\(w, info\.data\)\) \{ setActive\(null, was\); return false; \}/), 'loadSlot zet bij een mislukte lading de actieve slot terug');
