@@ -246,14 +246,55 @@ export function junctionModel(map) {
     s.cityModelIndex = index;
     s.cityModelSig = sigKey;
   }
-  const out = new Map(s.cityModel);
   // De gestreamde provincietegels dragen hun eigen kruispuntmodel (de JUNCTIONS-sectie, junction_tiles.mjs):
   // dezelfde code heeft het bij de tegelbouw uitgerekend. Zonder deze regel kende het spel buiten de gepinde
   // stad geen voorrang, rotondes of stoplijnen (#469). Een knooppunt uit de stad wint: dat is dezelfde plek.
-  for (const n of tileJunctionNodes(map)) if (!out.has(n.key)) out.set(n.key, n);
+  // 24-11: geen kopie van het hele stadsmodel per tegelwissel meer; een samengestelde Map-achtige (stad eerst, dan de tegels).
+  const tiles = new Map();
+  for (const n of tileJunctionNodes(map)) if (!s.cityModel.has(n.key) && !tiles.has(n.key)) tiles.set(n.key, n);
+  const out = joinedModel(s.cityModel, tiles);
   s.model = out;
   s.modelVer = ver;
   return out;
+}
+
+// Twee Maps als één (alleen lezen): get/has/values/keys/entries/size en for-of, zoals een Map.
+function joinedModel(city, tiles) {
+  return {
+    get: (k) => city.get(k) || tiles.get(k),
+    has: (k) => city.has(k) || tiles.has(k),
+    get size() { return city.size + tiles.size; },
+    *values() { yield* city.values(); yield* tiles.values(); },
+    *keys() { yield* city.keys(); yield* tiles.keys(); },
+    *entries() { yield* city.entries(); yield* tiles.entries(); },
+    [Symbol.iterator]() { return this.entries(); },
+    forEach(fn) { for (const [k, v] of this.entries()) fn(v, k, this); },
+  };
+}
+
+// De knopen van één tegellijst, gecachet op die lijst: geldig zolang elke arm nog dezelfde wegrij heeft (een buurtegel die wegging of
+// kwam, maakt de cache ongeldig). Scheelt het opnieuw aanmaken van alle knopen en armen bij elke kruispunttegel.
+const tileNodeCache = new WeakMap();
+function tileListNodes(list, roads) {
+  const c = tileNodeCache.get(list);
+  if (c && c.roads === roads && c.objs.every((o, i) => { const e = roads.get(c.gids[i]); return e && e.obj === o; }) && c.misses.every((g) => !roads.get(g))) return c.nodes;
+  const nodes = [], gids = [], objs = [], misses = [];
+  for (const r of list || []) {
+    if (!r || !r.k || !r.p) continue;
+    const arms = [];
+    for (const a of r.a || []) {
+      const [gid, idx, d, rule, stop, enters] = a;
+      const e = roads && roads.get(gid);
+      if (!e || !e.obj) { misses.push(gid); continue; }
+      gids.push(gid); objs.push(e.obj);
+      arms.push({ road: e.obj, idx, d, ux: 0, uy: 0, rank: roadPriority(e.obj), enter: !!enters,
+        rule: RULES[rule] || 'free', stop: Math.min(16, Math.max(3, stop || 3)) });
+    }
+    if (!arms.length) continue;
+    nodes.push({ key: r.k, x: r.p[0][0], y: r.p[0][1], control: r.c || 'equal', arms });
+  }
+  tileNodeCache.set(list, { roads, nodes, gids, objs, misses });
+  return nodes;
 }
 
 function cityJunctionModel(map, index) {
@@ -294,21 +335,7 @@ export function tileJunctionNodes(map) {
   if (!rows || !rows.size) return [];
   const roads = map._res && map._res.roads;
   const out = [];
-  for (const list of rows.values()) {
-    for (const r of list || []) {
-      if (!r || !r.k || !r.p) continue;
-      const arms = [];
-      for (const a of r.a || []) {
-        const [gid, idx, d, rule, stop, enters] = a;
-        const e = roads && roads.get(gid);
-        if (!e || !e.obj) continue;
-        arms.push({ road: e.obj, idx, d, ux: 0, uy: 0, rank: roadPriority(e.obj), enter: !!enters,
-          rule: RULES[rule] || 'free', stop: Math.min(16, Math.max(3, stop || 3)) });
-      }
-      if (!arms.length) continue;
-      out.push({ key: r.k, x: r.p[0][0], y: r.p[0][1], control: r.c || 'equal', arms });
-    }
-  }
+  for (const list of rows.values()) for (const n of (roads ? tileListNodes(list, roads) : [])) out.push(n);
   return out;
 }
 

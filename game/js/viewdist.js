@@ -5,17 +5,29 @@
 export const VIEW_DISTANCES = { kort: 150, normaal: 350, ver: 600, heelver: 900 };
 export const DRAW_DISTANCE_LABELS = { kort: 'kort', normaal: 'normaal', ver: 'ver', heelver: 'heel ver' };
 
-// The view distance in use. 'heel ver' drops back to 'ver' only when the CPU cannot keep up (cpuLevel 2 or more); a lower render scale
-// (GPU-bound) keeps the view: Ultra stays Ultra and the resolution takes the hit (decision 23-11).
-export function viewDistanceFor(setting, scale = 1, cpuLvl = 0) {
+// The view distance in use. 'heel ver' (Ultra) drops back to 'ver' only in the city (ctx 'stad'), and only when the render scale can no
+// longer save it: the CPU cannot keep up (cpuLevel 2 or more) or the resolution is already at its floor (VIEW_FALLBACK_SCALE). In the air
+// and on the water (ctx 'lucht', 'water') Ultra keeps its view (decision 24-11). Hysteresis: cpuLevel and the scale have their own
+// (gfxprofile.js), the context has it in viewContext below.
+export const VIEW_FALLBACK_SCALE = 0.6;
+export function viewDistanceFor(setting, scale = 1, cpuLvl = 0, ctx = 'stad') {
   // cpuLevel 3 (a machine that cannot even carry level 2, scripts/perf/zwak.mjs): the shortest view
   if (cpuLvl >= 3) return VIEW_DISTANCES.kort;
-  // 'heel ver' zakt alleen naar 'ver' als de CPU het echt niet bijhoudt (cpuLevel 2+): een lagere renderschaal helpt daar niet. Tot 23-11
-  // gaf al 90% renderschaal 'ver', zodat Ultra onder belasting stil een Hoog werd.
-  if (setting === 'heelver' && cpuLvl >= 2) setting = 'ver';
+  // 'heel ver' zakt alleen in de stad naar 'ver', en pas als de renderschaal het niet meer redt. Tot 23-11 gaf al 90% renderschaal 'ver',
+  // zodat Ultra onder belasting stil een Hoog werd.
+  if (setting === 'heelver' && ctx === 'stad' && (cpuLvl >= 2 || scale <= VIEW_FALLBACK_SCALE)) setting = 'ver';
   return VIEW_DISTANCES[setting] || VIEW_DISTANCES.normaal;
 }
 
+// Waar de camera is, voor viewDistanceFor: 'lucht' (hoog boven de grond), 'water' (op een boot) of 'stad'. Met hysterese op de hoogte:
+// pas boven enterM 'lucht', pas onder leaveM weer 'stad', zodat een helikopter op 40 m niet heen en weer wisselt.
+export const VIEW_CTX = { enterM: 45, leaveM: 30 };
+export function viewContext(prev, camHeight, onBoat, p = VIEW_CTX) {
+  if (onBoat) return 'water';
+  if (camHeight > p.enterM) return 'lucht';
+  if (prev === 'lucht' && camHeight > p.leaveM) return 'lucht';
+  return 'stad';
+}
 // Mist (Hoog en Ultra): zachte atmosferische diepte in plaats van een muur. De mist begint op minstens FOG_NEAR_SHARE van de
 // zichtafstand (op 'kort' liep hij van 63 tot 153 m: een muur die het landschap wegsnijdt) en is dicht op de zichtafstand zelf.
 // Puur, zodat scripts/viewdist_test.mjs de reeks per stand narekent. drawDist: de detailring (DRAW_DIST in scene3d.js).

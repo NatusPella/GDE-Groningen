@@ -63,5 +63,16 @@ ok(verFog.near >= 240, `Hoog (ver): de mist begint pas op ${verFog.near} m (was 
 const ultraFog = V.fogRange(V.VIEW_DISTANCES.heelver, V.detailDistanceFor('hoog', V.VIEW_DISTANCES.heelver, 0));
 ok(ultraFog.near >= 360, `Ultra (heel ver): de mist begint pas op ${ultraFog.near} m (was 263 m)`);
 
+// Ultra valt alleen in de stad terug, en pas als de renderschaal het niet meer redt (24-11); in de lucht en op het water nooit
+ok(V.viewDistanceFor('heelver', 0.8, 1, 'stad') === 900, 'stad: 80% renderschaal redt het nog: 900 m');
+ok(V.viewDistanceFor('heelver', V.VIEW_FALLBACK_SCALE, 1, 'stad') === 600, 'stad: renderschaal op de bodem: 600 m');
+ok(V.viewDistanceFor('heelver', 1, 2, 'stad') === 600, 'stad: de CPU houdt het niet bij: 600 m');
+for (const ctx of ['lucht', 'water']) ok(V.viewDistanceFor('heelver', 0.5, 2, ctx) === 900, `${ctx}: Ultra blijft 900 m`);
+ok(V.viewDistanceFor('heelver', 0.5, 3, 'lucht') === 150, 'cpuLevel 3 blijft de noodstand, overal');
+// de context, met hysterese op de hoogte
+ok(V.viewContext('stad', 40, false) === 'stad' && V.viewContext('stad', 46, false) === 'lucht', 'pas boven 45 m in de lucht');
+ok(V.viewContext('lucht', 35, false) === 'lucht' && V.viewContext('lucht', 29, false) === 'stad', 'pas onder 30 m weer de stad (geen heen en weer)');
+ok(V.viewContext('lucht', 200, true) === 'water', 'op een boot: water');
+
 if (fails) { console.log(fails + ' failed'); process.exit(1); }
 console.log('viewdist: all passed');
