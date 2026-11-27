@@ -93,7 +93,8 @@ export function schipInZicht(world, v) {
 let timer = 0;
 // env: { spawnBoatOnWater, isShip } uit vehicle.js (main.js geeft ze mee)
 export function manageSeaShips(world, dt, env, rng = Math.random) {
-  const { map, player, vehicles } = world || {};
+  const { map, vehicles } = world || {};
+  const player = world ? hoofdspeler(world) : null;
   if (!world || !player || !map || !env || world.paused) return;
   timer -= dt;
   if (timer > 0) return;

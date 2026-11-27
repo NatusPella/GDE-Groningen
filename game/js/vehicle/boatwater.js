@@ -126,7 +126,8 @@ export function bargesPerWater(vehicles) {
 // meerdere frames en een boot komt zodra er punten zijn. Een test of audit die dezelfde plekken voor dezelfde seed wil, geeft Infinity:
 // dan is de scan af voordat er gekozen wordt en hangt de keuze niet van de klok af (boot_spawn_test).
 export function manageBoatPopulation(world, { target = 4, spawnMin = 20, spawnMax = 180, despawnDist = 260, budget = 3 } = {}) {
-  const { map, player, vehicles } = world;
+  const { map, vehicles } = world;
+  const player = hoofdspeler(world);
   for (let i = vehicles.length - 1; i >= 0; i--) {
     const v = vehicles[i];
     // your own boat at the jetty is home.js's to stash, not ours to sweep away

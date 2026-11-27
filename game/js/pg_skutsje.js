@@ -392,7 +392,7 @@ export const SKUTSJE = {
     if (d.jv) removeBoat(w, d.jv);
     if (d.boat) {
       d.boat.sailTop = 4.5;
-      if (w.player.inVehicle === d.boat) leftover = d.boat;
+      if (hoofdspeler(w)?.inVehicle === d.boat) leftover = d.boat;
       else removeBoat(w, d.boat);
     }
   },
@@ -401,7 +401,7 @@ export const SKUTSJE = {
     if (finishBeeld && finishBeeldWeg(finishBeeld, world, world.time, !!leftover)) zeg(ruimFinishBeeld);
     else if (finishBeeld && finishBeeld.crowd) zeg(() => updateCrowd(finishBeeld.crowd, world.dt || 0.016, leftover, leftover));
     if (!leftover) return;
-    if (world.player.inVehicle === leftover) animateSkutsjeRig(leftover, 0.5, underBridgeAhead(world.map, leftover) ? 1 : 0, world.time);
+    if (hoofdspeler(world)?.inVehicle === leftover) animateSkutsjeRig(leftover, 0.5, underBridgeAhead(world.map, leftover) ? 1 : 0, world.time);
     else if (Math.hypot(leftover.x - hoofdspeler(world).x, leftover.y - hoofdspeler(world).y) > 120) { removeBoat(world, leftover); leftover = null; }
   },
   debugWin(run) {

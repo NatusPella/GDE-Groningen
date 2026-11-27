@@ -33,7 +33,8 @@ export function busVan(world, slot) {
 // Wie zit er nu aan boord (slots van medespelers, plus de gastheer als hij erin zit).
 export function aanBoord(world, bus) {
   const uit = [];
-  if (world.player && world.player.inVehicle === bus) uit.push(0);
+  const hp = hoofdspeler(world);
+  if (hp && hp.inVehicle === bus) uit.push(0);
   for (const f of Object.values(world.coopFigures || {})) if (f && f.slot >= 1 && f.inVeh === bus) uit.push(f.slot);
   return uit;
 }
@@ -46,7 +47,7 @@ export function busCoopStart(world, bus, eerstInstappers = 0) {
   const n = world.coopNet;
   const bc = maakBusCoop(n && n.sessieId ? n.sessieId : 's');
   const boord = aanBoord(world, bus);
-  const chauffeur = world.player && world.player.inVehicle === bus ? 0 : (boord.find((s) => s !== 0) ?? 0);
+  const chauffeur = hoofdspeler(world) && hoofdspeler(world).inVehicle === bus ? 0 : (boord.find((s) => s !== 0) ?? 0);
   startDienst(bc, { chauffeur, aanboord: boord });
   nieuweHalte(bc, eerstInstappers);
   Object.defineProperty(bed, 'coop', { value: bc, writable: true, configurable: true, enumerable: false });

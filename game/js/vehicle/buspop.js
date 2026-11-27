@@ -6,6 +6,7 @@
 import { linesNear, project as projectOnLine, makeRunner, startAt, busMagWeg } from '../busroutes.js';
 import { closestPointOnSegment, normalizeAngle } from '../util.js';
 import { stuckClearable } from './trafficstuck.js';
+import { hoofdspeler } from '../players.js';
 
 let host = null;
 export function setBusPopHost(h) { host = h; }
@@ -49,7 +50,8 @@ export function detachLiveBus(v) {
 }
 
 export function manageBusPopulation(world, { target = 4, spawnMin = 90, spawnMax = 220, despawnDist = 300 } = {}) {
-  const { map, player, vehicles } = world;
+  const { map, vehicles } = world;
+  const player = hoofdspeler(world);
   // zonder live-bron rijden alle bussen hun eigen dienst: laat het label vallen (#922)
   if (!liveBussen) for (const v of vehicles) if (v.liveId != null) v.liveId = null;
   // echte lijnen (busroutes.js, zodra de lijndata geladen is): een bus begint op zijn lijn en rijdt hem

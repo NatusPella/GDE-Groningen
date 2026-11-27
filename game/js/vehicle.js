@@ -849,7 +849,7 @@ const lokaalTelt = (world, v, player, dist) => !meerFoci(world) || Math.hypot(v.
 const MAX_WRECKS = 12;
 // Welke wrakken weg mogen is de pure regel van wrakopruim.js: de verste van elke speler eerst (#436).
 function pruneWrecks(world) {
-  const { player, vehicles } = world;
+  const { vehicles } = world, player = hoofdspeler(world);
   const foci = meerFoci(world) ? world.coopFoci : [player];
   for (const v of kiesWrakkenVoorOpruimen(vehicles, foci, MAX_WRECKS)) {
     const i = vehicles.indexOf(v);

@@ -873,7 +873,8 @@ function sceneChatter(activeCells) {
 
 // Groups of students cycling together through the centre in daytime.
 function spawnStudentGroup() {
-  const { map, player } = world;
+  const { map } = world;
+  const player = hoofdspeler(world);
   if (dist(player.x, player.y, CITY_CENTRE.x, CITY_CENTRE.y) > CITY_CENTRE.r + 400 || isNight()) return;
   const bikes = world.vehicles.filter((v) => v.isBike).length;
   if (bikes > 26) return;

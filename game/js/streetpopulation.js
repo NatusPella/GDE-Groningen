@@ -16,7 +16,8 @@ export const PED_TARGET = 45;
 // over budget on a CPU-bound machine: the farthest ordinary cars and
 // cyclists out of sight go first (simload.js)
 export function thinTraffic(world) {
-  const { player, vehicles } = world;
+  const { vehicles } = world;
+  const player = hoofdspeler(world);
   const tf = trafficFactor(); // #1169: Verkeersdrukte per save (Standaard: 1)
   const want = { car: Math.round(scaledTarget(30) * MODS.cars * tf), bike: Math.round(scaledTarget(16) * MODS.bikes * tf), scooter: Math.round(scaledTarget(10) * MODS.scooters * tf) };
   const kindOf = (v) => (v.isBike ? 'bike' : v.isScooter ? 'scooter' : v.isBus || v.isBoat || v.parked || v.wrecked ? null : 'car');

@@ -29,7 +29,7 @@ De bron is [scripts/coop_coverage.json](../scripts/coop_coverage.json); de tabel
 
 <!-- MATRIX:BEGIN (gegenereerd door scripts/coop_coverage_audit.mjs --write; niet met de hand aanpassen) -->
 
-**Samenvatting:** 52 systemen: 49 OK, 0 gat, 2 deels, 1 niet van toepassing. Directe verwijzingen naar world.player (de ratel in scripts/player_singleton_baseline.json): 80 in totaal; kolom e toont ze per systeem (een bestand kan bij twee systemen horen, een deel hoort bij geen systeem: intromontage, dorpsuitjes, main).
+**Samenvatting:** 52 systemen: 49 OK, 0 gat, 2 deels, 1 niet van toepassing. Directe verwijzingen naar world.player (de ratel in scripts/player_singleton_baseline.json): 51 in totaal; kolom e toont ze per systeem (een bestand kan bij twee systemen horen, een deel hoort bij geen systeem: intromontage, dorpsuitjes, main).
 
 | Systeem | a) Bezit | b) Gast | c) Beloning | d) Wegvallen, aansluiten, hostwissel | e) world.player | f) Dekking | Status |
 |---|---|---|---|---|---|---|---|

@@ -4,6 +4,7 @@
 // een eind vóór de boot; de weg is wat er langs het water ligt. Geen weg langs het
 // water binnen COACH_REACH: geen coach.
 import { spawnVehicleOnRoad } from './vehicle.js';
+import { hoofdspeler } from './players.js';
 
 export const COACH_REACH = 22;    // m: een weg verder van de boot dan dit telt niet als oever
 export const COACH_REACH_FAR = 45; // m: tweede poging, voor een oever met een fietspad iets verder weg
@@ -35,7 +36,8 @@ export function coachCruiseScale(boatSpeed, roadSpeed) {
 
 // per tikje (zie main.js, bij manageBoatPopulation)
 export function tickRowingCoaches(world) {
-  const { map, player, vehicles } = world;
+  const { map, vehicles } = world;
+  const player = hoofdspeler(world);
   for (let i = vehicles.length - 1; i >= 0; i--) {
     const c = vehicles[i];
     if (!c.coachOf) continue;

@@ -460,7 +460,8 @@ function waitForStart(world, ready) {
   // START_WARM_MS (a slow machine goes on with a partially warm area).
   const warm = async () => {
     if (!WARM_START) return;
-    const x = world.player.x, y = world.player.y;
+    const hp = hoofdspeler(world);
+    const x = hp.x, y = hp.y;
     const t0 = performance.now();
     setBootStep('buurt', 0);
     prewarmStreamAt(x, y, 240, START_WARM_R);

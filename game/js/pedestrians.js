@@ -350,7 +350,7 @@ const ownedVehicles = new WeakSet();
 const aiDrivenAt = new WeakMap();
 
 function gatherEvents(world) {
-  const { player } = world;
+  const player = hoofdspeler(world);
   const events = [];
   const fx = getCombatEffect();
   if (fx && fx !== lastFx) {
@@ -978,7 +978,8 @@ function hotspotNear(x, y) {
 }
 
 function spawnNightGroup(world) {
-  const { map, player } = world;
+  const { map } = world;
+  const player = hoofdspeler(world);
   const horeca = (map.meta.horeca || []).filter((h) => {
     const d = dist(h.x, h.y, player.x, player.y);
     return d > 25 && d < 95 && NIGHT_HOTSPOTS.some((s) => dist(h.x, h.y, s.x, s.y) < s.r);
@@ -1007,7 +1008,8 @@ function spawnNightGroup(world) {
 // Bij een lopend evenement (#203, world.eventsNow uit evenementenlive.js) komen er
 // groepjes voetgangers bij, tot de menigtedichtheid van dat evenement.
 function spawnEventGroup(world, inEvent) {
-  const { map, player } = world;
+  const { map } = world;
+  const player = hoofdspeler(world);
   for (const ev of world.eventsNow || []) {
     const c = centreOf(ev), dp = dist(c.x, c.y, player.x, player.y);
     if (dp > 260) continue;
@@ -1242,7 +1244,8 @@ function updateCop(ped, world, dPlayer, dt, doel = hoofdspeler(world)) {
 }
 
 export function updatePedestrians(dt, world) {
-  const { map, player } = world;
+  const { map } = world;
+  const player = hoofdspeler(world);
   const peds = world.pedestrians;
   const aiming = isRangedWeapon(world.weapon) && world.input.mouse.down;
 

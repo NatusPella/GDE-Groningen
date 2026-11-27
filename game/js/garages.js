@@ -235,7 +235,8 @@ function serviceable(v) {
 
 // De auto van een meespeler in een garage (#525): standaard die van de hoofdspeler, met een actor de zijne.
 export function garageInside(w, actor = null) {
-  const v = (actor || (w && w.player) || hoofdspeler(w)).inVehicle;
+  const hp = actor || hoofdspeler(w);
+  const v = hp && hp.inVehicle;
   if (!serviceable(v)) return null;
   for (const s of sites) {
     if (Math.abs(s.x - v.x) > 10 || Math.abs(s.y - v.y) > 10) continue;

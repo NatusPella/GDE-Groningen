@@ -50,7 +50,7 @@ const pick = (list) => list[Math.floor(Math.random() * list.length)];
 const initials = (name) => String(name).replace(/\(.*\)/, '').trim().split(/\s+/).map((s) => s[0]).slice(0, 2).join('').toUpperCase();
 
 function buddyName(w) {
-  return w.companion && w.companion.character === 'anita' ? 'Tessa' : w.companion ? 'Tammo' : w.player.character === 'tammo' ? 'Tessa' : 'Tammo';
+  return w.companion && w.companion.character === 'anita' ? 'Tessa' : w.companion ? 'Tammo' : hoofdspeler(w)?.character === 'tammo' ? 'Tessa' : 'Tammo';
 }
 
 function contacts(w) {
@@ -124,7 +124,7 @@ function garageTalk(w) {
   const escapade = lijst.find((x) => x.hero);
   const actions = [];
   let line;
-  if (hero && w.player.inVehicle === hero) line = 'Je zit er nu in, slimmerik. Hoor ik ’m nou rammelen?';
+  if (hero && hoofdspeler(w)?.inVehicle === hero) line = 'Je zit er nu in, slimmerik. Hoor ik ’m nou rammelen?';
   else if (hero) {
     line = 'Je Escapade staat nog netjes waar je ’m liet. Zal ik ’m op je kaart zetten?';
     actions.push({ label: 'Zet op kaart', primary: true, run: () => { setUserWaypoint(hero.x, hero.y, 'Jouw auto'); flashAndClose('Je auto staat op Waarzit'); } });

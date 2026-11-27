@@ -113,7 +113,8 @@ const near = (a, b, m = 0.01) => Math.abs(a - b) <= m;
   const scene = read('scene3d.js');
   ok(/placedRects\.push\(/.test(scene) && /bubblePlace\(scr, [^;]*placedRects\)/.test(scene), '#1198: scene3d geeft de bellen van dit beeld mee');
   ok(/bubblePlace\(scr, \{ w: el\._bw, h: el\._bh \}/.test(scene), '#870: scene3d gebruikt de pure belregel');
-  ok(/el\.style\.fontSize = 'max\(13px, calc\(13px \/ var\(--ui, 1\)\)\)'/.test(scene), '#870: straatpraatbellen houden 13 px op een telefoon');
+  ok(/#hud \.hud-speech-bubble \{[^}]*font-size:\s*max\(13px, calc\(13px \/ var\(--ui, 1\)\)\)/.test(read('hud_panel.css')), '#870: straatpraatbellen houden 13 px op een telefoon');
+  ok(/el\.className = 'hud-speech-bubble'/.test(scene), '#870: de bel krijgt zijn stijl uit hud_panel.css');
   ok(!/el\.style\.left = scr\.x/.test(scene), '#870: geen onbegrensde projectie meer');
   ok(/@media \(max-width: 700px\) \{[\s\S]*?#name-card \{ left: 16px; right: 16px; max-width: calc\(100vw - 32px\); \}/.test(read('namecard.js')), '#870: naamkaart blijft op een telefoon binnen de randen');
 }
