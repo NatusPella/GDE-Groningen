@@ -325,6 +325,11 @@ export function fridgeCooldown(base) {
   return has('frituur') ? FRYER_COOLDOWN : base;
 }
 
+// What the Vetpot would add to the armour (home.js eierbalPlan).
+export function fridgeArmorPlan() {
+  return has('frituur') ? { add: FRYER_ARMOR, cap: FRYER_ARMOR_CAP } : { add: 0, cap: 0 };
+}
+
 // After the fridge eierbal: the Vetpot's crust as armour.
 export function fridgePerk(w) {
   if (!has('frituur') || w.armor >= FRYER_ARMOR_CAP) return false;

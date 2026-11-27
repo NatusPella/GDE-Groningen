@@ -9,6 +9,7 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ## [Unreleased]
 
+- Thuis: Eierbal pakken doet nu iets zichtbaars. Je ziet hoeveel gezondheid en pantser je erbij krijgt. Zit je gezondheid al vol, dan staat er waarom er niets gebeurt (en kost dat niets), en bij de wachttijd staat hoeveel seconden nog. Samen spelen: de eierbal is lokaal, iedereen eet uit zijn eigen vriezer.
 - De game staat nu op de hoofdpagina van de webversie (GitHub Pages); de marketingpagina is weggehaald. De oude link /play/ stuurt door naar de hoofdpagina.
 
 ## [0.66.0] - 2026-11-24

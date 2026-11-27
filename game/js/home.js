@@ -64,7 +64,8 @@ import { makeFlatPlan } from './flatplan.js';
 import { chooseSpawn, chooseFlatSpawn, binnenOpslag, readIndoorSave, makeIndoorWait, tickBinnenWacht, binnenPending } from './spawnbinnen.js';
 import { homeOf, DEFAULT_HOME } from './homebase.js';
 import { getSettings } from './settings.js';
-import { deliverFurniture, furnitureSkip, attachFurniture3D, leaveFurniture, furnitureSolids, furnitureStockSolids, furnitureBedUses, furnitureUses, furnitureFocus, furniturePrompt, useFurniture, updateFurniture, updateFurnitureInside, companionSeat, furnitureSlept, fridgeCooldown, fridgePerk } from './furniture.js';
+import { eierbalPlan } from './eierbal_rules.js';
+import { deliverFurniture, furnitureSkip, attachFurniture3D, leaveFurniture, furnitureSolids, furnitureStockSolids, furnitureBedUses, furnitureUses, furnitureFocus, furniturePrompt, useFurniture, updateFurniture, updateFurnitureInside, companionSeat, furnitureSlept, fridgeCooldown, fridgePerk, fridgeArmorPlan } from './furniture.js';
 import { playerBusy } from './busy.js';
 import { groepAkkoord } from './coopgroep.js';
 import { zetDeelHaken } from './coopbezit.js';
@@ -1117,11 +1118,13 @@ function sleepNu(w, wake, wakeMsg) {
 }
 
 function eatEierbal(w) {
-  if (w.time - fridgeAt < fridgeCooldown(FRIDGE_COOLDOWN)) { w.addMessage('Nog vol van de vorige eierbal. Even laten zakken', 3); return; }
+  const perk = fridgeArmorPlan();
+  const plan = eierbalPlan({ health: w.health, armor: w.armor || 0, now: w.time, lastAt: fridgeAt, cooldown: fridgeCooldown(FRIDGE_COOLDOWN), perkArmor: perk.add, armorCap: perk.cap });
+  if (!plan.eat) { w.addMessage(plan.msg, 3); return; }
   fridgeAt = w.time;
   w.health = 100;
-  if (fridgePerk(w)) w.addMessage('Eierbal door de Vetpot: gezondheid vol en een knapperig pantser erbij', 3.5, { kind: 'tip' });
-  else w.addMessage('Eierbal uit de vriezer, drie minuten in de frituur: helemaal opgeladen', 3.5, { kind: 'tip' });
+  fridgePerk(w);
+  w.addMessage(plan.msg, 3.5, { kind: 'tip' });
 }
 
 // --- "Naar huis" ---------------------------------------------------------------
