@@ -10,6 +10,7 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 ## [Unreleased]
 
 - De game staat nu op de hoofdpagina van de webversie (GitHub Pages); de marketingpagina is weggehaald. De oude link /play/ stuurt door naar de hoofdpagina.
+- Even pinnen: je rijdt nu in een bestelbus met de pinautomaat op een aanhanger erachter (die zwenkt mee door de bocht), en de pijl bij "rij een garage in" wijst naar de deur aan de straatkant in plaats van dwars door de muur. Samen spelen: de aanhanger is beeld van het spel dat de opdracht draait; een gast ziet hem nog niet, stappen, beloning en voortgang hangen er niet van af.
 
 ## [0.66.0] - 2026-11-24
 

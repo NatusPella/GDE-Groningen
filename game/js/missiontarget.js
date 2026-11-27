@@ -5,7 +5,8 @@
 // binnen (zoals missiongates.js), zodat er geen cyclus terug naar missions.js is.
 import { dist, pointInPolygon, isInWater } from './util.js';
 import { wgsToWorld } from './rdnew.js';
-import { getGaragesForRender } from './garages.js';
+import { getGaragesForRender, GARAGE_BAY_DEPTH } from './garages.js';
+import { doorPoint } from './garageguide.js';
 import { getPigeonSpotsForRender } from './pigeonspots.js';
 import { helipadById } from './heliflight.js';
 import { getHeliSpotsForRender } from './helirun.js';
@@ -75,7 +76,7 @@ export function createMissionTargets({ state: chainState, nearestShopOf }) {
         const d = dist(g.x, g.y, from.x, from.y);
         if (d < bd) { bd = d; best = g; }
       }
-      return best ? { x: best.x, y: best.y, name: best.name, label: spec.label || best.name } : null;
+      return best ? { x: best.x, y: best.y, door: doorPoint(best, GARAGE_BAY_DEPTH), name: best.name, label: spec.label || best.name } : null;
     }
     if (spec.landmark) {
       const lm = (map.meta.landmarks || []).find((l) => l.name === spec.landmark);

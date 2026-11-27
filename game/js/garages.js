@@ -57,6 +57,9 @@ export function getGaragesForRender() {
   return sites;
 }
 
+// De diepte van een box (garageguide.js legt de deurmarkering van een opdracht aan de straatkant).
+export const GARAGE_BAY_DEPTH = BAY_D;
+
 function wijkAt(map, x, y) {
   let best = '', bd = Infinity;
   for (const h of map.meta.neighbourhoodPoints || []) {
