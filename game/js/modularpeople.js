@@ -327,6 +327,50 @@ function capGeometry(face, kind, P, C, SI, SW, I, v0, i0, col, headBone) {
   return { v: v0, i: i0 };
 }
 
+// Haar dat het pack niet heeft (#1351): een paardenstaart, vlecht, twee staartjes of een knot, als buis van TAIL_N ringen op het
+// hoofdbot (dus ook op LOD 1 en 2 en in cutscenes). Onder een pet komt het onder de achterrand uit. Maten uit de gezichtspunten.
+const TAIL_N = 7, TAIL_SIDES = 6, TAIL_V = TAIL_N * TAIL_SIDES + 1, TAIL_I = ((TAIL_N - 1) * TAIL_SIDES * 2 + TAIL_SIDES) * 3;
+export const TAIL_STYLES = new Set(['ponytail', 'braid', 'pigtails', 'bun']);
+function tailGeometry(face, look, P, C, SI, SW, I, v0, i0, col, headBone) {
+  const cf = capFrame(face, look.cap || 'none'), capped = !!look.cap;
+  const style = look.tail, rear = cf.cx - cf.rx * 1.02, mid = cf.zc;
+  const pigtails = style === 'pigtails';
+  const darker = [col[0] * 0.62, col[1] * 0.62, col[2] * 0.62];
+  for (let t = 0; t < (pigtails ? 2 : 1); t++) {
+    const side = pigtails ? (t ? 1 : -1) : 0;
+    // begin (aan het hoofd), lengte, richting en dikte per stijl
+    let x0 = rear, y0, z0 = mid + side * cf.rz * 0.78, len, r0, sway = 0;
+    if (style === 'ponytail') { y0 = capped ? cf.cy - 0.03 : cf.cy + 0.05; len = 0.32; r0 = 0.042; }
+    else if (style === 'braid') { y0 = capped ? cf.cy - 0.03 : cf.cy - 0.015; len = 0.36; r0 = 0.027; sway = 0.012; }
+    else if (pigtails) { x0 = cf.cx - cf.rx * 0.2; y0 = capped ? cf.cy - 0.04 : cf.cy + 0.02; len = 0.22; r0 = 0.03; }
+    else { y0 = capped ? cf.cy - 0.04 : cf.cy + 0.1; len = 0.0; r0 = 0.05; }   // knot
+    const base = v0;
+    for (let k = 0; k < TAIL_N; k++) {
+      const u = k / (TAIL_N - 1);
+      let cx, cy, cz, r;
+      if (style === 'bun') { cx = x0 - 0.04; cy = y0 - 0.06 + 0.12 * u; cz = z0; r = r0 * Math.sin(Math.min(1, u * 1.1 + 0.05) * Math.PI) + 0.004; }
+      else { cx = x0 - 0.04 * Math.sin(u * Math.PI * 0.5) - (pigtails ? 0 : 0.02 * u); cy = y0 - len * u; cz = z0 + side * 0.012 * u + (style === 'braid' ? sway * Math.sin(u * 14) : 0); r = r0 * (1 - 0.7 * u * u) + 0.004; }
+      const dark = style === 'braid' && k % 2 ? darker : style === 'pigtails' || style === 'ponytail' ? (k === 0 ? darker : col) : col;
+      for (let s = 0; s < TAIL_SIDES; s++) {
+        const a = (s / TAIL_SIDES) * Math.PI * 2;
+        const i = v0++;
+        P[i * 3] = cx + Math.cos(a) * r * 0.9; P[i * 3 + 1] = cy; P[i * 3 + 2] = cz + Math.sin(a) * r;
+        C[i * 3] = dark[0]; C[i * 3 + 1] = dark[1]; C[i * 3 + 2] = dark[2]; SI[i * 4] = headBone; SW[i * 4] = 255;
+      }
+    }
+    const tip = v0++;
+    const endY = style === 'bun' ? y0 + 0.06 : y0 - len - 0.012;
+    P[tip * 3] = x0 - (style === 'bun' ? 0.04 : 0.06); P[tip * 3 + 1] = endY; P[tip * 3 + 2] = z0 + side * 0.012;
+    C[tip * 3] = darker[0]; C[tip * 3 + 1] = darker[1]; C[tip * 3 + 2] = darker[2]; SI[tip * 4] = headBone; SW[tip * 4] = 255;
+    for (let k = 0; k < TAIL_N - 1; k++) for (let s = 0; s < TAIL_SIDES; s++) {
+      const a = base + k * TAIL_SIDES + s, b = base + k * TAIL_SIDES + ((s + 1) % TAIL_SIDES), c = a + TAIL_SIDES, d = b + TAIL_SIDES;
+      I[i0++] = a; I[i0++] = c; I[i0++] = b; I[i0++] = b; I[i0++] = c; I[i0++] = d;
+    }
+    for (let s = 0; s < TAIL_SIDES; s++) { I[i0++] = base + (TAIL_N - 1) * TAIL_SIDES + s; I[i0++] = tip; I[i0++] = base + (TAIL_N - 1) * TAIL_SIDES + ((s + 1) % TAIL_SIDES); }
+  }
+  return { v: v0, i: i0 };
+}
+
 // Een kledingdeel (modularwear.js) voor deze look: botten in rust, het kader van de kruin, en het profiel van het lijf uit de delen van
 // de look (LOD 0), zodat een band om de arm of de heup precies op de stof ligt. Per rig, deel en combinatie van delen bewaard.
 function wearFor(rig, look, face, id) {
@@ -381,7 +425,7 @@ export function resetModularGeoBudget() { geoBuildSpent = 0; geoBudgetOn = true;
 function geoCached(rig, look, lod, grip) { return !!rig.geoCache.get(geoKey(look, lod, !!(grip && lod === 0 && rig.grip))); }
 function geoKey(look, lod, grip) {
   const wearIds = look.wear && look.wear.length && lod < 2 ? look.wear : null;
-  return `${lod}${grip ? 'g' : ''}|${wearIds ? wearIds.join('+') : ''}|${look.mood || ''}|${look.cap || ''}|${look.capColor || ''}|${look.kit ? JSON.stringify(look.kit) : ''}${look.wearParams ? JSON.stringify(look.wearParams) : ''}|${look.parts.hoofd}|${look.parts.romp}|${look.parts.benen}|${look.parts.voeten}|${look.skin}|${look.shirt}|${look.hair}|${look.pants}|${look.shoes ?? ''}|${Math.floor(hashf(look.seed, 3) * 8)}`;
+  return `${lod}${grip ? 'g' : ''}|${wearIds ? wearIds.join('+') : ''}|${look.mood || ''}|${look.cap || ''}|${look.capColor || ''}|${look.tail || ''}|${look.kit ? JSON.stringify(look.kit) : ''}${look.wearParams ? JSON.stringify(look.wearParams) : ''}|${look.parts.hoofd}|${look.parts.romp}|${look.parts.benen}|${look.parts.voeten}|${look.skin}|${look.shirt}|${look.hair}|${look.pants}|${look.shoes ?? ''}|${Math.floor(hashf(look.seed, 3) * 8)}`;
 }
 function geometryFor(rig, look, lod = 0, grip = false) {
   grip = !!(grip && lod === 0 && rig.grip);   // de LOD's houden een open hand (vanaf 25 m zie je geen vingers)
@@ -396,8 +440,9 @@ function geometryFor(rig, look, lod = 0, grip = false) {
   // de eenvoudige pet alleen als er geen kledingdeel voor het hoofd is (de politiepet komt uit modularwear.js)
   const wear = wearIds && face ? wearIds.map((id) => wearFor(rig, look, face, id)).filter(Boolean) : [];
   const capOn = !!(face && look.cap) && !wear.some((w) => w.id === 'politiepet');
+  const tails = face && look.tail ? (look.tail === 'pigtails' ? 2 : 1) : 0;   // staart, vlecht, staartjes of knot (haar dat het pack niet heeft, #1351)
   const moodOn = !!(face && lod < 2);   // mond en wenkbrauwen van de uitdrukking (vanaf 25 m niet meer te zien)
-  const FV = (face ? 12 : 0) + (moodOn ? MOOD_V : 0) + (capOn ? CAP_V : 0) + wear.reduce((a, w) => a + w.pos.length / 3, 0), FI = (face ? 18 : 0) + (moodOn ? MOOD_I : 0) + (capOn ? CAP_I : 0) + wear.reduce((a, w) => a + w.idx.length, 0);
+  const FV = (face ? 12 : 0) + (moodOn ? MOOD_V : 0) + (capOn ? CAP_V : 0) + tails * TAIL_V + wear.reduce((a, w) => a + w.pos.length / 3, 0), FI = (face ? 18 : 0) + (moodOn ? MOOD_I : 0) + (capOn ? CAP_I : 0) + tails * TAIL_I + wear.reduce((a, w) => a + w.idx.length, 0);
   const nV = parts.reduce((s, p) => s + p.vCount, 0) + FV, nI = parts.reduce((s, p) => s + p.iCount, 0) + FI;
   const P = new Float32Array(nV * 3), C = new Float32Array(nV * 3), SI = new Uint8Array(nV * 4), SW = new Uint8Array(nV * 4);
   const I = nV < 65536 ? new Uint16Array(nI) : new Uint32Array(nI);
@@ -447,6 +492,11 @@ function geometryFor(rig, look, lod = 0, grip = false) {
     if (capOn) {
       _base.setHex(look.capColor ?? 0x2b2f36);
       const res = capGeometry(face, look.cap, P, C, SI, SW, I, v0, i0, [_base.r, _base.g, _base.b], rig.man.bones.findIndex((b) => b.name === 'Head'));
+      v0 = res.v; i0 = res.i;
+    }
+    if (tails) {
+      _base.setHex(look.hair ?? 0x3b2a1e);
+      const res = tailGeometry(face, look, P, C, SI, SW, I, v0, i0, [_base.r, _base.g, _base.b], rig.man.bones.findIndex((b) => b.name === 'Head'));
       v0 = res.v; i0 = res.i;
     }
     // kledingdelen uit het register (modularwear.js): elk deel aan zijn eigen bot

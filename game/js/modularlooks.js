@@ -32,6 +32,8 @@ export const PART_MAP = {
   },
 };
 // Hoeden die als pet op het hoofd komen (modularpeople.js bouwt een lage koepel met klep op het hoofdbot).
+// Kapsels die het pack niet als hoofd heeft: ze komen als staart, vlecht of knot op het hoofdbot (modularpeople.js tailGeometry).
+const TAIL_KINDS = new Set(['ponytail', 'braid', 'pigtails', 'bun']);
 const CAPS = new Set(['cap', 'tammo', 'beanie', 'flatcap', 'police']);
 // het blauw van het uniform (zelfde tint als models3d_people.js COP_NAVY)
 export const COP_NAVY = 0x1d2433;
@@ -100,7 +102,7 @@ export function lookFromAppearance(a, partIds) {
     skin: skinColor ?? 0xd9a47a, shirt: cop ? COP_NAVY : L.topColor ?? a.shirt ?? null, hair: a.vary && L.age === 'old' ? OLD_HAIR[Math.floor(hashf(a.seed ?? 1, 20) * OLD_HAIR.length)] : hairColor ?? 0x3b2a1e, pants: cop ? COP_NAVY : a.pants ?? 0x2f3b52,
     wear: cop ? ['politiepet', 'politieuniform'] : extras.length ? extras : null, kit, wearParams: cop ? null : wearParams,
     shoes: a.shoes ?? null,   // schoenkleur uit de kleding (clothing.js outfitToLook), op het voetdeel
-    cap: CAPS.has(hat) ? hat : null, capColor: hat === 'tammo' ? (a.cap ?? L.capColor ?? 0xc8621e) : (L.hatColor ?? L.capColor ?? 0x2b2f36),
+    tail: TAIL_KINDS.has(hairStyle) ? hairStyle : null, cap: CAPS.has(hat) ? hat : null, capColor: hat === 'tammo' ? (a.cap ?? L.capColor ?? 0xc8621e) : (L.hatColor ?? L.capColor ?? 0x2b2f36),
     old: L.age === 'old', child: L.age === 'child', scale: null, body: a.body || null, mood, face: faceScale,
   };
 }
