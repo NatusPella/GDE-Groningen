@@ -22,6 +22,7 @@ function sharedMaterial(m) {
   if (!s) {
     s = m.clone();
     s.userData = { shared: true };
+    s.visible = true; // de LOD zet material.visible van een wiel op afstand uit en clone() erft dat: het gedeelde materiaal blijft altijd aan (#1340, #1337)
     sharedMats.set(k, s);
   }
   return s;
@@ -86,7 +87,7 @@ export function addVehicleWheels(group, frustum = null) {
   for (const w of wheels) {
     const m = w.material;
     if (!w.isMesh || Array.isArray(m) || m.transparent || !w.parent) { w.layers.set(0); continue; }
-    let vis = ok && w.visible;
+    let vis = ok && w.visible && m.visible; // m.visible: de LOD van het voertuig (vehiclelod3d.js) verbergt de losse wielen op afstand, het niveau heeft eigen wielen
     for (let a = w.parent; vis && a && a !== group; a = a.parent) vis = a.visible;
     w.layers.set(HIDDEN_LAYER);
     if (!vis) continue;
