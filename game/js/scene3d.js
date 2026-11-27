@@ -2818,21 +2818,8 @@ function projectToScreen(x, y, z, vw, vh) {
 
 function speechBubbleEl() {
   const el = document.createElement('div');
-  el.style.position = 'absolute';
-  el.style.left = '0';
-  el.style.top = '0';
+  el.className = 'hud-speech-bubble';
   el.style.transform = bubbleTransform(0, 0);
-  el.style.background = 'color-mix(in srgb, var(--ds-c-creme) 92%, transparent)';
-  el.style.border = '1px solid color-mix(in srgb, var(--ds-c-glas) 60%, transparent)';
-  el.style.borderRadius = '8px';
-  el.style.padding = '3px 9px';
-  el.style.color = 'var(--ds-c-inkt)';
-  el.style.font = 'bold 13px "Arial Narrow", Arial, sans-serif';
-  // #868/#870: de bel hangt in de gezoomde HUD; op een telefoon werd 13 px daar
-  // 8,7 px. Dezelfde 12px-vloer als de rest van de HUD-tekst.
-  el.style.fontSize = 'max(13px, calc(13px / var(--ui, 1)))';
-  el.style.whiteSpace = 'nowrap';
-  el.style.pointerEvents = 'none';
   billboardRoot.appendChild(el);
   return el;
 }

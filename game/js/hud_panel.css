@@ -897,3 +897,20 @@ body.cine-hide-hud #story-skip { display: none; }
 #hud .hud-gps.is-air.wissel { animation: gps-wissel var(--ds-m-lang) var(--ds-m-uit); }
 @keyframes gps-wissel { from { opacity: 0.6; transform: translateY(-4px); } }
 @media (prefers-reduced-motion: reduce) { #hud .hud-gps.is-air.wissel { animation: none; } #hud .hud-gps.is-air .gps-arrow { transition: none; } }
+
+/* Tekstballon boven een 3D-spreker (scene3d.js syncSpeechBubbles, #502): papier met inktrand op #hud, alleen designsysteem-tokens */
+#hud .hud-speech-bubble {
+  position: absolute;
+  left: 0;
+  top: 0;
+  background: color-mix(in srgb, var(--ds-c-creme) 92%, transparent);
+  border: 1px solid color-mix(in srgb, var(--ds-c-glas) 60%, transparent);
+  border-radius: 8px;
+  padding: 3px 9px;
+  color: var(--ds-c-inkt);
+  font: bold 13px "Arial Narrow", Arial, sans-serif;
+  /* #868/#870: de bel hangt in de gezoomde HUD; op een telefoon werd 13 px daar 8,7 px. Dezelfde 12px-vloer als de rest van de HUD-tekst. */
+  font-size: max(13px, calc(13px / var(--ui, 1)));
+  white-space: nowrap;
+  pointer-events: none;
+}
