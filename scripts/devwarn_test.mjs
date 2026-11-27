@@ -27,6 +27,11 @@ try {
   ok(devWarn('test:on', new Error('tweede'), true) === true, 'andere melding in dezelfde scope logt wel');
   ok(devWarn('test:other', new Error('tweede'), true) === true, 'dezelfde melding in andere scope logt wel');
   ok(calls.length === 3, 'totaal drie unieke waarschuwingen gelogd');
+
+  for (let i = 0; i < 200; i++) devWarn('test:fifo', new Error(`msg-${i}`), true);
+  const callsAfterFill = calls.length;
+  ok(devWarn('test:fifo', new Error('msg-190'), true) === false, 'recente sleutel blijft gededupliceerd na FIFO-eviction');
+  ok(calls.length === callsAfterFill, 'geen extra console.warn voor recente sleutel');
 } finally {
   console.warn = origWarn;
 }

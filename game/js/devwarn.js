@@ -11,7 +11,7 @@ export function devWarn(scope, err, active = DEV && !STORY_TEST && !AUTOPLAY) {
   const detail = err && typeof err === 'object' && 'message' in err ? String(err.message) : String(err ?? '');
   const key = `${scope}:${detail}`;
   if (seen.has(key)) return false;
-  if (seen.size >= MAX_SEEN) seen.clear();
+  if (seen.size >= MAX_SEEN) seen.delete(seen.values().next().value);
   seen.add(key);
   if (typeof console !== 'undefined' && typeof console.warn === 'function') {
     console.warn(`[dev:${scope}]`, err);

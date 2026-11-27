@@ -39,6 +39,7 @@ ok(/^"[0-9a-f]{64}"$/.test(g1.etag), 'immutableKey geeft 64-hex ETag zonder buff
 ok(g1.etag !== g2.etag, 'andere immutableKey geeft andere ETag');
 ok(cache.size === 2, 'validatorcache bewaart berekende headers', String(cache.size));
 ok(cacheHeaders(stat, { 'if-none-match': g1.etag }, null, { immutableKey: '0.64.0:js/main.js', cache }).fresh, 'matching immutableKey + ETag: 304 via cache');
+ok(cacheHeaders(null, { 'if-none-match': g1.etag }, null, { immutableKey: '0.64.0:js/main.js', cache }).fresh, 'warme validatorcache geeft 304 zonder stat');
 console.log('#657/#774 meting: 1 leesactie per bestand bij de eerste start; daarna een 304, en de ETag verandert ook als alleen de inhoud wijzigt');
 const src = fs.readFileSync(new URL('../desktop/main.js', import.meta.url), 'utf8');
 ok(/cacheHeaders\(st,/.test(src) && /status: 304/.test(src), 'de app-handler valideert');

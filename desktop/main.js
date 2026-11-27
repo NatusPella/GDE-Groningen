@@ -98,13 +98,13 @@ async function serve(request) {
     // botsing op grootte en mtime geen stale data geeft. Een byte-range leest
     // daarvoor niet eerst het hele mediabestand; daar blijft de validator op
     // grootte + mtime.
-    const st = await fs.stat(file);
     const reqHeaders = { 'if-none-match': request.headers.get('if-none-match'), 'if-modified-since': request.headers.get('if-modified-since') };
     // In een gepackagede build zijn de gamestatic-bestanden onveranderlijk binnen de sessie:
-    // valideer eerst zonder fs.readFile zodat 304-antwoorden geen onnodige schijf-I/O doen.
+    // valideer eerst zonder fs.readFile en bij een warme cache-hit ook zonder fs.stat.
     const cacheOpts = !wantedRange && app.isPackaged
       ? { immutableKey: `${app.getVersion()}:${path.relative(GAME_DIR, file)}`, cache: packagedValidatorCache }
       : null;
+    const st = cacheOpts && packagedValidatorCache.has(cacheOpts.immutableKey) ? null : await fs.stat(file);
     const body = wantedRange || cacheOpts ? null : await fs.readFile(file);
     const cc = cacheHeaders(st, reqHeaders, body, cacheOpts);
     const validators = { etag: cc.etag, 'last-modified': cc.lastModified, 'cache-control': cc.cacheControl };

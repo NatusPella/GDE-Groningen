@@ -2806,14 +2806,14 @@ function syncPedestrianMeshes(world, player, animDt, fadeDt = animDt) {
 // screen space every frame from the same THREE.Camera the world renders
 // through - the standard cheap "billboard" trick for a handful of labels.
 const _projVec = new THREE.Vector3();
+const _scr = { x: 0, y: 0 };
 // vw/vh: the viewport in HUD px, read once per frame by the caller (clientWidth after a style write forces a layout)
 function projectToScreen(x, y, z, vw, vh) {
   _projVec.set(x, y, z).project(cam);
   if (_projVec.z > 1) return null; // behind the camera
-  return {
-    x: (_projVec.x * 0.5 + 0.5) * vw,
-    y: (1 - (_projVec.y * 0.5 + 0.5)) * vh,
-  };
+  _scr.x = (_projVec.x * 0.5 + 0.5) * vw;
+  _scr.y = (1 - (_projVec.y * 0.5 + 0.5)) * vh;
+  return _scr; // gedeeld object: de aanroeper gebruikt het binnen dezelfde lus en bewaart het niet
 }
 
 function speechBubbleEl() {
