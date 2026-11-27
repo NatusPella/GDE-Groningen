@@ -908,7 +908,8 @@ body.cine-hide-hud #story-skip { display: none; }
   border-radius: 8px;
   padding: 3px 9px;
   color: var(--ds-c-inkt);
-  font: bold 13px "Arial Narrow", Arial, sans-serif;
+  font-family: var(--ds-font-zeef-kop);
+  font-weight: 700;
   /* #868/#870: de bel hangt in de gezoomde HUD; op een telefoon werd 13 px daar 8,7 px. Dezelfde 12px-vloer als de rest van de HUD-tekst. */
   font-size: max(13px, calc(13px / var(--ui, 1)));
   white-space: nowrap;
