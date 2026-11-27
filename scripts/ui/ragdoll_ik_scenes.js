@@ -139,7 +139,29 @@ await (async () => {
     }
 
     if (SET === 'ik') {
-      note('ik', 'nog niet');
+      const THREE = await import('https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js');
+      const mat = new THREE.MeshLambertMaterial({ color: 0xb9b2a4 });
+      const objs = [];
+      // een trap van 4 treden (18 cm hoog, 45 cm diep) en een helling van 20 graden, naast elkaar langs de z-as
+      const stair = (x, y) => Math.max(0, Math.min(4, Math.floor((x - (X0 + 0.5)) / 0.45) + 1)) * 0.18;
+      for (let k = 1; k <= 4; k++) { const b = new THREE.Mesh(new THREE.BoxGeometry(0.45 * (5 - k) + 0.5, 0.18 * k, 1.6), mat); const [wx, wy, wz] = wereld(X0 + 0.5 + 0.45 * (k - 1) + (0.45 * (5 - k) + 0.5) / 2 - 0.05, Y0, Z0); b.position.set(wx, wy + 0.09 * k, wz); scene.add(b); objs.push(b); }
+      const people = [];
+      const mk = (seed, female, x, ang, clip, u) => { const m = MP.buildModularPerson(seed, { variant: female ? 'female' : 'male' }); const [wx, wy, wz] = wereld(x, Y0, Z0); m.position.set(wx, wy, wz); m.rotation.y = -ang; scene.add(m); MP.setModularLod(m, 0); MP.poseModularClip(m, clip, u); people.push(m); return m; };
+      const voeten = (m, f) => { m.updateMatrixWorld(true); MP.plantFeetModular(m, (x, z) => f(x, z), 1); };
+      const geen = mk(21, false, X0 - 0.4, 0, 'Walk', 0.1);
+      const opTrap = [mk(22, false, X0 + 0.7, 0, 'Walk', 0.1), mk(23, true, X0 + 1.6, 0, 'Walk', 0.35)];
+      const metIK = [opTrap[0], opTrap[1]];
+      const noteVoet = (m) => { const I = m.userData.qIdx, B = m.userData.qBones; m.updateMatrixWorld(true); return [I.footL, I.footR].map((i) => { const v = B[i].getWorldPosition(new THREE.Vector3()); return { x: +v.x.toFixed(2), y: +v.y.toFixed(3), grond: +stair(v.x, v.z).toFixed(3) }; }); };
+      note('voeten-zonder-ik', opTrap.map(noteVoet));
+      cam(X0 + 1, Y0 + 5.5, Z0 + 0.9, X0 + 1, Y0, Z0 + 0.5, 42);
+      p.x = X0 + 14; p.y = Y0 + 6; p.gz = gh(p.x, p.y);
+      await shot('ik-trap-zonder', 600);
+      for (const m of metIK) voeten(m, stair);
+      note('voeten-met-ik', opTrap.map(noteVoet));
+      await shot('ik-trap-met', 300);
+      // kijken naar een doel: hoofd en nek naar links, rechts en omhoog
+      for (const g of [-0.9, 0.9]) { geen.userData.gazeT = g; for (let i = 0; i < 20; i++) { MP.animateModular(geen, 0, 1 / 30); } cam(X0 - 0.4 + 3, Y0 + 2.4, Z0 + 1.7, X0 - 0.4, Y0, Z0 + 1.6, 30); await shot('ik-kijken-' + (g < 0 ? 'links' : 'rechts'), 300); }
+      for (const o of objs) scene.remove(o); for (const m of people) scene.remove(m);
     }
     camOff();
     note('fouten', fout.slice(0, 10));
