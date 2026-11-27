@@ -15,6 +15,7 @@ import { buildingAt, withTiles } from './tileplace.js';
 import { addStaticCollider } from './breakables.js';
 import { addPerrons } from './elevation.js';
 import { PAAL_GAT } from './perrons.js';
+import { PLATFORM_EDGE } from './railprofile.js';
 import { VILLAGES } from './ommelandlines.js';
 import { setStoryOutfit, storyOutfit } from './shops.js';
 import { playerBusy } from './busy.js';
@@ -243,8 +244,39 @@ export function countryMachineSpot(px, py, nx, ny) {
 
 // Het perron van een landhalte als rij in map.perrons (#961): dezelfde vloer als
 // de stadstations, met aan beide koppen de helling die buildPlatform er al tekent.
-// Puur, zodat de test hem kan narekenen zonder de scène.
-export function countryPlatformRow(px, py, tx, ty, nx, ny, name) {
+// #1348: met `route` en `s` (de plek van de halte op de lijn) volgt het perron de lijn: een rechte plaat van 80 m
+// lag bij een bocht tot 7 m van het spoor (Winsum, Hoogezand) of er dwars op (de rand tot 0,3 m van de rail), en bij een
+// eindstation stak hij voorbij het laatste spoor. De punten liggen om de PLAT_STAP m, PLAT_OFF langs de lijn, tussen de
+// koppen van de lijn. Puur, zodat de test hem kan narekenen zonder de scène.
+const PLAT_STAP = 2;
+export function countryPlatformCurve(route, s, nx, ny) {
+  const lo = Math.max(0, s - PLAT_LEN / 2), hi = Math.min(route.len, s + PLAT_LEN / 2);
+  const out = [];
+  const n = Math.max(1, Math.ceil((hi - lo) / PLAT_STAP));
+  for (let i = 0; i <= n; i++) {
+    const at = lo + (hi - lo) * i / n;
+    const a = routePoint(route, at - 3), b = routePoint(route, at + 3), c = routePoint(route, at);
+    const l = Math.hypot(b[0] - a[0], b[1] - a[1]) || 1;
+    let qx = -(b[1] - a[1]) / l, qy = (b[0] - a[0]) / l;
+    if (qx * nx + qy * ny < 0) { qx = -qx; qy = -qy; }
+    out.push([r2(c[0] + qx * PLAT_OFF), r2(c[1] + qy * PLAT_OFF)]);
+  }
+  return out;
+}
+export function countryPlatformRow(px, py, tx, ty, nx, ny, name, route = null, s = 0) {
+  const id = 'halte-' + name.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+  if (route && route.len > 12) {
+    const c = countryPlatformCurve(route, s, nx, ny);
+    if (c.length >= 3) {
+      const p = c.map((q) => [q[0], q[1], PLAT_W / 2, PLAT_TOP]);
+      const r = [];
+      for (const [i, j] of [[0, 1], [c.length - 1, c.length - 2]]) {
+        const ux = c[i][0] - c[j][0], uy = c[i][1] - c[j][1], l = Math.hypot(ux, uy) || 1;   // de lijn uit, van het perron af
+        r.push({ a: [c[i][0], c[i][1]], b: [r2(c[i][0] + ux / l * RAMP_LEN), r2(c[i][1] + uy / l * RAMP_LEN)], hw: RAMP_HW, za: PLAT_TOP, zb: 0, k: 'helling' });
+      }
+      return { id, nm: 'Perron', st: name, p, r };
+    }
+  }
   const cx = px + nx * PLAT_OFF, cy = py + ny * PLAT_OFF;
   const hx = tx * (PLAT_LEN / 2), hy = ty * (PLAT_LEN / 2);
   const p = [
@@ -260,7 +292,6 @@ export function countryPlatformRow(px, py, tx, ty, nx, ny, name) {
       hw: RAMP_HW, za: PLAT_TOP, zb: 0, k: 'helling',
     });
   }
-  const id = 'halte-' + name.toLowerCase().replace(/[^a-z0-9]+/g, '-');
   return { id, nm: 'Perron', st: name, p, r };
 }
 
@@ -281,22 +312,48 @@ export function countryArriveSpot(map, px, py, nx, ny) {
   return q ? { x: q.x, y: q.y, z: 0 } : { x: px + nx * 20, y: py + ny * 20, z: 0 };
 }
 
-function placeCountryStation(map, def, stops, scene) {
-  const st = stops[0];
-  const [px, py] = routePoint(st.route, st.s);
-  const [tx, ty] = tangentAt(st.route, st.s);
+// Aan welke kant van de lijn het perron komt (#1348): aan de kant van het station (def), tenzij daar een ander spoor te dicht langs
+// ligt (Sauwerd: een tweede lijn op 2 m van het perron); dan de andere kant als die vrij is. andere: de overige lijnen ({ pts }).
+// Geeft de plek, de raaklijn en de normaal naar het perron: { px, py, tx, ty, nx, ny }. Puur.
+export function countryPlatformPlan(route, s, def, andere = []) {
+  const [px, py] = routePoint(route, s);
+  const [tx, ty] = tangentAt(route, s);
   let nx = -ty, ny = tx;
   if ((def.x - px) * nx + (def.y - py) * ny < 0) { nx = -nx; ny = -ny; }
+  const near = (P, x, y) => {
+    let best = Infinity;
+    for (let i = 0; i < P.length - 1; i++) {
+      const [ax, ay] = P[i], [bx, by] = P[i + 1];
+      if ((ax < x - 30 && bx < x - 30) || (ax > x + 30 && bx > x + 30) || (ay < y - 30 && by < y - 30) || (ay > y + 30 && by > y + 30)) continue;
+      const dx = bx - ax, dy = by - ay, L2 = dx * dx + dy * dy || 1e-9;
+      const t = Math.max(0, Math.min(1, ((x - ax) * dx + (y - ay) * dy) / L2));
+      best = Math.min(best, Math.hypot(x - ax - dx * t, y - ay - dy * t));
+    }
+    return best;
+  };
+  const vrij = (sg) => {   // de kleinste afstand van de rand van het perron tot een ander spoor, over de lengte van het perron
+    let m = Infinity;
+    for (const c of countryPlatformCurve(route, s, nx * sg, ny * sg)) for (const o of andere) m = Math.min(m, near(o.pts, c[0], c[1]) - PLAT_W / 2);
+    return m;
+  };
+  if (andere.length && vrij(1) < PLATFORM_EDGE - 0.05 && vrij(-1) > vrij(1)) { nx = -nx; ny = -ny; }
+  return { px, py, tx, ty, nx, ny };
+}
+
+function placeCountryStation(map, def, stops, scene) {
+  const st = stops[0];
+  const andere = [...new Set(getTrains().map((t) => t.route))].filter((r) => r !== st.route);
+  const { px, py, tx, ty, nx, ny } = countryPlatformPlan(st.route, st.s, def, andere);
   const m = countryMachineSpot(px, py, nx, ny);
   const s = {
     name: def.name, short: shortName(def.name), x: m.x, y: m.y, stops, exitAngle: Math.atan2(ny, nx), country: true,
     arrive: countryArriveSpot(map, px, py, nx, ny),
     rail: { x: px, y: py, nx, ny },
-    row: countryPlatformRow(px, py, tx, ty, nx, ny, def.name),
+    row: countryPlatformRow(px, py, tx, ty, nx, ny, def.name, st.route, st.s),
   };
   s.machine = buildMachine(m.x, m.y, s.exitAngle, PLAT_TOP);
   scene.add(s.machine);
-  scene.add(buildPlatform(px, py, tx, ty, nx, ny));
+  scene.add(s.row.p.length > 2 ? buildPlatformCurved(s.row, tx, ty, nx, ny) : buildPlatform(px, py, tx, ty, nx, ny));
   return s;
 }
 
@@ -370,6 +427,99 @@ function buildPlatform(px, py, tx, ty, nx, ny) {
       paal.castShadow = true;
       g.add(paal);
       addStaticCollider('post', x, y, 0.11);
+    }
+  }
+  return g;
+}
+
+// Het perron langs een bocht (#1348): de vloer, de rand en de hellingen volgen de punten van de rij (countryPlatformRow). De plaat is één
+// lint (bovenkant, twee zijkanten, twee koppen) met de tegel op 0,5 m; de hellingen, de kap en de paaltjes staan in het raam van de lijn op
+// de plek waar ze horen, zoals de rechte plaat ze in zijn eigen raam heeft.
+function platformFrame(g, x, y, tx, ty) {
+  const f = new THREE.Group();
+  f.position.set(x, 0, y);
+  f.rotation.y = -Math.atan2(ty, tx);
+  g.add(f);
+  return f;
+}
+function buildPlatformCurved(row, tx0, ty0, nx0, ny0) {
+  const g = new THREE.Group();
+  const c = row.p, n = c.length;
+  const tan = (i) => {
+    const a = c[Math.max(0, i - 1)], b = c[Math.min(n - 1, i + 1)], l = Math.hypot(b[0] - a[0], b[1] - a[1]) || 1;
+    return [(b[0] - a[0]) / l, (b[1] - a[1]) / l];
+  };
+  // links of rechts van de plaat ligt het spoor (de kant van -(nx, ny)): de rand en de kap volgen die kant
+  const side = Math.sign((-ty0) * nx0 + tx0 * ny0) || 1;
+  const mat = perronMateriaal(0xa8a49a);
+  const pos = [], idx = [];
+  // per punt vier hoekpunten: linksboven, rechtsboven, linksonder, rechtsonder
+  for (let i = 0; i < n; i++) {
+    const [tx, ty] = tan(i), qx = -ty, qy = tx, h = PLAT_W / 2;
+    for (const [o, y] of [[h, PLAT_TOP], [-h, PLAT_TOP], [h, 0], [-h, 0]]) pos.push(c[i][0] + qx * o, y, c[i][1] + qy * o);
+  }
+  for (let i = 0; i < n - 1; i++) {
+    const a = i * 4, b = a + 4;
+    idx.push(a, b, a + 1, a + 1, b, b + 1);              // boven
+    idx.push(a, a + 2, b, b, a + 2, b + 2);              // links
+    idx.push(a + 1, b + 1, a + 3, a + 3, b + 1, b + 3);  // rechts
+  }
+  for (const [i, dir] of [[0, 1], [n - 1, -1]]) {         // de koppen
+    const a = i * 4;
+    if (dir > 0) idx.push(a, a + 1, a + 2, a + 1, a + 3, a + 2); else idx.push(a, a + 2, a + 1, a + 1, a + 2, a + 3);
+  }
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+  geo.setIndex(idx);
+  geo.computeVertexNormals();
+  const slab = new THREE.Mesh(perronTegelUV(geo), mat);
+  slab.receiveShadow = true;
+  g.add(slab);
+  // de rand: een betonband langs de spoorkant
+  const ep = [], ei = [];
+  for (let i = 0; i < n; i++) {
+    const [tx, ty] = tan(i), qx = -ty, qy = tx, h = PLAT_W / 2;
+    for (const o of [-side * h, -side * (h - RAND_M)]) ep.push(c[i][0] + qx * o, PLAT_TOP + 0.02, c[i][1] + qy * o);
+  }
+  for (let i = 0; i < n - 1; i++) { const a = i * 2, b = a + 2; ei.push(a, b, a + 1, a + 1, b, b + 1); }
+  const eg = new THREE.BufferGeometry();
+  eg.setAttribute('position', new THREE.Float32BufferAttribute(ep, 3));
+  eg.setIndex(ei);
+  eg.computeVertexNormals();
+  g.add(new THREE.Mesh(perronTegelUV(eg), perronMateriaal(RAND_KLEUR)));
+  // de hellingen aan beide koppen
+  const slope = Math.atan2(PLAT_TOP, RAMP_LEN), rl = Math.hypot(PLAT_TOP, RAMP_LEN);
+  for (const r of row.r) {
+    const ux = r.b[0] - r.a[0], uy = r.b[1] - r.a[1], l = Math.hypot(ux, uy) || 1;
+    const f = platformFrame(g, (r.a[0] + r.b[0]) / 2, (r.a[1] + r.b[1]) / 2, ux / l, uy / l);   // x langs de helling, van het perron af
+    const ramp = new THREE.Mesh(perronTegelUV(new THREE.BoxGeometry(rl, 0.2, RAMP_HW * 2)), mat);
+    ramp.position.set(0, PLAT_TOP / 2 - 0.08, 0);
+    ramp.rotation.z = -slope;
+    ramp.receiveShadow = true;
+    f.add(ramp);
+  }
+  // de kap en de achterwand: een stuk van het midden af, op het stuk lint dat daar ligt
+  const mid = Math.min(n - 1, (n >> 1) + 3), [mtx, mty] = tan(mid);
+  const f = platformFrame(g, c[mid][0], c[mid][1], mtx, mty);
+  const glass = new THREE.MeshLambertMaterial({ color: 0x9fb8c0, transparent: true, opacity: 0.45 });
+  const roof = new THREE.Mesh(new THREE.BoxGeometry(6, 0.12, 1.8), new THREE.MeshLambertMaterial({ color: 0x55606a }));
+  const back = new THREE.Mesh(new THREE.BoxGeometry(6, 2.2, 0.05), glass);
+  for (const [m, o, h] of [[roof, 0.9, PLAT_TOP + 2.35], [back, 1.4, PLAT_TOP + 1.12]]) {
+    m.position.set(0, h, side * o);
+    m.castShadow = true;
+    f.add(m);
+  }
+  // paaltjes aan de voet van de hellingen (een voetganger of fiets past er tussen, een auto niet, #436)
+  const paalGeo = new THREE.CylinderGeometry(0.11, 0.11, 0.9, 8);
+  const paalMat = new THREE.MeshLambertMaterial({ color: 0xe3b81f });
+  for (const r of row.r) {
+    const ux = r.b[0] - r.a[0], uy = r.b[1] - r.a[1], l = Math.hypot(ux, uy) || 1, qx = -uy / l, qy = ux / l;
+    for (const o of [-PAAL_GAT, PAAL_GAT]) {
+      const paal = new THREE.Mesh(paalGeo, paalMat);
+      paal.position.set(r.b[0] + qx * o, 0.45, r.b[1] + qy * o);
+      paal.castShadow = true;
+      g.add(paal);
+      addStaticCollider('post', r.b[0] + qx * o, r.b[1] + qy * o, 0.11);
     }
   }
   return g;
