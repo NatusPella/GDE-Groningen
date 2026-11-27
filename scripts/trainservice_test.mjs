@@ -184,7 +184,7 @@ const maak = (R) => createServiceSource({ rooster: () => rooster, routes: R.getR
 Hst.setTreinDienst(maak(Hst)); Gst.setTreinDienst(maak(Gst));
 hw.clock = 8 + 17 / 60;
 Hst.updateRailway(0.1, hw);
-const treinen = Hst.getTrains();
+const treinen = Hst.getTrains().filter((t) => !t.ambient);
 const metRooster = treinen.filter((t) => t.route.pool);
 ok(metRooster.length > 6 && metRooster.every((t) => t.rit && t.rit.leg), 'op lijnen met rooster rijdt alleen een rit van het bord, geen willekeurige trein', metRooster.length);
 ok(Hst.getRoutes().filter((r) => r.pool).every((r) => !treinen.some((t) => t.route === r && !t.rit)), 'de pendeltreinen zijn weg op lijnen met rooster');
@@ -247,10 +247,10 @@ ok(treinen.every((t) => (t.state === 'dwell' || t.state === 'run') && Number.isF
   // de snapshot van de host met een gewone rooster-trein verandert niets bij de gast
   const t0 = Hst.getTrains().find((t) => t.rit);
   const p = Hst.routePoint(t0.route, t0.c);
-  const voor = Gst.getTrains().map((t) => t.c).join();
+  const voor = Gst.getTrains().filter((t) => !t.ambient).map((t) => t.c).join();
   Gst.zetTreinenVanHost([{ route: Hst.getRoutes().indexOf(t0.route), x: p[0], y: p[1], v: t0.v, overgenomen: false }]);
   Gst.gastOverwegen(0.1, gw);
-  ok(Gst.getTrains().map((t) => t.c).join() === voor, 'een trein van het rooster in de snapshot: de gast houdt zijn eigen (klok)plek');
+  ok(Gst.getTrains().filter((t) => !t.ambient).map((t) => t.c).join() === voor, 'een trein van het rooster in de snapshot: de gast houdt zijn eigen (klok)plek');
   // een overgenomen trein (een speler rijdt hem): de gast volgt de host
   const route = Hst.getRoutes().indexOf(t0.route);
   Gst.zetTreinenVanHost([{ route, x: p[0] + 700, y: p[1], v: 5, overgenomen: true }]);

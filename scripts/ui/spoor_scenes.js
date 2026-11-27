@@ -184,5 +184,48 @@ await scene('bord', async (ev) => {
   await shot('weer-stil', 300);
 });
 
+// Ambient treinen (#1339): echte treinen op wereldtijd. Zoek de spelklok waarop een trein met kruissnelheid langs een punt rijdt (het viaduct bij de Moesstraat)
+// of op Noord staat, zet de klok daar en neem beelden en een log (plek en snelheid per kwart seconde echte tijd).
+await scene('ambient', async (ev) => {
+  const RW = await imp('railway'); const AT = await imp('ambienttrains');
+  const route = RW.getRoutes().find((r) => r.name === 'Stoptrein Roodeschool');
+  const plan = AT.ambientPlan(route, route.name);
+  const dichtbij = (px, py) => { let best = { d: 1e9, s: 0 }; for (let q = 0; q < route.len; q += 2) { const [x, y] = RW.routePoint(route, q); const d = Math.hypot(x - px, y - py); if (d < best.d) best = { d, s: q }; } return best; };
+  const zoek = (sPunt, wil) => { for (let R = 0; R < 1440; R += 0.5) for (const tr of plan.treinen) { const st = AT.ambientStand(plan, tr, R); if (wil(st) && Math.abs(st.s - sPunt) < 20) return { R, st }; } return null; };
+  clearInterval(houd);
+  // 1: open spoor, op het viaduct bij de Moesstraat, een trein die aankomt rijden
+  const vp = dichtbij(-732, -986); ev.moesstraatS = vp.s;
+  const eersteVan = zoek(vp.s - 70, (st) => st.state === 'run' && st.v > 20 && st.dir === 1) || zoek(vp.s + 70, (st) => st.state === 'run' && st.v > 20 && st.dir === -1);
+  ev.open = eersteVan && { R: eersteVan.R, v: +eersteVan.st.v.toFixed(1), dir: eersteVan.st.dir };
+  if (eersteVan) {
+    await jump(-732, -986, 6000); clearInterval(houd);
+    w.clock = eersteVan.R / 60; const t0 = performance.now(); const logv = [];
+    cam(-711, -967, 3.4, -732, -986, 4.2, 70); ensureCam();
+    for (let k = 0; k < 5; k++) {
+      await sleep(350); klok = w.clock; ensureCam();
+      const tr = RW.getTrains().filter((q) => q.ambient && q.route === route).sort((a, b) => Math.abs(a.c - vp.s) - Math.abs(b.c - vp.s))[0];
+      logv.push(`${Math.round(performance.now() - t0)}ms ${tr ? 'c' + tr.c.toFixed(0) + ' v' + tr.v.toFixed(1) + ' ' + tr.state : 'geen'}`);
+      console.log('[capture] bambient-open-' + (k + 1));
+      await sleep(150);
+    }
+    log({ openlog: logv });
+  }
+  // 2: op Noord: een trein die er staat
+  const np = route.stops.find((q) => q.name === 'Groningen Noord');
+  if (ONLY.includes('ambientopen')) return;
+  const opNoord = zoek(np.s, (st) => st.state === 'dwell' && st.timer > 15);
+  ev.noord = opNoord && { R: opNoord.R, timer: +opNoord.st.timer.toFixed(1) };
+  if (opNoord) {
+    const [nx, ny] = RW.routePoint(route, np.s);
+    await jump(nx, ny - 6, 6000); clearInterval(houd);
+    w.clock = opNoord.R / 60; klok = w.clock;
+    cam(nx + 3, ny - 14, 8.5, nx, ny - 6, 6.6, 60); ensureCam(); await sleep(1500);
+    const tr = RW.getTrains().find((q) => q.ambient && q.state === 'dwell');
+    ev.noordTrein = tr ? { c: +tr.c.toFixed(1), state: tr.state, timer: +tr.timer.toFixed(1) } : null;
+    console.log('[capture] bambient-noord');
+    await sleep(800);
+  }
+});
+
 clearInterval(skipper); clearInterval(houd);
 return JSON.stringify(report);

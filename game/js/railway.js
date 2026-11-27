@@ -16,6 +16,7 @@ import { duwVanWagen, volgTrein, treinKlap, TREIN_SPRONG_M } from './treincoop.j
 import { MAP_PALETTE, INK } from './mapstyle.js';
 import { baanvakken, vakPunten } from './blokseinen.js';
 import { actieveLegs } from './trainservice.js';
+import { ambientPlan, ambientStand, klokNaSeconden, ZICHT_M } from './ambienttrains.js';
 
 const HALF_WIDTH = 1.45;
 const DWELL = 25;
@@ -98,7 +99,7 @@ const gestolen = (t) => t.state === 'player' || t.state === 'parked' || t.state 
 function zetPoolOp(route, dienst) {
   if (route.pool) return;
   route.pool = [];
-  trains = trains.filter((t) => !(t.route === route && !t.rit && !t.pool && (t.state === 'dwell' || t.state === 'run')));   // de verzonnen pendeltrein
+  trains = trains.filter((t) => !(t.route === route && !t.rit && !t.pool && !t.ambient && (t.state === 'dwell' || t.state === 'run')));   // de verzonnen pendeltrein
   for (let i = 0; i < POOL; i++) {
     const t = makeTrain(route, route.train, 0, 1, 0);
     t.pool = true; t.slot = i; t.rit = null; t.gastWeg = false;
@@ -250,7 +251,7 @@ export function zetTreinVanHost(routeIdx, x, y, v, overgenomen = false) {
     if (!t0.rit) t0.rit = { leg: { id: 'overgenomen' + t0.slot, bestemming: '' }, stand: { halte: 0 } };
     return volgSnapshot(t0, sHost, v);
   }
-  const t = trains.find((q) => q.route === route && q.state !== 'mission' && q.state !== 'player' && !q.pool);
+  const t = trains.find((q) => q.route === route && q.state !== 'mission' && q.state !== 'player' && !q.pool && !q.ambient);
   if (!t) return null;
   return volgSnapshot(t, sHost, v);
 }
@@ -282,13 +283,14 @@ export function zetTreinenVanHost(lijst) {
   for (const t of trains) if (t.pool && t.gastVolgt) t.gastVolgt = 'oud';
   for (const h of lijst || []) { const t = zetTreinVanHost(h.route, h.x, h.y, h.v, !!h.overgenomen); if (t) gekozen.add(t); }
   for (const t of trains) if (t.gastVolgt === 'oud') { t.gastVolgt = false; t.gastDoel = NaN; t.rit = null; if (!t.pool) t.gastWeg = true; }   // niet meer overgenomen: terug naar de klok
-  for (const t of trains) if (t.state !== 'mission' && t.state !== 'player' && !t.pool) t.gastWeg = !gekozen.has(t);
+  for (const t of trains) if (t.state !== 'mission' && t.state !== 'player' && !t.pool && !t.ambient) t.gastWeg = !gekozen.has(t);
 }
 // De overwegen van een gast: de slagbomen, het knipperlicht en de bel volgen de treinen die de host stuurt (elke frame; updateRailway draait niet bij een gast).
 // Daarna de trein zelf: die is ook solide (gastTreinContact).
 export function gastOverwegen(dt, world) {
   planTreinDienst(world);   // een gast rekent het rooster zelf uit de gezamenlijke spelklok: dezelfde treinen als de host
   for (const t of trains) if (t.rit && !t.stolen) { stapRooster(t, world); placeCars(t); }
+  stapAmbient(dt, world);   // dezelfde ambient treinen als de host: de plek volgt uit de gezamenlijke klok
   stapTreinenGast(dt);
   for (const c of crossings) c.threat = false;
   for (const t of trains) {
@@ -407,6 +409,7 @@ export function initRailway(world) {
   bridgeZones = findBridgeZones(map);
 
   trains = [];
+  ambientPlannen.clear();
   routes.forEach((route, i) => {
     if (route.stops.length < 2) return;
     // alternate starting ends so the shuttles are out of phase
@@ -502,6 +505,61 @@ function stepTrain(t, dt, world) {
     if (t.target === 0) t.dir = 1;
     else if (t.target === stops.length - 1) t.dir = -1;
     if (!stops[t.target].offmap && nearPlayer(world, t, 90)) world.addMessage(`${cfg.label} is aangekomen in ${stops[t.target].name}`, 3);
+  }
+}
+
+// --- ambient treinen (#1339, ambienttrains.js) --------------------------------------------------------------------------------------
+// Op elke lijn met een rooster-pool rijden een paar treinen rond op wereldtijd (echte seconden, hooguit V_MAX m/s, een halte van 30 tot 60 s), zodat
+// het open spoor leeft; de rooster-treinen zijn er voor de borden en het reizen. Een ambient trein bestaat alleen binnen ZICHT_M van de speler (verder
+// wordt hij niet gesimuleerd) en volgt uit (lijn, seed, spelklok): host en gast rekenen hetzelfde uit, er gaat niets over het netwerk.
+const ambientPlannen = new Map();
+const ambientPlanVan = (route) => {
+  if (!ambientPlannen.has(route)) ambientPlannen.set(route, ambientPlan(route, route.name));
+  return ambientPlannen.get(route);
+};
+const AMBIENT_VRIJ_M = 150;   // m: bij een rooster-trein op dezelfde lijn gaat de ambient trein weg (geen twee treinen op een perron)
+
+function stapAmbient(dt, world) {
+  if (!ready || !dienstBron) return;
+  const p = hoofdspeler(world);
+  if (!p || !Number.isFinite(p.x) || !Number.isFinite(p.y)) return;
+  const R = klokNaSeconden(world.clock);
+  for (const route of routes) {
+    if (!route.pool) continue;
+    const plan = ambientPlanVan(route);
+    if (!plan) continue;
+    if (!route.ambient) route.ambient = plan.treinen.map(() => null);
+    plan.treinen.forEach((tr, i) => {
+      let t = route.ambient[i];
+      if (t && gestolen(t)) return;   // de speler rijdt hem, of hij staat geparkeerd
+      const st = ambientStand(plan, tr, R);
+      const q = routePoint(route, st.s);
+      let weg = Math.hypot(q[0] - p.x, q[1] - p.y) > ZICHT_M;
+      if (!weg) for (const o of trains) if (o.rit && !o.stolen && o.route === route && Math.abs(o.c - st.s) < AMBIENT_VRIJ_M + o.halfLen) { weg = true; break; }
+      if (weg) {
+        if (t) { trains = trains.filter((x) => x !== t); route.ambient[i] = null; }
+        return;
+      }
+      if (!t) {
+        t = makeTrain(route, route.train, st.target, st.dir, 0);
+        t.ambient = true;
+        t.vorigeState = st.state;
+        trains.push(t);
+        route.ambient[i] = t;
+      }
+      const was = t.vorigeState;
+      t.c = st.s; t.v = st.v; t.dir = st.dir; t.state = st.state; t.target = st.target; t.timer = st.timer; t.gastWeg = false;
+      t.vorigeState = st.state;
+      const stops = route.stops;
+      if (was === 'dwell' && st.state === 'run' && !stops[st.target - st.dir].offmap) {
+        audio(world, { kind: 'train_horn', x: t.cars[0].x, y: t.cars[0].y });
+        if (nearPlayer(world, t, 90)) world.addMessage(`${t.cfg.label} naar ${stops[st.dir > 0 ? stops.length - 1 : 0].name} vertrekt`, 3.5);
+      } else if (was === 'run' && st.state === 'dwell' && nearPlayer(world, t, 90)) {
+        world.addMessage(`${t.cfg.label} is aangekomen in ${stops[st.target].name}`, 3);
+      }
+      if (st.state === 'run') clack(t, st.v * dt, world);
+      placeCars(t);
+    });
   }
 }
 
@@ -978,7 +1036,8 @@ function resolveContacts(world) {
 export function updateRailway(dt, world) {
   if (!ready || dt <= 0) return;
   planTreinDienst(world);
-  for (const t of trains) { if (t.rit && !t.stolen) { stapRooster(t, world); } else stepTrain(t, dt, world); placeCars(t); }
+  stapAmbient(dt, world);
+  for (const t of trains) { if (t.rit && !t.stolen) { stapRooster(t, world); } else if (t.ambient && !gestolen(t)) { /* de plek is gezet door stapAmbient */ } else stepTrain(t, dt, world); placeCars(t); }
   updateCrossings(dt, world);
   updateThrown(dt, world);
   resolveContacts(world);
