@@ -47,7 +47,8 @@ export function busCoopStart(world, bus, eerstInstappers = 0) {
   const n = world.coopNet;
   const bc = maakBusCoop(n && n.sessieId ? n.sessieId : 's');
   const boord = aanBoord(world, bus);
-  const chauffeur = hoofdspeler(world) && hoofdspeler(world).inVehicle === bus ? 0 : (boord.find((s) => s !== 0) ?? 0);
+  const hp = hoofdspeler(world);
+  const chauffeur = hp && hp.inVehicle === bus ? 0 : (boord.find((s) => s !== 0) ?? 0);
   startDienst(bc, { chauffeur, aanboord: boord });
   nieuweHalte(bc, eerstInstappers);
   Object.defineProperty(bed, 'coop', { value: bc, writable: true, configurable: true, enumerable: false });

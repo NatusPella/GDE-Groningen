@@ -79,7 +79,9 @@ export function koppelWissel(world, opts = {}) {
 let overlay = null, houder = null, timer = null, ac = null, laatste = '', eindTot = 0, huidige = null;
 
 function startWisselUi(world) {
+  if (timer && huidige && huidige !== world) stopWisselUi();
   if (timer || typeof document === 'undefined') return;
+  huidige = world;
   timer = setInterval(() => teken(world), 200);
   ac = typeof AbortController !== 'undefined' ? new AbortController() : null;
   window.addEventListener('keydown', toets, ac ? { signal: ac.signal } : undefined);

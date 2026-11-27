@@ -706,7 +706,6 @@ export function mountLobby(root, hooks, opts = {}) {
   }
 
   function cleanup() {
-    ac.abort();
     hervatGen++;
     if (autoTimer) { clearTimeout(autoTimer); autoTimer = null; }
     stopVerbindTik();
@@ -938,6 +937,6 @@ export function mountLobby(root, hooks, opts = {}) {
       return true;
     },
     wizard: () => ({ ...wz, stap: wizStep(state, wz) }),
-    close() { cleanup(); root.innerHTML = ''; },
+    close() { ac.abort(); cleanup(); root.innerHTML = ''; }, // alleen hier de luisteraars afbreken: cleanup() draait ook bij Terug en Verbreken, waar het scherm blijft
   };
 }
