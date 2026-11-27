@@ -24,7 +24,8 @@ import { buildPigeonBird, posePigeonBird } from './pigeonmode.js';
 import { routeAt as canalAt, ROUTE_LENGTH as CANAL_LENGTH } from './rondvaartchase.js';
 import { RING_ROUTE } from './ringroute.js';
 import { smoothPath, pathHeights, cineDrive } from './cinedrive.js';
-import { WATER_Y } from './util.js';
+import { WATER_Y, isInWater } from './util.js';
+import { waterPointNear, quaySpotFor } from './introwater.js';
 import { KITCHEN, buildKitchen, buildAtmTrailer, buildWetBike, buildFrikandel, buildRope } from './introkitchen3d.js';
 import { logoHtml } from './logo.js';
 import { PARTS, partNumber } from './storyarc.js';
@@ -683,8 +684,10 @@ function buildShots(w, film = false) {
 
   // a work boat fishes a bike out of the Diepenring
   const bqNear = { x: 454.24, y: -58.47 };
-  const bq = canalAt(canalNear(bqNear.x, bqNear.y));
+  const bq = waterPointNear((x, y) => isInWater(map, x, y), canalAt(canalNear(bqNear.x, bqNear.y)));
   const cn = { x: -Math.sin(bq.a), y: Math.cos(bq.a) };
+  // the camera stands on the quay, on the dry side of the sloep (the route normal points either way)
+  const bqSpot = quaySpotFor((x, y) => isInWater(map, x, y), { x: bq.x + cn.x * 1.3, y: bq.y + cn.y * 1.3 }, Math.atan2(cn.y, cn.x), 2.2);
   const boat = {
     minDur: 1.9, clock: 10.4, focus: bq,
     enter(r, s) {
@@ -700,7 +703,7 @@ function buildShots(w, film = false) {
       s.bike.rotation.set(Math.sin(t * 2.2) * 0.12, -bq.a + 0.4 + t * 0.2, Math.sin(t * 1.7) * 0.1);
     },
     cams: [[0, (u, t) => {
-      const pos = clearCam(map, P(bq.x + cn.x * 9 + Math.cos(bq.a) * 3, bq.y + cn.y * 9 + Math.sin(bq.a) * 3, 2.2));
+      const pos = clearCam(map, bqSpot || P(bq.x + cn.x * 9 + Math.cos(bq.a) * 3, bq.y + cn.y * 9 + Math.sin(bq.a) * 3, 2.2));
       return pose(pos, P(bq.x + cn.x * 1.3, bq.y + cn.y * 1.3, WATER_Y + lerp(0.2, 1.4, u)), 40, t, 0.03);
     }]],
   };

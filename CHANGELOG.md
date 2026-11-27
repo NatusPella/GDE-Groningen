@@ -9,6 +9,7 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ## [Unreleased]
 
+- Openingsfilmpje: de werkboot die een fiets uit de gracht vist, stond op de kade en was onzichtbaar (de camera filmde een lege weg); nu ligt de sloep met de opgeviste fiets in het water. Bij Samen spelen speelt ieder de opening lokaal in zijn eigen spel, dat verandert niet.
 - Rakelings geldt alleen nog voor rijdend verkeer: een auto die langs de weg geparkeerd staat (of stilstaat) geeft geen bonus meer. Bij Samen spelen geldt dit voor ieders eigen rit.
 - De game staat nu op de hoofdpagina van de webversie (GitHub Pages); de marketingpagina is weggehaald. De oude link /play/ stuurt door naar de hoofdpagina.
 
