@@ -160,14 +160,17 @@ function buildLayout() {
   const H = P[4], I = P[5];
   const HI = unit(sub(I, H));
   const hi = len(sub(I, H));
-  const d0 = [H[0] + HI[0] * 0.8, H[1] + HI[1] * 0.8], d1 = [H[0] + HI[0] * (hi - 0.8), H[1] + HI[1] * (hi - 0.8)];
+  // The gap runs on past the corner I along the next wall (I -> P6): the Escapade's bay stands in line with the door's east end, and
+  // a gap that stopped at I left the car straddling the jamb, stuck 2 m short of the door (#1335, scripts/home_garage_test.mjs).
+  const I6 = unit(sub(P[6], I)), i6 = len(sub(P[6], I));
+  const d0 = [H[0] + HI[0] * 0.8, H[1] + HI[1] * 0.8], d1 = [I[0] + I6[0] * (i6 - 0.5), I[1] + I6[1] * (i6 - 0.5)];
   const walls = [];
   const edge = (a, b) => walls.push([a[0], a[1], b[0], b[1]]);
   edge(P[0], P[1]);
   edge(P[1], P[2]);
   edge(P[2], P[3]); edge(P[3], P[4]);
-  edge(H, d0); edge(d1, I);
-  edge(P[5], P[6]); edge(P[6], P[7]); edge(P[7], P[0]);
+  edge(H, d0); edge(d1, P[6]);
+  edge(P[6], P[7]); edge(P[7], P[0]);
   const door = { x1: d0[0], y1: d0[1], x2: d1[0], y2: d1[1], cx: (d0[0] + d1[0]) / 2, cy: (d0[1] + d1[1]) / 2, nx: V[0], ny: V[1] };
   const [px, py] = pw(31.75, 15.5);
   const panel = { x: px, y: py, angle: Math.atan2(-U[1], -U[0]) };

@@ -9,6 +9,7 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ## [Unreleased]
 
+- Thuis: de Fjord Escapade kan weer uit de privégarage. De poort liep precies tot de zijkant van zijn vak, waardoor hij met zijn zijkant tegen de poortstijl bleef steken. De poort is nu breder (7,1 m). Samen spelen: de garage en de poort zijn van de wereld van de host, voor iedereen gelijk.
 - Thuis: Eierbal pakken doet nu iets zichtbaars. Je ziet hoeveel gezondheid en pantser je erbij krijgt. Zit je gezondheid al vol, dan staat er waarom er niets gebeurt (en kost dat niets), en bij de wachttijd staat hoeveel seconden nog. Samen spelen: de eierbal is lokaal, iedereen eet uit zijn eigen vriezer.
 - De game staat nu op de hoofdpagina van de webversie (GitHub Pages); de marketingpagina is weggehaald. De oude link /play/ stuurt door naar de hoofdpagina.
 
