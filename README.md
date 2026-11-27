@@ -88,7 +88,6 @@ Botsauto's en het reuzenrad op de Grote Markt, padel, karten, carbidschieten, di
 
 Een levende stad met markten, grachten en avondlicht, en de weidse kust van de provincie.
 
-<img src="docs/screenshots/stad-dag.webp" alt="De Vismarkt in de avondzon" width="32%">
 <img src="docs/screenshots/stad-markt-nacht.webp" alt="De Grote Markt bij nacht, met het verlichte reuzenrad" width="32%">
 <img src="docs/screenshots/stad-nacht.webp" alt="Groningen bij nacht, met de Martinitoren" width="32%">
 <img src="docs/screenshots/kust-sluis.webp" alt="Een skutsje bij de Robbengatsluis in Lauwersoog" width="32%">
@@ -104,12 +103,11 @@ Tammo en Tessa in de eigen scènes van het spel, met regie, licht en ondertitels
 
 ### Menu's die je snapt
 
-Een speloverzicht dat zegt wat je volgende stap is, een bedrijfsscherm voor je boerderij, panden en snackwagen, een garage, een kaart van de hele provincie en een clubhuis voor je voetbalcarrière.
+Een speloverzicht dat zegt wat je volgende stap is, een bedrijfsscherm voor je boerderij, panden en snackwagen, een kaart van de hele provincie en een clubhuis voor je voetbalcarrière.
 
 <img src="docs/screenshots/menu-overzicht.webp" alt="Het speloverzicht met de volgende stap" width="32%">
 <img src="docs/screenshots/menu-land-en-bedrijf.webp" alt="Land en bedrijf: je boerderij in beeld" width="32%">
 <img src="docs/screenshots/menu-club.webp" alt="Het clubhuis van je voetbalclub" width="32%">
-<img src="docs/screenshots/garage.webp" alt="De garage met de Fjord Escapade" width="32%">
 <img src="docs/screenshots/kaart-stad.webp" alt="De kaart van de stad" width="32%">
 <img src="docs/screenshots/kaart-provincie.webp" alt="De kaart van de hele provincie" width="32%">
 <img src="docs/screenshots/menu-spullen.webp" alt="Spullen: kleding, wapens en verzamelingen" width="32%">
@@ -120,8 +118,7 @@ Een speloverzicht dat zegt wat je volgende stap is, een bedrijfsscherm voor je b
 
 Met vrienden door de provincie, zonder aparte server. Iedereen is gelijkwaardig en je beslist samen over de tijd, over slapen en over reizen. Sessies zijn standaard privé; je IP-adres wordt nooit getoond.
 
-<img src="docs/screenshots/samen-spelen.webp" alt="De wachtkamer van Samen spelen" width="49%">
-<img src="docs/screenshots/samen-kiezen.webp" alt="Samen kiezen of je gaat slapen" width="49%">
+<img src="docs/screenshots/samen-kiezen.webp" alt="Samen kiezen of je gaat slapen" width="60%">
 
 ## Wat kun je doen?
 
