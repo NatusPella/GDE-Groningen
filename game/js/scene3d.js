@@ -41,7 +41,7 @@ import { syncAutoStuur } from './autointerieur.js';
 import { syncVoertuigBediening } from './voertuigbediening.js';
 import { syncHaltefiguren } from './haltefiguren3d.js';
 import { seatedOf } from './occupants.js';
-import { vehicleSeat, placeSeated, placeSeatedLocal, makeSeatTracker, trackSeat, drawTransition, syncBoatCrew } from './seating3d.js';
+import { vehicleSeat, syncBikeRiderPedals, placeSeated, placeSeatedLocal, makeSeatTracker, trackSeat, drawTransition, syncBoatCrew } from './seating3d.js';
 import { vehicleHeight } from './vaultkit.js';
 // #497: de pure camera-meetkunde (volgcam buiten de wagen, prop- en boomray, ellipsoïde) staat in cammath.js.
 import { camClearOfVehicle, rayCylinder, segHitsEllipsoid, vehicleCamRig } from './cammath.js';
@@ -3040,6 +3040,8 @@ export function update3D(dt, world) {
         updateVehicleWheelSpin(mesh, dt > 0 && Math.abs(moved) < 8 ? moved / dt : 0, dt, v.steer || 0);
       } else updateVehicleWheelSpin(mesh, v.speed, animDt, v.steer || 0);
       if (v.flat || mesh.userData.flatIdx >= 0) applyFlatTire(mesh, v);
+      // fietsers van anderen trappen mee (#1337): alleen dichtbij, de modulaire mens kost per beeld een IK-ronde
+      if (v.isBike && v.driver !== 'player' && v._mount !== 'horse' && !v.wrecked && Math.hypot(v.x - player.x, v.y - player.y) < 45) syncBikeRiderPedals(mesh, v, world.time);
       if (v.isBoat) {
         animateBoat(mesh, v, world, animDt);
         crewCtx.dist = Math.hypot(v.x - player.x, v.y - player.y);

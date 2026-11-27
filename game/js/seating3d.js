@@ -326,6 +326,18 @@ function vehicleQuat(vehMesh, v, out) {
   return out.setFromAxisAngle(_up, -v.angle);
 }
 
+// De fietser van een fiets in het verkeer of op straat (#1337): een modulaire mens die op het zadel zit, met de handen aan het stuur en de
+// voeten op de trappers die met de snelheid meedraaien (seatModular), zoals de speler op zijn eigen fiets. Zonder dit stonden de benen stil.
+// Geeft true als de fietser is gezet. Een procedurele fietser (legL/legR) trapt via updateVehicleWheelSpin (riderLegs).
+export function syncBikeRiderPedals(mesh, v, t = 0) {
+  const ud = mesh.userData;
+  const rider = ud.riderFig || ud.riderMesh || (ud.npcRider === undefined ? (ud.npcRider = mesh.children.find((c) => c.userData && c.userData.qRig) || null) : ud.npcRider);
+  if (!rider || !rider.userData.qRig || !rider.visible || rider.parent !== mesh || !v || !v.isBike) return false;
+  ud.vehicleRef = v;
+  placeSeatedLocal(rider, vehicleSeat(v, true), t);
+  return true;
+}
+
 // Puts `person` on `seat` of v and poses it (t drives paddling/pedalling).
 export function placeSeated(person, vehMesh, v, seat, t = 0) {
   const sy = person.scale.y || 1;

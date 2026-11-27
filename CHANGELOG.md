@@ -9,6 +9,9 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ## [Unreleased]
 
+- Auto's, bestelbussen, tractoren en fietsen hebben van dichtbij weer banden: na een voertuig op afstand tekende het spel de wielen niet meer (#1340, #1337).
+- Op je eigen fiets trappen de voeten en de pedalen nu vooruit in plaats van achteruit, en achteruit rollen draait ze terug (#1336).
+- Fietsers in het verkeer en op straat trappen weer: hun benen volgen de pedalen die met de wielen meedraaien (#1337). Samen spelen: wat een speler ziet is lokaal per speler, de fietsers van anderen volgen de snelheid van hun fiets in het eigen spel, zonder extra bericht.
 - De game staat nu op de hoofdpagina van de webversie (GitHub Pages); de marketingpagina is weggehaald. De oude link /play/ stuurt door naar de hoofdpagina.
 
 ## [0.66.0] - 2026-11-24
