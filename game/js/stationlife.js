@@ -13,6 +13,19 @@ export const CROWD_R = 140;    // m: zo dichtbij worden reizigers getekend
 export const OMROEP_GAP = 75;  // s spelklok tussen twee berichten van dezelfde rit
 export const LIVE_R = 400;     // m: binnen deze afstand van een station zijn live vertragingen het opvragen waard (bord en treinen in zicht)
 
+// #1345: het bord blokkeerde het zicht. Het staat alleen in beeld als de speler (te voet of in een voertuig) stilstaat: loopt of rijdt hij,
+// dan vervaagt het meteen en verdwijnt het na BORD_VERVAAG s; na BORD_STIL s stilstaan komt het terug. Puur, zonder DOM (stationlife_test).
+export const BORD_STIL = 0.8, BORD_BEWEEG = 0.8, BORD_VERVAAG = 0.4; // s, m/s, s
+export function bordZichtToestand() { return { x: null, y: null, stil: 0, weg: 0, zicht: false }; }
+export function bordZichtStap(st, dt, x, y) {
+  const d = st.x === null ? 0 : Math.hypot(x - st.x, y - st.y);
+  st.x = x; st.y = y;
+  const snelheid = dt > 0 ? d / dt : 0;
+  if (snelheid > BORD_BEWEEG || d > 30) { st.stil = 0; st.zicht = false; st.weg += dt; } // een sprong (teleport, reis) telt als bewegen
+  else { st.stil += dt; if (st.stil >= BORD_STIL) { st.zicht = true; st.weg = 0; } else st.weg += dt; }
+  return { zicht: st.zicht, verborgen: !st.zicht && st.weg >= BORD_VERVAAG };
+}
+
 // Stations uit de lijnen, op naam samengevoegd: { name, x, y, lijnen:[route...] }.
 // `point(route, s)` geeft [x, y] (railway.routePoint); haltes buiten de kaart blijven weg.
 export function stationsFromRoutes(routes, point) {
@@ -148,6 +161,7 @@ const routesSig = []; // the stop count per route the stations were built from
 let board = null;
 let timeline = null;  // de tijdlijn in het bord (departuretimelineui.js)
 let shown = false;
+const zichtSt = bordZichtToestand();
 let ost = omroepToestand();
 let lastName = '';
 let cur = null; // { station, view } voor de 3D-laag
@@ -175,15 +189,19 @@ export function updateStationLife(dt, world, opts) {
   if (!near) {
     if (shown && board) board.hide();
     shown = false;
+    zichtSt.stil = 0; zichtSt.zicht = false; zichtSt.weg = 0; zichtSt.x = null;
     if (!cur) lastName = '';
     return;
   }
+  const zicht = bordZichtStap(zichtSt, dt, p.x, p.y);
+  if (zicht.verborgen || (!zicht.zicht && !shown)) { if (shown && board) board.hide(); shown = false; return; }
   if (!board) board = createBoard('station'); // #596: het vertrekbord uit de thematabel, geen eigen hex meer
   if (!timeline && board.root && typeof board.root.querySelector === 'function') timeline = createTimeline(board.root, { before: board.root.querySelector('.mg-flash') });
   const v = cur.view;
   if (v.name !== lastName) { lastName = v.name; ost = omroepToestand(); }
-  board.show();
+  if (!shown) board.show();
   shown = true;
+  if (board.root && board.root.classList) board.root.classList.toggle('stl-vervaag', !zicht.zicht); // vervaagt (CSS) terwijl de speler beweegt; zie bordZichtStap
   const bron = bordBron(v, { instelling: opts.liveInstelling !== false, liveStand: opts.live ? opts.live.stand() : null });
   board.set({
     row: `<b>${v.name}</b> &middot; ${tijdLabel(v.nu)} <em class="mg-sfeer">${bron.kort}</em>`,

@@ -98,6 +98,10 @@ export const STL_CSS = `
 #hud .stl-row[data-first] .stl-fill { background: var(--ds-c-ink-papier); }
 #hud .stl-empty { margin: 0; padding: 10px 12px; border: var(--ds-lijn-dik) dashed var(--ds-c-ink-inkt); font: 700 var(--ds-t-kaart-body) var(--ds-font-zeef-tekst); }
 @media (max-width: 1100px) { #hud .stl { min-width: 0; } #hud .stl-row { grid-template-columns: 22px 72px minmax(0, 1fr) auto; column-gap: 8px; } #hud .stl-dist { grid-column: 3 / -1; flex-direction: row; } #hud .stl-bar, #hud .stl-axis { display: none; } #hud .stl-now { grid-template-columns: 22px auto; } }
+/* kleiner op het vertrekbord: drie treinen en geen brede tabel (vervagen zie minigamekit.js) */
+#hud .mg-board[data-mg="station"] .stl { min-width: 0; }
+#hud .mg-board[data-mg="station"] .stl-row:nth-child(n+5) { display: none; }
+#hud .mg-board[data-mg="station"] .mg-help, #hud .mg-board[data-mg="station"] .mg-watermark { display: none; }
 `;
 
 let cssDone = false;

@@ -129,6 +129,9 @@ export const CSS = `
 #hud .mg-board[data-sfeerbord="dossier"] .mg-vorm { clip-path: polygon(0 0, 78% 0, 100% 14%, 100% 100%, 0 100%); }
 #hud .mg-board[data-sfeerbord="routebord"] .mg-vorm { clip-path: polygon(0 0, 100% 0, 100% 50%, 0 50%); }
 #hud .mg-board[data-sfeerbord="vertrekbord"] .mg-vorm { width: 64px; clip-path: polygon(0 0, 100% 0, 100% 100%, 18% 100%); }
+/* #1345: het vertrekbord vervaagt (DS3-beweging, onder Beweging beperken meteen) zodra de speler loopt of rijdt, en staat dan niet in de weg */
+#hud .mg-board[data-mg="station"] { transition: opacity var(--ds-m-midden) var(--ds-m-uit); }
+#hud .mg-board[data-mg="station"].stl-vervaag { opacity: 0; pointer-events: none; }
 /* #621: de rondvaart draagt de kadeband: het golfvlak links en een cream kadelijn onder */
 #hud .mg-board[data-sfeer="vaardienst"] { border-bottom: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); }
 @media (max-width: 480px) { #hud .mg-board[data-sfeer] { padding-left: 12px; } #hud .mg-board .mg-vorm { display: none; } }
