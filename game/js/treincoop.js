@@ -77,11 +77,13 @@ export function splitReward(c, total) {
 // c: de eigen booglengte op de route; doel: die van de host; v: de snelheid met teken (de host stuurt v * richting).
 // Een verschil groter dan TREIN_SPRONG_M is geen rijden maar een sprong (de host zette de trein elders neer): meteen mee.
 export const TREIN_SPRONG_M = 20;  // m
+export const TREIN_V_MAX = 40;     // m/s: harder dan dit rijdt geen trein (#1348); een gast volgt nooit sneller, wat de snapshot ook zegt
 export const TREIN_BIJSTUUR = 1;   // 1/s: hoe snel de eigen plek naar het doel schuift (net/interp.js BIJSTUUR, in meters)
 export function volgTrein(c, doel, v, dt, max = Infinity) {
   if (!Number.isFinite(doel)) return Number.isFinite(c) ? c : 0;
   if (!Number.isFinite(c) || Math.abs(doel - c) > TREIN_SPRONG_M) return doel;
-  const stap = (Number.isFinite(v) ? v : 0) * Math.max(0, dt) + (doel - c) * Math.min(1, Math.max(0, dt) * TREIN_BIJSTUUR);
+  const lim = TREIN_V_MAX * Math.max(0, dt);
+  const stap = Math.max(-lim, Math.min(lim, (Number.isFinite(v) ? v : 0) * Math.max(0, dt) + (doel - c) * Math.min(1, Math.max(0, dt) * TREIN_BIJSTUUR)));
   return Math.max(0, Math.min(max, c + stap));
 }
 
