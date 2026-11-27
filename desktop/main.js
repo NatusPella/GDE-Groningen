@@ -31,6 +31,7 @@ const HOST = 'game';
 const GAME_DIR = path.resolve(app.isPackaged ? path.join(process.resourcesPath, 'game') : process.env.GDE_GAME_DIR || path.join(__dirname, 'build', 'game'));
 
 const { cacheHeaders } = require('./httpcache.cjs');
+const packagedValidatorCache = new Map();
 
 const MIME = {
   '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.mjs': 'text/javascript; charset=utf-8',
@@ -98,8 +99,14 @@ async function serve(request) {
     // daarvoor niet eerst het hele mediabestand; daar blijft de validator op
     // grootte + mtime.
     const st = await fs.stat(file);
-    const body = wantedRange ? null : await fs.readFile(file);
-    const cc = cacheHeaders(st, { 'if-none-match': request.headers.get('if-none-match'), 'if-modified-since': request.headers.get('if-modified-since') }, body);
+    const reqHeaders = { 'if-none-match': request.headers.get('if-none-match'), 'if-modified-since': request.headers.get('if-modified-since') };
+    // In een gepackagede build zijn de gamestatic-bestanden onveranderlijk binnen de sessie:
+    // valideer eerst zonder fs.readFile zodat 304-antwoorden geen onnodige schijf-I/O doen.
+    const cacheOpts = !wantedRange && app.isPackaged
+      ? { immutableKey: `${app.getVersion()}:${path.relative(GAME_DIR, file)}`, cache: packagedValidatorCache }
+      : null;
+    const body = wantedRange || cacheOpts ? null : await fs.readFile(file);
+    const cc = cacheHeaders(st, reqHeaders, body, cacheOpts);
     const validators = { etag: cc.etag, 'last-modified': cc.lastModified, 'cache-control': cc.cacheControl };
     if (cc.fresh) return new Response(null, { status: 304, headers: validators });
     if (wantedRange) {
@@ -116,7 +123,8 @@ async function serve(request) {
         await fh.close();
       }
     }
-    return new Response(body, { status: 200, headers: { 'content-type': type, ...validators, 'accept-ranges': 'bytes', 'content-length': String(body.length) } });
+    const payload = body || await fs.readFile(file);
+    return new Response(payload, { status: 200, headers: { 'content-type': type, ...validators, 'accept-ranges': 'bytes', 'content-length': String(payload.length) } });
   } catch (e) {
     return new Response('Not found', { status: 404 });
   }
