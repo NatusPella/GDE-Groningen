@@ -117,5 +117,72 @@ await scene('noord', async (ev) => {
   cam(-640, -1160, 2.0, -600, -1142, 4.5, 60); await shot('van-links');
 });
 
+// #1339/#1348: een trein die vertrekt uit Groningen Noord. De spelklok loopt 60 keer sneller dan de wereld; de trein mag daardoor nooit sneller rijden dan
+// een echte trein. Een log van plek en snelheid per kwart seconde echte tijd, en drie beelden (staat, vertrekt, onderweg) met dezelfde camera.
+await scene('trein', async (ev) => {
+  const RW = await imp('railway');
+  const route = RW.getRoutes().find((r) => r.stops.some((q) => q.name === 'Groningen Noord'));
+  const stop = route.stops.find((q) => q.name === 'Groningen Noord');
+  const [sx, sy] = RW.routePoint(route, stop.s);
+  await jump(sx, sy - 6, 6000);
+  const spoorDir = (() => { const a = RW.routePoint(route, stop.s - 10), b = RW.routePoint(route, stop.s + 10); const l = Math.hypot(b[0] - a[0], b[1] - a[1]); return [(b[0] - a[0]) / l, (b[1] - a[1]) / l]; })();
+  clearInterval(houd);
+  // zoek een tijdstip waarop een trein op Noord staat en over een paar spelseconden vertrekt
+  let T0 = null;
+  for (let h = 8; h < 14 && T0 === null; h += 0.0025) {
+    w.clock = h; RW.planTreinDienst(w);
+    const t = RW.getTrains().find((q) => q.state === 'dwell' && q.rit && Math.abs(q.c - stop.s) < 1 && q.timer > 20 && q.timer < 60);
+    if (t) T0 = h + (t.timer - 2) / 3600;
+  }
+  ev.t0 = T0;
+  if (T0 === null) return;
+  const sh = [[1, 55], [1, 120]];
+  const logv = [];
+  w.clock = T0;
+  const t0 = performance.now();
+  let k = 0;
+  const frames = [300, 1300, 2300];   // ms echte tijd
+  while (performance.now() - t0 < 10000) {
+    await sleep(250);
+    const tr = RW.getTrains().find((q) => q.rit && Math.abs(q.c - stop.s) < 400 && q.route === route);
+    logv.push({ ms: Math.round(performance.now() - t0), c: tr ? +tr.c.toFixed(1) : null, v: tr ? +tr.v.toFixed(1) : null, staat: tr ? tr.state : null, klok: +w.clock.toFixed(4) });
+    if (k < frames.length && performance.now() - t0 > frames[k]) {
+      cam(sx - spoorDir[1] * 22 - spoorDir[0] * 6, sy + spoorDir[0] * 22 - spoorDir[1] * 6, 9.5, sx + spoorDir[0] * 6, sy + spoorDir[1] * 6, 6.3, 60);
+      ensureCam(); await sleep(150); klok = w.clock;
+      console.log('[capture] btrein-' + (k + 1) + '-na-' + frames[k] + 'ms');
+      await sleep(700); k++;
+    }
+  }
+  for (let i = 0; i < logv.length; i += 10) log({ verloop: logv.slice(i, i + 10).map((l) => `${l.ms}ms c${l.c} v${l.v} ${l.staat}`) });
+  let maxv = 0, maxgeo = 0;
+  for (let i = 0; i < logv.length; i++) { if (logv[i].v > maxv) maxv = logv[i].v; if (i && logv[i].c !== null && logv[i - 1].c !== null) maxgeo = Math.max(maxgeo, Math.abs(logv[i].c - logv[i - 1].c) / 0.25); }
+  ev.maxV = maxv; ev.maxGeoMs = +maxgeo.toFixed(1);
+});
+
+// #1345: het vertrekbord vervaagt zodra de speler loopt en is kleiner (drie treinen); staat de speler stil, dan komt het terug.
+await scene('bord', async (ev) => {
+  const RW = await imp('railway');
+  const route = RW.getRoutes().find((r) => r.stops.some((q) => q.name === 'Groningen Noord'));
+  const stop = route.stops.find((q) => q.name === 'Groningen Noord');
+  const [sx, sy] = RW.routePoint(route, stop.s);
+  await jump(sx, sy - 6, 6000);
+  cam(sx + 3, sy - 14, 8.5, sx, sy - 6, 6.6, 60);
+  ensureCam();
+  await shot('stil', 2500);
+  const bord = () => document.querySelector('#hud .mg-board[data-mg="station"]');
+  ev.stil = { zichtbaar: !!bord() && !bord().hidden, vervaagd: !!bord() && bord().classList.contains('stl-vervaag'), rijen: bord() ? bord().querySelectorAll('.stl-row').length : 0 };
+  let nx = p.x, ny = p.y;
+  const lopen = setInterval(() => { nx += 0.2; p.x = nx; p.y = ny; p.vx = 4; }, 50);   // 4 m/s
+  await sleep(1500);
+  ev.loopt = { zichtbaar: !!bord() && !bord().hidden, vervaagd: !!bord() && bord().classList.contains('stl-vervaag'), opacity: bord() ? getComputedStyle(bord()).opacity : null };
+  await shot('loopt', 200);
+  await sleep(1200);
+  ev.loopt2 = { zichtbaar: !!bord() && !bord().hidden };
+  clearInterval(lopen); p.vx = 0;
+  await sleep(1800);
+  ev.terug = { zichtbaar: !!bord() && !bord().hidden, vervaagd: !!bord() && bord().classList.contains('stl-vervaag') };
+  await shot('weer-stil', 300);
+});
+
 clearInterval(skipper); clearInterval(houd);
 return JSON.stringify(report);

@@ -9,6 +9,10 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ## [Unreleased]
 
+- Treinen rijden niet meer met duizend meter per seconde: de spelklok loopt 60 keer sneller dan de wereld en het rooster rekende in spelseconden. Een trein staat nog precies op zijn perron tussen aankomst en vertrek (het bord klopt), maar rijdt alleen kort na zijn vertrek en voor zijn aankomst, met een echte optrek- en remcurve (nooit boven 22 m/s), en is daartussen niet in de wereld. Samen spelen: iedereen rekent de treinen uit dezelfde gezamenlijke klok uit, dus gasten zien dezelfde treinen als de host (#1339, #1348).
+- Station: het vertrekbord is kleiner (drie treinen) en vervaagt zodra je loopt of rijdt; het komt terug als je stilstaat. Het bord is lokaal bij elke speler (#1345).
+- Station Noord: de drempel over de Kastanjelaan is weg. Een oud perronkit (een plaat van 0,9 m op de grond) lag onder het hoge perron dwars over de weg; waar een echt perron staat of een plaat over een weg loopt, komt het kit niet meer (#1346).
+- Stations: het perron van een landhalte volgt het spoor in een bocht en stopt bij het eindstation (de rechte plaat lag bij Winsum en Hoogezand tot 7 m naast het spoor, bij Sauwerd dwars op een tweede spoor). Een audit controleert van alle stations de perronvloer, de hoogte en de afstand tot het spoor (#1348).
 - De game staat nu op de hoofdpagina van de webversie (GitHub Pages); de marketingpagina is weggehaald. De oude link /play/ stuurt door naar de hoofdpagina.
 
 ## [0.66.0] - 2026-11-24
