@@ -79,6 +79,14 @@ const NEAR_MAX_GAP = 1.2;         // m tussen de carrosserieen (strenger dan de 
 export const NEAR_COOLDOWN_S = 12;       // per voertuigpaar
 const NEAR_BONUS_MIN = 5, NEAR_BONUS_MAX = 15;
 
+// Alleen rijdend verkeer kan rakelings zijn (#1347): een auto die aan de stoep geparkeerd staat (v.parked,
+// v.parkSlot) of stilstaat telt niet, ook niet als jij er snel langs scheurt. o: het andere voertuig.
+export const NEAR_OTHER_MIN_SPEED = 1; // m/s
+export function countsForNearMiss(o) {
+  if (!o || o.wrecked || o.parked || o.parkSlot) return false;
+  return Math.abs(o.speed || 0) > NEAR_OTHER_MIN_SPEED;
+}
+
 export function makeNearMiss() { return { at: new Map(), streak: 0, streakAt: -99 }; }
 
 // Een geslaagde rakelings: je rijdt snel, het andere voertuig rijdt dezelfde kant op (geen

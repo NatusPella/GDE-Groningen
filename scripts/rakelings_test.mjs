@@ -10,6 +10,7 @@
 // Zo bewijst de test dat een echte inhaalactie op een stadsweg precies één keer telt en dat een
 // auto die blijft hangen, een botsing of stilstand nooit telt.
 import fs from 'node:fs';
+import { countsForNearMiss } from '../game/js/gamefeel.js';
 
 const SRC = fs.readFileSync(new URL('../game/js/achievementtracker.js', import.meta.url), 'utf8');
 const GAP = Number((SRC.match(/const NEAR_MISS_GAP = ([0-9.]+)/) || [])[1]);
@@ -35,6 +36,7 @@ function makeDetectie() {
         const c = Math.cos(pv.angle), s = Math.sin(pv.angle);
         for (const o of w.vehicles) {
           if (o === pv || o.wrecked || o.isBoat || nearCand.has(o.id)) continue;
+          if (!countsForNearMiss(o)) continue;
           const dx = o.x - pv.x, dy = o.y - pv.y;
           if (dx * dx + dy * dy > 100) continue;
           const lx = dx * c + dy * s, ly = -dx * s + dy * c;
@@ -157,6 +159,31 @@ for (const ruis of [0, 0.08]) {
   });
   ok(d.geteld === 2, 'tweede pass telt er weer één bij', d.geteld);
 }
+
+// --- 7. geparkeerde en stilstaande auto's tellen niet (#1347) ---------------------------------
+for (const [naam, extra, v] of [
+  ['geparkeerde auto (parked)', { parked: true }, 0],
+  ['geparkeerde auto (parkSlot)', { parkSlot: { x: 1, y: 2 } }, 0],
+  ['stilstaande auto', {}, 0],
+  ['geparkeerde auto met rolsnelheid', { parked: true }, 0.3],
+]) {
+  const d = makeDetectie();
+  const pv = car('pv', 0, 0, 50 / 3.6);
+  const o = car('o', 30, 3.4, v, extra);
+  const w = { time: 0, vehicles: [pv, o] };
+  drive(d, w, pv, o, 4, (t, a) => { a.x = (50 / 3.6) * t; });
+  ok(d.geteld === 0 && d.kandidaten === 0, `${naam} geeft geen rakelings`, d.geteld);
+}
+{
+  // een rijdende auto op dezelfde plek telt wel
+  const d = makeDetectie();
+  const pv = car('pv', 0, 0, 50 / 3.6);
+  const o = car('o', 9, 3.4, 40 / 3.6);
+  const w = { time: 0, vehicles: [pv, o] };
+  drive(d, w, pv, o, 14, (t, a, b) => { a.x = (50 / 3.6) * t; b.x = 9 + (40 / 3.6) * t; });
+  ok(d.geteld === 1, 'een rijdende auto geeft wel rakelings', d.geteld);
+}
+ok(/countsForNearMiss\(o\)/.test(SRC), 'de tracker filtert met countsForNearMiss');
 
 console.log(`rakelings_test: ${n - fails}/${n} ok`);
 process.exit(fails ? 1 : 0);

@@ -9,6 +9,7 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ## [Unreleased]
 
+- Rakelings geldt alleen nog voor rijdend verkeer: een auto die langs de weg geparkeerd staat (of stilstaat) geeft geen bonus meer. Bij Samen spelen geldt dit voor ieders eigen rit.
 - De game staat nu op de hoofdpagina van de webversie (GitHub Pages); de marketingpagina is weggehaald. De oude link /play/ stuurt door naar de hoofdpagina.
 
 ## [0.66.0] - 2026-11-24

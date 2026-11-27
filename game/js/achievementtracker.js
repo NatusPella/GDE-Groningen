@@ -20,7 +20,7 @@ import { getMissionList, payMedalBonus } from './missionquery.js';
 import { getSettings } from './settings.js';
 import { cleanDifficulty, scaleTarget, difficultyFactors } from './difficulty.js'; // #800: medailledrempels per stand
 import { getScene } from './scene3d.js';
-import { makeNearMiss, nearMissBonus, nearMissStreak, breakNearStreak, makeAirTrack, airStep, airBonus } from './gamefeel.js';
+import { makeNearMiss, countsForNearMiss, nearMissBonus, nearMissStreak, breakNearStreak, makeAirTrack, airStep, airBonus } from './gamefeel.js';
 import { chipPopup } from './stunthud.js';
 import { noteMoney } from './finance.js';
 import { initVisboek } from './visboeklive.js';
@@ -234,6 +234,7 @@ function trackVehicle(dt, w, pv) {
     const c = Math.cos(pv.angle), s = Math.sin(pv.angle);
     for (const o of w.vehicles) {
       if (o === pv || o.wrecked || o.isBoat || nearCand.has(o.id)) continue;
+      if (!countsForNearMiss(o)) continue; // geparkeerd of stilstaand is geen verkeer (#1347)
       const dx = o.x - pv.x, dy = o.y - pv.y;
       if (dx * dx + dy * dy > 100) continue;
       const lx = dx * c + dy * s, ly = -dx * s + dy * c;
