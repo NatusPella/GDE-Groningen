@@ -50,7 +50,7 @@ import { refreshDayNight } from './daynight.js';
 import { recordStat, unlockAchievement } from './achievements.js';
 import { clearDrunk } from './drunk.js';
 import { updateFlatGeluid } from './flatgeluid.js';
-import { buildHomeExterior3D, buildGarageShell, buildHomeDressing, setGarageCutaway, setGarageDoor, disposeHomeExterior, buildLowerTower3D, buildFlat3D, setFlatFacade, buildSafehouseMarker3D } from './home3d.js';
+import { buildHomeExterior3D, buildGarageShell, buildHomeDressing, setGarageCutaway, setGarageDoor, disposeHomeExterior, buildLowerTower3D, buildFlat3D, setFlatFacade, setFlatWalls, buildSafehouseMarker3D } from './home3d.js';
 import { gastPandVrij } from './safehuisplek.js';
 import { inPassage } from './passages.js';
 import { provinceLandAt } from './regions.js';
@@ -93,7 +93,7 @@ const FLOOR_TOP = FLOOR_Y + 0.02;
 const USE_R = 1.5;
 const SLAB_PAD = 2;
 const INTERIOR_CAM = 0.85;
-const CAM_ABOVE_FLOOR = 2.4;
+const CAM_ABOVE_FLOOR = 3.2; // above the inner walls (FLAT_WALL_H, 2,5 m) so they never block the view (#1343)
 const GLASS_CLEAR = 0.35;
 const FRIDGE_COOLDOWN = 45;
 const MORNING = 7.5;
@@ -1511,6 +1511,7 @@ function keepInFlat(dt, w) {
   const want = camLocal && camLocal.lz < 0.4 ? 1 : 0;
   inside.facade += Math.max(-dt * 4, Math.min(dt * 4, want - inside.facade));
   setFlatFacade(inside.flatMesh, inside.facade);
+  setFlatWalls(inside.flatMesh, camLocal, toFlat(p.x, p.y), dt);
 }
 
 // scene3d's follow camera (world.camAdjust, three.js axes: y is up). In the

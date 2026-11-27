@@ -6,6 +6,13 @@
 export const FLAT_W = 11, FLAT_D = 9;
 const HALL = 3.4, MID = 5.2, SPLIT = 7.2;
 
+// Measures of the shell (#1343), pure data so scripts/flat_maten_test.mjs can check them: normal ceiling height for the walls
+// (the camera stays above them, home.js), the flat's front door in the hall's back wall (z = d, towards the lift), and the balcony
+// on the facade side OUTSIDE the glass (z < 0) with a sliding door between it and the living room.
+export const FLAT_WALL_H = 2.5;
+export const FRONT_DOOR = { x: 1.7, w: 1.0, h: 2.1 };
+export const BALCONY = { x0: 0.7, x1: 5.5, depth: 1.6, rail: 1.1, door: { x0: 1.75, x1: 2.95, h: 2.2 } };
+
 // Fresh copies every time: home.js and furniture.js may change what they get.
 export function makeFlatPlan() {
   const W = FLAT_W, Dd = FLAT_D;
@@ -59,4 +66,14 @@ export function makeFlatPlan() {
     // facade (toward z = 0); the next ones are tried when the Sloapstee or an EIKEA piece stands in the way
     spawn: [[5.9, 2.6], [5.9, 3.4], [5.9, 1.8], [2.0, 3.0], [1.8, 2.0]],
   };
+}
+
+// Does the wall [x1, z1, x2, z2] stand between the camera and the player (both in the flat's frame)? Such a wall drops to hip height
+// while it is in the way (home3d.js setFlatWalls), so full-height walls never hide the player (#1343).
+export function wallBlocksView(wall, cam, player) {
+  const [x1, z1, x2, z2] = wall;
+  const o = (ax, az, bx, bz, cx, cz) => (bx - ax) * (cz - az) - (bz - az) * (cx - ax);
+  const d1 = o(cam.lx, cam.lz, player.lx, player.lz, x1, z1), d2 = o(cam.lx, cam.lz, player.lx, player.lz, x2, z2);
+  const d3 = o(x1, z1, x2, z2, cam.lx, cam.lz), d4 = o(x1, z1, x2, z2, player.lx, player.lz);
+  return d1 * d2 < 0 && d3 * d4 < 0;
 }

@@ -9,6 +9,7 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ## [Unreleased]
 
+- Thuis (de flat): de muren staan op een gewone plafondhoogte van 2,5 m en de camera blijft erboven, dus het voelt niet meer laag en leeg. Het grote donkere vlak naast de flat (de daken van de buren) is nu gesloten buurflats in baksteen. Er is een echt balkon buiten de glasgevel, met balustrade, schuifdeur, stoelen, tafeltje en plant. De voordeur van de flat is een rode deur in een wit kozijn met huisnummer, bel en lamp, en de voordeur van de toren heeft een groen kozijn, nummerbord, bel en lamp. Samen spelen: elke speler heeft zijn eigen flat, dit is alleen uiterlijk.
 - Thuis: de Fjord Escapade kan weer uit de privégarage. De poort liep precies tot de zijkant van zijn vak, waardoor hij met zijn zijkant tegen de poortstijl bleef steken. De poort is nu breder (7,1 m). Samen spelen: de garage en de poort zijn van de wereld van de host, voor iedereen gelijk.
 - Thuis: Eierbal pakken doet nu iets zichtbaars. Je ziet hoeveel gezondheid en pantser je erbij krijgt. Zit je gezondheid al vol, dan staat er waarom er niets gebeurt (en kost dat niets), en bij de wachttijd staat hoeveel seconden nog. Samen spelen: de eierbal is lokaal, iedereen eet uit zijn eigen vriezer.
 - De game staat nu op de hoofdpagina van de webversie (GitHub Pages); de marketingpagina is weggehaald. De oude link /play/ stuurt door naar de hoofdpagina.
