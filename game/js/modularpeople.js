@@ -817,6 +817,14 @@ export function animateModular(mesh, speed, dt) {
   evalState(ud, rig, st, sm.s, st.stateT, k, talk, walkC, runC, idleC, runOff);
   if (k < 1) evalState(ud, rig, st, st.prevS, st.prevT, 1 - k, talk, walkC, runC, idleC, runOff);
   writeBones(ud, rig);
+  // na een ragdoll (ragdollmodular.js): van de pose waarin de mens opstond naar de animatie, in 0,3 s
+  const bf = ud.qBlendFrom;
+  if (bf) {
+    bf.t += step;
+    const kb = Math.min(1, bf.t / bf.dur), e = kb * kb * (3 - 2 * kb);
+    for (let b = 0; b < ud.qBones.length; b++) { _qa.fromArray(bf.q, b * 4).slerp(ud.qBones[b].quaternion, e); ud.qBones[b].quaternion.copy(_qa); }
+    if (kb >= 1) ud.qBlendFrom = null;
+  }
   // praten: gebaren met de armen (om en om een onderarm omhoog, een open hand) en het hoofd rechtop met een kleine knik
   st.talkW = crossfade(st.talkW || 0, ud.qParams && ud.qParams.talk ? 1 : 0, step, 0.3);
   if (st.talkW > 0.01) talkGestures(ud, rig, st.t, st.talkW);
