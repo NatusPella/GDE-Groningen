@@ -9,6 +9,8 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ## [Unreleased]
 
+- Neergeslagen, geschoten, weggeblazen of overreden worden valt een mens nu echt om en staat weer op: het lichaam volgt de ragdoll op de nieuwe mensen (voorheen bleef het bovenlijf rechtop in de grond staan), met een zachte overgang terug naar lopen en staan. Samen spelen: het lijf wordt lokaal uit positie en botsing berekend, een gast ziet hetzelfde als eerder.
+- Paardenstaart, vlecht, twee staartjes en knot zijn terug op de nieuwe mensen (ook op afstand en in scenes), ook onder een pet. Samen spelen: het kapsel zit in de kledingcode, een gast ziet hetzelfde.
 - De game staat nu op de hoofdpagina van de webversie (GitHub Pages); de marketingpagina is weggehaald. De oude link /play/ stuurt door naar de hoofdpagina.
 
 ## [0.66.0] - 2026-11-24
