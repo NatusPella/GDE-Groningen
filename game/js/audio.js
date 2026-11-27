@@ -44,6 +44,7 @@ import { setWaterHost, updateSailing, updatePaddling, noMotor, sailPowered } fro
 // De radio en de G-Music-machine wonen in audio/radio.js (#519); de namen die
 // de rest van het spel hier importeert blijven dezelfde.
 import { setRadioDeps, loadGMusicManifest, updateGMusic, enqueueGmusicJingle, radioSleep, radioWake, radioUnlock, radioCtxStalled, radioWasSuspended, watchRadio, radioPoke, radioState, radioTrackEls, radioCurrentTrackEl, radioOn, radioProg } from './audio/radio.js';
+import { devWarn } from './devwarn.js';
 export { setRadioOn, setRadioProgramme, setRadioChannel, radioTrackEls as radioTrackList, radioNowTrack, onRadioBreak, radioInBreak } from './audio/radio.js';
 
 // the camera comes from main.js (setAudioCamera): audio.js does not import scene3d.js (#108)
@@ -149,7 +150,7 @@ let worldReady = false;
 const VOICE_CAPS = [26, 54, 76];
 let activeVoices = 0;
 // de ruisbronnen (audio/ruisbronnen.js): telt de levende lussen en zet een doorlopende ruisstem die uit hoort te zijn maar open staat alsnog dicht
-const ruis = createNoiseRegistry({ onFix: (naam, param) => { try { param.cancelScheduledValues(0); param.value = 0; paramMemo.forget(param); } catch (e) { /* al weg */ } fix('ruis-vast:' + naam); } });
+const ruis = createNoiseRegistry({ onFix: (naam, param) => { try { param.cancelScheduledValues(0); param.value = 0; paramMemo.forget(param); } catch (e) { devWarn('audio', e); } fix('ruis-vast:' + naam); } });
 const stemTeller = createStemTeller();   // per categorie (sfx/stemlimiet.js)
 function voiceOk(prio = 1) { return activeVoices < voiceCap(prio, VOICE_CAPS); }
 
@@ -1155,9 +1156,7 @@ function playClip(src, pos = null, gain = 1) {
     } else {
       out.connect(voiceBus);
     }
-  } catch (e) {
-    // ignore - playback still works without the Web Audio graph attached
-  }
+  } catch (e) { devWarn('audio', e); }
   // after the speakClip listeners (registered later) have run
   const cleanup = () => { for (const n of nodes) n.disconnect(); nodes.length = 0; setTimeout(() => releaseEl(el), 0); };
   el.addEventListener('ended', cleanup, { once: true });
@@ -1180,7 +1179,7 @@ function releaseEl(el) {
   if (!el || !el.gdeLive) return;
   el.gdeLive = false;
   liveVoiceEls--;
-  try { el.pause(); el.removeAttribute('src'); el.load(); } catch (e) { /* ignore */ }
+  try { el.pause(); el.removeAttribute('src'); el.load(); } catch (e) { devWarn('audio', e); }
 }
 
 // Every voice below asks speech.js for the one talking channel first
@@ -1282,12 +1281,12 @@ export function stopStoryVoice() {
 // houden hun eigen demping.
 export function pauseStoryVoice() {
   const v = storyVoice;
-  if (v && v.el && typeof v.el.pause === 'function' && !v.el.paused) { try { v.el.pause(); return true; } catch (e) { /* al weg */ } }
+  if (v && v.el && typeof v.el.pause === 'function' && !v.el.paused) { try { v.el.pause(); return true; } catch (e) { devWarn('audio', e); } }
   return false;
 }
 export function resumeStoryVoice() {
   const v = storyVoice;
-  if (v && v.el && typeof v.el.play === 'function' && v.el.paused) { try { const p = v.el.play(); if (p && p.catch) p.catch(() => {}); return true; } catch (e) { /* al weg */ } }
+  if (v && v.el && typeof v.el.play === 'function' && v.el.paused) { try { const p = v.el.play(); if (p && p.catch) p.catch(() => {}); return true; } catch (e) { devWarn('audio', e); } }
   return false;
 }
 
@@ -1307,9 +1306,7 @@ function playExclusive(src, { cls, owner, radio = false, duck, strict, get, set,
       const pk = ctx.createBiquadFilter(); pk.type = 'peaking'; pk.frequency.value = 1900; pk.Q.value = 0.8; pk.gain.value = 3;
       v.node.connect(hp); hp.connect(pk); pk.connect(lp); lp.connect(voiceBus);
     } else v.node.connect(voiceBus);
-  } catch (e) {
-    // ignore - plays without the Web Audio graph
-  }
+  } catch (e) { devWarn('audio', e); }
   set(v);
   const done = () => { if (get() === v) stop(); };
   v.el.addEventListener('ended', done, { once: true });
@@ -1571,13 +1568,13 @@ function playSting(name, world) {
   const t = ctx.currentTime;
   const r = stingGate.request(name, t);
   if (!r.ok) return;
-  if (r.afbreken && stingNode) { try { stingNode.gain.cancelScheduledValues(t); stingNode.gain.setTargetAtTime(0, t, 0.03); } catch (e) { /* al weg */ } }
+  if (r.afbreken && stingNode) { try { stingNode.gain.cancelScheduledValues(t); stingNode.gain.setTargetAtTime(0, t, 0.03); } catch (e) { devWarn('audio', e); } }
   const node = ctx.createGain();
   node.connect(stingBus);
   stingNode = node;
   for (const nt of stingNoten(name)) playTone({ ...nt, bus: node, prio: 2 });
   stingDuck.until = Math.max(stingDuck.until, t + stingDuur(name));
-  setTimeout(() => { try { node.disconnect(); } catch (e) { /* al weg */ } if (stingNode === node) stingNode = null; }, (stingDuur(name) + 0.5) * 1000);
+  setTimeout(() => { try { node.disconnect(); } catch (e) { devWarn('audio', e); } if (stingNode === node) stingNode = null; }, (stingDuur(name) + 0.5) * 1000);
 }
 // 1 = de radio op zijn zachtst door een sting, 0 = niets; zacht in en uit
 function stingDuckMul(dt) {
@@ -1812,7 +1809,7 @@ function rebuildLimiter() {
   if (!limiter) return;
   const old = limiter;
   limiter = buildLimiter();
-  try { old.disconnect(); } catch (e) { /* already loose */ }
+  try { old.disconnect(); } catch (e) { devWarn('audio', e); }
   clipStage.connect(limiter);
   musicLp.connect(limiter);
   limiter.connect(output());
@@ -1943,7 +1940,7 @@ function buildGraph() {
   ruis.bewaak('rommel', rumbleVoice.gain.gain, (w) => { const v = hoofdspeler(w).inVehicle; return !synth.player && !!v && !w.paused; });
   loadEngineWorklet();
   audioDiag.attach({ ctx, master, limiter, meter, meterOut, latencyHint, voices: () => activeVoices, ruis: () => ruis.stand(), engineVoices: () => engineVoices.filter((v) => v && v.target).length, vorige: readPrevGlitches() });
-  setInterval(() => { try { if (!FLAGS.dev && !FLAGS.stil) audioDiag.bewaar(localStorage); } catch (e) { /* no storage */ } }, 30000);
+  setInterval(() => { try { if (!FLAGS.dev && !FLAGS.stil) audioDiag.bewaar(localStorage); } catch (e) { devWarn('audio', e); } }, 30000);
 
   kit = {
     ctx, bank,
@@ -2129,7 +2126,7 @@ function updateEngineLayer(dt, on, rpm, spec, muffle, key = 'motor_auto_stationa
   if (engineLayer && engineLayer.key !== key) {   // een ander voertuigtype: de oude lus loopt uit
     engineLayer.gain.gain.setTargetAtTime(0, t, 0.08);
     const l = engineLayer; engineLayer = null;
-    try { l.src.stop(t + 0.4); } catch (e) { /* already stopped */ }
+    try { l.src.stop(t + 0.4); } catch (e) { devWarn('audio', e); }
   }
   if (on && buf && !engineLayer) {
     const src = ctx.createBufferSource();
@@ -2149,7 +2146,7 @@ function updateEngineLayer(dt, on, rpm, spec, muffle, key = 'motor_auto_stationa
   } else {
     engineLayer.gain.gain.setTargetAtTime(0, t, 0.12);
     const l = engineLayer; engineLayer = null;
-    try { l.src.stop(t + 0.6); } catch (e) { /* already stopped */ }
+    try { l.src.stop(t + 0.6); } catch (e) { devWarn('audio', e); }
   }
 }
 
@@ -2179,7 +2176,7 @@ function updateRitMotor(world) {
   } else {
     ritMotor.gain.gain.setTargetAtTime(0, t, 0.15);
     const l = ritMotor; ritMotor = null;
-    try { l.src.stop(t + 0.8); } catch (e) { /* already stopped */ }
+    try { l.src.stop(t + 0.8); } catch (e) { devWarn('audio', e); }
   }
 }
 
@@ -2428,7 +2425,7 @@ function startPlainLoop(voice, buffer) {
 function stopSquealSample(l, t) {
   l.gain.gain.cancelScheduledValues(t);
   l.gain.gain.setTargetAtTime(0, t, 0.05);
-  try { l.src.stop(t + 0.35); } catch (e) { /* already stopped */ }
+  try { l.src.stop(t + 0.35); } catch (e) { devWarn('audio', e); }
 }
 
 function updateSqueal(dt, world) {
@@ -2974,7 +2971,7 @@ function startBikeSpeaker(v) {
   el.webkitPreservesPitch = false;
   const rate0 = bikeSpeakerRate(v); // meteen op de goede toonhoogte, niet vanaf 1 erheen glijden
   el.defaultPlaybackRate = rate0; el.playbackRate = rate0;
-  try { el.currentTime = pick.start; } catch (e) { /* beginpunt komt na de metadata */ }
+  try { el.currentTime = pick.start; } catch (e) { devWarn('audio', e); }
   const src = ctx.createMediaElementSource(el);
   const hp = ctx.createBiquadFilter(); hp.type = 'highpass'; hp.frequency.value = 220; // een speakertje heeft geen bas en geen hoge top
   const lp = ctx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 6500;
@@ -2988,8 +2985,8 @@ function startBikeSpeaker(v) {
 }
 
 function stopBikeSpeaker(voice) {
-  try { voice.el.pause(); voice.el.removeAttribute('src'); voice.el.load(); } catch (e) { /* ignore */ }
-  for (const n of voice.nodes) { try { n.disconnect(); } catch (e) { /* ignore */ } }
+  try { voice.el.pause(); voice.el.removeAttribute('src'); voice.el.load(); } catch (e) { devWarn('audio', e); }
+  for (const n of voice.nodes) { try { n.disconnect(); } catch (e) { devWarn('audio', e); } }
   const i = bikeSpeakers.voices.indexOf(voice); if (i >= 0) bikeSpeakers.voices.splice(i, 1);
 }
 
@@ -3352,7 +3349,7 @@ function resetSynth() {
   for (const k of ['player', 'traffic']) {
     const n = synth[k];
     if (!n) continue;
-    try { n.disconnect(); } catch (e) { /* ignore */ }
+    try { n.disconnect(); } catch (e) { devWarn('audio', e); }
     synth[k] = null;
   }
 }

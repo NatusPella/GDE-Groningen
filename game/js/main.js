@@ -292,6 +292,7 @@ import { installGpuDiag } from './gpudiag.js'; // 0.64.1: Technische info (Ctrl+
 import { initScrollAanwijzing } from './dsscroll.js'; // 22-11: DS3-scrollbalk, vervaging waar meer inhoud staat
 import { updateRegioLeven, setNieuwsBronnen } from './regiolevenrt.js';
 import { syncLedger, getLedger } from './finance.js';
+import { devWarn } from './devwarn.js';
 
 // breakables.js calls these every stream interval (it does not import them)
 addPropStreamer(streamTreeProps);
@@ -583,7 +584,7 @@ function waitForStart(world, ready) {
               }
             } catch (e) { console.warn('opening-assets tekenen', e); }
             finally {
-              if (sc && warmGroup) { try { sc.remove(warmGroup); } catch (e) { /* niet erg */ } }
+              if (sc && warmGroup) { try { sc.remove(warmGroup); } catch (e) { devWarn('main', e); } }
               setCameraOverride(world, vorigeOverride || null);
               if (ok) world.__openingWarm = warmGroup;
             }
@@ -611,9 +612,9 @@ function waitForStart(world, ready) {
                 }
               } catch (e) { console.warn('warm-samples tekenen', e); }
               finally {
-                if (sc2 && warmSamples) { try { sc2.remove(warmSamples); } catch (e) { /* niet erg */ } }
+                if (sc2 && warmSamples) { try { sc2.remove(warmSamples); } catch (e) { devWarn('main', e); } }
                 setCameraOverride(world, vorigeOverride2 || null);
-                if (!ok && warmSamples) { try { disposeObject(warmSamples); } catch (e) { /* niet erg */ } warmSamples = null; }
+                if (!ok && warmSamples) { try { disposeObject(warmSamples); } catch (e) { devWarn('main', e); } warmSamples = null; }
                 world.__warmSamples = ok ? warmSamples : null;
               }
             }
@@ -741,7 +742,7 @@ function showBootFailure(msg) {
   knop.type = 'button';
   knop.textContent = 'Opnieuw laden';
   knop.style.cssText = 'display:block;margin:18px auto 0;padding:10px 22px;font:inherit;cursor:pointer;border:1px solid #ffffff66;border-radius:6px;background:#ffffff22;color:var(--ds-c-wit)';
-  knop.addEventListener('click', () => { try { location.reload(); } catch (e) { /* geen locatie */ } });
+  knop.addEventListener('click', () => { try { location.reload(); } catch (e) { devWarn('main', e); } });
   box.appendChild(knop);
   if (knop.focus) knop.focus();
 }
@@ -1006,7 +1007,7 @@ window.__debug = { player, map, input, world, frameStats };
   initBezit();
   assignRealSetResolver(resolveRealSet);
   installBezitInterior(assignInteriorHooks, { openMenu: () => openPauseMenu('boerderij', { sub: 'bedrijven' }) }); // E bij de toonbank van je eigen pand: het volledige Bezit-menu (Land en bedrijf > Bedrijven)
-  try { registerSponsorPanden(); linkCareer({ getCareer: getVoetbalCarriere, subscribe: volgVoetbalCarriere, homeMatchToday: voetbalThuisVandaag, formOf: voetbalVorm, getClub: getVoetbalClub, replaceCareer: vervangVoetbalCarriere, clubPlace: voetbalClubPlek }); } catch (e) { /* zonder voetbal */ }
+  try { registerSponsorPanden(); linkCareer({ getCareer: getVoetbalCarriere, subscribe: volgVoetbalCarriere, homeMatchToday: voetbalThuisVandaag, formOf: voetbalVorm, getClub: getVoetbalClub, replaceCareer: vervangVoetbalCarriere, clubPlace: voetbalClubPlek }); } catch (e) { devWarn('main', e); }
   // de gedeelde ontgrendelpoort (unlockgate.js): zolang de save geen `gate` heeft (world.gate) staat alles open (migratieregel van de verhaal-epic)
   setGateProgress(() => storyGateProgress());
   initFeatureReveal(); // 22-11: wat het menu, de kaart en de activiteiten tonen volgt uit dezelfde poort (featurereveal.js)
@@ -1028,7 +1029,7 @@ window.__debug = { player, map, input, world, frameStats };
   // the first tiles round the save build while the boot screen is still up; boot loads the
   // save that was written last, so warm that slot and not whichever slot happened to be active
   // #655: de boot leest de save één keer (readSaveInfo); hasSave()/readSave() erna komen uit de lees-cache.
-try { const slot = ensureLatestSlot(); const info = slot ? readSaveInfo() : null; const sv = info && info.data ? info.data : null; if (sv && sv.pos) prewarmStreamAt(sv.pos.x, sv.pos.y, 40); } catch (e) { /* ignore */ }
+try { const slot = ensureLatestSlot(); const info = slot ? readSaveInfo() : null; const sv = info && info.data ? info.data : null; if (sv && sv.pos) prewarmStreamAt(sv.pos.x, sv.pos.y, 40); } catch (e) { devWarn('main', e); }
   // #749: de geometry-worker bouwt het terrein, maar een worker die leeft en niet antwoordt
   // heeft geen deadline; na 60 s gaat de wereld zonder dat terrein verder. De terugval op de
   // hoofdthread (terrainArrays/terrainGroup) zit in scene3d.js en blijft daar.
@@ -1102,7 +1103,7 @@ try { const slot = ensureLatestSlot(); const info = slot ? readSaveInfo() : null
   // De montage ruimt de vooraf gepinde tegels zelf op; loopt hij niet (of is hij
   // al klaar), dan mogen ze hier alsnog vrij.
   setTimeout(() => {
-    try { if (world.map && world.map.releaseShots && !document.body.classList.contains('intro-montage')) world.map.releaseShots(); if (!document.body.classList.contains('intro-montage')) { try { releaseWarmupSamples(); } catch (e) { /* niet erg */ } try { releaseHeldMaterials(); } catch (e) { /* niet erg */ } try { setCinematicBatches(false); } catch (e) { /* niet erg */ } try { setHoldGrass(false); } catch (e) { /* niet erg */ } world.__warmSamples = null; if (world.__openingWarm) { try { disposeObject(world.__openingWarm); } catch (e) { /* niet erg */ } world.__openingWarm = null; } } } catch (e) { /* niet erg */ }
+    try { if (world.map && world.map.releaseShots && !document.body.classList.contains('intro-montage')) world.map.releaseShots(); if (!document.body.classList.contains('intro-montage')) { try { releaseWarmupSamples(); } catch (e) { devWarn('main', e); } try { releaseHeldMaterials(); } catch (e) { devWarn('main', e); } try { setCinematicBatches(false); } catch (e) { devWarn('main', e); } try { setHoldGrass(false); } catch (e) { devWarn('main', e); } world.__warmSamples = null; if (world.__openingWarm) { try { disposeObject(world.__openingWarm); } catch (e) { devWarn('main', e); } world.__openingWarm = null; } } } catch (e) { devWarn('main', e); }
   }, 20000);
   hideAdvice();
   input.tryLock(false); // the game itself asks here, long after the click that started it: refusing is no sign of a browser without lock (#328)
@@ -1360,7 +1361,7 @@ try { const slot = ensureLatestSlot(); const info = slot ? readSaveInfo() : null
   function updateGameplay(dt) {
     world.time += dt;
     // samen spelen (#95): een gast draait de wereld van de host niet zelf; die komt via het net (coopnet.js, coopworld.js)
-    if (world.coopRole === 'client' && world.coopNet && world.coopNet.joined) { updateGastLokaal(world, dt); try { updateMuggingsGast(dt, world); } catch (e) { /* zonder beroving */ } try { if (world.coopBoerNet !== world.coopNet) { world.coopBoerNet = world.coopNet; boerderijKlokNul(); } boerderijTijd(world); } catch (e) { /* zonder boerderij */ } updateWeather(dt, world); refreshDayNight(world); try { updateEvenementen(dt, world, Number.isInteger(world.coopDag) ? world.coopDag : calendarToday(world)); } catch (e) { /* zonder evenementen */ } try { updateHomeExterior(dt, world); } catch (e) { /* zonder garage */ } try { updateGarages(dt, world, true); tickActivitiesGast(dt, world); busHalteKind.tick(dt, world); /* de haltepalen en de lijst haltes in beeld: zonder die lijst zag een gast geen paal, geen wachtenden en geen in- of uitstappers bij de bussen van de host (samen-host 24-11) */ updateStationLife(dt, world, { routes: getRoutes(), point: routePoint, day: calendarToday(world), createBoard: createStationBoard, trains: getTrains().filter((t) => !t.gastWeg), schaal: 86400 / DAY_LENGTH_S, driving: false, ...treinBord(world) }); } catch (e) { console.error('gast: gebouwen', e); } return; } // een gast ziet ook de garages en safehouses waar zijn lichaam tegenaan botst (#434) // het weer en de dagstand volgen de gastheer (#378) // winkelen en in- of uitstappen (#291)
+    if (world.coopRole === 'client' && world.coopNet && world.coopNet.joined) { updateGastLokaal(world, dt); try { updateMuggingsGast(dt, world); } catch (e) { devWarn('main', e); } try { if (world.coopBoerNet !== world.coopNet) { world.coopBoerNet = world.coopNet; boerderijKlokNul(); } boerderijTijd(world); } catch (e) { devWarn('main', e); } updateWeather(dt, world); refreshDayNight(world); try { updateEvenementen(dt, world, Number.isInteger(world.coopDag) ? world.coopDag : calendarToday(world)); } catch (e) { devWarn('main', e); } try { updateHomeExterior(dt, world); } catch (e) { devWarn('main', e); } try { updateGarages(dt, world, true); tickActivitiesGast(dt, world); busHalteKind.tick(dt, world); /* de haltepalen en de lijst haltes in beeld: zonder die lijst zag een gast geen paal, geen wachtenden en geen in- of uitstappers bij de bussen van de host (samen-host 24-11) */ updateStationLife(dt, world, { routes: getRoutes(), point: routePoint, day: calendarToday(world), createBoard: createStationBoard, trains: getTrains().filter((t) => !t.gastWeg), schaal: 86400 / DAY_LENGTH_S, driving: false, ...treinBord(world) }); } catch (e) { console.error('gast: gebouwen', e); } return; } // een gast ziet ook de garages en safehouses waar zijn lichaam tegenaan botst (#434) // het weer en de dagstand volgen de gastheer (#378) // winkelen en in- of uitstappen (#291)
     // money must stay a number: a NaN from any price or reward is undone
     if (Number.isFinite(world.money)) world._goodMoney = world.money;
     else {
@@ -1574,7 +1575,7 @@ try { const slot = ensureLatestSlot(); const info = slot ? readSaveInfo() : null
     updateInteriorIsolation(dt, world); // de wereld blijft buiten de binnenruimten (voetgangers, verkeer, props; de vaste lagen snijden zichzelf weg)
     updateDayNight(dt, world);
     boerderijTijd(world); // de gewassen groeien in speltijd (#415)
-    try { const dr = bezitDagTik(world); if (dr) { bezitDeliverLine(world, bezitOnDayReport(getBezit(), dr)); bezitDeliverRapport(world, dr); } updateBezitMarkers(world, dt); updateFarmWorkers(world, dt); updateSnackVans(world, dt); updateChainTrucks(world, dt); updateHerds(world, dt); } catch (e) { /* zonder bezit */ } // personeel, pacht, vee en bedrijven per speldag; de palen in de wereld (epic Bezit)
+    try { const dr = bezitDagTik(world); if (dr) { bezitDeliverLine(world, bezitOnDayReport(getBezit(), dr)); bezitDeliverRapport(world, dr); } updateBezitMarkers(world, dt); updateFarmWorkers(world, dt); updateSnackVans(world, dt); updateChainTrucks(world, dt); updateHerds(world, dt); } catch (e) { devWarn('main', e); } // personeel, pacht, vee en bedrijven per speldag; de palen in de wereld (epic Bezit)
     updateCalendar(dt, world);
     updateVoetbalDag(dt, world); // de nachten van de voetbalcarrière (#1110): zelfde signaal als de kalender, eigen teller
     updateVoetbalBeats(dt, world);

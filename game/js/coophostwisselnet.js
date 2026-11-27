@@ -19,6 +19,7 @@ import { figures } from './coopclient.js';
 import { sceneLeeg } from './coopworld.js';
 import { charInfo } from './coopplayers.js';
 import { lichaamVan } from './net/koploos.js'; // een gastheer zonder lokale speler heeft op plek 0 geen lichaam (#450)
+import { devWarn } from './devwarn.js';
 
 export const PAUZE_MAX = 80;      // s: de pauze voor een overdracht gaat hoe dan ook weer weg
 export const VERBIND_POGINGEN = 12;
@@ -110,7 +111,7 @@ export function pasMomentopnameToe(world, m, d = {}, opt = {}) {
   if (m.scène) {
     const tekst = 'De scène van de vorige speler is gestopt.';
     meld(world, tekst, 6);
-    try { if (world.coopNet && world.coopNet.role === 'host' && world.coopNet.hub) world.coopNet.hub.announce({ k: 'melding', tekst }); } catch (e) { /* nog geen hub */ }
+    try { if (world.coopNet && world.coopNet.role === 'host' && world.coopNet.hub) world.coopNet.hub.announce({ k: 'melding', tekst }); } catch (e) { devWarn('coophostwisselnet', e); }
     import('./cinematics.js').then((c) => { if (c.isCinematicActive()) c.skipCinematic(); }).catch(() => {});
   }
   // (#1060) de opening en de vlucht-in van het eigen spel zijn van wie ze zelf start: de nieuwe host speelt ze niet voor de groep (de opening
@@ -206,7 +207,7 @@ function naNieuw(world) {
   const w = st(world), x = w.nieuw; if (!x || w.nieuwEinde === x.id) return;
   if (x.fase === 'geweigerd' || x.fase === 'mislukt' || x.fase === 'geannuleerd') {
     w.nieuwEinde = x.id;
-    const o = w.overname; w.overname = null; if (o && o.rm) { try { o.rm.stop(); } catch (e) { /* al weg */ } }
+    const o = w.overname; w.overname = null; if (o && o.rm) { try { o.rm.stop(); } catch (e) { devWarn('coophostwisselnet', e); } }
     ui(world).vraag = null; eindPauze(world);
     const tekst = gemistTekst(x.reden); meld(world, tekst, 5); ui(world).einde = { tekst };
   }
@@ -221,7 +222,7 @@ async function startOvername(world) {
     if (!d || !d.opKamer || (d.bereikbaar && !(await d.bereikbaar()))) { stop('onbereikbaar'); return; }
     o.rm = await d.opKamer({ aanvaard: (tr) => { if (o.hub) N.addGuest(world, tr); else o.wachtrij.push(tr); } });
   } catch (e) { stop('onbereikbaar'); return; }
-  if (w.overname !== o || x.fase !== 'geladen' || !world.coopNet || world.coopNet !== n) { try { o.rm.stop(); } catch (e) { /* al weg */ } return; } // intussen afgebroken of time-out
+  if (w.overname !== o || x.fase !== 'geladen' || !world.coopNet || world.coopNet !== n) { try { o.rm.stop(); } catch (e) { devWarn('coophostwisselnet', e); } return; } // intussen afgebroken of time-out
   const r = x.draait(o.rm.kamer, w.nu); naarHost(world, r.uit);
   o.fase = 'draait'; o.sinds = w.nu;
 }
@@ -335,7 +336,7 @@ function oudeBaanStop(world) {
   const sj = world.sideJob;
   if (!(sj && sj.active)) return;
   bijbaanStopMelding(world, BIJBAAN_WEG_TEKST);
-  try { if (world.sideJobActions && world.sideJobActions.stop) world.sideJobActions.stop(); } catch (e) { /* de melding staat er al */ }
+  try { if (world.sideJobActions && world.sideJobActions.stop) world.sideJobActions.stop(); } catch (e) { devWarn('coophostwisselnet', e); }
 }
 // De gedeelde zoektocht naar een host: een lijst van kamers (elk met zijn eigen beurt, `duur` seconden), de eigen plek `ik` in die lijst (is de
 // beurt van jezelf, dan open je de kamer en wordt je host, anders probeer je bij die kamer aan te sluiten). Tikken in valTik (de speltijd, geen
@@ -383,12 +384,12 @@ function valTik(world) {
   v.volgende = w.nu + pogingWacht(v.fouten);
   const kamer = v.verhuisd[kand.slot] || kand.kamer;
   doePoging(world, v, kamer, (tr) => {
-    if (w.val !== v || v.klaar) { try { tr.close(); } catch (e) { /* al dicht */ } return; } // intussen afgehandeld
+    if (w.val !== v || v.klaar) { try { tr.close(); } catch (e) { devWarn('coophostwisselnet', e); } return; } // intussen afgehandeld
     try { N.startClient(world, tr, v.info, { ...(d.clientOpts ? d.clientOpts(v.wens) : {}), wens: v.wens, code: kamer }); }
-    catch (e) { try { tr.close(); } catch (er) { /* al dicht */ } v.volgende = w.nu + 5; return; }
+    catch (e) { try { tr.close(); } catch (er) { devWarn('coophostwisselnet', er); } v.volgende = w.nu + 5; return; }
     // #983: na een hostwissel is de bron van de eerste route (lijstrij of oude kamer) van een andere host. De kamer van de nieuwe host
     // wordt de laatste code, zodat een gast die hier wegvalt via Opnieuw verbinden dezelfde sessie terugvindt.
-    if (d.onCode) { try { d.onCode(kamer); } catch (e) { /* geen opslag: dan typt de gast de code */ } }
+    if (d.onCode) { try { d.onCode(kamer); } catch (e) { devWarn('coophostwisselnet', e); } }
     v.klaar = true; if (v.meldAan) w.meldAan = v.meldAan; // wie het spel opende meldt de nieuwe host dat hij is aangesloten (hw-aangesloten, zodra het welkom er is)
     valKlaar(world, v.tekst.aan(v.namen(kand.slot)));
   }, (e) => {
@@ -407,7 +408,7 @@ function doePoging(world, houder, kamer, ok, mis) {
   const w = st(world), d = w.deps;
   const probe = houder.probe = { t0: w.nu, verlaten: false };
   Promise.resolve().then(() => d.verbind(kamer, { tijd: PROBE_MAX_S * 1000 })).then((tr) => tr, (e) => { if (!probe.verlaten) mis(e); return null; }).then((tr) => {
-    if (probe.verlaten) { if (tr) { try { tr.close(); } catch (e) { /* al dicht */ } } return; }
+    if (probe.verlaten) { if (tr) { try { tr.close(); } catch (e) { devWarn('coophostwisselnet', e); } } return; }
     if (houder.probe === probe) houder.probe = null;
     if (tr) ok(tr);
   });
@@ -418,7 +419,7 @@ async function startEigen(world, v, kand) {
   const w = st(world), d = w.deps;
   v.eigenBezig = true;
   let rm = null;
-  const faal = () => { v.eigenGedaan = true; if (rm) { try { rm.stop(); } catch (e) { /* al weg */ } } };
+  const faal = () => { v.eigenGedaan = true; if (rm) { try { rm.stop(); } catch (e) { devWarn('coophostwisselnet', e); } } };
   try {
     if (d.bereikbaar && !(await d.bereikbaar())) { faal(); return; }
     const wachtrij = []; let hub = null;
@@ -433,7 +434,7 @@ async function startEigen(world, v, kand) {
       rm = await d.opKamer({ kamer: nieuw, aanvaard });
       try { verwijs = await d.verwijs(kand.kamer, nieuw); } catch (er) { verwijs = null; }
     }
-    if (verwijs && verwijs.stop) { const stopKamer = rm.stop; rm = { ...rm, stop() { try { verwijs.stop(); } catch (e) { /* al weg */ } stopKamer(); } }; }
+    if (verwijs && verwijs.stop) { const stopKamer = rm.stop; rm = { ...rm, stop() { try { verwijs.stop(); } catch (e) { devWarn('coophostwisselnet', e); } stopKamer(); } }; }
     if (w.val !== v || v.klaar || world.coopNet) { faal(); return; } // intussen afgebroken, of de speler zit al in een sessie
     hub = N.startHost(world, v.info, { ...(d.hostOpts ? d.hostOpts() : {}), seed: v.m ? v.m.zaad : v.zaad, max: v.max });
     zetPlekTerug(world, v.plek); // de gast blijft staan waar hij stond (geen sprong van de eigenlijke plek naar de oude)
@@ -456,7 +457,7 @@ async function startEigen(world, v, kand) {
 // al een kopie was van de momentopname. Na SOLO_MAX_S is de sessie gewoon van hem (dan speelt iemand al een tijd in dat spel).
 function soloTik(world) {
   const w = st(world), s = w.solo, n = world.coopNet, d = w.deps; if (!s) return;
-  if (!n || n !== s.net || n.role !== 'host' || !n.hub || !d || w.oud || (w.nieuw && w.nieuw.bezig) || w.val || w.verbindt || w.overname) { if (s.tr) { try { s.tr.close(); } catch (e) { /* al dicht */ } } w.solo = null; return; } // intussen iets anders geworden
+  if (!n || n !== s.net || n.role !== 'host' || !n.hub || !d || w.oud || (w.nieuw && w.nieuw.bezig) || w.val || w.verbindt || w.overname) { if (s.tr) { try { s.tr.close(); } catch (e) { devWarn('coophostwisselnet', e); } } w.solo = null; return; } // intussen iets anders geworden
   if (s.fase === 'flush') { // het bericht aan de eigen gasten is weg: even wachten tot het aankomt, dan zelf van sessie wisselen
     const open = [...n.hub.sessions.values()].some((x) => x.rel.pending.length > 0);
     if (open && w.nu - s.t < FLUSH_MAX) return;
@@ -469,7 +470,7 @@ function soloTik(world) {
   s.volgende = w.nu + Math.min(POGING_MAX_S, SOLO_POGING_S * Math.pow(1.5, Math.min(s.fouten, 4)));
   const kamer = s.verhuisd[kand.slot] || kand.kamer;
   doePoging(world, s, kamer, (tr) => {
-    if (w.solo !== s || world.coopNet !== n) { try { tr.close(); } catch (e) { /* al dicht */ } return; } // intussen anders geworden
+    if (w.solo !== s || world.coopNet !== n) { try { tr.close(); } catch (e) { devWarn('coophostwisselnet', e); } return; } // intussen anders geworden
     s.tr = tr; s.kamer = kamer; s.naam = s.namen(kand.slot); s.fase = 'flush'; s.t = w.nu;
     const id = nieuwId(d);
     for (const x of rest(n, -1)) n.hub.announce({ k: HW.VERBIND, id, kamer, naam: naamVan(world, 0) }, x); // de eigen gasten gaan mee
@@ -481,12 +482,12 @@ function soloTik(world) {
 function soloSluitAan(world, s) {
   const w = st(world), d = w.deps, tr = s.tr; w.solo = null;
   const plek = bewaarPlek(world);
-  try { if (w.rm) w.rm.stop(); } catch (e) { /* al weg */ } w.rm = null; w.rol = null;
+  try { if (w.rm) w.rm.stop(); } catch (e) { devWarn('coophostwisselnet', e); } w.rm = null; w.rol = null;
   N.stopCoopNet(world);
   zetPlekTerug(world, plek); // hij blijft staan waar hij stond (#452)
   try { N.startClient(world, tr, s.info, { ...(d.clientOpts ? d.clientOpts(s.wens) : {}), wens: s.wens, code: s.kamer }); }
-  catch (e) { try { tr.close(); } catch (er) { /* al dicht */ } meld(world, overnameMisluktTekst, 6); return; }
-  if (d.onCode) { try { d.onCode(s.kamer); } catch (e) { /* geen opslag */ } }
+  catch (e) { try { tr.close(); } catch (er) { devWarn('coophostwisselnet', er); } meld(world, overnameMisluktTekst, 6); return; }
+  if (d.onCode) { try { d.onCode(s.kamer); } catch (e) { devWarn('coophostwisselnet', e); } }
   w.solo = null; w.soloGesloten = (w.soloGesloten || 0) + 1;
   meld(world, sluitAanTekst(s.naam), 6);
 }
@@ -507,7 +508,7 @@ function aansluitTik(world) {
   const open = [...n.hub.sessions.values()].some((s) => s.rel.pending.length > 0);
   if (open && w.nu - a.t < FLUSH_MAX) return;
   w.aansluit = null;
-  try { if (w.rm) w.rm.stop(); } catch (e) { /* al weg */ } w.rm = null;
+  try { if (w.rm) w.rm.stop(); } catch (e) { devWarn('coophostwisselnet', e); } w.rm = null;
   startZoek(world, { lijst: [{ slot: -2, kamer: a.terug, duur: TERUG_S }], ik: -9, wens: a.wens, verbind: true, info: n.info, max: n.hub.roster.max, pauze: 'Terug naar het eerste spel. Even wachten.', tekst: { aan: () => overTekst(''), mislukt: verbindMisluktTekst, host: terugHostTekst } });
 }
 

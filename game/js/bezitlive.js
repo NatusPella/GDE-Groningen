@@ -72,7 +72,7 @@ export function schrijfNu() {
   if (!vuil) return;
   const st = opslag();
   if (!st || !bezit) return;
-  try { CH.packForSave(bezit); st.setItem(KEYS.bezit, JSON.stringify(Z.serializeBezit(bezit))); vuil = false; } catch (e) { /* opslag vol of geblokkeerd: het bezit blijft in dit spel */ }
+  try { CH.packForSave(bezit); st.setItem(KEYS.bezit, JSON.stringify(Z.serializeBezit(bezit))); vuil = false; } catch (e) { devWarn('bezitlive', e); }
 }
 // Verandert als een pand gekocht of verkocht wordt (genoeg voor wie het pand van het bezit tekent: interieurkleuren van een net gekocht pand); zonder bezit 0.
 export const bezitVersion = () => { try { return bezit ? bezit.buildings.size : 0; } catch (e) { return 0; } };
@@ -114,11 +114,11 @@ const indexListeners = new Set();
 export function onIndexReady(fn) {
   if (typeof fn !== 'function') return () => {};
   indexListeners.add(fn);
-  if (index) { try { fn(index); } catch (e) { /* de luisteraar is niet ons probleem */ } }
+  if (index) { try { fn(index); } catch (e) { devWarn('bezitlive', e); } }
   return () => indexListeners.delete(fn);
 }
 function afterIndex() {
-  for (const f of indexListeners) { try { f(index); } catch (e) { /* idem */ } }
+  for (const f of indexListeners) { try { f(index); } catch (e) { devWarn('bezitlive', e); } }
   const b = getBezit();
   const r = Z.reconcileWithIndex(b, index.parcels);
   if (r.rematched.length || r.refunded.length) {
@@ -179,7 +179,7 @@ export const bezitClosedText = (branch = 'land') => branchClosedText(branch);
 // Waarom een koop mislukt, in gewone woorden (voorheen "Kopen lukt nu niet" bij elke andere reden).
 export const buyFailText = (r) => (r && r.why === 'te-weinig-geld' ? `Je mist nog ${euro(r.tekort)}.` : r && r.why === 'vol' ? 'Je hebt het maximum aan bezit bereikt. Verkoop eerst iets.' : r && r.why === 'al-van-jou' ? 'Dit is al van jou.' : 'Kopen lukt nu niet. Probeer het zo nog eens.');
 export function koopPerceel(w, id) {
-  if (coopEnsure) { try { coopEnsure(w); } catch (e) { /* geen sessie */ } }   // Samen spelen: het transport van de claims staat klaar voor de koop
+  if (coopEnsure) { try { coopEnsure(w); } catch (e) { devWarn('bezitlive', e); } }   // Samen spelen: het transport van de claims staat klaar voor de koop
   if (!branchOpen('land')) return { ok: false, why: 'dicht', text: branchClosedText('land') };
   const o = parcelOffer(id);
   if (!o) return { ok: false, why: 'onbekend', text: 'Dit perceel is niet gevonden.' };
@@ -195,12 +195,12 @@ export function koopPerceel(w, id) {
   sfxEvent(w, 'deed_stamp');   // SFX ronde 6: de akte wordt gestempeld (per speler: lokaal, een gast hoort het niet)
   claimSend({ id, action: 'claim' });
   markeer();
-  try { achieve(w); } catch (e) { /* prestaties niet klaar */ }
-  try { deliverLine(w, onParcelBought(getBezit(), o.region, Math.floor(farm.uren / 24))); } catch (e) { /* geen regel */ }   // Tessa bij het eerste perceel per streek
+  try { achieve(w); } catch (e) { devWarn('bezitlive', e); }
+  try { deliverLine(w, onParcelBought(getBezit(), o.region, Math.floor(farm.uren / 24))); } catch (e) { devWarn('bezitlive', e); }   // Tessa bij het eerste perceel per streek
   return { ok: true, cost: o.price, name: o.name, text: `${o.name} is van jou voor ${euro(o.price)}.` };
 }
 export function verkoopPerceel(w, id) {
-  if (coopEnsure) { try { coopEnsure(w); } catch (e) { /* geen sessie */ } }
+  if (coopEnsure) { try { coopEnsure(w); } catch (e) { devWarn('bezitlive', e); } }
   const b = getBezit();
   const herd = herdSellValue(herdsOf(b)[id]);                       // een kudde op het perceel werd stil weggegeven: nu betaalt hij uit (zoals Vee verkopen)
   const r = Z.sellParcel(b, id);
@@ -283,7 +283,7 @@ export function koopPand(w, osm) {
   noteMoney('Winkels'); w.money -= r.cost;
   sfxEvent(w, 'deed_stamp');   // SFX ronde 6: de akte wordt gestempeld (per speler: lokaal)
   markeer();
-  try { unlockAchievement(w, 'bz_winkel'); } catch (e) { /* prestaties niet klaar */ }
+  try { unlockAchievement(w, 'bz_winkel'); } catch (e) { devWarn('bezitlive', e); }
   return { ok: true, cost: r.cost, text: `Pand gekocht voor ${euro(r.cost)}.` };
 }
 export function verkoopPand(w, osm) {
@@ -325,7 +325,7 @@ export function huurArbeider(w, skill) {
   const r = hireWorker(getBezit(), skill, Math.floor(farm.uren / 24), Number.isFinite(w && w.money) ? w.money : 0);
   if (!r.ok) return { ok: false, text: r.why === 'te-weinig-geld' ? `Je mist nog ${euro(r.tekort)}.` : r.why === 'vol' ? 'Je hebt al zoveel personeel als kan.' : 'Aanstellen lukt nu niet.' };
   markeer();
-  try { deliverLine(w, onWorkerHired(getBezit(), Math.floor(farm.uren / 24))); } catch (e) { /* geen regel */ }
+  try { deliverLine(w, onWorkerHired(getBezit(), Math.floor(farm.uren / 24))); } catch (e) { devWarn('bezitlive', e); }
   return { ok: true, text: `${r.worker.name} is aangesteld.` };
 }
 export function ontslaArbeider(id) { const r = fireWorker(getBezit(), id); if (r && r.ok !== false) markeer(); return !!(r && r.ok !== false); }
@@ -435,7 +435,7 @@ function tickChains(w, farm, from, last, rows) {
     }
   }
   setMarket(market);
-  if (closed) { try { unlockAchievement(w, 'bz_keten'); } catch (e) { /* prestaties niet klaar */ } }
+  if (closed) { try { unlockAchievement(w, 'bz_keten'); } catch (e) { devWarn('bezitlive', e); } }
   return { bonus: Math.round(bonus), closed };
 }
 
@@ -641,13 +641,13 @@ function tickSnack(w, S, from, last, money) {
     if (kg > 0 && link && link.owned && link.stock > 0) link.stock = Math.max(0, link.stock - kg);
   }
   const inc = SN.incomeOf(res.sum);
-  try { recordService({ days: res.sum.days, served: res.sum.ownNet > 0 || res.sum.fleetNet > 0, sat: S.gw.sat }); } catch (e) { /* reputatie niet klaar */ }
+  try { recordService({ days: res.sum.days, served: res.sum.ownNet > 0 || res.sum.fleetNet > 0, sat: S.gw.sat }); } catch (e) { devWarn('bezitlive', e); }
   const held = SPT.heldIds(S.permits, calToday()).length;
   try {
     if (S.own.spot && ownBiz) unlockAchievement(w, 'bz_snack_eerste');
     setStatMax(w, 'bzStandplaatsen', held);
     if (SN.goalStatus(S, { day: calToday() }).find((g) => g.id === 'usmem').done) unlockAchievement(w, 'bz_usmem');
-  } catch (e) { /* prestaties niet klaar */ }
+  } catch (e) { devWarn('bezitlive', e); }
   return { own: inc.own, passive: inc.passiveRaw, fixed: inc.fixed, lines: res.sum.lines };
 }
 
@@ -770,6 +770,7 @@ export function releaseLostSpot(w, key) {
 // Samen spelen aanzetten voor deze sessie: claims bijhouden en doorsturen via send(msg) (het transport staat in de netlaag, nog te koppelen aan een EXTRA-bericht).
 // Geeft { receive(w, msg), snapshot(), drop(id), stop() }; zonder sessie blijft alles in je eigen spel.
 import { createClaims, PARCEL_RE } from './bezitcoop.js';
+import { devWarn } from './devwarn.js';
 export function attachCoop(w, selfId, name, color, send) {
   const claims = createClaims(selfId);
   // Wat je al bezat vóór de sessie telt als eigen claim (review 22-11, B5): in de snapshot voor het hello, en zodat een medespeler het niet in deze sessie van je koopt.
@@ -779,7 +780,7 @@ export function attachCoop(w, selfId, name, color, send) {
   try {
     for (const id of Z.parcelIds(getBezit())) { const p = getBezit().parcels[id]; if (p && !p.lg && PARCEL_RE.test(id)) { claims.apply({ id, action: 'claim', from: selfId, name, color, t: 0 }); preowned.add(id); } }
     for (const spot of SPT.heldIds(snackState().permits, calToday())) { const key = SPT.claimKey(spot); claims.apply({ id: key, action: 'claim', from: selfId, name, color, t: 0 }); preowned.add(key); }
-  } catch (e) { /* de opslag is er nog niet: dan zijn er geen eigen claims om te melden */ }
+  } catch (e) { devWarn('bezitlive', e); }
   setClaimLookup((id) => claims.lookup(id));
   const announce = (m, t = Date.now()) => { const full = { ...m, from: selfId, name, color, t }; claims.apply(full); if (m.action === 'release') preowned.delete(m.id); if (typeof send === 'function') send(full); return full; };
   setClaimSend((m) => announce(m));

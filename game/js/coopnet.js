@@ -76,6 +76,7 @@ import { activeStage, getMissionDefs } from './missionquery.js'; // de lopende s
 import { hoofdspeler } from './players.js'; // de speler van dit apparaat (#500)
 import { hitNetBody, hitFromNet, hitNetDue, makeHitMark, markHit } from './combatfeel.js'; // raakbevestiging voor de kogel van een gast (#1290)
 import { localOutfitCode, cleanOutfitCode, onLocalOutfitChange } from './clothing.js'; import { zetGroepWarpHaken } from './groepwarp.js'; // een warp of de vluchtboot neemt de gasten mee (audit speelbaarheid 23-11)
+import { devWarn } from './devwarn.js';
 
 // (#684) De positieve "samen kan"-kaart naast de eerste "Meedoen?" is HUD-werk (samenplan.js →
 // hudcards.js) en dat laadt niet in elke Node-test. main.js zet de haak, net als bij de bestuurhaken;
@@ -326,7 +327,7 @@ export function guestView(sample, info) {
 export function startHost(world, info, opts = {}) {
   // Een echte sessie over een solo-sessie heen (#554): ruim de solo-hub eerst op,
   // anders blijft world.coopSolo staan en negeert de UI de nieuwe sessie.
-  if (world.coopSolo) { world.coopSolo = false; if (world.coopNet) { try { stopCoopNet(world); } catch (e) { /* al weg */ } } }
+  if (world.coopSolo) { world.coopSolo = false; if (world.coopNet) { try { stopCoopNet(world); } catch (e) { devWarn('coopnet', e); } } }
   prepareCoop(world);
   const koploos = !!opts.koploos;
   const solo = !!opts.solo; // Alleen spelen (#554): geen gasten, dus de verhaalpersonages blijven staan
@@ -373,7 +374,7 @@ export function startHost(world, info, opts = {}) {
       bestuurLos(world, slot); treinUit(world, slot); bezigWeg(world, slot); wapenWeg(world, slot); passiefWeg(world, slot); bijbaanWeg(world, slot);
       tuneLeft(world, slot); // zijn radiostem en keuze gaan mee; het voertuig houdt zijn zender
       if (slot >= 1 && world.coopNet) { const nn = world.coopNet; if (nn.meedoen) meedoenVergeet(nn.meedoen, slot); if (nn.phraseRelay) forgetSender(nn.phraseRelay, slot); if (nn.pingRelay) vergeetPings(nn.pingRelay, slot); } // de volgende gast op deze plek erft zijn Meedoen-antwoord niet (hij werd anders niet gevraagd)
-      try { bezitLeave(world, slot); } catch (e) { /* geen bezit */ } // zijn claims verdwijnen
+      try { bezitLeave(world, slot); } catch (e) { devWarn('coopnet', e); } // zijn claims verdwijnen
       bezorgWeg(world, slot, (s) => bestuurLos(world, s)); // zijn eigen voertuig gaat mee terug (#449)
       if (world.coopWanted) delete world.coopWanted[slot]; // een gast die weggaat neemt zijn sterren mee (#434) // het voertuig van een gast die weggaat staat stil en de stoel is vrij (#434)
       if (slot >= 1) removeFigure(world, slot); // elke gast is een figuur (#502): ook plek 1 verdwijnt uit de wereld
@@ -385,7 +386,7 @@ export function startHost(world, info, opts = {}) {
       // pauze per speler (#452): de rest speelt door; alleen als de lopende opdracht deze speler echt nodig heeft pauzeert het spel
       const nn = world.coopNet, regel = world.coopStapRegel ? world.coopStapRegel() : null;
       const beleid = holdBeleid(slot, { vereist: vereistVoor(!!(nn && nn.meedoen && nn.meedoen.opdracht), regel, world.coopVereist || []) });
-      if (beleid.pauze && onHold) { onHold('host', slot, beleid.reden); try { for (const s of verbondenGasten(nn)) if (s !== slot) nn.hub.announce({ k: 'wacht', slot, naam: gastNaam(world, slot), aan: true }, s); } catch (e) { /* alleen een weergave */ } }
+      if (beleid.pauze && onHold) { onHold('host', slot, beleid.reden); try { for (const s of verbondenGasten(nn)) if (s !== slot) nn.hub.announce({ k: 'wacht', slot, naam: gastNaam(world, slot), aan: true }, s); } catch (e) { devWarn('coopnet', e); } }
       else if (world.addMessage) world.addMessage(`${gastNaam(world, slot)} is weggevallen. ${beleid.reden}`, 5);
     },
     onEvent: (slot, body) => {
@@ -437,7 +438,7 @@ export function startHost(world, info, opts = {}) {
   world.coopGepakt = (slot, level) => gastGepakt(world, slot, level);
   world.coopNet = { role: 'host', hub, fade, route, removing: {}, info, koploos, solo, sessieId: maakSessieId(), tKlok: 0, tHash: 0, tWeer: 0, tSpelers: 1, hashN: 0, scene, tScene: 0, filmpjeT: 0, sceneNu: null, meedoen: maakMeedoen(), foci: maakRegister(), groepen: maakGroepen(), groepId: null };
   koppelOutfit(world); // wie later andere kleding aandoet, meldt het aan de rest
-  try { openBezitNet(world); } catch (e) { /* geen bezit */ } // de claimlaag staat er vanaf het begin, met de eigen percelen (review 22-11, B5)
+  try { openBezitNet(world); } catch (e) { devWarn('coopnet', e); } // de claimlaag staat er vanaf het begin, met de eigen percelen (review 22-11, B5)
   world.coopGroepen = world.coopNet.groepen; // de opdrachtstand per groep (#452), ook voor de tests en de kaart
   // Een groep kan ook buiten de missie bestaan: iedereen mag een activiteit starten en is dan de leider van die groep.
   // De host blijft de wereld simuleren; dit is alleen de groepsboekhouding en de per-slot doelen (#492).
@@ -488,13 +489,13 @@ export function addGuest(world, transport) {
 // ---------------------------------------------------------------- gast
 // opts: { onHold, fade, route, wens (gewenste figuur voor plek 2 en hoger), wachtwoord (de sessie op slot, #450) }
 export function startClient(world, transport, info, opts = {}) {
-  if (world.coopSolo) { world.coopSolo = false; if (world.coopNet) { try { stopCoopNet(world); } catch (e) { /* al weg */ } } }
+  if (world.coopSolo) { world.coopSolo = false; if (world.coopNet) { try { stopCoopNet(world); } catch (e) { devWarn('coopnet', e); } } }
   const ok = canJoin(world);
   if (!ok.ok) throw new Error(ok.reason);
   // Checkpoint bij binnenkomst (#448): eerst het eigen spel van deze speler veiligstellen, dan pas meespelen. Wat hij
   // hierna in de wereld van de ander doet, kan zijn eigen save niet meer raken; valt de sessie weg, dan staat zijn
   // eigen stand er in ieder geval. (Heeft hij nog geen save, dan maakt samenpanel.js er eerst een.)
-  try { bewaarNu(world, { toast: false }); } catch (e) { /* geen save is beter dan niet meespelen */ }
+  try { bewaarNu(world, { toast: false }); } catch (e) { devWarn('coopnet', e); }
   const { onHold = null, fade = null, route = null, wens = null, code = '', wachtwoord = '' } = opts;
   const ww = schoonWachtwoord(wachtwoord);
   const session = new ClientSession(transport, { info: { ...info, char: wens || undefined, ...(ww ? { wachtwoord: ww } : null) }, caps: CAPS });
@@ -935,13 +936,13 @@ function bezigMelden(world, n, slot, a) {
   // Een eigen activiteit is een groep van één: ze bestaat zolang de gast bezig is en
   // verdwijnt bij de wisseling of het einde (#492). Een missiegroep gaat voor; dan geen
   // tweede groep voor dezelfde plek.
-  if (was && was !== nu) { try { if (world.coopGroepEind) world.coopGroepEind(gid(was)); } catch (e) { /* geen groep */ } }
+  if (was && was !== nu) { try { if (world.coopGroepEind) world.coopGroepEind(gid(was)); } catch (e) { devWarn('coopnet', e); } }
   if (nu) {
     const bestaand = world.coopGroepen ? groepVanSlot(world.coopGroepen, slot) : null;
     if (!bestaand || bestaand.id === gid(nu)) {
       try {
         if (world.coopGroepStart) world.coopGroepStart({ id: gid(nu), label: BEZIG_NAAM[nu] || nu, activiteit: nu, deelnemers: [slot], leider: slot, stap: 'Bezig' });
-      } catch (e) { /* geen groep */ }
+      } catch (e) { devWarn('coopnet', e); }
     }
   }
   for (const s of n.hub.roster.spelers) if (s.slot !== 0 && s.slot !== slot && s.verbinding !== 'lost') n.hub.announce(bezigVanEvent(slot, nu), s.slot);
@@ -1194,7 +1195,7 @@ export function tickCoopNet(world, dt) {
     }
     if (n.fixed && (s.status === 'ok' || s.status === 'lag')) {
       const sample = s.world();
-      if (sample && !n.joined) { n.joined = true; try { openBezitNet(world); } catch (e) { /* geen bezit */ } zetEigenVoertuigenOpzij(world, n); if (n.fade) n.fade('in'); }
+      if (sample && !n.joined) { n.joined = true; try { openBezitNet(world); } catch (e) { devWarn('coopnet', e); } zetEigenVoertuigenOpzij(world, n); if (n.fade) n.fade('in'); }
       applyHostState(world, s.slot, sample, world.coopRoster, dt);
       const ik = sample && sample.players.find((q) => q.slot === s.slot);
       world.coopInVoertuig = !!(ik && ik.inVeh);
@@ -2008,7 +2009,7 @@ export function removeGuest(world, slot = 1) {
   n.removing[slot] = REMOVE_DELAY;
   // #779: de gekickte speler kent de kamercode nog; laat het lobbypaneel hem rouleren. Zonder paneel
   // (een koploze host) valt er niets te rouleren: daar geldt alleen het token-verbod hierboven.
-  if (typeof n.hub.kamerRouleer === 'function') { try { n.hub.kamerRouleer(); } catch (e) { /* paneel al weg */ } }
+  if (typeof n.hub.kamerRouleer === 'function') { try { n.hub.kamerRouleer(); } catch (e) { devWarn('coopnet', e); } }
   return true;
 }
 export function setMaxPlayers(world, max) {
@@ -2064,7 +2065,7 @@ export function stemVerzoek(world, soort, naAkkoord, naNee, params = {}) {
     if (world.coopVerzoek !== v || v.gezien) return;
     world.coopVerzoek = null;
     if (world.addMessage) world.addMessage(STEM_HOST.geenReactie, 6);
-    if (v.nee) { try { v.nee(); } catch (e) { /* al weg */ } }
+    if (v.nee) { try { v.nee(); } catch (e) { devWarn('coopnet', e); } }
   }, 4000);
   return true;
 }
@@ -2135,7 +2136,7 @@ function koppelOutfit(world) {
 
 export function stopCoopNet(world) {
   const n = world.coopNet; if (!n) return;
-  if (n.stem) { const f = n.stem.nee; n.stem = null; if (f) { try { f(); } catch (e) { /* de vraag vervalt met de sessie */ } } } // een lopende stemming over een tijdsprong vervalt (#452)
+  if (n.stem) { const f = n.stem.nee; n.stem = null; if (f) { try { f(); } catch (e) { devWarn('coopnet', e); } } } // een lopende stemming over een tijdsprong vervalt (#452)
   setGate(false); // zonder samen spelen is er geen wachtkamer meer
   if (n.role === 'host') {
     treinStop(world); // de gasten in de trein van de gastheer (conducteur en passagiers) staan weer naast de wagen (#492)
@@ -2146,9 +2147,9 @@ export function stopCoopNet(world) {
   if (!isKoploos(n) && !n.solo) verrekenEinde(world);
   if (world.coopCutBezig != null) cutGastStop(world, null, true); // een scène van de gastheer stopt met het samen spelen
   if (n.role === 'host') bezorgAllesWeg(world, (s) => bestuurLos(world, s)); // de eigen voertuigen van de gasten gaan mee terug (#449)
-  if (n.role === 'host') { try { n.hub.announce({ k: 'weg', reden: 'spel gestopt' }); n.hub.closeAll(); } catch (e) { /* al weg */ } } else { try { if (n.session.status !== 'geweigerd' && n.session.status !== 'verbroken') n.session.leave(); } catch (e) { /* al weg */ } }
+  if (n.role === 'host') { try { n.hub.announce({ k: 'weg', reden: 'spel gestopt' }); n.hub.closeAll(); } catch (e) { devWarn('coopnet', e); } } else { try { if (n.session.status !== 'geweigerd' && n.session.status !== 'verbroken') n.session.leave(); } catch (e) { devWarn('coopnet', e); } }
   world.coopNet = null;
-  try { stopBezitNet(world); } catch (e) { /* geen bezit */ } // buiten een sessie is er geen claim: de palen van medespelers verdwijnen en alles is weer te koop (review 22-11, B4)
+  try { stopBezitNet(world); } catch (e) { devWarn('coopnet', e); } // buiten een sessie is er geen claim: de palen van medespelers verdwijnen en alles is weer te koop (review 22-11, B4)
   if (outfitKoppeling) { outfitKoppeling(); outfitKoppeling = null; }
   zetEigenVoertuigenTerug(world, n); // de eigen voertuigen van de gast komen terug (ook na een overdracht: de volgende startHost of startClient ziet de eigen lijst)
   if (n.role === 'client') { wedGastReset(world); bijbaanGastReset(world); heistGastTik(world, 0, null); world.coopHeistRol = null; world.coopHeistGast = null; } // een race tegen elkaar op zijn scherm houdt op (#443); de rolstap van de inbraak ook (#438)

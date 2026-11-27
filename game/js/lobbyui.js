@@ -38,6 +38,7 @@ import { VERSION } from './version.js';
 import { EXTRA_CHARS } from './coopplayers.js';
 import { createWizard, reduceWizard, wizTerug, wizStep, WSTEP, kanVerder } from './multiplayerwizard.js';
 import { wizardHtml } from './multiplayerwizardui.js';
+import { devWarn } from './devwarn.js';
 
 // #1011: de kaart "Wie ben jij" komt één keer per sessie van de pagina; daarna begint de wizard bij stap 2.
 let wieBevestigd = false;
@@ -46,13 +47,13 @@ const newLijstSignaler = (interval = LIJST.interval) => new LijstSignaler(CONFIG
 // Gemelde sessies (#438) blijven op dit apparaat verborgen: alleen id's, hoogstens 50, en nooit stuk als de opslag ontbreekt
 const VERBORGEN_SLEUTEL = 'gde-serverlijst-verborgen';
 const leesVerborgen = () => { try { const a = JSON.parse(localStorage.getItem(VERBORGEN_SLEUTEL) || '[]'); return Array.isArray(a) ? a.filter((x) => typeof x === 'string').slice(-50) : []; } catch (e) { return []; } };
-const schrijfVerborgen = (ids) => { try { localStorage.setItem(VERBORGEN_SLEUTEL, JSON.stringify(ids.slice(-50))); } catch (e) { /* geen opslag: dan alleen in dit scherm */ } };
+const schrijfVerborgen = (ids) => { try { localStorage.setItem(VERBORGEN_SLEUTEL, JSON.stringify(ids.slice(-50))); } catch (e) { devWarn('lobbyui', e); } };
 // Favorieten (#464): lokaal, per speler, alleen de id's van sessies die je zelf een ster gaf. Geen naam, geen IP-adres,
 // hoogstens 100; een id dat niet op een aankondiging lijkt wordt bij het lezen weggegooid. De sleutel staat in storagekeys.js.
 const FAVORIETEN_SLEUTEL = 'gde-serverlijst-favorieten';
 const ID_RE = /^[a-z0-9]{8,16}$/;
 const leesFavorieten = () => { try { const a = JSON.parse(localStorage.getItem(FAVORIETEN_SLEUTEL) || '[]'); return Array.isArray(a) ? a.filter((x) => typeof x === 'string' && ID_RE.test(x)).slice(-100) : []; } catch (e) { return []; } };
-const schrijfFavorieten = (ids) => { try { localStorage.setItem(FAVORIETEN_SLEUTEL, JSON.stringify(ids.filter((x) => typeof x === 'string' && ID_RE.test(x)).slice(-100))); } catch (e) { /* geen opslag: dan alleen in dit scherm */ } };
+const schrijfFavorieten = (ids) => { try { localStorage.setItem(FAVORIETEN_SLEUTEL, JSON.stringify(ids.filter((x) => typeof x === 'string' && ID_RE.test(x)).slice(-100))); } catch (e) { devWarn('lobbyui', e); } };
 
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 // #634: de identiteitskleur als CSS-klasse (de tabel staat in coopidentiteit.js) in plaats van een inline style
@@ -275,7 +276,7 @@ export function mountLobby(root, hooks, opts = {}) {
       if (sleutel !== swSleutel) {
         swSleutel = sleutel;
         const hoofd = root.querySelector && (root.querySelector('.coop-btn[data-primary="1"]:not([disabled])') || root.querySelector('.sw-kaart'));
-        if (hoofd && hoofd.focus && !veldStand) { try { hoofd.focus(); } catch (e) { /* geen focus in een nep-DOM */ } }
+        if (hoofd && hoofd.focus && !veldStand) { try { hoofd.focus(); } catch (e) { devWarn('lobbyui', e); } }
       }
     }
     if (veldStand && root.querySelector) {
@@ -285,7 +286,7 @@ export function mountLobby(root, hooks, opts = {}) {
         if (veldStand.waarde != null && 'value' in veld && veld.value !== veldStand.waarde) veld.value = veldStand.waarde;
         veld.focus();
         if (veldStand.start != null && veld.setSelectionRange) {
-          try { veld.setSelectionRange(veldStand.start, veldStand.eind != null ? veldStand.eind : veldStand.start); } catch (e) { /* niet elk veld */ }
+          try { veld.setSelectionRange(veldStand.start, veldStand.eind != null ? veldStand.eind : veldStand.start); } catch (e) { devWarn('lobbyui', e); }
         }
       }
     }
@@ -371,7 +372,7 @@ export function mountLobby(root, hooks, opts = {}) {
       if (gen === roomGen) { wacht = false; set({ t: 'fout', msg: e.message }); }
       return;
     }
-    if (gen !== roomGen) { try { if (volgende && volgende.cancel) volgende.cancel(); } catch (e) { /* al weg */ } return; }
+    if (gen !== roomGen) { try { if (volgende && volgende.cancel) volgende.cancel(); } catch (e) { devWarn('lobbyui', e); } return; }
     handle = volgende;
     hooks.addGuest(handle.transport);
     set({ t: 'code', code: formatRoom(room) });
@@ -418,7 +419,7 @@ export function mountLobby(root, hooks, opts = {}) {
     sig.kondig(topic, maak);
     openGate(p.id); // een gast die op de rij klikt, vraagt hier een eenmalige kamer aan
   }
-  function stopAankondiging() { const s = aankondiger; aankondiger = null; if (s) { try { s.close(); } catch (e) { /* weg */ } } stopGate(); }
+  function stopAankondiging() { const s = aankondiger; aankondiger = null; if (s) { try { s.close(); } catch (e) { devWarn('lobbyui', e); } } stopGate(); }
 
   // ----- deelnemen via de lijst zonder de kamercode te publiceren (#583)
   // De host antwoordt op een verzoek met een eenmalige kamer, versleuteld voor die gast (net/joingate.js).
@@ -481,14 +482,14 @@ export function mountLobby(root, hooks, opts = {}) {
     // Geen antwoord publiceren met een kamer die al is afgegaan of niet meer bij deze gate hoort: de gast
     // zou een code krijgen waar niemand op wacht. Door te gooien slaat net/joingate.js het antwoord over.
     if (settled) throw new Error('Het aanbod ging al af voordat de kamer klaar was.');
-    if (gate !== eigen) { try { h.cancel(); } catch (e) { /* al weg */ } throw new Error('De sessie is niet meer openbaar.'); }
+    if (gate !== eigen) { try { h.cancel(); } catch (e) { devWarn('lobbyui', e); } throw new Error('De sessie is niet meer openbaar.'); }
     gateHandles.push(h);
     hooks.addGuest(h.transport);
   }
   function stopGate() {
     const g = gate; gate = null;
-    if (g) { try { g.stop(); } catch (e) { /* al weg */ } }
-    for (const h of gateHandles.splice(0)) { try { h.cancel(); } catch (e) { /* al weg */ } }
+    if (g) { try { g.stop(); } catch (e) { devWarn('lobbyui', e); } }
+    for (const h of gateHandles.splice(0)) { try { h.cancel(); } catch (e) { devWarn('lobbyui', e); } }
   }
   // Weer privé: de oude kamercode is openbaar geweest en werkt niet meer; wie nog kan aansluiten krijgt een nieuwe
   async function nieuweKamer() {
@@ -548,7 +549,7 @@ export function mountLobby(root, hooks, opts = {}) {
     l.timer = setInterval(tik, opts.lijstMs || 2000);
     setTimeout(tik, 400);
   }
-  function stopLuisteren() { const l = luis; luis = null; if (l) { clearInterval(l.timer); try { l.sig.close(); } catch (e) { /* weg */ } } }
+  function stopLuisteren() { const l = luis; luis = null; if (l) { clearInterval(l.timer); try { l.sig.close(); } catch (e) { devWarn('lobbyui', e); } } }
 
   // ----- gast
   const nameOf = (char) => (charInfo(char) || {}).naam || '?';
@@ -579,7 +580,7 @@ export function mountLobby(root, hooks, opts = {}) {
       if (check && check.hard) {
         rejectedIdentity = true;
         // Meteen loslaten: niet in het spel van iemand anders belanden (constitutie 10).
-        try { if (hooks.disconnect) hooks.disconnect('verbreek', ROLES.GAST, opts.holdSlot); } catch (e) { /* al weg */ }
+        try { if (hooks.disconnect) hooks.disconnect('verbreek', ROLES.GAST, opts.holdSlot); } catch (e) { devWarn('lobbyui', e); }
         cleanup();
         set({ t: 'kies', rol: ROLES.GAST });
         set({ t: 'fout', msg: check.msg });
@@ -691,14 +692,14 @@ export function mountLobby(root, hooks, opts = {}) {
       });
       handle = h;
       const tr = await h.opened;
-      if (geannuleerd()) { try { if (h.cancel) h.cancel(); } catch (e) { /* al weg */ } return false; }
+      if (geannuleerd()) { try { if (h.cancel) h.cancel(); } catch (e) { devWarn('lobbyui', e); } return false; }
       sess.sessie = null; // het nieuwe welkom moet het sessie-id zelf noemen: een oud id telt niet als bewijs
       sess.rebind(tr);
       watch(sess, { id: bron.id, ...(bron.naam != null ? { naam: bron.naam } : {}) });
       verbindingslog.add('herstel', 'opnieuw verbonden via de lijst');
       return true;
     } catch (e) {
-      try { if (h && h.cancel) h.cancel(); } catch (e2) { /* al weg */ }
+      try { if (h && h.cancel) h.cancel(); } catch (e2) { devWarn('lobbyui', e2); }
       verbindingslog.add('herstel', 'hervatten via de lijst mislukt');
       return mislukt(e && e.message ? e.message : 'Opnieuw verbinden lukte niet.');
     }
@@ -799,7 +800,7 @@ export function mountLobby(root, hooks, opts = {}) {
       else if (a === 'diag-terug') set({ t: 'diag-terug' });
       else if (a === 'rapport') { // eerlijk melden of het kopiëren lukte: zonder klembord of toestemming stond er eerst toch "gekopieerd"
         let gelukt = false;
-        try { if (navigator.clipboard) { await navigator.clipboard.writeText(rapportTekst()); gelukt = true; } } catch (e) { /* geen toegang tot het klembord */ }
+        try { if (navigator.clipboard) { await navigator.clipboard.writeText(rapportTekst()); gelukt = true; } } catch (e) { devWarn('lobbyui', e); }
         verbindingslog.add('rapport', gelukt ? 'gekopieerd' : 'kopiëren mislukt'); set({ t: 'fout', msg: gelukt ? KOPIEER.rapportKlaar : KOPIEER.rapportMislukt });
       }
       else if (a === 'logbestand') { const d = window.gdeDesktop; if (d && d.saveTextFile) await d.saveTextFile('GDE-verbindingsrapport.txt', rapportTekst()); }
@@ -820,7 +821,7 @@ export function mountLobby(root, hooks, opts = {}) {
         else if (state.step === 'verbinden') await guestStart();
       } else if (a === 'kopieer') {
         let gelukt = false;
-        try { if (state.code && navigator.clipboard) { await navigator.clipboard.writeText(state.code); gelukt = true; } } catch (e) { /* geen toegang tot het klembord */ }
+        try { if (state.code && navigator.clipboard) { await navigator.clipboard.writeText(state.code); gelukt = true; } } catch (e) { devWarn('lobbyui', e); }
         const kb = root.querySelector && root.querySelector('[data-act="kopieer"] .ss-label');
         if (kb) { kb.textContent = gelukt ? KOPIEER.klaar : KOPIEER.mislukt; setTimeout(() => { if (kb.isConnected) kb.textContent = KOPIEER.knop; }, 2500); }
       } else if (a.startsWith('kick-')) {

@@ -15,6 +15,7 @@ import { createHeapTracker, memSources, formatMemBlock } from './memwatch.js';
 import { createLeakWatch, formatLeakBlock, collectLeakCounts, installLeakProbes, LEAK_EVERY_MS } from './leakwatch.js'; // #1065
 import { programWatch } from './programwatch.js';
 import { getRouteRibbonStats, formatRibbonStats } from './pathribbonwatch.js'; // #1036
+import { devWarn } from './devwarn.js';
 
 const SOFTWARE_RE = /swiftshader|llvmpipe|softpipe|software|basic render|microsoft basic|warp\b/i;
 // A GPU that shares the processor's memory: Intel UHD/Iris/HD, the AMD "Radeon(TM) Graphics" and the 3-digit-M Radeons
@@ -151,13 +152,13 @@ function noteHitch(t, ms, extra) {
 export function startRestSampler(ms = 5000) {
   if (bootTimes || typeof requestAnimationFrame !== 'function') return;
   bootTimes = [];
-  try { installLeakProbes(); } catch (e) { /* zonder tellers geen alarm, het spel loopt gewoon */ }
+  try { installLeakProbes(); } catch (e) { devWarn('gpudiag', e); }
   try {
     if (typeof PerformanceObserver !== 'undefined') {
       const po = new PerformanceObserver((list) => { for (const e of list.getEntries()) longTasks.push({ at: e.startTime, d: e.duration }); if (longTasks.length > 200) longTasks = longTasks.slice(-100); });
       po.observe({ entryTypes: ['longtask'] });
     }
-  } catch (e) { /* no longtask support */ }
+  } catch (e) { devWarn('gpudiag', e); }
   let last = 0, t0 = 0, progs = 0, heap = 0;
   const step = (now) => {
     if (!t0) t0 = now;
@@ -173,7 +174,7 @@ export function startRestSampler(ms = 5000) {
     }
     if (typeof window !== 'undefined' && window.__scene3d && window.__scene3d.renderer && window.__scene3d.renderer.info.programs) progs = window.__scene3d.renderer.info.programs.length;
     if (performance && performance.memory && heapTracker.due(now)) { heap = performance.memory.usedJSHeapSize / 1048576; heapTracker.note(now, heap); }
-    if (now - leakAt >= LEAK_EVERY_MS) { leakAt = now; try { leakWatch.note(now, collectLeakCounts(window, { frame: window.__frameGuard ? window.__frameGuard.snapshot() : null })); } catch (e) { /* de bewaking mag het spel nooit hinderen */ } }
+    if (now - leakAt >= LEAK_EVERY_MS) { leakAt = now; try { leakWatch.note(now, collectLeakCounts(window, { frame: window.__frameGuard ? window.__frameGuard.snapshot() : null })); } catch (e) { devWarn('gpudiag', e); } }
     last = now;
     requestAnimationFrame(step);
   };
@@ -239,7 +240,7 @@ function glInfo() {
     out.version = String(gl.getParameter(gl.VERSION) || '');
     out.maxTexture = gl.getParameter(gl.MAX_TEXTURE_SIZE) || 0;
     out.parallelCompile = !!gl.getExtension('KHR_parallel_shader_compile');
-  } catch (e) { /* masked */ }
+  } catch (e) { devWarn('gpudiag', e); }
   if (FLAGS.gpu) out.renderer = FLAGS.gpu;
   if (own) { const l = gl.getExtension('WEBGL_lose_context'); if (l) l.loseContext(); }
   return out;
@@ -284,18 +285,18 @@ export async function collectTechInfo({ nowMs = 3000 } = {}) {
   info.rafHz = med > 0 ? 1000 / med : 0;
   info.render = await sampleRender(20);
   info.hitches = hitchEntries().filter((x) => x.t >= 0);
-  try { info.programmas = programWatch.lines(); } catch (e) { /* geen programmateller */ }
-  try { info.routeStrook = formatRibbonStats(getRouteRibbonStats()); } catch (e) { /* geen waakhond */ }
+  try { info.programmas = programWatch.lines(); } catch (e) { devWarn('gpudiag', e); }
+  try { info.routeStrook = formatRibbonStats(getRouteRibbonStats()); } catch (e) { devWarn('gpudiag', e); }
   const last = readLastRun();
   if (last) info.bench = { avg: last.avg, p95: last.p95, low1: last.low1, preset: last.preset, cats: last.cats };
-  try { info.herstel = describeGpu(gpuState, performance.now()); } catch (e) { /* geen beeldherstel */ }
+  try { info.herstel = describeGpu(gpuState, performance.now()); } catch (e) { devWarn('gpudiag', e); }
   try {
     const pm = typeof performance !== 'undefined' ? performance.memory : null;
     info.mem = { heap: { usedMB: pm ? pm.usedJSHeapSize / 1048576 : NaN, totalMB: pm ? pm.totalJSHeapSize / 1048576 : NaN, limitMB: pm ? pm.jsHeapSizeLimit / 1048576 : NaN, tracker: heapTracker.snapshot() }, render: info.render || {}, src: memSources() };
-  } catch (e) { /* geen geheugenblok */ }
-  try { info.leak = formatLeakBlock(leakWatch.snapshot(), typeof window !== 'undefined' && window.__frameGuard ? window.__frameGuard.snapshot() : null); } catch (e) { /* geen lekblok */ }
-  try { info.audioBlok = audioBlokTekst(); } catch (e) { /* geen audiodiagnose */ }
-  if (D && D.gpuInfo) { try { info.electron = await D.gpuInfo(); } catch (e) { /* older shell */ } }
+  } catch (e) { devWarn('gpudiag', e); }
+  try { info.leak = formatLeakBlock(leakWatch.snapshot(), typeof window !== 'undefined' && window.__frameGuard ? window.__frameGuard.snapshot() : null); } catch (e) { devWarn('gpudiag', e); }
+  try { info.audioBlok = audioBlokTekst(); } catch (e) { devWarn('gpudiag', e); }
+  if (D && D.gpuInfo) { try { info.electron = await D.gpuInfo(); } catch (e) { devWarn('gpudiag', e); } }
   return info;
 }
 
@@ -338,7 +339,7 @@ function sluitTechInfo() {
   if (!dlg) return;
   dlg.hidden = true;
   const v = vorigeFocus; vorigeFocus = null;
-  try { if (v && v.isConnected !== false && typeof v.focus === 'function') v.focus({ preventScroll: true }); } catch (e) { /* de plek is weg: geen ramp */ }
+  try { if (v && v.isConnected !== false && typeof v.focus === 'function') v.focus({ preventScroll: true }); } catch (e) { devWarn('gpudiag', e); }
 }
 
 let techRun = 0;
