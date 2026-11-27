@@ -12,7 +12,7 @@
 > affiliated with any game publisher.
 
 <p align="center">
-  <a href="https://natuspella.github.io/GDE-Groningen/"><img src="docs/screenshots/vismarkt-boven.webp" alt="De Vismarkt in Groningen, van boven" width="100%"></a>
+  <a href="https://natuspella.github.io/GDE-Groningen/"><img src="docs/screenshots/stad-grote-markt-kermis.webp" alt="De Grote Markt in Groningen met kermis en reuzenrad, in de avondzon" width="100%"></a>
 </p>
 
 <h2 align="center">Een zomer in Grunn. Kon minder.</h2>
@@ -39,41 +39,89 @@ provincie wacht een snackwagen die ooit **Tam & Tes** moet gaan heten.
 
 ## Zie het zelf
 
-### Rijden, varen, fietsen en vliegen
+### Boeren
 
-Auto's, bussen, treinen, trekkers, boten, scooters, fietsen en een helikopter. Bussen en treinen stoppen bij haltes
-en stations, met in- en uitstappers.
+Ploegen, zaaien en oogsten op je eigen akker, met een trekker en de machines die erbij horen. Boer worden is een volwaardige loopbaan.
 
-<img src="docs/screenshots/voertuig-escapade.webp" alt="De Fjord Escapade, een gedeukte rode karakterauto" width="32%">
-<img src="docs/screenshots/voertuig-snackwagen.webp" alt="De snackwagen Tam & Tes" width="32%">
-<img src="docs/screenshots/voertuig-bus.webp" alt="Een gelede stadsbus met interieur" width="32%">
-
-### Minigames en carrières
-
-Carbidschieten op het erf van een boer, padel, karten, voetbal, discgolf, de kermis, penalty's, een ballonjacht per
-helikopter en duiven fluiten. Daarnaast bouw je een loopbaan: boer worden, bedrijven en land kopen, een snackwagen
-runnen of een voetbalcarrière bij een lokale club.
-
+<img src="docs/screenshots/boeren-akker-bieten.webp" alt="Jonge suikerbieten op de akker van Boerderij De Zonnehoek" width="49%">
+<img src="docs/screenshots/boeren-trekker-ploegen.webp" alt="Een trekker met ploeg op het land" width="49%">
 <img src="docs/screenshots/carbidschieten-erf.webp" alt="Carbidschieten op een Gronings erf" width="49%">
 <img src="docs/screenshots/carbidschieten-knal.webp" alt="De knal: vlam, rook en een deksel dat wegvliegt" width="49%">
-<img src="docs/screenshots/voetbal.webp" alt="Voetbal, met het veld in de minimap" width="49%">
-<img src="docs/screenshots/padel.webp" alt="Padel op de baan in Paddepoel" width="49%">
-<img src="docs/screenshots/karten.webp" alt="Karten, met alleen het circuit in de minimap" width="49%">
+
+### Voetballen
+
+Een echte wedstrijd met commentaar, een carrière bij een lokale club en een clubhuis met tenue, stand en tactiek.
+
+<img src="docs/screenshots/voetbal-wedstrijd.webp" alt="Voetbalwedstrijd op het veld bij de Euroborg" width="49%">
+<img src="docs/screenshots/winkel-kleding.webp" alt="De kledingwinkel met sets voor Tammo en Tessa" width="49%">
+
+### Heisten en achtervolgingen
+
+Inbreken in het museum, een geldwagen leegroven of met drie sterren door de binnenstad scheuren.
+
+<img src="docs/screenshots/heist-bouwtekening.webp" alt="Tammo en Tessa plannen de inbraak op het museum aan de hand van een bouwtekening" width="49%">
+<img src="docs/screenshots/achtervolging.webp" alt="Een achtervolging door de Haddingestraat met drie sterren" width="49%">
+
+### Rijden en reizen
+
+Auto, taxi, bus, trein, boot, fiets en helikopter. Bussen en treinen stoppen bij haltes en stations, met in- en uitstappers.
+
+<img src="docs/screenshots/bus-lijndienst.webp" alt="De lijndienst op de busbaan met de volgende halte in beeld" width="32%">
+<img src="docs/screenshots/bus-gelede-stadsbus.webp" alt="Een gelede stadsbus met interieur" width="32%">
+<img src="docs/screenshots/taxi-station.webp" alt="Een taxirit langs het station" width="32%">
+<img src="docs/screenshots/trein-station-perron.webp" alt="Een trein langs het perron van Groningen" width="32%">
+<img src="docs/screenshots/varen-rondvaartboot.webp" alt="Een rondvaartboot op het Verbindingskanaal" width="32%">
+<img src="docs/screenshots/varen-gracht-museum.webp" alt="Het water voor het museum" width="32%">
+<img src="docs/screenshots/fietsen-schuitendiep.webp" alt="Fietsen langs het Schuitendiep, met Tessa achterop" width="32%">
+<img src="docs/screenshots/fietsen-kade-woonboten.webp" alt="Langs de kade met woonboten" width="32%">
+<img src="docs/screenshots/heli-martinitoren.webp" alt="Per helikopter langs de Martinitoren" width="32%">
+
+### Minigames en kermis
+
+Botsauto's en het reuzenrad op de Grote Markt, padel, karten, carbidschieten, discgolf, penalty's, een ballonjacht per helikopter en duiven fluiten.
+
+<img src="docs/screenshots/kermis-reuzenrad.webp" alt="Boven de kermis, in het reuzenrad" width="32%">
+<img src="docs/screenshots/karten-rondje.webp" alt="Karten op de baan bij Ulrum" width="32%">
+<img src="docs/screenshots/padel.webp" alt="Padel op de baan in Paddepoel" width="32%">
+
+### Stad en natuur
+
+Een levende stad met markten, grachten en avondlicht, en de weidse kust van de provincie.
+
+<img src="docs/screenshots/stad-dag.webp" alt="De Vismarkt in de avondzon" width="32%">
+<img src="docs/screenshots/stad-markt-nacht.webp" alt="De Grote Markt bij nacht, met het verlichte reuzenrad" width="32%">
+<img src="docs/screenshots/stad-nacht.webp" alt="Groningen bij nacht, met de Martinitoren" width="32%">
+<img src="docs/screenshots/kust-sluis.webp" alt="Een skutsje bij de Robbengatsluis in Lauwersoog" width="32%">
+<img src="docs/screenshots/regio-eemshaven.webp" alt="Windturbines en een kanaal bij de Eemshaven" width="32%">
+<img src="docs/screenshots/mensen-van-grunn.webp" alt="De mensen van Grunn: allemaal een eigen kop en kleding" width="32%">
+
+### Verhaal
+
+Tammo en Tessa in de eigen scènes van het spel, met regie, licht en ondertitels.
+
+<img src="docs/screenshots/cutscene-tessa-sterren.webp" alt="Tessa: "Je kijkt naar mij, Tammo. De sterren zijn daar."" width="49%">
+<img src="docs/screenshots/cutscene-tammo-en-tessa.webp" alt="Tammo en Tessa bij het fietsbord" width="49%">
 
 ### Menu's die je snapt
 
-Een speloverzicht dat zegt wat je volgende stap is, een bedrijfsscherm voor je boerderij, panden en snackwagen,
-en een clubhuis voor je voetbalcarrière.
+Een speloverzicht dat zegt wat je volgende stap is, een bedrijfsscherm voor je boerderij, panden en snackwagen, een garage, een kaart van de hele provincie en een clubhuis voor je voetbalcarrière.
 
-<img src="docs/screenshots/menu-overzicht.webp" alt="Het speloverzicht met de volgende stap" width="49%">
-<img src="docs/screenshots/menu-land-en-bedrijf.webp" alt="Land en bedrijf: je boerderij in beeld" width="49%">
-<img src="docs/screenshots/menu-club.webp" alt="Het clubhuis van je voetbalclub" width="49%">
-<img src="docs/screenshots/samen-kiezen.webp" alt="Samen spelen: samen kiezen of je gaat slapen" width="49%">
+<img src="docs/screenshots/menu-overzicht.webp" alt="Het speloverzicht met de volgende stap" width="32%">
+<img src="docs/screenshots/menu-land-en-bedrijf.webp" alt="Land en bedrijf: je boerderij in beeld" width="32%">
+<img src="docs/screenshots/menu-club.webp" alt="Het clubhuis van je voetbalclub" width="32%">
+<img src="docs/screenshots/garage.webp" alt="De garage met de Fjord Escapade" width="32%">
+<img src="docs/screenshots/kaart-stad.webp" alt="De kaart van de stad" width="32%">
+<img src="docs/screenshots/kaart-provincie.webp" alt="De kaart van de hele provincie" width="32%">
+<img src="docs/screenshots/menu-spullen.webp" alt="Spullen: kleding, wapens en verzamelingen" width="32%">
+<img src="docs/screenshots/menu-loopbanen.webp" alt="Loopbanen: van klusjes tot boer" width="32%">
+<img src="docs/screenshots/menu-instellingen.webp" alt="Instellingen met vier kwaliteitsstanden" width="32%">
 
 ### Samen spelen
 
-Met vrienden door de provincie, zonder aparte server. Iedereen is gelijkwaardig en je beslist samen over de tijd,
-over slapen en over reizen. Sessies zijn standaard privé; je IP-adres wordt nooit getoond.
+Met vrienden door de provincie, zonder aparte server. Iedereen is gelijkwaardig en je beslist samen over de tijd, over slapen en over reizen. Sessies zijn standaard privé; je IP-adres wordt nooit getoond.
+
+<img src="docs/screenshots/samen-spelen.webp" alt="De wachtkamer van Samen spelen" width="49%">
+<img src="docs/screenshots/samen-kiezen.webp" alt="Samen kiezen of je gaat slapen" width="49%">
 
 ## Wat kun je doen?
 
