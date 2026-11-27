@@ -11,14 +11,78 @@
 > GPL-3.0-or-later, the game's own content is CC BY-NC-SA 4.0. This is a fan parody, not
 > affiliated with any game publisher.
 
-### [🎮 **Speel nu in je browser →**](https://natuspella.github.io/GDE-Groningen/)
+<p align="center">
+  <a href="https://natuspella.github.io/GDE-Groningen/"><img src="docs/screenshots/vismarkt-boven.webp" alt="De Vismarkt in Groningen, van boven" width="100%"></a>
+</p>
 
-Liever downloaden (Windows, macOS, Linux, Android)? Pak de nieuwste build bij de [**releases**](../../releases/latest).
+<h2 align="center">Een zomer in Grunn. Kon minder.</h2>
 
-[![Groningen bij zonsondergang](docs/screenshots/stad-dag.webp)](https://natuspella.github.io/GDE-Groningen/)
+<p align="center">
+  <a href="https://natuspella.github.io/GDE-Groningen/"><b>🎮 Speel nu in je browser</b></a> ·
+  <a href="../../releases/latest"><b>⬇️ Download (Windows, macOS, Linux, Android)</b></a>
+</p>
 
-Het spel draait direct in je browser, zonder account en zonder installatie. Voor de beste prestaties
-is de download voor Windows, macOS, Linux of Android sneller; die staan bij de releases.
+Een open-wereldkomedie in een low-poly **Groningen**: de echte provincie, echte straten en plekken, verzonnen
+mensen en een veel te groot aantal slechte beslissingen. Het begon als een experiment om Groningen als 2D-GTA te
+maken, en groeide uit tot een volledig 3D-spel waarin je de héle provincie kunt rondrijden. Wachten op een
+open-wereldspel voor de pc? Of een zomer lang Farming Simulator, Train Simulator of Bus Simulator spelen, maar dan in
+Groningen? Dat kan hier. Altijd zomer, gratis, zonder account.
+
+## Het verhaal
+
+**Tammo en Tessa** zijn net afgestudeerd, al jaren vrienden, en hebben samen precies genoeg geld voor één patatje.
+Wat volgt is een zomer vol eerste baantjes, kleine criminaliteit en het ene "dat kon toch minder?" na het andere.
+Jelle is hun tegenspeler en is niet half zo slecht als hij denkt. Oma Mem weet méér dan ze zegt. En ergens in de
+provincie wacht een snackwagen die ooit **Tam & Tes** moet gaan heten.
+
+<img src="docs/screenshots/mensen-van-grunn.webp" alt="De mensen van Grunn: allemaal een eigen kop en kleding" width="100%">
+
+## Zie het zelf
+
+### Rijden, varen, fietsen en vliegen
+
+Auto's, bussen, treinen, trekkers, boten, scooters, fietsen en een helikopter. Bussen en treinen stoppen bij haltes
+en stations, met in- en uitstappers.
+
+<img src="docs/screenshots/voertuig-escapade.webp" alt="De Fjord Escapade, een gedeukte rode karakterauto" width="32%">
+<img src="docs/screenshots/voertuig-snackwagen.webp" alt="De snackwagen Tam & Tes" width="32%">
+<img src="docs/screenshots/voertuig-bus.webp" alt="Een gelede stadsbus met interieur" width="32%">
+
+### Minigames en carrières
+
+Carbidschieten op het erf van een boer, padel, karten, voetbal, discgolf, de kermis, penalty's, een ballonjacht per
+helikopter en duiven fluiten. Daarnaast bouw je een loopbaan: boer worden, bedrijven en land kopen, een snackwagen
+runnen of een voetbalcarrière bij een lokale club.
+
+<img src="docs/screenshots/carbidschieten-erf.webp" alt="Carbidschieten op een Gronings erf" width="49%">
+<img src="docs/screenshots/carbidschieten-knal.webp" alt="De knal: vlam, rook en een deksel dat wegvliegt" width="49%">
+<img src="docs/screenshots/voetbal.webp" alt="Voetbal, met het veld in de minimap" width="49%">
+<img src="docs/screenshots/padel.webp" alt="Padel op de baan in Paddepoel" width="49%">
+<img src="docs/screenshots/karten.webp" alt="Karten, met alleen het circuit in de minimap" width="49%">
+
+### Menu's die je snapt
+
+Een speloverzicht dat zegt wat je volgende stap is, een bedrijfsscherm voor je boerderij, panden en snackwagen,
+en een clubhuis voor je voetbalcarrière.
+
+<img src="docs/screenshots/menu-overzicht.webp" alt="Het speloverzicht met de volgende stap" width="49%">
+<img src="docs/screenshots/menu-land-en-bedrijf.webp" alt="Land en bedrijf: je boerderij in beeld" width="49%">
+<img src="docs/screenshots/menu-club.webp" alt="Het clubhuis van je voetbalclub" width="49%">
+<img src="docs/screenshots/samen-kiezen.webp" alt="Samen spelen: samen kiezen of je gaat slapen" width="49%">
+
+### Samen spelen
+
+Met vrienden door de provincie, zonder aparte server. Iedereen is gelijkwaardig en je beslist samen over de tijd,
+over slapen en over reizen. Sessies zijn standaard privé; je IP-adres wordt nooit getoond.
+
+## Wat kun je doen?
+
+- **Het hele verhaal uitspelen**, met ruim 4.000 ingesproken Nederlandse regels en Gronings accent waar het kan.
+- **Een levende provincie:** honderden figuranten met eigen kapsels en kleding die ook echt iets doen.
+- **Rijden en reizen** met auto, bus, trein, fiets, scooter, boot en helikopter.
+- **Carrières en bedrijven:** boer, ondernemer, snackwagen-baas, voetballer, manager.
+- **Minigames:** carbidschieten, padel, karten, discgolf, kermis, penalty's en meer.
+- **Samen spelen** met vrienden, met stemmen, hostwissel en een wachtkamer.
 
 ## Begin hier
 
