@@ -153,7 +153,7 @@ export function vehicleSeat(v, driver) {
       if (!driver) y -= 0.12;
     } else if (k === 'quad') {
       // astride the saddle; a passenger on the rear rack behind
-      x = driver ? -0.2 : -0.62;
+      x = driver ? -0.1 : -0.62;   // 0,1 m verder naar voren: de grepen (x 0,46) liggen dan binnen armbereik (#1349)
       z = 0;
       if (!driver) y += 0.02;
     } else if (k === 'maaier') {

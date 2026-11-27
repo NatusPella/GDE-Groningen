@@ -14,12 +14,20 @@ import { carBodyFit } from './models3d_vehicles.js';
 import { isCockpitKlasse } from './cockpitlayout.js';
 
 // de handen van een modulaire bestuurder (seating3d.js) zoeken hetzelfde stuur als hier getekend wordt
-setWheelPoseProvider((v, seat) => {
+// Het stuur van een quad is een stuurbuis (models3d_vehicles.js buildQuadMesh: grepen op x 0,46, y 1,3, 0,31 wid opzij): de handen van de berijder
+// grijpen die, niet het stuurwiel van een auto (de quad heeft geen cabine, #1349: de vuisten hingen voor de borst). De buis draait om de
+// verticale as, dus tilt een kwartslag.
+export function quadStuur(v) {
+  return { x: 0.46, y: 1.3, z: 0, r: v.model.wid * 0.31, tilt: Math.PI / 2 };
+}
+export function stuurPositie(v, seat) {
+  if (v && v.model && v.model.name === 'quad') return quadStuur(v);
   const klasse = interiorKlasse(v);
   if (GEEN_STUURWIEL_KLASSE.has(klasse) || v.isBoat) return null;   // een boot heeft zijn eigen stuur (bootinterieur.js)
   const romp = isCockpitKlasse(klasse) ? null : carBodyFit(v);
   return cabinWheelPose(seat, v.model.len, v.model.wid, klasse, romp, (v.model && v.model.name) || '');
-});
+}
+setWheelPoseProvider(stuurPositie);
 
 export const STUUR_R = 12;       // m: verder weg is het draaien van het stuur niet te zien
 export const STUUR_HOEK = 2.2;   // rad stuurdraaiing bij volle stuurinvoer (zelfde als de binnenin-camera)

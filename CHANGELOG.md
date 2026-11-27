@@ -10,6 +10,8 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 ## [Unreleased]
 
 - De game staat nu op de hoofdpagina van de webversie (GitHub Pages); de marketingpagina is weggehaald. De oude link /play/ stuurt door naar de hoofdpagina.
+- Voertuigen: lampen, interieur en deurgaten van voertuigen verdwijnen niet meer door een shaderfout bij het uitdoven op afstand (de fadeshader miste de afstandsvariabele voor onverlichte materialen).
+- Quad: de berijder grijpt nu de handvatten van het stuur in plaats van met gebalde vuisten voor de borst te hangen, en zit iets verder naar voren op de zitting. Samen spelen: alles is lokaal beeld, een gast ziet hetzelfde model en dezelfde pose; geen netwerkwijziging.
 
 ## [0.66.0] - 2026-11-24
 

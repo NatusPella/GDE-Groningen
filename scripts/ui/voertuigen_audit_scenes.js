@@ -62,6 +62,8 @@ await (async () => {
       const vh = new VH.Vehicle(X0, Y0, 0, { ...model });
       if (TF.applyFleetFlags && ['taxi', 'ambulance', 'cashvan', 'newsvan'].includes(naam)) TF.applyFleetFlags(vh, naam);
       vh.isBike = model.name === 'bike';
+      vh.isPolice = naam === 'police';
+      vh.isScooter = model.name === 'scooter';   // zoals makeTwoWheeler (vehicle.js): zonder deze vlag bouwt het spel een auto
       w.vehicles.push(vh);
       clear(vh);
       const gz = gh(X0, Y0);
