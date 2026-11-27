@@ -1,5 +1,6 @@
 // De perronvloer van alle stations (#1348): geen gat in een perron, de hoogtevraag houdt je erop, het perron ligt op zijn spoor.
 //   node scripts/perron_vloer_test.mjs   (het deel op de echte kaart: zonder game/world met de provincie: SKIP)
+import fs from 'node:fs';
 import './node3d.mjs';
 import { auditPerronVloer } from './world/perron_vloer_audit.mjs';
 import { addPerrons } from '../game/js/elevation.js';
@@ -52,6 +53,17 @@ if (!heeftStationkaart()) {
   ok(K.landhaltes.length >= 20 && K.landhaltes.every((h) => h.route), 'elke landhalte staat op een lijn', K.landhaltes.filter((h) => !h.route).map((h) => h.naam).join(', '));
   const res = auditPerronVloer({ rows: K.rows, elev: K.elev, railZ: K.railZ, trackDist: K.trackDist, spoorRij: (r) => /^halte-/.test(r.id) });
   for (const r of res) console.log('  ', r.st, r.id, r.wat);
+  // #1346: het perronkit van de streekplekken (een plaat van 0,9 m op maaiveld) lag onder het hoge perron van Noord over de Kastanjelaan
+  const SP = await import('../game/js/streekplekken.js');
+  const PF = await import('../game/js/propfilter.js');
+  const kits = JSON.parse(fs.readFileSync(new URL('../game/streekplekken.json', import.meta.url), 'utf8')).plekken.filter((p) => p.t === 'perron' && Math.hypot(p.x + 575, p.y + 1190) < 60);
+  ok(kits.length >= 2, 'de kits bij Groningen Noord zijn er', String(kits.length));
+  for (const p of kits) {
+    const parts = SP.partsToWorld(p);
+    ok(PF.perronKitDubbel(K.map, parts), `het kit ${p.id} bij Noord is een dubbel van het echte perron`);
+    const over = PF.dropStreekParts(parts, K.map, 'perron').filter((q) => q.w >= 8 && q.h < 2 && PF.plaatOverWeg(K.map, q));
+    ok(over.length === 0, `geen plaat van kit ${p.id} ligt over een weg`);
+  }
   ok(res.length === 0, `alle perrons van alle stations hebben een vloer, hoogte en spoor (${K.rows.length} stroken)`, `${res.length} problemen`);
 }
 

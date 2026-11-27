@@ -1,7 +1,7 @@
 // propfilter.js (wereldaudit 21-11): kit-props langs de tegelkaart. Puur, zonder tegels.
 //   node scripts/propfilter_test.mjs
 import assert from 'node:assert/strict';
-import { onGroundRoad, inBuildingAt, waterDistance, dropStreekParts, dropWaterParts, stationFit, nearRailAt } from '../game/js/propfilter.js';
+import { onGroundRoad, inBuildingAt, waterDistance, dropStreekParts, dropWaterParts, stationFit, nearRailAt, opEchtPerron, plaatOverWeg, perronKitDubbel } from '../game/js/propfilter.js';
 
 let n = 0;
 const t = (naam, f) => { f(); n++; console.log(`ok ${naam}`); };
@@ -45,6 +45,25 @@ t('dropStreekParts: een perron blijft in een gebouw (overkapping), maar niet op 
   const part = (x, z) => ({ s: 'box', x, y: 0, z, w: 1, h: 3, d: 1 });
   const kept = dropStreekParts([part(50, 25), part(10, 100.5), part(10, 90)], m, 'perron');
   assert.deepEqual(kept.map((q) => [q.x, q.z]), [[50, 25], [10, 90]]);
+});
+
+t('perronkit (#1346): een kit op een echt perron is een dubbel; een lange plaat over een weg valt weg; een kit ver van een perron blijft', () => {
+  const rij = { id: 'echt', p: [[0, 200, 2, 6.62], [40, 200, 2, 6.62], [80, 200, 2, 6.62]], r: [] };
+  const kaartMet = (extra) => ({ ...kaart(extra), perrons: [rij] });
+  // het kit: een plaat van 160 m, 0,9 m hoog, een lantaarn en een eindstuk, met zijn midden naast het echte perron
+  const plaat = (x, z) => ({ s: 'box', x, y: 0, z, w: 160, h: 0.9, d: 8, ry: 0 });
+  const eind = (x, z) => ({ s: 'box', x, y: 0.9, z, w: 0.8, h: 0.5, d: 8, ry: 0 });
+  assert.equal(opEchtPerron(kaartMet(), plaat(40, 203)), true, 'de plaat ligt op het echte perron');
+  assert.equal(opEchtPerron(kaartMet(), plaat(40, 400)), false, 'een plaat ver weg is geen dubbel');
+  assert.equal(perronKitDubbel(kaartMet(), [eind(120, 203), plaat(40, 203)]), true, 'het hele kit valt weg, ook het eindstuk');
+  assert.equal(perronKitDubbel(kaartMet(), [eind(120, 203), plaat(40, 400)]), false);
+  // een weg die dwars door de plaat loopt (Kastanjelaan onder Groningen Noord): de plaat valt weg, ook als het midden vrij ligt
+  const dwars = lijn([[60, 380], [60, 420]], { width: 6, cat: 'normal' });
+  const m = kaart({ roads: [dwars] });
+  assert.equal(plaatOverWeg(m, plaat(0, 400)), true, 'de plaat kruist de weg');
+  assert.equal(dropStreekParts([plaat(0, 400)], m, 'perron').length, 0);
+  assert.equal(plaatOverWeg(m, plaat(0, 450)), false, 'een plaat naast de weg blijft');
+  assert.equal(dropStreekParts([plaat(0, 450)], m, 'perron').length, 1);
 });
 
 t('dropWaterParts: een kade of pier ver van water valt weg, een sluis niet; niets op een weg', () => {

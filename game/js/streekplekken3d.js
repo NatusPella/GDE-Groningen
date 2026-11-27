@@ -4,7 +4,7 @@ import { getScene } from './scene3d.js';
 import { CEL, celVan, partsToWorld, dropOnRoad, roadOnMap } from './streekplekken.js';
 import { roadNetReady, snapRoad } from './roadgraph.js';
 import { edgeDistance } from './countryfield.js';
-import { dropStreekParts } from './propfilter.js';
+import { dropStreekParts, perronKitDubbel } from './propfilter.js';
 import { createCalmGate } from './tilestream.js';
 const tilesCalmGate = createCalmGate(); // wacht ook op de achtergrondwachtrij van de tegelwereld, hoogstens twee seconden achter elkaar (#1052)
 
@@ -63,6 +63,7 @@ function celGroup(lijst, map) {
   for (const p of lijst) {
     if (inStad(p)) continue;
     const parts = p.t === 'park' ? dropOnRoad(partsToWorld(p), roadNetReady() ? opWeg : (x, y) => roadOnMap(map, x, y, BERM)) : partsToWorld(p);
+    if (p.t === 'perron' && perronKitDubbel(map, parts)) continue;   // een echt perron (stad, landhalte) staat er al (#1346)
     for (const q of dropStreekParts(parts, map, p.t)) per[q.s].push(q);
   }
   const g = new THREE.Group();
