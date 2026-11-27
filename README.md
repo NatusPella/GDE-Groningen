@@ -11,21 +11,22 @@
 > GPL-3.0-or-later, the game's own content is CC BY-NC-SA 4.0. This is a fan parody, not
 > affiliated with any game publisher.
 
-### [🎮 **Bekijk de marketingpagina en speel mee →**](https://natuspella.github.io/GDE-Groningen/)
+### [🎮 **Speel nu in je browser →**](https://natuspella.github.io/GDE-Groningen/)
+
+Liever downloaden (Windows, macOS, Linux, Android)? Pak de nieuwste build bij de [**releases**](../../releases/latest).
 
 [![Groningen bij zonsondergang](docs/screenshots/stad-dag.webp)](https://natuspella.github.io/GDE-Groningen/)
 
-Op de marketingpagina vind je de trailer, zes slideshows met locaties en features, de
-downloads en de deel-links. De game-webversie is er nog niet; de downloads staan bij de
-releases.
+Het spel draait direct in je browser, zonder account en zonder installatie. Voor de beste prestaties
+is de download voor Windows, macOS, Linux of Android sneller; die staan bij de releases.
 
 ## Begin hier
 
 | Waar je naartoe wilt | Waar je moet zijn |
 |---|---|
-| **Spelen en rondkijken** | [marketingpagina](https://natuspella.github.io/GDE-Groningen/) |
-| **Installeren, besturing, samen spelen of een probleem oplossen** | [hulp en veelgestelde vragen](https://natuspella.github.io/GDE-Groningen/help/) |
-| **De nieuwste build downloaden** | [releases](../../releases) |
+| **Direct spelen in je browser** | [natuspella.github.io/GDE-Groningen](https://natuspella.github.io/GDE-Groningen/) |
+| **Installeren, besturing, samen spelen of een probleem oplossen** | [spelersgids](docs/SPELERSGIDS.md) |
+| **De nieuwste build downloaden** | [releases](../../releases/latest) |
 | **Wat er in het spel zit (spelersgids)** | [docs/SPELERSGIDS.md](docs/SPELERSGIDS.md) |
 | **Documentatie, architectuur en ontwerp** | [docs/README.md](docs/README.md) |
 | **Een bug of wens melden** | [Issues](../../issues) |
@@ -35,15 +36,15 @@ releases.
 
 GDE Groningen is een gratis hobbyproject in ontwikkeling. Het verhaal is helemaal uit te
 spelen, maar er komen nog functies en missies bij, er zitten ruwe randen aan en vóór 1.0
-kan een savegame nog breken. Elke versie is een pre-release; er is nog geen online versie
-van het spel. Het spel is **18+** (geweld, bloed en gokken met spelgeld; zie
+kan een savegame nog breken. Elke versie is een pre-release. Je kunt het spel ook direct in je
+browser spelen via [GitHub Pages](https://natuspella.github.io/GDE-Groningen/). Het spel is **18+** (geweld, bloed en gokken met spelgeld; zie
 [docs/LEEFTIJD.md](docs/LEEFTIJD.md)).
 
 ## Downloads
 
-Pak de nieuwste pre-release bij de [releases](../../releases). De builds zijn niet
+Pak de nieuwste pre-release bij de [releases](../../releases/latest). De builds zijn niet
 ondertekend, dus je systeem waarschuwt de eerste keer; wat je dan doet staat op de
-[hulppagina over installeren](https://natuspella.github.io/GDE-Groningen/help/installeren.html).
+[spelersgids](docs/SPELERSGIDS.md).
 
 - **Windows** — `GDE-Groningen-<versie>-windows-portable.exe`, geen installatie nodig.
 - **macOS** — `GDE-Groningen-<versie>-mac.dmg` voor Apple Silicon en Intel.
@@ -51,20 +52,16 @@ ondertekend, dus je systeem waarschuwt de eerste keer; wat je dan doet staat op 
 - **Android** — `GDE-Groningen-<versie>-android-debug.apk` (debug, om te proberen).
 
 Niet elke release heeft elk platform; kijk in de release zelf wat erbij zit. Sinds v0.60.1
-hebben de releases wel alle vier de platformen. Systeemeisen en installatiehulp staan op de
-[hulppagina](https://natuspella.github.io/GDE-Groningen/help/systeemeisen.html). Vanaf de
+hebben de releases wel alle vier de platformen. Systeemeisen en installatiehulp staan in de
+[spelersgids](docs/SPELERSGIDS.md). Vanaf de
 broncode bouwen kan ook: zie [docs/ONTWIKKELEN.md](docs/ONTWIKKELEN.md).
 
 ## Documentatie, hulp en dit project
 
-- **Marketing:** [marketingpagina](https://natuspella.github.io/GDE-Groningen/),
+- **Spelen:** [in je browser](https://natuspella.github.io/GDE-Groningen/),
   [perskit](docs/PERSKIT.md) en [social/website-teksten](docs/SOCIAL-EN-WEBSITE.md).
-- **Hulp:** [helpcentrum](https://natuspella.github.io/GDE-Groningen/help/) met
-  [installeren](https://natuspella.github.io/GDE-Groningen/help/installeren.html),
-  [spelen en besturing](https://natuspella.github.io/GDE-Groningen/help/spelen.html),
-  [wat kun je doen](https://natuspella.github.io/GDE-Groningen/help/wat-kun-je-doen.html),
-  [samen spelen](https://natuspella.github.io/GDE-Groningen/help/samen-spelen.html) en
-  [problemen melden](https://natuspella.github.io/GDE-Groningen/help/problemen.html).
+- **Hulp:** de [spelersgids](docs/SPELERSGIDS.md), de [speelgids voor vier spelers](docs/SPEELGIDS-VIER-SPELERS.md)
+  en [problemen melden](../../issues).
 - **Documentatie:** [docs/README.md](docs/README.md) is de ingang; de canonieke regels
   staan in [.specs-fire/standards/](.specs-fire/standards/) en de architectuur in
   [ARCHITECTURE.md](ARCHITECTURE.md).
