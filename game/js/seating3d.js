@@ -18,8 +18,8 @@ function wheelCtx(v, seat, toWorld) {
   // altijd de omzetting naar de wereld (de zitting in de assen van het voertuig); het stuur alleen als er een is
   let w = null;
   if (wheelPoseOf && v && seat && seat.pose && seat.pose.arms === 'wheel') { try { w = wheelPoseOf(v, seat); } catch (e) { w = null; } }
-  // speed: de snelheid van het voertuig (m/s), voor de trappers van een fietser (modularpeople.js)
-  return { wheel: w && Number.isFinite(w.x) ? { c: [w.x, w.y, w.z], r: w.r || 0.19, tilt: w.tilt || 0 } : null, toWorld, speed: v && Number.isFinite(v.speed) ? Math.abs(v.speed) : 0, pedals: !!(v && v.isBike), steer: v && Number.isFinite(v.steer) ? v.steer : 0 };
+  // speed: de snelheid van het voertuig (m/s, met teken: achteruit rollen draait de trappers terug), voor de trappers van een fietser (modularpeople.js)
+  return { wheel: w && Number.isFinite(w.x) ? { c: [w.x, w.y, w.z], r: w.r || 0.19, tilt: w.tilt || 0 } : null, toWorld, speed: v && Number.isFinite(v.speed) ? v.speed : 0, pedals: !!(v && v.isBike), steer: v && Number.isFinite(v.steer) ? v.steer : 0 };
 }
 import { hash2 as hash } from './rng.js';
 import { deurVoorStoel, instapKant, doorsFor, stapAnimatieAan } from './vehicledoors.js';
