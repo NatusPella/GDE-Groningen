@@ -1,8 +1,8 @@
 // Beelden voor de README (docs/screenshots/): één Electron-run op 1920x1080 met vaste camerastanden, een vaste
 // tijd van de dag en het weer, het voorinstelling Hoog, en geen HUD waar die het beeld zou storen.
-//   node scripts/qa/readme_shots.mjs [--out=<map>] [--only=a,b] [--settle=7000] [--slot] [--lijst] [--scout=<json>]
+//   node scripts/qa/readme_shots.mjs [--out=<map>] [--only=a,b] [--settle=7000] [--slot] [--lijst] [--scout=<json>] [--winkels=kleding,kapper] [--stap=M06 --waits=ms,ms]
 // --scout=<bestand> --only=scout: probeert camerastanden uit ([{ name, cam: [x, y, hoogte], look: [x, y, hoogte], clock, hold, settle }]); elk wordt een beeld.
-//   node scripts/qa/readme_shots.mjs --optimaliseer [--out=<map met PNG's>] [--naar=docs/screenshots]
+//   node scripts/qa/readme_shots.mjs --optimaliseer [--out=<map met PNG's>] [--naar=docs/screenshots] [--als=naam=bron.png,...] [--breedte=1280] [--max-kb=120]
 // Eerst `--lijst` voor de namen. Een Electron-slot (<gde-locks>/README.txt) en een wegwerpprofiel; Electron en een
 // gestagede wereld: `GDE_GAME_DIR=<gestagede game-map>` en `ELECTRON_EXE=<pad>` als de worktree er geen heeft.
 // Uitvoer: <out>/shots-<naam>.png, readme_shots.json (per beeld wat er gemeten is), run.log. Met --optimaliseer worden de
@@ -23,18 +23,22 @@ const OUT = path.resolve(arg('out', path.join(os.tmpdir(), 'gde-readme-shots')))
 const ONLY = arg('only', '');
 
 if (flag('optimaliseer')) {
-  // 1600 px breed, webp, richtbedrag 250 KB per beeld; kwaliteit 90, zakt tot het past
+  // --breedte=1280 px breed, webp, richtbedrag --max-kb=120 KB per beeld; kwaliteit 80, zakt tot het past
+  // --als=<naam>=<bron>[,<naam>=<bron>]: kies de bron-PNG zelf en geef het een eigen bestandsnaam (zonder shots-voorvoegsel)
   const naar = path.resolve(arg('naar', path.join(ROOT, 'docs', 'screenshots')));
   fs.mkdirSync(naar, { recursive: true });
-  const bronnen = fs.readdirSync(OUT).filter((f) => /^shots-.*\.png$/.test(f) && (!ONLY || ONLY.split(',').includes(f.replace(/^shots-|\.png$/g, ''))));
-  for (const f of bronnen) {
-    const naam = f.replace(/^shots-/, '').replace(/\.png$/, '');
+  const breedte = Number(arg('breedte', 1280)), maxKb = Number(arg('max-kb', 120));
+  const als = arg('als', '') ? arg('als', '').split(',').map((x) => x.split('=')) : null;
+  const bronnen = als ? als.map(([n, b]) => ({ naam: n, bron: path.resolve(b) }))
+    : fs.readdirSync(OUT).filter((f) => /^shots-.*\.png$/.test(f) && (!ONLY || ONLY.split(',').includes(f.replace(/^shots-|\.png$/g, '')))).map((f) => ({ naam: f.replace(/^shots-/, '').replace(/\.png$/, ''), bron: path.join(OUT, f) }));
+  for (const { naam, bron } of bronnen) {
+    const f = path.basename(bron);
     const doel = path.join(naar, `${naam}.webp`);
-    let q = 90;
-    for (; q >= 40; q -= 6) {
-      const r = spawnSync('ffmpeg', ['-y', '-v', 'error', '-i', path.join(OUT, f), '-vf', 'scale=1600:-2:flags=lanczos', '-c:v', 'libwebp', '-quality', String(q), doel], { encoding: 'utf8' });
+    let q = 80;
+    for (; q >= 40; q -= 5) {
+      const r = spawnSync('ffmpeg', ['-y', '-v', 'error', '-i', bron, '-vf', `scale=${breedte}:-2:flags=lanczos`, '-c:v', 'libwebp', '-quality', String(q), doel], { encoding: 'utf8' });
       if (r.status !== 0) { console.error('ffmpeg faalde voor', f, r.stderr); process.exit(1); }
-      if (fs.statSync(doel).size <= 250 * 1024) break;
+      if (fs.statSync(doel).size <= maxKb * 1024) break;
     }
     console.log(`${naam}.webp ${Math.round(fs.statSync(doel).size / 1024)} KB (kwaliteit ${q})`);
   }
@@ -70,7 +74,7 @@ const WACHT = 'for (let i = 0; i < 240 && !(window.__debug && window.__debug.wor
 await new Promise((r) => setTimeout(r, 4000));\n`;
 const profDir = profileDirFor(`gde-test-readme-${process.pid}`, OUT);
 const script = path.join(OUT, '_page.js');
-fs.writeFileSync(script, WACHT + `window.__rs = ${JSON.stringify({ only: ONLY.split(',').filter(Boolean), settle: Number(arg('settle', 7000)), stap: arg('stap', ''), waits: arg('waits', '') ? arg('waits', '').split(',').map(Number) : null, scout: arg('scout', '') ? JSON.parse(fs.readFileSync(path.resolve(arg('scout')), 'utf8')) : [] })};\n` + page);
+fs.writeFileSync(script, WACHT + `window.__rs = ${JSON.stringify({ only: ONLY.split(',').filter(Boolean), settle: Number(arg('settle', 7000)), stap: arg('stap', ''), winkels: arg('winkels', '') ? arg('winkels', '').split(',') : null, waits: arg('waits', '') ? arg('waits', '').split(',').map(Number) : null, scout: arg('scout', '') ? JSON.parse(fs.readFileSync(path.resolve(arg('scout')), 'utf8')) : [] })};\n` + page);
 const electron = process.env.ELECTRON_EXE || path.join(ROOT, 'desktop', 'node_modules', 'electron', 'dist', process.platform === 'win32' ? 'electron.exe' : 'Electron');
 const env = { ...process.env, GDE_TEST_PROFILE: profDir, GDE_NIEUW_VERHAAL: '1' };
 delete env.ELECTRON_RUN_AS_NODE;
