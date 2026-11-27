@@ -405,10 +405,11 @@ export function buildFlat3D(flat, skip = new Set()) {
   // the neighbours' flats, cut off at the same height as our walls; a corridor
   // behind the hall leads to the lift
   const cor = 1.8;
-  for (const [x0, z0, x1, z1] of [[W + 0.3, 0.3, T.w - 0.3, T.d * 0.48], [W + 0.3, T.d * 0.48 + 0.3, T.w - 0.3, T.d - 0.3], [0.3, D + cor, W * 0.5, T.d - 0.3], [W * 0.5 + 0.3, D + cor, W + 0.3, T.d - 0.3]]) {
+  // (the two blocks behind the hall stay at hip height: the follow camera stands over them when you arrive from the lift)
+  for (const [x0, z0, x1, z1, hh] of [[W + 0.3, 0.3, T.w - 0.3, T.d * 0.48, WALL_H], [W + 0.3, T.d * 0.48 + 0.3, T.w - 0.3, T.d - 0.3, WALL_H], [0.3, D + cor, W * 0.5, T.d - 0.3, CUT_H], [W * 0.5 + 0.3, D + cor, W + 0.3, T.d - 0.3, CUT_H]]) {
     // closed blocks in the brick of the tower with a light cap: they read as the neighbours' flats, not as a big dark terrace (#1343)
-    box(slab, M.wall, (x0 + x1) / 2, low / 2, (z0 + z1) / 2, x1 - x0, low, z1 - z0);
-    box(slab, M.cement, (x0 + x1) / 2, low + 0.01, (z0 + z1) / 2, x1 - x0, 0.02, z1 - z0);
+    box(slab, M.wall, (x0 + x1) / 2, hh / 2, (z0 + z1) / 2, x1 - x0, hh, z1 - z0);
+    box(slab, M.cement, (x0 + x1) / 2, hh + 0.01, (z0 + z1) / 2, x1 - x0, 0.02, z1 - z0);
   }
   box(slab, M.tiles, W / 2, 0.01, D + cor / 2, W, 0.02, cor - 0.1);
   g.add(slab);
@@ -449,7 +450,7 @@ export function buildFlat3D(flat, skip = new Set()) {
   const doorLamp = adoptSetLight(new THREE.PointLight(0xffdcb0, 3, 4.5, 1.5));
   doorLamp.position.set(fd.x, FD.h + 0.2, dz - 0.5);
   g.add(doorLamp);
-  box(g, M.steel, fd.x, low / 2, D + cor - 0.35, 1.6, low, 0.5);
+  box(g, M.steel, fd.x, CUT_H / 2, D + cor - 0.35, 1.6, CUT_H, 0.5);
   box(g, M.rug, fd.x, 0.025, fd.z - 0.6, 1.1, 0.01, 0.7);
   // the door to the roof stairs on the hall's side wall, with its sign
   const rd = flat.spots.roof;
