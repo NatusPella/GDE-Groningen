@@ -6,8 +6,8 @@
 import { VASTHOUD_MS } from './spelstatus.js';
 import { icoon } from './icons.js';
 import { dsButtonKey } from './dsbutton.js';
+import { escapeHtml as esc } from './htmlescape.js';
 
-const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 let open = null;
 export const isBevestigOpen = () => !!open;
 

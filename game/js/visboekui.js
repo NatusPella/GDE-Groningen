@@ -11,8 +11,8 @@ import { WATERTYPEN, SOORTEN, ZELDZAAM, soort, soortenVan, typenVan, watertype }
 import { hengelNaam, aasNaam, lijnsterkte } from './hengeltuig.js';
 import { fillBars } from './motion.js';
 import { sfeerVan, sfeerStijl, sfeerBandHtml, SFEER_BAND_CSS } from './carrieresfeer.js';
+import { escapeHtml as esc } from './htmlescape.js';
 
-const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const nl = (n) => Math.round(n).toLocaleString('nl-NL');
 const kg = (v) => v.toFixed(v < 1 ? 2 : 1).replace('.', ',') + ' kg';
 const VIS = '<path d="M3 12c3-4 8-5 12-3l4-3v12l-4-3c-4 2-9 1-12-3zM16.5 11h.01"/>';

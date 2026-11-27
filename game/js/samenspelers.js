@@ -5,8 +5,9 @@
 import { keyTextHtml } from './keycap.js';
 import { VORM_TEKEN, kanEruitZetten, kanOverdragen, overdragenKnopTekst, eruitGezetTekst, veiligeKleur } from './coopspelers.js';
 import { NIVEAU_TEKST, verbindingUitleg } from './samensignaal.js';
+import { escapeHtml as esc } from './htmlescape.js';
+export { esc };
 
-export const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const niveauVan = (r) => (r && r.niveau) || (r && r.verbinding === 'lost' ? 'weg' : r && r.verbinding === 'lag' ? 'slecht' : 'goed');
 
 // verbinding: drie streepjes en een woord

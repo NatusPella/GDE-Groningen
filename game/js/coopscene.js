@@ -8,6 +8,7 @@ import { sceneLeeg, filmpjeTekst, pauzeTekst, paneelTekst } from './coopworld.js
 import { openerNaam } from './coopplayers.js';
 // Leaf-module (#108): alleen een leesvraag over de lopende opdracht, geen cyclus.
 import { activeStage } from './missionquery.js';
+import { escapeHtml as esc } from './htmlescape.js';
 
 // cinematics.js en storytalk.js zitten in de grote importcyclus: hier lui geladen (import() wordt niet gevolgd door
 // import_cycles_test), zodat dit paneel en samenpanel.js buiten de cyclus blijven. Beide zijn al geladen als het spel draait.
@@ -99,7 +100,6 @@ function paneelStand(world, keuze, meter = null, kicker = '', nr = null) {
 
 // De gast: de laag met de scène van de host. Alleen de DOM aanraken als de inhoud verandert.
 let el = null, last = '';
-const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 // De balk van de timing van de gastheer, op dezelfde plaats als bij de gastheer (#525): de gast ziet waar de
 // streep staat en waar het groen is, dus hij kan op tijd drukken in plaats van te gokken.
 const pct = (v) => `${Math.round(Math.max(0, Math.min(1, Number(v) || 0)) * 100)}%`;

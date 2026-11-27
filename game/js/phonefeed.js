@@ -19,6 +19,7 @@ import { opschuiven } from './microinteractions.js';
 import { toClass } from './noticetiming.js'; // 6 / 9 / 10 s, zoals alle meldingen
 import { enqueueNotice, noticeQueue } from './notifyqueue.js'; // de volgende tekst loopt via de ene meldingenwachtrij (22-11)
 import { adjustRemaining } from './melding.js'; // het aflopende balkje loopt mee als de stem de tijd rekt
+import { escapeHtml as esc } from './htmlescape.js';
 
 // The folded phone (the Pixie Vouw 11's cover screen) on the HUD, bottom
 // left above the street name: notification cards and incoming calls. Both slide up out of the bottom like a phone
@@ -65,7 +66,6 @@ let call = null;
 let notes = [];
 let nextCallId = 1;
 
-const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const icon = (k) => icoon(APP_ICON[k] || APP_ICON.bericht);
 const initials = (name) => String(name).replace(/\(.*\)/, '').trim().split(/\s+/).map((s) => s[0]).slice(0, 2).join('').toUpperCase();
 const clockNow = (w) => getClockText(w) || new Date().toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' });

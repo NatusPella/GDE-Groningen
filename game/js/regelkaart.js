@@ -25,13 +25,13 @@
 import { showCard } from './hudcards.js';
 import { haakUi } from './sfx/haken.js'; // ronde 4: zacht papier bij een nieuw kaartje
 import { TYPES, vorm, iconSvg, ICONEN } from './regelwidget.js';
+import { escapeHtml as esc } from './htmlescape.js';
 
 export const MAX_REGELS = 3;
 export const DUUR_DOEL = 7;
 export const DUUR_REGEL = 8;
 const MAX_TEKST = 90;
 
-const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const tekst = (v) => (typeof v === 'string' ? v.trim().slice(0, MAX_TEKST) : '');
 const klem = (v, a, b) => Math.min(b, Math.max(a, v));
 const STANDAARD_ICOON = { limiet: 'meter', teller: 'klok', voorraad: 'pakje', wijzer: 'pijl', timing: 'klok', toets: 'hand', stappen: 'pakje' };

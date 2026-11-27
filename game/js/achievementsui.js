@@ -16,6 +16,7 @@ import { fillBars, countTo } from './motion.js';
 import { rijAttr, rijPlan, afterFrame, rijenKlaar, staffelDuur, calmState, tikGetal } from './dsmicro.js';
 import { listPlan } from './achievementunlock.js'; // DS3: staffel van de rijen, eenmalige glans, teller en balken (ds-micro.css)
 import { achStilNoot, achPct as pctOf, achNear, achDone, achCategoryOrder, achCategoryPct, achWhen, achFmt, achZoek, achZoekLeeg, achZoekTekst, eerlijkPct } from './menumodels.js';
+import { escapeHtml as esc } from './htmlescape.js';
 
 const CHEV = icoon('volgende');
 const LOCK = icoon('slot');
@@ -89,7 +90,6 @@ let staffelAan = false;              // deze render staffelt de rijen (eerste ke
 const glansGezien = new Set();       // welke nieuwe rijen al glansden (listPlan)
 const tellerMem = new Map();         // het vorige aantal per categorie, voor de teller
 const balkMem = new Map();           // de vorige breedte per balk, zodat een balk vult van wat er was
-const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const nl = (n, d = 0) => n.toLocaleString('nl-NL', { minimumFractionDigits: d, maximumFractionDigits: d });
 
 // een kapotte stand (NaN, min) wordt nul in plaats van "NaN" op het scherm (menumodels.js achFmt)

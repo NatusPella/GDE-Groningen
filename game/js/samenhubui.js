@@ -9,8 +9,8 @@ import { icoon } from './icons.js';
 import { keepFocus } from './focusbehoud.js';
 import { braceKeysHtml } from './keycap.js';
 import { STAP, STAPPEN, hubView, escapeStap, isStap, volgendeStap, vorigeStap, ACT } from './samenhub.js';
+import { escapeHtml as esc } from './htmlescape.js';
 
-const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
 // De keuzes dragen de namen die de lobby al gebruikt (data-act), zodat de co-op-testbank en een speler die de oude
 // knop kent dezelfde ingang houden; data-hub-keuze is de naam waar dit scherm zelf naar luistert. "Meedoen" heet

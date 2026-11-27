@@ -6,6 +6,8 @@
 // aanroeper als `io` (desktop/coopcore.cjs), zodat dit met een nepper
 // router getest kan worden. Draait alleen in Electron (browsers kunnen geen UPnP).
 
+import { escapeHtml as esc } from '../htmlescape.js';
+
 export const SSDP_ADDR = '239.255.255.250';
 export const SSDP_PORT = 1900;
 export const PMP_PORT = 5351;
@@ -62,7 +64,6 @@ function absolute(ctl, xml, location) {
 }
 
 // ---------------------------------------------------------------- SOAP
-const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 export function soap(serviceType, action, args = {}) {
   const inner = Object.entries(args).map(([k, v]) => `<${k}>${esc(v)}</${k}>`).join('');
   return {

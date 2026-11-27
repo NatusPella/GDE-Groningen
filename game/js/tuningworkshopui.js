@@ -19,6 +19,7 @@ import {
   changeField, changePart, applyBuild, quote, canInstall, tabsFor, tabChanges, groupsFor, changedEffectRows, summaryText, sameState, showiness,
 } from './tuningdraft.js';
 import { tuneId, tuneKind, partsKindOf, readState, readBuilds, installState, saveBuild, deleteBuild } from './tuningbind.js';
+import { escapeHtml as esc } from './htmlescape.js';
 
 // De pimp-werkplaats (epic Autotuning, #1155): een DS3-paneel (zeefdruk) met links de keuzes per tabblad en rechts
 // het 3D-voorbeeld van je eigen voertuig. Preview-eerst: elke keuze staat meteen op het voertuig, pas Installeren betaalt.
@@ -26,7 +27,6 @@ import { tuneId, tuneKind, partsKindOf, readState, readBuilds, installState, sav
 // installeert, Delete (X) draait terug, Spatie (Y) of V houdt "voor" in beeld, Esc (B) sluit. Alles ook met de muis en aanraking.
 // Het model (concept, kosten, aanbod) staat in tuningdraft.js; dit bestand tekent alleen.
 
-const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const ARM_TIME = 4000, ARM_FROM = 200;
 const KEY_CONFIRM = 'Enter';
 const KEY_VIEW = 'Tab'; // het toetsplaatje van installeren

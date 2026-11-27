@@ -9,8 +9,8 @@ import { landWaarde } from './bezitwaarden.js';
 import { perceelRendement, perDagTekst } from './bezitrendement.js';
 import { MIN_PRICE } from './bezitprijs.js';
 import { URGENTIE_NAAM } from './bezitklussen.js';
+import { escapeHtml as esc } from './htmlescape.js';
 
-const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const IC = (n, cls = 'bz-ic') => icoon(n, { cls });
 const ha = (n) => String(Math.round(n * 10) / 10).replace('.', ',');
 const plus = (n) => (n >= 0 ? '+' : '−') + euro(Math.abs(n));

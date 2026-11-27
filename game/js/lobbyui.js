@@ -39,6 +39,7 @@ import { EXTRA_CHARS } from './coopplayers.js';
 import { createWizard, reduceWizard, wizTerug, wizStep, WSTEP, kanVerder } from './multiplayerwizard.js';
 import { wizardHtml } from './multiplayerwizardui.js';
 import { devWarn } from './devwarn.js';
+import { escapeHtml as esc } from './htmlescape.js';
 
 // #1011: de kaart "Wie ben jij" komt één keer per sessie van de pagina; daarna begint de wizard bij stap 2.
 let wieBevestigd = false;
@@ -55,7 +56,6 @@ const ID_RE = /^[a-z0-9]{8,16}$/;
 const leesFavorieten = () => { try { const a = JSON.parse(localStorage.getItem(FAVORIETEN_SLEUTEL) || '[]'); return Array.isArray(a) ? a.filter((x) => typeof x === 'string' && ID_RE.test(x)).slice(-100) : []; } catch (e) { return []; } };
 const schrijfFavorieten = (ids) => { try { localStorage.setItem(FAVORIETEN_SLEUTEL, JSON.stringify(ids.filter((x) => typeof x === 'string' && ID_RE.test(x)).slice(-100))); } catch (e) { devWarn('lobbyui', e); } };
 
-const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 // #634: de identiteitskleur als CSS-klasse (de tabel staat in coopidentiteit.js) in plaats van een inline style
 const kleurKlasse = (hex) => {
   const i = PROFIEL_KLEUREN.findIndex((c) => c.hex === String(hex || '').toLowerCase());

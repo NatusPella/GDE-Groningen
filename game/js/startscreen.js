@@ -31,6 +31,7 @@ import { stepDurations, bootPlan, bootProgress, bootPhaseAt, bootCreepCap, BOOT_
 import { padGlyphInner } from './glyphs.js';
 import { onDeviceChange, getDevice } from './inputdevice.js';
 import { MENU_PLEKKEN, stadPlek, leesVerleden, bewaarVerleden, kiesVolgende, noteer, maakBeeld } from './menuplekken.js';
+import { escapeHtml as esc } from './htmlescape.js';
 
 // the footer hints (static HTML in index.html) show the controller buttons when a controller was used last
 let footKb = null;
@@ -414,7 +415,6 @@ function makeShot(map, spot) {
   };
 }
 
-const esc = (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
 // After the attract intro: the logo appears big in the middle, then glides
 // and shrinks into its place before the menu fades in (CSS .ss-handoff).

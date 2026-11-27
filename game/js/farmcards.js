@@ -8,8 +8,8 @@ import { uitlegBlok } from './uitleg.js';
 import { overzicht } from './farmmodel.js';
 import { fpHtml, leegHtml, getalHtml, animalKey } from './farmpicshtml.js';
 import { STATUS, STATUS_IDS, KAART_STIJL, LUS, veldenStatus, lusKlaar, watNu } from './farmstatus.js';
+import { escapeHtml as esc } from './htmlescape.js';
 
-const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const nl = (n) => Math.round(n).toLocaleString('nl-NL');
 const svg = (pad, cls = 'ds-icoon') => `<svg class="${cls}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${pad}</svg>`;
 const chip = (statusId, tekst) => `<span class="ds-z-chip bd-chip" data-status="${statusId}">${icoon(STATUS[statusId].icoon, { cls: 'ds-z-chip__icoon' })}${esc(tekst || STATUS[statusId].naam)}</span>`;

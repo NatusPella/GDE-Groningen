@@ -40,6 +40,7 @@ import { hoofdspeler } from './players.js';
 import { planIntro, isSkipEvent } from './endcardimpact.js';
 import { icoon } from './icons.js';
 import { uitslagBon } from './spelstatus.js';
+import { escapeHtml as esc } from './htmlescape.js';
 
 export function klemWoorden(tekst, max = MAX_WOORDEN) {
   const w = String(tekst == null ? '' : tekst).replace(/\s+/g, ' ').trim().split(' ').filter(Boolean);
@@ -249,7 +250,6 @@ export function plaatsTop(base, zoneBottom, gap = 12) {
 
 // ---------------------------------------------------------------------------------------- DOM
 
-const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 let cssGeladen = false;
 let planner = null;
 let actief = null;       // the full-screen element on screen

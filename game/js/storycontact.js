@@ -30,6 +30,7 @@ import { dualHtml, dutchFor } from './subtitles.js';
 import { speakerHtml } from './speakers.js';
 import { noteSpoken } from './characters.js';
 import { registerNarrative, mayStart } from './narrative.js';
+import { escapeHtml as esc } from './htmlescape.js';
 
 let mission = null;
 import('./missionstory.js').then((m) => { mission = m; }).catch(() => {});
@@ -54,7 +55,6 @@ const queue = [];
 let cur = null;
 let quietT = 0;
 
-const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const nameOf = (k) => CONTACT_NAMES[k] || k;
 
 function injectStyle() {

@@ -3,10 +3,10 @@
 // (.gm, .m-bp/.m-bg, tokens), één primaire knop en aria-modal; de aanroeper levert de
 // titel, de tekst en de knoppen. De HTML-functie is puur (testbaar zonder DOM).
 import { knopToets, shortcutName } from './dsbutton.js';
+import { escapeHtml as esc } from './htmlescape.js';
 
 // #1220: de actienaam is `action`; een knop met alleen `id` werd stil weggelaten (een vraag zonder knoppen). Nu geldt `id` als terugval.
 const actieVan = (b) => (b && (b.action || b.id)) || '';
-const esc = (s) => String(s == null ? '' : s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
 export function overlayHtml({ title = '', text = '', buttons = [], label = '' } = {}) {
   const knoppen = (Array.isArray(buttons) ? buttons : []).map((b) => {

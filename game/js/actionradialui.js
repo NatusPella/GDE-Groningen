@@ -4,8 +4,8 @@
 import { glyphHtml } from './keycap.js';
 import { onRadialChange, radialPick, radialIsOpen, radialStep, radialChoose, closeRadial } from './actionradial.js';
 import { icoon } from './icons.js';
+import { escapeHtml as esc } from './htmlescape.js';
 
-const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
 const CSS = `
 #pad-wiel { position: fixed; left: 50%; bottom: 96px; transform: translateX(-50%); z-index: 730; box-sizing: border-box; width: min(440px, 94vw); padding: var(--ds-s-4); background: var(--ds-zeef-bg); color: var(--ds-zeef-tx); border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); border-radius: var(--ds-r); box-shadow: var(--ds-schaduw-hard); font-family: var(--ds-font-zeef-tekst); font-size: var(--ds-t-body); pointer-events: auto; }

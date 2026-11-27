@@ -1,6 +1,7 @@
 // Low-poly shop icons (issue #170), drawn in code: flat polygons on a 24x24 grid, one colour
 // (currentColor) with lighter and darker facets. One per kind of item; shoplist.js picks the id.
 // d: the body; l: lighter facets; k: darker facets.
+import { escapeHtml as esc } from './htmlescape.js';
 const P = (d, l = '', k = '') => ({ d, l, k });
 
 export const SHOP_ICONS = {
@@ -48,7 +49,6 @@ export const SHOP_ICONS = {
   standaard: P('M12 3l8 4.5v9L12 21l-8-4.5v-9z', 'M12 3l8 4.5-8 4.5-8-4.5z', 'M12 12v9l-8-4.5v-9z'),
 };
 
-const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
 // Inline SVG of an icon (currentColor); unknown ids give the standard crate.
 export function shopIconSvg(id, cls = 'sm-ic') {

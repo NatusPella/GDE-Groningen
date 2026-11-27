@@ -139,6 +139,7 @@ import { MIST_ALPHA, OPEN_MS, NAAMKAART_MS, mistByte, streekOwnerGrid, applyStre
 import { STREKEN } from './regioleven.js';
 import { wgsToWorld } from './rdnew.js';
 import { icoon } from './icons.js';
+import { escapeHtml as escHtml } from './htmlescape.js';
 
 // Jij op de kaart (#1141): de bestuurde entiteit (duif, heli, trein, voertuig) geeft plek en richting; het lichaam leent de rest.
 function jijVan(world) {
@@ -2621,7 +2622,6 @@ function handleClick(world, sx, sy, shift = false) {
 
 // --- marker card ---------------------------------------------------------------
 
-const escHtml = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
 function cardTodo(world, key) {
   return key ? getTodoItems(world).find((it) => it.key === key) || null : null;

@@ -21,6 +21,7 @@ import { sprekerNaam } from './spelstatus.js';
 import { hoofdspeler } from './players.js';
 import { dsButtonKey } from './dsbutton.js';
 import { recapContent, recapRows, recapBlockers, recapDecide, readRecapSeen, writeRecapSeen, recapSeenRecently, RECAP_CLOSE_S } from './recapcard.js';
+import { escapeHtml as esc } from './htmlescape.js';
 
 let seenLoad = 0;    // the last world.loadCount we already made an attempt for
 let attempt = null;  // { waitS, calmS } while we wait for a calm moment
@@ -28,7 +29,6 @@ let dlg = null;
 let closeTimer = 0;
 let cssDone = false;
 
-const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 function storage() { try { return window.localStorage; } catch (e) { return null; } }
 export { isRecapOpen };
 

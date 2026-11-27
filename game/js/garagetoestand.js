@@ -40,6 +40,7 @@ export function vraagSoort(msg, vragen = {}) {
 }
 
 import { icoon as fIcoon } from './icons.js';
+import { escapeHtml as esc } from './htmlescape.js';
 const SVG = (naam) => fIcoon(naam, { cls: 'ds-z-chip__icoon', maat: 's' });
 // Betekenisnamen (icons.js, Phosphor, ADR 0041).
 export const TOESTAND_ICOON = {
@@ -50,7 +51,6 @@ export const TOESTAND_ICOON = {
   kan: SVG('afspelen'),
 };
 const KLASSE = { ok: ' ds-z-chip--succes', warn: '', no: ' ds-z-chip--probleem', kan: ' ds-z-chip--primair', mut: '' };
-const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
 // Eén chip als HTML (icoon en woord).
 export function chipHtml(tone, label, extra = '') {

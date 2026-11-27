@@ -17,7 +17,7 @@ const { partNumber } = await import('../game/js/storyarc.js');
 
 let n = 0, fails = 0;
 const ok = (c, name, info) => { n++; if (!c) { fails++; console.log('FAIL', name, info !== undefined ? JSON.stringify(info) : ''); } };
-const plain = (html) => html.replace(/<[^>]*>/g, ' ').replace(/&quot;/g, '"').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&').replace(/\s+/g, ' ').trim();
+const plain = (html) => html.replace(/<[^>]*>/g, ' ').replace(/&quot;/g, '"').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&#39;/g, "'").replace(/&amp;/g, '&').replace(/\s+/g, ' ').trim();
 // de zichtbare delen: zonder het blok achter "Meer"
 const zichtbaar = (html) => html.replace(/<div class="vh-meer"[\s\S]*?<\/div>(?=<\/div><section)/, '');
 

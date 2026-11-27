@@ -3,10 +3,10 @@
 // No game, no THREE: the scenes are sampled by cutpreview.js. The screenshot
 // export draws each shot's still (top-down plus camera) to a PNG.
 import { buildCatalog, frameAt, stillTimes, stillName, sceneBounds, summary, projectFrame, STATUS_LABEL } from './cutpreview.js';
+import { escapeHtml as esc } from './htmlescape.js';
 
 const $ = (id) => document.getElementById(id);
 const cv = $('cv');
-const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 let cat = [], cur = null, bounds = null, playing = false, last = 0;
 
 async function load() {

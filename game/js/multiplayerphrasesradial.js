@@ -12,8 +12,8 @@ import { sayPhrase, phrasesEnabled, shareGoal, pingGoal } from './coopnet.js';
 import { getUserWaypoint, setUserWaypoint } from './routing.js';
 import { isSamenSessie } from './controls.js';
 import { hoofdspeler } from './players.js';
+import { escapeHtml as esc } from './htmlescape.js';
 
-const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
 const CSS = `
 #coop-wiel { position: fixed; left: 50%; bottom: 120px; transform: translateX(-50%); z-index: 720; box-sizing: border-box; width: min(520px, 92vw); padding: var(--ds-s-4); background: var(--ds-zeef-bg); color: var(--ds-zeef-tx); border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); border-radius: var(--ds-r); box-shadow: var(--ds-schaduw-hard); font-family: var(--ds-font-zeef-tekst); font-size: var(--ds-t-body); pointer-events: auto; }

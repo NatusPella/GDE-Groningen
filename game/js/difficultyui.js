@@ -6,11 +6,11 @@ import { keyLabelHtml, keyTextHtml } from './keycap.js';
 import { icoon } from './icons.js';
 import { trapTabInCard } from './listnav.js';
 import { DIFFICULTY_DEFAULT, cleanProfile, setActiveDifficulty, difficultySummary } from './difficulty.js';
+import { escapeHtml as esc } from './htmlescape.js';
 import {
   CARD_TEXT, OPTION_DEFS, OPTION_GROUPS, levelCards, levelMeters, levelKeyAction, optionsKeyAction, stepDraft, draftLabel, draftLevel, difficultyPlan, needsDifficultyCard,
 } from './difficultycard.js';
 
-const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const helpHtml = (lijst) => `<p class="sk-hulp">${lijst.map((h) => `<span>${keyTextHtml(esc(h))}</span>`).join('')}</p>`;
 
 // #1227: tijd, politie en verkeer per niveau als icoon, woord en blokjes (vorm en woord naast kleur; het woord leest de schermlezer)

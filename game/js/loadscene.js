@@ -5,6 +5,8 @@
 // startscreen.js put it in; scripts/loadlogic_test.mjs checks the set. Pure
 // string builder, no DOM.
 
+import { escapeHtml as esc } from './htmlescape.js';
+
 export const PICTURES = {
   vismarkt: 'Vismarkt in Groningen, overdag',
   luchtfoto: 'Luchtfoto van de binnenstad',
@@ -36,7 +38,6 @@ export function pictureHtml(name, cls = 'ls-bg') {
   return `<img class="${cls}" src="img/laad/${n}.jpg" alt="${PICTURES[n]}" decoding="async">`;
 }
 
-const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
 // The whole markup of a load screen (loadscreen.js puts it in #load-screen; scripts/ui/laadscherm_render.html
 // renders the same string for the layout measurement, #1069). { kind: 'save' | 'travel' | 'snel', name, special, img }.

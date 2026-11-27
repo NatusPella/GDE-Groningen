@@ -6,12 +6,12 @@
 import { LEGACY_CARD } from './legacysave.js';
 import { keyLabelHtml } from './keycap.js';
 import { navIndex, trapTabInCard } from './listnav.js';
+import { escapeHtml as esc } from './htmlescape.js';
 
 let open = null;
 const ARIA_ENTER = 'Enter'; // naam van de toets in aria-keyshortcuts (geen spelertekst)
 export function isLegacyCardOpen() { return !!open; }
 
-const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
 export function legacyCardHtml() {
   return `<section class="os-kaart" role="alertdialog" aria-modal="true" aria-labelledby="ok-titel" aria-describedby="ok-tekst">

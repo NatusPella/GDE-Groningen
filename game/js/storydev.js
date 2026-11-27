@@ -7,12 +7,12 @@
 import { STEPS, stepAvailable } from './storyarc.js';
 import { cheatsUit, CHEATS_UIT_TEKST } from './coopgroep.js';
 import { setVisibleInterval } from './visibletimer.js';
+import { escapeHtml as esc } from './htmlescape.js';
 
 let world = null;
 let root = null;
 let open = false;
 
-const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
 function css() {
   const st = document.createElement('style');

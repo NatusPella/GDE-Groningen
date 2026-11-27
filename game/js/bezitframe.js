@@ -13,8 +13,8 @@ import { waarden } from './bezitwaarden.js';
 import { klussen, strook, tabAandacht, URGENTIE_NAAM } from './bezitklussen.js';
 import { eigenPandPerDag } from './bezitrendement.js';
 import { plaatHtml, kopRij } from './bezitplaat.js';
+import { escapeHtml as esc } from './htmlescape.js';
 
-const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const IC = (n, cls) => icoon(n, { cls });
 const URG_ICOON = { nu: 'waarschuwing', vandaag: 'tijd', later: 'zandloper' };
 

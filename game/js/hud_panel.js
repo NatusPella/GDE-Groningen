@@ -1937,9 +1937,6 @@ function updateChannelChip(dt, world) {
   if (channelLit > 0 && !world.paused && (channelLit -= dt) <= 0) els.channelChip.classList.remove('lit');
 }
 
-function escapeHtml(s) {
-  return String(s).replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
-}
 
 const C = {
   green: INK.green,
@@ -2788,6 +2785,7 @@ export function declutter(items, cellM) {
 import { forEachCashTarget } from './cashvan.js';
 import { gameBusy } from './busy.js';
 import { playerBusy } from './busy.js';
+import { escapeHtml } from './htmlescape.js';
 
 export function getHeroCar(world) {
   return world.vehicles.find((v) => v.isHeroCar && !v.wrecked) || null;

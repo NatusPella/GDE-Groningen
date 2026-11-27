@@ -3,6 +3,7 @@
 // krachtmeter voor schot en voorzet, en de flits van een doelpunt). Toetsen staan als {TOKEN}: de HUD toont een toetsplaatje dat de echte keymap en de controller volgt.
 import { SIMICOON as I } from './simicoon.js';
 import { clockText } from './voetbalrules.js';
+import { escapeHtml as esc } from './htmlescape.js';
 
 const ICOON = { aanval: 'worp', verdedig: 'schild', herstart: 'vlag', score: 'plaats', schoten: 'doel', tijd: I.klok, adem: 'rennen', bezit: 'stand' };
 export const STEPS = [
@@ -23,7 +24,6 @@ const HELP_TEXT = '{WASD} lopen · {F} pass · {E} lang · {SPATIE} schot · {CT
 export const TOETS_GROEPEN = [['Lopen', '{WASD} lopen'], ['Bal', '{F} pass · {E} lang · {SPATIE} schot'], ['Verdedigen', '{CTRL} tackle · {Q} wissel'], ['Tactiek', '{1} stijl · {2} vorming'], ['Verder', '{3} camera · {BACKSPACE} stopt']];
 export const toetsGroepenHtml = (render) => TOETS_GROEPEN.map(([naam, tekst]) => `<span class="vb-hint__groep"><span class="vb-hint__naam">${esc(naam)}</span>${render(tekst)}</span>`).join('');
 
-const esc = (s) => String(s == null ? '' : s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const PHASE_WORD = { intro: 'Aanstaande', aftrap: 'Aftrap', spel: '', hervat: 'Herstart', goal: 'Doelpunt', rust: 'Rust', eind: 'Einde', klaar: 'Einde' };
 const helftTekst = (h) => `${h === 2 ? 'Tweede' : 'Eerste'} helft`;
 

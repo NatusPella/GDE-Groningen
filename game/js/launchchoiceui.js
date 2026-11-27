@@ -12,8 +12,8 @@ import { trapTabInCard, bewaarFocus } from './listnav.js';
 import { knopToets } from './dsbutton.js';
 import { menuItems, startFocus, menuToets, uitkomstVan, nieuwSpelPlan, ladenPlan, heldRegels } from './hoofdmenu.js';
 import { isPauseMenuOpen } from './pausestate.js';
+import { escapeHtml as esc } from './htmlescape.js';
 
-const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
 // De keuzekaart. `index` is de knop die de voorselectie heeft (alleen voor data-voorkeur; de focus zet mountStartKeuze).
 export function launchChoiceHtml({ index = 0 } = {}) {

@@ -6,6 +6,7 @@ import { openerNaam } from './coopplayers.js';
 import { bijbaanKaartModel } from './coopbijbaan.js';
 import { kaartSting, spelersVerbonden } from './stings.js';
 import { spelerNaam, verbondenGasten, gastStaat, wedGastStuur, wedOpnieuw, wedHostAntwoord, willenOpnieuw, uitnodigingTekst, WEDSTRIJDEN } from './multiplayerwedstrijd.js';
+import { escapeHtml as esc } from './htmlescape.js';
 
 const ORDINAAL = ['', '1e', '2e', '3e', '4e'];
 
@@ -130,7 +131,6 @@ function tekenKaart(m) {
     el = document.createElement('div'); el.className = 'wed-kaart'; el.setAttribute('role', 'status');
     (document.getElementById('hud') || document.body).appendChild(el);
   }
-  const esc = (s) => String(s).replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
   el.hidden = false;
   el.innerHTML = `<b>${esc(m.titel)}</b>${m.regels.map((r) => `<p>${esc(r)}</p>`).join('')}<em>${esc(m.voet)}</em>`;
 }

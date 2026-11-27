@@ -56,6 +56,7 @@ export const DELEN = CATS;
 // importeren (dit bestand gebruikt eetVoorraad en eet zelf) als doorgeven, zodat het menu en
 // de tests dezelfde namen houden.
 import { eetVoorraad, eet, etenWerkwoord } from './eten.js';
+import { escapeHtml as esc } from './htmlescape.js';
 export { eetWaar, eetVoorraad, etenSave, applyEtenSave, voegEtenToe, eet } from './eten.js';
 
 // Wat er in een kaartje staat, als één lap tekst om in te zoeken. De beschrijving en
@@ -87,7 +88,6 @@ let laatsteVolgorde = [];
 // De melding van de laatste actie (#502): die hoort in het detailpaneel, want de HUD zit
 // achter het pauzemenu en w.addMessage zou je nooit zien.
 let note = '';
-const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const euro = (v) => '€' + Math.round(v).toLocaleString('nl-NL');
 // Phosphor-pictogram van een ding (spullenmodel.itemIcoon: per soort of groep, nooit het vraagteken van de terugval)
 const svg = (it) => icoon(itemIcoon(it), { cls: 'pm-ic' });

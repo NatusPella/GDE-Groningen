@@ -8,8 +8,8 @@ import { physicalKey, keyName, tokenKey, padSlotFor } from './controls.js';
 import { getSettings } from './settings.js';
 import { KEYS } from './storagekeys.js';
 import { ANIMATIES, MAX_WOORDEN, uitlegDef } from './uitlegdata.js';
+import { escapeHtml as esc } from './htmlescape.js';
 
-const esc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const TOKEN = /\{([A-Z0-9]+)\}/g;
 // #1212: de leestekst (aria-label) zegt "linkermuisknop", niet het Engelse "LMB"; de andere toetsen houden hun naam.
 export const MUIS_NAMEN = Object.freeze({ LMB: 'linkermuisknop', RMB: 'rechtermuisknop', MMB: 'middelste muisknop', WHEEL: 'muiswiel', MOUSE: 'muis', DRAG: 'muis slepen' }); // keywords-ok: de leesnaam van een muisknop voor schermlezers, geen zichtbare spelertekst

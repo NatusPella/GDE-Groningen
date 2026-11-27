@@ -9,8 +9,8 @@ import { euro } from './geldtekst.js';
 import { kaartSvg } from './bezitkaart.js';
 import { perceelRendement, pandRendement, perDagTekst, terugTekst } from './bezitrendement.js';
 import { missReason } from './holdingcards.js';
+import { escapeHtml as esc } from './htmlescape.js';
 
-const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const IC = (n, cls = 'bz-ic') => icoon(n, { cls });
 const ha = (n) => String(Math.round(n * 10) / 10).replace('.', ',');
 export const SOORTEN = ['alles', 'land', 'panden', 'woningen'];

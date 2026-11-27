@@ -41,6 +41,7 @@ import { reducedMotion } from './motion.js';
 import { fitCamera } from './cutscript.js';
 import { WARM, createJumpRunner } from './cutscenewarm.js';
 import { markVehiclesInShot, clearVehicleHiding } from './cinehide.js';
+import { escapeHtml as esc } from './htmlescape.js';
 
 // world.cameraOverride poses use map coordinates: x/y on the map, z = height in metres.
 export function setCameraOverride(world, pose) {
@@ -1453,9 +1454,6 @@ function cinemaCamPose(w) {
 
 // --- mission banner -----------------------------------------------------------
 
-function esc(s) {
-  return String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
-}
 
 // #996: the result is a big moment (bigmoment.js). eigen / gezamenlijk / deelnemer say whose result it is
 // for a guest (Samen spelen): a guest's own activity is eigen (the default), a result of a joint mission

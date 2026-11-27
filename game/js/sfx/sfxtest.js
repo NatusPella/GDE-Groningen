@@ -6,8 +6,8 @@ import { hoofdspeler } from '../players.js';
 import { groupedFx } from './sfxlist.js';
 import { pushAudioEvent } from '../pedestrians.js';
 import { CATEGORIES } from './mixplan.js';
+import { escapeHtml as esc } from '../htmlescape.js';
 
-const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
 export function initSfxTest(world) {
   const st = document.createElement('style');

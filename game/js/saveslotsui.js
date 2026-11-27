@@ -30,6 +30,7 @@ import { getMissionDefs, isMissionCompleted } from './missions.js';
 import { hoofdspeler } from './players.js';
 import { toonBevestiging, isBevestigOpen } from './spelbevestig.js';
 import { verliesSinds, verliesTekst, slotVergelijk, euro } from './spelstatus.js';
+import { escapeHtml as esc } from './htmlescape.js';
 
 const DESKTOP = typeof window !== 'undefined' && window.gdeDesktop && window.gdeDesktop.isDesktop ? window.gdeDesktop : null;
 
@@ -46,7 +47,6 @@ export function isSaveSlotsOpen() {
   return !!rootEl;
 }
 
-const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
 function dateText(ms) {
   if (!ms) return 'Nog niet opgeslagen';

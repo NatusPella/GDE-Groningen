@@ -6,6 +6,7 @@
 // Alles wat de wereld raakt komt binnen als parameter, zodat scripts/spullenraster_test.mjs het zonder three kan doorlopen.
 // Samen spelen: lokale weergave van de eigen spullen (#429); niets over het netwerk.
 import { thumbPlan, thumbSleutel, kolommenUitTops, visibleIndices } from './spullenraster.js';
+import { escapeHtml } from './htmlescape.js';
 
 const THUMB_GROUP = 'spullen';
 const THUMB_HOEK = 0.6; // schuin van voren, zoals de Garage
@@ -34,7 +35,7 @@ export function createThumbs(lijst, o) {
       if (!it || thumbSleutel(it.viewer, thumbW, thumbH) !== sleutel) continue;
       const ph = t.querySelector('.sp-ph');
       if (!ph) continue;
-      if (url) { ph.innerHTML = `<img alt="" draggable="false" src="${url}">`; ph.dataset.state = 'klaar'; } else { ph.innerHTML = icoon(it); ph.dataset.state = 'icoon'; }
+      if (url) { ph.innerHTML = `<img alt="" draggable="false" src="${escapeHtml(url)}">`; ph.dataset.state = 'klaar'; } else { ph.innerHTML = icoon(it); ph.dataset.state = 'icoon'; }
     }
   };
 

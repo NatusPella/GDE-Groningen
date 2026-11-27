@@ -4,10 +4,8 @@
 import { physicalKey, tokenKey, keyName } from './controls.js';
 import { getSettings } from './settings.js';
 import { keyGlyph, mouseGlyph, MOUSE_TOKENS, inkAttr } from './inputglyphs.js';
+import { escapeHtml as esc } from './htmlescape.js';
 
-function esc(s) {
-  return String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
-}
 
 const MOUSE_SVG = (btn) => '<svg class="hud-mouse" data-btn="' + btn + '" viewBox="0 0 14 20" aria-hidden="true">' +
   '<rect x="1" y="1" width="12" height="18" rx="6" class="m-body"/>' +

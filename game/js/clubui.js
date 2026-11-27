@@ -11,8 +11,8 @@ import { euro } from './geldtekst.js';
 import * as KIT from './footballkit.js';
 import { icoon } from './icons.js';
 import { crestSvg, hexOf } from './voetbalwapen.js';
+import { escapeHtml as esc } from './htmlescape.js';
 
-const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 export const cui = { msg: '', confirm: null };
 const knop = (act, text, extra = '', { uit = false, primair = false } = {}) => `<button type="button" class="ds-z-knop${primair ? '' : ' ds-z-knop--secundair'}" data-cl="${act}"${extra}${uit ? ' disabled' : ''}>${text}</button>`;
 const key = (act, id) => `${act}:${id}`;

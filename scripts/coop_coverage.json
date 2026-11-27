@@ -1872,6 +1872,10 @@
    "reden": "Herstel van het laden op dit apparaat (terugval naar de vorige veilige stand); lokaal, geen spelstaat."
   },
   {
+   "glob": "htmlescape",
+   "reden": "Zuivere HTML-escape-hulpfunctie voor UI-sjablonen; geen spelstaat."
+  },
+  {
    "glob": "devwarn",
    "reden": "Alleen ontwikkelwaarschuwingen in de console; geen spelstaat en stil voor spelers."
   },

@@ -15,10 +15,10 @@ import { glyphHtml } from './prompts.js';
 import { unlockAchievement } from './achievements.js';
 import { KEYS } from './storagekeys.js';
 import { startPractice, stepPractice, currentStep, DONE } from './practicekit.js';
+import { escapeHtml as escHtml } from './htmlescape.js';
 
 const REMIND = 25;
 const KEY_TOKEN = /\{(\w+)\}/g;
-const escHtml = (s) => s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const plainKeys = (t) => t.replace(KEY_TOKEN, (m, k) => keyName(physicalKey(getSettings().keyBinds || {}, tokenKey(k))));
 const htmlKeys = (t) => t.split(KEY_TOKEN).map((part, i) => (i % 2 ? glyphHtml(part) : escHtml(part))).join('');
 

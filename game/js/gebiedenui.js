@@ -6,8 +6,8 @@ import * as G from './gebieden.js';
 import { getOverzicht } from './gebiedenlive.js';
 import { eerlijkPct } from './menumodels.js';
 import { reisNaarHuis } from './safehuizen.js';
+import { escapeHtml as esc } from './htmlescape.js';
 
-const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const CHECK = icoon('vinkje'); // F6: Phosphor via icons.js
 const VLAG = icoon('vlag'); // F6: Phosphor via icons.js
 

@@ -96,6 +96,7 @@ import { kopStatus, verliesSinds, verliesTekst, euro } from './spelstatus.js';
 import { toonBevestiging, isBevestigOpen } from './spelbevestig.js';
 import { toonRecapNu } from './recapcardrun.js';
 import { woordenVan, past } from './zoektekst.js';
+import { escapeHtml as esc } from './htmlescape.js';
 // Running inside the desktop app (desktop/preload.js): window mode + quit.
 const DESKTOP = typeof window !== 'undefined' && window.gdeDesktop && window.gdeDesktop.isDesktop ? window.gdeDesktop : null;
 
@@ -552,7 +553,6 @@ export function pauseMenuCover() {
 }
 
 const started = () => document.body.classList.contains('game-started');
-const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 // De rail zelf heeft geen knop Spelers (#377): het aantal spelers staat bij Spel, de lijst onder Samen spelen (#434).
 // Cheats staat alleen in het menu in dev, zolang er een cheat aan staat (settingsrules.js) of nadat het verhaal ze heeft vrijgespeeld (Berts valsspeelbon na missie 4; cheats.js cheatsOpen)
 export const cheatsInMenu = () => cheatsVisible({ dev: DEV || !!FLAGS.dev, actief: anyCheatOn() }) || cheatsOpen();

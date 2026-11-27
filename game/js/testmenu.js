@@ -13,13 +13,13 @@ import { Vehicle } from './vehicle.js';
 import { BOAT_KINDS } from './boattypes.js';
 import { cheatsUit, CHEATS_UIT_TEKST } from './coopgroep.js';
 import { hoofdspeler } from './players.js'; // de speler van dit apparaat (#500)
+import { escapeHtml as esc } from './htmlescape.js';
 
 let world = null;
 let root = null;
 let open = false;
 let note = '';
 
-const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
 function css() {
   const st = document.createElement('style');

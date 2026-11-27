@@ -33,6 +33,7 @@ import { playContactVoice as playBanterVoice, stopContactVoice as stopBanterVoic
 import { HERO_REPLACE_FEE as GARAGE_PRICE } from './economy.js';
 import { senderOf, bodyOf, appNaam, LEEG } from './phoneapp.js';
 import { dsButtonKey, KNOP_TOETSEN } from './dsbutton.js';
+import { escapeHtml as esc } from './htmlescape.js';
 
 const RING_TIME = 0.9;
 const MAX_DELIVER = 3;
@@ -46,7 +47,6 @@ let panelRef = null;
 let api = null;
 
 const pick = (list) => list[Math.floor(Math.random() * list.length)];
-const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const initials = (name) => String(name).replace(/\(.*\)/, '').trim().split(/\s+/).map((s) => s[0]).slice(0, 2).join('').toUpperCase();
 
 function buddyName(w) {

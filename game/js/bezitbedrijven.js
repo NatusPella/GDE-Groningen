@@ -8,8 +8,8 @@ import { euro } from './geldtekst.js';
 import * as BZ from './business.js';
 import { eigenPandPerDag } from './bezitrendement.js';
 import { sellValue } from './bezitprijs.js';
+import { escapeHtml as esc } from './htmlescape.js';
 
-const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const IC = (n, cls = 'bz-ic') => icoon(n, { cls });
 const plus = (n) => (n >= 0 ? '+' : '−') + euro(Math.abs(n));
 const SOORT_IC = { woning: 'thuis', bijgebouw: 'gebouw', beheer: 'kerk' };

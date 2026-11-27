@@ -8,6 +8,7 @@ import { statistiekenVan, matchMvp, speelMinuut, cleanRules } from './voetbalext
 import { cleanModus } from './voetbalregie.js';
 import { crestSvg } from './voetbalwapen.js';
 import { knopToets } from './dsbutton.js';
+import { escapeHtml as esc } from './htmlescape.js';
 
 // De voorkeur voor de uitzending (de camera-regie en de regels kaarten, blessures, strafschoppen, buitenspel, wissels) staat onder `tv` in de eigen sleutel van de voetbalvoorkeur (alleen dit apparaat);
 // alles wat niet klopt wordt de standaard.
@@ -18,7 +19,6 @@ export function leesTvVoorkeur(raw) {
   return { camera: cleanModus(tv.camera), regels: cleanRules(tv.regels) };
 }
 
-const esc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 export const hex = (n) => `#${((Number.isFinite(n) ? n : 0) >>> 0).toString(16).padStart(6, '0').slice(-6)}`;
 const initiaal = (naam) => String(naam || '?').replace(/^De\s+/i, '').charAt(0).toUpperCase();
 

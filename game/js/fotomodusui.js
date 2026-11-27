@@ -17,6 +17,7 @@ import { zachtePauze, meerSpelers } from './coopgroep.js';
 import { registerMusicProbe } from './scenariomusic.js';
 import { hoofdspeler } from './players.js'; // de speler van dit apparaat (#500)
 import { calmState } from './dsmicro.js';
+import { escapeHtml as esc } from './htmlescape.js';
 
 let photo = null;
 let saved = null;
@@ -30,7 +31,6 @@ const pointers = new Map();
 let pinch = 0;
 const keysDown = new Set();
 
-const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const store = () => { try { return window.localStorage; } catch (e) { return null; } };
 export const isPhotoMode = () => !!photo;
 registerMusicProbe('foto', () => !!photo); // de eigen muziek van de fotomodus (thuis_loop)

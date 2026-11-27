@@ -16,6 +16,7 @@ import { visibleList, knownCount, knownText } from './garageknown.js'; // alleen
 import { getShopsForRender, SHOP_TYPES, getOwnedEntries } from './shops.js';
 import { setUserWaypoint } from './routing.js';
 import { hoofdspeler } from './players.js'; // de speler van dit apparaat (#500)
+import { escapeHtml as esc } from './htmlescape.js';
 import {
   GARAGE_3Q_ANGLE, GARAGE_PIC_W, GARAGE_PIC_H, garagePicZoom, TURN_SPEED, TURN_FPS,
   garagePreviewSpec as previewSpec, garageCardLook, garageSaleShop, turntableTarget, stageSilhouetteStyle,
@@ -25,7 +26,6 @@ import {
   garageShown, garageSections, garageTabCounts, cycleOption, keepSelection,
 } from './menumodels.js';
 
-const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
 const GLYPHS = {
   car: '<path d="M6 30l4-11a5 5 0 0 1 4.7-3.3h18.6A5 5 0 0 1 38 19l4 11h1.5a2.5 2.5 0 0 1 2.5 2.5V40h-5v3a3 3 0 0 1-6 0v-3H13v3a3 3 0 0 1-6 0v-3H2v-7.5A2.5 2.5 0 0 1 4.5 30zm6-1h24l-2.8-8.2a1.5 1.5 0 0 0-1.4-1h-15.6a1.5 1.5 0 0 0-1.4 1z"/><circle cx="10" cy="35" r="2.6" style="fill:var(--ds-c-ink-inkt)"/><circle cx="38" cy="35" r="2.6" style="fill:var(--ds-c-ink-inkt)"/>',

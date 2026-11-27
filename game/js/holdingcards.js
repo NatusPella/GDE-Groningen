@@ -6,8 +6,8 @@
 
 import { icoon } from './icons.js';
 import { euro } from './geldtekst.js';
+import { escapeHtml as esc } from './htmlescape.js';
 
-const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
 // Een sectie als kaart. id gaat in data-sectie (tests, QA); ic is een betekenisnaam uit iconmap.js; body is al HTML.
 // count: het getal rechts in de kop (null = geen getal). info: de uitleg achter de info-knop (leeg = geen knop).

@@ -42,6 +42,7 @@ import { cardDuration } from './noticetiming.js'; // 4 / 6 / 9 / 10 s, voor alle
 import { adjustRemaining } from './melding.js'; // het aflopende balkje loopt mee als de rest verandert
 import { addCardLog, cardLogText } from './cardlog.js';
 import { opschuiven } from './microinteractions.js';
+import { escapeHtml as esc } from './htmlescape.js';
 
 // the HUD's attention budget: one prominent card at a time
 const MAX_VISIBLE = 1;
@@ -106,7 +107,6 @@ const voicedAt = new Map();
 // #801: de laatste kaarten, voor het tekstlog (pauzemenu > Hulp).
 let cardLog = [];
 
-const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 // 'm-<i>': the icon of story mission i (missionicons.js)
 const svg = (kind) => {
   const eigen = (/^m-\d+$/.test(kind) && missionIconInner(+kind.slice(2))) || (/^cal-/.test(kind) && CAL_ICONS[kind.slice(4)]);

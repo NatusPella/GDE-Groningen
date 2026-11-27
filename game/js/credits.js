@@ -4,6 +4,7 @@
 // the two halves are also available on their own; ABOUT_HTML is both together.
 import { GAME_TITLE, SERIES, SERIES_MEANING } from './logo.js';
 import { AUDIO_CREDITS } from './sfx/audiocredits.js';
+import { escapeHtml as esc } from './htmlescape.js';
 
 // The one disclaimer (#72, #37); README.md, NOTICE.md and docs/PRIVACY-EN-CREDITS.md carry the same text.
 // It deliberately names no other game or publisher (constitution 2); the end credits only say 'alles verzonnen'.
@@ -47,7 +48,6 @@ export const AI_ASSISTENTS = [
 
 // De opnames van Freesound (ADR 0039): per bron titel, auteurshandle en licentie, uit game/audio/sfx/manifest.json (via audiocredits.js).
 export function geluidenHtml(lijst = AUDIO_CREDITS) {
-  const esc = (t) => String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
   const link = (url, tekst) => `<a href="${esc(url)}" target="_blank" rel="noopener noreferrer">${tekst}</a>`;
   // CC BY: titel (zoals gegeven), auteur, bronlink en licentielink; CC0 houdt de korte regel
   const li = (c) => (c.by && c.bron && c.licentieUrl

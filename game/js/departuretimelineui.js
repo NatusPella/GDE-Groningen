@@ -3,8 +3,8 @@
 // houdt de rows per trein vast (sleutel = trein-id), zodat alleen een NIEUWE trein inschuift en alleen een veranderde minuut tikt.
 // Beweging: alleen de DS3-klassen (ds-m-rij, ds-m-tik, ds-m-vul, ds-m-stip--live); onder "Beweging beperken" doen die niets.
 import { afterFrame, rijenKlaar, staffelNa, calmState } from './dsmicro.js';
+import { escapeHtml as esc } from './htmlescape.js';
 
-const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
 // Het hoofd van de lijst: het "nu"-punt met de spelkloktijd en de streepjes van de as.
 export function nowHtml(m) {

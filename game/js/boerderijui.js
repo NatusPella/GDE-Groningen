@@ -21,8 +21,8 @@ import { frameView, frameHtml } from './bezitframe.js';
 import { veldenView, teamView, veldenActie } from './bezitui.js';
 import { fpHtml, leegHtml, meerHtml } from './farmpicshtml.js';
 import { vulPlaatjes, showLive, ruimLive, ruimPlaatjes } from './farmpics.js';
+import { escapeHtml as esc } from './htmlescape.js';
 
-const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const euro = (n) => `€${Math.round(n).toLocaleString('nl-NL')}`;
 const cent = (n) => `€${n.toFixed(2).replace('.', ',')}`;   // een prijs per kilo: twee decimalen met een komma
 const nl = (n) => Math.round(n).toLocaleString('nl-NL');

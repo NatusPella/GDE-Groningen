@@ -2,8 +2,8 @@
 // speler. Puur (tekst in, tekst uit; alleen ensureGolfCss raakt de DOM aan) zodat scripts/golfhud_test.mjs het kan controleren.
 // pitchputt.js geeft het aan createBoard (minigamekit.js, set({ row, extra, meter })). Alle tekst is minstens 12 px.
 import { golfIcon } from './golficons.js';
+import { escapeHtml as esc } from './htmlescape.js';
 
-const esc = (t) => String(t).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
 const komma = (v, d = 1) => v.toFixed(d).replace('.', ',');
 export const afstandTekst = (m) => `${m < 10 ? komma(m) : Math.round(m)} m`;
 

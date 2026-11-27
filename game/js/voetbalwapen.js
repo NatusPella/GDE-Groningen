@@ -2,8 +2,8 @@
 // Puur, geen DOM (scripts/voetbal_wapen_test.mjs). Elke club in één klasse heeft een eigen combinatie (kleur, accent, patroon en symbool); het symbool komt deterministisch uit de club-id en schuift
 // alleen door als een klasgenoot al dezelfde combinatie had. De clubkleuren zijn gegevens uit de clubdata (inline), de rest van het schild leest alleen de tokens van het designsysteem.
 import { hashSeed } from './voetbalplayers.js';
+import { escapeHtml as esc } from './htmlescape.js';
 
-const esc = (s) => String(s == null ? '' : s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 export const hexOf = (n) => `#${(Number.isFinite(n) ? n & 0xffffff : 0x888888).toString(16).padStart(6, '0')}`;
 // Acht symbolen in een vak van 100 x 115 rond (50, 42); elk een eigen vorm, zodat het wapen ook zonder kleur te onderscheiden is.
 export const EMBLEMS = [

@@ -9,6 +9,7 @@
 import { PAD_BUTTONS, PAD_LAYOUTS, PAD_MAPS, glyphFaceSlot, padSlotFor, padWheelFor, physicalKey, physicalButton, nintendoSwap, tokenKey, keyName } from './controls.js';
 import { getSettings, onSettingsChange } from './settings.js';
 import { onPadChange, padState, activePadIndex } from './gamepad.js';
+import { escapeHtml } from './htmlescape.js';
 import { touchLabelForToken } from './touchlogic.js';
 import { getDevice, onDeviceChange } from './inputdevice.js';
 import { padSlotGlyph, inkAttr } from './inputglyphs.js';
@@ -179,7 +180,7 @@ function sweepText(t) {
   if (!BRACE_KEY_RE.test(v)) return 0;
   BRACE_KEY_RE.lastIndex = 0;
   const span = document.createElement('span');
-  const esc = v.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  const esc = escapeHtml(v);
   span.innerHTML = endKeyRuns(groupKeyRuns(esc, BRACE_RUN_RE).replace(BRACE_KEY_RE, (m, k) => glyphHtml(k)));
   t.replaceWith(...span.childNodes);
   return 1;

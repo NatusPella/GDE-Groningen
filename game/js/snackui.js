@@ -8,8 +8,8 @@ import { PERMIT_DAYS } from './pitch.js';
 import { euro } from './geldtekst.js';
 import { icoon } from './icons.js';
 import { sectionCard, missReason, holdingButton } from './holdingcards.js';
+import { escapeHtml as esc } from './htmlescape.js';
 
-const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 export const sui = { msg: '', confirm: null };
 const STATUS_TEXT = { jij: 'van jou', usmem: 'van Us Mem Snacks', medespeler: 'van een medespeler', vrij: 'vrij' };
 // Kopen is de gele hoofdknop, de rest omlijnd: zonder eigen vorm leken ze lichtgrijze tekst of uitgeschakeld (#1248).
