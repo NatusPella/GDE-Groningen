@@ -6,13 +6,14 @@
 // Per rig: per kledingsoort de delen in volgorde van voorkeur (deel-id's uit game/models/mensen/<rig>.json).
 // Dekt de hele kledingcatalogus (clothing.js KIND_LOOK: top, bottom, shoeType, hat; clothinghair.js HAIR_STYLE_IDS); scripts/modularlooks_test.mjs
 // controleert dat elk stuk, elk kapsel en elk lichaam een geldige modulaire look geeft.
-const MAN_SHORT = ['Casual2_Head', 'Suit_Head', 'Casual_Head', 'Beach_Head'], MAN_CURLY = ['Beach_Head', 'Casual_Head', 'Casual2_Head'], MAN_LONG = ['Casual_Head', 'Beach_Head', 'Casual2_Head'];
+// Casual2_Head heeft een paardenstaart in het pack (haar tot 12 cm achter en 11 cm onder de kruin): een kort kapsel krijgt hem dus niet (Tammo had ineens een staart, #1351)
+const MAN_SHORT = ['Suit_Head', 'Casual_Head', 'Beach_Head'], MAN_CURLY = ['Beach_Head', 'Casual_Head'], MAN_LONG = ['Casual_Head', 'Beach_Head'];
 const VR_LONG = ['Casual_Head', 'Suit_Head', 'Formad_Head'], VR_SHORT = ['Formad_Head', 'Casual_Head', 'Suit_Head'];
 export const PART_MAP = {
   man: {
-    hoofd: { short: MAN_SHORT, buzz: ['Suit_Head', 'Casual2_Head'], bald: ['Suit_Head'], quiff: MAN_SHORT, undercut: MAN_SHORT, fringe: MAN_SHORT,
+    hoofd: { short: MAN_SHORT, buzz: ['Suit_Head', 'Casual_Head'], bald: ['Suit_Head', 'Worker_Head'], quiff: MAN_SHORT, undercut: MAN_SHORT, fringe: MAN_SHORT,
       curly: MAN_CURLY, afro: MAN_CURLY, wavy: MAN_CURLY, long: MAN_LONG, ponytail: MAN_LONG, braid: MAN_LONG, bun: MAN_LONG, pigtails: MAN_LONG,
-      bob: MAN_LONG, pixie: MAN_SHORT, mohawk: ['Punk_Head'], default: ['Casual2_Head'] },
+      bob: MAN_LONG, pixie: MAN_SHORT, mohawk: ['Punk_Head'], default: ['Suit_Head', 'Casual_Head', 'Beach_Head', 'Casual2_Head'] },
     romp: { police: ['Suit_Body'], blazer: ['Suit_Body'], suit: ['Suit_Body'], coat: ['Suit_Body'], raincoat: ['Suit_Body'], jacket: ['Casual_Body'], hoodie: ['Casual_Body'],
       sweater: ['Casual_Body'], longsleeve: ['Casual_Body'], cardigan: ['Casual2_Body'], tee: ['Casual2_Body'], tshirt: ['Casual2_Body'], shirt: ['Casual2_Body'],
       dress: ['Casual2_Body'], swim: ['Beach_Body'], default: ['Casual2_Body'] },
@@ -69,7 +70,7 @@ export function lookFromAppearance(a, partIds) {
   if (L.bottom === 'dress') top = 'dress';
   // a.vary (gewone figuren, geen verhaalfiguur): kies uit de passende delen op het zaad, zodat niet elke 'korte haar' hetzelfde hoofd is
   const SLOT_K = { hoofd: 61, romp: 62, benen: 63, voeten: 64 };
-  const choose = (slot, kind) => (a.vary && !cop ? pickVary(ids, [...((kind && M[slot][kind]) || []), ...M[slot].default], hashf(a.seed ?? 1, SLOT_K[slot]), slot === 'hoofd') : pick(ids, [...((kind && M[slot][kind]) || []), ...M[slot].default])) || [...ids].find((id) => id.endsWith(slot === 'benen' ? '_Legs' : slot === 'voeten' ? '_Feet' : slot === 'hoofd' ? '_Head' : '_Body'));
+  const choose = (slot, kind) => (a.vary && !cop ? pickVary(ids, [...((kind && M[slot][kind]) || []), ...(slot === 'hoofd' && kind && M[slot][kind] ? [] : M[slot].default)], hashf(a.seed ?? 1, SLOT_K[slot]), slot === 'hoofd') : pick(ids, [...((kind && M[slot][kind]) || []), ...(slot === 'hoofd' && kind && M[slot][kind] ? [] : M[slot].default)])) || [...ids].find((id) => id.endsWith(slot === 'benen' ? '_Legs' : slot === 'voeten' ? '_Feet' : slot === 'hoofd' ? '_Head' : '_Body'));
   const parts = { hoofd: choose('hoofd', hairStyle), romp: choose('romp', top), benen: choose('benen', bottom), voeten: choose('voeten', shoe) };
   if (!parts.hoofd || !parts.romp || !parts.benen || !parts.voeten) return null;
   // voetbalshirt met patroon, rugnummer en sponsor (footballkit.js): het patroon komt als kledingdeel op de romp (modularwear.js)

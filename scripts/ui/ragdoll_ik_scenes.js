@@ -138,6 +138,22 @@ await (async () => {
       leeg();
     }
 
+    if (SET === 'tammo') {
+      // #1351: Tammo (kort haar) van achteren en schuin, met en zonder pet, op LOD 0, 1 en 2
+      const rij = [];
+      let i = 0;
+      for (const lod of [0, 1, 2]) for (const pet of [true, false]) {
+        const app = { ...PE.TAMMO_APPEARANCE, ...(pet ? {} : { look: { hat: null } }) };
+        const m = PE.buildPersonMesh(app.shirt, app.skin, app);
+        const [wx, wy, wz] = wereld(X0, Y0 + (i++ - 2.5) * 0.9, Z0);
+        m.position.set(wx, wy, wz); m.rotation.y = 0; scene.add(m); MP.setModularLod(m, lod); MP.poseModularClip(m, 'Idle', 0.2); rij.push(m);
+      }
+      p.x = X0 + 14; p.y = Y0 + 6; p.gz = gh(p.x, p.y);
+      cam(X0 - 5, Y0, Z0 + 1.35, X0, Y0, Z0 + 1.3, 36); await shot('tammo-achter', 600);
+      cam(X0 + 3, Y0 + 4.5, Z0 + 1.45, X0, Y0, Z0 + 1.35, 30); await shot('tammo-schuin', 400);
+      for (const m of rij) scene.remove(m);
+    }
+
     if (SET === 'ik') {
       const THREE = await import('https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js');
       const mat = new THREE.MeshLambertMaterial({ color: 0xb9b2a4 });

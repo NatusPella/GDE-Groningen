@@ -33,5 +33,22 @@ for (const lod of [0, 1, 2]) {
   const r = rearMost(tail, 0.9), r0 = rearMost(base, 0.9);
   ok(r.rear < r0.rear - 0.02 && Number.isFinite(r.rear), `LOD ${lod}: de staart steekt achter het hoofd uit (${r.rear.toFixed(2)} tegen ${r0.rear.toFixed(2)})`);
 }
+// Tammo heeft geen staart (#1351): zijn vaste kapsel is 'short' en het hoofddeel dat daarvoor gekozen wordt heeft geen staart in het pack
+// (Casual2_Head wel: haar ver achter en onder de kruin). look.tail komt alleen voor ponytail, braid, pigtails en bun.
+{
+  const man = JSON.parse(fs.readFileSync(new URL('../game/models/mensen/man.json', import.meta.url))), buf = fs.readFileSync(new URL('../game/models/mensen/man.bin', import.meta.url));
+  const ab = buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength), posQ = new Int16Array(ab, man.offsets.pos, man.vertices * 3), col = new Uint8Array(ab, man.offsets.col, man.vertices);
+  const tailVerts = (id) => { const p = man.parts.find((q) => q.id === id), eyeY = (p.face.eyes[0].c[1] + p.face.eyes[1].c[1]) / 2; let c = 0; for (let v = p.vStart; v < p.vStart + p.vCount; v++) if (/hair/i.test(man.palette[col[v]].mat) && posQ[v * 3 + 1] * man.posQ < eyeY - 0.06 && posQ[v * 3] * man.posQ < 0) c++; return c; };
+  ok(tailVerts('Casual2_Head') > 0, 'de meetmethode ziet de pakketstaart van Casual2_Head');
+  for (const style of ['short', 'buzz', 'quiff', 'undercut', 'fringe', 'pixie', 'bald']) for (const app of [P.TAMMO_APPEARANCE, { ...P.TAMMO_APPEARANCE, look: { hat: null } }, ...[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map((seed) => ({ ...P.TAMMO_APPEARANCE, vary: true, seed }))]) {
+    const look = M.modularLookFromAppearance({ ...app, hairStyle: style });
+    ok(look && tailVerts(look.parts.hoofd) === 0, `man ${style}: hoofd ${look && look.parts.hoofd} zonder staart`);
+    ok(look && !look.tail, `man ${style}: geen look.tail`);
+  }
+  const tammo = M.modularLookFromAppearance(P.TAMMO_APPEARANCE);
+  ok(!tammo.tail && tailVerts(tammo.parts.hoofd) === 0, 'Tammo: geen staartonderdeel');
+  const all = ['short', 'buzz', 'bald', 'curly', 'afro', 'long', 'bun', 'ponytail', 'bob', 'wavy', 'fringe', 'pixie', 'quiff', 'undercut', 'mohawk', 'pigtails', 'braid'];
+  for (const st of all) for (const variant of ['male', 'female']) { const l = M.modularLookFromAppearance({ ...P.TAMMO_APPEARANCE, variant, hairStyle: st }); ok(['ponytail', 'braid', 'pigtails', 'bun'].includes(st) ? l.tail === st : !l.tail, `${variant} ${st}: look.tail ${l.tail}`); }
+}
 console.log(`${n} controles, ${fails} fouten`);
 process.exit(fails ? 1 : 0);
