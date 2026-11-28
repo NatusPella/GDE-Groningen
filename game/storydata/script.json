@@ -24287,6 +24287,185 @@
      "rec": "lines"
     }
    ]
+  },
+  {
+   "id": "S71",
+   "title": "Rang 2, Standplaatshouder: de eerste vergunning",
+   "act": 7,
+   "region": "Stad",
+   "vehicle": "snackwagen",
+   "step": "F6",
+   "kind": "side",
+   "regie": [
+    "kort gesprek bij de wagen, niet meer dan een paar seconden. Tessa houdt de vergunning als een bierviltje vast."
+   ],
+   "lines": [
+    {
+     "speaker": "Tammo",
+     "key": "T",
+     "text": "Een vergunning. Met een stempel en alles.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tessa",
+     "key": "A",
+     "text": "Nu mag het echt. Het moet alleen nog iets worden.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true,
+     "voice": "Anita"
+    }
+   ]
+  },
+  {
+   "id": "S72",
+   "title": "Rang 3, Wagenbaas: de eerste porties",
+   "act": 7,
+   "region": "Stad",
+   "vehicle": "snackwagen",
+   "step": "F6",
+   "kind": "side",
+   "regie": [
+    "het luik staat open, de eerste klant loopt weg met een zakje."
+   ],
+   "lines": [
+    {
+     "speaker": "Tessa",
+     "key": "A",
+     "text": "De eerste klant betaalde gepast. Ik wil dat briefje inlijsten.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true,
+     "voice": "Anita"
+    },
+    {
+     "speaker": "Tammo",
+     "key": "T",
+     "text": "Hij nam er twee. Die twee gaan niet in een lijstje.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    }
+   ]
+  },
+  {
+   "id": "S73",
+   "title": "Rang 4, Eierbalmeester: driehonderd porties",
+   "act": 7,
+   "region": "Stad",
+   "vehicle": "telefoon",
+   "step": "F6",
+   "kind": "side",
+   "regie": [
+    "Tessa heeft Oma Trijntje op de speaker gezet, naast het kasboekje op het aanrecht van de wagen."
+   ],
+   "lines": [
+    {
+     "speaker": "Oma Trijntje",
+     "key": "trijntje",
+     "text": "Driehonderd stuks, hoor ik. Niet slecht voor een recept uit 1953.",
+     "tag": "NIEUW",
+     "channel": "telefoon",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tessa",
+     "key": "A",
+     "text": "Het is jouw recept, Oma.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true,
+     "voice": "Anita"
+    },
+    {
+     "speaker": "Oma Trijntje",
+     "key": "trijntje",
+     "text": "Het is van vijf mensen. Ik hield alleen de pan vast.",
+     "tag": "NIEUW",
+     "channel": "telefoon",
+     "textOnly": true
+    }
+   ]
+  },
+  {
+   "id": "S74",
+   "title": "Rang 5, Teambaas: een medewerker achter het luik",
+   "act": 7,
+   "region": "Stad",
+   "vehicle": "snackwagen",
+   "step": "F6",
+   "kind": "side",
+   "regie": [
+    "een tweede wagen op een tweede plek. Tammo kijkt vanaf de overkant toe hoe iemand anders het luik opendoet."
+   ],
+   "lines": [
+    {
+     "speaker": "Tammo",
+     "key": "T",
+     "text": "Iemand anders doet jouw luik open. Dat voelt vreemd.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tessa",
+     "key": "A",
+     "text": "Het voelt als een bedrijf.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true,
+     "voice": "Anita"
+    },
+    {
+     "speaker": "Tammo",
+     "key": "T",
+     "text": "Valt mie nait of.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    }
+   ]
+  },
+  {
+   "id": "S75",
+   "title": "Rang 6, Baas van het Snackimperium: vijf wagens",
+   "act": 7,
+   "region": "Stad",
+   "vehicle": "telefoon",
+   "step": "F6",
+   "kind": "side",
+   "regie": [
+    "Jelle belt, niet appt, en doet alsof dat gewoon is. Tessa zet hem op de speaker."
+   ],
+   "lines": [
+    {
+     "speaker": "Jelle Terpstra",
+     "key": "jelle",
+     "text": "Vijf wagens. Dat is bijna een formulier.",
+     "tag": "NIEUW",
+     "channel": "telefoon",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tessa",
+     "key": "A",
+     "text": "Het is een imperium, Jelle.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true,
+     "voice": "Anita"
+    },
+    {
+     "speaker": "Jelle Terpstra",
+     "key": "jelle",
+     "text": "Dat zeg ik ook. Maar dan met een stempel.",
+     "tag": "NIEUW",
+     "channel": "telefoon",
+     "textOnly": true
+    }
+   ]
   }
  ]
 }

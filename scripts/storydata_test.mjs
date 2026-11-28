@@ -30,7 +30,7 @@ const manifest = (m) => manifests[m] || (manifests[m] = withEllipsisAliases(JSON
 ok(scenes.length >= 150, 'scenes in the script', String(scenes.length));
 ok(new Set(scenes.map((s) => s.id)).size === scenes.length, 'scene ids are unique');
 for (const s of scenes) {
-  ok(/^[A-Z]\d+(\.\d+b?)?$/.test(s.id) && s.title && KINDS.has(s.kind) && Number.isInteger(s.act) && s.act >= 1 && s.act <= 6,`${s.id}: id, title, kind, act`, `${s.id} ${s.kind}`);
+  ok(/^[A-Z]\d+(\.\d+b?)?$/.test(s.id) && s.title && KINDS.has(s.kind) && Number.isInteger(s.act) && s.act >= 1 && s.act <= 7,`${s.id}: id, title, kind, act`, `${s.id} ${s.kind}`);      // akte 7 = het losse bronbestand van de snackwagen (09-script-akte7.md, #1378)
   ok(Array.isArray(s.lines) && Array.isArray(s.regie), `${s.id}: lines and regie`);
   if (s.lines.length === 0) ok(s.kind === 'key' || s.kind === 'intro' || s.kind === 'outro', `${s.id}: an empty scene is only allowed for a mission scene`, s.kind);
 }

@@ -648,8 +648,11 @@ function tickSnack(w, S, from, last, money) {
     setStatMax(w, 'bzStandplaatsen', held);
     if (SN.goalStatus(S, { day: calToday() }).find((g) => g.id === 'usmem').done) unlockAchievement(w, 'bz_usmem');
   } catch (e) { devWarn('bezitlive', e); }
+  try { if (snackAfterTick) snackAfterTick(w, S); } catch (e) { devWarn('bezitlive', e); }       // een rang omhoog na deze dagen (snacklive.checkRank, #1378)
   return { own: inc.own, passive: inc.passiveRaw, fixed: inc.fixed, lines: res.sum.lines };
 }
+let snackAfterTick = null;
+export const setSnackAfterTick = (fn) => { snackAfterTick = typeof fn === 'function' ? fn : null; };
 
 // ---- het nieuws en de keuze van de buurman ----
 export function newsView(w) {

@@ -347,6 +347,12 @@ export function erfNaarSchuur(erfId, gewas) {
   return r;
 }
 
+// Oogst van het thuis-erf voor de snackwagen (#1378, S4): hoeveel er ligt, uit de opslag halen en (bij een mislukte tweede stap) terugzetten. De aanroeper (snacklive.vulUitSchuur) haalt eerst
+// hier af en schrijft daarna in de wagen bij; bij een fout zet hij het terug.
+export const oogstOpErf = (gewas) => ((getBedrijf().opslag[getBedrijf().thuis] || {})[gewas]) || 0;
+export const haalOogstUitErf = (gewas, kg) => { const bd = getBedrijf(); return bedrijfActie(PC.haalUit(bd, bd.thuis, gewas, kg)); };
+export const zetOogstTerugOpErf = (gewas, kg) => { const bd = getBedrijf(); return bedrijfActie(PC.bergOp(bd, bd.thuis, gewas, kg)); };
+
 // --- machines en werktuigen (machines.js, #415 stap 2) --------------------------------------------------------------------------------
 
 const naamMachine = (m) => (PC.MACHINE_CATALOGUS[m.type] || { naam: m.type }).naam;
