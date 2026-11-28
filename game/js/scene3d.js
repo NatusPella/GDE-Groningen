@@ -114,7 +114,7 @@ import { streamPlanner } from './streamplanner.js';
 import { selectRing, createRingSmoother, hystVisible, facadeBand, facadeSpeedScale, ringSpeedScale, RING_KEEP_MAX, boundsDist, facadeFloor, buildRank, nearUrgent, ringFloor } from './lodstable.js';
 import { glassMaterial } from './interiorglass.js';
 import { detailMaterial } from './models3d_buildings.js';
-import { streamLead } from './streambudget.js';
+import { streamLead, STREAM_SPEED_MIN } from './streambudget.js';
 import { fadeBand, loadRadius } from './popinrules.js';
 import { VIEW_DISTANCES, viewDistanceFor, viewContext, detailDistanceFor, fogRange, DETAIL_BASE } from './viewdist.js';
 // waar de camera is voor de terugval van Ultra (viewdist.js viewContext): in de lucht en op het water blijft de verste zichtafstand
@@ -172,7 +172,8 @@ import { buildPerrons3D } from './perrons3d.js';
 import { initGrass, updateGrass, grassFarColor, grassFarRank } from './grass.js';
 import { updateCountryside, countrysideQueued } from './countryside.js';
 import { createTextureWarm } from './texturewarm.js'; // #1354: texturen vooraf naar de GPU, binnen een tijdbudget
-import { collectReady } from './readysensors.js'; // #1354: wat staat er per niveau van tegel-klaar nog open (tileready.js)
+import { collectReady } from './readysensors.js';
+import { leadFor, modeOf } from './tileready.js'; // #1354: wat staat er per niveau van tegel-klaar nog open (tileready.js)
 import { programsPending } from './programwarm.js';
 import { queueNear } from './benchsettle.js';
 import { updateOmmelandLandmarks } from './ommelandlandmarks.js';
@@ -1066,7 +1067,7 @@ export function init3D(map) {
   onSettingsChange(applyViewSettings);
   resize3D();
   window.addEventListener('resize', resize3D);
-  window.__scene3d = { THREE, scene, cam, renderer, postfx, farLod, actors: () => ({ vehicles: vehicleMeshes, peds: pedMeshes, wildlife: wildlifeMeshes, culled: culledActors }), setBlobPool: (on) => { zetBlobPool(on); }, cullPass: () => { cullOffscreenActors(); skipHiddenMatrixWalk(); }, restorePass: restoreCulledActors, dists: () => ({ DRAW_DIST, buildingDetailR, facadeDetailDist, roadDetailR, viewDist, speed: focusSpeed, lead: streamAhead.lead }), batches: () => ({ buildings: buildingBatcher.info(), facades: facadeBatcher.info(), roads: roadBatcher.info(), shores: shoreBatcher.info(), pool: drawHub.stats() }) };
+  window.__scene3d = { THREE, scene, cam, renderer, postfx, farLod, readyCounts, buildingHas: (b) => { const m = buildingMeshes.get(b); return !!(m && m.parent); }, actors: () => ({ vehicles: vehicleMeshes, peds: pedMeshes, wildlife: wildlifeMeshes, culled: culledActors }), setBlobPool: (on) => { zetBlobPool(on); }, cullPass: () => { cullOffscreenActors(); skipHiddenMatrixWalk(); }, restorePass: restoreCulledActors, dists: () => ({ DRAW_DIST, buildingDetailR, facadeDetailDist, roadDetailR, viewDist, speed: focusSpeed, lead: streamAhead.lead }), batches: () => ({ buildings: buildingBatcher.info(), facades: facadeBatcher.info(), roads: roadBatcher.info(), shores: shoreBatcher.info(), pool: drawHub.stats() }) };
 }
 
 // increments each time the scene is drawn to the canvas (blackframe.js)
@@ -1828,15 +1829,21 @@ const _bSeen = new Set(), _bMissing = []; function syncBuildingsPass(world, px, 
   // Build the meshes of buildings just outside the detail radius ahead of
   // time (within a small per-frame budget), so crossing DRAW_DIST only has
   // to add an already built mesh to the scene.
-  for (const [b] of prefetchedBuildings) if (centreDist(b) > DRAW_DIST + BUILDING_PREFETCH + 20 && !nearPrewarm(b)) prefetchedBuildings.delete(b);
+  // #1354: vooruit in de rijrichting verder voorbouwen naarmate het vervoermiddel sneller gaat (lopen 4 s, fiets, auto, trein, heli en vliegtuig
+  // elk een eigen kijktijd en bovengrens: tileready.js leadFor), tot hoogstens BUILDING_AHEAD_MAX; ?perfoff=vooruitbouw is de vaste marge van 30 m
+  const aheadM = perfOff('vooruitbouw') || focusSpeed < STREAM_SPEED_MIN ? 0 : Math.min(BUILDING_AHEAD_MAX, leadFor(world.trainDriving ? 'train' : modeOf(hoofdspeler(world)), focusSpeed).lead);
+  const prefetchReach = BUILDING_PREFETCH + aheadM;
+  for (const [b] of prefetchedBuildings) if (centreDist(b) > DRAW_DIST + prefetchReach + 20 && !nearPrewarm(b)) prefetchedBuildings.delete(b);
   if (missing.length > built) return;
   const pft0 = performance.now(), prefetchEnd = pft0 + plan.grant('building', BUILDING_PREFETCH_MS);
   let prefetchDone = true;
-  for (const b of world.map.buildingsNear(px, py, DRAW_DIST + BUILDING_PREFETCH)) {
+  for (const b of world.map.buildingsNear(px, py, DRAW_DIST + prefetchReach)) {
     if (performance.now() > prefetchEnd) { prefetchDone = false; break; }
     if (b.landmark || buildingMeshes.has(b) || prefetchedBuildings.has(b)) continue;
     const d = centreDist(b);
-    if (d <= DRAW_DIST || d > DRAW_DIST + BUILDING_PREFETCH) continue;
+    if (d <= DRAW_DIST || d > DRAW_DIST + prefetchReach) continue;
+    // voorbij de vaste marge alleen wat voor de neus ligt (in de rijrichting), anders bouwt de ring rondom te veel voor
+    if (d > DRAW_DIST + BUILDING_PREFETCH && (centreX(b) - px) * streamAhead.dirX + (centreY(b) - py) * streamAhead.dirY <= d * 0.5) continue;
     const mesh = makeBuildingMesh(b);
     precompile(mesh);
     meshTexturesReady(mesh); // #1354
@@ -2080,6 +2087,7 @@ export function precompilePrograms(opts = {}) {
 export const precompileKit = () => ({ scene, compile: precompileNow, withLightRig, lightRigOn: isLightRigOn, filmOff: perfOff('filmlicht') });
 
 const BUILDING_PREFETCH = 30;
+const BUILDING_AHEAD_MAX = 120;
 const BUILDING_PREFETCH_MS = 1.5;
 const prefetchedBuildings = new Map();
 setPartsInUse((b) => buildingMeshes.has(b) || prefetchedBuildings.has(b)); // #1065: models3d_buildings.js gooit geen geometrie weg die nog getekend wordt

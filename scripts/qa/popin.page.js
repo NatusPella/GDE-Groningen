@@ -107,6 +107,29 @@ function makeProbe() {
   const gls = { frames: 0, upFrames: 0, up: 0, upMs: 0, link: 0, linkMs: 0, worstUpMs: 0, hitch2: 0, progNew: 0 };
   let lastProgs = sc.renderer.info.programs.length, km = 0, lastCam = null, claim = [0, -1];
   const claimFrames = [0, 0, 0]; // frames: totaal, oude definitie klaar, nieuwe definitie klaar
+  // 28-11 (#1354): de LOD-dekking. Elke 12e frame: per afstandsband hoeveel gebouwen de versie hebben die bij hun afstand hoort (detail binnen de
+  // ring, de verre kopie erbuiten, beide in de overgangsband van 20 m), hoeveel gaten (geen van beide) en hoeveel wissels van niveau.
+  const BANDS = [60, 140, 250, 500, 800];
+  const lodAud = { samples: 0, bands: BANDS.map((m) => ({ max: m, n: 0, ok: 0 })), holes: 0, lateDetail: 0, swaps: 0, swapsToNone: 0 };
+  const lodPrev = new WeakMap();
+  const lodSample = () => {
+    if (!sc.buildingHas || !sc.farLod || !sc.farLod.covers || !map.buildingsNear) return;
+    const f = w.streamFocus || p, dd = sc.dists(), R = dd.buildingDetailR, draw = dd.DRAW_DIST;
+    lodAud.samples++;
+    for (const b of map.buildingsNear(f.x, f.y, 800)) {
+      if (b.landmark || !b.bounds) continue;
+      const d = Math.hypot((b.bounds[0] + b.bounds[2]) / 2 - f.x, (b.bounds[1] + b.bounds[3]) / 2 - f.y);
+      const bi = BANDS.findIndex((m) => d <= m); if (bi < 0) continue;
+      const hasD = sc.buildingHas(b), hasF = sc.farLod.covers(b), inRing = d <= R, trans = Math.abs(d - R) <= 20;
+      const need = trans ? hasD && hasF : inRing ? hasD : hasF;
+      const B = lodAud.bands[bi]; B.n++; if (need) B.ok++;
+      if (d <= draw && !hasD && !hasF) lodAud.holes++;
+      if (inRing && !hasD && d <= draw) lodAud.lateDetail++;
+      const lv = inRing && hasD ? 'd' : hasF ? 'f' : hasD ? 'd' : 'n', pl = lodPrev.get(b);
+      if (pl && pl !== lv) { lodAud.swaps++; if (lv === 'n') lodAud.swapsToNone++; }
+      lodPrev.set(b, lv);
+    }
+  };
   const ring = { n: 0, sum: 0, min: 1, b90: 0, b50: 0, minR: 1e9, facade: 0, draw: 0 };
   const camDist = (cx, cy, cz, r) => Math.max(0, Math.hypot(cx - cam.position.x, cy - cam.position.y, cz - cam.position.z) - r);
   const note = (kind, o, d, rad, px, fog, inView, extra, pos) => {
@@ -175,6 +198,7 @@ function makeProbe() {
       const np = sc.renderer.info.programs.length; if (np > lastProgs) gls.progNew += np - lastProgs; lastProgs = np;
       if (lastCam) km += Math.hypot(cam.position.x - lastCam[0], cam.position.z - lastCam[1]) / 1000;
       lastCam = [cam.position.x, cam.position.z];
+      if (frame % 12 === 0) { try { lodSample(); } catch (e) { /* de audit mag niets breken */ } }
       claim = readyNow(); claimFrames[0]++; if (claim[0]) claimFrames[1]++; if (claim[1] === 1) claimFrames[2]++;
     }
     GLC.up = GLC.upMs = GLC.link = GLC.linkMs = 0;
@@ -186,7 +210,7 @@ function makeProbe() {
   };
   requestAnimationFrame(tick);
   return {
-    arm() { armed = true; Object.assign(gls, { frames: 0, upFrames: 0, up: 0, upMs: 0, link: 0, linkMs: 0, worstUpMs: 0, hitch2: 0, progNew: 0 }); km = 0; lastCam = null; claimFrames.fill(0); GLC.up = GLC.upMs = GLC.link = GLC.linkMs = 0; lastProgs = sc.renderer.info.programs.length; Object.assign(ring, { n: 0, sum: 0, min: 1, b90: 0, b50: 0, minR: 1e9 }); t0 = performance.now(); frame = 0; ev.length = 0; cats.clear(); tiles.length = 0; walkMs = 0; walks = 0; },
+    arm() { armed = true; Object.assign(gls, { frames: 0, upFrames: 0, up: 0, upMs: 0, link: 0, linkMs: 0, worstUpMs: 0, hitch2: 0, progNew: 0 }); km = 0; lastCam = null; claimFrames.fill(0); lodAud.samples = lodAud.holes = lodAud.lateDetail = lodAud.swaps = lodAud.swapsToNone = 0; for (const b of lodAud.bands) b.n = b.ok = 0; GLC.up = GLC.upMs = GLC.link = GLC.linkMs = 0; lastProgs = sc.renderer.info.programs.length; Object.assign(ring, { n: 0, sum: 0, min: 1, b90: 0, b50: 0, minR: 1e9 }); t0 = performance.now(); frame = 0; ev.length = 0; cats.clear(); tiles.length = 0; walkMs = 0; walks = 0; },
     stop() {
       on = false;
       const dur = (performance.now() - t0) / 1000;
@@ -212,6 +236,7 @@ function makeProbe() {
       const tl = new Map(); for (const [t, k] of tiles) tl.set(k, { load: t, n: 0, first: null, last: null });
       for (const e of ev) { if (!e[9] || !e[13]) continue; let r = tl.get(e[13]); if (!r) { r = { load: null, n: 0, first: null, last: null }; tl.set(e[13], r); } r.n++; r.first = r.first == null ? e[1] : Math.min(r.first, e[1]); r.last = r.last == null ? e[1] : Math.max(r.last, e[1]); }
       out.tileTimeline = [...tl].filter(([, r]) => r.n).map(([k, r]) => ({ tile: k, load: r.load, n: r.n, first: r.first, last: r.last, lagMs: r.load != null && r.first != null ? r.first - r.load : null })).slice(0, 60);
+      out.lod = { samples: lodAud.samples, bands: lodAud.bands.map((b) => ({ max: b.max, n: b.n, okPct: b.n ? +(100 * b.ok / b.n).toFixed(1) : null })), holes: lodAud.holes, lateDetail: lodAud.lateDetail, swaps: lodAud.swaps, swapsToNone: lodAud.swapsToNone };
       try { out.proceduralPeople = PPL.proceduralStats ? PPL.proceduralStats() : null; } catch (e) { out.proceduralPeople = null; }
       try { out.readyCounts = SP.readyCounts ? SP.readyCounts(w) : null; } catch (e) { out.readyCounts = null; }
       // per seconde: in hoeveel seconden zag de speler minstens één gebeurtenis binnen 60 m

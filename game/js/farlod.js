@@ -827,5 +827,7 @@ export function createFarLOD(scene, map, opts) {
     shared.uLitFrac.value = litFrac;
   }
 
-  return { update, setNight, stats, root, addStreamTile, dropStreamTile, hideBuilding: hideFarBuilding };
+  // #1354: heeft de verre laag een gebouwde kopie van dit gebouw (de audit van de LOD-dekking, scripts/qa/popin.page.js)?
+  const covers = (b) => { const t = buildingTile.get(b); return !!(t && (t.meshes || t.oldMeshes)); };
+  return { update, setNight, stats, root, addStreamTile, dropStreamTile, hideBuilding: hideFarBuilding, covers };
 }

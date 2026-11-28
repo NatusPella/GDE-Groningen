@@ -3,6 +3,7 @@
 // wordt (plus texture-uploads, shaderlinks, wissels en de tijdlijn per tegel), en een reeks stills (1280x720) van dezelfde route gaat naar
 // <out>/shots-<tag>-<route>-<n>.png.
 //   node scripts/qa/popin.mjs --tag=voor|na [--out=<map>] [--only=foot,cdrive,a7,dorp,heli] [--dur=30000] [--shots=6] [--view=kort|normaal|ver]
+//                             [--flags=perfoff=texwarm+mensenwacht] (devflags.js, komma-gescheiden: de A/B-stand "voor" op dezelfde build)
 //                             [--quiet] (wacht op een stille machine) [--slot] (neemt een Electron-slot)
 // GDE_GAME_DIR=<gestagede game-map> (met backslashes), ELECTRON_EXE=<pad>; uitvoer: <out>/popin-<tag>.json, run-<tag>.log.
 // De uitvoermap staat binnen de worktree (Electron geeft EPERM buiten .claude/worktrees).
@@ -30,6 +31,7 @@ const env = { ...process.env, GDE_TEST_PROFILE: profile, GDE_NO_THROTTLE: '1', T
 if (process.env.GDE_GAME_DIR) env.GDE_GAME_DIR = path.resolve(process.env.GDE_GAME_DIR);
 const args = ['.', '--windowed', '--stil', '--in-process-gpu', '--force-device-scale-factor=1', '--window-size=1280x720',
   '--disable-renderer-backgrounding', '--disable-backgrounding-occluded-windows', '--disable-background-timer-throttling', '--disable-features=CalculateNativeWinOcclusion',
+  ...(arg('flags', '') ? [`--url-flags=${arg('flags', '')}`] : []),
   `--smoke-test=${path.join(OUT, 'shots.png')}`, `--perf-script=${script}`];
 let res = null;
 try {

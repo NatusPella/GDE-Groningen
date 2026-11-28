@@ -56,7 +56,7 @@ export function modeOf(p) {
   if (v.isTrain || /train|trein|tram/.test(k)) return 'train';
   if (v.isHeli || /heli/.test(k)) return 'heli';
   if (v.isPlane || /plane|vliegtuig|jet/.test(k)) return 'plane';
-  if (/bike|fiets|scooter|bromfiets|motor/.test(k)) return 'bike';
+  if (v.isBike || v.isScooter || /bike|fiets|scooter|bromfiets|motor/.test(k)) return 'bike';
   return 'car';
 }
 // De vooruitkijkafstand (m) en de straal van de nabije ring voor dit vervoermiddel en deze snelheid.
