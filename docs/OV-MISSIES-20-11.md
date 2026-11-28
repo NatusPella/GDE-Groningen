@@ -10,7 +10,7 @@
 | Bushaltes in de wereld | **Geen model.** De haltes bestonden alleen als data voor de bus-AI (halteren, het bord "volgende halte" op de bus). Geen paal, geen bord, geen abri, geen naam te zien. Er is ook geen OSM-haltepunt in de tegels (`stad_wegen.mjs` leest alleen treinperrons uit `public_transport=platform`). |
 | Bushaltes op de kaart | Alleen de live bussen (`busmap.js`); geen haltes. |
 | Busbijbaan `bus` (Stadsbus lijn 3) | Vaste lijst van zes haltes in de stad (`sidejob_bus.js STOPS`), start bij het bijbaanbord, de bus spawnt bij het Hoofdstation. Niet per halte. |
-| Busbijbaan `lijn` (Streekbus Hunzedal) | Start bij het bijbaanbord op het eerste halte van de eerste lijn, of door in een rijdende bus G te drukken (de dienst overnemen, `busboard3d.js`). Dus nooit "vanaf deze halte". |
+| Busbijbaan `lijn` (Noorderspoor streekbus, eerder Streekbus Hunzedal) | Start bij het bijbaanbord op het eerste halte van de eerste lijn, of door in een rijdende bus G te drukken (de dienst overnemen, `busboard3d.js`). Dus nooit "vanaf deze halte". |
 | Stations | Kaartautomaat per station (`stationtravel.js`, prompt E "Met de trein", menu: snel reizen, als passagier meegaan, en een hint). Stations staan op de kaart (laag `trein`). Perrons zijn echte vloeren (`perrons.js`). |
 | Treinmissie | Geen. Zelf rijden kon alleen door naar een stilstaande trein te lopen en E te drukken ("trein kapen": twee sterren, tenzij de trein geparkeerd was) en daarna G voor de dienst (`traindrive.js`, `machinist.js`). De machinistdienst zelf (regels, loon, medailles, conducteur, storingen) was er al. |
 
