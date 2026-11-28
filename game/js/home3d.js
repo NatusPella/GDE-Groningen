@@ -4,6 +4,7 @@ import { buildBuildingMesh } from './models3d_buildings.js';
 import { GeoBuilder } from './pixelart3d.js';
 import { LANDMARK_MATERIALS } from './landmarks3d.js';
 import { interiorProp, registeredProp } from './interiorprops3d.js';
+import { FLAT_WALL_H, FRONT_DOOR, BALCONY, wallBlocksView } from './flatplan.js';
 import { FLAT_DRESSING } from './akte1sets.js';
 import { adoptSetLight } from './setlights.js';
 
@@ -22,7 +23,7 @@ const M = {
   cement: lit(0xe8d9b8, 0.16), party: lit(0xb7b1a6), vent: lit(0x2a2622, 0.05), door: lit(0x5a5f64, 0.12), trim: lit(0x2f6fb0), line: new THREE.MeshBasicMaterial({ color: 0xe9e6dc }),
   hero: lit(0x8e2323, 0.1), lamp: new THREE.MeshBasicMaterial({ color: 0xfff1cf }), steel: lit(0x8a9096, 0.1),
   glass: new THREE.MeshLambertMaterial({ color: 0x9fc4d6, transparent: true, opacity: 0.28, depthWrite: false }),
-  frame: lit(0x2b2d30, 0.1), screen: new THREE.MeshBasicMaterial({ color: 0x3fc97a }),
+  frame: lit(0x2b2d30, 0.1), doorFrame: lit(0xf1efe9, 0.2), doorLeaf: lit(0xa23b2e, 0.2), brass: lit(0xd9a53a, 0.3), lobbyFrame: lit(0x2f7f78, 0.15), lobbyGlow: new THREE.MeshBasicMaterial({ color: 0xcfe3d8 }), lampOn: new THREE.MeshBasicMaterial({ color: 0xfff1cf }), screen: new THREE.MeshBasicMaterial({ color: 0x3fc97a }),
   laminate: lit(0xb88d5f, 0.22), tiles: lit(0xd9d6cf, 0.22), carpet: lit(0x6f86a3, 0.2), innerWall: lit(0xece6da, 0.25),
   sofa: lit(0x3f5d4a, 0.2), wood: lit(0x7a5436, 0.2), white: lit(0xf1efe9, 0.25), black: lit(0x1d1f22, 0.1),
   bed: lit(0xe4dccb, 0.25), duvet: lit(0x2f6fb0, 0.2), rug: lit(0xa8452f, 0.2), oil: lit(0xd9a53a, 0.35),
@@ -31,7 +32,8 @@ const M = {
 for (const m of Object.values(M)) m.userData.shared = true;
 const BOX = new THREE.BoxGeometry(1, 1, 1);
 BOX.userData.shared = true;
-const CUT_H = 1.05; // the flat's walls, cut away at hip height
+const CUT_H = 1.05; // the glass facade, lowered to hip height while the camera stands outside it
+const WALL_H = FLAT_WALL_H; // the flat's inner walls: a normal ceiling height (#1343)
 
 function box(group, mat, x, y, z, sx, sy, sz, rotY = 0) {
   const m = new THREE.Mesh(BOX, mat);
@@ -135,7 +137,8 @@ export function buildHomeExterior3D(home) {
   const L = home.lobby;
   const lx = Math.cos(L.angle), ly = Math.sin(L.angle);
   const ax = -ly, ay = lx;
-  box(g, M.frame, L.x + lx * 0.12, 1.35, L.y + ly * 0.12, 0.14, 2.7, 2.4, -L.angle);
+  box(g, M.lobbyFrame, L.x + lx * 0.12, 1.35, L.y + ly * 0.12, 0.2, 2.7, 2.6, -L.angle); // a bright teal frame, the door is easy to spot from the street (#1343)
+  box(g, M.lobbyGlow, L.x + lx * 0.3, 1.3, L.y + ly * 0.3, 0.02, 2.4, 2.0, -L.angle); // the lit hall behind the glass
   box(g, M.glass, L.x + lx * 0.2, 1.3, L.y + ly * 0.2, 0.04, 2.5, 2.1, -L.angle);
   box(g, M.roof, L.x + lx * 1.2, 3.05, L.y + ly * 1.2, 2.4, 0.16, 3.4, -L.angle);
   for (const s of [-1, 1]) box(g, M.steel, L.x + lx * 2.25 + ax * s * 1.55, 1.5, L.y + ly * 2.25 + ay * s * 1.55, 0.1, 3.0, 0.1);
@@ -143,6 +146,13 @@ export function buildHomeExterior3D(home) {
   front.position.set(L.x + lx * 0.16, 3.6, L.y + ly * 0.16);
   front.rotation.y = -L.angle + Math.PI / 2;
   g.add(front);
+  // the number plate and the bell panel beside the door, and a lamp over it
+  const plate = new THREE.Mesh(new THREE.PlaneGeometry(1.0, 0.25), new THREE.MeshBasicMaterial({ map: signTexture('11.03', 'Tammo & Tessa') }));
+  plate.position.set(L.x + lx * 0.2 + ax * 1.7, 1.45, L.y + ly * 0.2 + ay * 1.7);
+  plate.rotation.y = -L.angle + Math.PI / 2;
+  g.add(plate);
+  box(g, M.brass, L.x + lx * 0.18 + ax * 1.7, 1.0, L.y + ly * 0.18 + ay * 1.7, 0.06, 0.12, 0.12, -L.angle);
+  box(g, M.lampOn, L.x + lx * 0.45, 2.95, L.y + ly * 0.45, 0.3, 0.12, 0.5, -L.angle);
   for (const r of home.rack.rails) segBox(g, M.steel, r.x1, r.y1, r.x2, r.y2, 0.06, 0.62, 0.06);
   for (const r of home.rack.rails) {
     const n = Math.max(2, Math.round(Math.hypot(r.x2 - r.x1, r.y2 - r.y1) / 2));
@@ -383,7 +393,7 @@ export function buildLowerTower3D(tower, levels) {
 export function buildFlat3D(flat, skip = new Set()) {
   const g = new THREE.Group();
   const W = flat.w, D = flat.d, T = flat.tower;
-  const low = CUT_H;
+  const low = WALL_H;
   // the whole floor slab of the tower, a parapet round it and the other flats as closed blocks
   const slab = new THREE.Group();
   // one storey of plain wall under the floor hides the roof clutter of the tower below
@@ -395,9 +405,11 @@ export function buildFlat3D(flat, skip = new Set()) {
   // the neighbours' flats, cut off at the same height as our walls; a corridor
   // behind the hall leads to the lift
   const cor = 1.8;
-  for (const [x0, z0, x1, z1] of [[W + 0.3, 0.3, T.w - 0.3, T.d * 0.48], [W + 0.3, T.d * 0.48 + 0.3, T.w - 0.3, T.d - 0.3], [0.3, D + cor, W * 0.5, T.d - 0.3], [W * 0.5 + 0.3, D + cor, W + 0.3, T.d - 0.3]]) {
-    box(slab, M.party, (x0 + x1) / 2, low / 2, (z0 + z1) / 2, x1 - x0, low, z1 - z0);
-    box(slab, M.roof, (x0 + x1) / 2, low + 0.01, (z0 + z1) / 2, x1 - x0, 0.02, z1 - z0);
+  // (the two blocks behind the hall stay at hip height: the follow camera stands over them when you arrive from the lift)
+  for (const [x0, z0, x1, z1, hh] of [[W + 0.3, 0.3, T.w - 0.3, T.d * 0.48, WALL_H], [W + 0.3, T.d * 0.48 + 0.3, T.w - 0.3, T.d - 0.3, WALL_H], [0.3, D + cor, W * 0.5, T.d - 0.3, CUT_H], [W * 0.5 + 0.3, D + cor, W + 0.3, T.d - 0.3, CUT_H]]) {
+    // closed blocks in the brick of the tower with a light cap: they read as the neighbours' flats, not as a big dark terrace (#1343)
+    box(slab, M.wall, (x0 + x1) / 2, hh / 2, (z0 + z1) / 2, x1 - x0, hh, z1 - z0);
+    box(slab, M.cement, (x0 + x1) / 2, hh + 0.01, (z0 + z1) / 2, x1 - x0, 0.02, z1 - z0);
   }
   box(slab, M.tiles, W / 2, 0.01, D + cor / 2, W, 0.02, cor - 0.1);
   g.add(slab);
@@ -405,27 +417,45 @@ export function buildFlat3D(flat, skip = new Set()) {
   for (const r of flat.rooms) box(g, M[r.floor], (r.x0 + r.x1) / 2, 0.01, (r.z0 + r.z1) / 2, r.x1 - r.x0, 0.02, r.z1 - r.z0);
   // facade: glass from floor to ceiling in dark frames (lowered by setFlatFacade)
   const facade = new THREE.Group();
-  box(facade, M.glass, W / 2, 1.4, 0.05, W, 2.8, 0.04);
-  for (let x = 0; x <= W + 0.01; x += W / 5) box(facade, M.frame, x, 1.4, 0.05, 0.08, 2.8, 0.1);
-  box(facade, M.frame, W / 2, 2.8, 0.05, W, 0.1, 0.12);
+  box(facade, M.glass, W / 2, WALL_H / 2, 0.05, W, WALL_H, 0.04);
+  for (let x = 0; x <= W + 0.01; x += W / 5) box(facade, M.frame, x, WALL_H / 2, 0.05, 0.08, WALL_H, 0.1);
+  box(facade, M.frame, W / 2, WALL_H, 0.05, W, 0.1, 0.12);
   box(facade, M.frame, W / 2, 0.05, 0.05, W, 0.1, 0.12);
   g.add(facade);
   g.userData.facade = facade;
+  g.add(buildBalcony());
   // cutaway walls
+  g.userData.wallList = [];
   for (const [x1, z1, x2, z2] of flat.walls) {
     const len = Math.hypot(x2 - x1, z2 - z1);
-    box(g, M.innerWall, (x1 + x2) / 2, low / 2, (z1 + z2) / 2, len, low, 0.14, -Math.atan2(z2 - z1, x2 - x1));
+    const wm = box(g, M.innerWall, (x1 + x2) / 2, low / 2, (z1 + z2) / 2, len, low, 0.14, -Math.atan2(z2 - z1, x2 - x1));
+    wm.userData.cur = 1;
+    g.userData.wallList.push({ m: wm, w: [x1, z1, x2, z2] });
   }
   // front door in the hall, the lift right behind it in the corridor, a doormat
-  const fd = flat.spots.door;
-  box(g, M.steel, fd.x, low / 2 + 0.02, fd.z + 0.02, 1.2, low + 0.04, 0.18);
-  box(g, M.screen, fd.x + 0.8, 0.9, fd.z - 0.08, 0.14, 0.2, 0.02);
-  box(g, M.steel, fd.x, low / 2, D + cor - 0.35, 1.6, low, 0.5);
+  // a recognisable front door (#1343): a white frame, a red leaf (the Quaternius door of the interior register), the house number and a
+  // bell beside it, a lamp over it, and the doormat. The lift stays behind it in the corridor.
+  const fd = flat.spots.door, FD = FRONT_DOOR;
+  const dz = fd.z + 0.02;
+  box(g, M.doorFrame, fd.x - FD.w / 2 - 0.05, FD.h / 2, dz, 0.1, FD.h, 0.2);
+  box(g, M.doorFrame, fd.x + FD.w / 2 + 0.05, FD.h / 2, dz, 0.1, FD.h, 0.2);
+  box(g, M.doorFrame, fd.x, FD.h + 0.05, dz, FD.w + 0.2, 0.1, 0.2);
+  g.add(interiorProp('deur', { x: fd.x, y: 0, z: dz - 0.02, rot: Math.PI / 2, fit: { h: FD.h - 0.05, d: FD.w - 0.06 }, kleuren: { White: 0xa23b2e } }));
+  const plate = new THREE.Mesh(new THREE.PlaneGeometry(0.4, 0.1), new THREE.MeshBasicMaterial({ map: signTexture('11.03', '') }));
+  plate.position.set(fd.x + FD.w / 2 + 0.3, 1.55, dz - 0.115);
+  plate.rotation.y = Math.PI;
+  g.add(plate);
+  box(g, M.brass, fd.x + FD.w / 2 + 0.3, 1.25, dz - 0.1, 0.07, 0.07, 0.04);
+  box(g, M.lampOn, fd.x, FD.h + 0.3, dz - 0.18, 0.3, 0.1, 0.1);
+  const doorLamp = adoptSetLight(new THREE.PointLight(0xffdcb0, 3, 4.5, 1.5));
+  doorLamp.position.set(fd.x, FD.h + 0.2, dz - 0.5);
+  g.add(doorLamp);
+  box(g, M.steel, fd.x, CUT_H / 2, D + cor - 0.35, 1.6, CUT_H, 0.5);
   box(g, M.rug, fd.x, 0.025, fd.z - 0.6, 1.1, 0.01, 0.7);
   // the door to the roof stairs on the hall's side wall, with its sign
   const rd = flat.spots.roof;
   if (rd) {
-    box(g, M.frame, rd.x, low / 2 + 0.02, rd.z, 0.14, low + 0.04, 1.05);
+    box(g, M.frame, rd.x, 1.05, rd.z, 0.14, 2.1, 1.05);
     const sign = new THREE.Mesh(new THREE.PlaneGeometry(0.9, 0.225), new THREE.MeshBasicMaterial({ map: signTexture('DAK', 'helidek') }));
     sign.position.set(rd.x + 0.09, low + 0.3, rd.z);
     sign.rotation.y = Math.PI / 2;
@@ -449,8 +479,44 @@ export function buildFlat3D(flat, skip = new Set()) {
   return g;
 }
 
+// The balcony outside the glass (z < 0): a concrete slab, a balustrade with glass panels, a sliding door in the facade with its frame
+// and handle, two chairs, a small table and a plant from the interior register (#1343).
+function buildBalcony() {
+  const B = BALCONY, g = new THREE.Group(), w = B.x1 - B.x0, cx = (B.x0 + B.x1) / 2, zc = -B.depth / 2;
+  g.name = 'balkon';
+  box(g, M.concrete, cx, -0.06, zc, w, 0.12, B.depth);
+  box(g, M.cement, cx, -0.14, zc, w + 0.1, 0.08, B.depth + 0.1);
+  box(g, M.glass, cx, B.rail / 2, -B.depth, w, B.rail, 0.03);
+  for (const s of [-1, 1]) box(g, M.glass, cx + s * w / 2, B.rail / 2, zc, 0.03, B.rail, B.depth);
+  box(g, M.steel, cx, B.rail, -B.depth, w + 0.06, 0.06, 0.06);
+  for (const s of [-1, 1]) box(g, M.steel, cx + s * w / 2, B.rail, zc, 0.06, 0.06, B.depth);
+  for (const x of [B.x0, cx, B.x1]) box(g, M.steel, x, B.rail / 2, -B.depth, 0.06, B.rail, 0.06);
+  // the sliding door: two frame posts, a header, a handle
+  const dw = B.door.x1 - B.door.x0, dx = (B.door.x0 + B.door.x1) / 2;
+  for (const x of [B.door.x0, B.door.x1]) box(g, M.doorFrame, x, B.door.h / 2, 0.05, 0.08, B.door.h, 0.14);
+  box(g, M.doorFrame, dx, B.door.h, 0.05, dw + 0.08, 0.08, 0.14);
+  box(g, M.doorFrame, dx, 0.04, 0.05, dw, 0.08, 0.14);
+  box(g, M.brass, dx + 0.1, 1.05, -0.02, 0.04, 0.3, 0.04);
+  g.add(interiorProp('salontafel', { x: B.x1 - 1.3, y: 0, z: -0.9, fit: { b: 0.6, h: 0.5, d: 0.6 } }));
+  g.add(interiorProp('keukenstoel', { x: B.x1 - 1.3, y: 0, z: -0.35, rot: Math.PI, scale: 0.94 }));
+  g.add(interiorProp('keukenstoel', { x: B.x1 - 0.55, y: 0, z: -0.9, rot: Math.PI / 2, scale: 0.94 }));
+  g.add(interiorProp('kamerplant', { x: B.x0 + 0.35, y: 0, z: -B.depth + 0.35 }));
+  return g;
+}
+
+// Walls between the camera and the player drop to hip height (smoothly), all others stand at ceiling height (#1343).
+export function setFlatWalls(root, cam, player, dt) {
+  for (const e of root.userData.wallList || []) {
+    const want = cam && player && wallBlocksView(e.w, cam, player) ? CUT_H / WALL_H : 1;
+    const c = e.m.userData.cur;
+    e.m.userData.cur = c + Math.max(-dt * 6, Math.min(dt * 6, want - c));
+    e.m.scale.y = WALL_H * e.m.userData.cur;
+    e.m.position.y = e.m.scale.y / 2;
+  }
+}
+
 // k 0..1: the glass facade from full height down to the cutaway walls.
 export function setFlatFacade(root, k) {
   const f = root.userData.facade;
-  if (f) f.scale.y = 1 - (1 - CUT_H / 2.8) * k;
+  if (f) f.scale.y = 1 - (1 - CUT_H / WALL_H) * k;
 }

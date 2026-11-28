@@ -50,7 +50,7 @@ import { refreshDayNight } from './daynight.js';
 import { recordStat, unlockAchievement } from './achievements.js';
 import { clearDrunk } from './drunk.js';
 import { updateFlatGeluid } from './flatgeluid.js';
-import { buildHomeExterior3D, buildGarageShell, buildHomeDressing, setGarageCutaway, setGarageDoor, disposeHomeExterior, buildLowerTower3D, buildFlat3D, setFlatFacade, buildSafehouseMarker3D } from './home3d.js';
+import { buildHomeExterior3D, buildGarageShell, buildHomeDressing, setGarageCutaway, setGarageDoor, disposeHomeExterior, buildLowerTower3D, buildFlat3D, setFlatFacade, setFlatWalls, buildSafehouseMarker3D } from './home3d.js';
 import { gastPandVrij } from './safehuisplek.js';
 import { inPassage } from './passages.js';
 import { provinceLandAt } from './regions.js';
@@ -64,7 +64,8 @@ import { makeFlatPlan } from './flatplan.js';
 import { chooseSpawn, chooseFlatSpawn, binnenOpslag, readIndoorSave, makeIndoorWait, tickBinnenWacht, binnenPending } from './spawnbinnen.js';
 import { homeOf, DEFAULT_HOME } from './homebase.js';
 import { getSettings } from './settings.js';
-import { deliverFurniture, furnitureSkip, attachFurniture3D, leaveFurniture, furnitureSolids, furnitureStockSolids, furnitureBedUses, furnitureUses, furnitureFocus, furniturePrompt, useFurniture, updateFurniture, updateFurnitureInside, companionSeat, furnitureSlept, fridgeCooldown, fridgePerk } from './furniture.js';
+import { eierbalPlan } from './eierbal_rules.js';
+import { deliverFurniture, furnitureSkip, attachFurniture3D, leaveFurniture, furnitureSolids, furnitureStockSolids, furnitureBedUses, furnitureUses, furnitureFocus, furniturePrompt, useFurniture, updateFurniture, updateFurnitureInside, companionSeat, furnitureSlept, fridgeCooldown, fridgePerk, fridgeArmorPlan } from './furniture.js';
 import { playerBusy } from './busy.js';
 import { groepAkkoord } from './coopgroep.js';
 import { zetDeelHaken } from './coopbezit.js';
@@ -92,7 +93,7 @@ const FLOOR_TOP = FLOOR_Y + 0.02;
 const USE_R = 1.5;
 const SLAB_PAD = 2;
 const INTERIOR_CAM = 0.85;
-const CAM_ABOVE_FLOOR = 2.4;
+const CAM_ABOVE_FLOOR = 3.2; // above the inner walls (FLAT_WALL_H, 2,5 m) so they never block the view (#1343)
 const GLASS_CLEAR = 0.35;
 const FRIDGE_COOLDOWN = 45;
 const MORNING = 7.5;
@@ -159,14 +160,17 @@ function buildLayout() {
   const H = P[4], I = P[5];
   const HI = unit(sub(I, H));
   const hi = len(sub(I, H));
-  const d0 = [H[0] + HI[0] * 0.8, H[1] + HI[1] * 0.8], d1 = [H[0] + HI[0] * (hi - 0.8), H[1] + HI[1] * (hi - 0.8)];
+  // The gap runs on past the corner I along the next wall (I -> P6): the Escapade's bay stands in line with the door's east end, and
+  // a gap that stopped at I left the car straddling the jamb, stuck 2 m short of the door (#1335, scripts/home_garage_test.mjs).
+  const I6 = unit(sub(P[6], I)), i6 = len(sub(P[6], I));
+  const d0 = [H[0] + HI[0] * 0.8, H[1] + HI[1] * 0.8], d1 = [I[0] + I6[0] * (i6 - 0.5), I[1] + I6[1] * (i6 - 0.5)];
   const walls = [];
   const edge = (a, b) => walls.push([a[0], a[1], b[0], b[1]]);
   edge(P[0], P[1]);
   edge(P[1], P[2]);
   edge(P[2], P[3]); edge(P[3], P[4]);
-  edge(H, d0); edge(d1, I);
-  edge(P[5], P[6]); edge(P[6], P[7]); edge(P[7], P[0]);
+  edge(H, d0); edge(d1, P[6]);
+  edge(P[6], P[7]); edge(P[7], P[0]);
   const door = { x1: d0[0], y1: d0[1], x2: d1[0], y2: d1[1], cx: (d0[0] + d1[0]) / 2, cy: (d0[1] + d1[1]) / 2, nx: V[0], ny: V[1] };
   const [px, py] = pw(31.75, 15.5);
   const panel = { x: px, y: py, angle: Math.atan2(-U[1], -U[0]) };
@@ -1117,11 +1121,13 @@ function sleepNu(w, wake, wakeMsg) {
 }
 
 function eatEierbal(w) {
-  if (w.time - fridgeAt < fridgeCooldown(FRIDGE_COOLDOWN)) { w.addMessage('Nog vol van de vorige eierbal. Even laten zakken', 3); return; }
+  const perk = fridgeArmorPlan();
+  const plan = eierbalPlan({ health: w.health, armor: w.armor || 0, now: w.time, lastAt: fridgeAt, cooldown: fridgeCooldown(FRIDGE_COOLDOWN), perkArmor: perk.add, armorCap: perk.cap });
+  if (!plan.eat) { w.addMessage(plan.msg, 3); return; }
   fridgeAt = w.time;
   w.health = 100;
-  if (fridgePerk(w)) w.addMessage('Eierbal door de Vetpot: gezondheid vol en een knapperig pantser erbij', 3.5, { kind: 'tip' });
-  else w.addMessage('Eierbal uit de vriezer, drie minuten in de frituur: helemaal opgeladen', 3.5, { kind: 'tip' });
+  fridgePerk(w);
+  w.addMessage(plan.msg, 3.5, { kind: 'tip' });
 }
 
 // --- "Naar huis" ---------------------------------------------------------------
@@ -1505,6 +1511,7 @@ function keepInFlat(dt, w) {
   const want = camLocal && camLocal.lz < 0.4 ? 1 : 0;
   inside.facade += Math.max(-dt * 4, Math.min(dt * 4, want - inside.facade));
   setFlatFacade(inside.flatMesh, inside.facade);
+  setFlatWalls(inside.flatMesh, camLocal, toFlat(p.x, p.y), dt);
 }
 
 // scene3d's follow camera (world.camAdjust, three.js axes: y is up). In the
