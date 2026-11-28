@@ -124,3 +124,12 @@ verhaalplekken zijn verhaalfeiten in `docs/PROVINCIE-VERHAAL.md` §6.2.
 Een tegel geldt pas als klaar als zes niveaus in een keten kloppen: data, colliders, geometry, gpu (shaders gelinkt en texturen geüpload), lod en
 population (`game/js/tileready.js`). In de nabije ring en in elk cutsceneshot gelden alle zes; verder weg minder. Laadscherm, opstart-warm,
 benchmarkpoort en cutscenepoort wachten op die definitie, met een maximumtijd en een nette melding. Uitleg: `docs/wereld/TEGEL-KLAAR-28-11.md`.
+
+## Verhaalgebieden (#1361)
+
+Vier verhaalgebieden (Waddenkust en Lauwersmeer, Hogeland en Veenkoloniën, stad Groningen,
+Westerkwartier en Gorecht) staan als data in `game/js/storyregions.js`: sfeer, plekken met een
+echte kaartpositie (binnen de provincie), bijfiguren, loopbanen met hun thuisgebied en een
+verwijzing naar de muzieklaag. `regionAt(x, y)` en `regionsOfStep(stap)` zijn zuivere regels; het
+verhaal wijst er een richting mee, niets sluit het gebied af. Bron: `docs/verhaal/bijbel-28-11/03-wereld-en-bouwplan.md`
+1.2; test `scripts/storyregions_test.mjs`.
