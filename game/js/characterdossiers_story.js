@@ -87,7 +87,7 @@ export const STORY = [
     voice: 'Iapetus', voiceTag: "oude Groningse duivenmelker, zacht en wijs",
     look: "grijze baard, platte pet, duivenjas", outfitRole: NA, outfitByAct: fixed("vast: eigen NPC-look (bert)"),
     arc: { 1: "ontdekt dat de duiven naar Tammo luisteren (M04)", 2: "n.v.t.", 3: "n.v.t.", 4: "n.v.t.", 5: "duifvlag op d'Olle Grieze (M24); verkoopt het horloge", 6: "bij de snackwagen" },
-    firstStep: 'M03', lastStep: 'M30', introducedBy: "Tammo: \"de beste vriend van mijn opa\"", storyRole: "Tammo's eerste mentor", needsFromDuo: "n.v.t.",
+    firstStep: 'M05', lastStep: 'M30', introducedBy: "aangekondigd door Veldkamp; in beeld op de Grote Markt in H3 (M05); Tammo: \"de beste vriend van mijn opa\"", storyRole: "Tammo's eerste mentor", needsFromDuo: "n.v.t.",
     mapLink: "Stationsplein (hokken op het dak)", minigames: ["duivenmodus (de vlucht van M04)"],
     canonNotes: "Bron: vriend van Tammo's opa, ontdekt de duivenband. Achternaam, leeftijd en woning zijn voorstel.", sensitive: "n.v.t.",
     canon: ['homePlace', 'work', 'hobbies', 'traits', 'tagline', 'dialect', 'phrases', 'voice', 'voiceTag', 'arc', 'firstStep', 'lastStep', 'introducedBy', 'storyRole', 'mapLink', 'minigames', 'canonNotes'],

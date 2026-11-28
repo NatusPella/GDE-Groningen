@@ -12,6 +12,8 @@ const B = await import('../game/js/characterdossiers_base.js');
 const C = await import('../game/js/characters.js');
 const read = (p) => fs.readFileSync(new URL(`../${p}`, import.meta.url), 'utf8');
 const script = JSON.parse(read('game/storydata/script.json'));
+// stappen uit de nieuwe stappenlijst van de bijbel die in het script nog niet bestaan (scripts/story_steps_nieuw.json)
+const planned = new Set(JSON.parse(read('scripts/story_steps_nieuw.json')).planned);
 
 let n = 0;
 const t = (naam, fn) => { n++; try { fn(); } catch (e) { console.log('FAIL', naam, '\n  ', String(e.message || e).split('\n').slice(0, 6).join('\n  ')); process.exitCode = 1; } };
@@ -125,11 +127,11 @@ t('de scene-gegevens kloppen met het script: wie komt wanneer', () => {
   const keys = new Set(D.DOSSIERS.map((d) => d.speakerKey));
   for (const k of Object.keys(script.speakers)) assert.ok(keys.has(k), `scriptspreker ${k} heeft geen dossier`);
   for (const d of D.DOSSIERS) {
-    if (d.firstStep !== B.NA) assert.ok(stepAct.has(d.firstStep) || d.firstStep === 'E', `${d.id}: eerste stap ${d.firstStep} bestaat niet`);
-    if (d.lastStep !== B.NA) assert.ok(stepAct.has(d.lastStep) || d.lastStep === 'E', `${d.id}: laatste stap ${d.lastStep} bestaat niet`);
-    if (d.firstStep !== B.NA && d.lastStep !== B.NA) assert.ok(stepOrder.indexOf(d.firstStep) <= stepOrder.indexOf(d.lastStep), `${d.id}: eerste stap na de laatste`);
+    if (d.firstStep !== B.NA) assert.ok(stepAct.has(d.firstStep) || d.firstStep === 'E' || planned.has(d.firstStep), `${d.id}: eerste stap ${d.firstStep} bestaat niet`);
+    if (d.lastStep !== B.NA) assert.ok(stepAct.has(d.lastStep) || d.lastStep === 'E' || planned.has(d.lastStep), `${d.id}: laatste stap ${d.lastStep} bestaat niet`);
+    if (d.firstStep !== B.NA && d.lastStep !== B.NA && !planned.has(d.firstStep) && !planned.has(d.lastStep)) assert.ok(stepOrder.indexOf(d.firstStep) <= stepOrder.indexOf(d.lastStep), `${d.id}: eerste stap na de laatste`);
     const s = speaking.get(d.speakerKey);
-    if (!s || d.firstStep === B.NA) continue;
+    if (!s || d.firstStep === B.NA || planned.has(d.firstStep)) continue;
     // de akte van de eerste (genoemde of geziene) stap mag eerder zijn dan de eerste spreekbeurt, nooit later
     assert.ok(actOf(d.firstStep) <= actOf(stepOrder[s.first]), `${d.id}: eerste stap ${d.firstStep} (akte ${actOf(d.firstStep)}) na de eerste spreekbeurt (${stepOrder[s.first]})`);
     assert.ok(actOf(d.lastStep) >= actOf(stepOrder[s.last]), `${d.id}: laatste stap ${d.lastStep} voor de laatste spreekbeurt (${stepOrder[s.last]})`);
@@ -202,6 +204,59 @@ t('Jelle en zijn oma: geen moeder-variant in de dossiers', () => {
   assert.ok(!/zijn moeder|haar zoon|zoon van Mem/i.test(text.replace(/Oudere docs[^|]*|Besluit eigenaar[^|]*|bestaande teksten[^|]*/g, '')), 'een moeder-variant staat in het dossier');
 });
 
+t('twee oma\'s (#1395): Oma Trijntje is Tessa\'s oma, Beppe is Tammo\'s oma, en ze zijn niet dezelfde', () => {
+  const rel = (a, b) => D.relationsFor(a).find((r) => r.to === b);
+  assert.equal(rel('anita', 'trijntje').type, 'family');
+  assert.equal(rel('anita', 'trijntje').is, 'kleindochter');
+  assert.equal(rel('anita', 'trijntje').theyAre, 'oma');
+  assert.equal(rel('tammo', 'beppe').type, 'family');
+  assert.match(rel('tammo', 'beppe').theyAre, /oma/);
+  assert.equal(rel('tammo', 'trijntje').type, 'neighbours', 'Tammo kent Oma Trijntje als buurvrouw, niet als oma');
+  assert.ok(!rel('anita', 'beppe') || rel('anita', 'beppe').type !== 'family', 'Beppe is niet Tessa\'s oma');
+  const pa = rel('tessa_pa', 'trijntje');
+  assert.ok(pa && pa.type === 'family' && pa.is === 'zoon' && pa.theyAre === 'moeder', 'Pa Mulder is Oma Trijntjes zoon');
+  assert.ok(!rel('tammo_pa', 'trijntje'), 'Tammo\'s vader is niet haar zoon');
+  assert.ok(!rel('trijntje', 'opa') || rel('trijntje', 'opa').type !== 'family', 'Opa is haar buurman en vriend, niet haar man');
+  const tr = D.dossierOf('trijntje');
+  assert.match(tr.name, /Mulder-Boelens/);
+  assert.ok(!/Wierenga/.test(textOf(tr)), 'geen Wierenga bij Oma Trijntje');
+  assert.equal(tr.firstStep, 'N8', 'Oma Trijntje is eerst in beeld in N8 (H3)');
+  assert.notEqual(D.dossierOf('beppe').id, tr.id);
+});
+
+// ---- dubbelingen in het namenregister (bijbel 01 §2.4, #1398) ----
+// voornaam en achternaam van een persoon, zonder titel (Oma, Oom, Meester, Kapitein, ...) en zonder bijschrift
+const TITLES = /^(Oma|Opa|Oom|Tante|Boer|Meester|Kapitein|Dokter|Chauffeur|Dispatcher|Stationschef|Hoofdagent|Agent|Wijkagent|Mevrouw|Meneer|Omroeper|Pa|Mam|Ome|Schipper|Voorzitter|Bakker|Trainer|Notarisklerk|Verslaggever)[ ]+/i;
+const personName = (d) => { let n = d.name.replace(/[(].*[)]/, '').trim(); while (TITLES.test(n)) n = n.replace(TITLES, ''); const p = n.split(/[ ]+/); return { first: p[0], last: p.slice(1).join(' ') }; };
+const individuals = () => D.DOSSIERS.filter((d) => d.tier !== 'group' && /^[A-Z]/.test(d.name) && !/^Koe /.test(d.name));
+// bewust gedeelde voornamen: alleen met reden (de scripts noemen altijd de achternaam erbij)
+const SHARED_FIRST = {
+  Lammert: ['lammert', 'schipper_lammert'], // havenmeester Visser (zakelijk) en binnenvaartmentor Veenstra (vertellend): altijd met achternaam
+  Geesje: ['geesje', 'boerin_geesje'], // kosteres Tuinstra (Warffum) en boerin De Vries: aparte dorpen en scènes
+  Roelf: ['rotor', 'roelf', 'kroegbaas_roelf'], // drie cameo's in drie dorpen van het Ommeland; geen verhaalstap
+};
+t('geen twee personen met dezelfde voornaam, behalve de bewust gedeelde (met reden)', () => {
+  const byFirst = new Map();
+  for (const d of individuals()) { const f = personName(d).first; byFirst.set(f, [...(byFirst.get(f) || []), d.id]); }
+  for (const [f, ids] of byFirst) if (ids.length > 1) assert.deepEqual([...ids].sort(), [...(SHARED_FIRST[f] || [])].sort(), `voornaam ${f} komt dubbel voor (${ids.join(', ')}): geef een van hen een andere voornaam, of leg in SHARED_FIRST uit waarom het kan`);
+  for (const f of Object.keys(SHARED_FIRST)) assert.ok(byFirst.has(f) && byFirst.get(f).length > 1, `SHARED_FIRST ${f} is niet meer nodig`);
+});
+t('dezelfde achternaam alleen binnen één familie (een keten van familierelaties)', () => {
+  const kin = new Map(); // dossier-id naar de familiegroep (samenhangende familierelaties)
+  const find = (x) => { while (kin.get(x) !== x) { kin.set(x, kin.get(kin.get(x))); x = kin.get(x); } return x; };
+  for (const d of D.DOSSIERS) kin.set(d.id, d.id);
+  for (const e of D.RELATIONS.filter((x) => x.type === 'family')) kin.set(find(e.a), find(e.b));
+  const byLast = new Map();
+  for (const d of individuals()) { const { last } = personName(d); if (last) byLast.set(last, [...(byLast.get(last) || []), d.id]); }
+  for (const [last, ids] of byLast) if (ids.length > 1) assert.equal(new Set(ids.map(find)).size, 1, `achternaam ${last} bij personen die geen familie zijn (${ids.join(', ')}): kies een andere achternaam of leg de familierelatie vast`);
+});
+t('de vervallen namen uit het register staan nergens meer als personage', () => {
+  const all = D.DOSSIERS.map((d) => d.name + ' ' + d.nick).join(' | ');
+  for (const gone of ['Marit Hoogland', 'Tante Gesina', 'Harm Veldkamp', 'Schipper Okke', 'Schipper Geert', 'Albert Bos', 'Wubbo Hoekstra', 'Pieter Luiken']) assert.ok(!all.includes(gone), `${gone} is vervallen (namenregister)`);
+  assert.ok(!D.dossierOf('marit'), 'Marit is vervallen: Femke is de keeper');
+  assert.match(D.dossierOf('femke').work, /keeper/, 'Femke is de keeper en vriendin van Tessa');
+});
+
 t('de kaart in het spel: spoilervrij, per veld bekend-vanaf', () => {
   const mem = 'mem';
   assert.deepEqual(D.cardFacts(mem, { met: false, done: new Set() }), [], 'wie je niet ontmoette toont niets');
@@ -209,7 +264,8 @@ t('de kaart in het spel: spoilervrij, per veld bekend-vanaf', () => {
   assert.ok(early.includes('Leeftijd') && !early.includes('Woont'), 'Mem: leeftijd direct, woonplaats pas na M20');
   assert.ok(D.cardFacts(mem, { met: true, done: new Set(['M20']) }).some((f) => f.label === 'Woont'), 'na M20 komt haar woonplaats erbij');
   const tr = D.cardFacts('trijntje', { met: true, done: new Set() });
-  assert.ok(tr.some((f) => f.label === 'Voor Tammo' && f.text === 'oma'), 'Oma Trijntje is Tammo\'s oma');
+  assert.ok(tr.some((f) => f.label === 'Voor Tessa' && f.text === 'oma'), 'Oma Trijntje is Tessa\'s oma');
+  assert.ok(tr.some((f) => f.label === 'Voor Tammo' && /Oma van de straat/.test(f.text)), 'voor Tammo is ze de buurvrouw, Oma van de straat');
   assert.ok(!D.cardFacts('tammo', { met: true, done: new Set() }).some((f) => f.label === 'Voor Tammo'), 'geen "Voor Tammo" op Tammo\'s eigen kaart');
 });
 

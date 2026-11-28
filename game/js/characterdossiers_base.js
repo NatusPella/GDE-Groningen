@@ -1,5 +1,5 @@
 // Character dossiers (casting cards), the base: schema, helpers and the pure rules.
-// The data lives in characterdossiers_leads.js, _story.js and _minor.js, the
+// The data lives in characterdossiers_leads.js, _story.js, _minor.js and _bible.js, the
 // relations in characterdossiers_relations.js; characterdossiers.js joins them.
 // Pure data and pure functions (no DOM, no three.js), so Node tests import it directly.
 //
@@ -31,6 +31,7 @@
 //   firstStep, lastStep, introducedBy, storyRole, needsFromDuo   when and how on screen
 //   mapLink, minigames   place on the map, where they turn up outside the story
 //   canonNotes, sensitive
+//   aliases          optional (not a card field): other ways the game text names them (scripts/story_names_test.mjs)
 //   reveal           { field: 'met' | stepId }: when the in-game card may show a field (default 'met')
 //   canon            field names that are canon (the rest is proposal)
 export const NA = 'n.v.t.';

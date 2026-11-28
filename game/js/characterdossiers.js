@@ -8,9 +8,10 @@ import { LEADS } from './characterdossiers_leads.js';
 import { STORY } from './characterdossiers_story.js';
 import { MINOR, FAMILY, CANDIDATES } from './characterdossiers_minor.js';
 import { RELATION_LIST } from './characterdossiers_relations.js';
+import { BIBLE } from './characterdossiers_bible.js';
 
 export { NA, ACTS, birthYears, ageIn, fillStats };
-export const DOSSIERS = [...LEADS, ...STORY, ...MINOR, ...FAMILY, ...CANDIDATES];
+export const DOSSIERS = [...LEADS, ...STORY, ...MINOR, ...FAMILY, ...CANDIDATES, ...BIBLE];
 export const DOSSIER_BY_ID = new Map(DOSSIERS.map((d) => [d.id, d]));
 export const RELATIONS = RELATION_LIST;
 
