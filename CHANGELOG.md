@@ -9,6 +9,7 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ## [Unreleased]
 
+- Het startbeeld bij de voordeur is netter: er staat geen steunpaal meer midden voor het Privégarage-bord (het afdak hangt aan de gevel), en het afdak, het garagedak en de daken van de buurflats zijn lichter in plaats van bijna zwart. Samen spelen: geen verschil, het is de eigen wereld van de flat voor elke speler.
 - De rode schermrand na een klap kan niet meer blijven hangen als de klok even terugspringt (de rand is nu altijd binnen 0,6 seconde weg). Samen spelen: geen verschil, het is een lokale schermlaag per speler.
 - De game staat nu op de hoofdpagina van de webversie (GitHub Pages); de marketingpagina is weggehaald. De oude link /play/ stuurt door naar de hoofdpagina.
 

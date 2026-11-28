@@ -43,7 +43,7 @@ export function tickLowHealth(dt, world) {
     world.lastImpact = { strength: Math.min(0.5, flashFor(lastHealth, world.health)), time: world.time, x: hoofdspeler(world) ? hoofdspeler(world).x : 0, y: hoofdspeler(world) ? hoofdspeler(world).y : 0 };
   }
   lastHealth = world.health;
-  flash = Math.max(0, flash - dt * 2.2);
+  flash = Math.min(1, Math.max(0, flash - dt * 2.2)); // een negatieve dt (klokwissel, opnametool) liet de rode rand hangen (AAA-30, 28-11)
   k += (target - k) * Math.min(1, dt * (target > k ? 3 : 2.5));
   if (k < 0.01 && !target && flash <= 0.01) {
     k = 0;

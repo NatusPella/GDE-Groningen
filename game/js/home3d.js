@@ -18,7 +18,7 @@ const lit = (hex, glow = 0.18) => {
   return m;
 };
 const M = {
-  concrete: lit(0x8d8f8c), floor: lit(0x5d6062, 0.12), wall: lit(0xd39b55, 0.14), roof: lit(0x3f4245),
+  concrete: lit(0x8d8f8c), floor: lit(0x5d6062, 0.12), wall: lit(0xd39b55, 0.14), roof: lit(0x80868c), // AAA-30: het afdak, het garagedak en de dakplaat waren bijna zwart (RGB 5-11)
   cement: lit(0xe8d9b8, 0.16), party: lit(0xb7b1a6), vent: lit(0x2a2622, 0.05), door: lit(0x5a5f64, 0.12), trim: lit(0x2f6fb0), line: new THREE.MeshBasicMaterial({ color: 0xe9e6dc }),
   hero: lit(0x8e2323, 0.1), lamp: new THREE.MeshBasicMaterial({ color: 0xfff1cf }), steel: lit(0x8a9096, 0.1),
   glass: new THREE.MeshLambertMaterial({ color: 0x9fc4d6, transparent: true, opacity: 0.28, depthWrite: false }),
@@ -138,7 +138,8 @@ export function buildHomeExterior3D(home) {
   box(g, M.frame, L.x + lx * 0.12, 1.35, L.y + ly * 0.12, 0.14, 2.7, 2.4, -L.angle);
   box(g, M.glass, L.x + lx * 0.2, 1.3, L.y + ly * 0.2, 0.04, 2.5, 2.1, -L.angle);
   box(g, M.roof, L.x + lx * 1.2, 3.05, L.y + ly * 1.2, 2.4, 0.16, 3.4, -L.angle);
-  for (const s of [-1, 1]) box(g, M.steel, L.x + lx * 2.25 + ax * s * 1.55, 1.5, L.y + ly * 2.25 + ay * s * 1.55, 0.1, 3.0, 0.1);
+  // AAA-30 (28-11): het afdak heeft geen steunpalen meer, het hangt aan de gevel: de speler begint er pal naast (0,5 m) en de paal stond midden in het
+  // Privégarage-bord op het startbeeld (kijklijn camera naar bord, scripts/kwaliteit/eerste30.mjs --set=straat).
   const front = new THREE.Mesh(new THREE.PlaneGeometry(2.6, 0.65), new THREE.MeshBasicMaterial({ map: signTexture('Voordeur', 'Lift naar de 11e') }));
   front.position.set(L.x + lx * 0.16, 3.6, L.y + ly * 0.16);
   front.rotation.y = -L.angle + Math.PI / 2;

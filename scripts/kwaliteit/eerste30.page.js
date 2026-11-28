@@ -12,12 +12,17 @@ async function e30Main() {
   const note = (id, o = {}) => { uit.beelden[id] = { ...o, klok: +world.clock.toFixed(2), hp: Math.round(world.health), dmg: (document.querySelector('.hud-damage') || {}).style ? document.querySelector('.hud-damage').style.opacity : null, wanted: world.wanted, regen: (world.weather && world.weather.kind), n: (world.npcs || []).length, v: (world.vehicles || []).length }; logc(id + ' ' + JSON.stringify(uit.beelden[id])); };
   const shoot = async (id, o = {}) => { if (!want(id)) return; await png(id); note(id, o); };
 
+  const ACH = K.diag ? await import('/js/achievements.js') : null;
+  const achMeet = (wanneer) => { if (ACH) { uit.ach = uit.ach || []; uit.ach.push({ wanneer, trein_race: ACH.isUnlocked('trein_race') }); } };
+  achMeet('voor menu');
   // ---- spel starten zoals de speler ----
   for (let i = 0; i < 40 && !window.__menuStart && !document.body.classList.contains('game-started'); i++) await sleep(500);
   if (window.__menuStart && !document.body.classList.contains('game-started')) window.__menuStart('nieuw');
   for (let i = 0; i < 60 && !document.body.classList.contains('game-started'); i++) await sleep(500);
+  achMeet('game-started'); try { uit.achLijst = ACH ? Object.keys(window.__debug.achievements.summary ? {} : {}) : null; } catch (e) { /* weg */ }
   let film = false;
   for (let i = 0; i < 160 && !film; i++) { film = !!(M.cine.isCinematicActive && M.cine.isCinematicActive()); if (!film) await sleep(250); }
+  achMeet('film actief');
   installVirtualTime();
   window.__clip = clipApi;
   hud(true);
@@ -31,6 +36,7 @@ async function e30Main() {
     }
   }
   for (let i = 0; i < 600 && M.cine.isCinematicActive && M.cine.isCinematicActive(); i++) { M.cine.skipAllCinematics(); await advance({ capture: false }); }
+  achMeet('na film overslaan');
   M.set.setSetting('cinematicMoments', false);
   try { M.set.setSetting('showHints', false); } catch (e) { /* oudere instellingen */ }
   world.devInvuln = true;
@@ -41,6 +47,20 @@ async function e30Main() {
 
   const diag = () => [...document.querySelectorAll('body *')].filter((e) => { const r = e.getBoundingClientRect(); const c = getComputedStyle(e); return r.width >= innerWidth * 0.9 && r.height >= innerHeight * 0.9 && c.display !== 'none' && c.visibility !== 'hidden' && parseFloat(c.opacity) > 0.02; }).map((e) => e.tagName + '#' + e.id + '.' + String(e.className).slice(0, 40) + ' bg=' + getComputedStyle(e).backgroundImage.slice(0, 90) + ' op=' + getComputedStyle(e).opacity + ' sh=' + getComputedStyle(e).boxShadow.slice(0, 60));
   if (K.diag) { uit.diag0 = diag(); logc('diag0 ' + JSON.stringify(uit.diag0)); }
+  if (K.diag) { // waar komt de geheime prestatie vandaan: elke 15 beelden de speler, het voertuig en de dichtste trein
+    const TR = await import('/js/railway.js').catch(() => null);
+    const AC = await import('/js/achievements.js');
+    const log = [];
+    for (let k = 0; k < 900; k++) {
+      await advance({ capture: false });
+      if (k % 15 === 0) {
+        let near = null; try { for (const t of (TR && TR.getTrains ? TR.getTrains() : [])) for (const c of (t.cars || [])) { const d = Math.hypot(c.x - player.x, c.y - player.y); if (!near || d < near.d) near = { d: Math.round(d), v: +t.v.toFixed(1) }; } } catch (e) { near = String(e); }
+        log.push({ k, inV: !!player.inVehicle, sp: player.inVehicle ? +player.inVehicle.speed.toFixed(1) : null, trein: near, ontgrendeld: AC.isUnlocked('trein_race'), toast: document.body.innerText.includes('Sneller dan de sprinter') });
+      }
+    }
+    uit.diagLog = log; logc('diaglog ' + JSON.stringify(log.filter((e, i) => i % 10 === 0)).slice(0, 600) + ' ach ' + JSON.stringify(uit.ach));
+  }
+  if (K.diag) { const hh = window.__home.home; uit.home = { lobby: hh.lobby, door: hh.garage.door, spawn: HOME.homeSpawnPoint(), cam: [world.camYaw] }; logc('home ' + JSON.stringify(uit.home)); }
   await rustig('start', 60);
   if (K.diag) { uit.diag1 = diag(); logc('diag1 ' + JSON.stringify(uit.diag1)); }
   note('start');
