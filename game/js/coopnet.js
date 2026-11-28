@@ -69,6 +69,7 @@ import { zetBestuurHaken, bestuurGebruik, bestuurTick, bestuurLos, bestuurAllesL
 import { treinGebruik, treinUit, treinTick, treinStop, treinVan, gastTreinWeg, treinLoopPlek, treinLoopWeg, TREIN_TEKST } from './cooptrein.js'; // een gast als conducteur of passagier in de trein van de gastheer (#492)
 import { may as treinMay } from './treincoop.js'; // de conducteur bedient de deuren en de waakzaamheid (#492)
 import { nieuweDeelStaat, bezorgVraag, bezorgHost, bezorgWeg, bezorgAllesWeg } from './coopbezit.js'; // eigen voertuigen meenemen en delen (#449)
+import { crewEvent, crewLeave, crewReset, crewTik } from './loopbaansamennet.js'; // samen in een club of op een erf (#1380): een gebeurtenis met k 'crew'; een oude client negeert hem
 import { bezitEvent, bezitLeave, openBezitNet, stopBezitNet } from './bezitnet.js'; // de claims van Bezit (epic #1095, #1104): een gebeurtenis met k 'bezit'; een oude client negeert hem
 import { lichaamVan, startPlek, isKoploos } from './net/koploos.js'; // een gastheer zonder lokale speler (#450)
 import { heistRolGebruik, heistGastTik } from './heistrollen.js'; // de rolstap van de inbraak in Samen spelen (#438)
@@ -375,6 +376,7 @@ export function startHost(world, info, opts = {}) {
       tuneLeft(world, slot); // zijn radiostem en keuze gaan mee; het voertuig houdt zijn zender
       if (slot >= 1 && world.coopNet) { const nn = world.coopNet; if (nn.meedoen) meedoenVergeet(nn.meedoen, slot); if (nn.phraseRelay) forgetSender(nn.phraseRelay, slot); if (nn.pingRelay) vergeetPings(nn.pingRelay, slot); } // de volgende gast op deze plek erft zijn Meedoen-antwoord niet (hij werd anders niet gevraagd)
       try { bezitLeave(world, slot); } catch (e) { devWarn('coopnet', e); } // zijn claims verdwijnen
+      try { crewLeave(world, slot); } catch (e) { devWarn('coopnet', e); } // een lid telt niet meer mee; valt de eigenaar weg, dan eindigt het gezelschap (#1380)
       bezorgWeg(world, slot, (s) => bestuurLos(world, s)); // zijn eigen voertuig gaat mee terug (#449)
       if (world.coopWanted) delete world.coopWanted[slot]; // een gast die weggaat neemt zijn sterren mee (#434) // het voertuig van een gast die weggaat staat stil en de stoel is vrij (#434)
       if (slot >= 1) removeFigure(world, slot); // elke gast is een figuur (#502): ook plek 1 verdwijnt uit de wereld
@@ -1145,6 +1147,7 @@ export function tickCoopNet(world, dt) {
     world.coopDoelVraag = false;
   }
   outfitLijstTik(world);
+  crewTik(world, dt); // een vraag "Meedoen in mijn club?" verloopt als nee, J of N antwoordt (#1380)
   if (n.role === 'host') { n.tZender = (n.tZender || 0) + dt; if (n.tZender >= 1) { n.tZender = 0; tuneBoardTick(world, n); } }
   n.tSpelers += dt;
   if (n.tSpelers >= 0.25) { n.tSpelers = 0; bouwSpelers(world, n); }
@@ -1312,6 +1315,7 @@ export function handleEvent(world, body, van = 0) {
   if (!body || typeof body !== 'object') return false;
   const n = world.coopNet;
   switch (body.k) {
+    case 'crew': return crewEvent(world, body, van); // een club of erf met meer spelers: uitnodiging, antwoord, teambonus (loopbaansamennet.js)
     case 'bezit': return bezitEvent(world, body, van); // claims van Bezit (bezitnet.js)
     case 'wed': return wedHandleHost(world, body); // een wedstrijd tegen elkaar van de host: uitnodiging, start, stand, uitslag (#443, multiplayerwedstrijd.js)
     case 'bijbaan': return bijbaanHandleHost(world, body); // een bijbaan van de host: uitnodiging, doel, einde (#452, coopbijbaan.js)
@@ -2149,6 +2153,7 @@ export function stopCoopNet(world) {
   if (n.role === 'host') bezorgAllesWeg(world, (s) => bestuurLos(world, s)); // de eigen voertuigen van de gasten gaan mee terug (#449)
   if (n.role === 'host') { try { n.hub.announce({ k: 'weg', reden: 'spel gestopt' }); n.hub.closeAll(); } catch (e) { devWarn('coopnet', e); } } else { try { if (n.session.status !== 'geweigerd' && n.session.status !== 'verbroken') n.session.leave(); } catch (e) { devWarn('coopnet', e); } }
   world.coopNet = null;
+  crewReset(world); // een gezelschap bestaat alleen in een sessie; alles is per gebeurtenis geboekt, dus niemand verliest iets (#1380)
   try { stopBezitNet(world); } catch (e) { devWarn('coopnet', e); } // buiten een sessie is er geen claim: de palen van medespelers verdwijnen en alles is weer te koop (review 22-11, B4)
   if (outfitKoppeling) { outfitKoppeling(); outfitKoppeling = null; }
   zetEigenVoertuigenTerug(world, n); // de eigen voertuigen van de gast komen terug (ook na een overdracht: de volgende startHost of startClient ziet de eigen lijst)
