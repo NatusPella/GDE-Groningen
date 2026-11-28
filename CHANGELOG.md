@@ -9,6 +9,8 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ## [Unreleased]
 
+- Samen spelen: in een heel lange sessie kreeg een voertuig geen id meer dat botste met een trein, voetganger of het missiedoel; een gast zag dan het verkeerde voertuig of een auto die ineens 'geen voertuig' was. Voertuig-id's blijven nu binnen hun eigen bereik.
+
 - De game staat nu op de hoofdpagina van de webversie (GitHub Pages); de marketingpagina is weggehaald. De oude link /play/ stuurt door naar de hoofdpagina.
 
 ## [0.66.0] - 2026-11-24

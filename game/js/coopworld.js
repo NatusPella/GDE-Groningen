@@ -57,7 +57,11 @@ export function kiesVoetgangers(world, bij, { radius = RADIUS_VOETGANGER, max = 
 }
 
 export const voertuigId = (v, i) => (Number.isInteger(v.id) ? vid(v, i) : null); // het id dat een voertuig in de snapshot heeft (null: geen vast id)
-const vid = (v, i) => { const id = (Number.isInteger(v.id) ? v.id : i) & 0xffff; return id === ID_DOEL ? 0xfffd : id; };
+// Voertuig-id's blijven onder ID_TREIN0: daarboven liggen treinen, voetgangers, het doel en de start, en 0xffff is 'geen voertuig' in een spelersrecord.
+// De teller van het spel loopt door en past na een lange sessie niet meer in 16 bits (#1293).
+export const VOERTUIG_ID_MAX = ID_TREIN0 - 1;
+export const wireVehicleId = (n) => { n = Math.max(0, Math.floor(n)); return n <= VOERTUIG_ID_MAX ? n : ((n - 1) % VOERTUIG_ID_MAX) + 1; };
+const vid = (v, i) => wireVehicleId(Number.isInteger(v.id) ? v.id : i);
 
 export function voertuigSoort(v) {
   if (v.isBus) return VOERTUIG_SOORTEN.indexOf('bus');

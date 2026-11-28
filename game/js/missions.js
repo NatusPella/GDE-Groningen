@@ -1646,7 +1646,7 @@ function vehicleProblem(world, def) {
   const vf = def.vehicleFail || {};
   if (!v || !world.vehicles.includes(v)) return vf.gone || (def.type === 'boat' ? 'de boot is foetsie' : 'de auto is foetsie');
   if (v.wrecked || v.disabled) return vf.wrecked || (def.type === 'boat' ? 'de boot ligt nu tussen de fietsen op de bodem' : 'de auto is afgeschreven, Kiekdoar heeft al foto\'s');
-  if (p.inVehicle === v) { chainState().boarded = true; chainState().grace = null; return null; }
+  if (p.inVehicle === v) { chainState().boarded = true; chainState().grace = null; chainState().graceT = null; return null; }
   const g = chainState().grace || (chainState().grace = createGrace());
   const far = dist(p.x, p.y, v.x, v.y) > ABANDON_DIST;
   // #214: leaving the vehicle behind is a warning with a clock, the way back is the marker; only a wreck or a gone vehicle fails at once
