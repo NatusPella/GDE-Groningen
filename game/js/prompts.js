@@ -17,6 +17,7 @@ import { glyphHtml, keyTextHtml } from './keycap.js';
 import { KEYS } from './storagekeys.js';
 import { promptSub, explains, explainId, markSeen, parseSeen } from './hudtext.js';
 import { hoofdspeler } from './players.js';
+import { punchPromptAllowed } from './firststeps.js';
 import { isPadActive, padState } from './gamepad.js';
 import { getUiScale } from './uiscale.js';
 import { isPhoneOpen, isPauseMenuOpen } from './pausestate.js';
@@ -425,7 +426,7 @@ function findPrimary(world) {
     return { id: 'kiss-' + name, x: c.x, y: c.y, h: 1.55, key: 'K', label: 'Kusje', sub: 'Even bijkomen…', ring: true, cooldown: (kissUntil - world.time) / KISS_COOLDOWN, dim: true };
   }
   const weapon = world.weapon || 'fists';
-  if (isMeleeWeapon(weapon)) {
+  if (isMeleeWeapon(weapon) && punchPromptAllowed(world.stats && world.stats.missionsDone)) {
     const ped = pedInReach(world, WEAPONS[weapon].range + 0.4, Math.PI / 3);
     if (ped) return { id: 'punch-' + (ped.id ?? ''), x: ped.x, y: ped.y, h: 1.75, key: 'LMB', label: 'Slaan', sub: ped.isCop ? 'Een agent? Durf je dat?' : learning('punch') ? '{LMB} om uit te delen' : '', learn: learning('punch'), danger: true };
   }
