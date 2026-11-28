@@ -23,7 +23,7 @@ Uit de besluiten van de eigenaar, zo kort als kan:
 Iemand die het verhaal niet kent moet alles snappen: het verhaal legt zichzelf uit en de speler mist nooit context. Dat geldt ook voor een gast die de aanleiding niet zelf speelde. Voor alle loopbanen gelden daarom vijf vaste regels; elke loopbaan hieronder werkt ze uit onder "Begrijpelijk voor iedereen".
 
 1. **Eerst de personages, dan de gebeurtenis.** Een figuur wordt eerst op een gewone dag in beeld gebracht (naam, wat hij doet, hoe hij tegen Tammo en Tessa praat) vóórdat hij wegvalt, overlijdt of iets vraagt. De aanleiding voelt dan als verlies of kans en niet als een formulier. Zo staat het in elke loopbaan: bezoek, dan de gebeurtenis, dan de overname.
-2. **Elke figuur noemt bij zijn eerste verschijning zijn naam en zijn band** ("Ik ben Gesina, de zus van Beppe's overleden zwager; ik heb de hond al aan jullie voorgesteld"), en een terugkerende figuur na een lange pauze herinnert zichzelf in één zin ("Wij zagen elkaar bij de tomatenkas"). Geen zin zonder dat iemand uitlegt wie wie is.
+2. **Elke figuur noemt bij zijn eerste verschijning zijn naam en zijn band** ("Ik ben Hindrik, de man van Beppe's overleden zus; ik heb de hond al aan jullie voorgesteld"), en een terugkerende figuur na een lange pauze herinnert zichzelf in één zin ("Wij zagen elkaar bij de tomatenkas"). Geen zin zonder dat iemand uitlegt wie wie is.
 3. **De aanleiding staat herhaald in de wereld**: een brief, foto, bord of logboek in het huis, op de kade of in de club dat de gebeurtenis in drie zinnen vertelt. Daaruit leest een speler die hem nooit zag het verhaal terug.
 4. **De eerste keer in een loopbaan speelt een korte terugblik van een bijfiguur** (twintig tot dertig seconden, ingesproken, overslaanbaar): wie er is weggevallen, wat dat voor Tammo en Tessa betekent en wat de volgende stap is. Wie de aanleiding zelf speelde ziet de terugblik niet; een gast, een speler die de loopbaan via het Loopbanen-scherm opent en een speler die lang weg was krijgen hem wel.
 5. **Een "Wie is wie" in het menu** bij Voortgang: elke figuur die je tegenkwam, met naam, band met Tammo en Tessa en één zin over wat er gebeurd is. Een figuur komt erin op het moment dat hij zelf zijn naam noemt. (Zoiets bestaat voor zover bekend nog niet; zie bouwvolgorde.)
@@ -32,8 +32,8 @@ Iemand die het verhaal niet kent moet alles snappen: het verhaal legt zichzelf u
 
 ### 0c. Twee dingen die de coördinator moet beslissen (niet door deze bijbel besloten)
 
-1. *Beppe en Oma Trijntje.* De eigenaar zegt: Beppe is de oma van Tammo. In de code staat een Beppe-boog (`beppe_boog.js`) naast "Oma Trijntjes recept van 1953" (`storymilestones.js`, `snackstory.js`) en een Oma Trijntje in `voetbaldata.js`. Dit document gebruikt **Beppe** voor Tammo's oma en laat open of Oma Trijntje dezelfde persoon is (waarschijnlijk wel; Trijntje is dan haar voornaam). Deel 1 van de bijbel (personages) moet dit vastleggen.
-2. *Ouder familielid voor de erfenis.* De eigenaar noemt "oom of tante". Dit document kiest **Tante Gesina**; verwissel de naam als deel 1 anders kiest.
+1. *Beppe en Oma Trijntje.* Besloten (deel 1 §2.4): Beppe is de oma van Tammo (soep, zorg, de beppe-boog in `beppe_boog.js`), Oma Trijntje is de oma van Tessa en houdt het recept van 1953 (`storymilestones.js`, `snackstory.js`, `voetbaldata.js`). Het zijn twee verschillende personages.
+2. *Ouder familielid voor de erfenis.* De eigenaar noemt "oom of tante". Besloten in deel 1 (§2.2 en het namenregister §2.4): **Oom Hindrik de Jong** (hoeve Zeldenrust bij Warffum en Usquert, Hogeland) schenkt de hoeve; **Tante Aaltje** zet de schenking klaar. Oom Hindrik overlijdt niet. "Tante Gesina" en "Hoeve Gesina" zijn vervallen.
 
 Alle namen van bijfiguren hieronder zijn voorstellen, allemaal verzonnen; deel 1 moet ze op dubbelingen controleren.
 
@@ -43,13 +43,13 @@ Alle namen van bijfiguren hieronder zijn voorstellen, allemaal verzonnen; deel 1
 
 ### (a) Verhalende aanleiding
 
-**Het bezoek, het overlijden, de erfenis.** Beppe stuurt Tammo op een gewone zomerdag met een mand eieren en een boodschap naar **Tante Gesina**, die een klein gemengd bedrijf heeft aan de rand van het Westerkwartier bij Hoogkerk. Tessa gaat mee omdat ze de trekker wil proberen. Het bezoek is zelf speelbaar: thee in de bijkeuken, tante die gewassen en machines aanwijst alsof ze die voorstelt aan een nieuwe buurman, de hond, en een eerste klus (hek, hooi, kruiwagen). Ze stelt zichzelf voor, zegt hoe ze met Beppe verwant is en wat ze van het land vindt. Hier leert de speler haar kennen; ze moet een echt mens worden, geen formulier.
+**Het bezoek, de verhuizing, de schenking.** Beppe stuurt Tammo op een gewone zomerdag met een mand eieren en een boodschap naar **Oom Hindrik de Jong**, die op hoeve **Zeldenrust** aan de Waddenkust op het Hogeland (tussen Warffum en Usquert) een gemengd bedrijf heeft. Tessa gaat mee omdat ze de trekker wil proberen. Het bezoek is zelf speelbaar: thee in de bijkeuken (die hij te slap vindt), Oom Hindrik die gewassen en machines aanwijst alsof hij ze voorstelt aan een nieuwe buurman, de hond, en een eerste klus (hek, hooi, kruiwagen). Hij stelt zichzelf voor, zegt hoe hij met Beppe verwant is (de man van haar overleden zus Tjitske) en wat hij van het land vindt. Hier leert de speler hem kennen; hij moet een echt mens worden, geen formulier.
 
-Daarna een tussenpoos van een paar speluren waarin andere dingen gebeuren. Dan het bericht: Tante Gesina is overleden, in haar slaap, zoals ze zelf wilde. Geen geweld, geen drama; een begrafenis in het dorp en een notaris met een brief. **Het erf gaat naar Tammo en Tessa samen** ("omdat jullie de enige zijn die de hond mochten uitlaten"), met één voorwaarde: juli oogsten, dan zien we verder. Tante's brief is het eerste voorwerp in de wereld van de loopbaan en wordt een paar keer opnieuw gelezen.
+Daarna een tussenpoos van een paar speluren waarin andere dingen gebeuren. Dan het bericht van Tante Aaltje: Oom Hindrik gaat, met een zwaai, naar Huize Waddenzicht (een verzorgingshuis in Warffum) en de hoeve wordt geschonken. Geen leed, geen drama; een notaris in Warffum met een brief. **De hoeve gaat naar Tammo en Tessa samen** ("omdat jullie de enige zijn die de hond mochten uitlaten"), met één voorwaarde: juli oogsten, dan zien we verder. Oom Hindrik blijft bereikbaar voor een bezoek. Zijn brief is het eerste voorwerp in de wereld van de loopbaan en wordt een paar keer opnieuw gelezen.
 
-Aansluiting op de code: de eigen boerderij met erf en percelen bij Hoogkerk (`percelen.js`, `boerderijwereld.js`), een kasboek en een eerste klus bestaan al. Nieuw is alleen de verhaalingang; de menu-ingang blijft voor wie later terugkomt.
+Aansluiting op de code: de eigen boerderij met erf en percelen (nu bij Hoogkerk; de hoeve Zeldenrust verhuist de verhaalplek naar het Hogeland, Hoogkerk blijft de bietenoogst) (`percelen.js`, `boerderijwereld.js`), een kasboek en een eerste klus bestaan al. Nieuw is alleen de verhaalingang; de menu-ingang blijft voor wie later terugkomt.
 
-**Begrijpelijk voor iedereen.** De terugblik wordt verteld door **Beppe** aan de keukentafel van het erf: "Dit was Gesina's huis. Zij is er niet meer. Zij heeft het aan jullie gelaten." In de bijkeuken hangt tante's brief aan een spijker, op het kalenderblad in de schuur staat haar laatste notitie en bij de ingang een bord "Hoeve Gesina". Een gast die de loopbaan opent ziet het erf, hoort Beppe en kan de brief lezen.
+**Begrijpelijk voor iedereen.** De terugblik wordt verteld door **Beppe** aan de keukentafel van het erf: "Dit was het huis van Hindrik. Hij woont nu in Warffum, bij de dokter. Hij heeft het aan jullie gegeven." In de bijkeuken hangt zijn brief aan een spijker, op het kalenderblad in de schuur staat zijn laatste notitie en bij de ingang een bord "Hoeve Zeldenrust". Een gast die de loopbaan opent ziet het erf, hoort Beppe en kan de brief lezen.
 
 ### (b) Verhaalboog, rangen, bijfiguren, plekken
 
@@ -57,7 +57,7 @@ Aansluiting op de code: de eigen boerderij met erf en percelen bij Hoogkerk (`pe
 
 | Rang | Titel (bestaand) | Verhaalmoment |
 |---|---|---|
-| 1 | Veldhulp | De eerste week op tante's erf: hek, hooi, eieren, de hond |
+| 1 | Veldhulp | De eerste week op het erf van Zeldenrust: hek, hooi, eieren, de hond |
 | 2 | Zaaier | De eerste eigen akker: aardappelen en uien op het erf |
 | 3 | Trekkerrijder | De eerste machine van jezelf; het eerste teeltseizoen voltooid |
 | 4 | Loonwerker | Je werkt voor de buren en voor een bedrijf in de Veenkoloniën |
@@ -66,23 +66,23 @@ Aansluiting op de code: de eigen boerderij met erf en percelen bij Hoogkerk (`pe
 
 **Bijfiguren, in volgorde van opkomst** (één nieuwe per verhaalstap):
 
-1. **Tante Gesina**: de erfenis; spreekt later in brieven en herinneringen (foto's, aantekeningen).
-2. **De buurboer Harm Veldkamp**: wijst de grenzen, leent een trekker en zegt "dat wordt wat" bij alles wat misgaat.
+1. **Oom Hindrik de Jong** en **Tante Aaltje**: de schenking; Hindrik spreekt later in brieven en bij een bezoek, Aaltje regelt de papieren.
+2. **De buurboer Ypie Boekema**: wijst de grenzen, leent een trekker en zegt "dat wordt wat" bij alles wat misgaat.
 3. **De melkrijder Lutje**: brengt de dagprijzen en het nieuws; de roddelaar van de streek. Hij ziet als eerste dat Tammo en Tessa "wel heel veel samen op het land staan".
 4. **Mevrouw Prins van Coöperatie Noorderveld** (die afnemer bestaat al in `boerderij.js`): bureaucratisch maar vriendelijk; haar formulieren zijn de eerste papieren van Jelle's soort.
-5. **Wiebe, de jonge loonwerker uit Oldambt**: de rivaal in landbouwvorm; grootste machines, kleinste geduld.
-6. **Hennie en Geert, de veilingmeester en de bietenbaas** in de Veenkoloniën: het einde van het seizoen.
+5. **Jorrit Tilma, de jonge loonwerker uit Oldambt** (niet Wiebe: dat is Wiebe Hazenberg): de rivaal in landbouwvorm; grootste machines, kleinste geduld.
+6. **De veilingmeester en de bietenbaas** (namen nog te kiezen; geen Hennie of Geert, zie het namenregister) in de Veenkoloniën: het einde van het seizoen.
 
 **Plekken** (een band met het verhaal):
 
-- *Westerkwartier en Gorecht*: tante's erf en de eerste percelen bij Hoogkerk (zoals in `percelen.js`), de graslanden langs het Reitdiep (Hooimarkt Reitdiep bestaat al als afnemer).
+- *Westerkwartier en Gorecht*: de hoeve Zeldenrust en de eerste percelen bij Hoogkerk (zoals in `percelen.js`), de graslanden langs het Reitdiep (Hooimarkt Reitdiep bestaat al als afnemer).
 - *Hogeland en Veenkoloniën*: aardappelen, bieten en uien op grotere schaal (de afnemers Uienloods De Kleihoek, Suikerhal Hoogkerk en Graanzaak staan al in `GEWASSEN`), de bietencampagne.
 - *Waddenkust en Lauwersmeer*: de kwelderlammeren, de schapen en de zoute akkers aan de dijk; een zomers uitje dat het "eerste buiten de stad" van het eerste uur kan zijn.
-- *Stad*: de markt op de Vismarkt en de Groentemarkt, waar tante's aardappelen en uien aan de snackwagen komen.
+- *Stad*: de markt op de Vismarkt en de Groentemarkt, waar de aardappelen en uien van Zeldenrust aan de snackwagen komen.
 
 **Jelle**: een brief per seizoen over "het verplichte formulier voor het bedrijfsmatig houden van een varken" (er zijn geen varkens), met een nummer dat steeds hoger wordt. Een bureaucratische schaduw, geen tegenstander.
 
-**Tammo en Tessa**: tante's brief ("jullie weten wel wie van jullie de trekker mag en wie de boekhouding doet; ik heb er nooit iets over gezegd, jullie ook niet"); Lutje die zegt dat ze al jaren "op één akker" werken; een foto in de lade van tante van haar en een jonge man met een sjaal, die Tessa vindt en niet laat zien; en een taak waarin één van beide de ander zijn trekker moet toevertrouwen.
+**Tammo en Tessa**: Hindriks brief ("jullie weten wel wie van jullie de trekker mag en wie de boekhouding doet; ik heb er nooit iets over gezegd, jullie ook niet"); Lutje die zegt dat ze al jaren "op één akker" werken; een foto in de lade van Hindrik van zijn vrouw Tjitske en een jonge man met een sjaal, die Tessa vindt en niet laat zien; en een taak waarin één van beide de ander zijn trekker moet toevertrouwen.
 
 **Thuis groeit mee**: het erf wordt opgeknapt (nieuwe schuur, keuken, logeerkamer), zichtbaar op de kaart en in de wereld. Het huis in de stad blijft; het erf is het tweede thuis.
 
@@ -109,10 +109,10 @@ Aansluiting op de code: de eigen boerderij met erf en percelen bij Hoogkerk (`pe
 **Wat ontbreekt voor "echt diep":**
 
 1. **Gewasrotatie, bodem en zomerweer.** Er is een teeltplan maar geen vruchtwisseling, geen bodemvruchtbaarheid en geen droge of natte zomers (er is geen winter, wel variatie). Voorstel: een vruchtbaarheidswaarde per perceel en een zomerweer per reeks speldagen.
-2. **Veehouderij.** Gras en weiland bestaan, koeien, schapen en kippen niet. Voor tante's eieren en de kwelderlammeren is een eenvoudige veestapel (voer, verzorgen, melken of scheren, productie) de grootste inhoudelijke uitbreiding.
+2. **Veehouderij.** Gras en weiland bestaan, koeien, schapen en kippen niet. Voor de eieren van Zeldenrust en de kwelderlammeren is een eenvoudige veestapel (voer, verzorgen, melken of scheren, productie) de grootste inhoudelijke uitbreiding.
 3. **Zwaardere machines** die bij de rangen horen (rooier, bietenrooier, maaidorser, grotere trekkers).
 4. **Een markt met seizoenen**: nu een dagprijs binnen 20% van de basis; nieuw een wekelijkse veiling, een landbouwbeurs en het Oogstfeest.
-5. **Verwerking en verkoop**: opslag, een hofwinkel, een eigen merk ("Hoeve Gesina"), later een kleine coöperatie met buren.
+5. **Verwerking en verkoop**: opslag, een hofwinkel, een eigen merk ("Hoeve Zeldenrust"), later een kleine coöperatie met buren.
 6. **Verhaalkoppeling**: nu staat de boerderij los van het verhaal; elke rang hierboven heeft een gebeurtenis nodig.
 
 ### (d) Verwevenheid
@@ -120,7 +120,7 @@ Aansluiting op de code: de eigen boerderij met erf en percelen bij Hoogkerk (`pe
 - **Snackwagen**: aardappelen en uien gaan rechtstreeks naar de wagen; het eerste menu (`wagen:menu`) vraagt om jouw aardappelen.
 - **Vervoer**: kisten per bus en trein naar de stad; de taxi brengt de notaris; de bus brengt het hele dorp naar het Oogstfeest.
 - **Water**: bieten en graan als vracht naar de suikerfabriek of de haven; een oogst die te laat de sluis haalt is het spel.
-- **Voetbal**: de dorpsclub speelt naast tante's akker; boeren zijn de supporters en sponsors.
+- **Voetbal**: de dorpsclub speelt naast de akker van Zeldenrust; boeren zijn de supporters en sponsors.
 - **Evenement**: het Oogstfeest (§6).
 - **Los speelbaar**: wie alleen wil boeren doet de erfenis en daarna alles op het erf zonder de andere loopbanen; verwevenheid geeft bonussen, geen verplichtingen.
 
@@ -141,7 +141,7 @@ De visie regelt de basis: geld, voortgang en bezit zijn per speler (#429); de bo
 
 | Onderdeel | Omvang |
 |---|---|
-| Verhaalingang (bezoek, overlijden, erfenis, terugblik) met stem | M |
+| Verhaalingang (bezoek, verhuizing, schenking, terugblik) met stem | M |
 | Boog Veldhulp tot Bietenbaron met zes bijfiguren | M |
 | Gewasrotatie en bodem | S |
 | Veehouderij (eerste versie: kippen en schapen) | L |
@@ -164,7 +164,7 @@ De dagen ervoor zijn onderdeel van de aanleiding: de speler ziet de voorzitter, 
 
 Aansluiting op de code: de carrièreboog van `docs/VOETBAL-CARRIERE-21-11.md` begint in de Talentenklasse met Tessa als ster en Tammo als amateur die de papieren regelt. De bestaande uitnodiging van Tammo (beat B1) blijft; de invalbeurt komt eraan vooraf als aanleiding.
 
-**Begrijpelijk voor iedereen.** De terugblik wordt verteld door **Voorzitter Albert Bos** in het clubhuis, onder het wedstrijdbord: "Onze linksbuiten ligt eruit; Tessa was er toevallig en ze kan het. Zo begon het." Op het bord in het clubhuis hangt de opstelling met een doorgestreepte naam en Tessa's naam met potlood erbij; de eerste wedstrijdfoto hangt naast de koffieautomaat. Een gast die de carrière opent, speelt als zijn eigen figuur, ziet het bord en hoort Albert. Een gast die als Tessa of Tammo een eigen carrière start, krijgt de terugblik ook.
+**Begrijpelijk voor iedereen.** De terugblik wordt verteld door **Voorzitter Albert Teuben** in het clubhuis, onder het wedstrijdbord: "Onze linksbuiten ligt eruit; Tessa was er toevallig en ze kan het. Zo begon het." Op het bord in het clubhuis hangt de opstelling met een doorgestreepte naam en Tessa's naam met potlood erbij; de eerste wedstrijdfoto hangt naast de koffieautomaat. Een gast die de carrière opent, speelt als zijn eigen figuur, ziet het bord en hoort Albert. Een gast die als Tessa of Tammo een eigen carrière start, krijgt de terugblik ook.
 
 ### (b) Verhaalboog, rangen, bijfiguren, plekken
 
@@ -183,19 +183,19 @@ Sport is meer dan voetbal. In de code zijn padel, golf, discgolf, pitch and putt
 
 **Bijfiguren, in volgorde van opkomst** (alles verzonnen):
 
-1. **Voorzitter Albert Bos** van de dorpsclub: een man met een sjaal en een ledenlijst die nooit klopt.
-2. **Trainer Meester Klaas**: gepensioneerd onderwijzer die tactiek uitlegt met suikerklontjes en een koekenpan.
+1. **Voorzitter Albert Teuben** van de dorpsclub: een man met een sjaal en een ledenlijst die nooit klopt.
+2. **Trainer Meester Eppo Rozema**: gepensioneerd onderwijzer die tactiek uitlegt met suikerklontjes en een koekenpan.
 3. **Verslaggever Hilbrand** (bestaat al in `voetbaldata.js`): commentaar en krant.
 4. **De rivaal uit de straat, Remco Zwart**: speelt linksbuiten bij de club van het buurdorp en is er altijd net voor. Goedmoedig en plagend.
 5. **De scout, mevrouw De Vries-Jansen** van De Stadjers (Kroonklasse): signaleert Tessa.
-6. **De bakker Wubbo Hoekstra**: sponsor, koeken in de pauze en later leverancier van de snackwagen.
+6. **De bakker Jaap Roorda**: sponsor, koeken in de pauze en later leverancier van de snackwagen.
 7. **Jan Kleibijter**, oud-spits en manager van de Kroonklasse: bij de Euroborg.
 
 **Plekken**: elk dorp met een voetbalpark wordt een club met een verzonnen naam (`voetbalparken.js`, hoofdstuk 3b van de carrièredoc); de wedstrijd wordt op het echte sportpark gespeeld en uit spelen is een reis. De clubs staan in `voetbalclubs.js`: Wadlopers (kust), Ommelanders (Hogeland), Veenpiraten (Veenkoloniën), Kleibijters (de klei), Palingtrappers, Hunebedders, De Stadjers en de rest van de Kroonklasse, die in de Euroborg speelt. De Waddenkust en de Hogeland-dorpen zijn de eerste ritten, het stadion in de stad de bestemming.
 
 **Jelle**: hij is de sponsor die nooit komt en stuurt een "overschrijvingsformulier met acht doorslagen" dat alleen met een stempel van een Friese gemeente geldig is. Eén brief per seizoen is genoeg. De sponsornaam wordt een verzonnen bedrijf (constitution 2).
 
-**Tammo en Tessa**: Tammo die als bestuurslid bij elk doelpunt Tessa's naam in het wedstrijdformulier met een hartje schrijft en het zelf niet ziet; Meester Klaas die zegt dat de middenvelder altijd naar links kijkt, naar de lijn waar Tammo staat; een briefje in Tessa's kluisje "voor na de wedstrijd, niet nu"; en de aanvoerdersband die Tammo bij het bestuur voor haar regelt zonder het te zeggen.
+**Tammo en Tessa**: Tammo die als bestuurslid bij elk doelpunt Tessa's naam in het wedstrijdformulier met een hartje schrijft en het zelf niet ziet; Meester Eppo die zegt dat de middenvelder altijd naar links kijkt, naar de lijn waar Tammo staat; een briefje in Tessa's kluisje "voor na de wedstrijd, niet nu"; en de aanvoerdersband die Tammo bij het bestuur voor haar regelt zonder het te zeggen.
 
 ### (c) De eindeloze modus
 
@@ -233,7 +233,7 @@ Sport is meer dan voetbal. In de code zijn padel, golf, discgolf, pitch and putt
 - **Vervoer**: uitwedstrijden zijn reizen (bus, trein, taxi); de supportersbus is een bijbaan voor de buschauffeur; de taxichauffeur brengt Tessa als de bus staakt.
 - **Boer**: de dorpsclub heeft akkerbouwsponsors; het Oogstfeest heeft een veldtoernooi.
 - **Water**: een uitwedstrijd bij het Lauwersmeer waar het team per rondvaartboot heen mag (komisch, geen verplichting).
-- **Snackwagen**: de wagen staat bij elke thuiswedstrijd en later in de Euroborg; Wubbo de bakker is de schakel.
+- **Snackwagen**: de wagen staat bij elke thuiswedstrijd en later in de Euroborg; bakker Jaap Roorda is de schakel.
 - **Evenement**: de Waddenbeker (§6).
 - **Los speelbaar**: wie alleen wil voetballen speelt na de invalbeurt zonder verhaal door.
 
@@ -246,7 +246,7 @@ De basis staat in `voetbalsamen.js`: de carrière is van de speler zelf, wie het
 - **Tegen elkaar.** Derby: vrienden als rivalen in team 1 (`deriveTeams`, gebouwd). *Nieuw*: een competitieronde tussen de clubs van mensen.
 - **Handel.** Spelers verkopen aan elkaars clubs is een transfer met twee kassen: de verkoper krijgt zijn bedrag, de koper betaalt het. Nog niet gebouwd.
 - **Beloning, wegvallen, aansluiten** (gebouwd): wegvallen laat de computer de speler overnemen en hij krijgt niets; later aansluiten kan niet halverwege een wedstrijd, wel bij de volgende. Een gast krijgt geld en ervaring uit zijn eigen uitslagsregel, geen competitiepunten of contractbonus van een ander.
-- **Wat ziet een gast**: het veld, de elf, het publiek en de stand; de terugblik van Albert.
+- **Wat ziet een gast**: het veld, de elf, het publiek en de stand; de terugblik van Albert Teuben.
 - **Altijd beschikbaar**: een gast kan meteen een voetbalcarrière starten, op zijn eigen niveau binnen de klasse.
 
 ### (f) Omvang
@@ -271,7 +271,7 @@ De kortste loopbaan, zoals de eigenaar wil. Wel de loopbaan die de meeste andere
 
 ### (a) Verhalende aanleiding
 
-**De chauffeur valt weg.** **Chauffeur Dries** rijdt al dertig jaar de laatste bus van de lijn naar het dorp. In de kennismaking is hij een vaste figuur: de bus waarin Tammo en Tessa naar huis rijden, met zijn eigen koffiekan en een groet voor iedereen die instapt. Dan krijgt hij een zere rug (niet erg, genoeg) en moet de volgende dag thuisblijven; er is niemand anders. Het streekvervoerbedrijf (verzonnen: **Noorderspoor en -bus**, zoals de bestaande vervoerder **Noorderspoor** in `treindienststart.js`) belt de enige die ze kennen die een bus kan parkeren: **Tammo**. Tessa gaat mee als "conducteur" die niets van de lijn weet en alles van de dienstregeling. Eén dienst wordt een vaste dienst; dan is de nachtrijder van de taxi ziek, dan gaat een machinist met pensioen en wil hij zijn trein aan jullie overgeven.
+**De chauffeur valt weg.** **Chauffeur Dries Oltmans** rijdt al dertig jaar de laatste bus van de lijn naar het dorp. In de kennismaking is hij een vaste figuur: de bus waarin Tammo en Tessa naar huis rijden, met zijn eigen koffiekan en een groet voor iedereen die instapt. Dan krijgt hij een zere rug (niet erg, genoeg) en moet de volgende dag thuisblijven; er is niemand anders. Het streekvervoerbedrijf (verzonnen: **Noorderspoor en -bus**, zoals de bestaande vervoerder **Noorderspoor** in `treindienststart.js`) belt de enige die ze kennen die een bus kan parkeren: **Tammo**. Tessa gaat mee als "conducteur" die niets van de lijn weet en alles van de dienstregeling. Eén dienst wordt een vaste dienst; dan is de nachtrijder van de taxi ziek, dan gaat een machinist met pensioen en wil hij zijn trein aan jullie overgeven.
 
 Aansluiting op de code: `busservice.js`, `busroutes.js`, `taxistatus.js`, `sidejob_taxi.js` en `treindienststart.js` kennen al een dienst met dienstregeling, punctualiteit en loon.
 
@@ -290,7 +290,7 @@ Aansluiting op de code: `busservice.js`, `busroutes.js`, `taxistatus.js`, `sidej
 | 5 | Hoofd van de halte | Taxiheld | Machinist | Een eigen standplaats en een eigen dienst |
 | 6 | Busbaas van Grunn | Koning van de standplaats | Spoorbaas van het Noorden | Het jubileum van de lijn |
 
-**Bijfiguren**: **Chauffeur Dries** (de oudste, de lijnenkaart in zijn hoofd), **Dispatcher Annemarie** (alleen een stem op de portofoon, ideaal voor de stem), **de vaste klant mevrouw Wassink** (altijd net te laat en elke dag dezelfde opmerking), **stationschef Pieter Luiken** (spoor).
+**Bijfiguren**: **Chauffeur Dries Oltmans** (de oudste, de lijnenkaart in zijn hoofd), **Dispatcher Annemarie** (alleen een stem op de portofoon, ideaal voor de stem), **de vaste klant mevrouw Wassink** (altijd net te laat en elke dag dezelfde opmerking), **stationschef Jochem Luiken** (spoor).
 
 **Plekken**: de stad (hoofdstation, Noord, Zuidwest), Westerkwartier en Gorecht (lijnen naar Roden, Leek en Zuidhorn), Hogeland en Veenkoloniën (lange regionale ritten), Waddenkust (de dienst naar Lauwersoog, aansluitend op de veerboot).
 
@@ -339,23 +339,23 @@ Gebouwd: samen een bus of trein (rollen, deuren, kaartjes, betaling per halte aa
 
 ### (a) Verhalende aanleiding
 
-**Een schipper valt weg.** Twee sporen, één aanleiding. **Schipper Okke** is in de kennismaking de rondvaartschipper op de Diepenring, zestig jaar achter het roer; hij zwaait naar Tammo en Tessa als ze langs de steiger lopen en vertelt aan toeristen dat hij "de stad al kende toen die nog een dorp was". Op een mooie dag valt hij in het water omdat hij een eend wil redden (niets ernstigs, wel drie weken rust). De rondvaart moet doorgaan: **Tammo** neemt het roer en **Tessa** doet het verhaal (zij weet het meest: zie `rondvaartlines.js`, waar Tammo de gids is en Tessa hem verbetert). Dat is het **stadsspoor** (rondvaartschipper).
+**Een schipper valt weg.** Twee sporen, één aanleiding. **Wiebe Hazenberg** is in de kennismaking de rondvaartschipper op de Diepenring, zestig jaar achter het roer; hij zwaait naar Tammo en Tessa als ze langs de steiger lopen en vertelt aan toeristen dat hij "de stad al kende toen die nog een dorp was". Op een mooie dag valt hij in het water omdat hij een eend wil redden (niets ernstigs, wel drie weken rust). De rondvaart moet doorgaan: **Tammo** neemt het roer en **Tessa** doet het verhaal (zij weet het meest: zie `rondvaartlines.js`, waar Tammo de gids is en Tessa hem verbetert). Dat is het **stadsspoor** (rondvaartschipper).
 
-Het **provinciespoor** (binnenvaartschipper) volgt uit hetzelfde verhaal: Okke's broer **Schipper Geert** vaart met een spits (een kleine binnenvaartschip) vracht door de provincie en vraagt, als de rondvaart weer draait, of een van hen zijn schip een week wil overnemen vanwege een bruiloft. Eén week; dan blijft het.
+Het **provinciespoor** (binnenvaartschipper) volgt uit hetzelfde verhaal: Wiebes vriend **Lammert Veenstra** (de binnenvaartmentor van het tweede spoor) vaart met een spits (een kleine binnenvaartschip) vracht door de provincie en vraagt, als de rondvaart weer draait, of een van hen zijn schip een week wil overnemen vanwege een bruiloft. Eén week; dan blijft het.
 
-**Begrijpelijk voor iedereen.** De terugblik wordt verteld door **Fenna**, de nieuwe gids-student, op de steiger: "Okke ligt thuis, hij heeft een eend gered en zijn knie niet. Jullie varen hem." Op de steiger hangt Okke's pet aan de kapstok, in het stuurhuis staat een logboek met zijn handschrift en een foto van twee jonge schippers (hij en zijn vrouw). Een gast ziet de boot, de pet, het logboek en hoort Fenna. De overstap naar het provinciespoor krijgt een eigen terugblik van Geert aan de kade.
+**Begrijpelijk voor iedereen.** De terugblik wordt verteld door **Noor**, de nieuwe gids-student, op de steiger: "Wiebe ligt thuis, hij heeft een eend gered en zijn knie niet. Jullie varen hem." Op de steiger hangt Wiebes pet aan de kapstok, in het stuurhuis staat een logboek met zijn handschrift en een foto van twee jonge schippers (hij en zijn vrouw). Een gast ziet de boot, de pet, het logboek en hoort Noor. De overstap naar het provinciespoor krijgt een eigen terugblik van Lammert Veenstra aan de kade.
 
 ### (b) Verhaalboog, rangen, bijfiguren, plekken
 
 **Rangen** (het bestaande vak Water in `loopbaan.js`): Dekhulp, Roeier, Schipper, Kapitein, Havenmeester, Zeebaas van de Waddenzee. Dekhulp tot Schipper is het stadsspoor; Kapitein en verder het provinciespoor met een binnenvaartschip, later een zeeschip (`zeeschipvaart.js`, loodsen bij Lauwersoog en de Eemshaven).
 
-**Bijfiguren**: **Schipper Okke** (stad), **Fenna** (gids-student), **Schipper Geert** (provincie), **havenmeester Tjalling in Zoutkamp**, **sluiswachter Berendien** (bij een sluis wachten is het spel), **de loods bij Lauwersoog** (een stem op de marifoon).
+**Bijfiguren**: **Wiebe Hazenberg** (stad), **Noor** (gids-student), **Lammert Veenstra** (provincie), **havenmeester Tjalling in Zoutkamp**, **sluiswachter Dina** (bij een sluis wachten is het spel), **de loods bij Lauwersoog** (een stem op de marifoon).
 
 **Plekken**: *stad* (Diepenring, Noord-Willemskanaal), *Westerkwartier en Gorecht* (Van Starkenborghkanaal, Aduarderdiep), *Hogeland en Veenkoloniën* (Eemskanaal, Winschoterdiep: kanalen die vracht dragen), *Waddenkust en Lauwersmeer* (Zoutkamp, Lauwersoog, Eemshaven, Dollard). Het vaarnet staat in `vaarnet.js` en de graaf in `game/vaarnet.json`.
 
 **Jelle**: een **havenvergunning** voor de snackwagen ("een standplaats op het water is geen standplaats, zie artikel 12 lid 4"), een **omroep bij de sluis** die het "verplichte rustpunt" uitroept, en een brief over de maximale doorvaarthoogte voor wie "groot en stoer" wil lijken.
 
-**Tammo en Tessa**: Okke die zegt dat ze "een goed team zijn als ze elkaar durven aan te kijken"; een foto in het logboek van twee jonge schippers waarvan er één lijkt op Tessa; en de taak "geef de stuurboordkant aan de ander", die vertrouwen vraagt.
+**Tammo en Tessa**: Wiebe die zegt dat ze "een goed team zijn als ze elkaar durven aan te kijken"; een foto in het logboek van twee jonge schippers waarvan er één lijkt op Tessa; en de taak "geef de stuurboordkant aan de ander", die vertrouwen vraagt.
 
 ### (c) De eindeloze modus
 
@@ -402,11 +402,11 @@ Gebouwd: samen op een boot (`coopboot.js`). *Nieuw*: een bemanning met rollen (s
 
 ### (a) Verhalende aanleiding
 
-**Dit is geen loopbaan die je start; het is waar alles samenkomt.** Het slotstuk volgt uit wat de speler al deed: aardappelen van de boer, de bakker van de voetbalclub, vergunningen van Jelle, een bus die bij de kade stopt, een schip dat uien aanvoert, en Beppe's recept van 1953 (`wagen:menu`: vet, eieren, zout, meel en mosterd). Het eerste uur heeft al een terloopse hint gegeven (Jelle's eerste brief, een kroketstand op de kade).
+**Dit is geen loopbaan die je start; het is waar alles samenkomt.** Het slotstuk volgt uit wat de speler al deed: aardappelen van de boer, de bakker van de voetbalclub, vergunningen van Jelle, een bus die bij de kade stopt, een schip dat uien aanvoert, en Oma Trijntjes recept van 1953 (`wagen:menu`: vet, eieren, zout, meel en mosterd). Het eerste uur heeft al een terloopse hint gegeven (Jelle's eerste brief, een kroketstand op de kade).
 
 De code kent al een ruggengraat van verhaalvlaggen (`snackstory.js`, `storymilestones.js`): `wagen:idee`, `wagen:menu`, `wagen:stek`, `wagen:team`, `wagen:naam` (de wagenbelettering "TAM & TES"), `wagen:standplaats`, `wagen:keten`. Dit document laat ze staan en geeft ze gezichten.
 
-**Begrijpelijk voor iedereen.** Dit is het enige stuk dat niet los te spelen is zonder het verhaal. Het begint daarom met een **terugblik in beeld**: een korte fotoreeks bij Beppe's keukentafel met de mensen die hierheen leidden (de tante, de dorpsclub, de bus, de schipper), elk met naam en één zin. Een gast die dit mee wil spelen krijgt de reeks ook. De wagen zelf is voor iedereen te begrijpen: Beppe's recept, een kassa, een rij klanten.
+**Begrijpelijk voor iedereen.** Dit is het enige stuk dat niet los te spelen is zonder het verhaal. Het begint daarom met een **terugblik in beeld**: een korte fotoreeks bij Oma Trijntjes keukentafel met de mensen die hierheen leidden (Oom Hindrik, de dorpsclub, de bus, de schipper), elk met naam en één zin. Een gast die dit mee wil spelen krijgt de reeks ook. De wagen zelf is voor iedereen te begrijpen: Beppe's recept, een kassa, een rij klanten.
 
 ### (b) Verhaalboog, rangen, bijfiguren, plekken
 
@@ -418,7 +418,7 @@ De code kent al een ruggengraat van verhaalvlaggen (`snackstory.js`, `storymiles
 
 **Rangen en systemen** (`snackvan.js`, `snackrules.js`): standplaats, wagen, menu, team, keten, concurrent (Us Mem Snacks), eindscore **Snackimperium**. De ketenlaag **Kroketkoning** (`snackketen.js`) is een tweede lijn waarin je bestaande snackbars koopt; het verhaal moet kiezen of het ze verbindt (open punt, zie §0c en §9).
 
-**Bijfiguren** (bestaande eerst): **Berend, Tinus en Wubbo** (de eerste medewerkers, `snackstory.js`; Wubbo valt samen met de bakker uit voetbal als deel 1 dat goedkeurt), **Lammert** (kade), **Us Mem Snacks** (concurrent, parodie op een Friese keten, met zorg), **Beppe** (het recept); nieuw voor het slot: **Notarisklerk Rieneke** (de papieren), **De Burgemeester van het feest** (een ambtenaar met een lintje), **Jelle's oma** (alleen een stem tot het feest).
+**Bijfiguren** (bestaande eerst): **Berend, Tinus en Wubbo** (de eerste medewerkers, `snackstory.js`), **bakker Jaap Roorda** (uit voetbal, de leverancier), **Lammert Visser** (kade), **Us Mem Snacks** (concurrent, parodie op een Friese keten, met zorg), **Oma Trijntje** (het recept); nieuw voor het slot: **Notarisklerk Rieneke** (de papieren), **De Burgemeester van het feest** (een ambtenaar met een lintje), **Jelle's oma** (alleen een stem tot het feest).
 
 **Plekken**: stad (Vismarkt, Lammerts kade, kermis), Waddenkust (de eerste standplaats bij Lauwersoog), Hogeland en Veenkoloniën (leveranciers), Westerkwartier en Gorecht (de eerste klanten).
 
@@ -474,7 +474,7 @@ Gebouwd: een eigen toestand per speler (`bezit.x.snack`), en de wagens zijn voor
 | Vervoer | Alle | supporters, kisten, mensen |
 | Voetbal | Snackwagen | de standplaats bij elke thuiswedstrijd |
 
-**Gedeelde personages**: Beppe, Wubbo de bakker (voetbal en snack), Lutje (boer en vervoer), Dispatcher Annemarie (vervoer en water), Jelle (een brief in elke loopbaan).
+**Gedeelde personages**: Beppe, Jaap Roorda de bakker (voetbal en snack), Lutje (boer en vervoer), Dispatcher Annemarie (vervoer en water), Jelle (een brief in elke loopbaan).
 
 **Gezamenlijke evenementen** (altijd zomer, eigen sfeer per gebied; de stad verandert langzaam en aangekondigd):
 
@@ -540,7 +540,7 @@ De volledige analyse staat in [00-feedback-lessen.md](00-feedback-lessen.md) (ap
 2. **Simulator-diepte voor twee loopbanen tegelijk (boer én voetbal) is niet realistisch in één ronde.** Elk is zelf een groot spel. Aanbeveling: één per keer, met een heldere definitie van "klaar" (wat moet de speler na 40 uur nog kunnen), en de andere op het bestaande niveau houden.
 3. **Samen spelen met gedeeld bezit** (medeboer, clubkas, lading, handel) raakt de eigen-voortgang-regel (#429) en vraagt nieuwe netwerkregels; hier zijn de meeste bugs te verwachten. Aanbeveling: eerst "elk een eigen loopbaan in dezelfde wereld" (geen nieuw gedeeld bezit), pas daarna handel en gedeeld bezit, elk met een testbankstap.
 4. **Veel bestaande systemen zijn "gebouwd, niet in beeld bekeken".** Voetbalcarrière, boerderij en snackimperium hebben elk een verificatiedoc dat zegt dat een deel nog in Electron moet worden gecontroleerd. Nieuw verhaal op een niet gecontroleerde basis is risicovol (zie §8).
-5. **Canon.** Beppe en Oma Trijntje en de wijziging van de oom/tante vragen een besluit in deel 1 voor er scènes worden geschreven (§0c).
+5. **Canon.** Beppe en Oma Trijntje en de oom/tante zijn besloten in deel 1 (§2.4, §6.4): Beppe is Tammo's oma, Oma Trijntje is Tessa's oma en houdt het recept, Oom Hindrik schenkt de hoeve.
 6. **Saves.** Een speler met een bestaande boerderij of carrière moet die houden als het erfenisverhaal later komt; migratie is hier een eis.
 7. **De terugblik per loopbaan** (§0b) is extra stem en extra scènes: ze moeten kort blijven (twintig tot dertig seconden), anders verdubbelt het werk.
 
@@ -560,7 +560,7 @@ De volledige analyse staat in [00-feedback-lessen.md](00-feedback-lessen.md) (ap
 
 Eén doorlopend pad, zodat elk deel apart speelbaar en te controleren is:
 
-1. **Canon en stem vastleggen** (deel 1): Beppe en Oma Trijntje, namen van bijfiguren, een stemlimiet, de plek van de erfenis, het "Wie is wie"-menu. Geen code.
+1. **Canon en stem vastleggen** (deel 1): namen van bijfiguren (beslist: namenregister §2.4), een stemlimiet, het "Wie is wie"-menu. Geen code.
 2. **Basis voor begrijpelijkheid**: het "Wie is wie" en de terugblik-regel (§0b) als kleine, gedeelde bouwsteen, zodat elke loopbaan hem hergebruikt.
 3. **Vervoer** (kortste en meest verweven): verhaalingang en eerste dienst, bijfiguren. Geeft de reisroutes die de rest nodig heeft.
 4. **Boer, verhaal eerst**: erfenis, eerste seizoenen, bijfiguren. De diepte per rang erachteraan (gewasrotatie, dan veehouderij).

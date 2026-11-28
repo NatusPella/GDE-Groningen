@@ -220,7 +220,7 @@ Het is een **spel**, geen vijandschap. Groningers plagen Friezen (*pompeblêd*),
 | Einde | Overlijdt rustig na het Ontzet; begrafenis in Oudwoude | Leeft door; in de nazomer de standplaats met Mem |
 | Ontmoeten elkaar | pas in **H16** (F3 Soep en eierbal), waar de twee oma's elkaar een stoel geven | |
 
-**Namenregister: dubbelingen met deel 2 (`02-loopbanen.md`, branch `verhaalbijbel-2-28-11`) en met de bestaande cast, gelijkgetrokken.** Regel: de bestaande cast (dossiers) wint; deel 2 past aan. Deel 2 is geschreven zonder kennis van dit blad en noemt bij een paar rollen een andere naam of een andere functie; die staan hier gelijk. Ik heb dat bestand niet gewijzigd (andere branch); de coördinator voert dit register door bij de samenvoeging.
+**Namenregister: dubbelingen met deel 2 (`02-loopbanen.md`, branch `verhaalbijbel-2-28-11`) en met de bestaande cast, gelijkgetrokken.** Regel: de bestaande cast (dossiers) wint; deel 2 past aan. Deel 2 is geschreven zonder kennis van dit blad en noemt bij een paar rollen een andere naam of een andere functie; die staan hier gelijk. Het register is doorgevoerd in `02-loopbanen.md` (28-11, #1398); de oude namen staan alleen nog in de linkerkolom hieronder.
 
 | Deel 2 zegt | Botst met | Besluit in de bijbel |
 |---|---|---|
