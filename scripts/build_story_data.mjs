@@ -77,6 +77,12 @@ export const SPEAKER_TABLE = {
   DAAN: sp('daan', 'Daan'),
   STIEN: sp('stien', 'Stien'),
   FEMKE: sp('femke', 'Femke'),
+  // voetbal (09-script-voetbal.md, #1374): geen opnames
+  ALBERT: sp('albert', 'Albert Teuben'),
+  EPPO: sp('eppo', 'Eppo Rozema'),
+  HILBRAND: sp('hilbrand', 'Hilbrand'),
+  DEVRIES: sp('devries', 'Mevrouw De Vries-Jansen'),
+  JAAP: sp('jaap', 'Jaap Roorda'),
   // Deel 4 (09-script-akte6.md): no recordings
   WILLEMIEN: sp('willemien', 'Willemien'),
   BUURVROUW: sp('buurvrouw', 'Buurvrouw'),
@@ -104,7 +110,7 @@ function stepOf(id) {
   let m;
   if ((m = /^M(\d\d)\./.exec(id))) return 'M' + m[1];
   if ((m = /^T(\d)/.exec(id))) return 'T' + m[1];
-  if ((m = /^([NJFKWD])(\d+)(?:\.|$)/.exec(id))) return m[1] + m[2];
+  if ((m = /^([NJFKWDV])(\d+)(?:\.|$)/.exec(id))) return m[1] + m[2];
   if (/^C00\./.test(id)) return 'M00';
   if (/^E\d$/.test(id)) return 'E';
   return null;
@@ -155,10 +161,10 @@ function applyHumor(scenes) {
 }
 
 export function parseScripts() {
-  const files = fs.readdirSync(SRC).filter((f) => /^09-script-akte\d\.md$/.test(f)).sort();
+  const files = fs.readdirSync(SRC).filter((f) => /^09-script-(akte\d|voetbal)\.md$/.test(f)).sort();
   const scenes = [];
   for (const f of files) {
-    const act = Number(/akte(\d)/.exec(f)[1]);
+    const act = f === '09-script-voetbal.md' ? 6 : Number(/akte(\d)/.exec(f)[1]);        // de voetbalscènes (#1374) horen bij Deel 4, na de verhaallijn
     let scene = null;
     for (const raw of fs.readFileSync(path.join(SRC, f), 'utf8').split(/\r?\n/)) {
       const h = raw.match(/^## \[([^\]]+)\] (.*)$/);

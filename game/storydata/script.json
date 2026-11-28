@@ -189,6 +189,26 @@
    "name": "Femke",
    "voice": "Femke"
   },
+  "albert": {
+   "name": "Albert Teuben",
+   "voice": "Albert Teuben"
+  },
+  "eppo": {
+   "name": "Eppo Rozema",
+   "voice": "Eppo Rozema"
+  },
+  "hilbrand": {
+   "name": "Hilbrand",
+   "voice": "Hilbrand"
+  },
+  "devries": {
+   "name": "Mevrouw De Vries-Jansen",
+   "voice": "Mevrouw De Vries-Jansen"
+  },
+  "jaap": {
+   "name": "Jaap Roorda",
+   "voice": "Jaap Roorda"
+  },
   "willemien": {
    "name": "Willemien",
    "voice": "Willemien"
@@ -24796,6 +24816,449 @@
      "tag": "NIEUW",
      "channel": "telefoon",
      "textOnly": true
+    }
+   ]
+  },
+  {
+   "id": "V1.1",
+   "title": "De invalbeurt: de trainingsavond",
+   "act": 6,
+   "region": "Hogeland, Warffum, het sportpark van De Hoekers",
+   "vehicle": "te voet",
+   "step": "V1",
+   "kind": "key",
+   "regie": [
+    "avond, een gewone trainingsavond op het dorpsveld van De Hoekers, lage zon over het gras. Naamkaart: ALBERT TEUBEN, voorzitter, bij zijn eerste regel; daarna EPPO ROZEMA, trainer. Eppo legt suikerklontjes op een koekenpan. Tammo en Tessa lopen langs het hek en blijven staan."
+   ],
+   "lines": [
+    {
+     "speaker": "Albert Teuben",
+     "key": "albert",
+     "text": "Welkom bij De Hoekers. Ik ben Albert Teuben, de voorzitter. De ledenlijst klopt nooit, maar de koffie wel.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Eppo Rozema",
+     "key": "eppo",
+     "text": "Eppo Rozema, de trainer. Kijk, dit suikerklontje is ons middenveld.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tammo",
+     "key": "T",
+     "text": "Wij zijn Tammo en Tessa. Wij liepen alleen langs het veld.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tessa",
+     "key": "A",
+     "text": "En dat klontje daar?",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true,
+     "voice": "Anita"
+    },
+    {
+     "speaker": "Eppo Rozema",
+     "key": "eppo",
+     "text": "De linksbuiten. Die staat zondag in de basis.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Albert Teuben",
+     "key": "albert",
+     "text": "Het klontje is zekerder dan sommige spelers.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    }
+   ]
+  },
+  {
+   "id": "V1.2",
+   "title": "De invalbeurt: de zondag",
+   "act": 6,
+   "region": "Hogeland, Warffum, het sportpark van De Hoekers",
+   "vehicle": "te voet",
+   "step": "V1",
+   "kind": "key",
+   "gameplay": "de speler ziet de scène; de wedstrijd zelf volgt in de loopbaan.",
+   "regie": [
+    "zondag, vlak voor de wedstrijd. De ploeg staat in de kring, er zijn er tien. Albert staat langs de lijn met zijn ledenlijst. Tammo en Tessa staan er toevallig weer. Gameplay: de speler ziet de scène; de wedstrijd zelf volgt in de loopbaan.",
+    "de fluit. Een lange middag: Tessa rent langs de lijn, de bal rolt, Tammo houdt haar tas vast."
+   ],
+   "lines": [
+    {
+     "speaker": "Eppo Rozema",
+     "key": "eppo",
+     "text": "Onze linksbuiten ligt eruit. Met een natte sok, geloof ik. We hebben nog maar tien man.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tammo",
+     "key": "T",
+     "text": "Tessa kan dit. Ze was bij elk straatpotje scheidsrechter.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tessa",
+     "key": "A",
+     "text": "Scheidsrechter, Tammo. Dat is niet hetzelfde als spelen.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true,
+     "voice": "Anita"
+    },
+    {
+     "speaker": "Albert Teuben",
+     "key": "albert",
+     "text": "Kun je een bal raken, Tessa?",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tessa",
+     "key": "A",
+     "text": "Een beetje. Waar zijn de schoenen?",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true,
+     "voice": "Anita"
+    },
+    {
+     "speaker": "Tammo",
+     "key": "T",
+     "text": "Ik regel de schoenen en de papieren. Ik sta wel aan de lijn.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Eppo Rozema",
+     "key": "eppo",
+     "text": "Links, Tessa. Daar gebeurt het. Het klontje blijft in de kast.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    }
+   ]
+  },
+  {
+   "id": "V1.3",
+   "title": "De invalbeurt: het clubhuis",
+   "act": 6,
+   "region": "Hogeland, Warffum, het clubhuis van De Hoekers",
+   "vehicle": "te voet",
+   "step": "V1",
+   "kind": "key",
+   "regie": [
+    "na de wedstrijd, het clubhuis van De Hoekers. Boven de koffieautomaat hangt het wedstrijdbord: de opstelling, een naam doorgestreept en Tessa's naam erbij, in potlood. Ernaast hangt de eerste wedstrijdfoto."
+   ],
+   "lines": [
+    {
+     "speaker": "Albert Teuben",
+     "key": "albert",
+     "text": "Onze linksbuiten ligt eruit. Tessa was er toevallig en ze kan het. Zo begon het.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Albert Teuben",
+     "key": "albert",
+     "text": "Het bord hangt hier boven de koffieautomaat. Haar naam staat erop, met potlood.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tessa",
+     "key": "A",
+     "text": "Waarom potlood?",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true,
+     "voice": "Anita"
+    },
+    {
+     "speaker": "Albert Teuben",
+     "key": "albert",
+     "text": "Tot de papieren er zijn. Dan gaat er inkt overheen.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tammo",
+     "key": "T",
+     "text": "De papieren regel ik. Ik heb een map.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Albert Teuben",
+     "key": "albert",
+     "text": "De foto hangt ernaast. De eerste wedstrijdfoto.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tessa",
+     "key": "A",
+     "text": "Ik kijk naar de bal.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true,
+     "voice": "Anita"
+    },
+    {
+     "speaker": "Albert Teuben",
+     "key": "albert",
+     "text": "Je kijkt naar Tammo. Bij het hek, met je tas.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tammo",
+     "key": "T",
+     "text": "Ik hield de tas vast. En je handschoen zit nog in mijn jaszak.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tessa",
+     "key": "A",
+     "text": "Hou hem maar.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true,
+     "voice": "Anita"
+    },
+    {
+     "speaker": "Albert Teuben",
+     "key": "albert",
+     "text": "Volgende week weer, Tessa?",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tessa",
+     "key": "A",
+     "text": "Volgende week weer.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true,
+     "voice": "Anita"
+    }
+   ]
+  },
+  {
+   "id": "V3.2",
+   "title": "Rang 2, Debuut: het eerste doelpunt",
+   "act": 6,
+   "region": "Hogeland, Warffum",
+   "vehicle": "te voet",
+   "step": "V3",
+   "kind": "key",
+   "regie": [
+    "stille ondertitelpraat na de stijging, geen camera. Het dorp stond langs de lijn."
+   ],
+   "lines": [
+    {
+     "speaker": "Hilbrand",
+     "key": "hilbrand",
+     "text": "Hilbrand van de krant. Je eerste doelpunt, Tessa, en het halve dorp stond langs de lijn.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Femke",
+     "key": "femke",
+     "text": "Femke, de keeper van De Hoekers. Ik ken je van vroeger. Jij schiet, ik pak de rest.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tammo",
+     "key": "T",
+     "text": "Dat is een goede afspraak.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    }
+   ]
+  },
+  {
+   "id": "V3.3",
+   "title": "Rang 3, Selectie: de promotie",
+   "act": 6,
+   "region": "Hogeland, Uithuizen",
+   "vehicle": "te voet",
+   "step": "V3",
+   "kind": "key",
+   "regie": [
+    "stille ondertitelpraat na de promotie uit de Talentenklasse."
+   ],
+   "lines": [
+    {
+     "speaker": "Eppo Rozema",
+     "key": "eppo",
+     "text": "Promotie. Ik heb het klontje bewaard voor de foto.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Albert Teuben",
+     "key": "albert",
+     "text": "De ledenlijst is er twaalf bij. Ze klopt nog steeds niet.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Femke",
+     "key": "femke",
+     "text": "Ik kwam een dag te laat voor het feest. Zoals altijd.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    }
+   ]
+  },
+  {
+   "id": "V3.4",
+   "title": "Rang 4, Doorbraak: langs de Waddenkust",
+   "act": 6,
+   "region": "Hogeland, Roodeschool",
+   "vehicle": "te voet",
+   "step": "V3",
+   "kind": "key",
+   "regie": [
+    "stille ondertitelpraat na de eerste uitwedstrijd langs de Waddenkust. Een vrouw met een kladblok en een paraplu die ze niet nodig heeft."
+   ],
+   "lines": [
+    {
+     "speaker": "Mevrouw De Vries-Jansen",
+     "key": "devries",
+     "text": "Mevrouw De Vries-Jansen, scout van De Stadjers. U speelde goed langs het wad.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tammo",
+     "key": "T",
+     "text": "Schrijft u dat op?",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Mevrouw De Vries-Jansen",
+     "key": "devries",
+     "text": "Ik schrijf zelden iets op. Dat is mijn methode.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    }
+   ]
+  },
+  {
+   "id": "V3.5",
+   "title": "Rang 5, Kapitein: de band",
+   "act": 6,
+   "region": "Stad, Groningen",
+   "vehicle": "te voet",
+   "step": "V3",
+   "kind": "key",
+   "regie": [
+    "stille ondertitelpraat als Tessa aanvoerder wordt. Een mand met koeken."
+   ],
+   "lines": [
+    {
+     "speaker": "Jaap Roorda",
+     "key": "jaap",
+     "text": "Jaap Roorda, de bakker. Een kapitein krijgt koeken. Dat staat nergens, maar zo is het.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tessa",
+     "key": "A",
+     "text": "Dank u. Ik draag de band nog even rustig.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true,
+     "voice": "Anita"
+    },
+    {
+     "speaker": "Jaap Roorda",
+     "key": "jaap",
+     "text": "Rustig kan niet. Een band om je arm weegt meer dan hij lijkt.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    }
+   ]
+  },
+  {
+   "id": "V3.6",
+   "title": "Rang 6, Trainer en Manager: de Euroborg",
+   "act": 6,
+   "region": "Stad, Euroborg",
+   "vehicle": "te voet",
+   "step": "V3",
+   "kind": "key",
+   "regie": [
+    "stille ondertitelpraat bij de ingang van de Euroborg, het veld licht groen in de avondzon."
+   ],
+   "lines": [
+    {
+     "speaker": "Mevrouw De Vries-Jansen",
+     "key": "devries",
+     "text": "Ik zei het al. Wie langs het wad begint, eindigt in de Euroborg.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tammo",
+     "key": "T",
+     "text": "Het stadion ruikt naar frietjes.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tessa",
+     "key": "A",
+     "text": "Dat is een goed teken.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true,
+     "voice": "Anita"
     }
    ]
   }

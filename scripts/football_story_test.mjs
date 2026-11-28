@@ -75,7 +75,7 @@ t('V1: de aanleiding is data in drie delen met sprekers die in de cast of het du
   const bekend = new Set(['Tammo', 'Tessa', ...V.CAST.map((p) => p.naam)]);
   for (const l of alles) { assert.ok(bekend.has(l.wie), l.wie); assert.ok(l.tekst.length > 8 && !hasForbiddenWord(l.tekst)); assert.ok(!/\bde Grunn\b/i.test(l.tekst)); }
   // de speler leert de mensen op de trainingsavond kennen vóór de uitval op zondag
-  assert.deepEqual(V.invalLines('avond').map((l) => l.wie), ['Albert Teuben', 'Eppo Rozema', 'Remco Zwart']);
+  assert.deepEqual(V.invalLines('avond').map((l) => l.wie), ['Albert Teuben', 'Eppo Rozema', 'Tammo', 'Tessa', 'Eppo Rozema', 'Albert Teuben']);
   assert.ok(V.invalLines('zondag').some((l) => l.wie === 'Tessa'), 'Tessa valt in');
   assert.ok(V.invalLines('zondag').some((l) => l.wie === 'Tammo'), 'Tammo staat langs de lijn');
   const terug = V.guestRetrospect();
