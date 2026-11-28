@@ -56,7 +56,7 @@ t('sterkere clubs eindigen gemiddeld hoger; de uitkomst is geen vaste volgorde',
   const ids = clubsOf('kroon').map((c) => c.id);
   let top = 0, plekSom = {};
   for (let s = 1; s <= 60; s++) { const tb = table(playOut(newLeague('kroon', ids), s, ctx)); if (tb[0].id === 'grachtenhelden') top++; tb.forEach((r) => { plekSom[r.id] = (plekSom[r.id] || 0) + r.plek; }); }
-  assert.ok(plekSom.grachtenhelden < plekSom.domtorenaars - 60, 'de sterkste club eindigt gemiddeld meer dan een plek hoger');
+  assert.ok(plekSom.grachtenhelden < plekSom.noorderlichters - 60, 'de sterkste club eindigt gemiddeld meer dan een plek hoger');
   assert.ok(top >= 8 && top <= 48, `de sterkste wordt vaak kampioen maar niet altijd: ${top}/60`);
   assert.ok(lambdaFor(70, 40, true) > lambdaFor(40, 70, false));
   assert.ok(lambdaFor(1, 100, false) >= 0.2 && lambdaFor(100, 1, true) <= 4);

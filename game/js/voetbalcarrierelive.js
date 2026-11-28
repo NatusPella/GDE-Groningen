@@ -11,6 +11,7 @@ import { loopbaanVerdien } from './loopbaanlive.js';
 import { euro } from './geldtekst.js';
 import { voetbalOpen, progressFrom } from './voetbalpoort.js';
 import { nextBeat, inviteBeat, markBeat, hudLine, beatText } from './voetbalbeats.js';
+import { storyHome, nextStoryBeat, markStoryBeat, storyHudLine } from './footballstory.js';
 import { getStoryView, storyGateProgress } from './storyquery.js';
 import { unlockAchievement } from './achievements.js';
 import { playerBusy } from './busy.js';
@@ -100,7 +101,8 @@ export function payEarn(w, lines, { xp = 0, label = '' } = {}) {
 // Een nieuwe carrière (de speler nam de uitnodiging aan): `char` is het personage waarmee hij speelt.
 export function createNew(_w, char, day = 0) {
   const [hx, hy] = wgsToWorld(HOME_WGS.lat, HOME_WGS.lon);
-  career = C.createCareer({ char, index: getIndex(), home: { x: hx, y: hy }, day });
+  const idx = getIndex();
+  career = C.createCareer({ char, index: idx, home: storyHome(idx) || { x: hx, y: hy }, day });      // de start ligt bij de dorpsclub op het Hogeland (footballstory.js); zonder die plaats in de data blijft het Paddepoel
   mark(); saveNow();
   return career;
 }
@@ -221,7 +223,13 @@ export function updateBeats(dt, w) {
     return inv;
   }
   const b = nextBeat(c, ctx);
-  if (!b) return null;
+  if (!b) {
+    const sb = nextStoryBeat(c, ctx);      // de verhaalbeats per rang en Jelle's brief (footballstory.js); pas als de tien vaste beats niet aan de beurt zijn
+    if (!sb) return null;
+    if (w.addMessage) w.addMessage(storyHudLine(sb), 7, { kind: 'tip', key: `voetbal-${sb.id}` });
+    career = markStoryBeat(c, sb, ctx.day); mark();
+    return sb;
+  }
   if (w.addMessage) w.addMessage(hudLine(b, c.char), 7, { kind: 'tip', key: `voetbal-${b.id}` });
   career = markBeat(c, b, ctx.day); mark();
   return b;
