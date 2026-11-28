@@ -1,0 +1,21 @@
+{
+  "_noot": "Budgetten en aannames voor audio-opslag en laadbudget (#1390). De budgetten zijn plafonds (docs/AUDIO-BUDGET-28-11.md): de controle faalt als de huidige stand erboven zit. De aannames komen uit docs/verhaal/bijbel-28-11/03-wereld-en-bouwplan.md §4.2 en docs/PAGES-BUILD-21-11.md; ze zijn schattingen, geen metingen.",
+  "budget": {
+    "clipGemiddeldKB": 25,
+    "clipMaxKB": 150,
+    "voicelinesMB": 320,
+    "audioTotaalMB": 550,
+    "dubbeleClipsMax": 0,
+    "sceneLadingMB": 1.5,
+    "perSpeeluurMB": 3.5,
+    "webPagesMB": 800,
+    "installatiePortableMB": 750
+  },
+  "aannames": {
+    "regelsPerUur": { "laag": 125, "hoog": 162.5 },
+    "bestaandeVerhaalregels": 1390,
+    "opusRatio": 0.56,
+    "web": { "nuBeideMB": 598.6, "nuOpusMB": 179, "nietAudioMB": 115.6 },
+    "install": { "nuPortableMB": 450 }
+  }
+}
