@@ -4,13 +4,13 @@
 // Toetsen: pijlen en WASD, 1 en 2, Enter of spatie, Escape of Backspace (Alleen). Een controller geeft dezelfde toetsen (input.js).
 import { icoon } from './icons.js';
 import { keyLabelHtml, keyTextHtml } from './keycap.js';
-import { KEUZES, LAUNCH_TEXT, TOESTEMMING_TEKST, toetsActie } from './launchchoice.js';
+import { KEUZES, LAUNCH_TEXT, TOESTEMMING_TEKST, toetsActie, rolVoorkeur } from './launchchoice.js';
 import { geefToestemming, moetNaamVragen, moetToestemmingVragen } from './onlineconsent.js';
 import { openOnlineStart, meerInfoHtml, wieZietWatHtml } from './onlineconsentui.js';
 import { getSettings } from './settings.js';
 import { trapTabInCard, bewaarFocus } from './listnav.js';
 import { knopToets } from './dsbutton.js';
-import { menuItems, startFocus, menuToets, uitkomstVan, nieuwSpelPlan, ladenPlan, heldRegels } from './hoofdmenu.js';
+import { menuItems, startFocus, menuToets, uitkomstVan, nieuwSpelPlan, ladenPlan, heldRegels, samenKeuzePlan, samenGekozen } from './hoofdmenu.js';
 import { isPauseMenuOpen } from './pausestate.js';
 
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -152,8 +152,32 @@ export async function openHoofdmenu({ index = 0 } = {}) {
     try { el.remove(); } catch (e) { /* al weg */ }
     klaar(modus);
   };
+  // wat de boot straks doet met de keuze voor Samen spelen: een gekozen plek blijft de plek, Nieuw spel een verse plek (nooit een overschrijving)
+  const gekozenSamen = (keuze) => {
+    // staat er al een verse plek klaar (Nieuw spel gekozen, daarna Terug uit naam, akkoord of sessiekeuze), dan komt er geen tweede bij
+    const heeft = (metSave || aantal > 0) && !SG.isFreshStart();
+    const g = samenGekozen(keuze, { heeftSave: heeft, vrijePlek: !!freeSlot(null) });
+    if (g.actie === 'vol') { zegt(g.tekst); zet(nu); return; }
+    if (g.actie === 'nieuwe-plek' && !startNewSlot()) { zegt('Er kon geen nieuwe plek worden gemaakt; je spellen zijn niet veranderd.'); zet(nu); return; }
+    // een verse plek van een eerdere keuze (Terug uit de sessiekeuze) mag de boot niet als "Nieuw spel" op deze plek laten beginnen: de gekozen plek is een bestaand spel
+    if (g.soort === 'plek') { S.clearFresh(null); markStay(null, g.n); }
+    if (g.soort === 'geen') { zet(nu); return; }
+    sluit('samen');
+  };
   const doe = (id) => {
-    if (id === 'doorgaan' || id === 'samen') { sluit(uitkomstVan(id)); return; }
+    if (id === 'doorgaan') { sluit(uitkomstVan(id)); return; }
+    if (id === 'samen') {
+      // 28-11: eerst de opslagkeuze (lokaal, er gaat niets over het netwerk), daarna naam, akkoord en de sessiekeuze (launchchoice.js askLaunchChoice)
+      const plan = samenKeuzePlan({ aantal: listSlots(null).length, rol: rolVoorkeur(getSettings()) });
+      if (plan.actie === 'nieuw') { gekozenSamen('nieuw'); return; }
+      openSaveSlots({
+        mode: 'start', pick: true, nieuwEerst: true, eyebrow: plan.eyebrow, titel: plan.titel, hint: plan.hint, loadLabel: plan.loadLabel,
+        onPick: (n) => gekozenSamen(n),
+        onNew: () => gekozenSamen('nieuw'),
+        onClose: () => zet(nu),
+      });
+      return;
+    }
     if (id === 'nieuw') {
       const plan = nieuwSpelPlan({ heeftSave: metSave || (aantal > 0 && !SG.isFreshStart()), vrijePlek: !!freeSlot(null) });
       if (plan.actie === 'vol') { zegt(plan.tekst); return; }

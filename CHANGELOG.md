@@ -9,6 +9,8 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ## [Unreleased]
 
+- Het hoofdmenu heeft weer een levende achtergrond: een rustige vlucht rond de Martinitoren en de Grote Markt in het ochtendlicht. Eerst staat de luchtfoto er, zodra de eerste straten er zijn vervaagt die naar de stad. Het laden gaat er niet door trager en er gaat niets over het netwerk. Samen spelen (regel 28-11): dit is lokaal en van iedereen zelf; wie meespeelt ziet hem in zijn eigen hoofdmenu.
+- Samen spelen begint nu met de keuze van een opgeslagen spel: "Kies welke wereld je host" (Nieuw spel staat vooraan), of "Kies je eigen spel" als je met een code meedoet; dat spel bewaart jouw eigen geld, voortgang en kleding. Er wordt niets overschreven: een nieuw spel krijgt een lege plek. Samen spelen (regel 28-11): van elke speler zelf, per speler (#429); zonder opgeslagen spel is Nieuw spel de keuze, ook voor een gast.
 - De game staat nu op de hoofdpagina van de webversie (GitHub Pages); de marketingpagina is weggehaald. De oude link /play/ stuurt door naar de hoofdpagina.
 
 ## [0.66.0] - 2026-11-24
