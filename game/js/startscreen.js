@@ -9,7 +9,8 @@ import { VERSION } from './version.js';
 import { pointInPolygon } from './util.js';
 import { openPauseMenu, menuIcon } from './pausemenu.js';
 import { requestOpenSamen } from './samenpanel.js';
-import { ensureSamenProfile } from './launchchoiceui.js';
+import { ensureSamenProfile, isLaunchChoiceOpen, isToestemmingOpen } from './launchchoiceui.js';
+import { isOnlineStartOpen } from './onlineconsentui.js';
 import { askNewGameDifficulty } from './difficultyui.js';
 import { difficultyPlan } from './difficultycard.js';
 import { openSamenKeuze, isSamenKeuzeOpen } from './samenkeuze.js';
@@ -881,7 +882,8 @@ function runMenuScreen(world, { render, relocate, tick, ready }, pending = null)
     };
     news.querySelector('.ss-news-close').addEventListener('click', closeNews);
     const onKey = (e) => {
-      if (isPauseMenuOpen() || isSaveSlotsOpen() || isSamenKeuzeOpen() || isQuitConfirmOpen() || done || trailerOn) return;
+      if (isPauseMenuOpen() || isSaveSlotsOpen() || isSamenKeuzeOpen() || isOnlineStartOpen() || isLaunchChoiceOpen() || isToestemmingOpen() || isQuitConfirmOpen() || done || trailerOn) return;
+      if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA')) return;
       if (e.target && e.target.closest && e.target.closest('#gfx-advice')) return;
       const k = e.key;
       if (!news.hidden) {

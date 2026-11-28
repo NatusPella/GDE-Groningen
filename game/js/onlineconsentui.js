@@ -107,6 +107,7 @@ export function mountOnlineStart(root, { naam = '', onKies = () => {}, onTerug =
 }
 
 let bezig = null;
+export const isOnlineStartOpen = () => !!bezig;
 // De overlay boven het laadscherm; resolvet met de uitkomst van een geldige naam plus akkoord, of met null als de speler Terug koos
 // (alleen met `terug`). Er is geen time-out die hem zonder antwoord sluit.
 export function openOnlineStart({ naam = getSettings().onlineNaam, terug = false } = {}) {

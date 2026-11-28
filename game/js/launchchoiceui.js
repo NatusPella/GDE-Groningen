@@ -47,6 +47,8 @@ export function toestemmingHtml() {
 }
 
 let open = null; // één kaart tegelijk
+export const isLaunchChoiceOpen = () => !!open;
+export const isToestemmingOpen = () => !!(open && open.kind === 'toestemming');
 function backdrop() {
   const el = document.createElement('div');
   el.id = 'online-start';
@@ -93,7 +95,7 @@ export function openLaunchChoice({ index = 0 } = {}) {
     if (b) sluit(b.dataset.keuze);
   });
   knoppen.forEach((b, i) => b.addEventListener('mouseenter', () => zet(i))); // de muis volgt de focus: de knop onder de muis is de gekozen knop
-  open = { promise, el };
+  open = { promise, el, kind: 'keuze' };
   zet(nu);
   return promise;
 }
@@ -241,7 +243,7 @@ export function openToestemming({ zet = undefined } = {}) {
     if (!t) return;
     if (t.hasAttribute('data-terug')) sluit(false); else geef();
   });
-  open = { promise, el };
+  open = { promise, el, kind: 'toestemming' };
   vink.focus();
   return promise;
 }

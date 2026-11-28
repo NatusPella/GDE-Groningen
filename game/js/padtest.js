@@ -6,6 +6,7 @@ import { getSettings, setSetting } from './settings.js';
 
 let root = null;
 let raf = 0;
+let lastFocus = null;
 
 // de standaardnamen van de 17 knoppen van de Gamepad API, op volgorde
 const SLOTS = ['a', 'b', 'x', 'y', 'lb', 'rb', 'lt', 'rt', 'view', 'start', 'ls', 'rs', 'up', 'down', 'left', 'right', 'home'];
@@ -30,6 +31,10 @@ export function closePadTest() {
   window.removeEventListener('keydown', onKey, true);
   root.remove();
   root = null;
+  if (lastFocus && typeof lastFocus.focus === 'function' && lastFocus.isConnected !== false) {
+    try { lastFocus.focus({ preventScroll: true }); } catch (e) { /* focus terugzetten mislukt */ }
+  }
+  lastFocus = null;
 }
 
 // de indelingen waar de speler uit kiest als de letters op zijn knoppen anders zijn dan het spel denkt
@@ -50,6 +55,7 @@ function onKey(e) {
 
 export function openPadTest() {
   if (root) return;
+  lastFocus = document.activeElement;
   root = document.createElement('div');
   root.id = 'padtest';
   root.className = 'gm';
@@ -74,6 +80,7 @@ export function openPadTest() {
   q('.pt-close').focus();
   window.addEventListener('keydown', onKey, true);
   let last = '';
+  let lastFamily = '';
   const poll = () => {
     raf = requestAnimationFrame(poll);
     const pad = currentPad();
@@ -90,7 +97,8 @@ export function openPadTest() {
     }
     const btns = q('.pt-btns');
     const n = pad ? pad.buttons.length : 0;
-    if (btns.childElementCount !== n) {
+    if (btns.childElementCount !== n || family !== lastFamily) {
+      lastFamily = family;
       btns.innerHTML = '';
       for (let i = 0; i < n; i++) {
         const b = document.createElement('span');
