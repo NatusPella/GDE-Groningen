@@ -4,7 +4,7 @@
 // bestand is alleen DOM. Het werk zelf doe je op het land: de bijbaan "Eigen boerderij" bij Hoogkerk. Niet door een mens in beeld bekeken.
 import { icoon as fIcoon } from './icons.js';
 import * as B from './boerderij.js';
-import { getBoerderij, kiesGewas, koopMachine, getBedrijf, koopPerceel, huurPerceel, zegOpPerceel, verkoopPerceel, betaalSchuldPerceel, zetThuis, zetActief, schuurNaarErf, erfNaarSchuur, koopMachineCat, huurMachineCat, verkoopMachineCat, onderhoudMachine, loonwerk, loonwerkAfleveren, leenGeld, losAf, contracten, neemContract } from './boerderijlive.js';
+import { getBoerderij, kiesGewas, koopMachine, getBedrijf, koopPerceel, huurPerceel, zegOpPerceel, verkoopPerceel, betaalSchuldPerceel, zetThuis, zetActief, schuurNaarErf, erfNaarSchuur, koopMachineCat, huurMachineCat, verkoopMachineCat, onderhoudMachine, loonwerk, loonwerkAfleveren, leenGeld, losAf, contracten, neemContract, rangSlotVoor, rangStand } from './boerderijlive.js';
 import * as CT from './boerderijcontracten.js';
 import * as PC from './percelen.js';
 import * as M from './machines.js';
@@ -223,8 +223,10 @@ function machinepark(b, geld) {
   const cat = (ids) => ids.map((id) => {
     const c = PC.MACHINE_CATALOGUS[id];
     const feiten = c.soort === 'machine' ? [`${c.pk} pk`, `tank ${M.SPEC[id].tank} liter`] : (WT.WERKTUIG[c.type].taak ? [`voor ${B.TAKEN[WT.WERKTUIG[c.type].taak].naam.toLowerCase()}`] : ['vervoert de oogst']);
-    const k = knop('koop-cat', `Koop ${euro(c.koop)}`, { type: id }, geld < c.koop || vrij <= 0), h = knop('huur-cat', `Huur ${euro(c.huurDag)} per dag`, { type: id }, geld < c.huurDag || vrij <= 0);
-    return `<div class="bd-rij bd-pc" data-fp-rij="${fpSleutelCat(id)}">${fpHtml(fpSleutelCat(id), c.naam, 's')}<span class="bd-naam"><b>${esc(c.naam)}</b><span class="bd-feiten">${feiten.map((x) => `<span>${x}</span>`).join('')}</span></span><span class="bd-acties">${k} ${h}</span></div>`;
+    const slot = rangSlotVoor('machine', id);   // een machine die pas vanaf een hogere rang te koop is: de reden staat erbij (#1373), nooit een kale knop
+    const k = knop('koop-cat', `Koop ${euro(c.koop)}`, { type: id }, slot || geld < c.koop || vrij <= 0), h = knop('huur-cat', `Huur ${euro(c.huurDag)} per dag`, { type: id }, slot || geld < c.huurDag || vrij <= 0);
+    const reden = slot ? `<span class="mut bd-slot">${esc(slot.tekst)}</span>` : '';
+    return `<div class="bd-rij bd-pc" data-fp-rij="${fpSleutelCat(id)}">${fpHtml(fpSleutelCat(id), c.naam, 's')}<span class="bd-naam"><b>${esc(c.naam)}</b><span class="bd-feiten">${feiten.map((x) => `<span>${x}</span>`).join('')}</span>${reden}</span><span class="bd-acties">${k} ${h}</span></div>`;
   }).join('');
   const ploegen = B.MACHINE_IDS.map((id) => {
     const m = B.MACHINES[id];
@@ -235,7 +237,7 @@ function machinepark(b, geld) {
       (e ? '<span class="g">Van jou</span>' : `<button type="button" class="m-bt" data-bd-koop="${id}"${geld >= m.koop ? '' : ' disabled'}>Koop ${euro(m.koop)}</button>`) + '</div>';
   }).join('');
   return `<div class="pm-pane-top"><span class="m-eb">Boerderij De Zonnehoek</span><h2 class="m-h2 td-h2">${icoon('machines', 'pa-ico big')}Machines</h2></div>` +
-    `<p class="mut">Thuis: ${esc(thuis.naam)} · nog ${vrij} plekken vrij</p>${meerHtml('Een versleten machine rijdt trager en gebruikt meer diesel; een onderhoudsbeurt helpt.', 'Uitleg machines')}` +
+    rangRegel() + `<p class="mut">Thuis: ${esc(thuis.naam)} · nog ${vrij} plekken vrij</p>${meerHtml('Een versleten machine rijdt trager en gebruikt meer diesel; een onderhoudsbeurt helpt.', 'Uitleg machines')}` +
     `<div class="bd-live" data-fp-start="${fpSleutelCat(eigen[0] ? eigen[0].type : 'trekker-klein')}" aria-hidden="true"></div>` +
     `<div class="bd-toetsen">${[['E', 'instappen of koppelen'], ['G', 'aftakas'], ['T', 'heffen'], ['X', 'loskoppelen'], ['R', 'tanken']].map(([k, t]) => `<span><span class="m-kc">${k}</span>${t}</span>`).join('')}</div>` +
     `<p class="lb-titel"><b>Je machinepark</b></p>${rijen}` +
@@ -250,9 +252,16 @@ const machines = machinepark;
 
 // Percelen en erven (percelen.js): aanbod, kopen, leasen, opzeggen. Eén rij per perceel of erf met de knoppen die nu kunnen.
 const wereldPos = (d, b) => (d.id === PC.START_PERCEEL && b.perceel ? [b.perceel.x, b.perceel.y] : wgsToWorld(d.lat, d.lon));
+// Waar je staat op de ladder van de boer en wat de volgende rang opent (#1373); alleen voor wie de hoeve kreeg, anders niets.
+function rangRegel() {
+  const s = rangStand();
+  if (!s.hoeve) return '';
+  const v = s.volgende ? ` Volgende rang: ${esc(s.volgende.titel)}: ${esc(s.volgende.opent)}` : ' Hoogste rang bereikt.';
+  return `<p class="mut bd-rang">Je bent ${esc(s.titel)} (Landbouw niveau ${s.niveau}).${v}</p>`;
+}
 function bedrijfRegel(bd) {
   const dag = PC.huurPerDag(bd), schuld = PC.openSchuld(bd);
-  return `<p class="mut">${PC.totaalHa(bd).toString().replace('.', ',')} ha van jou · huur ${euro(dag)} per speldag${schuld ? ` · <b>achterstand ${euro(schuld)}</b>` : ''}</p>`;
+  return rangRegel() + `<p class="mut">${PC.totaalHa(bd).toString().replace('.', ',')} ha van jou · huur ${euro(dag)} per speldag${schuld ? ` · <b>achterstand ${euro(schuld)}</b>` : ''}</p>`;
 }
 function acties(s, soort, id, geld, nu) {
   const d = s.def, bt = (act, tekst, uit = false, extra = '') => `<button type="button" class="m-bt" data-pc="${act}" data-soort="${soort}" data-id="${id}"${extra}${uit ? ' disabled' : ''}>${tekst}</button>`;
@@ -265,6 +274,10 @@ function acties(s, soort, id, geld, nu) {
     } else if (id !== PC.START_PERCEEL && id !== PC.START_ERF) uit.push(bt('verkoop', `Verkoop ${euro(Math.round(d.koop * PC.VERKOOP_FACTOR))}`));
     if (soort === 'perceel' && d.soort === 'akker') uit.push(bt('actief', getBedrijf().actief === id ? 'Werkt hier' : 'Werk hier', getBedrijf().actief === id));
     if (soort === 'erf') uit.push(bt('thuis', getBedrijf().thuis === id ? 'Thuis' : 'Maak thuis', getBedrijf().thuis === id));
+  } else if (rangSlotVoor(soort, id)) {
+    const slot = rangSlotVoor(soort, id);   // pas vanaf een hogere rang van Landbouw (#1373): de reden staat erbij
+    uit.push(bt('slot', `Vanaf ${esc(slot.titel)}`, true));
+    uit.push(`<span class="mut bd-slot">${esc(slot.tekst)}</span>`);
   } else {
     if (s.kunKopen) uit.push(bt('koop', `Koop ${euro(d.koop)}`, geld < d.koop));
     if (s.kunHuren) {

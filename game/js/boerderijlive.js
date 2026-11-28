@@ -12,7 +12,9 @@
 import { KEYS } from './storagekeys.js';
 import { noteMoney } from './finance.js';
 import { euro } from './geldtekst.js';
-import { loopbaanVerdien, loopbaanTel } from './loopbaanlive.js';
+import { loopbaanVerdien, loopbaanTel, getProfiel as getLoopbaanProfiel } from './loopbaanlive.js';
+import { niveauVoorVak } from './loopbaan.js';
+import { rangSlot, rangTitel, volgendeRang } from './boerrang.js';
 import * as B from './boerderij.js';
 import * as PC from './percelen.js';
 import * as M from './machines.js';
@@ -296,13 +298,27 @@ function bedrijfActie(r) {
   return r;
 }
 
+// De rangeis (boerrang.js, #1373): wat vanaf een hogere rang van Landbouw te koop of te huur is, alleen voor wie de hoeve kreeg. Geeft null (open) of { eis, titel, nu, tekst }.
+export function rangSlotVoor(soort, id) {
+  try { return rangSlot({ niveau: niveauVoorVak(getLoopbaanProfiel(), VAK), hoeve: PC.heeftHoeve(getBedrijf()) }, soort, id); } catch (e) { return null; }
+}
+// Waar staat deze speler op de ladder van de boer? { niveau, titel, volgende: { niveau, titel, opent } | null, hoeve }; voor een regel in het scherm.
+export function rangStand() {
+  let niveau = 1;
+  try { niveau = niveauVoorVak(getLoopbaanProfiel(), VAK); } catch (e) { niveau = 1; }
+  return { niveau, titel: rangTitel(niveau), volgende: volgendeRang(niveau), hoeve: PC.heeftHoeve(getBedrijf()) };
+}
+const slotRegel = (soort, id) => { const s = rangSlotVoor(soort, id); return s ? { ok: false, reden: s.tekst, slot: s } : null; };
+
 export function koopPerceel(w, soort, id) {
+  const dicht = slotRegel(soort, id); if (dicht) return dicht;
   const r = PC.koop(getBedrijf(), soort, id, w.money || 0);
   if (r.ok) { noteMoney('Winkels'); w.money -= r.prijs; B.boek(getBoerderij(), { kosten: r.prijs, post: 'aankoop' }); }
   return bedrijfActie(r);
 }
 
 export function huurPerceel(w, soort, id, betaling) {
+  const dicht = slotRegel(soort, id); if (dicht) return dicht;
   const r = PC.huur(getBedrijf(), soort, id, betaling, getBoerderij().uren, w.money || 0);
   if (r.ok) { noteMoney('Overige uitgaven'); w.money -= r.bedrag; B.uitgaven(getBoerderij(), r.bedrag, 'huur', soort === 'perceel' ? id : null); }
   return bedrijfActie(r);
@@ -363,12 +379,14 @@ export function erfNaarSchuur(erfId, gewas) {
 const naamMachine = (m) => (PC.MACHINE_CATALOGUS[m.type] || { naam: m.type }).naam;
 
 export function koopMachineCat(w, type, erfId) {
+  const dicht = slotRegel('machine', type); if (dicht) return dicht;
   const r = M.koopUitCatalogus(getBedrijf(), type, erfId, w.money || 0);
   if (r.ok) { noteMoney('Winkels'); w.money -= r.prijs; B.boek(getBoerderij(), { kosten: r.prijs, post: 'aankoop' }); }
   return bedrijfActie(r);
 }
 
 export function huurMachineCat(w, type, erfId) {
+  const dicht = slotRegel('machine', type); if (dicht) return dicht;
   const r = M.huurUitCatalogus(getBedrijf(), type, erfId, getBoerderij().uren, w.money || 0);
   if (r.ok) { noteMoney('Overige uitgaven'); w.money -= r.prijs; B.uitgaven(getBoerderij(), r.prijs, 'machines'); }
   return bedrijfActie(r);
