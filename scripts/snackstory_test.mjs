@@ -11,7 +11,7 @@ import * as SL from '../game/js/snacklive.js';
 import * as UI from '../game/js/snackui.js';
 import * as P from '../game/js/snackvanplan.js';
 import { VAN_FLAGS, milestoneFlagsForDone } from '../game/js/storymilestones.js';
-import { newGate } from '../game/js/unlockgate.js';
+import { newGate, progressFrom, gateHint } from '../game/js/unlockgate.js';
 
 let n = 0, fails = 0;
 const t = (name, fn) => { n++; try { fn(); } catch (e) { fails++; console.log('FAIL', name, '\n  ', String(e.stack || e.message).split('\n').slice(0, 3).join(' | ')); } };
@@ -25,7 +25,7 @@ GT.setGateProgress(() => ({ dev: true }));            // de poort van de snackwa
 
 t('elke fase hoort bij één vlag van storymilestones.js (alleen toevoegen, nooit hernoemen)', () => {
   for (const [stage, flag] of Object.entries(SS.STAGE_FLAGS)) assert.ok(VAN_FLAGS.includes(flag), `${stage} ${flag}`);
-  assert.equal(SS.STAGES.length, 6);
+  assert.equal(SS.STAGES.length, 7);
   for (const s of SS.STAGES) assert.ok(SS.STAGE_HINTS[s] && SS.STAGE_HINTS[s].length > 20, s);
 });
 t('zonder provider, bij een oude save, dev of een afgerond verhaal staat alles open (migratieregel)', () => {
@@ -51,7 +51,7 @@ t('een nieuw spel: de fasen gaan een voor een open met de vlaggen; een dichte fa
   assert.equal(SS.stageOpen('menu'), true); assert.equal(SS.stageHint('menu'), null); assert.equal(SS.stageOpen('stek'), false);
   assert.equal(SS.stageCount(), 1);
   nieuw(...VAN_FLAGS);
-  assert.equal(SS.stageCount(), 6);
+  assert.equal(SS.stageCount(), 7);
   assert.equal(Object.values(SS.stageView()).every((x) => x.open && x.hint === null), true);
 });
 t('flagsFrom leest een Set, een lijst en een stand', () => {
@@ -62,39 +62,39 @@ t('flagsFrom leest een Set, een lijst en een stand', () => {
 });
 t('een oude save krijgt de vlaggen van wat hij al deed (storymilestones) en dus alle fasen', () => {
   const flags = milestoneFlagsForDone(['M30']);
-  assert.equal(flags.length, 7);
+  assert.equal(flags.length, 8);
   SS.setSnackFlagProvider(() => ({ flags, gate: newGate() }));
-  assert.equal(SS.stageCount(), 6);
+  assert.equal(SS.stageCount(), 7);
 });
 t('het menu: pas na wagen:menu', () => {
   reset(); nieuw('wagen:idee');
-  let r = SL.offeringButton('kaassouffle'); assert.equal(r.ok, false); assert.equal(r.why, 'verhaal'); assert.match(r.text, /Oma Trijntje/);
+  let r = SL.offeringButton('kaassouffle'); assert.equal(r.ok, false); assert.equal(r.why, 'verhaal'); assert.ok(r.text.length > 20);
   nieuw('wagen:idee', 'wagen:menu');
   r = SL.offeringButton('kaassouffle'); assert.notEqual(r.why, 'verhaal');
 });
 t('standplaatsen kopen pas na wagen:stek; overnemen van Us Mem en de wagen zelf zetten later', () => {
   reset(); nieuw('wagen:menu'); const w = wereld();
-  let r = SL.koopVergunning(w, 'dorp'); assert.equal(r.ok, false); assert.equal(r.why, 'verhaal'); assert.equal(w.money, 1e6); assert.match(r.text, /Lammert/);
+  let r = SL.koopVergunning(w, 'dorp'); assert.equal(r.ok, false); assert.equal(r.why, 'verhaal'); assert.equal(w.money, 1e6); assert.ok(r.text.length > 20);
   nieuw('wagen:menu', 'wagen:stek');
   r = SL.koopVergunning(w, 'dorp'); assert.equal(r.ok, true); assert.ok(w.money < 1e6);
-  r = SL.placeVan('dorp'); assert.equal(r.ok, false); assert.equal(r.why, 'verhaal'); assert.match(r.text, /Vismarkt/);
+  r = SL.placeVan('dorp'); assert.equal(r.ok, false); assert.equal(r.why, 'verhaal'); assert.ok(r.text.length > 20);
   assert.equal(SL.placeVan(null).ok, true, 'de wagen naar huis mag altijd');
   nieuw('wagen:menu', 'wagen:stek', 'wagen:standplaats');
   assert.equal(SL.placeVan('dorp').ok, true);
   const S = L.snackState(); const usmem = S.rival.spots[0];
-  r = SL.acquireRivalSpot(w, usmem); assert.equal(r.why, 'verhaal'); assert.match(r.text, /Us Mem/);
-  nieuw(...upTo(7));
+  r = SL.acquireRivalSpot(w, usmem); assert.equal(r.why, 'verhaal'); assert.match(r.text, /concurrent/);
+  nieuw(...upTo(8));
   assert.notEqual(SL.acquireRivalSpot(w, usmem).why, 'verhaal');
 });
 t('medewerkers-wagens na wagen:team; een tweede wagen pas na wagen:keten', () => {
   reset(); nieuw('wagen:menu', 'wagen:stek'); const w = wereld();
   assert.equal(SL.koopVergunning(w, 'dorp').ok, true);
-  let r = SL.koopVloot(w, 'dorp'); assert.equal(r.ok, false); assert.equal(r.why, 'verhaal'); assert.match(r.text, /Berend/);
+  let r = SL.koopVloot(w, 'dorp'); assert.equal(r.ok, false); assert.equal(r.why, 'verhaal'); assert.ok(r.text.length > 20);
   nieuw('wagen:menu', 'wagen:stek', 'wagen:team');
   r = SL.koopVloot(w, 'dorp'); assert.equal(r.ok, true, r.text);
   assert.equal(SL.koopVergunning(w, 'park').ok, true);
   r = SL.koopVloot(w, 'park'); assert.equal(r.why, 'verhaal'); assert.match(r.text, /tweede wagen/);
-  nieuw(...upTo(7));
+  nieuw(...upTo(8));
   assert.equal(SL.koopVloot(w, 'park').ok, true);
 });
 t('de belettering: eerst SNACKWAGEN, na wagen:naam de eigen naam in beeld; Us Mem houdt zijn bord', () => {
@@ -123,6 +123,23 @@ t('oude saves en tests zonder provider: niets is dicht (snacklive blijft werken 
   assert.equal(SL.koopVergunning(w, 'dorp').ok, true);
   assert.equal(SL.koopVloot(w, 'dorp').ok, true);
   assert.equal(SL.snackView(w).stages.keten.open, true);
+});
+t('geen spoilers (#1378): geen hint van de snackwagen noemt een naam of plek die de speler nog niet kent, en de dichte tak zegt niet wat er komt', () => {
+  const NAMEN = /Tessa|Tammo|Oma|Trijntje|Berend|Tinus|Wubbo|Mem|Jelle|Lammert|Vismarkt|Gerda|Terpstra/;
+  for (const [stage, hint] of Object.entries(SS.STAGE_HINTS)) assert.ok(!NAMEN.test(hint), stage + ': ' + hint);
+  for (const s of SS.STAGES) assert.ok(SS.STAGE_HINTS[s], s);
+  reset(); GT.setGateProgress(() => progressFrom({ stepId: 'M01', gate: newGate() }));
+  assert.equal(SL.snackOpen(), false);
+  for (const tekst of [SL.snackHint(), GT.branchHint('snack'), GT.branchClosedText('snack'), gateHint('snackwagen', progressFrom({ stepId: 'M01', gate: newGate() }))]) {
+    assert.ok(tekst && !NAMEN.test(tekst) && !/snackwagen|wagen|frituur/i.test(tekst), String(tekst));
+  }
+  GT.setGateProgress(null);
+});
+t('De Gerda: een eigen fase (wagen:gerda) die pas met het tweede recept van het verhaal opengaat', () => {
+  assert.equal(SS.STAGE_FLAGS.gerda, 'wagen:gerda'); assert.ok(VAN_FLAGS.includes('wagen:gerda'));
+  nieuw(...VAN_FLAGS.filter((x) => x !== 'wagen:gerda'));
+  assert.equal(SS.stageOpen('gerda'), false); assert.equal(SS.stageOpen('keten'), true); assert.ok(SS.stageHint('gerda'));
+  assert.ok(!milestoneFlagsForDone(['M26']).includes('wagen:gerda') && milestoneFlagsForDone(['F4']).includes('wagen:gerda'), 'de erkenning van Mem hoort bij de stap Foar mem');
 });
 t('main.js koppelt de echte story-vlaggen aan de adapter en gebruikt geen eigen vlaglijst', () => {
   const m = fs.readFileSync(new URL('../game/js/main.js', import.meta.url), 'utf8');

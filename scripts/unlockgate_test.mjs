@@ -33,7 +33,7 @@ ok(worldOpen('farm', at('M07')) && !worldOpen('bezit', at('M07')), 'akte 2: boer
 ok(worldOpen('bezit', at('M12')) && !worldOpen('voetbal', at('M12')), 'akte 3: panden en ondernemen open, voetbal nog niet');
 ok(worldOpen('voetbal', at('M17')), 'akte 4: voetbal en regio open');
 ok(!worldOpen('snackwagen', at('M21')) && worldOpen('snackwagen', at('F1')) && worldOpen('snackwagen', at('M22')), 'de snackwagen (eindspel) opent pas in akte 5, met de ontdekking F1');
-ok(/Tessa/.test(gateHint('snackwagen', at('M01')) || '') && gateHint('snackwagen', at('F1')) === null, 'de snackwagen: gesloten geeft een hint van Tessa, open geen hint');
+ok(!!gateHint('snackwagen', at('M01')) && !/Tessa|Tammo|Oma|Trijntje|Berend|Tinus|Wubbo|Mem|Jelle|Lammert|Vismarkt|wagen/i.test(gateHint('snackwagen', at('M01'))) && gateHint('snackwagen', at('F1')) === null, 'de snackwagen: gesloten geeft een neutrale hint zonder namen of verklappers (#1378), open geen hint');
 
 // de hint is een zin van een personage; open = geen hint
 ok(/Sjabbe|Jelle/.test(gateHint('bezit', nieuw) || ''), 'een gesloten wereld geeft een hint met het personage');

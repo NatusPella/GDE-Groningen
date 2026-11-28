@@ -35,6 +35,7 @@ export const branchOpen = (branch) => { if (branch === 'snack') ensureSnackGate(
 export function branchClosedText(branch) {
   const b = BEZIT_BRANCHES[branch];
   if (!b) return '';
+  if (branch === 'snack') return `Dit onderdeel gaat open bij "${partName(BRANCH_PART[branch])}" in het verhaal.`;      // de snackwagen verklapt zijn naam niet voor de tijd (#1378)
   return `${b.label} gaat open bij "${partName(BRANCH_PART[branch])}" in het verhaal.`;
 }
 
@@ -48,7 +49,7 @@ import { worldOpen, gateHint, registerGateWorld, gateWorld, PART_ORDER } from '.
 import { partName } from './storyarc.js';
 export const GATE_WORLD = { land: 'farm', business: 'bezit', snack: 'snackwagen' };
 // Tessa leidt de snackwagen in; akte 5 ('ontzet'). Bij elke vraag opnieuw gemeld als de registratie door een reset weg is (unlockgate.js resetGateRegistry).
-const SNACK_GATE = { id: 'snackwagen', part: 'ontzet', by: 'Tessa', hint: 'Tessa wil nu écht een eigen snackwagen: eerst het verhaal af, dan staat de eerste standplaats voor je open.' };
+const SNACK_GATE = { id: 'snackwagen', part: 'ontzet', by: 'Tessa', hint: 'Dit onderdeel komt pas laat in je zomer: speel het verhaal verder, dan gaat het vanzelf open.' };
 const ensureSnackGate = () => { if (!gateWorld('snackwagen')) registerGateWorld(SNACK_GATE); };
 ensureSnackGate();
 let progressProvider = null;
