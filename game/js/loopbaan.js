@@ -18,6 +18,7 @@ export const XP_DREMPELS = [0, 50, 140, 300, 560, 950];
 export const LOON_FACTOR = [1, 1.05, 1.1, 1.16, 1.22, 1.3];
 // Een nieuwe plek of baan in een vak (een andere padelbaan, een ander station) geeft eenmalig extra punten.
 export const UNIEK_XP = 8;
+const MAX_MOMENTEN = 300;   // zoveel gezien rangmomenten onthouden we per speler
 const MAX_UNIEK = 120;      // per vak: zoveel verschillende plekken onthouden we
 const MAX_XP = 100000;
 const MAX_N = 1e7;
@@ -234,7 +235,8 @@ export function nieuwProfiel() {
   for (const id of VAK_IDS) vakken[id] = nieuwVak();
   // kaarten: welke verhaalstappen al een eenmalig loopbaankaartje gaven (#846); duizendpoot: de eenmalige
   // beloning van #846 is betaald. Allebei per speler/apparaat, in hetzelfde profiel als de vakken.
-  return { v: SLEUTEL_VERSIE, vakken, gestart: [], kaarten: [], duizendpoot: false };
+  // momenten: de rangmomenten (rangmomenten.js) die deze speler al zag, op id; een oud profiel zonder het veld krijgt []
+  return { v: SLEUTEL_VERSIE, vakken, gestart: [], kaarten: [], duizendpoot: false, momenten: [] };
 }
 
 // --- eerste klus (#846) ----------------------------------------------------
@@ -277,6 +279,14 @@ export function markeerKaart(profiel, vak) {
   profiel.kaarten.push(vak);
   return true;
 }
+export const momentGezien = (profiel, id) => !!(profiel && Array.isArray(profiel.momenten) && profiel.momenten.includes(id));
+export function markeerMoment(profiel, id) {
+  if (!profiel || typeof id !== 'string' || !id || id.length > 60) return false;
+  if (!Array.isArray(profiel.momenten)) profiel.momenten = [];
+  if (profiel.momenten.includes(id) || profiel.momenten.length >= MAX_MOMENTEN) return false;
+  profiel.momenten.push(id);
+  return true;
+}
 export const duizendpootKlaar = (profiel) => !!(profiel && profiel.duizendpoot === true);
 // De eenmalige beloning uitkeren: alleen als alle negentien loopbanen begonnen zijn en hij nog niet betaald is.
 // Alleen het profiel verandert hier; het geld en de melding doet loopbaanlive.js, zodat dit bestand puur blijft.
@@ -308,6 +318,7 @@ export function normaliseer(raw) {
   // #846: de eenmalig getoonde kaartjes en de eenmalige beloning horen bij hetzelfde profiel; onbekende of
   // dubbele waarden gaan weg, en wie de beloning al kreeg, houdt hem (nooit twee keer uitbetalen).
   if (Array.isArray(d.kaarten)) p.kaarten = [...new Set(d.kaarten.filter((x) => BY_ID.has(x)))];
+  if (Array.isArray(d.momenten)) p.momenten = [...new Set(d.momenten.filter((x) => typeof x === 'string' && x && x.length <= 60))].slice(0, MAX_MOMENTEN);
   if (d.duizendpoot === true) p.duizendpoot = true;
   markeerGestart(p);
   if (d.zaad === true) p.zaad = true;
@@ -486,6 +497,7 @@ export function voegSamen(a, b) {
     if (o.gestart.includes(id) && !p.gestart.includes(id)) p.gestart.push(id);
   }
   for (const k of o.kaarten) if (!p.kaarten.includes(k)) p.kaarten.push(k);
+  for (const m of o.momenten) if (!p.momenten.includes(m) && p.momenten.length < MAX_MOMENTEN) p.momenten.push(m);
   if (o.duizendpoot) p.duizendpoot = true;
   if (o.zaad) p.zaad = true;
   return markeerGestart(p);

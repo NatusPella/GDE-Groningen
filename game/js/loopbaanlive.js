@@ -15,6 +15,7 @@ import { euro } from './geldtekst.js';
 import { noteMoney } from './finance.js';
 import { zetGarageKorting } from './economy.js';
 import * as L from './loopbaan.js';
+import { maakRangHaak } from './rangmomenten.js';
 import { gebiedenOpUniek, gebiedenOpStat } from './gebiedenlive.js';
 // #846: de eerste klussen en de prestatie "De Duizendpoot" lopen via de bestaande prestatiehaken (recordStat/
 // setStatMax in achievements.js); die module importeert geen loopbaan, dus er is geen cyclus.
@@ -34,6 +35,25 @@ let momentopname = null;   // () => { stats, sets }: wat de prestaties al telden
 let timer = 0;
 let vuil = false;
 const luisteraars = new Set();
+
+// Rangmomenten (rangmomenten.js, docs/RANGMOMENTEN.md): wat de speler al zag staat in zijn eigen profiel (momenten); het afspelen
+// gaat via speelRangmoment. De haak wordt bij elke niveau-omhoog gevoed (meldOmhoog) en leeggemaakt door rangmomentenrun.js.
+function speelRangmoment(m, w) {
+  const s = m.scene;
+  if (s.soort === 'spel') return s.speel(w, { vak: m.vak, rang: m.rang });
+  if (s.soort === 'kaart') {
+    if (!w || !w.addMessage) return false;
+    w.addMessage(`${s.wie}: ${s.tekst}`, 6.5, { kind: 'missie', kicker: 'Loopbaan', key: 'rangmoment-' + m.id });
+    return true;
+  }
+  const regels = s.regels.map(([speaker, text]) => ({ speaker, text, voice: null, channel: 'stem', textOnly: true }));
+  import('./storytalk.js').then((x) => x.playTalk(regels, { id: 'rangmoment:' + m.id })).catch(() => {});
+  return true;
+}
+export const rangHaak = maakRangHaak({
+  store: { gezien: (id) => L.momentGezien(getProfiel(), id), markeer: (id) => { if (L.markeerMoment(getProfiel(), id)) markeer(); } },
+  speel: speelRangmoment,
+});
 
 const opslag = () => {
   if (opslagOverride !== null) return opslagOverride;
@@ -149,6 +169,7 @@ function meldOmhoog(w, o) {
   const info = L.vakInfo(o.vak);
   const plus = L.percentage(L.factorVoorNiveau(o.naar));
   // het koppelmoment bij het eerste niveau omhoog (careerbeats.js): ze kijken samen terug op wie hier goed was
+  rangHaak.omhoog(w, o); // aangemelde rangmomenten van dit vak en deze rang (rangmomenten.js); geen moment = alleen het kaartje
   if (o.naar === 2) import('./storytalk.js').then((m) => m.playTalk(careerTalk(o.vak, 'koppel'), { id: 'loopbaan-koppel:' + o.vak, delay: 6 })).catch(() => {});
   w.addMessage(`${o.titel}: ${info.naam} niveau ${o.naar}, ${plus}% meer loon`, 5, { kind: 'prestatie', kicker: 'Loopbaan', key: 'loopbaan-' + o.vak });
   // een niveau dat een handeling geeft, zegt erbij wat je nu kunt (#437): niveau 3 bij Spoor is kaartjes knippen, geen getal
