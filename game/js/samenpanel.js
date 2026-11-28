@@ -77,12 +77,15 @@ const store = () => { try { return localStorage; } catch (e) { return null; } };
 
 // Staat het paneel open terwijl het spel wordt overgedragen, dan wisselt de sessie onder het paneel: het volgt dat zelf (twee keer per seconde kijken, goedkoop).
 let volger = null;
-function volgSessie(world, sluit) {
+let laatste = null; // { root, world, sluit } van de laatste render: een wisselende wereld of sluitfunctie wordt zo niet vastgehouden door de timer
+function volgSessie() {
   if (volger || typeof setInterval !== 'function') return;
   volger = setVisibleInterval(() => {
-    const r = mountedOn, n = world && world.coopNet;
-    if (!view || !r || r.isConnected === false || !n || n === gebonden) return;
-    renderSamenPanel(r, world, sluit);
+    const cur = laatste;
+    const r = mountedOn, w = cur && cur.world, n = w && w.coopNet;
+    if (!view || !r || r.isConnected === false) { clearInterval(volger); volger = null; return; }
+    if (!n || n === gebonden) return;
+    renderSamenPanel(r, w, cur.sluit);
   }, 500);
   if (volger && volger.unref) volger.unref();
 }
@@ -90,7 +93,8 @@ function volgSessie(world, sluit) {
 // root: .pm-inner van het onderdeel. Blijft staan als je even naar een ander onderdeel gaat.
 // sluit: het pauzemenu sluiten (pausemenu.js geeft het mee; samenpanel.js importeert het menu zelf niet, dat is een importcyclus)
 export function renderSamenPanel(root, world, sluit = () => {}) {
-  volgSessie(world, sluit);
+  laatste = { root, world, sluit };
+  volgSessie();
   const nu = samenNet(world);
   if (view && mountedOn === root && (!nu || nu === gebonden)) return;
   // Zonder sessie en zonder gekozen rol: eerst (de eerste keer) de kaart met naam en akkoord, daarna de wizard op stap 0.
