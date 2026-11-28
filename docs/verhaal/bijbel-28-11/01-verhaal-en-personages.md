@@ -158,7 +158,7 @@ Eerst de vijf eerste bijfiguren die de eigenaar noemde (Beppe staat hierboven; b
 **Oom Hindrik de Jong** (`boer_hindrik`, 74; cameo wordt bijfiguur) **[voorstel; boer = erfenis of schenking van een oom, canon; hij overlijdt niet]**
 - *Uiterlijk en kleding:* pet, ruitoverhemd, laarzen, leunt tegen een hek (`vast: boerenkleding`).
 - *Karakter en spreekstijl:* stellig, samenzweerderig, serieus; plat Gronings (niveau 3): "Doar achter is niks meer, mien jong." (de dijk).
-- *Wonen en werk:* hoeve **Zeldenrust** aan de Waddenkust op het Hogeland tussen Warffum en Usquert ("aan de rand van de provincie"); 40 koeien en wat akkerbouw. *Relatie:* de man van Beppe's overleden zus Tjitske (dus Tammo's oud-oom, Beppe's zwager), een Groninger die ooit een Friezin trouwde. *Motief:* dat het land blijft werken.
+- *Wonen en werk:* hoeve **Zeldenrust** aan de Waddenkust op het Hogeland tussen Warffum en Usquert ("aan de rand van de provincie"); twaalf melkkoeien en tien hectare weiland en akker (besluit 28-11: veertig koeien passen niet op vijf hectare, zie audits/boer-snackwagen.md besluit 6). *Relatie:* de man van Beppe's overleden zus Tjitske (dus Tammo's oud-oom, Beppe's zwager), een Groninger die ooit een Friezin trouwde. *Motief:* dat het land blijft werken.
 - *Eerst:* H4 (het bezoek, twee scènes), gaat aan het eind van H4 met een zwaai naar **Huize Waddenzicht** (een verzonnen verzorgingshuis in Warffum) en blijft daarna bereikbaar voor een bezoek met een mand eieren en een kop thee die hij te slap vindt. *Model/stem:* modulair oud, pet; stem **Enceladus** (bestaand).
 - *Afwijkt van de code:* dossier: cameo zonder verhaalstap; hier de oom van de erfenis.
 

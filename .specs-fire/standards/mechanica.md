@@ -103,7 +103,7 @@ Opslag: `gde-visboek-v1` en `gde-hengeltuig-v1` (`storagekeys.js`).
 afleveren.
 
 **Regels.** Vijf gewassen met eigen zaaigoed, groeitijd, opbrengst en een basisprijs per kg
-(`game/js/boerderij.js:23`); de verkoopprijs per gewas is een dagprijs uit `game/js/gewasmarkt.js`
+(`game/js/boerderij.js:24`); de verkoopprijs per gewas is een dagprijs uit `game/js/gewasmarkt.js`
 (binnen twintig procent van de basis, dag nul is de basis, per speler uit zijn eigen `b.uren`), en
 `leverVracht` verkoopt daartegen. Elk perceel heeft een eigen teeltplan (`b.plan`); oude opslag
 met alleen `keuze` migreert naar het actieve perceel. Een speldag is 24 minuten (`game/js/daynight.js:14`). Groei telt in
@@ -115,13 +115,15 @@ met de hostklok mee, maar leveren doet hij in zijn eigen spel. Leveringscontract
 (`game/js/boerderijcontracten.js`): per speldag een aanbod per gewas, max. 3 actief, deellevering
 telt, de bonus gaat via `loopbaanVerdien('landbouw', …)` met `deel: false`, verlopen kost niets.
 
+**Hoeve Zeldenrust (#1373, 28-11).** Het verhaal schenkt de speler hoeve Zeldenrust (erf, akker en weide van elk vijf hectare, twaalf melkkoeien; `boerstory.js`, `boerstoryrun.js`, `bezitlive.schenkHoeveCompleet`): per speler en lokaal, zonder iets te overschrijven, een tweede keer doet niets. Twaalf koeien, niet veertig: melkvee is 2,5 per hectare (besluit 6 van de audit; de mechanica blijft, de tekst volgt). Vanaf dan gelden de rangen van Landbouw (`boerrang.js`): machines en percelen zijn pas vanaf een niveau te koop of te huur, met de reden in het scherm; wie de hoeve niet kreeg koopt alles zoals voorheen. Daarbij: de rotatiebeloning (drie verschillende gewassen op rij: +5% en de grond raakt half zo moe; `boerderij.rotatieBonus`), de vruchtbaarheid en een advies op de veldkaart, de dierklus voeren en melken (`dierklus.js`, een per soort per speldag, melken telt als de melkrobot, voeren +5%), de hofwinkel met eigen merk vanaf Trekkerrijder (`hofwinkel.js`, 150 kg per speldag, 30% boven de markt), de veilingdag zichtbaar in het Gewas-tabblad en de Bietencampagne voor de Bietenbaron (één grote bietenvracht per zeven speldagen). Nog niet: de bietenrooier en een derde trekkerklasse (vragen modellen van de voertuigbouwer), het Oogstfeest en medeboer in Samen spelen (wacht op akkoord van de eigenaar).
+
 **Bestanden.** `boerderij.js`, `boerderijlive.js`, `boerderijui.js`, `boerderijwereld.js`,
 `boerderijgast.js`, `percelen.js`, `machines.js`, `werktuigen.js`, `werktuigen3d.js`,
-`sidejob_boerderij.js`, `gewasmarkt.js`, `boerderijcontracten.js`, `karakterbonus.js`.
+`sidejob_boerderij.js`, `gewasmarkt.js`, `boerderijcontracten.js`, `karakterbonus.js`, `boerstory.js`, `boerstoryrun.js`, `boerrang.js`, `boerrangmomenten.js`, `dierklus.js`, `hofwinkel.js`.
 
 **Karakterbonus (#1005, #981).** Boeren en voetballen doe je als Tessa: bij de start wisselt het spel naar haar (zelfde mechanisme als de verhaalwissel) en bij het einde terug; de tabel `KARAKTER_BONUS` in `karakterbonus.js` (klein: farm 15% sneller netjes-band, +5% oogst, minder fouten bij zaaien en oogsten; voetbal sprint, schot, aanname) geldt dus tijdens die activiteit, per speler, nooit voor de wereld. Persona-regels komen af en toe (kans en cooldown). Test `karakterbonus_test.mjs`.
 
-**Tests.** `boerderij_test.mjs`, `gewasmarkt_test.mjs`, `boerderijcontracten_test.mjs`,
+**Tests.** `boerstory_test.mjs`, `boerrang_test.mjs`, `bodemrotatie_test.mjs`, `dierklus_test.mjs`, `hofwinkel_test.mjs`, `boerderijui_hoeve_test.mjs`, `boerderij_test.mjs`, `gewasmarkt_test.mjs`, `boerderijcontracten_test.mjs`,
 `percelen_test.mjs`, `machines_test.mjs`, `werktuigen_test.mjs`, `boerderijwereld_test.mjs`,
 `boerderijgast_test.mjs`, `boerderijui_machines_test.mjs`, `karakterbonus_test.mjs`.
 

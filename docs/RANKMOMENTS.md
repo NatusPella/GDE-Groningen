@@ -49,6 +49,10 @@ Wees ervan bewust dat het register leeg is tot jouw module geladen is; importeer
 - Een scène die drie keer niet wil beginnen of die een fout geeft, wordt opgegeven en telt als gezien, zodat niets blijft hangen.
 - Een kapotte `voorwaarde` telt als onwaar.
 
+## Wie het gebruikt
+
+- **Landbouw** (`game/js/boerrangmomenten.js`, #1373): vijf gesprekjes voor niveau 2 tot en met 6 (Ypie, Lutje, mevrouw Hofstra, Jorrit Tilma), alleen voor wie de hoeve kreeg (`voorwaarde`); wat elke rang opent staat in `boerrang.js`. De module wordt geladen via `boerstoryrun.js`. Test: `scripts/boerrang_test.mjs`.
+
 ## Samen spelen
 
 Lokaal per speler. Elke speler doorloopt zijn eigen profiel: een gast die door een beloning van de gastheer omhoog gaat (`loopbaanGast`) speelt zijn eigen moment op zijn eigen apparaat; er gaat niets over het netwerk en de gastheer ziet het niet. Een moment geeft nooit geld of voortgang aan een ander. Wegvallen: niets te herstellen. Later aansluiten: het moment speelt bij de eigen volgende stijging. Test: `scripts/rankmoments_test.mjs` (gast, activiteit, opslaan en laden).

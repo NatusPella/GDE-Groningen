@@ -163,6 +163,10 @@
 | 6 | **40 koeien** | melkvee is 2,5 per ha | de hoeve krijgt een eigen perceel `zeldenrust-wei` van 16 ha en de schenking zet een kudde; of de verhaaltekst zegt "een kudde" met een getal dat past (bijvoorbeeld 12 koeien op 5 ha). Voorkeur: tekst aanpassen, mechanica ongemoeid |
 | 7 | **Wanneer verschijnt de snackwagen in beeld?** | hints spoilen nu | de tak `snack` blijft akte 5; de hinttekst vervangen door een neutrale zin zonder namen |
 
+## 4b. Stand van de bouw (28-11, branch bouw-boer-verhaal-28-11)
+
+Besluit 1 (Oom Hindrik), 3 (Oma Trijntje) en 5 (geen hoeve in de wereld van een gast) zijn zo gebouwd; besluit 2: zes niveaus met de bestaande titels; besluit 6: **twaalf koeien op de weide van vijf hectare**, de mechanica ongemoeid. Gebouwd: B2 (de schenking in het verhaal, scène N5 en N5.2), B3, B4 voor zover het de boer betreft (Hindrik, Aaltje, de notaris, Ypie, Lutje, mevrouw Hofstra, Jorrit Tilma), B5, B7 zonder het Oogstfeest, B8, B9. Niet gebouwd: B6 (bietenrooier en derde trekker: model en plaatje van de voertuigbouwer), B10 (medeboer: wacht op akkoord op 4.5), het Oogstfeest. Zie docs/BOERDERIJ.md.
+
 ## 5. Bouwtaken, elk maximaal M
 
 Volgorde en parallel: B1 is het fundament; daarna lopen de boertaken B2 tot B9 grotendeels naast elkaar. S1 is het fundament voor snack; S2 tot S7 volgen. Boer en snack mogen volledig parallel in aparte worktrees zolang B1 (gedeelde rang-haak) eerst op main staat en niemand tegelijk `loopbaan.js` en `loopbaanlive.js` raakt.
