@@ -27,7 +27,7 @@ const norm = (a) => { while (a > Math.PI) a -= Math.PI * 2; while (a < -Math.PI)
 
 // Vliegt de speler? (vliegtuig, helikopter, ballon, duif, heli-run.) Voor de reiswijze van de route.
 export function isAirCraft(world, p) {
-  if (world && (world.pigeonMode || world.heliRun)) return true;
+  if (world && (world.pigeonMode || world.heliRun || world.balloonRide)) return true;
   const v = p && p.inVehicle;
   return !!(v && (v.isHeli || v.isPlane || v.isBalloon));
 }

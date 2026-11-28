@@ -32,6 +32,7 @@ import { streetLifePrompt } from './streetlife.js';
 import { weaponDropPrompt } from './weapondrops.js';
 import { trainPrompt } from './traindrive.js';
 import { heliSpotPrompt, heliSpotSecondary } from './helirun.js';
+import { balloonPrompt } from './balloonride.js';
 import { padelPrompt, padelSecondary } from './padel.js';
 import { activityPrompt, activitySecondary } from './activities.js';
 import { hengelVrijPrompt } from './hengelen.js';
@@ -300,6 +301,7 @@ function angleOff(p, x, y) {
 // nearest vehicle; clicks come next.
 function findPrimary(world) {
   const p = hoofdspeler(world);
+  if (world.balloonRide) return null; // in de ballon bepaalt de ballon-HUD de toetsen (balloonride3d.js)
   // upstairs in the flat only the flat's own uses: the street is 34 m below
   if (isInsideHome()) return homePrompt(world);
   // a mission stage's own prompt (heist.js: the distraction, the pickpocket)
@@ -346,6 +348,8 @@ function findPrimary(world) {
   if (duif) return duif;
   const heli = heliSpotPrompt(world);
   if (heli) return heli;
+  const ballon = balloonPrompt(world);
+  if (ballon) return ballon;
   const padel = padelPrompt(world);
   if (padel) return padel;
   const act = activityPrompt(world);
