@@ -31,6 +31,7 @@ export const DETAIL_RULES = {
   streetReach: 16,          // m van de gevel tot de hartlijn van de straat
   cabinetEvery: 95, verge: 52, ditchRiet: 11,
 };
+const KINDS = new Map(DETAIL_KINDS.map((k, i) => [k, i + 1]));
 const STREET_TYPES = new Set(['residential', 'living_street', 'unclassified', 'tertiary', 'secondary', 'primary']);
 const HOME_STREETS = new Set(['residential', 'living_street']);
 
@@ -50,12 +51,15 @@ function segDist(x, y, ax, ay, bx, by) {
 export function detailForTile({ x0, y0, size = 1000, roads = [], buildings = [], water = [], rails = [], trees = [], opts = {} }) {
   const items = [];
   const inTile = (x, y) => x >= x0 && x < x0 + size && y >= y0 && y < y0 + size;
+  // dubbele plekken weren met een getal per soort en plek (10 cm); alleen wat een botsing krijgt heeft een sleutel (breakables.js)
   const seen = new Set();
+  const KEYED = new Set(['tuinhaag', 'fence']);
   const put = (it) => {
     if (!inTile(it.x, it.y)) return false;
-    it.key = keyOf(it.k, it.x, it.y);
-    if (seen.has(it.key)) return false;
-    seen.add(it.key);
+    const id = (KINDS.get(it.k) || 0) * 1e13 + (Math.round(it.x * 10) + 1e6) * 4e6 + (Math.round(it.y * 10) + 1e6);
+    if (seen.has(id)) return false;
+    seen.add(id);
+    if (KEYED.has(it.k)) it.key = keyOf(it.k, it.x, it.y);
     items.push(it);
     return true;
   };
@@ -225,7 +229,7 @@ export function detailForTile({ x0, y0, size = 1000, roads = [], buildings = [],
     if (gd >= 1.5 && halfT >= 2) {
       // voortuin: de haag of het hekje op gd van de gevel, over de hele breedte met een opening bij het tuinpad
       const u0 = -halfT - 0.1, u1 = halfT + 0.1, gate = 0.65;
-      const hedgeH = 0.75 + Math.round(rnd() * 5) * 0.08;
+      const hedgeH = 0.62 + Math.round(rnd() * 4) * 0.08;
       const kind = style < 0.5 ? 'hedge' : style < 0.82 ? 'lattenhek' : null;
       if (kind) {
         for (const [a0, a1] of [[u0, doorU - gate], [doorU + gate, u1]]) {

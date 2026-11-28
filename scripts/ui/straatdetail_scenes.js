@@ -76,7 +76,8 @@ const WEGTYPES = { 'bedrijventerrein': ['service', 'unclassified', 'tertiary', '
 const kiesPlek = (lat, lon, type) => {
   const [cx, cy] = wgsToWorld(lat, lon); let best = null;
   const ok = WEGTYPES[type] || ['residential', 'living_street', 'unclassified', 'tertiary'];
-  for (const r of map.roadsNear(cx, cy, 320)) {
+  const telHuizen = (x, y) => { let n = 0; for (const b of map.buildingsNear(x, y, 24)) { const lv = b.h || 1; if (type === 'flatstraat') n += lv >= 3.5 ? 1 : 0; else if (type === 'dorpsstraat-boerderijen') n += b.bounds && (b.bounds[2] - b.bounds[0]) * (b.bounds[3] - b.bounds[1]) > 150 && lv <= 2.5 ? 2 : 0.5; else n += 1; } return n; };
+  for (const r of map.roadsNear(cx, cy, 500)) {
     if (!r.pts || r.pts.length < 2 || !ok.includes(r.type)) continue;
     const P = r.pts;
     for (let i = 0; i < P.length - 1; i++) {
@@ -84,7 +85,7 @@ const kiesPlek = (lat, lon, type) => {
       const a = Math.atan2(P[i + 1][1] - P[i][1], P[i + 1][0] - P[i][0]);
       for (let t = 0.3; t < 0.8; t += 0.5) {
         const x = P[i][0] + (P[i + 1][0] - P[i][0]) * t, y = P[i][1] + (P[i + 1][1] - P[i][1]) * t;
-        const n = map.buildingsNear(x, y, 24).length; const score = Math.min(n, 16) - Math.hypot(x - cx, y - cy) / 90;
+        const n = telHuizen(x, y); const score = Math.min(n, 16) - Math.hypot(x - cx, y - cy) / 90;
         if (!best || score > best.score) best = { x, y, a, n, score };
       }
     }
@@ -104,14 +105,16 @@ let nr = 0;
 for (const [naam, type, lat, lon] of PLEKKEN) {
   nr++;
   await scene(nr, async () => {
-    const [cx, cy] = wgsToWorld(lat, lon); await jump(cx, cy, 5000); // eerst erheen: de tegels van de buurt moeten er zijn
+    const [cx, cy] = wgsToWorld(lat, lon); await jump(cx, cy, 9000); // eerst erheen: de tegels van de buurt moeten er zijn
     const pl = kiesPlek(lat, lon, type); if (!pl) { log({ nr, naam, fout: 'geen plek' }); return; }
     await jump(pl.x, pl.y, 3500);
     const z = gh(pl.x, pl.y), dx = Math.cos(pl.a), dy = Math.sin(pl.a);
     log({ nr, naam, type, x: Math.round(pl.x), y: Math.round(pl.y), a: +pl.a.toFixed(3), huizen30: pl.n });
     cam(pl.x - dx * 10, pl.y - dy * 10, z + 1.7, pl.x + dx * 25, pl.y + dy * 25, z + 1.9, 70); await shot(naam + '-oog', 2500);
     const m1 = await meet();
-    cam(pl.x - dx * 18 - dy * 14, pl.y - dy * 18 + dx * 14, z + 15, pl.x + dx * 4, pl.y + dy * 4, z, 62); await shot(naam + '-lucht', 2500);
+    // de camera staat aan de kant van de weg met de minste gebouwen (anders hangt hij boven een dak)
+    const zijde = map.buildingsNear(pl.x - dy * 14, pl.y + dx * 14, 10).length <= map.buildingsNear(pl.x + dy * 14, pl.y - dx * 14, 10).length ? 1 : -1;
+    cam(pl.x - dx * 18 - dy * 14 * zijde, pl.y - dy * 18 + dx * 14 * zijde, z + 15, pl.x + dx * 4, pl.y + dy * 4, z, 62); await shot(naam + '-lucht', 2500);
     const m2 = await meet();
     // de kosten van de generator op echte kaartdata (zoals streetfurniture3d.js tileItems hem voedt) en wat hij neerzet
     const [ti, tj] = GDT.tileIndexOf(pl.x, pl.y), tx0 = GDT.GRID_X0 + ti * GDT.TILE_M, ty0 = GDT.GRID_Y0 + tj * GDT.TILE_M, wx = tx0 + GDT.TILE_M / 2, wy = ty0 + GDT.TILE_M / 2, wr = GDT.TILE_M * 0.71 + 60;

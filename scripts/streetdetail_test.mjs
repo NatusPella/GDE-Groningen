@@ -58,8 +58,9 @@ const sig = (arr) => JSON.stringify(arr.map((it) => [it.k, +it.x.toFixed(2), +it
 ok(sig(run(mk())) === sig(items), 'dezelfde invoer geeft dezelfde items');
 const m2 = mk(); m2.buildings.reverse(); m2.roads.reverse(); m2.water.reverse();
 ok(sig(run(m2)) === sig(items), 'de volgorde van de kaartrijen verandert niets');
-const seen = new Set(); let dup = 0; for (const it of items) { if (seen.has(it.key)) dup++; seen.add(it.key); }
-ok(dup === 0, 'geen dubbele sleutel', dup);
+const seen = new Set(); let dup = 0; for (const it of items) { const k = it.k + '@' + it.x.toFixed(1) + ',' + it.y.toFixed(1); if (seen.has(k)) dup++; seen.add(k); }
+ok(dup === 0, 'geen twee gelijke soorten op dezelfde plek', dup);
+ok(items.filter((it) => it.k === 'tuinhaag' || it.k === 'fence').every((it) => !!it.key), 'wat een botsing krijgt heeft een sleutel');
 // twee naastliggende tegels: de ene helft van de items in de ene, de rest in de andere, nooit beide
 const delen = [[0, 0], [500, 0], [0, 500], [500, 500]].map(([x, y]) => run(m, x, y, 500));
 const som = delen.reduce((a, d) => a + d.length, 0);
