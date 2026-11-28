@@ -52,3 +52,7 @@ Wees ervan bewust dat het register leeg is tot jouw module geladen is; importeer
 ## Samen spelen
 
 Lokaal per speler. Elke speler doorloopt zijn eigen profiel: een gast die door een beloning van de gastheer omhoog gaat (`loopbaanGast`) speelt zijn eigen moment op zijn eigen apparaat; er gaat niets over het netwerk en de gastheer ziet het niet. Een moment geeft nooit geld of voortgang aan een ander. Wegvallen: niets te herstellen. Later aansluiten: het moment speelt bij de eigen volgende stijging. Test: `scripts/rankmoments_test.mjs` (gast, activiteit, opslaan en laden).
+
+## Gebruikers
+
+- Snackwagen en horeca (#1378): `game/js/snackmoments.js` meldt vijf momenten aan (rang 2 tot 6) onder het vak `horeca`; ze hangen aan de eigen rang van de snackwagen (`snackrang.js`, `voorwaarde`) en worden gevoed door `snacklive.checkRank` via `rankHook.omhoog` (main.js `setSnackRankSend`). Een niveau omhoog in de loopbaan Horeca speelt ze dus niet te vroeg.
