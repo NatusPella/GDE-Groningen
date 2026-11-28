@@ -15,6 +15,7 @@ import { euro } from './geldtekst.js';
 import { loopbaanVerdien, loopbaanTel, getProfiel as getLoopbaanProfiel } from './loopbaanlive.js';
 import { niveauVoorVak } from './loopbaan.js';
 import { rangSlot, rangTitel, volgendeRang } from './boerrang.js';
+import * as HW from './hofwinkel.js';
 import * as B from './boerderij.js';
 import * as PC from './percelen.js';
 import * as M from './machines.js';
@@ -347,6 +348,22 @@ export function schenkHoeve() {
   return bedrijfActie(PC.schenk(getBedrijf()));
 }
 export const heeftHoeve = () => PC.heeftHoeve(getBedrijf());
+
+// De hofwinkel van Zeldenrust (hofwinkel.js, #1373): het aanbod van vandaag en een verkoop; het geld gaat via loopbaanVerdien (loonfactor van het vak), de kilo's van het erf af.
+export function hofwinkelStand() {
+  const b = getBoerderij();
+  return HW.winkelAanbod(b.bedrijf, b.hofwinkel, dagVan(b.uren), rangStand().niveau);
+}
+export function verkoopHofwinkel(w, gewas, kg) {
+  const b = getBoerderij();
+  const r = HW.verkoopInWinkel(b.bedrijf, b.hofwinkel, dagVan(b.uren), rangStand().niveau, gewas, kg);
+  if (!r.ok) return r;
+  const betaald = loopbaanVerdien(w, VAK, r.bedrag, { xp: 6, n: 1, uniek: 'hofwinkel-' + gewas, rubriek: 'Overig inkomsten' });
+  B.boek(b, { omzet: betaald });
+  b.totaal.omzet += betaald;
+  markeer();
+  return { ...r, betaald };
+}
 
 export const zetThuis = (erfId) => bedrijfActie({ ok: PC.zetThuis(getBedrijf(), erfId) }).ok;
 export const zetActief = (id) => bedrijfActie({ ok: PC.zetActief(getBedrijf(), id) }).ok;

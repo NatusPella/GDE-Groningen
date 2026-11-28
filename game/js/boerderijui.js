@@ -4,8 +4,8 @@
 // bestand is alleen DOM. Het werk zelf doe je op het land: de bijbaan "Eigen boerderij" bij Hoogkerk. Niet door een mens in beeld bekeken.
 import { icoon as fIcoon } from './icons.js';
 import * as B from './boerderij.js';
-import { getBoerderij, kiesGewas, koopMachine, getBedrijf, koopPerceel, huurPerceel, zegOpPerceel, verkoopPerceel, betaalSchuldPerceel, zetThuis, zetActief, schuurNaarErf, erfNaarSchuur, koopMachineCat, huurMachineCat, verkoopMachineCat, onderhoudMachine, loonwerk, loonwerkAfleveren, leenGeld, losAf, contracten, neemContract, rangSlotVoor, rangStand } from './boerderijlive.js';
-import { veilingVandaag } from './bezitlive.js';
+import { getBoerderij, kiesGewas, koopMachine, getBedrijf, koopPerceel, huurPerceel, zegOpPerceel, verkoopPerceel, betaalSchuldPerceel, zetThuis, zetActief, schuurNaarErf, erfNaarSchuur, koopMachineCat, huurMachineCat, verkoopMachineCat, onderhoudMachine, loonwerk, loonwerkAfleveren, leenGeld, losAf, contracten, neemContract, rangSlotVoor, rangStand, hofwinkelStand, verkoopHofwinkel } from './boerderijlive.js';
+import { veilingVandaag, hoeveKudde, dierklusAanbod, doeDierklus } from './bezitlive.js';
 import * as CT from './boerderijcontracten.js';
 import * as PC from './percelen.js';
 import * as M from './machines.js';
@@ -310,6 +310,24 @@ function percelen(b, geld) {
     '<p class="bd-melding" aria-live="polite">' + esc(melding) + '</p>';
 }
 
+// De hofwinkel van Hoeve Zeldenrust (hofwinkel.js, #1373): alleen als de hoeve van jou is; dicht met de reden, nooit een leeg blok.
+function hofwinkelBlok() {
+  if (!rangStand().hoeve) return '';
+  const h = hofwinkelStand();
+  const kop = `<p class="lb-titel"><b>Hofwinkel ${esc(h.merk)}</b> <span class="mut">· klanten nemen vandaag nog ${nl(h.over)} van ${nl(h.dagKg)} kg</span></p>`;
+  if (!h.open) return kop + `<p class="mut">${esc(h.reden)}</p>`;
+  const rijen = h.rijen.map((r) => `<div class="bd-rij"><span class="bd-naam"><b>${esc(r.naam)}</b><span class="mut"> · ${nl(r.kg)} kg op het erf · ${cent(r.prijsKg)} per kg</span></span>` +
+    `<span class="bd-acties"><button type="button" class="m-bt" data-pc="hofwinkel" data-gewas="${r.gewas}" data-kg="${Math.min(50, r.max) || 50}"${r.max > 0 ? '' : ' disabled'}>Verkoop ${nl(Math.min(50, r.max) || 50)} kg</button></span></div>`).join('');
+  return kop + `<p class="mut">Wat op het erf van de hoeve ligt, verkoop je hier tegen een betere prijs dan de markt. Bewaar je oogst op Zeldenrust: maak de hoeve thuis.</p>` + rijen;
+}
+// De kudde van de hoeve en haar verzorging (dierklus.js, #1373): een klus per soort per speldag, een kleine bonus en ervaring, nooit een plicht.
+function kuddeBlok() {
+  const k = hoeveKudde();
+  if (!k) return '';
+  const kop = `<p class="lb-titel"><b>Kudde van de hoeve</b> <span class="mut">· ${nl(k.n)} ${esc(k.naam.toLowerCase())} op Weide Zeldenrust${k.sick > 0 ? ' · ziek: bel de dierenarts in Bezit' : ''}</span></p>`;
+  const knoppen = dierklusAanbod(k.id).map((a) => `<button type="button" class="m-bt" data-pc="dierklus" data-id="${k.id}" data-klus="${a.id}"${a.gedaan ? ' disabled' : ''}>${a.gedaan ? esc(a.naam) + ': gedaan' : esc(a.naam)}</button>`).join(' ');
+  return kop + `<div class="bd-rij"><span class="bd-naam"><span class="mut">Voer en melk de koeien zelf: een beetje meer melk en ervaring in Landbouw. Het hoeft niet; de kudde leeft ook zonder.</span></span><span class="bd-acties">${knoppen}</span></div>`;
+}
 function erf(b, geld) {
   const bd = b.bedrijf;
   const rijen = PC.overzichtErven(bd).map((s) => {
@@ -326,7 +344,7 @@ function erf(b, geld) {
   }).join('');
   return `<div class="pm-pane-top"><span class="m-eb">Boerderij De Zonnehoek</span><h2 class="m-h2 td-h2">${icoon('erf', 'pa-ico big')}Erf</h2></div>` + bedrijfRegel(bd) +
     `<p class="mut">Je thuis is ${esc(PC.erfDef(bd.thuis).naam)}.</p>${meerHtml('Een erf heeft een huis, een schuur, soms silo\'s en plekken voor machines. De Zonnehoek blijft altijd van jou; de oogst uit de werkschuur kun je op je thuis bewaren.', 'Uitleg erf')}` +
-    `<div class="bd-live" data-fp-start="gebouw:schuur" aria-hidden="true"></div>${rijen}` +
+    `<div class="bd-live" data-fp-start="gebouw:schuur" aria-hidden="true"></div>${rijen}` + hofwinkelBlok() + kuddeBlok() +
     '<p class="bd-melding" aria-live="polite">' + esc(melding) + '</p>';
 }
 
@@ -409,6 +427,8 @@ function percelenActie(d, world) {
     case 'wissel': { const x = (soort === 'erf' ? getBedrijf().erven : getBedrijf().percelen)[id]; return PC.wisselBetaling(getBedrijf(), soort, id, x && x.betaling === 'week' ? 'dag' : 'week') ? 'De betaling is aangepast na de huidige periode.' : 'Dat kan niet.'; }
     case 'actief': return zetActief(id) ? 'De boerderij werkt nu op ' + naamVan + '.' : 'Dat kan niet.';
     case 'thuis': return zetThuis(id) ? naamVan + ' is nu je thuis.' : 'Dat kan niet.';
+    case 'dierklus': { const r = doeDierklus(world, d.id, d.klus); return r.text; }
+    case 'hofwinkel': { const r = verkoopHofwinkel(world, d.gewas, Number(d.kg)); return r.ok ? `${nl(r.kg)} kg ${(B.GEWASSEN[d.gewas] || { naam: d.gewas }).naam.toLowerCase()} verkocht in de hofwinkel voor ${euro(r.betaald)}.` : r.reden; }
     case 'inschuur': { const r = schuurNaarErf(); return klaar(r, nl(r.kg) + ' kg opgeslagen op je thuis.'); }
     case 'uitschuur': { const r = erfNaarSchuur(id, d.gewas); return klaar(r, nl(r.kg) + ' kg staat weer in de werkschuur, klaar om af te leveren.'); }
     case 'kaart': {

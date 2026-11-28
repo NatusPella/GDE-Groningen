@@ -10,7 +10,7 @@ import { noteMoney } from './finance.js';
 import { euro } from './geldtekst.js';
 import { getBoerderij, schenkHoeve as schenkHoeveBoerderij } from './boerderijlive.js';
 import { loopbaanTel } from './loopbaanlive.js';
-import { zetHoeveKudde, doeKlus, klusAanbod, KLUSSEN } from './dierklus.js';
+import { zetHoeveKudde, doeKlus, klusAanbod, KLUSSEN, HOEVE_WEI } from './dierklus.js';
 import { setVoorLaadHaak } from './boerderijlive.js';
 import * as Z from './bezit.js';
 import * as P from './bezitprijs.js';
@@ -373,6 +373,7 @@ export function doeDierklus(w, id, soort) {
   markeer();
   return { ok: true, text: r.tekst };
 }
+export const hoeveKudde = () => { const h = herdsOf(getBezit())[HOEVE_WEI]; return h ? { id: HOEVE_WEI, sp: h.sp, n: h.n, sick: h.sick, naam: (SPECIES[h.sp] || {}).naam || h.sp } : null; };
 export const dierklusAanbod = (id) => klusAanbod(getBezit(), id, Math.floor(getBoerderij().uren / 24));
 export { KLUSSEN as DIERKLUSSEN };
 
