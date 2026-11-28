@@ -66,7 +66,7 @@ gaat de poort toch open met een Nederlandse reden (`waitText`: "We wachten nog e
 
 `tileready.js leadFor(mode, snelheid)`: lopen 4 s (max 40 m), fiets 4 s (80 m), auto 4 s (200 m), boot 4 s (160 m), trein 6 s (400 m),
 heli 5 s (300 m), vliegtuig 6 s (600 m). De gebouwen worden verder voorgebouwd dan de vaste marge van 30 m, tot `BUILDING_AHEAD_MAX` (120 m),
-alleen in een kegel van 60 graden rond de rijrichting. `?perfoff=vooruitbouw` zet het terug. De tegeldata (1500 m + 10 s) hoefde niet groter.
+alleen in een kegel van 60 graden rond de rijrichting. **Standaard uit** (`?vooruitbouw` zet het aan): in twee gepaarde a7-runs (zelfde build, voor en na) kwam er meer pop-in binnen 60 m bij (12,4 naar 18,2 en 11,4 naar 16,9 per seconde), net als bij de eerdere poging van #1016. De tegeldata (1500 m + 10 s) hoefde niet groter.
 
 ## 5. Meten
 

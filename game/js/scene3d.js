@@ -1830,8 +1830,8 @@ const _bSeen = new Set(), _bMissing = []; function syncBuildingsPass(world, px, 
   // time (within a small per-frame budget), so crossing DRAW_DIST only has
   // to add an already built mesh to the scene.
   // #1354: vooruit in de rijrichting verder voorbouwen naarmate het vervoermiddel sneller gaat (lopen 4 s, fiets, auto, trein, heli en vliegtuig
-  // elk een eigen kijktijd en bovengrens: tileready.js leadFor), tot hoogstens BUILDING_AHEAD_MAX; ?perfoff=vooruitbouw is de vaste marge van 30 m
-  const aheadM = perfOff('vooruitbouw') || focusSpeed < STREAM_SPEED_MIN ? 0 : Math.min(BUILDING_AHEAD_MAX, leadFor(world.trainDriving ? 'train' : modeOf(hoofdspeler(world)), focusSpeed).lead);
+  // elk een eigen kijktijd en bovengrens: tileready.js leadFor), tot hoogstens BUILDING_AHEAD_MAX; standaard uit (de vaste marge van 30 m): ?vooruitbouw zet het aan
+  const aheadM = !FLAGS.vooruitbouw || focusSpeed < STREAM_SPEED_MIN ? 0 : Math.min(BUILDING_AHEAD_MAX, leadFor(world.trainDriving ? 'train' : modeOf(hoofdspeler(world)), focusSpeed).lead);
   const prefetchReach = BUILDING_PREFETCH + aheadM;
   for (const [b] of prefetchedBuildings) if (centreDist(b) > DRAW_DIST + prefetchReach + 20 && !nearPrewarm(b)) prefetchedBuildings.delete(b);
   if (missing.length > built) return;

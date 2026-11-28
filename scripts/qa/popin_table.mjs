@@ -10,9 +10,9 @@ const f = (v, d = 1) => (v === null || v === undefined ? '-' : typeof v === 'num
 const routes = [...new Set(tags.flatMap((t) => Object.keys((R[t] && R[t].routes) || {})))];
 const cols = [
   ['zichtbaar/s', (r) => r.visPerS], ['per km', (r) => r.visPerKm], ['<60 m/s', (r) => (r.visNear60 / r.dur)], ['<60 m per km', (r) => r.near60PerKm],
-  ['na klaar (oud)', (r) => r.visClaimOld], ['wissels', (r) => r.visSwaps], ['uploads', (r) => r.gl && r.gl.uploads], ['upload >2 ms', (r) => r.gl && r.gl.upHitch2],
+  ['na klaar (oud)', (r) => r.visClaimOld], ['wissels', (r) => r.visSwaps], ['uploads', (r) => r.gl && r.gl.uploads], ['uploads per frame', (r) => r.gl && r.gl.uploads / r.gl.frames], ['upload >2 ms', (r) => r.gl && r.gl.upHitch2],
   ['slechtste upload ms', (r) => r.gl && r.gl.worstUpMs], ['nieuwe programma\'s', (r) => r.gl && r.gl.programsNew], ['linkms', (r) => r.gl && r.gl.linkMs],
-  ['frame p50', (r) => r.frameMs && r.frameMs.p50], ['p95', (r) => r.frameMs && r.frameMs.p95], ['max', (r) => r.frameMs && r.frameMs.max],
+  ['frames gemeten', (r) => r.frames], ['frame p50', (r) => r.frameMs && r.frameMs.p50], ['p95', (r) => r.frameMs && r.frameMs.p95], ['max', (r) => r.frameMs && r.frameMs.max],
   ['LOD dekking <140 m %', (r) => { const b = r.lod && r.lod.bands; if (!b) return null; const n = b[0].n + b[1].n, ok = b[0].n * (b[0].okPct || 0) / 100 + b[1].n * (b[1].okPct || 0) / 100; return n ? 100 * ok / n : null; }],
   ['LOD gaten', (r) => r.lod && r.lod.holes], ['laat detail', (r) => r.lod && r.lod.lateDetail], ['LOD-wissels', (r) => r.lod && r.lod.swaps],
 ];
