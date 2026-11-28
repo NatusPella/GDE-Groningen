@@ -1690,6 +1690,9 @@ function updateMission(dt, world) {
   els.gps.classList.toggle('time-low', secs != null && secs <= 10);
   const key = o.kind + '|' + (o.raw ?? o.title); // de bestemming, niet het werkwoord: instappen laat het doel niet opnieuw verschijnen
   if (key !== els.objKey) { els.objAt = world.time; if (o.kind === 'goal') goalHints++; if (o.kind === 'story') storyHints++; }
+  // UX 28-11: zolang de HUD verborgen is (film, opening) loopt de verse-doelklok niet: het eerste doel van een nieuw spel kreeg zijn
+  // toetsenregel anders helemaal binnen de opening en de speler zag nooit hoe hij loopt.
+  else if (document.body.classList.contains('cine-hide-hud') || document.body.classList.contains('opening-wacht')) els.objAt = world.time;
   // a new objective first says how (the bijbaan's hint), then its counter
   const sub = o.hint && world.time - els.objAt < OBJ_HINT_TIME ? o.hint : o.kind === 'story' ? storySubLine(o.sub, storyHints) : o.sub;
   // the route and the story speak for themselves after a moment: the card shrinks to the goal and the distance

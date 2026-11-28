@@ -331,7 +331,7 @@ html.rustig-drukwerk #hud .hud-location, html.reduce-motion #hud .hud-location {
 
 /* --- the left column: zone A (messages) and E (radio, achievements) ----- */
 :where(#hud > :not(.hud-damage)) { transition: opacity var(--ds-m-max) ease; }
-body.cine-hide-hud #hud > :not(.hud-damage) { opacity: 0; }
+body.cine-hide-hud #hud > :not(.hud-damage), body.opening-wacht #hud > :not(.hud-damage) { opacity: 0; } /* opening-wacht: story.js, tussen laadscherm en eerste film */
 /* fallback for 'laag' on a native-AA canvas; otherwise postfx3d.js screenFx */
 body.cine-slowmo:not(.gpu-screenfx) #game3d { filter: saturate(0.6) contrast(1.06); }
 

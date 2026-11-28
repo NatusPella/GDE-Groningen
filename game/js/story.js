@@ -254,6 +254,9 @@ const GOALS = {
   opening: {
     begin: (st, b) => { b.phase = 'wait'; },
     met: (st, b) => {
+      // UX 28-11: tussen het laadscherm en de eerste film stond de volledige HUD (minimap, geld, doelmarkering) even boven een leeg
+      // beeld; die blijft weg zolang de opening nog wacht (hoogstens 15 s, zodat een opening die vastzit de HUD niet blijft verbergen).
+      document.body.classList.toggle('opening-wacht', b.phase === 'wait' && world.time - rt.enteredAt < 15);
       if (b.phase === 'wait') {
         // #986: de opening is de eerste film na het laadscherm; de vlucht-in van de spelstart houdt hem niet tegen
         // (openingstart.js). De reden van het wachten staat in de waarschuwing, zodat een vastloper zegt waarop hij wacht.
@@ -294,6 +297,7 @@ const GOALS = {
 function enter(step) {
   rt.cur = step;
   rt.enteredAt = world.time;
+  document.body.classList.remove('opening-wacht');
   rt.reminded = false;
   rt.remindN = 0;
   rt.base = {};
