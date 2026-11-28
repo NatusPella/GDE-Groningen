@@ -215,7 +215,7 @@ t('poort: standaard open (stub), per akte met makeActGate, een bestaand profiel 
 t('poort van de verhaal-epic: nieuw spel dicht, akte 2 opent Percelen, akte 3 Bedrijven, een oude save houdt alles', () => {
   const gate = U.newGate();
   GT.setGateProgress(() => ({ partNow: 'kop', gate }));
-  assert.equal(GT.branchOpen('land'), false); assert.match(GT.branchHint('land'), /Tessa/);
+  assert.equal(GT.branchOpen('land'), false); assert.match(GT.branchHint('land'), /via de familie/);
   GT.setGateProgress(() => ({ partNow: 'romp', gate }));
   assert.equal(GT.branchOpen('land'), true); assert.equal(GT.branchOpen('business'), false);
   GT.setGateProgress(() => ({ partNow: 'staart', gate }));
