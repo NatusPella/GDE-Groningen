@@ -136,7 +136,7 @@ export const BIBLE = [
     want: "dat iedereen de regels naleeft", need: "een regel die zij mag breken", fear: "een formulier zonder stempel", habits: ["zet haar te grote petje steeds recht", "notitieboekje en stempel", "drie minuten te laat bij het museum"],
     dialect: "standaard Nederlands (niveau 0) met een enkel Gronings nou ja", rhythm: "precies, plechtig", phrases: ["Dat staat in artikel veertien."],
     voiceTag: "nieuwe stem nog te kiezen: kordate vrouw, droog", look: "blauw uniform met een te groot petje, notitieboekje, stempel", outfitRole: NA, outfitByAct: stays("vast: uniform"),
-    firstStep: 'M02', lastStep: 'M26', introducedBy: "de parkeerbon op de Escapade in H2", storyRole: "komische bijrol: parkeerbon (H2), drie minuten te laat bij het museum (H12) en leest in H16 als enige de stukken van Jelles verordening voor; de zusterziel van Jelle, maar aan de goede kant",
+    firstStep: 'M02', lastStep: 'M26', introducedBy: "de parkeerbon op hun rode auto in H2", storyRole: "komische bijrol: parkeerbon (H2), drie minuten te laat bij het museum (H12) en leest in H16 als enige de stukken van Jelles verordening voor; de zusterziel van Jelle, maar aan de goede kant",
     mapLink: "Politiebureau", canonNotes: "Bijbel 28-11 (01 §2.2): nieuw; uitbreiding van het groepsdossier 'politie'. Satirisch en licht, nooit getoond geweld (constitution 6).", sensitive: "satire, geen leed", canon: [] }),
   card({
     ...NEW, id: 'joost', tier: 'minor', name: "Joost Ensing", nick: "Agent Joost", aliases: ["Joost", "Ensing", "Agent Joost Ensing", "Agent Joost"], age: 27, pronoun: 'hij',

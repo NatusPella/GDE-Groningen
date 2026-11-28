@@ -134,7 +134,7 @@ export const RELATION_LIST = [
   e('dina', 'schipper_lammert', 'colleagues', "sluiswachter", "binnenvaartmentor", "jarenlang", "droog", "dat Lammert altijd wacht", "dat Dina het sluitsein geeft", "het wachten bij de sluis"),
   e('hilda', 'joost', 'colleagues', "hoofdagent", "agent bij de fietspatrouille", "jarenlang", "streng tegenover verontschuldigend", "dat Joost te laat is", "dat Hilda alles in artikelnummers zegt", "het te grote petje"),
   e('tjeerd', 'hilda', 'colleagues', "wijkagent", "hoofdagent", "jarenlang", "rustig tegenover precies", "dat Hilda alles opschrijft", "dat Tjeerd niks gezien heeft", "het politiebureau"),
-  e('hilda', 'tammo', 'acquaintance', "hoofdagent die bonnen schrijft", "de eigenaar van de Escapade", "H2", "plechtig", "dat Tammo overal parkeert", "dat Hilda alles in artikelen zegt", "de parkeerbon"),
+  e('hilda', 'tammo', 'acquaintance', "hoofdagent die bonnen schrijft", "de eigenaar van de rode auto", "H2", "plechtig", "dat Tammo overal parkeert", "dat Hilda alles in artikelen zegt", "de parkeerbon"),
   e('joost', 'buurman', 'acquaintance', "agent met helm", "buurman met duiven", "H5", "komisch", "dat Veldkamp duiven heeft", "dat Joost steeds te laat is", "de duif op de helm"),
   e('tjeerd', 'tammo', 'acquaintance', "wijkagent die niks zag", "een van de twee Stadjers in het zwart", "H10", "warm, stil", "dat Tammo en Tessa de Stadjers zijn", "dat Tjeerd de andere kant op kijkt", "de nacht op de dijk"),
 ];
