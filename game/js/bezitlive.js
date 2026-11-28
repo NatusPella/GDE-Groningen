@@ -397,6 +397,8 @@ let clock = { cal: 0, farm: 0 };
 const calDayOf = (w) => { const d = w && w.calendar && w.calendar.day; return Number.isFinite(d) && d >= 1 ? Math.floor(d) : 0; };
 const calOf = (farmDay) => (clock.cal > 0 ? Math.max(1, clock.cal + (farmDay - clock.farm)) : Math.max(1, farmDay + 1));
 export const calToday = () => calOf(Math.floor(getBoerderij().uren / 24));
+// De veilingdag van vandaag (bezitevents.auctionDay): één product brengt 25% meer op, of null. Voor de regel in het Gewas-tabblad van de boerderij (#1373).
+export const veilingVandaag = () => { try { return EV.auctionDay(calToday()); } catch (e) { return null; } };
 const weekendDay = (cd) => { const wd = (cd + 4) % 7; return wd === 6 || wd === 0; };          // dag 1 is vrijdag 14 augustus
 
 // De streekmarkt (areamarket.js) in bezit.x.market: één keer genormaliseerd, daarna in het geheugen.

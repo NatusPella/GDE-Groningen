@@ -5,6 +5,7 @@
 import { icoon as fIcoon } from './icons.js';
 import * as B from './boerderij.js';
 import { getBoerderij, kiesGewas, koopMachine, getBedrijf, koopPerceel, huurPerceel, zegOpPerceel, verkoopPerceel, betaalSchuldPerceel, zetThuis, zetActief, schuurNaarErf, erfNaarSchuur, koopMachineCat, huurMachineCat, verkoopMachineCat, onderhoudMachine, loonwerk, loonwerkAfleveren, leenGeld, losAf, contracten, neemContract, rangSlotVoor, rangStand } from './boerderijlive.js';
+import { veilingVandaag } from './bezitlive.js';
 import * as CT from './boerderijcontracten.js';
 import * as PC from './percelen.js';
 import * as M from './machines.js';
@@ -172,6 +173,12 @@ function gewas(b) {
     contractenBlok();
 }
 
+// De veilingdag (bezitevents.auctionDay, #1373): één product brengt vandaag 25% meer op; zonder veilingdag staat er niets.
+function veilingRegel() {
+  const v = veilingVandaag();
+  return v ? `<p class="bd-veiling"><b>${esc(v.text)}</b></p>` : '';
+}
+
 // De leveringscontracten (#492): het aanbod van deze speldag met Aannemen, en de voortgang van je eigen contracten in kg.
 // De kilo's tellen mee bij de gewone verkoop of aflevering; de bonus komt bovenop de dagprijs en verloopt kost niets.
 function contractenBlok() {
@@ -180,7 +187,7 @@ function contractenBlok() {
     const loopt = k.actief.some((c) => c.id === a.id);
     const oud = k.historie.find((c) => c.id === a.id);
     const status = loopt ? 'Loopt' : oud ? (oud.resultaat === 'klaar' ? 'Voldaan' : 'Verlopen') : '';
-    return `<div class="bd-rij"><span class="bd-naam"><b>${esc(B.GEWASSEN[a.gewas] ? B.GEWASSEN[a.gewas].naam : a.gewas)}</b><span class="mut"> · ${nl(a.kg)} kg · binnen ${a.deadlineUren} speluren · bonus ${euro(a.bonus)} (${cent(a.bonusPerKg)} per kg)</span></span>` +
+    return `<div class="bd-rij"><span class="bd-naam"><b>${CT.isCampagne(a) ? 'Bietencampagne' : esc(B.GEWASSEN[a.gewas] ? B.GEWASSEN[a.gewas].naam : a.gewas)}</b><span class="mut"> · ${nl(a.kg)} kg · binnen ${a.deadlineUren} speluren · bonus ${euro(a.bonus)} (${cent(a.bonusPerKg)} per kg)</span></span>` +
       (status ? `<span class="mut">${status}</span>` : knop('contract', 'Aannemen', { id: a.id }, k.actief.length >= CT.MAX_ACTIEF)) + '</div>';
   }).join('') || '<p class="mut">De afnemers vragen vandaag niets.</p>';
   // #626: per contract één kopregel met een voortgangsbalk en de bonus als bedrag; uitleg ingeklapt.
@@ -193,6 +200,7 @@ function contractenBlok() {
   }).join('') || '<p class="mut">Je hebt nog geen contract aangenomen.</p>';
   return `<div><p class="lb-titel"><b>Contracten</b> <span class="mut">· speldag ${k.dag + 1}</span></p>` +
     '<details class="bd-uitleg"><summary>Hoe werken contracten?</summary><p>De afnemers vragen vandaag om een vracht gewas; de kilo\'s tellen mee als je het aflevert. Een vol contract betaalt een bonus; verlopen kost niets.</p></details>' +
+    veilingRegel() +
     `<p class="lb-titel"><b>Aanbod van vandaag</b></p>${aanbod}` +
     `<p class="lb-titel"><b>Lopend</b></p>${actief}` +
     `<p class="bd-melding" aria-live="polite">${esc(melding)}</p></div>`;

@@ -55,9 +55,20 @@ function ruis(gewas, dag, zaad, zout) {
 
 // Het aanbod van een speldag: per gewas één contract. kg is een ronde vracht uit een flink deel van de oogst, de uiterste
 // tijd loopt mee met de grootte (een grote vracht krijgt meer tijd), en de bonus per kilo schommelt met de dag.
-export function aanbod(dag, zaad = ZAAD) {
+// De Bietencampagne (#1373, rang Bietenbaron van Oldambt): één keer per week, als opties.campagne, komt er een grote bietenvracht bij met een rijkere bonus. Zonder de optie
+// is het aanbod precies dat van voor de campagne (een oude boerderij en elke andere rang zien hem niet).
+export const CAMPAGNE = { periode: 7, kg: [6000, 9000], uren: 120, marge: [0.35, 0.5] };
+export const isCampagne = (c) => !!c && typeof c.id === 'string' && c.id.startsWith('campagne-');
+function campagneContract(d, z) {
+  const deel = ruis('bieten', d, z, 2);
+  const kg = Math.round((CAMPAGNE.kg[0] + (CAMPAGNE.kg[1] - CAMPAGNE.kg[0]) * deel) / 10) * 10;
+  const marge = CAMPAGNE.marge[0] + (CAMPAGNE.marge[1] - CAMPAGNE.marge[0]) * ruis('bieten', d, z, 3);
+  const bonusPerKg = Math.max(0.01, centen(PRIJS_KG.bieten * marge));
+  return { id: `campagne-${d}`, gewas: 'bieten', kg, deadlineUren: CAMPAGNE.uren, bonusPerKg, bonus: Math.round(kg * bonusPerKg), campagne: true };
+}
+export function aanbod(dag, zaad = ZAAD, opties = {}) {
   const d = alsDag(dag), z = alsZaad(zaad);
-  return GEWAS_IDS.map((gewas) => {
+  const lijst = GEWAS_IDS.map((gewas) => {
     const [lo, hi] = KG_RONDE[gewas];
     const deel = ruis(gewas, d, z, 0);
     const kg = Math.round((lo + (hi - lo) * deel) / 10) * 10;
@@ -66,6 +77,8 @@ export function aanbod(dag, zaad = ZAAD) {
     const bonusPerKg = Math.max(0.01, centen(PRIJS_KG[gewas] * marge));
     return { id: `contract-${d}-${gewas}`, gewas, kg, deadlineUren: uren, bonusPerKg, bonus: Math.round(kg * bonusPerKg) };
   });
+  if (opties && opties.campagne && d > 0 && d % CAMPAGNE.periode === 0) lijst.push(campagneContract(d, z));
+  return lijst;
 }
 
 // Een lege stand met het aanbod van die dag.
@@ -75,12 +88,12 @@ export function leeg(zaad = ZAAD, dag = 0) {
 }
 
 // Een nieuwe speldag: een nieuw aanbod, de lopende contracten en de historie blijven staan. Geeft true als de dag wisselde.
-export function ververs(state, dag) {
+export function ververs(state, dag, opties = {}) {
   if (!state || typeof state !== 'object') return false;
   const d = alsDag(dag);
   if (state.dag === d && Array.isArray(state.aanbod) && state.aanbod.length) return false;
   state.dag = d;
-  state.aanbod = aanbod(d, alsZaad(state.zaad));
+  state.aanbod = aanbod(d, alsZaad(state.zaad), opties);
   return true;
 }
 

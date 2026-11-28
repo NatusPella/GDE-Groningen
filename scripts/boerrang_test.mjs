@@ -11,6 +11,7 @@ import * as L from '../game/js/bezitlive.js';
 import * as LB from '../game/js/loopbaanlive.js';
 import * as Lp from '../game/js/loopbaan.js';
 import * as PC from '../game/js/percelen.js';
+import * as CT from '../game/js/boerderijcontracten.js';
 
 let n = 0, fails = 0;
 const t = (name, fn) => { n++; try { fn(); } catch (e) { fails++; console.log('FAIL', name, '\n  ', String(e.message).split('\n')[0]); } };
@@ -138,6 +139,34 @@ t('de haak: een niveau omhoog zet het moment in de wachtrij, het speelt een keer
   assert.equal(hook.omhoog({}, { vak: 'landbouw', van: 1, naar: 2 }), 0, 'een tweede keer speelt niet');
   assert.equal(hook.omhoog({}, { vak: 'taxi', van: 1, naar: 2 }), 0, 'een ander vak niet');
   assert.ok(rankMoments().length >= 5);
+});
+
+t('de Bietencampagne: een keer per week een grote bietenvracht, alleen voor de Bietenbaron met de hoeve; het gewone aanbod blijft zoals het was', () => {
+  const z = 1234;
+  const gewoon = CT.aanbod(14, z), met = CT.aanbod(14, z, { campagne: true });
+  assert.deepEqual(met.slice(0, 5), gewoon, 'het gewone aanbod is hetzelfde');
+  assert.equal(gewoon.length, 5); assert.equal(met.length, 6);
+  const c = met[5];
+  assert.ok(CT.isCampagne(c) && c.gewas === 'bieten' && c.kg >= 6000 && c.kg <= 9000 && c.deadlineUren === 120);
+  assert.ok(c.bonus > met.find((x) => x.gewas === 'bieten').bonus, 'rijker dan het gewone bietencontract');
+  assert.equal(CT.aanbod(15, z, { campagne: true }).length, 5, 'alleen elke zevende dag');
+  assert.equal(CT.aanbod(0, z, { campagne: true }).length, 5);
+  reset();
+  L.schenkHoeveCompleet();
+  const w = wereld();
+  BL.getBoerderij().uren = 14 * 24 + 1;
+  assert.ok(!BL.contracten().aanbod.some(CT.isCampagne), 'als Zaaier is er geen campagne');
+  naarNiveau(w, 6);
+  BL.getBoerderij().uren = 21 * 24 + 1;
+  const k = BL.contracten();
+  const camp = k.aanbod.find(CT.isCampagne);
+  assert.ok(camp, 'als Bietenbaron is er op dag 21 een campagne');
+  assert.ok(BL.neemContract(camp.id).ok);
+  const lev = CT.lever(BL.getBoerderij().contracten, 'bieten', camp.kg, BL.getBoerderij().uren);
+  assert.equal(lev.afgerond.length, 1); assert.equal(lev.bonus, camp.bonus);
+  // zonder de hoeve geen campagne, ook niet op niveau 6
+  reset(); naarNiveau(w, 6); BL.getBoerderij().uren = 21 * 24 + 1;
+  assert.ok(!BL.contracten().aanbod.some(CT.isCampagne));
 });
 
 console.log(`boerrang_test: ${n - fails}/${n}`);

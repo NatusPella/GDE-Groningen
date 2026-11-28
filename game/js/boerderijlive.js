@@ -104,7 +104,7 @@ export function boerderijTijd(w, nu = w && w.time) {
   if (uren > 0) {
     const b = getBoerderij();
     B.tikUren(b, uren);
-    CT.ververs(b.contracten, dagVan(b.uren));                  // een nieuwe speldag: een nieuw aanbod
+    CT.ververs(b.contracten, dagVan(b.uren), { campagne: campagneOpen() });                  // een nieuwe speldag: een nieuw aanbod
     meldVerlopen(w, CT.verval(b.contracten, b.uren).verlopen);  // te laat is te laat, zonder boete
     huurTik(w);
     vuil = true;
@@ -226,7 +226,7 @@ function verwerkLevering(w, b, r) {
 // de tijd om is, staat hier al als verlopen en niet meer als lopend.
 export function contracten() {
   const b = getBoerderij();
-  CT.ververs(b.contracten, dagVan(b.uren));
+  CT.ververs(b.contracten, dagVan(b.uren), { campagne: campagneOpen() });
   if (CT.verval(b.contracten, b.uren).verlopen.length) markeer();
   return { dag: b.contracten.dag, uren: b.uren, aanbod: b.contracten.aanbod, actief: b.contracten.actief, historie: b.contracten.historie };
 }
@@ -234,7 +234,7 @@ export function contracten() {
 // Een contract aannemen: geen geld en geen nieuwe opslagsleutel, het staat in de boerderijstand. { ok, contract } of { ok: false, reden }.
 export function neemContract(id) {
   const b = getBoerderij();
-  CT.ververs(b.contracten, dagVan(b.uren));
+  CT.ververs(b.contracten, dagVan(b.uren), { campagne: campagneOpen() });
   const r = CT.neemAan(b.contracten, id, b.uren);
   if (r.ok) markeer();
   return r;
@@ -308,6 +308,8 @@ export function rangStand() {
   try { niveau = niveauVoorVak(getLoopbaanProfiel(), VAK); } catch (e) { niveau = 1; }
   return { niveau, titel: rangTitel(niveau), volgende: volgendeRang(niveau), hoeve: PC.heeftHoeve(getBedrijf()) };
 }
+// De Bietencampagne (boerderijcontracten.CAMPAGNE) is er alleen voor de Bietenbaron van Oldambt (niveau 6) die de hoeve kreeg.
+const campagneOpen = () => { const s = rangStand(); return s.hoeve && s.niveau >= 6; };
 const slotRegel = (soort, id) => { const s = rangSlotVoor(soort, id); return s ? { ok: false, reden: s.tekst, slot: s } : null; };
 
 export function koopPerceel(w, soort, id) {
