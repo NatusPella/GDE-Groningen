@@ -2,6 +2,7 @@ import { getSettings, onSettingsChange } from './settings.js';
 import { KEYS } from './storagekeys.js';
 import { FLAGS } from './devflags.js';
 import { themeGain } from './sfx/volume.js';
+import { createCutMix } from './sfx/cutmix.js';
 
 // The GDE theme song: silent on the title screen (that one sounds like the
 // city, audio.js setMenuAudio), starts with Doorgaan / Nieuw spel, plays once
@@ -22,16 +23,25 @@ function mutedNow() {
 }
 
 // ducked under spoken dialogue (the opening montage)
+// Zacht en trager terug in plaats van een sprong (sfx/cutmix.js): 14 dB omlaag in 0,15 s, na de regel 0,5 s vast en dan in 0,6 s terug.
 let ducked = false;
+const themeMix = createCutMix('vol', { duck: 14, hold: 0.5, startDb: 0 });
+let themeMixAt = 0;
+function themeMixStep() {
+  const now = performance.now();
+  const dt = themeMixAt ? (now - themeMixAt) / 1000 : 0;
+  themeMixAt = now;
+  themeMix.step(ducked, dt);
+}
 export function setThemeDuck(on) {
   ducked = !!on;
-  if (el && state === 'playing') el.volume = targetVolume();
+  if (el && state === 'playing') { themeMixStep(); el.volume = targetVolume(); }
 }
 
 // The element's volume comes from the same place as the mix (sfx/volume.js):
 // master 0.55 x music 0.85, then the saved sliders (#461).
 function targetVolume() {
-  return themeGain(getSettings(), { muted: mutedNow(), ducked });
+  return themeGain(getSettings(), { muted: mutedNow() }) * themeMix.gain();
 }
 
 // Mute (U) lives in audio.js and the persisted flag is polled below; this lets
@@ -116,6 +126,6 @@ export function initTheme() {
   // mute (U) lives in audio.js; poll its persisted flag instead of coupling
   fadeTimer = setInterval(() => {
     if (!el) return;
-    if (state === 'playing') el.volume = targetVolume();
-  }, 250);
+    if (state === 'playing') { themeMixStep(); el.volume = targetVolume(); }
+  }, 60);
 }

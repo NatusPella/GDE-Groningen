@@ -615,6 +615,8 @@ export function playScript(w, def, { lines, duration, anchor, cine = {}, env: en
     priority: 4, pause: true, letterbox: true, skippable: true, hideHud: true, hidePlayers: true, mumble: true,
     prewarm, jumps,
     ...cine, id: cine.id || useDef.id, duration: sceneDur, lines: sceneLines,
+    // de stand van de muziek onder deze scène (sfx/cutmix.js): muziek in de scène-data, anders de tabel van de regie (sfx/cutmuziek.js)
+    sceneId: useDef.id, ...(cine.music || useDef.music ? { music: cine.music || useDef.music } : {}),
     onStart() {
       if (cine.onStart) cine.onStart();
       try {

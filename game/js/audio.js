@@ -7,6 +7,7 @@ import { gearboxReadout } from './gearbox.js';
 import { createBank, buildImpulse, variantsOf, bufferNames } from './sfx/dsp.js';
 import { FX_INFO } from './sfx/fxbank.js';
 import { createStemTeller, declick, voiceCap } from './sfx/stemlimiet.js';
+import { cutMusicState, setCutMixOff, whenSpeechQuiet } from './sfx/cutmusic.js';
 import { plan as mixPlan, speechDuckFactor, categoryLevel, duckVeilig } from './sfx/mixplan.js';
 import { speechDuckStep } from './sfx/sfxfeel.js';
 import { createLinkups } from './sfx/linkups.js';
@@ -1525,6 +1526,11 @@ function updateChaseBark(world) {
 // under a clue, and the ringtone of an incoming story call (two short
 // double rings, a phone in a pocket rather than the room).
 export function playClueSting() {
+  if (!ctx || muted || !stingBus) return;
+  // een sting valt nooit midden in een zin (sfx/cutmix.js): onder een stem wacht hij op de stilte erna
+  whenSpeechQuiet(playClueStingNu);
+}
+function playClueStingNu() {
   if (!ctx || muted || !stingBus) return;
   [[659.25, 0, 0.9], [987.77, 0.11, 0.9], [1318.5, 0.22, 1.2]].forEach(([freq, delay, duration]) =>
     playTone({ freq, type: 'sine', duration, gain: 0.05, delay, bus: stingBus, prio: 2 }));
@@ -3364,7 +3370,7 @@ function audioState() {
     ctx: ctx.state, time: r3(ctx.currentTime), hidden: document.hidden, graphTest: GRAPH_TEST, muted,
     master: r3(master.gain.value), musicOut: r3(musicOut.gain.value), musicBus: r3(musicBus.gain.value),
     musicTarget: r3(musicState.gain), lowpass: Math.round(musicLp.frequency.value), ambience: r3(ambBus.gain.value),
-    ambDuck: r3(duckState.level), musicDuck: speech.musicDuck(),
+    ambDuck: r3(duckState.level), musicDuck: speech.musicDuck(), cutMix: cutMusicState(),
     gmusic: radioState(),
     bikeSpeakers: bikeSpeakers.voices.map((q) => { const d = distToListener(q.v.x, q.v.y, 1.2); return { track: q.track, d: +d.toFixed(1), rate: +q.el.playbackRate.toFixed(3), level: +q.level.toFixed(3), vol: +(q.level * pannerGain(d, SPEAKER_REF, SPEAKER_ROLLOFF)).toFixed(3), ending: q.ending, paused: q.el.paused, lis: [+listenerPos.x.toFixed(1), +listenerPos.z.toFixed(1), +listenerVel.x.toFixed(1), +listenerVel.y.toFixed(1)] }; }),
     scenario: scenarioKey(), storyScene, sceneLive: storyProbe ? !!storyProbe() : null, voiceEls: liveVoiceEls, activeVoices, capGeweigerd: stemTeller.stats.geweigerd,
@@ -3379,6 +3385,7 @@ if (typeof window !== 'undefined') {
     heal: () => { if (ctx && lastWorld) watchdog(lastWorld, true); return audioState(); },
     speech,
     setStoryScene: (on) => setStoryScene(on),
+    cutMixOff: setCutMixOff, // meting: de cutscenemix uit (de oude stand) of aan, zie scripts/qa/cutmix_live.mjs
     // tests: break one thing on purpose, the watchdog must repair it
     poke: (what) => {
       if (!ctx) return false;

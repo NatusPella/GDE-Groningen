@@ -1167,7 +1167,7 @@ function pushIn(p, k) {
 }
 
 // own: the scene plays the voices itself (its shot callback), so cinematics.js must not look them up and start them a second time (#326)
-const cineLines = (lines) => lines.map((l) => ({ speaker: l.speaker, text: l.text, at: l.at, dur: l.dur, clue: l.clue || undefined, card: l.card || undefined, own: true }));
+const cineLines = (lines) => lines.map((l) => ({ speaker: l.speaker, text: l.text, at: l.at, dur: l.dur, vdur: l.voice && l.voice.dur > 0 ? l.voice.dur : undefined, clue: l.clue || undefined, card: l.card || undefined, own: true }));
 
 // Runs a staged scene: voices, gestures, clue push-ins and the camera
 // (camera(t, cur) returns a pose). keep: the caller cleans up (a queued card).

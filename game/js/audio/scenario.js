@@ -4,6 +4,7 @@
 // zodat deze module niets uit audio.js hoeft te importeren en de cyclus 0 blijft.
 import { sfeerTracks } from '../missiesfeer.js';
 import * as speech from '../speech.js';
+import { cutMusicActive, cutMusicGain } from '../sfx/cutmusic.js';
 import { musicDuckGain, musicDuckStep } from '../sfx/mixplan.js';
 import { createScenarioDirector, activityMusicKey, createLoopScan } from '../scenariomusic.js';
 import { FOOTBALL_TRACKS, footballMusicVolume, footballDucking } from '../footballmusic.js';
@@ -189,8 +190,8 @@ export function updateScenarioMusic(dt, world) {
     else if (scenarioBuffers[want].loop) { stopScenarioTrack(); startScenarioTrack(want); }
     else if (scenarioBuffers[want].failed) want = null;
   }
-  scenarioDuck = musicDuckStep(scenarioDuck, speech.musicDuck(), dt);
-  if (scenarioVol) scenarioVol.gain.value = SCENARIO_VOLUME * host.musicVolume(host.getSettings()) * (1 - 0.45 * host.stingDuck.level) * musicDuckGain(scenarioDuck) * (want && want.startsWith('voetbal_') ? footballMusicVolume(host.getSettings()) * footballDucking(world) : 1);
+  scenarioDuck = musicDuckStep(scenarioDuck, cutMusicActive() ? 0 : speech.musicDuck(), dt);
+  if (scenarioVol) scenarioVol.gain.value = SCENARIO_VOLUME * host.musicVolume(host.getSettings()) * (1 - 0.45 * host.stingDuck.level) * musicDuckGain(scenarioDuck) * cutMusicGain() * (want && want.startsWith('voetbal_') ? footballMusicVolume(host.getSettings()) * footballDucking(world) : 1);
   return want && scenarioBuffers[want] && !scenarioBuffers[want].failed ? want : null;
 }
 
