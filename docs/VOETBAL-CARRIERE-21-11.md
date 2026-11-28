@@ -586,7 +586,7 @@ De naam van het toernooi, de **Waddenbeker**, is zelf een parodie op de grote Eu
 
 | Spelnaam | Parodie op | De grap |
 |---|---|---|
-| De Hoekers | geen echte club (verhaalclub, 28-11) | de hoek van het Hogeland waar de club staat: een hoek is waar je de bal uit schopt, en hier komt hij altijd weer terug. In het verhaal heette de club eerst "VV De Hoek"; zonder voorvoegsel (ADR 0043). Staat in Warffum (`voetbalverhaal.js`) en vervangt daar de sjabloonnaam |
+| De Hoekers | geen echte club (verhaalclub, 28-11) | de hoek van het Hogeland waar de club staat: een hoek is waar je de bal uit schopt, en hier komt hij altijd weer terug. In het verhaal heette de club eerst "VV De Hoek"; zonder voorvoegsel (ADR 0043). Staat in Warffum (`footballstory.js`) en vervangt daar de sjabloonnaam |
 
 ### A.4 Lokale clubs (acht sjablonen, hoofdstuk 3b)
 

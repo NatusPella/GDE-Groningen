@@ -1,4 +1,4 @@
-// Test van de voetbalverhaaldata (#1374, V0 en V1): scripts/voetbal_verhaal_test.mjs. Puur, geen Electron.
+// Test van de footballstorydata (#1374, V0 en V1): scripts/football_story_test.mjs. Puur, geen Electron.
 // Dekt: de twee verhaalclubs (zonder voorvoegsel, het aantal blijft 16), het startpark op het Hogeland, de rangen als data, de aanleiding (de invalbeurt), de verhaalbeats per rang
 // (een per speldag, niet tijdens een scène, per speler in het eigen profiel, oude profielen blijven heel) en de Samen-spelen-regel (terugblik voor een gast, geen gedeelde vlag).
 import PARKDATA from '../game/js/voetbalparkendata.js';
@@ -6,7 +6,7 @@ import assert from 'node:assert/strict';
 import { CLUBS, clubById, clubsOf, CLUBS_PER_DIVISION } from '../game/js/voetbalclubs.js';
 import { makeParkIndex, localDivision, localClubName } from '../game/js/voetbalparken.js';
 import * as C from '../game/js/voetbalcarriere.js';
-import * as V from '../game/js/voetbalverhaal.js';
+import * as V from '../game/js/footballstory.js';
 import { wordCount } from '../game/js/hudtext.js';
 import { hasForbiddenWord } from './voetbal_verboden.mjs';
 import * as L from '../game/js/loopbaanlive.js';
@@ -177,4 +177,4 @@ t('de live-laag: een nieuwe carrière begint bij De Hoekers en de verhaalbeat ko
   dag(4); w.time = 7500; const volgende = LIVE.updateBeats(3, w); assert.equal(volgende.id, 'V2', 'daarna de verhaalbeat van rang 2');
 });
 
-console.log(`voetbal_verhaal_test: ${n} groepen ok`);
+console.log(`football_story_test: ${n} groepen ok`);

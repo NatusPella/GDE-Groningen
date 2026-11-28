@@ -1,8 +1,8 @@
 // Voetbalparken uit de kaart en de lokale clubs (#1117, epic #1106, docs/VOETBAL-CARRIERE-21-11.md hoofdstuk 3b): puur, geen DOM en geen THREE (scripts/voetbalparken_test.mjs).
 // De data is game/js/voetbalparkendata.js (scripts/world/build_voetbalparken.mjs: 281 parken bij 139 plaatsen, ongeveer 27 kB). Elke plaats met een park heeft één verzonnen club; het grootste park binnen 3 km
-// is het thuispark, de rest zijn trainingsvelden (de club van de verhaalplaats heet vast De Hoekers: voetbalverhaal.js). De acht dichtstbijzijnde plaatsen bij het huis vormen de Talentenklasse. Geen echte clubnamen: acht sjablonen met een knipoog, nooit VV, SV, FC, SC of RKSV.
+// is het thuispark, de rest zijn trainingsvelden (de club van de verhaalplaats heet vast De Hoekers: footballstory.js). De acht dichtstbijzijnde plaatsen bij het huis vormen de Talentenklasse. Geen echte clubnamen: acht sjablonen met een knipoog, nooit VV, SV, FC, SC of RKSV.
 import { hashSeed } from './voetbalplayers.js';
-import { STORY_PLACE_ID, STORY_VILLAGE_CLUB } from './voetbalverhaal.js';
+import { STORY_PLACE_ID, STORY_VILLAGE_CLUB } from './footballstory.js';
 
 export const HOME_WGS = Object.freeze({ lat: 53.2405, lon: 6.5335 });   // het huis in Paddepoel (Pleiadenlaan)
 export const LOCAL_DIVISION_SIZE = 8;

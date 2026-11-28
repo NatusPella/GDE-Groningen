@@ -1,4 +1,4 @@
-// De verhaaldata van de voetbalcarrière (#1374, V0 en V1, bijbel 28-11 deel 01 en 02): puur, geen DOM en geen THREE (scripts/voetbal_verhaal_test.mjs).
+// De verhaaldata van de voetbalcarrière (#1374, V0 en V1, bijbel 28-11 deel 01 en 02): puur, geen DOM en geen THREE (scripts/football_story_test.mjs).
 // Wat hier staat: de verhaalclubs (de dorpsclub De Hoekers en de topclub De Noorderlichters, zonder voorvoegsel: ADR 0043), de bijfiguren, de zes rangen als data, de aanleiding (de invalbeurt)
 // en de verhaalbeats per rang (stille appjes, hooguit 14 woorden). Alles is verzonnen; de namen volgen deel 01 van de bijbel (Albert Teuben, Eppo Rozema), niet de eerste opzet van deel 02.
 // Samen spelen: rang, vlaggen en beats staan per speler in het eigen profiel (`flags.storyBeats`, een bitmasker); niets hier raakt een gedeelde toestand of w.player.
