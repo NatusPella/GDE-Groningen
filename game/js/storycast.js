@@ -36,15 +36,15 @@ export const RIKUS_LOOK = {
   look: { top: 'jacket', topColor: 0x1f7a44, facial: 'stubble', glasses: true, shades: false, scarf: false, bottom: 'jeans', shoeType: 'sneaker', age: 'adult', build: 'heavy', buildScale: 1.06, hat: null, bag: null, umbrella: null },
 };
 
-// Mem Terpstra, Jelle's mother (the "Mem" of Us Mem Snacks) and an old
+// Mem Terpstra, Jelle's grandmother (the "Mem" of Us Mem Snacks) and an old
 // friend of Oma Trijntje: navy coat, white collar, glasses, grey bun and the
-// pompeblêd-red scarf her son copied from her.
+// pompeblêd-red scarf her grandson copied from her.
 export const MEM_LOOK = {
   shirt: 0x223a66, skin: 0xecc8a8, hair: 0xc9c6c0, variant: 'female', pants: 0x2a2a30, shoes: 0x3a2a1a, hairStyle: 'bun', seed: 1953,
   look: { top: 'coat', under: 0xf4f1ea, glasses: true, shades: false, scarf: true, scarfColor: 0xc8102e, bottom: 'skirt', shoeType: 'leather', age: 'old', build: 'avg', heightScale: 0.94, hat: null, bag: 'shoulder', umbrella: null },
 };
 
-// Beppe, Tessa's Frisian grandmother (N3, F3): a small old woman in a cardigan, at the stove or by the table.
+// Beppe, Tammo's Frisian grandmother (Hinke Wiersma) (N3, F3): a small old woman in a cardigan, at the stove or by the table.
 export const BEPPE_LOOK = {
   shirt: 0x7a8f6a, skin: 0xecc8a8, hair: 0xd8d4cc, variant: 'female', pants: 0x3a3a42, shoes: 0x4a3426, hairStyle: 'bun', seed: 1311,
   look: { top: 'cardigan', topColor: 0x7a8f6a, under: 0xf4f1ea, glasses: true, shades: false, scarf: false, bottom: 'skirt', shoeType: 'leather', age: 'old', build: 'avg', heightScale: 0.93, hat: null, bag: null, umbrella: null },
