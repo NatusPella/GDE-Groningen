@@ -70,6 +70,10 @@ export function trackCourse(st, stepId, dist, dt) {
   return '';
 }
 
+// UX 28-11: the red "Slaan" prompt of a passer-by next to the spawn point was the very first prompt of a new game (before the
+// Escapade or the first goal). It stays quiet until the first mission is done; the punch itself works as always.
+export const punchPromptAllowed = (missionsDone) => (missionsDone | 0) > 0;
+
 // The reminder was shown: count it and measure afresh from here, so the next one needs new wandering.
 export function courseNudged(st, dist) {
   if (!st) return;

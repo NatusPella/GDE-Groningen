@@ -7,7 +7,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import {
   PRACTICE_METRES, PRACTICE_MAX_STEP, createPractice, trackPractice, practiced,
-  NUDGE, NUDGE_CARD, createCourse, trackCourse, courseNudged, pauseCourse,
+  NUDGE, NUDGE_CARD, createCourse, trackCourse, courseNudged, pauseCourse, punchPromptAllowed,
 } from '../game/js/firststeps.js';
 import { controlHint, hintText } from '../game/js/controlhint.js';
 import { LESSON_MAX_WORDS } from '../game/js/onboardinglogic.js';
@@ -197,6 +197,13 @@ t('bedrading: de herinnering komt na de doelkaart, één tegelijk, ook bij later
   assert.doesNotMatch(ob, /world\.player|w\.player\b/, 'geen nieuwe enkelspeler-aanname');
   // geen opslag: de herinnering hoort bij de sessie
   assert.doesNotMatch(lees('game/js/firststeps.js'), /localStorage|document\.|window\./, 'firststeps.js is puur');
+});
+
+t('UX 28-11: de Slaan-kaart van een voorbijganger komt pas na de eerste missie, niet als eerste kaart van een nieuw spel', () => {
+  assert.equal(punchPromptAllowed(0), false);
+  assert.equal(punchPromptAllowed(undefined), false);
+  assert.equal(punchPromptAllowed(1), true);
+  assert.match(lees('game/js/prompts.js'), /isMeleeWeapon\(weapon\) && punchPromptAllowed\(world\.stats && world\.stats\.missionsDone\)/);
 });
 
 console.log(`firststeps_test: ${n - bad}/${n} geslaagd`);

@@ -17,6 +17,7 @@ import { glyphHtml, keyTextHtml } from './keycap.js';
 import { KEYS } from './storagekeys.js';
 import { promptSub, explains, explainId, markSeen, parseSeen } from './hudtext.js';
 import { hoofdspeler } from './players.js';
+import { punchPromptAllowed } from './firststeps.js';
 import { isPadActive, padState } from './gamepad.js';
 import { getUiScale } from './uiscale.js';
 import { isPhoneOpen, isPauseMenuOpen } from './pausestate.js';
