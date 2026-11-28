@@ -128,8 +128,8 @@ benchmarkpoort en cutscenepoort wachten op die definitie, met een maximumtijd en
 ## Verhaalgebieden (#1361)
 
 Vier verhaalgebieden (Waddenkust en Lauwersmeer, Hogeland en Veenkoloniën, stad Groningen,
-Westerkwartier en Gorecht) staan als data in `game/js/storyregions.js`: sfeer, plekken met een
+Westerkwartier en Gorecht) staan als data in `game/js/storyareas.js`: sfeer, plekken met een
 echte kaartpositie (binnen de provincie), bijfiguren, loopbanen met hun thuisgebied en een
 verwijzing naar de muzieklaag. `regionAt(x, y)` en `regionsOfStep(stap)` zijn zuivere regels; het
 verhaal wijst er een richting mee, niets sluit het gebied af. Bron: `docs/verhaal/bijbel-28-11/03-wereld-en-bouwplan.md`
-1.2; test `scripts/storyregions_test.mjs`.
+1.2; test `scripts/storyareas_test.mjs`.

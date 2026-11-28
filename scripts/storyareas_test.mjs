@@ -1,10 +1,10 @@
-// De vier verhaalgebieden als data (#1361): game/js/storyregions.js. Pure test, zonder Electron en zonder netwerk.
-//   node scripts/storyregions_test.mjs
+// De vier verhaalgebieden als data (#1361): game/js/storyareas.js. Pure test, zonder Electron en zonder netwerk.
+//   node scripts/storyareas_test.mjs
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import * as SR from '../game/js/storyregions.js';
+import * as SR from '../game/js/storyareas.js';
 import * as GR from '../game/js/grenzen.js';
 import { wgsToWorld } from '../game/js/rdnew.js';
 import { VAK_IDS } from '../game/js/loopbaan.js';
@@ -124,7 +124,7 @@ t('geen winter en geen echt merk in de speltekst van de gebieden; altijd zomer',
 });
 
 t('de module is puur: geen DOM, geen opslag, geen netwerk, geen THREE; alleen rdnew.js als import', () => {
-  const src = fs.readFileSync(path.join(ROOT, 'game', 'js', 'storyregions.js'), 'utf8').split('\n').filter((r) => !r.startsWith('//')).join('\n');
+  const src = fs.readFileSync(path.join(ROOT, 'game', 'js', 'storyareas.js'), 'utf8').split('\n').filter((r) => !r.startsWith('//')).join('\n');
   for (const w of ['document', 'window', 'localStorage', 'fetch(', 'XMLHttpRequest', 'THREE', 'require(']) assert.ok(!src.includes(w), 'niet puur: ' + w);
   assert.deepEqual([...src.matchAll(/^import .* from '(.+)';/gm)].map((m) => m[1]), ['./rdnew.js']);
 });
