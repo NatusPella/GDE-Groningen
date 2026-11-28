@@ -17,6 +17,7 @@ import { fieldPhase, workField, workUnits, unitScale } from './parcelfarm.js';
 import { staffOf, staffCapacity, staffDayTick, leaseDayTick, planStaffDay, mgmtFactor, managedCount, paidFor, sellLoad, SKILL_RATIO, MAX_CATCHUP_DAYS } from './farmstaff.js';
 import { herdsOf, livestockDayTick, visibleAnimals, PRODUCT_PRICE, SPECIES } from './livestock.js';
 import { areaPrice } from './bezithooks.js';
+import { klusVan } from './dierklus.js';
 
 // Wat een dag vee-opbrengst oplevert: de streekprijs van de streek van de grootste kudde van dit product (bezithooks.js, met verzadiging door wat je levert), zonder haak de vaste prijs.
 // Eieren gaan per stuk (PRODUCT_PRICE) maar de markt rekent per kilo (acht per kilo).
@@ -283,7 +284,7 @@ export function advanceDays(bezit, farm, toDay, ctx = {}) {
     const l = leaseDayTick(bezit, farm, day);
     rep.lease += l.income;
     const store = farm.bedrijf.opslag[home] || {};
-    const v = livestockDayTick(bezit, { hay: { gras: store.gras || 0, hooi: store.hooi || 0, graan: store.graan || 0 }, robot: ctx.robot, buy: ctx.buy });
+    const v = livestockDayTick(bezit, { hay: { gras: store.gras || 0, hooi: store.hooi || 0, graan: store.graan || 0 }, robot: ctx.robot, buy: ctx.buy, klus: klusVan(bezit, day) });
     for (const feed of Object.keys(v.hayUsed)) PC.haalUit(farm.bedrijf, home, feed, v.hayUsed[feed]);
     let veeInkomsten = 0;
     for (const p of Object.keys(v.products)) {

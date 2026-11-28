@@ -10,13 +10,13 @@
 // Geheugen:     dezelfde vorm, maar buildings is een Set van OSM-id's.
 
 import { KEYS } from './storagekeys.js';
-import { perceelDef, PERCEEL_IDS } from './percelen.js';
+import { perceelDef, PERCEEL_IDS, SCHENK_PERCEEL_IDS } from './percelen.js';
 import { VERKOOP_FACTOR } from './bezitprijs.js';
 
 export const BEZIT_VERSION = 1;
 export const MAX_PARCELS = 20000;                 // ruim boven het aanbod (13.664): een bovengrens tegen kapotte opslag
 export const MAX_BUILDINGS = 500000;
-export const EXT_KEYS = ['staff', 'herds', 'rules', 'tessa', 'lastDay', 'chains', 'market', 'news', 'snack', 'told', 'menuTold'];   // chains, market en news: de ketens, de streekmarkt en het nieuws van #1103
+export const EXT_KEYS = ['staff', 'herds', 'rules', 'tessa', 'lastDay', 'chains', 'market', 'news', 'snack', 'told', 'menuTold', 'dierklus'];   // chains, market en news: de ketens, de streekmarkt en het nieuws van #1103
 const EXT_MAX_JSON = 400000;                       // een bovengrens tegen kapotte opslag: bij 1000 percelen met vee is dit ruim
 export const MODES = ['self', 'leased', 'staff'];  // zelf bewerken, verpacht, door personeel
 const clamp = (v, lo, hi) => (v < lo ? lo : v > hi ? hi : v);
@@ -192,7 +192,7 @@ export function syncLegacyParcels(b, bedrijf) {
   let added = 0;
   if (!bedrijf || !bedrijf.percelen) return added;
   for (const id of Object.keys(bedrijf.percelen)) {
-    if (!PERCEEL_IDS.includes(id) || b.parcels[id]) continue;
+    if (!(PERCEEL_IDS.includes(id) || SCHENK_PERCEEL_IDS.includes(id)) || b.parcels[id]) continue;   // de geschonken hoeve (#1373) telt ook als eigen bezit, niet als handelswaar
     const d = perceelDef(id);
     b.parcels[id] = normParcel({ k: d.soort === 'weiland' ? 'w' : 'a', ha: d.ha, t: Math.round((bedrijf.percelen[id].sinds || 0) / 24), p: 0, w: 0, m: 'self', lg: 1 });
     added++;

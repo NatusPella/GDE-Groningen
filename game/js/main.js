@@ -88,6 +88,7 @@ import { initStory, updateStory, currentStep, storyBridgeView, storyGateProgress
 import { updateStoryBridge } from './storybridgerun.js';
 import { updateCareerDebuts } from './careerdebutrun.js';
 import { updateRankMoments } from './rankmomentsrun.js';
+import { updateBoerStory } from './boerstoryrun.js';
 import { initFeatureReveal, updateFeatureReveal } from './featurerevealrun.js';
 import { updateTerugkeer } from './terugkeerrun.js';
 import { updateRecap, isRecapOpen } from './recapcardrun.js';
@@ -1291,6 +1292,8 @@ try { const slot = ensureLatestSlot(); const info = slot ? readSaveInfo() : null
     updateTerugkeer(dt, world, () => isPauseMenuOpen() || isMapOpen() || isPhoneOpen() || isShopOpen() || isRecapOpen());
     // #1125: een korte overgangsscène van Tammo en Tessa tussen twee missies (storybridgerun.js), op een rustig moment
     updateStoryBridge(world.paused ? 0 : dt, world, storyBridgeView(), () => isPauseMenuOpen() || isMapOpen() || isPhoneOpen() || isShopOpen());
+    // #1373: na het bezoek aan hoeve Zeldenrust de akte bij de notaris en de schenking (boerstoryrun.js), op een rustig moment en eenmaal per speler
+    updateBoerStory(world.paused ? 0 : dt, world, storyBridgeView(), () => isPauseMenuOpen() || isMapOpen() || isPhoneOpen() || isShopOpen());
     // 22-11: de begincutscene van de voetbalcarrière en van het eerste perceel (careerdebutrun.js), eenmaal per speler, op een rustig moment
     updateCareerDebuts(world.paused ? 0 : dt, world, storyBridgeView(), () => isPauseMenuOpen() || isMapOpen() || isPhoneOpen() || isShopOpen());
     // R1: een aangemeld rangmoment van een loopbaan (rankmoments.js), op een rustig moment en eenmaal per speler

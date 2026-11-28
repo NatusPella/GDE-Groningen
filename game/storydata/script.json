@@ -149,6 +149,18 @@
    "name": "Boer",
    "voice": "Boer"
   },
+  "boer_hindrik": {
+   "name": "Oom Hindrik",
+   "voice": "Oom Hindrik"
+  },
+  "tante_aaltje": {
+   "name": "Tante Aaltje",
+   "voice": "Tante Aaltje"
+  },
+  "notaris": {
+   "name": "De notaris",
+   "voice": "De notaris"
+  },
   "veldkamp": {
    "name": "Meneer Veldkamp",
    "voice": "Meneer Veldkamp"
@@ -6244,18 +6256,20 @@
    "step": "N5",
    "kind": "key",
    "regie": [
-    "woensdagochtend. Een boerenerf met kippen, een hek en een koe die niet weg wil. Tessa loopt het erf op alsof ze er nooit is weggegaan. Tammo blijft bij het hek.",
-    "ze leidt zijn hand langs de neus van de koe. De koe snuift. Tammo houdt zijn adem in. Een duif landt op het hek."
+    "woensdagochtend. Hoeve Zeldenrust op de dijk: een bord aan het hek, kippen, een koe die niet weg wil. Tammo draagt een mand eieren van Beppe. Tessa loopt het erf op alsof ze er nooit is weggegaan. Tegen het hek leunt een oude man in pet en laarzen; aan de overkant tilt een buurman melkbussen.",
+    "ze leidt zijn hand langs de neus van de koe. De koe snuift. Tammo houdt zijn adem in. Een duif landt op het hek.",
+    "Hindrik loopt langzaam naar de dijk en wijst. Achter de dijk ligt de zee, grijs en rustig.",
+    "een auto stopt bij het hek. Een vrouw in een violet vest stapt uit, met een map waar ZEKER op staat.",
+    "Hindrik pakt de koeienbel van de spijker en geeft hem aan Tessa. Dan stapt hij achterin. De auto rijdt weg; hij zwaait met zijn pet."
    ],
    "lines": [
     {
      "speaker": "Tessa",
      "key": "A",
-     "text": "Dit is het erf van mijn oom. Hier leerde ik melken.",
+     "text": "Dit is het erf van Zeldenrust. Hier leerde ik melken, de zomer dat Beppe me meenam.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": false,
-     "rec": "lines",
+     "textOnly": true,
      "voice": "Anita"
     },
     {
@@ -6277,6 +6291,47 @@
      "humor": "HN-13",
      "rec": "lines",
      "voice": "Anita"
+    },
+    {
+     "speaker": "Tammo",
+     "key": "T",
+     "text": "Wie staat daar bij het hek?",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tessa",
+     "key": "A",
+     "text": "Oom Hindrik. De man van Beppe's zus. Hij wacht op haar eieren.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true,
+     "voice": "Anita"
+    },
+    {
+     "speaker": "Oom Hindrik",
+     "key": "boer_hindrik",
+     "text": "Eieren van Beppe? Zet maar neer, mien jong.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tammo",
+     "key": "T",
+     "text": "Dan bent u mijn oud-oom.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Oom Hindrik",
+     "key": "boer_hindrik",
+     "text": "Oud, dat klopt. Vierenzeventig. Beppe belt elke week of ik wel eet.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
     },
     {
      "speaker": "Tammo",
@@ -6316,6 +6371,226 @@
      "textOnly": false,
      "rec": "lines",
      "voice": "Anita"
+    },
+    {
+     "speaker": "Oom Hindrik",
+     "key": "boer_hindrik",
+     "text": "Ze was acht en ze molk sneller dan mijn knecht. Toen wist ik: dat meisje begrijpt koeien.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Oom Hindrik",
+     "key": "boer_hindrik",
+     "text": "Doar achter is niks meer. Alleen water. Dit land moet blijven werken.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tammo",
+     "key": "T",
+     "text": "Het is groot. Hoeveel koeien zijn het?",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Oom Hindrik",
+     "key": "boer_hindrik",
+     "text": "Twaalf melkkoeien, vijf hectare weiland en vijf hectare akker. Voor mij te veel geworden, mien jong.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tammo",
+     "key": "T",
+     "text": "Tante Aaltje. Mijn moeders zus.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tante Aaltje",
+     "key": "tante_aaltje",
+     "text": "Dag Tammo. Dag Tessa. Hindrik gaat vandaag naar Huize Waddenzicht, hier in Warffum. Dat staat vast. Dat staat vast.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Oom Hindrik",
+     "key": "boer_hindrik",
+     "text": "Ik kan het best nog. Maar de thee daar is slap.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tessa",
+     "key": "A",
+     "text": "En wie doet de koeien?",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true,
+     "voice": "Anita"
+    },
+    {
+     "speaker": "Tante Aaltje",
+     "key": "tante_aaltje",
+     "text": "Dat regel ik bij de notaris. Eén ding tegelijk.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Oom Hindrik",
+     "key": "boer_hindrik",
+     "text": "Pas goed op de bel, meisje.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tessa",
+     "key": "A",
+     "text": "Hij zwaait.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true,
+     "voice": "Anita"
+    },
+    {
+     "speaker": "Tammo",
+     "key": "T",
+     "text": "Zwaaien we terug?",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tessa",
+     "key": "A",
+     "text": "Altijd.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true,
+     "voice": "Anita"
+    }
+   ]
+  },
+  {
+   "id": "N5.2",
+   "title": "De akte bij de notaris",
+   "act": 2,
+   "region": "Hogeland, Warffum",
+   "vehicle": "notariskantoor",
+   "step": "N5",
+   "kind": "key",
+   "regie": [
+    "middag, een paar dagen later. Een notariskantoor in Warffum met een lange tafel en een klok die te hard tikt. Tante Aaltje zit met haar map ZEKER; de notaris zet zijn bril op. Tammo en Tessa zitten naast elkaar.",
+    "ze leggen het briefje bij de akte. Buiten loeit een koe."
+   ],
+   "lines": [
+    {
+     "speaker": "De notaris",
+     "key": "notaris",
+     "text": "Dan de akte. Hindrik de Jong schenkt hoeve Zeldenrust aan zijn neef Tammo en aan Tessa, die zijn koeien begreep.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tammo",
+     "key": "T",
+     "text": "Aan ons?",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tante Aaltje",
+     "key": "tante_aaltje",
+     "text": "Aan jullie samen. Twaalf koeien, tien hectare, een trekker en een hond.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tessa",
+     "key": "A",
+     "text": "Een hond?",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true,
+     "voice": "Anita"
+    },
+    {
+     "speaker": "Tante Aaltje",
+     "key": "tante_aaltje",
+     "text": "Die mocht niet mee naar Huize Waddenzicht. Jullie mochten hem uitlaten. Dat telde mee.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tammo",
+     "key": "T",
+     "text": "Maar waarom wij?",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tante Aaltje",
+     "key": "tante_aaltje",
+     "text": "Hij wil dat het land blijft werken. Eén voorwaarde: oogst wat er staat, daarna zien we verder.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tante Aaltje",
+     "key": "tante_aaltje",
+     "text": "Ypie Boekema van hiernaast melkt voorlopig door. Hij wijst jullie de grenzen.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "De notaris",
+     "key": "notaris",
+     "text": "Een handtekening hier, en hier.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tessa",
+     "key": "A",
+     "text": "Jouw pen, Tammo.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true,
+     "voice": "Anita"
+    },
+    {
+     "speaker": "Tammo",
+     "key": "T",
+     "text": "Ik heb nog nooit een hoeve getekend.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tante Aaltje",
+     "key": "tante_aaltje",
+     "text": "Pas goed op elkaar. Dat staat er ook, onderaan, in mijn handschrift.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
     }
    ]
   },

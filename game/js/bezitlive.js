@@ -8,7 +8,9 @@ import { KEYS } from './storagekeys.js';
 import { sfxEvent } from './sfx/haken.js';
 import { noteMoney } from './finance.js';
 import { euro } from './geldtekst.js';
-import { getBoerderij } from './boerderijlive.js';
+import { getBoerderij, schenkHoeve as schenkHoeveBoerderij } from './boerderijlive.js';
+import { loopbaanTel } from './loopbaanlive.js';
+import { zetHoeveKudde, doeKlus, klusAanbod, KLUSSEN } from './dierklus.js';
 import { setVoorLaadHaak } from './boerderijlive.js';
 import * as Z from './bezit.js';
 import * as P from './bezitprijs.js';
@@ -353,6 +355,27 @@ export function koopVee(w, id, sp) {
   noteMoney('Winkels'); w.money -= r.cost; markeer();
   return { ok: true, n: r.n, text: `${r.n} ${SPECIES[sp].naam.toLowerCase()} gekocht voor ${euro(r.cost)}.` };
 }
+// De schenking van hoeve Zeldenrust (#1373) in zijn geheel: erf en percelen in de boerderij (boerderijlive.schenkHoeve), de percelen als eigen bezit en twaalf koeien op de weide
+// (dierklus.zetHoeveKudde). Per speler en lokaal. Geeft { ok, nieuw, kudde } of { ok: false, reden }; een tweede aanroep doet niets.
+export function schenkHoeveCompleet() {
+  const r = schenkHoeveBoerderij();
+  if (!r.ok) return r;
+  const k = zetHoeveKudde(getBezit(), getBoerderij().bedrijf);
+  markeer();
+  return { ...r, kudde: k.ok ? k.n : 0 };
+}
+// Eén klus voor een kudde (voeren of melken), één keer per speldag per soort (dierklus.js). Het loon is ervaring in het vak Landbouw, geen geld.
+export function doeDierklus(w, id, soort) {
+  const dag = Math.floor(getBoerderij().uren / 24);
+  const r = doeKlus(getBezit(), id, soort, dag);
+  if (!r.ok) return { ok: false, text: r.why === 'al-gedaan' ? 'Dat heb je vandaag al gedaan.' : r.why === 'geen-kudde' ? 'Hier loopt geen vee.' : 'Dat kan hier niet.' };
+  try { loopbaanTel(w, 'landbouw', { xp: r.xp, n: 0 }); } catch (e) { devWarn('bezitlive', e); }
+  markeer();
+  return { ok: true, text: r.tekst };
+}
+export const dierklusAanbod = (id) => klusAanbod(getBezit(), id, Math.floor(getBoerderij().uren / 24));
+export { KLUSSEN as DIERKLUSSEN };
+
 // De dierenarts maakt een zieke kudde beter, tegen het bedrag van livestock.vetCost; per speler (#429).
 export function belArts(w, id) {
   const r = cure(herdsOf(getBezit())[id], Number.isFinite(w && w.money) ? w.money : 0);
