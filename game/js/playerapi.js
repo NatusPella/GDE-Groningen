@@ -58,7 +58,7 @@ export function initPlayerApi(world, input) {
     if (!panel) return null;
     return {
       kicker: text(panel.querySelector('small')), text: text(panel.querySelector('.cw-text')),
-      options: [...panel.querySelectorAll('.cw-opt')].map((o) => ({ key: o.dataset.key, label: text(o.querySelector('span:last-child')) })),
+      options: [...panel.querySelectorAll('.cw-opt')].map((o) => ({ key: o.dataset.key, label: text(o.querySelector('.cw-label') || o.querySelector('span:last-child')) })),
     };
   }
 

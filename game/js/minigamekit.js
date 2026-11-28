@@ -405,7 +405,14 @@ export function createBoard(title, accent) {
   return {
     root,
     show() { root.hidden = false; document.body.classList.add('mg-on', 'mg-board'); last = ''; },
-    hide() { root.hidden = true; document.body.classList.remove('mg-on', 'mg-board'); cancelStopAsk(); },
+    hide() {
+      root.hidden = true;
+      document.body.classList.remove('mg-board');
+      if (typeof document !== 'undefined' && !document.querySelector('#hud .cw-panel:not([hidden])')) {
+        document.body.classList.remove('mg-on');
+      }
+      cancelStopAsk();
+    },
     // { row: html, cells: [{ t, cls }], extra: html (een blok onder de cellen, bv. een scorebord), meter: { v, mark, color, text }, flash, bad, help: html }
     set(s) {
       const sig = JSON.stringify([s.row, s.cells, s.extra, s.meter && [Math.round(s.meter.v * 100), s.meter.mark != null ? Math.round(s.meter.mark * 100) : -1, s.meter.color, s.meter.text], s.flash, !!s.bad, s.help]);

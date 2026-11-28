@@ -253,6 +253,8 @@ export function plaatsTop(base, zoneBottom, gap = 12) {
 let cssGeladen = false;
 let planner = null;
 let actief = null;       // the full-screen element on screen
+let randWegTimer = 0;    // timer voor het verbergen van randActief
+let randUitTimer = 0;    // timer voor het verwijderen van randActief
 let randActief = null;   // the wanted tag on screen
 
 function ensureCss() {
@@ -369,16 +371,18 @@ function toonNu(m, klaarCb) {
   }
   const stopImpact = m.vorm === 'band' ? startImpact(el, m) : null;
   requestAnimationFrame(() => el.classList.add('aan'));
-  if (m.vorm === 'rand') { if (randActief) randActief.remove(); randActief = el; } else actief = el;
+  if (m.vorm === 'rand') { clearTimeout(randWegTimer); clearTimeout(randUitTimer); if (randActief) randActief.remove(); randActief = el; } else actief = el;
   // de missie is voorbij: doelbalk en sleutelhints wijken achter de eindkaart (#1188, #1189)
   if (m.schermvullend) document.body.classList.add('bm-eindkaart');
   const weg = () => {
     if (stopImpact) stopImpact();
     el.classList.remove('aan');
     el.classList.add('uit');
-    setTimeout(() => { el.remove(); if (m.vorm === 'rand' ? randActief === el : actief === el) { if (m.vorm === 'rand') randActief = null; else actief = null; } if (m.schermvullend && !actief) document.body.classList.remove('bm-eindkaart'); klaarCb(); }, 450);
+    const ut = setTimeout(() => { el.remove(); if (m.vorm === 'rand' ? randActief === el : actief === el) { if (m.vorm === 'rand') randActief = null; else actief = null; } if (m.schermvullend && !actief) document.body.classList.remove('bm-eindkaart'); klaarCb(); }, 450);
+    if (m.vorm === 'rand') randUitTimer = ut;
   };
-  setTimeout(weg, m.ms);
+  const wt = setTimeout(weg, m.ms);
+  if (m.vorm === 'rand') randWegTimer = wt;
   return el;
 }
 

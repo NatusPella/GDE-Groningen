@@ -77,9 +77,9 @@
 
 /* ---- Bezit: Land en bedrijf (epic #1095): overzicht, bedrijven en te koop. Alleen ds-tokens, klassen met het voorvoegsel bz-. ---- */
 .bz-tegels { display: flex; flex-wrap: wrap; gap: var(--ds-s-3); margin: var(--ds-s-3) 0; }
-.bz-tegel { display: flex; flex-direction: column; gap: var(--ds-s-1); min-width: calc(var(--ds-s-8) * 2); padding: var(--ds-s-3) var(--ds-s-4); background: var(--ds-bg-2); border-radius: var(--ds-r-m); font-family: var(--ds-font-tekst); }
-.bz-tegel b { font-size: var(--ds-fs-l); color: var(--ds-tx); }
-.bz-tegel small { display: inline-flex; align-items: center; gap: var(--ds-s-1); color: var(--ds-tx-2); }
+.bz-tegel { display: flex; flex-direction: column; gap: var(--ds-s-1); min-width: calc(var(--ds-s-8) * 2); padding: var(--ds-s-3) var(--ds-s-4); background: var(--ds-bg-2); border-radius: var(--ds-r); font-family: var(--ds-font-tekst); }
+.bz-tegel b { font-size: var(--ds-t-subkop); color: var(--ds-tx); }
+.bz-tegel small { display: inline-flex; align-items: center; gap: var(--ds-s-1); color: var(--ds-tx-zacht); }
 .bz-tegel-ic { width: var(--ds-s-4); height: var(--ds-s-4); }
 /* #1246: lege sectie met icoon en knop; het icoon in het midden van het rastervlak, de knop niet over de volle breedte */
 .bz-leeg { margin: var(--ds-s-3) 0; }
@@ -88,13 +88,13 @@
 .bz-leeg-ic, .bz-leeg .bz-leeg-beeld > svg { width: var(--ds-s-6); height: var(--ds-s-6); max-width: var(--ds-s-6); max-height: var(--ds-s-6); flex: none; }
 .bz-leeg .ds-z-knop { align-self: center; }
 .bz-filters, .bz-bulk { display: flex; flex-wrap: wrap; align-items: center; gap: var(--ds-s-2) var(--ds-s-3); margin: var(--ds-s-3) 0; }
-.bz-sel { display: inline-flex; flex-direction: column; gap: var(--ds-s-1); color: var(--ds-tx-2); font-family: var(--ds-font-tekst); }
+.bz-sel { display: inline-flex; flex-direction: column; gap: var(--ds-s-1); color: var(--ds-tx-zacht); font-family: var(--ds-font-tekst); }
 .bz-lijst { margin: var(--ds-s-2) 0; padding-left: var(--ds-s-5); color: var(--ds-tx); }
 .bz-chk { display: inline-flex; align-items: center; padding-right: var(--ds-s-2); }
 .bd-zeker { display: inline-flex; align-items: center; gap: var(--ds-s-2); }
 .mv-bezit { display: grid; gap: var(--ds-s-1); margin: var(--ds-s-2) 0; }
 .mv-bezit div { display: flex; gap: var(--ds-s-3); }
-.mv-bezit dt { min-width: calc(var(--ds-s-8) * 1.4); color: var(--ds-tx-2); }
+.mv-bezit dt { min-width: calc(var(--ds-s-8) * 1.4); color: var(--ds-tx-zacht); }
 .mv-bezit dd { margin: 0; }
 /* #1233: het perceel als plaatje bovenaan (echte omtrek, noorden boven) en de drie kernregels iets zwaarder */
 .mv-perceel { display: block; width: 100%; max-width: 160px; height: auto; margin: 0 0 var(--ds-s-2); background: var(--ds-c-ink-papier); border: 2px solid var(--ds-c-ink-inkt); }
@@ -113,7 +113,7 @@
 .bd-rij .sn-plek-ic { display: inline-grid; place-items: center; flex: none; width: 40px; height: 40px; border: var(--ds-lijn) solid var(--ds-c-ink-inkt); border-radius: var(--ds-r); background: var(--ds-c-sel-vlak); }
 .bd-rij .sn-plek-ic svg { width: 24px; height: 24px; }
 .bd-naam { display: flex; flex-direction: column; gap: var(--ds-s-1); min-width: 0; flex: 1 1 auto; }
-.bd-feiten { display: flex; flex-wrap: wrap; gap: 0 var(--ds-s-4); color: var(--ds-tx-2); font-size: var(--ds-t-hulp); }
+.bd-feiten { display: flex; flex-wrap: wrap; gap: 0 var(--ds-s-4); color: var(--ds-tx-zacht); font-size: var(--ds-t-hulp); }
 .bd-acties { display: flex; flex-wrap: wrap; flex: none; gap: var(--ds-s-2); align-items: center; justify-content: flex-end; }
 .bz-chip { cursor: pointer; }
 /* #1272: elke sectie van Land en bedrijf is een DS3-kaart met kop (icoon, naam, getal), de uitleg achter een info-knop, en een knop die uit staat toont slot en reden */
@@ -146,10 +146,10 @@
 /* De kop in het paneel van de boerderij herhaalt de actieve tab (twee tabrijen, banner en vier koppen voor een knop, #1243): alleen nog voor schermlezers. */
 #pause-menu .bd-pane > .pm-pane-top { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0; }
 /* ---- Bezit: ketens, streekprijzen en nieuws (#1103) ---- */
-.bz-keten { margin: var(--ds-s-3) 0; padding: var(--ds-s-3) var(--ds-s-4); background: var(--ds-bg-2); border-radius: var(--ds-r-m); font-family: var(--ds-font-tekst); }
+.bz-keten { margin: var(--ds-s-3) 0; padding: var(--ds-s-3) var(--ds-s-4); background: var(--ds-bg-2); border-radius: var(--ds-r); font-family: var(--ds-font-tekst); }
 .bz-schakels { display: grid; grid-template-columns: repeat(auto-fit, minmax(calc(var(--ds-s-8) * 3), 1fr)); gap: var(--ds-s-3); margin: var(--ds-s-2) 0; }
 .bz-schakel { display: flex; flex-direction: column; gap: var(--ds-s-1); padding: var(--ds-s-2) var(--ds-s-3); border: 1px solid var(--ds-rand); border-radius: var(--ds-r); }
-.bz-schakel small { color: var(--ds-tx-2); }
+.bz-schakel small { color: var(--ds-tx-zacht); }
 .bz-schakel[data-own="1"] { border-color: var(--ds-succes); }
 .bz-balk { height: var(--ds-s-2); background: var(--ds-rand); border-radius: var(--ds-r-pil); overflow: hidden; }
 .bz-balk i { display: block; height: 100%; background: var(--ds-primair); }

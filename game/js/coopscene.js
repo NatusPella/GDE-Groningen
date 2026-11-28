@@ -39,7 +39,7 @@ export function readHostScene(world) {
   let keuze = null, meter = null, kicker = '', nr = null;
   const panel = document.querySelector('#hud .cw-panel:not([hidden])');
   if (panel) {
-    keuze = { tekst: text(panel.querySelector('.cw-text')), opties: [...panel.querySelectorAll('.cw-opt')].map((o) => text(o.querySelector('span:last-child'))) };
+    keuze = { tekst: text(panel.querySelector('.cw-text')), opties: [...panel.querySelectorAll('.cw-opt')].map((o) => text(o.querySelector('.cw-label') || o.querySelector('span:last-child'))) };
     meter = leesMeter(panel);
     kicker = text(panel.querySelector('small'));
     nr = Number(panel.dataset.rond) || null;
