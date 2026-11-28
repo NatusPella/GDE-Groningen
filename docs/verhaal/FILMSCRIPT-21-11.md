@@ -344,6 +344,24 @@ Op de Grote Markt winnen ze het Ontzet met de beste eierbal, een eerlijke wagen 
   - donderdag, laat in de ochtend. Ze rijden mee in de streekbus. Tammo wacht tot een oude vrouw met een tas is uitgestapt voor hij zelf van de trede stapt. Tessa ziet het door het raam.
   - praat: Buschauffeur, Tammo, Tessa
 
+**Sequentie D1: De laatste bus naar huis** (activiteit; speler-protagonist Tammo)
+
+- **D1** BINNEN – STAD, HET BUSSTATION – AVOND · De laatste bus naar huis · cutscene of gespeeld in de missie
+  - donderdagavond, laat. De laatste streekbus naar Winsum staat bij het busstation, op het dashboard een emaillen koffiekan in een houder. Naamkaart: DRIES OLTMANS, bij zijn eerste regel. Tammo laat een oude vrouw voorgaan.
+  - praat: Dries, Tammo, Mevrouw Wassink, Tessa
+
+**Sequentie D2: Dries ligt op de bank** (activiteit; speler-protagonist Tammo)
+
+- **D2** BINNEN – HOGELAND, WINSUM, DE BUSHALTE – OCHTEND · Dries ligt op de bank · cutscene of gespeeld in de missie
+  - vrijdag, vroege ochtend. Bij de halte in Winsum staat de bus van Dries stil, de koffiekan nog op het dashboard. Tammo's telefoon gaat. Naamkaart: ANNEMARIE, DISPATCHER, op de telefoon. Gameplay: de eerste dienst als inva
+  - praat: Annemarie, Tammo, Tessa
+
+**Sequentie D3: Een stoptrein met Jochem** (activiteit; speler-protagonist Tammo)
+
+- **D3** BINNEN – STAD, STATION GRONINGEN, PERRON 1 – OCHTEND · Een stoptrein met Jochem · cutscene of gespeeld in de missie
+  - zaterdag, ochtend. Perron 1, een stoptrein staat klaar. Naamkaart: JOCHEM LUIKEN, STATIONSCHEF, bij zijn eerste regel. Gameplay: een dienst als conducteur of machinist; de trein staat in het menu bij Loopbaan.
+  - praat: Jochem Luiken, Tammo, Tessa
+
 **Sequentie T2: De streekbus naar Zoutkamp** (activiteit; speler-protagonist Tammo)
 
 - **T2** BINNEN – HOGELAND, UITHUIZEN NAAR ZOUTKAMP – DAG · De streekbus naar Zoutkamp · travel
@@ -978,8 +996,8 @@ Op de Grote Markt winnen ze het Ontzet met de beste eierbal, een eerlijke wagen 
 
 | Personage | Akte 1 | Akte 2 | Akte 3 | Akte 4 | Akte 5 | Deel 4 |
 |---|---|---|---|---|---|---|
-| Tessa | 40 | 39 | 33 | 33 | 39 | 16 |
-| Tammo | 40 | 37 | 33 | 31 | 33 | 17 |
+| Tessa | 40 | 42 | 33 | 33 | 39 | 16 |
+| Tammo | 40 | 40 | 33 | 31 | 33 | 17 |
 | Jelle Terpstra | 4 | 10 | 11 | 8 | 12 | 4 |
 | Rikus | 9 | 4 | 4 | 7 | 11 | 4 |
 | Berend Bos | 4 |  |  | 14 | 10 | 8 |
@@ -1015,6 +1033,10 @@ Op de Grote Markt winnen ze het Ontzet met de beste eierbal, een eerlijke wagen 
 | Geert |  |  | 2 |  |  |  |
 | Anneke |  |  | 1 |  | 1 |  |
 | Jelmer |  |  |  | 2 |  |  |
+| Dries |  | 1 |  |  |  |  |
+| Mevrouw Wassink |  | 1 |  |  |  |  |
+| Annemarie |  | 1 |  |  |  |  |
+| Jochem Luiken |  | 1 |  |  |  |  |
 | Kustwachter |  | 1 |  |  |  |  |
 | Rotor Roelf |  |  | 1 |  |  |  |
 | Daan |  |  | 1 |  |  |  |

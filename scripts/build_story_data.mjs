@@ -60,6 +60,11 @@ export const SPEAKER_TABLE = {
   ACCOUNTMANAGER: sp('accountmanager', 'Accountmanager'),
   JURYLID: sp('jurylid', 'Jurylid'),
   BUSCHAUFFEUR: sp('buschauffeur', 'Buschauffeur'),
+  // vervoer (28-11, #1375): geen opnames
+  DRIES: sp('dries', 'Dries'),
+  ANNEMARIE: sp('annemarie', 'Annemarie'),
+  'MEVROUW WASSINK': sp('wassink', 'Mevrouw Wassink'),
+  JOCHEM: sp('jochem', 'Jochem Luiken'),
   KUSTWACHTER: sp('kustwachter', 'Kustwachter'),
   KERMISEXPLOITANT: sp('kermisexploitant', 'Kermisexploitant'),
   DEURWAARDER: sp('deurwaarder', 'Deurwaarder'),
@@ -99,7 +104,7 @@ function stepOf(id) {
   let m;
   if ((m = /^M(\d\d)\./.exec(id))) return 'M' + m[1];
   if ((m = /^T(\d)/.exec(id))) return 'T' + m[1];
-  if ((m = /^([NJFKW])(\d+)(?:\.|$)/.exec(id))) return m[1] + m[2];
+  if ((m = /^([NJFKWD])(\d+)(?:\.|$)/.exec(id))) return m[1] + m[2];
   if (/^C00\./.test(id)) return 'M00';
   if (/^E\d$/.test(id)) return 'E';
   return null;

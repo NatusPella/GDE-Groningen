@@ -269,6 +269,7 @@ import { vrachtruimteKind } from './vrachtruimte3d.js';
 import { reklameTaxiKind } from './reklametaxi3d.js';
 import { shopSignKind } from './shopsigns3d.js';
 import { loadBusLines } from './busroutes.js';
+import { markeerLijnVanDries } from './vervoer.js';
 import { setBusLines, attachToNearestRoad, getBusLines, setLiveBussen } from './vehicle.js';
 import { maakBusLive } from './buslive.js';
 import { createTrainLive } from './trainlive.js';
@@ -850,7 +851,7 @@ async function boot() {
   if (tiles && roadsFile) loadRoadNet('world/', roadsFile).then((r) => r && setRoadNet(r));
   // the real bus lines for the buses' routes, boards and next stop (busroutes.js, #80, #160)
   const busFile = layers.provincie && layers.provincie.global && layers.provincie.global.busFile;
-  if (tiles && busFile) loadBusLines('world/', busFile).then(setBusLines);
+  if (tiles && busFile) loadBusLines('world/', busFile).then((l) => setBusLines(markeerLijnVanDries(l)));
   // de bron voor de live bussen is bij het opstarten al aan vehicle.js gegeven (buslive.js, #395)
   // the city's train routes on over the layer's track, the countryside's rails, turbines and pylons (corridorrail.js)
   const landData = corLayer && corLayer.global ? loadLandData('world/', corLayer.global.landFile) : null;
