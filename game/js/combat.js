@@ -13,6 +13,7 @@ import { setCombatEffect, getCombatEffect } from './combateffect.js';
 export { getCombatEffect };
 import { propOnBulletPath, shootProp } from './breakables.js';
 import { reportCrime } from './crime.js';
+import { markPlayerHit, meleeSparesVehicle } from './meleecrime.js'; // alleen een echte treffer telt als misdrijf (#1356)
 import { gunShotFx, gunImpactFx } from './gunfx3d.js';
 import { updateAim, aimFireAngle, aimedTargetDistance } from './aimassist.js';
 import { scopeShot } from './scopeaim.js';
@@ -269,7 +270,7 @@ function meleeHit(world, angle, weapon, key, ctx = null) {
     // #944: een fietser of scooterrijder sla je van zijn voertuig. Dat is een persoon, geen
     // blikschade: pedestrians.js maakt er dezelfde worp van als bij een aanrijding.
     if (requestRiderOff(v, ca, sa, gewicht, { dader, time: nu })) { landed = landed || 'flesh'; continue; }
-    if (weapon.damage >= 20 || key === 'fists') {
+    if ((weapon.damage >= 20 || key === 'fists') && !meleeSparesVehicle(v)) { // je eigen auto sla je niet kapot
       v.health -= schade * 0.4;
       if (v.health <= 0) wreckVehicle(world, v, !ctx);
     }
@@ -517,6 +518,7 @@ function hitPedestrians(world, b, x0, y0) {
 // dader: de plek van een gast die slaat of schiet (samen spelen, #434); 0 is de speler zelf
 function damagePed(world, ped, damage, byPlayer, dx, dy, melee, weapon = WEAPONS.fists, dader = 0) {
   ped.health -= damage;
+  if (byPlayer) markPlayerHit(ped, world.time || 0, dader); // pedestrians.js: de treffer, niet de zwaai, is het misdrijf
   if (!melee) bloodSpray(world, ped.x, ped.y, dx, dy, ped.state === 'dead' ? 0.25 : 0.45);
   if (ped.state === 'dead') return;
   const shove = weapon.push || 2.6;

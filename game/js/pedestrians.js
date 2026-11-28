@@ -20,6 +20,7 @@ import { hasBubbleVoice } from './linevoice.js';
 import { pushCircleOutOfVehicle, reportImpact, distToVehicleBody } from './vehicle.js';
 import { isRangedWeapon } from './weapons.js';
 import { getCombatEffect } from './combateffect.js';
+import { classifyPlayerHit } from './meleecrime.js';
 import { registerPoseSource, unregisterPoseSource, prunePoseSources } from './models3d_people.js';
 import { knockDown, isKnockedDown } from './ragdoll.js';
 import { splatterPed, bleedPed, GIB_SPEED } from './gore3d.js';
@@ -337,7 +338,6 @@ let lastFx = null;
 let lastShotEventAt = -Infinity;
 let lastPoliceShotAt = -Infinity;
 let lastCopCrashAt = -Infinity;
-let lastPlayerAttackAt = -Infinity;
 let prevInVehicle = null;
 let eventSeq = 0;
 let screamsThisEvent = 0;
@@ -355,7 +355,6 @@ function gatherEvents(world) {
   const fx = getCombatEffect();
   if (fx && fx !== lastFx) {
     lastFx = fx;
-    lastPlayerAttackAt = world.time;
     if (fx.type === 'muzzle' && world.time - lastShotEventAt > 0.5) {
       lastShotEventAt = world.time;
       events.push({ kind: 'shot', x: player.x, y: player.y, r: 42, crime: true });
@@ -402,9 +401,11 @@ function gatherEvents(world) {
     }
   }
   for (const ped of world.pedestrians) {
-    if (ped._hp !== undefined && ped.health < ped._hp && world.time - lastPlayerAttackAt < 1.2) {
-      if (ped.isCop) { if (world.wanted === 0) { world.wanted = 1; noteWantedWhy(world, 'agentAangevallen'); } }
-      else events.push({ kind: 'hit', x: ped.x, y: ped.y, r: 25, crime: !ped.rager, victim: ped }); // hitting a road-rager is self-defence
+    if (ped._hp !== undefined && ped.health < ped._hp) {
+      // alleen een treffer van de speler zelf (combat.js markeert die): een lege zwaai, een slag tegen een muur of een voorbijganger die door iets anders gewond raakt is geen misdrijf (#1356)
+      const treffer = classifyPlayerHit(ped, world.time);
+      if (treffer && treffer.kind === 'cop') { if (world.wanted === 0) { world.wanted = 1; noteWantedWhy(world, 'agentAangevallen'); } }
+      else if (treffer) events.push({ kind: 'hit', x: ped.x, y: ped.y, r: 25, crime: treffer.crime, victim: ped }); // hitting a road-rager is self-defence
     }
     ped._hp = ped.health;
   }
