@@ -68,7 +68,7 @@ ok(Math.abs(som - items.length) <= 3, 'vier tegels samen geven dezelfde hoeveelh
 // plaatsingsregels
 const polyOf = (b) => b.pts;
 const onRoad = (it) => m.roads.some((r) => { for (let i = 0; i < r.pts.length - 1; i++) { const A = r.pts[i], B = r.pts[i + 1], dx = B[0] - A[0], dy = B[1] - A[1], t = Math.max(0, Math.min(1, ((it.x - A[0]) * dx + (it.y - A[1]) * dy) / (dx * dx + dy * dy))); if (Math.hypot(A[0] + dx * t - it.x, A[1] + dy * t - it.y) < r.width / 2 - 0.05) return true; } return false; });
-const POINT = items.filter((it) => !['hedge', 'lattenhek', 'fence', 'schutting', 'tuinpad'].includes(it.k));
+const POINT = items.filter((it) => !['tuinhaag', 'lattenhek', 'fence', 'schutting', 'tuinpad'].includes(it.k));
 ok(items.filter(onRoad).length === 0, 'niets op een rijbaan', items.filter(onRoad).map((it) => it.k + '@' + it.x.toFixed(1) + ',' + it.y.toFixed(1)).slice(0, 3).join(' '));
 ok(items.filter((it) => m.buildings.some((b) => pointInPolygon(it.x, it.y, polyOf(b)))).length === 0, 'niets in een gebouw');
 ok(items.filter((it) => m.water.some((w) => pointInPolygon(it.x, it.y, w.pts))).length === 0, 'niets in water');
@@ -81,7 +81,7 @@ ok(close === 0, 'een kliko of fiets staat nooit op een ander stuk', close);
 const kinds = (list) => { const c = {}; for (const it of list) c[it.k] = (c[it.k] || 0) + 1; return c; };
 const street = items.filter((it) => it.x < 330 && it.y > 150 && it.y < 250);
 const ks = kinds(street);
-ok((ks.hedge || 0) + (ks.lattenhek || 0) >= 8, 'voortuinen met haag of hekje', JSON.stringify(ks));
+ok((ks.tuinhaag || 0) + (ks.lattenhek || 0) >= 8, 'voortuinen met haag of hekje', JSON.stringify(ks));
 ok((ks.tuinpad || 0) >= 8, 'tuinpaden naar de deur', ks.tuinpad);
 ok((ks.klikogrijs || 0) + (ks.klikogroen || 0) + (ks.klikoblauw || 0) >= 6, "kliko's bij de huizen", JSON.stringify(ks));
 ok(Object.keys(ks).filter((k) => k.startsWith('fiets')).length >= 1, 'fietsen bij de deuren', JSON.stringify(ks));
@@ -89,7 +89,7 @@ const klikoStyles = new Set(street.filter((it) => it.k.startsWith('kliko')).map(
 ok(klikoStyles.size >= 2, "kliko's in meer dan één kleur", [...klikoStyles].join());
 const hoeken = new Set(street.filter((it) => it.k.startsWith('kliko')).map((it) => it.a.toFixed(2)));
 ok(hoeken.size >= 4, "kliko's staan niet allemaal even recht", hoeken.size);
-const hoogtes = new Set(street.filter((it) => it.k === 'hedge').map((it) => it.h));
+const hoogtes = new Set(street.filter((it) => it.k === 'tuinhaag').map((it) => it.h));
 ok(hoogtes.size >= 2, 'hagen hebben verschillende hoogtes', hoogtes.size);
 // de haag laat een opening bij het tuinpad
 const huis = m.buildings[0], pad = street.find((it) => it.k === 'tuinpad');

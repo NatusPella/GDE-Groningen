@@ -23,7 +23,7 @@ import { boxOf } from './tileplace.js';
 import { pointInPolygon, polygonBounds } from './util.js';
 import { mulberry32 } from './rng.js';
 
-export const DETAIL_KINDS = ['hedge', 'lattenhek', 'schutting', 'tuinpad', 'fence', 'klikogrijs', 'klikogroen', 'klikoblauw', 'fietszwart', 'fietsrood', 'fietsblauw', 'plantenbak', 'kabelkast', 'afvalzuil', 'bord30', 'voorrangsbord', 'bermpaal', 'rietpol', 'hooibaal', 'boomspiegel'];
+export const DETAIL_KINDS = ['hedge', 'tuinhaag', 'lattenhek', 'schutting', 'tuinpad', 'fence', 'klikogrijs', 'klikogroen', 'klikoblauw', 'fietszwart', 'fietsrood', 'fietsblauw', 'plantenbak', 'kabelkast', 'afvalzuil', 'bord30', 'voorrangsbord', 'bermpaal', 'rietpol', 'hooibaal', 'boomspiegel'];
 export const DETAIL_RULES = {
   houseMin: 25, houseMax: 450, houseLevels: 3, flatMin: 450, yardMin: 180, yardMax: 1500,
   sidewalk: 1.7,            // m tussen het hekje en de rand van de weg
@@ -221,11 +221,11 @@ export function detailForTile({ x0, y0, size = 1000, roads = [], buildings = [],
         for (const [a0, a1] of [[u0, doorU - gate], [doorU + gate, u1]]) {
           if (a1 - a0 < 0.8) continue;
           if (kind === 'hedge') {
-            const n = Math.max(1, Math.ceil((a1 - a0) / 4)), len = (a1 - a0) / n;
+            const n = Math.max(1, Math.round((a1 - a0) / 2)), len = (a1 - a0) / n;
             for (let i = 0; i < n; i++) {
               const [x, y] = at(a0 + len * (i + 0.5), gd);
               if (!rowOk(a0 + len * (i + 0.5), gd, { house: 0.5, road: 0.5 }) || !rowOk(a0 + len * i, gd) || !rowOk(a0 + len * (i + 1), gd)) continue;
-              put({ k: 'hedge', x, y, a: tAng, s: len, h: hedgeH });
+              put({ k: 'tuinhaag', x, y, a: tAng, s: len / 2, h: hedgeH });
             }
           } else {
             const n = Math.max(1, Math.round((a1 - a0) / 2)), len = (a1 - a0) / n;

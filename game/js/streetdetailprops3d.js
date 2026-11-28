@@ -251,6 +251,23 @@ function boomspiegel() {
   return B.build();
 }
 
+// Tuinhaag (2 m, lengte langs z): een smalle onderbouw van tak en blad, een ronde rij bladbollen in vier groentinten die boven de
+// onderbouw uitkomen, een gesnoeid bovenvlak en een paar bloesems (zomer). Slanker dan de heg van de rand van een weiland.
+function tuinhaag() {
+  const B = new GeoBuilder(1);
+  const groen = [0x3d6f33, 0x4a7f3a, 0x356329, 0x56873f];
+  B.box(0, 0.32, 0, 0.42, 0.64, 2.0, 0x2f5a28);                                      // onderbouw
+  for (let i = 0; i < 5; i++) {
+    const z = -0.8 + i * 0.4;
+    B.geo(new THREE.IcosahedronGeometry(0.27, 0), composeMatrix((i % 2 ? 0.03 : -0.03), 0.66 + (i % 3) * 0.04, z, 0, i, 0, 1, 1.05, 1.4), groen[i % 4]);
+    B.geo(new THREE.IcosahedronGeometry(0.17, 0), composeMatrix((i % 2 ? -0.1 : 0.1), 0.46, z + 0.2, 0, i * 2, 0, 1, 1, 1.2), groen[(i + 2) % 4]);
+  }
+  B.box(0, 0.93, 0, 0.3, 0.06, 1.9, 0x4f8a3e);                                        // gesnoeid bovenvlak
+  const bloem = [0xf1efe6, 0xe9b5c9, 0xf1efe6];
+  for (let i = 0; i < 3; i++) B.geo(new THREE.IcosahedronGeometry(0.04, 0), composeMatrix(0.22 * (i % 2 ? 1 : -1), 0.55 + i * 0.12, -0.7 + i * 0.7), bloem[i]);
+  return B.build();
+}
+
 export const STREETDETAIL_MAKERS = {
   klikogrijs: () => kliko(0x6f7378, 0x585c61),
   klikogroen: () => kliko(0x3f6a3a, 0x2f5230),
@@ -258,5 +275,5 @@ export const STREETDETAIL_MAKERS = {
   fietszwart: () => fiets(0x25282b, true),
   fietsrood: () => fiets(0x9c2f27, false),
   fietsblauw: () => fiets(0x2c4f7c, false),
-  lattenhek, schutting, tuinpad, boomspiegel, plantenbak, kabelkast, afvalzuil, bord30, voorrangsbord, bermpaal, rietpol,
+  lattenhek, schutting, tuinhaag, tuinpad, boomspiegel, plantenbak, kabelkast, afvalzuil, bord30, voorrangsbord, bermpaal, rietpol,
 };

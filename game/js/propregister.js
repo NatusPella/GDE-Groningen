@@ -171,6 +171,10 @@ export const PROP_REGISTER = {
     nl: 'Klaptafel met koffie', bouwer: 'koffietafel', gebruik: ['cutscene', 'activiteit'],
     norm: { tris: [700, 1200], kleuren: 10, maat: [0.7, 1.12, 1.32], eisen: ['geruit tafelzeil met overhang', 'schragenpoten in een X met regels', 'thermoskan met dop-beker en handvat', 'vier mokken met koffie en een oor', 'koektrommel en krant'] },
   },
+  tuinhaag: {
+    nl: 'Tuinhaag (2 m)', bouwer: 'tuinhaag', gebruik: ['buiten'],
+    norm: { tris: [140, 320], kleuren: 8, maat: [0.6, 1.0, 2.0], eisen: ['onderbouw van tak en blad', 'ronde rij bladbollen in vier groentinten', 'gesnoeid bovenvlak', 'bloesems'] },
+  },
   boomspiegel: {
     nl: 'Boomspiegel met rooster', bouwer: 'boomspiegel', gebruik: ['buiten'],
     norm: { tris: [100, 260], kleuren: 4, maat: [1.3, 0.07, 1.3], eisen: ['opstaande betonrand', 'gietijzeren rooster met staven in twee richtingen', 'stamopening met aarde', 'steenbed'] },

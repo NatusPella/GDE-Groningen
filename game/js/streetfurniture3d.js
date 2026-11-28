@@ -33,8 +33,8 @@ import { detailForTile } from './streetdetail.js'; // de detaillaag voor wijken 
 export const GAME_OPTS = { lamps: false, bollards: false, livingBumps: false };
 // draw distance per kind (m)
 // straatdetail (#1353): tekenafstand en maximum per soort; de rest van de regel is die van het meubilair
-const DETAIL_LOD = { klikogrijs: 75, klikogroen: 75, klikoblauw: 75, fietszwart: 80, fietsrood: 80, fietsblauw: 80, lattenhek: 100, schutting: 110, tuinpad: 80, boomspiegel: 70, plantenbak: 80, kabelkast: 110, afvalzuil: 120, bord30: 130, voorrangsbord: 130, bermpaal: 140, rietpol: 110, hooibaal: 130 };
-const DETAIL_CAP = { klikogrijs: 300, klikogroen: 200, klikoblauw: 150, fietszwart: 160, fietsrood: 160, fietsblauw: 160, lattenhek: 400, schutting: 200, tuinpad: 600, boomspiegel: 300, plantenbak: 160, kabelkast: 60, afvalzuil: 40, bord30: 40, voorrangsbord: 40, bermpaal: 160, rietpol: 400, hooibaal: 80 };
+const DETAIL_LOD = { klikogrijs: 75, klikogroen: 75, klikoblauw: 75, fietszwart: 80, fietsrood: 80, fietsblauw: 80, lattenhek: 100, tuinhaag: 110, schutting: 110, tuinpad: 80, boomspiegel: 70, plantenbak: 80, kabelkast: 110, afvalzuil: 120, bord30: 130, voorrangsbord: 130, bermpaal: 140, rietpol: 110, hooibaal: 130 };
+const DETAIL_CAP = { klikogrijs: 300, klikogroen: 200, klikoblauw: 150, fietszwart: 160, fietsrood: 160, fietsblauw: 160, lattenhek: 400, tuinhaag: 500, schutting: 200, tuinpad: 600, boomspiegel: 300, plantenbak: 160, kabelkast: 60, afvalzuil: 40, bord30: 40, voorrangsbord: 40, bermpaal: 160, rietpol: 400, hooibaal: 80 };
 // de detaillaag laat zich uitzetten (vergelijkingsbeelden en metingen: window.__noStreetDetail = true voor de bouw van het spel)
 const DETAIL_ON = () => !(typeof window !== 'undefined' && window.__noStreetDetail);
 const LOD = { ...DETAIL_LOD, guardrail: 220, fence: 160, hedge: 160, noise: 420, hectometer: 120, gantry: 650, placesign: 260, wegwijzer: 200, speedbump: 120, bench: 110, bin: 90, bikerack: 100, shelter: 140, bollard: 90, lamp: 200 };
@@ -127,7 +127,7 @@ function bollardGeo() { return rotProp('paaltje', 0); }
 const detailGeo = (id, hoek = 0) => () => rotProp(id, hoek);
 const DETAIL_GEOS = {};
 for (const id of ['klikogrijs', 'klikogroen', 'klikoblauw', 'fietszwart', 'fietsrood', 'fietsblauw', 'plantenbak', 'boomspiegel', 'kabelkast', 'afvalzuil', 'bord30', 'voorrangsbord', 'bermpaal', 'rietpol', 'hooibaal']) DETAIL_GEOS[id] = detailGeo(id);
-for (const id of ['lattenhek', 'schutting', 'tuinpad']) DETAIL_GEOS[id] = detailGeo(id, Math.PI / 2);
+for (const id of ['lattenhek', 'tuinhaag', 'schutting', 'tuinpad']) DETAIL_GEOS[id] = detailGeo(id, Math.PI / 2);
 
 const GEOS = { ...DETAIL_GEOS, guardrail: guardrailGeo, fence: fenceGeo, hedge: hedgeGeo, noise: noiseGeo, hectometer: hectometerGeo, speedbump: speedbumpGeo, gantry: gantryGeo, beam: beamGeo, bench: benchGeo, bin: binGeo, bikerack: rackGeo, shelter: shelterGeo, bollard: bollardGeo, placesign: postGeo, wegwijzer: postGeo };
 // het centrale LOD-systeem (lodkit3d.js): de modellen van het straatmeubilair, ook voor de audit (scripts/lod_audit_test.mjs)
@@ -397,6 +397,7 @@ export function updateStreetFurniture3D(px, py, force = false) {
       case 'fence': put('fence', it.x, z, it.y, it.a, it.s, 1, 1); break;
       case 'noise': put('noise', it.x, z, it.y, it.a, it.s, it.h || 4, 1); break;
       case 'lattenhek': put('lattenhek', it.x, z, it.y, it.a, it.s || 1, 1, 1); break;
+      case 'tuinhaag': put('tuinhaag', it.x, z, it.y, it.a, it.s || 1, (it.h || 0.9) / 0.9, 1); break;
       case 'hedge': put('hedge', it.x, z, it.y, it.a, it.s, edgeHeight('hedge', it.h) / HEDGE_TOP, 1); break;
       case 'hectometer': put('hectometer', it.x, z, it.y, it.a); break;
       case 'speedbump': put('speedbump', it.x, z, it.y, it.a, 1, 1, it.s || 6); break;
