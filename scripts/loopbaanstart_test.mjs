@@ -111,7 +111,7 @@ t('een missiestap met een loopbaan telt als done als je die loopbaan al begon', 
   const done = (id) => voor.has(id) || stapAfgeleidGedaan(STEP_BY_ID.get(id), (v) => L.isGestart(p, v));
   assert.equal(nextStoryStep(done, () => false).id, 'M03', 'kantoor nog niet begonnen: Het Loket is aan de beurt');
   L.startVak(p, 'kantoor');
-  assert.equal(nextStoryStep(done, () => false).id, 'M04', 'M03 telt als gedaan, het verhaal gaat naar M04');
+  assert.equal(nextStoryStep(done, () => false).id, 'h3-omroeper', 'M03 telt als gedaan, het verhaal gaat naar de omroeper van H3 (hoofdstuklijn 28-11)');
 });
 
 t('normaliseer en voegSamen houden de begonnen loopbanen bij', () => {

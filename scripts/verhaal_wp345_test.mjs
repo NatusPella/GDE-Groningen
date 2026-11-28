@@ -22,7 +22,7 @@ ok(lines('M07.1')[0] && /^Jelle/.test(lines('M07.1')[0].speaker), 'WP3: M07.1 op
 ok(lines('M07.1').every((l) => words(l.text) <= 16) && maxRun('M07.1') <= 3, 'WP3: M07.1 is in korte beurten');
 ok(lines('M08.3').length >= 12 && maxRun('M08.3') <= 3 && lines('M08.3').every((l) => words(l.text) <= 25), 'WP3: M08.3 (het recept van Oma) is in korte beurten met reacties, geen monoloog van meer dan 25 woorden');
 ok(/prikbord/.test(text('M08.3')) && /Geesje/.test(text('M08.3')) && /Klaas/.test(text('M08.3')) && /Dijkstra/.test(text('M08.3')), 'WP3: Oma noemt de vijf vrienden en het prikbord, met Geesje, Klaas en Dijkstra als aanloop');
-ok(/prikbord/.test(text('N8')) && /punaise/.test(text('N8')) && idx('N8') > idx('M08') && idx('N8') < idx('M09'), 'WP3: N8 laat het prikbord met de vijf namen zien, na M08');
+ok(/prikbord/.test(text('N8')) && /punaise/.test(text('N8')) && idx('N8') < idx('M08') && idx('N8') > idx('M05'), 'WP3: N8 laat het prikbord met de vijf namen zien (hoofdstuk 3, ruim voor M08 waar Oma de namen noemt)');
 ok(/broodtrommel/.test(text('M11.3')) && /Getekend M/.test(text('M11.3')) && !actScenes(2).some((s) => /oefenbal/i.test(text(s.id))), 'WP3: M11.3 is een briefje van Mem, de oefenbal is weg uit akte 2');
 ok(['O4', 'O5'].every((id) => lines(id).some((l) => l.speaker === 'Mem Terpstra' && l.channel === 'telefoon')), 'WP3: Mem krijgt een stem in twee telefoontjes (O4 en O5)');
 ok(scene.get('O4').act === 2 && scene.get('O5').act === 2, 'WP3: de telefoontjes van Mem zijn overgangsscènes in akte 2');

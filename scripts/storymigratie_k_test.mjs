@@ -14,7 +14,7 @@ const script = JSON.parse(fs.readFileSync(new URL('../game/storydata/script.json
 const scenes = new Map(script.scenes.map((s) => [s.id, s]));
 
 ok(K.every((id) => ADDED_STEPS.includes(id) && idx(id) >= 0), 'drie nieuwe stappen K1 tot en met K3 zijn toegevoegde stappen');
-ok(STEPS.filter((s) => s.kind === 'mission').map((s) => s.id).join() === [...Array(30)].map((_, i) => 'M' + String(i + 1).padStart(2, '0')).join(), 'de dertig missies staan nog in dezelfde volgorde');
+ok(STEPS.filter((s) => s.kind === 'mission').map((s) => s.id).join() === ['M01', 'M02', 'M03', 'M05', 'M04', ...[...Array(25)].map((_, i) => 'M' + String(i + 6).padStart(2, '0'))].join(), 'de dertig missies staan in de volgorde van de hoofdstuklijn (28-11: M05 staat voor M04, de rest ongewijzigd)');
 ok(idx('N5') < idx('K1') && idx('K1') < idx('M10') && idx('M11') < idx('K2') && idx('K2') < idx('M12') && idx('M13') < idx('K3') && idx('K3') < idx('M14'), 'de stappen staan op hun invoegpunt');
 ok(K.every((id) => { const s = STEPS.find((x) => x.id === id); return s.kind === 'activity' && s.built && s.added === true && !s.reward && !s.cost && !s.unlocks && s.scenes.includes(id); }), 'elke nieuwe stap is een activiteit met een scène, zonder beloning, kosten of vlag');
 ok(K.every((id) => { const g = STEPS[idx(id)].goal; return g.type === 'reis' && g.scene === id && g.at.length === 2 && g.r >= 250; }), 'elke stap speelt zijn scène bij aankomst op een reisdoel');

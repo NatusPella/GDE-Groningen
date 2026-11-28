@@ -21,7 +21,8 @@ const ok = (c, name, info = '') => { n++; if (!c) { fails++; console.log(`FAIL $
 const words = (t) => String(t).trim().split(/\s+/).filter(Boolean).length;
 
 // --- 1. de stappen van akte 2, in volgorde ---
-const ORDER = ['M07', 'M08', 'N10', 'N8', 'T1', 'M09', 'N5', 'K1', 'M10', 'A1', 'N11', 'N12', 'N6', 'N7', 'T2', 'M11', 'K2'];
+// N10 en N8 horen sinds de hoofdstuklijn (28-11) bij hoofdstuk 3 en staan in het deel 'kop'
+const ORDER = ['M07', 'M08', 'T1', 'M09', 'N5', 'K1', 'M10', 'A1', 'N11', 'N12', 'N6', 'N7', 'T2', 'M11', 'K2'];
 const act2 = STEPS.filter((s) => s.part === 'romp').map((s) => s.id);
 ok(ORDER.join() === act2.join(), 'akte 2: de volgorde van de stappen is die van de ruggengraat', act2.join(' '));
 for (const id of ORDER) {
@@ -89,7 +90,8 @@ ok(m116.indexOf('Wie appt je nou weer?') !== -1 && m116.indexOf('Wie appt je nou
 
 // --- 4. Beppe: Fries met Nederlandse ondertitel en uitspraakhulp ---
 const beppeLines = new Set();
-for (const s of script.scenes) for (const l of s.lines) if (l.key === 'beppe') beppeLines.add(l.text);
+// alleen de Friese regels van Beppe: haar Nederlandse regels (Fries-getint Nederlands, bijbel 2.1) hebben geen tabelregel nodig
+for (const s of script.scenes) for (const l of s.lines) if (l.key === 'beppe' && (looksFrisian(l.text) || FY[l.text])) beppeLines.add(l.text);
 ok(beppeLines.size >= 8, 'Beppe heeft Friese regels in de scripts', beppeLines.size);
 for (const t of beppeLines) {
   ok(!!FY[t], `Beppe-regel staat in de Friese tabel (FY): ${t}`);

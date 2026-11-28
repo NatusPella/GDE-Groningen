@@ -30,7 +30,7 @@ const manifest = (m) => manifests[m] || (manifests[m] = withEllipsisAliases(JSON
 ok(scenes.length >= 150, 'scenes in the script', String(scenes.length));
 ok(new Set(scenes.map((s) => s.id)).size === scenes.length, 'scene ids are unique');
 for (const s of scenes) {
-  ok(/^[A-Z]\d+(\.\d+b?)?$/.test(s.id) && s.title && KINDS.has(s.kind) && Number.isInteger(s.act) && s.act >= 1 && s.act <= 6,`${s.id}: id, title, kind, act`, `${s.id} ${s.kind}`);
+  ok(/^([A-Z]\d+(\.\d+b?)?|h\d+-[a-z0-9]+(\.\d+)?)$/.test(s.id) && s.title && KINDS.has(s.kind) && Number.isInteger(s.act) && s.act >= 1 && s.act <= 6,`${s.id}: id, title, kind, act`, `${s.id} ${s.kind}`);
   ok(Array.isArray(s.lines) && Array.isArray(s.regie), `${s.id}: lines and regie`);
   if (s.lines.length === 0) ok(s.kind === 'key' || s.kind === 'intro' || s.kind === 'outro', `${s.id}: an empty scene is only allowed for a mission scene`, s.kind);
 }
@@ -72,7 +72,9 @@ for (const st of STEPS) {
 }
 const missions = STEPS.filter((s) => s.kind === 'mission');
 // 26 missions of the five acts and the four of Deel 4 (M27-M30, after the epilogue E)
-ok(missions.length === 30 && missions.map((s) => s.id).join() === [...Array(30)].map((_, i) => 'M' + String(i + 1).padStart(2, '0')).join(), '30 main missions, M01-M30 in order');
+// the chapter line (28-11) moves M04 behind M05 (H3 before H12): the thirty missions are still M01-M30, in the order of the line
+ok(missions.length === 30 && missions.map((s) => s.id).sort().join() === [...Array(30)].map((_, i) => 'M' + String(i + 1).padStart(2, '0')).join(), '30 main missions, M01-M30');
+ok(missions.map((s) => s.id).slice(0, 6).join() === 'M01,M02,M03,M05,M04,M06' && missions.slice(6).every((s, i) => s.id === 'M' + String(i + 7).padStart(2, '0')), 'the missions follow the chapter line: M05 before M04 until the next chapters move them');
 ok(STEPS.filter((s) => /^T\d$/.test(s.id)).length === 5 && STEPS[0].id === 'M00' && STEPS.filter((s) => s.part === 'ontzet').pop().id === 'E' && STEPS[STEPS.length - 1].id === 'F6' && STEPS[STEPS.length - 2].id === 'M30', 'five travel beats, the opening first, the epilogue last of the five acts and Deel 4 after it');
 for (const m of missions) {
   const sc = scenes.filter((q) => q.step === m.id && /^M\d\d\.\d$/.test(q.id));

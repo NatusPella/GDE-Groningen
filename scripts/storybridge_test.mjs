@@ -42,12 +42,12 @@ ok(data.scenes.filter((s) => s.id === 'O7')[0].lines[0].text === 'Over zaterdag.
 
 // --- welke scène is aan de beurt ---------------------------------------------------------------------------------------
 const mk = (doneIds, flagIds = [], currentId = null) => ({ done: new Set(doneIds), flags: new Set(flagIds), currentId });
-ok(bridgeDue(mk(['M00', 'M01'], [], 'M02')) === null, 'niets aan de beurt zolang de stap niet af is');
-ok(bridgeDue(mk(['M01', 'M02'], [], 'N1')).id === 'O1' && bridgeDue(mk(['M01', 'M02'], [], 'M03')).id === 'O1', 'na M02 is O1 aan de beurt (ook tijdens de nieuwe N-stappen)');
-ok(bridgeDue(mk(['M01', 'M02'], [bridgeFlag('O1')], 'M03')) === null, 'een geziene scène komt niet terug');
-ok(bridgeDue(mk(['M01', 'M02', 'M03'], [], 'M04')).id === 'O1', 'de eerste die nog aan de beurt is, wint (volgorde van het verhaal)');
-ok(bridgeDue(mk(['M02'], [], 'M05')).id === 'O1', 'tot en met twee missies later nog wel');
-ok(bridgeDue(mk(['M02'], [], 'M06')) === null, 'een scène over iets van lang geleden speelt niet meer');
+ok(bridgeDue(mk(['M00'], [], 'M01')) === null, 'niets aan de beurt zolang de stap niet af is');
+ok(bridgeDue(mk(['M01'], [], 'N1')).id === 'O1' && bridgeDue(mk(['M01', 'M02'], [], 'M03')).id === 'O1', 'na M01 is O1 aan de beurt (ook tijdens de nieuwe N-stappen)');
+ok(bridgeDue(mk(['M01'], [bridgeFlag('O1')], 'N1')) === null, 'een geziene scène komt niet terug');
+ok(bridgeDue(mk(['M01', 'M02', 'M03'], [], 'M05')).id === 'O1', 'de eerste die nog aan de beurt is, wint (volgorde van het verhaal)');
+ok(bridgeDue(mk(['M01'], [], 'M05')).id === 'O1', 'tot en met twee missies later nog wel');
+ok(bridgeDue(mk(['M01'], [], 'M06')) === null, 'een scène over iets van lang geleden speelt niet meer');
 ok(bridgeDue(mk(['M30'], [], null)).id === 'O12', 'na het einde (geen huidige stap) komt O12 nog');
 ok(bridgeDue(mk(['M10'], [], 'T2')).id === 'O5', 'een reisstap tussen twee missies telt mee');
 
@@ -72,7 +72,7 @@ ok(bridgeBlockers({ ...calm, client: true }).includes('meespeler') && bridgeBloc
 const runSrc0 = read('game/js/storybridgerun.js');
 ok(runSrc0.includes("client: w.coopRole === 'client'") && runSrc0.includes('session: !!(w.coopNet && !w.coopSolo)'),'storybridgerun.js leest coopRole en de sessie uit de wereld');
 ok(!/coopNet.send|broadcast|coopcut|sendExtra|coopw*.(send|emit)/i.test(runSrc0), 'storybridgerun.js stuurt niets over het net: de gast wordt nooit gestopt of gewacht op');
-ok(bridgeDue({ done: new Set(['M02']), flags: new Set(), currentId: 'M03' }).id === 'O1' && !bridgeMay({ ...calm, client: true }), 'een gast heeft zijn eigen stand (eigen done en flags), de blokkade is alleen lokaal');
+ok(bridgeDue({ done: new Set(['M01']), flags: new Set(), currentId: 'N1' }).id === 'O1' && !bridgeMay({ ...calm, client: true }), 'een gast heeft zijn eigen stand (eigen done en flags), de blokkade is alleen lokaal');
 
 // --- bedrading en wat hij nooit doet ---------------------------------------------------------------------------------
 const run = read('game/js/storybridgerun.js');

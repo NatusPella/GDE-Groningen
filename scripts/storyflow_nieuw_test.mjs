@@ -40,7 +40,7 @@ const src = fs.readFileSync(new URL('js/missions.js', root), 'utf8') + fs.readFi
 const first = STEPS.findIndex((s) => s.id === 'M07');
 const story = STEPS.slice(first);
 ok(first > 0 && story.filter((s) => s.kind === 'mission').at(-1).id === 'M30' && story.at(-1).id === 'F6', 'M07 to M30 are the last missions of the arc, the closing step F6 follows (Deel 4 follows E)');
-ok(story.map((s) => s.id).join() === 'M07,M08,N10,N8,T1,M09,N5,K1,M10,A1,N11,N12,N6,N7,T2,M11,K2,M12,J1,M13,K3,M14,J2,W2,T3,M15,M16,A2,J3,M17,J4,M18,N9,J5,M19,J6,V1,V2,V3,T4,M20,M21,F1,M22,F2,M23,M24,M25,M26,F3,F4,F5,E,M27,M28,M29,T5,M30,F6', 'acts 2 to 5 and Deel 4 in story order');
+ok(story.map((s) => s.id).join() === 'M07,M08,T1,M09,N5,K1,M10,A1,N11,N12,N6,N7,T2,M11,K2,M12,M13,K3,M14,J2,W2,T3,M15,M16,A2,J3,M17,J4,M18,N9,J5,M19,J6,V1,V2,V3,T4,M20,M21,F1,M22,F2,M23,M24,M25,M26,F3,F4,F5,E,M27,M28,M29,T5,M30,F6', 'acts 2 to 5 and Deel 4 in story order');
 ok(new Set(STEPS.map((s) => s.id)).size === STEPS.length, 'step ids are unique');
 const partOrder = ['kop', 'romp', 'staart', 'zuid', 'ontzet', 'nazomer'];
 let pi = 0;

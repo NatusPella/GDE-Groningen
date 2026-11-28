@@ -14,8 +14,8 @@ const script = JSON.parse(fs.readFileSync(new URL('../game/storydata/script.json
 const scenes = new Map(script.scenes.map((s) => [s.id, s]));
 
 ok(W.every((id) => ADDED_STEPS.includes(id) && idx(id) >= 0), 'W1 en W2 zijn toegevoegde stappen');
-ok(STEPS.filter((s) => s.kind === 'mission').map((s) => s.id).join() === [...Array(30)].map((_, i) => 'M' + String(i + 1).padStart(2, '0')).join(), 'de dertig missies staan nog in dezelfde volgorde');
-ok(idx('N4') < idx('W1') && idx('W1') < idx('M03') && idx('J2') < idx('W2') && idx('W2') < idx('M15'), 'de stappen staan op hun invoegpunt');
+ok(STEPS.filter((s) => s.kind === 'mission').map((s) => s.id).join() === ['M01', 'M02', 'M03', 'M05', 'M04', ...[...Array(25)].map((_, i) => 'M' + String(i + 6).padStart(2, '0'))].join(), 'de dertig missies staan in de volgorde van de hoofdstuklijn (28-11: M05 staat voor M04, de rest ongewijzigd)');
+ok(idx('W1') < idx('N4') && idx('N4') < idx('M03') && idx('J2') < idx('W2') && idx('W2') < idx('M15'), 'de stappen staan op hun invoegpunt');
 ok(W.every((id) => { const s = STEPS[idx(id)]; return s.kind === 'activity' && s.built && s.added === true && !s.reward && !s.cost && !s.unlocks && s.scenes.includes(id); }), 'elke nieuwe stap is een activiteit met een scène, zonder beloning, kosten of vlag');
 ok(STEPS[idx('W1')].goal.type === 'home' && STEPS[idx('W1')].homeScene.id === 'W1' && STEPS[idx('W1')].homeScene.clock === 2.5, 'W1 speelt thuis om half drie');
 ok(STEPS[idx('W2')].goal.type === 'reis' && STEPS[idx('W2')].goal.scene === 'W2' && STEPS[idx('W2')].goal.r >= 250, 'W2 speelt zijn scène bij aankomst op een reisdoel');

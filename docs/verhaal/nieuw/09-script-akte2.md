@@ -120,33 +120,6 @@ TESSA: Mem. Ik logeerde elke zomer naast haar, in Ljouwert. [NIEUW]
 TAMMO: Een jas in augustus? [NIEUW]
 TESSA: Jij weet niet hoe lang ze dat al zegt. [NIEUW]
 
-## [N10] Een middag op het terras – Stad, Grote Markt – terras
-(regie: dinsdag, laat in de middag. Ze proberen horeca: een terras aan de Grote Markt zoekt hulp voor één middag. Tessa neemt de bestellingen op alsof ze het al jaren doet. Tammo draagt een dienblad met vier glazen en kijkt er zeer ernstig naar.)
-TESSA: Twee koffie, een thee, een tosti. Alles op één blad. Niet kantelen. [NIEUW]
-TAMMO: Ik kantel niet. Ik rijd. [NIEUW]
-(regie: hij loopt met het blad als met een Escapade over een drempel. Alles komt aan, op één glas na.)
-TERRASGAST: Zijn jullie al samen? [NIEUW]
-TESSA: Nee. [NIEUW]
-TAMMO: Dat ligt eraan wat je met samen bedoelt. [NIEUW]
-TESSA: Nee, Tammo. [NIEUW]
-TERRASGAST: Ik bedoelde de rekening. [NIEUW]
-TAMMO: Ah. Ja. Samen. [NIEUW]
-(regie: aan het eind van de middag is Tessa's fooienpot vol. Tammo heeft er twee glazen en een stoel op zijn naam.)
-TAMMO: Dit is niet mijn vak. [NIEUW]
-TESSA: Jouw vak is stilstaan als ik praat. [NIEUW]
-TAMMO: Dat kan ik. [NIEUW]
-
-## [N8] Een avond bij Oma – Stad, Noorderhaven – logeerkamer
-(regie: avond in de logeerkamer. Op het prikbord hangen de namen van de vijf vrienden aan punaises. Tessa hangt de laatste op; Tammo wil de punaise aangeven en hun handen raken elkaar.)
-TESSA: Die. [NIEUW]
-TAMMO: Deze? [NIEUW]
-(regie: allebei pakken de punaise. Een lange stilte. Beneden klinkt een pollepel op een pan.)
-OMA TRIJNTJE: Jullie slapen niet! Ik hoor het! [NIEUW]
-TESSA: We slapen, Oma. [NIEUW]
-OMA TRIJNTJE: Ik ben tweeënnegentig. Ik weet hoe slapen klinkt. [NIEUW]
-TAMMO: Een punaise. Ja. [NIEUW]
-TESSA: Het is een punaise. [NIEUW]
-
 ## [N5] De boerderij in Warffum – Hogeland, Warffum – te voet
 (regie: woensdagochtend. Een boerenerf met kippen, een hek en een koe die niet weg wil. Tessa loopt het erf op alsof ze er nooit is weggegaan. Tammo blijft bij het hek.)
 TESSA: Dit is het erf van mijn oom. Hier leerde ik melken. [NIEUW]

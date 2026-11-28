@@ -46,12 +46,13 @@ ok(new Set(figures).size === figures.length, 'no figure is introduced twice', fi
 const live = new Set(STEPS.map((x) => x.id));
 for (const id of live) ok(ids.filter((x) => x === id).length === 1, `live step ${id} has exactly one place`);
 for (const x of STORY_STEPS) {
-  if (live.has(x.id)) {
+  if (live.has(x.id) && !isNewStep(x)) {
     ok(['keep', 'rewrite', 'move'].includes(x.decision), `decision of ${x.id}`, x.decision);
     ok(['recorded', 'silent'].includes(x.voice), `voice status of ${x.id}`, x.voice);
     ok(x.decision !== 'rewrite' || x.voice === 'silent' || x.id === 'M00', `a rewritten step is silent until the next round (${x.id})`);
     ok(x.decision === 'rewrite' || x.voice === 'recorded', `a kept or moved step keeps its recording (${x.id})`);
   } else {
+    // a new step (a plan step, or one the chapter line already built into the live story: it has no decision)
     ok(isNewStep(x) && /^h\d+-[a-z0-9]+$/.test(x.id), `a new step has the id h<chapter>-<name> (${x.id})`);
     ok(x.id.startsWith(`h${x.ch}-`), `new step ${x.id} lives in its own chapter`);
   }
@@ -81,8 +82,8 @@ ok(stepCards('niet-bestaand') === null, 'an unknown step has no cards');
 // --- the first hour
 const h = [1, 2, 3].flatMap((c) => stepsOfChapter(c));
 const first = stepsOfChapter(1);
-ok(first[0].id === 'M00' && /Us Mem Snacks/.test(first[0].fn), 'the opening hints at the snack brand');
-ok(/Vrije standplaats/.test(first[0].fn), 'the opening shows the free-pitch sign');
+ok(first[0].id === 'M00' && first[1].id === 'h1-vismarkt' && /Us Mem Snacks/.test(first[1].fn), 'the first walk after the opening hints at the snack brand');
+ok(/Vrije standplaats/.test(first[1].fn), 'the first walk shows the free-pitch sign');
 ok(first.some((x) => x.id === 'M01'), 'a first win in chapter 1');
 ok(first.some((x) => x.unlocks === 'klussen'), 'a first side job in chapter 1');
 ok(first.some((x) => x.area !== 'stad'), 'a first trip outside the city in chapter 1');

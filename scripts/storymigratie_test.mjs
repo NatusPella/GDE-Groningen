@@ -11,8 +11,9 @@ const idx = (id) => STEPS.findIndex((s) => s.id === id);
 ok([...ADDED_STEPS].filter((id) => /^N/.test(id)).sort((a, b) => a.slice(1) - b.slice(1)).join() === 'N1,N2,N3,N4,N5,N6,N7,N8,N9,N10,N11,N12', 'twaalf nieuwe stappen N');
 ok([...ADDED_STEPS].filter((id) => /^J/.test(id)).sort().join() === 'J1,J2,J3,J4,J5,J6', 'zes nieuwe stappen J (Jelle en de romantiek)');
 ok(ADDED_STEPS.filter((id) => /^F/.test(id)).join() === 'F1,F2,F3,F4,F5,F6', 'zes slotstappen F1 tot en met F6 (verhaal-eind)');
-ok(STEPS.filter((s) => s.kind === 'mission').map((s) => s.id).join() === [...Array(30)].map((_, i) => 'M' + String(i + 1).padStart(2, '0')).join(), 'de dertig missies staan nog in dezelfde volgorde');
-ok(idx('M02') < idx('N1') && idx('N4') < idx('M03') && idx('M08') < idx('N8') && idx('N8') < idx('T1') && idx('N5') < idx('M10') && idx('N7') < idx('T2') && idx('M08') < idx('N10') && idx('N10') < idx('N8') && idx('A1') < idx('N11') && idx('N11') < idx('N12') && idx('N12') < idx('N6') && idx('M18') < idx('N9') && idx('N9') < idx('M19'), 'de stappen staan op hun invoegpunt (N9 in akte 4, N10 tot en met N12 in akte 2)');
+ok(STEPS.filter((s) => s.kind === 'mission').map((s) => s.id).join() === ['M01', 'M02', 'M03', 'M05', 'M04', ...[...Array(25)].map((_, i) => 'M' + String(i + 6).padStart(2, '0'))].join(), 'de dertig missies staan in de volgorde van de hoofdstuklijn (28-11: M05 staat voor M04, de rest ongewijzigd)');
+// hoofdstuklijn 28-11: N1 tot en met W1 staan voor M02 (H1 voor H2), N10 en N8 in H3 voor M04 en M06
+ok(idx('N1') < idx('M02') && idx('M02') < idx('N4') && idx('N4') < idx('M03') && idx('M05') < idx('N10') && idx('N8') < idx('M04') && idx('N8') < idx('T1') && idx('N5') < idx('M10') && idx('N7') < idx('T2') && idx('N10') < idx('N8') && idx('A1') < idx('N11') && idx('N11') < idx('N12') && idx('N12') < idx('N6') && idx('M18') < idx('N9') && idx('N9') < idx('M19'), 'de stappen staan op hun invoegpunt (N9 in akte 4, N10 tot en met N12 in akte 2)');
 ok(ADDED_STEPS.every((id) => { const s = STEPS.find((x) => x.id === id); return s.kind === 'activity' && s.built && !s.reward && !s.cost && !s.unlocks; }), 'elke nieuwe stap is een activiteit zonder beloning, kosten of vlag');
 
 // een save van vóór de epic: alleen de oude stappen gedaan
@@ -26,7 +27,7 @@ const saveTot = (laatste) => {
 const huidige = (laatste) => { const s = saveTot(laatste); return nextStoryStep((id) => s.done.has(id), s.mp, () => false); };
 
 ok(huidige('M02').id === 'N1', 'een oude save vóór M03 krijgt de nieuwe stappen te spelen (eerst N1)', huidige('M02').id);
-ok(huidige('M03').id === 'M04', 'een oude save voorbij M03 herhaalt N1 tot en met N4 niet', huidige('M03').id);
+ok(huidige('M03').id === 'h3-omroeper', 'een oude save voorbij M03 herhaalt N1 tot en met N4 niet (de nieuwe H3-stappen volgen)', huidige('M03').id);
 const sT = saveTot('M03');
 ok(['N1', 'N2', 'N3', 'N4'].every((id) => stepDone(idx(id), (x) => sT.done.has(x), sT.mp)), 'ze tellen als gedaan (geen blokkade)');
 ok(huidige('M08').id === 'N10', 'een oude save na M08 krijgt het terras (N10) en dan de avond bij Oma (N8) nog te spelen', huidige('M08').id);
