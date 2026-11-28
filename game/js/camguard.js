@@ -96,7 +96,8 @@ export function createCamGuard(env, opts = {}) {
       const reach = Math.min(1, (maxSpeed * Math.max(dt, 1 / 120)) / dist);
       if (reach < 1) stats.glided++;
       const goal = { x: cur.x + (want.x - cur.x) * reach, y: cur.y + (want.y - cur.y) * reach, z: cur.z + (want.z - cur.z) * reach };
-      const hit = sweepBlocked(blocked, cur, goal);
+      // staat de camera zelf in een obstakel (een scène die zo begint), dan mag hij naar buiten: de eerste vrije stand wint
+      const hit = blocked(cur.x, cur.y, cur.z) && !blocked(want.x, want.y, want.z) ? null : sweepBlocked(blocked, cur, goal);
       if (hit) { stats.held++; pose.position = { ...cur }; return pose; }
       cur = goal;
       pose.position = { ...goal };

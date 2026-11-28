@@ -56,3 +56,11 @@ console.log('camguard_test: groen');
   assert.deepEqual(nudgeFromWalls(solid, { x: 2, y: 0, z: 1.6 }), { x: 2, y: 0, z: 1.6 });
   console.log('camguard nudge: groen');
 }
+// een camera die in een obstakel begint mag naar buiten
+{
+  const g = createCamGuard({ blocked });
+  g.apply(P(5.2, 0, 1.6, { cut: true }), 1 / 60);
+  let q; for (let i = 0; i < 30; i++) q = g.apply(P(4, 0, 1.6), 1 / 60);
+  assert.ok(!blocked(q.position.x, q.position.y, q.position.z), 'komt uit de muur');
+  console.log('camguard escape: groen');
+}
