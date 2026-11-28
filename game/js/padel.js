@@ -1403,13 +1403,12 @@ function updateHud(w) {
   const help = `${clock} · ${k('A')}${k('D')}${k('W')}${k('S')} lopen · ${k('SPATIE')} slaan · ${k('BACKSPACE')} opgeven${gp}`;
   // #985: de strook (simhud.js) onderin zegt wat je nu doet; het bord bovenin houdt de stand
   simHudTik(0, padelHudModel({ fase: g.phase, serveer: g.server === 0, phaseT: g.phaseT, games: g.games, punten: [callOf(g, 0), callOf(g, 1)], rally: g.rally, beste: g.bestRally, winnaar: g.lastWinner, capped: g.capped, gp: gp !== '', inBereik: !!g.hot, uitleg: !uitlegGezien(UITLEG_ID) }));
-  const key = [us, them, g.games, g.points, g.server, g.phase === 'intro', flash, help, g.lastWinner].join('|');
-  if (key === hud.key) return;
-  hud.key = key;
-  hud.teams.innerHTML = `<span>${us}${serve(0)}</span><b>${g.games[0]}</b><i>${callOf(g, 0)}</i><span>${them}${serve(1)}</span><b>${g.games[1]}</b><i>${callOf(g, 1)}</i>`;
-  hud.flash.textContent = flash;
-  hud.flash.classList.toggle('them', !!g.flash && g.lastWinner === 1 && !g.flash.small);
-  hud.help.innerHTML = help;
+  const teams = `<span>${us}${serve(0)}</span><b>${g.games[0]}</b><i>${callOf(g, 0)}</i><span>${them}${serve(1)}</span><b>${g.games[1]}</b><i>${callOf(g, 1)}</i>`;
+  const flashThem = !!(g.flash && g.lastWinner === 1 && !g.flash.small);
+  if (hud.teamsHtml !== teams) { hud.teamsHtml = teams; hud.teams.innerHTML = teams; }
+  if (hud.flashRaw !== flash) { hud.flashRaw = flash; hud.flash.textContent = flash; }
+  if (hud.flashThem !== flashThem) { hud.flashThem = flashThem; hud.flash.classList.toggle('them', flashThem); }
+  if (hud.helpHtml !== help) { hud.helpHtml = help; hud.help.innerHTML = help; }
 }
 
 
