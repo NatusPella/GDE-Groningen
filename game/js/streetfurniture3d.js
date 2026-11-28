@@ -27,12 +27,18 @@ const tilesCalmGate = createCalmGate(); // wacht ook op de achtergrondwachtrij v
 import { EDGE_CLASSES, edgeColour, edgeHeight } from './edgeclasses.js';
 import { applyInteriorCut } from './interiorcut3d.js';
 import { propGeometry } from './propmodels3d.js'; // de gedeelde props (propregister.js)
+import { detailForTile } from './streetdetail.js'; // de detaillaag voor wijken en dorpen (#1353)
 
 // the game draws its own lamps and path bollards (see above)
 export const GAME_OPTS = { lamps: false, bollards: false, livingBumps: false };
 // draw distance per kind (m)
-const LOD = { guardrail: 220, fence: 160, hedge: 160, noise: 420, hectometer: 120, gantry: 650, placesign: 260, wegwijzer: 200, speedbump: 120, bench: 110, bin: 90, bikerack: 100, shelter: 140, bollard: 90, lamp: 200 };
-const CAP = { guardrail: 2600, fence: 600, hedge: 600, noise: 400, hectometer: 120, gantry: 24, placesign: 60, wegwijzer: 60, speedbump: 60, bench: 120, bin: 120, bikerack: 120, shelter: 40, bollard: 200, lamp: 400 };
+// straatdetail (#1353): tekenafstand en maximum per soort; de rest van de regel is die van het meubilair
+const DETAIL_LOD = { klikogrijs: 75, klikogroen: 75, klikoblauw: 75, fietszwart: 80, fietsrood: 80, fietsblauw: 80, lattenhek: 100, schutting: 110, tuinpad: 80, plantenbak: 80, kabelkast: 110, afvalzuil: 120, bord30: 130, voorrangsbord: 130, bermpaal: 140, rietpol: 110, hooibaal: 130 };
+const DETAIL_CAP = { klikogrijs: 300, klikogroen: 200, klikoblauw: 150, fietszwart: 160, fietsrood: 160, fietsblauw: 160, lattenhek: 400, schutting: 200, tuinpad: 600, plantenbak: 160, kabelkast: 60, afvalzuil: 40, bord30: 40, voorrangsbord: 40, bermpaal: 160, rietpol: 400, hooibaal: 80 };
+// de detaillaag laat zich uitzetten (vergelijkingsbeelden en metingen: window.__noStreetDetail = true voor de bouw van het spel)
+const DETAIL_ON = () => !(typeof window !== 'undefined' && window.__noStreetDetail);
+const LOD = { ...DETAIL_LOD, guardrail: 220, fence: 160, hedge: 160, noise: 420, hectometer: 120, gantry: 650, placesign: 260, wegwijzer: 200, speedbump: 120, bench: 110, bin: 90, bikerack: 100, shelter: 140, bollard: 90, lamp: 200 };
+const CAP = { ...DETAIL_CAP, guardrail: 2600, fence: 600, hedge: 1200, noise: 400, hectometer: 120, gantry: 24, placesign: 60, wegwijzer: 60, speedbump: 60, bench: 120, bin: 120, bikerack: 120, shelter: 40, bollard: 200, lamp: 400 };
 const TILE_REACH = 900;     // tiles whose square comes this near are generated
 const PROP_REACH = 70;      // colliders near the player
 const REBUILD_MOVE = 12;
@@ -117,8 +123,13 @@ function shelterGeo() { return rotProp('bushokje', 0); }
 // the post of a place name board or signpost (the board is drawn apart, see rebuildBoards)
 function postGeo() { return mergeGeometries([tint(new THREE.BoxGeometry(0.08, 2.2, 0.08).translate(0, 1.1, 0), 0x8a9196)]); }
 function bollardGeo() { return rotProp('paaltje', 0); }
+// de stukken van de detaillaag: voorkant +x; hekstukken en tuinpad (gebouwd met de lengte langs z) lopen langs x
+const detailGeo = (id, hoek = 0) => () => rotProp(id, hoek);
+const DETAIL_GEOS = {};
+for (const id of ['klikogrijs', 'klikogroen', 'klikoblauw', 'fietszwart', 'fietsrood', 'fietsblauw', 'plantenbak', 'kabelkast', 'afvalzuil', 'bord30', 'voorrangsbord', 'bermpaal', 'rietpol', 'hooibaal']) DETAIL_GEOS[id] = detailGeo(id);
+for (const id of ['lattenhek', 'schutting', 'tuinpad']) DETAIL_GEOS[id] = detailGeo(id, Math.PI / 2);
 
-const GEOS = { guardrail: guardrailGeo, fence: fenceGeo, hedge: hedgeGeo, noise: noiseGeo, hectometer: hectometerGeo, speedbump: speedbumpGeo, gantry: gantryGeo, beam: beamGeo, bench: benchGeo, bin: binGeo, bikerack: rackGeo, shelter: shelterGeo, bollard: bollardGeo, placesign: postGeo, wegwijzer: postGeo };
+const GEOS = { ...DETAIL_GEOS, guardrail: guardrailGeo, fence: fenceGeo, hedge: hedgeGeo, noise: noiseGeo, hectometer: hectometerGeo, speedbump: speedbumpGeo, gantry: gantryGeo, beam: beamGeo, bench: benchGeo, bin: binGeo, bikerack: rackGeo, shelter: shelterGeo, bollard: bollardGeo, placesign: postGeo, wegwijzer: postGeo };
 // het centrale LOD-systeem (lodkit3d.js): de modellen van het straatmeubilair, ook voor de audit (scripts/lod_audit_test.mjs)
 export const furnitureModels = () => Object.keys(GEOS).map((k) => [k, GEOS[k](), furnitureLodKind(k)]);
 // de LOD-soort: klein meubilair verdwijnt op 150 m, wat je van ver ziet (een portaal op 650 m, een geluidsscherm) houdt zijn eigen tekenafstand
@@ -136,7 +147,7 @@ function setOf(kind) {
   const cap = kind === 'beam' ? CAP.gantry : CAP[kind] || 100;
   set = makeLodInstanced(furnitureLodKind(kind), 'furniture:' + kind, GEOS[kind](), MAT, cap, {
     setup: (m) => {
-      m.castShadow = kind !== 'speedbump' && kind !== 'hectometer';
+      m.castShadow = kind !== 'speedbump' && kind !== 'hectometer' && !(kind in DETAIL_LOD && kind !== 'kabelkast' && kind !== 'afvalzuil');
       m.receiveShadow = true;
       scene.add(m);
       meshes.set(m.name, m);
@@ -328,7 +339,14 @@ function tileItems(i, j) {
   const res = furnitureForTile({ x0, y0, size: TILE_M, roads, mapped: intro ? [] : mapped, water, rails, buildings, places: worldSignPlaces() || DESTINATIONS, opts: { ...GAME_OPTS, towns: intro ? [] : worldTownSigns() } });
   // nothing that stands on one spot goes on the asphalt, into a house or into
   // the water: the map answers for what is drawn (#463)
-  const items = res.items.filter((it) => !POINT_KINDS.has(it.k) || spotFreeOnMap(map, it.x, it.y, it.k === 'lamp' ? { house: LAMP_AWNING } : undefined));
+  let all = res.items;
+  if (DETAIL_ON() && !intro) {
+    // de detaillaag: een gemapte heg of hek op dezelfde plek gaat voor (geen dubbele rand)
+    const lin = res.items.filter((it) => it.k === 'hedge' || it.k === 'fence');
+    const det = detailForTile({ x0, y0, size: TILE_M, roads, buildings, water, rails }).filter((it) => !(it.k === 'hedge' || it.k === 'fence' || it.k === 'lattenhek') || !lin.some((o) => Math.abs(o.x - it.x) < 3 && Math.abs(o.y - it.y) < 3));
+    if (det.length) all = res.items.concat(det);
+  }
+  const items = all.filter((it) => !POINT_KINDS.has(it.k) || spotFreeOnMap(map, it.x, it.y, it.k === 'lamp' ? { house: LAMP_AWNING } : undefined));
   tiles.set(key, t = { items, colliders: items.length === res.items.length ? res.colliders : furnitureColliders(items) });
   return t.items;
 }
@@ -378,6 +396,7 @@ export function updateStreetFurniture3D(px, py, force = false) {
       case 'guardrail': put('guardrail', it.x, z, it.y, it.a, it.s, 1, 1); break;
       case 'fence': put('fence', it.x, z, it.y, it.a, it.s, 1, 1); break;
       case 'noise': put('noise', it.x, z, it.y, it.a, it.s, it.h || 4, 1); break;
+      case 'lattenhek': put('lattenhek', it.x, z, it.y, it.a, it.s || 1, 1, 1); break;
       case 'hedge': put('hedge', it.x, z, it.y, it.a, it.s, edgeHeight('hedge', it.h) / HEDGE_TOP, 1); break;
       case 'hectometer': put('hectometer', it.x, z, it.y, it.a); break;
       case 'speedbump': put('speedbump', it.x, z, it.y, it.a, 1, 1, it.s || 6); break;
@@ -395,7 +414,7 @@ export function updateStreetFurniture3D(px, py, force = false) {
       default: if (GEOS[it.k]) put(it.k, it.x, z, it.y, it.a);
     }
   }
-  for (const m of meshes.values()) { m.instanceMatrix.needsUpdate = true; markInstancesDirty(m.instanceMatrix, m.count); }
+  for (const m of meshes.values()) { m.instanceMatrix.needsUpdate = true; markInstancesDirty(m.instanceMatrix, m.count); m.visible = m.count > 0; }
   rebuildBoards(boards.filter(bordHeeftTekst).sort((a, b) => Math.hypot(a.x - px, a.y - py) - Math.hypot(b.x - px, b.y - py)).slice(0, BOARD_COLS * BOARD_ROWS));
   rebuildSigns(gantries.filter(bordHeeftTekst).sort((a, b) => Math.hypot(a.x - px, a.y - py) - Math.hypot(b.x - px, b.y - py)).slice(0, 16));
 }

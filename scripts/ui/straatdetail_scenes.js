@@ -91,18 +91,22 @@ const kiesPlek = (lat, lon, type) => {
   }
   return best;
 };
+// draw calls en driehoeken per frame: autoReset uit, dan over 30 frames optellen (de laatste pass van de nabewerking telt anders alleen mee)
 const meet = async () => {
   const R = S3.getRenderer(); await sleep(400);
-  let t0 = performance.now(), n = 0; await new Promise((res) => { const f = () => { if (++n >= 90) res(); else requestAnimationFrame(f); }; requestAnimationFrame(f); });
-  const ms = (performance.now() - t0) / n; await sleep(100);
-  return { calls: R.info.render.calls, tris: R.info.render.triangles, geos: R.info.memory.geometries, ms: +ms.toFixed(1) };
+  R.info.autoReset = false; R.info.reset();
+  let t0 = performance.now(), n = 0; await new Promise((res) => { const f = () => { if (++n >= 30) res(); else requestAnimationFrame(f); }; requestAnimationFrame(f); });
+  const ms = (performance.now() - t0) / n; const calls = R.info.render.calls / n, tris = R.info.render.triangles / n;
+  R.info.autoReset = true; R.info.reset();
+  return { calls: Math.round(calls), tris: Math.round(tris), ms: +ms.toFixed(1) };
 };
 let nr = 0;
 for (const [naam, type, lat, lon] of PLEKKEN) {
   nr++;
   await scene(nr, async () => {
+    const [cx, cy] = wgsToWorld(lat, lon); await jump(cx, cy, 5000); // eerst erheen: de tegels van de buurt moeten er zijn
     const pl = kiesPlek(lat, lon, type); if (!pl) { log({ nr, naam, fout: 'geen plek' }); return; }
-    await jump(pl.x, pl.y, 6000);
+    await jump(pl.x, pl.y, 3500);
     const z = gh(pl.x, pl.y), dx = Math.cos(pl.a), dy = Math.sin(pl.a);
     log({ nr, naam, type, x: Math.round(pl.x), y: Math.round(pl.y), a: +pl.a.toFixed(3), huizen30: pl.n });
     cam(pl.x - dx * 10, pl.y - dy * 10, z + 1.7, pl.x + dx * 25, pl.y + dy * 25, z + 1.9, 70); await shot(naam + '-oog', 2500);
