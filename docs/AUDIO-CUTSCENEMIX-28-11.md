@@ -54,8 +54,18 @@ stand in alle 24 scènes falen.
 
 ## Meting
 
-Zie de HTML-pagina die `cutmix_rapport.mjs` maakt: voor en na het niveau van de muziekbus over de tijd voor drie scènes, uit een echte
-Electron-run met `--audio-graph`, plus de berekening over de scènedata. Dit is de regeling (de gain van de bus), niet gehoord.
+Echte Electron-runs (`node scripts/qa/cutmix_live.mjs --scene=<id>`, `--audio-graph`, de scène twee keer in echte tijd door de host: eerst met de
+oude regeling via `__audio.cutMixOff(true)`, dan met de mix). Gemeten is de gain van de muziekbus ten opzichte van het gewone niveau, elke 100 ms:
+
+| scène | oude regeling in een regel (gem. / max) | nieuwe mix in een regel | nieuwe mix na de scène |
+| --- | --- | --- | --- |
+| M05.intro | -4,6 / -4,1 dB | -60 dB (stand uit) | terug op 0 dB binnen enkele seconden |
+| F2 (flat) | -4,6 / -4,2 dB | -60 dB (stand uit) | terug op 0 dB |
+| M02.intro | -4,6 / -3,9 dB | -60 dB (stand uit) | terug op 0 dB |
+
+De HTML-pagina met de grafieken (voor en na, plus de berekening over de scènedata van M01.intro, M03.2 en F2) maakt
+`node scripts/qa/cutmix_rapport.mjs --out=<map> --meting=<map1>,<map2>,<map3>` (gegenereerd, niet in git). In deze runs speelde geen scenarioloop
+(`scenario: null`, de radio was de bron). Dit is de regeling (de gain waarmee de bus speelt), niet gehoord.
 
 ## Wat niet kon
 

@@ -28,19 +28,21 @@ let html = `<!doctype html><meta charset="utf-8"><title>Cutscene-muziekmix voor 
 html += `<h1>Muziek onder spraak in cutscenes: voor en na</h1><p>Niveau van de muziekbus ten opzichte van normaal (0 dB). ${kop}. Niemand heeft dit beluisterd: de lijnen zijn de gemeten regeling (Electron met --audio-graph) en de berekening over de echte scènedata.</p>`;
 
 for (const m of metingen) {
+  const ref = Math.max(...m.mix.map((r) => r.baseBus || 0)) || 1; // het gewone muziekniveau van deze run (de bus voor de scène begon)
   const wins = M.speechWindows(m.lines.map((l) => ({ ...l })));
   const ser = [];
   const tab = [];
   for (const r of m.mix) {
-    const pts = r.samples.map((s) => [s.t, db(s.bus / (r.baseBus || 1))]);
+    const smp = r.samples.map(([t, bus, stand, mixdb, talking, active]) => ({ t, bus, stand, talking, active }));
+    const pts = smp.map((s) => [s.t, db(s.bus / ref)]);
     ser.push({ kleur: r.legacy ? '#d62728' : '#1a7f37', punten: pts });
-    const inLine = r.samples.filter((s) => s.talking && s.active).map((s) => db(s.bus / (r.baseBus || 1)));
-    const quiet = r.samples.filter((s) => !s.talking && s.active).map((s) => db(s.bus / (r.baseBus || 1)));
-    tab.push([r.legacy ? 'oude stand' : 'nieuwe mix', inLine.length ? Math.max(...inLine).toFixed(1) : '-', inLine.length ? (inLine.reduce((a, b) => a + b, 0) / inLine.length).toFixed(1) : '-', quiet.length ? Math.max(...quiet).toFixed(1) : '-', r.scenario || 'radio', r.samples.length]);
+    const inLine = smp.filter((s) => s.talking && s.active).map((s) => db(s.bus / ref));
+    const quiet = smp.filter((s) => !s.talking && s.active).map((s) => db(s.bus / ref));
+    tab.push([r.legacy ? 'oude stand' : 'nieuwe mix', inLine.length ? Math.max(...inLine).toFixed(1) : '-', inLine.length ? (inLine.reduce((a, b) => a + b, 0) / inLine.length).toFixed(1) : '-', quiet.length ? Math.max(...quiet).toFixed(1) : '-', r.scenario || 'radio', smp.length, r.legacy ? 'oude regeling' : (smp.find((s) => s.stand)?.stand || '-')]);
   }
-  const tMax = Math.max(...m.mix.map((r) => r.samples[r.samples.length - 1].t));
+  const tMax = Math.max(...m.mix.map((r) => r.samples[r.samples.length - 1][0]));
   html += `<h2>${m.scene}</h2>` + svg(m.scene, tMax, ser, wins, `gemeten, ${m.duur.toFixed(0)} s scène; de blauwe vakken zijn de stemvensters uit de regeldata (de echte stem schuift mee met de opnames)`);
-  html += `<table><tr><th></th><th>max in regel (dB)</th><th>gem. in regel (dB)</th><th>max in stilte (dB)</th><th>muziekbron</th><th>monsters</th></tr>${tab.map((r) => `<tr>${r.map((c) => `<td>${c}</td>`).join('')}</tr>`).join('')}</table>`;
+  html += `<table><tr><th></th><th>max in regel (dB)</th><th>gem. in regel (dB)</th><th>max in stilte (dB)</th><th>muziekbron</th><th>monsters</th><th>stand</th></tr>${tab.map((r) => `<tr>${r.map((c) => `<td>${c}</td>`).join('')}</tr>`).join('')}</table>`;
 }
 
 const sim = arg('sim', 'M01.intro,M03.2,F2').split(',').filter(Boolean);

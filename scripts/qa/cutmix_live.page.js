@@ -18,6 +18,7 @@ const e = cat.find((x) => x.id === id || x.id === 'story-' + id);
 if (!e || !e.def) return JSON.stringify({ results: { fout: 'scène niet gevonden: ' + id } });
 const runs = [];
 for (const legacy of [true, false]) {
+  for (let i = 0; i < 100 && cine.isCinematicActive(); i++) { cine.skipCinematic(); await sleep(200); } // een lopende scène (de opening) eerst weg
   A.cutMixOff(legacy);
   console.log('[cm] run legacy=' + legacy + ' t=' + Math.round(performance.now()));
   await sleep(1500);
@@ -32,14 +33,14 @@ for (const legacy of [true, false]) {
     await sleep(100);
     const s = A.state();
     const act = cine.isCinematicActive();
-    samples.push({ t: +((performance.now() - t0) / 1000).toFixed(2), bus: s.musicBus, tgt: s.musicTarget, cm: s.cutMix, talking: s.speech && s.speech.talking, active: act });
+    samples.push([+((performance.now() - t0) / 1000).toFixed(2), s.musicBus, s.cutMix.mode, s.cutMix.db, s.speech && s.speech.talking ? 1 : 0, act ? 1 : 0]);
     if (!act && samples.length > 20) break;
   }
   // de eindtijd van de stilte erna: de muziek moet terugkomen
-  for (let i = 0; i < 40; i++) { await sleep(100); const s = A.state(); samples.push({ t: +((performance.now() - t0) / 1000).toFixed(2), bus: s.musicBus, tgt: s.musicTarget, cm: s.cutMix, talking: s.speech && s.speech.talking, active: false }); }
+  for (let i = 0; i < 40; i++) { await sleep(100); const s = A.state(); samples.push([+((performance.now() - t0) / 1000).toFixed(2), s.musicBus, s.cutMix.mode, s.cutMix.db, s.speech && s.speech.talking ? 1 : 0, 0]); }
   runs.push({ legacy, started: !!ok, baseBus: base.musicBus, scenario: base.scenario, samples });
   cine.isCinematicActive() && cine.skipCinematic();
   await sleep(1500);
 }
 A.cutMixOff(false);
-return JSON.stringify({ results: { scene: id, duur: e.duration, lines: e.lines.map((l) => ({ at: l.at, dur: l.dur })), mix: runs } });
+return JSON.stringify({ results: { scene: id, duur: e.duration, lines: e.lines.map((l) => ({ at: +l.at.toFixed(2), dur: +l.dur.toFixed(2) })), kolommen: ['t', 'bus', 'stand', 'mix_db', 'stem', 'scene'], mix: runs } });
