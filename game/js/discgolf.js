@@ -15,7 +15,7 @@ import { cleanDifficulty, difficultyRecordKey, scaleTargetSignedRound } from './
 import { showCard } from './hudcards.js';
 import { isInWater, pointInPolygon } from './util.js';
 import { activityBlock, iconDisc } from './activitykit.js';
-import { createBoard, mgThema, key, bubble, clearBubbles, pick, stopPressed, easeCamera, windText, clamp, makeRng } from './minigamekit.js';
+import { createBoard, mgThema, key, bubble, clearBubbles, pick, stopPressed, easeCamera, windText, clamp, makeRng, esc } from './minigamekit.js';
 import { DISC_LINES } from './minigamelines.js';
 import { DISCEXT_LINES } from './minigamelines3.js';
 import { fullRound, roundMedal, ctpPoints, ctpRound, CTP, MEDAL_REL_18 } from './discgolfext.js';
@@ -737,7 +737,7 @@ function updateHud(w) {
     return;
   }
   const online = g.online ? wedScoreRijen(w) : [];
-  const stand2 = online.length ? `<span>${online.map((r) => `${r.weg ? '<s>' : ''}${r.naam} ${relText(r.rel)} (${r.banen}/${COURSE.length})${r.weg ? '</s>' : ''}`).join(' · ')}</span>` : '';
+  const stand2 = online.length ? `<span>${online.map((r) => `${r.weg ? '<s>' : ''}${esc(r.naam)} ${relText(r.rel)} (${r.banen}/${COURSE.length})${r.weg ? '</s>' : ''}`).join(' · ')}</span>` : '';
   const row = `${stand2}<span>Baan <b>${h.n}</b>/${COURSE.length}</span><span>Par <b>${h.par}</b></span><span>Worp <b>${g.phase === 'aim' ? g.strokes + 1 : g.strokes}</b></span><span>Mand <b>${Math.round(dist)} m</b></span><span>${windText(g.wind)} ${windArrow(g)}</span>`;
   const cells = g.card.holes.map((c, i) => ({ t: c.done ? String(c.strokes) : i === g.hole ? `${g.strokes || '·'}` : String(c.n), cls: `${i === g.hole ? 'on' : ''} ${c.done ? (c.strokes <= c.par ? 'good' : 'bad') : ''}` }));
   const disc = DISCS[g.disc];

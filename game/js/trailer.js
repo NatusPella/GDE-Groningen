@@ -2597,6 +2597,7 @@ export function showBenchmarkResults(res) {
   resultEl.innerHTML = reportHtml(card);
   resultEl.hidden = false;
   document.body.classList.add('tr-result-open');
+  const prevFocus = typeof document !== 'undefined' ? document.activeElement : null;
   const buttons = () => [...resultEl.querySelectorAll('button:not([hidden])')];
   buttons()[0].focus({ preventScroll: true });
   return new Promise((resolve) => {
@@ -2605,6 +2606,7 @@ export function showBenchmarkResults(res) {
       document.body.classList.remove('tr-result-open');
       resultEl.removeEventListener('click', onClick);
       window.removeEventListener('keydown', onKey, true);
+      if (prevFocus && prevFocus.isConnected && prevFocus.focus) prevFocus.focus({ preventScroll: true });
       resolve(v);
     };
     const act = (a, btn) => {
@@ -2631,8 +2633,8 @@ export function showBenchmarkResults(res) {
       const list = buttons();
       const i = list.indexOf(document.activeElement);
       if (e.key === 'Escape' || e.key === 'Backspace') close('back');
-      else if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === 'Tab') list[(i + (e.shiftKey ? -1 : 1) + list.length) % list.length].focus();
-      else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') list[(i - 1 + list.length) % list.length].focus();
+      else if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === 'Tab') list[i < 0 ? (e.shiftKey ? list.length - 1 : 0) : (i + (e.shiftKey ? -1 : 1) + list.length) % list.length].focus();
+      else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') list[i < 0 ? list.length - 1 : (i - 1 + list.length) % list.length].focus();
       else if (e.key === 'Enter' || e.key === ' ') { if (!e.repeat && i >= 0) act(list[i].dataset.act, list[i]); }
       else return;
       e.preventDefault();

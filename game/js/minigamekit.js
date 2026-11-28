@@ -450,8 +450,11 @@ let stopAsk = null;
 function cancelStopAsk() {
   if (!stopAsk) return;
   clearTimeout(stopAsk.timer);
+  if (typeof window !== 'undefined' && stopAsk.onKey) window.removeEventListener('keydown', stopAsk.onKey, true);
+  const pf = stopAsk.prevFocus;
   stopAsk.el.remove();
   stopAsk = null;
+  if (pf && pf.isConnected && pf.focus) pf.focus({ preventScroll: true });
 }
 export function stopPressed(input) {
   // #688: één stopconventie, ook voor de pad-B (die komt als backspace binnen) en touch (de knoppen).
@@ -472,9 +475,11 @@ export function stopPressed(input) {
   }
   if (uitkomst === 'vraag' && typeof document !== 'undefined') {
     input.consume(STOP_VRAAG);
+    const prevFocus = document.activeElement;
     const el = document.createElement('div');
     el.className = 'mg-stopask';
     el.setAttribute('role', 'alertdialog');
+    el.setAttribute('aria-modal', 'true');
     el.setAttribute('aria-label', 'Stoppen?');
     // #596: het venster staat in de HUD-stijl, met echte knoppen zodat touch ook een uitweg heeft.
     el.innerHTML = '<b>Stoppen?</b><div class="mg-stopbtns" role="group" aria-label="Stoppen?">' +
@@ -491,8 +496,26 @@ export function stopPressed(input) {
       if (!b) return;
       kies(b.dataset.do === 'stop' ? 'enter' : ' ');
     });
+    const onKey = (e) => {
+      if (e.key === 'Tab' || e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+        const btns = [...el.querySelectorAll('button[data-do]')];
+        if (!btns.length) return;
+        e.preventDefault(); e.stopPropagation();
+        const i = btns.indexOf(document.activeElement);
+        const dir = (e.key === 'Tab' && e.shiftKey) || e.key === 'ArrowLeft' ? -1 : 1;
+        btns[i < 0 ? 0 : (i + dir + btns.length) % btns.length].focus({ preventScroll: true });
+        return;
+      }
+      if ((e.key === 'Enter' || e.key === ' ') && document.activeElement && el.contains(document.activeElement)) {
+        const b = document.activeElement.closest && document.activeElement.closest('button[data-do]');
+        if (b) { e.preventDefault(); e.stopPropagation(); if (!e.repeat) b.click(); }
+      }
+    };
+    if (typeof window !== 'undefined') window.addEventListener('keydown', onKey, true);
     document.body.appendChild(el);
-    stopAsk = { el, timer: setTimeout(cancelStopAsk, 8000) };
+    const door = el.querySelector('button[data-do="door"]');
+    if (door && door.focus) door.focus({ preventScroll: true });
+    stopAsk = { el, timer: setTimeout(cancelStopAsk, 8000), onKey, prevFocus };
   }
   return false;
 }
