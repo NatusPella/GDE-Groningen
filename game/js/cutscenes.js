@@ -255,12 +255,13 @@ const ACT_VERHUISDAG = {
     { t: 'L3+1.2', actor: 'tammo', anim: 'zuchten', dur: 2.0 },
     { t: 'L4+0.9', actor: 'tammo', anim: 'opgelucht', dur: 2.0 },
     // "Rijden, niet praten": in, and the Escapade limps off on its flat tyre
-    { t: 'L5+0.2', prop: 'escapade', bob: 0.05 },
-    { t: 'L5+0.5', actor: 'tessa', hide: true },
-    { t: 'L5+0.6', actor: 'tammo', hide: true },
-    { t: 'L5+1.2', prop: 'escapade', path: [[8, 4.5, 0], [9.2, 10, 0], [13, 26, 0], [22, 62, 0]], speed: 4.5 },
+    // niemand verdwijnt terwijl hij praat: Tessa zegt "Rijden, niet praten" (L5, 3,9 s) en stapt pas in na haar regel
+    { t: 'L5+3.3', prop: 'escapade', bob: 0.05 },
+    { t: 'L5+3.6', actor: 'tessa', hide: true },
+    { t: 'L5+3.7', actor: 'tammo', hide: true },
+    { t: 'L5+4.1', prop: 'escapade', path: [[8, 4.5, 0], [9.2, 10, 0], [13, 26, 0], [22, 62, 0]], speed: 4.5 },
     // #860: the mattress lies on the roof and has to ride along with the car; without a cue it stayed floating
-    { t: 'L5+1.2', prop: 'matras', path: [[8, 4.5, 1.45], [9.2, 10, 1.45], [13, 26, 1.45], [22, 62, 1.45]], speed: 4.5 },
+    { t: 'L5+4.1', prop: 'matras', path: [[8, 4.5, 1.45], [9.2, 10, 1.45], [13, 26, 1.45], [22, 62, 1.45]], speed: 4.5 },
   ],
   shots: [
     // who and where: the street, the Escapade with the mattress on the roof
@@ -271,8 +272,9 @@ const ACT_VERHUISDAG = {
     { t: 'L2+3.5', shot: 'cut', at: [5.0, 0.4, 1.5], look: 'tessa@1.1', fov: 34 },
     { t: 'L3', shot: 'cut', at: [7.2, -2.8, 1.5], look: 'tammo@1.2', fov: 26 },
     { t: 'L4', shot: 'cut', at: [3.9, 3.6, 1.5], look: 'tessa@1.2', fov: 28 },
-    { t: 'L5+0.6', shot: 'dolly', from: [-1, 6.5, 3.0], to: [2, 5.5, 2.6], look: 'escapade@1.0', fov: 40 },
-    { t: 'L4+3.4', shot: 'dolly', from: [3, 9, 2.0], to: [5, 17, 3.4], look: 'escapade@1.0', fov: 36 },
+    // tijdens L5 blijft de camera bij Tessa (L4: dezelfde plek); pas na haar regel de Escapade die wegrijdt
+    { t: 'L5', shot: 'cut', at: [3.9, 3.6, 1.5], look: 'tessa@1.2', fov: 30 },
+    { t: 'L5+3.5', shot: 'dolly', from: [-1, 6.5, 3.0], to: [2, 5.5, 2.6], look: 'escapade@1.0', fov: 40 },
   ],
 };
 

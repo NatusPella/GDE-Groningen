@@ -99,7 +99,6 @@ Object.assign(SPECS, SPECS_AKTE2);
       { t: 'L8', shot: 'ots', from: 'berend', target: 'tessa', dist: 1.7, side: -0.5, fov: 34 },
       { t: 'L12', shot: 'dolly', from: [3.87, -0.08, 1.5], to: [2.6, -0.27, 1.55], look: 'speaker', fov: 34 },
       { t: 'L13', shot: 'cut', at: [1.85, -1.42, 1.55], look: 'speaker', fov: 38 },
-      { t: 'L17', shot: 'cut', at: [4.33, 2.42, 2], look: 'mid:tammo,tessa@1.3', fov: 40 },
       // akte 1 op eindniveau (23-11, cutscene-lint CS-C06): Berends antwoord aan Tessa blijft aan haar kant van de as, en de terrasgast
       // (Jelmer) wordt gefilmd van dezelfde kant als Tammo en Tessa (de oude L18/L21 vielen na het nieuwe script buiten de regels)
       { t: 'L9', shot: 'ots', from: 'tessa', target: 'berend', dist: 1.7, side: 0.5, fov: 34 },
@@ -116,7 +115,8 @@ Object.assign(SPECS, SPECS_AKTE2);
     },
     props: {
       kladblok: { kind: 'klembord', at: [2.5, 0.5, 1] },
-      bakkie: { kind: 'bakkie', at: [5.4, 2.6, 0], face: 215 },
+      // aaa30: de bakkie staat verder weg (was 5,4 / 2,6, midden tussen de camera's: de camera stond erin en hij vulde tot 72% van het kader)
+      bakkie: { kind: 'bakkie', at: [9.2, 5.2, 0], face: 215 },
       escapade: { kind: 'auto', at: [-3.8, -4.2, 0], face: 70 },
       ...life.props,
     },
@@ -133,7 +133,7 @@ Object.assign(SPECS, SPECS_AKTE2);
       { on: 'Wij brengen hem', dt: 0.8, actor: 'tessa', anim: 'point' },
       { on: 'Nul krassen. Of ik tel', actor: 'berend', face: 'prop:bakkie' },
       // hij controleert de lak langs de flank van de bakkie, niet erin (4,0 / 1,9 lag midden in de bakkie: 46 s binnen de romp)
-      { on: 'Nul krassen. Of ik tel', dt: 0.4, actor: 'berend', walk: [[4.8, 0.3]], speed: 1.3 },
+      { on: 'Nul krassen. Of ik tel', dt: 0.4, actor: 'berend', walk: [[7.4, 2.2]], speed: 1.3 },
       { on: 'Nul krassen. Of ik tel', dt: 0.4, actor: 'berend', drop: 'kladblok' },
       { on: 'Jij rijdt als', actor: 'tessa', anim: 'laugh' },
       { on: 'Vijftig euro van Berend', dt: 2.5, actor: 'tessa', face: 'actor:tammo' },
@@ -144,7 +144,7 @@ Object.assign(SPECS, SPECS_AKTE2);
       { on: 'Vijftig euro van Berend', dt: 0.3, actor: 'tammo', walk: [[1.8, 1.6]], speed: 1.6 },
       { on: 'Vijftig euro van Berend', dt: 1.0, actor: 'tessa', anim: 'cheer' },
     ],
-    shots: [],
+    shots: [{ on: 14, shot: 'ots', from: 'berend', target: 'tessa', dist: 2.4, side: 0.5, fov: 36 }, { on: 18, shot: 'ots', from: 'berend', target: 'tessa', dist: 2.4, side: 0.5, fov: 36 }, { on: 17, shot: 'ots', from: 'tammo', target: 'tessa', dist: 1.6, side: 0.5, fov: 32 }],
     // direction templates (cineshots.js, #955)
     cuts: [{ on: 2, tpl: 'trackIn', target: 'berend', angle: -75, hold: 5 }, { on: 3, tpl: 'shotReverse', a: 'tammo', b: 'berend', beats: [0] }, { on: 6, tpl: 'shotReverse', a: 'tammo', b: 'berend', beats: [0] }, { on: 7, tpl: 'shotReverse', a: 'berend', b: 'tammo', beats: [0, 4.2] }, { on: 8, tpl: 'shotReverse', a: 'tessa', b: 'berend', beats: [0] }, { on: 11, tpl: 'langzameZoom', target: 'berend', fov0: 34, fov1: 22, hold: 2 }],
     wide: { from: [-5.5, 4.5, 3.4], to: [-3.2, 3.3, 2.6], look: 'mid:berend,bakkie@1', fov: 48, until: 1 },
@@ -156,14 +156,14 @@ Object.assign(SPECS, SPECS_AKTE2);
       ...cyclist('fietser', 'harm', [-20, -7], [40, -7], 0.2, 4).cast,
     },
     props: {
-      bakkie: { kind: 'bakkie', at: [4.8, 3.2, 0], face: 160 },
+      bakkie: { kind: 'bakkie', at: [8.0, 4.4, 0], face: 160 }, // aaa30: verder van de camera's (was 4,8 / 3,2: 59% van het kader)
       ...cyclist('fietser', 'harm', [-20, -7], [40, -7]).props,
     },
     open: [{ actor: 'berend', face: 'prop:bakkie' }, { actor: 'tessa', anim: 'cheer' }, ...cyclist('fietser', 'harm', [-20, -7], [40, -7], 0.2, 4).cues],
     beats: [
       // he walks round the pickup, inspecting it, and comes back to them
       // de ronde loopt langs de bumpers en flanken (1,45 m naast de bakkie, 2,95 m voorbij de neus en de staart); het oude pad ging dwars door de bakkie
-      { on: 0, dt: 0.4, actor: 'berend', walk: [[1.5, 2.8], [2.5, 5.6], [8.1, 3.6], [7.1, 0.8], [2.6, 0.2]], speed: 1.7 },
+      { on: 0, dt: 0.4, actor: 'berend', walk: [[4.5, 3.8], [5.5, 6.8], [11.1, 5.2], [10.1, 2.0], [2.6, 0.2]], speed: 1.9 },
       { on: 0, dt: 0.4, actor: 'berend', gaze: 'prop:bakkie' },
       { on: '…Goud.', actor: 'tessa', face: 'actor:tammo' },
       { on: 'Goud, Tammo', actor: 'tessa', anim: 'point' },
@@ -173,7 +173,7 @@ Object.assign(SPECS, SPECS_AKTE2);
       { on: 'Wat moet een Fries', actor: 'tammo', anim: 'shrug' },
       { on: 'Wat moet een Fries met ons', dt: 2.0, actor: 'berend', anim: 'point' },
       // "Hier, vijftig euro. …Moi." and he goes inside
-      { on: 'Wat moet een Fries met ons', dt: 3.4, actor: 'berend', walk: [[7.6, 0.6], [8.5, 4.5]], speed: 1.2 },
+      { on: 'Wat moet een Fries met ons', dt: 3.4, actor: 'berend', walk: [[10.6, 1.8], [11.5, 6.0]], speed: 1.4 },
       { on: 'Hij zei moi', actor: 'tammo', face: 'actor:tessa' },
       { on: 'Hij zei moi', dt: 0.2, actor: 'tammo', anim: 'shake' },
       { on: 'Tegen mij', actor: 'tessa', anim: 'hips' },
@@ -246,16 +246,18 @@ Object.assign(SPECS, SPECS_AKTE2);
       { on: 'Ik rij', dt: 1.6, actor: 'tammo', hide: true },
       { on: 'Ik rij', dt: 1.7, actor: 'tessa', hide: true },
     ],
-    shots: [
-      { on: 'Douwe. Hij is los', shot: 'follow', target: 'durk', dist: 3.6, side: 1.2, h: 1.9, fov: 42 },
+    shots: [{ on: 10, shot: 'cut', at: [4.2,-0.2,1.6], look: 'tessa@1.4', fov: 34 }, { on: 5, shot: 'ots', from: 'tammo', target: 'tessa', dist: 1.5, side: -0.5, fov: 30 }, { on: 5, shot: 'ots', from: 'tammo', target: 'tessa', dist: 1.9, side: -0.5, fov: 30, dt: 3.6 }, { on: 6, shot: 'ots', from: 'tammo', target: 'tessa', dist: 2.2, side: 0.6, fov: 34 }, { on: 6, shot: 'ots', from: 'tammo', target: 'tessa', dist: 1.9, side: 0.6, fov: 30, dt: 3 }, { on: 11, shot: 'ots', from: 'tessa', target: 'tammo', dist: 1.5, side: 0.5, fov: 30 }, 
+      { on: 'Douwe. Hij is los', shot: 'dolly', from: [1.6, 6.4, 2.1], to: [2.6, 5.8, 1.9], look: 'trekker@1.5', fov: 40 },
       { on: 'In die pas', dt: 0.1, shot: 'dolly', from: [-2.2, -2.2, 1.6], to: [-0.6, -1.0, 1.55], look: 'automaat@1', fov: 38 },
-      { on: 'Ik ken iemand', dt: 0.1, shot: 'dolly', from: [-3.4, 4.6, 2.2], to: [-1.2, 3.4, 1.9], look: 'mid:tessa,tammo@1', fov: 44 },
+      { on: 'Ik ken iemand', dt: 0.1, shot: 'dolly', from: [-3.4, -4.6, 2.2], to: [-1.2, -3.4, 1.9], look: 'mid:tessa,tammo@1', fov: 44 },
     ],
-    cuts: [{ on: 1, tpl: 'trackIn', target: 'tessa', hold: 4 }, { on: 10, tpl: 'schrikNadering', target: 'tessa', hold: 3 }],
+    cuts: [{ on: 1, tpl: 'trackIn', target: 'tessa', hold: 4 }],
     wide: { from: [-6, 6, 3.4], to: [-3, 4.4, 2.6], look: 'mid:tessa,automaat@1', fov: 50, until: 1 },
   };
 
   SPECS['M02.outro'] = {
+    // aaa30 (28-11): de spreker van voren, over de schouder van wie hij aanspreekt, aan één kant van de as (geen achterhoofd, geen as-sprong)
+    coverage: 'ots',
     // #955: ook de outro (achter Pand & Poen, bomen langs de straat) zoekt vrije grond.
     fit: { radii: [4, 7, 11] },
     cast: {
@@ -301,7 +303,7 @@ Object.assign(SPECS, SPECS_AKTE2);
     },
     props: {
       zuil: { kind: 'zuil', at: [1.8, 2.4, 0], face: 270 },
-      scherm: { kind: 'scherm', at: [2.2, -0.4, 0], face: 180 },
+      scherm: { kind: 'scherm', at: [2.4, -3.4, 0], face: 160 },
       bord: { kind: 'bord', at: [3.0, 2.9, 0], face: 250 },
     },
     open: [{ actor: 'wachter1', gaze: 'actor:tammo' }, { actor: 'wachter3', gaze: 'actor:loketbediende' }, { actor: 'loketbediende', gaze: 'actor:wachter2' }, { prop: 'scherm', bob: 0.005 }],
@@ -328,12 +330,14 @@ Object.assign(SPECS, SPECS_AKTE2);
       { on: 'Tessa. Sjabbe', dt: -0.5, actor: 'tessa', anim: 'phone' },
       { on: 'Tessa. Sjabbe', actor: 'tammo', face: 'actor:tessa' },
     ],
-    shots: [{ on: 'Nummer 4117', shot: 'cut', at: [1.0, -1.8, 1.7], look: 'scherm@1.7', fov: 34 }],
+    shots: [{ on: 1, shot: 'cut', at: [-1.2, 1.4, 1.6], look: 'loketbediende@1.5', fov: 40 }, { on: 'Nummer 4117', shot: 'cut', at: [-0.4, -1.6, 1.7], look: 'mid:scherm,loketbediende@1.6', fov: 46 }],
     cuts: [{ on: 9, tpl: 'closeGezicht', target: 'tammo', hold: 1.5 }],
     wide: { from: [-3.6, 3.0, 3.0], to: [-1.8, 2.4, 2.5], look: 'mid:tessa,loketbediende@1.2', fov: 52, until: 1 },
   };
 
   SPECS['M03.outro'] = {
+    // aaa30 (28-11): de spreker van voren, over de schouder van wie hij aanspreekt, aan één kant van de as (geen achterhoofd, geen as-sprong)
+    coverage: 'ots',
     set: 'loket',
     cast: {
       loketbediende: { key: 'loketbediende', at: [4.8, 0], face: 180, anim: 'idle', gest: ['talk', 'point', 'hips'] },
@@ -343,6 +347,7 @@ Object.assign(SPECS, SPECS_AKTE2);
     open: [{ actor: 'loketbediende', carry: 'stempelblad' }, { actor: 'tessa', anim: 'cheer' }],
     beats: [
       { on: 0, dt: 1.5, actor: 'loketbediende', drop: 'stempelblad' },
+      { on: 0, dt: 2.5, actor: 'wachter3', walk: [[2.4, 5.0]], speed: 0.8 },
       { on: 'Wij zijn ingeschreven', actor: 'tessa', face: 'actor:tammo' },
       { on: 'Wij zijn ingeschreven', dt: 0.4, actor: 'tessa', anim: 'cheer' },
       { on: 'Plakje één is', actor: 'tessa', anim: 'point' },
@@ -356,12 +361,12 @@ Object.assign(SPECS, SPECS_AKTE2);
       { on: 'Wij bewaken hem', actor: 'tessa', anim: 'hips' },
       { on: 'Mijn opa', actor: 'tammo', anim: 'talk' },
       { on: 'Dat was verlies', actor: 'tammo', anim: 'shrug' },
-      { on: '…Je mag nee', actor: 'tessa', walk: [[-1.4, -1.4]], speed: 1.2 },
+      { on: '…Je mag nee', actor: 'tessa', face: 'actor:tammo' },
       { on: 'Ik zeg niks', actor: 'tammo', anim: 'nod' },
       { on: 'Tammo. Bert', dt: -0.4, actor: 'tammo', anim: 'phone' },
       { on: 'Tammo. Bert', actor: 'tessa', face: 'actor:tammo' },
     ],
-    shots: [],
+    shots: [{ on: 14, shot: 'ots', from: 'tessa', target: 'tammo', dist: 1.6, side: 0.5, fov: 32 }, { on: 16, shot: 'ots', from: 'tessa', target: 'tammo', dist: 1.6, side: 0.5, fov: 32 }],
     // akte 1 op eindniveau (23-11, cutscene-lint CS-R03): het slotbeeld komt nog tijdens Tessa's lange regel; het kijkt op haar
     wide: { from: [-3.4, 3.0, 2.9], to: [-1.8, 2.4, 2.4], look: 'mid:loketbediende,tessa@1.3', endLook: 'tessa@1.4', fov: 50, until: 1 },
   };
@@ -400,11 +405,13 @@ Object.assign(SPECS, SPECS_AKTE2);
       // "Tammo fluit. Een duif landt op zijn pet." (the pigeon is back on his shoulder)
       { on: 'En wat Jelle', dt: 1.4, actor: 'tammo', anim: 'wave' },
     ],
-    shots: [{ on: 'Kiek. Hij', dt: 0.3, shot: 'follow', target: 'bert', dist: 2.2, side: -0.9, h: 1.7, fov: 36 }],
-    wide: { from: [-4.4, 4.8, 3.4], to: [-2.2, 3.4, 2.7], look: 'mid:bert,duiventil@1.5', fov: 50, until: 1 },
+    shots: [{ on: 'Kiek. Hij', dt: 0.3, shot: 'follow', target: 'bert', dist: 2.2, side: -0.9, h: 1.7, fov: 36 }, { on: 4, shot: 'ots', from: 'tammo', target: 'bert', dist: 1.5, side: 0.5, fov: 30 }],
+    wide: { from: [-4.4, 4.8, 3.4], to: [-2.2, 3.4, 2.7], look: 'mid:tammo,bert@1.4', fov: 50, until: 1 },
   };
 
   SPECS['M04.outro'] = {
+    // aaa30 (28-11): de spreker van voren, over de schouder van wie hij aanspreekt, aan één kant van de as (geen achterhoofd, geen as-sprong)
+    coverage: 'ots',
     cast: {
       bert: { key: 'bert', at: [3.8, 0.9], face: 190, anim: 'idle', gest: ['hips', 'talk'] },
       ...life.cast,
@@ -473,6 +480,8 @@ Object.assign(SPECS, SPECS_AKTE2);
     passer('ober', 'snackbar', [6, -6], [-3, -5.5], 1, 1.2, 'carry'),
   );
   SPECS['M05.outro'] = {
+    // aaa30 (28-11): de spreker van voren, over de schouder van wie hij aanspreekt, aan één kant van de as (geen achterhoofd, geen as-sprong)
+    coverage: 'ots',
     cast: { sjoerd: { key: 'sjoerd', at: [2.3, 0.3], face: 185, anim: 'cheer', gest: ['talk', 'hips', 'point', 'cheer'] }, ...cafe.cast },
     props: { bierviltje: { kind: 'bierviltje', at: [1.6, -0.1, 0.95] } },
     open: [{ actor: 'gast1', gaze: 'actor:sjoerd' }, ...cafe.cues],
@@ -578,6 +587,8 @@ Object.assign(SPECS, SPECS_AKTE2);
 
   // M03.2: Jelle buys the queue, the Bewaarder stamps
   SPECS['M03.2'] = {
+    // aaa30 (28-11): de spreker van voren, over de schouder van wie hij aanspreekt, aan één kant van de as (geen achterhoofd, geen as-sprong)
+    coverage: 'ots',
     set: 'loket',
     cast: {
       jelle: { key: 'jelle', at: [2.6, 0.7], face: 190, anim: 'idle', gest: ['talk', 'point', 'hips'] },
@@ -586,7 +597,7 @@ Object.assign(SPECS, SPECS_AKTE2);
       wachter1: { key: 'femke', at: [1.4, -1.2], face: 5, anim: 'phone', bg: true },
       wachter2: { key: 'harm', at: [1.2, 1.5], face: 350, anim: 'lean', bg: true },
     },
-    props: { klomp: { kind: 'klomp', at: [2.6, 0.7, 1] }, scherm: { kind: 'scherm', at: [2.2, -0.4, 0], face: 180 }, stempel: { kind: 'stempel', at: [2.7, -1.7, 1] } },
+    props: { klomp: { kind: 'klomp', at: [2.6, 0.7, 1] }, scherm: { kind: 'scherm', at: [3.4, -5.4, 0], face: 160 }, stempel: { kind: 'stempel', at: [2.7, -1.7, 1] } },
     open: [{ actor: 'jelle', carry: 'klomp' }, { actor: 'bewaarder', carry: 'stempel' }],
     beats: [
       { on: 'Goedemorgen', actor: 'jelle', anim: 'hips' },
@@ -610,7 +621,7 @@ Object.assign(SPECS, SPECS_AKTE2);
       { on: 'Het museum', actor: 'bewaarder', anim: 'hips' },
     ],
     // 23-11 (CS-C06): Jelle die wegloopt van boven gevolgd: geen gespreksshot meer dat over de as tussen hem en Tessa springt
-    shots: [{ on: 'Foar mem', shot: 'follow', target: 'jelle', dist: 3.2, side: 0.8, h: 3.4, fov: 40 }],
+    shots: [{ on: 'Foar mem', shot: 'follow', target: 'jelle', dist: 3.2, side: 0.8, h: 3.4, fov: 40 }, { on: 19, shot: 'ots', from: 'jelle', target: 'tammo', dist: 1.9, side: 0.5, fov: 36 }],
     // akte 1 op eindniveau (23-11, cutscene-lint CS-R03): het slotbeeld komt nog tijdens haar lange regel over het museum; het kijkt op haar
     wide: { from: [-3.2, 3.0, 3.0], to: [-1.2, 2.4, 2.5], look: 'mid:jelle,bewaarder@1.2', endLook: 'bewaarder@1.4', fov: 52, until: 1 },
   };

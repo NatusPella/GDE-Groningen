@@ -62,7 +62,7 @@ export async function runLint({ uitzonderingen = null } = {}) {
 // stand staat in scripts/release/cutscene-regie-baseline.json en mag alleen dalen. Een cutscene die op een regel boven zijn stand komt
 // (of een nieuwe cutscene met een vondst) faalt; --baseline=schrijf zet een lagere stand vast en weigert een hogere.
 export const BASELINE = path.join(ROOT, 'scripts', 'release', 'cutscene-regie-baseline.json');
-export const REGIE_REGELS = ['CS-C06', 'CS-C11', 'CS-C12', 'CS-C13', 'CS-C14', 'CS-T11', 'CS-V05', 'CS-V06'];
+export const REGIE_REGELS = ['CS-C06', 'CS-C11', 'CS-C12', 'CS-C13', 'CS-C14', 'CS-C15', 'CS-C16', 'CS-C17', 'CS-T11', 'CS-V05', 'CS-V06'];
 
 export function regieTelling(rapporten) {
   const t = {};
@@ -75,9 +75,10 @@ export function regieTelling(rapporten) {
   return Object.fromEntries(REGIE_REGELS.filter((k) => t[k]).map((k) => [k, t[k]]));
 }
 
-export function vergelijkBaseline(telling, baseline) {
+export function vergelijkBaseline(telling, baseline, bekendeRegels = REGIE_REGELS) {
   const stijging = [], daling = [];
   for (const regel of REGIE_REGELS) {
+    if (!bekendeRegels.includes(regel)) continue; // een nieuwe regel (aaa30: C15 tot en met C17) begint pas als hij in de baseline is geschreven
     const nu = telling[regel] || {}, was = (baseline && baseline[regel]) || {};
     for (const id of new Set([...Object.keys(nu), ...Object.keys(was)])) {
       const a = was[id] || 0, b = nu[id] || 0;
@@ -86,6 +87,11 @@ export function vergelijkBaseline(telling, baseline) {
     }
   }
   return { stijging, daling };
+}
+
+export function leesBaselineRegels(pad = BASELINE) {
+  if (!fs.existsSync(pad)) return REGIE_REGELS;
+  return JSON.parse(fs.readFileSync(pad, 'utf8')).regels || REGIE_REGELS;
 }
 
 export function leesBaseline(pad = BASELINE) {
@@ -162,7 +168,7 @@ async function main() {
   if (!only.length && arg('baseline') !== 'uit') {
     const telling = regieTelling(alle);
     const basis = leesBaseline();
-    const { stijging, daling } = vergelijkBaseline(telling, basis || {});
+    const { stijging, daling } = vergelijkBaseline(telling, basis || {}, leesBaselineRegels());
     if (arg('baseline') === 'schrijf') {
       if (basis && stijging.length) {
         fout = true;
