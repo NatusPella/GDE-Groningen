@@ -670,6 +670,12 @@ meewerken achter het luik van jouw wagen (`snackShare`): uurloon of een kwart va
 De wagens in de wereld (`snackwagens3d.js`) zijn lokaal: elke speler ziet de wagens van zijn eigen imperium en van zijn eigen Usmem. Tests: `bezitcoop_test` en `snacklive_test`.
 
 
+**Rangen, recepten en voorraad van de snackwagen (#1378, 28-11).** Wie het spel opende bezit de wereld; rang, recepten en grondstoffen zijn van elke speler zelf, in zijn eigen `bezit.x.snack` (`rang`, `recipes`, `own.stock`), nooit in een snapshot.
+- *Rang* (`snackrang.js`): afgeleid uit de eigen stand en een ratel (daalt nooit). Een rang omhoog speelt een kort gesprek (`snackrankscenes.js`, gedeelde haak `rankmoments.js`) alleen op het eigen scherm; er gaat niets over het netwerk en de gastheer weet het niet. Een gast die meewerkt in jouw wagen krijgt zijn uurloon (zoals eerder) maar geen rang of recept van jou: hij bouwt zijn eigen bedrijf. Later aansluiten: een nieuwe speler begint op rang 1 in zijn eigen spel; een oude save krijgt zijn rang stil afgeleid. Wegvallen: niets te herstellen.
+- *Recepten*: 'oma' opent met de eigen verhaalfase `wagen:menu`, 'gerda' met `wagen:gerda` (eigen voortgang, #429); een gast die de verhaalstap niet speelde heeft de fase niet. Zonder verhaalstand (oude save, dev) staan beide open.
+- *Voorraad*: de kilo's komen van het erf van je eigen boerderij (`stockFromBarn`, eerst de schuur af, dan de wagen bij, bij een fout terug); een gast die bij jou meewerkt gebruikt jouw voorraad niet en vult hem niet.
+- Test: `snackrang_test`, `snackrecept_test`, `bezitcoop_test`. Een testbankstap met twee instanties is nog niet gedraaid (geen Electron in deze ronde).
+
 **Jelle als eindbaas (#1139, `jellebaas.js`).** De offerte aan het begin van elke akte en de handlanger bij zijn streken zijn tekst in de eigen meldingen van de snackwagen: per speler, want ze volgen de eigen verhaalakte (`currentStep` van de eigen voortgang) en de eigen Usmem-toestand (`bezit.x.snack.offerPart`, bewaard per speler; een oude save of zonder akte krijgt niets). Wie wegvalt of later aansluit mist hooguit een offerte; er gaat niets over het net. Test: `scripts/jellebaas_test.mjs`.
 
 ## Bezit (21-11, epic Bezit)

@@ -14,10 +14,10 @@ const nep = () => { const m = new Map(); return { getItem: (k) => (m.has(k) ? m.
 const wereld = (money = 1e6) => ({ money, calendar: { day: 100 }, msgs: [], addMessage(x) { this.msgs.push(x); } });
 const reset = () => { const s = nep(); L.initBezit({ opslag: s }); BL.initBoerderij({ opslag: s }); L.setClaimLookup(null); L.setClaimSend(null); GT.resetUnlockGate(); U.sui.msg = ''; U.sui.confirm = null; };
 
-t('dicht: uitleg van Tessa, geen lege pagina en geen knoppen', () => {
+t('dicht: neutrale uitleg, geen namen, geen lege pagina en geen knoppen', () => {
   reset(); GT.setGateProgress(() => progressFrom({ stepId: 'M01', gate: newGate() }));
   const h = U.snackHtml(SL.snackView(wereld()));
-  assert.match(h, /Nog dicht/); assert.match(h, /Tessa/); assert.ok(!/data-sn=/.test(h)); assert.match(h, /Jelle Terpstra/);
+  assert.match(h, /Nog dicht/); assert.ok(!/data-sn=/.test(h)); assert.ok(!/Tessa|Tammo|Oma|Trijntje|Berend|Tinus|Wubbo|Mem|Jelle|Lammert|Vismarkt|wagen/i.test(h.replace(/<[^>]*>/g, ' ')), 'de dichte tak verklapt niets');
   GT.setGateProgress(null);
 });
 t('open zonder wagen: aanbod van een snackwagen met bevestiging, de zestien plekken, Us Mem en de doelen', () => {

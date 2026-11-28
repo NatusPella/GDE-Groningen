@@ -358,6 +358,9 @@ export function erfNaarSchuur(erfId, gewas) {
   return r;
 }
 
+// Hoeveel van een gewas er op het thuis-erf ligt (voor het paneel van de snackwagen, #1378); het verplaatsen zelf doet farmdelivery.sendToVan.
+export const oogstOpErf = (gewas) => ((getBedrijf().opslag[getBedrijf().thuis] || {})[gewas]) || 0;
+
 // --- machines en werktuigen (machines.js, #415 stap 2) --------------------------------------------------------------------------------
 
 const naamMachine = (m) => (PC.MACHINE_CATALOGUS[m.type] || { naam: m.type }).naam;

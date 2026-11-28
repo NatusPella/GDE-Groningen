@@ -406,7 +406,7 @@ Gebouwd: samen op een boot (`coopboot.js`). *Nieuw*: een bemanning met rollen (s
 
 De code kent al een ruggengraat van verhaalvlaggen (`snackstory.js`, `storymilestones.js`): `wagen:idee`, `wagen:menu`, `wagen:stek`, `wagen:team`, `wagen:naam` (de wagenbelettering "TAM & TES"), `wagen:standplaats`, `wagen:keten`. Dit document laat ze staan en geeft ze gezichten.
 
-**Begrijpelijk voor iedereen.** Dit is het enige stuk dat niet los te spelen is zonder het verhaal. Het begint daarom met een **terugblik in beeld**: een korte fotoreeks bij Oma Trijntjes keukentafel met de mensen die hierheen leidden (Oom Hindrik, de dorpsclub, de bus, de schipper), elk met naam en één zin. Een gast die dit mee wil spelen krijgt de reeks ook. De wagen zelf is voor iedereen te begrijpen: Beppe's recept, een kassa, een rij klanten.
+**Begrijpelijk voor iedereen.** Dit is het enige stuk dat niet los te spelen is zonder het verhaal. Het begint daarom met een **terugblik in beeld**: een korte fotoreeks bij Oma Trijntjes keukentafel met de mensen die hierheen leidden (Oom Hindrik, de dorpsclub, de bus, de schipper), elk met naam en één zin. Een gast die dit mee wil spelen krijgt de reeks ook. De wagen zelf is voor iedereen te begrijpen: Oma Trijntjes recept, een kassa, een rij klanten.
 
 ### (b) Verhaalboog, rangen, bijfiguren, plekken
 

@@ -991,6 +991,21 @@ Op de Grote Markt winnen ze het Ontzet met de beste eierbal, een eerlijke wagen 
 - **F6** BUITEN – STAD, VISMARKT – OCHTEND · De kaart op het luik · cutscene of gespeeld in de missie
   - zaterdag 19 september, ochtend. Op de Vismarkt staat de snackwagen met het luik open, nog zonder rij. Tessa legt een kaart van de provincie op het luik met knijpers. Rood staat voor Us Mem Snacks, en dat is veel. Ze plak
   - praat: Tessa, Tammo, Jelle Terpstra, Rikus
+- **S71** BINNEN – STAD – DAG · Rang 2, Standplaatshouder: de eerste vergunning · side
+  - kort gesprek bij de wagen, niet meer dan een paar seconden. Tessa houdt de vergunning als een bierviltje vast.
+  - praat: Tammo, Tessa
+- **S72** BINNEN – STAD – DAG · Rang 3, Wagenbaas: de eerste porties · side
+  - het luik staat open, de eerste klant loopt weg met een zakje.
+  - praat: Tessa, Tammo
+- **S73** BINNEN – STAD – DAG · Rang 4, Eierbalmeester: driehonderd porties · side
+  - Tessa heeft Oma Trijntje op de speaker gezet, naast het kasboekje op het aanrecht van de wagen.
+  - praat: Oma Trijntje, Tessa
+- **S74** BINNEN – STAD – DAG · Rang 5, Teambaas: een medewerker achter het luik · side
+  - een tweede wagen op een tweede plek. Tammo kijkt vanaf de overkant toe hoe iemand anders het luik opendoet.
+  - praat: Tammo, Tessa
+- **S75** BUITEN – STAD – DAG · Rang 6, Baas van het Snackimperium: vijf wagens · side
+  - Jelle belt, niet appt, en doet alsof dat gewoon is. Tessa zet hem op de speaker.
+  - praat: Jelle Terpstra, Tessa
 
 ## Scènebord: personage per akte
 

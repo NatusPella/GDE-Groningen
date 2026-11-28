@@ -17,6 +17,7 @@ export const VAN_MILESTONES = [
   { flag: 'wagen:team', step: 'M20', akte: 'zuid', text: 'Berend, Tinus en Wubbo helpen: er is een team voor wat ze samen gaan doen.' },
   { flag: 'wagen:naam', step: 'M22', akte: 'ontzet', text: 'Het luik zit erin: de Escapade is een snackwagen en heet Tam & Tes (de ontdekking na het herstel).' },
   { flag: 'wagen:standplaats', step: 'M26', akte: 'ontzet', text: 'Een luik en een standplaats op de Vismarkt.' },
+  { flag: 'wagen:gerda', step: 'F4', akte: 'ontzet', text: 'Oma Trijntje erkent dat de eierbal van Mem beter was: De Gerda komt naast het recept van Oma Trijntje op de kaart (#1378).' },
   { flag: 'wagen:keten', step: 'M30', akte: 'nazomer', text: 'De wagen groeit: een tweede wagen, een pand en de boerderij als leverancier zijn mogelijk (de endgame).' },
 ];
 export const VAN_FLAGS = VAN_MILESTONES.map((m) => m.flag);

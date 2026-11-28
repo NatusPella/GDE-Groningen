@@ -241,7 +241,8 @@ import { updateFarmWorkers } from './farmworkers3d.js';
 import { updateSnackVans } from './snackvans3d.js';
 import { updateChainTrucks } from './chaintrucks3d.js';
 import { setSnackFlagProvider } from './snackstory.js';
-import { setSnackWorkSend, receiveWork as snackReceiveWork } from './snacklive.js';
+import { setSnackWorkSend, setSnackRankSend, receiveWork as snackReceiveWork } from './snacklive.js';
+import { rankHook } from './loopbaanlive.js';
 import { sendSnackWork, setSnackWorkHandler } from './bezitnet.js';
 import { updateHerds } from './herdview3d.js';
 import { setGateProgress } from './bezitgate.js';
@@ -1027,6 +1028,7 @@ window.__debug = { player, map, input, world, frameStats };
   setSnackFlagProvider(() => { const p = storyGateProgress(); return { flags: storyBridgeView().flags, gate: p.gate, ended: p.ended, dev: p.dev }; });
   // meewerken in de snackwagen van een medespeler (bezitnet.js: gast -> host -> eigenaar)
   setSnackWorkSend((m) => sendSnackWork(world, m));
+  setSnackRankSend((o) => rankHook.omhoog(world, o));       // een rang van de snackwagen speelt zijn verhaalmoment via de gedeelde haak (snackrankscenes.js, lokaal per speler)
   setSnackWorkHandler((m) => snackReceiveWork(m));
   initBoerderij();
   initSafety(world);

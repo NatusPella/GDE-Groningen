@@ -46,7 +46,7 @@ const CAREER_BY = {
 
 // Werelden die niet uit een stap volgen: de epics van Bezit, boerderij en voetbal sluiten hier op aan.
 const EXTRA = [
-  { id: 'snackwagen', kind: 'wereld', part: 'ontzet', by: 'Tessa', hint: 'De snackwagen komt pas laat: eerst zoeken Tammo en Tessa hun plekje in de wereld.' },
+  { id: 'snackwagen', kind: 'wereld', part: 'ontzet', by: 'Tessa', hint: 'Dit onderdeel komt pas laat in je zomer: speel het verhaal verder, dan gaat het vanzelf open.' },
   { id: 'farm', kind: 'wereld', part: 'romp', by: 'Beppe', hint: 'Een boerderij van jezelf komt later in het verhaal, via de familie.' },
   { id: 'bezit', kind: 'wereld', part: 'staart', by: 'Sjabbe', hint: 'Sjabbe van Pand & Poen: aan de Eems leer je panden beheren. Jelle koopt, wij bouwen.' },
   { id: 'voetbal', kind: 'wereld', part: 'zuid', by: 'Tammo', hint: 'In Veendam speelt Tessa met het dorpsteam. Daar begint de voetbalcarrière.' },
