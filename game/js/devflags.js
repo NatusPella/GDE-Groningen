@@ -85,6 +85,7 @@ export const FLAGS = Object.freeze({
   brugbotsing: has('brugbotsing'),
   sfxtest: has('sfxtest'),
   perfoff: val('perfoff'),
+  vooruitbouw: has('vooruitbouw'), // #1354: gebouwen verder vooruit voorbouwen naar vervoermiddel en snelheid (standaard uit: in twee gepaarde a7-runs meer pop-in binnen 60 m)
   benchwacht: val('benchwacht'),
   dynvast: has('dynvast'),
   startkeuze: val('startkeuze'),

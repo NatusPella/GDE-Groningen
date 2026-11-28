@@ -5,7 +5,7 @@ import { adoptSetLight } from './setlights.js';
 import { FLAGS } from './devflags.js';
 import { canvasTex as canvasTexture } from './canvastex.js';
 import { mulberry32 } from './rng.js';
-import { getScene, prewarmStreamAt, prewarmPending, streamPending, disposeObject } from './scene3d.js';
+import { getScene, prewarmStreamAt, prewarmPending, streamPending, disposeObject, readyCounts } from './scene3d.js';
 import { createSettle, settleTick, queueNear } from './benchsettle.js';
 import { WARM } from './cutscenewarm.js';
 import { speakerHtml } from './speakers.js';
@@ -2403,6 +2403,7 @@ export function runTrailer(world, { mode = 'opname', cut = 'vol', shot = null, f
       try { if (m && m.tileQueue && m.tileQueue.items) q.queue = queueNear(m.tileQueue.items, f, WARM.tileRadiusM); } catch (e) { /* idem */ }
       try { q.prewarmPending = prewarmPending(); } catch (e) { /* idem */ }
       try { const sp = streamPending(); q.buildings = sp.buildings; q.roads = sp.roads; } catch (e) { /* idem */ }
+      try { const rc = readyCounts(r.w); q.gpu = rc.gpu; q.lod = rc.lod; q.population = rc.population; } catch (e) { /* #1354: ook shaders, het verre LOD en de bevolking */ }
       return q;
     };
     // 24-11 (pop-in in de benchmark): een shot op een nieuwe plek begint pas als de wereld daar staat. De klok van de route houdt vlak voor de cut

@@ -9,6 +9,6 @@ export const jobBonusHook = { get: () => 1 };                  // furniture.js -
 export const furnitureNightHook = { slept: () => {} };          // furniture.js -> safehuizen.js (a night in a safe house, #1297)
 // cinematics.js asks respawn.js and scene3d.js through this (respawn.js and main.js fill it via setCinematicLinks)
 // getGrenzen: the real wijk boundaries (gebiedenbronnen.js), for the wijk card's highlights (#725)
-export const cinematicLinks = { startRespawnScene: () => false, respawnFade: () => {}, getFollowPose: () => null, prewarmStreamAt: () => {}, prewarmPending: () => 0, streamPending: () => null, getGrenzen: () => null };
+export const cinematicLinks = { startRespawnScene: () => false, respawnFade: () => {}, getFollowPose: () => null, prewarmStreamAt: () => {}, prewarmPending: () => 0, readyCounts: () => null, streamPending: () => null, getGrenzen: () => null };
 // sfx/ambience.js and sfx/ui.js ask scene3d.js and mapview.js through this (they fill it when they load)
 export const sfxLinks = { getScene: () => null, mapStats: () => null, uiFx: () => false, kermisPunt: () => null }; // uiFx: sfx/ui.js, voor de kaart (de onthulling van een streek); kermisPunt: kermis.js, het midden van de kermis zolang hij open is (sfx/ambience.js)

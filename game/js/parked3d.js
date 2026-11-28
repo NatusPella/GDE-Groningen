@@ -201,6 +201,9 @@ function collapse(chunk, car) {
 
 const keyOf = (v) => Math.floor(v.x / CHUNK) + ',' + Math.floor(v.y / CHUNK);
 
+// #1354: hoeveel brokken geparkeerde auto's nog gebakken moeten worden (een chunk met auto's zonder gebakken mesh)
+export function parkedPending() { let n = 0; for (const c of chunks.values()) if (c.dirty) n++; return n; }
+
 export function syncParkedLayer(scene, sleeping, buildActor, player, drawDist) {
   if (!root) { root = new THREE.Group(); root.name = 'parked-cars'; root.matrixAutoUpdate = false; scene.add(root); }
   const seen = new Set();

@@ -1,38 +1,53 @@
-// POP-IN in het echte spel meten (#1016): één Electron (wegwerpprofiel) loopt vaste routes (Binnenstad te voet,
-// provinciale weg per auto, korte vlucht), de pagina-probe (popin.page.js) meldt per frame wat nieuw getekend wordt,
-// en een reeks stills (1280x720) van dezelfde route gaat naar <out>/shots-<tag>-<route>-<n>.png.
-//   node scripts/qa/popin.mjs --tag=voor|na [--out=<map>] [--only=foot,a7,heli] [--dur=30000] [--shots=6] [--view=kort|normaal|ver]
+// POP-IN in het echte spel meten (#1016, #1354): één Electron (wegwerpprofiel) loopt vaste routes (Binnenstad te voet, autorit door het
+// centrum, provinciale weg per auto, door een dorp, korte vlucht), de pagina-probe (popin.page.js) meldt per frame wat nieuw getekend
+// wordt (plus texture-uploads, shaderlinks, wissels en de tijdlijn per tegel), en een reeks stills (1280x720) van dezelfde route gaat naar
+// <out>/shots-<tag>-<route>-<n>.png.
+//   node scripts/qa/popin.mjs --tag=voor|na [--out=<map>] [--only=foot,cdrive,a7,dorp,heli] [--dur=30000] [--shots=6] [--view=kort|normaal|ver]
+//                             [--cuts=M01.intro,M02.intro,...] (cutscenes via de echte host op een koude plek; gebruik --only=geen voor alleen die) [--cutmax=40]
+//                             [--flags=perfoff=texwarm+mensenwacht] (devflags.js, komma-gescheiden: de A/B-stand "voor" op dezelfde build)
+//                             [--quiet] (wacht op een stille machine) [--slot] (neemt een Electron-slot)
 // GDE_GAME_DIR=<gestagede game-map> (met backslashes), ELECTRON_EXE=<pad>; uitvoer: <out>/popin-<tag>.json, run-<tag>.log.
-// Neem een Electron-slot via desktop/build/slots/slot.mjs (run popin -- node scripts/qa/popin.mjs ...).
+// De uitvoermap staat binnen de worktree (Electron geeft EPERM buiten .claude/worktrees).
 import fs from 'node:fs';
-import os from 'node:os';
 import path from 'node:path';
-import { spawnSync } from 'node:child_process';
+import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
 
+const require = createRequire(import.meta.url);
+const runner = require('../lib/electronrunner.cjs');
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(HERE, '..', '..');
 const arg = (k, d) => { const a = process.argv.find((v) => v.startsWith(`--${k}=`)); return a ? a.slice(k.length + 3) : d; };
-const OUT = path.resolve(arg('out', path.join(os.tmpdir(), 'gde-qa-popin')));
+const flag = (k) => process.argv.includes(`--${k}`);
+const OUT = path.resolve(arg('out', path.join(ROOT, '.scr', 'popin')));
 const TAG = arg('tag', 'voor');
 fs.mkdirSync(OUT, { recursive: true });
 const profile = path.join(OUT, `profiel-${TAG}-${process.pid}`); // absoluut: %TEMP% is soms niet schrijfbaar
 const script = path.join(OUT, `_page-${TAG}.js`);
-const cfg = { only: arg('only', ''), dur: Number(arg('dur', 0)) || undefined, shots: arg('shots', '') === '' ? undefined : Number(arg('shots', 6)), tag: TAG, view: arg('view', 'kort') };
+const cfg = { only: arg('only', ''), dur: Number(arg('dur', 0)) || undefined, shots: arg('shots', '') === '' ? undefined : Number(arg('shots', 6)), tag: TAG, view: arg('view', 'kort'), cuts: arg('cuts', ''), cutMaxS: Number(arg('cutmax', 40)) };
 fs.writeFileSync(script, `window.__popin = ${JSON.stringify(cfg)};\n` + fs.readFileSync(path.join(HERE, 'popin.page.js'), 'utf8'));
 const electron = process.env.ELECTRON_EXE || path.join(ROOT, 'desktop', 'node_modules', 'electron', 'dist', process.platform === 'win32' ? 'electron.exe' : 'Electron');
 fs.mkdirSync(profile, { recursive: true });
-const env = { ...process.env, GDE_TEST_PROFILE: profile, GDE_NO_THROTTLE: '1' };
+const env = { ...process.env, GDE_TEST_PROFILE: profile, GDE_NO_THROTTLE: '1', TEMP: profile, TMP: profile };
 if (process.env.GDE_GAME_DIR) env.GDE_GAME_DIR = path.resolve(process.env.GDE_GAME_DIR);
-delete env.ELECTRON_RUN_AS_NODE;
-const r = spawnSync(electron, ['.', '--windowed', '--stil', '--no-sandbox', '--in-process-gpu', '--force-device-scale-factor=1', '--window-size=1280x720',
+const args = ['.', '--windowed', '--stil', '--in-process-gpu', '--force-device-scale-factor=1', '--window-size=1280x720',
   '--disable-renderer-backgrounding', '--disable-backgrounding-occluded-windows', '--disable-background-timer-throttling', '--disable-features=CalculateNativeWinOcclusion',
-  `--smoke-test=${path.join(OUT, 'shots.png')}`, `--perf-script=${script}`],
-{ cwd: process.env.GDE_DESKTOP || path.join(ROOT, 'desktop'), env, encoding: 'utf8', maxBuffer: 1 << 28, timeout: 10 * 60 * 1000, killSignal: 'SIGKILL' });
-if (r.error) console.error('Electron starten mislukt:', r.error.message);
-fs.writeFileSync(path.join(OUT, `run-${TAG}.log`), `${r.stdout || ''}\n${r.stderr || ''}`);
-fs.rmSync(profile, { recursive: true, force: true });
-const l = (r.stdout || '').split('\n').find((x) => x.startsWith('[perf-script] '));
-if (l) fs.writeFileSync(path.join(OUT, `popin-${TAG}.json`), l.slice(14));
-console.log(l ? `resultaat ${l.length} tekens` : 'geen [perf-script]-resultaat', `\nexit ${r.status}; uitvoer: ${OUT}`);
+  ...(arg('flags', '') ? [`--url-flags=${arg('flags', '')}`] : []),
+  `--smoke-test=${path.join(OUT, 'shots.png')}`, `--perf-script=${script}`];
+let res = null;
+try {
+  res = await runner.runElectron({
+    electron, args, cwd: process.env.GDE_DESKTOP || path.join(ROOT, 'desktop'), env, out: OUT,
+    slot: flag('slot') ? { label: 'popin' } : false, quiet: flag('quiet') ? { maxCpu: 0.5, minFreeGB: 3, waitMin: 20 } : false, timeoutMin: 12,
+  });
+} catch (e) { console.error('Electron starten mislukt:', e.message); }
+runner.removeProfile ? runner.removeProfile(profile) : fs.rmSync(profile, { recursive: true, force: true });
+// de regel komt in stukken binnen (stdout-chunks): lees hem heel uit electron.log
+let l = res && res.perfScript;
+try {
+  const log = fs.readFileSync(path.join(OUT, 'electron.log'), 'utf8').split(/\r?\n/).filter((x) => x.startsWith('[perf-script] '));
+  if (log.length) l = log[log.length - 1].slice(14);
+} catch (e) { /* geen log */ }
+if (l) fs.writeFileSync(path.join(OUT, `popin-${TAG}.json`), l);
+console.log(l ? `resultaat ${l.length} tekens` : 'geen [perf-script]-resultaat', `\nexit ${res && res.code}; uitvoer: ${OUT}`);
 process.exit(l ? 0 : 1);
