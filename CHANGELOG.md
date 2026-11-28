@@ -12,6 +12,10 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 - Slaan: geen popup meer bij een voorbijganger in het bereik; een muisklik (of de controllerknop) volstaat. "Klik om te slaan" staat alleen nog als kleine eerste-keer-hint in de besturingshulp (#1355).
 - Politie: alleen een echte treffer telt als misdrijf. Zwaaien in de lucht, tegen een muur of tegen je eigen auto geeft geen sterren en geen getuigen meer, ook niet als een voorbijganger op dat moment door iets anders gewond raakt. Een treffer op een voorbijganger of agent blijft strafbaar; je eigen auto sla je niet meer kapot (#1356).
 - Samen spelen: de zwaai of treffer van een gast telt voor zijn eigen gezocht-niveau, niet meer voor dat van wie het spel opende; een speler op passief kan niet geraakt worden en PvP-treffers tussen spelers geven geen sterren (#1356).
+- Neergeslagen, geschoten, weggeblazen of overreden worden valt een mens nu echt om en staat weer op: het lichaam volgt de ragdoll op de nieuwe mensen (voorheen bleef het bovenlijf rechtop in de grond staan), met een zachte overgang terug naar lopen en staan. Samen spelen: het lijf wordt lokaal uit positie en botsing berekend, een gast ziet hetzelfde als eerder.
+- Tammo en andere mannen met kort haar hebben geen staart meer: het hoofd met de paardenstaart uit het pack wordt alleen nog gekozen voor wie dat kapsel wil. Samen spelen: de keuze volgt uit het kapsel in de kledingcode, een gast ziet hetzelfde.
+- Tessa heeft weer echt lang haar: een gordijn tot halverwege de rug dat met hoofd, nek en rug meebeweegt, ook onder een pet en op afstand. Dit geldt voor elk lang kapsel. Samen spelen: het kapsel zit in de kledingcode, een gast ziet hetzelfde.
+- Paardenstaart, vlecht, twee staartjes en knot zijn terug op de nieuwe mensen (ook op afstand en in scenes), ook onder een pet. Samen spelen: het kapsel zit in de kledingcode, een gast ziet hetzelfde.
 - De game staat nu op de hoofdpagina van de webversie (GitHub Pages); de marketingpagina is weggehaald. De oude link /play/ stuurt door naar de hoofdpagina.
 
 ## [0.66.0] - 2026-11-24

@@ -3,6 +3,7 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
 import { pointInPolygon, closestPointOnSegment, isInWater, WATER_Y } from './util.js';
 import { PERSON_RIG as RIG } from './models3d_people.js';
 import { inPassage } from './collision.js';
+import { captureModular, writeModular, modularDims, snapshotPose, releaseModular } from './ragdollmodular.js';
 
 // Verlet ragdoll for every mesh built by buildPersonMesh (player, companion,
 // all pedestrians incl. cops, scene NPCs and thrown-off riders). Gameplay code
@@ -42,6 +43,8 @@ const HIT_COOLDOWN = 0.35;
 const HAND_LEN = 0.24;
 const STERNUM_FWD = 0.13, STERNUM_Y = 1.22;
 const RIVER_BED = WATER_Y - 2.4;
+
+const IDX = { HL, HR, SL, SR, ST, HD, KL, KR, AL, AR, EL, ER, WL, WR };
 
 const LINKS = [];
 {
@@ -189,7 +192,9 @@ function attachMesh(rd, mesh, actor) {
   rd.savedScale = mesh.scale.clone();
   rd.s = mesh.scale.y || 1;
   const ud = mesh.userData;
-  rd.dims = { s: rd.s, hipZ: Math.abs(ud.legL.position.z), shZ: Math.abs(ud.armL.position.z) };
+  // een modulaire mens (22 botten): de maten uit de echte botten, bij gelijke schaal in alle richtingen (ragdollmodular.js)
+  if (ud.qRig) { mesh.scale.setScalar(rd.s); rd.modular = true; rd.yaw = actor.angle || 0; }
+  rd.dims = rd.modular ? { s: rd.s, ...modularDims(mesh, rd.s) } : { s: rd.s, hipZ: Math.abs(ud.legL.position.z), shZ: Math.abs(ud.armL.position.z) };
   rd.shadowY = ud.shadow ? ud.shadow.position.y : 0;
   if (!rd.len) buildLengths(rd);
   mesh.scale.setScalar(rd.s);
@@ -215,6 +220,7 @@ function start(actor, rd, mesh) {
     const base = actor.gz || 0;
     if (base) for (let i = 0; i < N; i++) rd.pos[i * 3 + 1] += base;
   }
+  rd.yaw = actor.angle || 0;
   rd.prev.set(rd.pos);
   for (const imp of rd.imp) applyImpulse(rd, imp);
   rd.imp = null;
@@ -251,6 +257,7 @@ function admit(rd) {
 
 const _v = new THREE.Vector3();
 function captureFromMesh(rd, mesh) {
+  if (rd.modular) { captureModular(mesh, rd.pos, rd.s, IDX); return; }
   mesh.updateMatrixWorld(true);
   const ud = mesh.userData, p = rd.pos;
   const put = (i, bone, x, y, z) => {
@@ -656,6 +663,14 @@ function finish(actor, rd, mesh, stood) {
   mesh.scale.copy(rd.savedScale);
   mesh.rotation.set(0, -(actor.angle || 0), 0);
   mesh.position.set(actor.x, actor.gz || 0, actor.y);
+  if (rd.modular) {
+    // de botten stonden ten opzichte van rd.yaw: past die bij de kijkrichting van nu, dan mengt de animatie vanuit deze pose (geen sprong, geen T-pose)
+    const frameYaw = rd.getup ? rd.getup.heading : rd.yaw;
+    const dy = Math.atan2(Math.sin(frameYaw - (actor.angle || 0)), Math.cos(frameYaw - (actor.angle || 0)));
+    releaseModular(mesh, stood && Math.abs(dy) < 0.05 ? snapshotPose(ud) : null);
+    if (ud.shadow) ud.shadow.position.y = rd.shadowY;
+    return;
+  }
   for (const b of [ud.pelvis, ud.chest, ud.head, ud.legL, ud.legR, ud.kneeL, ud.kneeR, ud.armL, ud.armR, ud.elbowL, ud.elbowR]) if (b) b.rotation.set(0, 0, 0);
   ud.pelvis.position.set(0, RIG.HIP_Y, 0);
   ud.chest.position.set(0, RIG.CHEST_Y - RIG.HIP_Y, 0);
@@ -711,6 +726,12 @@ function limb(p, a, b, c, arm, boneA, boneB) {
 }
 
 function writeBones(rd, mesh) {
+  if (rd.modular) {
+    writeModular(mesh, rd.pos, rd.s, IDX, rd.getup ? rd.getup.heading : rd.yaw);
+    const sh = mesh.userData.shadow;
+    if (sh) { sh.visible = !rd.wet[HL]; sh.position.set(0, (0.02 - mesh.position.y) / rd.s, 0); }
+    return;
+  }
   const p = rd.pos, ud = mesh.userData, s = rd.s;
   vec(p, HL, _p0); vec(p, HR, _p1);
   _mh.addVectors(_p0, _p1).multiplyScalar(0.5);
