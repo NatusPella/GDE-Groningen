@@ -26,6 +26,8 @@ import {
   FOOTBALL_FLAG, FARM_FLAG, FOOTBALL_ID, FARM_ID, SCENES, FOOTBALL_LINES, FARM_LINES, footballSpec, farmSpec, clubLook, teamLooks,
   footballDue, farmDue, debutBlockers, debutDecide,
 } from './careerdebut.js';
+import { INVAL_FLAG, INVAL_ID, INVAL_LINES, INVAL_TITLE, INVAL_KICKER, invalSpec, invallerDue } from './careerdebut_voetbal.js';
+import { STORY_PLACE_ID } from './footballstory.js';
 
 const CHECK_EVERY_S = 1;       // zo vaak kijken we of er een scène aan de beurt is (goedkoop, en Bezit laadt lui)
 const MAX_TRIES = 3;           // een scène die drie keer niet wil beginnen (film bezet) laten we met rust
@@ -67,6 +69,8 @@ function dueScene(view) {
   if (forced) { const id = forced; forced = null; return { id, forced: true }; }
   try {
     const c = CL.getCareer();
+    const village = CL.getIndex().byPlace.get(STORY_PLACE_ID);
+    if (invallerDue(c, view.flags, village && village.id)) return { id: INVAL_ID, career: c };       // de aanleiding gaat voor de eerste training (careerdebut_voetbal.js)
     if (footballDue(c, view.flags)) return { id: FOOTBALL_ID, career: c };
   } catch (e) { /* geen carrière */ }
   try {
@@ -97,6 +101,22 @@ function playFootball(w, due, view) {
   });
 }
 
+// De invalbeurt: het park van De Hoekers; Tessa draagt haar eigen kleren, de ploeggenoten het clubtenue.
+function playInval(w, due, view) {
+  const c = due.career || null;
+  const club = (c && CL.getClub(c.club)) || CL.getIndex().clubs[0] || null;
+  const park = club && (club.park || club);
+  if (!park || !Number.isFinite(park.x) || !Number.isFinite(park.y)) return false;
+  const r = Number.isFinite(park.r) ? park.r : 0;
+  return playSpecScene(w, {
+    spec: invalSpec(), lines: INVAL_LINES, looks: teamLooks(club),
+    at: { x: park.x, y: park.y }, lookTo: { x: park.x + Math.cos(r) * 20, y: park.y + Math.sin(r) * 20 },
+    kicker: INVAL_KICKER, title: INVAL_TITLE,
+    onStart: () => { view.flags.add(INVAL_FLAG); playing = true; },
+    onEnd: () => { playing = false; },
+  });
+}
+
 // Het eerste perceel: het toegangspunt aan de weg is het anker, het veld ligt vooruit.
 function playFarm(w, due, view) {
   let p = due.parcel;
@@ -113,11 +133,11 @@ function playFarm(w, due, view) {
 
 function launch(w, view, due) {
   let ok = false;
-  try { ok = due.id === FOOTBALL_ID ? playFootball(w, due, view) : playFarm(w, due, view); } catch (e) { console.error('careerdebut', due.id, e); ok = false; }
+  try { ok = due.id === INVAL_ID ? playInval(w, due, view) : due.id === FOOTBALL_ID ? playFootball(w, due, view) : playFarm(w, due, view); } catch (e) { console.error('careerdebut', due.id, e); ok = false; }
   if (ok) { tries = 0; waitingId = null; return; }
   playing = false;
   // mislukt (film bezet, geen veld): een paar keer opnieuw; daarna beschouwen we hem als gezien, zodat niets blijft hangen
-  if (++tries >= MAX_TRIES) { view.flags.add(due.id === FOOTBALL_ID ? FOOTBALL_FLAG : FARM_FLAG); tries = 0; waitingId = null; }
+  if (++tries >= MAX_TRIES) { view.flags.add(due.id === INVAL_ID ? INVAL_FLAG : due.id === FOOTBALL_ID ? FOOTBALL_FLAG : FARM_FLAG); tries = 0; waitingId = null; }
   calmS = 0;
 }
 
@@ -146,7 +166,7 @@ export function updateCareerDebuts(dt, w, view, menuOpen) {
 if (typeof window !== 'undefined') {
   window.__careerdebut = {
     due: (view) => { const d = dueScene(view); return d ? d.id : null; },
-    play: (id) => { forced = id === 'bezit' ? FARM_ID : FOOTBALL_ID; },
+    play: (id) => { forced = id === 'bezit' ? FARM_ID : id === 'invalbeurt' ? INVAL_ID : FOOTBALL_ID; },
     state: () => ({ playing, waiting: waitingId, calmS, tries }),
     enable: () => { window.__carriereOn = true; },
   };

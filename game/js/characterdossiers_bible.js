@@ -46,7 +46,7 @@ export const BIBLE = [
     mapLink: "hoeve Zeldenrust en de buurerf", canonNotes: "Namenregister bijbel 28-11 (01 §2.4): vervangt 'De buurboer Harm Veldkamp' van deel 2 (botste met Auke Veldkamp en Harm Dijkhuis).", canon: [] }),
   // ---- voetbal (H6) ----
   card({
-    ...NEW, id: 'eppo', tier: 'minor', name: "Eppo Rozema", nick: "Meester Eppo", aliases: ["Eppo", "Meester Eppo", "Rozema", "de trainer"], age: 68, pronoun: 'hij',
+    ...NEW, speakerKey: 'eppo', id: 'eppo', tier: 'minor', name: "Eppo Rozema", nick: "Meester Eppo", aliases: ["Eppo", "Meester Eppo", "Rozema", "de trainer"], age: 68, pronoun: 'hij',
     homePlace: "het dorp van VV De Hoek, Hogeland", homeAddress: "een huis naast het sportpark (verzonnen)", household: "alleen, met een koekenpan voor de tactiekbespreking", homeByAct: stays("altijd het dorp"),
     origin: "Hogeland", work: "gepensioneerd onderwijzer en trainer van VV De Hoek; legt tactiek uit met suikerklontjes", employer: "VV De Hoek (verzonnen dorpsclub)",
     hobbies: ["suikerklontjes verschuiven", "de club", "koekenpannen"], traits: ["geduldig", "weetgraag", "warm", "pedant"], tagline: "Tactiek is suiker.",
@@ -56,7 +56,7 @@ export const BIBLE = [
     firstStep: 'V1', lastStep: 'M23', introducedBy: "de invaller-aanleiding in H6: zijn linksbuiten ligt eruit", storyRole: "trainer van de dorpsclub; Tessa valt in; komt in H16 terug met zijn elftal",
     mapLink: "sportpark van VV De Hoek", canonNotes: "Namenregister bijbel 28-11 (01 §2.4): vervangt 'Trainer Meester Klaas' van deel 2 (botste met Kapitein Klaas Brouwer).", canon: [] }),
   card({
-    ...NEW, id: 'albert_teuben', tier: 'cameo', name: "Albert Teuben", nick: "de voorzitter", aliases: ["Albert Teuben", "Teuben", "de voorzitter van VV De Hoek"], age: 66, pronoun: 'hij',
+    ...NEW, speakerKey: 'albert', id: 'albert_teuben', tier: 'cameo', name: "Albert Teuben", nick: "de voorzitter", aliases: ["Albert Teuben", "Teuben", "de voorzitter van VV De Hoek"], age: 66, pronoun: 'hij',
     homePlace: "het dorp van VV De Hoek, Hogeland", homeAddress: "n.v.t. (het clubhuis)", household: "n.v.t.", homeByAct: stays("altijd het clubhuis"),
     origin: "Hogeland", work: "voorzitter van VV De Hoek; een man met een sjaal en een ledenlijst die nooit klopt", employer: "VV De Hoek",
     hobbies: ["de ledenlijst", "het wedstrijdbord"], traits: ["druk", "gul", "onhandig"], tagline: "De ledenlijst klopt nooit.",
@@ -66,7 +66,7 @@ export const BIBLE = [
     firstStep: 'V1', lastStep: 'V3', introducedBy: "het clubhuis van VV De Hoek (H6)", storyRole: "vertelt de terugblik van de voetbal-loopbaan onder het wedstrijdbord",
     mapLink: "clubhuis van VV De Hoek", canonNotes: "Namenregister bijbel 28-11 (01 §2.4): vervangt 'Voorzitter Albert Bos' van deel 2 (botste met Berend Bos).", canon: [] }),
   card({
-    ...NEW, id: 'jaap_roorda', tier: 'cameo', name: "Jaap Roorda", nick: "de bakker", aliases: ["Jaap Roorda", "Roorda", "de bakker"], age: 55, pronoun: 'hij',
+    ...NEW, speakerKey: 'jaap', id: 'jaap_roorda', tier: 'cameo', name: "Jaap Roorda", nick: "de bakker", aliases: ["Jaap Roorda", "Roorda", "de bakker"], age: 55, pronoun: 'hij',
     homePlace: "het dorp van VV De Hoek, Hogeland", homeAddress: "de bakkerij aan de dorpsstraat (verzonnen)", household: "met zijn gezin boven de winkel", homeByAct: stays("altijd het dorp"),
     origin: "Hogeland", work: "bakker; sponsor van de dorpsclub (koeken in de pauze) en later leverancier van de snackwagen", employer: "eigen bakkerij",
     hobbies: ["koeken", "de club"], traits: ["gul", "praatziek", "trots"], tagline: "Koeken in de pauze.",
@@ -75,6 +75,16 @@ export const BIBLE = [
     voiceTag: "nieuwe stem nog te kiezen", look: "bakkersschort, meel op de mouwen", outfitRole: 'bakker', outfitByAct: stays("vast: bakkersschort"),
     firstStep: 'V1', lastStep: 'M25', introducedBy: "de pauze bij VV De Hoek (H6)", storyRole: "sponsor van de club, later leverancier van de snackwagen; de schakel tussen voetbal en snack",
     mapLink: "de bakkerij in het dorp", canonNotes: "Namenregister bijbel 28-11 (01 §2.4): vervangt 'Bakker Wubbo Hoekstra' van deel 2 (botste met Wubbo Zijlstra en Bert Hoekstra).", canon: [] }),
+  card({
+    ...NEW, speakerKey: 'devries', id: 'devries_jansen', tier: 'cameo', name: "Mevrouw De Vries-Jansen", nick: "de scout", aliases: ["Mevrouw De Vries-Jansen", "De Vries-Jansen"], age: 52, pronoun: 'zij',
+    homePlace: "Grunn", homeAddress: "n.v.t. (altijd onderweg langs de velden)", household: "n.v.t.", homeByAct: stays("altijd onderweg"),
+    origin: "Stad", work: "scout van De Stadjers (verzonnen club); komt langs de velden van de provincie met een kladblok en een paraplu die ze niet nodig heeft", employer: "De Stadjers",
+    hobbies: ["kijken", "weinig opschrijven"], traits: ["scherp", "droog", "zuinig met woorden"], tagline: "Ik schrijf zelden iets op.",
+    want: "het talent dat niemand ziet", need: "n.v.t.", fear: "een misser", habits: ["schrijft bijna niets op", "kijkt langs het wad"],
+    dialect: "standaard Nederlands (niveau 0)", rhythm: "droog, kort", phrases: ["Ik schrijf zelden iets op. Dat is mijn methode."],
+    voiceTag: "nieuwe stem nog te kiezen: droge scoutster", look: "kladblok, paraplu, een regenjas in de zomer", outfitRole: NA, outfitByAct: stays("vast: regenjas"),
+    firstStep: 'V3', lastStep: 'V3', introducedBy: "de eerste uitwedstrijd langs de Waddenkust (rangmoment V3.4)", storyRole: "scout van De Stadjers: ziet de speler bij rang 4 en is er weer bij de Euroborg (rang 6)",
+    mapLink: "de velden langs de Waddenkust, de Euroborg", canonNotes: "Bijbel 28-11 deel 02 (bijfiguren): verzonnen, eerder 'scout van De Stadjers' in footballstory.js (#1374, V3). Vervangt Jan Kleibijter, die vervalt (botst met de club De Kleibijters).", canon: [] }),
   // ---- vervoer (H2, H7) ----
   card({
     ...NEW, id: 'dries', tier: 'minor', name: "Dries Oltmans", nick: "Chauffeur Dries", aliases: ["Dries", "Oltmans", "Chauffeur Dries", "de chauffeur"], age: 63, pronoun: 'hij',
