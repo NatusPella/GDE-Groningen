@@ -64,7 +64,6 @@ export const COMPANION_CARDS = [
   'Met drank op achter het stuur? De pliesie kijkt mee.',
   'Brand geblust! Dat scheelt n boel',
   'Gas vasthouden: luik dicht en wegrijden',
-  'Nog vol van de vorige eierbal. Even laten zakken',
   'Plons! Duiven kinnen nait zwemmen.',
   'Nait nou, die meeuw kiekt mit!',
   'Een meeuw! Hij wil je patat!',

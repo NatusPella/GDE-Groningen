@@ -138,7 +138,7 @@ verhaaltest draaien lokaal.
   secret scanning/push protection en Dependabot-alerts staan aan; de
   workflow-rechten zijn read-only en er zijn 0 self-hosted runners. Posts en
   uploads blijven eigenaarshandelingen.
-- **Versie:** `0.65.0` in `desktop/package.json:4`, met `## [0.65.0] - 2026-11-22`
+- **Versie:** `0.66.0` in `desktop/package.json:4`, met `## [0.66.0] - 2026-11-24`
   als nieuwste changelogsectie; elke versie die met `0.` begint, wordt een
   pre-release (`desktop/release.sh:139`).
 - **Ondertekening:** niets is ondertekend. Windows `signExecutable: false`,

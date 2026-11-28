@@ -203,7 +203,8 @@ t('UX 28-11: de Slaan-kaart van een voorbijganger komt pas na de eerste missie, 
   assert.equal(punchPromptAllowed(0), false);
   assert.equal(punchPromptAllowed(undefined), false);
   assert.equal(punchPromptAllowed(1), true);
-  assert.match(lees('game/js/prompts.js'), /isMeleeWeapon\(weapon\) && punchPromptAllowed\(world\.stats && world\.stats\.missionsDone\)/);
+  // #1355: de Slaan-kaart is helemaal weg (een muisklik volstaat), dus ook niet als eerste kaart van een nieuw spel
+  assert.doesNotMatch(lees('game/js/prompts.js'), /label: 'Slaan'/);
 });
 
 console.log(`firststeps_test: ${n - bad}/${n} geslaagd`);
