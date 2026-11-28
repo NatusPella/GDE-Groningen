@@ -44,6 +44,17 @@ TAMMO: Honderdvijftig euro. Vandaag. [NIEUW]
 TESSA: Een streamer betaalt honderdvijftig euro voor stunts. Alleen heeft de Escapade een lekke band. [NIEUW]
 TESSA: Dus we lenen een bakkie. Rijden, niet praten. [NIEUW]
 
+## [h1-vismarkt] Langs de Vismarkt – Stad, Vismarkt – te voet
+(regie: ochtend. Op de Vismarkt staan kramen met vis en bloemen. Tussen twee kramen is een lege plek met een bord: VRIJE STANDPLAATS. Uit een kraamradio klinkt Radio Nachtstreek, de zender van Rikus. Tessa blijft staan, Tammo loopt een stap door en komt terug.)
+RIKUS (radio): Een woord van onze sponsor: Us Mem Snacks. De snack die je moeder had willen maken. [NIEUW]
+RIKUS (radio): Foar mem. [NIEUW]
+TESSA: "Vrije standplaats. Aanvragen bij de Commissie Standplaatsen Noord, formulier 14-B." [NIEUW]
+TESSA: Daar zou ik wel willen staan. [NIEUW]
+TAMMO: Zonder wagen? [NIEUW]
+(regie: stilte. Een meeuw loopt over de lege plek en vindt niets.)
+TESSA: Het was een grap. [NIEUW]
+TAMMO: Dat dacht ik al. [NIEUW]
+
 ## [M01.1] Nul krassen, vijftienhonderd punten: intro – Stad, Martinikerkhof – Berends bakkie
 (regie: Naamkaart: BEREND BOS bij zijn eerste regel.)
 (regie: vrijdag 14 augustus, middag. Berend staat bij zijn bakkie, een nors mannetje met zijn arm in het gips en een kladblok. Aan het bakkie hangt een bord: CHAUFFEUR GEZOCHT, VIJFTIG EURO, BEREND BOS. De Escapade staat met een lekke band aan de kant. Gameplay: Berends bakkie door het centrum, nul krassen.)
@@ -126,6 +137,25 @@ TESSA: Dat zoeken we later uit. Eerst pinnen en inschrijven. [NIEUW]
 ## [M01.7] Nul krassen, vijftienhonderd punten: herhaling – Stad, Boterdiep – Berends bakkie
 BEREND: Weer nul krassen. Ik begin het je bijna te gunnen. [BEHOUDEN]
 
+## [O1] Het kaartje – Stad, Paddepoel – flat
+(regie: avond, de flat in Paddepoel. Op de koelkast hangt een kaartje van de eerste Kiezelweek, vijf jaar geleden. Tessa tekent op een bonnetje de luiken van de wagen. Tammo staat met twee koppen thee in de deur en kijkt even naar het kaartje, en dan naar haar.)
+TESSA: Het luik moet aan de zijkant, dan staat niemand in de weg. [NIEUW]
+TAMMO: Welke mensen? [NIEUW]
+TESSA: De mensen die gaan komen, Tammo. [NIEUW]
+TAMMO: Dan zet ik hem zo neer dat het past. [NIEUW]
+(regie: op de koelkast hangt ook een nieuwe lijst met twee kolommen: TAMMO VINDT en TESSA VINDT. Links: eerst eten, dan plannen. Rechts: eerst plannen, dan eten.)
+TESSA: Ik heb ook een lijst gemaakt. Op de koelkast: wat jij vindt, wat ik vind. [NIEUW]
+TAMMO: En waar staat "thee"? [NIEUW]
+TESSA: Je hebt dat kaartje nog. Van die eerste week. [NIEUW]
+TAMMO: Het hing al aan de koelkast. [NIEUW]
+TESSA: Ja. Natuurlijk. [NIEUW]
+(regie: ze tekent door. Hij blijft nog even staan met de thee. Zijn telefoon gaat.)
+TAMMO: Dat is Beppe. Mijn Friese oma. [NIEUW]
+BEPPE (telefoon): Jonge, hast al iten? [NIEUW]
+TAMMO (telefoon): Ja, beppe. [NIEUW]
+BEPPE (telefoon): Is Tessa der ek? Dan meitsje ik sop. [NIEUW]
+TAMMO (telefoon): ...Ja. [NIEUW]
+
 ## [S01] Tussendoor, optioneel: EIKEA, de flat inrichten – Stad, Sontweg – Escapade
 (regie: laadperron bij EIKEA, drie dozen op het dak.)
 TESSA: Lijstje. Twee bedden, één boekenkast, één lamp. Verder niks. [BEHOUDEN]
@@ -147,12 +177,9 @@ TAMMO: Reserve. Die Zweden denken overal aan. [BEHOUDEN]
 TESSA: Het is een Gronings bedrijf. [BEHOUDEN]
 TAMMO: Dan is hij van de vorige klant. [BEHOUDEN]
 
-## [R1.0] Nachtstreek, zaterdagochtend – Stad – radio
-RIKUS (radio): Een luisteraar meldt een trekker in de Herestraat, om half acht 's ochtends. Ik zeg niks. Fietsen mag daar overdag ook niet. [BEHOUDEN]
-
 ## [M02.1] Even pinnen: intro – Stad, Herestraat – Escapade
 (regie: Naamkaart: DURK, daarna DOUWE, bij hun eerste regels.)
-(regie: zaterdag 15 augustus, half acht 's ochtends. De Escapade heeft een nieuwe band. Tessa staat bij een pinautomaat. Hij slikt haar pas in. Een zwarte trekker met een kabel. Twee reuzen trekken de hele automaat uit de muur en laden hem op een aanhanger.)
+(regie: ochtend, half acht. De Escapade heeft een nieuwe band. Tessa staat bij een pinautomaat. Hij slikt haar pas in. Een zwarte trekker met een kabel. Twee reuzen trekken de hele automaat uit de muur en laden hem op een aanhanger.)
 TESSA: Half acht. Eerst honderdvijftig euro pinnen, dan naar het Loket. [NIEUW]
 TESSA: Hij heeft mijn pas. Hij heeft mijn pas en hij… [BEHOUDEN]
 DURK: Douwe. Hij is los. [BEHOUDEN]
@@ -167,6 +194,9 @@ TESSA: Een gestolen automaat op een aanhanger, en wij ernaast. [NIEUW]
 TESSA: Er komt een politieauto aan. Instappen. [BEHOUDEN]
 TAMMO: Ik rij. [NIEUW]
 
+## [R1.0] Nachtstreek, zaterdagochtend – Stad – radio
+RIKUS (radio): Een luisteraar meldt een trekker in de Herestraat, om half acht 's ochtends. Ik zeg niks. Fietsen mag daar overdag ook niet. [BEHOUDEN]
+
 ## [M02.2] Even pinnen: onderweg – Stad, Herestraat naar Pand & Poen – Escapade
 (regie: Gameplay: Tammo rijdt met de pinautomaat op de aanhanger, de politie in de spiegel.)
 SJABBE (telefoon): Tessa. Sjabbe. Spuit & Klaar heeft een achterdeur. Rij door de grote poort. [NIEUW]
@@ -175,7 +205,7 @@ TAMMO: Een spuiterij. Slim. [NIEUW]
 TESSA: Dat zeg je zelden. [NIEUW]
 
 ## [M02.3] Even pinnen: outro – Stad, Pand & Poen – Escapade
-(regie: Sjabbe wrikt de klep open en geeft Tessa haar pas. Naamkaart: SJABBE.)
+(regie: Sjabbe wrikt de klep open en geeft Tessa haar pas.)
 SJABBE: Netjes. De automaat is vierhonderd euro waard aan onderdelen. Die houd ik. Jullie krijgen je pas en een envelop. [NIEUW]
 TESSA: Daar koop je nog geen halve frietwagen van. [BEHOUDEN]
 SJABBE: Dan moet je groter denken. Durk en Douwe, die twee reuzen, werken voor een Fries in een blauw colbert. {ov=0.5} [NIEUW]
@@ -202,27 +232,9 @@ TAMMO: Waarom vraagt Jelle naar alarmen? [NIEUW]
 TESSA: Dat weten we na het Loket. Hij heeft het vast over meer dan een museum. [NIEUW]
 TAMMO: Dan eerst het Loket. [NIEUW]
 
-## [O1] Het kaartje – Stad, Paddepoel – flat
-(regie: avond, de flat in Paddepoel. Op de koelkast hangt een kaartje van de eerste Kiezelweek, vijf jaar geleden. Tessa tekent op een bonnetje de luiken van de wagen. Tammo staat met twee koppen thee in de deur en kijkt even naar het kaartje, en dan naar haar.)
-TESSA: Het luik moet aan de zijkant, dan staat niemand in de weg. [NIEUW]
-TAMMO: Welke mensen? [NIEUW]
-TESSA: De mensen die gaan komen, Tammo. [NIEUW]
-TAMMO: Dan zet ik hem zo neer dat het past. [NIEUW]
-(regie: op de koelkast hangt ook een nieuwe lijst met twee kolommen: TAMMO VINDT en TESSA VINDT. Links: eerst eten, dan plannen. Rechts: eerst plannen, dan eten.)
-TESSA: Ik heb ook een lijst gemaakt. Op de koelkast: wat jij vindt, wat ik vind. [NIEUW]
-TAMMO: En waar staat "thee"? [NIEUW]
-TESSA: Je hebt dat kaartje nog. Van die eerste week. [NIEUW]
-TAMMO: Het hing al aan de koelkast. [NIEUW]
-TESSA: Ja. Natuurlijk. [NIEUW]
-(regie: ze tekent door. Hij blijft nog even staan met de thee. Zijn telefoon gaat.)
-TAMMO: Dat is Beppe. Mijn Friese oma. [NIEUW]
-BEPPE (telefoon): Jonge, hast al iten? [NIEUW]
-TAMMO (telefoon): Ja, beppe. [NIEUW]
-BEPPE (telefoon): Is Tessa der ek? Dan meitsje ik sop. [NIEUW]
-TAMMO (telefoon): ...Ja. [NIEUW]
-
 ## [N1] Een klus voor Sjabbe – Stad, de Herestraat – te voet
-(regie: zaterdagmiddag. Sjabbe staat voor Pand & Poen met een kopieermachine op een steekkar. Tessa kijkt naar het prijskaartje, Tammo naar de steekkar.)
+(regie: Naamkaart: SJABBE bij zijn eerste regel.)
+(regie: middag. Sjabbe staat voor Pand & Poen met een kopieermachine op een steekkar. Tessa kijkt naar het prijskaartje, Tammo naar de steekkar.)
 SJABBE: Ik vraag niks. Ik zeg alleen: dit ding moet naar boven. [NIEUW]
 TAMMO: Hoe zwaar? [NIEUW]
 SJABBE: Dat hangt af van wie hem tilt. Ik zeg niks. [NIEUW]
@@ -235,7 +247,7 @@ SJABBE: Hij zei dat het voor een plan was. Ik zeg niks. [NIEUW]
 
 ## [N2] Een duif op de gang – Stad, Paddepoel, elfde verdieping – flat
 (regie: Naamkaart: MENEER VELDKAMP bij zijn eerste regel.)
-(regie: vrijdagavond, laat licht. Op de gang van de elfde verdieping staat een oude man in een vest met zes duiven om zich heen. Een duif zit op de deurmat van de flat.)
+(regie: avond, laat licht. Op de gang van de elfde verdieping staat een oude man in een vest met zes duiven om zich heen. Een duif zit op de deurmat van de flat.)
 TAMMO: Dat is de buurman. Hij woont hier met zijn duiven. [NIEUW]
 TESSA: Je kent hem? [NIEUW]
 TAMMO: Nee. Hij kent mij. Dat is het probleem. [NIEUW]
@@ -244,9 +256,68 @@ TAMMO: Duiven wachten op niemand. [NIEUW]
 VELDKAMP: Zes jaar zit ik hier. Dat is de eerste die niet wegvliegt. [NIEUW]
 TESSA: Zal ik soep maken? Voor drie? [NIEUW]
 VELDKAMP: Ik eet alleen. Maar zes duiven eten mee. Dus ja. [NIEUW]
+VELDKAMP: Die duif is van Bert. Bert houdt duiven op een dak bij het station. Hij was de beste vriend van jouw opa. [NIEUW]
+TAMMO: Ik zoek hem op. [NIEUW]
+VELDKAMP: Zijn jullie al…? [NIEUW]
+TESSA: Nee. [NIEUW]
+VELDKAMP: Zo. [NIEUW]
+
+## [h2-scooters] Scooters op de stoep – Stad, Paddepoel, voor het portiek – te voet
+(regie: Naamkaart: SANDER POELMAN bij zijn eerste regel.)
+(regie: ochtend. Voor het portiek van de flat staan zes neon-oranje deelscooters dwars over de stoep. Sander Poelman, in een neon-oranje gilet met ZOEF op de rug, tikt op een tablet. Veldkamp staat in de deur met een duif op zijn schouder.)
+VELDKAMP: Zes scooters. Twee mensen kunnen er niet langs. Zo. [NIEUW]
+SANDER: Goedemorgen! Sander Poelman, ZOEF. Deelscooters. Jullie zijn de nieuwe huurders, toch? [NIEUW]
+TAMMO: Waarom staan ze hier? [NIEUW]
+SANDER: Hier staan ze het mooist. Voor de stad, toch? [NIEUW]
+TESSA: Ze staan voor onze deur. [NIEUW]
+SANDER: Dat is dan de stad. Ik haal ze zo weg. Over een uur. Of twee, toch? [NIEUW]
+(regie: Tammo en Tessa dragen samen de scooters van de stoep naar het hek. Sander filmt het voor zijn eigen kanaal.)
+SANDER: Perfecte content! Jullie hebben zo'n rode auto, toch? Die nauwelijks rijdt? [NIEUW]
+TAMMO: Hij rijdt. [NIEUW]
+SANDER: Tot de hoek, toch? Ik ga trouwens ook iets met snacks doen. Disruptief. Toch? [NIEUW]
+TESSA: Iets met snacks. Wij ook. [NIEUW]
+SANDER: Dan zien we elkaar op de markt. Toch? [NIEUW]
+(regie: hij rijdt weg op een scooter. Veldkamp kijkt hem na.)
+TESSA: Dat is een rivaal, Tammo. Ik voel het. [NIEUW]
+TAMMO: Hij heeft een tablet. [NIEUW]
+VELDKAMP: Zo. [NIEUW]
+
+## [J1] Post van de gemeente – Stad, Paddepoel, de flat – te voet
+(regie: middag, de flat in Paddepoel. Op de mat ligt een stapel brieven van de gemeente, bijna een bouwpakket. Tessa sorteert, Tammo zet thee.)
+TESSA: Zeven brieven. Allemaal van de gemeente. Allemaal van vanochtend. [NIEUW]
+TAMMO: Dat is veel aandacht. [NIEUW]
+TESSA: Eén afzender: J. Terpstra, voorzitter van de Commissie Standplaatsen Noord. Die van het bord op de Vismarkt. [NIEUW]
+TESSA: "Bezwaar tegen uw parkeervergunning, ingediend door J. Terpstra." [NIEUW]
+TAMMO: Wij hebben nog geen bezwaar. [NIEUW]
+TESSA: Dat is het probleem. Hij was eerder. [NIEUW]
+(regie: onderop de stapel ligt een formulier. Tammo vult zijn naam in en kijkt naar het tweede vak: partner, huisgenoot of overig.)
+TAMMO: Wat ben jij? Partner, huisgenoot of overig. [NIEUW]
+TESSA: Wat jij wil. [NIEUW]
+TAMMO: Huisgenoot is het kortst. [NIEUW]
+TESSA: Dat is niet waarom je het kiest. [NIEUW]
+(regie: Tessa pakt de pen, zet een kruisje en vouwt het formulier dicht voordat Tammo kan zien waar.)
+TESSA: Kasboekje. Postzegels, twee euro tachtig. Op naam van ons allebei. Eén boekje. [NIEUW]
+TESSA: Ik leer vanavond hoe dit werkt. Elk artikel. [NIEUW]
+TAMMO: Je gaat tegen hem vechten met zijn eigen papier. [NIEUW]
+TESSA: Niet vechten. Lezen. Dat is erger. [NIEUW]
+
+## [h2-bon] Een bon voor de Escapade – Stad, politiebureau – te voet
+(regie: Naamkaart: HOOFDAGENT WOLTHUIS bij haar eerste regel.)
+(regie: middag. Een balie met een belletje, een kaart van de wijk vol speldjes en een kleine vrouw in uniform met een te groot petje dat ze steeds rechtzet. Tessa legt een gele bon op de balie.)
+TESSA: Wij komen een bon betalen. Voor de Escapade. [NIEUW]
+HOOFDAGENT WOLTHUIS: Hoofdagent Wolthuis. Zes euro vijftig. Uw auto stond zes en een halve centimeter over de streep. [NIEUW]
+TAMMO: Dat is niks. [NIEUW]
+HOOFDAGENT WOLTHUIS: Artikel twaalf, lid drie: elke centimeter telt. Ik heb het gemeten. Twee keer. [NIEUW]
+TESSA: Een bon voor zes centimeter. [NIEUW]
+HOOFDAGENT WOLTHUIS: Zes en een halve. Precisie is geen vijandigheid, mevrouw. [NIEUW]
+(regie: Tessa telt het geld uit. Wolthuis stempelt de bon, controleert het stempel en stempelt hem nog een keer.)
+HOOFDAGENT WOLTHUIS: Dank u. U bent weer in orde. Tot de volgende keer. [NIEUW]
+TESSA: Ze kent het reglement beter dan wij onze auto. [NIEUW]
+TAMMO: Dat is niet moeilijk. [NIEUW]
 
 ## [N3] Soep bij Beppe – Stad, Beppe's huis aan de westrand – te voet
-(regie: zondagmiddag. Een klein huis met een tuin en een rij laarzen bij de deur. Beppe staat al in de deuropening, met een pollepel.)
+(regie: Naamkaart: BEPPE bij haar eerste regel.)
+(regie: middag. Een klein huis met een tuin en een rij laarzen bij de deur. Beppe staat al in de deuropening, met een pollepel.)
 BEPPE: Dêr bisto, jonge. Kom yn, kom yn. De sop is klear. [NIEUW]
 TAMMO: Dit is Tessa, Beppe. [NIEUW]
 BEPPE: Ytst dan mar earst, dan prate wy. [NIEUW]
@@ -254,10 +325,15 @@ TESSA: Wat zegt ze? [NIEUW]
 TAMMO: Eerst eten. Dan praten. [NIEUW]
 BEPPE: Hy seit neat, mar hy docht it goed. [NIEUW]
 TESSA: Dat zag ik. De eerste week al. [NIEUW]
-(regie: Beppe schept nog een keer op. Tammo kijkt naar zijn bord.)
+BEPPE: Jim binne freonen. [NIEUW]
+TESSA: Ja. Vrienden. [NIEUW]
+(regie: Beppe schept nog een keer op. Tessa draagt de lege borden naar de tuin en Beppe wacht tot de deur dichtgaat.)
+BEPPE: Zij kijkt naar jou zoals jij naar de duiven kijkt. [NIEUW]
+TAMMO: Beppe. [NIEUW]
+(regie: Beppe knikt tevreden. Tammo kijkt naar zijn bord.)
 
 ## [N4] Een eerste ronde – Stad, Station Groningen – te voet
-(regie: maandagochtend. Op het stationsplein staan een taxi, een stapel formulieren en een klusbord. Ze proberen drie dingen na elkaar.)
+(regie: ochtend. Op het stationsplein staan een taxi, een stapel formulieren en een klusbord. Ze proberen drie dingen na elkaar.)
 TESSA: Taxi. Jij rijdt. [NIEUW]
 TAMMO: Links of rechts? [NIEUW]
 TESSA: Als het misgaat, hoor je het als eerste. Dat is mijn werk. [NIEUW]
@@ -272,13 +348,13 @@ TESSA: Iemand die het kleine lettertje leest. Voor de lol. [NIEUW]
 
 ## [M03.1] Het Loket: intro – Stad, Het Loket bij de Grote Markt – te voet
 (regie: bewijsmoment, relatie-bijbel 3: Tessa leest het naamplaatje van de loketbediende en groet haar bij haar naam. Tammo kijkt even naar zijn schoenen en glimlacht.)
-(regie: zaterdag 15 augustus, tien uur. Een wachtruimte met nummerautomaat, een scherm dat 4093 toont, een bord "Loket B is vandaag Loket C". Gameplay: een wachtrijpuzzel met een klok: nummer trekken, formulier halen, stempel halen, voor twaalf uur.)
+(regie: ochtend, tien uur. Een wachtruimte met nummerautomaat, een scherm dat 4093 toont, een bord "Loket B is vandaag Loket C". Gameplay: een wachtrijpuzzel met een klok: nummer trekken, formulier halen, stempel halen, voor twaalf uur.)
 (regie: naamkaart voor de loketbediende in beeld: Loketbediende, Loket C.)
-TESSA: Twaalf uur, contant. Hoe moeilijk kan een stempel zijn? [NIEUW]
+TESSA: Eén formulier, één stempel, en we mogen officieel werken. Twaalf uur, contant. Hoe moeilijk kan dat zijn? [NIEUW]
 LOKETBEDIENDE: Nummer 4117 aan loket A. Op het scherm staat 4093. [NIEUW]
 TAMMO: Vierentwintig mensen voor ons. [NIEUW]
 TESSA: Ik haal het formulier, jij pakt de stempels. [NIEUW]
-LOKETBEDIENDE: Formulier 7B, in drievoud. Niet vouwen. [NIEUW]
+LOKETBEDIENDE: Formulier 14-B, voor het werkbewijs, in drievoud. Niet vouwen. [NIEUW]
 TAMMO: Wie vouwt er nou een formulier? [NIEUW]
 TESSA: Iedereen, Tammo. Daarom staan we hier. [NIEUW]
 LOKETBEDIENDE: Loket C is vandaag een stempel-loket. Loket B is vandaag Loket C. [NIEUW]
@@ -324,6 +400,14 @@ TAMMO: Een draaimolen. [NIEUW]
 TESSA: Dat is een gemeente. [NIEUW]
 
 ## [M03.4] Het Loket: outro – Stad, Het Loket – te voet
+LOKETBEDIENDE: Uw formulier 14-B ligt bij de voorzitter. Hij stempelt het zelf. Twee minuten. [NIEUW]
+(regie: Jelle Terpstra komt achter het loket staan, zonnebril op, met een stempel in de borstzak. Hij stempelt het werkbewijs plechtig, drie keer, en schuift het over de balie.)
+JELLE: Werkbewijs. In drievoud. Gestempeld. [NIEUW]
+TESSA: U staat aan onze kant van het loket. [NIEUW]
+JELLE: Ik sta aan alle kanten van alle loketten. Dat heet voorzitter zijn. [NIEUW]
+JELLE: Bezwaar: zes weken. Helaas drie dagen. [NIEUW]
+TAMMO: Zes weken of drie dagen? [NIEUW]
+JELLE: Ja. [NIEUW]
 LOKETBEDIENDE: Gefeliciteerd. U bent ingeschreven voor de Noordelijke Snackprijs, met wagen. Zonder wagen vervalt uw inschrijving. [NIEUW]
 TESSA: Wij zijn ingeschreven. Nu nog een wagen. [NIEUW]
 TESSA: Hij vroeg Sjabbe waar het museum alarmen heeft. [NIEUW]
@@ -337,11 +421,7 @@ TESSA: Je opa huilde bij elke voetbalwedstrijd. [BEHOUDEN]
 TAMMO: Dat was verlies. Dit was anders. [BEHOUDEN]
 TESSA: …Je mag nee zeggen. [BEHOUDEN]
 TAMMO: Ik zeg niks. Dat is ook een antwoord. [BEHOUDEN]
-TAMMO: Als iemand het museum kent, is het Bert. De beste vriend van mijn opa. [NIEUW]
-BERT (telefoon): Tammo. Bert, van de duiven. {ov=0.3} [NIEUW]
-TAMMO (telefoon): Bert, wij wilden je net bellen. {cut=1.5} [NIEUW]
-BERT (telefoon): Ik weet het. Elke nacht staat er een zwarte trekker bij het museum. Met een limousine erachter. [NIEUW]
-TESSA: Eerst kijken hoe het museum bewaakt wordt. Naar het Stationsplein. [NIEUW]
+TESSA: Eerst kijken hoe het museum bewaakt wordt. Maar eerst de Grote Markt: daar hoor je wat de stad doet. [NIEUW]
 
 ## [M03.5] Het Loket: herhaling – Stad, Het Loket – te voet
 LOKETBEDIENDE: Weer bij ons? Loket B is nog steeds Loket C. [NIEUW]
@@ -350,6 +430,88 @@ LOKETBEDIENDE: Weer bij ons? Loket B is nog steeds Loket C. [NIEUW]
 RIKUS (radio): Een beller voor de zaterdagavond. Hij zegt dat hij de markt koopt. Ik zeg niks. [NIEUW]
 JELLE (radio): Jelle Terpstra, Us Mem Snacks. U kent mij van de plakjes: elke dag één, tot alles van mij is. [NIEUW]
 RIKUS (radio): Dat is een duidelijk plan. Ik draai een plaat. [NIEUW]
+
+## [h3-omroeper] De omroeper op de Grote Markt – Stad, Grote Markt – te voet
+(regie: Naamkaart: HAYO PRINS bij zijn eerste regel.)
+(regie: middag. Op de Grote Markt klinkt een koperen bel. Een breed, rood gezicht in een rood-witte omroepersjas met gouden knopen en een driekantige hoed staat bij de poort van de Vismarkt en rolt een papier uit.)
+HAYO: Hoort, hoort! Hayo Prins, stadsomroeper van Grunn. Ik lees voor wat er door mijn bus komt. [NIEUW]
+HAYO: Bij besluit negen van de Commissie Standplaatsen Noord gaan alle vrije standplaatsen tijdelijk naar Us Mem Snacks. Getekend, de voorzitter. [NIEUW]
+TESSA: Alle vrije standplaatsen? [NIEUW]
+HAYO: Bezwaartermijn: zes we… {pause=0.5} [NIEUW]
+(regie: hij hoest, slaat zijn hand voor zijn mond en rolt het papier snel op.)
+TAMMO: De voorzitter is Terpstra. Van de brieven. [NIEUW]
+TESSA: En de standplaats van het bord? [NIEUW]
+HAYO: Ik lees voor, mevrouw. Ik oordeel niet. Hoort, hoort! [NIEUW]
+(regie: hij luidt de bel. Boven de poort stuift een zwerm duiven op.)
+HAYO: Daar gaan Berts duiven weer. Ze lezen mee. [NIEUW]
+
+## [h3-bert] Bert en zijn duiven – Stad, dak bij het station – te voet
+(regie: Naamkaart: BERT bij zijn eerste regel.)
+(regie: namiddag. Een plat dak bij het Stationsplein met een duivenhok. Bert, een kleine oude man met een pet en een kijker om zijn nek, strooit zaad. De duiven landen zonder aarzelen op Tammo's schouders.)
+BERT: Daar is hij. De kleinzoon van mijn beste vriend. Bert, van de duiven. [NIEUW]
+TAMMO: Moi, Bert. Veldkamp stuurde ons. [NIEUW]
+BERT: Hij belt me elke avond over die ene duif. Jouw duif. [NIEUW]
+TESSA: Ze zitten allemaal op hem. [NIEUW]
+BERT: Bij Tammo doen ze dat. Bij mij nooit. Zeventig jaar heb ik er voor betaald. [NIEUW]
+(regie: Bert reikt Tessa zaad en wijst met zijn kijker over de daken. Van hier zie je de hele Stad: de toren, de haven, het museum.)
+BERT: Van hier zie ik alles. Elke nacht staat er een zwarte trekker achter het museum. Met een limousine erachter. [NIEUW]
+TAMMO: Wie zet een trekker bij een museum? [NIEUW]
+BERT: Dat vroeg ik de duiven. Ze zeggen niks. Dat is wijs. [NIEUW]
+
+## [N10] Een middag op het terras – Stad, Grote Markt – terras
+(regie: laat in de middag. Ze proberen horeca: een terras aan de Grote Markt zoekt hulp voor één middag. Tessa neemt de bestellingen op alsof ze het al jaren doet. Tammo draagt een dienblad met vier glazen en kijkt er zeer ernstig naar.)
+TESSA: Twee koffie, een thee, een tosti. Alles op één blad. Niet kantelen. [NIEUW]
+TAMMO: Ik kantel niet. Ik rijd. [NIEUW]
+(regie: hij loopt met het blad als met een Escapade over een drempel. Alles komt aan, op één glas na.)
+TERRASGAST: Zijn jullie al samen? [NIEUW]
+TESSA: Nee. [NIEUW]
+TAMMO: Dat ligt eraan wat je met samen bedoelt. [NIEUW]
+TESSA: Nee, Tammo. [NIEUW]
+TERRASGAST: Ik bedoelde de rekening. [NIEUW]
+TAMMO: Ah. Ja. Samen. [NIEUW]
+(regie: aan het eind van de middag is Tessa's fooienpot vol. Tammo heeft er twee glazen en een stoel op zijn naam.)
+TAMMO: Dit is niet mijn vak. [NIEUW]
+TESSA: Jouw vak is stilstaan als ik praat. [NIEUW]
+TAMMO: Dat kan ik. [NIEUW]
+
+## [h3-kiezelweek] De Kiezelweek, vijf jaar geleden – Stad, Academiegebouw – te voet
+(regie: flashback. Tekst in de hoek van het beeld: VIJF JAAR GELEDEN. Warm licht, de eerste dag van de Kiezelweek, een introductieweek voor eerstejaars. Op de trap van het Academiegebouw staat een rij nieuwe studenten met een startschot en een pen aan een touwtje. Tammo en Tessa zijn negentien: hij in een te nieuwe jas, zij met een tas vol tekeningen.)
+(regie: de starter heft zijn pistool. Tammo rent al, een halve seconde te vroeg. Iedereen lacht. Hij blijft staan.)
+TAMMO: Te vroeg. [NIEUW]
+(regie: Tessa komt naast hem staan. Er is één pen per tweetal, aan een touwtje, voor één lijst.)
+TESSA: Wij moeten de pen delen. Eén pen per tweetal. [NIEUW]
+TAMMO: Dan zijn wij een tweetal? [NIEUW]
+TESSA: Alleen vandaag. [NIEUW]
+(regie: ze tekenen de lijst met dezelfde pen, om beurten. Hij schrijft zijn naam klein, zodat de hare erbij past.)
+TESSA: Je schrijft klein. [NIEUW]
+TAMMO: Dan past jij erbij. [NIEUW]
+(regie: onderaan de trap staat een kleine, oude vrouw met een blikken trommel. Ze zwaait naar Tessa.)
+TESSA: Mijn oma. Ze brengt altijd eierballen mee. [NIEUW]
+TAMMO: Oma van de straat? [NIEUW]
+TESSA: Welke straat? [NIEUW]
+TAMMO: Die van de eierballen. Die kreeg ik als kind. [NIEUW]
+TESSA: Dat is mijn oma, Tammo. [NIEUW]
+TAMMO: Dan eet ik al mijn hele leven de eierballen van jouw oma. [NIEUW]
+(regie: terug naar nu. Het kaartje van de eerste Kiezelweek hangt aan de koelkast in de flat.)
+
+## [N8] Een avond bij Oma – Stad, Noorderhaven – logeerkamer
+(regie: Naamkaart: OMA TRIJNTJE bij haar eerste regel.)
+(regie: avond. De keuken van Oma Trijntje aan de Noorderhaven, een kleine keuken vol potten. Ze staat met haar rug naar de deur bij het fornuis, rechtop, met bloem tot haar ellebogen.)
+OMA TRIJNTJE: Eerst eten, jong. Dan vragen. Zo doen wij dat. [NIEUW]
+TESSA: Oma, vertel het nog een keer. Van 1953. [NIEUW]
+OMA TRIJNTJE: In 1953 won ik de Snackprijs. Eén gerecht, vijf ingrediënten, vijf vrienden: vet, eieren, zout, meel, mosterd. [NIEUW]
+OMA TRIJNTJE: Niemand kon het alleen. Tweede werd een meisje uit Friesland. Haar kleinzoon is die meneer van jullie brieven. [NIEUW]
+TESSA: Jelles oma? [NIEUW]
+OMA TRIJNTJE: Dat zeggen ze. Eet, jong. [NIEUW]
+(regie: later die avond, in de logeerkamer. Op het prikbord hangen de namen van de vijf vrienden aan punaises. Tessa hangt de laatste op; Tammo wil de punaise aangeven en hun handen raken elkaar.)
+TESSA: Die. [NIEUW]
+TAMMO: Deze? [NIEUW]
+(regie: allebei pakken de punaise. Een lange stilte. Beneden klinkt een pollepel op een pan.)
+OMA TRIJNTJE: Jullie slapen niet! Ik hoor het! [NIEUW]
+TESSA: We slapen, Oma. [NIEUW]
+OMA TRIJNTJE: Ik ben tweeënnegentig. Ik weet hoe slapen klinkt. [NIEUW]
+TAMMO: Een punaise. Ja. [NIEUW]
+TESSA: Het is een punaise. [NIEUW]
 
 ## [M04.1] Kieken van boven: intro – Stad, Stationsplein – duif
 (regie: zondag 16 augustus, ochtend. Bert op het Stationsplein bij zijn duiventil. Naamkaart: DUIVENMELKER BERT. Gameplay: Tammo is de duif en fotografeert camera's, bewakers en de stroomkast bij het museum.)
@@ -400,18 +562,6 @@ TAMMO: "Daarna zien we wel" is geen plan. [BEHOUDEN]
 TESSA: Als het niet gaat zoals het moet, doen we het anders. [NIEUW]
 TAMMO: Dat is ook geen plan. Dat is een tegeltje. [BEHOUDEN]
 
-## [O2] Ik draai je plaat – Stad, Paddepoel – telefoon
-(regie: nacht. Tammo ligt op de bank, de telefoon op zijn borst. Rikus belt vanuit de studio van Nachtstreek, zacht op de achtergrond een plaat.)
-RIKUS (telefoon): Tammo. Ben je wakker? Ik draai je plaat. [NIEUW]
-TAMMO (telefoon): Welke plaat? [NIEUW]
-RIKUS (telefoon): Die van de zomer dat we twaalf waren. Op de fiets naar de Hunze. [NIEUW]
-TAMMO (telefoon): Dat zeg je elke keer. [NIEUW]
-RIKUS (telefoon): En jij woont ineens op de elfde verdieping met een meisje. Dat hoor ik uit de chat. [NIEUW]
-TAMMO (telefoon): Ze is mijn huisgenoot. [NIEUW]
-RIKUS (telefoon): Vijf jaar, Tammo. Ik zeg niks. [NIEUW]
-TAMMO (telefoon): Dat zeg je altijd. [NIEUW]
-RIKUS (telefoon): Slaap lekker, jongen. [NIEUW]
-
 ## [M05.1] Wind tegen, beide kanten op: intro – Stad, Academiegebouw – fiets
 (regie: zondag 16 augustus, middag. Sjoerd staat bij het Academiegebouw met een clipboard en een rij eerstejaars. Gameplay: een fietsrace door de binnenstad, altijd tegenwind.)
 SJOERD: Moi, Tammo. Sjoerd, Kiezelcommissie. Wie op het podium komt, mag mij iets vragen. [NIEUW]
@@ -448,6 +598,18 @@ TAMMO: Eerst wachten. [NIEUW]
 
 ## [M05.4] Wind tegen, beide kanten op: herhaling – Stad, café – te voet
 SJOERD: Wind tegen? Natuurlijk. Beide kanten op. Proost. [BEHOUDEN]
+
+## [O2] Ik draai je plaat – Stad, Paddepoel – telefoon
+(regie: nacht. Tammo ligt op de bank, de telefoon op zijn borst. Rikus belt vanuit de studio van Nachtstreek, zacht op de achtergrond een plaat.)
+RIKUS (telefoon): Tammo. Ben je wakker? Ik draai je plaat. [NIEUW]
+TAMMO (telefoon): Welke plaat? [NIEUW]
+RIKUS (telefoon): Die van de zomer dat we twaalf waren. Op de fiets naar de Hunze. [NIEUW]
+TAMMO (telefoon): Dat zeg je elke keer. [NIEUW]
+RIKUS (telefoon): En jij woont ineens op de elfde verdieping met een meisje. Dat hoor ik uit de chat. [NIEUW]
+TAMMO (telefoon): Ze is mijn huisgenoot. [NIEUW]
+RIKUS (telefoon): Sinds de Kiezelweek, Tammo. Ik zeg niks. [NIEUW]
+TAMMO (telefoon): Dat zeg je altijd. [NIEUW]
+RIKUS (telefoon): Slaap lekker, jongen. [NIEUW]
 
 ## [R1.2] Nachtstreek, zondagavond – Stad – radio
 RIKUS (radio): Een luisteraar meldt een kruispunt in de binnenstad waar alles tegelijk groen was. Niemand had voorrang. Iedereen overleefde. [NIEUW]
@@ -596,4 +758,8 @@ TESSA: In een auto met een luik. Een thuis met wielen. [NIEUW]
 TAMMO: Dan rijd ik. Jij bakt. [NIEUW]
 TESSA: En waar naartoe? [NIEUW]
 TAMMO: Naar waar ze wakker zijn. [NIEUW]
+(regie: op de plank boven het fornuis staat een lege pot mosterd met een etiket in handschrift.)
+TAMMO: Die pot is leeg. [NIEUW]
+TESSA: Van Oma. Er zat mosterd in voor haar eierballen. Ik gooi hem niet weg. [NIEUW]
+TAMMO: Dan staat hij daar. [NIEUW]
 (regie: ze eten uit hetzelfde schaaltje. De radio zegt zacht dat Grunn slaapt. Dat klopt niet.)

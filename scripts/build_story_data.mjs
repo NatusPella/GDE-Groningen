@@ -83,6 +83,10 @@ export const SPEAKER_TABLE = {
   DAAN: sp('daan', 'Daan'),
   STIEN: sp('stien', 'Stien'),
   FEMKE: sp('femke', 'Femke'),
+  // chapter line 28-11 (H2 and H3): new voices, no recordings yet (docs/verhaal/TTS-NIEUW-28-11.md)
+  SANDER: sp('sander', 'Sander Poelman'),
+  'HOOFDAGENT WOLTHUIS': sp('hilda', 'Hoofdagent Wolthuis'),
+  HAYO: sp('hayo', 'Hayo Prins'),
   // voetbal (09-script-voetbal.md, #1374): geen opnames
   ALBERT: sp('albert', 'Albert Teuben'),
   EPPO: sp('eppo', 'Eppo Rozema'),
@@ -118,6 +122,8 @@ function stepOf(id) {
   if ((m = /^T(\d)/.exec(id))) return 'T' + m[1];
   if ((m = /^([NJFKWDVL])(\d+)(?:\.|$)/.exec(id))) return m[1] + m[2];
   if (/^C00\./.test(id)) return 'M00';
+  // new steps of the chapter line (28-11): h<chapter>-<name>[.k] -> h<chapter>-<name>
+  if ((m = /^(h\d+-[a-z0-9]+)(?:\.|$)/.exec(id))) return m[1];
   if (/^E\d$/.test(id)) return 'E';
   return null;
 }

@@ -45,9 +45,9 @@ t('de stappen staan na N7 en vóór T2, en D2 opent vervoer', () => {
   assert.equal(STEPS[idx('D2')].unlocks, V.VERVOER_VLAG);
   assert.ok(!STEPS[idx('D1')].unlocks && !STEPS[idx('D3')].unlocks, 'alleen D2 zet de vlag');
 });
-t('de dertig missies staan nog in dezelfde volgorde', () => {
+t('de dertig missies staan in de volgorde van de hoofdstuklijn (M05 voor M04, 28-11)', () => {
   const m = STEPS.filter((s) => s.kind === 'mission').map((s) => s.id).join();
-  assert.equal(m, [...Array(30)].map((_, i) => 'M' + String(i + 1).padStart(2, '0')).join());
+  assert.equal(m, ['M01', 'M02', 'M03', 'M05', 'M04', ...[...Array(25)].map((_, i) => 'M' + String(i + 6).padStart(2, '0'))].join());
 });
 
 // een save van vóór deze ronde: alle stappen behalve D1 tot en met D3

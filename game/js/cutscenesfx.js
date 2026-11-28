@@ -124,8 +124,6 @@ S['story-M03.outro'] = {
   cues: [
     // the form is stamped (the stamp of a deed, bezit)
     { on: 0, dt: 1.2, id: 'sfx:deed_stamp', at: [4.2, 0.9] },
-    // Bert calls Tammo
-    { on: 'Tammo. Bert', dt: -1.4, id: 'sfx:phone_ringtone' },
   ],
 };
 S['story-M03.2'] = {

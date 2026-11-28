@@ -80,24 +80,6 @@ DOKTER DIJKSTRA: Jelle is geland in een weiland bij Winschoten. Tussen de koeien
 ## [M12.5] Het staat niet in het rooster: herhaling – Waddenkust, Eemshaven, helidek – helikopter
 DOKTER DIJKSTRA: Weer een spoedje? Ik zet het deze keer in het rooster. [BEHOUDEN]
 
-## [J1] Post van de gemeente – Stad, Paddepoel, de flat – te voet
-(regie: vrijdagmiddag, de flat in Paddepoel. Op de mat ligt een stapel brieven van de gemeente, bijna een bouwpakket. Tessa sorteert, Tammo zet thee.)
-TESSA: Zeven brieven. Allemaal van de gemeente. Allemaal van vanochtend. [NIEUW]
-TAMMO: Dat is veel aandacht. [NIEUW]
-TESSA: "Bezwaar tegen uw parkeervergunning, ingediend door J. Terpstra." [NIEUW]
-TAMMO: Wij hebben nog geen bezwaar. [NIEUW]
-TESSA: Dat is het probleem. Hij was eerder. [NIEUW]
-(regie: onderop de stapel ligt een formulier. Tammo vult zijn naam in en kijkt naar het tweede vak: partner, huisgenoot of overig.)
-TAMMO: Wat ben jij? Partner, huisgenoot of overig. [NIEUW]
-TESSA: Wat jij wil. [NIEUW]
-TAMMO: Huisgenoot is het kortst. [NIEUW]
-TESSA: Dat is niet waarom je het kiest. [NIEUW]
-(regie: Tessa pakt de pen, zet een kruisje en vouwt het formulier dicht voordat Tammo kan zien waar.)
-TESSA: Kasboekje. Postzegels, twee euro tachtig. Op naam van ons allebei. Eén boekje. [NIEUW]
-TESSA: Ik leer vanavond hoe dit werkt. Elk artikel. [NIEUW]
-TAMMO: Je gaat tegen hem vechten met zijn eigen papier. [NIEUW]
-TESSA: Niet vechten. Lezen. Dat is erger. [NIEUW]
-
 ## [M13.1] Het containerlabyrint: intro – Waddenkust, Eemshaven, de kade – te voet
 (regie: vrijdagnacht 21 augustus. Windmolenbladen, kabelrollen, kolenbergen, een paar containers, een kraan, schijnwerpers. Naamkaart: LAMMERT. Gameplay: een sluipmissie tussen de opslag; container 4471 vinden en de papieren verwisselen.)
 LAMMERT: Moi. Lammert, havenmeester. Ik vertel altijd wat er niet is: een leeg schip, een volle kabel. [NIEUW]

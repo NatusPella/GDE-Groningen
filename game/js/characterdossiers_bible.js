@@ -14,24 +14,24 @@ const NEW = { speakerKey: NA, status: 'canon', education: NA, voice: NA, arc: NA
 export const BIBLE = [
   // ---- the street (H2, H3) ----
   card({
-    ...NEW, id: 'sander', tier: 'minor', name: "Sander Poelman", nick: "de ZOEF-man", aliases: ["Sander", "Poelman", "ZOEF"], age: 27, pronoun: 'hij',
+    ...NEW, speakerKey: 'sander', id: 'sander', tier: 'minor', name: "Sander Poelman", nick: "de ZOEF-man", aliases: ["Sander", "Poelman", "ZOEF"], age: 27, pronoun: 'hij',
     homePlace: "Paddepoel, Grunn", homeAddress: "een nieuwbouwflat aan de overkant van de Pleiadenlaan", household: "alleen, met een tablet", homeByAct: stays("altijd Paddepoel"),
     origin: "Randstad (verhuisd naar Grunn voor de studie)", work: "eigenaar van ZOEF (verzonnen deelscooterbedrijf), later een bezorgdienst", employer: "ZOEF",
     hobbies: ["dashboards", "scooters op de stoep zetten", "winnen"], traits: ["competitief", "vlot", "zelfverzekerd", "start-up-taal"], tagline: "Zet zijn scooters altijd voor jullie portiek, toch?",
     want: "de eerste zijn die iets ontwikkelt wat Groningen nodig heeft", need: "een verlies dat hij kan lachen", fear: "dat zijn scooters worden weggehaald", habits: ["eindigt elke zin als vraag", "scooters voor hun portiek"],
     dialect: "standaard Nederlands (niveau 0) met start-up-woorden", rhythm: "snel, vragend", phrases: ["Wat jullie nodig hebben is een platform, toch?"],
     voiceTag: "nieuwe stem nog te kiezen: jonge, snelle man die in vragen praat", look: "gelijkmatig kapsel, gladde baard, neon-oranje gilet met ZOEF op de rug, witte sneakers, een tablet onder de arm", outfitRole: 'zakenman', outfitByAct: stays("vast: neon gilet (Tammo's pet is gedempt oranje: het onderscheid is bewust)"),
-    firstStep: 'N2', lastStep: 'M30', introducedBy: "de scooters op de stoep voor hun portiek (H2); Veldkamp mopperend", storyRole: "de rivaal uit de straat: plaagrivaliteit met Tammo; wordt klant en bijna-vriend (de eerste bestelling bij Tam & Tes, H10)",
+    firstStep: 'h2-scooters', lastStep: 'M30', introducedBy: "de scooters op de stoep voor hun portiek (H2); Veldkamp mopperend", storyRole: "de rivaal uit de straat: plaagrivaliteit met Tammo; wordt klant en bijna-vriend (de eerste bestelling bij Tam & Tes, H10)",
     mapLink: "Pleiadenlaan (overkant), ZOEF-scooters in de stad", canonNotes: "Bijbel 28-11 (01 §2.2): nieuw, voorstel. ZOEF is een verzonnen merk.", canon: [] }),
   card({
-    ...NEW, id: 'hayo', tier: 'minor', name: "Hayo Prins", nick: "de stadsomroeper", aliases: ["Hayo", "de omroeper", "de stadsomroeper", "Omroeper Hayo Prins"], age: 58, pronoun: 'hij',
+    ...NEW, speakerKey: 'hayo', id: 'hayo', tier: 'minor', name: "Hayo Prins", nick: "de stadsomroeper", aliases: ["Hayo", "de omroeper", "de stadsomroeper", "Omroeper Hayo Prins"], age: 58, pronoun: 'hij',
     homePlace: "Grunn, boven de Vismarkt-poort", homeAddress: "een kamer boven de Vismarkt-poort (verzonnen)", household: "alleen, met een koperen bel", homeByAct: stays("altijd boven de Vismarkt-poort"),
     origin: "Stad", work: "stadsomroeper (verzonnen eeuwenoud ambt); verkoopt 's middags kranten", employer: "de stad (ambt)",
     hobbies: ["de bel luiden", "plechtig voorlezen", "kranten"], traits: ["plechtig", "trots", "luid", "onpartijdig"], tagline: "Hoort, hoort! Hij leest alleen voor.",
     want: "dat de stad nog luistert", need: "n.v.t.", fear: "dat niemand meer stilstaat voor de bel", habits: ["slaat de laatste regel (de bezwaartermijn) over omdat hij moet hoesten", "leest Jelles besluiten voor zonder te oordelen"],
     dialect: "Gronings (niveau 2)", rhythm: "plechtig, luid", phrases: ["Hoort, hoort! Bij besluit veertien-B..."],
     voiceTag: "nieuwe stem nog te kiezen: luide, plechtige oude man", look: "breed, rood gezicht, rood-witte omroepersjas met gouden knopen, driekantige hoed, koperen bel", outfitRole: NA, outfitByAct: stays("vast: omroepersjas"),
-    firstStep: 'M05', lastStep: 'M30', introducedBy: "de Grote Markt in H3: leest een besluit van Jelle voor", storyRole: "Jelle krijgt via hem een mond zonder in beeld te zijn; leest ook Jelles tweede besluit (H3) en de bord-weigering (H6) voor",
+    firstStep: 'h3-omroeper', lastStep: 'M30', introducedBy: "de Grote Markt in H3: leest een besluit van Jelle voor", storyRole: "Jelle krijgt via hem een mond zonder in beeld te zijn; leest ook Jelles tweede besluit (H3) en de bord-weigering (H6) voor",
     mapLink: "Grote Markt, Vismarkt-poort", canonNotes: "Bijbel 28-11 (01 §2.2): nieuw, voorstel. Oude rivaal van de torenwachter (die meldt, hij roept om).", canon: [] }),
   // ---- boer (H5) ----
   card({
@@ -200,14 +200,14 @@ export const BIBLE = [
     mapLink: "sluizen langs de Waddenkust", canonNotes: "Namenregister bijbel 28-11 (01 §2.4): vervangt 'Sluiswachter Berendien' van deel 2 (bijna dezelfde naam als Berend Bos).", canon: [] }),
   // ---- de politie: drie komische vaste agenten (het groepsdossier 'politie' blijft) ----
   card({
-    ...NEW, id: 'hilda', tier: 'minor', name: "Hilda Wolthuis", nick: "Hoofdagent Wolthuis", aliases: ["Hilda", "Wolthuis", "Hoofdagent Hilda Wolthuis", "Hoofdagent Wolthuis", "de hoofdagent"], age: 54, pronoun: 'zij',
+    ...NEW, speakerKey: 'hilda', id: 'hilda', tier: 'minor', name: "Hilda Wolthuis", nick: "Hoofdagent Wolthuis", aliases: ["Hilda", "Wolthuis", "Hoofdagent Hilda Wolthuis", "Hoofdagent Wolthuis", "de hoofdagent"], age: 54, pronoun: 'zij',
     homePlace: "Politiebureau Grunn", homeAddress: "n.v.t. (het politiebureau)", household: "alleen, met een stempel", homeByAct: stays("altijd het bureau"),
     origin: "Stad", work: "hoofdagent: schrijft parkeerbonnen, citeert artikelnummers", employer: "de politie",
     hobbies: ["artikelnummers", "stempels", "regels naleven"], traits: ["precies", "plechtig", "kordaat", "komisch"], tagline: "Dat staat in artikel...",
     want: "dat iedereen de regels naleeft", need: "een regel die zij mag breken", fear: "een formulier zonder stempel", habits: ["zet haar te grote petje steeds recht", "notitieboekje en stempel", "drie minuten te laat bij het museum"],
     dialect: "standaard Nederlands (niveau 0) met een enkel Gronings nou ja", rhythm: "precies, plechtig", phrases: ["Dat staat in artikel veertien."],
     voiceTag: "nieuwe stem nog te kiezen: kordate vrouw, droog", look: "blauw uniform met een te groot petje, notitieboekje, stempel", outfitRole: NA, outfitByAct: stays("vast: uniform"),
-    firstStep: 'M02', lastStep: 'M26', introducedBy: "de parkeerbon op hun rode auto in H2", storyRole: "komische bijrol: parkeerbon (H2), drie minuten te laat bij het museum (H12) en leest in H16 als enige de stukken van Jelles verordening voor; de zusterziel van Jelle, maar aan de goede kant",
+    firstStep: 'h2-bon', lastStep: 'M26', introducedBy: "de parkeerbon op hun rode auto in H2", storyRole: "komische bijrol: parkeerbon (H2), drie minuten te laat bij het museum (H12) en leest in H16 als enige de stukken van Jelles verordening voor; de zusterziel van Jelle, maar aan de goede kant",
     mapLink: "Politiebureau", canonNotes: "Bijbel 28-11 (01 §2.2): nieuw; uitbreiding van het groepsdossier 'politie'. Satirisch en licht, nooit getoond geweld (constitution 6).", sensitive: "satire, geen leed", canon: [] }),
   card({
     ...NEW, id: 'joost', tier: 'minor', name: "Joost Ensing", nick: "Agent Joost", aliases: ["Joost", "Ensing", "Agent Joost Ensing", "Agent Joost"], age: 27, pronoun: 'hij',

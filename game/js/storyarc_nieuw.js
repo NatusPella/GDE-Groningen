@@ -84,6 +84,10 @@
 //   goal { type: 'opening' }   (M00) the opening scenes of the script (storytext.js) play once
 //   def                        id of the missions.js def; null for a step without a def yet
 //   scenes                     the script.json scene ids that belong to the step (documentation, checked by scripts/storydata_test.mjs)
+//   mootAfter                  (added activity) the step after which an OLD save counts the activity as passed: its successor in the story
+//                              before the chapter line (28-11), where the arc order was different. Without it a later mission that moved
+//                              behind the activity (M02, M04, M06, M07, M08) would close an activity the old save still had ahead of it.
+//                              storyarc.js stepDone counts a passed step from `mootAfter` onwards; scripts/storymigratie_eerste_uur_test.mjs
 //   silent                     phone texts of the step are never read aloud
 // MISSION_IDS only ever grows at the end (storyarc.js): the appended defs are
 // NEW_MISSION_IDS below, in the order they were added.
@@ -107,6 +111,8 @@ export const SPEAKERS = {
   boer_hindrik: 'Oom Hindrik', tante_aaltje: 'Tante Aaltje', notaris: 'De notaris', // de laatste drie: hoeve Zeldenrust (#1373)
   // inspiratiepakket (21-11)
   veldkamp: 'Meneer Veldkamp', anneke: 'Anneke', lieke: 'Lieke', daan: 'Daan', stien: 'Stien',
+  // hoofdstuklijn 28-11 (H2 en H3)
+  sander: 'Sander Poelman', hilda: 'Hoofdagent Wolthuis', hayo: 'Hayo Prins',
   // voetbal (28-11, #1374): de invalbeurt en de rangmomenten; de speler speelt Eppo via de NPC-sleutel 'trainer' (missionstory.js)
   albert: 'Albert Teuben', eppo: 'Eppo Rozema', hilbrand: 'Hilbrand', devries: 'Mevrouw De Vries-Jansen', jaap: 'Jaap Roorda',
 };
@@ -252,8 +258,8 @@ export const BETWEEN_STEPS = ['A1', 'A2', 'V1', 'V2', 'V3'];
 // in script.json; `via` zegt waar het speelt ('car', 'flat' of 'phone'). Elke scène is overslaanbaar en nooit nodig om
 // door te kunnen. Nooit twee scènes na twee opeenvolgende missies (scripts/storybridge_test.mjs).
 export const BRIDGES = [
-  { id: 'O1', after: 'M02', via: 'flat', scene: 'O1' },   // het kaartje van de eerste studieweek, de luiken van de wagen
-  { id: 'O2', after: 'M04', via: 'phone', scene: 'O2' },  // Rikus belt Tammo: de jeugdvriend, "vijf jaar"
+  { id: 'O1', after: 'M01', via: 'flat', scene: 'O1' },   // het kaartje van de eerste studieweek, de luiken van de wagen; kondigt Beppe aan (H1: na M01, voor de soep van N3)
+  { id: 'O2', after: 'M05', via: 'phone', scene: 'O2' },  // Rikus belt Tammo: de jeugdvriend, "sinds de Kiezelweek" (H3: M05 komt nu voor M04)
   { id: 'O3', after: 'M06', via: 'car', scene: 'O3' },    // na de kraak: eerlijk winnen, Oma's 1953
   { id: 'O4', after: 'M08', via: 'car', scene: 'O4' },    // Mem belt Tessa (1): de jas
   { id: 'O5', after: 'M10', via: 'phone', scene: 'O5' },  // Mem belt Tessa (2): "Straks"
@@ -273,28 +279,40 @@ const A = (id, part, title, goal, o = {}) => ({ id, part, kind: 'activity', titl
 export const STEPS = [
   // --- Akte 1: Moi, Grunn (Stad, vr 14 - ma 17 augustus) ---------------------------------
   A('M00', 'kop', 'Opening: verhuisdag', { type: 'opening' }, { built: true, scenes: ['C00.1', 'C00.2', 'C00.3'] }),
+  // chapter line 28-11 (#1368 H1): the first walk, a joke of seconds: the radio spot of Us Mem Snacks and the sign "Vrije standplaats" on the Vismarkt (no goal in the story, a short walk with a scene)
+  A('h1-vismarkt', 'kop', 'Langs de Vismarkt', { type: 'reis', to: 'de Vismarkt', at: [53.2196, 6.5688], r: 200, scene: 'h1-vismarkt' }, { built: true, added: true, scenes: ['h1-vismarkt'], lead: ['A', 'Eerst een bakkie lenen, voor het geld. Loop met me mee over de Vismarkt, dat is de weg naar het Martinikerkhof.'] }),
   M('M01', 'kop', 'Nul krassen, vijftienhonderd punten', 'bakkiestunt', { built: true, reward: 200, minReward: 50,
     story: { intro: ['M01.1', 'M01.2'], outro: ['M01.6'], replay: ['M01.7'] },
     scenes: ['M01.1', 'M01.2', 'M01.3', 'M01.4', 'M01.5', 'M01.6', 'M01.7'],
     lead: ['A', 'Honderdvijftig euro verdienen: Berend wacht bij het Martinikerkhof met zijn bakkie. Nul krassen, hè.'] }),
+  A('N1', 'kop', 'Een klus voor Sjabbe', { type: 'reis', to: 'de Herestraat', at: [53.2150, 6.5620], r: 250, scene: 'N1' }, { built: true, mootAfter: 'N4', scenes: ['N1'], lead: ['A', 'Sjabbe heeft een klus: een kopieermachine de trap op. Dertig euro, en ik vraag niks. De Herestraat, deze middag.'] }),
+  A('N3', 'kop', 'Soep bij Beppe', { type: 'reis', to: "Beppe's huis", at: [53.2340, 6.4900], r: 350, scene: 'N3' }, { built: true, mootAfter: 'N4', scenes: ['N3'], lead: ['T', 'Mijn Friese oma Beppe belde: of Tessa meekomt voor soep. Naar haar huis aan de westrand van de stad. Eerst eten, dan praten.'] }),
+  // W1 (#1124): het frietmoment om half drie dat de opening mist
+  A('W1', 'kop', 'Half drie', { type: 'home' }, { built: true, added: true, mootAfter: 'M03', scenes: ['W1'], lead: ['A', "Het ruikt naar olie in de flat, midden in de nacht. Even naar huis: ik wil je iets laten proeven."], homeScene: { id: 'W1', big: 'Half drie', clock: 2.5 } }),
+  A('N2', 'kop', 'Een duif op de gang', { type: 'home' }, { built: true, mootAfter: 'N4', scenes: ['N2'], lead: ['T', 'Er zit een duif op de deurmat en een oude man op de gang. Terug naar de flat, even kijken.'], homeScene: { id: 'N2', big: 'Een duif op de gang', clock: 18.5 } }),
+  // chapter line 28-11 (#1369 H2): the rival from the street and the officer who measures; both new steps, silent until the next recording round (docs/verhaal/TTS-NIEUW-28-11.md)
+  A('h2-scooters', 'kop', 'Scooters op de stoep', { type: 'reis', to: 'de flat in Paddepoel', at: [53.2412, 6.5326], r: 250, scene: 'h2-scooters' }, { built: true, added: true, mootAfter: 'N4', scenes: ['h2-scooters'], lead: ['T', 'Er staan scooters dwars over de stoep voor ons portiek, en een man in een neon gilet bemoeit zich ermee. Terug naar de flat.'] }),
+  A('J1', 'kop', 'Post van de gemeente', { type: 'home' }, { built: true, scenes: ['J1'], lead: ['A', 'Er ligt een stapel brieven van de gemeente op de mat in Paddepoel, allemaal van één afzender. Even naar huis, kijken wie dat is.'], homeScene: { id: 'J1', big: 'Post van de gemeente', clock: 17.5 } }),
+  A('h2-bon', 'kop', 'Een bon voor de Escapade', { type: 'reis', to: 'het politiebureau', at: [53.2180, 6.5710], r: 250, scene: 'h2-bon' }, { built: true, added: true, mootAfter: 'N4', scenes: ['h2-bon'], lead: ['A', 'Er zit een gele bon op de Escapade. Zes euro vijftig, te betalen aan de balie van het politiebureau.'] }),
   M('M02', 'kop', 'Even pinnen', 'pinautomaat', { built: true, reward: 400, loopbanen: ['klus'],
     story: { intro: ['M02.1'], outro: ['M02.3', 'M02.5'], replay: ['M02.4'] }, scenes: ['M02.1', 'M02.2', 'M02.3', 'M02.4', 'M02.5'],
     lead: ['A', 'De Herestraat, half acht. Mijn pas zit in een automaat.'] }),
-  A('N1', 'kop', 'Een klus voor Sjabbe', { type: 'reis', to: 'de Herestraat', at: [53.2150, 6.5620], r: 250, scene: 'N1' }, { built: true, scenes: ['N1'], lead: ['A', 'Sjabbe heeft een klus: een kopieermachine de trap op. Dertig euro, en ik vraag niks. De Herestraat, deze middag.'] }),
-  A('N2', 'kop', 'Een duif op de gang', { type: 'home' }, { built: true, scenes: ['N2'], lead: ['T', 'Er zit een duif op de deurmat en een oude man op de gang. Terug naar de flat, even kijken.'], homeScene: { id: 'N2', big: 'Een duif op de gang', clock: 18.5 } }),
-  A('N3', 'kop', 'Soep bij Beppe', { type: 'reis', to: "Beppe's huis", at: [53.2340, 6.4900], r: 350, scene: 'N3' }, { built: true, scenes: ['N3'], lead: ['T', 'Beppe belde: of Tessa meekomt voor soep. Naar haar huis aan de westrand van de stad. Eerst eten, dan praten.'] }),
   A('N4', 'kop', 'Een eerste ronde', { type: 'reis', to: 'Station Groningen', at: [53.2108, 6.5658], r: 250, scene: 'N4' }, { built: true, scenes: ['N4'], lead: ['A', 'Wat kunnen wij eigenlijk? Een taxi, een formulier, een klus: we proberen het bij het station. Maandagochtend.'] }),
-  // W1 (#1124): het frietmoment om half drie dat de opening mist
-  A('W1', 'kop', 'Half drie', { type: 'home' }, { built: true, added: true, scenes: ['W1'], lead: ['A', "Het ruikt naar olie in de flat, midden in de nacht. Even naar huis: ik wil je iets laten proeven."], homeScene: { id: 'W1', big: 'Half drie', clock: 2.5 } }),
   M('M03', 'kop', 'Het Loket', 'loket', { built: true, reward: 0, cost: 150, loopbanen: ['kantoor'],
     story: { intro: ['M03.1'], outro: ['M03.4'], replay: ['M03.5'] }, scenes: ['M03.1', 'M03.2', 'M03.3', 'M03.4', 'M03.5'],
     lead: ['A', 'Het Loket bij de Grote Markt. Open tot twaalf uur, contant.'] }),
-  M('M04', 'kop', 'Kieken van boven', 'duifverkenning', { built: true, reward: 350,
-    story: { intro: ['M04.1'], outro: ['M04.3'], replay: ['M04.4'] }, scenes: ['M04.1', 'M04.2', 'M04.3', 'M04.4', 'M04.5'],
-    lead: ['T', 'Naar Bert op het Stationsplein: een duif fotografeert het museum.'] }),
+  // chapter line 28-11 (#1369 H3): the city as a third main character: the town crier, Bert on his roof, the flashback to the Kiezelweek
+  A('h3-omroeper', 'kop', 'De omroeper', { type: 'reis', to: 'de Grote Markt', at: [53.2192, 6.5669], r: 200, scene: 'h3-omroeper' }, { built: true, added: true, scenes: ['h3-omroeper'], lead: ['T', 'Op de Grote Markt klinkt een bel: de stadsomroeper leest iets voor. Luister mee.'] }),
+  A('h3-bert', 'kop', 'Bert en zijn duiven', { type: 'reis', to: 'het dak bij het station', at: [53.2113, 6.5651], r: 250, scene: 'h3-bert' }, { built: true, added: true, scenes: ['h3-bert'], lead: ['T', 'Veldkamp noemde Bert, de duivenman. Zijn dak ligt bij het station. Even langs.'] }),
   M('M05', 'kop', 'Wind tegen, beide kanten op', 'kei', { built: true, reward: 550, loopbanen: ['padel'],
     story: { intro: ['M05.1'], outro: ['M05.3'], replay: ['M05.4'] }, scenes: ['M05.1', 'M05.2', 'M05.3', 'M05.4'],
     lead: ['A', 'Sjoerd wacht bij het Academiegebouw. Het is een fietsrace: een eigen fiets heb je nodig, de fietsenwinkel staat op je kaart.'] }),
+  A('N10', 'kop', 'Een middag op het terras', { type: 'reis', to: 'de Grote Markt', at: [53.21920, 6.56692], r: 250, scene: 'N10' }, { built: true, mootAfter: 'T1', scenes: ['N10'], lead: ['A', 'Een terras aan de Grote Markt zoekt hulp voor één middag. Ik neem de bestellingen op, jij draagt. Niet kantelen.'] }),
+  A('h3-kiezelweek', 'kop', 'De Kiezelweek, vijf jaar geleden', { type: 'reis', to: 'het Academiegebouw', at: [53.2190, 6.5605], r: 250, scene: 'h3-kiezelweek' }, { built: true, added: true, mootAfter: 'T1', scenes: ['h3-kiezelweek'], lead: ['A', 'Het Academiegebouw. Hier begon de Kiezelweek, vijf jaar geleden. Kom, ik laat zien hoe wij elkaar tegenkwamen.'] }),
+  A('N8', 'kop', 'Een avond bij Oma', { type: 'reis', to: 'de Noorderhaven', at: [53.2250, 6.5610], r: 250, scene: 'N8' }, { built: true, mootAfter: 'T1', scenes: ['N8'], lead: ['T', 'Oma Trijntje heeft een logeerkamer voor ons en een prikbord vol namen. Terug naar de Noorderhaven.'] }),
+  M('M04', 'kop', 'Kieken van boven', 'duifverkenning', { built: true, reward: 350,
+    story: { intro: ['M04.1'], outro: ['M04.3'], replay: ['M04.4'] }, scenes: ['M04.1', 'M04.2', 'M04.3', 'M04.4', 'M04.5'],
+    lead: ['T', 'Naar Bert op het Stationsplein: een duif fotografeert het museum.'] }),
   M('M06', 'kop', 'Het museum stond er al zo', 'museumkraak', { built: true, reward: 550, loopbanen: ['taxi'],
     // Henk's call while they wait (M06.0) plays at home; the escape and the radio are stage scenes of the mission (missions.js)
     homeScene: { id: 'M06.0', big: 'Wachten tot middernacht…' },
@@ -309,8 +327,6 @@ export const STEPS = [
     story: { intro: ['M08.1'], outro: ['M08.3'], replay: ['M08.5'] }, scenes: ['M08.1', 'M08.2', 'M08.3', 'M08.4', 'M08.5'],
     lead: ['T', 'Oma Trijntje belde: eerlijk winnen kan alleen met haar recept van 1953. Loop te voet door de fatbikes in de Oude Ebbingestraat naar de Noorderhaven.'] }),
   // travel steps: the goal is the place (storyreis.js); the lines of the trip itself are the travel beat's (reisbeats.js)
-  A('N10', 'romp', 'Een middag op het terras', { type: 'reis', to: 'de Grote Markt', at: [53.21920, 6.56692], r: 250, scene: 'N10' }, { built: true, scenes: ['N10'], lead: ['A', 'Een terras aan de Grote Markt zoekt hulp voor één middag. Ik neem de bestellingen op, jij draagt. Niet kantelen.'] }),
-  A('N8', 'romp', 'Een avond bij Oma', { type: 'reis', to: 'de Noorderhaven', at: [53.2250, 6.5610], r: 250, scene: 'N8' }, { built: true, scenes: ['N8'], lead: ['T', 'Oma Trijntje heeft een logeerkamer voor ons en een prikbord vol namen. Terug naar de Noorderhaven.'] }),
   A('T1', 'romp', 'De trein naar Warffum', { type: 'reis', to: 'Warffum', at: [53.3903, 6.5667], r: 400, scene: 'T1', from: 4 }, { built: true, loopbanen: ['trein'], scenes: ['T1'],
     lead: ['A', 'Met de trein naar Warffum. Daar begint het Hogeland, en Geesje woont in de pastorie.'] }),
   M('M09', 'romp', 'Heel aankomen is ook een kunst', 'eieren', { built: true, reward: 700, loopbanen: ['horeca'],
@@ -357,7 +373,6 @@ export const STEPS = [
     story: { intro: ['M12.1'], outro: ['M12.4'], replay: ['M12.5'] }, scenes: ['M12.1', 'M12.2', 'M12.3', 'M12.4', 'M12.5'],
     lead: ['A', 'Dokter Dijkstra wacht in Lauwersoog met een heli. Eerst eten voor de nachtdienst, dan naar Jelles ballon boven de Dollard, voor het koopboek.'] }),
   // ronde 5 (Jelle en de romance, J1 tot en met J6): activiteiten zonder beloning, met migratie zoals N1-N8 (storyarc.js ADDED_STEPS)
-  A('J1', 'staart', 'Post van de gemeente', { type: 'home' }, { built: true, scenes: ['J1'], lead: ['A', 'Er ligt een stapel brieven van de gemeente op de mat in Paddepoel, allemaal over onze auto en allemaal van één afzender. Even naar huis, zien wat Jelle nu heeft ingediend.'], homeScene: { id: 'J1', big: 'Post van de gemeente', clock: 17.5 } }),
   M('M13', 'staart', 'Het containerlabyrint', 'containers', { built: true, reward: 900, loopbanen: ['handhaving'],
     story: { intro: ['M13.1'], outro: ['M13.3'], replay: ['M13.4'] }, scenes: ['M13.1', 'M13.2', 'M13.3', 'M13.4'],
     lead: ['A', 'De Eemshaven, vannacht. Lammert wacht aan de kade: container 4471 moet leeg uitvaren.'] }),
@@ -470,7 +485,7 @@ export const STEPS = [
 
 // what Tammo and Tessa are after, per part ("Wat weten we?")
 export const WHY = {
-  kop: 'Tammo en Tessa weten niet wat ze met hun leven moeten en willen elkaar niet kwijtraken. Eerst geld en een plek in de Noordelijke Snackprijs, voordat Jelle alles opkoopt.',
+  kop: 'Tammo en Tessa weten niet wat ze willen, maar wel dat ze elkaar niet kwijt willen. Eerst geld verdienen en werk vinden, voordat iemand anders alles opkoopt.',
   romp: "Een recept van 1953 om eerlijk te winnen: Oma Trijntjes vijf ingrediënten van vijf vrienden. Jelle koopt ze op.",
   staart: 'Jelle koopt de haven, het graan en de jury. Tammo en Tessa proberen van alles en merken dat ze samen sterker zijn.',
   zuid: 'De bal terughalen van Jelle, voordat hij hem in Bourtange aan zijn oma geeft. Eerst het bewijs dat hij hem al had, dan de jury. Samen, ook als het schuurt.',
@@ -480,6 +495,8 @@ export const WHY = {
 
 // Clues of "Wat weten we?": a clue shows once its step is done.
 export const CLUES = [
+  // mijlpaal 1 (H1, #1368): de eerste regel van "Wat weten we?", zichtbaar zodra de eerste dag af is (W1 is de laatste stap van H1)
+  { step: 'W1', kind: 'hart', title: 'Niet kwijt', text: 'Tammo en Tessa weten niet wat ze willen, maar wel dat ze elkaar niet kwijt willen. Ze zijn net afgestudeerd, hebben geen werk en één rode auto: de Escapade.' },
   { step: 'M01', kind: 'taal', title: 'De complimentenladder', text: 'Een Stadjer geeft geen complimenten, hij klimt een ladder. Zes treden: Goidag, Goud, Valt mie nait of, Braid noar de zin, Kon minder en bovenaan niks meer. Berend zei "Goud": trede twee.' },
   { step: 'M01', kind: 'clue', title: 'Een Fries met een klomp', text: 'Berend: een Fries in een blauw colbert wilde zijn bakkie kopen. Contant, uit een klomp. In augustus.' },
   { step: 'M01', kind: 'clue', title: 'JelleWâld', text: 'In de chat typte JelleWâld: "dat famke yn it read: sa\'n leaf gesicht" (dat meisje in het rood, zo\'n lief gezicht). Tammo vond het niet leuk.' },

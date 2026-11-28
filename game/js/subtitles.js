@@ -20,6 +20,7 @@ export const FY = {
   'It smakket.': 'Het smaakt.', // F3: Beppe proeft de soep van Oma Trijntje (akte 5)
   'Dêr bisto, jonge. Kom yn, kom yn. De sop is klear.': 'Daar ben je, jongen. Kom binnen, kom binnen. De soep is klaar.',
   'Ytst dan mar earst, dan prate wy.': 'Eet dan maar eerst, dan praten we.',
+  'Jim binne freonen.': 'Jullie zijn vrienden.',
   'Hy seit neat, mar hy docht it goed.': 'Hij zegt niets, maar hij doet het goed.',
   'Ik haw sop meinommen. Jimme ite te min.': 'Ik heb soep meegenomen. Jullie eten te weinig.',
   'Wannear trouwe jim?': 'Wanneer trouwen jullie?',
@@ -57,6 +58,7 @@ export const FY = {
   'Better as ús. Net fertelle.': 'Beter dan de onze. Niet doorvertellen.',
   'Net fertelle, hè': 'Niet doorvertellen, hè',
   'Foar mem': 'Voor Mem',
+  'Foar mem.': 'Voor Mem.',
   'foar mem': 'voor mem',
   'FOAR MEM': 'VOOR MEM',
   'Famke koopt haar eigen eierbal.': 'Dat meisje koopt haar eigen eierbal.',
@@ -424,6 +426,7 @@ export const FY_UITSPRAAK = {
   'Ik haw sop meinommen. Jimme ite te min.': 'Ik HAW sop MEI-nom-me. JIM-me IE-te te MIN.',
   'Wannear trouwe jim?': 'Wan-NIE-er TROU-we jim?',
   'Ik freegje mar.': 'Ik FRIE-gje mar.',
+  'Jim binne freonen.': 'Jim BIN-ne FRIE-o-nen.',
 };
 export const uitspraakFor = (text) => (text && FY_UITSPRAAK[String(text)]) || null;
 

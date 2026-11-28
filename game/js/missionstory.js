@@ -121,6 +121,10 @@ export const NPC = {
   // de begincutscenes van de carrières (careerdebut.js, 22-11): de trainer van de Talentenklasse en de buurman van het eerste perceel
   trainer: { name: 'Trainer Eppo', shirt: 0x24324e, skin: SKIN.woodMid, variant: 'male', seed: 6130 },
   buurman: { name: 'Buurman Aldert', shirt: 0x6a7a3a, skin: SKIN.woodLight, variant: 'male', seed: 6131, look: { age: 'old' } },
+  // hoofdstuklijn 28-11 (H2 en H3, bijbel 01 2.2): de rivaal in het neon gilet, de hoofdagent met het te grote petje, de omroeper in rood en wit
+  sander: { name: 'Sander Poelman', shirt: 0xff6a1a, skin: SKIN.woodLight, variant: 'male', seed: 6140 },
+  hilda: { name: 'Hoofdagent Wolthuis', shirt: 0x1f3a6e, skin: SKIN.woodMid, variant: 'female', seed: 6141, hairStyle: 'bun' },
+  hayo: { name: 'Hayo Prins', shirt: 0xb8322a, skin: SKIN.woodMid, variant: 'male', seed: 6142, look: { age: 'old', build: 'heavy' } },
   // de invalbeurt (careerdebut_football.js, #1374): de voorzitter van De Hoekers, met sjaal en ledenlijst
   albert: { name: 'Albert Teuben', shirt: 0x7a3a3a, skin: SKIN.woodMid, variant: 'male', seed: 6132, look: { age: 'old' } },
 };

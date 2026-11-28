@@ -318,7 +318,7 @@ Object.assign(SPECS, SPECS_AKTE2);
       { on: 'Vierentwintig mensen', dt: 0.3, actor: 'tammo', walk: [[1.9, 1.6]], speed: 1.5 },
       { on: 'Ik haal het formulier', actor: 'tessa', face: 'actor:tammo' },
       { on: 'Ik haal het formulier', dt: 0.3, actor: 'tessa', anim: 'hips' },
-      { on: 'Formulier 7B', actor: 'tessa', face: 'actor:loketbediende' },
+      { on: 'Formulier 14-B', actor: 'tessa', face: 'actor:loketbediende' },
       { on: 'Wie vouwt', actor: 'tammo', anim: 'shrug' },
       { on: 'Wie vouwt', dt: 0.1, actor: 'tammo', face: 'actor:tessa' },
       { on: 'Iedereen, Tammo', actor: 'tessa', anim: 'laugh' },
@@ -341,13 +341,20 @@ Object.assign(SPECS, SPECS_AKTE2);
     set: 'loket',
     cast: {
       loketbediende: { key: 'loketbediende', at: [4.8, 0], face: 180, anim: 'idle', gest: ['talk', 'point', 'hips'] },
+      // H2 (28-11): Jelle stempelt het werkbewijs zelf (zijn eerste korte ontmoeting, zonnebril op)
+      jelle: { key: 'jelle', at: [5.4, 0], face: 180, anim: 'idle', gest: ['talk', 'point', 'hips'] },
       ...q.cast,
     },
-    props: { bord: { kind: 'bord', at: [3.0, 2.9, 0], face: 250 }, stempelblad: { kind: 'stempel', at: [4.2, 0.9, 1.1] } },
+    props: { bord: { kind: 'bord', at: [2.0, -3.3, 0], face: 110 }, stempelblad: { kind: 'stempel', at: [4.2, 0.9, 1.1] } },
     open: [{ actor: 'loketbediende', carry: 'stempelblad' }, { actor: 'tessa', anim: 'cheer' }],
     beats: [
       { on: 0, dt: 1.5, actor: 'loketbediende', drop: 'stempelblad' },
       { on: 0, dt: 2.5, actor: 'wachter3', walk: [[2.4, 5.0]], speed: 0.8 },
+      { on: 'Werkbewijs. In drievoud', actor: 'jelle', anim: 'point' },
+      { on: 'U staat aan onze kant', actor: 'tessa', anim: 'point' },
+      { on: 'Ik sta aan alle kanten', actor: 'jelle', anim: 'hips' },
+      { on: 'Bezwaar: zes weken', actor: 'jelle', anim: 'talk' },
+      { on: 'Zes weken of drie', actor: 'tammo', anim: 'shrug' },
       { on: 'Wij zijn ingeschreven', actor: 'tessa', face: 'actor:tammo' },
       { on: 'Wij zijn ingeschreven', dt: 0.4, actor: 'tessa', anim: 'cheer' },
       { on: 'Plakje één is', actor: 'tessa', anim: 'point' },
@@ -363,10 +370,9 @@ Object.assign(SPECS, SPECS_AKTE2);
       { on: 'Dat was verlies', actor: 'tammo', anim: 'shrug' },
       { on: '…Je mag nee', actor: 'tessa', face: 'actor:tammo' },
       { on: 'Ik zeg niks', actor: 'tammo', anim: 'nod' },
-      { on: 'Tammo. Bert', dt: -0.4, actor: 'tammo', anim: 'phone' },
-      { on: 'Tammo. Bert', actor: 'tessa', face: 'actor:tammo' },
+      { on: 'Eerst kijken hoe', actor: 'tessa', anim: 'point' },
     ],
-    shots: [{ on: 14, shot: 'ots', from: 'tessa', target: 'tammo', dist: 1.6, side: 0.5, fov: 32 }, { on: 16, shot: 'ots', from: 'tessa', target: 'tammo', dist: 1.6, side: 0.5, fov: 32 }],
+    shots: [{ on: 15, shot: 'ots', from: 'tessa', target: 'tammo', dist: 1.6, side: 0.5, fov: 32 }, { on: 19, shot: 'ots', from: 'tessa', target: 'tammo', dist: 1.6, side: 0.5, fov: 32 }],
     // akte 1 op eindniveau (23-11, cutscene-lint CS-R03): het slotbeeld komt nog tijdens Tessa's lange regel; het kijkt op haar
     wide: { from: [-3.4, 3.0, 2.9], to: [-1.8, 2.4, 2.4], look: 'mid:loketbediende,tessa@1.3', endLook: 'tessa@1.4', fov: 50, until: 1 },
   };

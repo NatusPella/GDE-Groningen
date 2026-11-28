@@ -120,33 +120,6 @@ TESSA: Mem. Ik logeerde elke zomer naast haar, in Ljouwert. [NIEUW]
 TAMMO: Een jas in augustus? [NIEUW]
 TESSA: Jij weet niet hoe lang ze dat al zegt. [NIEUW]
 
-## [N10] Een middag op het terras – Stad, Grote Markt – terras
-(regie: dinsdag, laat in de middag. Ze proberen horeca: een terras aan de Grote Markt zoekt hulp voor één middag. Tessa neemt de bestellingen op alsof ze het al jaren doet. Tammo draagt een dienblad met vier glazen en kijkt er zeer ernstig naar.)
-TESSA: Twee koffie, een thee, een tosti. Alles op één blad. Niet kantelen. [NIEUW]
-TAMMO: Ik kantel niet. Ik rijd. [NIEUW]
-(regie: hij loopt met het blad als met een Escapade over een drempel. Alles komt aan, op één glas na.)
-TERRASGAST: Zijn jullie al samen? [NIEUW]
-TESSA: Nee. [NIEUW]
-TAMMO: Dat ligt eraan wat je met samen bedoelt. [NIEUW]
-TESSA: Nee, Tammo. [NIEUW]
-TERRASGAST: Ik bedoelde de rekening. [NIEUW]
-TAMMO: Ah. Ja. Samen. [NIEUW]
-(regie: aan het eind van de middag is Tessa's fooienpot vol. Tammo heeft er twee glazen en een stoel op zijn naam.)
-TAMMO: Dit is niet mijn vak. [NIEUW]
-TESSA: Jouw vak is stilstaan als ik praat. [NIEUW]
-TAMMO: Dat kan ik. [NIEUW]
-
-## [N8] Een avond bij Oma – Stad, Noorderhaven – logeerkamer
-(regie: avond in de logeerkamer. Op het prikbord hangen de namen van de vijf vrienden aan punaises. Tessa hangt de laatste op; Tammo wil de punaise aangeven en hun handen raken elkaar.)
-TESSA: Die. [NIEUW]
-TAMMO: Deze? [NIEUW]
-(regie: allebei pakken de punaise. Een lange stilte. Beneden klinkt een pollepel op een pan.)
-OMA TRIJNTJE: Jullie slapen niet! Ik hoor het! [NIEUW]
-TESSA: We slapen, Oma. [NIEUW]
-OMA TRIJNTJE: Ik ben tweeënnegentig. Ik weet hoe slapen klinkt. [NIEUW]
-TAMMO: Een punaise. Ja. [NIEUW]
-TESSA: Het is een punaise. [NIEUW]
-
 ## [N5] De boerderij in Warffum – Hogeland, Warffum – te voet
 (regie: woensdagochtend. Hoeve Zeldenrust op de dijk: een bord aan het hek, kippen, een koe die niet weg wil. Tammo draagt een mand eieren van Beppe. Tessa loopt het erf op alsof ze er nooit is weggegaan. Tegen het hek leunt een oude man in pet en laarzen; aan de overkant tilt een buurman melkbussen.)
 TESSA: Dit is het erf van Zeldenrust. Hier leerde ik melken, de zomer dat Beppe me meenam. [NIEUW]
@@ -242,7 +215,7 @@ TESSA: Het was een bus. [NIEUW]
 TAMMO: Hij stond op tijd. Dat is zeldzaam. [NIEUW]
 
 ## [D1] De laatste bus naar huis – Stad, het busstation – streekbus
-(regie: donderdagavond, laat. De laatste streekbus naar Winsum staat bij het busstation, op het dashboard een emaillen koffiekan in een houder. Naamkaart: DRIES OLTMANS, bij zijn eerste regel. Tammo laat een oude vrouw voorgaan. Naamkaart: MEVROUW WASSINK, bij haar eerste regel.)
+(regie: avond, laat. De laatste streekbus naar Winsum staat bij het busstation, op het dashboard een emaillen koffiekan in een houder. Naamkaart: DRIES OLTMANS, bij zijn eerste regel. Tammo laat een oude vrouw voorgaan. Naamkaart: MEVROUW WASSINK, bij haar eerste regel.)
 DRIES: Goedenavond. Dries Oltmans, de laatste bus naar Winsum. Al dertig jaar. [NIEUW]
 TAMMO: Goedenavond. Tammo. Dit is Tessa. [NIEUW]
 DRIES: Welkom. De koffiekan rijdt mee, daar mag je niet aankomen. [NIEUW]
@@ -259,7 +232,7 @@ TESSA: Dan luister je naar haar. [NIEUW]
 DRIES: Ik luister naar iedereen. Ik doe alleen wat ik wil. [NIEUW]
 
 ## [D2] Dries ligt op de bank – Hogeland, Winsum, de bushalte – streekbus
-(regie: vrijdag, vroege ochtend. Bij de halte in Winsum staat de bus van Dries stil, de koffiekan nog op het dashboard. Tammo's telefoon gaat. Naamkaart: ANNEMARIE, DISPATCHER, op de telefoon. Gameplay: de eerste dienst als invaller: de lijndienst staat klaar bij Loopbaan, rijd hem volgens de dienstregeling.)
+(regie: vroege ochtend. Bij de halte in Winsum staat de bus van Dries stil, de koffiekan nog op het dashboard. Tammo's telefoon gaat. Naamkaart: ANNEMARIE, DISPATCHER, op de telefoon. Gameplay: de eerste dienst als invaller: de lijndienst staat klaar bij Loopbaan, rijd hem volgens de dienstregeling.)
 ANNEMARIE (telefoon): Tammo? Annemarie van de centrale. Dries ligt op de bank. [NIEUW]
 TAMMO: Zijn rug? [NIEUW]
 ANNEMARIE (telefoon): Niet erg, wel genoeg. Hij mag niet rijden. [NIEUW]
@@ -274,7 +247,7 @@ ANNEMARIE (telefoon): Goed. Jochem, de stationschef, zoekt ook iemand voor de tr
 TESSA: Eerst deze bus. [NIEUW]
 
 ## [D3] Een stoptrein met Jochem – Stad, Station Groningen, perron 1 – trein
-(regie: zaterdag, ochtend. Perron 1, een stoptrein staat klaar. Naamkaart: JOCHEM LUIKEN, STATIONSCHEF, bij zijn eerste regel. Gameplay: een dienst als conducteur of machinist; de trein staat in het menu bij Loopbaan.)
+(regie: ochtend. Perron 1, een stoptrein staat klaar. Naamkaart: JOCHEM LUIKEN, STATIONSCHEF, bij zijn eerste regel. Gameplay: een dienst als conducteur of machinist; de trein staat in het menu bij Loopbaan.)
 JOCHEM: Aan de kant, de trein komt. [NIEUW]
 JOCHEM: Jochem Luiken, stationschef. Annemarie zei dat jullie kwamen. [NIEUW]
 TAMMO: Ik rijd geen trein. [NIEUW]

@@ -6,7 +6,7 @@ Gegenereerd door `node scripts/filmscript_export.mjs` uit `game/storydata/script
 
 ## Logline
 
-Twee net afgestudeerde vrienden van 24 weten niet wat ze met hun leven moeten en zijn bang elkaar kwijt te raken; terwijl ze allerlei loopbanen proberen en een Friese snackbaron hun in de weg zit, ontdekken ze dat ze verliefd zijn en samen een snackwagen willen.
+Twee net afgestudeerde vrienden uit Groningen weten niet wat ze willen worden, maar wel dat ze elkaar niet kwijt willen. Over één zomer proberen ze alles: de boerderij van een oom, een dorpsvoetbalclub, een taxidienst, een rondvaartboot. Ondertussen krijgen ze brieven van een bureaucratische Friese snackbaron, met kenmerken en bezwaartermijnen. Pas als alles wat ze leerden samenkomt, bouwen ze iets wat alleen zij kunnen: een snackwagen met een eigen standplaats.
 
 ## Synopsis
 
@@ -15,6 +15,16 @@ Vrijdag 14 augustus, Grunn. Tammo en Tessa verhuizen als huisgenoten naar Paddep
 Door het Noorden proberen ze baantjes en loopbanen: Tammo rijdt, Tessa heeft de boerderij, de kermis en later het voetbal. In sommige dingen zijn ze elkaars redding, in andere kunnen ze niet samenwerken. Onderweg zien ze hoe lief de ander voor andere mensen is, en dat is waar het van gaat. Na een misverstand en een herstel (de knuffel) vallen de stukjes: een snackwagen, voor haar de snacks, voor hem het rijden en de plek naast haar.
 
 Op de Grote Markt winnen ze het Ontzet met de beste eierbal, een eerlijke wagen en de vrienden die ze onderweg hielpen; Tammo zegt zijn vijf woorden, en ze worden een stel. Daarna is er geen einde maar een open wereld: de wagen laten groeien, standplaatsen overnemen en het snackimperium van Jelle uitdagen, terwijl alle loopbanen openblijven.
+
+## Beat sheet per hoofdstuk (nieuwe lijn)
+
+De hoofdstukken H1 tot en met H3 zijn het nieuwe begin (bijbel 28-11); de aktes hieronder beschrijven de rest nog zoals de oude opzet. H4 tot en met H16 en de nazomer volgen met hun bouwronde. In het spel staat M04 (Kieken van boven) en M06 (de kraak) voorlopig nog direct na H3; ze verhuizen naar H12.
+
+| Hoofdstuk | Openingsbeeld | Thema-vraag | Katalysator | Keerpunt | Slotbeeld en mijlpaal | Stappen |
+|---|---|---|---|---|---|---|
+| H1 Verhuisdag | De keuken in de Oosterparkwijk, een bierviltje met een blauwe wagen; daarna de verhuizing naar de flat in Paddepoel. | Raak je elkaar kwijt als alles verandert? | Geld nodig: een bakkie, een bord Vrije standplaats op de Vismarkt en de radiospot van Us Mem Snacks. | Berend, nul krassen, de eerste euro's en een Fries met een klomp. | Half drie, een pannetje friet: Tessa wil dit elke nacht, voor mensen die nog wakker zijn. Mijlpaal: de eerste regel van "Wat weten we?" (ze willen elkaar niet kwijt). | M00, h1-vismarkt, M01, N1, N3, W1 |
+| H2 De straat | De gang op de elfde verdieping: Veldkamp, een duif en een vraag ("Zijn jullie al…?"). | Wie is hier de baas van de straat? | De eerste brief: J. Terpstra, voorzitter van de Commissie Standplaatsen Noord. | Het Loket: Jelle stempelt zelf het werkbewijs, "Bezwaar: zes weken. Helaas drie dagen." | Het werkbewijs is binnen; Jelle is een naam, een stem en een bureaucraat. Mijlpaal: formulier 14-B ingeleverd. | N2, h2-scooters, J1, h2-bon, M02, N4, M03 |
+| H3 De stad is een derde hoofdpersoon | De Grote Markt, een koperen bel: de stadsomroeper leest een besluit voor. | Waar hoort de stad bij jou, en jij bij de stad? | Bert en zijn duiven geven de stad van boven; een fietsrace en een middag op het terras. | De Kiezelweek, vijf jaar geleden: de "Oma van de straat" is Tessa's oma. | De avond bij Oma Trijntje aan de Noorderhaven: 1953, de Snackprijs en een gerecht van vijf ingrediënten, vijf vrienden. Mijlpaal: de kaart van de Stad is open. | h3-omroeper, h3-bert, M05, N10, h3-kiezelweek, N8 |
 
 ## Beat sheet per akte
 
@@ -52,6 +62,12 @@ Op de Grote Markt winnen ze het Ontzet met de beste eierbal, een eerlijke wagen 
   - dag. De House of Groningen, elf hoog. De Escapade met een matras op het dak en een lekke band.
   - praat: Tammo, Tessa
 
+**Sequentie h1-vismarkt: Langs de Vismarkt** (activiteit; speler-protagonist Tammo)
+
+- **h1-vismarkt** BUITEN – STAD, VISMARKT – NACHT · Langs de Vismarkt · cutscene of gespeeld in de missie
+  - ochtend. Op de Vismarkt staan kramen met vis en bloemen. Tussen twee kramen is een lege plek met een bord: VRIJE STANDPLAATS. Uit een kraamradio klinkt Radio Nachtstreek, de zender van Rikus. Tessa blijft staan, Tammo lo
+  - praat: Rikus, Tessa, Tammo
+
 **Sequentie M01: Nul krassen, vijftienhonderd punten** (missie bakkiestunt; speler-protagonist Tammo)
 
 - **M01.1** BUITEN – STAD, MARTINIKERKHOF – DAG · Nul krassen, vijftienhonderd punten: intro · cutscene of gespeeld in de missie
@@ -73,55 +89,24 @@ Op de Grote Markt winnen ze het Ontzet met de beste eierbal, een eerlijke wagen 
   - praat: Berend Bos, Tessa, Tammo
 - **M01.7** BUITEN – STAD, BOTERDIEP – DAG · Nul krassen, vijftienhonderd punten: herhaling · replay
   - praat: Berend Bos
-- **S01** BUITEN – STAD, SONTWEG – DAG · Tussendoor, optioneel: EIKEA, de flat inrichten · side
-  - laadperron bij EIKEA, drie dozen op het dak.
-  - praat: Tessa, Tammo
-- **R1.0** BUITEN – STAD – DAG · Nachtstreek, zaterdagochtend · radio
-  - praat: Rikus
-
-**Sequentie M02: Even pinnen** (missie pinautomaat; speler-protagonist Tammo)
-
-- **M02.1** BUITEN – STAD, HERESTRAAT – DAG · Even pinnen: intro · cutscene of gespeeld in de missie
-  - Naamkaart: DURK, daarna DOUWE, bij hun eerste regels.
-  - praat: Tessa, Durk, Douwe, Tammo
-- **M02.2** BINNEN – STAD, HERESTRAAT NAAR PAND & POEN – DAG · Even pinnen: onderweg · cutscene of gespeeld in de missie
-  - Gameplay: Tammo rijdt met de pinautomaat op de aanhanger, de politie in de spiegel.
-  - praat: Sjabbe, Tessa, Tammo
-- **M02.3** BUITEN – STAD, PAND & POEN – DAG · Even pinnen: outro · cutscene of gespeeld in de missie
-  - Sjabbe wrikt de klep open en geeft Tessa haar pas. Naamkaart: SJABBE.
-  - praat: Sjabbe, Tessa, Tammo
-- **M02.4** BUITEN – STAD, PAND & POEN – DAG · Even pinnen: herhaling · replay
-  - praat: Sjabbe
-- **M02.5** BUITEN – STAD, PAND & POEN – DAG · Slot: naar het Loket · cutscene of gespeeld in de missie
-  - ze zitten in de Escapade voor de winkel, de motor tikt af.
-  - praat: Tammo, Tessa
 - **O1** BINNEN – STAD, PADDEPOEL – AVOND · Het kaartje · overgangsscène (BRIDGES)
   - avond, de flat in Paddepoel. Op de koelkast hangt een kaartje van de eerste Kiezelweek, vijf jaar geleden. Tessa tekent op een bonnetje de luiken van de wagen. Tammo staat met twee koppen thee in de deur en kijkt even na
   - praat: Tessa, Tammo, Beppe
+- **S01** BUITEN – STAD, SONTWEG – DAG · Tussendoor, optioneel: EIKEA, de flat inrichten · side
+  - laadperron bij EIKEA, drie dozen op het dak.
+  - praat: Tessa, Tammo
 
 **Sequentie N1: Een klus voor Sjabbe** (activiteit; speler-protagonist Tammo)
 
-- **N1** BUITEN – STAD, DE HERESTRAAT – MIDDAG · Een klus voor Sjabbe · cutscene of gespeeld in de missie
-  - zaterdagmiddag. Sjabbe staat voor Pand & Poen met een kopieermachine op een steekkar. Tessa kijkt naar het prijskaartje, Tammo naar de steekkar.
+- **N1** BUITEN – STAD, DE HERESTRAAT – DAG · Een klus voor Sjabbe · cutscene of gespeeld in de missie
+  - Naamkaart: SJABBE bij zijn eerste regel.
   - praat: Sjabbe, Tammo, Tessa
-
-**Sequentie N2: Een duif op de gang** (activiteit; speler-protagonist Tammo)
-
-- **N2** BUITEN – STAD, PADDEPOEL, ELFDE VERDIEPING – DAG · Een duif op de gang · cutscene of gespeeld in de missie
-  - Naamkaart: MENEER VELDKAMP bij zijn eerste regel.
-  - praat: Tammo, Tessa, Meneer Veldkamp
 
 **Sequentie N3: Soep bij Beppe** (activiteit; speler-protagonist Tammo)
 
-- **N3** BINNEN – STAD, BEPPE'S HUIS AAN DE WESTRAND – MIDDAG · Soep bij Beppe · cutscene of gespeeld in de missie
-  - zondagmiddag. Een klein huis met een tuin en een rij laarzen bij de deur. Beppe staat al in de deuropening, met een pollepel.
+- **N3** BUITEN – STAD, BEPPE'S HUIS AAN DE WESTRAND – DAG · Soep bij Beppe · cutscene of gespeeld in de missie
+  - Naamkaart: BEPPE bij haar eerste regel.
   - praat: Beppe, Tammo, Tessa
-
-**Sequentie N4: Een eerste ronde** (activiteit; speler-protagonist Tammo)
-
-- **N4** BUITEN – STAD, STATION GRONINGEN – OCHTEND · Een eerste ronde · cutscene of gespeeld in de missie
-  - maandagochtend. Op het stationsplein staan een taxi, een stapel formulieren en een klusbord. Ze proberen drie dingen na elkaar.
-  - praat: Tessa, Tammo, Jelle Terpstra
 
 **Sequentie W1: Half drie** (activiteit; speler-protagonist Tammo)
 
@@ -130,6 +115,55 @@ Op de Grote Markt winnen ze het Ontzet met de beste eierbal, een eerlijke wagen 
   - praat: Tammo, Tessa
 - **R2.0** BUITEN – STAD – DAG · Nachtstreek, dinsdagochtend · radio
   - praat: Rikus, Snackbarhouder
+
+**Sequentie N2: Een duif op de gang** (activiteit; speler-protagonist Tammo)
+
+- **N2** BUITEN – STAD, PADDEPOEL, ELFDE VERDIEPING – DAG · Een duif op de gang · cutscene of gespeeld in de missie
+  - Naamkaart: MENEER VELDKAMP bij zijn eerste regel.
+  - praat: Tammo, Tessa, Meneer Veldkamp
+
+**Sequentie h2-scooters: Scooters op de stoep** (activiteit; speler-protagonist Tammo)
+
+- **h2-scooters** BUITEN – STAD, PADDEPOEL, VOOR HET PORTIEK – DAG · Scooters op de stoep · cutscene of gespeeld in de missie
+  - Naamkaart: SANDER POELMAN bij zijn eerste regel.
+  - praat: Meneer Veldkamp, Sander Poelman, Tammo, Tessa
+
+**Sequentie J1: Post van de gemeente** (activiteit; speler-protagonist Tammo)
+
+- **J1** BINNEN – STAD, PADDEPOEL, DE FLAT – MIDDAG · Post van de gemeente · cutscene of gespeeld in de missie
+  - middag, de flat in Paddepoel. Op de mat ligt een stapel brieven van de gemeente, bijna een bouwpakket. Tessa sorteert, Tammo zet thee.
+  - praat: Tessa, Tammo
+
+**Sequentie h2-bon: Een bon voor de Escapade** (activiteit; speler-protagonist Tammo)
+
+- **h2-bon** BINNEN – STAD, POLITIEBUREAU – DAG · Een bon voor de Escapade · cutscene of gespeeld in de missie
+  - Naamkaart: HOOFDAGENT WOLTHUIS bij haar eerste regel.
+  - praat: Tessa, Hoofdagent Wolthuis, Tammo
+
+**Sequentie M02: Even pinnen** (missie pinautomaat; speler-protagonist Tammo)
+
+- **M02.1** BUITEN – STAD, HERESTRAAT – DAG · Even pinnen: intro · cutscene of gespeeld in de missie
+  - Naamkaart: DURK, daarna DOUWE, bij hun eerste regels.
+  - praat: Tessa, Durk, Douwe, Tammo
+- **R1.0** BUITEN – STAD – DAG · Nachtstreek, zaterdagochtend · radio
+  - praat: Rikus
+- **M02.2** BINNEN – STAD, HERESTRAAT NAAR PAND & POEN – DAG · Even pinnen: onderweg · cutscene of gespeeld in de missie
+  - Gameplay: Tammo rijdt met de pinautomaat op de aanhanger, de politie in de spiegel.
+  - praat: Sjabbe, Tessa, Tammo
+- **M02.3** BUITEN – STAD, PAND & POEN – DAG · Even pinnen: outro · cutscene of gespeeld in de missie
+  - Sjabbe wrikt de klep open en geeft Tessa haar pas.
+  - praat: Sjabbe, Tessa, Tammo
+- **M02.4** BUITEN – STAD, PAND & POEN – DAG · Even pinnen: herhaling · replay
+  - praat: Sjabbe
+- **M02.5** BUITEN – STAD, PAND & POEN – DAG · Slot: naar het Loket · cutscene of gespeeld in de missie
+  - ze zitten in de Escapade voor de winkel, de motor tikt af.
+  - praat: Tammo, Tessa
+
+**Sequentie N4: Een eerste ronde** (activiteit; speler-protagonist Tammo)
+
+- **N4** BUITEN – STAD, STATION GRONINGEN – OCHTEND · Een eerste ronde · cutscene of gespeeld in de missie
+  - ochtend. Op het stationsplein staan een taxi, een stapel formulieren en een klusbord. Ze proberen drie dingen na elkaar.
+  - praat: Tessa, Tammo, Jelle Terpstra
 
 **Sequentie M03: Het Loket** (missie loket; speler-protagonist Tammo)
 
@@ -141,12 +175,61 @@ Op de Grote Markt winnen ze het Ontzet met de beste eierbal, een eerlijke wagen 
   - praat: Jelle Terpstra, Tessa, Tammo, Mevrouw Hoving, Loketbediende
 - **M03.3** BUITEN – STAD, HET LOKET – DAG · Het Loket: de stempels · cutscene of gespeeld in de missie
   - praat: Loketbediende, Tessa, Tammo
-- **M03.4** BUITEN – STAD, HET LOKET – DAG · Het Loket: outro · cutscene of gespeeld in de missie
-  - praat: Loketbediende, Tessa, Tammo, Duivenmelker Bert
+- **M03.4** BINNEN – STAD, HET LOKET – DAG · Het Loket: outro · cutscene of gespeeld in de missie
+  - Jelle Terpstra komt achter het loket staan, zonnebril op, met een stempel in de borstzak. Hij stempelt het werkbewijs plechtig, drie keer, en schuift het over de balie.
+  - praat: Loketbediende, Jelle Terpstra, Tessa, Tammo
 - **M03.5** BUITEN – STAD, HET LOKET – DAG · Het Loket: herhaling · replay
   - praat: Loketbediende
 - **R1.1** BUITEN – STAD – DAG · Nachtstreek, zaterdagavond · radio
   - praat: Rikus, Jelle Terpstra
+
+**Sequentie h3-omroeper: De omroeper** (activiteit; speler-protagonist Tammo)
+
+- **h3-omroeper** BUITEN – STAD, GROTE MARKT – DAG · De omroeper op de Grote Markt · cutscene of gespeeld in de missie
+  - Naamkaart: HAYO PRINS bij zijn eerste regel.
+  - praat: Hayo Prins, Tessa, Tammo
+
+**Sequentie h3-bert: Bert en zijn duiven** (activiteit; speler-protagonist Tammo)
+
+- **h3-bert** BUITEN – STAD, DAK BIJ HET STATION – DAG · Bert en zijn duiven · cutscene of gespeeld in de missie
+  - Naamkaart: BERT bij zijn eerste regel.
+  - praat: Duivenmelker Bert, Tammo, Tessa
+
+**Sequentie M05: Wind tegen, beide kanten op** (missie kei; speler-protagonist Tammo)
+
+- **M05.1** BINNEN – STAD, ACADEMIEGEBOUW – MIDDAG · Wind tegen, beide kanten op: intro · cutscene of gespeeld in de missie
+  - zondag 16 augustus, middag. Sjoerd staat bij het Academiegebouw met een clipboard en een rij eerstejaars. Gameplay: een fietsrace door de binnenstad, altijd tegenwind.
+  - praat: Sjoerd, Tessa, Tammo
+- **M05.2** BUITEN – STAD, BINNENSTAD – DAG · Wind tegen, beide kanten op: het kruispunt · cutscene of gespeeld in de missie
+  - alles groen. Tessa komt van de andere kant op haar eigen fiets. Oogcontact, allebei remmen.
+  - praat: Tessa, Tammo
+- **M05.3** BUITEN – STAD, CAFÉ – DAG · Wind tegen, beide kanten op: outro · cutscene of gespeeld in de missie
+  - praat: Sjoerd, Tessa, Tammo
+- **M05.4** BUITEN – STAD, CAFÉ – DAG · Wind tegen, beide kanten op: herhaling · replay
+  - praat: Sjoerd
+- **O2** BINNEN – STAD, PADDEPOEL – NACHT · Ik draai je plaat · overgangsscène (BRIDGES)
+  - nacht. Tammo ligt op de bank, de telefoon op zijn borst. Rikus belt vanuit de studio van Nachtstreek, zacht op de achtergrond een plaat.
+  - praat: Rikus, Tammo
+- **R1.2** BUITEN – STAD – DAG · Nachtstreek, zondagavond · radio
+  - praat: Rikus
+
+**Sequentie N10: Een middag op het terras** (activiteit; speler-protagonist Tammo)
+
+- **N10** BUITEN – STAD, GROTE MARKT – MIDDAG · Een middag op het terras · cutscene of gespeeld in de missie
+  - laat in de middag. Ze proberen horeca: een terras aan de Grote Markt zoekt hulp voor één middag. Tessa neemt de bestellingen op alsof ze het al jaren doet. Tammo draagt een dienblad met vier glazen en kijkt er zeer ernst
+  - praat: Tessa, Tammo, Terrasgast
+
+**Sequentie h3-kiezelweek: De Kiezelweek, vijf jaar geleden** (activiteit; speler-protagonist Tammo)
+
+- **h3-kiezelweek** BUITEN – STAD, ACADEMIEGEBOUW – DAG · De Kiezelweek, vijf jaar geleden · cutscene of gespeeld in de missie
+  - flashback. Tekst in de hoek van het beeld: VIJF JAAR GELEDEN. Warm licht, de eerste dag van de Kiezelweek, een introductieweek voor eerstejaars. Op de trap van het Academiegebouw staat een rij nieuwe studenten met een st
+  - praat: Tammo, Tessa
+
+**Sequentie N8: Een avond bij Oma** (activiteit; speler-protagonist Tammo)
+
+- **N8** BUITEN – STAD, NOORDERHAVEN – DAG · Een avond bij Oma · cutscene of gespeeld in de missie
+  - Naamkaart: OMA TRIJNTJE bij haar eerste regel.
+  - praat: Oma Trijntje, Tessa, Tammo
 
 **Sequentie M04: Kieken van boven** (missie duifverkenning; speler-protagonist Tammo)
 
@@ -162,24 +245,6 @@ Op de Grote Markt winnen ze het Ontzet met de beste eierbal, een eerlijke wagen 
   - praat: Duivenmelker Bert
 - **M04.5** BUITEN – STAD – DAG · Autogesprek: daarna zien we wel · autogesprek
   - praat: Tammo, Tessa
-- **O2** BINNEN – STAD, PADDEPOEL – NACHT · Ik draai je plaat · overgangsscène (BRIDGES)
-  - nacht. Tammo ligt op de bank, de telefoon op zijn borst. Rikus belt vanuit de studio van Nachtstreek, zacht op de achtergrond een plaat.
-  - praat: Rikus, Tammo
-
-**Sequentie M05: Wind tegen, beide kanten op** (missie kei; speler-protagonist Tammo)
-
-- **M05.1** BINNEN – STAD, ACADEMIEGEBOUW – MIDDAG · Wind tegen, beide kanten op: intro · cutscene of gespeeld in de missie
-  - zondag 16 augustus, middag. Sjoerd staat bij het Academiegebouw met een clipboard en een rij eerstejaars. Gameplay: een fietsrace door de binnenstad, altijd tegenwind.
-  - praat: Sjoerd, Tessa, Tammo
-- **M05.2** BUITEN – STAD, BINNENSTAD – DAG · Wind tegen, beide kanten op: het kruispunt · cutscene of gespeeld in de missie
-  - alles groen. Tessa komt van de andere kant op haar eigen fiets. Oogcontact, allebei remmen.
-  - praat: Tessa, Tammo
-- **M05.3** BUITEN – STAD, CAFÉ – DAG · Wind tegen, beide kanten op: outro · cutscene of gespeeld in de missie
-  - praat: Sjoerd, Tessa, Tammo
-- **M05.4** BUITEN – STAD, CAFÉ – DAG · Wind tegen, beide kanten op: herhaling · replay
-  - praat: Sjoerd
-- **R1.2** BUITEN – STAD – DAG · Nachtstreek, zondagavond · radio
-  - praat: Rikus
 
 **Sequentie M06: Het museum stond er al zo** (missie museumkraak; speler-protagonist Tammo)
 
@@ -253,18 +318,6 @@ Op de Grote Markt winnen ze het Ontzet met de beste eierbal, een eerlijke wagen 
 - **O4** BUITEN – STAD, ONDERWEG – DAG · Een jas · overgangsscène (BRIDGES)
   - de Escapade, onderweg naar het Hogeland. Op Tessa's telefoon verschijnt een naam: Mem. Ze neemt op en zet hem zachter.
   - praat: Mem Terpstra, Tessa, Tammo
-
-**Sequentie N10: Een middag op het terras** (activiteit; speler-protagonist Tammo)
-
-- **N10** BUITEN – STAD, GROTE MARKT – MIDDAG · Een middag op het terras · cutscene of gespeeld in de missie
-  - dinsdag, laat in de middag. Ze proberen horeca: een terras aan de Grote Markt zoekt hulp voor één middag. Tessa neemt de bestellingen op alsof ze het al jaren doet. Tammo draagt een dienblad met vier glazen en kijkt er z
-  - praat: Tessa, Tammo, Terrasgast
-
-**Sequentie N8: Een avond bij Oma** (activiteit; speler-protagonist Tammo)
-
-- **N8** BUITEN – STAD, NOORDERHAVEN – AVOND · Een avond bij Oma · cutscene of gespeeld in de missie
-  - avond in de logeerkamer. Op het prikbord hangen de namen van de vijf vrienden aan punaises. Tessa hangt de laatste op; Tammo wil de punaise aangeven en hun handen raken elkaar.
-  - praat: Tessa, Tammo, Oma Trijntje
 
 **Sequentie T1: De trein naar Warffum** (activiteit; speler-protagonist Tammo)
 
@@ -350,19 +403,19 @@ Op de Grote Markt winnen ze het Ontzet met de beste eierbal, een eerlijke wagen 
 **Sequentie D1: De laatste bus naar huis** (activiteit; speler-protagonist Tammo)
 
 - **D1** BINNEN – STAD, HET BUSSTATION – AVOND · De laatste bus naar huis · cutscene of gespeeld in de missie
-  - donderdagavond, laat. De laatste streekbus naar Winsum staat bij het busstation, op het dashboard een emaillen koffiekan in een houder. Naamkaart: DRIES OLTMANS, bij zijn eerste regel. Tammo laat een oude vrouw voorgaan.
+  - avond, laat. De laatste streekbus naar Winsum staat bij het busstation, op het dashboard een emaillen koffiekan in een houder. Naamkaart: DRIES OLTMANS, bij zijn eerste regel. Tammo laat een oude vrouw voorgaan. Naamkaar
   - praat: Dries, Tammo, Mevrouw Wassink, Tessa
 
 **Sequentie D2: Dries ligt op de bank** (activiteit; speler-protagonist Tammo)
 
 - **D2** BINNEN – HOGELAND, WINSUM, DE BUSHALTE – OCHTEND · Dries ligt op de bank · cutscene of gespeeld in de missie
-  - vrijdag, vroege ochtend. Bij de halte in Winsum staat de bus van Dries stil, de koffiekan nog op het dashboard. Tammo's telefoon gaat. Naamkaart: ANNEMARIE, DISPATCHER, op de telefoon. Gameplay: de eerste dienst als inva
+  - vroege ochtend. Bij de halte in Winsum staat de bus van Dries stil, de koffiekan nog op het dashboard. Tammo's telefoon gaat. Naamkaart: ANNEMARIE, DISPATCHER, op de telefoon. Gameplay: de eerste dienst als invaller: de 
   - praat: Annemarie, Tammo, Tessa
 
 **Sequentie D3: Een stoptrein met Jochem** (activiteit; speler-protagonist Tammo)
 
 - **D3** BINNEN – STAD, STATION GRONINGEN, PERRON 1 – OCHTEND · Een stoptrein met Jochem · cutscene of gespeeld in de missie
-  - zaterdag, ochtend. Perron 1, een stoptrein staat klaar. Naamkaart: JOCHEM LUIKEN, STATIONSCHEF, bij zijn eerste regel. Gameplay: een dienst als conducteur of machinist; de trein staat in het menu bij Loopbaan.
+  - ochtend. Perron 1, een stoptrein staat klaar. Naamkaart: JOCHEM LUIKEN, STATIONSCHEF, bij zijn eerste regel. Gameplay: een dienst als conducteur of machinist; de trein staat in het menu bij Loopbaan.
   - praat: Jochem Luiken, Tammo, Tessa
 
 **Sequentie T2: De streekbus naar Zoutkamp** (activiteit; speler-protagonist Tammo)
@@ -431,12 +484,6 @@ Op de Grote Markt winnen ze het Ontzet met de beste eierbal, een eerlijke wagen 
   - praat: Tessa, Tammo, Dokter Dijkstra
 - **M12.5** BUITEN – WADDENKUST, EEMSHAVEN, HELIDEK – DAG · Het staat niet in het rooster: herhaling · replay
   - praat: Dokter Dijkstra
-
-**Sequentie J1: Post van de gemeente** (activiteit; speler-protagonist Tammo)
-
-- **J1** BINNEN – STAD, PADDEPOEL, DE FLAT – MIDDAG · Post van de gemeente · cutscene of gespeeld in de missie
-  - vrijdagmiddag, de flat in Paddepoel. Op de mat ligt een stapel brieven van de gemeente, bijna een bouwpakket. Tessa sorteert, Tammo zet thee.
-  - praat: Tessa, Tammo
 
 **Sequentie M13: Het containerlabyrint** (missie containers; speler-protagonist Tammo)
 
@@ -1050,13 +1097,13 @@ Op de Grote Markt winnen ze het Ontzet met de beste eierbal, een eerlijke wagen 
 
 | Personage | Akte 1 | Akte 2 | Akte 3 | Akte 4 | Akte 5 | Deel 4 |
 |---|---|---|---|---|---|---|
-| Tessa | 40 | 43 | 35 | 33 | 39 | 21 |
-| Tammo | 40 | 41 | 35 | 31 | 33 | 23 |
-| Jelle Terpstra | 4 | 10 | 12 | 8 | 12 | 4 |
-| Rikus | 9 | 4 | 4 | 7 | 11 | 4 |
+| Tessa | 49 | 41 | 34 | 33 | 39 | 21 |
+| Tammo | 49 | 39 | 34 | 31 | 33 | 23 |
+| Jelle Terpstra | 5 | 10 | 12 | 8 | 12 | 4 |
+| Rikus | 10 | 4 | 4 | 7 | 11 | 4 |
 | Berend Bos | 4 |  |  | 14 | 10 | 8 |
 | Douwe | 1 | 2 | 6 | 5 | 5 | 2 |
-| Oma Trijntje |  | 5 | 1 | 5 | 8 | 1 |
+| Oma Trijntje | 1 | 4 | 1 | 5 | 8 | 1 |
 | Durk | 1 | 1 | 6 | 4 | 5 | 2 |
 | Mem Terpstra |  | 2 |  | 6 | 9 |  |
 | Sjabbe | 7 |  | 1 | 1 | 2 | 1 |
@@ -1076,13 +1123,13 @@ Op de Grote Markt winnen ze het Ontzet met de beste eierbal, een eerlijke wagen 
 | Streamer | 4 |  |  |  |  |  |
 | Torenwachter | 1 |  |  |  | 3 |  |
 | Beppe | 2 |  |  | 1 | 1 |  |
+| Meneer Veldkamp | 3 |  |  |  |  | 1 |
 | Albert Teuben |  |  |  |  |  | 4 |
-| Meneer Veldkamp | 2 |  |  |  |  | 1 |
 | Snackbarhouder |  | 3 |  |  |  |  |
 | Sjoerd | 3 |  |  |  |  |  |
 | Femke |  |  |  | 1 |  | 2 |
 | Eppo Rozema |  |  |  |  |  | 3 |
-| Terrasgast | 1 | 1 |  |  |  |  |
+| Terrasgast | 2 |  |  |  |  |  |
 | Mevrouw Hoving | 1 |  |  | 1 |  |  |
 | Boer |  | 1 |  |  |  | 1 |
 | Tante Aaltje |  | 2 |  |  |  |  |
@@ -1092,6 +1139,9 @@ Op de Grote Markt winnen ze het Ontzet met de beste eierbal, een eerlijke wagen 
 | Anneke |  |  | 1 |  | 1 |  |
 | Mevrouw De Vries-Jansen |  |  |  |  |  | 2 |
 | Jelmer |  |  |  | 2 |  |  |
+| Sander Poelman | 1 |  |  |  |  |  |
+| Hoofdagent Wolthuis | 1 |  |  |  |  |  |
+| Hayo Prins | 1 |  |  |  |  |  |
 | Oom Hindrik |  | 1 |  |  |  |  |
 | De notaris |  | 1 |  |  |  |  |
 | Dries |  | 1 |  |  |  |  |
