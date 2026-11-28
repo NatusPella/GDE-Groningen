@@ -386,6 +386,13 @@ export function initStreetFurniture3D(sceneRef, mapRef) {
   // perf-r3 (24-11): alle soorten nu al, achter het laadscherm: hun LOD-ketens (lodsimplify.js) en shaders kostten na een
   // camerasprong tot ~130 ms in één beeld (3d:roads:meubilair) bij de eerste keer dat een soort in beeld kwam
   for (const k of Object.keys(GEOS)) setOf(k);
+  // de generator van de detaillaag een keer warm laten lopen op een klein verzonnen straatje: de eerste echte tegel kostte anders
+  // door de koude JIT meer dan een halve seconde (28-11, #1353)
+  try {
+    const rect = (x, y) => [[x - 3, y - 4.5], [x + 3, y - 4.5], [x + 3, y + 4.5], [x - 3, y + 4.5], [x - 3, y - 4.5]];
+    const bl = []; for (let i = 0; i < 40; i++) { bl.push({ pts: rect(10 + i * 7, 12), h: 2 }); bl.push({ pts: rect(10 + i * 7, -12), h: 2 }); }
+    for (let r = 0; r < 3; r++) detailForTile({ x0: 0, y0: -100, size: 400, roads: [{ pts: [[0, 0], [100, 0], [200, 0], [300, 0]], type: 'residential', cat: 'normal', width: 6 }], buildings: bl, water: [], rails: [], trees: [[50, 5], [80, -5]] });
+  } catch (e) { /* de warm-up is een gunst, geen voorwaarde */ }
 }
 
 const _m = new THREE.Matrix4(), _q = new THREE.Quaternion(), _p = new THREE.Vector3(), _s = new THREE.Vector3(), _up = new THREE.Vector3(0, 1, 0);
