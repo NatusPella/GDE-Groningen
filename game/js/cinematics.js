@@ -48,7 +48,6 @@ export function setCameraOverride(world, pose) {
 }
 // world.timeScale (0..1) slows gameplay; main.js multiplies the gameplay dt by it.
 
-const SKIP_HOLD_S = 0.9; // hold Space this long to skip a cutscene
 const LANDMARK_RADIUS = 55;
 const CRASH_COOLDOWN_MS = 20000;
 const BANNER_TIME = 3.8;
@@ -105,6 +104,7 @@ let wijkTimer = 0;
 // press started during a cutscene - then it is swallowed until its keyup
 let skipHoldSince = null;
 let swallowSpace = false;
+let spaceHeld = false; // Space is down since a press we already saw (#1341): only a fresh press skips, never a held key
 let skipShown = -1;
 let voicePaused = false;
 
@@ -145,7 +145,7 @@ export function initCinematics(w) {
     '<div class="cine-name"></div>' +
     '<div class="ds-sub ds-sub--film cine-sub">' + subtitleMarkup({ speaker: 'cine-speaker', line: 'cine-line' }) + '</div>' + // het gedeelde ondertitelcomponent (subtitleui.js)
     '<div class="cine-skip"><svg class="cine-skip-ring" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><circle class="fill" cx="12" cy="12" r="10"/></svg>' +
-    '<span>Houd</span> <span class="hud-key">SPATIE</span> <span>ingedrukt om over te slaan</span></div>' +
+    '<span class="hud-key">SPATIE</span> <span>om over te slaan</span></div>' +
     '<div class="cine-banner" hidden><div class="cb-col"><span class="cb-bar"></span><div class="cb-title"></div>' +
     '<div class="cb-reason"></div><div class="cb-fact"><span>Beloning</span><div class="cb-reward"></div></div><div class="cb-stats"></div></div></div>' +
     '<div class="cine-chip"></div>';
@@ -170,25 +170,29 @@ export function initCinematics(w) {
     lineIndex: -1,
   };
 
-  // Skipping needs Space held for SKIP_HOLD_S, never a single press. A press
-  // that starts during a cutscene never reaches gameplay (no handbrake or
-  // jump the moment the cutscene ends), not even its key repeats.
+  // #1341 (besluit eigenaar 28-11): skipping needs a FRESH press of Space. One press skips exactly one scene; a held key (keydown with
+  // repeat, or repeats without a keyup in between) does nothing and never skips a next scene, also not one that begins while the key is
+  // still down: the key has to be released first. A press that starts during a cutscene never reaches gameplay (no handbrake or jump
+  // the moment the cutscene ends), not even its key repeats.
   window.addEventListener('keydown', (e) => {
     if (e.key !== ' ') return;
+    const fresh = !e.repeat && !spaceHeld;
+    spaceHeld = true;
     if (swallowSpace) { e.preventDefault(); e.stopImmediatePropagation(); return; }
     // a key repeat of a press from before the cutscene (the handbrake) is no skip
-    if (!cutsceneTakesSpace(active, { repeat: e.repeat, started: gameStarted(), menuOpen: isPauseMenuOpen() || isMapOpen() })) return;
+    if (!fresh || !cutsceneTakesSpace(active, { repeat: false, started: gameStarted(), menuOpen: isPauseMenuOpen() || isMapOpen() })) return;
     e.preventDefault();
     e.stopImmediatePropagation();
     swallowSpace = true;
-    skipHoldSince = active.skippable ? performance.now() : null;
+    skipHoldSince = active.skippable ? performance.now() : null; // the press waits for the next tick (updateSkipHold)
   }, true);
   window.addEventListener('keyup', (e) => {
     if (e.key !== ' ') return;
     swallowSpace = false;
+    spaceHeld = false;
     skipHoldSince = null;
   }, true);
-  window.addEventListener('blur', () => { swallowSpace = false; skipHoldSince = null; });
+  window.addEventListener('blur', () => { swallowSpace = false; spaceHeld = false; skipHoldSince = null; });
 
   w.onRespawn.push((wd, { busted }) => {
     if (respawnFromCine) return;
@@ -537,15 +541,12 @@ function clearCinematicUi() {
 }
 
 function updateSkipHold() {
-  let k = 0;
-  if (active && active.skippable && skipHoldSince != null) {
-    k = Math.min(1, (performance.now() - skipHoldSince) / (SKIP_HOLD_S * 1000));
-    if (k >= 1 && active.t > 0.25) {
-      skipHoldSince = null;
-      finish(true);
-      k = 0;
-    }
-  } else if (!active) skipHoldSince = null;
+  const k = 0;
+  // a fresh press (keydown handler) skips the running scene once; the press is consumed either way
+  if (skipHoldSince != null) {
+    skipHoldSince = null;
+    if (active && active.skippable && active.t > 0.25) finish(true);
+  }
   const shown = Math.round(k * 100);
   if (shown === skipShown) return;
   skipShown = shown;

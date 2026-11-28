@@ -51,7 +51,7 @@ delete env.ELECTRON_RUN_AS_NODE;
 await takeSlot();
 let out = '';
 try {
-  const child = spawn(electron, ['.', '--windowed', '--stil', '--force-device-scale-factor=1', '--window-size=1600x900',
+  const child = spawn(electron, ['.', '--no-sandbox', '--windowed', '--stil', '--force-device-scale-factor=1', '--window-size=1600x900',
     `--smoke-test=${path.join(OUT, 'shots.png')}`, `--perf-script=${script}`, ...(CHECK === 'audio' || CHECK === 'achtervolging' || CHECK === 'radioads' ? ['--audio-graph'] : []), ...(CHECK === 'achtervolging' ? [`--bench-eval=${path.join(HERE, 'audiotap.js')}`] : [])], { cwd: path.join(ROOT, 'desktop'), env, windowsHide: false });
   try { os.setPriority(child.pid, os.constants.priority.PRIORITY_BELOW_NORMAL); } catch { /* geen rechten */ }
   child.stdout.on('data', (d) => { out += d; });

@@ -39,6 +39,8 @@ import { isInsideBuilding, setPedPose } from './pedgeom.js';
 import { knockDown, isKnockedDown } from './ragdoll.js';
 import { getShopsForRender, repaintVehicle, setStoryOutfit, ownedCarTops } from './shops.js';
 import { garageInside } from './garages.js';
+import { garageGuide } from './garageguide.js';
+import { attachTow, updateTow, removeTow } from './towtrailer.js'; // #1342: de aanhanger met de pinautomaat
 import { getHomeGarageForRender } from './home.js';
 import { startPigeonMode, stopPigeonMode, getPigeonFlight, summonDiveGull } from './pigeonmode.js';
 import { getPigeonSpotsForRender } from './pigeonspots.js';
@@ -1022,6 +1024,7 @@ function boatProgressText(rv) {
 // The car/boat stays in the world after the mission, but as ordinary
 // traffic that the population managers may despawn.
 function releaseMissionVehicle(world) {
+  removeTow();
   disposeConvoy(world, chainState().convoy);
   chainState().convoy = null;
   hideBake();
@@ -1546,6 +1549,7 @@ function startMission(world, def) {
     } else if (def.vehicle === 'car' && def.start.road) {
       chainState().vehicle = spawnMissionCar(world, def);
       world.vehicles.push(chainState().vehicle);
+      if (def.tow) attachTow(chainState().vehicle); // #1342: de pinautomaat staat op een aanhanger achter de bus
     }
     if (def.boatStart) spawnStoryBoat(world, def);
     // akte 4 (Open, dicht): a boat at the start of a stages mission, `boatAt` { x, y, angle }, `boatModel` a BOAT_KINDS key
@@ -2347,6 +2351,8 @@ function stageMarker(world, def) {
     return k >= 0 ? S.targets[k] : def.start;
   }
   if (st.kind === 'chase' && st.race && S.finish) return S.finish;
+  // #1342: een garage wijst eerst naar de deur aan de straatkant, pas vlakbij naar het midden van de box
+  if (st.kind === 'garage' && S.target && S.target.door) { const pl = hoofdspeler(world); return garageGuide(S.target, pl.inVehicle || pl, S); }
   return S.target || S.here;
 }
 
@@ -3314,6 +3320,7 @@ function playStageScene(world, st, S) {
 
 function updateStages(dt, world, def) {
   const p = hoofdspeler(world);
+  if (def.tow) updateTow();
   if (chainState().stagePending) {
     if (isCinematicActive()) return;
     chainState().stagePending = false;

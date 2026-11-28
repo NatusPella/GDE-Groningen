@@ -12,6 +12,8 @@ check('the fierljep aim camera passes Space on', !cutsceneTakesSpace({ id: 'pg-a
 check('no cutscene: Space is the game\'s', !cutsceneTakesSpace(null));
 check('a key repeat is never taken', !cutsceneTakesSpace({ id: 'x' }, { repeat: true }));
 check('with the pause menu open the menu has it', !cutsceneTakesSpace({ id: 'x' }, { menuOpen: true }));
+check('a held key never skips: only a fresh press is taken (#1341)', cutsceneTakesSpace({ id: 'x' }, { repeat: false }) && !cutsceneTakesSpace({ id: 'x' }, { repeat: true }));
+check('before the game has started the menu has it', !cutsceneTakesSpace({ id: 'x' }, { started: false }));
 
 const el = (tagName, extra = {}) => ({ tagName, getAttribute: (k) => (extra.attrs || {})[k] ?? null, ...extra });
 check('a focused button is blurred on Space while playing', blurForGameKey(' ', el('BUTTON'), true));

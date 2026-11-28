@@ -125,6 +125,9 @@ export function buildDefsVoorMuseum({ map, walk, drive }) {
       timeLimit: null,
       reward: 400,
       vehicle: 'car',
+      // #1342: een bestelbus met de pinautomaat op een aanhanger erachter (towtrailer.js); zonder vaste bus kreeg je een willekeurige auto
+      vehicleModel: { name: 'van', len: 5.0, wid: 2.0, maxSpeed: 38, accel: 7, brake: 19, turnRate: 2.0, color: '#d9d9d9' },
+      tow: 'pinautomaat',
       start: drive(235.26, 401.14),
       stages: [
         { kind: 'board', label: 'Stap in de auto met de pinautomaat', say: 'Instappen: de automaat ligt achterin, met mijn pas erin. Hij piept een beetje.' },

@@ -22,6 +22,8 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 - Voertuigen: lampen, interieur en deurgaten van voertuigen verdwijnen niet meer door een shaderfout bij het uitdoven op afstand (de fadeshader miste de afstandsvariabele voor onverlichte materialen).
 - Voertuigen: bij lichte auto's (hatch, suv, stationwagen) staken donkere rechthoeken door portieren en achterspatbord en een donkere rand boven het dak uit: het interieur (dashboard, achterbank, dakhemel) lag buiten de gebogen huid. Het interieur blijft nu binnen de carrosserie.
 - Quad: de berijder grijpt nu de handvatten van het stuur in plaats van met gebalde vuisten voor de borst te hangen, en zit iets verder naar voren op de zitting. Samen spelen: alles is lokaal beeld, een gast ziet hetzelfde model en dezelfde pose; geen netwerkwijziging.
+- Even pinnen: je rijdt nu in een bestelbus met de pinautomaat op een aanhanger erachter (die zwenkt mee door de bocht), en de pijl bij "rij een garage in" wijst naar de deur aan de straatkant in plaats van dwars door de muur. Samen spelen: de aanhanger is beeld van het spel dat de opdracht draait; een gast ziet hem nog niet, stappen, beloning en voortgang hangen er niet van af.
+- Cutscenes overslaan werkt nu met een losse druk op Spatie (de hint zegt "Spatie om over te slaan"): één druk slaat precies één scène over. Een vastgehouden toets doet niets en slaat nooit meer scènes of een missiestap over, ook niet als er een nieuwe scène begint terwijl je de toets nog vasthoudt; eerst loslaten. Zelfde regel bij het overslaan van een reis. Samen spelen: geldt voor host en gast.
 
 ## [0.66.0] - 2026-11-24
 
