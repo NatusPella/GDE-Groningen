@@ -11,8 +11,9 @@ const idx = (id) => STEPS.findIndex((s) => s.id === id);
 const J = ['J1', 'J2', 'J3', 'J4', 'J5', 'J6'];
 
 ok(J.every((id) => ADDED_STEPS.includes(id)) && J.every((id) => idx(id) >= 0), 'zes nieuwe stappen J1 tot en met J6 zijn toegevoegde stappen');
-ok(STEPS.filter((s) => s.kind === 'mission').map((s) => s.id).join() === [...Array(30)].map((_, i) => 'M' + String(i + 1).padStart(2, '0')).join(), 'de dertig missies staan nog in dezelfde volgorde');
-ok(idx('M12') < idx('J1') && idx('J1') < idx('M13') && idx('M14') < idx('J2') && idx('J2') < idx('T3') && idx('A2') < idx('J3') && idx('J3') < idx('M17')
+ok(STEPS.filter((s) => s.kind === 'mission').map((s) => s.id).join() === ['M01', 'M02', 'M03', 'M05', 'M04', ...[...Array(25)].map((_, i) => 'M' + String(i + 6).padStart(2, '0'))].join(), 'de dertig missies staan in de volgorde van de hoofdstuklijn (28-11: M05 staat voor M04, de rest ongewijzigd)');
+// hoofdstuklijn 28-11: J1 (de eerste brief) staat in H2, voor M02
+ok(idx('J1') < idx('M02') && idx('M14') < idx('J2') && idx('J2') < idx('T3') && idx('A2') < idx('J3') && idx('J3') < idx('M17')
   && idx('M17') < idx('J4') && idx('J4') < idx('M18') && idx('M18') < idx('J5') && idx('J5') < idx('M19') && idx('M19') < idx('J6') && idx('J6') < idx('T4'), 'de stappen staan op hun invoegpunt');
 ok(J.every((id) => { const s = STEPS.find((x) => x.id === id); return s.kind === 'activity' && s.built && !s.reward && !s.cost && !s.unlocks && s.scenes.includes(id); }), 'elke nieuwe stap is een activiteit met een scène, zonder beloning, kosten of vlag');
 ok(J.every((id) => { const g = STEPS[idx(id)].goal; return (g.type === 'reis' && g.scene === id) || (g.type === 'home' && STEPS[idx(id)].homeScene.id === id); }), 'elke stap speelt zijn scène bij aankomst of in de flat');
@@ -27,7 +28,9 @@ const saveTot = (laatste) => {
 };
 const huidige = (laatste) => { const s = saveTot(laatste); return nextStoryStep((id) => s.done.has(id), s.mp, () => false); };
 
-ok(huidige('M12').id === 'J1', 'een oude save na M12 krijgt de post van de gemeente (J1) te spelen', huidige('M12').id);
+// J1 is naar H2 verhuisd: een oude save voorbij het nieuwe invoegpunt heeft hem als gedaan (geen herhaling, geen blokkade); een save vóór M02 speelt hem
+ok(huidige('M12').id === 'M13', 'een oude save na M12 heeft J1 als gedaan (J1 is naar H2 verhuisd)', huidige('M12').id);
+ok(huidige('M01').id === 'N1' && stepDone(idx('J1'), (x) => saveTot('M01').done.has(x), saveTot('M01').mp) === false, 'een oude save na M01 speelt J1 nog in H2 (het is geen gedane stap)', huidige('M01').id);
 ok(huidige('M13').id !== 'J1' && huidige('M13').id !== 'M13', 'een oude save voorbij M13 herhaalt J1 niet', huidige('M13').id);
 ok(huidige('M14').id === 'J2', 'een oude save na M14 krijgt de envelop in Appingedam (J2)', huidige('M14').id);
 ok(huidige('T3').id === 'M15', 'voorbij T3 geen herhaling van J2', huidige('T3').id);

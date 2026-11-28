@@ -3,9 +3,6 @@
  "order": "bible",
  "violations": [
   "M02|henk|noemt",
-  "M02|jelle|noemt",
-  "M03|bert|noemt",
-  "M03|bert|spreekt",
   "M07|snackbar|spreekt",
   "M08|klaas|noemt",
   "M09|mem|noemt",
@@ -14,8 +11,6 @@
   "M10|mem|spreekt",
   "M12|dijkstra|spreekt",
   "M15|geert|noemt",
-  "N1|sjabbe|spreekt",
-  "N4|jelle|spreekt",
   "N6|klaas|spreekt",
   "T1|geesje|noemt",
   "T2|klaas|noemt",

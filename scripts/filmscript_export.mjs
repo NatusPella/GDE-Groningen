@@ -11,12 +11,20 @@ const data = JSON.parse(fs.readFileSync(new URL('game/storydata/script.json', ro
 const { STEPS, PARTS } = await import('../game/js/storyarc.js');
 const { BRIDGES } = await import('../game/js/storyarc.js');
 
-const LOGLINE = 'Twee net afgestudeerde vrienden van 24 weten niet wat ze met hun leven moeten en zijn bang elkaar kwijt te raken; terwijl ze allerlei loopbanen proberen en een Friese snackbaron hun in de weg zit, ontdekken ze dat ze verliefd zijn en samen een snackwagen willen.';
+// de logline van de hoofdstuklijn (bijbel 28-11, 01 sectie 1); de synopsis en de beat sheet per akte hieronder beschrijven nog de oude akte-opzet en worden per hoofdstuk herschreven (zie de lijst H4 tot en met H16 in het eindrapport van #1368 tot en met #1370)
+const LOGLINE = 'Twee net afgestudeerde vrienden uit Groningen weten niet wat ze willen worden, maar wel dat ze elkaar niet kwijt willen. Over één zomer proberen ze alles: de boerderij van een oom, een dorpsvoetbalclub, een taxidienst, een rondvaartboot. Ondertussen krijgen ze brieven van een bureaucratische Friese snackbaron, met kenmerken en bezwaartermijnen. Pas als alles wat ze leerden samenkomt, bouwen ze iets wat alleen zij kunnen: een snackwagen met een eigen standplaats.';
 const SYNOPSIS = [
   'Vrijdag 14 augustus, Grunn. Tammo en Tessa verhuizen als huisgenoten naar Paddepoel. Geen baan, geen plan, wel de angst dat na de studie iedereen een eigen kant op gaat. Een wedstrijd (de Noordelijke Snackprijs) en een gouden eierbal zijn het eerste gedeelde project; Jelle Terpstra, een lange, rijke, bureaucratische Fries met een klomp vol contant geld, wint intussen met regels, vergunningen en trucs, "foar mem".',
   'Door het Noorden proberen ze baantjes en loopbanen: Tammo rijdt, Tessa heeft de boerderij, de kermis en later het voetbal. In sommige dingen zijn ze elkaars redding, in andere kunnen ze niet samenwerken. Onderweg zien ze hoe lief de ander voor andere mensen is, en dat is waar het van gaat. Na een misverstand en een herstel (de knuffel) vallen de stukjes: een snackwagen, voor haar de snacks, voor hem het rijden en de plek naast haar.',
   'Op de Grote Markt winnen ze het Ontzet met de beste eierbal, een eerlijke wagen en de vrienden die ze onderweg hielpen; Tammo zegt zijn vijf woorden, en ze worden een stel. Daarna is er geen einde maar een open wereld: de wagen laten groeien, standplaatsen overnemen en het snackimperium van Jelle uitdagen, terwijl alle loopbanen openblijven.',
 ].join('\n\n');
+
+// beat sheet per hoofdstuk (de nieuwe lijn, bijbel 28-11, 01 sectie 4.3): alleen H1 tot en met H3 zijn al uitgewerkt; H4 tot en met H16 volgen met hun bouwronde
+const HOOFDSTUKKEN = [
+  { h: 'H1 Verhuisdag', open: 'De keuken in de Oosterparkwijk, een bierviltje met een blauwe wagen; daarna de verhuizing naar de flat in Paddepoel.', vraag: 'Raak je elkaar kwijt als alles verandert?', katalysator: 'Geld nodig: een bakkie, een bord Vrije standplaats op de Vismarkt en de radiospot van Us Mem Snacks.', keerpunt: 'Berend, nul krassen, de eerste euro\'s en een Fries met een klomp.', slot: 'Half drie, een pannetje friet: Tessa wil dit elke nacht, voor mensen die nog wakker zijn. Mijlpaal: de eerste regel van "Wat weten we?" (ze willen elkaar niet kwijt).', stappen: ['M00', 'h1-vismarkt', 'M01', 'N1', 'N3', 'W1'] },
+  { h: 'H2 De straat', open: 'De gang op de elfde verdieping: Veldkamp, een duif en een vraag ("Zijn jullie al…?").', vraag: 'Wie is hier de baas van de straat?', katalysator: 'De eerste brief: J. Terpstra, voorzitter van de Commissie Standplaatsen Noord.', keerpunt: 'Het Loket: Jelle stempelt zelf het werkbewijs, "Bezwaar: zes weken. Helaas drie dagen."', slot: 'Het werkbewijs is binnen; Jelle is een naam, een stem en een bureaucraat. Mijlpaal: formulier 14-B ingeleverd.', stappen: ['N2', 'h2-scooters', 'J1', 'h2-bon', 'M02', 'N4', 'M03'] },
+  { h: 'H3 De stad is een derde hoofdpersoon', open: 'De Grote Markt, een koperen bel: de stadsomroeper leest een besluit voor.', vraag: 'Waar hoort de stad bij jou, en jij bij de stad?', katalysator: 'Bert en zijn duiven geven de stad van boven; een fietsrace en een middag op het terras.', keerpunt: 'De Kiezelweek, vijf jaar geleden: de "Oma van de straat" is Tessa\'s oma.', slot: 'De avond bij Oma Trijntje aan de Noorderhaven: 1953, de Snackprijs en een gerecht van vijf ingrediënten, vijf vrienden. Mijlpaal: de kaart van de Stad is open.', stappen: ['h3-omroeper', 'h3-bert', 'M05', 'N10', 'h3-kiezelweek', 'N8'] },
+];
 
 // beat sheet per akte: [deel]: { beeld, vraag, katalysator, keerpunt, midpoint, verloren, climax, slotbeeld }
 const BEATS = {
@@ -61,6 +69,14 @@ L.push('');
 L.push('## Synopsis');
 L.push('');
 L.push(SYNOPSIS);
+L.push('');
+L.push('## Beat sheet per hoofdstuk (nieuwe lijn)');
+L.push('');
+L.push('De hoofdstukken H1 tot en met H3 zijn het nieuwe begin (bijbel 28-11); de aktes hieronder beschrijven de rest nog zoals de oude opzet. H4 tot en met H16 en de nazomer volgen met hun bouwronde. In het spel staat M04 (Kieken van boven) en M06 (de kraak) voorlopig nog direct na H3; ze verhuizen naar H12.');
+L.push('');
+L.push('| Hoofdstuk | Openingsbeeld | Thema-vraag | Katalysator | Keerpunt | Slotbeeld en mijlpaal | Stappen |');
+L.push('|---|---|---|---|---|---|---|');
+for (const c of HOOFDSTUKKEN) L.push(`| ${c.h} | ${c.open} | ${c.vraag} | ${c.katalysator} | ${c.keerpunt} | ${c.slot} | ${c.stappen.join(', ')} |`);
 L.push('');
 L.push('## Beat sheet per akte');
 L.push('');

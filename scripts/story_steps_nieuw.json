@@ -1,9 +1,9 @@
 {
   "_": "De nieuwe stappenlijst van de verhaalbijbel (docs/verhaal/bijbel-28-11/01-verhaal-en-personages.md, 4.3 en 6.1 tot 6.2): per hoofdstuk de stappen in speelvolgorde. 'Nazomer' volgt na H16. Stappen die in game/storydata/script.json nog niet bestaan staan onder 'planned' (V1 tot V3: voetbal, H6; A1 en A2: bietenoogst en kermisrit); ze tellen mee in scripts/characterdossiers_test.mjs en scripts/story_names_test.mjs. Pas dit bestand aan als de bijbel of het script verandert; de tests lezen de volgorde hieruit.",
   "chapters": {
-    "H1": ["M00", "M01", "N1", "N3", "W1"],
-    "H2": ["N2", "J1", "M02", "N4", "M03"],
-    "H3": ["M05", "N10", "N8"],
+    "H1": ["M00", "h1-vismarkt", "M01", "N1", "N3", "W1"],
+    "H2": ["N2", "h2-scooters", "J1", "h2-bon", "M02", "N4", "M03"],
+    "H3": ["h3-omroeper", "h3-bert", "M05", "N10", "h3-kiezelweek", "N8"],
     "H4": ["T1", "M09", "K1", "T2", "N6", "N5"],
     "H5": ["J3", "M10", "A1"],
     "H6": ["V1", "V2", "V3"],

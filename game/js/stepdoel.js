@@ -11,7 +11,13 @@
 export const MAX_DOEL = 44;
 
 export const STEP_DOEL = Object.freeze({
+  'h1-vismarkt': 'Loop naar de Vismarkt',
   M01: 'Praat met Berend bij het Martinikerkhof',
+  'h2-scooters': 'Ga naar de scooters voor het portiek',
+  'h2-bon': 'Ga naar het politiebureau voor de bon',
+  'h3-omroeper': 'Luister naar de omroeper op de Grote Markt',
+  'h3-bert': 'Ga naar Bert op het dak bij het station',
+  'h3-kiezelweek': 'Ga naar het Academiegebouw, waar het begon',
   M02: 'Ga naar de pinautomaat in de Herestraat',
   N1: 'Ga naar Sjabbe in de Herestraat',
   N2: 'Ga naar de duif op de gang thuis',
@@ -43,7 +49,7 @@ export const STEP_DOEL = Object.freeze({
   M11: 'Praat met Klaas in Zoutkamp',
   K2: 'Ga naar de kade in Zoutkamp',
   M12: 'Praat met Dijkstra in Lauwersoog',
-  J1: 'Ga naar huis: er ligt post op de mat',
+  J1: 'Ga naar huis voor de post op de mat',
   M13: 'Praat met Lammert in de Eemshaven',
   K3: "Ga naar Lammerts havenkantoor",
   M14: 'Ga naar de dijk bij Bierum',

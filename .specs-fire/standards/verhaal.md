@@ -31,7 +31,7 @@ zomer en in de stem van de vaste cast; tekst is data (canon, script, build, spel
 4. **Spel**: `game/js/storytext.js` leest `game/storydata/script.json`;
    `game/js/storyarc.js` is de enige facade voor de rest van het spel (`:7`, `:16`).
 
-De data: 292 scènes, 2.237 regels in act 1 tot en met 6; 57 zijn stille appjes en 174 hebben geen opname (de 37 appjes zijn bewust stil; 4 regels wachten sinds de verhaalcanon van 21-11 op een nieuwe opname, zie docs/VERHAALCANON-21-11.md; de
+De data: 298 scènes, 2.317 regels in act 1 tot en met 6; 57 zijn stille appjes en 261 hebben geen opname (de 37 appjes zijn bewust stil; 4 regels wachten sinds de verhaalcanon van 21-11 op een nieuwe opname, zie docs/VERHAALCANON-21-11.md; de
 1.390 andere gesproken regels hebben een opname, stand 21-11). Een regel zonder opname toont
 het spel als ondertitel met leestijd (`game/js/storytext.js:53`). Een `[BEHOUDEN]`-regel heeft een opname: één andere
 letter maakt hem stil. Nieuwe opnames komen er in rondes bij op Flash-Lite (ADR 0019,
@@ -188,7 +188,7 @@ Een cutscene gebruikt **alleen de echte assets en systemen van het spel**, nooit
 - **Nog open:** `docs/personages.md` gebruikt verderop nog de oude H-nummering voor
   verhaalstappen (H4, H10, H13, H16, H18). De vertaling is één tabel: `STEP_ALIAS`
   (`game/js/storyarc_nieuw.js:118-122`) zegt H4 → M04, H10 → M24, H13 → M11, H16 → M21
-  en H18 → M26. De kus is M16 (`docs/verhaal/nieuw/09-script-akte3.md:219`; canon
+  en H18 → M26. De kus is M16 (`docs/verhaal/nieuw/09-script-akte3.md:201`; canon
   `docs/verhaal/nieuw/03-akte3.md:141` noemt hem "was H11"), dus `docs/personages.md:275`
   zet de kus ten onrechte op H13; volgens de tabel hoort H13 bij M11, de kustmissie.
 
@@ -210,9 +210,9 @@ De kern (eigenaar, 21-11): twee net afgestudeerde vrienden zoeken een plekje in 
 
 | Waar | Wat |
 |---|---|
-| `docs/verhaal/nieuw/00-OVERZICHT.md:118` | T1 heet daar "Station Groningen → Winsum", met een losse rit naar Warffum erna (`:119`); `docs/verhaal/nieuw/09-script-akte2.md:111` en `game/js/storyarc_nieuw.js:257` zeggen allebei dat T1 naar Warffum gaat. |
+| `docs/verhaal/nieuw/00-OVERZICHT.md:118` | T1 heet daar "Station Groningen → Winsum", met een losse rit naar Warffum erna (`:119`); `docs/verhaal/nieuw/09-script-akte2.md:225` en `game/js/storyarc_nieuw.js:257` zeggen allebei dat T1 naar Warffum gaat. |
 | `docs/verhaal/nieuw/00-OVERZICHT.md:80` | De totaalrij zegt nog "26 missies, 4 reisbeats" (het plan van vóór Deel 4, `:82`); de code heeft er 30 en 5 door Deel 4 (`docs/verhaal/nieuw/DEEL4.md:21-25`). |
-| `docs/verhaal/nieuw/07-TTS-RAMING.md:24` | 172 scènes en 1.164 uitingen voor de vijf akten; `game/storydata/script.json` telt er 292 en 2237 |
+| `docs/verhaal/nieuw/07-TTS-RAMING.md:24` | 172 scènes en 1.164 uitingen voor de vijf akten; `game/storydata/script.json` telt er 298 en 2317 |
 
 Opgelost op 25-10: de dubbele kermisdatum, "KEI-week" op vier plekken, Tessa's
 stemprofiel, en de verouderde `built`-comment.

@@ -56,13 +56,16 @@ export function missionIndexOf(id) {
 // saves, missions played ahead). Shared by story.js and the save migration test.
 // Een toegevoegde stap: N1 tot en met N8 (ronde 4) of een stap met `added: true` (de slotstappen F1 tot en met F6, verhaal-eind): zonder beloning, met migratie.
 const isAdded = (s) => s.added === true || /^[NJ]\d+$/.test(s.id);
+// where counting a passed step starts for an added activity: right behind it, or at its `mootAfter` step (storyarc_nieuw.js)
+const mootFrom = (s) => { if (!s.mootAfter) return 0; const i = STEPS.findIndex((q) => q.id === s.mootAfter); return i < 0 ? 0 : i; };
 export function stepDone(k, doneId, missionPassed) {
   const passed = (s) => doneId(s.id) || (s.kind === 'mission' && missionIndexOf(s.mission) >= 0 && missionPassed(missionIndexOf(s.mission)));
   const step = STEPS[k];
   if (doneId(step.id)) return true;
   if (step.kind === 'mission') return passed(step);
   // de nieuwe stappen N1 tot en met N8 (ronde 4): een oude save die verder is, heeft ze nooit gezien en speelt ze niet meer (ADDED_STEPS hieronder)
-  if (isAdded(step)) { for (let j = k + 1; j < STEPS.length; j++) if (doneId(STEPS[j].id) || passed(STEPS[j])) return true; return false; }
+  // `mootAfter` (chapter line 28-11): a step that moved in the arc is only made moot by what followed it in the story an old save knows
+  if (isAdded(step)) { for (let j = Math.max(k + 1, mootFrom(step)); j < STEPS.length; j++) if (doneId(STEPS[j].id) || passed(STEPS[j])) return true; return false; }
   for (let j = k + 1; j < STEPS.length; j++) if (STEPS[j].kind === 'mission' && passed(STEPS[j])) return true;
   return false;
 }

@@ -67,11 +67,11 @@ t('vooruit: de stappen ertussen zijn overgeslagen met een deel van het geld, de 
   const r = V.pasVerhaalToe(was, 'M06');
   assert.deepEqual(was, kopie);
   assert.equal(r.status, 'vooruit'); const alleenMissies = (l) => l.filter((id) => /^M[0-9]/.test(id)); // de tussenstappen N, T, A, J, F en V staan er ook tussen en zijn ook overgeslagen
-  assert.deepEqual(alleenMissies(r.overgeslagen), ['M02', 'M03', 'M04', 'M05']);
-  assert.deepEqual(alleenMissies(r.save.story.skipped), ['M02', 'M03', 'M04', 'M05'], 'overgeslagen, de opdracht zelf niet');
+  assert.deepEqual(alleenMissies(r.overgeslagen), ['M02', 'M03', 'M05', 'M04']);
+  assert.deepEqual(alleenMissies(r.save.story.skipped), ['M02', 'M03', 'M05', 'M04'], 'overgeslagen, de opdracht zelf niet');
   const loon = STEP_BY_ID.get('M02').reward + STEP_BY_ID.get('M03').reward + STEP_BY_ID.get('M04').reward + STEP_BY_ID.get('M05').reward;
   assert.ok(r.bonus > 0 && r.bonus <= loon / 2 + 20 && r.bonus % 5 === 0, 'de helft van de beloningen, op 5');
-  assert.deepEqual(r.missies, ['M02', 'M03', 'M04', 'M05', 'M06'].map(missionIndexOf), 'ook de overgeslagen missies zijn voor zijn eigen prestaties');
+  assert.deepEqual(r.missies, ['M02', 'M03', 'M05', 'M04', 'M06'].map(missionIndexOf), 'ook de overgeslagen missies zijn voor zijn eigen prestaties');
   for (const id of ['M02', 'M03', 'M04', 'M05', 'M06']) assert.ok(stapDone(r.save, id), id);
   assert.equal(volgende(r.save).id, 'M07');
   assert.ok(r.save.missions.index === missionIndexOf('M07'), 'de volgende missie is de eerstvolgende open');
@@ -218,7 +218,7 @@ t('host plus twee gasten: dezelfde stand telt mee, wie nog niet zover is bevesti
   assert.equal(hw.coopNet.meedoen.keuze[2], 'ja'); assert.equal(b.coopMeedoenJa, 'M06');
   gelukt(hw); step(1);
   assert.ok(stapDone(a.save, 'M06') && a.save.story.skipped.length === 0, 'A: gedaan, niets overgeslagen');
-  assert.ok(stapDone(b.save, 'M06') && b.save.story.skipped.filter((id) => /^M[0-9]/.test(id)).join() === 'M02,M03,M04,M05', 'B: meegesprongen, tussenliggende stappen overgeslagen');
+  assert.ok(stapDone(b.save, 'M06') && b.save.story.skipped.filter((id) => /^M[0-9]/.test(id)).join() === 'M02,M03,M05,M04', 'B: meegesprongen, tussenliggende stappen overgeslagen');
   assert.ok(b.money > 0 && a.money > 0, 'beloning (deel) en voor B ook het geld van de overgeslagen missies');
   assert.ok(b.messages.some((m) => /meegesprongen naar Museumkraak\. [0-9]+ stappen ervoor zijn overgeslagen/.test(m)));
   assert.ok(a.messages.some((m) => /staat nu ook in jouw eigen verhaal als gedaan/.test(m)));
