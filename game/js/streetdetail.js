@@ -152,17 +152,27 @@ export function detailForTile({ x0, y0, size = 1000, roads = [], buildings = [],
   // vrij: niet op een rijbaan of fietspad (rand + margin), niet in een gebouw (house m), niet in water en niet op het spoor
   const clear = (x, y, { house = 0.45, road = 0.35 } = {}) => {
     if (buildingGap(x, y, house) < house) return false;
-    const hit = nearest(x, y, 12, null);
-    if (hit) {
-      const w = (hit.road.width || (hit.road.cat === 'cycle' ? 2 : 5)) / 2;
-      if (hit.d < w + road) return false;
+    const c = rg.get(cell(Math.floor(x / RG), Math.floor(y / RG)));
+    if (c) {
+      for (let k = 0; k < c.length; k += 2) {
+        const r = c[k], A = r.pts[c[k + 1]], Bp = r.pts[c[k + 1] + 1];
+        if (segDist(x, y, A[0], A[1], Bp[0], Bp[1]) < (r.width || (r.cat === 'cycle' ? 2 : 5)) / 2 + road) return false;
+      }
     }
     return !inWater(x, y) && !onRail(x, y);
   };
   // iets wat al staat: een kliko, fiets of plantenbak mag er niet bovenop (0,7 m)
-  const spots = [];
-  const taken = (x, y, r = 0.7) => spots.some((s) => (s[0] - x) ** 2 + (s[1] - y) ** 2 < r * r);
-  const claim = (x, y) => spots.push([x, y]);
+  const spots = new Map();
+  const sk = (gx, gy) => gx * 65536 + gy;
+  const taken = (x, y, r = 0.7) => {
+    const g = Math.floor(x / 2), h = Math.floor(y / 2), n = Math.ceil(r / 2);
+    for (let a = g - n; a <= g + n; a++) for (let b = h - n; b <= h + n; b++) {
+      const l = spots.get(sk(a, b));
+      if (l) for (const p of l) if ((p[0] - x) ** 2 + (p[1] - y) ** 2 < r * r) return true;
+    }
+    return false;
+  };
+  const claim = (x, y) => { const k = sk(Math.floor(x / 2), Math.floor(y / 2)); (spots.get(k) || spots.set(k, []).get(k)).push([x, y]); };
 
   // vaste volgorde: het resultaat hangt niet af van de volgorde waarin de kaart de rijen levert (een claim van het ene gebouw telt voor het volgende)
   blds.sort((p, q) => p.bounds[0] - q.bounds[0] || p.bounds[1] - q.bounds[1]);
@@ -220,29 +230,20 @@ export function detailForTile({ x0, y0, size = 1000, roads = [], buildings = [],
       if (kind) {
         for (const [a0, a1] of [[u0, doorU - gate], [doorU + gate, u1]]) {
           if (a1 - a0 < 0.8) continue;
-          if (kind === 'hedge') {
-            const n = Math.max(1, Math.round((a1 - a0) / 2)), len = (a1 - a0) / n;
-            for (let i = 0; i < n; i++) {
-              const [x, y] = at(a0 + len * (i + 0.5), gd);
-              if (!rowOk(a0 + len * (i + 0.5), gd, { house: 0.5, road: 0.5 }) || !rowOk(a0 + len * i, gd) || !rowOk(a0 + len * (i + 1), gd)) continue;
-              put({ k: 'tuinhaag', x, y, a: tAng, s: len / 2, h: hedgeH });
-            }
-          } else {
-            const n = Math.max(1, Math.round((a1 - a0) / 2)), len = (a1 - a0) / n;
-            // stukken van 2 m: bij een afwijkende lengte schalen we niet; de laatste vult met een stuk iets korter
-            for (let i = 0; i < n; i++) {
-              const u = a0 + len * (i + 0.5), [x, y] = at(u, gd);
-              if (!rowOk(u, gd) || !rowOk(u - 1, gd) || !rowOk(u + 1, gd)) continue;
-              put({ k: 'lattenhek', x, y, a: faceTo(tAng, faceA), s: len / 2 });
-            }
+          // de lijn is vrij als beide uiteinden en het midden vrij zijn; anders geen haag of hek voor dit stuk
+          if (!rowOk(a0, gd, { house: 0.5, road: 0.5 }) || !rowOk(a1, gd, { house: 0.5, road: 0.5 }) || !rowOk((a0 + a1) / 2, gd, { house: 0.5, road: 0.5 })) continue;
+          const n = Math.max(1, Math.round((a1 - a0) / 2)), len = (a1 - a0) / n;
+          for (let i = 0; i < n; i++) { // stukken van 2 m, iets geschaald in de lengte
+            const u = a0 + len * (i + 0.5), [x, y] = at(u, gd);
+            if (kind === 'hedge') put({ k: 'tuinhaag', x, y, a: tAng, s: len / 2, h: hedgeH });
+            else put({ k: 'lattenhek', x, y, a: faceTo(tAng, faceA), s: len / 2 });
           }
         }
       }
       // tuinpad: van de gevel door de opening naar de rand van het trottoir
       const reach = Math.min(gd + 1.2, space - 0.9);
-      for (let d = 0.6; d < reach; d += 1) {
-        const [x, y] = at(doorU, d);
-        if (clear(x, y, { house: 0.1 })) { put({ k: 'tuinpad', x, y, a: faceA }); }
+      if (reach >= 1.2 && clear(...at(doorU, reach), { house: 0.1 })) {
+        for (let d = 1.1; d - 1 < reach; d += 2) { const [x, y] = at(doorU, d); put({ k: 'tuinpad', x, y, a: faceA }); }
       }
       // plantenbak naast de deur (zomer: altijd bloeiend)
       if (rnd() < 0.3 && gd >= 2) {
@@ -419,7 +420,7 @@ export function detailForTile({ x0, y0, size = 1000, roads = [], buildings = [],
         // naar de oever toe: aan de kant buiten het water
         let px = bx - uy * 0.9, py = by + ux * 0.9;
         if (pointInPolygon(px, py, P)) { px = bx + uy * 0.9; py = by - ux * 0.9; }
-        if (!inTile(px, py) || riet >= 160) continue;
+        if (!inTile(px, py) || riet >= 100) continue;
         if (clear(px, py, { house: 1.4, road: 0.9 }) && !taken(px, py, 2)) { put({ k: 'rietpol', x: px, y: py, a: rnd() * Math.PI * 2 }); claim(px, py); riet++; }
       }
       total += L;

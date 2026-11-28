@@ -339,16 +339,34 @@ function tileItems(i, j) {
   const res = furnitureForTile({ x0, y0, size: TILE_M, roads, mapped: intro ? [] : mapped, water, rails, buildings, places: worldSignPlaces() || DESTINATIONS, opts: { ...GAME_OPTS, towns: intro ? [] : worldTownSigns() } });
   // nothing that stands on one spot goes on the asphalt, into a house or into
   // the water: the map answers for what is drawn (#463)
-  let all = res.items;
-  if (DETAIL_ON() && !intro) {
-    // de detaillaag: een gemapte heg of hek op dezelfde plek gaat voor (geen dubbele rand)
-    const lin = res.items.filter((it) => it.k === 'hedge' || it.k === 'fence');
-    const det = detailForTile({ x0, y0, size: TILE_M, roads, buildings, water, rails, trees: map.treesNear ? map.treesNear(wx, wy, wr) : [] }).filter((it) => !(it.k === 'hedge' || it.k === 'fence' || it.k === 'lattenhek') || !lin.some((o) => Math.abs(o.x - it.x) < 3 && Math.abs(o.y - it.y) < 3));
-    if (det.length) all = res.items.concat(det);
-  }
+  const all = res.items;
   const items = all.filter((it) => !POINT_KINDS.has(it.k) || spotFreeOnMap(map, it.x, it.y, it.k === 'lamp' ? { house: LAMP_AWNING } : undefined));
-  tiles.set(key, t = { items, colliders: items.length === res.items.length ? res.colliders : furnitureColliders(items) });
+  tiles.set(key, t = { items, colliders: items.length === res.items.length ? res.colliders : furnitureColliders(items), detail: !DETAIL_ON() || intro });
   return t.items;
+}
+
+// De detaillaag (streetdetail.js, #1353) hoort alleen bij wat dichtbij is (DETAIL_REACH) en komt per tegel, hoogstens één per keer
+// (en pas als de meubelitems van de tegel er zijn): de tegel van een dorp kost enkele tientallen ms. De items gaan in de lijst van
+// de tegel (itemsNear en de botsingen lezen die), dus ze verdwijnen ook mee met de cache (dropStaleTiles).
+const DETAIL_REACH = 175;
+function ensureDetail(i, j) {
+  const t = tiles.get(`${i},${j}`);
+  if (!t || t.detail) return false;
+  t.detail = true;
+  const x0 = GRID_X0 + i * TILE_M, y0 = GRID_Y0 + j * TILE_M;
+  const wx = x0 + TILE_M / 2, wy = y0 + TILE_M / 2, wr = TILE_M * 0.71 + 60;
+  const roads = map.roadsNear(wx, wy, TILE_M * 0.71 + 220);
+  const water = map.waterNear(wx, wy, wr).concat(map.flatWaterNear ? map.flatWaterNear(wx, wy, wr) : []);
+  const rails = map.railNear ? map.railNear(wx, wy, wr) : gridItems(map.railGrid);
+  const buildings = map.buildingsNear ? map.buildingsNear(wx, wy, wr) : [];
+  const det = detailForTile({ x0, y0, size: TILE_M, roads, buildings, water, rails, trees: map.treesNear ? map.treesNear(wx, wy, wr) : [] });
+  if (!det.length) return true;
+  // een gemapte heg of hek op dezelfde plek gaat voor (geen dubbele rand)
+  const lin = t.items.filter((it) => it.k === 'hedge' || it.k === 'fence');
+  const mine = det.filter((it) => !(it.k === 'tuinhaag' || it.k === 'fence' || it.k === 'lattenhek') || !lin.some((o) => Math.abs(o.x - it.x) < 3 && Math.abs(o.y - it.y) < 3));
+  for (const it of mine) t.items.push(it);
+  for (const c of furnitureColliders(mine)) t.colliders.push(c);
+  return true;
 }
 
 // the items within reach of (x, y), from the tiles round it
@@ -384,7 +402,17 @@ export function updateStreetFurniture3D(px, py, force = false) {
   if (!force && !dirty && Math.hypot(px - lastX, py - lastY) < REBUILD_MOVE) return;
   lastX = px; lastY = py; dirty = false;
   for (const m of meshes.values()) m.count = 0;
-  const near = itemsNear(px, py, LOD.gantry);
+  let near = itemsNear(px, py, LOD.gantry);
+  if (DETAIL_ON()) {
+    const [di0, dj0] = tileIndexOf(px - DETAIL_REACH, py - DETAIL_REACH), [di1, dj1] = tileIndexOf(px + DETAIL_REACH, py + DETAIL_REACH);
+    const want = [];
+    for (let i = di0; i <= di1; i++) for (let j = dj0; j <= dj1; j++) {
+      const t = tiles.get(`${i},${j}`);
+      if (t && !t.detail) want.push([i, j, Math.hypot(GRID_X0 + (i + 0.5) * TILE_M - px, GRID_Y0 + (j + 0.5) * TILE_M - py)]);
+    }
+    want.sort((p, q) => p[2] - q[2]);
+    if (want.length) { if (ensureDetail(want[0][0], want[0][1])) near = itemsNear(px, py, LOD.gantry); if (want.length > 1) dirty = true; }
+  }
   const gantries = [], boards = [];
   const ground = (it) => (it.z !== undefined ? it.z : map.groundHeightAt ? map.groundHeightAt(it.x, it.y, 0) : 0);
   for (const it of near) {

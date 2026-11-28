@@ -107,14 +107,14 @@ function schutting() {
   return B.build();
 }
 
-// Tuinpad (1 m lang langs z, 0,9 m breed): vier rijen van drie grijze betontegels met voegen en een tintverschil per tegel;
+// Tuinpad (2 m lang langs z, 0,9 m breed): acht rijen van drie grijze betontegels met voegen en een tintverschil per tegel;
 // ligt 0,03 m boven de grond.
 function tuinpad() {
   const B = new GeoBuilder(1);
-  B.box(0, 0.01, 0, 0.9, 0.02, 1, 0x6e6c63);                            // voegbed
+  B.box(0, 0.01, 0, 0.9, 0.02, 2, 0x6e6c63);                            // voegbed
   const tint = [0xa9a69b, 0xb4b1a6, 0x9d9a90, 0xaeaaa0, 0xbab7ac];
-  for (let r = 0; r < 4; r++) for (let c = 0; c < 3; c++) {
-    B.box(-0.3 + c * 0.3, 0.025, -0.375 + r * 0.25, 0.27, 0.02, 0.23, tint[(r * 3 + c * 2) % 5]);
+  for (let r = 0; r < 8; r++) for (let c = 0; c < 3; c++) {
+    B.box(-0.3 + c * 0.3, 0.025, -0.875 + r * 0.25, 0.27, 0.02, 0.23, tint[(r * 3 + c * 2) % 5]);
   }
   return B.build();
 }

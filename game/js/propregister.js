@@ -236,7 +236,7 @@ export const PROP_REGISTER = {
   },
   tuinpad: {
     nl: 'Tuinpad (tegels)', bouwer: 'tuinpad', gebruik: ['buiten'],
-    norm: { tris: [110, 220], kleuren: 5, maat: [0.9, 0.03, 1], eisen: ['voegbed', 'vier rijen van drie tegels', 'tintverschil per tegel'] },
+    norm: { tris: [220, 400], kleuren: 5, maat: [0.9, 0.03, 2], eisen: ['voegbed', 'acht rijen van drie tegels', 'tintverschil per tegel'] },
   },
   plantenbak: {
     nl: 'Plantenbak met bloeiende heesters', bouwer: 'plantenbak', gebruik: ['buiten'],
