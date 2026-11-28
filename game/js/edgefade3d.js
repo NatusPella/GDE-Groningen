@@ -4,6 +4,8 @@
 // dezelfde programmasleutel deelt het programma, alleen de uniform (de band) verschilt.
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 
+import { ensureViewPosition } from './shaderview.js';
+
 const KEY = '|edgefade';
 
 // Patcht `mat` zodat het tussen start en end (m, vanaf de camera) uitdooft. Geeft het materiaal terug.
@@ -15,6 +17,7 @@ export function applyEdgeFade(mat, start, end, off = false) {
   mat.onBeforeCompile = (shader, r) => {
     if (prev) prev.call(mat, shader, r);
     shader.uniforms.uEdge = uEdge;
+    ensureViewPosition(shader);
     shader.fragmentShader = shader.fragmentShader.replace('void main() {', `uniform vec2 uEdge;
 float efBayer2(vec2 a) { a = floor(a); return fract(dot(a, vec2(0.5, a.y * 0.75))); }
 float efBayer4(vec2 a) { return efBayer2(0.5 * a) * 0.25 + efBayer2(a); }

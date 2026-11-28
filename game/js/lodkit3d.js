@@ -15,6 +15,7 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { buildLodChain, buildLodChainGroups, simplifyToTarget } from './lodsimplify.js';
 import { LOD_KINDS, lodSpec, lodLevelsForFade, lodScaleFor, registerLodModel } from './lodregistry.js';
+import { ensureViewPosition } from './shaderview.js';
 
 let scale = 1;
 const bands = new Map(); // `${kind}:${level}:${levels}` -> uniform { value: Vector4 }
@@ -107,6 +108,7 @@ export function lodFadeMaterial(mat, kind, L, n) {
   m.onBeforeCompile = (shader, r) => {
     if (prev) prev.call(m, shader, r);
     shader.uniforms.uLodBand = band;
+    ensureViewPosition(shader);
     shader.fragmentShader = shader.fragmentShader.replace('void main() {', `uniform vec4 uLodBand;
 float lodBayer2(vec2 a) { a = floor(a); return fract(dot(a, vec2(0.5, a.y * 0.75))); }
 float lodBayer4(vec2 a) { return lodBayer2(0.5 * a) * 0.25 + lodBayer2(a); }

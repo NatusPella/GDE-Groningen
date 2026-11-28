@@ -65,7 +65,25 @@ const kop = (L, sy) => (L.shell ? null : sy + 0.62);
 // lod 0 = het volle interieur, 1 = midden (geen hemel/stijlen/spiegel/kleine extra's), 2 = ver (vloer, donkere
 // zitblokken en het dashboardblok); elk niveau is één samengevoegde geometrie.
 // opts.naam: de modelnaam (voor de machines); leeg is goed voor de auto's.
+// Een hybride romp (Quaternius) heeft een gebogen flank: het deurblad ligt 4 tot 9 cm binnen de nominale halve breedte. Het interieur
+// (uiteinden van het dashboard, de achterbank, stijlbekleding) lag op die nominale breedte en stak als donkere rechthoek door een dichte
+// deur en door het achterspatbord, goed te zien op lichte lak (#1349). Het interieur blijft daarom `CABINE_FLANK_RUIMTE` binnen de nominale huid.
+export const CABINE_FLANK_RUIMTE = 0.26;
+// Boven de raamlijn buigt het dak snel naar binnen: dakhemel en stijlen staken als donkere rand boven het dak uit (hatch en suv, #1349).
+export const CABINE_DAK_RUIMTE = 0.45;
+export const CABINE_DAK_HOOGTE = 0.2;    // m onder het hoogste punt van het dak (romp.roof): de voorkant van het dak loopt schuin af
 export function buildCabinGeometry(seat, len, wid, klasse, romp = null, lod = 0, opts = null) {
+  const g = bouwCabineRuw(seat, len, wid, klasse, romp, lod, opts);
+  if (romp && !isCockpitKlasse(klasse) && g && g.attributes && g.attributes.position) {
+    const zMax = wid / 2 - CABINE_FLANK_RUIMTE, zDak = wid / 2 - CABINE_DAK_RUIMTE, p = g.attributes.position;
+    let veranderd = false;
+    const yMax = romp.roof - CABINE_DAK_HOOGTE;
+    for (let i = 0; i < p.count; i++) { if (p.getY(i) > yMax) { p.setY(i, yMax); veranderd = true; } const z = p.getZ(i), lim = p.getY(i) > romp.belt + 0.02 ? zDak : zMax; if (Math.abs(z) > lim) { p.setZ(i, Math.sign(z) * lim); veranderd = true; } }
+    if (veranderd) { p.needsUpdate = true; if (g.boundingBox) g.computeBoundingBox(); if (g.boundingSphere) g.computeBoundingSphere(); }
+  }
+  return g;
+}
+function bouwCabineRuw(seat, len, wid, klasse, romp = null, lod = 0, opts = null) {
   const naam = (opts && opts.naam) || '';
   const cockpit = isCockpitKlasse(klasse);
   const L = interiorLayout(seat, len, wid, cockpit ? null : romp, klasse, naam);
