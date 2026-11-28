@@ -59,6 +59,8 @@ const SPEAKER_COLORS = {
   Annemarie: '#b8847a',
   'Mevrouw Wassink': '#a67ab0',
   'Jochem Luiken': '#7a9a62',
+  // lucht (28-11, #1377)
+  'Gerlof Hamminga': '#d49a4a',
 };
 // generic NPCs, bijbaan bosses, radio and navigation voices
 const NEUTRAL = '#8a8a8a';

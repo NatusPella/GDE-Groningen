@@ -39,6 +39,8 @@ export const STEP_DOEL = Object.freeze({
   D1: 'Ga naar het busstation: de laatste bus naar huis',
   D2: 'Ga naar de bushalte in Winsum',
   D3: 'Ga naar perron 1 van Station Groningen',
+  L1: 'Ga naar de weide naast het vliegveld van Eelde',
+  L2: 'Ga naar de Dollarddijk bij Termunten',
   T2: 'Neem de streekbus naar Zoutkamp',
   M11: 'Praat met Klaas in Zoutkamp',
   K2: 'Ga naar de kade in Zoutkamp',

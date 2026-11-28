@@ -16,14 +16,19 @@
 
 import { BALLOON_MODEL, newBalloonFlight, stepBalloon, balloonReadout, refuel } from './balloonflight.js';
 import { SLOTS, basketRiderPose } from './basketrider.js';
-import { ROOSTER } from './heliplan.js';
+import { wgsToWorld } from './rdnew.js';
 
 // Een ballon is geen register-voertuig (niet te koop, geen garage): `name` staat achteraan zodat de registeraudit hem niet als model telt.
 export const BALLOON_CRAFT_MODEL = Object.freeze({ kind: 'ballon', len: 3.2, wid: 3.2, maxSpeed: 8, name: 'ballon' });
 export const INSTAP_AFSTAND = 6;   // m van de mand waar je kunt instappen
-// De Dollard is een vaste lanceerplek naast de parken en weilanden die skyprops.js zoekt (launchSites).
-export const DOLLARD_SITE = Object.freeze({ id: 'dollard', naam: 'de Dollard', x: ROOSTER.dollard.x, y: ROOSTER.dollard.y });
-export const lanceerPlekken = (parken = []) => [...parken.map((p, i) => ({ id: `park${i}`, naam: 'een open veld', x: p.x, y: p.y })), DOLLARD_SITE];
+// Twee vaste lanceerplekken naast de parken en weilanden die skyprops.js zoekt (launchSites), op de echte kaart gecontroleerd (#1377, L2):
+// de Dollarddijk bij Termunten (droog weiland, geen gebouw en geen weg binnen 40 m; het luchtpunt van het heli-rooster, 53,28 N 7,15 E,
+// ligt buiten de tegels en is dus geen grond) en de weide naast het vliegveld van Eelde (droog, 25 m eromheen vrij van gebouwen).
+const site = (id, naam, lat, lon) => { const [x, y] = wgsToWorld(lat, lon); return Object.freeze({ id, naam, x, y }); };
+export const DOLLARD_SITE = site('dollard', 'de Dollarddijk bij Termunten', 53.301, 7.052);
+export const EELDE_SITE = site('eelde', 'de weide naast het vliegveld van Eelde', 53.1345, 6.59);
+export const VASTE_PLEKKEN = Object.freeze([EELDE_SITE, DOLLARD_SITE]);
+export const lanceerPlekken = (parken = []) => [...parken.map((p, i) => ({ id: `park${i}`, naam: 'een open veld', x: p.x, y: p.y })), ...VASTE_PLEKKEN];
 
 const MELDING = {
   weer: 'Bij dit weer gaat de ballon niet op: wacht tot het opklaart.',

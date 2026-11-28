@@ -166,6 +166,17 @@ export const BIBLE = [
     voiceTag: "nieuwe stem nog te kiezen", look: "stationsjas, pet, fluit", outfitRole: NA, outfitByAct: stays("vast: stationsjas"),
     firstStep: 'D2', lastStep: 'D3', introducedBy: "Annemarie noemt hem in D2; hij staat op perron 1 in D3", storyRole: "het spoor van de vervoer-loopbaan",
     mapLink: "Station Groningen", canonNotes: "Namenregister bijbel 28-11 (01 §2.4): vervangt 'Stationschef Pieter Luiken' (botste met Pieter Dijkstra); voornaam Jochem.", canon: [] }),
+  // ---- lucht (H9) ----
+  card({
+    ...NEW, speakerKey: 'gerlof', id: 'gerlof', tier: 'minor', name: "Gerlof Hamminga", nick: "de ballonvaarder", aliases: ["Gerlof", "Hamminga", "Ballonvaarder Gerlof", "de ballonvaarder"], age: 61, pronoun: 'hij',
+    homePlace: "Eelde, Groningen", homeAddress: "een huis met een weide erachter bij het vliegveld van Eelde (verzonnen)", household: "alleen, met een windzak in de tuin", homeByAct: stays("altijd Eelde"),
+    origin: "Eelde", work: "ballonvaarder: vaart al dertig zomers mee met de wind, zonder stuur", employer: "Ballonvaart Zuchtwind (verzonnen)",
+    hobbies: ["de windzak", "weerpraatjes", "zacht landen"], traits: ["rustig", "eigenwijs", "poëtisch", "geduldig"], tagline: "De wind heeft een mening.",
+    want: "dat mensen leren meevaren in plaats van sturen", need: "twee handen voor de brander", fear: "een stormachtige zondag", habits: ["kijkt eerst naar de windzak", "zegt dat de wind een mening heeft", "landt altijd zacht"],
+    dialect: "Gronings (niveau 1)", rhythm: "rustig, bijna filosofisch", phrases: ["De wind houdt niet van mensen die rennen.", "Ik kies alleen hoe hoog."],
+    voiceTag: "nieuwe stem nog te kiezen: rustige oudere ballonvaarder", look: "windjack, pet, handschoenen voor de brander", outfitRole: NA, outfitByAct: stays("vast: windjack en pet"),
+    firstStep: 'L1', lastStep: 'L1', introducedBy: "Dokter Dijkstra stuurt hen naar hem (L1): hij staat op de weide naast het vliegveld van Eelde", storyRole: "leert de speler meevaren in de ballon: brander voor hoogte, wind voor de rest; geeft rangmomenten bij de loopbaan Lucht",
+    mapLink: "de weide naast het vliegveld van Eelde", canonNotes: "Bijbel 28-11 (03 §D): de ballonvaarder met een uitgesproken mening over wind; naam verzonnen, geen echte persoon.", canon: [] }),
   // ---- water (H8) ----
   card({
     ...NEW, id: 'noor', tier: 'cameo', name: "Noor", nick: "de gids-student", aliases: ["Noor", "de gids-student"], age: 21, pronoun: 'zij',

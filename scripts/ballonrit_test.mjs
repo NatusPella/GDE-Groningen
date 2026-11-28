@@ -144,11 +144,12 @@ const vlieg = (c, input, secs, w) => { for (let t = 0; t < secs; t += 0.1) V.ste
   ok(V.ballonHud(V.makeBalloonCraft(site, { fuel: 0.05 })).waarschuwing.length > 0, 'waarschuwing bij weinig brandstof');
 }
 
-// 12) lanceerplekken: de Dollard is er altijd bij, de parken komen van de kaart
+// 12) lanceerplekken: Eelde en de Dollard zijn er altijd bij, de parken komen van de kaart
 {
   const lijst = V.lanceerPlekken([{ x: 10, y: 20 }]);
-  ok(lijst.length === 2 && lijst[1].id === 'dollard' && Number.isFinite(lijst[1].x), 'park en Dollard');
-  ok(V.makeBalloonCraft(lijst[1]).x === lijst[1].x, 'een ballon op de Dollard');
+  ok(lijst.length === 3 && lijst[0].id === 'park0' && lijst[1].id === 'eelde' && lijst[2].id === 'dollard' && Number.isFinite(lijst[2].x), 'park, Eelde en Dollard');
+  ok(V.makeBalloonCraft(lijst[2]).x === lijst[2].x, 'een ballon op de Dollard');
+  ok(Math.hypot(V.DOLLARD_SITE.x - 38904, V.DOLLARD_SITE.y + 7529) > 5000, 'de Dollardplek is niet meer het luchtpunt van het rooster (dat ligt buiten de tegels)');
 }
 
 // 13) een kapotte of onbekende invoer geeft geen crash

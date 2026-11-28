@@ -114,7 +114,8 @@ export const STORY_STEPS = [
   // ---- H9 De lucht
   s('M12', 9, 'lucht', 'Vlieg mee met de traumaheli.', 'De lucht als eigen verhaalstuk.', 'Dijkstra', 'De lucht is er, met een heli die hulp brengt.', { ...rewrite, unlocks: 'heli' }),
   s('M15', 9, 'lucht', 'Vlieg laag over het graan voor Roelfien.', 'Roelfien is Oma\'s nicht; het meel is een recept-ingrediënt.', 'Roelfien', 'Roelfien is Oma\'s nicht.', move),
-  s('h9-ballon', 9, 'oldambt', 'Stijg op in de ballon boven de Dollard.', 'Jelles ballon van Us Mem Snacks, hij zwaait vanuit de mand; een bijna (het schaap).', null, 'Jelle laat zich zien en zwaait.', {}),
+  s('L1', 9, 'westerkwartier', 'Leer meevaren met Gerlof Hamminga op de weide bij Eelde.', 'De ballonvaarder legt uit dat je een ballon niet stuurt: de brander kiest de hoogte, de wind de richting. Hij zoekt twee handen voor de brander.', 'Gerlof Hamminga', 'In een ballon kies je alleen hoe hoog; de wind doet de rest.', { decision: 'rewrite', voice: 'silent', note: 'nieuw live (28-11, #1377): vervangt de plan-stap h9-ballon (eerste helft)' }),
+  s('L2', 9, 'oldambt', 'Stijg op in de ballon boven de Dollard.', 'Jelles ballon van Us Mem Snacks hangt in de verte en hij zwaait vanuit de mand; een schaap op de landingsplek maakt het eerste bijna van Tammo en Tessa stuk.', null, 'Jelle laat zich zien en zwaait; Tammo en Tessa landen zacht.', { decision: 'rewrite', voice: 'silent', note: 'nieuw live (28-11, #1377): vervangt de plan-stap h9-ballon (tweede helft)' }),
 
   // ---- H10 De stad reageert
   s('h10-euroborg', 10, 'stad', 'Speel de openingswedstrijd in de Euroborg.', 'De stad kent hen; Hilbrand verslaat de wedstrijd.', 'Hilbrand', 'De Euroborg is het hoogste niveau.', {}),

@@ -454,6 +454,39 @@ TAMMO: ...Laat maar. [NIEUW]
 TESSA: Het is mooi weer. [NIEUW]
 TAMMO: Ja. [NIEUW]
 
+## [L1] De wind heeft een mening – Westerkwartier, Eelde, de weide naast het vliegveld – ballon
+(regie: zondagochtend, bijna windstil. Op de weide naast het vliegveld van Eelde, bij Vliegschool De Windwijzer, staat een ballonmand met een half gevulde ballon. Naamkaart: GERLOF HAMMINGA, BALLONVAARDER, bij zijn eerste regel. Gameplay: de ballon staat klaar bij de lanceerplek. Stap in met E: de brander (spatie) laat hem stijgen, de klep (shift) laat hem dalen, sturen doet de wind. Landen kan overal waar het zacht is.)
+GERLOF: Niet rennen. De wind houdt niet van mensen die rennen. [NIEUW]
+TAMMO: Goedemorgen. Wij komen voor een vliegles. [NIEUW]
+GERLOF: Gerlof Hamminga, ballonvaarder. Mijn hulp heeft een schouder, dus ik zoek twee handen. [NIEUW]
+TESSA: De dokter van de traumaheli zei dat u uitlegt wat een ballon doet. [NIEUW]
+GERLOF: Een ballon doet niets. De wind doet alles. Ik kies alleen hoe hoog. [NIEUW]
+TAMMO: Dus je hebt geen stuur. [NIEUW]
+GERLOF: Een brander. Branden is stijgen, de klep open is dalen. De rest is een mening van de wind. [NIEUW]
+TESSA: En welke mening heeft de wind vandaag? [NIEUW]
+(regie: Gerlof wijst naar de windzak bij het vliegveld. Die hangt slap.)
+GERLOF: Oost, een beetje koppig. Boven honderd meter wordt hij milder. [NIEUW]
+GERLOF: Wie de brander neemt, bepaalt de hoogte. Wie meekijkt, bepaalt of het mooi is. [NIEUW]
+TESSA: Ik brand. Tammo kijkt. [NIEUW]
+TAMMO: Ik kijk heel goed. [NIEUW]
+GERLOF: Landen doe je zacht. De grond heeft ook een mening. [NIEUW]
+
+## [L2] Boven de Dollard – Oldambt, de Dollarddijk bij Termunten – ballon
+(regie: zondagochtend, later. Op de dijk aan de Dollard staat een ballonmand klaar. In de verte, boven het water, hangt een gele ballon met op de zijkant US MEM SNACKS. Een kleine figuur zwaait vanuit de mand met een hoed: Jelle. Gameplay: de tweede lanceerplek. Stap in met E en stijg op; Jelle is een visueel moment, geen ontmoeting. Beneden in het weiland staat een schaap, midden op de plek waar jullie moeten landen.)
+JELLE: Goedemorgen! Foar mem! [NIEUW]
+TAMMO: Hij zwaait. [NIEUW]
+TESSA: Hij zwaait naar iedereen. Hij heeft een nieuwe ballon, en die is niet bang voor duiven. [NIEUW]
+TAMMO: Je hoort niets hier boven. [NIEUW]
+TESSA: Alleen de brander. [NIEUW]
+TAMMO: Tessa, ik wou nog zeggen… [NIEUW]
+TESSA: Ja? [NIEUW]
+(regie: beneden in het weiland staat een schaap, helemaal alleen, precies op de landingsplek. Tessa kijkt over de rand.)
+TESSA: Tammo. Dat schaap staat op onze landingsplek. [NIEUW]
+TAMMO: Het schaap. Ja. Het schaap. [NIEUW]
+TESSA: Klep open. We dalen. [NIEUW]
+TAMMO: …Wat wilde ik ook alweer zeggen? [NIEUW]
+TESSA: Dat zeg je straks. Na het schaap. [NIEUW]
+
 ## [J3] Koffie bij Tessa's ouders – Midden-Groningen, het erf bij Siddeburen – te voet
 (regie: zondagmiddag. Een erf bij Siddeburen met kippen, een moestuin en een tafel onder de appelboom. Naamkaart ANNEKE. Tessa's vader staat bij het hek met een mand eieren en zegt niets. Tessa en Tammo zitten op één bank, een halve meter uit elkaar.)
 ANNEKE: Dus jij bent Tammo. Ze belt nooit, maar als ze belt gaat het over jou. [NIEUW]

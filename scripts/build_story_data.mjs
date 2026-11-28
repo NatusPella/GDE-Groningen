@@ -65,6 +65,8 @@ export const SPEAKER_TABLE = {
   ANNEMARIE: sp('annemarie', 'Annemarie'),
   'MEVROUW WASSINK': sp('wassink', 'Mevrouw Wassink'),
   JOCHEM: sp('jochem', 'Jochem Luiken'),
+  // lucht (28-11, #1377): de ballonvaarder, geen opname
+  GERLOF: sp('gerlof', 'Gerlof Hamminga'),
   KUSTWACHTER: sp('kustwachter', 'Kustwachter'),
   KERMISEXPLOITANT: sp('kermisexploitant', 'Kermisexploitant'),
   DEURWAARDER: sp('deurwaarder', 'Deurwaarder'),
@@ -114,7 +116,7 @@ function stepOf(id) {
   let m;
   if ((m = /^M(\d\d)\./.exec(id))) return 'M' + m[1];
   if ((m = /^T(\d)/.exec(id))) return 'T' + m[1];
-  if ((m = /^([NJFKWDV])(\d+)(?:\.|$)/.exec(id))) return m[1] + m[2];
+  if ((m = /^([NJFKWDVL])(\d+)(?:\.|$)/.exec(id))) return m[1] + m[2];
   if (/^C00\./.test(id)) return 'M00';
   if (/^E\d$/.test(id)) return 'E';
   return null;

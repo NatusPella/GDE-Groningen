@@ -188,3 +188,17 @@ Bron: `docs/verhaal/nieuw/09-script-akte2.md`, scènes `N5` (herschreven) en `N5
 
 Rangmomenten (`game/js/farmrankscenes.js`) zijn ondertitelpraat zonder opname (`voice: null`, `textOnly`); sprekers daar zonder eigen stem tot er een ronde komt:
 Ypie Boekema (nuchtere boer, plat Gronings, "Dat wordt wat."), Lutje (vlotte melkrijder, zonder adem), mevrouw Hofstra (vriendelijke ambtenares, "Dit formulier is heel simpel."), Jorrit Tilma (ongeduldige jonge loonwerker).
+
+## Lucht: de ballon (#1377)
+
+Bron: `docs/verhaal/nieuw/09-script-akte3.md`, scènes `L1` (De wind heeft een mening, 13 regels) en `L2` (Boven de Dollard, 12 regels). Alle regels zijn `[NIEUW]` en alleen tekst.
+
+| Spreker (script) | Spraaksleutel | Voorstel stem | Wat de stem moet kunnen | Regels |
+|---|---|---|---|---|
+| GERLOF | `gerlof` (in het spel de NPC "Gerlof Hamminga") | nieuw: rustige oudere man | ballonvaarder, bijna filosofisch en geduldig, licht Gronings (niveau 1); zegt "de wind heeft een mening" zonder te glimlachen | 8 in L1 |
+| JELLE | `jelle` | bestaand | één roep van ver weg, "Goedemorgen! Foar mem!"; een visueel moment, geen gesprek | 1 in L2 |
+| TESSA, TAMMO | bestaand (Anita, Tammo) | bestaand | het eerste bijna op de landingsplek met het schaap: Tammo begint een zin en komt er niet aan toe | L1: Tessa 3, Tammo 2; L2: Tessa 5, Tammo 4 |
+
+Rangmomenten van Lucht (`game/js/airstory.js`, vijf stuks, rang 2 tot 6) en de terugblik van Gerlof zijn ondertitelpraat zonder opname (`voice: null`, `textOnly`). Sprekers met een bestaande stem: Dokter Dijkstra, Roelfien, Tammo, Tessa. Gerlof heeft nog geen stem.
+
+Nog te doen vóór opname: stemkeuze voor Gerlof; een smaakronde over "De wind houdt niet van mensen die rennen" en het schaap.
