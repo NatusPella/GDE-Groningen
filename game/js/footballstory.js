@@ -24,24 +24,22 @@ export function storyHome(index) {
 export const CAST = [
   { id: 'albert', naam: 'Albert Teuben', rol: 'Voorzitter van De Hoekers', rang: 1, intro: 'Een man met een sjaal en een ledenlijst die nooit klopt.' },
   { id: 'eppo', naam: 'Eppo Rozema', rol: 'Trainer van De Hoekers', rang: 1, intro: 'Gepensioneerd onderwijzer: hij legt tactiek uit met suikerklontjes en een koekenpan.' },
-  { id: 'remco', naam: 'Remco Zwart', rol: 'Linksbuiten van het buurdorp', rang: 1, intro: 'Goedmoedig en plagend, en altijd net eerder.' },
   { id: 'hilbrand', naam: 'Hilbrand', rol: 'Verslaggever', rang: 2, intro: 'Schrijft de krant vol en praat het commentaar aan elkaar.' },
   { id: 'femke', naam: 'Femke van der Meer', rol: 'Keeper', rang: 2, intro: 'Gele keepersjack, een tas die altijd openstaat, en een dag te laat.' },
   { id: 'devries', naam: 'Mevrouw De Vries-Jansen', rol: 'Scout van De Stadjers', rang: 4, intro: 'Ziet alles, schrijft weinig op.' },
   { id: 'jaap', naam: 'Jaap Roorda', rol: 'Bakker en sponsor', rang: 5, intro: 'Koeken in de pauze, later ook de man van de snackwagen.' },
-  { id: 'jan', naam: 'Jan Kleibijter', rol: 'Manager van De Noorderlichters', rang: 6, intro: 'Oud-spits met een sigarenkistje vol aantekeningen.' },
 ];
 export const castById = (id) => CAST.find((p) => p.id === id) || null;
 
 // ---- de zes rangen als data (bijbel 02, tabel bij 2b) ----
 // `fase` is de bestaande fase van de carrière; `plek` een echte plaats voor het moment (alleen om de speler te laten zien waar het gebeurt).
 export const RANKS = [
-  { rang: 1, id: 'amateur', naam: 'Amateur', fase: 'Talentenklasse', moment: 'De invalbeurt en de trainingsavond achter het dorpshuis.', plek: STORY_PLACE, figuren: ['albert', 'eppo', 'remco'] },
+  { rang: 1, id: 'amateur', naam: 'Amateur', fase: 'Talentenklasse', moment: 'De invalbeurt en de trainingsavond achter het dorpshuis.', plek: STORY_PLACE, figuren: ['albert', 'eppo'] },
   { rang: 2, id: 'debuut', naam: 'Debuut', fase: 'Eerste basisplaats', moment: 'Het eerste doelpunt en de supporters van het dorp.', plek: STORY_PLACE, figuren: ['hilbrand', 'femke'] },
-  { rang: 3, id: 'selectie', naam: 'Selectie', fase: 'Promotie uit de Talentenklasse', moment: 'Een heet seizoen en promotie.', plek: 'Uithuizen', figuren: ['remco'] },
+  { rang: 3, id: 'selectie', naam: 'Selectie', fase: 'Promotie uit de Talentenklasse', moment: 'Een heet seizoen en promotie.', plek: 'Uithuizen', figuren: ['femke'] },
   { rang: 4, id: 'doorbraak', naam: 'Doorbraak', fase: 'Terpklasse', moment: 'De eerste uitwedstrijd langs de Waddenkust en een bod van een andere club.', plek: 'Roodeschool', figuren: ['devries'] },
   { rang: 5, id: 'kapitein', naam: 'Transfers en kapitein', fase: 'Kapitein', moment: 'Naar een club in de stad en de band om de arm.', plek: 'Groningen', figuren: ['jaap'] },
-  { rang: 6, id: 'manager', naam: 'Trainer en Manager', fase: 'Kroonklasse', moment: 'De sportieve en zakelijke kant: de Euroborg en de Waddenbeker.', plek: 'Euroborg', figuren: ['jan'] },
+  { rang: 6, id: 'manager', naam: 'Trainer en Manager', fase: 'Kroonklasse', moment: 'De sportieve en zakelijke kant: de Euroborg en de Waddenbeker.', plek: 'Euroborg', figuren: ['devries'] },
 ];
 
 // De rang van een profiel (1 tot 6): de hoogste voorwaarde die haalbaar is. Alleen lezen; een profiel zonder start is rang 0.
@@ -66,16 +64,21 @@ export const INVAL_PLACE = STORY_PLACE;
 export const INVAL = {
   club: STORY_VILLAGE_CLUB, plaats: STORY_PLACE,
   avond: [
-    { wie: 'Albert Teuben', tekst: 'Welkom bij De Hoekers. Ik ben de voorzitter. De ledenlijst klopt nooit, maar de koffie wel.' },
-    { wie: 'Eppo Rozema', tekst: 'Ik ben de trainer. Dit suikerklontje is jullie middenveld. Kijk goed.' },
-    { wie: 'Remco Zwart', tekst: 'Ik speel linksbuiten bij het buurdorp. Dus ik ben er altijd net eerder.' },
+    { wie: 'Albert Teuben', tekst: 'Welkom bij De Hoekers. Ik ben Albert Teuben, de voorzitter. De ledenlijst klopt nooit, maar de koffie wel.' },
+    { wie: 'Eppo Rozema', tekst: 'Eppo Rozema, de trainer. Kijk, dit suikerklontje is ons middenveld.' },
+    { wie: 'Tammo', tekst: 'Wij zijn Tammo en Tessa. Wij liepen alleen langs het veld.' },
+    { wie: 'Tessa', tekst: 'En dat klontje daar?' },
+    { wie: 'Eppo Rozema', tekst: 'De linksbuiten. Die staat zondag in de basis.' },
+    { wie: 'Albert Teuben', tekst: 'Het klontje is zekerder dan sommige spelers.' },
   ],
   zondag: [
     { wie: 'Eppo Rozema', tekst: 'Onze linksbuiten ligt eruit. Met een natte sok, geloof ik. We hebben nog maar tien man.' },
     { wie: 'Tammo', tekst: 'Tessa kan dit. Ze was bij elk straatpotje scheidsrechter.' },
+    { wie: 'Tessa', tekst: 'Scheidsrechter, Tammo. Dat is niet hetzelfde als spelen.' },
     { wie: 'Albert Teuben', tekst: 'Kun je een bal raken, Tessa?' },
     { wie: 'Tessa', tekst: 'Een beetje. Waar zijn de schoenen?' },
     { wie: 'Tammo', tekst: 'Ik regel de schoenen en de papieren. Ik sta wel aan de lijn.' },
+    { wie: 'Eppo Rozema', tekst: 'Links, Tessa. Daar gebeurt het. Het klontje blijft in de kast.' },
   ],
   clubhuis: [
     { wie: 'Albert Teuben', tekst: 'Onze linksbuiten ligt eruit. Tessa was er toevallig en ze kan het. Zo begon het.' },
@@ -84,7 +87,7 @@ export const INVAL = {
   // wat het bord toont: de opstelling met een doorgestreepte naam en Tessa's naam erbij, de eerste wedstrijdfoto ernaast
   bord: { doorgestreept: 'de linksbuiten', erbij: 'Tessa', foto: 'de eerste wedstrijdfoto' },
 };
-// De regels van de aanleiding in volgorde (voor de scène en voor de terugblik van een gast); `deel` is avond, zondag of clubhuis.
+// De regels van de aanleiding in volgorde (voor de terugblik van een gast; de scène zelf is careerdebut_football.js, met meer regels in het clubhuis); `deel` is avond, zondag of clubhuis.
 export const invalLines = (deel = null) => (deel ? (INVAL[deel] || []) : [...INVAL.avond, ...INVAL.zondag, ...INVAL.clubhuis]).map((l) => ({ ...l }));
 // De terugblik voor een gast die de aanleiding mist: alleen het clubhuis (Albert), nooit een eigen vlag of voortgang.
 export const guestRetrospect = () => invalLines('clubhuis');
@@ -96,10 +99,10 @@ const words = (t) => String(t).trim().split(/\s+/).length;
 export const STORY_BEATS = [
   { id: 'V1', naam: 'Het clubhuis', rang: 1, when: (c) => storyRank(c) >= 1, wie: 'Albert Teuben', tekst: 'Albert Teuben, voorzitter van De Hoekers: je naam staat op het bord. Met potlood.' },
   { id: 'V2', naam: 'De trainer', rang: 2, when: (c) => storyRank(c) >= 2, wie: 'Eppo Rozema', tekst: 'Eppo Rozema, de trainer: "Links is waar het gebeurt." Hij legt suikerklontjes neer.' },
-  { id: 'V3', naam: 'De rivaal', rang: 3, when: (c) => storyRank(c) >= 3, wie: 'Remco Zwart', tekst: 'Remco Zwart, linksbuiten van het buurdorp: "Promotie? Ik was er net eerder."' },
+  { id: 'V3', naam: 'De keeper', rang: 3, when: (c) => storyRank(c) >= 3, wie: 'Femke', tekst: 'Femke, de keeper: "Promotie! Ik kwam een dag te laat. Zoals altijd."' },
   { id: 'V4', naam: 'De scout', rang: 4, when: (c) => storyRank(c) >= 4, wie: 'De Vries-Jansen', tekst: 'Mevrouw De Vries-Jansen, scout van De Stadjers, keek mee. Ze schreef niets op.' },
   { id: 'V5', naam: 'De bakker', rang: 5, when: (c) => storyRank(c) >= 5, wie: 'Jaap Roorda', tekst: 'Bakker Jaap Roorda stuurt koeken voor de band om je arm. Gratis, zegt hij.' },
-  { id: 'V6', naam: 'De manager', rang: 6, when: (c) => storyRank(c) >= 6, wie: 'Jan Kleibijter', tekst: 'Jan Kleibijter, manager van De Noorderlichters: "De Euroborg wacht. Neem je schoenen mee."' },
+  { id: 'V6', naam: 'De manager', rang: 6, when: (c) => storyRank(c) >= 6, wie: 'Mevrouw De Vries-Jansen', tekst: 'Mevrouw De Vries-Jansen, de scout: "De Euroborg wacht. Neem je schoenen mee."' },
 ];
 // Jelle's brief: eén per seizoen vanaf seizoen 2 (een sponsor die nooit komt en alleen formulieren stuurt); vier teksten die rondgaan.
 const JELLE = [

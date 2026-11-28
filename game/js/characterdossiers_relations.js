@@ -123,6 +123,7 @@ export const RELATION_LIST = [
   e('eppo', 'anita', 'mentor', "trainer", "invaller en speelster", "H6", "geduldig", "dat Tessa kan voetballen", "dat Eppo tactiek met suikerklontjes uitlegt", "het klontje voor de linksbuiten"),
   e('eppo', 'femke', 'work', "trainer", "keeper", "jarenlang", "geduldig", "dat Femke te laat komt", "dat Eppo de tactiek altijd uitlegt", "de koekenpan"),
   e('albert_teuben', 'eppo', 'colleagues', "voorzitter", "trainer", "jarenlang", "vertrouwd", "dat Eppo de ledenlijst niet bijhoudt", "dat de lijst van Albert nooit klopt", "het wedstrijdbord"),
+  e('devries_jansen', 'eppo', 'work', "scout van De Stadjers", "trainer", "sinds de Waddenkust", "afwachtend", "dat Eppo alles uitlegt met suikerklontjes", "dat zij bijna niets opschrijft", "het kladblok"),
   e('jaap_roorda', 'eppo', 'friends', "sponsor en bakker", "trainer", "jarenlang", "gul", "dat Eppo koeken houdt", "dat Jaap koeken brengt in de pauze", "de koeken in de pauze"),
   e('ypie', 'boer_hindrik', 'neighbours', "buurboer", "buurboer", "jarenlang", "nuchter", "dat Hindrik het erf niet meer alleen doet", "dat Ypie al een week meemelkt", "het hek tussen de erven"),
   e('ypie', 'anita', 'neighbours', "buurboer", "de nieuwe boerin naast hem", "H5", "droog, behulpzaam", "dat Tessa de koeien begrijpt", "dat Ypie de grenzen wijst", "de geleende trekker"),

@@ -20,6 +20,11 @@ export const MAX_TRIES = 3;  // een moment dat drie keer niet wil beginnen (film
 //   voorwaarde (ctx) => boolean                                  optioneel: ctx = { w, vak, van, naar }; onwaar = dit moment slaan we over
 const register = new Map();
 
+// Rangen die niet bij een vak van loopbaan.js horen (de voetbalcarrière heeft zijn eigen zes rangen, footballstory.js): een module meldt zijn
+// rangsoort aan en voert de haak zelf (footballrank.js). Het gezien-zijn staat gewoon in het profiel (momenten).
+const EXTRA_VAKKEN = new Set();
+export const registerRankKind = (id) => { if (typeof id === 'string' && id && !VAK_IDS.includes(id)) EXTRA_VAKKEN.add(id); return EXTRA_VAKKEN.has(id); };
+
 // Meld een moment aan. Geeft { ok, reden }; een ongeldig of dubbel moment wordt niet opgenomen.
 export function registerRankMoment(m) {
   const reden = momentProblem(m);
@@ -32,7 +37,7 @@ export function registerRankMoment(m) {
 export function momentProblem(m) {
   if (!m || typeof m !== 'object') return 'geen moment';
   if (typeof m.id !== 'string' || !m.id || m.id.length > 60) return 'id ontbreekt of is langer dan 60 tekens';
-  if (!VAK_IDS.includes(m.vak)) return `${m.id}: onbekende loopbaan '${m.vak}'`;
+  if (!VAK_IDS.includes(m.vak) && !EXTRA_VAKKEN.has(m.vak)) return `${m.id}: onbekende loopbaan '${m.vak}'`;
   if (!Number.isInteger(m.rang) || m.rang < 2 || m.rang > MAX_NIVEAU) return `${m.id}: rang moet een geheel getal van 2 tot ${MAX_NIVEAU} zijn`;
   if (m.voorwaarde != null && typeof m.voorwaarde !== 'function') return `${m.id}: voorwaarde moet een functie zijn`;
   const s = m.scene;

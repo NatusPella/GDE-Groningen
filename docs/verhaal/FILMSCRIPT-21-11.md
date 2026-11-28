@@ -648,12 +648,36 @@ Op de Grote Markt winnen ze het Ontzet met de beste eierbal, een eerlijke wagen 
 
 **Sequentie V1: Schoenen voor de ster** (activiteit; speler-protagonist Tessa)
 
+- **V1.1** BUITEN – HOGELAND, WARFFUM, HET SPORTPARK VAN DE HOEKERS – AVOND · De invalbeurt: de trainingsavond · cutscene of gespeeld in de missie
+  - avond, een gewone trainingsavond op het dorpsveld van De Hoekers, lage zon over het gras. Naamkaart: ALBERT TEUBEN, voorzitter, bij zijn eerste regel; daarna EPPO ROZEMA, trainer. Eppo legt suikerklontjes op een koekenpa
+  - praat: Albert Teuben, Eppo Rozema, Tammo, Tessa
+- **V1.2** BUITEN – HOGELAND, WARFFUM, HET SPORTPARK VAN DE HOEKERS – DAG · De invalbeurt: de zondag · cutscene of gespeeld in de missie
+  - zondag, vlak voor de wedstrijd. De ploeg staat in de kring, er zijn er tien. Albert staat langs de lijn met zijn ledenlijst. Tammo en Tessa staan er toevallig weer. Gameplay: de speler ziet de scène; de wedstrijd zelf vo
+  - praat: Eppo Rozema, Tammo, Tessa, Albert Teuben
+- **V1.3** BINNEN – HOGELAND, WARFFUM, HET CLUBHUIS VAN DE HOEKERS – DAG · De invalbeurt: het clubhuis · cutscene of gespeeld in de missie
+  - na de wedstrijd, het clubhuis van De Hoekers. Boven de koffieautomaat hangt het wedstrijdbord: de opstelling, een naam doorgestreept en Tessa's naam erbij, in potlood. Ernaast hangt de eerste wedstrijdfoto.
+  - praat: Albert Teuben, Tessa, Tammo
 
 **Sequentie V2: De eerste training** (activiteit; speler-protagonist Tessa)
 
 
 **Sequentie V3: Het is jouw avond** (activiteit; speler-protagonist Tessa)
 
+- **V3.2** BUITEN – HOGELAND, WARFFUM – DAG · Rang 2, Debuut: het eerste doelpunt · cutscene of gespeeld in de missie
+  - stille ondertitelpraat na de stijging, geen camera. Het dorp stond langs de lijn.
+  - praat: Hilbrand, Femke, Tammo
+- **V3.3** BUITEN – HOGELAND, UITHUIZEN – DAG · Rang 3, Selectie: de promotie · cutscene of gespeeld in de missie
+  - stille ondertitelpraat na de promotie uit de Talentenklasse.
+  - praat: Eppo Rozema, Albert Teuben, Femke
+- **V3.4** BUITEN – HOGELAND, ROODESCHOOL – DAG · Rang 4, Doorbraak: langs de Waddenkust · cutscene of gespeeld in de missie
+  - stille ondertitelpraat na de eerste uitwedstrijd langs de Waddenkust. Een vrouw met een kladblok en een paraplu die ze niet nodig heeft.
+  - praat: Mevrouw De Vries-Jansen, Tammo
+- **V3.5** BUITEN – STAD, GRONINGEN – DAG · Rang 5, Kapitein: de band · cutscene of gespeeld in de missie
+  - stille ondertitelpraat als Tessa aanvoerder wordt. Een mand met koeken.
+  - praat: Jaap Roorda, Tessa
+- **V3.6** BUITEN – STAD, EUROBORG – AVOND · Rang 6, Trainer en Manager: de Euroborg · cutscene of gespeeld in de missie
+  - stille ondertitelpraat bij de ingang van de Euroborg, het veld licht groen in de avondzon.
+  - praat: Mevrouw De Vries-Jansen, Tammo, Tessa
 
 **Sequentie T4: De bus naar Bourtange** (activiteit; speler-protagonist Tammo)
 
@@ -996,8 +1020,8 @@ Op de Grote Markt winnen ze het Ontzet met de beste eierbal, een eerlijke wagen 
 
 | Personage | Akte 1 | Akte 2 | Akte 3 | Akte 4 | Akte 5 | Deel 4 |
 |---|---|---|---|---|---|---|
-| Tessa | 40 | 42 | 33 | 33 | 39 | 16 |
-| Tammo | 40 | 40 | 33 | 31 | 33 | 17 |
+| Tessa | 40 | 42 | 33 | 33 | 39 | 21 |
+| Tammo | 40 | 40 | 33 | 31 | 33 | 23 |
 | Jelle Terpstra | 4 | 10 | 11 | 8 | 12 | 4 |
 | Rikus | 9 | 4 | 4 | 7 | 11 | 4 |
 | Berend Bos | 4 |  |  | 14 | 10 | 8 |
@@ -1022,9 +1046,12 @@ Op de Grote Markt winnen ze het Ontzet met de beste eierbal, een eerlijke wagen 
 | Streamer | 4 |  |  |  |  |  |
 | Torenwachter | 1 |  |  |  | 3 |  |
 | Beppe | 2 |  |  | 1 | 1 |  |
+| Albert Teuben |  |  |  |  |  | 4 |
 | Meneer Veldkamp | 2 |  |  |  |  | 1 |
 | Snackbarhouder |  | 3 |  |  |  |  |
 | Sjoerd | 3 |  |  |  |  |  |
+| Femke |  |  |  | 1 |  | 2 |
+| Eppo Rozema |  |  |  |  |  | 3 |
 | Terrasgast | 1 | 1 |  |  |  |  |
 | Mevrouw Hoving | 1 |  |  | 1 |  |  |
 | Boer |  | 1 |  |  |  | 1 |
@@ -1032,6 +1059,7 @@ Op de Grote Markt winnen ze het Ontzet met de beste eierbal, een eerlijke wagen 
 | Deurwaarder |  |  | 1 | 1 |  |  |
 | Geert |  |  | 2 |  |  |  |
 | Anneke |  |  | 1 |  | 1 |  |
+| Mevrouw De Vries-Jansen |  |  |  |  |  | 2 |
 | Jelmer |  |  |  | 2 |  |  |
 | Dries |  | 1 |  |  |  |  |
 | Mevrouw Wassink |  | 1 |  |  |  |  |
@@ -1043,7 +1071,8 @@ Op de Grote Markt winnen ze het Ontzet met de beste eierbal, een eerlijke wagen 
 | Student |  |  | 1 |  |  |  |
 | Kermisexploitant |  |  | 1 |  |  |  |
 | Stien |  |  |  | 1 |  |  |
-| Femke |  |  |  | 1 |  |  |
+| Hilbrand |  |  |  |  |  | 1 |
+| Jaap Roorda |  |  |  |  |  | 1 |
 | Lieke |  |  |  |  | 1 |  |
 | Kind in het publiek |  |  |  |  | 1 |  |
 | Buurvrouw |  |  |  |  |  | 1 |
