@@ -119,22 +119,35 @@ export function clubHtml(view) {
   return top() + clubBodyHtml(view);
 }
 
-const bound = new WeakSet();
+const refs = new WeakMap();
 export const clubView = (world, extra = {}) => ({ career: V.getCareer(), money: world && world.money, getClub: V.getClub, msg: cui.msg, confirm: cui.confirm, kit: KIT.kitView(V.getCareer(), V.getClub), ...extra });
-export function renderClubPanel(el, world) {
+export function renderClubPanel(el, world, rerender = null) {
   if (!el) return;
-  const draw = () => { const restore = keepFocus(el); el.innerHTML = clubHtml(clubView(world)); kitPhotos(el); restore(); };
+  const had = refs.has(el);
+  refs.set(el, { world, rerender });
+  const draw = () => {
+    const cur = refs.get(el) || { world, rerender };
+    const restore = keepFocus(el);
+    el.innerHTML = clubHtml(clubView(cur.world));
+    kitPhotos(el);
+    restore();
+  };
   draw();
-  if (bound.has(el)) return;
-  bound.add(el);
+  if (had) return;
   el.addEventListener('click', (e) => {
     const b = e.target.closest('[data-cl]');
     if (!b) return;
-    clubAct(world, b.dataset);
-    draw();
+    const cur = refs.get(el) || { world, rerender };
+    clubAct(cur.world, b.dataset);
+    const rr = cur.rerender || el._bzRerender;
+    if (rr) rr();
+    else draw();
   });
   // het tenue met het toetsenbord (en de knoppen voor een controller): 1, 2 en 3 kiezen thuis, uit of derde; - en + het rugnummer. Alleen als de focus in het paneel staat.
-  el.addEventListener('keydown', (e) => { if (clubKeys(e, world, el)) draw(); });
+  el.addEventListener('keydown', (e) => {
+    const cur = refs.get(el) || { world, rerender };
+    if (clubKeys(e, cur.world, el)) { const rr = cur.rerender || el._bzRerender; if (rr) rr(); else draw(); }
+  });
 }
 // De toetsen van het tenue; geeft true als er iets veranderde (de aanroeper tekent opnieuw).
 export function clubKeys(e, world, el) {

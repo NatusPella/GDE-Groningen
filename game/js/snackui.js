@@ -165,19 +165,26 @@ export function snackHtml(v) {
 }
 
 // ---- binden ----
-const bound = new WeakSet();
+const refs = new WeakMap();
 export function renderSnackPanel(el, world, rerender) {
   if (!el) return;
-  const draw = () => { const restore = keepFocus(el); el.innerHTML = snackHtml(SL.snackView(world)); restore(); };
+  const had = refs.has(el);
+  refs.set(el, { world, rerender });
+  const draw = () => {
+    const cur = refs.get(el) || { world, rerender };
+    const restore = keepFocus(el);
+    el.innerHTML = snackHtml(SL.snackView(cur.world));
+    restore();
+  };
   draw();
-  if (bound.has(el)) return;
-  bound.add(el);
+  if (had) return;
   el.addEventListener('click', (e) => {
     const b = e.target.closest('[data-sn]');
     if (!b) return;
-    act(world, b.dataset);
-    draw();
-    if (rerender) rerender();
+    const cur = refs.get(el) || { world, rerender };
+    act(cur.world, b.dataset);
+    if (cur.rerender) cur.rerender();
+    else draw();
   });
 }
 function act(world, d) {

@@ -28,7 +28,6 @@ const UITZONDERINGEN = [
   ['samen', 'herrender-zonder-focus', 'samenpanel.js', 'samenpanel.js tekent alleen de eenmalige profielkaart; de herrenders van de hub en de spelerslijst gebruiken keepFocus (samenhubui.js, coopspelersui.js)'],
   ['uitleg', 'onbereikbaar-js', 'recapcardrun.js', 'de recap is een kaart die alleen sluit: Enter, spatie, Escape en Backspace (dus A en B) sluiten hem via een venster-keydown; een focusbaar element is niet nodig'],
   ['overig', 'herrender-zonder-focus', 'visboekui.js', 'alleen het detailvlak wordt vervangen; de lijstknoppen blijven staan en houden de focus (kies() zet alleen klassen)'],
-  ['overig', 'herrender-zonder-focus', 'fotomodusui.js', 'de overlay en de balk worden eenmaal gebouwd; de fotolijst wordt bij het openen getekend, niet na een klik'],
 ];
 const audit = auditMenu();
 ok(audit.length === 14 && audit.length === SCHERMEN.length, 'de audit dekt alle 14 schermen', audit.length);
