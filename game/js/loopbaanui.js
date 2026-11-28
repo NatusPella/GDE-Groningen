@@ -488,7 +488,7 @@ export function renderLoopbaanPanel(el, sluit = null, w = null) {
       if (!id || id === gekozen) return;
       gekozen = id;
       gekozenDoorSpeler = true;
-      for (const b of el.querySelectorAll('[data-vak]')) { const aan = b.dataset.vak === gekozen; b.classList.toggle('sel', aan); b.toggleAttribute('aria-current', aan); }
+      for (const b of el.querySelectorAll('[data-vak]')) { const aan = b.dataset.vak === gekozen; b.classList.toggle('sel', aan); if (aan) b.setAttribute('aria-current', 'true'); else b.removeAttribute('aria-current'); }
       el.querySelector('.lb-pane').innerHTML = detailHtml(getProfiel(), gekozen, wereld);
       queueMicrotask(() => fillBars(el, bars));
     };
@@ -502,7 +502,7 @@ export function renderLoopbaanPanel(el, sluit = null, w = null) {
         return;
       }
       const start = e.target.closest('[data-vak-start]');
-      if (start) { startLoopbaan(wereld, start.dataset.vakStart); renderLoopbaanPanel(el, sluit, wereld); return; }
+      if (start) { startLoopbaan(wereld, start.dataset.vakStart); renderLoopbaanPanel(el, sluit, wereld); const f = el.querySelector(`[data-vak="${CSS.escape(gekozen)}"]`) || el.querySelector('button'); if (f && f.focus) f.focus({ preventScroll: true }); return; }
       const b = e.target.closest('[data-vak]');
       if (b) kies(b.dataset.vak);
     });

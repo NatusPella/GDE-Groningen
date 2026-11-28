@@ -84,7 +84,8 @@ function nextLine(world) {
   const sch = form ? lineSchedule({ ...l, form }, base, LINE_GAP) : null;
   cur.until = sch ? sch.untilNextS : base + LINE_GAP;
   noteSpoken(world, l.speaker);
-  show(sch && sch.text !== l.text ? { ...l, text: sch.text } : l);
+  cur.shownLine = sch && sch.text !== l.text ? { ...l, text: sch.text } : l;
+  show(cur.shownLine);
 }
 
 export function updateStoryTalk(dt, world) {
@@ -99,7 +100,8 @@ export function updateStoryTalk(dt, world) {
     cur.until = cur.delay || 0;
     return;
   }
-  if (cur.i >= 0 && shown !== cur.lines[cur.i]) show(cur.lines[cur.i]);
+  const line = cur.shownLine || cur.lines[cur.i];
+  if (cur.i >= 0 && shown !== line) show(line);
   cur.t += dt;
   if (cur.t >= cur.until) nextLine(world);
 }

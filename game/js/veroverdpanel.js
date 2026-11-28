@@ -103,6 +103,7 @@ export function renderVeroverdPanel(el, sluit = null, world = null) {
   beleidWereld = world;
   zetCss();
   const teken = () => {
+    const world = beleidWereld;
     // een koop in de Beleidswinkel tekent alles opnieuw: de scrolstand van beide tabbladen blijft staan en de gekozen
     // gebiedskaart wordt weer gelezen als "niets gekozen", anders deed een klik op hetzelfde gebied daarna niets (verfijnronde 22-11)
     const scrol = {};
@@ -166,11 +167,12 @@ export function renderVeroverdPanel(el, sluit = null, world = null) {
   const kies = (id) => {
     if (!id || id === gekozenGebied) return;
     gekozenGebied = id;
-    for (const b of el.querySelectorAll('[data-gebied]')) { const aan = b.dataset.gebied === id; b.classList.toggle('sel', aan); b.toggleAttribute('aria-current', aan); }
+    for (const b of el.querySelectorAll('[data-gebied]')) { const aan = b.dataset.gebied === id; b.classList.toggle('sel', aan); if (aan) b.setAttribute('aria-current', 'true'); else b.removeAttribute('aria-current'); }
     el.querySelector('.lb-pane').innerHTML = kiesGebied(id);
     queueMicrotask(() => fillBars(el, bars));
   };
   el.addEventListener('click', (e) => {
+    const world = beleidWereld;
     const tb = e.target.closest('[data-vo-tab]');
     if (tb) { zetTab(el, tb.dataset.voTab); return; }
     // #492: een maatregel kopen in de Beleidswinkel; daarna tekent het paneel opnieuw.
