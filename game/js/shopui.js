@@ -137,7 +137,7 @@ export function openShopMenu(w, s) {
 export function closeShopMenu({ save = true } = {}) {
   if (!open) return;
   open = false;
-  finishScratch(false);
+  finishScratch(true);
   setPreview(null);
   root.classList.remove('visible');
   document.body.classList.remove('shop-open');
@@ -260,7 +260,7 @@ function renderStory() {
 }
 
 function markSelected() {
-  for (const el of root.querySelectorAll('.sm-item')) { const on = el.dataset.id === sel; el.classList.toggle('sel', on); el.toggleAttribute('aria-current', on); }
+  for (const el of root.querySelectorAll('.sm-item')) { const on = el.dataset.id === sel; el.classList.toggle('sel', on); if (on) el.setAttribute('aria-current', 'true'); else el.removeAttribute('aria-current'); }
 }
 
 const needsConfirm = (it) => needsConfirmFor(it, world.money);
@@ -606,7 +606,17 @@ function onKey(e) {
   e.stopImmediatePropagation();
   const k = e.key;
   const lower = k.length === 1 ? k.toLowerCase() : k;
-  if (k === 'Tab') return;
+  if (k === 'Tab') {
+    const list = [...root.querySelectorAll('button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])')]
+      .filter((el) => el.getClientRects().length && !el.closest('[hidden]'));
+    if (list.length) {
+      e.preventDefault();
+      const i = list.indexOf(document.activeElement);
+      const next = i < 0 ? (e.shiftKey ? list[list.length - 1] : list[0]) : list[(i + (e.shiftKey ? -1 : 1) + list.length) % list.length];
+      next.focus({ preventScroll: true });
+    }
+    return;
+  }
   e.preventDefault();
   if (e.repeat && !k.startsWith('Arrow') && lower !== 'w' && lower !== 's') return;
   if (k === 'Escape' || k === 'Backspace' || lower === 'q') {

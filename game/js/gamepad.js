@@ -346,7 +346,7 @@ function holdStick(k, on) {
   if (on === stickKeys.has(k)) return;
   if (on) stickKeys.add(k); else stickKeys.delete(k);
   if (menuLike()) {
-    if (on) { sendKey('keydown', k, 'pad'); repeatAt['stick-' + k] = performance.now() + REPEAT_DELAY; } else { sendKey('keyup', k, 'pad'); delete repeatAt['stick-' + k]; }
+    if (on) { const ev = sendKey('keydown', k, 'pad'); repeatAt['stick-' + k] = performance.now() + REPEAT_DELAY; if (ctx === 'menu') menuFallback(k, ev); } else { sendKey('keyup', k, 'pad'); delete repeatAt['stick-' + k]; }
     return;
   }
   input.padHold(k, on);
