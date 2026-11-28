@@ -33,6 +33,7 @@ import { SLOTS, SLOT_IDS, LOOKS, setsFor, parsePiece, pieceLabel } from './cloth
 import { reducedMotion } from './motion.js';
 import { rasterMaat, kolommenUitTops, focusStep, TEGEL_MIN } from './spullenraster.js';
 import { createThumbs } from './spullenthumbs.js';
+import { hoofdspeler } from './players.js';
 import { moneySpec, wapenSpec, stukSpec, setSpec, tintVoor, etenSpec, meubelSpec, cardSpec, upgradeSpec, modelLabel } from './spullen3d.js';
 import { CATS, itemIcoon, catVan, LEEG, cycleSort, sortLabel, sorteer, badgeTekst, tegelNaam, kanWeggooien, weggooiStap, weggooi, naWeggooien, WEGGOOI_VRAAG } from './spullenmodel.js';
 
@@ -216,7 +217,8 @@ function collect(w) {
   const out = [];
   const counts = {};
   const shop = inventoryShopState();
-  const ch = w.player.character === 'anita' ? 'anita' : 'tammo';
+  const ik = hoofdspeler(w);
+  const ch = ik && ik.character === 'anita' ? 'anita' : 'tammo';
 
   out.push({ key: 'geld', cat: 'geld', icon: 'geld', title: euro(Math.max(0, Math.floor(w.money))), sub: 'Contant',
     desc: 'Wat je op zak hebt om uit te geven. Waar het vandaan kwam en waar het heen ging, staat eronder in het kasboek.',

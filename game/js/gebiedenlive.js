@@ -159,7 +159,7 @@ export function opSleutel(w, sleutel) {
   if (geblokkeerd() || typeof sleutel !== 'string' || !sleutel) return [];
   const ind = getIndeling();
   if (!ind) return [];
-  const p = w && w.player;
+  const p = w && (w.lokaalLichaam || w.player);
   const id = G.kiesTaak(ind, sleutel, p ? p.x : NaN, p ? p.y : NaN);
   return id ? doeTaak(w, id) : [];
 }
@@ -185,12 +185,13 @@ export const intochtenOverzicht = () => { const ind = getIndeling(); return ind 
 let laatstePlek = null; // #990: waar de vorige meting was, om de buurten ertussen mee te tellen
 export function bezoekPlek(w) {
   flushLoadWait();
-  if (geblokkeerd() || !w || !w.player) return null;
+  const pl = w && (w.lokaalLichaam || w.player);
+  if (geblokkeerd() || !pl) return null;
   const ind = getIndeling();
   if (!ind) return null;
   const p = getProfiel();
   const voor = p.bezocht.slice();
-  const x = w.player.x, y = w.player.y;
+  const x = pl.x, y = pl.y;
   const ids = G.bezoekRoute(p, ind, laatstePlek, x, y);
   laatstePlek = { x, y };
   if (!ids.length) return null;
