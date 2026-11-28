@@ -1,5 +1,5 @@
 // De stadsstand per speler (#1371, bijbel 03 2.1) en de thuisstanden die daarop meegroeien (#1372, bijbel 03 2.2): het zuivere
-// datamodel (geen DOM, geen wereld, geen THREE): scripts/stadstand_test.mjs loopt het in node.
+// datamodel (geen DOM, geen wereld, geen THREE): scripts/citystate_test.mjs loopt het in node.
 //
 // Regel: elke verandering wordt EERST aangekondigd (krantje, telefoon, kaartje of bord) en pas bij de volgende dagwissel of reis
 // zichtbaar. Een verandering is dressing of bevolking (bord, kraam, poster, bankje, een zin), geen geometrie, en neemt nooit iets

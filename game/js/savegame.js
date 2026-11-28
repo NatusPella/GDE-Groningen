@@ -20,7 +20,7 @@ import { quitPadel } from './padel.js';
 import { stopVillageMini } from './dorpsuitjes.js';
 import { quitRunningActivities } from './busy.js';
 import { getGoalSave, applyGoalSave } from './goal.js';
-import { getStadSave, loadStadSave } from './stadstand.js'; // #1371: stadsstand en thuisstanden per speler
+import { getStadSave, loadStadSave } from './citystate.js'; // #1371: stadsstand en thuisstanden per speler
 import { getCalendarSave, applyCalendarSave } from './calendarday.js';
 import { getDifficultyProfile, setActiveDifficulty, profileFromSave } from './difficulty.js'; // #1169: moeilijkheid per save
 import { legacyDifficultyLevel } from './settings.js';

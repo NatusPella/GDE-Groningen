@@ -1,9 +1,9 @@
 // Stadsstand per speler en thuisstanden (#1371, #1372): aangekondigd voor zichtbaar, nooit terug, tolerant lezen, per speler gescheiden.
-// node scripts/stadstand_test.mjs
+// node scripts/citystate_test.mjs
 import {
   VERANDERINGEN, THUISSTANDEN, readStad, checkStad, voorwaardeKlaar, zichtbareDressing, stadDagboek, thuisStand, thuisProps,
   loadStadSave, getStadSave, runStadCheck, MAX_AANKONDIGING_PER_KEER,
-} from '../game/js/stadstand.js';
+} from '../game/js/citystate.js';
 import { STEPS } from '../game/js/storyarc.js';
 import { VAK_IDS } from '../game/js/loopbaan.js';
 
