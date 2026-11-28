@@ -3,6 +3,7 @@
 // game het pad indeelt, zodat een tester precies kan melden wat niet klopt.
 import { padInfo, PAD_LAYOUTS } from './controls.js';
 import { getSettings, setSetting } from './settings.js';
+import { devWarn } from './devwarn.js';
 
 let root = null;
 let raf = 0;
@@ -32,7 +33,7 @@ export function closePadTest() {
   root.remove();
   root = null;
   if (lastFocus && typeof lastFocus.focus === 'function' && lastFocus.isConnected !== false) {
-    try { lastFocus.focus({ preventScroll: true }); } catch (e) { /* focus terugzetten mislukt */ }
+    try { lastFocus.focus({ preventScroll: true }); } catch (e) { devWarn('padtest', e); }
   }
   lastFocus = null;
 }
