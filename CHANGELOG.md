@@ -9,6 +9,7 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ## [Unreleased]
 
+- De rode schermrand na een klap kan niet meer blijven hangen als de klok even terugspringt (de rand is nu altijd binnen 0,6 seconde weg). Samen spelen: geen verschil, het is een lokale schermlaag per speler.
 - De game staat nu op de hoofdpagina van de webversie (GitHub Pages); de marketingpagina is weggehaald. De oude link /play/ stuurt door naar de hoofdpagina.
 
 ## [0.66.0] - 2026-11-24

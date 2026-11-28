@@ -1387,7 +1387,7 @@ function updateDamage(dt, world) {
   }
   if (lastHpFx != null && hp < lastHpFx - 0.5) flash = Math.min(1, flash + 0.35 + (lastHpFx - hp) / 30);
   lastHpFx = hp;
-  flash = Math.max(0, flash - dt * 1.8);
+  flash = Math.min(1, Math.max(0, flash - dt * 1.8)); // een negatieve dt (klokwissel, opnametool) liet de rode rand tot 10 s hangen (AAA-30, 28-11)
   const s = flash.toFixed(2);
   if (els.damage.style.opacity !== s) els.damage.style.opacity = s;
 }
