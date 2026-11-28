@@ -19,7 +19,7 @@ Tammo en Tessa zijn **net student af** en trekken de wijde wereld in. Ze waren a
 | Werk | **Besluit eigenaar 21-11:** beiden zijn werkloos net afgestudeerd. Geen kantoorbaan en geen boerderijbaan; hun eerste klusjes (bijbanen, missies) komen uit het spel zelf. Dat verklaart waarom de bank de frietwagenlening afwees en waarom ze samen "precies genoeg voor een patatje" hebben. Andere docs (voetbal, Bezit) zeggen "eerste klusjes", niet "eerste baantjes". Rikus heeft wel werk: de nachtradio. |
 | Rikus | Tammo's **jeugdvriend uit het Oosterpark** (van vóór de studie). Tessa leerde hem tijdens de studie via Tammo kennen. Zijn eerste baan is de nachtradio. |
 | Beppe | Tammo's oma (Fries), een ander personage dan Oma Trijntje. Dat Beppe Tessa "voor het eerst ziet" klopt nu des te beter: vijf jaar vrienden, nu eerst een bezoek. Geen tekstwijziging nodig. |
-| Oma Trijntje | 92. Tammo is haar kleinzoon (de krentjebrijregel); Tessa kent haar uit de studietijd. |
+| Oma Trijntje | 92. Zij is Tessa's oma (Pa's moeder); Tammo kent haar als de buurvrouw uit zijn kindertijd, "Oma van de straat" (de krentjebrijregel). Besluit eigenaar 28-11 (#1395), zie verhaal/bijbel-28-11/01-verhaal-en-personages.md §6.4. |
 | Samenwonen | Ongewijzigd: sinds 14 augustus samen in Paddepoel (Pleiadenlaan). |
 | Opening in de Oosterparkwijk | Ongewijzigd: de keuken van de opening is het laatste (studenten)huis; Tammo komt uit de buurt. |
 

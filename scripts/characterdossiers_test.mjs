@@ -202,6 +202,26 @@ t('Jelle en zijn oma: geen moeder-variant in de dossiers', () => {
   assert.ok(!/zijn moeder|haar zoon|zoon van Mem/i.test(text.replace(/Oudere docs[^|]*|Besluit eigenaar[^|]*|bestaande teksten[^|]*/g, '')), 'een moeder-variant staat in het dossier');
 });
 
+t('twee oma\'s (#1395): Oma Trijntje is Tessa\'s oma, Beppe is Tammo\'s oma, en ze zijn niet dezelfde', () => {
+  const rel = (a, b) => D.relationsFor(a).find((r) => r.to === b);
+  assert.equal(rel('anita', 'trijntje').type, 'family');
+  assert.equal(rel('anita', 'trijntje').is, 'kleindochter');
+  assert.equal(rel('anita', 'trijntje').theyAre, 'oma');
+  assert.equal(rel('tammo', 'beppe').type, 'family');
+  assert.match(rel('tammo', 'beppe').theyAre, /oma/);
+  assert.equal(rel('tammo', 'trijntje').type, 'neighbours', 'Tammo kent Oma Trijntje als buurvrouw, niet als oma');
+  assert.ok(!rel('anita', 'beppe') || rel('anita', 'beppe').type !== 'family', 'Beppe is niet Tessa\'s oma');
+  const pa = rel('tessa_pa', 'trijntje');
+  assert.ok(pa && pa.type === 'family' && pa.is === 'zoon' && pa.theyAre === 'moeder', 'Pa Mulder is Oma Trijntjes zoon');
+  assert.ok(!rel('tammo_pa', 'trijntje'), 'Tammo\'s vader is niet haar zoon');
+  assert.ok(!rel('trijntje', 'opa') || rel('trijntje', 'opa').type !== 'family', 'Opa is haar buurman en vriend, niet haar man');
+  const tr = D.dossierOf('trijntje');
+  assert.match(tr.name, /Mulder-Boelens/);
+  assert.ok(!/Wierenga/.test(textOf(tr)), 'geen Wierenga bij Oma Trijntje');
+  assert.equal(tr.firstStep, 'N8', 'Oma Trijntje is eerst in beeld in N8 (H3)');
+  assert.notEqual(D.dossierOf('beppe').id, tr.id);
+});
+
 t('de kaart in het spel: spoilervrij, per veld bekend-vanaf', () => {
   const mem = 'mem';
   assert.deepEqual(D.cardFacts(mem, { met: false, done: new Set() }), [], 'wie je niet ontmoette toont niets');
@@ -209,7 +229,8 @@ t('de kaart in het spel: spoilervrij, per veld bekend-vanaf', () => {
   assert.ok(early.includes('Leeftijd') && !early.includes('Woont'), 'Mem: leeftijd direct, woonplaats pas na M20');
   assert.ok(D.cardFacts(mem, { met: true, done: new Set(['M20']) }).some((f) => f.label === 'Woont'), 'na M20 komt haar woonplaats erbij');
   const tr = D.cardFacts('trijntje', { met: true, done: new Set() });
-  assert.ok(tr.some((f) => f.label === 'Voor Tammo' && f.text === 'oma'), 'Oma Trijntje is Tammo\'s oma');
+  assert.ok(tr.some((f) => f.label === 'Voor Tessa' && f.text === 'oma'), 'Oma Trijntje is Tessa\'s oma');
+  assert.ok(tr.some((f) => f.label === 'Voor Tammo' && /Oma van de straat/.test(f.text)), 'voor Tammo is ze de buurvrouw, Oma van de straat');
   assert.ok(!D.cardFacts('tammo', { met: true, done: new Set() }).some((f) => f.label === 'Voor Tammo'), 'geen "Voor Tammo" op Tammo\'s eigen kaart');
 });
 

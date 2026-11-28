@@ -19,7 +19,7 @@ Antwoord op de vraag van de eigenaar (21-11): *"Kun je mij ook een synopsis geve
 | Tammo en Tessa | 24, net afgestudeerd, werkloos (eerste klusjes uit het spel), vijf jaar vrienden sinds de eerste studieweek, huisgenoten in Paddepoel (flat op de Pleiadenlaan, sinds 14 augustus). Tammo is vijf jaar stiekem verliefd. Tessa komt van het platteland (boerendochter, dorpsteam); Tammo is een Stadjer uit het Oosterpark met een onverklaarde band met duiven. |
 | Rikus | 25, Tammo's jeugdvriend uit het Oosterpark, nachtradio (Nachtstreek). Hij heeft werk, vertelt de wereld en duidt de relatie nooit. |
 | Beppe | Tammo's Friese oma: eerst een hartelijk bezoek (ze ziet Tessa voor het eerst), een paar missies later overlijdt ze en blijft de herinnering. Ze heeft geen stem. |
-| Oma Trijntje | 92, Tammo's oma in Stad (een ander personage dan Beppe). Haar recept van 1953 is de basis van de snackwagen. |
+| Oma Trijntje | 92, Tessa's oma in Stad en voor Tammo "Oma van de straat" (een ander personage dan Beppe, Tammo's oma). Haar recept van 1953 is de basis van de snackwagen. |
 | Jelle Terpstra | Rijk, bureaucratisch, lang, arrogant en tegelijk lief ("Foar mem"). Terugkerende rivaal, in de laatste akte de eindbaas: hij wordt verslagen met bureaucratie en vette snacks, nooit met geweld. |
 | De frietwagen | De rode Fjord Escapade wordt de snackwagen: thuisbasis, bedrijf en doel. |
 
