@@ -1498,6 +1498,7 @@ function onKey(e) {
       consume(e);
       t.checked = !t.checked;
       t.dispatchEvent(new Event('input', { bubbles: true }));
+      t.dispatchEvent(new Event('change', { bubbles: true }));
     } else if (t.dataset && t.dataset.garageSelect) {
       consume(e);
       selectGarageVehicle(garageEl(), t.dataset.garageSelect);

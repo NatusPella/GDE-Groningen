@@ -704,6 +704,7 @@ export function mountLobby(root, hooks, opts = {}) {
     }
   }
 
+  let closed = false, removeRoot = null;
   function cleanup() {
     hervatGen++;
     if (autoTimer) { clearTimeout(autoTimer); autoTimer = null; }
@@ -860,13 +861,15 @@ export function mountLobby(root, hooks, opts = {}) {
 
   if (hub && (opts.start || opts.adopt)) { const prev = hub.onchange; hub.onchange = (r) => { if (prev) prev(r); onRoster(r); }; }
   if (session && (opts.start || opts.adopt)) watch(session); // wachtscherm van een gast: zodra de verbinding van zelf terugkomt (zelfde token), sluit het scherm
-  root.addEventListener('click', (e) => {
+  const onClick = (e) => {
+    if (closed) return;
     const b = e.target.closest && e.target.closest('[data-act]');
     if (b && root.contains(b)) act(b.dataset.act);
     const k = e.target.closest && e.target.closest('[data-kleur]');
     if (k && k.dataset && k.dataset.kleur && root.contains(k)) { set({ t: 'profiel', kleur: k.dataset.kleur }); bewaarProfiel(); } // een kleur meteen bewaren
-  });
-  root.addEventListener('input', (e) => { // tijdens het typen geen nieuwe tekening: anders raakt het veld zijn focus kwijt
+  };
+  const onInput = (e) => { // tijdens het typen geen nieuwe tekening: anders raakt het veld zijn focus kwijt
+    if (closed) return;
     if (e.target && e.target.classList && e.target.classList.contains('coop-profiel-naam')) {
       state = reduce(state, { t: 'profiel', naam: e.target.value });
       const voorbeeld = wizard && root.querySelector ? root.querySelector('.sw-voorbeeld-naam') : null; // het live voorbeeld volgt het typen
@@ -887,14 +890,15 @@ export function mountLobby(root, hooks, opts = {}) {
     }
     // de lijst (#464): de waarde staat in de state, draw() zet de focus en de cursor terug
     else if (e.target && e.target.classList && e.target.classList.contains('coop-lijst-zoek')) { state = reduce(state, { t: 'lijst-zoek', tekst: e.target.value }); draw(); }
-  });
-  root.addEventListener('keydown', (e) => { // Enter drukt de gele hoofdknop als de focus niet op een knop of veld staat (de toetshint op de knop)
+  };
+  const onKeyEnter = (e) => { // Enter drukt de gele hoofdknop als de focus niet op een knop of veld staat (de toetshint op de knop)
+    if (closed) return;
     if (e && e.key === 'Enter' && e.target && e.target.closest && !e.target.closest('button, input, textarea, select, summary, a')) {
       const b = root.querySelector('.coop-btn[data-primary="1"]:not([disabled])'); if (b) { e.preventDefault(); b.click(); }
     }
-  });
-  root.addEventListener('keydown', (e) => { // Escape wist het zoekveld; pijltjes gaan langs de sessies
-    if (!e || !e.target) return;
+  };
+  const onKeyNav = (e) => { // Escape wist het zoekveld; pijltjes gaan langs de sessies
+    if (closed || !e || !e.target) return;
     if (e.key === 'Escape' && e.target.classList && e.target.classList.contains('coop-lijst-zoek') && state.lijstZoek) { // B: eerst de tekst weg, daarna gaat B terug (22-11)
       e.preventDefault(); state = reduce(state, { t: 'lijst-zoek', tekst: '' }); draw(); return;
     }
@@ -907,8 +911,9 @@ export function mountLobby(root, hooks, opts = {}) {
       const volgende = knoppen[i + (e.key === 'ArrowDown' ? 1 : -1)];
       if (volgende && volgende.focus) volgende.focus();
     }
-  });
-  root.addEventListener('change', (e) => {
+  };
+  const onChange = (e) => {
+    if (closed) return;
     if (e.target && e.target.classList && e.target.classList.contains('coop-profiel-naam')) bewaarProfiel();
     // het wachtwoord (#450): na het typen de regel eronder bijwerken (open of op slot)
     else if (e.target && e.target.classList && e.target.classList.contains('coop-wachtwoord')) { state = reduce(state, { t: 'wachtwoord', tekst: e.target.value }); pasWachtwoordToe(); draw(); }
@@ -916,7 +921,20 @@ export function mountLobby(root, hooks, opts = {}) {
     else if (wizard && e.target && e.target.classList && e.target.classList.contains('sw-figuur-kies')) act('wens-' + String(e.target.value || '')); // de figuur als keuzelijst (stap 1)
     else if (wizard && e.target && e.target.classList && e.target.classList.contains('coop-openbaar-vink')) { wz = reduceWizard(wz, { t: 'bevestig', aan: !!e.target.checked }); draw(); }
     else if (e.target && e.target.classList && e.target.classList.contains('coop-consent-vink')) { state = reduce(state, { t: 'consent-vink', aan: !!e.target.checked }); draw(); }
-  });
+  };
+  root.addEventListener('click', onClick);
+  root.addEventListener('input', onInput);
+  root.addEventListener('keydown', onKeyEnter);
+  root.addEventListener('keydown', onKeyNav);
+  root.addEventListener('change', onChange);
+  removeRoot = () => {
+    if (!root.removeEventListener) return;
+    root.removeEventListener('click', onClick);
+    root.removeEventListener('input', onInput);
+    root.removeEventListener('keydown', onKeyEnter);
+    root.removeEventListener('keydown', onKeyNav);
+    root.removeEventListener('change', onChange);
+  };
   if (hub) koppelAankondiging();
   if (hub) koppelKamerRotatie(); // #779: ook een lopende of overgedragen sessie laat de kamercode na een kick rouleren
   draw();
@@ -934,6 +952,6 @@ export function mountLobby(root, hooks, opts = {}) {
       return true;
     },
     wizard: () => ({ ...wz, stap: wizStep(state, wz) }),
-    close() { cleanup(); root.innerHTML = ''; },
+    close() { closed = true; if (removeRoot) { removeRoot(); removeRoot = null; } cleanup(); root.innerHTML = ''; },
   };
 }
