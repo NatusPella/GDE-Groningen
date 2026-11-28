@@ -99,9 +99,7 @@ export const SPEAKERS = {
   bewaarder: 'Mevrouw Hoving', loketbediende: 'Loketbediende', accountmanager: 'Accountmanager', jurylid: 'Jurylid',
   buschauffeur: 'Buschauffeur', kustwachter: 'Kustwachter', kermisexploitant: 'Kermisexploitant', deurwaarder: 'Deurwaarder',
   student: 'Student', boer: 'Boer', kind: 'Kind in het publiek',
-  willemien: 'Willemien', buurvrouw: 'Buurvrouw',
-  // hoeve Zeldenrust (28-11, #1373): N5 en de akte N5.2
-  boer_hindrik: 'Oom Hindrik', tante_aaltje: 'Tante Aaltje', notaris: 'De notaris',
+  willemien: 'Willemien', buurvrouw: 'Buurvrouw', boer_hindrik: 'Oom Hindrik', tante_aaltje: 'Tante Aaltje', notaris: 'De notaris', // de laatste drie: hoeve Zeldenrust (#1373)
   // inspiratiepakket (21-11)
   veldkamp: 'Meneer Veldkamp', anneke: 'Anneke', lieke: 'Lieke', daan: 'Daan', stien: 'Stien',
 };
