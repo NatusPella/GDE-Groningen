@@ -51,7 +51,7 @@ Wees ervan bewust dat het register leeg is tot jouw module geladen is; importeer
 
 ## Rangen buiten `loopbaan.js`: de voetbalcarrière (28-11, #1374)
 
-De voetbalcarrière heeft zes eigen rangen (`footballstory.js` `storyRank`) en is geen vak van `loopbaan.js`. Een module als `footballrankmoments.js` meldt zijn rangsoort aan met `registerRankKind('voetbal')` (daarna accepteert `registerRankMoment` die `vak`) en voedt de haak zelf: `feedFootballRank(career, rankHook, w)` vergelijkt de rang met de carrièrevlag `rankSeen` en roept `rankHook.omhoog` aan; `voetbalcarrierelive.updateBeats` doet dat elke twee seconden. Het gezien-zijn staat gewoon in het profiel (`momenten`). Een carrière zonder `rankSeen` krijgt de vlag stil op zijn huidige rang (geen moment achteraf) en de vlag zakt nooit. Zie `scripts/football_rank_test.mjs`; de scènes staan in `docs/verhaal/nieuw/09-script-voetbal.md` (V3.2 tot V3.6).
+De voetbalcarrière heeft zes eigen rangen (`footballstory.js` `storyRank`) en is geen vak van `loopbaan.js`. Een module als `footballrank.js` meldt zijn rangsoort aan met `registerRankKind('voetbal')` (daarna accepteert `registerRankMoment` die `vak`) en voedt de haak zelf: `feedFootballRank(career, rankHook, w)` vergelijkt de rang met de carrièrevlag `rankSeen` en roept `rankHook.omhoog` aan; `voetbalcarrierelive.updateBeats` doet dat elke twee seconden. Het gezien-zijn staat gewoon in het profiel (`momenten`). Een carrière zonder `rankSeen` krijgt de vlag stil op zijn huidige rang (geen moment achteraf) en de vlag zakt nooit. Zie `scripts/football_rank_test.mjs`; de scènes staan in `docs/verhaal/nieuw/09-script-voetbal.md` (V3.2 tot V3.6).
 
 ## Samen spelen
 

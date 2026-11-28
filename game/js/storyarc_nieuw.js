@@ -386,7 +386,7 @@ export const STEPS = [
   // Voetbalverhaallijn (V1-V3, #1179, epic #1106): Tessa is de ster, Tammo helpt haar shinen (de papieren, de schoenen, de sponsor). Alleen bestaande doeltypes (shop, reis);
   // geen stem (silent: telefoonregels). Samen spelen: een verhaalstap is per speler (eigen voortgang, #429): elke speler loopt hem in zijn eigen spel; de wereld van de host hoeft er niets voor te doen.
   // Het is geen voorwaarde voor de carrière: voetbalpoort.js opent de carrière al in akte 4; deze stappen geven de reden en de eerste aanloop. Hernoemen of weghalen kan niet: de id's staan in saves (BETWEEN_STEPS).
-  // De scènes V1.1 tot V1.3 (de invalbeurt) speelt careerdebut_voetbal.js bij de start van de carrière, V3.2 tot V3.6 (de rangmomenten) footballrankmoments.js; de stap speelt ze niet zelf (09-script-voetbal.md).
+  // De scènes V1.1 tot V1.3 (de invalbeurt) speelt careerdebut_football.js bij de start van de carrière, V3.2 tot V3.6 (de rangmomenten) footballrank.js; de stap speelt ze niet zelf (09-script-voetbal.md).
   A('V1', 'zuid', 'Schoenen voor de ster', { type: 'shop', shop: 'kleding' }, { built: true, player: 'anita', scenes: ['V1.1', 'V1.2', 'V1.3'],
     lead: ['T', 'De club in Veendam zoekt spelers en ik heb je opgegeven. Je hebt schoenen en een shirt nodig. Ik betaal de eerste maat.'],
     done: ['T', 'Dat staat je. Echt. Het dorpsteam vergat je nooit, en Veendam vergeet je ook niet.'] }),

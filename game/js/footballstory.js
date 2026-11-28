@@ -87,7 +87,7 @@ export const INVAL = {
   // wat het bord toont: de opstelling met een doorgestreepte naam en Tessa's naam erbij, de eerste wedstrijdfoto ernaast
   bord: { doorgestreept: 'de linksbuiten', erbij: 'Tessa', foto: 'de eerste wedstrijdfoto' },
 };
-// De regels van de aanleiding in volgorde (voor de terugblik van een gast; de scène zelf is careerdebut_voetbal.js, met meer regels in het clubhuis); `deel` is avond, zondag of clubhuis.
+// De regels van de aanleiding in volgorde (voor de terugblik van een gast; de scène zelf is careerdebut_football.js, met meer regels in het clubhuis); `deel` is avond, zondag of clubhuis.
 export const invalLines = (deel = null) => (deel ? (INVAL[deel] || []) : [...INVAL.avond, ...INVAL.zondag, ...INVAL.clubhuis]).map((l) => ({ ...l }));
 // De terugblik voor een gast die de aanleiding mist: alleen het clubhuis (Albert), nooit een eigen vlag of voortgang.
 export const guestRetrospect = () => invalLines('clubhuis');

@@ -1,5 +1,5 @@
 // De rangenboog van de voetbalcarrière (#1374, taak V3, bijbel 28-11 deel 02 bij 2b): per rang 2 tot 6 een verhaalmoment via de rangmomentenhaak (rankmoments.js,
-// docs/RANKMOMENTS.md). Rang 1 is de invalbeurt (careerdebut_voetbal.js). De zes rangen en hun bijfiguren staan als data in footballstory.js (storyRank, RANKS).
+// docs/RANKMOMENTS.md). Rang 1 is de invalbeurt (careerdebut_football.js). De zes rangen en hun bijfiguren staan als data in footballstory.js (storyRank, RANKS).
 //
 // Puur (geen THREE, geen DOM): de momenten worden bij het laden aangemeld; `feedFootballRank` vergelijkt de rang van het profiel met de laatst geziene rang en voert de
 // haak. De haak is die van loopbaanlive.js (rankHook): het gezien-zijn staat in het profiel van de speler (momenten), het afspelen gaat via de rustregels van rankmomentsrun.js.

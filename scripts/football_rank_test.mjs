@@ -1,4 +1,4 @@
-// Test van de rangenboog (#1374, taak V3): game/js/footballrankmoments.js, de haak van rankmoments.js en de koppeling met de voetbalcarrière. Puur, geen Electron;
+// Test van de rangenboog (#1374, taak V3): game/js/footballrank.js, de haak van rankmoments.js en de koppeling met de voetbalcarrière. Puur, geen Electron;
 // schrijft nooit naar echte opslag (nepopslag voor het profiel en de carrière).
 // Dekt: vijf aangemelde momenten voor rang 2 tot 6, dezelfde tekst als het script (V3.2 tot V3.6), een moment bij elke stijging (een sprong speelt de overgeslagen
 // rangen in volgorde), niets achteraf voor een oude carrière, niets dubbel na zakken of opnieuw laden, per speler eigen voortgang, en de vlag overleeft opslaan en laden.
@@ -7,7 +7,7 @@ import fs from 'node:fs';
 import assert from 'node:assert/strict';
 import PARKDATA from '../game/js/voetbalparkendata.js';
 import * as R from '../game/js/rankmoments.js';
-import * as F from '../game/js/footballrankmoments.js';
+import * as F from '../game/js/footballrank.js';
 import * as V from '../game/js/footballstory.js';
 import * as Live from '../game/js/loopbaanlive.js';
 import * as L from '../game/js/loopbaan.js';

@@ -1,12 +1,12 @@
-// Test van de invalbeurt (#1374, taak V2): game/js/careerdebut_voetbal.js. Puur, geen Electron.
+// Test van de invalbeurt (#1374, taak V2): game/js/careerdebut_football.js. Puur, geen Electron.
 // Dekt: de regels (kort, Nederlands, zonder echte merken, namen eerst ingeleid), dat code, script (V1.1 tot V1.3 in game/storydata/script.json) en footballstory.js
 // dezelfde tekst hebben, de regie (valideert, compileert, elke beat en shot vindt zijn regel, de gebaren en de cast bestaan, het licht volgt het verhaal),
 // de voorwaarde (alleen bij De Hoekers, eenmaal per speler, alleen aan het begin, vóór de eerste training) en de Samen-spelen-regel (data, terugblik, geen vlag).
-//   node scripts/careerdebut_voetbal_test.mjs
+//   node scripts/careerdebut_football_test.mjs
 import fs from 'node:fs';
 import assert from 'node:assert/strict';
 import PARKDATA from '../game/js/voetbalparkendata.js';
-import * as I from '../game/js/careerdebut_voetbal.js';
+import * as I from '../game/js/careerdebut_football.js';
 import { footballDue, FOOTBALL_FLAG, stubLooks } from '../game/js/careerdebut.js';
 import * as V from '../game/js/footballstory.js';
 import { makeParkIndex } from '../game/js/voetbalparken.js';
@@ -117,4 +117,4 @@ t('Samen spelen: de scène is data, een gast krijgt de terugblik van Albert en s
   const a = I.invalTimeline(), b = I.invalTimeline();
   assert.equal(JSON.stringify(a), JSON.stringify(b), 'de tijdlijn is deterministisch (host en gast zien hetzelfde)');
 });
-console.log(`careerdebut_voetbal_test: ${n} groepen ok`);
+console.log(`careerdebut_football_test: ${n} groepen ok`);

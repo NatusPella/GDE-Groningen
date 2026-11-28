@@ -1,6 +1,6 @@
 # Nieuwe stemregels, 28-11 (voetbal, #1374)
 
-Alleen tekst: **er is geen audio gemaakt** en geen TTS gedraaid. Tot de TTS-ronde staan de regels als ondertitel met leestijd (`textOnly` in `game/storydata/script.json`). Bron: `docs/verhaal/nieuw/09-script-voetbal.md`; de code leest dezelfde tekst uit `game/js/careerdebut_voetbal.js` (V1.1 tot V1.3) en `game/js/footballrankmoments.js` (V3.2 tot V3.6). Een test (`scripts/careerdebut_voetbal_test.mjs`, `scripts/football_rank_test.mjs`) bewaakt dat code en script gelijk blijven; wijzig je een tekst, wijzig dan alle drie.
+Alleen tekst: **er is geen audio gemaakt** en geen TTS gedraaid. Tot de TTS-ronde staan de regels als ondertitel met leestijd (`textOnly` in `game/storydata/script.json`). Bron: `docs/verhaal/nieuw/09-script-voetbal.md`; de code leest dezelfde tekst uit `game/js/careerdebut_football.js` (V1.1 tot V1.3) en `game/js/footballrank.js` (V3.2 tot V3.6). Een test (`scripts/careerdebut_football_test.mjs`, `scripts/football_rank_test.mjs`) bewaakt dat code en script gelijk blijven; wijzig je een tekst, wijzig dan alle drie.
 
 ## Sprekers en stem (voorstel, nog te kiezen)
 

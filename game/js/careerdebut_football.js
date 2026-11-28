@@ -2,7 +2,7 @@
 // linksbuiten eruit ligt en Tessa invalt, en het clubhuis met het bord en de eerste wedstrijdfoto. Daarna loopt de bestaande eerste training (careerdebut.js) door.
 //
 // Puur (geen THREE, geen DOM, geen wereld): de regels, de regie als spec voor missionScene, de voorwaarde en de terugblik voor een gast. De regels staan ook als
-// docs/verhaal/nieuw/09-script-voetbal.md (scènes V1.1 tot V1.3; scripts/careerdebut_voetbal_test.mjs bewaakt dat code en script gelijk blijven). Het afspelen
+// docs/verhaal/nieuw/09-script-voetbal.md (scènes V1.1 tot V1.3; scripts/careerdebut_football_test.mjs bewaakt dat code en script gelijk blijven). Het afspelen
 // staat in careerdebutrun.js (playSpecScene); de tijdlijn en het clubtenue komen uit careerdebut.js.
 //
 // Wanneer: de carrière is net begonnen (zelfde regel als footballDue) en de eigen club is De Hoekers, de dorpsclub van het verhaal (footballstory.js). Een carrière

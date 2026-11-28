@@ -26,7 +26,7 @@ import {
   FOOTBALL_FLAG, FARM_FLAG, FOOTBALL_ID, FARM_ID, SCENES, FOOTBALL_LINES, FARM_LINES, footballSpec, farmSpec, clubLook, teamLooks,
   footballDue, farmDue, debutBlockers, debutDecide,
 } from './careerdebut.js';
-import { INVAL_FLAG, INVAL_ID, INVAL_LINES, INVAL_TITLE, INVAL_KICKER, invalSpec, invallerDue } from './careerdebut_voetbal.js';
+import { INVAL_FLAG, INVAL_ID, INVAL_LINES, INVAL_TITLE, INVAL_KICKER, invalSpec, invallerDue } from './careerdebut_football.js';
 import { STORY_PLACE_ID } from './footballstory.js';
 
 const CHECK_EVERY_S = 1;       // zo vaak kijken we of er een scène aan de beurt is (goedkoop, en Bezit laadt lui)
@@ -70,7 +70,7 @@ function dueScene(view) {
   try {
     const c = CL.getCareer();
     const village = CL.getIndex().byPlace.get(STORY_PLACE_ID);
-    if (invallerDue(c, view.flags, village && village.id)) return { id: INVAL_ID, career: c };       // de aanleiding gaat voor de eerste training (careerdebut_voetbal.js)
+    if (invallerDue(c, view.flags, village && village.id)) return { id: INVAL_ID, career: c };       // de aanleiding gaat voor de eerste training (careerdebut_football.js)
     if (footballDue(c, view.flags)) return { id: FOOTBALL_ID, career: c };
   } catch (e) { /* geen carrière */ }
   try {

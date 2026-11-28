@@ -111,7 +111,7 @@ export const NPC = {
   // de begincutscenes van de carrières (careerdebut.js, 22-11): de trainer van de Talentenklasse en de buurman van het eerste perceel
   trainer: { name: 'Trainer Eppo', shirt: 0x24324e, skin: SKIN.woodMid, variant: 'male', seed: 6130 },
   buurman: { name: 'Buurman Aldert', shirt: 0x6a7a3a, skin: SKIN.woodLight, variant: 'male', seed: 6131, look: { age: 'old' } },
-  // de invalbeurt (careerdebut_voetbal.js, #1374): de voorzitter van De Hoekers, met sjaal en ledenlijst
+  // de invalbeurt (careerdebut_football.js, #1374): de voorzitter van De Hoekers, met sjaal en ledenlijst
   albert: { name: 'Albert Teuben', shirt: 0x7a3a3a, skin: SKIN.woodMid, variant: 'male', seed: 6132, look: { age: 'old' } },
 };
 

@@ -21,7 +21,7 @@ export const MAX_TRIES = 3;  // een moment dat drie keer niet wil beginnen (film
 const register = new Map();
 
 // Rangen die niet bij een vak van loopbaan.js horen (de voetbalcarrière heeft zijn eigen zes rangen, footballstory.js): een module meldt zijn
-// rangsoort aan en voert de haak zelf (footballrankmoments.js). Het gezien-zijn staat gewoon in het profiel (momenten).
+// rangsoort aan en voert de haak zelf (footballrank.js). Het gezien-zijn staat gewoon in het profiel (momenten).
 const EXTRA_VAKKEN = new Set();
 export const registerRankKind = (id) => { if (typeof id === 'string' && id && !VAK_IDS.includes(id)) EXTRA_VAKKEN.add(id); return EXTRA_VAKKEN.has(id); };
 
