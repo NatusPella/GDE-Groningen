@@ -22,6 +22,7 @@ export const SICK_FACTOR = 0.25;          // een zieke kudde geeft een kwart
 export const SICK_DAYS = 3;
 export const ROBOT_FACTOR = 0.9;          // zonder melkrobot geeft de melk 10% minder (te laat of onregelmatig gemolken)
 export const MAX_HERD = 5000;
+export const KLUS_VOER_BONUS = 1.05;     // zelf voeren (extra hooi en een praatje) geeft 5% meer productie
 
 // ---- aantallen ----
 export const canKeep = (sp, kind, ha) => !!SPECIES[sp] && SPECIES[sp].kind.includes(kind) && (SPECIES[sp].hok > 0 ? ha >= 0.2 : Math.floor(ha * SPECIES[sp].perHa) >= 1);
@@ -124,13 +125,15 @@ export function cure(herd, money = Infinity) {
 }
 
 // ---- de speldag ----
-// ctx: { hay: { gras, hooi, graan } kg in de opslag, robot (melkrobot aanwezig), buy (voer bijkopen als er te weinig is; standaard ja), kind ('w'|'a'|'b' van het perceel), ha }
+// ctx: { hay: { gras, hooi, graan } kg in de opslag, robot (melkrobot aanwezig), buy (voer bijkopen als er te weinig is; standaard ja), kind ('w'|'a'|'b' van het perceel), ha,
+//        klus: { voeren, melken } (de speler verzorgde de kudde zelf, herdchores.js): melken telt als de robot, voeren geeft 5% meer }
 // Geeft { products: { melk|wol|eieren: hoeveelheid }, value, hayUsed: { soort: kg }, feedCost, fed (0..1), sick }. Verandert de kudde (de ziektedagen lopen af), de opslag niet:
 // de aanroeper haalt hayUsed uit de opslag, stopt products erin of verkoopt ze (sellValue) en betaalt feedCost.
 export function herdDayTick(herd, ctx = {}) {
   const s = herd && SPECIES[herd.sp];
   const rep = { products: {}, value: 0, hayUsed: {}, feedCost: 0, fed: 1, sick: false };
   if (!s || !(herd.n > 0)) return rep;
+  const klus = ctx.klus || {};
   const need = herd.n * s.voer;
   let left = need;
   // 1. de eigen wei (alleen een weide geeft gras; kippen scharrelen niet mee)
@@ -146,7 +149,7 @@ export function herdDayTick(herd, ctx = {}) {
   if (left > 1e-9 && ctx.buy !== false) { rep.feedCost = Math.round(left * (s.grazen ? FEED_PRICE.hooi : FEED_PRICE.graan) * 100) / 100; left = 0; }
   rep.fed = need > 0 ? clamp(1 - left / need, 0, 1) : 1;
   rep.sick = herd.sick > 0;
-  const f = rep.fed * (rep.sick ? SICK_FACTOR : 1) * (herd.sp === 'melkvee' && !ctx.robot ? ROBOT_FACTOR : 1);
+  const f = rep.fed * (rep.sick ? SICK_FACTOR : 1) * (herd.sp === 'melkvee' && !ctx.robot && !klus.melken ? ROBOT_FACTOR : 1) * (klus.voeren ? KLUS_VOER_BONUS : 1);
   const amount = herd.n * s.perDag * f;
   const q = s.product === 'wol' ? Math.round(amount * 100) / 100 : Math.round(amount);
   if (q > 0) { rep.products[s.product] = q; rep.value = Math.round(q * PRODUCT_PRICE[s.product]); }
@@ -166,7 +169,7 @@ export function livestockDayTick(bezit, ctx = {}) {
   for (const id of Object.keys(herds).sort()) {
     const rec = bezit.parcels[id];
     if (!rec) { delete herds[id]; continue; }                       // het perceel is verkocht: de kudde gaat mee
-    const r = herdDayTick(herds[id], { hay, robot: ctx.robot, buy: ctx.buy, kind: rec.k, ha: rec.ha });
+    const r = herdDayTick(herds[id], { hay, robot: ctx.robot, buy: ctx.buy, kind: rec.k, ha: rec.ha, klus: ctx.klus ? ctx.klus(id) : null });
     for (const k of Object.keys(r.products)) total.products[k] = Math.round(((total.products[k] || 0) + r.products[k]) * 100) / 100;
     for (const k of Object.keys(r.hayUsed)) { hay[k] -= r.hayUsed[k]; total.hayUsed[k] = Math.round(((total.hayUsed[k] || 0) + r.hayUsed[k]) * 10) / 10; }
     total.value += r.value; total.feedCost += r.feedCost; total.herds++; if (r.sick) total.sick++;

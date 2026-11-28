@@ -114,6 +114,7 @@
 .bd-rij .sn-plek-ic svg { width: 24px; height: 24px; }
 .bd-naam { display: flex; flex-direction: column; gap: var(--ds-s-1); min-width: 0; flex: 1 1 auto; }
 .bd-feiten { display: flex; flex-wrap: wrap; gap: 0 var(--ds-s-4); color: var(--ds-tx-zacht); font-size: var(--ds-t-hulp); }
+.bd-slot { display: block; color: var(--ds-tx-zacht); font-size: var(--ds-t-hulp); max-width: 38em; }
 .bd-acties { display: flex; flex-wrap: wrap; flex: none; gap: var(--ds-s-2); align-items: center; justify-content: flex-end; }
 .bz-chip { cursor: pointer; }
 /* #1272: elke sectie van Land en bedrijf is een DS3-kaart met kop (icoon, naam, getal), de uitleg achter een info-knop, en een knop die uit staat toont slot en reden */

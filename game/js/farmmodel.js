@@ -37,7 +37,7 @@ export function verwachtingKg(b, id) {
   const mest = 1 + B.MEST_BONUS * (gezaaid ? v.mest : 0);
   const ha = clamp(def.ha / B.HA_REF, 0.5, 4);
   const uitput = b.bodemlog && b.bodemlog[id] ? b.bodemlog[id].u : 0;
-  const kg = g.kgBasis * bodem * zaai * mest * (1 + B.CULT_BONUS * (gezaaid ? v.cult || 0 : 0)) * (1 + B.SPUIT_BONUS * (gezaaid ? v.spuit || 0 : 0)) * PC.bodemFactor(def.bodem) * ha * (1 - uitput);
+  const kg = g.kgBasis * bodem * zaai * mest * (1 + B.CULT_BONUS * (gezaaid ? v.cult || 0 : 0)) * (1 + B.SPUIT_BONUS * (gezaaid ? v.spuit || 0 : 0)) * PC.bodemFactor(def.bodem) * ha * (1 - uitput) * (1 + B.rotatieBonus(b, id, gewasId));
   const rond = Math.max(0, Math.round(kg / 10) * 10);
   return { kg: rond, euro: Math.round(rond * g.prijsKg), gewas: gewasId, gezaaid };
 }
@@ -53,6 +53,7 @@ export function veldKaart(b, id, schuurKg = 0) {
     gewasNaam: s.gewasNaam || '', planNaam: s.planNaam, gewasId: s.gewas || s.plan || '', groei: s.groei, groeit: s.stadium >= 0,
     volgende: watNu(s, schuurKg), klaar: s.klaar, aandacht: s.aandacht,
     verwachting: v, rang: STAND[stand].rang,
+    vruchtbaar: B.vruchtbaarheid(b, id), advies: B.bodemAdvies(b, id), bodem: PC.bodemNaam((PC.perceelDef(id) || {}).bodem),
   };
 }
 

@@ -163,6 +163,10 @@
 | 6 | **40 koeien** | melkvee is 2,5 per ha | de hoeve krijgt een eigen perceel `zeldenrust-wei` van 16 ha en de schenking zet een kudde; of de verhaaltekst zegt "een kudde" met een getal dat past (bijvoorbeeld 12 koeien op 5 ha). Voorkeur: tekst aanpassen, mechanica ongemoeid |
 | 7 | **Wanneer verschijnt de snackwagen in beeld?** | hints spoilen nu | de tak `snack` blijft akte 5; de hinttekst vervangen door een neutrale zin zonder namen |
 
+## 4b. Stand van de bouw (28-11, branch bouw-boer-verhaal-28-11)
+
+Besluit 1 (Oom Hindrik), 3 (Oma Trijntje) en 5 (geen hoeve in de wereld van een gast) zijn zo gebouwd; besluit 2: zes niveaus met de bestaande titels; besluit 6: **twaalf koeien op de weide van vijf hectare**, de mechanica ongemoeid. Gebouwd: B2 (de schenking in het verhaal, scène N5 en N5.2), B3, B4 voor zover het de boer betreft (Hindrik, Aaltje, de notaris, Ypie, Lutje, mevrouw Hofstra, Jorrit Tilma), B5, B7 zonder het Oogstfeest, B8, B9. Niet gebouwd: B6 (bietenrooier en derde trekker: model en plaatje van de voertuigbouwer), B10 (medeboer: wacht op akkoord op 4.5), het Oogstfeest. Zie docs/BOERDERIJ.md.
+
 ## 5. Bouwtaken, elk maximaal M
 
 Volgorde en parallel: B1 is het fundament; daarna lopen de boertaken B2 tot B9 grotendeels naast elkaar. S1 is het fundament voor snack; S2 tot S7 volgen. Boer en snack mogen volledig parallel in aparte worktrees zolang B1 (gedeelde rang-haak) eerst op main staat en niemand tegelijk `loopbaan.js` en `loopbaanlive.js` raakt.
@@ -185,7 +189,7 @@ Volgorde en parallel: B1 is het fundament; daarna lopen de boertaken B2 tot B9 g
 
 **B7 (M) Markt met veiling en Oogstfeest.** Het Oogstfeest in `evenementen.js` (gedeeld, dus kort en met de andere loopbaanagents afstemmen), de weekveiling en `auctionOffer` (`bezitevents.js` r.166) in `boerderijdag.js` en `boerderijcontracten.js` zichtbaar maken, een Bietencampagne-contract. Bestanden: `game/js/evenementen.js`, `game/js/boerderijdag.js`, `game/js/boerderijcontracten.js`, `game/js/boerderijui.js`. Tests: `evenementen_test`, `boerderijdag_test`, `boerderijcontracten_test`, `bezitevents_test`. Samen spelen: de agenda is voor iedereen gelijk (gedeelde kalender), de contracten per speler. Parallel met B5 en B6.
 
-**B8 (M) Kudde van de hoeve en dieren verzorgen.** De schenking (B2) zet een kudde op de hoeve (aantal volgens besluit 6), de kippen leveren Beppe's eieren; één handeling per dag (voeren of melken) als kleine klus bovenop `livestock.js`, naar het patroon van `werkgang.js`/`sidejob_boerderij.js`. Bestanden: `game/js/livestock.js` (alleen een optionele klus-bonus), `game/js/holdingsmodel.js`, `game/js/boerderijui.js`, nieuw `game/js/dierklus.js`. Tests: `livestock_test`, `holdingsmodel_test`, nieuw `dierklus_test`. Samen spelen: het vee is per speler en een gast ziet het niet (`livestock.js` r.6). Na B2.
+**B8 (M) Kudde van de hoeve en dieren verzorgen.** De schenking (B2) zet een kudde op de hoeve (aantal volgens besluit 6), de kippen leveren Beppe's eieren; één handeling per dag (voeren of melken) als kleine klus bovenop `livestock.js`, naar het patroon van `werkgang.js`/`sidejob_boerderij.js`. Bestanden: `game/js/livestock.js` (alleen een optionele klus-bonus), `game/js/holdingsmodel.js`, `game/js/boerderijui.js`, nieuw `game/js/herdchores.js`. Tests: `livestock_test`, `holdingsmodel_test`, nieuw `herdchores_test`. Samen spelen: het vee is per speler en een gast ziet het niet (`livestock.js` r.6). Na B2.
 
 **B9 (M) Hofwinkel en eigen merk "Hoeve Zeldenrust".** Een pandtype of mobiel bedrijf dat opslag van het erf (`bergOp` r.366) verkoopt met marge, via `business.js` `SHOP_TYPES` en een merknaam. Bestanden: `game/js/business.js`, `game/js/bezitbedrijven.js`, `game/js/percelen.js` (alleen lezen van de opslag). Tests: `business_test`, `percelen_test`. **Gedeelde pandtypen met S5 (horeca):** dezelfde agent of strikt na elkaar. Na B2.
 

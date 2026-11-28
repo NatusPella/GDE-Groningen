@@ -290,8 +290,11 @@ Op de Grote Markt winnen ze het Ontzet met de beste eierbal, een eerlijke wagen 
 **Sequentie N5: De boerderij in Warffum** (activiteit; speler-protagonist Tammo)
 
 - **N5** BUITEN – HOGELAND, WARFFUM – OCHTEND · De boerderij in Warffum · cutscene of gespeeld in de missie
-  - woensdagochtend. Een boerenerf met kippen, een hek en een koe die niet weg wil. Tessa loopt het erf op alsof ze er nooit is weggegaan. Tammo blijft bij het hek.
-  - praat: Tessa, Tammo
+  - woensdagochtend. Hoeve Zeldenrust op de dijk: een bord aan het hek, kippen, een koe die niet weg wil. Tammo draagt een mand eieren van Beppe. Tessa loopt het erf op alsof ze er nooit is weggegaan. Tegen het hek leunt een
+  - praat: Tessa, Tammo, Oom Hindrik, Tante Aaltje
+- **N5.2** BINNEN – HOGELAND, WARFFUM – MIDDAG · De akte bij de notaris · cutscene of gespeeld in de missie
+  - middag, een paar dagen later. Een notariskantoor in Warffum met een lange tafel en een klok die te hard tikt. Tante Aaltje zit met haar map ZEKER; de notaris zet zijn bril op. Tammo en Tessa zitten naast elkaar.
+  - praat: De notaris, Tammo, Tante Aaltje, Tessa
 
 **Sequentie K1: Het land achter de pastorie** (activiteit; speler-protagonist Tammo)
 
@@ -1035,8 +1038,8 @@ Op de Grote Markt winnen ze het Ontzet met de beste eierbal, een eerlijke wagen 
 
 | Personage | Akte 1 | Akte 2 | Akte 3 | Akte 4 | Akte 5 | Deel 4 |
 |---|---|---|---|---|---|---|
-| Tessa | 40 | 42 | 33 | 33 | 39 | 21 |
-| Tammo | 40 | 40 | 33 | 31 | 33 | 23 |
+| Tessa | 40 | 43 | 33 | 33 | 39 | 21 |
+| Tammo | 40 | 41 | 33 | 31 | 33 | 23 |
 | Jelle Terpstra | 4 | 10 | 11 | 8 | 12 | 4 |
 | Rikus | 9 | 4 | 4 | 7 | 11 | 4 |
 | Berend Bos | 4 |  |  | 14 | 10 | 8 |
@@ -1070,12 +1073,15 @@ Op de Grote Markt winnen ze het Ontzet met de beste eierbal, een eerlijke wagen 
 | Terrasgast | 1 | 1 |  |  |  |  |
 | Mevrouw Hoving | 1 |  |  | 1 |  |  |
 | Boer |  | 1 |  |  |  | 1 |
+| Tante Aaltje |  | 2 |  |  |  |  |
 | Buschauffeur |  | 2 |  |  |  |  |
 | Deurwaarder |  |  | 1 | 1 |  |  |
 | Geert |  |  | 2 |  |  |  |
 | Anneke |  |  | 1 |  | 1 |  |
 | Mevrouw De Vries-Jansen |  |  |  |  |  | 2 |
 | Jelmer |  |  |  | 2 |  |  |
+| Oom Hindrik |  | 1 |  |  |  |  |
+| De notaris |  | 1 |  |  |  |  |
 | Dries |  | 1 |  |  |  |  |
 | Mevrouw Wassink |  | 1 |  |  |  |  |
 | Annemarie |  | 1 |  |  |  |  |

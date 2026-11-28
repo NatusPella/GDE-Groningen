@@ -32,7 +32,7 @@ export const bridgeActive = () => !!playing;
 
 const flagStore = (view) => view.flags;
 
-function snapshot(w, view, menuOpen) {
+export function snapshot(w, view, menuOpen) {
   const p = hoofdspeler(w);
   const step = view.currentId ? { id: view.currentId } : null;
   return {

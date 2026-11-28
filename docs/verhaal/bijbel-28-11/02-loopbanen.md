@@ -47,7 +47,7 @@ Alle namen van bijfiguren hieronder zijn voorstellen, allemaal verzonnen; deel 1
 
 Daarna een tussenpoos van een paar speluren waarin andere dingen gebeuren. Dan het bericht van Tante Aaltje: Oom Hindrik gaat, met een zwaai, naar Huize Waddenzicht (een verzorgingshuis in Warffum) en de hoeve wordt geschonken. Geen leed, geen drama; een notaris in Warffum met een brief. **De hoeve gaat naar Tammo en Tessa samen** ("omdat jullie de enige zijn die de hond mochten uitlaten"), met één voorwaarde: juli oogsten, dan zien we verder. Oom Hindrik blijft bereikbaar voor een bezoek. Zijn brief is het eerste voorwerp in de wereld van de loopbaan en wordt een paar keer opnieuw gelezen.
 
-Aansluiting op de code: de eigen boerderij met erf en percelen (nu bij Hoogkerk; de hoeve Zeldenrust verhuist de verhaalplek naar het Hogeland, Hoogkerk blijft de bietenoogst) (`percelen.js`, `boerderijwereld.js`), een kasboek en een eerste klus bestaan al. Nieuw is alleen de verhaalingang; de menu-ingang blijft voor wie later terugkomt.
+Aansluiting op de code: de eigen boerderij met erf en percelen (De Zonnehoek bij Hoogkerk blijft de eerste akker en de bietenoogst; hoeve Zeldenrust bij Warffum is er vanaf de schenking, gebouwd in #1373: `boerstory.js`, `percelen.js`) (`percelen.js`, `boerderijwereld.js`), een kasboek en een eerste klus bestaan al. Nieuw is alleen de verhaalingang; de menu-ingang blijft voor wie later terugkomt.
 
 **Begrijpelijk voor iedereen.** De terugblik wordt verteld door **Beppe** aan de keukentafel van het erf: "Dit was het huis van Hindrik. Hij woont nu in Warffum, bij de dokter. Hij heeft het aan jullie gegeven." In de bijkeuken hangt zijn brief aan een spijker, op het kalenderblad in de schuur staat zijn laatste notitie en bij de ingang een bord "Hoeve Zeldenrust". Een gast die de loopbaan opent ziet het erf, hoort Beppe en kan de brief lezen.
 
@@ -75,7 +75,7 @@ Aansluiting op de code: de eigen boerderij met erf en percelen (nu bij Hoogkerk;
 
 **Plekken** (een band met het verhaal):
 
-- *Westerkwartier en Gorecht*: de hoeve Zeldenrust en de eerste percelen bij Hoogkerk (zoals in `percelen.js`), de graslanden langs het Reitdiep (Hooimarkt Reitdiep bestaat al als afnemer).
+- *Hogeland (Warffum en Usquert)*: hoeve Zeldenrust met twaalf melkkoeien. *Westerkwartier en Gorecht*: de eerste percelen bij Hoogkerk (zoals in `percelen.js`), de graslanden langs het Reitdiep (Hooimarkt Reitdiep bestaat al als afnemer).
 - *Hogeland en Veenkoloniën*: aardappelen, bieten en uien op grotere schaal (de afnemers Uienloods De Kleihoek, Suikerhal Hoogkerk en Graanzaak staan al in `GEWASSEN`), de bietencampagne.
 - *Waddenkust en Lauwersmeer*: de kwelderlammeren, de schapen en de zoute akkers aan de dijk; een zomers uitje dat het "eerste buiten de stad" van het eerste uur kan zijn.
 - *Stad*: de markt op de Vismarkt en de Groentemarkt, waar de aardappelen en uien van Zeldenrust aan de snackwagen komen.

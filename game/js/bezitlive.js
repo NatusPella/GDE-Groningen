@@ -8,7 +8,9 @@ import { KEYS } from './storagekeys.js';
 import { sfxEvent } from './sfx/haken.js';
 import { noteMoney } from './finance.js';
 import { euro } from './geldtekst.js';
-import { getBoerderij } from './boerderijlive.js';
+import { getBoerderij, schenkHoeve as schenkHoeveBoerderij } from './boerderijlive.js';
+import { loopbaanTel } from './loopbaanlive.js';
+import { zetHoeveKudde, doeKlus, klusAanbod, KLUSSEN, HOEVE_WEI } from './herdchores.js';
 import { setVoorLaadHaak } from './boerderijlive.js';
 import * as Z from './bezit.js';
 import * as P from './bezitprijs.js';
@@ -353,6 +355,28 @@ export function koopVee(w, id, sp) {
   noteMoney('Winkels'); w.money -= r.cost; markeer();
   return { ok: true, n: r.n, text: `${r.n} ${SPECIES[sp].naam.toLowerCase()} gekocht voor ${euro(r.cost)}.` };
 }
+// De schenking van hoeve Zeldenrust (#1373) in zijn geheel: erf en percelen in de boerderij (boerderijlive.schenkHoeve), de percelen als eigen bezit en twaalf koeien op de weide
+// (herdchores.zetHoeveKudde). Per speler en lokaal. Geeft { ok, nieuw, kudde } of { ok: false, reden }; een tweede aanroep doet niets.
+export function schenkHoeveCompleet() {
+  const r = schenkHoeveBoerderij();
+  if (!r.ok) return r;
+  const k = zetHoeveKudde(getBezit(), getBoerderij().bedrijf);
+  markeer();
+  return { ...r, kudde: k.ok ? k.n : 0 };
+}
+// Eén klus voor een kudde (voeren of melken), één keer per speldag per soort (herdchores.js). Het loon is ervaring in het vak Landbouw, geen geld.
+export function doeDierklus(w, id, soort) {
+  const dag = Math.floor(getBoerderij().uren / 24);
+  const r = doeKlus(getBezit(), id, soort, dag);
+  if (!r.ok) return { ok: false, text: r.why === 'al-gedaan' ? 'Dat heb je vandaag al gedaan.' : r.why === 'geen-kudde' ? 'Hier loopt geen vee.' : 'Dat kan hier niet.' };
+  try { loopbaanTel(w, 'landbouw', { xp: r.xp, n: 0 }); } catch (e) { devWarn('bezitlive', e); }
+  markeer();
+  return { ok: true, text: r.tekst };
+}
+export const hoeveKudde = () => { const h = herdsOf(getBezit())[HOEVE_WEI]; return h ? { id: HOEVE_WEI, sp: h.sp, n: h.n, sick: h.sick, naam: (SPECIES[h.sp] || {}).naam || h.sp } : null; };
+export const dierklusAanbod = (id) => klusAanbod(getBezit(), id, Math.floor(getBoerderij().uren / 24));
+export { KLUSSEN as DIERKLUSSEN };
+
 // De dierenarts maakt een zieke kudde beter, tegen het bedrag van livestock.vetCost; per speler (#429).
 export function belArts(w, id) {
   const r = cure(herdsOf(getBezit())[id], Number.isFinite(w && w.money) ? w.money : 0);
@@ -374,6 +398,8 @@ let clock = { cal: 0, farm: 0 };
 const calDayOf = (w) => { const d = w && w.calendar && w.calendar.day; return Number.isFinite(d) && d >= 1 ? Math.floor(d) : 0; };
 const calOf = (farmDay) => (clock.cal > 0 ? Math.max(1, clock.cal + (farmDay - clock.farm)) : Math.max(1, farmDay + 1));
 export const calToday = () => calOf(Math.floor(getBoerderij().uren / 24));
+// De veilingdag van vandaag (bezitevents.auctionDay): één product brengt 25% meer op, of null. Voor de regel in het Gewas-tabblad van de boerderij (#1373).
+export const veilingVandaag = () => { try { return EV.auctionDay(calToday()); } catch (e) { return null; } };
 const weekendDay = (cd) => { const wd = (cd + 4) % 7; return wd === 6 || wd === 0; };          // dag 1 is vrijdag 14 augustus
 
 // De streekmarkt (areamarket.js) in bezit.x.market: één keer genormaliseerd, daarna in het geheugen.

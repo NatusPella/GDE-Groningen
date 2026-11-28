@@ -70,6 +70,10 @@ export const SPEAKER_TABLE = {
   DEURWAARDER: sp('deurwaarder', 'Deurwaarder'),
   STUDENT: sp('student', 'Student'),
   BOER: sp('boer', 'Boer'),
+  // hoeve Zeldenrust (28-11, #1373): nieuwe stemmen, nog geen opnames (docs/verhaal/TTS-NIEUW-28-11.md)
+  'OOM HINDRIK': sp('boer_hindrik', 'Oom Hindrik'),
+  'TANTE AALTJE': sp('tante_aaltje', 'Tante Aaltje'),
+  NOTARIS: sp('notaris', 'De notaris'),
   // inspiratiepakket (21-11, VERHAAL-INSPIRATIEPLAN-21-11.md): nieuwe stemmen, nog geen opnames
   VELDKAMP: sp('veldkamp', 'Meneer Veldkamp'),
   ANNEKE: sp('anneke', 'Anneke'),

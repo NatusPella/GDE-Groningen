@@ -31,7 +31,7 @@ zomer en in de stem van de vaste cast; tekst is data (canon, script, build, spel
 4. **Spel**: `game/js/storytext.js` leest `game/storydata/script.json`;
    `game/js/storyarc.js` is de enige facade voor de rest van het spel (`:7`, `:16`).
 
-De data: 291 scènes, 2.207 regels in act 1 tot en met 6; 57 zijn stille appjes en 143 hebben geen opname (de 37 appjes zijn bewust stil; 4 regels wachten sinds de verhaalcanon van 21-11 op een nieuwe opname, zie docs/VERHAALCANON-21-11.md; de
+De data: 292 scènes, 2.237 regels in act 1 tot en met 6; 57 zijn stille appjes en 174 hebben geen opname (de 37 appjes zijn bewust stil; 4 regels wachten sinds de verhaalcanon van 21-11 op een nieuwe opname, zie docs/VERHAALCANON-21-11.md; de
 1.390 andere gesproken regels hebben een opname, stand 21-11). Een regel zonder opname toont
 het spel als ondertitel met leestijd (`game/js/storytext.js:53`). Een `[BEHOUDEN]`-regel heeft een opname: één andere
 letter maakt hem stil. Nieuwe opnames komen er in rondes bij op Flash-Lite (ADR 0019,
@@ -96,6 +96,8 @@ blijft als keeper en vriendin van Tessa in akte 4 (besluit coördinator 23-11).
 - **Kanalen** strikt gescheiden: radio is wereld en dimt bij een missie, telefoon
   doet briefings en hints, het gesprek de relatie, appjes zijn stil
   (`docs/verhaal/nieuw/00-OVERZICHT.md:310-321`).
+
+**De boer: hoeve Zeldenrust (#1373, 28-11).** Aanleiding van de boerenloopbaan is het bezoek aan een boerderij: scène `N5` (hoeve Zeldenrust bij Warffum; Oom Hindrik de Jong gaat naar Huize Waddenzicht, hij overlijdt niet; Tante Aaltje komt in beeld) en daarna `N5.2` (de akte bij de notaris: de hoeve wordt een schenking aan Tammo en Tessa, Ypie Boekema wordt ingeleid). `boerstoryrun.js` speelt `N5.2` op een rustig moment en roept dan `schenkHoeveCompleet` aan; de vlag `boer:bezoek` staat zodra N5 achter de rug is, `boer:schenking` volgt na de akte (beide door `boerstoryrun.js`). Tijdens een sessie of voor een meespeler schrijft het de hoeve stil bij. Per rang van Landbouw is er een kort rangmoment (`farmrankscenes.js`) met Ypie, Lutje de melkrijder, mevrouw Hofstra van de coöperatie en Jorrit Tilma; elke naam wordt eerst ingeleid. Er zijn twaalf koeien, geen veertig (de weide is vijf hectare).
 
 ## Regels voor een nieuwe missie of scène
 
@@ -210,7 +212,7 @@ De kern (eigenaar, 21-11): twee net afgestudeerde vrienden zoeken een plekje in 
 |---|---|
 | `docs/verhaal/nieuw/00-OVERZICHT.md:118` | T1 heet daar "Station Groningen → Winsum", met een losse rit naar Warffum erna (`:119`); `docs/verhaal/nieuw/09-script-akte2.md:111` en `game/js/storyarc_nieuw.js:257` zeggen allebei dat T1 naar Warffum gaat. |
 | `docs/verhaal/nieuw/00-OVERZICHT.md:80` | De totaalrij zegt nog "26 missies, 4 reisbeats" (het plan van vóór Deel 4, `:82`); de code heeft er 30 en 5 door Deel 4 (`docs/verhaal/nieuw/DEEL4.md:21-25`). |
-| `docs/verhaal/nieuw/07-TTS-RAMING.md:24` | 172 scènes en 1.164 uitingen voor de vijf akten; `game/storydata/script.json` telt er 291 en 2207 |
+| `docs/verhaal/nieuw/07-TTS-RAMING.md:24` | 172 scènes en 1.164 uitingen voor de vijf akten; `game/storydata/script.json` telt er 292 en 2237 |
 
 Opgelost op 25-10: de dubbele kermisdatum, "KEI-week" op vier plekken, Tessa's
 stemprofiel, en de verouderde `built`-comment.

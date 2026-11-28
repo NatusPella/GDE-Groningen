@@ -4,7 +4,8 @@
 // bestand is alleen DOM. Het werk zelf doe je op het land: de bijbaan "Eigen boerderij" bij Hoogkerk. Niet door een mens in beeld bekeken.
 import { icoon as fIcoon } from './icons.js';
 import * as B from './boerderij.js';
-import { getBoerderij, kiesGewas, koopMachine, getBedrijf, koopPerceel, huurPerceel, zegOpPerceel, verkoopPerceel, betaalSchuldPerceel, zetThuis, zetActief, schuurNaarErf, erfNaarSchuur, koopMachineCat, huurMachineCat, verkoopMachineCat, onderhoudMachine, loonwerk, loonwerkAfleveren, leenGeld, losAf, contracten, neemContract } from './boerderijlive.js';
+import { getBoerderij, kiesGewas, koopMachine, getBedrijf, koopPerceel, huurPerceel, zegOpPerceel, verkoopPerceel, betaalSchuldPerceel, zetThuis, zetActief, schuurNaarErf, erfNaarSchuur, koopMachineCat, huurMachineCat, verkoopMachineCat, onderhoudMachine, loonwerk, loonwerkAfleveren, leenGeld, losAf, contracten, neemContract, rangSlotVoor, rangStand, hofwinkelStand, verkoopHofwinkel } from './boerderijlive.js';
+import { veilingVandaag, hoeveKudde, dierklusAanbod, doeDierklus } from './bezitlive.js';
 import * as CT from './boerderijcontracten.js';
 import * as PC from './percelen.js';
 import * as M from './machines.js';
@@ -172,6 +173,12 @@ function gewas(b) {
     contractenBlok();
 }
 
+// De veilingdag (bezitevents.auctionDay, #1373): één product brengt vandaag 25% meer op; zonder veilingdag staat er niets.
+function veilingRegel() {
+  const v = veilingVandaag();
+  return v ? `<p class="bd-veiling"><b>${esc(v.text)}</b></p>` : '';
+}
+
 // De leveringscontracten (#492): het aanbod van deze speldag met Aannemen, en de voortgang van je eigen contracten in kg.
 // De kilo's tellen mee bij de gewone verkoop of aflevering; de bonus komt bovenop de dagprijs en verloopt kost niets.
 function contractenBlok() {
@@ -180,7 +187,7 @@ function contractenBlok() {
     const loopt = k.actief.some((c) => c.id === a.id);
     const oud = k.historie.find((c) => c.id === a.id);
     const status = loopt ? 'Loopt' : oud ? (oud.resultaat === 'klaar' ? 'Voldaan' : 'Verlopen') : '';
-    return `<div class="bd-rij"><span class="bd-naam"><b>${esc(B.GEWASSEN[a.gewas] ? B.GEWASSEN[a.gewas].naam : a.gewas)}</b><span class="mut"> · ${nl(a.kg)} kg · binnen ${a.deadlineUren} speluren · bonus ${euro(a.bonus)} (${cent(a.bonusPerKg)} per kg)</span></span>` +
+    return `<div class="bd-rij"><span class="bd-naam"><b>${CT.isCampagne(a) ? 'Bietencampagne' : esc(B.GEWASSEN[a.gewas] ? B.GEWASSEN[a.gewas].naam : a.gewas)}</b><span class="mut"> · ${nl(a.kg)} kg · binnen ${a.deadlineUren} speluren · bonus ${euro(a.bonus)} (${cent(a.bonusPerKg)} per kg)</span></span>` +
       (status ? `<span class="mut">${status}</span>` : knop('contract', 'Aannemen', { id: a.id }, k.actief.length >= CT.MAX_ACTIEF)) + '</div>';
   }).join('') || '<p class="mut">De afnemers vragen vandaag niets.</p>';
   // #626: per contract één kopregel met een voortgangsbalk en de bonus als bedrag; uitleg ingeklapt.
@@ -193,6 +200,7 @@ function contractenBlok() {
   }).join('') || '<p class="mut">Je hebt nog geen contract aangenomen.</p>';
   return `<div><p class="lb-titel"><b>Contracten</b> <span class="mut">· speldag ${k.dag + 1}</span></p>` +
     '<details class="bd-uitleg"><summary>Hoe werken contracten?</summary><p>De afnemers vragen vandaag om een vracht gewas; de kilo\'s tellen mee als je het aflevert. Een vol contract betaalt een bonus; verlopen kost niets.</p></details>' +
+    veilingRegel() +
     `<p class="lb-titel"><b>Aanbod van vandaag</b></p>${aanbod}` +
     `<p class="lb-titel"><b>Lopend</b></p>${actief}` +
     `<p class="bd-melding" aria-live="polite">${esc(melding)}</p></div>`;
@@ -223,8 +231,10 @@ function machinepark(b, geld) {
   const cat = (ids) => ids.map((id) => {
     const c = PC.MACHINE_CATALOGUS[id];
     const feiten = c.soort === 'machine' ? [`${c.pk} pk`, `tank ${M.SPEC[id].tank} liter`] : (WT.WERKTUIG[c.type].taak ? [`voor ${B.TAKEN[WT.WERKTUIG[c.type].taak].naam.toLowerCase()}`] : ['vervoert de oogst']);
-    const k = knop('koop-cat', `Koop ${euro(c.koop)}`, { type: id }, geld < c.koop || vrij <= 0), h = knop('huur-cat', `Huur ${euro(c.huurDag)} per dag`, { type: id }, geld < c.huurDag || vrij <= 0);
-    return `<div class="bd-rij bd-pc" data-fp-rij="${fpSleutelCat(id)}">${fpHtml(fpSleutelCat(id), c.naam, 's')}<span class="bd-naam"><b>${esc(c.naam)}</b><span class="bd-feiten">${feiten.map((x) => `<span>${x}</span>`).join('')}</span></span><span class="bd-acties">${k} ${h}</span></div>`;
+    const slot = rangSlotVoor('machine', id);   // een machine die pas vanaf een hogere rang te koop is: de reden staat erbij (#1373), nooit een kale knop
+    const k = knop('koop-cat', `Koop ${euro(c.koop)}`, { type: id }, slot || geld < c.koop || vrij <= 0), h = knop('huur-cat', `Huur ${euro(c.huurDag)} per dag`, { type: id }, slot || geld < c.huurDag || vrij <= 0);
+    const reden = slot ? `<span class="mut bd-slot">${esc(slot.tekst)}</span>` : '';
+    return `<div class="bd-rij bd-pc" data-fp-rij="${fpSleutelCat(id)}">${fpHtml(fpSleutelCat(id), c.naam, 's')}<span class="bd-naam"><b>${esc(c.naam)}</b><span class="bd-feiten">${feiten.map((x) => `<span>${x}</span>`).join('')}</span>${reden}</span><span class="bd-acties">${k} ${h}</span></div>`;
   }).join('');
   const ploegen = B.MACHINE_IDS.map((id) => {
     const m = B.MACHINES[id];
@@ -235,7 +245,7 @@ function machinepark(b, geld) {
       (e ? '<span class="g">Van jou</span>' : `<button type="button" class="m-bt" data-bd-koop="${id}"${geld >= m.koop ? '' : ' disabled'}>Koop ${euro(m.koop)}</button>`) + '</div>';
   }).join('');
   return `<div class="pm-pane-top"><span class="m-eb">Boerderij De Zonnehoek</span><h2 class="m-h2 td-h2">${icoon('machines', 'pa-ico big')}Machines</h2></div>` +
-    `<p class="mut">Thuis: ${esc(thuis.naam)} · nog ${vrij} plekken vrij</p>${meerHtml('Een versleten machine rijdt trager en gebruikt meer diesel; een onderhoudsbeurt helpt.', 'Uitleg machines')}` +
+    rangRegel() + `<p class="mut">Thuis: ${esc(thuis.naam)} · nog ${vrij} plekken vrij</p>${meerHtml('Een versleten machine rijdt trager en gebruikt meer diesel; een onderhoudsbeurt helpt.', 'Uitleg machines')}` +
     `<div class="bd-live" data-fp-start="${fpSleutelCat(eigen[0] ? eigen[0].type : 'trekker-klein')}" aria-hidden="true"></div>` +
     `<div class="bd-toetsen">${[['E', 'instappen of koppelen'], ['G', 'aftakas'], ['T', 'heffen'], ['X', 'loskoppelen'], ['R', 'tanken']].map(([k, t]) => `<span><span class="m-kc">${k}</span>${t}</span>`).join('')}</div>` +
     `<p class="lb-titel"><b>Je machinepark</b></p>${rijen}` +
@@ -250,9 +260,16 @@ const machines = machinepark;
 
 // Percelen en erven (percelen.js): aanbod, kopen, leasen, opzeggen. Eén rij per perceel of erf met de knoppen die nu kunnen.
 const wereldPos = (d, b) => (d.id === PC.START_PERCEEL && b.perceel ? [b.perceel.x, b.perceel.y] : wgsToWorld(d.lat, d.lon));
+// Waar je staat op de ladder van de boer en wat de volgende rang opent (#1373); alleen voor wie de hoeve kreeg, anders niets.
+function rangRegel() {
+  const s = rangStand();
+  if (!s.hoeve) return '';
+  const v = s.volgende ? ` Volgende rang: ${esc(s.volgende.titel)}: ${esc(s.volgende.opent)}` : ' Hoogste rang bereikt.';
+  return `<p class="mut bd-rang">Je bent ${esc(s.titel)} (Landbouw niveau ${s.niveau}).${v}</p>`;
+}
 function bedrijfRegel(bd) {
   const dag = PC.huurPerDag(bd), schuld = PC.openSchuld(bd);
-  return `<p class="mut">${PC.totaalHa(bd).toString().replace('.', ',')} ha van jou · huur ${euro(dag)} per speldag${schuld ? ` · <b>achterstand ${euro(schuld)}</b>` : ''}</p>`;
+  return rangRegel() + `<p class="mut">${PC.totaalHa(bd).toString().replace('.', ',')} ha van jou · huur ${euro(dag)} per speldag${schuld ? ` · <b>achterstand ${euro(schuld)}</b>` : ''}</p>`;
 }
 function acties(s, soort, id, geld, nu) {
   const d = s.def, bt = (act, tekst, uit = false, extra = '') => `<button type="button" class="m-bt" data-pc="${act}" data-soort="${soort}" data-id="${id}"${extra}${uit ? ' disabled' : ''}>${tekst}</button>`;
@@ -265,6 +282,10 @@ function acties(s, soort, id, geld, nu) {
     } else if (id !== PC.START_PERCEEL && id !== PC.START_ERF) uit.push(bt('verkoop', `Verkoop ${euro(Math.round(d.koop * PC.VERKOOP_FACTOR))}`));
     if (soort === 'perceel' && d.soort === 'akker') uit.push(bt('actief', getBedrijf().actief === id ? 'Werkt hier' : 'Werk hier', getBedrijf().actief === id));
     if (soort === 'erf') uit.push(bt('thuis', getBedrijf().thuis === id ? 'Thuis' : 'Maak thuis', getBedrijf().thuis === id));
+  } else if (rangSlotVoor(soort, id)) {
+    const slot = rangSlotVoor(soort, id);   // pas vanaf een hogere rang van Landbouw (#1373): de reden staat erbij
+    uit.push(bt('slot', `Vanaf ${esc(slot.titel)}`, true));
+    uit.push(`<span class="mut bd-slot">${esc(slot.tekst)}</span>`);
   } else {
     if (s.kunKopen) uit.push(bt('koop', `Koop ${euro(d.koop)}`, geld < d.koop));
     if (s.kunHuren) {
@@ -289,6 +310,24 @@ function percelen(b, geld) {
     '<p class="bd-melding" aria-live="polite">' + esc(melding) + '</p>';
 }
 
+// De hofwinkel van Hoeve Zeldenrust (farmshop.js, #1373): alleen als de hoeve van jou is; dicht met de reden, nooit een leeg blok.
+function hofwinkelBlok() {
+  if (!rangStand().hoeve) return '';
+  const h = hofwinkelStand();
+  const kop = `<p class="lb-titel"><b>Hofwinkel ${esc(h.merk)}</b> <span class="mut">· klanten nemen vandaag nog ${nl(h.over)} van ${nl(h.dagKg)} kg</span></p>`;
+  if (!h.open) return kop + `<p class="mut">${esc(h.reden)}</p>`;
+  const rijen = h.rijen.map((r) => `<div class="bd-rij"><span class="bd-naam"><b>${esc(r.naam)}</b><span class="mut"> · ${nl(r.kg)} kg op het erf · ${cent(r.prijsKg)} per kg</span></span>` +
+    `<span class="bd-acties"><button type="button" class="m-bt" data-pc="hofwinkel" data-gewas="${r.gewas}" data-kg="${Math.min(50, r.max) || 50}"${r.max > 0 ? '' : ' disabled'}>Verkoop ${nl(Math.min(50, r.max) || 50)} kg</button></span></div>`).join('');
+  return kop + `<p class="mut">Wat op het erf van de hoeve ligt, verkoop je hier tegen een betere prijs dan de markt. Bewaar je oogst op Zeldenrust: maak de hoeve thuis.</p>` + rijen;
+}
+// De kudde van de hoeve en haar verzorging (herdchores.js, #1373): een klus per soort per speldag, een kleine bonus en ervaring, nooit een plicht.
+function kuddeBlok() {
+  const k = hoeveKudde();
+  if (!k) return '';
+  const kop = `<p class="lb-titel"><b>Kudde van de hoeve</b> <span class="mut">· ${nl(k.n)} ${esc(k.naam.toLowerCase())} op Weide Zeldenrust${k.sick > 0 ? ' · ziek: bel de dierenarts in Bezit' : ''}</span></p>`;
+  const knoppen = dierklusAanbod(k.id).map((a) => `<button type="button" class="m-bt" data-pc="dierklus" data-id="${k.id}" data-klus="${a.id}"${a.gedaan ? ' disabled' : ''}>${a.gedaan ? esc(a.naam) + ': gedaan' : esc(a.naam)}</button>`).join(' ');
+  return kop + `<div class="bd-rij"><span class="bd-naam"><span class="mut">Voer en melk de koeien zelf: een beetje meer melk en ervaring in Landbouw. Het hoeft niet; de kudde leeft ook zonder.</span></span><span class="bd-acties">${knoppen}</span></div>`;
+}
 function erf(b, geld) {
   const bd = b.bedrijf;
   const rijen = PC.overzichtErven(bd).map((s) => {
@@ -305,7 +344,7 @@ function erf(b, geld) {
   }).join('');
   return `<div class="pm-pane-top"><span class="m-eb">Boerderij De Zonnehoek</span><h2 class="m-h2 td-h2">${icoon('erf', 'pa-ico big')}Erf</h2></div>` + bedrijfRegel(bd) +
     `<p class="mut">Je thuis is ${esc(PC.erfDef(bd.thuis).naam)}.</p>${meerHtml('Een erf heeft een huis, een schuur, soms silo\'s en plekken voor machines. De Zonnehoek blijft altijd van jou; de oogst uit de werkschuur kun je op je thuis bewaren.', 'Uitleg erf')}` +
-    `<div class="bd-live" data-fp-start="gebouw:schuur" aria-hidden="true"></div>${rijen}` +
+    `<div class="bd-live" data-fp-start="gebouw:schuur" aria-hidden="true"></div>${rijen}` + hofwinkelBlok() + kuddeBlok() +
     '<p class="bd-melding" aria-live="polite">' + esc(melding) + '</p>';
 }
 
@@ -388,6 +427,8 @@ function percelenActie(d, world) {
     case 'wissel': { const x = (soort === 'erf' ? getBedrijf().erven : getBedrijf().percelen)[id]; return PC.wisselBetaling(getBedrijf(), soort, id, x && x.betaling === 'week' ? 'dag' : 'week') ? 'De betaling is aangepast na de huidige periode.' : 'Dat kan niet.'; }
     case 'actief': return zetActief(id) ? 'De boerderij werkt nu op ' + naamVan + '.' : 'Dat kan niet.';
     case 'thuis': return zetThuis(id) ? naamVan + ' is nu je thuis.' : 'Dat kan niet.';
+    case 'dierklus': { const r = doeDierklus(world, d.id, d.klus); return r.text; }
+    case 'hofwinkel': { const r = verkoopHofwinkel(world, d.gewas, Number(d.kg)); return r.ok ? `${nl(r.kg)} kg ${(B.GEWASSEN[d.gewas] || { naam: d.gewas }).naam.toLowerCase()} verkocht in de hofwinkel voor ${euro(r.betaald)}.` : r.reden; }
     case 'inschuur': { const r = schuurNaarErf(); return klaar(r, nl(r.kg) + ' kg opgeslagen op je thuis.'); }
     case 'uitschuur': { const r = erfNaarSchuur(id, d.gewas); return klaar(r, nl(r.kg) + ' kg staat weer in de werkschuur, klaar om af te leveren.'); }
     case 'kaart': {

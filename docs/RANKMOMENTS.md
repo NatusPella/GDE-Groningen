@@ -52,6 +52,9 @@ Wees ervan bewust dat het register leeg is tot jouw module geladen is; importeer
 ## Rangen buiten `loopbaan.js`: de voetbalcarrière (28-11, #1374)
 
 De voetbalcarrière heeft zes eigen rangen (`footballstory.js` `storyRank`) en is geen vak van `loopbaan.js`. Een module als `footballrank.js` meldt zijn rangsoort aan met `registerRankKind('voetbal')` (daarna accepteert `registerRankMoment` die `vak`) en voedt de haak zelf: `feedFootballRank(career, rankHook, w)` vergelijkt de rang met de carrièrevlag `rankSeen` en roept `rankHook.omhoog` aan; `voetbalcarrierelive.updateBeats` doet dat elke twee seconden. Het gezien-zijn staat gewoon in het profiel (`momenten`). Een carrière zonder `rankSeen` krijgt de vlag stil op zijn huidige rang (geen moment achteraf) en de vlag zakt nooit. Zie `scripts/football_rank_test.mjs`; de scènes staan in `docs/verhaal/nieuw/09-script-voetbal.md` (V3.2 tot V3.6).
+## Wie het gebruikt
+
+- **Landbouw** (`game/js/farmrankscenes.js`, #1373): vijf gesprekjes voor niveau 2 tot en met 6 (Ypie, Lutje, mevrouw Hofstra, Jorrit Tilma), alleen voor wie de hoeve kreeg (`voorwaarde`); wat elke rang opent staat in `boerrang.js`. De module wordt geladen via `boerstoryrun.js`. Test: `scripts/boerrang_test.mjs`.
 
 ## Samen spelen
 

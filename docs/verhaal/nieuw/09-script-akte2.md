@@ -148,15 +148,52 @@ TAMMO: Een punaise. Ja. [NIEUW]
 TESSA: Het is een punaise. [NIEUW]
 
 ## [N5] De boerderij in Warffum – Hogeland, Warffum – te voet
-(regie: woensdagochtend. Een boerenerf met kippen, een hek en een koe die niet weg wil. Tessa loopt het erf op alsof ze er nooit is weggegaan. Tammo blijft bij het hek.)
-TESSA: Dit is het erf van mijn oom. Hier leerde ik melken. [NIEUW]
+(regie: woensdagochtend. Hoeve Zeldenrust op de dijk: een bord aan het hek, kippen, een koe die niet weg wil. Tammo draagt een mand eieren van Beppe. Tessa loopt het erf op alsof ze er nooit is weggegaan. Tegen het hek leunt een oude man in pet en laarzen; aan de overkant tilt een buurman melkbussen.)
+TESSA: Dit is het erf van Zeldenrust. Hier leerde ik melken, de zomer dat Beppe me meenam. [NIEUW]
 TAMMO: Dat wist ik niet. [NIEUW]
 TESSA: Je vroeg nooit naar mijn jeugd. Alleen of er internet was. [NIEUW]
+TAMMO: Wie staat daar bij het hek? [NIEUW]
+TESSA: Oom Hindrik. De man van Beppe's zus. Hij wacht op haar eieren. [NIEUW]
+OOM HINDRIK: Eieren van Beppe? Zet maar neer, mien jong. [NIEUW]
+TAMMO: Dan bent u mijn oud-oom. [NIEUW]
+OOM HINDRIK: Oud, dat klopt. Vierenzeventig. Beppe belt elke week of ik wel eet. [NIEUW]
 TAMMO: De koe kijkt naar mij. Ze weet iets. [NIEUW]
 TESSA: Geef me je hand. Niet wegtrekken. [NIEUW]
 (regie: ze leidt zijn hand langs de neus van de koe. De koe snuift. Tammo houdt zijn adem in. Een duif landt op het hek.)
 TAMMO: Hij is zacht. [NIEUW]
 TESSA: Ik zei het toch. [NIEUW]
+OOM HINDRIK: Ze was acht en ze molk sneller dan mijn knecht. Toen wist ik: dat meisje begrijpt koeien. [NIEUW]
+(regie: Hindrik loopt langzaam naar de dijk en wijst. Achter de dijk ligt de zee, grijs en rustig.)
+OOM HINDRIK: Doar achter is niks meer. Alleen water. Dit land moet blijven werken. [NIEUW]
+TAMMO: Het is groot. Hoeveel koeien zijn het? [NIEUW]
+OOM HINDRIK: Twaalf melkkoeien, vijf hectare weiland en vijf hectare akker. Voor mij te veel geworden, mien jong. [NIEUW]
+(regie: een auto stopt bij het hek. Een vrouw in een violet vest stapt uit, met een map waar ZEKER op staat.)
+TAMMO: Tante Aaltje. Mijn moeders zus. [NIEUW]
+TANTE AALTJE: Dag Tammo. Dag Tessa. Hindrik gaat vandaag naar Huize Waddenzicht, hier in Warffum. Dat staat vast. Dat staat vast. [NIEUW]
+OOM HINDRIK: Ik kan het best nog. Maar de thee daar is slap. [NIEUW]
+TESSA: En wie doet de koeien? [NIEUW]
+TANTE AALTJE: Dat regel ik bij de notaris. Eén ding tegelijk. [NIEUW]
+(regie: Hindrik pakt de koeienbel van de spijker en geeft hem aan Tessa. Dan stapt hij achterin. De auto rijdt weg; hij zwaait met zijn pet.)
+OOM HINDRIK: Pas goed op de bel, meisje. [NIEUW]
+TESSA: Hij zwaait. [NIEUW]
+TAMMO: Zwaaien we terug? [NIEUW]
+TESSA: Altijd. [NIEUW]
+
+## [N5.2] De akte bij de notaris – Hogeland, Warffum – notariskantoor
+(regie: middag, een paar dagen later. Een notariskantoor in Warffum met een lange tafel en een klok die te hard tikt. Tante Aaltje zit met haar map ZEKER; de notaris zet zijn bril op. Tammo en Tessa zitten naast elkaar.)
+NOTARIS: Dan de akte. Hindrik de Jong schenkt hoeve Zeldenrust aan zijn neef Tammo en aan Tessa, die zijn koeien begreep. [NIEUW]
+TAMMO: Aan ons? [NIEUW]
+TANTE AALTJE: Aan jullie samen. Twaalf koeien, tien hectare, een trekker en een hond. [NIEUW]
+TESSA: Een hond? [NIEUW]
+TANTE AALTJE: Die mocht niet mee naar Huize Waddenzicht. Jullie mochten hem uitlaten. Dat telde mee. [NIEUW]
+TAMMO: Maar waarom wij? [NIEUW]
+TANTE AALTJE: Hij wil dat het land blijft werken. Eén voorwaarde: oogst wat er staat, daarna zien we verder. [NIEUW]
+TANTE AALTJE: Ypie Boekema van hiernaast melkt voorlopig door. Hij wijst jullie de grenzen. [NIEUW]
+NOTARIS: Een handtekening hier, en hier. [NIEUW]
+TESSA: Jouw pen, Tammo. [NIEUW]
+TAMMO: Ik heb nog nooit een hoeve getekend. [NIEUW]
+TANTE AALTJE: Pas goed op elkaar. Dat staat er ook, onderaan, in mijn handschrift. [NIEUW]
+(regie: ze leggen het briefje bij de akte. Buiten loeit een koe.)
 
 ## [N11] Een bezorgrondje bij Bedum – Hogeland, Bedum – bestelbus
 (regie: woensdagmiddag. Een bezorgdienst zoekt een rijder voor een rondje met twaalf pakketten en één kaart zonder straatnamen. Tammo rijdt de bestelbus; Tessa zit naast hem met de lijst op haar knie.)
