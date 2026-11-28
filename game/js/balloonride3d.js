@@ -6,6 +6,8 @@ import { buildPersonMesh, animatePersonWalk, TAMMO_APPEARANCE, ANITA_APPEARANCE 
 import { basketRiderPose } from './basketrider.js';
 import { hoofdspeler } from './players.js';
 import { rideHud } from './balloonride.js';
+import { keyWord } from './controls.js';
+import { getSettings } from './settings.js';
 
 let group = null;
 let riders = null;   // { pilot, passenger }: elk { holder, man }
@@ -85,6 +87,6 @@ export function updateBalloonRide3D(w, dt) {
     el.hidden = false;
     el.querySelector('.bh-regel').textContent = h.regel;
     el.querySelector('.bh-waarschuwing').textContent = h.waarschuwing || '';
-    el.querySelector('.bh-toetsen').textContent = h.toetsen;
+    el.querySelector('.bh-toetsen').textContent = h.toetsen.map(({ k, wat }) => `${keyWord(getSettings().keyBinds, k)}: ${wat}`).join('   ');
   }
 }

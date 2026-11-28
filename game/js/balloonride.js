@@ -100,7 +100,7 @@ export function balloonPrompt(w) {
   const k = VB.kanInstappen(c, { x: p.x, y: p.y, slot: 0 }, w);
   const busy = playerBusy(w).busy;
   const dicht = !k.ok && k.reden !== 'ver';
-  return { id: 'ballon-' + c.id, x: c.x, y: c.y, h: 2.4, key: 'E', label: 'Ballon', sub: dicht ? k.tekst : busy ? 'Eerst afmaken waar je mee bezig bent' : 'Stijg op: spatie brandt, shift opent de klep', ring: true, dim: dicht || busy };
+  return { id: 'ballon-' + c.id, x: c.x, y: c.y, h: 2.4, key: 'E', label: 'Ballon', sub: dicht ? k.tekst : busy ? 'Eerst afmaken waar je mee bezig bent' : 'Stijg op: {SPACE} brandt, {SHIFT} opent de klep', ring: true, dim: dicht || busy };
 }
 
 // E bij de mand. Geeft true als de toets verwerkt is (instappen of een reden getoond).
@@ -127,7 +127,7 @@ function startRide(w, c) {
   if (p) { p.vx = 0; p.vy = 0; p.inVehicle = null; }
   c.maxZ = c.flight.z; c.startX = c.x; c.startY = c.y; c.airT = 0;
   syncBodies(w, c);
-  w.addMessage('In de ballon: spatie brandt en stijgt, shift opent de klep en daalt. E stapt uit zodra je op de grond staat. Sturen doet de wind.', 6, { kind: 'tip', key: 'ballon-keys' });
+  w.addMessage('In de ballon: {SPACE} brandt en stijgt, {SHIFT} opent de klep en daalt. {E} stapt uit zodra je op de grond staat. Sturen doet de wind.', 6, { kind: 'tip', key: 'ballon-keys' });
 }
 
 // Het lichaam van de speler en zijn metgezel hangen in de mand.
@@ -153,7 +153,7 @@ export function rideCamera(ride, c, dt = 0) {
   };
 }
 
-// De HUD-regels voor balloonride3d.js: { regel, waarschuwing, toetsen }.
+// De HUD-regels voor balloonride3d.js: { regel, waarschuwing, toetsen: [{ k: canonieke toets, wat }] }. De toetsnamen zet de 3D-kant er zelf bij (zo volgen ze de keuzes van de speler).
 export function rideHud(w) {
   const r = w && w.balloonRide;
   if (!r) return null;
@@ -162,7 +162,7 @@ export function rideHud(w) {
   return {
     regel: h.tekst,
     waarschuwing: water ? 'Je drijft op het water: brand op en zoek land om uit te stappen.' : h.waarschuwing,
-    toetsen: r.craft.onGround && !water ? 'Spatie: brander   Shift: klep   E: uitstappen' : 'Spatie: brander   Shift: klep',
+    toetsen: [{ k: ' ', wat: 'brander' }, { k: 'shift', wat: 'klep' }, ...(r.craft.onGround && !water ? [{ k: 'e', wat: 'uitstappen' }] : [])],
   };
 }
 
