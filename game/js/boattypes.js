@@ -65,6 +65,7 @@ export const BINNENVAART_NAMES = [
   'Kanaalkoning', 'Eendracht Noord', 'Vaar Wel', 'Grunneger Trots', 'Stille Waters',
 ];
 export function binnenvaartName(v) {
+  if (v.fixedName) return v.fixedName; // a job ship keeps its own name (sidejob_binnenvaart.js: De Drie Zusters)
   const h = Math.sin((v.id || 0) * 78.233 + 1.7) * 43758.5453;
   return BINNENVAART_NAMES[Math.floor((h - Math.floor(h)) * BINNENVAART_NAMES.length)];
 }

@@ -25,11 +25,11 @@ const TYPICAL_AIR_SPEED = 30;
 
 const norm = (a) => { while (a > Math.PI) a -= Math.PI * 2; while (a < -Math.PI) a += Math.PI * 2; return a; };
 
-// Vliegt de speler? (vliegtuig, helikopter, duif, heli-run.) Voor de reiswijze van de route.
+// Vliegt de speler? (vliegtuig, helikopter, ballon, duif, heli-run.) Voor de reiswijze van de route.
 export function isAirCraft(world, p) {
   if (world && (world.pigeonMode || world.heliRun)) return true;
   const v = p && p.inVehicle;
-  return !!(v && (v.isHeli || v.isPlane));
+  return !!(v && (v.isHeli || v.isPlane || v.isBalloon));
 }
 
 // De rechte lijn van het luchtvaartuig naar het doel, bijgesneden tot `aheadM` meter vooruit.
