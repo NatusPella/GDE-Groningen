@@ -22,7 +22,7 @@ const words = (t) => String(t).trim().split(/\s+/).filter(Boolean).length;
 
 // --- 1. de stappen van akte 2, in volgorde ---
 // N10 en N8 horen sinds de hoofdstuklijn (28-11) bij hoofdstuk 3 en staan in het deel 'kop'
-const ORDER = ['M07', 'M08', 'T1', 'M09', 'N5', 'K1', 'M10', 'A1', 'N11', 'N12', 'N6', 'N7', 'T2', 'M11', 'K2'];
+const ORDER = ['M07', 'M08', 'T1', 'M09', 'N5', 'K1', 'M10', 'A1', 'N11', 'N12', 'N6', 'N7', 'D1', 'D2', 'D3', 'T2', 'M11', 'K2'];
 const act2 = STEPS.filter((s) => s.part === 'romp').map((s) => s.id);
 ok(ORDER.join() === act2.join(), 'akte 2: de volgorde van de stappen is die van de ruggengraat', act2.join(' '));
 for (const id of ORDER) {

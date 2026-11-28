@@ -6,19 +6,22 @@
 //   naam        -> de wagenbelettering 'TAM & TES' (wagen:naam)
 //   standplaats -> je wagen zelf op een plek zetten (wagen:standplaats, de Vismarkt)
 //   keten       -> een tweede medewerkers-wagen en het opnemen tegen Us Mem (overnemen) (wagen:keten)
+//   gerda       -> het tweede recept, De Gerda, naast dat van Oma Trijntje (wagen:gerda, de erkenning van Mem; storymilestones.js)
 // Geen import van story.js (die is van de verhaal-epic): main.js geeft de stand mee via setSnackFlagProvider(() => ({ flags, gate, ended, dev })).
 // Migratieregel: zonder provider, zonder stand of bij een oude save (een gate-veld dat ontbreekt of 'legacy' is) staat alles open; een fase die dicht is,
 // geeft een hint van een personage en nooit een leeg scherm. Puur: geen DOM, geen wereld, geen opslag (scripts/snackstory_test.mjs).
 
-export const STAGE_FLAGS = { menu: 'wagen:menu', stek: 'wagen:stek', team: 'wagen:team', naam: 'wagen:naam', standplaats: 'wagen:standplaats', keten: 'wagen:keten' };
+export const STAGE_FLAGS = { menu: 'wagen:menu', stek: 'wagen:stek', team: 'wagen:team', naam: 'wagen:naam', standplaats: 'wagen:standplaats', gerda: 'wagen:gerda', keten: 'wagen:keten' };
 export const STAGES = Object.keys(STAGE_FLAGS);
+// De hints noemen geen personage en geen plek die de speler nog niet kent (#1378, bijbel 00 en 01 "begrijpelijkheid"): alleen dat het later in het verhaal komt.
 export const STAGE_HINTS = {
-  menu: 'Oma Trijntje heeft je recept nog niet doorgegeven: eerst haar vet, eieren en mosterd, dan kies je zelf wat er op het menu komt.',
-  stek: 'Lammert wijst je nog geen kade aan: eerst de kermis en de haven, dan kun je vergunningen voor standplaatsen kopen.',
-  team: 'Je team is er nog niet: eerst Berend, Tinus en Wubbo erbij, dan kun je medewerkers-wagens neerzetten.',
-  naam: 'Je wagen heeft nog geen eigen naam: dat gebeurt zodra het luik erin zit.',
-  standplaats: 'Tessa zoekt nog een goede plek: eerst de Vismarkt, dan zet je de wagen zelf op een standplaats.',
-  keten: 'Een tweede wagen en de strijd met Us Mem Snacks komen aan het eind van de zomer, als de wagen echt groeit.',
+  menu: 'Het menu stel je later zelf samen: het verhaal geeft je eerst iets om mee te bakken.',
+  stek: 'Standplaatsen kun je later kopen: eerst het verhaal verder, dan staan er plekken voor je open.',
+  team: 'Medewerkers neem je later aan: eerst het verhaal verder.',
+  naam: 'Je wagen krijgt later een eigen naam: dat gebeurt vanzelf in het verhaal.',
+  standplaats: 'Je wagen zelf op een standplaats zetten kan later: eerst het verhaal verder.',
+  keten: 'Een tweede wagen en het opnemen tegen de concurrent komen aan het eind van de zomer.',
+  gerda: 'Er komt later nog een gerecht op de kaart: eerst het verhaal verder.',
 };
 export const PLAIN_SIGN = 'SNACKWAGEN';                // de belettering voor wagen:naam
 
@@ -51,7 +54,7 @@ export function stageOpen(stage) {
 export const stageHint = (stage) => (stageOpen(stage) ? null : STAGE_HINTS[stage] || 'Dat komt later in het verhaal.');
 // Alle fasen in één keer, voor het menu: { menu: { open, hint }, ... }.
 export function stageView() { const o = {}; for (const s of STAGES) o[s] = { open: stageOpen(s), hint: stageHint(s) }; return o; }
-// Hoe ver is het verhaal met de wagen: aantal open fasen (0 tot 6).
+// Hoe ver is het verhaal met de wagen: aantal open fasen (0 tot 7).
 export const stageCount = () => STAGES.filter(stageOpen).length;
 // De belettering op je eigen wagen: eerst een gewone, na wagen:naam de eigen naam (custom is de gekozen naam, standaard 'TAM & TES').
 export const ownSignFor = (custom = 'TAM & TES') => (stageOpen('naam') ? custom : PLAIN_SIGN);

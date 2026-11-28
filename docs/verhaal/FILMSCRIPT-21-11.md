@@ -397,6 +397,24 @@ De hoofdstukken H1 tot en met H3 zijn het nieuwe begin (bijbel 28-11); de aktes 
   - donderdag, laat in de ochtend. Ze rijden mee in de streekbus. Tammo wacht tot een oude vrouw met een tas is uitgestapt voor hij zelf van de trede stapt. Tessa ziet het door het raam.
   - praat: Buschauffeur, Tammo, Tessa
 
+**Sequentie D1: De laatste bus naar huis** (activiteit; speler-protagonist Tammo)
+
+- **D1** BINNEN – STAD, HET BUSSTATION – AVOND · De laatste bus naar huis · cutscene of gespeeld in de missie
+  - avond, laat. De laatste streekbus naar Winsum staat bij het busstation, op het dashboard een emaillen koffiekan in een houder. Naamkaart: DRIES OLTMANS, bij zijn eerste regel. Tammo laat een oude vrouw voorgaan. Naamkaar
+  - praat: Dries, Tammo, Mevrouw Wassink, Tessa
+
+**Sequentie D2: Dries ligt op de bank** (activiteit; speler-protagonist Tammo)
+
+- **D2** BINNEN – HOGELAND, WINSUM, DE BUSHALTE – OCHTEND · Dries ligt op de bank · cutscene of gespeeld in de missie
+  - vroege ochtend. Bij de halte in Winsum staat de bus van Dries stil, de koffiekan nog op het dashboard. Tammo's telefoon gaat. Naamkaart: ANNEMARIE, DISPATCHER, op de telefoon. Gameplay: de eerste dienst als invaller: de 
+  - praat: Annemarie, Tammo, Tessa
+
+**Sequentie D3: Een stoptrein met Jochem** (activiteit; speler-protagonist Tammo)
+
+- **D3** BINNEN – STAD, STATION GRONINGEN, PERRON 1 – OCHTEND · Een stoptrein met Jochem · cutscene of gespeeld in de missie
+  - ochtend. Perron 1, een stoptrein staat klaar. Naamkaart: JOCHEM LUIKEN, STATIONSCHEF, bij zijn eerste regel. Gameplay: een dienst als conducteur of machinist; de trein staat in het menu bij Loopbaan.
+  - praat: Jochem Luiken, Tammo, Tessa
+
 **Sequentie T2: De streekbus naar Zoutkamp** (activiteit; speler-protagonist Tammo)
 
 - **T2** BINNEN – HOGELAND, UITHUIZEN NAAR ZOUTKAMP – DAG · De streekbus naar Zoutkamp · travel
@@ -677,12 +695,36 @@ De hoofdstukken H1 tot en met H3 zijn het nieuwe begin (bijbel 28-11); de aktes 
 
 **Sequentie V1: Schoenen voor de ster** (activiteit; speler-protagonist Tessa)
 
+- **V1.1** BUITEN – HOGELAND, WARFFUM, HET SPORTPARK VAN DE HOEKERS – AVOND · De invalbeurt: de trainingsavond · cutscene of gespeeld in de missie
+  - avond, een gewone trainingsavond op het dorpsveld van De Hoekers, lage zon over het gras. Naamkaart: ALBERT TEUBEN, voorzitter, bij zijn eerste regel; daarna EPPO ROZEMA, trainer. Eppo legt suikerklontjes op een koekenpa
+  - praat: Albert Teuben, Eppo Rozema, Tammo, Tessa
+- **V1.2** BUITEN – HOGELAND, WARFFUM, HET SPORTPARK VAN DE HOEKERS – DAG · De invalbeurt: de zondag · cutscene of gespeeld in de missie
+  - zondag, vlak voor de wedstrijd. De ploeg staat in de kring, er zijn er tien. Albert staat langs de lijn met zijn ledenlijst. Tammo en Tessa staan er toevallig weer. Gameplay: de speler ziet de scène; de wedstrijd zelf vo
+  - praat: Eppo Rozema, Tammo, Tessa, Albert Teuben
+- **V1.3** BINNEN – HOGELAND, WARFFUM, HET CLUBHUIS VAN DE HOEKERS – DAG · De invalbeurt: het clubhuis · cutscene of gespeeld in de missie
+  - na de wedstrijd, het clubhuis van De Hoekers. Boven de koffieautomaat hangt het wedstrijdbord: de opstelling, een naam doorgestreept en Tessa's naam erbij, in potlood. Ernaast hangt de eerste wedstrijdfoto.
+  - praat: Albert Teuben, Tessa, Tammo
 
 **Sequentie V2: De eerste training** (activiteit; speler-protagonist Tessa)
 
 
 **Sequentie V3: Het is jouw avond** (activiteit; speler-protagonist Tessa)
 
+- **V3.2** BUITEN – HOGELAND, WARFFUM – DAG · Rang 2, Debuut: het eerste doelpunt · cutscene of gespeeld in de missie
+  - stille ondertitelpraat na de stijging, geen camera. Het dorp stond langs de lijn.
+  - praat: Hilbrand, Femke, Tammo
+- **V3.3** BUITEN – HOGELAND, UITHUIZEN – DAG · Rang 3, Selectie: de promotie · cutscene of gespeeld in de missie
+  - stille ondertitelpraat na de promotie uit de Talentenklasse.
+  - praat: Eppo Rozema, Albert Teuben, Femke
+- **V3.4** BUITEN – HOGELAND, ROODESCHOOL – DAG · Rang 4, Doorbraak: langs de Waddenkust · cutscene of gespeeld in de missie
+  - stille ondertitelpraat na de eerste uitwedstrijd langs de Waddenkust. Een vrouw met een kladblok en een paraplu die ze niet nodig heeft.
+  - praat: Mevrouw De Vries-Jansen, Tammo
+- **V3.5** BUITEN – STAD, GRONINGEN – DAG · Rang 5, Kapitein: de band · cutscene of gespeeld in de missie
+  - stille ondertitelpraat als Tessa aanvoerder wordt. Een mand met koeken.
+  - praat: Jaap Roorda, Tessa
+- **V3.6** BUITEN – STAD, EUROBORG – AVOND · Rang 6, Trainer en Manager: de Euroborg · cutscene of gespeeld in de missie
+  - stille ondertitelpraat bij de ingang van de Euroborg, het veld licht groen in de avondzon.
+  - praat: Mevrouw De Vries-Jansen, Tammo, Tessa
 
 **Sequentie T4: De bus naar Bourtange** (activiteit; speler-protagonist Tammo)
 
@@ -1020,13 +1062,28 @@ De hoofdstukken H1 tot en met H3 zijn het nieuwe begin (bijbel 28-11); de aktes 
 - **F6** BUITEN – STAD, VISMARKT – OCHTEND · De kaart op het luik · cutscene of gespeeld in de missie
   - zaterdag 19 september, ochtend. Op de Vismarkt staat de snackwagen met het luik open, nog zonder rij. Tessa legt een kaart van de provincie op het luik met knijpers. Rood staat voor Us Mem Snacks, en dat is veel. Ze plak
   - praat: Tessa, Tammo, Jelle Terpstra, Rikus
+- **S71** BINNEN – STAD – DAG · Rang 2, Standplaatshouder: de eerste vergunning · side
+  - kort gesprek bij de wagen, niet meer dan een paar seconden. Tessa houdt de vergunning als een bierviltje vast.
+  - praat: Tammo, Tessa
+- **S72** BINNEN – STAD – DAG · Rang 3, Wagenbaas: de eerste porties · side
+  - het luik staat open, de eerste klant loopt weg met een zakje.
+  - praat: Tessa, Tammo
+- **S73** BINNEN – STAD – DAG · Rang 4, Eierbalmeester: driehonderd porties · side
+  - Tessa heeft Oma Trijntje op de speaker gezet, naast het kasboekje op het aanrecht van de wagen.
+  - praat: Oma Trijntje, Tessa
+- **S74** BINNEN – STAD – DAG · Rang 5, Teambaas: een medewerker achter het luik · side
+  - een tweede wagen op een tweede plek. Tammo kijkt vanaf de overkant toe hoe iemand anders het luik opendoet.
+  - praat: Tammo, Tessa
+- **S75** BUITEN – STAD – DAG · Rang 6, Baas van het Snackimperium: vijf wagens · side
+  - Jelle belt, niet appt, en doet alsof dat gewoon is. Tessa zet hem op de speaker.
+  - praat: Jelle Terpstra, Tessa
 
 ## Scènebord: personage per akte
 
 | Personage | Akte 1 | Akte 2 | Akte 3 | Akte 4 | Akte 5 | Deel 4 |
 |---|---|---|---|---|---|---|
-| Tessa | 49 | 37 | 32 | 33 | 39 | 16 |
-| Tammo | 49 | 35 | 32 | 31 | 33 | 17 |
+| Tessa | 49 | 40 | 32 | 33 | 39 | 21 |
+| Tammo | 49 | 38 | 32 | 31 | 33 | 23 |
 | Jelle Terpstra | 5 | 10 | 11 | 8 | 12 | 4 |
 | Rikus | 10 | 4 | 4 | 7 | 11 | 4 |
 | Berend Bos | 4 |  |  | 14 | 10 | 8 |
@@ -1052,8 +1109,11 @@ De hoofdstukken H1 tot en met H3 zijn het nieuwe begin (bijbel 28-11); de aktes 
 | Torenwachter | 1 |  |  |  | 3 |  |
 | Beppe | 2 |  |  | 1 | 1 |  |
 | Meneer Veldkamp | 3 |  |  |  |  | 1 |
+| Albert Teuben |  |  |  |  |  | 4 |
 | Snackbarhouder |  | 3 |  |  |  |  |
 | Sjoerd | 3 |  |  |  |  |  |
+| Femke |  |  |  | 1 |  | 2 |
+| Eppo Rozema |  |  |  |  |  | 3 |
 | Terrasgast | 2 |  |  |  |  |  |
 | Mevrouw Hoving | 1 |  |  | 1 |  |  |
 | Boer |  | 1 |  |  |  | 1 |
@@ -1061,17 +1121,23 @@ De hoofdstukken H1 tot en met H3 zijn het nieuwe begin (bijbel 28-11); de aktes 
 | Deurwaarder |  |  | 1 | 1 |  |  |
 | Geert |  |  | 2 |  |  |  |
 | Anneke |  |  | 1 |  | 1 |  |
+| Mevrouw De Vries-Jansen |  |  |  |  |  | 2 |
 | Jelmer |  |  |  | 2 |  |  |
 | Sander Poelman | 1 |  |  |  |  |  |
 | Hoofdagent Wolthuis | 1 |  |  |  |  |  |
 | Hayo Prins | 1 |  |  |  |  |  |
+| Dries |  | 1 |  |  |  |  |
+| Mevrouw Wassink |  | 1 |  |  |  |  |
+| Annemarie |  | 1 |  |  |  |  |
+| Jochem Luiken |  | 1 |  |  |  |  |
 | Kustwachter |  | 1 |  |  |  |  |
 | Rotor Roelf |  |  | 1 |  |  |  |
 | Daan |  |  | 1 |  |  |  |
 | Student |  |  | 1 |  |  |  |
 | Kermisexploitant |  |  | 1 |  |  |  |
 | Stien |  |  |  | 1 |  |  |
-| Femke |  |  |  | 1 |  |  |
+| Hilbrand |  |  |  |  |  | 1 |
+| Jaap Roorda |  |  |  |  |  | 1 |
 | Lieke |  |  |  |  | 1 |  |
 | Kind in het publiek |  |  |  |  | 1 |  |
 | Buurvrouw |  |  |  |  |  | 1 |

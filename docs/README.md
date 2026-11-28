@@ -109,6 +109,7 @@ De werkafspraken en de constitutie staan in [../AGENTS.md](../AGENTS.md); die wi
 | [LEGAL-AI-ASSETS.md](<LEGAL-AI-ASSETS.md>) | Dit is geen juridisch advies. Het is een leesverslag door een AI-assistent |
 | [LICENTIES.md](<LICENTIES.md>) | Stand van 3 oktober 2026. Dit is een inventaris en een advies, geen |
 | [LOOPBAAN.md](<LOOPBAAN.md>) | Naslag. De regels staan in de canonieke spec [`.specs-fire/standards/mechanica.md`](../.specs-fire/standard… |
+| [RANKMOMENTS.md](<RANKMOMENTS.md>) | Gedeelde haak voor een verhaalmoment bij een rangstijging van een loopbaan: hoe loopbaantaken een moment aanmelden (id, loopbaan, rang, scène, voorwaarde), wanneer het speelt en wat het per speler onthoudt (R1, B1). |
 | [MERKENCHECK.md](<MERKENCHECK.md>) | Datum: 17 oktober 2026. Geen juridisch advies. |
 | [MERKENREGISTER.md](<MERKENREGISTER.md>) | Stand: 18 oktober 2026. Dit register hoort bij de constitution in |
 | [MOBIEL-RAPPORT.md](<MOBIEL-RAPPORT.md>) | Gemeten en bekeken in Electron met Chromium-apparaatemulatie (`--emulate-mobile`, touchbediening geforceerd… |
@@ -380,6 +381,7 @@ De werkafspraken en de constitutie staan in [../AGENTS.md](../AGENTS.md); die wi
 | [HERTEST-NIEUWE-PROBLEMEN-22-11.md](<HERTEST-NIEUWE-PROBLEMEN-22-11.md>) | Hertest 22-11: nieuwe visuele problemen uit de beoordeling, geclusterd, met issue (#1187 t/m #1203 en comments op bestaande issues) en beeldverwijzing. |
 | [SPRINT-22-11-GEBIED.md](<SPRINT-22-11-GEBIED.md>) | Sprint 22-11 licht en kleur: mist en torens, zachte schaduwen bij lage zon, grasvariatie, gouden wolken, voor en na en wat in beeld bekeken moet worden. |
 | [WERELDKLEUR-VERIFICATIE-21-11.md](<WERELDKLEUR-VERIFICATIE-21-11.md>) | Draaiboek voor de Electron-sweep van de wereldkleur: schermen, tijden en weer, schakelaar-vergelijking en perf A/B. ||
+| [ANTIGRAVITY-AFSTEMMING-28-11.md](<ANTIGRAVITY-AFSTEMMING-28-11.md>) | Afstemming met Antigravity: welke gebieden wij bouwen, waar zij kunnen helpen en hoe we branches en tests delen. |
 | [KAART-PERF-22-11.md](<KAART-PERF-22-11.md>) | Kaart-perf: bitmap-schalen tijdens pan/zoom, vaste laag op eigen doek en breedtecache voor labels, met microbench. |
 | [MENU-ONTHULLING-22-11.md](<MENU-ONTHULLING-22-11.md>) | Menu-onthulling: Land en bedrijf, Voetbal, Visboek, percelen en snackwagen verschijnen pas via het verhaal (featurereveal.js). |
 | [OPSLAG-SAVE-VS-GLOBAAL-22-11.md](<OPSLAG-SAVE-VS-GLOBAAL-22-11.md>) | Opslag: welke voortgang bij een save hoort en welke globaal is (savescope.js), met migratie. |

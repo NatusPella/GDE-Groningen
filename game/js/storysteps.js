@@ -66,7 +66,7 @@ export const STORY_STEPS = [
   s('J1', 2, 'stad', 'Lees de brief van de gemeente die bij de flat op de mat ligt.', 'De eerste bureaucratische grap: een kenmerk en een afzender, J. Terpstra, voorzitter van de Commissie Standplaatsen Noord.', 'Jelle Terpstra', 'Er bestaat een Commissie voor standplaatsen en een voorzitter die Jelle heet.', move),
   s('h2-bon', 2, 'stad', 'Ga naar Hoofdagent Wolthuis voor de parkeerbon op de Escapade.', 'Politie als komische bijrol: precies, plechtig en altijd met een artikel erbij.', 'Hilda Wolthuis', 'De politie in de wijk neemt regels heel serieus.', {}),
   s('M02', 2, 'stad', 'Pin geld bij de automaat met de hulp van Sjabbe.', 'Een kleine opdracht over geld pinnen; de loketbediende staat al klaar voor het Loket.', 'de loketbediende', 'Zonder papieren en pasjes kom je nergens.', move),
-  s('N4', 2, 'stad', 'Rij een eerste taxironde met een formulier.', 'De proefrit met een taxi en Dries als vaste chauffeur van de bus naar huis.', 'Dries Oltmans', 'Een taxi rijden is werk, en Dries zit altijd in de bus naar huis.', { ...keep, unlocks: 'taxi' }),
+  s('N4', 2, 'stad', 'Rij een eerste taxironde met een formulier.', 'De proefrit met een taxi.', null, 'Een taxi rijden is werk.', { ...keep, unlocks: 'taxi' }),
   s('M03', 2, 'stad', 'Lever formulier 14-B in bij het Loket voor het werkbewijs.', 'Het werkbewijs, de eerste bureaucratische grap (bezwaartermijn zes weken) en een korte ontmoeting met Jelle zelf die het werkbewijs stempelt.', null, 'Jelle is bureaucraat, een standplaats is iets waarvoor iemand vecht en het werkbewijs is binnen.', { ...rewrite, unlocks: 'kantoor' }),
 
   // ---- H3 De stad is een derde hoofdpersoon
@@ -100,10 +100,11 @@ export const STORY_STEPS = [
   s('V3', 6, 'veenkolonien', 'Speel de eerste wedstrijd.', 'De eerste wedstrijd: het is jouw avond.', null, 'Voetbal heeft een eigen ladder, teams en seizoenen.', rewrite),
 
   // ---- H7 De dienst (vervoer, minimaal verhaal)
-  s('h7-dries', 7, 'stad', 'Luister naar Annemarie over de portofoon: Dries ligt op de bank.', 'Een chauffeur valt weg; Tammo neemt zijn diensten over.', 'Annemarie', 'Vervoer heeft een rooster en iemand moet het rijden.', { unlocks: 'vervoer' }),
+  s('D1', 7, 'stad', 'Stap mee in de laatste bus naar huis van Dries Oltmans.', 'Dries rijdt al dertig jaar de laatste bus naar Winsum, met zijn eigen koffiekan en een groet voor iedereen; mevrouw Wassink vraagt of ze getrouwd zijn; zijn rug protesteert.', 'Dries Oltmans', 'Dries is de vaste chauffeur van de bus naar huis en heeft last van zijn rug.', { decision: 'rewrite', voice: 'silent', note: 'nieuw live (28-11, #1375): vervangt de plan-stap h7-dries; migratie via ADDED_STEPS' }),
+  s('D2', 7, 'hogeland', 'Neem bij de halte in Winsum de dienst van Dries over.', 'Dries ligt op de bank; Annemarie van de centrale belt, Tammo parkeert de bus en Tessa maakt het rooster. De loopbaan vervoer opent.', 'Annemarie', 'Vervoer heeft een rooster, Noorderspoor betaalt per dienst en iemand moet de bus rijden.', { decision: 'rewrite', voice: 'silent', unlocks: 'vervoer', note: 'nieuw live (28-11, #1375)' }),
   s('N7', 7, 'hogeland', 'Rij de streekbus naar Winsum.', 'Een eerste dienst als vervanger.', 'de buschauffeur', 'Een dienst rijden is een vak met rangen.', move),
   s('N11', 7, 'hogeland', 'Bezorg een rondje bij Bedum.', 'Bezorgrit; Tammo levert een vat vet en een zak mosterd af zonder te weten waarvoor (zaadje 3).', null, 'Tessa maakt het rooster; de Commissie bepaalt ook de lijnen.', move),
-  s('h7-trein', 7, 'provincie', 'Rij een stoptrein met Jochem Luiken.', 'De eerste eigen lijn; de diepte zit in de eindeloze modus.', 'Jochem Luiken', 'Met de trein bouw je een eigen lijn.', {}),
+  s('D3', 7, 'provincie', 'Loop met Jochem Luiken over perron 1 van Station Groningen.', 'De stationschef laat zien dat je een trein rijdt volgens de dienstregeling; Tessa gaat mee als conducteur. De diepte zit in de eindeloze modus.', 'Jochem Luiken', 'Met de trein bouw je een eigen dienst: eerst conducteur, dan de cabine.', { decision: 'rewrite', voice: 'silent', note: 'nieuw live (28-11, #1375): vervangt h7-trein' }),
 
   // ---- H8 Het water
   s('h8-wiebe', 8, 'stad', 'Neem de rondvaartboot over van Wiebe Hazenberg.', 'De schipper valt weg; twee op één dek is een bemanning.', 'Wiebe Hazenberg', 'Water is een eigen wereld: rondvaart in de stad.', {}),

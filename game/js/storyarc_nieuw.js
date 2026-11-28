@@ -103,11 +103,15 @@ export const SPEAKERS = {
   bewaarder: 'Mevrouw Hoving', loketbediende: 'Loketbediende', accountmanager: 'Accountmanager', jurylid: 'Jurylid',
   buschauffeur: 'Buschauffeur', kustwachter: 'Kustwachter', kermisexploitant: 'Kermisexploitant', deurwaarder: 'Deurwaarder',
   student: 'Student', boer: 'Boer', kind: 'Kind in het publiek',
+  // vervoer (28-11, #1375)
+  dries: 'Dries', annemarie: 'Annemarie', wassink: 'Mevrouw Wassink', jochem: 'Jochem Luiken',
   willemien: 'Willemien', buurvrouw: 'Buurvrouw',
   // inspiratiepakket (21-11)
   veldkamp: 'Meneer Veldkamp', anneke: 'Anneke', lieke: 'Lieke', daan: 'Daan', stien: 'Stien',
   // hoofdstuklijn 28-11 (H2 en H3)
   sander: 'Sander Poelman', hilda: 'Hoofdagent Wolthuis', hayo: 'Hayo Prins',
+  // voetbal (28-11, #1374): de invalbeurt en de rangmomenten; de speler speelt Eppo via de NPC-sleutel 'trainer' (missionstory.js)
+  albert: 'Albert Teuben', eppo: 'Eppo Rozema', hilbrand: 'Hilbrand', devries: 'Mevrouw De Vries-Jansen', jaap: 'Jaap Roorda',
 };
 // Boer Roelf and Hilje are gone in this story
 delete SPEAKERS.roelf;
@@ -340,6 +344,14 @@ export const STEPS = [
   A('N12', 'romp', 'De lijst op de koelkast', { type: 'reis', to: 'de flat in Paddepoel', at: [53.2405, 6.5335], r: 250, scene: 'N12' }, { built: true, scenes: ['N12'], lead: ['T', 'Mijn schone sokken zijn op. De flat in Paddepoel, even langs, en dan weer verder.'] }),
   A('N6', 'romp', 'Een dag op het water', { type: 'reis', to: 'Noordpolderzijl', at: [53.4130, 6.5810], r: 400, scene: 'N6' }, { built: true, scenes: ['N6'], lead: ['T', 'Klaas heeft twee hengels en een emmer. Noordpolderzijl. Praat tegen het water, zegt hij.'] }),
   A('N7', 'romp', 'De streekbus naar Winsum', { type: 'reis', to: 'Winsum', at: [53.33302, 6.51598], r: 400, scene: 'N7' }, { built: true, scenes: ['N7'], lead: ['A', 'Een ritje met de streekbus naar Winsum, om te zien wat dat is: chauffeur zijn. Jij mag de halte kiezen.'] }),
+  // Vervoer (28-11, #1375): de chauffeur valt weg. Activiteiten zonder beloning met migratie voor oude saves (added: true, zie storyarc.js ADDED_STEPS);
+  // D2 opent de loopbaan (flag 'vervoer'), de eerste dienst is de bestaande lijndienst van Noorderspoor (sidejob_lijn.js).
+  A('D1', 'romp', 'De laatste bus naar huis', { type: 'reis', to: 'het busstation', at: [53.2108, 6.5648], r: 300, scene: 'D1' }, { built: true, added: true, scenes: ['D1'],
+    lead: ['A', 'De laatste streekbus naar Winsum vertrekt bij het busstation. De chauffeur groet iedereen die instapt. Meerijden?'] }),
+  A('D2', 'romp', 'Dries ligt op de bank', { type: 'reis', to: 'de bushalte in Winsum', at: [53.33302, 6.51598], r: 400, scene: 'D2' }, { built: true, added: true, scenes: ['D2'], unlocks: 'vervoer',
+    lead: ['A', 'De centrale belde: de bus van Dries staat klaar bij de halte in Winsum. Ik doe het rooster, jij stuurt.'] }),
+  A('D3', 'romp', 'Een stoptrein met Jochem', { type: 'reis', to: 'perron 1 van Station Groningen', at: [53.2106, 6.5642], r: 250, scene: 'D3' }, { built: true, added: true, scenes: ['D3'],
+    lead: ['A', 'De stationschef zoekt een invaller voor de trein. Perron 1. Ik ga mee als conducteur.'] }),
   A('T2', 'romp', 'De streekbus naar Zoutkamp', { type: 'reis', to: 'Zoutkamp', at: [53.3377, 6.2986], r: 400 }, { built: true, loopbanen: ['bus', 'hengelen'], scenes: ['T2'],
     lead: ['A', 'Oma stuurt ons naar Kapitein Klaas in Zoutkamp: met de streekbus, overstappen in Winsum. Daarna is er alleen nog water.'] }),
   M('M11', 'romp', 'Geleend van de Friezen', 'skutsje', { built: true, reward: 1300, loopbanen: ['water'],
@@ -399,13 +411,14 @@ export const STEPS = [
   // Voetbalverhaallijn (V1-V3, #1179, epic #1106): Tessa is de ster, Tammo helpt haar shinen (de papieren, de schoenen, de sponsor). Alleen bestaande doeltypes (shop, reis);
   // geen stem (silent: telefoonregels). Samen spelen: een verhaalstap is per speler (eigen voortgang, #429): elke speler loopt hem in zijn eigen spel; de wereld van de host hoeft er niets voor te doen.
   // Het is geen voorwaarde voor de carrière: voetbalpoort.js opent de carrière al in akte 4; deze stappen geven de reden en de eerste aanloop. Hernoemen of weghalen kan niet: de id's staan in saves (BETWEEN_STEPS).
-  A('V1', 'zuid', 'Schoenen voor de ster', { type: 'shop', shop: 'kleding' }, { built: true, player: 'anita',
+  // De scènes V1.1 tot V1.3 (de invalbeurt) speelt careerdebut_football.js bij de start van de carrière, V3.2 tot V3.6 (de rangmomenten) footballrank.js; de stap speelt ze niet zelf (09-script-voetbal.md).
+  A('V1', 'zuid', 'Schoenen voor de ster', { type: 'shop', shop: 'kleding' }, { built: true, player: 'anita', scenes: ['V1.1', 'V1.2', 'V1.3'],
     lead: ['T', 'De club in Veendam zoekt spelers en ik heb je opgegeven. Je hebt schoenen en een shirt nodig. Ik betaal de eerste maat.'],
     done: ['T', 'Dat staat je. Echt. Het dorpsteam vergat je nooit, en Veendam vergeet je ook niet.'] }),
   A('V2', 'zuid', 'De eerste training', { type: 'reis', to: 'Veendam', at: [53.1058, 6.8756], r: 700 }, { built: true, player: 'anita',
     lead: ['T', 'Vanavond is de training in Veendam. Ga maar vast, ik regel de papieren. Jij hoeft alleen te schitteren.'],
     done: ['T', 'Drie keer raak, zegt de trainer. Hij zei het alsof hij het niet geloofde. Ik heb er een foto van.'] }),
-  A('V3', 'zuid', 'Het is jouw avond', { type: 'shop', shop: 'super' }, { built: true, player: 'anita',
+  A('V3', 'zuid', 'Het is jouw avond', { type: 'shop', shop: 'super' }, { built: true, player: 'anita', scenes: ['V3.2', 'V3.3', 'V3.4', 'V3.5', 'V3.6'],
     lead: ['T', 'Een sponsor wil een rondje geven voor het team. Haal bij de avondwinkel iets te drinken voor iedereen.'],
     done: ['T', 'Bedankt. De selectie vindt je nu al aardig. Dat is jouw werk, ik draag alleen de tassen.'] }),
   // the bus to Bourtange: the goal is the place (storyreis.js, akte 2's travel steps); the trip talk is the beat's (reisbeats.js)

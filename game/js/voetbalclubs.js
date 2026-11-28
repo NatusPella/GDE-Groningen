@@ -19,7 +19,7 @@ export const CLUBS = [
   c('gloeipeertjes', 'De Gloeipeertjes', 'Gloeipeertjes', 'kroon', 76, 1900000, 0xc22f2f, 0xf4f1e8, 0x2a2f36, 'effen', 0xf4f1e8, { stadion: HOME_ARENA }),
   c('kuipvaarders', 'De Kuipvaarders', 'Kuipvaarders', 'kroon', 74, 1300000, 0xe8e0c0, 0x2a2f36, 0xc0482b, 'helften', 0x2a2f36, { stadion: HOME_ARENA }),
   c('kaasdragers', 'De Kaasdragers', 'Kaasdragers', 'kroon', 71, 1000000, 0xd9302f, 0xf4f1e8, 0x2f6fb5, 'effen', 0xf0c020, { stadion: HOME_ARENA }),
-  c('domtorenaars', 'De Domtorenaars', 'Domtorenaars', 'kroon', 69, 700000, 0xe0e0e0, 0xc0301f, 0x4aa3d8, 'smalle-streep', 0xc0301f, { stadion: HOME_ARENA }),
+  c('noorderlichters', 'De Noorderlichters', 'Noorderlichters', 'kroon', 67, 700000, 0x3a2f7a, 0xe0e0e0, 0x4aa3d8, 'smalle-streep', 0x4fd1b0, { stadion: HOME_ARENA }),   // de verhaalclub van de Euroborg (bijbel 01, 28-11); vervangt de zwakste Kroonklasse-club, het aantal blijft 16
   // Terpklasse (streek; de sportparken van de grotere plaatsen)
   c('wadlopers', 'De Wadlopers', 'Wadlopers', 'terp', 58, 220000, 0x2f6fb5, 0xf4f1e8, 0xe8e0c0, 'effen', 0xf4f1e8),
   c('ommelanders', 'De Ommelanders', 'Ommelanders', 'terp', 54, 200000, 0x8a4ab5, 0xe8c93a, 0x6fcf6a, 'smalle-streep', 0xe8c93a),

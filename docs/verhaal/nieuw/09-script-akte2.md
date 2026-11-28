@@ -177,6 +177,51 @@ TAMMO: Hij reed goed. [NIEUW]
 TESSA: Het was een bus. [NIEUW]
 TAMMO: Hij stond op tijd. Dat is zeldzaam. [NIEUW]
 
+## [D1] De laatste bus naar huis – Stad, het busstation – streekbus
+(regie: avond, laat. De laatste streekbus naar Winsum staat bij het busstation, op het dashboard een emaillen koffiekan in een houder. Naamkaart: DRIES OLTMANS, bij zijn eerste regel. Tammo laat een oude vrouw voorgaan. Naamkaart: MEVROUW WASSINK, bij haar eerste regel.)
+DRIES: Goedenavond. Dries Oltmans, de laatste bus naar Winsum. Al dertig jaar. [NIEUW]
+TAMMO: Goedenavond. Tammo. Dit is Tessa. [NIEUW]
+DRIES: Welkom. De koffiekan rijdt mee, daar mag je niet aankomen. [NIEUW]
+MEVROUW WASSINK: Wacht, wacht! Dries, ik was net te laat. [NIEUW]
+DRIES: Mevrouw Wassink is nooit te laat. De bus is te vroeg. [NIEUW]
+MEVROUW WASSINK: De jongedame en de heer, zijn jullie al getrouwd? [NIEUW]
+TESSA: We rijden alleen mee. [NIEUW]
+MEVROUW WASSINK: Dat zeiden wij ook. [NIEUW]
+(regie: Dries schakelt en wrijft even in zijn rug. Hij zegt er niets over.)
+TAMMO: Je hebt iets met je rug. [NIEUW]
+DRIES: Een rug heeft een mening. Ik luister er niet naar. [NIEUW]
+DRIES: Annemarie van de centrale zegt hetzelfde. Zij belt me morgen. [NIEUW]
+TESSA: Dan luister je naar haar. [NIEUW]
+DRIES: Ik luister naar iedereen. Ik doe alleen wat ik wil. [NIEUW]
+
+## [D2] Dries ligt op de bank – Hogeland, Winsum, de bushalte – streekbus
+(regie: vroege ochtend. Bij de halte in Winsum staat de bus van Dries stil, de koffiekan nog op het dashboard. Tammo's telefoon gaat. Naamkaart: ANNEMARIE, DISPATCHER, op de telefoon. Gameplay: de eerste dienst als invaller: de lijndienst staat klaar bij Loopbaan, rijd hem volgens de dienstregeling.)
+ANNEMARIE (telefoon): Tammo? Annemarie van de centrale. Dries ligt op de bank. [NIEUW]
+TAMMO: Zijn rug? [NIEUW]
+ANNEMARIE (telefoon): Niet erg, wel genoeg. Hij mag niet rijden. [NIEUW]
+ANNEMARIE (telefoon): En er is niemand anders voor de eerste dienst. [NIEUW]
+TAMMO: Ik kan een bus parkeren. Meer niet. [NIEUW]
+ANNEMARIE (telefoon): Dat is meer dan de rest kan. Noorderspoor betaalt per dienst. [NIEUW]
+TESSA: Dan doe ik het rooster. Jij stuurt. [NIEUW]
+(regie: Tessa zet haar eigen nummer bovenaan het rooster: "Voor als de bus kapot gaat." Tammo leest het twee keer.)
+ANNEMARIE (telefoon): De koffiekan blijft staan. Dat wil Dries. [NIEUW]
+TAMMO: Ik raak hem niet aan. [NIEUW]
+ANNEMARIE (telefoon): Goed. Jochem, de stationschef, zoekt ook iemand voor de trein. [NIEUW]
+TESSA: Eerst deze bus. [NIEUW]
+
+## [D3] Een stoptrein met Jochem – Stad, Station Groningen, perron 1 – trein
+(regie: ochtend. Perron 1, een stoptrein staat klaar. Naamkaart: JOCHEM LUIKEN, STATIONSCHEF, bij zijn eerste regel. Gameplay: een dienst als conducteur of machinist; de trein staat in het menu bij Loopbaan.)
+JOCHEM: Aan de kant, de trein komt. [NIEUW]
+JOCHEM: Jochem Luiken, stationschef. Annemarie zei dat jullie kwamen. [NIEUW]
+TAMMO: Ik rijd geen trein. [NIEUW]
+JOCHEM: Niemand rijdt een trein. Je rijdt de dienstregeling. [NIEUW]
+TESSA: Dat kan hij. Hij is altijd op tijd. [NIEUW]
+JOCHEM: Op tijd is op tijd. [NIEUW]
+(regie: hij blaast op zijn fluit. Een duif landt op de seinpaal en kijkt naar Tammo.)
+JOCHEM: Eerst een rondje met de conducteur. Dan de cabine. [NIEUW]
+TAMMO: Mag Tessa mee? [NIEUW]
+JOCHEM: Zonder conducteur geen trein. [NIEUW]
+
 ## [T1] De trein naar Warffum – Stad, Station Groningen naar Warffum – trein (meerijden)
 (regie: bewijsmoment, relatie-bijbel 4: op het perron wacht Tammo tot een oude vrouw met een rollator de trein uit is voor hij zelf instapt. Tessa ziet het in het raam.)
 (regie: de keuze: trein, zelf rijden of skippen. Bij de trein: een korte scène.)

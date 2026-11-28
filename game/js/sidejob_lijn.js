@@ -28,16 +28,16 @@ const WORDS = {
 
 export default {
   id: 'lijn',
-  name: 'Streekbus Hunzedal',
+  name: 'Noorderspoor streekbus',
   color: accentVan('lijn'),
   glyph: 'bezorger',
-  boss: 'Dienstleider Streekbus Hunzedal',
+  boss: 'Dienstleider Noorderspoor',
   vehicleWord: 'de streekbus',
   tempo: false, // a timetable: being early is no virtue, so no tempo bonus (sidejobfeel.js)
   blurb: 'Een buslijn rijden volgens de dienstregeling',
   tagline: 'Halteren, wachten op de tijd, op tijd aankomen.',
   intro: [
-    'Welkom bij Streekbus Hunzedal. Je rijdt een hele lijn, halte na halte.',
+    'Welkom bij Noorderspoor. Je rijdt een hele lijn, halte na halte.',
     'Te vroeg weg mag niet: wacht op de tijd. Te laat is erger.',
     'Rem zacht: de passagiers staan.',
   ],

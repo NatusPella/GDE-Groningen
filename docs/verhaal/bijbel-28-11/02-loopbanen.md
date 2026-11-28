@@ -158,7 +158,7 @@ De visie regelt de basis: geld, voortgang en bezit zijn per speler (#429); de bo
 
 ### (a) Verhalende aanleiding
 
-**De invaller.** Het dorp heeft een zondagclub, **De Hogelander Gladiolen** (verzonnen). Op een zondag valt de linksbuiten uit door iets onnozels (een natte sok, een vergeten tas, een kampeeruitje dat uit de hand liep) en een kleine club heeft maar twaalf spelers. **Tessa**, die in de kennismaking al bij elk straatvoetbalpotje als scheidsrechter werd aangeroepen, wordt gevraagd: "Je kunt toch wel een bal raken?". Ze raakt hem, scoort, en niemand praat er meer over. **Tammo** staat langs de lijn als grensrechter en wordt na afloop bestuurslid, want die plek ligt altijd open.
+**De invaller.** Het dorp heeft een zondagclub, **De Hoekers** (verzonnen). Op een zondag valt de linksbuiten uit door iets onnozels (een natte sok, een vergeten tas, een kampeeruitje dat uit de hand liep) en een kleine club heeft maar twaalf spelers. **Tessa**, die in de kennismaking al bij elk straatvoetbalpotje als scheidsrechter werd aangeroepen, wordt gevraagd: "Je kunt toch wel een bal raken?". Ze raakt hem, scoort, en niemand praat er meer over. **Tammo** staat langs de lijn als grensrechter en wordt na afloop bestuurslid, want die plek ligt altijd open.
 
 De dagen ervoor zijn onderdeel van de aanleiding: de speler ziet de voorzitter, de trainer en de rivaal op een gewone trainingsavond (hij loopt langs het veld op weg naar iets anders) voordat de uitval gebeurt. Zo is "de invaller" een gebeurtenis met bekende mensen.
 
@@ -191,7 +191,7 @@ Sport is meer dan voetbal. In de code zijn padel, golf, discgolf, pitch and putt
 6. **De bakker Jaap Roorda**: sponsor, koeken in de pauze en later leverancier van de snackwagen.
 7. **Jan Kleibijter**, oud-spits en manager van de Kroonklasse: bij de Euroborg.
 
-**Plekken**: elk dorp met een voetbalpark wordt een club met een verzonnen naam (`voetbalparken.js`, hoofdstuk 3b van de carrièredoc); de wedstrijd wordt op het echte sportpark gespeeld en uit spelen is een reis. De clubs staan in `voetbalclubs.js`: Wadlopers (kust), Ommelanders (Hogeland), Veenpiraten (Veenkoloniën), Kleibijters (de klei), Palingtrappers, Hunebedders, De Stadjers en de rest van de Kroonklasse, die in de Euroborg speelt. De Waddenkust en de Hogeland-dorpen zijn de eerste ritten, het stadion in de stad de bestemming.
+**Plekken**: elk dorp met een voetbalpark wordt een club met een verzonnen naam (`voetbalparken.js`, hoofdstuk 3b van de carrièredoc); de wedstrijd wordt op het echte sportpark gespeeld en uit spelen is een reis. De clubs staan in `voetbalclubs.js` (de topclub in de Euroborg is **De Noorderlichters**) en `footballstory.js` (de dorpsclub **De Hoekers** in Warffum): Wadlopers (kust), Ommelanders (Hogeland), Veenpiraten (Veenkoloniën), Kleibijters (de klei), Palingtrappers, Hunebedders, De Stadjers en de rest van de Kroonklasse, die in de Euroborg speelt. De Waddenkust en de Hogeland-dorpen zijn de eerste ritten, het stadion in de stad de bestemming.
 
 **Jelle**: hij is de sponsor die nooit komt en stuurt een "overschrijvingsformulier met acht doorslagen" dat alleen met een stempel van een Friese gemeente geldig is. Eén brief per seizoen is genoeg. De sponsornaam wordt een verzonnen bedrijf (constitution 2).
 
@@ -406,7 +406,7 @@ Gebouwd: samen op een boot (`coopboot.js`). *Nieuw*: een bemanning met rollen (s
 
 De code kent al een ruggengraat van verhaalvlaggen (`snackstory.js`, `storymilestones.js`): `wagen:idee`, `wagen:menu`, `wagen:stek`, `wagen:team`, `wagen:naam` (de wagenbelettering "TAM & TES"), `wagen:standplaats`, `wagen:keten`. Dit document laat ze staan en geeft ze gezichten.
 
-**Begrijpelijk voor iedereen.** Dit is het enige stuk dat niet los te spelen is zonder het verhaal. Het begint daarom met een **terugblik in beeld**: een korte fotoreeks bij Oma Trijntjes keukentafel met de mensen die hierheen leidden (Oom Hindrik, de dorpsclub, de bus, de schipper), elk met naam en één zin. Een gast die dit mee wil spelen krijgt de reeks ook. De wagen zelf is voor iedereen te begrijpen: Beppe's recept, een kassa, een rij klanten.
+**Begrijpelijk voor iedereen.** Dit is het enige stuk dat niet los te spelen is zonder het verhaal. Het begint daarom met een **terugblik in beeld**: een korte fotoreeks bij Oma Trijntjes keukentafel met de mensen die hierheen leidden (Oom Hindrik, de dorpsclub, de bus, de schipper), elk met naam en één zin. Een gast die dit mee wil spelen krijgt de reeks ook. De wagen zelf is voor iedereen te begrijpen: Oma Trijntjes recept, een kassa, een rij klanten.
 
 ### (b) Verhaalboog, rangen, bijfiguren, plekken
 

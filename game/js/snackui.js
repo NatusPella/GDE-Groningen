@@ -32,8 +32,8 @@ const hh = (h) => `${String(h % 24).padStart(2, '0')}:00`;
 const eur2 = (n) => String(n.toFixed(2)).replace('.', ',');
 
 export function closedHtml(hint) {
-  return `<div class="pm-pane-top"><span class="m-eb">Land en bedrijf</span><h2 class="m-h2 td-h2">Snackwagen</h2></div><h3 class="m-h3">Nog dicht</h3><p class="mut">${esc(hint)}</p>` +
-    '<p class="mut">Later in het verhaal kun je je snackwagen op de beste standplaatsen van de provincie zetten, een menu uit je eigen keten verkopen, medewerkers aannemen en het opnemen tegen het imperium van Jelle Terpstra.</p>';
+  // Geen namen en geen uitleg over wat er komt: de speler kent dit deel nog niet (#1378).
+  return `<div class="pm-pane-top"><span class="m-eb">Land en bedrijf</span><h2 class="m-h2 td-h2">Nog dicht</h2></div><p class="mut">${esc(hint)}</p>`;
 }
 
 function eventHtml(v) {
@@ -92,6 +92,15 @@ export function ownNieuw(v) {
   const home = !spot ? `<p class="bz-hulp" data-hint="thuis">Je wagen staat nog thuis en verdient niets. Koop hieronder een vergunning voor een standplaats${(() => { const f = v.spots.filter((s) => s.status === 'vrij' && Number.isFinite(s.price)).map((s) => s.price); return f.length ? ` (vanaf ${euro(Math.min(...f))})` : ''; })()} en zet je wagen erheen.</p>` : '';
   const leeg = !o.menu.length ? '<p class="bz-zwak" data-hint="menu">Je menu is leeg: zonder product verkoop je niets. Zet hieronder iets op het menu.</p>' : '';
   return `<div class="bz-snack">${home}${leeg}<div class="bz-raster2">${nu}${dienst}</div>${menu}<section class="bz-blok" data-blok="upgrades">${tus('Upgrades', 'tune_snack')}${ups}</section></div>`;
+}
+
+// De rang van je bedrijf en de grondstoffen uit je eigen oogst (#1378): wat de volgende rang vraagt, en kilo's van het erf van je boerderij in de wagen (scheelt inkoop).
+export function rangHtml(v) {
+  if (!v.rang) return '';
+  const r = v.rang;
+  const volgende = r.volgende ? `<p class="bz-hulp" data-rang-volgende="${r.volgende.rang}">Volgende rang: ${esc(r.volgende.titel)}. ${esc(r.volgende.eis)}</p>` : '<p class="bz-hulp">Hoger kan niet: je bent de baas van het hele imperium.</p>';
+  const goed = (v.pantry || []).map((p) => `<div class="bz-rij-tussen" data-goed="${esc(p.id)}"><span><b>${esc(p.label)}</b> ${p.kg} van ${p.max} kg in de wagen · ${p.barn} kg op je erf</span>${btn('uitschuur', 'Haal van je erf', ` data-id="${esc(p.id)}"`, p.kg >= p.max ? 'De wagen is vol' : p.barn <= 0 ? 'Er ligt niets op je erf' : false)}</div>`).join('');
+  return sectionCard('rang', 'vlag', 'Rang en voorraad', `<p data-rang="${r.rang}"><b>${esc(r.titel)}</b> <span class="ds-z-status">rang ${r.rang} van ${r.van}</span></p>${volgende}${goed}`);
 }
 
 // Het pictogram van een standplaats uit zijn naam: een stadion, een station, een markt, een strand of een park; anders een plek.
@@ -161,7 +170,7 @@ export function snackHtml(v) {
   return `${imperium}` +
     // #1249 (hertest 24-11): één korte regel; de standplaatsen staan al in de tegel
     `<p class="mut">${esc(v.rival.name)}: ${v.rival.pand} panden, keten niveau ${v.rival.chain}. Jouw aandeel ${Math.round(v.score.share * 100)}%.</p>${war}${eventHtml(v)}` +
-    (v.own.hasWagon ? ownNieuw(v) : ownHtml(v)) + fleetHtml(v) + spotsHtml(v) + neighbourhoodHtml(v) + sectionCard('doelen', 'vlag', 'Doelen', goals, { count: `${v.goals.filter((g) => g.done).length} van ${v.goals.length}` }) + `<p class="bd-melding" aria-live="polite">${esc(sui.msg)}</p>`;
+    (v.own.hasWagon ? ownNieuw(v) : ownHtml(v)) + rangHtml(v) + fleetHtml(v) + spotsHtml(v) + neighbourhoodHtml(v) + sectionCard('doelen', 'vlag', 'Doelen', goals, { count: `${v.goals.filter((g) => g.done).length} van ${v.goals.length}` }) + `<p class="bd-melding" aria-live="polite">${esc(sui.msg)}</p>`;
 }
 
 // ---- binden ----
@@ -201,6 +210,7 @@ function act(world, d) {
   else if (a === 'verkoop-vloot') { if (!ask(a)) say(SL.verkoopVloot(world, id)); }
   else if (a === 'zet-wagen') say(SL.placeVan(id));
   else if (a === 'vul') say(SL.refillStock(world));
+  else if (a === 'uitschuur') say(SL.vulUitSchuur(world, id));
   else if (a === 'help') { if (!ask(a)) say(SL.helpNeighbourhood(world, d.spot, d.kind)); }
   else if (a === 'meewerken') say(SL.workAlong(world, id, 6));
   else if (a === 'menu') say(SL.offeringButton(id));

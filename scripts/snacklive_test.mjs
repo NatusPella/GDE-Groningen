@@ -20,11 +20,11 @@ const wereld = (money = 1e6, day = 100) => ({ money, calendar: { day }, msgs: []
 const reset = (store = nepOpslag()) => { L.initBezit({ opslag: store }); BL.initBoerderij({ opslag: store }); L.setClaimLookup(null); L.setClaimSend(null); GT.resetUnlockGate(); return store; };
 const slaap = (w, dagen) => { const f = BL.getBoerderij(); f.uren += dagen * 24; w.calendar.day += dagen; return L.dayTick(w); };
 
-t('de poort: zonder akte 5 is het tabblad dicht met uitleg van Tessa; met de poort open kan het', () => {
+t('de poort: zonder akte 5 is het tabblad dicht met een neutrale uitleg zonder namen; met de poort open kan het', () => {
   reset();
   assert.equal(GT.BEZIT_BRANCHES.snack.act, 5); assert.equal(GT.GATE_WORLD.snack, 'snackwagen');
   GT.setGateProgress(() => progressFrom({ stepId: 'M01', gate: newGate() }));
-  assert.equal(SL.snackOpen(), false); assert.match(SL.snackHint(), /Tessa/);
+  assert.equal(SL.snackOpen(), false); assert.ok(SL.snackHint().length > 20); assert.ok(!/Tessa|Tammo|Oma|Trijntje|Berend|Tinus|Wubbo|Mem|Jelle|Lammert|Vismarkt|wagen/i.test(SL.snackHint()), SL.snackHint());
   const w = wereld();
   const r = SL.koopVergunning(w, 'dorp');
   assert.equal(r.ok, false); assert.equal(r.why, 'dicht'); assert.equal(w.money, 1e6);
@@ -64,7 +64,7 @@ t('de view: zestien plekken met stand, prijs en Us Mem; de score en de doelen', 
   assert.equal(v.spots.find((s) => s.id === 'park').status, 'jij'); assert.equal(v.spots.find((s) => s.id === 'markt').status, 'usmem');
   assert.ok(v.spots.find((s) => s.id === 'markt').ask > v.spots.find((s) => s.id === 'markt').price);
   assert.equal(v.spots.find((s) => s.id === 'dorp').status, 'vrij');
-  assert.ok(v.score.score >= 0 && v.goals.length === 13 && v.rival.name === 'Us Mem Snacks' && v.menu.length === 8);
+  assert.ok(v.score.score >= 0 && v.goals.length === 13 && v.rival.name === 'Us Mem Snacks' && v.menu.length === 10)      // acht producten en de twee recepten (zonder verhaal is alles open);
   assert.equal(v.goals.find((g) => g.id === 'vergunning').done, true);
 });
 t('claims voor Samen spelen: een medespeler houdt de plek vast, jouw koop wordt gemeld en een vervallen vergunning geeft hem vrij', () => {

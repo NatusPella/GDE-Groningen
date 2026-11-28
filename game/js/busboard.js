@@ -7,7 +7,7 @@
 import { stopName } from './busservice.js';
 import { project, pointAt } from './busroutes.js';
 
-export const OPERATOR = 'Hunzedal Vervoer';
+export const OPERATOR = 'Noorderspoor';
 export const BOARD_COLS = 16;      // tekens op het bord
 const NEAR = 150;           // m: "straks" voor de volgende halte
 

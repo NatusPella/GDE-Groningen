@@ -74,6 +74,11 @@ export function schrijfNu() {
   if (!st || !bezit) return;
   try { CH.packForSave(bezit); st.setItem(KEYS.bezit, JSON.stringify(Z.serializeBezit(bezit))); vuil = false; } catch (e) { devWarn('bezitlive', e); }
 }
+// Meteen naar de opslag, voor een levering van de boerderij aan de snackwagen (farmdelivery.js): bij mislukken een fout, zodat de levering blijft staan.
+export function bewaarNu() { markeer(); schrijfNu(); if (vuil) throw new Error('bezit niet bewaard'); }
+// Een haak die elke speldag meeloopt (farmdelivery.js maakt onderbroken leveringen af); bezitlive kent die module niet (geen kringverwijzing).
+let dagHaak = null;
+export const setDagHaak = (fn) => { dagHaak = typeof fn === 'function' ? fn : null; };
 // Verandert als een pand gekocht of verkocht wordt (genoeg voor wie het pand van het bezit tekent: interieurkleuren van een net gekocht pand); zonder bezit 0.
 export const bezitVersion = () => { try { return bezit ? bezit.buildings.size : 0; } catch (e) { return 0; } };
 export function markeer() {
@@ -561,6 +566,7 @@ function hasHoldings(b) {
 export function dayTick(w) {
   const b = getBezit(), farm = getBoerderij();
   announceUnlocks(w);
+  if (dagHaak) { try { dagHaak(w); } catch (e) { devWarn('bezitlive', e); } }
   const day = Math.floor(farm.uren / 24);
   clock.cal = calDayOf(w); clock.farm = day;
   if (!hasHoldings(b)) { b.x.lastDay = day; return null; }
@@ -648,8 +654,11 @@ function tickSnack(w, S, from, last, money) {
     setStatMax(w, 'bzStandplaatsen', held);
     if (SN.goalStatus(S, { day: calToday() }).find((g) => g.id === 'usmem').done) unlockAchievement(w, 'bz_usmem');
   } catch (e) { devWarn('bezitlive', e); }
+  try { if (snackAfterTick) snackAfterTick(w, S); } catch (e) { devWarn('bezitlive', e); }       // een rang omhoog na deze dagen (snacklive.checkRank, #1378)
   return { own: inc.own, passive: inc.passiveRaw, fixed: inc.fixed, lines: res.sum.lines };
 }
+let snackAfterTick = null;
+export const setSnackAfterTick = (fn) => { snackAfterTick = typeof fn === 'function' ? fn : null; };
 
 // ---- het nieuws en de keuze van de buurman ----
 export function newsView(w) {

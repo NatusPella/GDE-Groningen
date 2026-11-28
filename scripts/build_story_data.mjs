@@ -60,6 +60,11 @@ export const SPEAKER_TABLE = {
   ACCOUNTMANAGER: sp('accountmanager', 'Accountmanager'),
   JURYLID: sp('jurylid', 'Jurylid'),
   BUSCHAUFFEUR: sp('buschauffeur', 'Buschauffeur'),
+  // vervoer (28-11, #1375): geen opnames
+  DRIES: sp('dries', 'Dries'),
+  ANNEMARIE: sp('annemarie', 'Annemarie'),
+  'MEVROUW WASSINK': sp('wassink', 'Mevrouw Wassink'),
+  JOCHEM: sp('jochem', 'Jochem Luiken'),
   KUSTWACHTER: sp('kustwachter', 'Kustwachter'),
   KERMISEXPLOITANT: sp('kermisexploitant', 'Kermisexploitant'),
   DEURWAARDER: sp('deurwaarder', 'Deurwaarder'),
@@ -76,6 +81,12 @@ export const SPEAKER_TABLE = {
   SANDER: sp('sander', 'Sander Poelman'),
   'HOOFDAGENT WOLTHUIS': sp('hilda', 'Hoofdagent Wolthuis'),
   HAYO: sp('hayo', 'Hayo Prins'),
+  // voetbal (09-script-voetbal.md, #1374): geen opnames
+  ALBERT: sp('albert', 'Albert Teuben'),
+  EPPO: sp('eppo', 'Eppo Rozema'),
+  HILBRAND: sp('hilbrand', 'Hilbrand'),
+  DEVRIES: sp('devries', 'Mevrouw De Vries-Jansen'),
+  JAAP: sp('jaap', 'Jaap Roorda'),
   // Deel 4 (09-script-akte6.md): no recordings
   WILLEMIEN: sp('willemien', 'Willemien'),
   BUURVROUW: sp('buurvrouw', 'Buurvrouw'),
@@ -103,7 +114,7 @@ function stepOf(id) {
   let m;
   if ((m = /^M(\d\d)\./.exec(id))) return 'M' + m[1];
   if ((m = /^T(\d)/.exec(id))) return 'T' + m[1];
-  if ((m = /^([NJFKW])(\d+)(?:\.|$)/.exec(id))) return m[1] + m[2];
+  if ((m = /^([NJFKWDV])(\d+)(?:\.|$)/.exec(id))) return m[1] + m[2];
   if (/^C00\./.test(id)) return 'M00';
   // new steps of the chapter line (28-11): h<chapter>-<name>[.k] -> h<chapter>-<name>
   if ((m = /^(h\d+-[a-z0-9]+)(?:\.|$)/.exec(id))) return m[1];
@@ -156,10 +167,10 @@ function applyHumor(scenes) {
 }
 
 export function parseScripts() {
-  const files = fs.readdirSync(SRC).filter((f) => /^09-script-akte\d\.md$/.test(f)).sort();
+  const files = fs.readdirSync(SRC).filter((f) => /^09-script-(akte\d|voetbal)\.md$/.test(f)).sort();
   const scenes = [];
   for (const f of files) {
-    const act = Number(/akte(\d)/.exec(f)[1]);
+    const act = f === '09-script-voetbal.md' ? 6 : Number(/akte(\d)/.exec(f)[1]);        // de voetbalscènes (#1374) horen bij Deel 4, na de verhaallijn
     let scene = null;
     for (const raw of fs.readFileSync(path.join(SRC, f), 'utf8').split(/\r?\n/)) {
       const h = raw.match(/^## \[([^\]]+)\] (.*)$/);

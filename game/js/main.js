@@ -87,6 +87,7 @@ import { initMissions, updateMissions } from './missions.js';
 import { initStory, updateStory, currentStep, storyBridgeView, storyGateProgress } from './story.js';
 import { updateStoryBridge } from './storybridgerun.js';
 import { updateCareerDebuts } from './careerdebutrun.js';
+import { updateRankMoments } from './rankmomentsrun.js';
 import { initFeatureReveal, updateFeatureReveal } from './featurerevealrun.js';
 import { updateTerugkeer } from './terugkeerrun.js';
 import { updateRecap, isRecapOpen } from './recapcardrun.js';
@@ -240,7 +241,8 @@ import { updateFarmWorkers } from './farmworkers3d.js';
 import { updateSnackVans } from './snackvans3d.js';
 import { updateChainTrucks } from './chaintrucks3d.js';
 import { setSnackFlagProvider } from './snackstory.js';
-import { setSnackWorkSend, receiveWork as snackReceiveWork } from './snacklive.js';
+import { setSnackWorkSend, setSnackRankSend, receiveWork as snackReceiveWork } from './snacklive.js';
+import { rankHook } from './loopbaanlive.js';
 import { sendSnackWork, setSnackWorkHandler } from './bezitnet.js';
 import { updateHerds } from './herdview3d.js';
 import { setGateProgress } from './bezitgate.js';
@@ -268,6 +270,7 @@ import { vrachtruimteKind } from './vrachtruimte3d.js';
 import { reklameTaxiKind } from './reklametaxi3d.js';
 import { shopSignKind } from './shopsigns3d.js';
 import { loadBusLines } from './busroutes.js';
+import { markeerLijnVanDries } from './vervoer.js';
 import { setBusLines, attachToNearestRoad, getBusLines, setLiveBussen } from './vehicle.js';
 import { maakBusLive } from './buslive.js';
 import { createTrainLive } from './trainlive.js';
@@ -849,7 +852,7 @@ async function boot() {
   if (tiles && roadsFile) loadRoadNet('world/', roadsFile).then((r) => r && setRoadNet(r));
   // the real bus lines for the buses' routes, boards and next stop (busroutes.js, #80, #160)
   const busFile = layers.provincie && layers.provincie.global && layers.provincie.global.busFile;
-  if (tiles && busFile) loadBusLines('world/', busFile).then(setBusLines);
+  if (tiles && busFile) loadBusLines('world/', busFile).then((l) => setBusLines(markeerLijnVanDries(l)));
   // de bron voor de live bussen is bij het opstarten al aan vehicle.js gegeven (buslive.js, #395)
   // the city's train routes on over the layer's track, the countryside's rails, turbines and pylons (corridorrail.js)
   const landData = corLayer && corLayer.global ? loadLandData('world/', corLayer.global.landFile) : null;
@@ -1025,6 +1028,7 @@ window.__debug = { player, map, input, world, frameStats };
   setSnackFlagProvider(() => { const p = storyGateProgress(); return { flags: storyBridgeView().flags, gate: p.gate, ended: p.ended, dev: p.dev }; });
   // meewerken in de snackwagen van een medespeler (bezitnet.js: gast -> host -> eigenaar)
   setSnackWorkSend((m) => sendSnackWork(world, m));
+  setSnackRankSend((o) => rankHook.omhoog(world, o));       // een rang van de snackwagen speelt zijn verhaalmoment via de gedeelde haak (snackrankscenes.js, lokaal per speler)
   setSnackWorkHandler((m) => snackReceiveWork(m));
   initBoerderij();
   initSafety(world);
@@ -1292,6 +1296,8 @@ try { const slot = ensureLatestSlot(); const info = slot ? readSaveInfo() : null
     updateStoryBridge(world.paused ? 0 : dt, world, storyBridgeView(), () => isPauseMenuOpen() || isMapOpen() || isPhoneOpen() || isShopOpen());
     // 22-11: de begincutscene van de voetbalcarrière en van het eerste perceel (careerdebutrun.js), eenmaal per speler, op een rustig moment
     updateCareerDebuts(world.paused ? 0 : dt, world, storyBridgeView(), () => isPauseMenuOpen() || isMapOpen() || isPhoneOpen() || isShopOpen());
+    // R1: een aangemeld rangmoment van een loopbaan (rankmoments.js), op een rustig moment en eenmaal per speler
+    updateRankMoments(world.paused ? 0 : dt, world, () => isPauseMenuOpen() || isMapOpen() || isPhoneOpen() || isShopOpen());
     updateFeatureReveal(world.paused ? 0 : dt, world, () => !storyGateProgress().gate); // de melding "Nieuw in je menu"; een oude save krijgt alles stil
     probe.mark('story');
     updateStreetSigns(dt, world, getScene());

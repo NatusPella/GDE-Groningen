@@ -544,7 +544,7 @@ De grappen staan **alleen hier**, nooit in de speltekst, het beeld of de code (c
 | De Gloeipeertjes | PSV | Eindhoven en het gloeilampenbedrijf: een peertje |
 | De Kuipvaarders | Feyenoord | Rotterdam, De Kuip en de haven: de kuip is hun kuip |
 | De Kaasdragers | AZ | Alkmaar en de kaasmarkt: de dragers dragen het kaasbrood |
-| De Domtorenaars | FC Utrecht | Utrecht en de Domtoren: de hoogste toren in de stad |
+| De Noorderlichters | geen echte club (verhaalclub, 28-11) | het noorderlicht boven de Euroborg: de spots gaan aan, maar het licht komt pas na de rust. Vervangt De Domtorenaars (FC Utrecht), zodat het aantal 16 blijft; de eigenaar koos een club in de Euroborg, zonder voorvoegsel (ADR 0043) |
 
 ### A.2 Terpklasse (streek)
 
@@ -581,6 +581,12 @@ De naam van het toernooi, de **Waddenbeker**, is zelf een parodie op de grote Eu
 | De Rode Adelaars van Lissabon | Benfica | de adelaar van het wapen |
 | De Groene Klaverknechten | Celtic | klaver en groen-wit |
 | De Gala Tafelrondes | Galatasaray | Gala wordt tafelronde |
+
+### A.3b De dorpsclub van het verhaal (28-11)
+
+| Spelnaam | Parodie op | De grap |
+|---|---|---|
+| De Hoekers | geen echte club (verhaalclub, 28-11) | de hoek van het Hogeland waar de club staat: een hoek is waar je de bal uit schopt, en hier komt hij altijd weer terug. In het verhaal heette de club eerst "VV De Hoek"; zonder voorvoegsel (ADR 0043). Staat in Warffum (`footballstory.js`) en vervangt daar de sjabloonnaam |
 
 ### A.4 Lokale clubs (acht sjablonen, hoofdstuk 3b)
 

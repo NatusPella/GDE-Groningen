@@ -6,6 +6,7 @@
 // de knop hier. De gegevens komen uit loopbaanlive.js (en loopbaan.js); dit bestand is alleen DOM. Niet in beeld bekeken.
 import { icoon } from './icons.js';
 import * as L from './loopbaan.js';
+import { vervoerGids } from './vervoer.js';
 import { getProfiel, startLoopbaan } from './loopbaanlive.js';
 import { SIDE_JOBS } from './sidejobs.js';
 import { fillBars } from './motion.js';
@@ -339,6 +340,16 @@ function landbouwGidsHtml(id) {
     `<p class="lb-kan">${esc(g.verschil)}</p></div>`;
 }
 
+// De Dienstkaart van vervoer (vervoer.js): de kernlus en wat je rang nu is en straks wordt. Alleen bij bus, taxi en trein.
+function vervoerGidsHtml(id, niveau) {
+  const g = vervoerGids(id, niveau);
+  if (!g) return '';
+  return `<div class="lb-blok lb-gids"><h3 class="m-eb">${esc(g.titel)}</h3>` +
+    `<ol class="lb-gids-lijst">${g.stappen.map((x) => `<li>${esc(x)}</li>`).join('')}</ol>` +
+    `<p class="lb-kan"><b>${esc(g.nu.titel)}:</b> ${esc(g.nu.wat)}</p>` +
+    (g.volgende ? `<p class="mut">Volgende rang, ${esc(g.volgende.titel)}: ${esc(g.volgende.wat)}</p>` : '') + '</div>';
+}
+
 // De ladder van dit vak als zichtbare trap: elk niveau staat een stap verder naar rechts, het huidige niveau heeft een
 // eigen rand en staat als aria-current, en per niveau staat het loon dat het oplevert. Zo lees je de klim in één oogopslag.
 const TRAP_ICOON = {
@@ -429,7 +440,7 @@ function detailHtml(profiel, id, w = null) {
     (gestartNu ? start : '') +
     bezigheden +
     (vaardigheid || kaartjes || dienst ? `<div class="lb-blok">${vaardigheid}${kaartjes}${dienst}</div>` : '') +
-    landbouwGidsHtml(id) + '</div></div>';
+    landbouwGidsHtml(id) + vervoerGidsHtml(id, d.niveau) + '</div></div>';
 }
 
 // De bezigheden van dit vak, elk met hun eigen stand en één actie. De eerste klus die je nog niet deed en die nu te kiezen is,
