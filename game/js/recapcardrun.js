@@ -63,10 +63,25 @@ function build() {
   });
   window.addEventListener('keydown', (e) => {
     if (el.hidden) return;
+    if (e.key === 'Tab') {
+      const knoppen = [...el.querySelectorAll('button:not([disabled])')];
+      if (!knoppen.length) return;
+      e.preventDefault();
+      e.stopPropagation();
+      const i = knoppen.indexOf(document.activeElement);
+      knoppen[i < 0 ? (e.shiftKey ? knoppen.length - 1 : 0) : (i + (e.shiftKey ? -1 : 1) + knoppen.length) % knoppen.length].focus({ preventScroll: true });
+      return;
+    }
     if (!['Enter', ' ', 'Escape', 'Backspace'].includes(e.key)) return;
     e.preventDefault();
     e.stopPropagation();
-    if (!e.repeat) close();
+    if (e.repeat) return;
+    if (e.key === 'Enter' || e.key === ' ') {
+      const active = document.activeElement;
+      const over = active && el.contains(active) && active.closest && active.closest('[data-rk-over]');
+      if (over) { over.click(); return; }
+    }
+    close();
   }, true);
   return { el, world: null, prevFocus: null };
 }

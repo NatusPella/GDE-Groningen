@@ -179,6 +179,13 @@ export async function openHoofdmenu({ index = 0 } = {}) {
   function onKey(e) {
     if (e.metaKey || e.ctrlKey || e.altKey) return;
     if (isPauseMenuOpen() || document.getElementById('saveslots')) return; // Instellingen en Opgeslagen spellen hebben hun eigen toetsen
+    if (e.key === 'Tab') {
+      e.preventDefault();
+      e.stopPropagation();
+      const nxt = trapTabInCard(knoppen, document.activeElement, e.shiftKey);
+      if (nxt) zet(knoppen.indexOf(nxt));
+      return;
+    }
     const a = menuToets(e.key, nu, items);
     if (!a) { if (e.key === 'Escape' || e.key === 'Backspace') { e.preventDefault(); e.stopPropagation(); } return; }
     e.preventDefault();

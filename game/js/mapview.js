@@ -41,6 +41,7 @@ import { reisOptiesVoor, tekenLijnen, lijnLagen } from './reiskaart.js';
 import { kaartRijen } from './ovkaart.js';
 import { actieModel, reisKeuzes, infoRegels, GAST_REIS_MELDING, UITLEG_ID, klikActie } from './kaartactie.js';
 import { navIndex, PAGE_SWITCH_KEYS, rijCijfer } from './listnav.js';
+import { keepFocus } from './focusbehoud.js';
 import { actiesHtml, reisPopupHtml, infoHtml, uitlegHtml, hierHtml, legendaHintHtml, sluitHtml, KAART_ACTIE_CSS } from './kaartactieui.js';
 import { markSeen, parseSeen } from './hudtext.js';
 import { optieRegel } from './ovopties.js';
@@ -3477,10 +3478,12 @@ export function initMapView(world) {
   state.cardEl.addEventListener('mousedown', (e) => e.stopPropagation());
   state.cardEl.addEventListener('click', (e) => {
     const b = e.target.closest('[data-card]');
-    if (!b) return;
+    if (!b || b.disabled || b.getAttribute('aria-disabled') === 'true') return;
+    const restore = keepFocus(state.cardEl);
     if (b.dataset.card === 'close') hideCard();
     else cardAction(world, b.dataset.card);
     if (state.open && !state.card) state.canvas.focus({ preventScroll: true });
+    else if (state.open && state.card) restore();
   });
   state.canvas.tabIndex = -1;
   // a controller has no pointer: A picks what is under this crosshair (a11y.css shows it)
