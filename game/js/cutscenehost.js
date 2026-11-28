@@ -27,6 +27,7 @@ import { compileScene, fitAnchor, resolveTime, shotPoints, roadPathDef } from '.
 import { jumpsFromScene } from './cutscenewarm.js';
 import { sceneSamples, isRealSet } from './realsets.js';
 import { roofAt } from './camerapath.js';
+import { createCamGuard, nudgeFromWalls } from './camguard.js';
 import { animateActor, beginSceneActors, setVoiceLevelSource } from './actoranim.js';
 import { buildModularFromAppearance, modularReady, mensenFase, modularSeatContact } from './modularpeople.js';
 import { FLAGS } from './devflags.js';
@@ -516,6 +517,22 @@ export function cutHostEinde(w, id, { skipped = false, replaced = false } = {}) 
 let realSetResolver = null;
 export function assignRealSetResolver(fn) { realSetResolver = typeof fn === 'function' ? fn : null; }
 
+// Staat het punt in een voertuig van de wereld (geparkeerd of rijdend; het voertuig van de scène zelf is een prop van de scène)?
+function vehicleHit(w, x, y, z) {
+  const list = w && w.vehicles;
+  if (!list) return false;
+  for (const v of list) {
+    if (!v || !v.model || v.isBoat) continue;
+    const dx = x - v.x, dy = y - v.y;
+    if (dx * dx + dy * dy > 64) continue;
+    const c = Math.cos(v.angle), sn = Math.sin(v.angle);
+    const lx = dx * c + dy * sn, ly = -dx * sn + dy * c;
+    const base = v.z || 0;
+    if (Math.abs(lx) < v.model.len / 2 + 0.25 && Math.abs(ly) < v.model.wid / 2 + 0.25 && z > base - 0.2 && z < base + (v.isBus ? 3.4 : 1.9)) return true;
+  }
+  return false;
+}
+
 export function playScript(w, def, { lines, duration, anchor, cine = {}, env: envIn = null, fit = null, replay = false, voices = null, realSet = true } = {}) {
   if (current) return false;
   const root = getScene();
@@ -595,6 +612,9 @@ export function playScript(w, def, { lines, duration, anchor, cine = {}, env: en
     }
   }
   let run = null, lastT = 0, buildFailed = false, buildFailSkipped = false;
+  // camerabescherming (camguard.js, aaa30): buiten (geen kamerset, geen echt pand) gaat de camera nooit door een gebouw, boom of
+  // geparkeerd voertuig, ook niet tijdens een dolly of kraan
+  const guard = !indoors && !real && !def.set && env && env.solid ? createCamGuard({ blocked: (x, y, z) => env.solid(x, y, z) || (env.tree && env.tree(x, y, z)) || vehicleHit(w, x, y, z), nudge: (q) => nudgeFromWalls(env.solid, q) }) : null;
   // name cards (fx 'naam' { text, dur }): a character is introduced at the lower left (#159); a line's own `card`
   // (missionstory.js, #711) counts too, so a guest's replay shows the same name card as the host.
   const cards = [
@@ -653,6 +673,7 @@ export function playScript(w, def, { lines, duration, anchor, cine = {}, env: en
       // a hand-made camera for part of the scene (cine.shotOverride(t): a pose, or null to leave it to the script), e.g. the falling flag (M24.3)
       const own = cine.shotOverride ? cine.shotOverride(t) : null;
       const out = own || pose;
+      if (guard && out && out.position) guard.apply(out, dt);
       if (real && out) out.interior = true; // de camera staat in een hal: niet over het dak tillen (scene3d.js guardCinematicCamera)
       return out;
     },

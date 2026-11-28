@@ -1101,6 +1101,23 @@ function buildShots(w, film = false) {
   const lobby = homeSpawnPoint();
   const kerb = street(map, lobby.x + Math.cos(lobby.angle) * 10, lobby.y + Math.sin(lobby.angle) * 10);
   const kf = { x: Math.cos(kerb.a), y: Math.sin(kerb.a) };
+  // AAA30 regie: where Tessa stands and from where she is filmed (she speaks, so the camera stands where she faces, in a three-quarter view). The first
+  // combination of side (of the door axis) and turn where nobody and no lens stands in a building and no wall hangs 2,5 m behind her is used; checked on the real map.
+  const ANITA_FRAME = (() => {
+    const o = { x: Math.cos(lobby.angle), y: Math.sin(lobby.angle) }, sd2 = { x: -o.y, y: o.x };
+    const tx = lobby.x + o.x * 1.6, ty = lobby.y + o.y * 1.6;
+    const make = (side, turn) => {
+      const ax = lobby.x + o.x * 4.2 + sd2.x * side, ay = lobby.y + o.y * 4.2 + sd2.y * side;
+      const fo = (tx - ax) * o.x + (ty - ay) * o.y, fs2 = (tx - ax) * sd2.x + (ty - ay) * sd2.y, fl = Math.hypot(fo, fs2) || 1;
+      const c = Math.cos(turn), sn = Math.sin(turn), ro = (fo * c - fs2 * sn) / fl, rs = (fo * sn + fs2 * c) / fl;
+      const dx = o.x * ro + sd2.x * rs, dy = o.y * ro + sd2.y * rs;
+      return { side, turn, ax, ay, cx: ax + dx * 3.2, cy: ay + dy * 3.2, bx: ax - dx * 2.5, by: ay - dy * 2.5 };
+    };
+    const free = (q) => !roofAt(map, q.ax, q.ay) && !roofAt(map, q.cx, q.cy) && !roofAt(map, q.bx, q.by);
+    const list = [];
+    for (const side of [1.6, -1.6, 2.4, -2.4, 0.8, -0.8]) for (const turn of [Math.PI / 4, -Math.PI / 4]) list.push(make(side, turn));
+    return list.find(free) || list[0];
+  })();
   const verhuis = {
     minDur: 6.5, clock: 10.6, stamp: '10:36', focus: lobby,
     caption: ['PADDEPOEL', 'House of Groningen. Elf hoog, de huur door twee.'], capAt: 0.6,
@@ -1132,15 +1149,17 @@ function buildShots(w, film = false) {
       }
       const a = lobby.angle + Math.PI;
       // Tammo walks to the door with a box, Tessa by the car, hands on her hips
-      const k = clamp01(t / 4.5);
+      // AAA30 regie: he arrives at the door at 2 s and TURNS to Tessa before he speaks (2,2 s): the street camera then sees his face, not his back
+      const k = clamp01(t / 2.0);
       const tx = lerp(lobby.x + Math.cos(lobby.angle) * 5, lobby.x + Math.cos(lobby.angle) * 1.6, k);
       const ty = lerp(lobby.y + Math.sin(lobby.angle) * 5, lobby.y + Math.sin(lobby.angle) * 1.6, k);
       const z = r.w.map.spawnZ ? r.w.map.spawnZ(tx, ty) : 0;
-      stage(r.tammo, tx, ty, a, { h: z, speed: k < 1 ? 1 : 0, pose: 'cups', dt, t });
-      s.box.position.set(tx + Math.cos(a) * 0.38, z + 0.89, ty + Math.sin(a) * 0.38);
-      s.box.rotation.set(0, -a, 0);
-      const ax = lobby.x + Math.cos(lobby.angle) * 4.2 + Math.cos(lobby.angle + Math.PI / 2) * 1.6;
-      const ay = lobby.y + Math.sin(lobby.angle) * 4.2 + Math.sin(lobby.angle + Math.PI / 2) * 1.6;
+      const ax = ANITA_FRAME.ax, ay = ANITA_FRAME.ay;
+      const toA = Math.atan2(ay - ty, ax - tx), turn = Math.atan2(Math.sin(toA - a), Math.cos(toA - a));
+      const aT = a + turn * smooth((t - 2.0) / 0.8);
+      stage(r.tammo, tx, ty, aT, { h: z, speed: k < 1 ? 1 : 0, pose: 'cups', dt, t });
+      s.box.position.set(tx + Math.cos(aT) * 0.38, z + 0.89, ty + Math.sin(aT) * 0.38);
+      s.box.rotation.set(0, -aT, 0);
       stage(r.anita, ax, ay, Math.atan2(ty - ay, tx - ax), { h: r.w.map.spawnZ ? r.w.map.spawnZ(ax, ay) : 0, pose: 'hips', dt, t });
     },
     cams: [
@@ -1157,9 +1176,9 @@ function buildShots(w, film = false) {
         return pose(pos, P(lobby.x + Math.cos(out) * 2.6, lobby.y + Math.sin(out) * 2.6, 1.45), lerp(40, 36, u), t, 0.006);
       }],
       ['L1', (u, t) => {
-        const ax = lobby.x + Math.cos(lobby.angle) * 4.2 + Math.cos(lobby.angle + Math.PI / 2) * 1.6;
-        const ay = lobby.y + Math.sin(lobby.angle) * 4.2 + Math.sin(lobby.angle + Math.PI / 2) * 1.6;
-        const pos = clearCam(map, P(ax + Math.cos(lobby.angle) * 2.4 - Math.cos(lobby.angle + Math.PI / 2) * 0.8, ay + Math.sin(lobby.angle) * 2.4 - Math.sin(lobby.angle + Math.PI / 2) * 0.8, 1.6));
+        // Tessa speaks: the camera stands where she faces (ANITA_FRAME), no longer behind her
+        const ax = ANITA_FRAME.ax, ay = ANITA_FRAME.ay;
+        const pos = clearCam(map, P(ANITA_FRAME.cx, ANITA_FRAME.cy, 1.6));
         return pose(pos, P(ax, ay, 1.5), lerp(34, 30, u), t, 0.004);
       }],
     ],
@@ -1205,9 +1224,47 @@ function buildShots(w, film = false) {
     ...sun, ...base('c1-markt'), clock: 6.2, clockTo: 6.5, mist: 0.3, card: undefined, cardDur: undefined,
     // a slow crane up along the tower: 3,6 m in the length of the shot, the lens at 50
     cams: [[0, (u, t) => {
-      const a = toE + Math.PI + 0.5;
-      const pos = P(tower.x + Math.cos(a) * 52, tower.y + Math.sin(a) * 52, lerp(4, 7.6, smooth(u)));
-      return pose(clearCam(map, pos), P(tower.x, tower.y, lerp(30, 58, smooth(u))), 50, t, 0.03);
+      // AAA30 regie: from 85 m, above the first roofs, so the whole tower stands in the frame (from 52 m and 4 m high the tower left the picture: sky and one roof)
+      const a = toE + Math.PI * 4 / 3; // checked on the real map: the clock tower in front, the church behind it, the sun on the right
+      const pos = P(tower.x + Math.cos(a) * 85, tower.y + Math.sin(a) * 85, lerp(22, 25.6, smooth(u)));
+      return pose(clearCam(map, pos), P(tower.x, tower.y, lerp(44, 54, smooth(u))), 50, t, 0.03);
+    }]],
+  });
+  // AAA30 regie (28-11): the city seen before the people. An aerial glide over the roofs round the tower, the tower on the right third (the camera
+  // aims a little left of it), chimneys and tiles in the foreground, the low sun raking across them; high enough to clear every roof (clearCam as a net).
+  const fRoofs = withDawn({
+    ...base('c1-daken'), clock: 6.35, mist: 0.3, focus: tower,
+    cams: [[0, (u, t) => {
+      const R = 98, a = toE + Math.PI - 0.95 + lerp(-0.05, 0.05, smooth(u));
+      const c = P(tower.x + Math.cos(a) * R, tower.y + Math.sin(a) * R, lerp(36, 40, smooth(u)));
+      const dx = tower.x - c.x, dy = tower.y - c.y, dl = Math.hypot(dx, dy) || 1;
+      const side = -22; // metres to the left of the tower: the tower stands on the right third
+      return pose(clearCam(map, c), P(tower.x + (dy / dl) * side, tower.y - (dx / dl) * side, 50), 54, t, 0.02);
+    }]],
+  });
+  // The Grote Markt at first light: a slow low dolly over the empty square, the tower on the right third of the frame, long shadows on the cobbles.
+  // (The first plan was the Noorderplantsoen; its pond and trees did not render in the checked build, so the square is the safe, recognisable second place.)
+  // Candidate dollies on the square, checked free on the real map (no roof, no tree within 6 m of the path, and the line to the tower open at 1,8 m);
+  // the first free one plays. The pick is made when the shot is built, from the world data, so a changed map never puts the lens in a crown or a wall.
+  const PLEIN_CANDIDATES = [
+    { from: { x: 150, y: 72 }, to: { x: 154.2, y: 67.6 } }, { from: { x: 162, y: 66 }, to: { x: 166, y: 61.6 } },
+    { from: { x: 140, y: 58 }, to: { x: 144, y: 53.6 } }, { from: { x: 172, y: 76 }, to: { x: 176, y: 71.6 } }, { from: { x: 128, y: 70 }, to: { x: 132, y: 65.6 } },
+  ];
+  const pleinFree = (c) => {
+    for (let k = 0; k <= 4; k++) {
+      const x = lerp(c.from.x, c.to.x, k / 4), y = lerp(c.from.y, c.to.y, k / 4);
+      if (roofAt(map, x, y)) return false;
+      if (map.treesNear && map.treesNear(x, y, 6).some((q) => Math.hypot(q[0] - x, q[1] - y) < 6)) return false;
+    }
+    return true;
+  };
+  const PLEIN = PLEIN_CANDIDATES.find(pleinFree) || PLEIN_CANDIDATES[0];
+  const fPlein = withDawn({
+    ...base('c1-plein'), clock: 6.45, mist: 0.25, focus: PLEIN.from,
+    cams: [[0, (u, t) => {
+      const k = smooth(u), x = lerp(PLEIN.from.x, PLEIN.to.x, k), y = lerp(PLEIN.from.y, PLEIN.to.y, k), z = zAt(x, y);
+      const dx = tower.x - x, dy = tower.y - y, dl = Math.hypot(dx, dy) || 1, side = -24;
+      return pose(clearCam(map, P(x, y, z + lerp(1.4, 1.8, k))), P(tower.x + (dy / dl) * side, tower.y - (dx / dl) * side, z + lerp(40, 46, k)), 50, t, 0.012);
     }]],
   });
   const fBikes = withDawn({
@@ -1215,6 +1272,8 @@ function buildShots(w, film = false) {
     cams: [[0, (u, t, s) => { const c = blane(7, 3.3); return pose(P(c.x, c.y, 1.0), P(s.mid.x, s.mid.y, 1.0), 46, t, 0.02); }]],
   });
   const fGull = withDawn({ ...gull, ...base('c1-meeuw'), clock: 6.4 });
+
+  const fTitle = { ...title, ...base('c1-titel'), film: true, minDur: 4.4 };
 
   // Tammo walks down the Korenbloemstraat with a cup of coffee, the pigeons follow him at a respectable distance; then one lands on his shoulder
   const walkOff = 5.2;
@@ -1301,7 +1360,7 @@ function buildShots(w, film = false) {
         [0, (u, t) => pose(K(-1.85, -1.3, 1.7), K(lerp(1.1, 0.8, u), lerp(1.3, 0.8, u), 1.25), 50, t, 0.006)],
         ['L1', (u, t) => { const c = K(tStand.u + toT.x * 0.7 - toT.y * 0.32, tStand.v + toT.y * 0.7 + toT.x * 0.32, 1.72); return pose(c, anitaHead, lerp(36, 33, u), t, 0.004); }],
         // after her punch line: Tammo's face over her shoulder
-        ['L1+2.5', (u, t) => { const c = K(KITCHEN.anitaSeat.u - toT.x * 0.55 + toT.y * 0.3, KITCHEN.anitaSeat.v - toT.y * 0.55 - toT.x * 0.3, 1.3); return pose(c, K(tStand.u, tStand.v, 1.6), 38, t, 0.004); }],
+        ['L1E', (u, t) => { const c = K(KITCHEN.anitaSeat.u - toT.x * 0.55 + toT.y * 0.3, KITCHEN.anitaSeat.v - toT.y * 0.55 - toT.x * 0.3, 1.3); return pose(c, K(tStand.u, tStand.v, 1.6), 38, t, 0.004); }],
       ],
     };
     return self;
@@ -1317,7 +1376,7 @@ function buildShots(w, film = false) {
       },
       cams: [
         [0, (u, t) => pose(K(lerp(-0.15, 0.1, u), -1.3, 1.3), K(0, 0, 1.0), 46, t, 0.005)],
-        ['L0+1.4', camDrawing],
+        ['L0', camAnita(30)],
         ['L1', camTammo(30)],
         ['L2', camAnita(30)],
         ['L3', camTammo(31, 26)],
@@ -1340,8 +1399,7 @@ function buildShots(w, film = false) {
         ['L1', camTammo(30)],
         ['L2', camAnita(30)],
         ['L3', camTammo(30)],
-        ['L4', camDrawing],
-        ['L4+1.9', camAnita(34, 27)],
+        ['L4', camAnita(34, 27)],
         ['L5', camTammo(32, 27)],
         ['L6', camTammo(30)],
       ],
@@ -1360,7 +1418,7 @@ function buildShots(w, film = false) {
         [0, camAnita(32)],
         ['L1', camTammo(32)],
         ['L2', camAnita(34, 27)],
-        ['L2+5.6', camTammo(30)],
+        ['L2E', camTammo(30)],
       ],
     };
     return self;
@@ -1377,9 +1435,9 @@ function buildShots(w, film = false) {
       cams: [
         [0, camAnita(30)],
         ['L1-0.1', camTammo(31, 26)],
-        ['L2-0.5', camDrawing],
-        ['L2+1.3', camAnita(30)],
-        ['L2+2.5', camTammo(30)],
+        ['L2-0.8', camDrawing],
+        ['L2', camAnita(30)],
+        ['L2E', camTammo(30)],
       ],
     };
     return self;
@@ -1462,27 +1520,18 @@ function buildShots(w, film = false) {
   const fMoveMoney = {
     ...verhuis, ...base('c3-geld'), clock: 10.65, caption: undefined, stamp: undefined,
     tick(r, s, t, dt) { verhuis.tick(r, s, 99, dt); if (s.car) { s.car.roll = 0.05; s.car.pitch = -0.02; } },
-    // the camera: Tessa, Tammo, Tessa, the flat tyre close by (where "een lekke band" is said), Tessa for the kicker, Tammo for the reaction
+    // the camera: Tessa, Tammo, Tessa, Tessa for the kicker, Tammo for the reaction after it (AAA30 regie: no cutaway to the tyre while she says it)
     cams: [
       [0, camMoveAnita],
       ['L1', camMoveTammo],
       ['L2', camMoveAnita],
-      ['L2+4.6', (u, t, s) => {
-        const c = s.car;
-        if (!c) return camMoveAnita(u, t, s);
-        const perp = { x: -Math.sin(c.angle), y: Math.cos(c.angle) };
-        const sgn = perp.x * (lobby.x - c.x) + perp.y * (lobby.y - c.y) > 0 ? -1 : 1;
-        const wx = c.x + Math.cos(c.angle) * 1.35 + perp.x * sgn * 0.9, wy = c.y + Math.sin(c.angle) * 1.35 + perp.y * sgn * 0.9;
-        return pose(P(wx + perp.x * sgn * 1.2, wy + perp.y * sgn * 1.2, (c.z || 0) + 0.4), P(wx, wy, (c.z || 0) + 0.28), 28, t, 0.004);
-      }],
       ['L3', camMoveAnita],
-      ['L3+2.6', camMoveTammo],
+      ['L3E', camMoveTammo],
     ],
   };
-  const fTitle = { ...title, ...base('c3-titel'), film: true, minDur: 4.4 };
   const fSwoop = { ...swoop, ...base('c3-zweef'), film: true };
 
-  return [fBlack, fCrane, fBikes, fGull, fStreet, fShoulder, fDoor, fFacade, fBank, fCar, fPlan, fHome, fRent, fKiosk, fPhone, fMoveIn, fMoveMoney, fTitle, fSwoop];
+  return [fBlack, fCrane, fRoofs, fPlein, fBikes, fGull, fTitle, fStreet, fShoulder, fDoor, fFacade, fBank, fCar, fPlan, fHome, fRent, fKiosk, fPhone, fMoveIn, fMoveMoney, fSwoop];
 }
 
 // Speaker keys: T, A, V (Rikus, the narrator, always on the radio).
@@ -1517,9 +1566,10 @@ function timeShots(shots) {
     s.dur = BEAT0 + k * BEAT - T;
     const at = (spec) => {
       if (typeof spec === 'number') return spec;
-      const m = /^L(\d+)(?:([+-][\d.]+))?$/.exec(spec);
+      const m = /^L(\d+)(E)?(?:([+-][\d.]+))?$/.exec(spec);
       const l = m && s.timed[+m[1]];
-      return l ? l.at + (m[2] ? +m[2] : 0) : 0;
+      // "L1E": the END of line 1 (AAA30 regie: a reaction shot starts when the line is over, never in the middle of it)
+      return l ? l.at + (m[2] ? l.dur : 0) + (m[3] ? +m[3] : 0) : 0;
     };
     if (s.cams) s.camAt = s.cams.map(([spec]) => Math.max(0, Math.min(s.dur - 0.3, at(spec))));
     if (s.tags) s.tagAt = s.tags.map(([a, b, name, role]) => [at(a), at(b), name, role]);
@@ -1747,6 +1797,9 @@ export function playTrailerMontage(w, { onDone } = {}) {
 
 // The staged film (openingfilm.js, ?openingfilm). false when it cannot start (the caller plays the old opening); onDone(skipped, failed): failed means
 // a shot threw while playing, the film was stopped and the caller plays the old opening instead.
+// QA-haak (scripts/qa/opening_film_beelden.page.js): welk shot van de film speelt nu
+if (typeof window !== 'undefined') window.__introFilm = () => (run ? { idx: run.idx, id: (run.shots[run.idx] || {}).filmId || null, st: Math.round((run.lastT + run.offset - (run.starts[run.idx] || 0)) * 10) / 10, starts: run.starts.map((x) => Math.round(x * 100) / 100), ids: run.shots.map((q) => q.filmId || null), durs: run.shots.map((q) => Math.round(q.dur * 100) / 100) } : null);
+
 export function playOpeningFilm(w, { onDone } = {}) {
   try { return playIntroMontage(w, { onDone, film: true }); } catch (e) { console.warn('opening-film', e); return false; }
 }
@@ -1792,6 +1845,8 @@ export function playIntroMontage(w, { startAt = 0, flyShot, onDone, maxShots = I
   const jumps = jumpsFromStops(stopsFromStart(shots.map((s, i) => (s.focus && Number.isFinite(s.focus.x) && Number.isFinite(s.focus.y) ? { t: starts[i] - r.offset, x: s.focus.x, y: s.focus.y } : null)), { x: p.x, y: p.y }));
   const ok = playCinematic({
     id: 'intro', priority: 6, jumps, duration: total - r.offset, pause: true, letterbox: true, skippable: true, hideHud: true, realtime: true,
+    // the film runs longer than the safety watch's 150 s cap (cinelimit.js): without `long` it was cut at 150 s, in the middle of the moving-day shots, and the swoop never played
+    long: true,
     shot: (u, t) => {
       if (!r.film) return frame(r, t);
       // the film must never take the game down: an error stops it and the old opening takes over

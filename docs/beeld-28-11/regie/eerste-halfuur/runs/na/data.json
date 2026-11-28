@@ -1,0 +1,5009 @@
+{
+ "label": "na",
+ "gemaakt": "2026-11-28 11:32",
+ "commit": "460c93173",
+ "cutscenes": [
+  {
+   "id": "M01.intro",
+   "titel": "M01.intro",
+   "akte": 1,
+   "duur": 92.47,
+   "score": 100,
+   "sprekers": [
+    "Berend Bos",
+    "Anita",
+    "Tammo",
+    "Jelmer"
+   ],
+   "keys": [
+    {
+     "n": 0,
+     "shot": 0,
+     "t0": 0,
+     "t1": 2.9,
+     "t": 1.45,
+     "type": "medium",
+     "soort": "dolly",
+     "camera": {
+      "position": {
+       "x": -6.12,
+       "y": -2.58,
+       "z": 3.25
+      },
+      "lookAt": {
+       "x": -0.23,
+       "y": 6.68,
+       "z": 1
+      },
+      "fov": 48
+     },
+     "light": null,
+     "lightText": "wereldlicht",
+     "line": {
+      "speaker": "Berend Bos",
+      "text": "Goidag.",
+      "channel": "stem"
+     },
+     "speakerId": "berend",
+     "inBeeld": [
+      "Tammo",
+      "Berend Bos"
+     ],
+     "vondsten": [],
+     "electron": {
+      "near": 0,
+      "blocked": [],
+      "light": null
+     }
+    },
+    {
+     "n": 1,
+     "shot": 1,
+     "t0": 2.9,
+     "t1": 5.2,
+     "t": 4.05,
+     "type": "close",
+     "soort": "cut",
+     "camera": {
+      "position": {
+       "x": 0.98,
+       "y": 3.93,
+       "z": 1.6
+      },
+      "lookAt": {
+       "x": 0.53,
+       "y": -0.27,
+       "z": 1.4
+      },
+      "fov": 30
+     },
+     "light": null,
+     "lightText": "wereldlicht",
+     "line": {
+      "speaker": "Anita",
+      "text": "Goidag, Berend.",
+      "channel": "stem"
+     },
+     "speakerId": "tessa",
+     "inBeeld": [
+      "Tammo",
+      "Anita",
+      "Berend Bos"
+     ],
+     "vondsten": [],
+     "electron": {
+      "near": 0,
+      "blocked": [],
+      "light": null
+     }
+    },
+    {
+     "n": 2,
+     "shot": 2,
+     "t0": 5.2,
+     "t1": 10.9,
+     "t": 8.05,
+     "type": "medium",
+     "soort": "push",
+     "camera": {
+      "position": {
+       "x": -2.69,
+       "y": 1.75,
+       "z": 1.52
+      },
+      "lookAt": {
+       "x": 0.69,
+       "y": 2.45,
+       "z": 1.4
+      },
+      "fov": 33.99
+     },
+     "light": null,
+     "lightText": "wereldlicht",
+     "line": {
+      "speaker": "Berend Bos",
+      "text": "Vijftig euro voor wie mijn bakkie naar mijn zus brengt. Aan het Boterdiep.",
+      "channel": "stem"
+     },
+     "speakerId": "berend",
+     "inBeeld": [
+      "Berend Bos",
+      "Harm"
+     ],
+     "vondsten": [],
+     "electron": {
+      "near": 0,
+      "blocked": [],
+      "light": null
+     }
+    },
+    {
+     "n": 3,
+     "shot": 3,
+     "t0": 10.9,
+     "t1": 14,
+     "t": 12.45,
+     "type": "ots",
+     "soort": "ots",
+     "camera": {
+      "position": {
+       "x": 2,
+       "y": 3.67,
+       "z": 1.67
+      },
+      "lookAt": {
+       "x": -0.53,
+       "y": 0.27,
+       "z": 1.42
+      },
+      "fov": 34
+     },
+     "light": null,
+     "lightText": "wereldlicht",
+     "line": {
+      "speaker": "Tammo",
+      "text": "Waarom doe je het niet zelf?",
+      "channel": "stem"
+     },
+     "speakerId": "tammo",
+     "inBeeld": [
+      "Tammo",
+      "Anita",
+      "Berend Bos"
+     ],
+     "vondsten": [],
+     "electron": {
+      "near": 0,
+      "blocked": [],
+      "light": null
+     }
+    },
+    {
+     "n": 4,
+     "shot": 4,
+     "t0": 14,
+     "t1": 16.3,
+     "t": 15.15,
+     "type": "medium",
+     "soort": "cut",
+     "camera": {
+      "position": {
+       "x": -3.41,
+       "y": -1.41,
+       "z": 2.8
+      },
+      "lookAt": {
+       "x": 0.69,
+       "y": 2.45,
+       "z": 1.4
+      },
+      "fov": 44
+     },
+     "light": null,
+     "lightText": "wereldlicht",
+     "line": {
+      "speaker": "Berend Bos",
+      "text": "Gips.",
+      "channel": "stem"
+     },
+     "speakerId": "berend",
+     "inBeeld": [
+      "Tammo",
+      "Anita",
+      "Berend Bos",
+      "Harm"
+     ],
+     "vondsten": [],
+     "electron": {
+      "near": 0,
+      "blocked": [],
+      "light": null
+     }
+    },
+    {
+     "n": 5,
+     "shot": 5,
+     "t0": 16.3,
+     "t1": 20.9,
+     "t": 18.6,
+     "type": "close",
+     "soort": "dolly",
+     "camera": {
+      "position": {
+       "x": -1.86,
+       "y": 0.98,
+       "z": 1.61
+      },
+      "lookAt": {
+       "x": 0.69,
+       "y": 2.45,
+       "z": 1.4
+      },
+      "fov": 25
+     },
+     "light": null,
+     "lightText": "wereldlicht",
+     "line": {
+      "speaker": "Berend Bos",
+      "text": "Ik heb gisteren alle krassen geteld. Nul. Zo blijft het.",
+      "channel": "stem"
+     },
+     "speakerId": "berend",
+     "inBeeld": [
+      "Berend Bos"
+     ],
+     "vondsten": [],
+     "electron": {
+      "near": 0,
+      "blocked": [],
+      "light": null
+     }
+    },
+    {
+     "n": 6,
+     "shot": 6,
+     "t0": 20.9,
+     "t1": 24.9,
+     "t": 22.9,
+     "type": "ots",
+     "soort": "ots",
+     "camera": {
+      "position": {
+       "x": 1.08,
+       "y": 4.18,
+       "z": 1.67
+      },
+      "lookAt": {
+       "x": -0.53,
+       "y": 0.27,
+       "z": 1.42
+      },
+      "fov": 34
+     },
+     "light": null,
+     "lightText": "wereldlicht",
+     "line": {
+      "speaker": "Tammo",
+      "text": "Jij bent toch Bommen Berend? Van het Ontzet?",
+      "channel": "stem"
+     },
+     "speakerId": "tammo",
+     "inBeeld": [
+      "Tammo",
+      "Anita",
+      "Berend Bos"
+     ],
+     "vondsten": [],
+     "electron": {
+      "near": 0,
+      "blocked": [],
+      "light": null
+     }
+    },
+    {
+     "n": 7,
+     "shot": 7,
+     "t0": 24.9,
+     "t1": 29.1,
+     "t": 27,
+     "type": "ots",
+     "soort": "ots",
+     "camera": {
+      "position": {
+       "x": -1.85,
+       "y": -0.94,
+       "z": 1.67
+      },
+      "lookAt": {
+       "x": 0.69,
+       "y": 2.45,
+       "z": 1.42
+      },
+      "fov": 34
+     },
+     "light": null,
+     "lightText": "wereldlicht",
+     "line": {
+      "speaker": "Berend Bos",
+      "text": "Niet zo hard. Veertig jaar speel ik hem. Elk jaar val ik de stad aan en verlies ik. Dat doet wat met een mens.",
+      "channel": "stem"
+     },
+     "speakerId": "berend",
+     "inBeeld": [
+      "Tammo",
+      "Berend Bos",
+      "Harm"
+     ],
+     "vondsten": [],
+     "electron": {
+      "near": 0,
+      "blocked": [],
+      "light": null
+     }
+    },
+    {
+     "n": 8,
+     "shot": 8,
+     "t0": 29.1,
+     "t1": 32.6,
+     "t": 30.85,
+     "type": "ots",
+     "soort": "ots",
+     "camera": {
+      "position": {
+       "x": 1.04,
+       "y": 4.21,
+       "z": 1.67
+      },
+      "lookAt": {
+       "x": -0.53,
+       "y": 0.27,
+       "z": 1.42
+      },
+      "fov": 34
+     },
+     "light": null,
+     "lightText": "wereldlicht",
+     "line": {
+      "speaker": "Berend Bos",
+      "text": "Niet zo hard. Veertig jaar speel ik hem. Elk jaar val ik de stad aan en verlies ik. Dat doet wat met een mens.",
+      "channel": "stem"
+     },
+     "speakerId": "berend",
+     "inBeeld": [
+      "Tammo",
+      "Anita",
+      "Berend Bos"
+     ],
+     "vondsten": [],
+     "electron": {
+      "near": 0,
+      "blocked": [],
+      "light": null
+     }
+    },
+    {
+     "n": 9,
+     "shot": 9,
+     "t0": 32.6,
+     "t1": 36.9,
+     "t": 34.75,
+     "type": "ots",
+     "soort": "ots",
+     "camera": {
+      "position": {
+       "x": 0.28,
+       "y": 4.18,
+       "z": 1.67
+      },
+      "lookAt": {
+       "x": 0.53,
+       "y": -0.27,
+       "z": 1.42
+      },
+      "fov": 34
+     },
+     "light": null,
+     "lightText": "wereldlicht",
+     "line": {
+      "speaker": "Anita",
+      "text": "Hij is de bisschop die de Stad in 1672 niet innam.",
+      "channel": "stem"
+     },
+     "speakerId": "tessa",
+     "inBeeld": [
+      "Tammo",
+      "Anita",
+      "Berend Bos",
+      "Toerist"
+     ],
+     "vondsten": [],
+     "electron": {
+      "near": 0,
+      "blocked": [],
+      "light": null
+     }
+    },
+    {
+     "n": 10,
+     "shot": 10,
+     "t0": 36.9,
+     "t1": 39.6,
+     "t": 38.25,
+     "type": "ots",
+     "soort": "ots",
+     "camera": {
+      "position": {
+       "x": -0.06,
+       "y": -1.94,
+       "z": 1.67
+      },
+      "lookAt": {
+       "x": 0.69,
+       "y": 2.45,
+       "z": 1.42
+      },
+      "fov": 34
+     },
+     "light": null,
+     "lightText": "wereldlicht",
+     "line": {
+      "speaker": "Berend Bos",
+      "text": "Niet erbij vertellen.",
+      "channel": "stem"
+     },
+     "speakerId": "berend",
+     "inBeeld": [
+      "Tammo",
+      "Anita",
+      "Berend Bos",
+      "Harm"
+     ],
+     "vondsten": [],
+     "electron": {
+      "near": 0,
+      "blocked": [],
+      "light": null
+     }
+    },
+    {
+     "n": 11,
+     "shot": 11,
+     "t0": 39.6,
+     "t1": 45.1,
+     "t": 42.35,
+     "type": "close",
+     "soort": "dolly",
+     "camera": {
+      "position": {
+       "x": 1.38,
+       "y": 3.79,
+       "z": 1.61
+      },
+      "lookAt": {
+       "x": 0.53,
+       "y": -0.27,
+       "z": 1.4
+      },
+      "fov": 25
+     },
+     "light": null,
+     "lightText": "wereldlicht",
+     "line": {
+      "speaker": "Anita",
+      "text": "Wij brengen hem. Eerst even een klus op de Grote Markt, dan naar uw zus.",
+      "channel": "stem"
+     },
+     "speakerId": "tessa",
+     "inBeeld": [
+      "Tammo",
+      "Anita",
+      "Berend Bos"
+     ],
+     "vondsten": [],
+     "electron": {
+      "near": 0,
+      "blocked": [],
+      "light": null
+     }
+    },
+    {
+     "n": 12,
+     "shot": 12,
+     "t0": 45.1,
+     "t1": 48,
+     "t": 46.55,
+     "type": "medium",
+     "soort": "push",
+     "camera": {
+      "position": {
+       "x": -1.41,
+       "y": 6.34,
+       "z": 1.5
+      },
+      "lookAt": {
+       "x": 0.88,
+       "y": 3.82,
+       "z": 1.5
+      },
+      "fov": 27.98
+     },
+     "light": null,
+     "lightText": "wereldlicht",
+     "line": {
+      "speaker": "Berend Bos",
+      "text": "Nul krassen. Of ik tel ze.",
+      "channel": "stem"
+     },
+     "speakerId": "berend",
+     "inBeeld": [
+      "Berend Bos",
+      "Toerist"
+     ],
+     "vondsten": [],
+     "electron": {
+      "near": 0,
+      "blocked": [],
+      "light": null
+     }
+    },
+    {
+     "n": 13,
+     "shot": 13,
+     "t0": 48,
+     "t1": 51.9,
+     "t": 49.95,
+     "type": "close",
+     "soort": "dolly",
+     "camera": {
+      "position": {
+       "x": 1.62,
+       "y": 2.8,
+       "z": 1.53
+      },
+      "lookAt": {
+       "x": -0.53,
+       "y": 0.27,
+       "z": 1.4
+      },
+      "fov": 34
+     },
+     "light": null,
+     "lightText": "wereldlicht",
+     "line": {
+      "speaker": "Tammo",
+      "text": "Jij rijdt als een fietser met een deadline.",
+      "channel": "stem"
+     },
+     "speakerId": "tammo",
+     "inBeeld": [
+      "Tammo",
+      "Anita"
+     ],
+     "vondsten": [],
+     "electron": {
+      "near": 0,
+      "blocked": [],
+      "light": null
+     }
+    },
+    {
+     "n": 14,
+     "shot": 14,
+     "t0": 51.9,
+     "t1": 56.5,
+     "t": 54.2,
+     "type": "medium",
+     "soort": "cut",
+     "camera": {
+      "position": {
+       "x": 2.1,
+       "y": 1,
+       "z": 1.55
+      },
+      "lookAt": {
+       "x": 0.53,
+       "y": -0.27,
+       "z": 1.4
+      },
+      "fov": 38
+     },
+     "light": null,
+     "lightText": "wereldlicht",
+     "line": {
+      "speaker": "Anita",
+      "text": "En jij als een fietser zonder fiets. Sleutels, Berend.",
+      "channel": "stem"
+     },
+     "speakerId": "tessa",
+     "inBeeld": [
+      "Tammo",
+      "Anita"
+     ],
+     "vondsten": [],
+     "electron": {
+      "near": 0,
+      "blocked": [],
+      "light": null
+     }
+    },
+    {
+     "n": 15,
+     "shot": 15,
+     "t0": 56.5,
+     "t1": 63.4,
+     "t": 59.95,
+     "type": "ots",
+     "soort": "ots",
+     "camera": {
+      "position": {
+       "x": 2.15,
+       "y": 9.92,
+       "z": 1.67
+      },
+      "lookAt": {
+       "x": 0.2,
+       "y": 3.49,
+       "z": 1.42
+      },
+      "fov": 36
+     },
+     "light": null,
+     "lightText": "wereldlicht",
+     "line": {
+      "speaker": "Anita",
+      "text": "Vijftig euro van Berend en honderdvijftig van de streamer. Dan kunnen we ons inschrijven, Tammo.",
+      "channel": "stem"
+     },
+     "speakerId": "tessa",
+     "inBeeld": [
+      "Tammo",
+      "Anita",
+      "Berend Bos",
+      "Toerist"
+     ],
+     "vondsten": [],
+     "electron": {
+      "near": 0,
+      "blocked": [],
+      "light": null
+     }
+    },
+    {
+     "n": 16,
+     "shot": 16,
+     "t0": 63.4,
+     "t1": 67.5,
+     "t": 65.45,
+     "type": "medium",
+     "soort": "cut",
+     "camera": {
+      "position": {
+       "x": -0.05,
+       "y": 4.96,
+       "z": 1.7
+      },
+      "lookAt": {
+       "x": -0.2,
+       "y": 2.91,
+       "z": 1.3
+      },
+      "fov": 40
+     },
+     "light": null,
+     "lightText": "wereldlicht",
+     "line": {
+      "speaker": "Jelmer",
+      "text": "Moi moi! Kiekdoar hier. Je reageerde op mijn oproep: stuntrijder met een bakkie. Ik wil vanavond content op de Grote Markt.",
+      "channel": "telefoon"
+     },
+     "speakerId": null,
+     "inBeeld": [
+      "Tammo",
+      "Anita",
+      "Toerist"
+     ],
+     "vondsten": [],
+     "electron": {
+      "near": 0,
+      "blocked": [],
+      "light": null
+     }
+    },
+    {
+     "n": 17,
+     "shot": 17,
+     "t0": 67.5,
+     "t1": 71.5,
+     "t": 69.5,
+     "type": "medium",
+     "soort": "cut",
+     "camera": {
+      "position": {
+       "x": -0.95,
+       "y": 4.52,
+       "z": 1.9
+      },
+      "lookAt": {
+       "x": -0.2,
+       "y": 2.91,
+       "z": 1.3
+      },
+      "fov": 40
+     },
+     "light": null,
+     "lightText": "wereldlicht",
+     "line": {
+      "speaker": "Jelmer",
+      "text": "Moi moi! Kiekdoar hier. Je reageerde op mijn oproep: stuntrijder met een bakkie. Ik wil vanavond content op de Grote Markt.",
+      "channel": "telefoon"
+     },
+     "speakerId": null,
+     "inBeeld": [
+      "Tammo",
+      "Anita",
+      "Toerist"
+     ],
+     "vondsten": [],
+     "electron": {
+      "near": 0,
+      "blocked": [],
+      "light": null
+     }
+    },
+    {
+     "n": 18,
+     "shot": 18,
+     "t0": 71.5,
+     "t1": 76.9,
+     "t": 74.2,
+     "type": "medium",
+     "soort": "cut",
+     "camera": {
+      "position": {
+       "x": 0.22,
+       "y": 5.28,
+       "z": 1.8
+      },
+      "lookAt": {
+       "x": -0.2,
+       "y": 2.91,
+       "z": 1.3
+      },
+      "fov": 40
+     },
+     "light": null,
+     "lightText": "wereldlicht",
+     "line": {
+      "speaker": "Jelmer",
+      "text": "Haal vijftienhonderd stuntpunten, dan betaal ik honderdvijftig euro.",
+      "channel": "telefoon"
+     },
+     "speakerId": null,
+     "inBeeld": [
+      "Tammo",
+      "Anita",
+      "Toerist"
+     ],
+     "vondsten": [],
+     "electron": {
+      "near": 0,
+      "blocked": [],
+      "light": null
+     }
+    },
+    {
+     "n": 19,
+     "shot": 19,
+     "t0": 76.9,
+     "t1": 83.9,
+     "t": 80.4,
+     "type": "ots",
+     "soort": "ots",
+     "camera": {
+      "position": {
+       "x": -1.94,
+       "y": 1.31,
+       "z": 1.67
+      },
+      "lookAt": {
+       "x": 0.2,
+       "y": 3.49,
+       "z": 1.42
+      },
+      "fov": 32
+     },
+     "light": null,
+     "lightText": "wereldlicht",
+     "line": {
+      "speaker": "Anita",
+      "text": "Honderdvijftig euro. Dat is precies de inschrijving. Die betaal je bij het Loket, het stadsloket.",
+      "channel": "stem"
+     },
+     "speakerId": "tessa",
+     "inBeeld": [
+      "Tammo",
+      "Anita",
+      "Berend Bos",
+      "Harm"
+     ],
+     "vondsten": [],
+     "electron": {
+      "near": 0,
+      "blocked": [],
+      "light": null
+     }
+    },
+    {
+     "n": 20,
+     "shot": 20,
+     "t0": 83.9,
+     "t1": 87.8,
+     "t": 85.85,
+     "type": "ots",
+     "soort": "ots",
+     "camera": {
+      "position": {
+       "x": 2.55,
+       "y": 9.76,
+       "z": 1.67
+      },
+      "lookAt": {
+       "x": 0.2,
+       "y": 3.49,
+       "z": 1.42
+      },
+      "fov": 36
+     },
+     "light": null,
+     "lightText": "wereldlicht",
+     "line": {
+      "speaker": "Anita",
+      "text": "Zonder krassen, want het is Berends bakkie.",
+      "channel": "stem"
+     },
+     "speakerId": "tessa",
+     "inBeeld": [
+      "Tammo",
+      "Anita",
+      "Berend Bos",
+      "Toerist"
+     ],
+     "vondsten": [],
+     "electron": {
+      "near": 0,
+      "blocked": [],
+      "light": null
+     }
+    },
+    {
+     "n": 21,
+     "shot": 21,
+     "t0": 87.8,
+     "t1": 90.7,
+     "t": 89.25,
+     "type": "medium",
+     "soort": "cut",
+     "camera": {
+      "position": {
+       "x": -0.95,
+       "y": 4.52,
+       "z": 1.7
+      },
+      "lookAt": {
+       "x": -0.2,
+       "y": 2.91,
+       "z": 1.3
+      },
+      "fov": 40
+     },
+     "light": null,
+     "lightText": "wereldlicht",
+     "line": {
+      "speaker": "Jelmer",
+      "text": "Niemand raken! Alleen spullen. Spullen zijn content.",
+      "channel": "telefoon"
+     },
+     "speakerId": null,
+     "inBeeld": [
+      "Tammo",
+      "Anita",
+      "Toerist"
+     ],
+     "vondsten": [],
+     "electron": {
+      "near": 0,
+      "blocked": [
+       {
+        "id": "toerist",
+        "hits": 1,
+        "at": 10.66,
+        "wat": "karakter"
+       }
+      ],
+      "light": null
+     }
+    },
+    {
+     "n": 22,
+     "shot": 22,
+     "t0": 90.7,
+     "t1": 92.47,
+     "t": 91.59,
+     "type": "medium",
+     "soort": "dolly",
+     "camera": {
+      "position": {
+       "x": -3.87,
+       "y": -0.54,
+       "z": 3.49
+      },
+      "lookAt": {
+       "x": 0.47,
+       "y": 9.08,
+       "z": 0.65
+      },
+      "fov": 48
+     },
+     "light": null,
+     "lightText": "wereldlicht",
+     "line": {
+      "speaker": "Jelmer",
+      "text": "Niemand raken! Alleen spullen. Spullen zijn content.",
+      "channel": "telefoon"
+     },
+     "speakerId": null,
+     "inBeeld": [
+      "Tammo",
+      "Anita",
+      "Berend Bos",
+      "Harm"
+     ],
+     "vondsten": [],
+     "electron": {
+      "near": 0,
+      "blocked": [],
+      "light": null
+     }
+    }
+   ]
+  },
+  {
+   "id": "M02.intro",
+   "titel": "M02.intro",
+   "akte": 1,
+   "duur": 51.31,
+   "score": 100,
+   "sprekers": [
+    "Anita",
+    "Durk",
+    "Douwe",
+    "Tammo"
+   ],
+   "keys": [
+    {
+     "n": 0,
+     "shot": 0,
+     "t0": 0,
+     "t1": 5.8,
+     "t": 2.9,
+     "type": "medium",
+     "soort": "dolly",
+     "camera": {
+      "position": {
+       "x": -7.66,
+       "y": -2.34,
+       "z": 3.28
+      },
+      "lookAt": {
+       "x": -0.15,
+       "y": 4.34,
+       "z": 1
+      },
+      "fov": 50
+     },
+     "light": null,
+     "lightText": "wereldlicht",
+     "line": {
+      "speaker": "Anita",
+      "text": "Half acht. Eerst honderdvijftig euro pinnen, dan naar het Loket.",
+      "channel": "stem"
+     },
+     "speakerId": "tessa",
+     "inBeeld": [
+      "Anita"
+     ],
+     "vondsten": [],
+     "electron": {
+      "near": 0,
+      "blocked": [],
+      "light": null
+     }
+    },
+    {
+     "n": 1,
+     "shot": 1,
+     "t0": 5.8,
+     "t1": 9.8,
+     "t": 7.8,
+     "type": "medium",
+     "soort": "push",
+     "camera": {
+      "position": {
+       "x": -1.79,
+       "y": 5.13,
+       "z": 1.52
+      },
+      "lookAt": {
+       "x": 0.38,
+       "y": 2.5,
+       "z": 1.4
+      },
+      "fov": 33.84
+     },
+     "light": null,
+     "lightText": "wereldlicht",
+     "line": {
+      "speaker": "Anita",
+      "text": "Hij heeft mijn pas. Hij heeft mijn pas en hij…",
+      "channel": "stem"
+     },
+     "speakerId": "tessa",
+     "inBeeld": [
+      "Anita"
+     ],
+     "vondsten": [],
+     "electron": {
+      "near": 0,
+      "blocked": [],
+      "light": null
+     }
+    },
+    {
+     "n": 2,
+     "shot": 2,
+     "t0": 9.8,
+     "t1": 12.3,
+     "t": 11.05,
+     "type": "medium",
+     "soort": "dolly",
+     "camera": {
+      "position": {
+       "x": -4.45,
+       "y": 4.66,
+       "z": 1.99
+      },
+      "lookAt": {
+       "x": 8.24,
+       "y": 23.68,
+       "z": 1.5
+      },
+      "fov": 40
+     },
+     "light": null,
+     "lightText": "wereldlicht",
+     "line": {
+      "speaker": "Durk",
+      "text": "Douwe. Hij is los.",
+      "channel": "stem"
+     },
+     "speakerId": "durk",
+     "inBeeld": [],
+     "vondsten": [],
+     "electron": {
+      "near": 0,
+      "blocked": [],
+      "light": null
+     }
+    },
+    {
+     "n": 3,
+     "shot": 3,
+     "t0": 12.3,
+     "t1": 14.6,
+     "t": 13.45,
+     "type": "close",
+     "soort": "dolly",
+     "camera": {
+      "position": {
+       "x": -2.01,
+       "y": 0.62,
+       "z": 1.52
+      },
+      "lookAt": {
+       "x": 11.72,
+       "y": 30.53,
+       "z": 1.4
+      },
+      "fov": 34
+     },
+     "light": null,
+     "lightText": "wereldlicht",
+     "line": {
+      "speaker": "Douwe",
+      "text": "…los.",
+      "channel": "stem"
+     },
+     "speakerId": "douwe",
+     "inBeeld": [
+      "Anita"
+     ],
+     "vondsten": [],
+     "electron": {
+      "near": 0,
+      "blocked": [],
+      "light": null
+     }
+    },
+    {
+     "n": 4,
+     "shot": 4,
+     "t0": 14.6,
+     "t1": 20.9,
+     "t": 15.72,
+     "type": "medium",
+     "soort": "orbit",
+     "camera": {
+      "position": {
+       "x": 0.22,
+       "y": -0.56,
+       "z": 1.53
+      },
+      "lookAt": {
+       "x": -2.27,
+       "y": -1.3,
+       "z": 1.4
+      },
+      "fov": 38
+     },
+     "light": null,
+     "lightText": "wereldlicht",
+     "line": {
+      "speaker": "Tammo",
+      "text": "Moi. Wat is er gebeurd?",
+      "channel": "stem"
+     },
+     "speakerId": "tammo",
+     "inBeeld": [
+      "Tammo"
+     ],
+     "vondsten": [],
+     "electron": {
+      "near": 0,
+      "blocked": [],
+      "light": null
+     }
+    },
+    {
+     "n": 5,
+     "shot": 5,
+     "t0": 20.9,
+     "t1": 27.5,
+     "t": 24.2,
+     "type": "ots",
+     "soort": "ots",
+     "camera": {
+      "position": {
+       "x": -1.39,
+       "y": -1.24,
+       "z": 1.67
+      },
+      "lookAt": {
+       "x": 0.38,
+       "y": 2.5,
+       "z": 1.42
+      },
+      "fov": 30
+     },
+     "light": null,
+     "lightText": "wereldlicht",
+     "line": {
+      "speaker": "Anita",
+      "text": "Mijn pas zit in die automaat. En die automaat zit op die aanhanger. En die aanhanger is van niemand.",
+      "channel": "stem"
+     },
+     "speakerId": "tessa",
+     "inBeeld": [
+      "Tammo",
+      "Anita"
+     ],
+     "vondsten": [],
+     "electron": {
+      "near": 0,
+      "blocked": [],
+      "light": null
+     }
+    },
+    {
+     "n": 6,
+     "shot": 6,
+     "t0": 27.5,
+     "t1": 30.6,
+     "t": 29.05,
+     "type": "ots",
+     "soort": "ots",
+     "camera": {
+      "position": {
+       "x": -2.32,
+       "y": -0.66,
+       "z": 1.67
+      },
+      "lookAt": {
+       "x": 0.38,
+       "y": 2.5,
+       "z": 1.42
+      },
+      "fov": 30
+     },
+     "light": null,
+     "lightText": "wereldlicht",
+     "line": {
+      "speaker": "Anita",
+      "text": "Ze trokken hem met een kabel uit de muur. Ik was nog niet klaar met mijn pincode.",
+      "channel": "stem"
+     },
+     "speakerId": "tessa",
+     "inBeeld": [
+      "Tammo",
+      "Anita",
+      "Student"
+     ],
+     "vondsten": [],
+     "electron": {
+      "near": 0,
+      "blocked": [],
+      "light": null
+     }
+    },
+    {
+     "n": 7,
+     "shot": 7,
+     "t0": 30.6,
+     "t1": 33.1,
+     "t": 31.85,
+     "type": "medium",
+     "soort": "cut",
+     "camera": {
+      "position": {
+       "x": -0.23,
+       "y": 5.28,
+       "z": 2.8
+      },
+      "lookAt": {
+       "x": -0.45,
+       "y": 2.02,
+       "z": 1.4
+      },
+      "fov": 44
+     },
+     "light": null,
+     "lightText": "wereldlicht",
+     "line": {
+      "speaker": "Tammo",
+      "text": "Dus we pinnen even.",
+      "channel": "stem"
+     },
+     "speakerId": "tammo",
+     "inBeeld": [
+      "Tammo",
+      "Anita"
+     ],
+     "vondsten": [],
+     "electron": {
+      "near": 0,
+      "blocked": [],
+      "light": null
+     }
+    },
+    {
+     "n": 8,
+     "shot": 8,
+     "t0": 33.1,
+     "t1": 38.3,
+     "t": 35.7,
+     "type": "close",
+     "soort": "dolly",
+     "camera": {
+      "position": {
+       "x": 1.59,
+       "y": 3.38,
+       "z": 1.61
+      },
+      "lookAt": {
+       "x": 0.38,
+       "y": 2.5,
+       "z": 1.4
+      },
+      "fov": 25
+     },
+     "light": null,
+     "lightText": "wereldlicht",
+     "line": {
+      "speaker": "Anita",
+      "text": "Ik ken Sjabbe. Hij opent wat niemand kan. Wij brengen de automaat naar hem.",
+      "channel": "stem"
+     },
+     "speakerId": "tessa",
+     "inBeeld": [
+      "Anita"
+     ],
+     "vondsten": [],
+     "electron": {
+      "near": 0,
+      "blocked": [],
+      "light": null
+     }
+    },
+    {
+     "n": 9,
+     "shot": 9,
+     "t0": 38.3,
+     "t1": 43.4,
+     "t": 38.4,
+     "type": "medium",
+     "soort": "cut",
+     "camera": {
+      "position": {
+       "x": -0.23,
+       "y": 5.28,
+       "z": 2.8
+      },
+      "lookAt": {
+       "x": 0.38,
+       "y": 2.5,
+       "z": 1.4
+      },
+      "fov": 44
+     },
+     "light": null,
+     "lightText": "wereldlicht",
+     "line": {
+      "speaker": "Anita",
+      "text": "Ik ken Sjabbe. Hij opent wat niemand kan. Wij brengen de automaat naar hem.",
+      "channel": "stem"
+     },
+     "speakerId": "tessa",
+     "inBeeld": [
+      "Anita"
+     ],
+     "vondsten": [],
+     "electron": {
+      "near": 0,
+      "blocked": [],
+      "light": null
+     }
+    },
+    {
+     "n": 10,
+     "shot": 10,
+     "t0": 43.4,
+     "t1": 47.1,
+     "t": 45.25,
+     "type": "close",
+     "soort": "cut",
+     "camera": {
+      "position": {
+       "x": 2.08,
+       "y": 3.65,
+       "z": 1.6
+      },
+      "lookAt": {
+       "x": 0.38,
+       "y": 2.5,
+       "z": 1.4
+      },
+      "fov": 34
+     },
+     "light": null,
+     "lightText": "wereldlicht",
+     "line": {
+      "speaker": "Anita",
+      "text": "Er komt een politieauto aan. Instappen.",
+      "channel": "stem"
+     },
+     "speakerId": "tessa",
+     "inBeeld": [
+      "Anita"
+     ],
+     "vondsten": [],
+     "electron": {
+      "near": 0,
+      "blocked": [],
+      "light": null
+     }
+    },
+    {
+     "n": 11,
+     "shot": 11,
+     "t0": 47.1,
+     "t1": 49.6,
+     "t": 48.35,
+     "type": "ots",
+     "soort": "ots",
+     "camera": {
+      "position": {
+       "x": 2.23,
+       "y": 0.55,
+       "z": 1.67
+      },
+      "lookAt": {
+       "x": 0.73,
+       "y": 0.51,
+       "z": 1.42
+      },
+      "fov": 30
+     },
+     "light": null,
+     "lightText": "wereldlicht",
+     "line": {
+      "speaker": "Tammo",
+      "text": "Ik rij. Rustig. Met alle richtingaanwijzers.",
+      "channel": "stem"
+     },
+     "speakerId": "tammo",
+     "inBeeld": [
+      "Tammo"
+     ],
+     "vondsten": [],
+     "electron": {
+      "near": 0,
+      "blocked": [],
+      "light": null
+     }
+    },
+    {
+     "n": 12,
+     "shot": 12,
+     "t0": 49.6,
+     "t1": 51.31,
+     "t": 50.46,
+     "type": "wide",
+     "soort": "dolly",
+     "camera": {
+      "position": {
+       "x": -4.72,
+       "y": 0.14,
+       "z": 3.5
+      },
+      "lookAt": {
+       "x": 1.35,
+       "y": -4.39,
+       "z": 0.65
+      },
+      "fov": 50
+     },
+     "light": null,
+     "lightText": "wereldlicht",
+     "line": {
+      "speaker": "Tammo",
+      "text": "Ik rij. Rustig. Met alle richtingaanwijzers.",
+      "channel": "stem"
+     },
+     "speakerId": "tammo",
+     "inBeeld": [],
+     "vondsten": [],
+     "electron": {
+      "near": 0,
+      "blocked": [],
+      "light": null
+     }
+    }
+   ]
+  },
+  {
+   "id": "M03.2",
+   "titel": "M03.2",
+   "akte": 1,
+   "duur": 94.64,
+   "score": 99,
+   "sprekers": [
+    "Jelle Terpstra",
+    "Anita",
+    "Tammo",
+    "Mevrouw Hoving",
+    "Loketbediende"
+   ],
+   "keys": [
+    {
+     "n": 0,
+     "shot": 0,
+     "t0": 0,
+     "t1": 4,
+     "t": 2,
+     "type": "medium",
+     "soort": "dolly",
+     "camera": {
+      "position": {
+       "x": -3.39,
+       "y": -0.72,
+       "z": 2.75
+      },
+      "lookAt": {
+       "x": 1.65,
+       "y": 2.13,
+       "z": 1.2
+      },
+      "fov": 52
+     },
+     "light": null,
+     "lightText": "wereldlicht",
+     "line": {
+      "speaker": "Jelle Terpstra",
+      "text": "Goedemorgen. Jelle Terpstra, Us Mem Snacks. Mijn juristen hebben dit loket vanochtend vooruit betaald.",
+      "channel": "stem"
+     },
+     "speakerId": "jelle",
+     "inBeeld": [
+      "Tammo",
+      "Anita",
+      "Jelle Terpstra",
+      "Mevrouw Hoving",
+      "Loketbediende",
+      "Femke",
+      "Harm"
+     ],
+     "vondsten": [],
+     "electron": {
+      "near": 0,
+      "blocked": [],
+      "light": null
+     }
+    },
+    {
+     "n": 1,
+     "shot": 1,
+     "t0": 4,
+     "t1": 8,
+     "t": 6,
+     "type": "ots",
+     "soort": "ots",
+     "camera": {
+      "position": {
+       "x": -0.48,
+       "y": -2.96,
+       "z": 1.67
+      },
+      "lookAt": {
+       "x": 0.56,
+       "y": 2.63,
+       "z": 1.42
+      },
+      "fov": 42
+     },
+     "light": null,
+     "lightText": "wereldlicht",
+     "line": {
+      "speaker": "Jelle Terpstra",
+      "text": "Goedemorgen. Jelle Terpstra, Us Mem Snacks. Mijn juristen hebben dit loket vanochtend vooruit betaald.",
+      "channel": "stem"
+     },
+     "speakerId": "jelle",
+     "inBeeld": [
+      "Tammo",
+      "Anita",
+      "Jelle Terpstra",
+      "Mevrouw Hoving",
+      "Loketbediende",
+      "Femke",
+      "Harm"
+     ],
+     "vondsten": [],
+     "electron": {
+      "near": 0,
+      "blocked": [
+       {
+        "id": "jelle",
+        "hits": 1,
+        "at": 3.01,
+        "wat": "SkinnedMesh"
+       }
+      ],
+      "light": null
+     }
+    },
+    {
+     "n": 2,
+     "shot": 2,
+     "t0": 8,
+     "t1": 11,
+     "t": 9.5,
+     "type": "ots",
+     "soort": "ots",
+     "camera": {
+      "position": {
+       "x": 0.02,
+       "y": 4.34,
+       "z": 1.67
+      },
+      "lookAt": {
+       "x": 0.53,
+       "y": -0.27,
+       "z": 1.42
+      },
+      "fov": 34
+     },
+     "light": null,
+     "lightText": "wereldlicht",
+     "line": {
+      "speaker": "Anita",
+      "text": "Jelle Terpstra. Meneer Klomp.",
+      "channel": "stem"
+     },
+     "speakerId": "tessa",
+     "inBeeld": [
+      "Tammo",
+      "Anita",
+      "Jelle Terpstra",
+      "Femke",
+      "Harm"
+     ],
+     "vondsten": [],
+     "electron": {
+      "near": 2,
+      "blocked": [
+       {
+        "id": "wachter1",
+        "hits": 1,
+        "at": 1.2,
+        "wat": "Mesh"
+       }
+      ],
+      "light": null
+     }
+    },
+    {
+     "n": 3,
+     "shot": 3,
+     "t0": 11,
+     "t1": 18,
+     "t": 14.5,
+     "type": "ots",
+     "soort": "ots",
+     "camera": {
+      "position": {
+       "x": -0.03,
+       "y": -1.97,
+       "z": 1.67
+      },
+      "lookAt": {
+       "x": 0.56,
+       "y": 2.63,
+       "z": 1.42
+      },
+      "fov": 34
+     },
+     "light": null,
+     "lightText": "wereldlicht",
+     "line": {
+      "speaker": "Jelle Terpstra",
+      "text": "Ik heb de rij gekocht. U staat nu helemaal achteraan, nummer 4140. Dat staat in de overeenkomst.",
+      "channel": "stem"
+     },
+     "speakerId": "jelle",
+     "inBeeld": [
+      "Tammo",
+      "Anita",
+      "Jelle Terpstra",
+      "Loketbediende",
+      "Femke",
+      "Harm"
+     ],
+     "vondsten": [],
+     "electron": {
+      "near": 0,
+      "blocked": [
+       {
+        "id": "jelle",
+        "hits": 10,
+        "at": 1.7,
+        "wat": "SkinnedMesh"
+       }
+      ],
+      "light": null
+     }
+    },
+    {
+     "n": 4,
+     "shot": 4,
+     "t0": 18,
+     "t1": 20.6,
+     "t": 19.3,
+     "type": "ots",
+     "soort": "ots",
+     "camera": {
+      "position": {
+       "x": 0.68,
+       "y": 4.42,
+       "z": 1.67
+      },
+      "lookAt": {
+       "x": -0.53,
+       "y": 0.27,
+       "z": 1.42
+      },
+      "fov": 34
+     },
+     "light": null,
+     "lightText": "wereldlicht",
+     "line": {
+      "speaker": "Tammo",
+      "text": "Hij kocht onze plek.",
+      "channel": "stem"
+     },
+     "speakerId": "tammo",
+     "inBeeld": [
+      "Tammo",
+      "Anita",
+      "Jelle Terpstra",
+      "Harm"
+     ],
+     "vondsten": [],
+     "electron": {
+      "near": 4,
+      "blocked": [
+       {
+        "id": "tessa",
+        "hits": 1,
+        "at": 1.12,
+        "wat": "Mesh"
+       },
+       {
+        "id": "jelle",
+        "hits": 1,
+        "at": 1.14,
+        "wat": "Mesh"
+       }
+      ],
+      "light": null
+     }
+    },
+    {
+     "n": 5,
+     "shot": 5,
+     "t0": 20.6,
+     "t1": 27.5,
+     "t": 24.05,
+     "type": "ots",
+     "soort": "ots",
+     "camera": {
+      "position": {
+       "x": -1.75,
+       "y": -1.04,
+       "z": 1.67
+      },
+      "lookAt": {
+       "x": 0.56,
+       "y": 2.63,
+       "z": 1.42
+      },
+      "fov": 34
+     },
+     "light": null,
+     "lightText": "wereldlicht",
+     "line": {
+      "speaker": "Jelle Terpstra",
+      "text": "Verder koop ik alle standplaatsen van de Stad die vrijkomen. Contant, uit een klomp, definitief.",
+      "channel": "stem"
+     },
+     "speakerId": "jelle",
+     "inBeeld": [
+      "Tammo",
+      "Jelle Terpstra",
+      "Mevrouw Hoving",
+      "Loketbediende",
+      "Harm"
+     ],
+     "vondsten": [],
+     "electron": {
+      "near": 0,
+      "blocked": [
+       {
+        "id": "bewaarder",
+        "hits": 3,
+        "at": 1.89,
+        "wat": "SkinnedMesh"
+       }
+      ],
+      "light": null
+     }
+    },
+    {
+     "n": 6,
+     "shot": 6,
+     "t0": 27.5,
+     "t1": 32,
+     "t": 29.75,
+     "type": "ots",
+     "soort": "ots",
+     "camera": {
+      "position": {
+       "x": 0.02,
+       "y": 4.34,
+       "z": 1.67
+      },
+      "lookAt": {
+       "x": 0.53,
+       "y": -0.27,
+       "z": 1.42
+      },
+      "fov": 34
+     },
+     "light": null,
+     "lightText": "wereldlicht",
+     "line": {
+      "speaker": "Anita",
+      "text": "Alle? De standplaats van de winnaar is niet te koop.",
+      "channel": "stem"
+     },
+     "speakerId": "tessa",
+     "inBeeld": [
+      "Tammo",
+      "Anita",
+      "Jelle Terpstra",
+      "Femke",
+      "Harm"
+     ],
+     "vondsten": [],
+     "electron": {
+      "near": 2,
+      "blocked": [
+       {
+        "id": "wachter1",
+        "hits": 1,
+        "at": 1.2,
+        "wat": "Mesh"
+       }
+      ],
+      "light": null
+     }
+    },
+    {
+     "n": 7,
+     "shot": 7,
+     "t0": 32,
+     "t1": 34.3,
+     "t": 33.15,
+     "type": "ots",
+     "soort": "ots",
+     "camera": {
+      "position": {
+       "x": -0.03,
+       "y": -1.97,
+       "z": 1.67
+      },
+      "lookAt": {
+       "x": 0.56,
+       "y": 2.63,
+       "z": 1.42
+      },
+      "fov": 34
+     },
+     "light": null,
+     "lightText": "wereldlicht",
+     "line": {
+      "speaker": "Jelle Terpstra",
+      "text": "Nee. Die win ik.",
+      "channel": "stem"
+     },
+     "speakerId": "jelle",
+     "inBeeld": [
+      "Tammo",
+      "Anita",
+      "Jelle Terpstra",
+      "Loketbediende",
+      "Femke",
+      "Harm"
+     ],
+     "vondsten": [],
+     "electron": {
+      "near": 0,
+      "blocked": [
+       {
+        "id": "jelle",
+        "hits": 10,
+        "at": 1.7,
+        "wat": "SkinnedMesh"
+       }
+      ],
+      "light": null
+     }
+    },
+    {
+     "n": 8,
+     "shot": 8,
+     "t0": 34.3,
+     "t1": 36.6,
+     "t": 35.45,
+     "type": "ots",
+     "soort": "ots",
+     "camera": {
+      "position": {
+       "x": 0.02,
+       "y": 4.34,
+       "z": 1.67
+      },
+      "lookAt": {
+       "x": 0.53,
+       "y": -0.27,
+       "z": 1.42
+      },
+      "fov": 34
+     },
+     "light": null,
+     "lightText": "wereldlicht",
+     "line": {
+      "speaker": "Anita",
+      "text": "Hoe dan?",
+      "channel": "stem"
+     },
+     "speakerId": "tessa",
+     "inBeeld": [
+      "Tammo",
+      "Anita",
+      "Jelle Terpstra",
+      "Femke",
+      "Harm"
+     ],
+     "vondsten": [],
+     "electron": {
+      "near": 2,
+      "blocked": [
+       {
+        "id": "wachter1",
+        "hits": 1,
+        "at": 1.2,
+        "wat": "Mesh"
+       }
+      ],
+      "light": null
+     }
+    },
+    {
+     "n": 9,
+     "shot": 9,
+     "t0": 36.6,
+     "t1": 42.4,
+     "t": 37.64,
+     "type": "ots",
+     "soort": "ots",
+     "camera": {
+      "position": {
+       "x": -0.03,
+       "y": -1.97,
+       "z": 1.67
+      },
+      "lookAt": {
+       "x": 0.56,
+       "y": 2.63,
+       "z": 1.42
+      },
+      "fov": 34
+     },
+     "light": null,
+     "lightText": "wereldlicht",
+     "line": {
+      "speaker": "Jelle Terpstra",
+      "text": "Met papier.",
+      "channel": "stem"
+     },
+     "speakerId": "jelle",
+     "inBeeld": [
+      "Tammo",
+      "Anita",
+      "Jelle Terpstra",
+      "Loketbediende",
+      "Femke",
+      "Harm"
+     ],
+     "vondsten": [],
+     "electron": {
+      "near": 0,
+      "blocked": [
+       {
+        "id": "jelle",
+        "hits": 10,
+        "at": 1.7,
+        "wat": "SkinnedMesh"
+       }
+      ],
+      "light": null
+     }
+    },
+    {
+     "n": 10,
+     "shot": 10,
+     "t0": 42.4,
+     "t1": 44.7,
+     "t": 43.55,
+     "type": "medium",
+     "soort": "follow",
+     "camera": {
+      "position": {
+       "x": -0.27,
+       "y": 2.77,
+       "z": 3.4
+      },
+      "lookAt": {
+       "x": -3.12,
+       "y": -1.06,
+       "z": 1.4
+      },
+      "fov": 40
+     },
+     "light": null,
+     "lightText": "wereldlicht",
+     "line": {
+      "speaker": "Jelle Terpstra",
+      "text": "Foar mem.",
+      "channel": "stem"
+     },
+     "speakerId": "jelle",
+     "inBeeld": [
+      "Tammo",
+      "Jelle Terpstra"
+     ],
+     "vondsten": [],
+     "electron": {
+      "near": 0,
+      "blocked": [],
+      "light": null
+     }
+    },
+    {
+     "n": 11,
+     "shot": 11,
+     "t0": 44.7,
+     "t1": 47,
+     "t": 45.85,
+     "type": "ots",
+     "soort": "ots",
+     "camera": {
+      "position": {
+       "x": -3.5,
+       "y": -0.92,
+       "z": 1.67
+      },
+      "lookAt": {
+       "x": -0.53,
+       "y": 0.27,
+       "z": 1.42
+      },
+      "fov": 34
+     },
+     "light": null,
+     "lightText": "wereldlicht",
+     "line": {
+      "speaker": "Tammo",
+      "text": "Wat zei hij?",
+      "channel": "stem"
+     },
+     "speakerId": "tammo",
+     "inBeeld": [
+      "Tammo",
+      "Anita",
+      "Mevrouw Hoving",
+      "Loketbediende",
+      "Femke",
+      "Harm"
+     ],
+     "vondsten": [],
+     "electron": {
+      "near": 0,
+      "blocked": [],
+      "light": null
+     }
+    },
+    {
+     "n": 12,
+     "shot": 12,
+     "t0": 47,
+     "t1": 51,
+     "t": 49,
+     "type": "ots",
+     "soort": "ots",
+     "camera": {
+      "position": {
+       "x": -2.3,
+       "y": 0.55,
+       "z": 1.67
+      },
+      "lookAt": {
+       "x": 0.53,
+       "y": -0.27,
+       "z": 1.42
+      },
+      "fov": 34
+     },
+     "light": null,
+     "lightText": "wereldlicht",
+     "line": {
+      "speaker": "Anita",
+      "text": "Voor zijn oma. Hij doet alles voor zijn oma.",
+      "channel": "stem"
+     },
+     "speakerId": "tessa",
+     "inBeeld": [
+      "Tammo",
+      "Anita",
+      "Femke"
+     ],
+     "vondsten": [],
+     "electron": {
+      "near": 0,
+      "blocked": [
+       {
+        "id": "tessa",
+        "hits": 8,
+        "at": 2.27,
+        "wat": "SkinnedMesh"
+       }
+      ],
+      "light": null
+     }
+    },
+    {
+     "n": 13,
+     "shot": 13,
+     "t0": 51,
+     "t1": 55,
+     "t": 53,
+     "type": "ots",
+     "soort": "ots",
+     "camera": {
+      "position": {
+       "x": -1.17,
+       "y": -1.09,
+       "z": 1.67
+      },
+      "lookAt": {
+       "x": 2.74,
+       "y": 1.64,
+       "z": 1.42
+      },
+      "fov": 34
+     },
+     "light": null,
+     "lightText": "wereldlicht",
+     "line": {
+      "speaker": "Mevrouw Hoving",
+      "text": "Ik bewaar de Gouden Eierbal, de wisselprijs van de Snackprijs, al sinds 1998. Wie de bal heeft, zit de jury voor.",
+      "channel": "stem"
+     },
+     "speakerId": "bewaarder",
+     "inBeeld": [
+      "Anita",
+      "Mevrouw Hoving",
+      "Loketbediende",
+      "Femke"
+     ],
+     "vondsten": [],
+     "electron": {
+      "near": 0,
+      "blocked": [
+       {
+        "id": "bewaarder",
+        "hits": 4,
+        "at": 1.55,
+        "wat": "SkinnedMesh"
+       },
+       {
+        "id": "wachter1",
+        "hits": 6,
+        "at": 1.55,
+        "wat": "SkinnedMesh"
+       }
+      ],
+      "light": null
+     }
+    },
+    {
+     "n": 14,
+     "shot": 14,
+     "t0": 55,
+     "t1": 58.9,
+     "t": 56.95,
+     "type": "ots",
+     "soort": "ots",
+     "camera": {
+      "position": {
+       "x": -2.16,
+       "y": -1.28,
+       "z": 1.67
+      },
+      "lookAt": {
+       "x": 2.74,
+       "y": 1.64,
+       "z": 1.42
+      },
+      "fov": 42
+     },
+     "light": null,
+     "lightText": "wereldlicht",
+     "line": {
+      "speaker": "Mevrouw Hoving",
+      "text": "Ik bewaar de Gouden Eierbal, de wisselprijs van de Snackprijs, al sinds 1998. Wie de bal heeft, zit de jury voor.",
+      "channel": "stem"
+     },
+     "speakerId": "bewaarder",
+     "inBeeld": [
+      "Tammo",
+      "Anita",
+      "Mevrouw Hoving",
+      "Loketbediende",
+      "Femke"
+     ],
+     "vondsten": [
+      {
+       "regel": "CS-C06",
+       "ernst": "nit",
+       "bericht": "de camera springt over de as tussen bewaarder en tessa tussen shot 13 en 14 (55.0 s)"
+      }
+     ],
+     "electron": {
+      "near": 0,
+      "blocked": [
+       {
+        "id": "bewaarder",
+        "hits": 2,
+        "at": 2.37,
+        "wat": "SkinnedMesh"
+       },
+       {
+        "id": "wachter1",
+        "hits": 6,
+        "at": 2.53,
+        "wat": "SkinnedMesh"
+       }
+      ],
+      "light": null
+     }
+    },
+    {
+     "n": 15,
+     "shot": 15,
+     "t0": 58.9,
+     "t1": 63.8,
+     "t": 61.35,
+     "type": "ots",
+     "soort": "ots",
+     "camera": {
+      "position": {
+       "x": 3.63,
+       "y": 0.09,
+       "z": 1.67
+      },
+      "lookAt": {
+       "x": 2.18,
+       "y": 4.28,
+       "z": 1.42
+      },
+      "fov": 34
+     },
+     "light": null,
+     "lightText": "wereldlicht",
+     "line": {
+      "speaker": "Loketbediende",
+      "text": "Is zij er niet, dan zit Berend Bos voor. Jurylid sinds 1982.",
+      "channel": "stem"
+     },
+     "speakerId": "loketbediende",
+     "inBeeld": [
+      "Mevrouw Hoving",
+      "Loketbediende"
+     ],
+     "vondsten": [],
+     "electron": {
+      "near": 0,
+      "blocked": [],
+      "light": null
+     }
+    },
+    {
+     "n": 16,
+     "shot": 16,
+     "t0": 63.8,
+     "t1": 67.6,
+     "t": 65.7,
+     "type": "ots",
+     "soort": "ots",
+     "camera": {
+      "position": {
+       "x": 2.36,
+       "y": 6.06,
+       "z": 1.67
+      },
+      "lookAt": {
+       "x": 2.74,
+       "y": 1.64,
+       "z": 1.42
+      },
+      "fov": 34
+     },
+     "light": null,
+     "lightText": "wereldlicht",
+     "line": {
+      "speaker": "Mevrouw Hoving",
+      "text": "Maar ik ben er maandag niet. Meneer Terpstra nodigde mij en de vier andere juryleden uit voor een treinreis.",
+      "channel": "stem"
+     },
+     "speakerId": "bewaarder",
+     "inBeeld": [
+      "Anita",
+      "Mevrouw Hoving",
+      "Loketbediende",
+      "Femke"
+     ],
+     "vondsten": [],
+     "electron": {
+      "near": 0,
+      "blocked": [
+       {
+        "id": "wachter1",
+        "hits": 1,
+        "at": 2.59,
+        "wat": "Mesh"
+       }
+      ],
+      "light": null
+     }
+    },
+    {
+     "n": 17,
+     "shot": 17,
+     "t0": 67.6,
+     "t1": 71.5,
+     "t": 69.55,
+     "type": "ots",
+     "soort": "ots",
+     "camera": {
+      "position": {
+       "x": 2.59,
+       "y": 7.13,
+       "z": 1.67
+      },
+      "lookAt": {
+       "x": 2.74,
+       "y": 1.64,
+       "z": 1.42
+      },
+      "fov": 42
+     },
+     "light": null,
+     "lightText": "wereldlicht",
+     "line": {
+      "speaker": "Mevrouw Hoving",
+      "text": "Maar ik ben er maandag niet. Meneer Terpstra nodigde mij en de vier andere juryleden uit voor een treinreis.",
+      "channel": "stem"
+     },
+     "speakerId": "bewaarder",
+     "inBeeld": [
+      "Tammo",
+      "Anita",
+      "Jelle Terpstra",
+      "Mevrouw Hoving",
+      "Loketbediende",
+      "Femke"
+     ],
+     "vondsten": [],
+     "electron": {
+      "near": 0,
+      "blocked": [
+       {
+        "id": "tammo",
+        "hits": 1,
+        "at": 4.1,
+        "wat": "Mesh"
+       },
+       {
+        "id": "jelle",
+        "hits": 1,
+        "at": 4.25,
+        "wat": "Mesh"
+       },
+       {
+        "id": "wachter1",
+        "hits": 1,
+        "at": 3.62,
+        "wat": "Mesh"
+       }
+      ],
+      "light": null
+     }
+    },
+    {
+     "n": 18,
+     "shot": 18,
+     "t0": 71.5,
+     "t1": 73.8,
+     "t": 72.65,
+     "type": "ots",
+     "soort": "ots",
+     "camera": {
+      "position": {
+       "x": 3.63,
+       "y": 0.09,
+       "z": 1.67
+      },
+      "lookAt": {
+       "x": 2.18,
+       "y": 4.28,
+       "z": 1.42
+      },
+      "fov": 34
+     },
+     "light": null,
+     "lightText": "wereldlicht",
+     "line": {
+      "speaker": "Loketbediende",
+      "text": "Met volpension.",
+      "channel": "stem"
+     },
+     "speakerId": "loketbediende",
+     "inBeeld": [
+      "Mevrouw Hoving",
+      "Loketbediende"
+     ],
+     "vondsten": [],
+     "electron": {
+      "near": 0,
+      "blocked": [],
+      "light": null
+     }
+    },
+    {
+     "n": 19,
+     "shot": 19,
+     "t0": 73.8,
+     "t1": 78.5,
+     "t": 76.15,
+     "type": "ots",
+     "soort": "ots",
+     "camera": {
+      "position": {
+       "x": 2.36,
+       "y": 6.06,
+       "z": 1.67
+      },
+      "lookAt": {
+       "x": 2.74,
+       "y": 1.64,
+       "z": 1.42
+      },
+      "fov": 34
+     },
+     "light": null,
+     "lightText": "wereldlicht",
+     "line": {
+      "speaker": "Mevrouw Hoving",
+      "text": "Tot na het Ontzet. Alleen Berend Bos bedankte, want hij heeft een bakkie.",
+      "channel": "stem"
+     },
+     "speakerId": "bewaarder",
+     "inBeeld": [
+      "Anita",
+      "Mevrouw Hoving",
+      "Loketbediende",
+      "Femke"
+     ],
+     "vondsten": [],
+     "electron": {
+      "near": 0,
+      "blocked": [
+       {
+        "id": "wachter1",
+        "hits": 1,
+        "at": 2.59,
+        "wat": "Mesh"
+       }
+      ],
+      "light": null
+     }
+    },
+    {
+     "n": 20,
+     "shot": 20,
+     "t0": 78.5,
+     "t1": 83.3,
+     "t": 78.6,
+     "type": "ots",
+     "soort": "ots",
+     "camera": {
+      "position": {
+       "x": 2.59,
+       "y": 7.13,
+       "z": 1.67
+      },
+      "lookAt": {
+       "x": 2.74,
+       "y": 1.64,
+       "z": 1.42
+      },
+      "fov": 42
+     },
+     "light": null,
+     "lightText": "wereldlicht",
+     "line": {
+      "speaker": "Mevrouw Hoving",
+      "text": "Tot na het Ontzet. Alleen Berend Bos bedankte, want hij heeft een bakkie.",
+      "channel": "stem"
+     },
+     "speakerId": "bewaarder",
+     "inBeeld": [
+      "Tammo",
+      "Anita",
+      "Jelle Terpstra",
+      "Mevrouw Hoving",
+      "Loketbediende",
+      "Femke"
+     ],
+     "vondsten": [],
+     "electron": {
+      "near": 0,
+      "blocked": [
+       {
+        "id": "tammo",
+        "hits": 1,
+        "at": 4.1,
+        "wat": "Mesh"
+       },
+       {
+        "id": "jelle",
+        "hits": 1,
+        "at": 4.25,
+        "wat": "Mesh"
+       },
+       {
+        "id": "wachter1",
+        "hits": 1,
+        "at": 3.62,
+        "wat": "Mesh"
+       }
+      ],
+      "light": null
+     }
+    },
+    {
+     "n": 21,
+     "shot": 21,
+     "t0": 83.3,
+     "t1": 85.6,
+     "t": 84.45,
+     "type": "ots",
+     "soort": "ots",
+     "camera": {
+      "position": {
+       "x": -4.13,
+       "y": -5.05,
+       "z": 1.67
+      },
+      "lookAt": {
+       "x": -0.53,
+       "y": 0.27,
+       "z": 1.42
+      },
+      "fov": 36
+     },
+     "light": null,
+     "lightText": "wereldlicht",
+     "line": {
+      "speaker": "Tammo",
+      "text": "Bijzonder.",
+      "channel": "stem"
+     },
+     "speakerId": "tammo",
+     "inBeeld": [
+      "Tammo",
+      "Anita",
+      "Jelle Terpstra",
+      "Mevrouw Hoving",
+      "Loketbediende",
+      "Femke",
+      "Harm"
+     ],
+     "vondsten": [],
+     "electron": {
+      "near": 20,
+      "blocked": [
+       {
+        "id": "tammo",
+        "hits": 2,
+        "at": 0.86,
+        "wat": "Mesh"
+       },
+       {
+        "id": "tessa",
+        "hits": 1,
+        "at": 0.89,
+        "wat": "Mesh"
+       },
+       {
+        "id": "jelle",
+        "hits": 1,
+        "at": 0.89,
+        "wat": "Mesh"
+       },
+       {
+        "id": "bewaarder",
+        "hits": 1,
+        "at": 0.89,
+        "wat": "Mesh"
+       },
+       {
+        "id": "loketbediende",
+        "hits": 2,
+        "at": 0.86,
+        "wat": "Mesh"
+       },
+       {
+        "id": "wachter1",
+        "hits": 1,
+        "at": 0.89,
+        "wat": "Mesh"
+       },
+       {
+        "id": "wachter2",
+        "hits": 2,
+        "at": 0.89,
+        "wat": "Mesh"
+       }
+      ],
+      "light": null
+     }
+    },
+    {
+     "n": 22,
+     "shot": 22,
+     "t0": 85.6,
+     "t1": 88.5,
+     "t": 87.05,
+     "type": "ots",
+     "soort": "ots",
+     "camera": {
+      "position": {
+       "x": -2.3,
+       "y": 0.55,
+       "z": 1.67
+      },
+      "lookAt": {
+       "x": 0.53,
+       "y": -0.27,
+       "z": 1.42
+      },
+      "fov": 34
+     },
+     "light": null,
+     "lightText": "wereldlicht",
+     "line": {
+      "speaker": "Anita",
+      "text": "En wie let dan op de bal?",
+      "channel": "stem"
+     },
+     "speakerId": "tessa",
+     "inBeeld": [
+      "Tammo",
+      "Anita",
+      "Femke"
+     ],
+     "vondsten": [],
+     "electron": {
+      "near": 0,
+      "blocked": [
+       {
+        "id": "tessa",
+        "hits": 8,
+        "at": 2.27,
+        "wat": "SkinnedMesh"
+       }
+      ],
+      "light": null
+     }
+    },
+    {
+     "n": 23,
+     "shot": 23,
+     "t0": 88.5,
+     "t1": 92.9,
+     "t": 90.7,
+     "type": "ots",
+     "soort": "ots",
+     "camera": {
+      "position": {
+       "x": -1.17,
+       "y": -1.09,
+       "z": 1.67
+      },
+      "lookAt": {
+       "x": 2.74,
+       "y": 1.64,
+       "z": 1.42
+      },
+      "fov": 34
+     },
+     "light": null,
+     "lightText": "wereldlicht",
+     "line": {
+      "speaker": "Mevrouw Hoving",
+      "text": "Het museum. De koepel hangt sinds woensdag onder een doek, wegens restauratie.",
+      "channel": "stem"
+     },
+     "speakerId": "bewaarder",
+     "inBeeld": [
+      "Anita",
+      "Mevrouw Hoving",
+      "Loketbediende",
+      "Femke"
+     ],
+     "vondsten": [],
+     "electron": {
+      "near": 0,
+      "blocked": [
+       {
+        "id": "bewaarder",
+        "hits": 4,
+        "at": 1.55,
+        "wat": "SkinnedMesh"
+       },
+       {
+        "id": "wachter1",
+        "hits": 6,
+        "at": 1.55,
+        "wat": "SkinnedMesh"
+       }
+      ],
+      "light": null
+     }
+    },
+    {
+     "n": 24,
+     "shot": 24,
+     "t0": 92.9,
+     "t1": 94.64,
+     "t": 93.77,
+     "type": "medium",
+     "soort": "dolly",
+     "camera": {
+      "position": {
+       "x": -2.18,
+       "y": 0.87,
+       "z": 3.5
+      },
+      "lookAt": {
+       "x": 2.74,
+       "y": 1.64,
+       "z": 1.05
+      },
+      "fov": 52
+     },
+     "light": null,
+     "lightText": "wereldlicht",
+     "line": {
+      "speaker": "Mevrouw Hoving",
+      "text": "Het museum. De koepel hangt sinds woensdag onder een doek, wegens restauratie.",
+      "channel": "stem"
+     },
+     "speakerId": "bewaarder",
+     "inBeeld": [
+      "Tammo",
+      "Anita",
+      "Mevrouw Hoving",
+      "Loketbediende",
+      "Femke",
+      "Harm"
+     ],
+     "vondsten": [],
+     "electron": {
+      "near": 0,
+      "blocked": [
+       {
+        "id": "bewaarder",
+        "hits": 1,
+        "at": 2.54,
+        "wat": "Mesh"
+       }
+      ],
+      "light": null
+     }
+    }
+   ]
+  },
+  {
+   "id": "M03.intro",
+   "titel": "M03.intro",
+   "akte": 1,
+   "duur": 44.4,
+   "score": 100,
+   "sprekers": [
+    "Anita",
+    "Loketbediende",
+    "Tammo",
+    "Sjabbe"
+   ],
+   "keys": [
+    {
+     "n": 0,
+     "shot": 0,
+     "t0": 0,
+     "t1": 5.2,
+     "t": 2.6,
+     "type": "medium",
+     "soort": "dolly",
+     "camera": {
+      "position": {
+       "x": -3.63,
+       "y": -1.18,
+       "z": 2.75
+      },
+      "lookAt": {
+       "x": 1.31,
+       "y": 1.91,
+       "z": 1.2
+      },
+      "fov": 52
+     },
+     "light": null,
+     "lightText": "wereldlicht",
+     "line": {
+      "speaker": "Anita",
+      "text": "Twaalf uur, contant. Hoe moeilijk kan een stempel zijn?",
+      "channel": "stem"
+     },
+     "speakerId": "tessa",
+     "inBeeld": [
+      "Tammo",
+      "Anita",
+      "Loketbediende",
+      "Femke",
+      "Harm",
+      "Geert"
+     ],
+     "vondsten": [],
+     "electron": {
+      "near": 0,
+      "blocked": [],
+      "light": null
+     }
+    },
+    {
+     "n": 1,
+     "shot": 1,
+     "t0": 5.2,
+     "t1": 9.5,
+     "t": 7.35,
+     "type": "medium",
+     "soort": "cut",
+     "camera": {
+      "position": {
+       "x": 1.52,
+       "y": -1.4,
+       "z": 1.7
+      },
+      "lookAt": {
+       "x": 3.1,
+       "y": 2.35,
+       "z": 1.6
+      },
+      "fov": 46
+     },
+     "light": null,
+     "lightText": "wereldlicht",
+     "line": {
+      "speaker": "Loketbediende",
+      "text": "Nummer 4117 aan loket A. Op het scherm staat 4093.",
+      "channel": "stem"
+     },
+     "speakerId": "loketbediende",
+     "inBeeld": [
+      "Loketbediende",
+      "Femke",
+      "Harm"
+     ],
+     "vondsten": [],
+     "electron": {
+      "near": 0,
+      "blocked": [],
+      "light": null
+     }
+    },
+    {
+     "n": 2,
+     "shot": 2,
+     "t0": 9.5,
+     "t1": 14.4,
+     "t": 11.95,
+     "type": "close",
+     "soort": "cut",
+     "camera": {
+      "position": {
+       "x": 0.59,
+       "y": 4.23,
+       "z": 1.6
+      },
+      "lookAt": {
+       "x": -0.56,
+       "y": 2.42,
+       "z": 1.4
+      },
+      "fov": 30
+     },
+     "light": null,
+     "lightText": "wereldlicht",
+     "line": {
+      "speaker": "Tammo",
+      "text": "Vierentwintig mensen. Dat is een rij met een eigen postcode.",
+      "channel": "stem"
+     },
+     "speakerId": "tammo",
+     "inBeeld": [
+      "Tammo",
+      "Geert"
+     ],
+     "vondsten": [],
+     "electron": {
+      "near": 0,
+      "blocked": [],
+      "light": null
+     }
+    },
+    {
+     "n": 3,
+     "shot": 3,
+     "t0": 14.4,
+     "t1": 18.4,
+     "t": 16.4,
+     "type": "close",
+     "soort": "dolly",
+     "camera": {
+      "position": {
+       "x": 0.13,
+       "y": 4.22,
+       "z": 1.52
+      },
+      "lookAt": {
+       "x": 0.53,
+       "y": -0.27,
+       "z": 1.4
+      },
+      "fov": 34
+     },
+     "light": null,
+     "lightText": "wereldlicht",
+     "line": {
+      "speaker": "Anita",
+      "text": "Ik haal het formulier, jij pakt de stempels.",
+      "channel": "stem"
+     },
+     "speakerId": "tessa",
+     "inBeeld": [
+      "Tammo",
+      "Anita",
+      "Femke",
+      "Harm"
+     ],
+     "vondsten": [],
+     "electron": {
+      "near": 1,
+      "blocked": [
+       {
+        "id": "tessa",
+        "hits": 2,
+        "at": 4.09,
+        "wat": "SkinnedMesh"
+       }
+      ],
+      "light": null
+     }
+    },
+    {
+     "n": 4,
+     "shot": 4,
+     "t0": 18.4,
+     "t1": 22,
+     "t": 20.2,
+     "type": "medium",
+     "soort": "orbit",
+     "camera": {
+      "position": {
+       "x": -0.56,
+       "y": 0.82,
+       "z": 1.66
+      },
+      "lookAt": {
+       "x": 2.09,
+       "y": 4.1,
+       "z": 1.4
+      },
+      "fov": 38
+     },
+     "light": null,
+     "lightText": "wereldlicht",
+     "line": {
+      "speaker": "Loketbediende",
+      "text": "Formulier 7B, in drievoud. Niet vouwen.",
+      "channel": "stem"
+     },
+     "speakerId": "loketbediende",
+     "inBeeld": [
+      "Loketbediende",
+      "Harm"
+     ],
+     "vondsten": [],
+     "electron": {
+      "near": 0,
+      "blocked": [],
+      "light": null
+     }
+    },
+    {
+     "n": 5,
+     "shot": 5,
+     "t0": 22,
+     "t1": 25.2,
+     "t": 23.6,
+     "type": "medium",
+     "soort": "cut",
+     "camera": {
+      "position": {
+       "x": -0.23,
+       "y": 5.28,
+       "z": 2.8
+      },
+      "lookAt": {
+       "x": -0.56,
+       "y": 2.42,
+       "z": 1.4
+      },
+      "fov": 44
+     },
+     "light": null,
+     "lightText": "wereldlicht",
+     "line": {
+      "speaker": "Tammo",
+      "text": "Wie vouwt er nou een formulier?",
+      "channel": "stem"
+     },
+     "speakerId": "tammo",
+     "inBeeld": [
+      "Tammo",
+      "Anita",
+      "Femke",
+      "Harm",
+      "Geert"
+     ],
+     "vondsten": [],
+     "electron": {
+      "near": 0,
+      "blocked": [
+       {
+        "id": "wachter1",
+        "hits": 1,
+        "at": 2.23,
+        "wat": "Mesh"
+       }
+      ],
+      "light": null
+     }
+    },
+    {
+     "n": 6,
+     "shot": 6,
+     "t0": 25.2,
+     "t1": 28.8,
+     "t": 27,
+     "type": "close",
+     "soort": "dolly",
+     "camera": {
+      "position": {
+       "x": 2.09,
+       "y": 2.5,
+       "z": 1.61
+      },
+      "lookAt": {
+       "x": 0.53,
+       "y": -0.27,
+       "z": 1.4
+      },
+      "fov": 25
+     },
+     "light": null,
+     "lightText": "wereldlicht",
+     "line": {
+      "speaker": "Anita",
+      "text": "Iedereen, Tammo. Daarom staan we hier.",
+      "channel": "stem"
+     },
+     "speakerId": "tessa",
+     "inBeeld": [
+      "Anita",
+      "Femke"
+     ],
+     "vondsten": [],
+     "electron": {
+      "near": 0,
+      "blocked": [],
+      "light": null
+     }
+    },
+    {
+     "n": 7,
+     "shot": 7,
+     "t0": 28.8,
+     "t1": 34,
+     "t": 31.4,
+     "type": "close",
+     "soort": "cut",
+     "camera": {
+      "position": {
+       "x": -1.48,
+       "y": -1.15,
+       "z": 1.55
+      },
+      "lookAt": {
+       "x": 2.09,
+       "y": 4.1,
+       "z": 1.4
+      },
+      "fov": 30
+     },
+     "light": null,
+     "lightText": "wereldlicht",
+     "line": {
+      "speaker": "Loketbediende",
+      "text": "Loket C is vandaag een stempel-loket. Loket B is vandaag Loket C.",
+      "channel": "stem"
+     },
+     "speakerId": "loketbediende",
+     "inBeeld": [
+      "Tammo",
+      "Loketbediende",
+      "Femke",
+      "Harm"
+     ],
+     "vondsten": [],
+     "electron": {
+      "near": 0,
+      "blocked": [
+       {
+        "id": "wachter1",
+        "hits": 4,
+        "at": 1.92,
+        "wat": "SkinnedMesh"
+       }
+      ],
+      "light": null
+     }
+    },
+    {
+     "n": 8,
+     "shot": 8,
+     "t0": 34,
+     "t1": 37.7,
+     "t": 35.85,
+     "type": "close",
+     "soort": "dolly",
+     "camera": {
+      "position": {
+       "x": 0.13,
+       "y": 4.22,
+       "z": 1.52
+      },
+      "lookAt": {
+       "x": 0.53,
+       "y": -0.27,
+       "z": 1.4
+      },
+      "fov": 34
+     },
+     "light": null,
+     "lightText": "wereldlicht",
+     "line": {
+      "speaker": "Anita",
+      "text": "Dat gezicht betekent: ik snap het niet.",
+      "channel": "stem"
+     },
+     "speakerId": "tessa",
+     "inBeeld": [
+      "Tammo",
+      "Anita",
+      "Femke",
+      "Harm"
+     ],
+     "vondsten": [],
+     "electron": {
+      "near": 1,
+      "blocked": [
+       {
+        "id": "tessa",
+        "hits": 2,
+        "at": 4.09,
+        "wat": "SkinnedMesh"
+       }
+      ],
+      "light": null
+     }
+    },
+    {
+     "n": 9,
+     "shot": 9,
+     "t0": 37.7,
+     "t1": 40,
+     "t": 38.85,
+     "type": "close",
+     "soort": "push",
+     "camera": {
+      "position": {
+       "x": 2.09,
+       "y": 2.41,
+       "z": 1.53
+      },
+      "lookAt": {
+       "x": -0.56,
+       "y": 2.42,
+       "z": 1.5
+      },
+      "fov": 23.32
+     },
+     "light": null,
+     "lightText": "wereldlicht",
+     "line": {
+      "speaker": "Tammo",
+      "text": "Klopt.",
+      "channel": "stem"
+     },
+     "speakerId": "tammo",
+     "inBeeld": [
+      "Tammo",
+      "Harm",
+      "Geert"
+     ],
+     "vondsten": [],
+     "electron": {
+      "near": 1,
+      "blocked": [],
+      "light": null
+     }
+    },
+    {
+     "n": 10,
+     "shot": 10,
+     "t0": 40,
+     "t1": 42.6,
+     "t": 41.3,
+     "type": "medium",
+     "soort": "cut",
+     "camera": {
+      "position": {
+       "x": 2.09,
+       "y": 2.53,
+       "z": 1.6
+      },
+      "lookAt": {
+       "x": -0.01,
+       "y": 1.07,
+       "z": 1.3
+      },
+      "fov": 40
+     },
+     "light": null,
+     "lightText": "wereldlicht",
+     "line": {
+      "speaker": "Sjabbe",
+      "text": "Loket C heeft een zijdeur bij de kopieermachine.",
+      "channel": "telefoon"
+     },
+     "speakerId": null,
+     "inBeeld": [
+      "Anita",
+      "Geert"
+     ],
+     "vondsten": [],
+     "electron": {
+      "near": 0,
+      "blocked": [],
+      "light": null
+     }
+    },
+    {
+     "n": 11,
+     "shot": 11,
+     "t0": 42.6,
+     "t1": 44.4,
+     "t": 43.5,
+     "type": "medium",
+     "soort": "dolly",
+     "camera": {
+      "position": {
+       "x": -2.46,
+       "y": 0.31,
+       "z": 3.49
+      },
+      "lookAt": {
+       "x": 1.31,
+       "y": 1.91,
+       "z": 0.85
+      },
+      "fov": 52
+     },
+     "light": null,
+     "lightText": "wereldlicht",
+     "line": {
+      "speaker": "Sjabbe",
+      "text": "Loket C heeft een zijdeur bij de kopieermachine.",
+      "channel": "telefoon"
+     },
+     "speakerId": null,
+     "inBeeld": [
+      "Tammo",
+      "Anita",
+      "Loketbediende",
+      "Femke",
+      "Harm"
+     ],
+     "vondsten": [],
+     "electron": {
+      "near": 0,
+      "blocked": [],
+      "light": null
+     }
+    }
+   ]
+  },
+  {
+   "id": "M03.outro",
+   "titel": "M03.outro",
+   "akte": 1,
+   "duur": 81.4,
+   "score": 98,
+   "sprekers": [
+    "Loketbediende",
+    "Anita",
+    "Tammo",
+    "Duivenmelker Bert"
+   ],
+   "keys": [
+    {
+     "n": 0,
+     "shot": 0,
+     "t0": 0,
+     "t1": 4.4,
+     "t": 2.2,
+     "type": "medium",
+     "soort": "dolly",
+     "camera": {
+      "position": {
+       "x": -3.57,
+       "y": -1.08,
+       "z": 2.64
+      },
+      "lookAt": {
+       "x": 1.36,
+       "y": 2,
+       "z": 1.3
+      },
+      "fov": 50
+     },
+     "light": null,
+     "lightText": "wereldlicht",
+     "line": {
+      "speaker": "Loketbediende",
+      "text": "Gefeliciteerd. U bent ingeschreven voor de Noordelijke Snackprijs, met wagen. Zonder wagen vervalt uw inschrijving.",
+      "channel": "stem"
+     },
+     "speakerId": "loketbediende",
+     "inBeeld": [
+      "Tammo",
+      "Anita",
+      "Loketbediende",
+      "Femke",
+      "Harm",
+      "Geert"
+     ],
+     "vondsten": [],
+     "electron": {
+      "near": 0,
+      "blocked": [],
+      "light": null
+     }
+    },
+    {
+     "n": 1,
+     "shot": 1,
+     "t0": 4.4,
+     "t1": 8.7,
+     "t": 6.55,
+     "type": "ots",
+     "soort": "ots",
+     "camera": {
+      "position": {
+       "x": -1.32,
+       "y": -2.47,
+       "z": 1.67
+      },
+      "lookAt": {
+       "x": 2.18,
+       "y": 4.28,
+       "z": 1.42
+      },
+      "fov": 42
+     },
+     "light": null,
+     "lightText": "wereldlicht",
+     "line": {
+      "speaker": "Loketbediende",
+      "text": "Gefeliciteerd. U bent ingeschreven voor de Noordelijke Snackprijs, met wagen. Zonder wagen vervalt uw inschrijving.",
+      "channel": "stem"
+     },
+     "speakerId": "loketbediende",
+     "inBeeld": [
+      "Tammo",
+      "Anita",
+      "Loketbediende",
+      "Femke",
+      "Harm"
+     ],
+     "vondsten": [],
+     "electron": {
+      "near": 0,
+      "blocked": [
+       {
+        "id": "loketbediende",
+        "hits": 3,
+        "at": 2.68,
+        "wat": "SkinnedMesh"
+       }
+      ],
+      "light": null
+     }
+    },
+    {
+     "n": 2,
+     "shot": 2,
+     "t0": 8.7,
+     "t1": 12.6,
+     "t": 10.65,
+     "type": "ots",
+     "soort": "ots",
+     "camera": {
+      "position": {
+       "x": 2.24,
+       "y": 6.06,
+       "z": 1.67
+      },
+      "lookAt": {
+       "x": 0.53,
+       "y": -0.27,
+       "z": 1.42
+      },
+      "fov": 34
+     },
+     "light": null,
+     "lightText": "wereldlicht",
+     "line": {
+      "speaker": "Anita",
+      "text": "Wij zijn ingeschreven. Nu nog een wagen.",
+      "channel": "stem"
+     },
+     "speakerId": "tessa",
+     "inBeeld": [
+      "Tammo",
+      "Anita",
+      "Loketbediende",
+      "Femke",
+      "Harm"
+     ],
+     "vondsten": [],
+     "electron": {
+      "near": 0,
+      "blocked": [
+       {
+        "id": "tammo",
+        "hits": 1,
+        "at": 2.92,
+        "wat": "Mesh"
+       },
+       {
+        "id": "wachter2",
+        "hits": 1,
+        "at": 2.95,
+        "wat": "Mesh"
+       }
+      ],
+      "light": null
+     }
+    },
+    {
+     "n": 3,
+     "shot": 3,
+     "t0": 12.6,
+     "t1": 16.6,
+     "t": 14.6,
+     "type": "ots",
+     "soort": "ots",
+     "camera": {
+      "position": {
+       "x": 2.15,
+       "y": 7.16,
+       "z": 1.67
+      },
+      "lookAt": {
+       "x": 0.53,
+       "y": -0.27,
+       "z": 1.42
+      },
+      "fov": 42
+     },
+     "light": null,
+     "lightText": "wereldlicht",
+     "line": {
+      "speaker": "Anita",
+      "text": "Hij vroeg Sjabbe waar het museum alarmen heeft.",
+      "channel": "stem"
+     },
+     "speakerId": "tessa",
+     "inBeeld": [
+      "Tammo",
+      "Anita",
+      "Loketbediende",
+      "Femke",
+      "Harm"
+     ],
+     "vondsten": [],
+     "electron": {
+      "near": 0,
+      "blocked": [
+       {
+        "id": "tammo",
+        "hits": 1,
+        "at": 4.14,
+        "wat": "Mesh"
+       },
+       {
+        "id": "wachter2",
+        "hits": 1,
+        "at": 4.01,
+        "wat": "Mesh"
+       }
+      ],
+      "light": null
+     }
+    },
+    {
+     "n": 4,
+     "shot": 4,
+     "t0": 16.6,
+     "t1": 18.9,
+     "t": 17.75,
+     "type": "ots",
+     "soort": "ots",
+     "camera": {
+      "position": {
+       "x": 1.8,
+       "y": -1.53,
+       "z": 1.67
+      },
+      "lookAt": {
+       "x": -0.53,
+       "y": 0.27,
+       "z": 1.42
+      },
+      "fov": 34
+     },
+     "light": null,
+     "lightText": "wereldlicht",
+     "line": {
+      "speaker": "Tammo",
+      "text": "Hij wil de bal.",
+      "channel": "stem"
+     },
+     "speakerId": "tammo",
+     "inBeeld": [
+      "Tammo",
+      "Anita",
+      "Geert"
+     ],
+     "vondsten": [],
+     "electron": {
+      "near": 0,
+      "blocked": [
+       {
+        "id": "tammo",
+        "hits": 2,
+        "at": 2.37,
+        "wat": "SkinnedMesh"
+       },
+       {
+        "id": "wachter3",
+        "hits": 1,
+        "at": 6.08,
+        "wat": "Mesh"
+       }
+      ],
+      "light": null
+     }
+    },
+    {
+     "n": 5,
+     "shot": 5,
+     "t0": 18.9,
+     "t1": 24,
+     "t": 21.45,
+     "type": "ots",
+     "soort": "ots",
+     "camera": {
+      "position": {
+       "x": -2.3,
+       "y": 0.55,
+       "z": 1.67
+      },
+      "lookAt": {
+       "x": 0.53,
+       "y": -0.27,
+       "z": 1.42
+      },
+      "fov": 34
+     },
+     "light": null,
+     "lightText": "wereldlicht",
+     "line": {
+      "speaker": "Anita",
+      "text": "Wie de bal heeft, zit de jury voor. Zo wint hij zonder te bakken.",
+      "channel": "stem"
+     },
+     "speakerId": "tessa",
+     "inBeeld": [
+      "Tammo",
+      "Anita",
+      "Femke"
+     ],
+     "vondsten": [],
+     "electron": {
+      "near": 0,
+      "blocked": [
+       {
+        "id": "tessa",
+        "hits": 2,
+        "at": 2.27,
+        "wat": "SkinnedMesh"
+       }
+      ],
+      "light": null
+     }
+    },
+    {
+     "n": 6,
+     "shot": 6,
+     "t0": 24,
+     "t1": 30.2,
+     "t": 27.1,
+     "type": "ots",
+     "soort": "ots",
+     "camera": {
+      "position": {
+       "x": -3.39,
+       "y": 0.61,
+       "z": 1.67
+      },
+      "lookAt": {
+       "x": 0.53,
+       "y": -0.27,
+       "z": 1.42
+      },
+      "fov": 42
+     },
+     "light": null,
+     "lightText": "wereldlicht",
+     "line": {
+      "speaker": "Anita",
+      "text": "Als iemand die bal steelt, Tammo, dan liever wij. Dan is hij tenminste nog in Stad.",
+      "channel": "stem"
+     },
+     "speakerId": "tessa",
+     "inBeeld": [
+      "Tammo",
+      "Anita",
+      "Femke"
+     ],
+     "vondsten": [],
+     "electron": {
+      "near": 0,
+      "blocked": [],
+      "light": null
+     }
+    },
+    {
+     "n": 7,
+     "shot": 7,
+     "t0": 30.2,
+     "t1": 33.3,
+     "t": 31.75,
+     "type": "ots",
+     "soort": "ots",
+     "camera": {
+      "position": {
+       "x": 1.8,
+       "y": -1.53,
+       "z": 1.67
+      },
+      "lookAt": {
+       "x": -0.53,
+       "y": 0.27,
+       "z": 1.42
+      },
+      "fov": 34
+     },
+     "light": null,
+     "lightText": "wereldlicht",
+     "line": {
+      "speaker": "Tammo",
+      "text": "Wij stelen de Gouden Eierbal.",
+      "channel": "stem"
+     },
+     "speakerId": "tammo",
+     "inBeeld": [
+      "Tammo",
+      "Anita",
+      "Geert"
+     ],
+     "vondsten": [],
+     "electron": {
+      "near": 0,
+      "blocked": [
+       {
+        "id": "tammo",
+        "hits": 2,
+        "at": 2.37,
+        "wat": "SkinnedMesh"
+       },
+       {
+        "id": "wachter3",
+        "hits": 1,
+        "at": 6.08,
+        "wat": "Mesh"
+       }
+      ],
+      "light": null
+     }
+    },
+    {
+     "n": 8,
+     "shot": 8,
+     "t0": 33.3,
+     "t1": 37.7,
+     "t": 35.5,
+     "type": "ots",
+     "soort": "ots",
+     "camera": {
+      "position": {
+       "x": -2.3,
+       "y": 0.55,
+       "z": 1.67
+      },
+      "lookAt": {
+       "x": 0.53,
+       "y": -0.27,
+       "z": 1.42
+      },
+      "fov": 34
+     },
+     "light": null,
+     "lightText": "wereldlicht",
+     "line": {
+      "speaker": "Anita",
+      "text": "Wij bewaken hem. Na het Ontzet brengen we hem terug.",
+      "channel": "stem"
+     },
+     "speakerId": "tessa",
+     "inBeeld": [
+      "Tammo",
+      "Anita",
+      "Femke"
+     ],
+     "vondsten": [],
+     "electron": {
+      "near": 0,
+      "blocked": [
+       {
+        "id": "tessa",
+        "hits": 2,
+        "at": 2.27,
+        "wat": "SkinnedMesh"
+       }
+      ],
+      "light": null
+     }
+    },
+    {
+     "n": 9,
+     "shot": 9,
+     "t0": 37.7,
+     "t1": 44.4,
+     "t": 41.05,
+     "type": "ots",
+     "soort": "ots",
+     "camera": {
+      "position": {
+       "x": 1.8,
+       "y": -1.53,
+       "z": 1.67
+      },
+      "lookAt": {
+       "x": -0.53,
+       "y": 0.27,
+       "z": 1.42
+      },
+      "fov": 34
+     },
+     "light": null,
+     "lightText": "wereldlicht",
+     "line": {
+      "speaker": "Tammo",
+      "text": "Mijn opa stond in 1953 op de Grote Markt toen we hem wonnen. Hij huilde. Hij huilde nooit.",
+      "channel": "stem"
+     },
+     "speakerId": "tammo",
+     "inBeeld": [
+      "Tammo",
+      "Anita",
+      "Geert"
+     ],
+     "vondsten": [],
+     "electron": {
+      "near": 0,
+      "blocked": [
+       {
+        "id": "tammo",
+        "hits": 2,
+        "at": 2.37,
+        "wat": "SkinnedMesh"
+       },
+       {
+        "id": "wachter3",
+        "hits": 1,
+        "at": 6.08,
+        "wat": "Mesh"
+       }
+      ],
+      "light": null
+     }
+    },
+    {
+     "n": 10,
+     "shot": 10,
+     "t0": 44.4,
+     "t1": 48.1,
+     "t": 46.25,
+     "type": "ots",
+     "soort": "ots",
+     "camera": {
+      "position": {
+       "x": -2.3,
+       "y": 0.55,
+       "z": 1.67
+      },
+      "lookAt": {
+       "x": 0.53,
+       "y": -0.27,
+       "z": 1.42
+      },
+      "fov": 34
+     },
+     "light": null,
+     "lightText": "wereldlicht",
+     "line": {
+      "speaker": "Anita",
+      "text": "Je opa huilde bij elke voetbalwedstrijd.",
+      "channel": "stem"
+     },
+     "speakerId": "tessa",
+     "inBeeld": [
+      "Tammo",
+      "Anita",
+      "Femke"
+     ],
+     "vondsten": [],
+     "electron": {
+      "near": 0,
+      "blocked": [
+       {
+        "id": "tessa",
+        "hits": 2,
+        "at": 2.27,
+        "wat": "SkinnedMesh"
+       }
+      ],
+      "light": null
+     }
+    },
+    {
+     "n": 11,
+     "shot": 11,
+     "t0": 48.1,
+     "t1": 51.3,
+     "t": 49.7,
+     "type": "ots",
+     "soort": "ots",
+     "camera": {
+      "position": {
+       "x": 1.8,
+       "y": -1.53,
+       "z": 1.67
+      },
+      "lookAt": {
+       "x": -0.53,
+       "y": 0.27,
+       "z": 1.42
+      },
+      "fov": 34
+     },
+     "light": null,
+     "lightText": "wereldlicht",
+     "line": {
+      "speaker": "Tammo",
+      "text": "Dat was verlies. Dit was anders.",
+      "channel": "stem"
+     },
+     "speakerId": "tammo",
+     "inBeeld": [
+      "Tammo",
+      "Anita",
+      "Geert"
+     ],
+     "vondsten": [],
+     "electron": {
+      "near": 0,
+      "blocked": [
+       {
+        "id": "tammo",
+        "hits": 2,
+        "at": 2.37,
+        "wat": "SkinnedMesh"
+       },
+       {
+        "id": "wachter3",
+        "hits": 1,
+        "at": 6.08,
+        "wat": "Mesh"
+       }
+      ],
+      "light": null
+     }
+    },
+    {
+     "n": 12,
+     "shot": 12,
+     "t0": 51.3,
+     "t1": 53.8,
+     "t": 52.55,
+     "type": "ots",
+     "soort": "ots",
+     "camera": {
+      "position": {
+       "x": -2.3,
+       "y": 0.55,
+       "z": 1.67
+      },
+      "lookAt": {
+       "x": 0.53,
+       "y": -0.27,
+       "z": 1.42
+      },
+      "fov": 34
+     },
+     "light": null,
+     "lightText": "wereldlicht",
+     "line": {
+      "speaker": "Anita",
+      "text": "…Je mag nee zeggen.",
+      "channel": "stem"
+     },
+     "speakerId": "tessa",
+     "inBeeld": [
+      "Tammo",
+      "Anita",
+      "Femke"
+     ],
+     "vondsten": [],
+     "electron": {
+      "near": 0,
+      "blocked": [
+       {
+        "id": "tessa",
+        "hits": 2,
+        "at": 2.27,
+        "wat": "SkinnedMesh"
+       }
+      ],
+      "light": null
+     }
+    },
+    {
+     "n": 13,
+     "shot": 13,
+     "t0": 53.8,
+     "t1": 57.4,
+     "t": 55.6,
+     "type": "ots",
+     "soort": "ots",
+     "camera": {
+      "position": {
+       "x": 1.8,
+       "y": -1.53,
+       "z": 1.67
+      },
+      "lookAt": {
+       "x": -0.53,
+       "y": 0.27,
+       "z": 1.42
+      },
+      "fov": 34
+     },
+     "light": null,
+     "lightText": "wereldlicht",
+     "line": {
+      "speaker": "Tammo",
+      "text": "Ik zeg niks. Dat is ook een antwoord.",
+      "channel": "stem"
+     },
+     "speakerId": "tammo",
+     "inBeeld": [
+      "Tammo",
+      "Anita",
+      "Geert"
+     ],
+     "vondsten": [],
+     "electron": {
+      "near": 0,
+      "blocked": [
+       {
+        "id": "tammo",
+        "hits": 2,
+        "at": 2.37,
+        "wat": "SkinnedMesh"
+       },
+       {
+        "id": "wachter3",
+        "hits": 1,
+        "at": 6.08,
+        "wat": "Mesh"
+       }
+      ],
+      "light": null
+     }
+    },
+    {
+     "n": 14,
+     "shot": 14,
+     "t0": 57.4,
+     "t1": 62.9,
+     "t": 60.15,
+     "type": "ots",
+     "soort": "ots",
+     "camera": {
+      "position": {
+       "x": 2.49,
+       "y": -2.39,
+       "z": 1.67
+      },
+      "lookAt": {
+       "x": -0.53,
+       "y": 0.27,
+       "z": 1.42
+      },
+      "fov": 42
+     },
+     "light": null,
+     "lightText": "wereldlicht",
+     "line": {
+      "speaker": "Tammo",
+      "text": "Als iemand het museum kent, is het Bert. De beste vriend van mijn opa.",
+      "channel": "stem"
+     },
+     "speakerId": "tammo",
+     "inBeeld": [
+      "Tammo",
+      "Anita",
+      "Femke",
+      "Harm",
+      "Geert"
+     ],
+     "vondsten": [],
+     "electron": {
+      "near": 0,
+      "blocked": [
+       {
+        "id": "wachter3",
+        "hits": 1,
+        "at": 7.18,
+        "wat": "Mesh"
+       }
+      ],
+      "light": null
+     }
+    },
+    {
+     "n": 15,
+     "shot": 15,
+     "t0": 62.9,
+     "t1": 65.8,
+     "t": 64.35,
+     "type": "ots",
+     "soort": "ots",
+     "camera": {
+      "position": {
+       "x": 1.73,
+       "y": -1.44,
+       "z": 1.67
+      },
+      "lookAt": {
+       "x": -0.53,
+       "y": 0.27,
+       "z": 1.42
+      },
+      "fov": 32
+     },
+     "light": null,
+     "lightText": "wereldlicht",
+     "line": {
+      "speaker": "Duivenmelker Bert",
+      "text": "Tammo. Bert, van de duiven.",
+      "channel": "telefoon"
+     },
+     "speakerId": null,
+     "inBeeld": [
+      "Tammo",
+      "Anita",
+      "Geert"
+     ],
+     "vondsten": [],
+     "electron": {
+      "near": 0,
+      "blocked": [
+       {
+        "id": "tammo",
+        "hits": 2,
+        "at": 2.25,
+        "wat": "SkinnedMesh"
+       },
+       {
+        "id": "wachter3",
+        "hits": 1,
+        "at": 5.97,
+        "wat": "Mesh"
+       }
+      ],
+      "light": null
+     }
+    },
+    {
+     "n": 16,
+     "shot": 16,
+     "t0": 65.8,
+     "t1": 69,
+     "t": 67.4,
+     "type": "ots",
+     "soort": "ots",
+     "camera": {
+      "position": {
+       "x": 1.8,
+       "y": -1.53,
+       "z": 1.67
+      },
+      "lookAt": {
+       "x": -0.53,
+       "y": 0.27,
+       "z": 1.42
+      },
+      "fov": 34
+     },
+     "light": null,
+     "lightText": "wereldlicht",
+     "line": {
+      "speaker": "Tammo",
+      "text": "Bert, wij wilden je net bellen.",
+      "channel": "telefoon"
+     },
+     "speakerId": null,
+     "inBeeld": [
+      "Tammo",
+      "Anita",
+      "Geert"
+     ],
+     "vondsten": [
+      {
+       "regel": "CS-C07",
+       "ernst": "nit",
+       "bericht": "shot 16 lijkt een jump cut op het vorige (0.11 m en 1 graden verschil)"
+      }
+     ],
+     "electron": {
+      "near": 0,
+      "blocked": [
+       {
+        "id": "tammo",
+        "hits": 2,
+        "at": 2.37,
+        "wat": "SkinnedMesh"
+       },
+       {
+        "id": "wachter3",
+        "hits": 1,
+        "at": 6.08,
+        "wat": "Mesh"
+       }
+      ],
+      "light": null
+     }
+    },
+    {
+     "n": 17,
+     "shot": 17,
+     "t0": 69,
+     "t1": 75.9,
+     "t": 72.45,
+     "type": "ots",
+     "soort": "ots",
+     "camera": {
+      "position": {
+       "x": 1.73,
+       "y": -1.44,
+       "z": 1.67
+      },
+      "lookAt": {
+       "x": -0.53,
+       "y": 0.27,
+       "z": 1.42
+      },
+      "fov": 32
+     },
+     "light": null,
+     "lightText": "wereldlicht",
+     "line": {
+      "speaker": "Duivenmelker Bert",
+      "text": "Ik weet het. Elke nacht staat er een zwarte trekker bij het museum. Met een limousine erachter.",
+      "channel": "telefoon"
+     },
+     "speakerId": null,
+     "inBeeld": [
+      "Tammo",
+      "Anita",
+      "Geert"
+     ],
+     "vondsten": [
+      {
+       "regel": "CS-C07",
+       "ernst": "nit",
+       "bericht": "shot 17 lijkt een jump cut op het vorige (0.11 m en 1 graden verschil)"
+      }
+     ],
+     "electron": {
+      "near": 0,
+      "blocked": [
+       {
+        "id": "tammo",
+        "hits": 2,
+        "at": 2.25,
+        "wat": "SkinnedMesh"
+       },
+       {
+        "id": "wachter3",
+        "hits": 1,
+        "at": 5.97,
+        "wat": "Mesh"
+       }
+      ],
+      "light": null
+     }
+    },
+    {
+     "n": 18,
+     "shot": 18,
+     "t0": 75.9,
+     "t1": 79.7,
+     "t": 77.8,
+     "type": "ots",
+     "soort": "ots",
+     "camera": {
+      "position": {
+       "x": -2.3,
+       "y": 0.55,
+       "z": 1.67
+      },
+      "lookAt": {
+       "x": 0.53,
+       "y": -0.27,
+       "z": 1.42
+      },
+      "fov": 34
+     },
+     "light": null,
+     "lightText": "wereldlicht",
+     "line": {
+      "speaker": "Anita",
+      "text": "Eerst kijken hoe het museum bewaakt wordt. Naar het Stationsplein.",
+      "channel": "stem"
+     },
+     "speakerId": "tessa",
+     "inBeeld": [
+      "Tammo",
+      "Anita",
+      "Femke"
+     ],
+     "vondsten": [],
+     "electron": {
+      "near": 0,
+      "blocked": [
+       {
+        "id": "tessa",
+        "hits": 2,
+        "at": 2.27,
+        "wat": "SkinnedMesh"
+       }
+      ],
+      "light": null
+     }
+    },
+    {
+     "n": 19,
+     "shot": 19,
+     "t0": 79.7,
+     "t1": 81.4,
+     "t": 80.55,
+     "type": "medium",
+     "soort": "dolly",
+     "camera": {
+      "position": {
+       "x": -2.44,
+       "y": 0.34,
+       "z": 3.5
+      },
+      "lookAt": {
+       "x": 0.53,
+       "y": -0.27,
+       "z": 1.05
+      },
+      "fov": 50
+     },
+     "light": null,
+     "lightText": "wereldlicht",
+     "line": {
+      "speaker": "Anita",
+      "text": "Eerst kijken hoe het museum bewaakt wordt. Naar het Stationsplein.",
+      "channel": "stem"
+     },
+     "speakerId": "tessa",
+     "inBeeld": [
+      "Tammo",
+      "Anita",
+      "Femke"
+     ],
+     "vondsten": [],
+     "electron": {
+      "near": 0,
+      "blocked": [],
+      "light": null
+     }
+    }
+   ]
+  },
+  {
+   "id": "M04.intro",
+   "titel": "M04.intro",
+   "akte": 1,
+   "duur": 44.53,
+   "score": 100,
+   "sprekers": [
+    "Tammo",
+    "Duivenmelker Bert",
+    "Anita"
+   ],
+   "keys": [
+    {
+     "n": 0,
+     "shot": 0,
+     "t0": 0,
+     "t1": 4.3,
+     "t": 2.15,
+     "type": "medium",
+     "soort": "dolly",
+     "camera": {
+      "position": {
+       "x": -5.11,
+       "y": -1.06,
+       "z": 3.04
+      },
+      "lookAt": {
+       "x": -0.11,
+       "y": 1.89,
+       "z": 1.4
+      },
+      "fov": 50
+     },
+     "light": null,
+     "lightText": "wereldlicht",
+     "line": {
+      "speaker": "Tammo",
+      "text": "Bert was de beste vriend van mijn opa.",
+      "channel": "stem"
+     },
+     "speakerId": "tammo",
+     "inBeeld": [
+      "Tammo",
+      "Anita",
+      "Duivenmelker Bert",
+      "Student"
+     ],
+     "vondsten": [],
+     "electron": {
+      "near": 0,
+      "blocked": [],
+      "light": null
+     }
+    },
+    {
+     "n": 1,
+     "shot": 1,
+     "t0": 4.3,
+     "t1": 9.2,
+     "t": 6.75,
+     "type": "close",
+     "soort": "cut",
+     "camera": {
+      "position": {
+       "x": -1.48,
+       "y": -1.15,
+       "z": 1.55
+      },
+      "lookAt": {
+       "x": 0.21,
+       "y": 3.71,
+       "z": 1.4
+      },
+      "fov": 30
+     },
+     "light": null,
+     "lightText": "wereldlicht",
+     "line": {
+      "speaker": "Duivenmelker Bert",
+      "text": "Niemand kijkt naar een duif. Behalve als hij op je jas poept.",
+      "channel": "stem"
+     },
+     "speakerId": "bert",
+     "inBeeld": [
+      "Tammo",
+      "Duivenmelker Bert"
+     ],
+     "vondsten": [],
+     "electron": {
+      "near": 0,
+      "blocked": [],
+      "light": null
+     }
+    },
+    {
+     "n": 2,
+     "shot": 2,
+     "t0": 9.2,
+     "t1": 11.9,
+     "t": 10.55,
+     "type": "close",
+     "soort": "dolly",
+     "camera": {
+      "position": {
+       "x": -0.58,
+       "y": 2.43,
+       "z": 1.52
+      },
+      "lookAt": {
+       "x": -0.53,
+       "y": 0.27,
+       "z": 1.4
+      },
+      "fov": 34
+     },
+     "light": null,
+     "lightText": "wereldlicht",
+     "line": {
+      "speaker": "Tammo",
+      "text": "Hoe stuur je een duif?",
+      "channel": "stem"
+     },
+     "speakerId": "tammo",
+     "inBeeld": [
+      "Tammo",
+      "Anita",
+      "Student"
+     ],
+     "vondsten": [],
+     "electron": {
+      "near": 0,
+      "blocked": [],
+      "light": null
+     }
+    },
+    {
+     "n": 3,
+     "shot": 3,
+     "t0": 11.9,
+     "t1": 15.8,
+     "t": 13.85,
+     "type": "medium",
+     "soort": "orbit",
+     "camera": {
+      "position": {
+       "x": -2.09,
+       "y": 2.49,
+       "z": 1.66
+      },
+      "lookAt": {
+       "x": 0.21,
+       "y": 3.71,
+       "z": 1.4
+      },
+      "fov": 38
+     },
+     "light": null,
+     "lightText": "wereldlicht",
+     "line": {
+      "speaker": "Duivenmelker Bert",
+      "text": "Diep in de ogen kieken. Fluiten. Ogen dicht.",
+      "channel": "stem"
+     },
+     "speakerId": "bert",
+     "inBeeld": [
+      "Duivenmelker Bert"
+     ],
+     "vondsten": [],
+     "electron": {
+      "near": 0,
+      "blocked": [],
+      "light": null
+     }
+    },
+    {
+     "n": 4,
+     "shot": 4,
+     "t0": 15.8,
+     "t1": 19.2,
+     "t": 17.5,
+     "type": "ots",
+     "soort": "ots",
+     "camera": {
+      "position": {
+       "x": -1.34,
+       "y": -1.09,
+       "z": 1.67
+      },
+      "lookAt": {
+       "x": 0.21,
+       "y": 3.71,
+       "z": 1.42
+      },
+      "fov": 30
+     },
+     "light": null,
+     "lightText": "wereldlicht",
+     "line": {
+      "speaker": "Duivenmelker Bert",
+      "text": "Kiek. Hij luustert noar dij, jong.",
+      "channel": "stem"
+     },
+     "speakerId": "bert",
+     "inBeeld": [
+      "Tammo",
+      "Duivenmelker Bert",
+      "Boer"
+     ],
+     "vondsten": [],
+     "electron": {
+      "near": 0,
+      "blocked": [],
+      "light": null
+     }
+    },
+    {
+     "n": 5,
+     "shot": 5,
+     "t0": 19.2,
+     "t1": 22.3,
+     "t": 20.75,
+     "type": "medium",
+     "soort": "cut",
+     "camera": {
+      "position": {
+       "x": -0.23,
+       "y": 5.28,
+       "z": 2.8
+      },
+      "lookAt": {
+       "x": -0.53,
+       "y": 0.27,
+       "z": 1.4
+      },
+      "fov": 44
+     },
+     "light": null,
+     "lightText": "wereldlicht",
+     "line": {
+      "speaker": "Tammo",
+      "text": "Duiven luisteren naar niemand.",
+      "channel": "stem"
+     },
+     "speakerId": "tammo",
+     "inBeeld": [
+      "Tammo",
+      "Anita",
+      "Duivenmelker Bert",
+      "Student"
+     ],
+     "vondsten": [],
+     "electron": {
+      "near": 0,
+      "blocked": [],
+      "light": null
+     }
+    },
+    {
+     "n": 6,
+     "shot": 6,
+     "t0": 22.3,
+     "t1": 25.4,
+     "t": 23.85,
+     "type": "close",
+     "soort": "dolly",
+     "camera": {
+      "position": {
+       "x": 1.17,
+       "y": 2.57,
+       "z": 1.61
+      },
+      "lookAt": {
+       "x": 0.53,
+       "y": -0.27,
+       "z": 1.4
+      },
+      "fov": 25
+     },
+     "light": null,
+     "lightText": "wereldlicht",
+     "line": {
+      "speaker": "Anita",
+      "text": "Mijn vriend de duivenkoning.",
+      "channel": "stem"
+     },
+     "speakerId": "tessa",
+     "inBeeld": [
+      "Anita",
+      "Student"
+     ],
+     "vondsten": [],
+     "electron": {
+      "near": 0,
+      "blocked": [],
+      "light": null
+     }
+    },
+    {
+     "n": 7,
+     "shot": 7,
+     "t0": 25.4,
+     "t1": 27.7,
+     "t": 26.55,
+     "type": "close",
+     "soort": "cut",
+     "camera": {
+      "position": {
+       "x": 1.67,
+       "y": 4.04,
+       "z": 1.6
+      },
+      "lookAt": {
+       "x": -0.53,
+       "y": 0.27,
+       "z": 1.4
+      },
+      "fov": 30
+     },
+     "light": null,
+     "lightText": "wereldlicht",
+     "line": {
+      "speaker": "Tammo",
+      "text": "\"Vriend.\"",
+      "channel": "stem"
+     },
+     "speakerId": "tammo",
+     "inBeeld": [
+      "Tammo",
+      "Anita"
+     ],
+     "vondsten": [],
+     "electron": {
+      "near": 4,
+      "blocked": [
+       {
+        "id": "tammo",
+        "hits": 3,
+        "at": 3.96,
+        "wat": "SkinnedMesh"
+       }
+      ],
+      "light": null
+     }
+    },
+    {
+     "n": 8,
+     "shot": 8,
+     "t0": 27.7,
+     "t1": 30,
+     "t": 28.85,
+     "type": "close",
+     "soort": "dolly",
+     "camera": {
+      "position": {
+       "x": -0.55,
+       "y": 2.42,
+       "z": 1.52
+      },
+      "lookAt": {
+       "x": 0.53,
+       "y": -0.27,
+       "z": 1.4
+      },
+      "fov": 34
+     },
+     "light": null,
+     "lightText": "wereldlicht",
+     "line": {
+      "speaker": "Anita",
+      "text": "Wat?",
+      "channel": "stem"
+     },
+     "speakerId": "tessa",
+     "inBeeld": [
+      "Tammo",
+      "Anita",
+      "Student"
+     ],
+     "vondsten": [],
+     "electron": {
+      "near": 0,
+      "blocked": [],
+      "light": null
+     }
+    },
+    {
+     "n": 9,
+     "shot": 9,
+     "t0": 30,
+     "t1": 32.3,
+     "t": 31.15,
+     "type": "medium",
+     "soort": "orbit",
+     "camera": {
+      "position": {
+       "x": 1.38,
+       "y": 2.03,
+       "z": 1.67
+      },
+      "lookAt": {
+       "x": -0.53,
+       "y": 0.27,
+       "z": 1.4
+      },
+      "fov": 38
+     },
+     "light": null,
+     "lightText": "wereldlicht",
+     "line": {
+      "speaker": "Tammo",
+      "text": "Ow.",
+      "channel": "stem"
+     },
+     "speakerId": "tammo",
+     "inBeeld": [
+      "Tammo",
+      "Anita"
+     ],
+     "vondsten": [],
+     "electron": {
+      "near": 0,
+      "blocked": [],
+      "light": null
+     }
+    },
+    {
+     "n": 10,
+     "shot": 10,
+     "t0": 32.3,
+     "t1": 36.2,
+     "t": 34.25,
+     "type": "medium",
+     "soort": "cut",
+     "camera": {
+      "position": {
+       "x": -0.23,
+       "y": 5.28,
+       "z": 2.8
+      },
+      "lookAt": {
+       "x": 0.53,
+       "y": -0.27,
+       "z": 1.4
+      },
+      "fov": 44
+     },
+     "light": null,
+     "lightText": "wereldlicht",
+     "line": {
+      "speaker": "Anita",
+      "text": "Dit is het plan. Jij vliegt naar het museum. Fotografeer de camera's, de bewakers en de stroomkast. Ik kijk mee.",
+      "channel": "stem"
+     },
+     "speakerId": "tessa",
+     "inBeeld": [
+      "Tammo",
+      "Anita",
+      "Duivenmelker Bert",
+      "Student"
+     ],
+     "vondsten": [],
+     "electron": {
+      "near": 0,
+      "blocked": [],
+      "light": null
+     }
+    },
+    {
+     "n": 11,
+     "shot": 11,
+     "t0": 36.2,
+     "t1": 40.2,
+     "t": 38.2,
+     "type": "medium",
+     "soort": "cut",
+     "camera": {
+      "position": {
+       "x": 4.4,
+       "y": 2.92,
+       "z": 2.8
+      },
+      "lookAt": {
+       "x": 0.53,
+       "y": -0.27,
+       "z": 1.4
+      },
+      "fov": 44
+     },
+     "light": null,
+     "lightText": "wereldlicht",
+     "line": {
+      "speaker": "Anita",
+      "text": "Dit is het plan. Jij vliegt naar het museum. Fotografeer de camera's, de bewakers en de stroomkast. Ik kijk mee.",
+      "channel": "stem"
+     },
+     "speakerId": "tessa",
+     "inBeeld": [
+      "Tammo",
+      "Anita"
+     ],
+     "vondsten": [],
+     "electron": {
+      "near": 0,
+      "blocked": [],
+      "light": null
+     }
+    },
+    {
+     "n": 12,
+     "shot": 12,
+     "t0": 40.2,
+     "t1": 42.8,
+     "t": 41.5,
+     "type": "close",
+     "soort": "dolly",
+     "camera": {
+      "position": {
+       "x": 1.16,
+       "y": 2.55,
+       "z": 1.61
+      },
+      "lookAt": {
+       "x": -0.53,
+       "y": 0.27,
+       "z": 1.4
+      },
+      "fov": 25
+     },
+     "light": null,
+     "lightText": "wereldlicht",
+     "line": {
+      "speaker": "Tammo",
+      "text": "En waarom Jelle in augustus een colbert draagt.",
+      "channel": "stem"
+     },
+     "speakerId": "tammo",
+     "inBeeld": [
+      "Tammo"
+     ],
+     "vondsten": [],
+     "electron": {
+      "near": 0,
+      "blocked": [],
+      "light": null
+     }
+    },
+    {
+     "n": 13,
+     "shot": 13,
+     "t0": 42.8,
+     "t1": 44.53,
+     "t": 43.66,
+     "type": "medium",
+     "soort": "dolly",
+     "camera": {
+      "position": {
+       "x": -3.5,
+       "y": 0.41,
+       "z": 3.5
+      },
+      "lookAt": {
+       "x": -0.16,
+       "y": 1.99,
+       "z": 1.05
+      },
+      "fov": 50
+     },
+     "light": null,
+     "lightText": "wereldlicht",
+     "line": {
+      "speaker": "Tammo",
+      "text": "En waarom Jelle in augustus een colbert draagt.",
+      "channel": "stem"
+     },
+     "speakerId": "tammo",
+     "inBeeld": [
+      "Tammo",
+      "Anita",
+      "Duivenmelker Bert"
+     ],
+     "vondsten": [],
+     "electron": {
+      "near": 0,
+      "blocked": [],
+      "light": null
+     }
+    }
+   ]
+  }
+ ],
+ "foto": {
+  "M01.intro": [
+   6,
+   8,
+   9
+  ],
+  "M02.intro": [
+   2,
+   5,
+   6
+  ],
+  "M03.2": [
+   8,
+   9,
+   11
+  ],
+  "M03.intro": [
+   1,
+   6,
+   10
+  ],
+  "M03.outro": [
+   4,
+   9,
+   12
+  ],
+  "M04.intro": [
+   0,
+   3,
+   4
+  ]
+ }
+}

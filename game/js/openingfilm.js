@@ -95,8 +95,11 @@ export const SEQUENCE = [
   // --- C00.1: cold open ---
   S('c1-zwart', 'C00.1', 'black', 'card', null, ST, { lines: ['L00'], lead: 0.5, minDur: 3.4, black: true, cue: 'radio-open', note: 'zwart; meeuwen, een fietsbel, dan Rikus' }),
   S('c1-markt', 'C00.1', 'crane', 'wide', 50, { kind: 'crane', dist: 3.6 }, { lines: ['L01'], lead: 0.6, minDur: 5.2, at: 'Martinitoren', establishing: true, why: 'crane', cam: 'langzame kraan omhoog langs de toren, de zon komt door', cue: 'thema-in', clock: 'gouden-uur' }),
+  S('c1-daken', 'C00.1', 'roofs', 'wide', 50, { kind: 'dolly', dist: 6 }, { minDur: 4.6, at: 'Grote Markt, boven de daken', establishing: true, why: 'high', cam: 'zijwaartse zweef boven de daken: de Martinitoren op het rechterderde, schoorstenen en dakpannen in de voorgrond, het gouden ochtendlicht schuin erover' }),
+  S('c1-plein', 'C00.1', 'square', 'wide', 50, { kind: 'dolly', dist: 6 }, { minDur: 5, at: 'Grote Markt', establishing: true, why: 'low', cam: 'langzame dolly over het lege plein, laag, lange schaduwen op de klinkers; de Martinitoren op het rechterderde, de eerste fietser en een duif als voorgrond' }),
   S('c1-fietsen', 'C00.1', 'bikes', 'beauty', 46, ST, { lines: ['L02'], lead: 0.4, minDur: 4.2, at: 'Grote Markt', why: 'low', cam: 'laag naast de fietsers, de straat stroomt voorbij' }),
   S('c1-meeuw', 'C00.1', 'gull', 'beauty', 48, ST, { minDur: 2.4, at: 'Vismarkt', humor: true, cam: 'een meeuw pakt een frikandel van een terras; de duiven stuiven weg; stilte erna', sfx: 'meeuw-frikandel', cue: 'sting-meeuw' }),
+  S('c1-titel', 'C00.1', 'title', 'card', null, ST, { minDur: 4.4, black: true, card: 'titel', cue: 'titel-sting', note: 'GDE Groningen: Zomer vol misdaad, met de slogan; de stad is gezien, nu de mensen' }),
   S('c1-duiven', 'C00.1', 'street', 'wide', 48, { kind: 'track', dist: 5 }, { minDur: 4.6, at: 'Oosterparkwijk, Korenbloemstraat', cam: 'zij-aanzicht: Tammo loopt met een bekertje koffie, een zwerm duiven volgt op een respectabele afstand', tag: { who: 'tammo', at: 1.0 }, sfx: 'duivenvleugels' }),
   S('c1-schouder', 'C00.1', 'shoulder', 'medium', 40, ST, { minDur: 3.2, at: 'Oosterparkwijk, Korenbloemstraat', cam: 'een duif landt op zijn schouder; hij kijkt er niet naar', sfx: 'koffie-morsen' }),
   S('c1-deur', 'C00.1', 'door', 'medium', 34, ST, { minDur: 3.4, at: 'Zolderkeuken', cam: 'de voordeur door, de kamer in: hij houdt de deur open met zijn elleboog', cue: 'thema-zacht' }),
@@ -111,8 +114,7 @@ export const SEQUENCE = [
   S('c2-kom', 'C00.2', 'phone', 'medium', 36, ST, { lines: ['L30'], lead: 0.5, minDur: 3.2, at: 'Zolderkeuken', cam: 'haar telefoon trilt op tafel; zij pakt hem; "Kom. Werk."', sfx: 'notify' }),
   // --- C00.3: moving day ---
   S('c3-toren', 'C00.3', 'moveIn', 'wide', 50, { kind: 'dolly', dist: 6 }, { lines: ['L40', 'L41'], lead: 2.2, minDur: 6.5, at: 'Pleiadenlaan', establishing: true, cam: 'de woontoren, elf hoog; voor de deur de Escapade met een matras op het dak', clock: 'dag-helder' }),
-  S('c3-geld', 'C00.3', 'moveMoney', 'medium', 40, ST, { lines: ['L42', 'L43', 'L44', 'L45'], lead: 0.4, minDur: 6, at: 'Pleiadenlaan', insert: true, cam: 'shot/reverse bij de auto; op "een lekke band" een close-up op de band; kicker "Rijden, niet praten."', sfx: 'band-sissen' }),
-  S('c3-titel', 'C00.3', 'title', 'card', null, ST, { minDur: 4.4, black: true, card: 'titel', cue: 'titel-sting' }),
+  S('c3-geld', 'C00.3', 'moveMoney', 'medium', 40, ST, { lines: ['L42', 'L43', 'L44', 'L45'], lead: 0.4, minDur: 6, at: 'Pleiadenlaan', insert: true, cam: 'shot/reverse bij de auto; een kicker; kicker "Rijden, niet praten."', sfx: 'band-sissen' }),
   S('c3-zweef', 'C00.3', 'swoop', 'wide', 50, { kind: 'crane', dist: 3.6 }, { minDur: 4.6, at: 'Paddepoel', cam: 'de zweefvlucht naar de startplek van de speler (flyShot); "Welkom in Grunn"', cue: 'thema-groot' }),
 ];
 
@@ -122,7 +124,7 @@ export const SFX_KOPPELING = { 'c1-schouder': 'npc_sigh', 'c2-raam': 'deed_stamp
 export const SFX_OPEN = { 'c1-duiven': 'duivenvleugels (een zwerm die opstijgt)', 'c3-geld': 'band-sissen (lucht uit een lekke band)' };
 
 // The camera setups per staged shot (the cuts inside it, intromontage.js cams): R-02 and R-03 are judged per camera segment, not per staged shot.
-const CAMS = { 'c2-bank': 3, 'c2-wagen': 5, 'c2-plan': 9, 'c2-thuis': 4, 'c2-huur': 5, 'c2-kom': 2, 'c3-geld': 6 };
+const CAMS = { 'c2-bank': 3, 'c2-wagen': 5, 'c2-plan': 9, 'c2-thuis': 4, 'c2-huur': 5, 'c2-kom': 2, 'c3-geld': 5 };
 for (const s of SEQUENCE) s.cams = CAMS[s.id] || 1;
 
 // Name cards (R-13): the first appearance of each person, with ONE dry line. Rikus is a voice on the radio and Jelle a silhouette: no card.
@@ -136,11 +138,11 @@ export const MUSIC = [
   { shot: 'c1-zwart', cue: 'radio-open', mood: 'stilte met straatgeluid', note: 'geen muziek; meeuwen, fietsbel, Rikus' },
   { shot: 'c1-markt', cue: 'thema-in', mood: 'zonsopgang, warm, hoopvol', note: 'het thema valt in op de eerste kraanbeweging, een bar lang opbouwend' },
   { shot: 'c1-meeuw', cue: 'sting-meeuw', mood: 'komisch, korte pizzicato-stoot', note: 'ritme gaat even uit voor de grap (R-08)' },
+  { shot: 'c1-titel', cue: 'titel-sting', mood: 'opening', note: 'de titel valt op de beat; een klokje; daarna de mensen' },
   { shot: 'c1-deur', cue: 'thema-zacht', mood: 'huiselijk', note: 'het thema zakt een octaaf, de kamer in' },
   { shot: 'c2-bank', cue: 'thema-onder', mood: 'gesprek', note: 'de muziek ducket onder elke stem (theme.js setThemeDuck); alleen een kamertoon-gitaar' },
   { shot: 'c2-huur', cue: 'stilte-bekentenis', mood: 'stil', note: 'één halve seconde stilte op “…Samen.” (R-08), dan zacht terug' },
   { shot: 'c2-raam', cue: 'jelle-hint', mood: 'dreigend maar luchtig', note: 'twee diepe noten (tuba) als de stikker VERKOCHT wordt geplakt; niets meer' },
-  { shot: 'c3-titel', cue: 'titel-sting', mood: 'afsluiter', note: 'de titel valt op de beat; een klokje' },
   { shot: 'c3-zweef', cue: 'thema-groot', mood: 'ruim, vrolijk, vertrek', note: 'het thema volledig op de zweefvlucht' },
 ];
 

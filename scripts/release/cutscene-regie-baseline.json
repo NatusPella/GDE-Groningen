@@ -6,11 +6,14 @@
   "CS-C12",
   "CS-C13",
   "CS-C14",
+  "CS-C15",
+  "CS-C16",
+  "CS-C17",
   "CS-T11",
   "CS-V05",
   "CS-V06"
  ],
- "totaal": 192,
+ "totaal": 163,
  "telling": {
   "CS-C06": {
    "carriere-bezit-start": 2,
@@ -45,12 +48,6 @@
   },
   "CS-C12": {
    "F4": 6,
-   "M01.intro": 13,
-   "M01.outro": 1,
-   "M02.intro": 1,
-   "M03.2": 3,
-   "M03.intro": 2,
-   "M04.intro": 2,
    "M21.intro": 2,
    "M22.4": 2,
    "M26.4#7-14": 1,
@@ -61,13 +58,6 @@
   "CS-C13": {
    "F2": 4,
    "F4": 1,
-   "M02.intro": 3,
-   "M02.outro": 1,
-   "M03.2": 1,
-   "M03.outro": 4,
-   "M04.intro": 1,
-   "M04.outro": 2,
-   "M05.outro": 1,
    "M06.intro": 1,
    "M07.outro": 1,
    "M09.intro": 1,
@@ -146,11 +136,17 @@
    "story-opening-keuken": 1,
    "story-opening-trailer": 1
   },
+  "CS-C15": {
+   "F1": 1,
+   "M06.0": 2,
+   "M11.6": 1,
+   "M15.outro": 1,
+   "M19.intro": 1,
+   "M26.4#7-14": 1,
+   "story-avond": 1
+  },
   "CS-V05": {
    "M14.intro": 1
-  },
-  "CS-V06": {
-   "M01.intro": 2
   }
  }
 }

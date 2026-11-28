@@ -60,6 +60,9 @@ export const RULES = {
   'CS-C12': { categorie: 'camera', ernst: 'belangrijk', laag: 'lint', titel: 'Camera in of achter geometrie', uitleg: 'De camera staat niet in een prop of set-object, het zicht op de spreker gaat niet door een object, geen object vóór het onderwerp vult meer dan 30% van het kader en geen object erachter meer dan 60% (behalve een insert op dat object).' },
   'CS-C13': { categorie: 'camera', ernst: 'belangrijk', laag: 'lint', titel: 'Spreker van achteren', uitleg: 'Wie praat zien we van voren of over de schouder van de luisteraar, niet op zijn achterhoofd (meer dan 115 graden van de camera af gedraaid in een medium- of close-shot).' },
   'CS-C14': { categorie: 'camera', ernst: 'belangrijk', laag: 'lint', titel: 'Te snelle snedes', uitleg: 'Hooguit drie snedes in elke 4 s; een shot korter dan 1,2 s (behalve het laatste) is een losse nit.' },
+  'CS-C15': { categorie: 'camera', ernst: 'belangrijk', laag: 'lint', titel: 'Focus niet op de spreker', uitleg: 'Tijdens een regel ligt de focus op de spreker: hij staat in het midden van het kader of scherp en groter in beeld, over de schouder van de luisteraar; de camera staat nooit op de luisteraar of op een leeg stuk terwijl een ander praat.' },
+  'CS-C16': { categorie: 'camera', ernst: 'belangrijk', laag: 'lint', titel: 'Reactieshot tijdens een regel', uitleg: 'Een reactieshot (luisteraar in beeld) duurt hooguit 1,5 s en komt alleen op een stilte of na het einde van een regel, nooit tijdens het praten.' },
+  'CS-C17': { categorie: 'camera', ernst: 'belangrijk', laag: 'lint', titel: 'Camera door of vlak langs een object', uitleg: 'Langs het hele camerapad (0,1 s) zit de camera niet in een prop of voertuig van de scène, gaat hij er tussen twee beelden niet doorheen en komt hij er niet binnen de nabije-clip (0,35 m) van; de wereld (gebouwen, bomen, geparkeerde voertuigen) toetst scripts/qa/cutscene_wereld_audit.mjs.' },
   'CS-T11': { categorie: 'tekst', ernst: 'belangrijk', laag: 'lint', titel: 'Ondertitel te kort in beeld', uitleg: 'De werkelijke tijd van een ondertitel (tot de volgende regel begint) geeft hooguit 20 tekens per seconde.' },
   'CS-V06': { categorie: 'visueel', ernst: 'belangrijk', laag: 'lint', titel: 'Loopt door een object', uitleg: 'Een lopend personage loopt niet door een prop of door een ander personage heen.' },
   // --- smaak (nooit een oordeel; alleen structuur en labels)
@@ -613,7 +616,7 @@ export function checkRegie(unit) {
       if (t < l.at || t >= l.at + l.dur) continue;
       const a = s.actors[id];
       if (!a || a.visible === false || offscreen(s.camera.shotIndex)) continue;
-      const kader = kaderVan(s.camera);
+    const kader = kaderVan(s.camera);
       const h = kader({ x: a.x, y: a.y, z: hoofdZ(a) }), sch = kader({ x: a.x, y: a.y, z: schouderZ(a) });
       if (!binnen(h) && !binnen(sch)) continue; // niet in beeld: dat is C05
       n++;
@@ -655,6 +658,61 @@ export function checkRegie(unit) {
         if (vul > D.objectVulling) { gemeld.add(`${sh.idx}|${pid}`); out.push(vondst(unit, 'CS-C12', `${pid} (${p.kind}) staat voor het onderwerp en vult ${Math.round(Math.min(1, vul) * 100)}% van het kader in shot ${sh.idx} (de camera staat erachter of ertegenaan)`, { t: sh.t0 })); }
         else if (achter > D.achtergrondVulling) { gemeld.add(`${sh.idx}|${pid}`); out.push(vondst(unit, 'CS-C12', `${pid} (${p.kind}) vult als achtergrond ${Math.round(achter * 100)}% van het kader in shot ${sh.idx} (een muur van ${p.kind}: kies een ander standpunt)`, { t: sh.t0 })); }
       }
+    }
+  }
+
+  // C15: de focus ligt op de spreker; C16: een reactieshot tijdens een regel of langer dan 1,5 s
+  {
+    const bg = new Set(Object.entries(unit.def.actors || {}).filter(([, a]) => a && a.bg).map(([id]) => id));
+    regels.forEach((l, i) => {
+      if (isOff(l) || l.dur < 1.2) return;
+      const id = speakerActorId(unit, l.speaker);
+      if (!id) return;
+      let n = 0, fout = 0, wie = null;
+      for (const { t, s } of frames) {
+        if (t < l.at + 0.25 || t >= l.at + l.dur - 0.25) continue;
+        const a = s.actors[id];
+        if (!a || a.visible === false || offscreen(s.camera.shotIndex)) continue;
+        n++;
+        const kader = kaderVan(s.camera);
+        const sq = kader({ x: a.x, y: a.y, z: hoofdZ(a) });
+        const spreekCentraal = sq && Math.abs(sq.x) <= 0.55 && Math.abs(sq.y) <= 0.9;
+        if (spreekCentraal) continue;
+        // de spreker staat aan de rand of buiten beeld: ligt de focus (het midden) dichter bij iemand anders?
+        const hoek = (q) => { const k = kader({ x: q.x, y: q.y, z: hoofdZ(q) }); return k ? Math.hypot(k.x, k.y) : Infinity; };
+        const mijn = hoek(a);
+        const ander = Object.entries(s.actors).find(([oid, o]) => oid !== id && !bg.has(oid) && o.visible !== false && hoek(o) < mijn - 0.15 && hoek(o) < 0.8);
+        if (ander) { fout++; wie = ander[0]; }
+      }
+      if (n && fout / n >= 0.4) out.push(vondst(unit, 'CS-C15', `de focus ligt op ${wie} terwijl ${l.speaker} praat (regel ${i}, ${Math.round((fout / n) * 100)}% van de regel)`, { t: l.at, regelNr: i }));
+    });
+    shots.forEach((sh, k) => {
+      const ds = defShots[sh.idx] || {};
+      if (ds.shot !== 'reaction') return;
+      const t1 = k + 1 < shots.length ? shots[k + 1].t0 : unit.duration;
+      const dur = t1 - sh.t0;
+      const midden = (sh.t0 + t1) / 2;
+      const tijdensRegel = regels.find((l) => !isOff(l) && l.dur >= 1.2 && sh.t0 < l.at + l.dur - 0.35 && t1 > l.at + 0.2 && Math.min(t1, l.at + l.dur - 0.35) - Math.max(sh.t0, l.at + 0.2) > 0.3);
+      if (tijdensRegel) out.push(vondst(unit, 'CS-C16', `een reactieshot (shot ${sh.idx}) staat in beeld terwijl ${tijdensRegel.speaker} praat`, { t: sh.t0 }));
+      else if (dur > 1.6) out.push(vondst(unit, 'CS-C16', `een reactieshot (shot ${sh.idx}) duurt ${dur.toFixed(1)} s (max 1,5 s)`, { t: sh.t0 }));
+    });
+  }
+
+  // C17: de camera in een prop, er tussen twee beelden doorheen, of binnen de nabije-clip, langs het hele pad
+  {
+    const gemeld = new Set();
+    let vorige = null;
+    for (const { t, s } of frames) {
+      const c = s.camera, idx = c.shotIndex;
+      for (const [pid, p] of Object.entries(s.props || {})) {
+        const f = p.visible !== false && foot(p.kind);
+        if (!f || f[2] < 0.3 || gemeld.has(`${idx}|${pid}`)) continue;
+        if (shotOpProp(defShots[idx], pid)) continue;
+        const nu = inDoos(p, f, c.position.x, c.position.y, c.position.z, -0.35);
+        const door = vorige && vorige.idx === idx && lijnDoorDoos(p, f, vorige.pos, c.position);
+        if (nu || door) { gemeld.add(`${idx}|${pid}`); out.push(vondst(unit, 'CS-C17', `de camera ${door && !nu ? 'gaat door' : 'staat in of vlak langs'} ${pid} (${p.kind}) in shot ${idx} op ${t.toFixed(1)} s`, { t })); }
+      }
+      vorige = { idx, pos: c.position };
     }
   }
 
