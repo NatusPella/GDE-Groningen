@@ -319,6 +319,14 @@ export function betaalSchuldPerceel(w, soort, id) {
   return bedrijfActie(r);
 }
 
+// De schenking van hoeve Zeldenrust (#1373, percelen.schenk): erf en percelen erbij, zonder dat er geld bij komt of weg gaat en zonder iets te overschrijven.
+// Per speler en lokaal: een gast zonder schenking boert gewoon op De Zonnehoek, en de hoeve is in de wereld van de host niet zichtbaar. Het verhaal roept dit aan
+// (de schenkingsscène); tot die er is, doet niets in het spel dit vanzelf. Geeft { ok, nieuw } of { ok: false, reden }.
+export function schenkHoeve() {
+  return bedrijfActie(PC.schenk(getBedrijf()));
+}
+export const heeftHoeve = () => PC.heeftHoeve(getBedrijf());
+
 export const zetThuis = (erfId) => bedrijfActie({ ok: PC.zetThuis(getBedrijf(), erfId) }).ok;
 export const zetActief = (id) => bedrijfActie({ ok: PC.zetActief(getBedrijf(), id) }).ok;
 
