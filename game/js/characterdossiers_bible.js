@@ -1,0 +1,161 @@
+// Dossiers: the figures of the story bible of 28-11 (docs/verhaal/bijbel-28-11/01-verhaal-en-personages.md, 2.2)
+// that had no casting card yet: neighbours and rivals, the career helpers (boer, voetbal, vervoer, water) and
+// the three comic police officers. One card per figure, same schema and rules as the other data files;
+// the cards of the figures that already existed (Beppe, Oom Hindrik, Tante Aaltje, Femke, Oma Trijntje, ...)
+// were updated in place. `firstStep` is a step of game/storydata/script.json or of scripts/story_steps_nieuw.json
+// (the planned steps); `aliases` are the other ways the game text names them (used by scripts/story_names_test.mjs).
+// Every new figure is a PROPOSAL (voorstel) of the bible; `canon` lists only what the owner decided.
+import { card, NA } from './characterdossiers_base.js';
+
+const stays = (t) => ({ all: t });
+// what every figure of this file has in common: no voice yet (the bible says "stem nieuw"), a proposal
+const NEW = { speakerKey: NA, status: 'canon', education: NA, voice: NA, arc: NA, needsFromDuo: NA, minigames: [NA], sensitive: NA };
+
+export const BIBLE = [
+  // ---- the street (H2, H3) ----
+  card({
+    ...NEW, id: 'sander', tier: 'minor', name: "Sander Poelman", nick: "de ZOEF-man", aliases: ["Sander", "Poelman", "ZOEF"], age: 27, pronoun: 'hij',
+    homePlace: "Paddepoel, Grunn", homeAddress: "een nieuwbouwflat aan de overkant van de Pleiadenlaan", household: "alleen, met een tablet", homeByAct: stays("altijd Paddepoel"),
+    origin: "Randstad (verhuisd naar Grunn voor de studie)", work: "eigenaar van ZOEF (verzonnen deelscooterbedrijf), later een bezorgdienst", employer: "ZOEF",
+    hobbies: ["dashboards", "scooters op de stoep zetten", "winnen"], traits: ["competitief", "vlot", "zelfverzekerd", "start-up-taal"], tagline: "Zet zijn scooters altijd voor jullie portiek, toch?",
+    want: "de eerste zijn die iets ontwikkelt wat Groningen nodig heeft", need: "een verlies dat hij kan lachen", fear: "dat zijn scooters worden weggehaald", habits: ["eindigt elke zin als vraag", "scooters voor hun portiek"],
+    dialect: "standaard Nederlands (niveau 0) met start-up-woorden", rhythm: "snel, vragend", phrases: ["Wat jullie nodig hebben is een platform, toch?"],
+    voiceTag: "nieuwe stem nog te kiezen: jonge, snelle man die in vragen praat", look: "gelijkmatig kapsel, gladde baard, neon-oranje gilet met ZOEF op de rug, witte sneakers, een tablet onder de arm", outfitRole: 'zakenman', outfitByAct: stays("vast: neon gilet (Tammo's pet is gedempt oranje: het onderscheid is bewust)"),
+    firstStep: 'N2', lastStep: 'M30', introducedBy: "de scooters op de stoep voor hun portiek (H2); Veldkamp mopperend", storyRole: "de rivaal uit de straat: plaagrivaliteit met Tammo; wordt klant en bijna-vriend (de eerste bestelling bij Tam & Tes, H10)",
+    mapLink: "Pleiadenlaan (overkant), ZOEF-scooters in de stad", canonNotes: "Bijbel 28-11 (01 §2.2): nieuw, voorstel. ZOEF is een verzonnen merk.", canon: [] }),
+  card({
+    ...NEW, id: 'hayo', tier: 'minor', name: "Hayo Prins", nick: "de stadsomroeper", aliases: ["Hayo", "de omroeper", "de stadsomroeper", "Omroeper Hayo Prins"], age: 58, pronoun: 'hij',
+    homePlace: "Grunn, boven de Vismarkt-poort", homeAddress: "een kamer boven de Vismarkt-poort (verzonnen)", household: "alleen, met een koperen bel", homeByAct: stays("altijd boven de Vismarkt-poort"),
+    origin: "Stad", work: "stadsomroeper (verzonnen eeuwenoud ambt); verkoopt 's middags kranten", employer: "de stad (ambt)",
+    hobbies: ["de bel luiden", "plechtig voorlezen", "kranten"], traits: ["plechtig", "trots", "luid", "onpartijdig"], tagline: "Hoort, hoort! Hij leest alleen voor.",
+    want: "dat de stad nog luistert", need: "n.v.t.", fear: "dat niemand meer stilstaat voor de bel", habits: ["slaat de laatste regel (de bezwaartermijn) over omdat hij moet hoesten", "leest Jelles besluiten voor zonder te oordelen"],
+    dialect: "Gronings (niveau 2)", rhythm: "plechtig, luid", phrases: ["Hoort, hoort! Bij besluit veertien-B..."],
+    voiceTag: "nieuwe stem nog te kiezen: luide, plechtige oude man", look: "breed, rood gezicht, rood-witte omroepersjas met gouden knopen, driekantige hoed, koperen bel", outfitRole: NA, outfitByAct: stays("vast: omroepersjas"),
+    firstStep: 'M05', lastStep: 'M30', introducedBy: "de Grote Markt in H3: leest een besluit van Jelle voor", storyRole: "Jelle krijgt via hem een mond zonder in beeld te zijn; leest ook Jelles tweede besluit (H3) en de bord-weigering (H6) voor",
+    mapLink: "Grote Markt, Vismarkt-poort", canonNotes: "Bijbel 28-11 (01 §2.2): nieuw, voorstel. Oude rivaal van de torenwachter (die meldt, hij roept om).", canon: [] }),
+  // ---- boer (H5) ----
+  card({
+    ...NEW, id: 'ypie', tier: 'minor', name: "Ypie Boekema", nick: "de buurboer", aliases: ["Ypie", "Boekema", "de buurboer"], age: 62, pronoun: 'hij',
+    homePlace: "Hogeland, naast hoeve Zeldenrust", homeAddress: "een boerderij naast de hoeve (verzonnen)", household: "met zijn vrouw en een hond", homeByAct: stays("altijd naast Zeldenrust"),
+    origin: "Hogeland", work: "buurboer; melkt al een week mee op de hoeve van Oom Hindrik", employer: "eigen erf",
+    hobbies: ["grenzen wijzen", "trekkers lenen", "zijn koeien"], traits: ["nuchter", "behulpzaam", "droog", "gul"], tagline: "Dat wordt wat.",
+    want: "dat de hoeve in goede handen komt", need: "n.v.t.", fear: "een misoogst", habits: ["zegt dat wordt wat bij alles wat misgaat", "leent een trekker"],
+    dialect: "Gronings (niveau 2)", rhythm: "weinig woorden, droog", phrases: ["Dat wordt wat."],
+    voiceTag: "nieuwe stem nog te kiezen: nuchtere boer, plat Gronings", look: "pet, overall, laarzen", outfitRole: 'boer', outfitByAct: stays("vast: boerenkleding"),
+    firstStep: 'A1', lastStep: 'M30', introducedBy: "de schenking in H5: melkt al een week mee", storyRole: "wijst de grenzen van het land, leent een trekker; de eerste vriendelijke buurman van de boer-loopbaan",
+    mapLink: "hoeve Zeldenrust en de buurerf", canonNotes: "Namenregister bijbel 28-11 (01 §2.4): vervangt 'De buurboer Harm Veldkamp' van deel 2 (botste met Auke Veldkamp en Harm Dijkhuis).", canon: [] }),
+  // ---- voetbal (H6) ----
+  card({
+    ...NEW, id: 'eppo', tier: 'minor', name: "Eppo Rozema", nick: "Meester Eppo", aliases: ["Eppo", "Meester Eppo", "Rozema", "de trainer"], age: 68, pronoun: 'hij',
+    homePlace: "het dorp van VV De Hoek, Hogeland", homeAddress: "een huis naast het sportpark (verzonnen)", household: "alleen, met een koekenpan voor de tactiekbespreking", homeByAct: stays("altijd het dorp"),
+    origin: "Hogeland", work: "gepensioneerd onderwijzer en trainer van VV De Hoek; legt tactiek uit met suikerklontjes", employer: "VV De Hoek (verzonnen dorpsclub)",
+    hobbies: ["suikerklontjes verschuiven", "de club", "koekenpannen"], traits: ["geduldig", "weetgraag", "warm", "pedant"], tagline: "Tactiek is suiker.",
+    want: "dat de club blijft bestaan", need: "een linksbuiten", fear: "dat de jeugd wegtrekt", habits: ["legt tactiek uit met suikerklontjes", "een koekenpan onder de arm"],
+    dialect: "Gronings (niveau 2)", rhythm: "uitleggend, langzaam", phrases: ["Kijk, dit klontje is de linksbuiten."],
+    voiceTag: "nieuwe stem nog te kiezen: gepensioneerde onderwijzer", look: "wollen vest, sjaal, een koekenpan onder de arm", outfitRole: 'sporter', outfitByAct: stays("vast: vest en sjaal"),
+    firstStep: 'V1', lastStep: 'M23', introducedBy: "de invaller-aanleiding in H6: zijn linksbuiten ligt eruit", storyRole: "trainer van de dorpsclub; Tessa valt in; komt in H16 terug met zijn elftal",
+    mapLink: "sportpark van VV De Hoek", canonNotes: "Namenregister bijbel 28-11 (01 §2.4): vervangt 'Trainer Meester Klaas' van deel 2 (botste met Kapitein Klaas Brouwer).", canon: [] }),
+  card({
+    ...NEW, id: 'albert_teuben', tier: 'cameo', name: "Albert Teuben", nick: "de voorzitter", aliases: ["Albert Teuben", "Teuben", "de voorzitter van VV De Hoek"], age: 66, pronoun: 'hij',
+    homePlace: "het dorp van VV De Hoek, Hogeland", homeAddress: "n.v.t. (het clubhuis)", household: "n.v.t.", homeByAct: stays("altijd het clubhuis"),
+    origin: "Hogeland", work: "voorzitter van VV De Hoek; een man met een sjaal en een ledenlijst die nooit klopt", employer: "VV De Hoek",
+    hobbies: ["de ledenlijst", "het wedstrijdbord"], traits: ["druk", "gul", "onhandig"], tagline: "De ledenlijst klopt nooit.",
+    want: "een volle kantine", need: "n.v.t.", fear: "een leeg veld", habits: ["telt de leden nooit twee keer hetzelfde"],
+    dialect: "Gronings (niveau 2)", rhythm: "druk", phrases: ["Onze linksbuiten ligt eruit."],
+    voiceTag: "nieuwe stem nog te kiezen", look: "sjaal, ledenlijst", outfitRole: NA, outfitByAct: stays("vast: sjaal"),
+    firstStep: 'V1', lastStep: 'V3', introducedBy: "het clubhuis van VV De Hoek (H6)", storyRole: "vertelt de terugblik van de voetbal-loopbaan onder het wedstrijdbord",
+    mapLink: "clubhuis van VV De Hoek", canonNotes: "Namenregister bijbel 28-11 (01 §2.4): vervangt 'Voorzitter Albert Bos' van deel 2 (botste met Berend Bos).", canon: [] }),
+  card({
+    ...NEW, id: 'jaap_roorda', tier: 'cameo', name: "Jaap Roorda", nick: "de bakker", aliases: ["Jaap Roorda", "Roorda", "de bakker"], age: 55, pronoun: 'hij',
+    homePlace: "het dorp van VV De Hoek, Hogeland", homeAddress: "de bakkerij aan de dorpsstraat (verzonnen)", household: "met zijn gezin boven de winkel", homeByAct: stays("altijd het dorp"),
+    origin: "Hogeland", work: "bakker; sponsor van de dorpsclub (koeken in de pauze) en later leverancier van de snackwagen", employer: "eigen bakkerij",
+    hobbies: ["koeken", "de club"], traits: ["gul", "praatziek", "trots"], tagline: "Koeken in de pauze.",
+    want: "dat de club wint", need: "n.v.t.", fear: "dat het deeg niet rijst", habits: ["brengt koeken in de pauze"],
+    dialect: "Gronings (niveau 2)", rhythm: "gul, vlot", phrases: ["Koek erbij?"],
+    voiceTag: "nieuwe stem nog te kiezen", look: "bakkersschort, meel op de mouwen", outfitRole: 'bakker', outfitByAct: stays("vast: bakkersschort"),
+    firstStep: 'V1', lastStep: 'M25', introducedBy: "de pauze bij VV De Hoek (H6)", storyRole: "sponsor van de club, later leverancier van de snackwagen; de schakel tussen voetbal en snack",
+    mapLink: "de bakkerij in het dorp", canonNotes: "Namenregister bijbel 28-11 (01 §2.4): vervangt 'Bakker Wubbo Hoekstra' van deel 2 (botste met Wubbo Zijlstra en Bert Hoekstra).", canon: [] }),
+  // ---- vervoer (H2, H7) ----
+  card({
+    ...NEW, id: 'dries', tier: 'minor', name: "Dries Oltmans", nick: "Chauffeur Dries", aliases: ["Dries", "Oltmans", "Chauffeur Dries", "de chauffeur"], age: 63, pronoun: 'hij',
+    homePlace: "Winsum, Groningen", homeAddress: "een rijtjeshuis in Winsum (verzonnen)", household: "met zijn vrouw en een koffiekan", homeByAct: stays("altijd Winsum"),
+    origin: "Winsum", work: "chauffeur: al dertig jaar de laatste bus van de lijn naar het dorp", employer: "het streekvervoer (verzonnen)",
+    hobbies: ["koffie", "iedereen groeten", "haltes die niet op de kaart staan"], traits: ["gemoedelijk", "trouw", "warm", "eigenwijs"], tagline: "Groet iedereen die instapt.",
+    want: "dat zijn lijn blijft rijden", need: "rust voor zijn rug", fear: "dat niemand zijn haltes kent", habits: ["zijn eigen koffiekan", "een groet voor iedereen die instapt", "een briefje met haltes die niemand op de kaart kan vinden"],
+    dialect: "Gronings (niveau 2)", rhythm: "gemoedelijk", phrases: ["Dries ligt op de bank."],
+    voiceTag: "nieuwe stem nog te kiezen: gemoedelijke chauffeur", look: "chauffeursvest, pet, een eigen koffiekan", outfitRole: NA, outfitByAct: stays("vast: chauffeursvest"),
+    firstStep: 'N4', lastStep: 'M23', introducedBy: "de vaste chauffeur van de bus naar huis, al vanaf H2 (N4)", storyRole: "de chauffeur die wegvalt (zere rug: niet erg, genoeg) in H7; Tammo neemt zijn diensten over; komt in H16 terug met zijn bus",
+    mapLink: "buslijn naar Winsum", canonNotes: "Namenregister bijbel 28-11 (01 §2.4): deel 2 had alleen 'Chauffeur Dries'; hier met achternaam. Aanleiding vervoer is canon.", canon: ['storyRole'] }),
+  card({
+    ...NEW, id: 'annemarie', tier: 'cameo', name: "Annemarie", nick: "de dispatcher", aliases: ["Annemarie", "de dispatcher", "Dispatcher Annemarie"], age: 45, pronoun: 'zij',
+    homePlace: "Grunn", homeAddress: "n.v.t. (alleen een stem op de portofoon)", household: "n.v.t.", homeByAct: stays("altijd de meldkamer"),
+    origin: "Stad", work: "dispatcher bij het streekvervoer; alleen een stem op de portofoon", employer: "het streekvervoer (verzonnen)",
+    hobbies: ["roosters", "thee"], traits: ["kort", "zorgzaam", "nuchter"], tagline: "Alleen een stem.",
+    want: "dat elke bus rijdt", need: "n.v.t.", fear: "een leeg rooster", habits: ["praat alleen over de portofoon"],
+    dialect: "standaard Nederlands (niveau 0)", rhythm: "kort, zorgzaam", phrases: ["Dries ligt op de bank."],
+    voiceTag: "nieuwe stem nog te kiezen: korte, zorgzame vrouw over een portofoon", look: "n.v.t. (alleen een stem)", outfitRole: NA, outfitByAct: stays("n.v.t. (alleen stem)"),
+    firstStep: 'N7', lastStep: 'N7', introducedBy: "de portofoon in H7: Dries ligt op de bank", storyRole: "het gezicht van de centrale: roept Tammo op voor Dries' diensten; vertelt de terugblik van vervoer",
+    mapLink: NA, canonNotes: "Bijbel 28-11 (01 §2.2 en namenregister): behouden uit deel 2; geen model, alleen een stem.", canon: [] }),
+  card({
+    ...NEW, id: 'jochem', tier: 'cameo', name: "Jochem Luiken", nick: "de stationschef", aliases: ["Jochem", "Luiken", "Stationschef Jochem Luiken", "de stationschef"], age: 49, pronoun: 'hij',
+    homePlace: "Station Groningen, Grunn", homeAddress: "n.v.t. (het stationskantoor)", household: "n.v.t.", homeByAct: stays("altijd het station"),
+    origin: "Stad", work: "stationschef: het spoor van de vervoer-loopbaan", employer: "het spoor (verzonnen exploitant)",
+    hobbies: ["fluiten", "dienstregelingen"], traits: ["strak", "vriendelijk", "precies"], tagline: "Op tijd is op tijd.",
+    want: "dat de trein op tijd rijdt", need: "n.v.t.", fear: "vertraging", habits: ["blaast op zijn fluit voor alles"],
+    dialect: "standaard Nederlands (niveau 0)", rhythm: "strak, vriendelijk", phrases: ["Aan de kant, de trein komt."],
+    voiceTag: "nieuwe stem nog te kiezen", look: "stationsjas, pet, fluit", outfitRole: NA, outfitByAct: stays("vast: stationsjas"),
+    firstStep: 'N11', lastStep: 'N11', introducedBy: "de trein in H7", storyRole: "het spoor van de vervoer-loopbaan",
+    mapLink: "Station Groningen", canonNotes: "Namenregister bijbel 28-11 (01 §2.4): vervangt 'Stationschef Pieter Luiken' (botste met Pieter Dijkstra); voornaam Jochem.", canon: [] }),
+  // ---- water (H8) ----
+  card({
+    ...NEW, id: 'noor', tier: 'cameo', name: "Noor", nick: "de gids-student", aliases: ["Noor", "de gids-student"], age: 21, pronoun: 'zij',
+    homePlace: "Grunn", homeAddress: "n.v.t. (studentenkamer, verzonnen)", household: "met twee huisgenoten", homeByAct: stays("altijd Grunn"),
+    origin: "Stad", work: "gids-student op de rondvaartboot", employer: "de rondvaartboot van Wiebe Hazenberg",
+    hobbies: ["verhalen vertellen", "de gracht"], traits: ["vlot", "nieuwsgierig", "behulpzaam"], tagline: "Vertelt de stad aan toeristen.",
+    want: "een goede stagebeoordeling", need: "n.v.t.", fear: "stiltes aan boord", habits: ["vertelt de terugblik op de steiger"],
+    dialect: "standaard Nederlands (niveau 0)", rhythm: "vlot", phrases: ["Wiebe ligt thuis, hij heeft een eend gered en zijn knie niet."],
+    voiceTag: "nieuwe stem nog te kiezen: jonge vrouw", look: "gele regenjas op de boot", outfitRole: 'student', outfitByAct: stays("vast: gids-shirt"),
+    firstStep: 'K2', lastStep: 'K2', introducedBy: "de steiger in H8", storyRole: "vertelt de terugblik van water",
+    mapLink: "rondvaartsteiger, Diepenring", canonNotes: "Namenregister bijbel 28-11 (01 §2.4): vervangt 'Fenna, gids-student' van deel 2 (botste met Fenna Wiersema, molenaar in Winsum).", canon: [] }),
+  card({
+    ...NEW, id: 'dina', tier: 'cameo', name: "Dina", nick: "de sluiswachter", aliases: ["Dina", "de sluiswachter"], age: 50, pronoun: 'zij',
+    homePlace: "Zoutkamp en Lauwersoog", homeAddress: "n.v.t. (het sluiswachtershuisje, verzonnen)", household: "n.v.t.", homeByAct: stays("altijd bij de sluis"),
+    origin: "Waddenkust", work: "sluiswachter: bij een sluis wachten is het spel", employer: "het waterschap (verzonnen)",
+    hobbies: ["wachten", "thee", "kijken naar water"], traits: ["rustig", "droog", "geduldig"], tagline: "Alles heeft zijn tijd.",
+    want: "dat niemand zich haast", need: "n.v.t.", fear: "storm", habits: ["wacht op het sluitsein"],
+    dialect: "Gronings (niveau 1)", rhythm: "traag", phrases: ["Tot de sluis. Daarna wacht je."],
+    voiceTag: "nieuwe stem nog te kiezen", look: "regenjas, pet", outfitRole: NA, outfitByAct: stays("vast: regenjas"),
+    firstStep: 'K2', lastStep: 'K2', introducedBy: "de sluis in H8", storyRole: "de wachter bij de sluis in de binnenvaart",
+    mapLink: "sluizen langs de Waddenkust", canonNotes: "Namenregister bijbel 28-11 (01 §2.4): vervangt 'Sluiswachter Berendien' van deel 2 (bijna dezelfde naam als Berend Bos).", canon: [] }),
+  // ---- de politie: drie komische vaste agenten (het groepsdossier 'politie' blijft) ----
+  card({
+    ...NEW, id: 'hilda', tier: 'minor', name: "Hilda Wolthuis", nick: "Hoofdagent Wolthuis", aliases: ["Hilda", "Wolthuis", "Hoofdagent Hilda Wolthuis", "Hoofdagent Wolthuis", "de hoofdagent"], age: 54, pronoun: 'zij',
+    homePlace: "Politiebureau Grunn", homeAddress: "n.v.t. (het politiebureau)", household: "alleen, met een stempel", homeByAct: stays("altijd het bureau"),
+    origin: "Stad", work: "hoofdagent: schrijft parkeerbonnen, citeert artikelnummers", employer: "de politie",
+    hobbies: ["artikelnummers", "stempels", "regels naleven"], traits: ["precies", "plechtig", "kordaat", "komisch"], tagline: "Dat staat in artikel...",
+    want: "dat iedereen de regels naleeft", need: "een regel die zij mag breken", fear: "een formulier zonder stempel", habits: ["zet haar te grote petje steeds recht", "notitieboekje en stempel", "drie minuten te laat bij het museum"],
+    dialect: "standaard Nederlands (niveau 0) met een enkel Gronings nou ja", rhythm: "precies, plechtig", phrases: ["Dat staat in artikel veertien."],
+    voiceTag: "nieuwe stem nog te kiezen: kordate vrouw, droog", look: "blauw uniform met een te groot petje, notitieboekje, stempel", outfitRole: NA, outfitByAct: stays("vast: uniform"),
+    firstStep: 'M02', lastStep: 'M26', introducedBy: "de parkeerbon op de Escapade in H2", storyRole: "komische bijrol: parkeerbon (H2), drie minuten te laat bij het museum (H12) en leest in H16 als enige de stukken van Jelles verordening voor; de zusterziel van Jelle, maar aan de goede kant",
+    mapLink: "Politiebureau", canonNotes: "Bijbel 28-11 (01 §2.2): nieuw; uitbreiding van het groepsdossier 'politie'. Satirisch en licht, nooit getoond geweld (constitution 6).", sensitive: "satire, geen leed", canon: [] }),
+  card({
+    ...NEW, id: 'joost', tier: 'minor', name: "Joost Ensing", nick: "Agent Joost", aliases: ["Joost", "Ensing", "Agent Joost Ensing", "Agent Joost"], age: 27, pronoun: 'hij',
+    homePlace: "Grunn", homeAddress: "n.v.t. (het politiebureau)", household: "n.v.t.", homeByAct: stays("altijd het bureau"),
+    origin: "Stad", work: "agent bij de fietspatrouille", employer: "de politie",
+    hobbies: ["fietsen", "koekjes", "zich verontschuldigen"], traits: ["enthousiast", "verontschuldigend", "te laat", "vriendelijk"], tagline: "Sorry, sorry!",
+    want: "een keer op tijd zijn", need: "n.v.t.", fear: "weer te laat komen", habits: ["komt steeds net te laat", "een fietstas met koekjes"],
+    dialect: "standaard Nederlands (niveau 0)", rhythm: "enthousiast, hijgend", phrases: ["Sorry, sorry!", "Ik meen het alarm gehoord te hebben."],
+    voiceTag: "nieuwe stem nog te kiezen: jonge man", look: "uniform met een fluohesje over de jas, helm, een fietstas met koekjes", outfitRole: NA, outfitByAct: stays("vast: uniform met fluohesje"),
+    firstStep: 'M10', lastStep: NA, introducedBy: "de duif op zijn helm bij Veldkamp (H5)", storyRole: "komisch: komt steeds net te laat; krijgt van Veldkamp een duif op zijn helm (H5); belt bij de kraak (H12) met ik meen het alarm gehoord te hebben",
+    mapLink: "Politiebureau", canonNotes: "Bijbel 28-11 (01 §2.2): nieuw, voorstel. Nooit getoond geweld.", sensitive: "satire, geen leed", canon: [] }),
+  card({
+    ...NEW, id: 'tjeerd', tier: 'minor', name: "Tjeerd Bolhuis", nick: "Wijkagent Bolhuis", aliases: ["Tjeerd", "Bolhuis", "Wijkagent Tjeerd Bolhuis", "Wijkagent Bolhuis", "de wijkagent"], age: 61, pronoun: 'hij',
+    homePlace: "Paddepoel, Grunn", homeAddress: "n.v.t. (de dienstauto in Paddepoel)", household: "n.v.t.", homeByAct: stays("altijd Paddepoel"),
+    origin: "Stad", work: "wijkagent in Paddepoel", employer: "de politie",
+    hobbies: ["thermosfles", "slapen in de dienstauto", "niks zien"], traits: ["rustig", "warm", "gemoedelijk", "komisch"], tagline: "Ik heb niks gezien. Ik zag het wel.",
+    want: "een rustige wijk", need: "n.v.t.", fear: "papierwerk", habits: ["slaapt in de dienstauto", "kijkt de andere kant op"],
+    dialect: "Gronings (niveau 2)", rhythm: "traag, rustig", phrases: ["Ik heb niks gezien. Ik zag het wel."],
+    voiceTag: "nieuwe stem nog te kiezen: oude, rustige man", look: "uniform met openstaande jas, thermosfles", outfitRole: NA, outfitByAct: stays("vast: uniform"),
+    firstStep: 'N9', lastStep: 'M23', introducedBy: "zoekt in H10 (N9) twee Stadjers in het zwart", storyRole: "komisch en warm: herkent Tammo en Tessa en kijkt de andere kant op; houdt in H16 de route vrij voor de colonne",
+    mapLink: "Paddepoel, Politiebureau", canonNotes: "Bijbel 28-11 (01 §2.2): nieuw, voorstel. Nooit getoond geweld.", sensitive: "satire, geen leed", canon: [] }),
+];
