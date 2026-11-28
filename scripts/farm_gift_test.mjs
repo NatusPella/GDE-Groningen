@@ -1,5 +1,5 @@
 // De schenking van hoeve Zeldenrust (#1373, bijbel 28-11 §2.2): erf en percelen als data, bijschrijven zonder te overschrijven, een tweede keer doet niets,
-// niet te koop, huur of verkopen, en een oude opslag laadt onveranderd.   node scripts/schenking_test.mjs
+// niet te koop, huur of verkopen, en een oude opslag laadt onveranderd.   node scripts/farm_gift_test.mjs
 // Schrijft nooit naar echte opslag: de opslag is een nepobject.
 import assert from 'node:assert/strict';
 import * as PC from '../game/js/percelen.js';
@@ -130,5 +130,5 @@ t('de kaartlaag toont de geschonken percelen pas als ze van jou zijn', () => {
   assert.match(PC.kaartOnderschrift(PC.stand(bd, 'perceel', 'zeldenrust-wei')), /van jou/);
 });
 
-console.log(`schenking_test: ${n - fails}/${n}`);
+console.log(`farm_gift_test: ${n - fails}/${n}`);
 process.exit(fails ? 1 : 0);

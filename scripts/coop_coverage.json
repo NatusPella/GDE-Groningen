@@ -417,6 +417,7 @@
    "modules": [
     "boerderij*",
     "farm*",
+    "deliveries",
     "gewasmarkt",
     "werktuigen*",
     "bietenhal",
@@ -432,7 +433,10 @@
    "test": [
     "scripts/boerderijgast_test.mjs",
     "scripts/farmfieldguest_test.mjs",
-    "scripts/boerderij_test.mjs"
+    "scripts/boerderij_test.mjs",
+    "scripts/farm_delivery_test.mjs",
+    "scripts/deliveries_test.mjs",
+    "scripts/farm_gift_test.mjs"
    ],
    "regel": {
     "doc": "docs/COOP-GAST.md",

@@ -245,6 +245,9 @@ export function koopMachine(w, id) {
   return r;
 }
 
+// Meteen naar de opslag, voor een levering aan een andere opslag (farmdelivery.js): het journaal moet op schijf staan voor de wagen iets krijgt.
+export function bewaarNu() { vuil = true; schrijfNu(); if (vuil) throw new Error('boerderij niet bewaard'); }
+
 export function zetBoerderijVoorTest(raw, st) {
   boer = raw ? B.normaliseer(raw) : null;
   if (st !== undefined) opslagOverride = st;

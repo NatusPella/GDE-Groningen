@@ -13,6 +13,7 @@
 import { nieuwBedrijf, normaliseerBedrijf, actiefPerceel, perceelDef, bodemFactor, START_PERCEEL, isPerceelId } from './percelen.js';
 import { PRIJS_KG, dagprijs, dagVan, markt } from './gewasmarkt.js';
 import * as CT from './boerderijcontracten.js';
+import { newJournal, normalizeJournal } from './deliveries.js';
 import { euro } from './geldtekst.js';
 import { areaPrice } from './bezithooks.js';
 
@@ -87,6 +88,7 @@ export function nieuweBoerderij() {
     posities: {},                                                  // waar de rijen van een ander perceel dan de Zonnehoek liggen: { x, y, a } (eenmaal gevonden)
     boek: nieuwBoek(),                                             // kosten en opbrengsten per veld en per boekjaar, en de lening
     bedrijf: nieuwBedrijf(),                 // percelen, erven, opslag en machinepark (percelen.js, #415 stap 1): oude opslag mist dit en krijgt het leeg
+    deliveries: newJournal(),                // leveringen aan een andere opslag (deliveries.js, #1379 X1): wat onderweg is en wat afgerond is; een oude opslag mist dit en krijgt het leeg
     contracten: CT.leeg(),                   // het aanbod van vandaag, je actieve leveringscontracten en een begrensde historie (#492)
   };
 }
@@ -120,6 +122,7 @@ export function normaliseer(raw) {
   if (d.bodemlog && typeof d.bodemlog === 'object') for (const id of Object.keys(d.bodemlog)) { const l = d.bodemlog[id]; if (isPerceelId(id) && l && typeof l === 'object') b.bodemlog[id] = { u: Math.round(getal(l.u, 0, UITPUTTING_MAX) * 1000) / 1000, g: GEWASSEN[l.g] ? l.g : null }; }
   if (d.posities && typeof d.posities === 'object') for (const id of Object.keys(d.posities)) { const q = d.posities[id]; if (isPerceelId(id) && id !== START_PERCEEL && q && Number.isFinite(q.x) && Number.isFinite(q.y)) b.posities[id] = { x: q.x, y: q.y, a: Number.isFinite(q.a) ? q.a : 0 }; }
   leesBoek(b, d.boek);
+  b.deliveries = normalizeJournal(d.deliveries);   // tolerant: ontbreekt of is kapot geeft een leeg journaal, de versie blijft 1 (een bump wist de boerderij)
   b.bedrijf = normaliseerBedrijf(d.bedrijf);
   b.contracten = CT.normaliseer(d.contracten, dagVan(b.uren));   // oud of kapot: een lege stand met het aanbod van vandaag
   leesPlan(b, d);
