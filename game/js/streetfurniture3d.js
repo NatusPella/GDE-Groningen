@@ -27,12 +27,18 @@ const tilesCalmGate = createCalmGate(); // wacht ook op de achtergrondwachtrij v
 import { EDGE_CLASSES, edgeColour, edgeHeight } from './edgeclasses.js';
 import { applyInteriorCut } from './interiorcut3d.js';
 import { propGeometry } from './propmodels3d.js'; // de gedeelde props (propregister.js)
+import { detailForTile } from './streetdetail.js'; // de detaillaag voor wijken en dorpen (#1353)
 
 // the game draws its own lamps and path bollards (see above)
 export const GAME_OPTS = { lamps: false, bollards: false, livingBumps: false };
 // draw distance per kind (m)
-const LOD = { guardrail: 220, fence: 160, hedge: 160, noise: 420, hectometer: 120, gantry: 650, placesign: 260, wegwijzer: 200, speedbump: 120, bench: 110, bin: 90, bikerack: 100, shelter: 140, bollard: 90, lamp: 200 };
-const CAP = { guardrail: 2600, fence: 600, hedge: 600, noise: 400, hectometer: 120, gantry: 24, placesign: 60, wegwijzer: 60, speedbump: 60, bench: 120, bin: 120, bikerack: 120, shelter: 40, bollard: 200, lamp: 400 };
+// straatdetail (#1353): tekenafstand en maximum per soort; de rest van de regel is die van het meubilair
+const DETAIL_LOD = { klikogrijs: 75, klikogroen: 75, klikoblauw: 75, fietszwart: 80, fietsrood: 80, fietsblauw: 80, lattenhek: 100, tuinhaag: 110, schutting: 110, tuinpad: 80, boomspiegel: 70, plantenbak: 80, kabelkast: 110, afvalzuil: 120, bord30: 130, voorrangsbord: 130, bermpaal: 140, rietpol: 110, hooibaal: 130 };
+const DETAIL_CAP = { klikogrijs: 300, klikogroen: 200, klikoblauw: 150, fietszwart: 160, fietsrood: 160, fietsblauw: 160, lattenhek: 400, tuinhaag: 500, schutting: 200, tuinpad: 600, boomspiegel: 300, plantenbak: 160, kabelkast: 60, afvalzuil: 40, bord30: 40, voorrangsbord: 40, bermpaal: 160, rietpol: 400, hooibaal: 80 };
+// de detaillaag laat zich uitzetten (vergelijkingsbeelden en metingen: window.__noStreetDetail = true voor de bouw van het spel)
+const DETAIL_ON = () => !(typeof window !== 'undefined' && window.__noStreetDetail);
+const LOD = { ...DETAIL_LOD, guardrail: 220, fence: 160, hedge: 160, noise: 420, hectometer: 120, gantry: 650, placesign: 260, wegwijzer: 200, speedbump: 120, bench: 110, bin: 90, bikerack: 100, shelter: 140, bollard: 90, lamp: 200 };
+const CAP = { ...DETAIL_CAP, guardrail: 2600, fence: 600, hedge: 1200, noise: 400, hectometer: 120, gantry: 24, placesign: 60, wegwijzer: 60, speedbump: 60, bench: 120, bin: 120, bikerack: 120, shelter: 40, bollard: 200, lamp: 400 };
 const TILE_REACH = 900;     // tiles whose square comes this near are generated
 const PROP_REACH = 70;      // colliders near the player
 const REBUILD_MOVE = 12;
@@ -117,8 +123,13 @@ function shelterGeo() { return rotProp('bushokje', 0); }
 // the post of a place name board or signpost (the board is drawn apart, see rebuildBoards)
 function postGeo() { return mergeGeometries([tint(new THREE.BoxGeometry(0.08, 2.2, 0.08).translate(0, 1.1, 0), 0x8a9196)]); }
 function bollardGeo() { return rotProp('paaltje', 0); }
+// de stukken van de detaillaag: voorkant +x; hekstukken en tuinpad (gebouwd met de lengte langs z) lopen langs x
+const detailGeo = (id, hoek = 0) => () => rotProp(id, hoek);
+const DETAIL_GEOS = {};
+for (const id of ['klikogrijs', 'klikogroen', 'klikoblauw', 'fietszwart', 'fietsrood', 'fietsblauw', 'plantenbak', 'boomspiegel', 'kabelkast', 'afvalzuil', 'bord30', 'voorrangsbord', 'bermpaal', 'rietpol', 'hooibaal']) DETAIL_GEOS[id] = detailGeo(id);
+for (const id of ['lattenhek', 'tuinhaag', 'schutting', 'tuinpad']) DETAIL_GEOS[id] = detailGeo(id, Math.PI / 2);
 
-const GEOS = { guardrail: guardrailGeo, fence: fenceGeo, hedge: hedgeGeo, noise: noiseGeo, hectometer: hectometerGeo, speedbump: speedbumpGeo, gantry: gantryGeo, beam: beamGeo, bench: benchGeo, bin: binGeo, bikerack: rackGeo, shelter: shelterGeo, bollard: bollardGeo, placesign: postGeo, wegwijzer: postGeo };
+const GEOS = { ...DETAIL_GEOS, guardrail: guardrailGeo, fence: fenceGeo, hedge: hedgeGeo, noise: noiseGeo, hectometer: hectometerGeo, speedbump: speedbumpGeo, gantry: gantryGeo, beam: beamGeo, bench: benchGeo, bin: binGeo, bikerack: rackGeo, shelter: shelterGeo, bollard: bollardGeo, placesign: postGeo, wegwijzer: postGeo };
 // het centrale LOD-systeem (lodkit3d.js): de modellen van het straatmeubilair, ook voor de audit (scripts/lod_audit_test.mjs)
 export const furnitureModels = () => Object.keys(GEOS).map((k) => [k, GEOS[k](), furnitureLodKind(k)]);
 // de LOD-soort: klein meubilair verdwijnt op 150 m, wat je van ver ziet (een portaal op 650 m, een geluidsscherm) houdt zijn eigen tekenafstand
@@ -136,7 +147,7 @@ function setOf(kind) {
   const cap = kind === 'beam' ? CAP.gantry : CAP[kind] || 100;
   set = makeLodInstanced(furnitureLodKind(kind), 'furniture:' + kind, GEOS[kind](), MAT, cap, {
     setup: (m) => {
-      m.castShadow = kind !== 'speedbump' && kind !== 'hectometer';
+      m.castShadow = kind !== 'speedbump' && kind !== 'hectometer' && !(kind in DETAIL_LOD && kind !== 'kabelkast' && kind !== 'afvalzuil');
       m.receiveShadow = true;
       scene.add(m);
       meshes.set(m.name, m);
@@ -328,9 +339,34 @@ function tileItems(i, j) {
   const res = furnitureForTile({ x0, y0, size: TILE_M, roads, mapped: intro ? [] : mapped, water, rails, buildings, places: worldSignPlaces() || DESTINATIONS, opts: { ...GAME_OPTS, towns: intro ? [] : worldTownSigns() } });
   // nothing that stands on one spot goes on the asphalt, into a house or into
   // the water: the map answers for what is drawn (#463)
-  const items = res.items.filter((it) => !POINT_KINDS.has(it.k) || spotFreeOnMap(map, it.x, it.y, it.k === 'lamp' ? { house: LAMP_AWNING } : undefined));
-  tiles.set(key, t = { items, colliders: items.length === res.items.length ? res.colliders : furnitureColliders(items) });
+  const all = res.items;
+  const items = all.filter((it) => !POINT_KINDS.has(it.k) || spotFreeOnMap(map, it.x, it.y, it.k === 'lamp' ? { house: LAMP_AWNING } : undefined));
+  tiles.set(key, t = { items, colliders: items.length === res.items.length ? res.colliders : furnitureColliders(items), detail: !DETAIL_ON() || intro });
   return t.items;
+}
+
+// De detaillaag (streetdetail.js, #1353) hoort alleen bij wat dichtbij is (DETAIL_REACH) en komt per tegel, hoogstens één per keer
+// (en pas als de meubelitems van de tegel er zijn): de tegel van een dorp kost enkele tientallen ms. De items gaan in de lijst van
+// de tegel (itemsNear en de botsingen lezen die), dus ze verdwijnen ook mee met de cache (dropStaleTiles).
+const DETAIL_REACH = 175;
+function ensureDetail(i, j) {
+  const t = tiles.get(`${i},${j}`);
+  if (!t || t.detail) return false;
+  t.detail = true;
+  const x0 = GRID_X0 + i * TILE_M, y0 = GRID_Y0 + j * TILE_M;
+  const wx = x0 + TILE_M / 2, wy = y0 + TILE_M / 2, wr = TILE_M * 0.71 + 60;
+  const roads = map.roadsNear(wx, wy, TILE_M * 0.71 + 220);
+  const water = map.waterNear(wx, wy, wr).concat(map.flatWaterNear ? map.flatWaterNear(wx, wy, wr) : []);
+  const rails = map.railNear ? map.railNear(wx, wy, wr) : gridItems(map.railGrid);
+  const buildings = map.buildingsNear ? map.buildingsNear(wx, wy, wr) : [];
+  const det = detailForTile({ x0, y0, size: TILE_M, roads, buildings, water, rails, trees: map.treesNear ? map.treesNear(wx, wy, wr) : [] });
+  if (!det.length) return true;
+  // een gemapte heg of hek op dezelfde plek gaat voor (geen dubbele rand)
+  const lin = t.items.filter((it) => it.k === 'hedge' || it.k === 'fence');
+  const mine = det.filter((it) => !(it.k === 'tuinhaag' || it.k === 'fence' || it.k === 'lattenhek') || !lin.some((o) => Math.abs(o.x - it.x) < 3 && Math.abs(o.y - it.y) < 3));
+  for (const it of mine) t.items.push(it);
+  for (const c of furnitureColliders(mine)) t.colliders.push(c);
+  return true;
 }
 
 // the items within reach of (x, y), from the tiles round it
@@ -350,6 +386,13 @@ export function initStreetFurniture3D(sceneRef, mapRef) {
   // perf-r3 (24-11): alle soorten nu al, achter het laadscherm: hun LOD-ketens (lodsimplify.js) en shaders kostten na een
   // camerasprong tot ~130 ms in één beeld (3d:roads:meubilair) bij de eerste keer dat een soort in beeld kwam
   for (const k of Object.keys(GEOS)) setOf(k);
+  // de generator van de detaillaag een keer warm laten lopen op een klein verzonnen straatje: de eerste echte tegel kostte anders
+  // door de koude JIT meer dan een halve seconde (28-11, #1353)
+  try {
+    const rect = (x, y) => [[x - 3, y - 4.5], [x + 3, y - 4.5], [x + 3, y + 4.5], [x - 3, y + 4.5], [x - 3, y - 4.5]];
+    const bl = []; for (let i = 0; i < 40; i++) { bl.push({ pts: rect(10 + i * 7, 12), h: 2 }); bl.push({ pts: rect(10 + i * 7, -12), h: 2 }); }
+    for (let r = 0; r < 3; r++) detailForTile({ x0: 0, y0: -100, size: 400, roads: [{ pts: [[0, 0], [100, 0], [200, 0], [300, 0]], type: 'residential', cat: 'normal', width: 6 }], buildings: bl, water: [], rails: [], trees: [[50, 5], [80, -5]] });
+  } catch (e) { /* de warm-up is een gunst, geen voorwaarde */ }
 }
 
 const _m = new THREE.Matrix4(), _q = new THREE.Quaternion(), _p = new THREE.Vector3(), _s = new THREE.Vector3(), _up = new THREE.Vector3(0, 1, 0);
@@ -366,7 +409,17 @@ export function updateStreetFurniture3D(px, py, force = false) {
   if (!force && !dirty && Math.hypot(px - lastX, py - lastY) < REBUILD_MOVE) return;
   lastX = px; lastY = py; dirty = false;
   for (const m of meshes.values()) m.count = 0;
-  const near = itemsNear(px, py, LOD.gantry);
+  let near = itemsNear(px, py, LOD.gantry);
+  if (DETAIL_ON()) {
+    const [di0, dj0] = tileIndexOf(px - DETAIL_REACH, py - DETAIL_REACH), [di1, dj1] = tileIndexOf(px + DETAIL_REACH, py + DETAIL_REACH);
+    const want = [];
+    for (let i = di0; i <= di1; i++) for (let j = dj0; j <= dj1; j++) {
+      const t = tiles.get(`${i},${j}`);
+      if (t && !t.detail) want.push([i, j, Math.hypot(GRID_X0 + (i + 0.5) * TILE_M - px, GRID_Y0 + (j + 0.5) * TILE_M - py)]);
+    }
+    want.sort((p, q) => p[2] - q[2]);
+    if (want.length) { if (ensureDetail(want[0][0], want[0][1])) near = itemsNear(px, py, LOD.gantry); if (want.length > 1) dirty = true; }
+  }
   const gantries = [], boards = [];
   const ground = (it) => (it.z !== undefined ? it.z : map.groundHeightAt ? map.groundHeightAt(it.x, it.y, 0) : 0);
   for (const it of near) {
@@ -378,6 +431,8 @@ export function updateStreetFurniture3D(px, py, force = false) {
       case 'guardrail': put('guardrail', it.x, z, it.y, it.a, it.s, 1, 1); break;
       case 'fence': put('fence', it.x, z, it.y, it.a, it.s, 1, 1); break;
       case 'noise': put('noise', it.x, z, it.y, it.a, it.s, it.h || 4, 1); break;
+      case 'lattenhek': put('lattenhek', it.x, z, it.y, it.a, it.s || 1, 1, 1); break;
+      case 'tuinhaag': put('tuinhaag', it.x, z, it.y, it.a, it.s || 1, (it.h || 0.9) / 0.9, 1); break;
       case 'hedge': put('hedge', it.x, z, it.y, it.a, it.s, edgeHeight('hedge', it.h) / HEDGE_TOP, 1); break;
       case 'hectometer': put('hectometer', it.x, z, it.y, it.a); break;
       case 'speedbump': put('speedbump', it.x, z, it.y, it.a, 1, 1, it.s || 6); break;
@@ -395,7 +450,7 @@ export function updateStreetFurniture3D(px, py, force = false) {
       default: if (GEOS[it.k]) put(it.k, it.x, z, it.y, it.a);
     }
   }
-  for (const m of meshes.values()) { m.instanceMatrix.needsUpdate = true; markInstancesDirty(m.instanceMatrix, m.count); }
+  for (const m of meshes.values()) { m.instanceMatrix.needsUpdate = true; markInstancesDirty(m.instanceMatrix, m.count); m.visible = m.count > 0; }
   rebuildBoards(boards.filter(bordHeeftTekst).sort((a, b) => Math.hypot(a.x - px, a.y - py) - Math.hypot(b.x - px, b.y - py)).slice(0, BOARD_COLS * BOARD_ROWS));
   rebuildSigns(gantries.filter(bordHeeftTekst).sort((a, b) => Math.hypot(a.x - px, a.y - py) - Math.hypot(b.x - px, b.y - py)).slice(0, 16));
 }

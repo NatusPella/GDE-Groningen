@@ -171,6 +171,14 @@ export const PROP_REGISTER = {
     nl: 'Klaptafel met koffie', bouwer: 'koffietafel', gebruik: ['cutscene', 'activiteit'],
     norm: { tris: [700, 1200], kleuren: 10, maat: [0.7, 1.12, 1.32], eisen: ['geruit tafelzeil met overhang', 'schragenpoten in een X met regels', 'thermoskan met dop-beker en handvat', 'vier mokken met koffie en een oor', 'koektrommel en krant'] },
   },
+  tuinhaag: {
+    nl: 'Tuinhaag (2 m)', bouwer: 'tuinhaag', gebruik: ['buiten'],
+    norm: { tris: [140, 320], kleuren: 8, maat: [0.6, 1.0, 2.0], eisen: ['onderbouw van tak en blad', 'ronde rij bladbollen in vier groentinten', 'gesnoeid bovenvlak', 'bloesems'] },
+  },
+  boomspiegel: {
+    nl: 'Boomspiegel met rooster', bouwer: 'boomspiegel', gebruik: ['buiten'],
+    norm: { tris: [100, 260], kleuren: 4, maat: [1.3, 0.07, 1.3], eisen: ['opstaande betonrand', 'gietijzeren rooster met staven in twee richtingen', 'stamopening met aarde', 'steenbed'] },
+  },
   hooibaal: {
     nl: 'Ronde baal hooi', bouwer: 'hooibaal', gebruik: ['cutscene', 'activiteit'],
     norm: { tris: [800, 1200], kleuren: 5, maat: [1.36, 1.41, 1.24], eisen: ['rol met strovlekken', 'spiraal op de kopse kanten', 'netbanden om de omtrek', 'uitstekende strootjes'] },
@@ -192,6 +200,71 @@ export const PROP_REGISTER = {
   balenwagen: {
     nl: 'Balenwagen', bouwer: 'balenwagen', gebruik: ['activiteit'],
     norm: { tris: [450, 800], kleuren: 6, maat: [7.56, 2.63, 2.52], eisen: ['laadvloer van planken in twee tinten', 'chassisbalken en rode randbalk', 'vier wielen met velg op assen', 'dissel met trekoog', 'rek voorop'] },
+  },
+  // straatdetail (28-11, #1353): wijken en dorpen; bouwers in streetdetailprops3d.js, geplaatst door streetdetail.js
+  klikogrijs: {
+    nl: 'Kliko (grijs, restafval)', bouwer: 'klikogrijs', gebruik: ['buiten'],
+    norm: { tris: [180, 330], kleuren: 9, maat: [0.78, 1.05, 0.62], eisen: ['romp in twee trappen die naar onderen smaller wordt', 'deksel met scharnierbalk en greep', 'twee wielen op een as', 'etiket en groef vooraan'] },
+  },
+  klikogroen: {
+    nl: 'Kliko (groen, gft)', bouwer: 'klikogroen', gebruik: ['buiten'],
+    norm: { tris: [180, 330], kleuren: 9, maat: [0.78, 1.05, 0.62], eisen: ['romp in twee trappen die naar onderen smaller wordt', 'deksel met scharnierbalk en greep', 'twee wielen op een as', 'etiket en groef vooraan'] },
+  },
+  klikoblauw: {
+    nl: 'Kliko (blauw, papier)', bouwer: 'klikoblauw', gebruik: ['buiten'],
+    norm: { tris: [180, 330], kleuren: 9, maat: [0.78, 1.05, 0.62], eisen: ['romp in twee trappen die naar onderen smaller wordt', 'deksel met scharnierbalk en greep', 'twee wielen op een as', 'etiket en groef vooraan'] },
+  },
+  fietszwart: {
+    nl: 'Fiets (zwart met mand)', bouwer: 'fietszwart', gebruik: ['buiten'],
+    norm: { tris: [580, 950], kleuren: 10, maat: [1.81, 1.27, 0.63], eisen: ['twee wielen met band, velg, naaf en spaken', 'frame van buizen met zadel en stuur', 'spatborden, jasbeschermer en bagagedrager', 'koplamp, achterlicht en standaard'] },
+  },
+  fietsrood: {
+    nl: 'Fiets (rood)', bouwer: 'fietsrood', gebruik: ['buiten'],
+    norm: { tris: [560, 920], kleuren: 10, maat: [1.81, 1.03, 0.63], eisen: ['twee wielen met band, velg, naaf en spaken', 'frame van buizen met zadel en stuur', 'spatborden, jasbeschermer en bagagedrager', 'koplamp, achterlicht en standaard'] },
+  },
+  fietsblauw: {
+    nl: 'Fiets (blauw)', bouwer: 'fietsblauw', gebruik: ['buiten'],
+    norm: { tris: [560, 920], kleuren: 10, maat: [1.81, 1.03, 0.63], eisen: ['twee wielen met band, velg, naaf en spaken', 'frame van buizen met zadel en stuur', 'spatborden, jasbeschermer en bagagedrager', 'koplamp, achterlicht en standaard'] },
+  },
+  lattenhek: {
+    nl: 'Lattenhekje', bouwer: 'lattenhek', gebruik: ['buiten'],
+    norm: { tris: [280, 480], kleuren: 5, maat: [0.09, 0.94, 2.07], eisen: ['twaalf spitse latten met een eigen tint', 'twee regels aan de achterkant', 'palen met een kopje', 'grondstrook'] },
+  },
+  schutting: {
+    nl: 'Schutting', bouwer: 'schutting', gebruik: ['buiten'],
+    norm: { tris: [120, 220], kleuren: 7, maat: [0.11, 1.86, 2.1], eisen: ['betonnen onderplaat', 'zeven liggende planken in vijf tinten', 'betonpalen met een kap', 'afdeklijst'] },
+  },
+  tuinpad: {
+    nl: 'Tuinpad (tegels)', bouwer: 'tuinpad', gebruik: ['buiten'],
+    norm: { tris: [220, 400], kleuren: 5, maat: [0.9, 0.03, 2], eisen: ['voegbed', 'acht rijen van drie tegels', 'tintverschil per tegel'] },
+  },
+  plantenbak: {
+    nl: 'Plantenbak met bloeiende heesters', bouwer: 'plantenbak', gebruik: ['buiten'],
+    norm: { tris: [260, 480], kleuren: 9, maat: [0.5, 0.9, 1.06], eisen: ['houten bak met hoekstijlen', 'afdeklijst en aarde', 'drie heesters in groentinten', 'bloeiende toppen in vier kleuren'] },
+  },
+  kabelkast: {
+    nl: 'Kabelkast', bouwer: 'kabelkast', gebruik: ['buiten'],
+    norm: { tris: [110, 220], kleuren: 6, maat: [0.36, 1.32, 0.8], eisen: ['betonnen sokkel', 'dak met overstek', 'twee deuren met ventilatiesleuven', 'slotkastje en waarschuwingsplaatje'] },
+  },
+  afvalzuil: {
+    nl: 'Afvalzuil (ondergrondse container)', bouwer: 'afvalzuil', gebruik: ['buiten'],
+    norm: { tris: [300, 520], kleuren: 8, maat: [0.9, 1.13, 1.95], eisen: ['dekplaat', 'drie zuilen in grijs, blauw en groen met kap', 'inworpklep met greep', 'pictogramvlak'] },
+  },
+  bord30: {
+    nl: 'Verkeersbord zone 30', bouwer: 'bord30', gebruik: ['buiten'],
+    norm: { tris: [260, 460], kleuren: 5, maat: [0.1, 2.42, 0.6], eisen: ['stalen paal met kap', 'rode rand en witte schijf', 'het getal 30 in zeven segmenten', 'beugel en grijze achterkant'] },
+  },
+  voorrangsbord: {
+    nl: 'Voorrangsbord', bouwer: 'voorrangsbord', gebruik: ['buiten'],
+    norm: { tris: [80, 160], kleuren: 5, maat: [0.51, 2.32, 0.66], eisen: ['stalen paal met kap', 'gele ruit met witte en zwarte rand', 'beugel en grijze achterkant'] },
+  },
+  bermpaal: {
+    nl: 'Bermpaal', bouwer: 'bermpaal', gebruik: ['buiten'],
+    norm: { tris: [50, 110], kleuren: 3, maat: [0.13, 1.08, 0.17], eisen: ['witte romp met afgeschuinde kop', 'rode reflectoren aan twee kanten', 'zwarte voetstrook en band'] },
+  },
+  rietpol: {
+    nl: 'Rietpol', bouwer: 'rietpol', gebruik: ['buiten'],
+    norm: { tris: [100, 220], kleuren: 5, maat: [0.65, 2.03, 0.64], eisen: ['negen bladeren in drie groentinten', 'pluimen', 'grondkluit'] },
   },
 };
 

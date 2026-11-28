@@ -575,6 +575,7 @@ export function furnitureColliders(items) {
       // hek en heg: de ene regelset van edgeclasses.js (zelfde tabel als wat streetfurniture3d.js tekent)
       case 'fence': out.push(edgeCollider('fence', it)); break;
       case 'hedge': out.push(edgeCollider('hedge', it)); break;
+      case 'tuinhaag': out.push(edgeCollider('hedge', { ...it, s: it.s * 2, h: it.h })); break; // de voortuinhaag botst als de heg (streetdetail.js)
       case 'noise': out.push({ kind: 'wall', x: it.x, y: it.y, r: 0.15, half: it.s / 2, angle: it.a, key: it.key, static: true, top: it.h }); break;
       case 'gantry': {
         const nx = Math.sin(it.a), ny = -Math.cos(it.a);
