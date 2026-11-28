@@ -129,9 +129,13 @@ export function mountLobby(root, hooks, opts = {}) {
       if (state.step !== 'verbonden') planAuto(AUTO_TUSSEN);
     }, ms);
   }
+  let closed = false, startTik = null;
+  const restores = [];
+  const stopStartTik = () => { if (startTik) { clearInterval(startTik); startTik = null; } };
   let verbindTimer = null, verbindN = 0; // #985: zolang het scherm Verbinden… toont, telt hij mee zodat de tekst kan zeggen dat er nog niets terugkwam
   const stopVerbindTik = () => { if (verbindTimer) { clearInterval(verbindTimer); verbindTimer = null; } };
   const set = (ev) => {
+    if (closed) return;
     const was = state.step;
     state = reduce(state, ev);
     if (state.step === 'verbinden' && !verbindTimer) { verbindN = 0; state = { ...state, wachtTik: 0 }; verbindTimer = setInterval(() => set({ t: 'verbind-tik', n: ++verbindN }), VERBIND_TIK_MS); }
@@ -161,6 +165,7 @@ export function mountLobby(root, hooks, opts = {}) {
   const rapportTekst = () => foutrapport({ beoordeling: lastDiag, log: verbindingslog, versie: VERSION, platform: typeof navigator !== 'undefined' ? navigator.platform : '', stand: `${state.rol || '-'} / ${state.route || '-'} / ${state.step}` });
 
   function draw() {
+    if (closed) return;
     // #1169: het niveau van de wereld: de eigen stand als je het spel opende, anders wat het welkom van de host meegaf (een oude host geeft niets)
     state.wereld = state.rol === ROLES.HOST ? getDifficultyLevel() : (session && session.welcome && session.welcome.niveau) || '';
     const v = view(state);
@@ -574,7 +579,9 @@ export function mountLobby(root, hooks, opts = {}) {
   function watch(sess, expected = null) {
     session = sess;
     let rejectedIdentity = false; // na een identiteitsfout de rest negeren, zodat de waarschuwing blijft staan
-    sess.onstatus = (st) => {
+    const prevStatus = sess.onstatus;
+    const onStatus = (st) => {
+      if (closed) { if (prevStatus) prevStatus(st); return; }
       if (rejectedIdentity) return;
       const check = st === 'ok' && expected ? hostIdentityCheck(expected, sess.sessie) : null;
       if (check && check.hard) {
@@ -594,15 +601,22 @@ export function mountLobby(root, hooks, opts = {}) {
         if (opts.start && hooks.resumed) hooks.resumed();
         if (check) set({ t: 'fout', msg: check.msg }); // zelfde sessie-id, andere naam: alleen een waarschuwing
       }
+      if (prevStatus) prevStatus(st);
     };
+    sess.onstatus = onStatus;
+    restores.push(() => { if (sess.onstatus === onStatus) sess.onstatus = prevStatus; });
     const prev = sess.onevent;
-    sess.onevent = (b) => {
+    const onEvent = (b) => {
+      if (closed) { if (prev) prev(b); return; }
       if (rejectedIdentity) return; // #1293: berichten van de kamer van een ander (spelerslijst, hek) overschrijven de waarschuwing niet
       if (b && b.k === 'hek') { // wie het spel opende start het spel (of er was geen wachtkamer): de wachtkamer van de gast sluit
         const was = state.caps.startGate; set({ t: 'gate', aan: !!b.aan });
         if (was && !b.aan && hooks.startSpel) hooks.startSpel();
       }
-      if (b && b.k === 'spelers' && Array.isArray(b.lijst)) sess.lijstGezien = true; if (b && b.k === 'spelers' && Array.isArray(b.lijst)) set({ t: 'spelers', lijst: b.lijst.map((x) => ({ ...x, naam: naamVan(x) })), max: b.max }); if (prev) prev(b); };
+      if (b && b.k === 'spelers' && Array.isArray(b.lijst)) sess.lijstGezien = true; if (b && b.k === 'spelers' && Array.isArray(b.lijst)) set({ t: 'spelers', lijst: b.lijst.map((x) => ({ ...x, naam: naamVan(x) })), max: b.max }); if (prev) prev(b);
+    };
+    sess.onevent = onEvent;
+    restores.push(() => { if (sess.onevent === onEvent) sess.onevent = prev; });
   }
 
   async function guestStart() {
@@ -709,6 +723,8 @@ export function mountLobby(root, hooks, opts = {}) {
     hervatGen++;
     if (autoTimer) { clearTimeout(autoTimer); autoTimer = null; }
     stopVerbindTik();
+    stopStartTik();
+    while (restores.length) restores.pop()();
     autoTries = AUTO_MAX; // na sluiten geen pogingen meer
     annuleerWachtend(); // #983: het paneel wordt opnieuw getekend terwijl de sessie doorloopt; een verbonden speler (bij een volle sessie is de laatste handle er een) blijft verbonden
     handle = null; wacht = false;
@@ -747,9 +763,16 @@ export function mountLobby(root, hooks, opts = {}) {
           const sk = startKnop({ rol: 'host', spelers: state.spelers || [], bezig: !!state.startBezig });
           if (!magStarten(sk, !!state.startBezig)) return;
           set({ t: 'start-bezig' });
-          const t0 = Date.now(); const tik = setInterval(() => { if (!state.startBezig) { clearInterval(tik); return; } set({ t: 'start-tik', s: Math.floor((Date.now() - t0) / 1000) }); }, 1000);
+          stopStartTik();
+          const t0 = Date.now();
+          startTik = setInterval(() => {
+            if (closed || !state.startBezig) { stopStartTik(); return; }
+            set({ t: 'start-tik', s: Math.floor((Date.now() - t0) / 1000) });
+          }, 1000);
           await new Promise((res) => setTimeout(res, 80)); // één beeld met de voortgang
           if (hooks.startSpel) hooks.startSpel();
+          stopStartTik();
+          set({ t: 'start-klaar' });
           set({ t: 'gate', aan: false });
         }
       }
@@ -859,7 +882,12 @@ export function mountLobby(root, hooks, opts = {}) {
     }
   }
 
-  if (hub && (opts.start || opts.adopt)) { const prev = hub.onchange; hub.onchange = (r) => { if (prev) prev(r); onRoster(r); }; }
+  if (hub && (opts.start || opts.adopt)) {
+    const prev = hub.onchange;
+    const onHub = (r) => { if (prev) prev(r); if (!closed) onRoster(r); };
+    hub.onchange = onHub;
+    restores.push(() => { if (hub.onchange === onHub) hub.onchange = prev; });
+  }
   if (session && (opts.start || opts.adopt)) watch(session); // wachtscherm van een gast: zodra de verbinding van zelf terugkomt (zelfde token), sluit het scherm
   const ac = typeof AbortController !== 'undefined' ? new AbortController() : { signal: undefined, abort() {} };
   const listenOpts = ac.signal ? { signal: ac.signal } : undefined;
@@ -937,6 +965,6 @@ export function mountLobby(root, hooks, opts = {}) {
       return true;
     },
     wizard: () => ({ ...wz, stap: wizStep(state, wz) }),
-    close() { ac.abort(); cleanup(); root.innerHTML = ''; }, // alleen hier de luisteraars afbreken: cleanup() draait ook bij Terug en Verbreken, waar het scherm blijft
+    close() { closed = true; ac.abort(); cleanup(); root.innerHTML = ''; }, // alleen hier de luisteraars afbreken: cleanup() draait ook bij Terug en Verbreken, waar het scherm blijft
   };
 }
