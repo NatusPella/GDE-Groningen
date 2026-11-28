@@ -13,7 +13,7 @@ ok([...ADDED_STEPS].filter((id) => /^J/.test(id)).sort().join() === 'J1,J2,J3,J4
 ok(ADDED_STEPS.filter((id) => /^F/.test(id)).join() === 'F1,F2,F3,F4,F5,F6', 'zes slotstappen F1 tot en met F6 (verhaal-eind)');
 ok(STEPS.filter((s) => s.kind === 'mission').map((s) => s.id).join() === [...Array(30)].map((_, i) => 'M' + String(i + 1).padStart(2, '0')).join(), 'de dertig missies staan nog in dezelfde volgorde');
 ok(idx('M02') < idx('N1') && idx('N4') < idx('M03') && idx('M08') < idx('N8') && idx('N8') < idx('T1') && idx('N5') < idx('M10') && idx('N7') < idx('T2') && idx('M08') < idx('N10') && idx('N10') < idx('N8') && idx('A1') < idx('N11') && idx('N11') < idx('N12') && idx('N12') < idx('N6') && idx('M18') < idx('N9') && idx('N9') < idx('M19'), 'de stappen staan op hun invoegpunt (N9 in akte 4, N10 tot en met N12 in akte 2)');
-ok(ADDED_STEPS.every((id) => { const s = STEPS.find((x) => x.id === id); return s.kind === 'activity' && s.built && !s.reward && !s.cost && !s.unlocks; }), 'elke nieuwe stap is een activiteit zonder beloning, kosten of vlag');
+ok(ADDED_STEPS.every((id) => { const s = STEPS.find((x) => x.id === id); return s.kind === 'activity' && s.built && !s.reward && !s.cost && (!s.unlocks || id === 'D2'); }), 'elke nieuwe stap is een activiteit zonder beloning, kosten of vlag (alleen D2 zet de vlag vervoer: een oude save heeft hem niet, dus krijgt de terugblik, vervoer.js)');
 
 // een save van vóór de epic: alleen de oude stappen gedaan
 const OUD = STEPS.filter((s) => !ADDED_STEPS.includes(s.id));

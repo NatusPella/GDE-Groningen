@@ -54,6 +54,11 @@ const SPEAKER_COLORS = {
   Lieke: '#d9a920',
   Daan: '#8d8fd0',
   Stien: '#c98f6a',
+  // vervoer (28-11, #1375)
+  Dries: '#5f8fc4',
+  Annemarie: '#b8847a',
+  'Mevrouw Wassink': '#a67ab0',
+  'Jochem Luiken': '#7a9a62',
 };
 // generic NPCs, bijbaan bosses, radio and navigation voices
 const NEUTRAL = '#8a8a8a';

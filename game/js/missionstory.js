@@ -108,6 +108,10 @@ export const NPC = {
   lieke: { name: 'Lieke', shirt: 0xe8c030, skin: SKIN.woodLight, variant: 'female', seed: 6120, hairStyle: 'curly', look: { age: 'child' } },
   daan: { name: 'Daan', shirt: 0xb8b8d8, skin: SKIN.woodMid, variant: 'male', seed: 6121 },
   stien: { name: 'Stien', shirt: 0xd8d4c8, skin: SKIN.woodLight, variant: 'female', seed: 6122, hairStyle: 'bun', look: { age: 'old' } },
+  // vervoer (28-11, #1375): de chauffeur, de vaste klant en de stationschef (Annemarie is alleen een stem)
+  dries: { name: 'Dries', shirt: 0x2e5d8a, skin: SKIN.woodLight, variant: 'male', seed: 6140, look: { age: 'old' } },
+  wassink: { name: 'Mevrouw Wassink', shirt: 0x8a6a7a, skin: SKIN.woodLight, variant: 'female', seed: 6141, hairStyle: 'bun', look: { age: 'old' } },
+  jochem: { name: 'Jochem Luiken', shirt: 0x34506e, skin: SKIN.woodMid, variant: 'male', seed: 6142 },
   // de begincutscenes van de carrières (careerdebut.js, 22-11): de trainer van de Talentenklasse en de buurman van het eerste perceel
   trainer: { name: 'Trainer Eppo', shirt: 0x24324e, skin: SKIN.woodMid, variant: 'male', seed: 6130 },
   buurman: { name: 'Buurman Aldert', shirt: 0x6a7a3a, skin: SKIN.woodLight, variant: 'male', seed: 6131, look: { age: 'old' } },

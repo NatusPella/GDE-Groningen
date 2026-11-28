@@ -99,6 +99,8 @@ export const SPEAKERS = {
   bewaarder: 'Mevrouw Hoving', loketbediende: 'Loketbediende', accountmanager: 'Accountmanager', jurylid: 'Jurylid',
   buschauffeur: 'Buschauffeur', kustwachter: 'Kustwachter', kermisexploitant: 'Kermisexploitant', deurwaarder: 'Deurwaarder',
   student: 'Student', boer: 'Boer', kind: 'Kind in het publiek',
+  // vervoer (28-11, #1375)
+  dries: 'Dries', annemarie: 'Annemarie', wassink: 'Mevrouw Wassink', jochem: 'Jochem Luiken',
   willemien: 'Willemien', buurvrouw: 'Buurvrouw',
   // inspiratiepakket (21-11)
   veldkamp: 'Meneer Veldkamp', anneke: 'Anneke', lieke: 'Lieke', daan: 'Daan', stien: 'Stien',
@@ -324,6 +326,14 @@ export const STEPS = [
   A('N12', 'romp', 'De lijst op de koelkast', { type: 'reis', to: 'de flat in Paddepoel', at: [53.2405, 6.5335], r: 250, scene: 'N12' }, { built: true, scenes: ['N12'], lead: ['T', 'Mijn schone sokken zijn op. De flat in Paddepoel, even langs, en dan weer verder.'] }),
   A('N6', 'romp', 'Een dag op het water', { type: 'reis', to: 'Noordpolderzijl', at: [53.4130, 6.5810], r: 400, scene: 'N6' }, { built: true, scenes: ['N6'], lead: ['T', 'Klaas heeft twee hengels en een emmer. Noordpolderzijl. Praat tegen het water, zegt hij.'] }),
   A('N7', 'romp', 'De streekbus naar Winsum', { type: 'reis', to: 'Winsum', at: [53.33302, 6.51598], r: 400, scene: 'N7' }, { built: true, scenes: ['N7'], lead: ['A', 'Een ritje met de streekbus naar Winsum, om te zien wat dat is: chauffeur zijn. Jij mag de halte kiezen.'] }),
+  // Vervoer (28-11, #1375): de chauffeur valt weg. Activiteiten zonder beloning met migratie voor oude saves (added: true, zie storyarc.js ADDED_STEPS);
+  // D2 opent de loopbaan (flag 'vervoer'), de eerste dienst is de bestaande lijndienst van Noorderspoor (sidejob_lijn.js).
+  A('D1', 'romp', 'De laatste bus naar huis', { type: 'reis', to: 'het busstation', at: [53.2108, 6.5648], r: 300, scene: 'D1' }, { built: true, added: true, scenes: ['D1'],
+    lead: ['A', 'De laatste streekbus naar Winsum vertrekt bij het busstation. De chauffeur groet iedereen die instapt. Meerijden?'] }),
+  A('D2', 'romp', 'Dries ligt op de bank', { type: 'reis', to: 'de bushalte in Winsum', at: [53.33302, 6.51598], r: 400, scene: 'D2' }, { built: true, added: true, scenes: ['D2'], unlocks: 'vervoer',
+    lead: ['A', 'De centrale belde: de bus van Dries staat klaar bij de halte in Winsum. Ik doe het rooster, jij stuurt.'] }),
+  A('D3', 'romp', 'Een stoptrein met Jochem', { type: 'reis', to: 'perron 1 van Station Groningen', at: [53.2106, 6.5642], r: 250, scene: 'D3' }, { built: true, added: true, scenes: ['D3'],
+    lead: ['A', 'De stationschef zoekt een invaller voor de trein. Perron 1. Ik ga mee als conducteur.'] }),
   A('T2', 'romp', 'De streekbus naar Zoutkamp', { type: 'reis', to: 'Zoutkamp', at: [53.3377, 6.2986], r: 400 }, { built: true, loopbanen: ['bus', 'hengelen'], scenes: ['T2'],
     lead: ['A', 'Oma stuurt ons naar Kapitein Klaas in Zoutkamp: met de streekbus, overstappen in Winsum. Daarna is er alleen nog water.'] }),
   M('M11', 'romp', 'Geleend van de Friezen', 'skutsje', { built: true, reward: 1300, loopbanen: ['water'],
