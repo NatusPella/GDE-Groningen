@@ -297,20 +297,6 @@ function angleOff(p, x, y) {
   return Math.abs(Math.atan2(Math.sin(a), Math.cos(a)));
 }
 
-function pedInReach(world, range, cone) {
-  const p = hoofdspeler(world);
-  let best = null, bestD = range;
-  for (const ped of world.pedestrians || []) {
-    if (ped.state === 'dead') continue;
-    const dx = ped.x - p.x, dy = ped.y - p.y;
-    const d = Math.hypot(dx, dy);
-    if (d > bestD || d < 0.01) continue;
-    if (angleOff(p, ped.x, ped.y) > cone) continue;
-    bestD = d; best = ped;
-  }
-  return best;
-}
-
 // Mirrors the order player.js resolves an E press in (kissing is K now): the
 // nearest vehicle; clicks come next.
 function findPrimary(world) {
@@ -424,11 +410,7 @@ function findPrimary(world) {
     const name = c.character === 'tammo' ? 'Tammo' : 'Tessa';
     return { id: 'kiss-' + name, x: c.x, y: c.y, h: 1.55, key: 'K', label: 'Kusje', sub: 'Even bijkomen…', ring: true, cooldown: (kissUntil - world.time) / KISS_COOLDOWN, dim: true };
   }
-  const weapon = world.weapon || 'fists';
-  if (isMeleeWeapon(weapon)) {
-    const ped = pedInReach(world, WEAPONS[weapon].range + 0.4, Math.PI / 3);
-    if (ped) return { id: 'punch-' + (ped.id ?? ''), x: ped.x, y: ped.y, h: 1.75, key: 'LMB', label: 'Slaan', sub: ped.isCop ? 'Een agent? Durf je dat?' : learning('punch') ? '{LMB} om uit te delen' : '', learn: learning('punch'), danger: true };
-  }
+  // Slaan krijgt geen prompt (#1355): een muisklik of de controllerknop volstaat; de uitleg staat als kleine eerste-keer-hint in de besturingshulp (contextRows).
   // aan de kant bij water en niets anders te doen: hengelen (#412)
   const vis = hengelVrijPrompt(world, false);
   if (vis) return vis;
@@ -739,6 +721,8 @@ function contextRows(world, primary) {
     if (world.weapon === 'carbidbus') rows.push(tut('throw', ['LMB'], 'Gooien', `Bukken ({CTRL}) en {LMB} zet de bus neer. Wegwezen!`));
     else rows.push(tut('shoot', ['LMB'], 'Schieten', 'Je schiet waar de camera kijkt'));
     rows.push(tut('weapon', ['1-4'], 'Wapen', '1 slaan, 2 pistolen, 3 geweren, 4 knallers; nog eens drukken wisselt, of {WHEEL}'));
+  } else if (isMeleeWeapon(world.weapon)) {
+    rows.push(tut('punch', ['LMB'], 'Slaan', 'Klik om te slaan'));
   }
   rows.push(tut('map', ['M'], 'Kaart', 'Zet een bestemming', true));
   rows.push(tut('pause', ['ESC'], 'Telefoon', 'Bellen, berichten, te doen, kaart en instellingen', true));

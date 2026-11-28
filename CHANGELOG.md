@@ -9,6 +9,9 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ## [Unreleased]
 
+- Slaan: geen popup meer bij een voorbijganger in het bereik; een muisklik (of de controllerknop) volstaat. "Klik om te slaan" staat alleen nog als kleine eerste-keer-hint in de besturingshulp (#1355).
+- Politie: alleen een echte treffer telt als misdrijf. Zwaaien in de lucht, tegen een muur of tegen je eigen auto geeft geen sterren en geen getuigen meer, ook niet als een voorbijganger op dat moment door iets anders gewond raakt. Een treffer op een voorbijganger of agent blijft strafbaar; je eigen auto sla je niet meer kapot (#1356).
+- Samen spelen: de zwaai of treffer van een gast telt voor zijn eigen gezocht-niveau, niet meer voor dat van wie het spel opende; een speler op passief kan niet geraakt worden en PvP-treffers tussen spelers geven geen sterren (#1356).
 - De game staat nu op de hoofdpagina van de webversie (GitHub Pages); de marketingpagina is weggehaald. De oude link /play/ stuurt door naar de hoofdpagina.
 
 ## [0.66.0] - 2026-11-24
