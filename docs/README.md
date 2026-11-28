@@ -109,7 +109,7 @@ De werkafspraken en de constitutie staan in [../AGENTS.md](../AGENTS.md); die wi
 | [LEGAL-AI-ASSETS.md](<LEGAL-AI-ASSETS.md>) | Dit is geen juridisch advies. Het is een leesverslag door een AI-assistent |
 | [LICENTIES.md](<LICENTIES.md>) | Stand van 3 oktober 2026. Dit is een inventaris en een advies, geen |
 | [LOOPBAAN.md](<LOOPBAAN.md>) | Naslag. De regels staan in de canonieke spec [`.specs-fire/standards/mechanica.md`](../.specs-fire/standard… |
-| [RANGMOMENTEN.md](<RANGMOMENTEN.md>) | Gedeelde haak voor een verhaalmoment bij een rangstijging van een loopbaan: hoe loopbaantaken een moment aanmelden (id, loopbaan, rang, scène, voorwaarde), wanneer het speelt en wat het per speler onthoudt (R1, B1). |
+| [RANKMOMENTS.md](<RANKMOMENTS.md>) | Gedeelde haak voor een verhaalmoment bij een rangstijging van een loopbaan: hoe loopbaantaken een moment aanmelden (id, loopbaan, rang, scène, voorwaarde), wanneer het speelt en wat het per speler onthoudt (R1, B1). |
 | [MERKENCHECK.md](<MERKENCHECK.md>) | Datum: 17 oktober 2026. Geen juridisch advies. |
 | [MERKENREGISTER.md](<MERKENREGISTER.md>) | Stand: 18 oktober 2026. Dit register hoort bij de constitution in |
 | [MOBIEL-RAPPORT.md](<MOBIEL-RAPPORT.md>) | Gemeten en bekeken in Electron met Chromium-apparaatemulatie (`--emulate-mobile`, touchbediening geforceerd… |

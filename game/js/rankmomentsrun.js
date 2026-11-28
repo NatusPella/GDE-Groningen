@@ -1,12 +1,12 @@
-// Rangmomenten (R1/B1), het afspelen: elk frame kijkt dit of een aangemeld moment (rangmomenten.js) aan de beurt is en of het rustig is.
-// De regels staan in rangmomenten.js (puur, getest); dit is de dunne laag met de wereld, naar het voorbeeld van careerdebutrun.js.
-// Samen spelen: lokaal per speler; niets gaat over het netwerk (docs/RANGMOMENTEN.md).
+// Rangmomenten (R1/B1), het afspelen: elk frame kijkt dit of een aangemeld moment (rankmoments.js) aan de beurt is en of het rustig is.
+// De regels staan in rankmoments.js (puur, getest); dit is de dunne laag met de wereld, naar het voorbeeld van careerdebutrun.js.
+// Samen spelen: lokaal per speler; niets gaat over het netwerk (docs/RANKMOMENTS.md).
 import { isCinematicActive, sinceCinematic } from './cinematics.js';
 import { isMissionActive } from './missions.js';
 import { noticeHeldBy, noticeQueue } from './notifyqueue.js';
 import { playerBusy, BUSY_ALL } from './busy.js';
 import { talkActive } from './storytalk.js';
-import { rangHaak } from './loopbaanlive.js';
+import { rankHook } from './loopbaanlive.js';
 
 function snapshot(w, menuOpen) {
   const druk = playerBusy(w, BUSY_ALL);
@@ -29,7 +29,7 @@ function snapshot(w, menuOpen) {
 }
 
 // main.js: naast updateCareerDebuts. `menuOpen`: staat een menu, de kaart, de telefoon of een winkel open.
-export function updateRangmomenten(dt, w, menuOpen) {
-  if (!w || typeof document === 'undefined' || !rangHaak.wachtrij().length) return;
-  rangHaak.tik(dt, w, snapshot(w, menuOpen));
+export function updateRankMoments(dt, w, menuOpen) {
+  if (!w || typeof document === 'undefined' || !rankHook.wachtrij().length) return;
+  rankHook.tik(dt, w, snapshot(w, menuOpen));
 }

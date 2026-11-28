@@ -87,7 +87,7 @@ import { initMissions, updateMissions } from './missions.js';
 import { initStory, updateStory, currentStep, storyBridgeView, storyGateProgress } from './story.js';
 import { updateStoryBridge } from './storybridgerun.js';
 import { updateCareerDebuts } from './careerdebutrun.js';
-import { updateRangmomenten } from './rangmomentenrun.js';
+import { updateRankMoments } from './rankmomentsrun.js';
 import { initFeatureReveal, updateFeatureReveal } from './featurerevealrun.js';
 import { updateTerugkeer } from './terugkeerrun.js';
 import { updateRecap, isRecapOpen } from './recapcardrun.js';
@@ -1293,8 +1293,8 @@ try { const slot = ensureLatestSlot(); const info = slot ? readSaveInfo() : null
     updateStoryBridge(world.paused ? 0 : dt, world, storyBridgeView(), () => isPauseMenuOpen() || isMapOpen() || isPhoneOpen() || isShopOpen());
     // 22-11: de begincutscene van de voetbalcarrière en van het eerste perceel (careerdebutrun.js), eenmaal per speler, op een rustig moment
     updateCareerDebuts(world.paused ? 0 : dt, world, storyBridgeView(), () => isPauseMenuOpen() || isMapOpen() || isPhoneOpen() || isShopOpen());
-    // R1: een aangemeld rangmoment van een loopbaan (rangmomenten.js), op een rustig moment en eenmaal per speler
-    updateRangmomenten(world.paused ? 0 : dt, world, () => isPauseMenuOpen() || isMapOpen() || isPhoneOpen() || isShopOpen());
+    // R1: een aangemeld rangmoment van een loopbaan (rankmoments.js), op een rustig moment en eenmaal per speler
+    updateRankMoments(world.paused ? 0 : dt, world, () => isPauseMenuOpen() || isMapOpen() || isPhoneOpen() || isShopOpen());
     updateFeatureReveal(world.paused ? 0 : dt, world, () => !storyGateProgress().gate); // de melding "Nieuw in je menu"; een oude save krijgt alles stil
     probe.mark('story');
     updateStreetSigns(dt, world, getScene());

@@ -235,7 +235,7 @@ export function nieuwProfiel() {
   for (const id of VAK_IDS) vakken[id] = nieuwVak();
   // kaarten: welke verhaalstappen al een eenmalig loopbaankaartje gaven (#846); duizendpoot: de eenmalige
   // beloning van #846 is betaald. Allebei per speler/apparaat, in hetzelfde profiel als de vakken.
-  // momenten: de rangmomenten (rangmomenten.js) die deze speler al zag, op id; een oud profiel zonder het veld krijgt []
+  // momenten: de rangmomenten (rankmoments.js) die deze speler al zag, op id; een oud profiel zonder het veld krijgt []
   return { v: SLEUTEL_VERSIE, vakken, gestart: [], kaarten: [], duizendpoot: false, momenten: [] };
 }
 
