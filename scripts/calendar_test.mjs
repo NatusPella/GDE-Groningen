@@ -108,7 +108,7 @@ ok(specialDay(day(8, 18)).small && cardFor(day(8, 18), []) === null, 'a market d
 ok(!specialsOn(day(9, 19)).some((s) => s.id === 'uithuizenkermis') && specialsOn(day(9, 19), { all: true }).some((s) => s.id === 'uithuizenkermis'), 'Deel 4 days are planned, not shown yet');
 const up = upcomingSpecials(1, 4).map((u) => u.s.id);
 ok(up[0] === 'kei' && up.includes('noorderzon') && up.includes('kermis') && !up.includes('markt'), 'upcoming from day 1', up.join());
-ok(upcomingSpecials(day(8, 27), 1)[0].label === 'nu, t/m zo 30 aug' || upcomingSpecials(day(8, 27), 3).some((u) => u.label === 'morgen'), 'labels: nu / morgen');
+ok(upcomingSpecials(day(8, 27), 1)[0].label === 'nu' || upcomingSpecials(day(8, 27), 3).some((u) => u.label === 'morgen'), 'labels: nu / morgen');
 ok(upcomingSpecials(LAST_SUMMER_DAY + 1).length === 0, 'nothing upcoming in the nazomer');
 
 // Deel 4 "Nazomer": the calendar after the epilogue. De oude Ommelander Ronde is op 25-10

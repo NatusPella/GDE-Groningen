@@ -693,7 +693,7 @@ function runMenuScreen(world, { render, relocate, tick, ready }, pending = null)
         const ago = d ? Math.round((Date.now() - d.getTime()) / 60000) : -1;
         const agoText = ago < 0 ? '' : ago < 1 ? 'net opgeslagen' : ago < 120 ? `opgeslagen ${ago} min geleden` : `opgeslagen ${d.toLocaleDateString('nl-NL', { day: 'numeric', month: 'short' })} ${d.toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' })}`;
         saveCard.innerHTML = `<span class="m-eb">Laatst gespeeld als ${esc(save.character)}</span><span class="big${title.length > 22 ? ' long' : ''}">${esc(title)}</span>` +
-          (save.goal && save.goal !== title ? `<span class="line">Doel: ${esc(save.goal)}</span>` : st ? `<span class="line">${esc(st.part)}${st.date ? ' · ' + esc(st.date) : ''}</span>` : '') +
+          (save.goal && save.goal !== title ? `<span class="line">Doel: ${esc(save.goal)}</span>` : st ? `<span class="line">${esc(st.part)}</span>` : '') +
           `<span class="meta">${[`€${save.money.toLocaleString('nl-NL')}`, `${save.missionsDone} missies`, agoText].filter(Boolean).join(' · ')}</span>`;
       }
     }

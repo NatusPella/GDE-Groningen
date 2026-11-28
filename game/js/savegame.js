@@ -181,7 +181,7 @@ export function storySummary(d) {
     if (!PARTS[part]) return null;
     const inPart = STEPS.map((s, k) => [s, k]).filter(([s]) => s.part === part && stepAvailable(s));
     const n = inPart.filter(([, k]) => stepDone(k, isDone, isPassed)).length;
-    return { part: PARTS[part].title, date: PARTS[part].date || '', next: step ? step.title : '', done: n, total: inPart.length, ended: !step };
+    return { part: PARTS[part].title, next: step ? step.title : '', done: n, total: inPart.length, ended: !step };
   } catch (e) {
     return null;
   }

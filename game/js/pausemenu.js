@@ -40,7 +40,7 @@ import { hoofdspeler } from './players.js'; // de speler van dit apparaat (#500)
 import { VERSION } from './version.js';
 import { loadChangelogVersions, allVersionsHtml, overBodyHtml, newsOnStart, CREDITS_HTML, LICENSES_HTML } from './over.js';
 import { versionLabel } from './menumodels.js';
-import { storyDate, todaySpecial } from './calendarday.js';
+import { todaySpecial } from './calendarday.js';
 import { isCinematicActive } from './cinematics.js';
 import { renderAchievementsPanel } from './achievementsui.js';
 import { trackTabLine } from './dsmicro.js'; // DS3: de glijdende onderstreping van de tabs (ds-micro.css)
@@ -2896,10 +2896,9 @@ function refreshInfo() {
   // De naam in de rail hangt aan het personage van het eigen lichaam; die vraag
   // stellen we aan de leesbare ingang (#500) in plaats van aan de singleton.
   const c = world.pigeonMode ? 'Duif' : hoofdspeler(world).character === 'anita' ? 'Tessa' : 'Tammo';
-  // the rail's date line: the story day and the clock
-  const when = [storyDate(world).long, getClockText(world)].filter(Boolean).join(' · ');
+  // the rail's time line: only the clock, no date (#1396)
   const klok = getClockText(world);
-  for (const el of root.querySelectorAll('[data-info="when"]')) el.innerHTML = prestart ? '' : `${klok ? `<b class="pm-q-tijd">${esc(klok)}</b>` : ''}<span>${esc(storyDate(world).long)}</span>`;
+  for (const el of root.querySelectorAll('[data-info="when"]')) el.innerHTML = prestart ? '' : (klok ? `<b class="pm-q-tijd">${esc(klok)}</b>` : '');
   root.dataset.who = c;
 }
 

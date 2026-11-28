@@ -10,7 +10,6 @@ import { icoon } from './icons.js';
 import * as F from './fotomodus.js';
 import { glyphHtml, keyLabelHtml, braceKeysHtml } from './keycap.js';
 import { getRenderer } from './scene3d.js';
-import { storyDate } from './calendarday.js';
 import { wijkProfileAt } from './trafficfleet.js';
 import { inProvinceData } from './provinceworld.js';
 import { zachtePauze, meerSpelers } from './coopgroep.js';
@@ -291,7 +290,7 @@ function takeShot(world) {
   counter = F.volgendNummer(list, counter); // boven alle nummers in de galerij: een weggehaalde nieuwste foto geeft geen dubbele bestandsnaam
   const place = placeName(world);
   const file = F.shotFileName(place, counter);
-  const shot = F.makeShot({ id: 'f' + counter, plaats: place, dagLabel: storyDate(world).long || '', hour: photo.p.hour, weather: photo.p.weather, filter: photo.p.filter, thumb, file });
+  const shot = F.makeShot({ id: 'f' + counter, plaats: place, dagLabel: '', hour: photo.p.hour, weather: photo.p.weather, filter: photo.p.filter, thumb, file });
   F.saveGallery(st, F.addShot(list, shot));
   out.toBlob((blob) => {
     if (!blob) { say('Het bestand bewaren lukte niet. Probeer het nog eens.'); return; }
@@ -395,7 +394,7 @@ function leegStateHtml() {
 function kaartHtml(s) {
   const plek = s.plaats || 'Groningen';
   const weer = s.weer ? (F.WEER_NAMEN[s.weer] || s.weer) : '';
-  const wanneer = [s.dagLabel, s.uur].filter(Boolean).join(' · ');
+  const wanneer = [s.uur].filter(Boolean).join(' · ');
   return '<figure class="ds-zeef ds-z-kaart foto-kaart">' +
     '<div class="foto-beeld">' +
       (s.thumb ? `<img src="${s.thumb}" alt="Foto in ${esc(plek)}${s.uur ? ' om ' + esc(s.uur) : ''}" decoding="async">` : '<div class="foto-leeg">Geen voorbeeld</div>') +

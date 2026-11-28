@@ -592,7 +592,7 @@ function playOpening(b) {
       fit: { radii: [10, 16, 24, 34, 46, 60], ground: (x, y) => roofAt(world.map, x, y) === 0 && !isInWater(world.map, x, y) },
       cine: {
         id: 'story-opening',
-        ...(i === 0 ? { kicker: `${partNumber('kop')} · ${kop.date}`, title: kop.name, cardFor: 3.2 } : {}),
+        ...(i === 0 ? { kicker: partNumber('kop'), title: kop.name, cardFor: 3.2 } : {}),
         onEnd: (skipped, replaced) => {
           if (i === 0) zetKlok(6.4);
           else if (i === 1) zetKlok(7.3);
@@ -625,7 +625,7 @@ function playOpening(b) {
   if (staged) return true;
   const ok = playCinematic({
     id: 'story-opening', priority: 4, duration: at + 1, pause: true, letterbox: true, skippable: true, hideHud: true,
-    kicker: `${partNumber('kop')} · ${kop.date}`, title: kop.name, cardFor: 3.2, lines,
+    kicker: partNumber('kop'), title: kop.name, cardFor: 3.2, lines,
     shot: (u, t) => {
       const v = p.inVehicle, x = v ? v.x : p.x, y = v ? v.y : p.y;
       const a = 0.6 + t * 0.045;
@@ -740,7 +740,7 @@ function playRecap(part) {
   const fallback = recapPlace(P.recap.find(([p]) => p !== 'studio')[0]);
   return playCinematic({
     id: 'story-recap', priority: 2, duration: at + 0.4, pause: true, letterbox: true, skippable: true, hideHud: true,
-    kicker: P.date ? `${partNumber(part)} · ${P.date}` : `Eerder in ${SERIES}`, title: P.name || P.title, cardFor: 3.2,
+    kicker: P.date ? partNumber(part) : `Eerder in ${SERIES}`, title: P.name || P.title, cardFor: 3.2,
     lines: lines.map(({ speaker, text, at: a, dur }) => ({ speaker, text, at: a, dur, radio: true })),
     onStart: () => { studio = openStudio(); },
     onEnd: () => { if (studio) studio.dispose(); studio = null; },

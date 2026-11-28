@@ -165,7 +165,7 @@ const SPECIAL_BASE = [
   { id: 'noorderzon', name: 'Noorderzon', from: day(8, 20), to: day(8, 30), rank: 7, icon: 'ster',
     card: ['Noorderzon', 'Elf dagen theater en muziek in het Noorderplantsoen. Tot laat lampjes in de bomen.'] },
   { id: 'kermis', name: 'Zomerkermis', from: day(8, 21), to: day(8, 30), rank: 8, icon: 'rad',
-    card: ['Zomerkermis', 'Tot en met 30 augustus staat de kermis de hele dag op de Grote Markt, niet alleen \'s avonds.'] },
+    card: ['Zomerkermis', 'De kermis staat nu de hele dag op de Grote Markt, niet alleen \'s avonds.'] },
   { id: 'bloemetjesmarkt', name: 'Bloemetjesmarkt', from: day(9, 12), to: day(9, 12), rank: 7, icon: 'bloem',
     card: ['Bloemetjesmarkt', 'De nazomereditie: de hele dag bloemen op de Grote Markt. De binnenstad staat vol touringcars.'] },
   { id: 'suiker', name: 'Suikercampagne', from: day(9, 15), to: day(9, 15), rank: 5, icon: 'biet',
@@ -254,12 +254,10 @@ export function upcomingSpecials(n, count = 4) {
     .map((s) => ({ s, from: s.from, label: periodLabel(s, n) }));
 }
 
-// "vandaag", "morgen", "vr 28 aug", "t/m zo 30 aug"
+// De speler ziet geen datum (#1396): "nu", "vandaag", "morgen" of "binnenkort" (de kalender blijft intern).
 export function periodLabel(s, n) {
-  const f = (k) => formatDay(k).short.toLowerCase();
-  if (s.from <= n) return s.to > n ? `nu, t/m ${f(s.to)}` : 'vandaag';
-  const start = s.from === n + 1 ? 'morgen' : f(s.from);
-  return s.to > s.from ? `${start} t/m ${f(s.to)}` : start;
+  if (s.from <= n) return s.to > n ? 'nu' : 'vandaag';
+  return s.from === n + 1 ? 'morgen' : 'binnenkort';
 }
 
 // Small 24x24 icons (filled paths) for the HUD badge, the card and the agenda.

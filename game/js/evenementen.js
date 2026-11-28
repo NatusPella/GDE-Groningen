@@ -9,7 +9,7 @@
 // van regioleven.js blijven zoals ze zijn: dit is de agenda erbovenop, op
 // andere dagen en plaatsen. Tests: scripts/evenementen_test.mjs.
 
-import { day, formatDay, LAST_SUMMER_DAY } from './calendar.js';
+import { day, LAST_SUMMER_DAY } from './calendar.js';
 import { wgsToWorld } from './rdnew.js';
 
 // Soorten. crowd: 0..1 menigte op het terrein; sound: sleutel voor de sfx-laag
@@ -105,11 +105,10 @@ export function upcoming(n, count = 4) {
     .map((ev) => ({ ev, label: dateLabel(ev, n) }));
 }
 
+// Geen datum voor de speler (#1396): nu, vandaag, morgen of binnenkort.
 export function dateLabel(ev, n) {
-  const f = (k) => formatDay(k).short.toLowerCase();
-  if (ev.from <= n && ev.to >= n) return ev.to > n ? `nu, t/m ${f(ev.to)}` : 'vandaag';
-  const start = ev.from === n + 1 ? 'morgen' : f(ev.from);
-  return ev.to > ev.from ? `${start} t/m ${f(ev.to)}` : start;
+  if (ev.from <= n && ev.to >= n) return ev.to > n ? 'nu' : 'vandaag';
+  return ev.from === n + 1 ? 'morgen' : 'binnenkort';
 }
 
 export const timeLabel = (ev) => {

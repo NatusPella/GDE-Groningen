@@ -3,17 +3,17 @@
 // get a quiet badge and leave the clock small; the big clock is for the days
 // that matter (Gronings Ontzet, KEI-week, ...).
 import { todayInfo, todaySpecial } from './calendarday.js';
-import { calIcon, ontzetCountdown } from './calendar.js';
+import { calIcon } from './calendar.js';
 
 export function hudDate(world) {
   let info = null, sp = null;
   try { info = todayInfo(world); sp = todaySpecial(world); } catch (e) { info = null; }
   if (!info || !info.short) return { short: '', long: '', special: '', countdown: '', icon: '', small: false, key: '' };
-  // #665: in de laatste week telt de HUD af naar het Ontzet; een echte speciale dag gaat voor.
-  const countdown = sp ? '' : ontzetCountdown(info.n);
+  // #1396: de speler ziet geen datum, geen dagnummer en geen aftelling meer; alleen de naam van een echte speciale dag
+  // (de markt, het Ontzet) blijft als badge. De dagtelling (info.n) blijft intern voor de sleutel.
   return {
-    short: info.short, long: info.long || info.short,
-    special: sp ? sp.name : countdown, countdown, icon: sp ? calIcon(sp.icon) : countdown ? calIcon('vlag') : '', small: !!(sp && sp.small),
-    key: `${info.n}|${sp ? sp.id : countdown}`,
+    short: '', long: '',
+    special: sp ? sp.name : '', countdown: '', icon: sp ? calIcon(sp.icon) : '', small: !!(sp && sp.small),
+    key: `${info.n}|${sp ? sp.id : ''}`,
   };
 }

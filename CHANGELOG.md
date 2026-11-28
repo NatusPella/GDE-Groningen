@@ -9,6 +9,7 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ## [Unreleased]
 
+- De speler ziet geen datum meer: geen dagregel in het HUD, geen datum op de deelkaarten, in het pauzemenu, bij foto's of in de agenda (die zegt nu, vandaag, morgen of binnenkort), en geen aftelling naar het Ontzet. De zomerkalender loopt intern door voor licht, zon en evenementen. Samen spelen: de interne tijd blijft gedeeld, er is niets zichtbaars meer om te synchroniseren (#1396).
 - Verhaalpoort: een wereld kan nu op een bepaalde verhaalstap opengaan in plaats van aan het begin van een akte (voor het doorlopende verhaal); de bestaande werelden en alle oude saves blijven precies zoals ze waren. Samen spelen: de poort is per speler en lokaal, een gast ziet zijn eigen stand (#1131).
 - Slaan: geen popup meer bij een voorbijganger in het bereik; een muisklik (of de controllerknop) volstaat. "Klik om te slaan" staat alleen nog als kleine eerste-keer-hint in de besturingshulp (#1355).
 - Politie: alleen een echte treffer telt als misdrijf. Zwaaien in de lucht, tegen een muur of tegen je eigen auto geeft geen sterren en geen getuigen meer, ook niet als een voorbijganger op dat moment door iets anders gewond raakt. Een treffer op een voorbijganger of agent blijft strafbaar; je eigen auto sla je niet meer kapot (#1356).

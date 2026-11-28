@@ -888,7 +888,7 @@ function buildShots(w, film = false) {
     L.bloomStr *= 0.6;
   };
 
-  const dateCard = { minDur: 1.6, black: true, card: `<div class="im-kicker">${partNumber('kop')} · ${PARTS.kop.date}</div><div class="im-title">${PARTS.kop.name}</div>` };
+  const dateCard = { minDur: 1.6, black: true, card: `<div class="im-kicker">${partNumber('kop')}</div><div class="im-title">${PARTS.kop.name}</div>` };
 
   // sunrise: down along d'Olle Grieze, over the Oosterparkwijk into a narrow
   // street, the red Escapade with a flat tyre at the door, Rikus at his mic
