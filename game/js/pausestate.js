@@ -20,3 +20,13 @@ const controls = { openPauseMenu: () => {}, closePauseMenu: () => {} };
 export function setPauseMenuControls(c) { Object.assign(controls, c); }
 export function openPauseMenu(...args) { return controls.openPauseMenu(...args); }
 export function closePauseMenu(...args) { return controls.closePauseMenu(...args); }
+
+// Fotomodus en cinematics delen de klasse cine-hide-hud: elk onthoudt of de ander de HUD nog verborgen houdt
+// (leaf-module, zodat ze elkaar niet hoeven te importeren).
+let photoModeOpen = false;
+export function setPhotoModeOpen(v) { photoModeOpen = !!v; }
+export function isPhotoModeOpen() { return photoModeOpen; }
+
+let cineHudHidden = false;
+export function setCineHudHidden(v) { cineHudHidden = !!v; }
+export function isCineHudHidden() { return cineHudHidden; }

@@ -18,6 +18,7 @@ import { registerMusicProbe } from './scenariomusic.js';
 import { hoofdspeler } from './players.js'; // de speler van dit apparaat (#500)
 import { calmState } from './dsmicro.js';
 import { escapeHtml as esc } from './htmlescape.js';
+import { setPhotoModeOpen, isCineHudHidden } from './pausestate.js';
 
 let photo = null;
 let saved = null;
@@ -91,6 +92,7 @@ function startPhotoMode(world) {
   photo = { p, world, sessie: meerSpelers(world) }; // met meer spelers loopt de wereld door: tijd en weer zijn van iedereen en blijven staan (#452)
   saved = { clock: world.clock, weather: world.weather ? { ...world.weather } : null, uiPaused: !!world.uiPaused };
   world.uiPaused = true;
+  setPhotoModeOpen(true);
   zachtePauze(world, 'fotomodus', true);
   document.body.classList.add('cine-hide-hud', 'foto-actief');
   buildOverlay();
@@ -105,10 +107,12 @@ function stopPhotoMode(world) {
   for (const t of ['keydown', 'keyup']) window.removeEventListener(t, onKey, true);
   w.cameraOverride = null;
   w.uiPaused = saved.uiPaused;
+  setPhotoModeOpen(false);
   zachtePauze(w, 'fotomodus', false);
   if (!photo.sessie && typeof saved.clock === 'number') w.clock = saved.clock;
   if (!photo.sessie && w.weather && saved.weather) Object.assign(w.weather, saved.weather);
-  document.body.classList.remove('cine-hide-hud', 'foto-actief');
+  document.body.classList.remove('foto-actief');
+  if (!isCineHudHidden()) document.body.classList.remove('cine-hide-hud');
   const r = getRenderer();
   if (r) { r.domElement.style.filter = ''; r.domElement.style.transform = ''; }
   if (overlay) { overlay.remove(); overlay = null; }

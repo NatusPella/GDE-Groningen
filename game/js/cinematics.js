@@ -10,7 +10,7 @@ import { subtitleIndex } from './cinesub.js';
 import { paintSpeaker } from './speakers.js';
 import { noteSpoken } from './characters.js';
 import { getSettings } from './settings.js';
-import { isPauseMenuOpen, isMapOpen } from './pausestate.js';
+import { isPauseMenuOpen, isMapOpen, setCineHudHidden, isPhotoModeOpen } from './pausestate.js';
 import { respawnPlayer } from './world.js';
 import { V, W, clamp01, easeInOut, easeOut, pathShot, roofAt, clearKeys, buildingReach, groundLift } from './camerapath.js';
 import { playEindkaartGeluid, playStoryVoice, setStoryScene, setStoryProbe, playTextMumble, pauseStoryVoice, resumeStoryVoice } from './audio.js';
@@ -337,16 +337,18 @@ export function startCameraTake(id, shot, { letterbox = true, hideHud = false } 
   take = { id, shot, letterbox, hideHud, t: 0 };
   if (els) {
     els.root.classList.toggle('letterbox', !!letterbox);
-    document.body.classList.toggle('cine-hide-hud', !!hideHud);
+    setCineHudHidden(!!hideHud);
+    if (hideHud || !isPhotoModeOpen()) document.body.classList.toggle('cine-hide-hud', !!hideHud);
   }
   return true;
 }
 export function stopCameraTake(id) {
   if (!take || (id != null && take.id !== id)) return false;
   take = null;
+  setCineHudHidden(false);
   if (els) {
     els.root.classList.remove('letterbox');
-    document.body.classList.remove('cine-hide-hud');
+    if (!isPhotoModeOpen()) document.body.classList.remove('cine-hide-hud');
   }
   if (world && !active) world.cameraOverride = null;
   return true;
@@ -460,7 +462,8 @@ function begin(spec) {
   els.speaker.textContent = '';
   els.line.textContent = '';
   r.classList.remove('has-sub');
-  document.body.classList.toggle('cine-hide-hud', !!active.hideHud);
+  setCineHudHidden(!!active.hideHud);
+  if (active.hideHud || !isPhotoModeOpen()) document.body.classList.toggle('cine-hide-hud', !!active.hideHud);
   r.classList.add('active');
   // lines with a recording ({ voice }) are spoken as their subtitle comes up
   active.voiced = !!(active.lines && active.lines.some((l) => l.voice)) || !!active.mumble;
@@ -492,7 +495,8 @@ function finish(skipped, replaced = false) {
   r.classList.remove('active', 'letterbox', 'has-card', 'has-big', 'has-sub', 'show-skip', 'sub-clue');
   r.dataset.tint = '';
   setTint('');
-  document.body.classList.remove('cine-hide-hud');
+  setCineHudHidden(false);
+  if (!isPhotoModeOpen()) document.body.classList.remove('cine-hide-hud');
   if (world) world.cameraOverride = null;
   clearVehicleHiding(shotVehicles); // #964: het verkeer mag weer gezien worden
   if (a && a.voiced) setStoryScene(false, 'cine');
