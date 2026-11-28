@@ -20,6 +20,7 @@ import { quitPadel } from './padel.js';
 import { stopVillageMini } from './dorpsuitjes.js';
 import { quitRunningActivities } from './busy.js';
 import { getGoalSave, applyGoalSave } from './goal.js';
+import { getStadSave, loadStadSave } from './stadstand.js'; // #1371: stadsstand en thuisstanden per speler
 import { getCalendarSave, applyCalendarSave } from './calendarday.js';
 import { getDifficultyProfile, setActiveDifficulty, profileFromSave } from './difficulty.js'; // #1169: moeilijkheid per save
 import { legacyDifficultyLevel } from './settings.js';
@@ -331,6 +332,8 @@ function serialize(w) {
     meubels: veilig('meubels', () => getFurnitureSave()),
     financien: veilig('financien', () => getFinanceSave()),
     thuis: veilig('thuis', () => getHomeSave()),
+    // de aangekondigde en doorgevoerde stadsveranderingen van deze speler (#1371); een save zonder veld start leeg
+    stad: veilig('stad', () => getStadSave()),
     doel: veilig('doel', () => getGoalSave()),
     // the radio, 'on' or 'off'; a save without it starts with the radio on
     radio: veilig('radio', () => getRadioSave()),
@@ -728,6 +731,7 @@ function applySaveRaw(w, d) {
     applyFurnitureSave(d.meubels);
     applyFinanceSave(d.financien, w.money);
     applyGoalSave(d.doel);
+    loadStadSave(d.stad);
     applyRadioSave(d.radio);
     applyCheatSave(d.streken, d);
     applyCalendarSave(w, d.kalender);
