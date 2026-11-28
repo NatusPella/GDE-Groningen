@@ -9,6 +9,7 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ## [Unreleased]
 
+- Verhaal: het doorlopende stappenplan van hoofdstuk 1 tot en met 16 (plus de nazomer) staat als gegevens klaar, met per stap het gebied, het doel, wat de speler dan weet en één nieuw bijfiguur, en met per bestaande missie het besluit (behouden, herschrijven of verplaatsen). Het huidige verhaal speelt nog hetzelfde en saves veranderen niet. Samen spelen: het is van wie het spel opende; voortgang en beloning zijn per speler; een gast speelt mee zonder de verhaalgesprekken van een ander (#1359, #1360).
 - De speler ziet geen datum meer: geen dagregel in het HUD, geen datum op de deelkaarten, in het pauzemenu, bij foto's of in de agenda (die zegt nu, vandaag, morgen of binnenkort), en geen aftelling naar het Ontzet. De zomerkalender loopt intern door voor licht, zon en evenementen. Samen spelen: de interne tijd blijft gedeeld, er is niets zichtbaars meer om te synchroniseren (#1396).
 - Verhaalpoort: een wereld kan nu op een bepaalde verhaalstap opengaan in plaats van aan het begin van een akte (voor het doorlopende verhaal); de bestaande werelden en alle oude saves blijven precies zoals ze waren. Samen spelen: de poort is per speler en lokaal, een gast ziet zijn eigen stand (#1131).
 - Slaan: geen popup meer bij een voorbijganger in het bereik; een muisklik (of de controllerknop) volstaat. "Klik om te slaan" staat alleen nog als kleine eerste-keer-hint in de besturingshulp (#1355).
