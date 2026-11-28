@@ -19,6 +19,7 @@ const PW = await import('../game/js/provinceworld.js');
 const G = await import('../game/js/gdt.js');
 const HP = await import('../game/js/heliplan.js');
 const HF = await import('../game/js/heliflight.js');
+const VB = await import('../game/js/vehicle_balloon.js');
 const { isInWater, pointInPolygon } = await import('../game/js/util.js');
 const files = new Proxy({}, { get: (o, f) => (typeof f === 'string' ? (o[f] || (o[f] = new Uint8Array(fs.readFileSync(new URL(f, root))))) : undefined) });
 const T = await TW.loadTileWorld('world/', { source: new S.MemorySource(files), pool: false, extra: ['index-provincie.json'] });
@@ -32,6 +33,14 @@ async function load(p, w = 150) {
   return keys.size;
 }
 const inBuilding = (p) => map.buildingsNear(p.x, p.y, 0.5).some((b) => pointInPolygon(p.x, p.y, b.pts));
+// De vrije straal rond een plek: hoe ver je kunt gaan voor je water of een gebouw raakt (48 richtingen, stap 1 m, tot 40 m).
+function vrijeStraal(p) {
+  for (let r = 1; r <= 40; r++) for (let a = 0; a < 48; a++) {
+    const x = p.x + Math.cos((a * Math.PI) / 24) * r, y = p.y + Math.sin((a * Math.PI) / 24) * r;
+    if (isInWater(map, x, y) || map.buildingsNear(x, y, 0.5).some((b) => pointInPolygon(x, y, b.pts))) return r;
+  }
+  return 41;
+}
 const report = [];
 async function spot(name, p, { land = true } = {}) {
   const tiles = await load(p);
@@ -49,5 +58,13 @@ await spot('ballon bij het UMCG', HP.BALLOON_AT);
 await spot('Dollard (ballon rooster, in de lucht)', HP.ROOSTER.dollard, { land: false });
 const eelde = HF.helipadById && HF.helipadById('eelde');
 if (eelde) await spot('Eelde-pad', eelde);
+// #1377 L2: de landing bij Lauwersoog en de Eemshaven-kade moet ruimte voor de rotor hebben (een heli met 5 m rotorstraal plus marge: 10 m), de
+// ballonlanceerplekken ruimte voor een mand en een gevulde ballon (25 m). De Dollard van het rooster is een luchtpunt en geen grond; de ballonplek staat op de dijk.
+for (const [naam, p, min] of [['Lauwersoog', HP.ROOSTER.lauwersoog, 10], ['Eemshaven-kade', HP.ROOSTER.eemshaven, 10], ['lanceerplek Eelde', VB.EELDE_SITE, 25], ['lanceerplek Dollarddijk', VB.DOLLARD_SITE, 25]]) {
+  await spot(naam + ' (vrije straal)', p);
+  const r = vrijeStraal(p);
+  report.push(naam + ': vrije straal ' + (r > 40 ? 'meer dan 40' : r) + ' m');
+  ok(r >= min, naam + ': minstens ' + min + ' m vrij van water en gebouwen (' + r + ' m)');
+}
 for (const r of report) console.log('  ' + r);
 console.log(`heli_spots_world_test: ${n} controles gehaald`);
