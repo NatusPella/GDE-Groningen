@@ -48,7 +48,27 @@ for (const lod of [0, 1, 2]) {
   const tammo = M.modularLookFromAppearance(P.TAMMO_APPEARANCE);
   ok(!tammo.tail && tailVerts(tammo.parts.hoofd) === 0, 'Tammo: geen staartonderdeel');
   const all = ['short', 'buzz', 'bald', 'curly', 'afro', 'long', 'bun', 'ponytail', 'bob', 'wavy', 'fringe', 'pixie', 'quiff', 'undercut', 'mohawk', 'pigtails', 'braid'];
-  for (const st of all) for (const variant of ['male', 'female']) { const l = M.modularLookFromAppearance({ ...P.TAMMO_APPEARANCE, variant, hairStyle: st }); ok(['ponytail', 'braid', 'pigtails', 'bun'].includes(st) ? l.tail === st : !l.tail, `${variant} ${st}: look.tail ${l.tail}`); }
+  for (const st of all) for (const variant of ['male', 'female']) { const l = M.modularLookFromAppearance({ ...P.TAMMO_APPEARANCE, variant, hairStyle: st }); ok(['ponytail', 'braid', 'pigtails', 'bun', 'long'].includes(st) ? l.tail === st : !l.tail, `${variant} ${st}: look.tail ${l.tail}`); }
+}
+// Lang haar (Tessa): een gordijn tot halverwege de rug, aan hoofd, nek en rug gebonden, op elk LOD, met en zonder pet, in haar eigen kleur
+{
+  const tessa = M.modularLookFromAppearance(P.ANITA_APPEARANCE);
+  ok(tessa.tail === 'long' && tessa.hair === 0x1b1716, 'Tessa: lang haar in haar kleur');
+  const lowest = (m) => { const b = m.userData.body, q = b.geometry, v2 = new THREE.Vector3(); let mn = 9; for (let i = q.attributes.position.count - M.LONG_V; i < q.attributes.position.count; i++) { v2.fromBufferAttribute(q.attributes.position, i); b.applyBoneTransform(i, v2); mn = Math.min(mn, v2.y); } return mn; };
+  for (const lod of [0, 1, 2]) for (const cap of [null, 'cap']) {
+    const withTail = M.buildModularPerson(23, { look: { ...tessa, cap, capColor: 0x2b2f36 } }), without = M.buildModularPerson(23, { look: { ...tessa, cap, capColor: 0x2b2f36, tail: null } });
+    M.resetModularGeoBudget(); M.setModularLod(withTail, lod); M.resetModularGeoBudget(); M.setModularLod(without, lod);
+    const g = withTail.userData.body.geometry, g0 = without.userData.body.geometry;
+    ok(g.attributes.position.count - g0.attributes.position.count === M.LONG_V, `lang haar LOD ${lod} ${cap || 'zonder pet'}: ${M.LONG_V} hoekpunten extra`);
+    withTail.updateMatrixWorld(true);
+    const bottom = lowest(withTail) / withTail.scale.y;
+    ok(bottom > 1.0 && bottom < 1.25, `lang haar LOD ${lod}: onderkant op ${bottom.toFixed(2)} (halverwege de rug, schouders 1,35)`);
+    const a = g.attributes, sw = a.skinWeight.array; let okw = true; for (let i = a.position.count - M.LONG_V; i < a.position.count; i++) if (sw[i * 4] + sw[i * 4 + 1] !== 255) okw = false;
+    ok(okw, `lang haar LOD ${lod}: gewichten sluiten`);
+    if (lod === 0 && !cap) { const before = lowest(withTail); M.modularTurn(withTail, 'Torso', 0.6); withTail.updateMatrixWorld(true); ok(Math.abs(lowest(withTail) - before) > 0.02, 'lang haar beweegt mee met de romp'); }
+  }
+  // elke vrouw met lang haar: een hoofd met haar in het pack (niet Formad_Head: daar herkent de kleur het haar niet)
+  for (let sd = 1; sd <= 40; sd++) { const l = M.modularLookFromAppearance({ ...P.ANITA_APPEARANCE, hairStyle: 'long', vary: true, seed: sd }); ok(l.tail === 'long' && ['Casual_Head', 'Suit_Head'].includes(l.parts.hoofd), `vrouw lang haar zaad ${sd}: hoofd ${l.parts.hoofd}`); }
 }
 console.log(`${n} controles, ${fails} fouten`);
 process.exit(fails ? 1 : 0);

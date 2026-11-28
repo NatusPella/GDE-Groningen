@@ -22,7 +22,7 @@ export const PART_MAP = {
     voeten: { sneaker: ['Casual2_Feet', 'Casual_Feet'], cleat: ['Casual2_Feet', 'Casual_Feet'], leather: ['Suit_Feet'], boot: ['Worker_Feet'], sandal: ['Beach_Feet'], default: ['Casual_Feet'] },
   },
   vrouw: {
-    hoofd: { long: VR_LONG, wavy: VR_LONG, ponytail: VR_LONG, pigtails: VR_LONG, braid: VR_LONG, curly: ['Formad_Head', 'Casual_Head'], afro: ['Formad_Head'],
+    hoofd: { long: ['Casual_Head', 'Suit_Head'], wavy: VR_LONG, ponytail: VR_LONG, pigtails: VR_LONG, braid: VR_LONG, curly: ['Formad_Head', 'Casual_Head'], afro: ['Formad_Head'],
       bun: ['Adventurer_Head'], short: VR_SHORT, bob: VR_SHORT, pixie: VR_SHORT, fringe: VR_SHORT, quiff: VR_SHORT, undercut: VR_SHORT, buzz: VR_SHORT, bald: VR_SHORT,
       mohawk: ['Punk_Head'], default: ['Casual_Head'] },
     // Formal_Body en Casual_Body zijn topjes zonder mouwen; een jas, vest, trui of colbert is Suit_Body (in de kleur van de look)
@@ -34,7 +34,7 @@ export const PART_MAP = {
 };
 // Hoeden die als pet op het hoofd komen (modularpeople.js bouwt een lage koepel met klep op het hoofdbot).
 // Kapsels die het pack niet als hoofd heeft: ze komen als staart, vlecht of knot op het hoofdbot (modularpeople.js tailGeometry).
-const TAIL_KINDS = new Set(['ponytail', 'braid', 'pigtails', 'bun']);
+const TAIL_KINDS = new Set(['ponytail', 'braid', 'pigtails', 'bun', 'long']);   // long: een lange haarlaag tot halverwege de rug (het pack-haar reikt maar tot de schouders)
 const CAPS = new Set(['cap', 'tammo', 'beanie', 'flatcap', 'police']);
 // het blauw van het uniform (zelfde tint als models3d_people.js COP_NAVY)
 export const COP_NAVY = 0x1d2433;
