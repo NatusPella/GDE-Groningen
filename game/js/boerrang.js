@@ -4,7 +4,7 @@
 //
 // Migratieregel ("altijd beschikbaar", acceptatie #1373): de rangeis geldt alleen voor wie de hoeve van Oom Hindrik kreeg (het verhaal), en alleen voor wat je koopt of huurt.
 // Wie al een machine heeft houdt hem; een boerderij zonder schenking (menu, oude save, gast) koopt alles zoals voorheen. De verhaalmomenten per rang staan in
-// farmrankmoments.js (registerRankMoment, docs/RANKMOMENTS.md).
+// farmrankscenes.js (registerRankMoment, docs/RANKMOMENTS.md).
 // Samen spelen: de rang is per speler (gde-loopbaan-v1); een gast die op de akker van de host werkt, krijgt geen eis van zijn eigen rang opgelegd (alleen kopen is gebonden).
 import { vakInfo, MAX_NIVEAU } from './loopbaan.js';
 

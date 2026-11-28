@@ -9,7 +9,7 @@ import { snapshot } from './storybridgerun.js';
 import { BRIDGE_CALM_S } from './storybridge.js';
 import { schenkHoeveCompleet } from './bezitlive.js';
 import { heeftHoeve } from './boerderijlive.js';
-import './farmrankmoments.js';   // meldt de rangmomenten van de boer aan (rankmoments.js)
+import './farmrankscenes.js';   // meldt de rangmomenten van de boer aan (rankmoments.js)
 import { schenkingStand, schenkingBlockers, schenkingBesluit, SCHENKING_FLAG, SCHENKING_SCENE, SCHENKING_REGEL, SCHENKING_REGEL_STIL } from './boerstory.js';
 
 let calmS = 0;

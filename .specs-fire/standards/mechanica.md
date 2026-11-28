@@ -119,7 +119,7 @@ telt, de bonus gaat via `loopbaanVerdien('landbouw', …)` met `deel: false`, ve
 
 **Bestanden.** `boerderij.js`, `boerderijlive.js`, `boerderijui.js`, `boerderijwereld.js`,
 `boerderijgast.js`, `percelen.js`, `machines.js`, `werktuigen.js`, `werktuigen3d.js`,
-`sidejob_boerderij.js`, `gewasmarkt.js`, `boerderijcontracten.js`, `karakterbonus.js`, `boerstory.js`, `boerstoryrun.js`, `boerrang.js`, `farmrankmoments.js`, `herdchores.js`, `farmshop.js`.
+`sidejob_boerderij.js`, `gewasmarkt.js`, `boerderijcontracten.js`, `karakterbonus.js`, `boerstory.js`, `boerstoryrun.js`, `boerrang.js`, `farmrankscenes.js`, `herdchores.js`, `farmshop.js`.
 
 **Karakterbonus (#1005, #981).** Boeren en voetballen doe je als Tessa: bij de start wisselt het spel naar haar (zelfde mechanisme als de verhaalwissel) en bij het einde terug; de tabel `KARAKTER_BONUS` in `karakterbonus.js` (klein: farm 15% sneller netjes-band, +5% oogst, minder fouten bij zaaien en oogsten; voetbal sprint, schot, aanname) geldt dus tijdens die activiteit, per speler, nooit voor de wereld. Persona-regels komen af en toe (kans en cooldown). Test `karakterbonus_test.mjs`.
 
