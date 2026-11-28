@@ -3,6 +3,11 @@
   "allow": [
     {
       "rule": "naam",
+      "file": "footballstory",
+      "why": "verhaaldata van de voetbalcarrière (#1374, bijbel 28-11): de volledige namen zijn bewust verzonnen voor verzonnen bijfiguren (Albert Teuben, Eppo Rozema, Remco Zwart, Femke van der Meer, Jaap Roorda, Jan Kleibijter); echte personen komen er niet in. scripts/football_story_test.mjs bewaakt de verboden woorden."
+    },
+    {
+      "rule": "naam",
       "file": "characterdossiers",
       "why": "personagedossiers (#personagebijbel-21-11): de volledige namen zijn bewust verzonnen voor verzonnen personages; echte personen komen er niet in. scripts/characterdossiers_test.mjs bewaakt de rest (geen e-mail, link of postcode)."
     },
