@@ -171,6 +171,10 @@ export const PROP_REGISTER = {
     nl: 'Klaptafel met koffie', bouwer: 'koffietafel', gebruik: ['cutscene', 'activiteit'],
     norm: { tris: [700, 1200], kleuren: 10, maat: [0.7, 1.12, 1.32], eisen: ['geruit tafelzeil met overhang', 'schragenpoten in een X met regels', 'thermoskan met dop-beker en handvat', 'vier mokken met koffie en een oor', 'koektrommel en krant'] },
   },
+  boomspiegel: {
+    nl: 'Boomspiegel met rooster', bouwer: 'boomspiegel', gebruik: ['buiten'],
+    norm: { tris: [100, 260], kleuren: 4, maat: [1.3, 0.07, 1.3], eisen: ['opstaande betonrand', 'gietijzeren rooster met staven in twee richtingen', 'stamopening met aarde', 'steenbed'] },
+  },
   hooibaal: {
     nl: 'Ronde baal hooi', bouwer: 'hooibaal', gebruik: ['cutscene', 'activiteit'],
     norm: { tris: [800, 1200], kleuren: 5, maat: [1.36, 1.41, 1.24], eisen: ['rol met strovlekken', 'spiraal op de kopse kanten', 'netbanden om de omtrek', 'uitstekende strootjes'] },

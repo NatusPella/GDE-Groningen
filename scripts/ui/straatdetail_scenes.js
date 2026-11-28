@@ -57,7 +57,7 @@ const probe = (tag, from, to, n = 4) => {
 };
 const scene = async (nr, fn) => { if (!want(nr)) return; curNr = nr; console.error('[wereld] scene ' + nr); try { await fn(); } catch (e) { log({ nr, fout: e && e.message }); } camOff(); await sleep(400); };
 
-const { wgsToWorld } = await imp('rdnew');
+const { wgsToWorld } = await imp('rdnew'); const SD = await imp('streetdetail'); const GDT = await imp('gdt');
 const PLEKKEN = [
   ['paddepoel', 'jaren-70-wijk', 53.2385, 6.5400],
   ['beijum', 'jaren-70-wijk', 53.2330, 6.6040],
@@ -113,6 +113,11 @@ for (const [naam, type, lat, lon] of PLEKKEN) {
     const m1 = await meet();
     cam(pl.x - dx * 18 - dy * 14, pl.y - dy * 18 + dx * 14, z + 15, pl.x + dx * 4, pl.y + dy * 4, z, 62); await shot(naam + '-lucht', 2500);
     const m2 = await meet();
-    log({ nr, naam, oog: m1, lucht: m2 });
+    // de kosten van de generator op echte kaartdata (zoals streetfurniture3d.js tileItems hem voedt) en wat hij neerzet
+    const [ti, tj] = GDT.tileIndexOf(pl.x, pl.y), tx0 = GDT.GRID_X0 + ti * GDT.TILE_M, ty0 = GDT.GRID_Y0 + tj * GDT.TILE_M, wx = tx0 + GDT.TILE_M / 2, wy = ty0 + GDT.TILE_M / 2, wr = GDT.TILE_M * 0.71 + 60;
+    const t0 = performance.now();
+    const its = SD.detailForTile({ x0: tx0, y0: ty0, size: GDT.TILE_M, roads: map.roadsNear(wx, wy, GDT.TILE_M * 0.71 + 220), buildings: map.buildingsNear(wx, wy, wr), water: map.waterNear(wx, wy, wr).concat(map.flatWaterNear ? map.flatWaterNear(wx, wy, wr) : []), rails: map.railNear ? map.railNear(wx, wy, wr) : [] });
+    const gen = performance.now() - t0; const per = {}; for (const it of its) per[it.k] = (per[it.k] || 0) + 1;
+    log({ nr, naam, oog: m1, lucht: m2, generatorMs: +gen.toFixed(1), items: its.length, per });
   });
 }

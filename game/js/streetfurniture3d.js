@@ -33,8 +33,8 @@ import { detailForTile } from './streetdetail.js'; // de detaillaag voor wijken 
 export const GAME_OPTS = { lamps: false, bollards: false, livingBumps: false };
 // draw distance per kind (m)
 // straatdetail (#1353): tekenafstand en maximum per soort; de rest van de regel is die van het meubilair
-const DETAIL_LOD = { klikogrijs: 75, klikogroen: 75, klikoblauw: 75, fietszwart: 80, fietsrood: 80, fietsblauw: 80, lattenhek: 100, schutting: 110, tuinpad: 80, plantenbak: 80, kabelkast: 110, afvalzuil: 120, bord30: 130, voorrangsbord: 130, bermpaal: 140, rietpol: 110, hooibaal: 130 };
-const DETAIL_CAP = { klikogrijs: 300, klikogroen: 200, klikoblauw: 150, fietszwart: 160, fietsrood: 160, fietsblauw: 160, lattenhek: 400, schutting: 200, tuinpad: 600, plantenbak: 160, kabelkast: 60, afvalzuil: 40, bord30: 40, voorrangsbord: 40, bermpaal: 160, rietpol: 400, hooibaal: 80 };
+const DETAIL_LOD = { klikogrijs: 75, klikogroen: 75, klikoblauw: 75, fietszwart: 80, fietsrood: 80, fietsblauw: 80, lattenhek: 100, schutting: 110, tuinpad: 80, boomspiegel: 70, plantenbak: 80, kabelkast: 110, afvalzuil: 120, bord30: 130, voorrangsbord: 130, bermpaal: 140, rietpol: 110, hooibaal: 130 };
+const DETAIL_CAP = { klikogrijs: 300, klikogroen: 200, klikoblauw: 150, fietszwart: 160, fietsrood: 160, fietsblauw: 160, lattenhek: 400, schutting: 200, tuinpad: 600, boomspiegel: 300, plantenbak: 160, kabelkast: 60, afvalzuil: 40, bord30: 40, voorrangsbord: 40, bermpaal: 160, rietpol: 400, hooibaal: 80 };
 // de detaillaag laat zich uitzetten (vergelijkingsbeelden en metingen: window.__noStreetDetail = true voor de bouw van het spel)
 const DETAIL_ON = () => !(typeof window !== 'undefined' && window.__noStreetDetail);
 const LOD = { ...DETAIL_LOD, guardrail: 220, fence: 160, hedge: 160, noise: 420, hectometer: 120, gantry: 650, placesign: 260, wegwijzer: 200, speedbump: 120, bench: 110, bin: 90, bikerack: 100, shelter: 140, bollard: 90, lamp: 200 };
@@ -126,7 +126,7 @@ function bollardGeo() { return rotProp('paaltje', 0); }
 // de stukken van de detaillaag: voorkant +x; hekstukken en tuinpad (gebouwd met de lengte langs z) lopen langs x
 const detailGeo = (id, hoek = 0) => () => rotProp(id, hoek);
 const DETAIL_GEOS = {};
-for (const id of ['klikogrijs', 'klikogroen', 'klikoblauw', 'fietszwart', 'fietsrood', 'fietsblauw', 'plantenbak', 'kabelkast', 'afvalzuil', 'bord30', 'voorrangsbord', 'bermpaal', 'rietpol', 'hooibaal']) DETAIL_GEOS[id] = detailGeo(id);
+for (const id of ['klikogrijs', 'klikogroen', 'klikoblauw', 'fietszwart', 'fietsrood', 'fietsblauw', 'plantenbak', 'boomspiegel', 'kabelkast', 'afvalzuil', 'bord30', 'voorrangsbord', 'bermpaal', 'rietpol', 'hooibaal']) DETAIL_GEOS[id] = detailGeo(id);
 for (const id of ['lattenhek', 'schutting', 'tuinpad']) DETAIL_GEOS[id] = detailGeo(id, Math.PI / 2);
 
 const GEOS = { ...DETAIL_GEOS, guardrail: guardrailGeo, fence: fenceGeo, hedge: hedgeGeo, noise: noiseGeo, hectometer: hectometerGeo, speedbump: speedbumpGeo, gantry: gantryGeo, beam: beamGeo, bench: benchGeo, bin: binGeo, bikerack: rackGeo, shelter: shelterGeo, bollard: bollardGeo, placesign: postGeo, wegwijzer: postGeo };
@@ -343,7 +343,7 @@ function tileItems(i, j) {
   if (DETAIL_ON() && !intro) {
     // de detaillaag: een gemapte heg of hek op dezelfde plek gaat voor (geen dubbele rand)
     const lin = res.items.filter((it) => it.k === 'hedge' || it.k === 'fence');
-    const det = detailForTile({ x0, y0, size: TILE_M, roads, buildings, water, rails }).filter((it) => !(it.k === 'hedge' || it.k === 'fence' || it.k === 'lattenhek') || !lin.some((o) => Math.abs(o.x - it.x) < 3 && Math.abs(o.y - it.y) < 3));
+    const det = detailForTile({ x0, y0, size: TILE_M, roads, buildings, water, rails, trees: map.treesNear ? map.treesNear(wx, wy, wr) : [] }).filter((it) => !(it.k === 'hedge' || it.k === 'fence' || it.k === 'lattenhek') || !lin.some((o) => Math.abs(o.x - it.x) < 3 && Math.abs(o.y - it.y) < 3));
     if (det.length) all = res.items.concat(det);
   }
   const items = all.filter((it) => !POINT_KINDS.has(it.k) || spotFreeOnMap(map, it.x, it.y, it.k === 'lamp' ? { house: LAMP_AWNING } : undefined));

@@ -23,7 +23,7 @@ import { boxOf } from './tileplace.js';
 import { pointInPolygon, polygonBounds } from './util.js';
 import { mulberry32 } from './rng.js';
 
-export const DETAIL_KINDS = ['hedge', 'lattenhek', 'schutting', 'tuinpad', 'fence', 'klikogrijs', 'klikogroen', 'klikoblauw', 'fietszwart', 'fietsrood', 'fietsblauw', 'plantenbak', 'kabelkast', 'afvalzuil', 'bord30', 'voorrangsbord', 'bermpaal', 'rietpol', 'hooibaal'];
+export const DETAIL_KINDS = ['hedge', 'lattenhek', 'schutting', 'tuinpad', 'fence', 'klikogrijs', 'klikogroen', 'klikoblauw', 'fietszwart', 'fietsrood', 'fietsblauw', 'plantenbak', 'kabelkast', 'afvalzuil', 'bord30', 'voorrangsbord', 'bermpaal', 'rietpol', 'hooibaal', 'boomspiegel'];
 export const DETAIL_RULES = {
   houseMin: 25, houseMax: 450, houseLevels: 3, flatMin: 450, yardMin: 180, yardMax: 1500,
   sidewalk: 1.7,            // m tussen het hekje en de rand van de weg
@@ -47,7 +47,7 @@ function segDist(x, y, ax, ay, bx, by) {
   return Math.hypot(ax + dx * t - x, ay + dy * t - y);
 }
 
-export function detailForTile({ x0, y0, size = 1000, roads = [], buildings = [], water = [], rails = [], opts = {} }) {
+export function detailForTile({ x0, y0, size = 1000, roads = [], buildings = [], water = [], rails = [], trees = [], opts = {} }) {
   const items = [];
   const inTile = (x, y) => x >= x0 && x < x0 + size && y >= y0 && y < y0 + size;
   const seen = new Set();
@@ -384,6 +384,18 @@ export function detailForTile({ x0, y0, size = 1000, roads = [], buildings = [],
       if (HOME_STREETS.has(r.type) && L >= 20) { put({ k: 'bord30', x, y, a: faceAng }); claim(x, y); }
       else if ((r.type === 'tertiary' || r.type === 'unclassified') && L >= 20) { put({ k: 'voorrangsbord', x, y, a: faceAng }); claim(x, y); }
     }
+  }
+
+  // --- boomspiegels: een boom naast een woonstraat in de bebouwde kom (een gebouw binnen 30 m) staat in een spiegel ----------------
+  const rndT = mulberry32(seedOf(x0, y0, 5));
+  for (const t of trees) {
+    const tx = Array.isArray(t) ? t[0] : t.x !== undefined ? t.x : t.pts ? t.pts[0][0] : NaN, ty = Array.isArray(t) ? t[1] : t.y !== undefined ? t.y : t.pts ? t.pts[0][1] : NaN;
+    if (!Number.isFinite(tx) || !inTile(tx, ty)) continue;
+    const hit = nearest(tx, ty, 9, isStreet);
+    if (!hit || hit.d < (hit.road.width || 6) / 2 + 0.6 || hit.d > (hit.road.width || 6) / 2 + 5.5) continue;
+    if (buildingGap(tx, ty, 30) >= 30) continue;
+    if (rndT() < 0.15 || !clear(tx, ty, { house: 0.5, road: 0.3 })) continue;
+    put({ k: 'boomspiegel', x: tx, y: ty, a: Math.atan2(hit.uy, hit.ux) });
   }
 
   // --- rietpollen langs sloten en vijvers -----------------------------------------------------------------------------------

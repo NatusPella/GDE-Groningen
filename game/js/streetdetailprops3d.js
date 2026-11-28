@@ -234,6 +234,23 @@ function rietpol() {
   return B.build();
 }
 
+// Boomspiegel (1,3 m): een opstaande betonrand, een gietijzeren rooster met spleten rond de stamopening, een ring van stenen en
+// wat aarde in het midden. Ligt vlak (0,06 m).
+function boomspiegel() {
+  const B = new GeoBuilder(1);
+  const rand = 0x8e8f8a, rooster = 0x3a3d3b, steen = 0x77786f;
+  for (const s of [-1, 1]) {
+    B.box(0, 0.03, s * 0.62, 1.3, 0.06, 0.06, rand);                  // randen langs x
+    B.box(s * 0.62, 0.03, 0, 0.06, 0.06, 1.3, rand);                  // randen langs z
+  }
+  B.box(0, 0.015, 0, 1.18, 0.03, 1.18, steen);                        // bed
+  for (let i = 0; i < 4; i++) B.box(0, 0.04, -0.45 + i * 0.3, 1.1, 0.02, 0.06, rooster);   // roosterstaven
+  for (let i = 0; i < 2; i++) B.box(-0.38 + i * 0.76, 0.04, 0, 0.3, 0.02, 1.1, rooster);   // dwarsstaven
+  B.geo(new THREE.CylinderGeometry(0.2, 0.2, 0.04, 8), composeMatrix(0, 0.04, 0), 0x4a3a2c);  // stamopening met aarde
+  B.geo(new THREE.CylinderGeometry(0.24, 0.24, 0.03, 8), composeMatrix(0, 0.035, 0), rooster);
+  return B.build();
+}
+
 export const STREETDETAIL_MAKERS = {
   klikogrijs: () => kliko(0x6f7378, 0x585c61),
   klikogroen: () => kliko(0x3f6a3a, 0x2f5230),
@@ -241,5 +258,5 @@ export const STREETDETAIL_MAKERS = {
   fietszwart: () => fiets(0x25282b, true),
   fietsrood: () => fiets(0x9c2f27, false),
   fietsblauw: () => fiets(0x2c4f7c, false),
-  lattenhek, schutting, tuinpad, plantenbak, kabelkast, afvalzuil, bord30, voorrangsbord, bermpaal, rietpol,
+  lattenhek, schutting, tuinpad, boomspiegel, plantenbak, kabelkast, afvalzuil, bord30, voorrangsbord, bermpaal, rietpol,
 };
