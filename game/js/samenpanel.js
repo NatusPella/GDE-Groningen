@@ -76,13 +76,13 @@ export const samenGate = () => !!startOpts.gate;
 const store = () => { try { return localStorage; } catch (e) { return null; } };
 
 // Staat het paneel open terwijl het spel wordt overgedragen, dan wisselt de sessie onder het paneel: het volgt dat zelf (twee keer per seconde kijken, goedkoop).
-let volger = null;
-function volgSessie(world, sluit) {
+let volger = null, volgerWorld = null, volgerSluit = () => {}, boundWorld = null;
+function volgSessie() {
   if (volger || typeof setInterval !== 'function') return;
   volger = setVisibleInterval(() => {
-    const r = mountedOn, n = world && world.coopNet;
+    const r = mountedOn, w = volgerWorld, n = w && w.coopNet;
     if (!view || !r || r.isConnected === false || !n || n === gebonden) return;
-    renderSamenPanel(r, world, sluit);
+    renderSamenPanel(r, w, volgerSluit);
   }, 500);
   if (volger && volger.unref) volger.unref();
 }
@@ -90,9 +90,11 @@ function volgSessie(world, sluit) {
 // root: .pm-inner van het onderdeel. Blijft staan als je even naar een ander onderdeel gaat.
 // sluit: het pauzemenu sluiten (pausemenu.js geeft het mee; samenpanel.js importeert het menu zelf niet, dat is een importcyclus)
 export function renderSamenPanel(root, world, sluit = () => {}) {
-  volgSessie(world, sluit);
+  volgerWorld = world;
+  volgerSluit = sluit;
+  volgSessie();
   const nu = samenNet(world);
-  if (view && mountedOn === root && (!nu || nu === gebonden)) return;
+  if (view && mountedOn === root && boundWorld === world && (!nu || nu === gebonden)) return;
   // Zonder sessie en zonder gekozen rol: eerst (de eerste keer) de kaart met naam en akkoord, daarna de wizard op stap 0.
   if (!nu && !startOpts.rol && !startOpts.lijst && !view) {
     mountedOn = root;
@@ -108,6 +110,7 @@ export function renderSamenPanel(root, world, sluit = () => {}) {
   const oudeCode = view && view.state ? (view.state().code || '') : '';
   if (view) view.close();
   mountedOn = root;
+  boundWorld = world;
   const loopt = huidigeSessie(world, nu === gebonden ? oudeCode : '');
   gebonden = loopt ? loopt.net : null;
   const ls = store();

@@ -78,9 +78,20 @@ export function koppelWissel(world, opts = {}) {
 // ---- het scherm -----------------------------------------------------------------------------------------------------------------
 let overlay = null, houder = null, timer = null, laatste = '', eindTot = 0, huidige = null;
 
+export function stopWisselUi() {
+  if (timer) { clearInterval(timer); timer = null; }
+  if (typeof window !== 'undefined') window.removeEventListener('keydown', toets);
+  if (houder) { houder.close(); houder = null; }
+  overlay = null;
+  laatste = '';
+  huidige = null;
+}
+
 function startWisselUi(world) {
+  huidige = world;
+  laatste = '';
   if (timer || typeof document === 'undefined') return;
-  timer = setInterval(() => teken(world), 200);
+  timer = setInterval(() => teken(huidige), 200);
   window.addEventListener('keydown', toets);
 }
 
@@ -98,6 +109,7 @@ function toets(e) {
 }
 
 function teken(world) {
+  if (!world) return;
   huidige = world;
   const u = world.coopWisselUi;
   const nu = Date.now();
@@ -111,9 +123,11 @@ function teken(world) {
     houder = mountOverlay({
       label: 'Spel overdragen', target: document.body,
       onAction: (a) => {
-        if (a === 'ja') antwoordVraag(world, true);
-        else if (a === 'nee') antwoordVraag(world, false);
-        else if (a === 'stop') annuleerOverdracht(world);
+        const w = huidige;
+        if (!w) return;
+        if (a === 'ja') antwoordVraag(w, true);
+        else if (a === 'nee') antwoordVraag(w, false);
+        else if (a === 'stop') annuleerOverdracht(w);
       },
     });
     overlay = houder && houder.el;

@@ -82,7 +82,7 @@ import { helpHtml } from './helpoverview.js';
 import { DEV, FLAGS } from './devflags.js';
 import { renderOverview, renderTodo, renderTodoStory, todoClick, todoFocus, todoEnter, todoSummary, selectTodo, setTodoFilter, foldNote } from './todoui.js';
 import { isPlayAheadOpen } from './todo.js';
-import { renderVerhaal, verhaalClick, verhaalSummary, disposeVerhaalViewer, selectVerhaalCharacter } from './verhaalui.js';
+import { renderVerhaal, refreshVerhaalPhone, verhaalClick, verhaalSummary, disposeVerhaalViewer, selectVerhaalCharacter } from './verhaalui.js';
 import { anyFresh } from './characters.js';
 import { maakRegel, zoekRegels, SOORTEN } from './pausesearch.js';
 import { renderSpullen, disposeSpullenViewer, turnSpullenViewer, spullenClick, spullenFocus, spullenEnter, spullenAnnuleer, spullenNavigeer, zetSpullenZoek, DELEN } from './spullen.js';
@@ -2811,7 +2811,7 @@ if (typeof document !== 'undefined') document.addEventListener('nieuwgezien', ()
 function renderPhone() {
   const block = root.querySelector('[data-vh-phone]');
   try {
-    if (block && tab === 'verhaal') renderVerhaal(activePanel(), 'personages', world);
+    if (block && tab === 'verhaal') refreshVerhaalPhone(activePanel(), world);
   } catch (err) { console.error('telefoon', err); }
   syncNavBadges();
 }
