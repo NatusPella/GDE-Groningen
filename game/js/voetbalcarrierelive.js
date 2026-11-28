@@ -7,7 +7,8 @@ import * as C from './voetbalcarriere.js';
 import { nightPassed } from './voetbalagenda.js';
 import { makeParkIndex, fallbackIndex, HOME_WGS } from './voetbalparken.js';
 import { wgsToWorld } from './rdnew.js';
-import { loopbaanVerdien } from './loopbaanlive.js';
+import { loopbaanVerdien, rankHook } from './loopbaanlive.js';
+import { feedFootballRank } from './footballrankmoments.js';
 import { euro } from './geldtekst.js';
 import { voetbalOpen, progressFrom } from './voetbalpoort.js';
 import { nextBeat, inviteBeat, markBeat, hudLine, beatText } from './voetbalbeats.js';
@@ -209,7 +210,11 @@ const currentDay = () => { const c = getCareer(); return C.hasCareer(c) ? c.day 
 export function updateBeats(dt, w) {
   if (!w || (beatCheck -= dt) > 0) return null;
   beatCheck = 2;
-  const c = getCareer();
+  let c = getCareer();
+  if (C.hasCareer(c)) {                // de rangenboog (footballrankmoments.js): een stijging in rang voedt de rangmomentenhaak, per speler
+    const fr = feedFootballRank(c, rankHook, w);
+    if (fr.career !== c) { career = c = fr.career; mark(); }
+  }
   const ctx = { unlocked: isUnlockedNow(w), busy: sidePathBusy(w), day: currentDay() };
   const char = (hoofdspeler(w) || {}).character === 'tammo' ? 'tammo' : 'anita';
   if (!C.hasCareer(c)) {
