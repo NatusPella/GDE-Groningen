@@ -1098,6 +1098,23 @@ function buildShots(w, film = false) {
   const lobby = homeSpawnPoint();
   const kerb = street(map, lobby.x + Math.cos(lobby.angle) * 10, lobby.y + Math.sin(lobby.angle) * 10);
   const kf = { x: Math.cos(kerb.a), y: Math.sin(kerb.a) };
+  // AAA30 regie: where Tessa stands and from where she is filmed (she speaks, so the camera stands where she faces, in a three-quarter view). The first
+  // combination of side (of the door axis) and turn where nobody and no lens stands in a building and no wall hangs 2,5 m behind her is used; checked on the real map.
+  const ANITA_FRAME = (() => {
+    const o = { x: Math.cos(lobby.angle), y: Math.sin(lobby.angle) }, sd2 = { x: -o.y, y: o.x };
+    const tx = lobby.x + o.x * 1.6, ty = lobby.y + o.y * 1.6;
+    const make = (side, turn) => {
+      const ax = lobby.x + o.x * 4.2 + sd2.x * side, ay = lobby.y + o.y * 4.2 + sd2.y * side;
+      const fo = (tx - ax) * o.x + (ty - ay) * o.y, fs2 = (tx - ax) * sd2.x + (ty - ay) * sd2.y, fl = Math.hypot(fo, fs2) || 1;
+      const c = Math.cos(turn), sn = Math.sin(turn), ro = (fo * c - fs2 * sn) / fl, rs = (fo * sn + fs2 * c) / fl;
+      const dx = o.x * ro + sd2.x * rs, dy = o.y * ro + sd2.y * rs;
+      return { side, turn, ax, ay, cx: ax + dx * 3.2, cy: ay + dy * 3.2, bx: ax - dx * 2.5, by: ay - dy * 2.5 };
+    };
+    const free = (q) => !roofAt(map, q.ax, q.ay) && !roofAt(map, q.cx, q.cy) && !roofAt(map, q.bx, q.by);
+    const list = [];
+    for (const side of [1.6, -1.6, 2.4, -2.4, 0.8, -0.8]) for (const turn of [Math.PI / 4, -Math.PI / 4]) list.push(make(side, turn));
+    return list.find(free) || list[0];
+  })();
   const verhuis = {
     minDur: 6.5, clock: 10.6, stamp: '10:36', focus: lobby,
     caption: ['PADDEPOEL', 'House of Groningen. Elf hoog, de huur door twee.'], capAt: 0.6,
@@ -1129,15 +1146,17 @@ function buildShots(w, film = false) {
       }
       const a = lobby.angle + Math.PI;
       // Tammo walks to the door with a box, Tessa by the car, hands on her hips
-      const k = clamp01(t / 4.5);
+      // AAA30 regie: he arrives at the door at 2 s and TURNS to Tessa before he speaks (2,2 s): the street camera then sees his face, not his back
+      const k = clamp01(t / 2.0);
       const tx = lerp(lobby.x + Math.cos(lobby.angle) * 5, lobby.x + Math.cos(lobby.angle) * 1.6, k);
       const ty = lerp(lobby.y + Math.sin(lobby.angle) * 5, lobby.y + Math.sin(lobby.angle) * 1.6, k);
       const z = r.w.map.spawnZ ? r.w.map.spawnZ(tx, ty) : 0;
-      stage(r.tammo, tx, ty, a, { h: z, speed: k < 1 ? 1 : 0, pose: 'cups', dt, t });
-      s.box.position.set(tx + Math.cos(a) * 0.38, z + 0.89, ty + Math.sin(a) * 0.38);
-      s.box.rotation.set(0, -a, 0);
-      const ax = lobby.x + Math.cos(lobby.angle) * 4.2 + Math.cos(lobby.angle + Math.PI / 2) * 1.6;
-      const ay = lobby.y + Math.sin(lobby.angle) * 4.2 + Math.sin(lobby.angle + Math.PI / 2) * 1.6;
+      const ax = ANITA_FRAME.ax, ay = ANITA_FRAME.ay;
+      const toA = Math.atan2(ay - ty, ax - tx), turn = Math.atan2(Math.sin(toA - a), Math.cos(toA - a));
+      const aT = a + turn * smooth((t - 2.0) / 0.8);
+      stage(r.tammo, tx, ty, aT, { h: z, speed: k < 1 ? 1 : 0, pose: 'cups', dt, t });
+      s.box.position.set(tx + Math.cos(aT) * 0.38, z + 0.89, ty + Math.sin(aT) * 0.38);
+      s.box.rotation.set(0, -aT, 0);
       stage(r.anita, ax, ay, Math.atan2(ty - ay, tx - ax), { h: r.w.map.spawnZ ? r.w.map.spawnZ(ax, ay) : 0, pose: 'hips', dt, t });
     },
     cams: [
@@ -1154,9 +1173,9 @@ function buildShots(w, film = false) {
         return pose(pos, P(lobby.x + Math.cos(out) * 2.6, lobby.y + Math.sin(out) * 2.6, 1.45), lerp(40, 36, u), t, 0.006);
       }],
       ['L1', (u, t) => {
-        const ax = lobby.x + Math.cos(lobby.angle) * 4.2 + Math.cos(lobby.angle + Math.PI / 2) * 1.6;
-        const ay = lobby.y + Math.sin(lobby.angle) * 4.2 + Math.sin(lobby.angle + Math.PI / 2) * 1.6;
-        const pos = clearCam(map, P(ax + Math.cos(lobby.angle) * 2.4 - Math.cos(lobby.angle + Math.PI / 2) * 0.8, ay + Math.sin(lobby.angle) * 2.4 - Math.sin(lobby.angle + Math.PI / 2) * 0.8, 1.6));
+        // Tessa speaks: the camera stands where she faces (ANITA_FRAME), no longer behind her
+        const ax = ANITA_FRAME.ax, ay = ANITA_FRAME.ay;
+        const pos = clearCam(map, P(ANITA_FRAME.cx, ANITA_FRAME.cy, 1.6));
         return pose(pos, P(ax, ay, 1.5), lerp(34, 30, u), t, 0.004);
       }],
     ],
@@ -1217,7 +1236,7 @@ function buildShots(w, film = false) {
       const c = P(tower.x + Math.cos(a) * R, tower.y + Math.sin(a) * R, lerp(36, 40, smooth(u)));
       const dx = tower.x - c.x, dy = tower.y - c.y, dl = Math.hypot(dx, dy) || 1;
       const side = -22; // metres to the left of the tower: the tower stands on the right third
-      return pose(clearCam(map, c), P(tower.x + (dy / dl) * side, tower.y - (dx / dl) * side, 54), 54, t, 0.02);
+      return pose(clearCam(map, c), P(tower.x + (dy / dl) * side, tower.y - (dx / dl) * side, 50), 54, t, 0.02);
     }]],
   });
   // The Grote Markt at first light: a slow low dolly over the empty square, the tower on the right third of the frame, long shadows on the cobbles.
