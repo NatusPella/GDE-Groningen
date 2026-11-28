@@ -9,6 +9,7 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ## [Unreleased]
 
+- De opening van een nieuw spel is een echte filmopening: de stad bij zonsopgang (een kraan langs de Martinitoren, een zweefvlucht over de daken, een lage dolly over de Grote Markt, de fietsers en de meeuw), dan de titelkaart "GDE Groningen: Zomer vol misdaad" met "Een zomer in Grunn. Kon minder.", en pas daarna Tammo en Tessa. Overslaan blijft met SPATIE vasthouden; één vastgehouden toets slaat hooguit de opening over (#1341). Met `?oudeopening` speel je de oude opening; valt de film uit, dan komt die vanzelf terug. Samen spelen: de opening is lokaal en voor iedereen gelijk, overslaan geldt per speler.
 - De game staat nu op de hoofdpagina van de webversie (GitHub Pages); de marketingpagina is weggehaald. De oude link /play/ stuurt door naar de hoofdpagina.
 
 ## [0.66.0] - 2026-11-24

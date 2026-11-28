@@ -1202,9 +1202,33 @@ function buildShots(w, film = false) {
     ...sun, ...base('c1-markt'), clock: 6.2, clockTo: 6.5, mist: 0.3, card: undefined, cardDur: undefined,
     // a slow crane up along the tower: 3,6 m in the length of the shot, the lens at 50
     cams: [[0, (u, t) => {
-      const a = toE + Math.PI + 0.5;
-      const pos = P(tower.x + Math.cos(a) * 52, tower.y + Math.sin(a) * 52, lerp(4, 7.6, smooth(u)));
-      return pose(clearCam(map, pos), P(tower.x, tower.y, lerp(30, 58, smooth(u))), 50, t, 0.03);
+      // AAA30 regie: from 85 m, above the first roofs, so the whole tower stands in the frame (from 52 m and 4 m high the tower left the picture: sky and one roof)
+      const a = toE + Math.PI * 4 / 3; // checked on the real map: the clock tower in front, the church behind it, the sun on the right
+      const pos = P(tower.x + Math.cos(a) * 85, tower.y + Math.sin(a) * 85, lerp(22, 25.6, smooth(u)));
+      return pose(clearCam(map, pos), P(tower.x, tower.y, lerp(40, 50, smooth(u))), 50, t, 0.03);
+    }]],
+  });
+  // AAA30 regie (28-11): the city seen before the people. An aerial glide over the roofs round the tower, the tower on the right third (the camera
+  // aims a little left of it), chimneys and tiles in the foreground, the low sun raking across them; high enough to clear every roof (clearCam as a net).
+  const fRoofs = withDawn({
+    ...base('c1-daken'), clock: 6.35, mist: 0.3, focus: tower,
+    cams: [[0, (u, t) => {
+      const R = 98, a = toE + Math.PI - 0.95 + lerp(-0.05, 0.05, smooth(u));
+      const c = P(tower.x + Math.cos(a) * R, tower.y + Math.sin(a) * R, lerp(36, 40, smooth(u)));
+      const dx = tower.x - c.x, dy = tower.y - c.y, dl = Math.hypot(dx, dy) || 1;
+      const side = -22; // metres to the left of the tower: the tower stands on the right third
+      return pose(clearCam(map, c), P(tower.x + (dy / dl) * side, tower.y - (dx / dl) * side, 44), 54, t, 0.02);
+    }]],
+  });
+  // The Grote Markt at first light: a slow low dolly over the empty square, the tower on the right third of the frame, long shadows on the cobbles.
+  // (The first plan was the Noorderplantsoen; its pond and trees did not render in the checked build, so the square is the safe, recognisable second place.)
+  const PLEIN = { from: { x: 150, y: 72 }, to: { x: 154.2, y: 67.6 } }; // (142, 94) is inside a building: both ends were checked free on the real map
+  const fPlein = withDawn({
+    ...base('c1-plein'), clock: 6.45, mist: 0.25, focus: PLEIN.from,
+    cams: [[0, (u, t) => {
+      const k = smooth(u), x = lerp(PLEIN.from.x, PLEIN.to.x, k), y = lerp(PLEIN.from.y, PLEIN.to.y, k), z = zAt(x, y);
+      const dx = tower.x - x, dy = tower.y - y, dl = Math.hypot(dx, dy) || 1, side = -24;
+      return pose(clearCam(map, P(x, y, z + lerp(1.4, 1.8, k))), P(tower.x + (dy / dl) * side, tower.y - (dx / dl) * side, z + lerp(32, 38, k)), 46, t, 0.012);
     }]],
   });
   const fBikes = withDawn({
@@ -1212,6 +1236,8 @@ function buildShots(w, film = false) {
     cams: [[0, (u, t, s) => { const c = blane(7, 3.3); return pose(P(c.x, c.y, 1.0), P(s.mid.x, s.mid.y, 1.0), 46, t, 0.02); }]],
   });
   const fGull = withDawn({ ...gull, ...base('c1-meeuw'), clock: 6.4 });
+
+  const fTitle = { ...title, ...base('c1-titel'), film: true, minDur: 4.4 };
 
   // Tammo walks down the Korenbloemstraat with a cup of coffee, the pigeons follow him at a respectable distance; then one lands on his shoulder
   const walkOff = 5.2;
@@ -1476,10 +1502,9 @@ function buildShots(w, film = false) {
       ['L3+2.6', camMoveTammo],
     ],
   };
-  const fTitle = { ...title, ...base('c3-titel'), film: true, minDur: 4.4 };
   const fSwoop = { ...swoop, ...base('c3-zweef'), film: true };
 
-  return [fBlack, fCrane, fBikes, fGull, fStreet, fShoulder, fDoor, fFacade, fBank, fCar, fPlan, fHome, fRent, fKiosk, fPhone, fMoveIn, fMoveMoney, fTitle, fSwoop];
+  return [fBlack, fCrane, fRoofs, fPlein, fBikes, fGull, fTitle, fStreet, fShoulder, fDoor, fFacade, fBank, fCar, fPlan, fHome, fRent, fKiosk, fPhone, fMoveIn, fMoveMoney, fSwoop];
 }
 
 // Speaker keys: T, A, V (Rikus, the narrator, always on the radio).
@@ -1744,6 +1769,9 @@ export function playTrailerMontage(w, { onDone } = {}) {
 
 // The staged film (openingfilm.js, ?openingfilm). false when it cannot start (the caller plays the old opening); onDone(skipped, failed): failed means
 // a shot threw while playing, the film was stopped and the caller plays the old opening instead.
+// QA-haak (scripts/qa/opening_film_beelden.page.js): welk shot van de film speelt nu
+if (typeof window !== 'undefined') window.__introFilm = () => (run ? { idx: run.idx, id: (run.shots[run.idx] || {}).filmId || null, st: Math.round((run.lastT + run.offset - (run.starts[run.idx] || 0)) * 10) / 10, starts: run.starts.map((x) => Math.round(x * 100) / 100), ids: run.shots.map((q) => q.filmId || null), durs: run.shots.map((q) => Math.round(q.dur * 100) / 100) } : null);
+
 export function playOpeningFilm(w, { onDone } = {}) {
   try { return playIntroMontage(w, { onDone, film: true }); } catch (e) { console.warn('opening-film', e); return false; }
 }

@@ -37,7 +37,10 @@ export const FLAGS = Object.freeze({
   noattract: has('noattract'),
   warm: has('warm'),
   warmfilm: has('warmfilm'),
-  openingfilm: has('openingfilm'),
+  // AAA30 regie (28-11): de geënsceneerde opening is de standaard; ?oudeopening speelt de oude montage met de twee scènes (testrun, vergelijking). Een testrun met
+  // ?storytest of ?autoplay houdt de oude opening, want die loopt zonder camera's en zonder wachttijd (dezelfde regel als de rest van de testharnassen).
+  openingfilm: has('openingfilm') || (!has('oudeopening') && !STORY_TEST && !AUTOPLAY),
+  oudeopening: has('oudeopening'),
   laadstappen: has('laadstappen'),
   dswereld: val('dswereld'),
   menutest: has('menutest'),
@@ -104,7 +107,8 @@ export const FLAG_DOCS = Object.freeze({
   warm: 'Laat het laadscherm het startgebied en de openingsfilm toch voorwarmen in een testrun (die slaat dat anders over), om de laadtijd te meten (--url-flags=warm)',
   laadstappen: 'Zet na het laden een tabel in de console met de duur per laadstap en tel de stappen (opdracht 21-11; alleen voor metingen)',
   dswereld: 'Menging van de wereldkleuren met het designsysteem, 0 tot 1 (worldpalette.js); standaard 0,4, 0 is het oude palet, 1 volledig; alleen voor vergelijken (de wereld leest de waarde zelf uit de URL)',
-  openingfilm: 'Speel de nieuwe, geënsceneerde opening (openingfilm.js, filmscript docs/verhaal/OPENING-FILMSCRIPT-21-11.md) in plaats van de montage en de twee scènes; bij een fout valt het spel terug op de oude opening (via --url-flags=openingfilm)',
+  openingfilm: 'De geënsceneerde opening (openingfilm.js, filmscript docs/verhaal/OPENING-FILMSCRIPT-21-11.md) is de standaard; bij een fout valt het spel terug op de oude opening. ?openingfilm dwingt hem ook af in een storytest of autoplay-run',
+  oudeopening: 'Speel de oude opening (montage plus de twee scènes uit cutscenes.js) in plaats van de film (om te vergelijken)',
   warmfilm: 'Rijd de openingsfilm tijdens het laadscherm voor (tour, palette, samples); standaard uit want dat kostte 20 tot 90 s laadtijd en ~400 extra shaderprogrammas (alleen voor A/B-metingen)',
   menutest: 'Houd het oude startscherm voor de QA-harnassen (devtools zet dit bij GDE_MENU_TEST); een gewone start en elke testrun beginnen in de wereld',
   attract: 'Speel het aantrekkingsfilmpje (trailer.js)',

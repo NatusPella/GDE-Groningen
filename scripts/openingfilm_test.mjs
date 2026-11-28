@@ -25,7 +25,12 @@ assert.ok(Object.values(GRADES).every((g) => ['helder', 'mist'].includes(g.weath
 // de tijdlijn: de shots sluiten op elkaar aan en de film eindigt met de titelkaart en de zweefvlucht
 const tl = timeline();
 assert.ok(tl.every((r, i) => i === 0 || Math.abs(r.t - (tl[i - 1].t + tl[i - 1].dur)) < 0.15));
-assert.deepEqual(SEQUENCE.slice(-2).map((s) => s.id), ['c3-titel', 'c3-zweef'], 'de titel valt voor de landing, zodat het spel niet op zwart begint');
+assert.equal(SEQUENCE[SEQUENCE.length - 1].id, 'c3-zweef', 'de film eindigt met de zweefvlucht naar de speler, zodat het spel niet op zwart begint');
+// AAA30 regie (28-11): eerst de stad (kraan, daken, plantsoen, fietsen, meeuw), dan de titelkaart, dan pas de mensen
+const ids = SEQUENCE.map((s) => s.id);
+assert.deepEqual(ids.slice(0, 8), ['c1-zwart', 'c1-markt', 'c1-daken', 'c1-plein', 'c1-fietsen', 'c1-meeuw', 'c1-titel', 'c1-duiven'], 'de opening begint met establishing shots en de titelkaart voor Tammo');
+assert.ok(SEQUENCE.filter((s) => s.establishing && s.scene === 'C00.1').length >= 3, 'minstens drie establishing shots in de koude opening');
+assert.ok(!ids.includes('c3-titel'), 'de titelkaart staat vooraan (c1-titel)');
 
 // 2. tekst: de regels van de linter (merken, winter, “de Grunn”, leessnelheid, beurtlengte)
 const unit = { id: 'C00', kind: 'opening', lines: LINES.map((l) => ({ speaker: l.speaker, key: l.who, text: l.text, channel: l.channel || '', voiceDur: l.voice === 'behouden' ? Math.max(1.6, l.text.length / 14) : null, hasVoice: l.voice === 'behouden', textOnly: l.voice === 'nieuw' })) };
@@ -95,8 +100,8 @@ assert.match(filmBlock, /camTammo = .*K\(-1\.4, -0\.32, 1\.3\)/);
 
 // 8. veiligheid: vlag, terugval bij een fout, het oude pad blijft
 const flags = read('../game/js/devflags.js');
-assert.match(flags, /openingfilm: has\('openingfilm'\)/);
-assert.match(flags, /openingfilm: 'Speel de nieuwe/);
+assert.ok(flags.includes("openingfilm: has('openingfilm') || (!has('oudeopening') && !STORY_TEST && !AUTOPLAY)"), 'de film is de standaard, behalve met ?oudeopening of in een storytest/autoplay-run');
+assert.ok(flags.includes("oudeopening: 'Speel de oude opening"));
 assert.match(read('../docs/ONTWIKKELEN.md'), /\| `\?openingfilm` \|/);
 assert.match(story, /if \(FLAGS\.openingfilm && acts\.length === 3\)/);
 assert.match(story, /playOpeningFilm\(world/);
@@ -119,4 +124,20 @@ assert.ok(im.includes('return { filmId: id, minDur: e.minDur'), 'elke filmshot k
 // de engine-regels van een shot komen uit de reeks
 assert.deepEqual(engineLines('c2-bank').map((l) => l[0]), ['T', 'A']);
 assert.equal(engineLines('c3-geld').length, 4);
+// #1341: een vastgehouden toets slaat hooguit één film over. De herhaling van een keydown start geen nieuwe hold, en na het overslaan blijft
+// de spatie "ingeslikt" tot hij losgelaten is: de volgende film (de eerste missiescène) ziet de nog vastgehouden toets niet als nieuw overslaan.
+{
+  const { cutsceneTakesSpace } = await import('../game/js/spacegate.js');
+  assert.equal(cutsceneTakesSpace({ skippable: true }, { repeat: true }), false, 'een keydown-herhaling is geen overslaan');
+  assert.equal(cutsceneTakesSpace({ skippable: true }, { repeat: false }), true);
+  const cine = read('../game/js/cinematics.js');
+  const rs = cine.indexOf('function resetSkip()');
+  const reset = cine.slice(rs, cine.indexOf('}', cine.indexOf('skipShown = -1', rs)));
+  assert.ok(rs > 0 && !reset.includes('swallowSpace'), 'resetSkip laat de ingeslikte spatie staan tot de keyup');
+  assert.ok(cine.includes('if (swallowSpace) { e.preventDefault(); e.stopImmediatePropagation(); return; }'), 'een nog vastgehouden spatie start geen tweede hold');
+  const ku = cine.indexOf("addEventListener('keyup'");
+  assert.ok(ku > 0 && cine.slice(ku, ku + 200).includes('swallowSpace = false'), 'pas de keyup geeft de spatie weer vrij');
+  assert.ok(story.includes('Skipping (hold Space) ends the whole opening'), 'overslaan beëindigt de hele opening, niet één act');
+  assert.ok(story.includes('if (failed) { if (!playOld()) openingKlaar(); } else openingKlaar();'), 'de film eindigt (overgeslagen of niet) in één openingKlaar');
+}
 console.log(`openingfilm_test: ok (geschat ${d.toFixed(1)} s, ${SEQUENCE.length} geënsceneerde shots, keuken ${dir.stats.shots} geregisseerde shots)`);
