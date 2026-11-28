@@ -119,6 +119,7 @@ De werkafspraken en de constitutie staan in [../AGENTS.md](../AGENTS.md); die wi
 | [MUZIEK-VOETBAL-22-11.md](<MUZIEK-VOETBAL-22-11.md>) | Voetbalmuziek (22-11): de set, teksten en stijlprompts, wat gemaakt is en wat alleen als prompt klaarstaat, en hoe de fasekeuze werkt. |
 | [MUZIEK-TE-VRAGEN.md](<MUZIEK-TE-VRAGEN.md>) | Wat aan muziek gekoppeld is (alles) en wat de eigenaar nog moet leveren; uitkomst van de audiograafcontrole (#986, #988). |
 | [MUZIEK-OPDRACHT-GEMINI.md](<MUZIEK-OPDRACHT-GEMINI.md>) | Negen missiesferen met een kant-en-klare Gemini-prompt, de missies waarvoor ze zijn en hoe je een bestand toevoegt (#988). |
+| [STORYRECAP.md](<STORYRECAP.md>) | Verhaalrecap, dagboek en ankerzin bij te vroege aankomst uit de eigen verhaalstand, zonder spoilers (#1363, #1393): wat de pure module doet, de Samen-regel en de koppelnotitie. |
 | [RADIO-BEDIENING-22-11.md](<RADIO-BEDIENING-22-11.md>) | De radio bedienen met alleen een controller of toetsenbord: de knop per situatie, het zenderwiel, N kort en lang, de Samen-regel en de herbinding. |
 | [RADIOZENDERS-21-11.md](<RADIOZENDERS-21-11.md>) | Ontwerp en naslag van de radiokeuze: zenders met eigen pool, anti-herhaling, de geheime zender en de Samen-regel voor een gedeeld voertuig (ADR 0046). |
 | [MUZIEK-NOORDKUST-22-11.md](<MUZIEK-NOORDKUST-22-11.md>) | Muziekronde voor Radio Noordkust en Nachtjazz Radio: twaalf kustteksten en zes jazzprompts die klaarstaan voor Gemini, met de koppelstappen. |
