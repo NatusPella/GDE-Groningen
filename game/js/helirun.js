@@ -667,7 +667,7 @@ function cleanup(aborted) {
     const back = r.variant === 'rooster' && r.result && r.result.success ? { x: P.ROOSTER.eemshaven.x, y: P.ROOSTER.eemshaven.y }
       : r.variant === 'rooster' ? { x: r.startPad.x - 7, y: r.startPad.y + 5 }
       : atEelde ? { x: r.startPad.x - 7, y: r.startPad.y + 5 } : spot || r.start;
-    // the quay of the Eemshaven and the pad of Eelde are not checked against buildings or water: the nearest open spot
+    // the quay of the Eemshaven is checked on the real map (scripts/heli_spots_world_test.mjs, #1377: dry, no building within 40 m); the pad of Eelde is not: the nearest open spot
     let at = back;
     try { if (w.map && w.map.openSpotNear) at = w.map.openSpotNear(back.x, back.y) || back; } catch (e) { at = back; }
     pl.x = at.x; pl.y = at.y;

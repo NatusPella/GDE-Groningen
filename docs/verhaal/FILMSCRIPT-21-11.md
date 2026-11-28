@@ -610,6 +610,18 @@ De hoofdstukken H1 tot en met H3 zijn het nieuwe begin (bijbel 28-11); de aktes 
 **Sequentie A2: De kermisrit** (activiteit; speler-protagonist Tammo)
 
 
+**Sequentie L1: De wind heeft een mening** (activiteit; speler-protagonist Tammo)
+
+- **L1** BUITEN – WESTERKWARTIER, EELDE, DE WEIDE NAAST HET VLIEGVELD – OCHTEND · De wind heeft een mening · cutscene of gespeeld in de missie
+  - zondagochtend, bijna windstil. Op de weide naast het vliegveld van Eelde, bij Vliegschool De Windwijzer, staat een ballonmand met een half gevulde ballon. Naamkaart: GERLOF HAMMINGA, BALLONVAARDER, bij zijn eerste regel.
+  - praat: Gerlof Hamminga, Tammo, Tessa
+
+**Sequentie L2: Boven de Dollard** (activiteit; speler-protagonist Tammo)
+
+- **L2** BUITEN – OLDAMBT, DE DOLLARDDIJK BIJ TERMUNTEN – OCHTEND · Boven de Dollard · cutscene of gespeeld in de missie
+  - zondagochtend, later. Op de dijk aan de Dollard staat een ballonmand klaar. In de verte, boven het water, hangt een gele ballon met op de zijkant US MEM SNACKS. Een kleine figuur zwaait vanuit de mand met een hoed: Jelle
+  - praat: Jelle Terpstra, Tammo, Tessa
+
 **Sequentie J3: Koffie bij Tessa's ouders** (activiteit; speler-protagonist Tammo)
 
 - **J3** BUITEN – MIDDEN-GRONINGEN, HET ERF BIJ SIDDEBUREN – MIDDAG · Koffie bij Tessa's ouders · cutscene of gespeeld in de missie
@@ -1085,9 +1097,9 @@ De hoofdstukken H1 tot en met H3 zijn het nieuwe begin (bijbel 28-11); de aktes 
 
 | Personage | Akte 1 | Akte 2 | Akte 3 | Akte 4 | Akte 5 | Deel 4 |
 |---|---|---|---|---|---|---|
-| Tessa | 49 | 41 | 32 | 33 | 39 | 21 |
-| Tammo | 49 | 39 | 32 | 31 | 33 | 23 |
-| Jelle Terpstra | 5 | 10 | 11 | 8 | 12 | 4 |
+| Tessa | 49 | 41 | 34 | 33 | 39 | 21 |
+| Tammo | 49 | 39 | 34 | 31 | 33 | 23 |
+| Jelle Terpstra | 5 | 10 | 12 | 8 | 12 | 4 |
 | Rikus | 10 | 4 | 4 | 7 | 11 | 4 |
 | Berend Bos | 4 |  |  | 14 | 10 | 8 |
 | Douwe | 1 | 2 | 6 | 5 | 5 | 2 |
@@ -1141,6 +1153,7 @@ De hoofdstukken H1 tot en met H3 zijn het nieuwe begin (bijbel 28-11); de aktes 
 | Daan |  |  | 1 |  |  |  |
 | Student |  |  | 1 |  |  |  |
 | Kermisexploitant |  |  | 1 |  |  |  |
+| Gerlof Hamminga |  |  | 1 |  |  |  |
 | Stien |  |  |  | 1 |  |  |
 | Hilbrand |  |  |  |  |  | 1 |
 | Jaap Roorda |  |  |  |  |  | 1 |

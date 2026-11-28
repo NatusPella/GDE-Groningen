@@ -7,6 +7,7 @@
 import { icoon } from './icons.js';
 import * as L from './loopbaan.js';
 import { vervoerGids } from './vervoer.js';
+import { luchtGids } from './airstory.js';
 import { getProfiel, startLoopbaan } from './loopbaanlive.js';
 import { SIDE_JOBS } from './sidejobs.js';
 import { fillBars } from './motion.js';
@@ -342,7 +343,7 @@ function landbouwGidsHtml(id) {
 
 // De Dienstkaart van vervoer (vervoer.js): de kernlus en wat je rang nu is en straks wordt. Alleen bij bus, taxi en trein.
 function vervoerGidsHtml(id, niveau) {
-  const g = vervoerGids(id, niveau);
+  const g = vervoerGids(id, niveau) || luchtGids(id, niveau); // ook de Dienstkaart van Lucht (airstory.js)
   if (!g) return '';
   return `<div class="lb-blok lb-gids"><h3 class="m-eb">${esc(g.titel)}</h3>` +
     `<ol class="lb-gids-lijst">${g.stappen.map((x) => `<li>${esc(x)}</li>`).join('')}</ol>` +

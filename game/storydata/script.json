@@ -145,6 +145,10 @@
    "name": "Jochem Luiken",
    "voice": "Jochem Luiken"
   },
+  "gerlof": {
+   "name": "Gerlof Hamminga",
+   "voice": "Gerlof Hamminga"
+  },
   "kustwachter": {
    "name": "Kustwachter",
    "voice": "Kustwachter"
@@ -14485,6 +14489,247 @@
      "channel": "stem",
      "textOnly": false,
      "rec": "lines"
+    }
+   ]
+  },
+  {
+   "id": "L1",
+   "title": "De wind heeft een mening",
+   "act": 3,
+   "region": "Westerkwartier, Eelde, de weide naast het vliegveld",
+   "vehicle": "ballon",
+   "step": "L1",
+   "kind": "key",
+   "gameplay": "de ballon staat klaar bij de lanceerplek. Stap in met E: de brander (spatie) laat hem stijgen, de klep (shift) laat hem dalen, sturen doet de wind. Landen kan overal waar het zacht is.",
+   "regie": [
+    "zondagochtend, bijna windstil. Op de weide naast het vliegveld van Eelde, bij Vliegschool De Windwijzer, staat een ballonmand met een half gevulde ballon. Naamkaart: GERLOF HAMMINGA, BALLONVAARDER, bij zijn eerste regel. Gameplay: de ballon staat klaar bij de lanceerplek. Stap in met E: de brander (spatie) laat hem stijgen, de klep (shift) laat hem dalen, sturen doet de wind. Landen kan overal waar het zacht is.",
+    "Gerlof wijst naar de windzak bij het vliegveld. Die hangt slap."
+   ],
+   "lines": [
+    {
+     "speaker": "Gerlof Hamminga",
+     "key": "gerlof",
+     "text": "Niet rennen. De wind houdt niet van mensen die rennen.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tammo",
+     "key": "T",
+     "text": "Goedemorgen. Wij komen voor een vliegles.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Gerlof Hamminga",
+     "key": "gerlof",
+     "text": "Gerlof Hamminga, ballonvaarder. Mijn hulp heeft een schouder, dus ik zoek twee handen.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tessa",
+     "key": "A",
+     "text": "De dokter van de traumaheli zei dat u uitlegt wat een ballon doet.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true,
+     "voice": "Anita"
+    },
+    {
+     "speaker": "Gerlof Hamminga",
+     "key": "gerlof",
+     "text": "Een ballon doet niets. De wind doet alles. Ik kies alleen hoe hoog.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tammo",
+     "key": "T",
+     "text": "Dus je hebt geen stuur.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Gerlof Hamminga",
+     "key": "gerlof",
+     "text": "Een brander. Branden is stijgen, de klep open is dalen. De rest is een mening van de wind.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tessa",
+     "key": "A",
+     "text": "En welke mening heeft de wind vandaag?",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true,
+     "voice": "Anita"
+    },
+    {
+     "speaker": "Gerlof Hamminga",
+     "key": "gerlof",
+     "text": "Oost, een beetje koppig. Boven honderd meter wordt hij milder.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Gerlof Hamminga",
+     "key": "gerlof",
+     "text": "Wie de brander neemt, bepaalt de hoogte. Wie meekijkt, bepaalt of het mooi is.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tessa",
+     "key": "A",
+     "text": "Ik brand. Tammo kijkt.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true,
+     "voice": "Anita"
+    },
+    {
+     "speaker": "Tammo",
+     "key": "T",
+     "text": "Ik kijk heel goed.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Gerlof Hamminga",
+     "key": "gerlof",
+     "text": "Landen doe je zacht. De grond heeft ook een mening.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    }
+   ]
+  },
+  {
+   "id": "L2",
+   "title": "Boven de Dollard",
+   "act": 3,
+   "region": "Oldambt, de Dollarddijk bij Termunten",
+   "vehicle": "ballon",
+   "step": "L2",
+   "kind": "key",
+   "gameplay": "de tweede lanceerplek. Stap in met E en stijg op; Jelle is een visueel moment, geen ontmoeting. Beneden in het weiland staat een schaap, midden op de plek waar jullie moeten landen.",
+   "regie": [
+    "zondagochtend, later. Op de dijk aan de Dollard staat een ballonmand klaar. In de verte, boven het water, hangt een gele ballon met op de zijkant US MEM SNACKS. Een kleine figuur zwaait vanuit de mand met een hoed: Jelle. Gameplay: de tweede lanceerplek. Stap in met E en stijg op; Jelle is een visueel moment, geen ontmoeting. Beneden in het weiland staat een schaap, midden op de plek waar jullie moeten landen.",
+    "beneden in het weiland staat een schaap, helemaal alleen, precies op de landingsplek. Tessa kijkt over de rand."
+   ],
+   "lines": [
+    {
+     "speaker": "Jelle Terpstra",
+     "key": "jelle",
+     "text": "Goedemorgen! Foar mem!",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tammo",
+     "key": "T",
+     "text": "Hij zwaait.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tessa",
+     "key": "A",
+     "text": "Hij zwaait naar iedereen. Hij heeft een nieuwe ballon, en die is niet bang voor duiven.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true,
+     "voice": "Anita"
+    },
+    {
+     "speaker": "Tammo",
+     "key": "T",
+     "text": "Je hoort niets hier boven.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tessa",
+     "key": "A",
+     "text": "Alleen de brander.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true,
+     "voice": "Anita"
+    },
+    {
+     "speaker": "Tammo",
+     "key": "T",
+     "text": "Tessa, ik wou nog zeggen…",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tessa",
+     "key": "A",
+     "text": "Ja?",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true,
+     "voice": "Anita"
+    },
+    {
+     "speaker": "Tessa",
+     "key": "A",
+     "text": "Tammo. Dat schaap staat op onze landingsplek.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true,
+     "voice": "Anita"
+    },
+    {
+     "speaker": "Tammo",
+     "key": "T",
+     "text": "Het schaap. Ja. Het schaap.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tessa",
+     "key": "A",
+     "text": "Klep open. We dalen.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true,
+     "voice": "Anita"
+    },
+    {
+     "speaker": "Tammo",
+     "key": "T",
+     "text": "…Wat wilde ik ook alweer zeggen?",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tessa",
+     "key": "A",
+     "text": "Dat zeg je straks. Na het schaap.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true,
+     "voice": "Anita"
     }
    ]
   },

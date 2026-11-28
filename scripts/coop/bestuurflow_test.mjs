@@ -344,6 +344,31 @@ t('D: een helikopter mag de gast besturen (#525)', () => {
   assert.equal(B.weigerReden(heli, 1), null, 'geen weigering meer');
 });
 
+// ------------------------------------------------------------------ E. de ballon: een gast zit mee als passagier, nooit aan de brander (#1377, L4)
+// De brander draait bij wie het spel opende (balloonride.js); de gast stapt in als passagier (vehicle_balloon.js stapIn, getest in ballonrit_test en
+// balloonride_test) en krijgt zijn eigen loon. Wat deze suite vastlegt: de E van een gast bij een ballon laat hem nooit als bestuurder in een
+// ballonvoertuig zitten, laat geen spookrijder of half ingestapt lichaam achter, en de wereld tikt daarna gewoon door.
+t('E: een gast kan de ballon niet besturen: geen bestuurder, geen spookrijder, geen crash (#1377)', () => {
+  zetHaken();
+  const ballon = new V.Vehicle(0, 0, 0, { name: 'ballon', len: 3.2, wid: 3.2, maxSpeed: 8, accel: 1, brake: 1, turnRate: 1 });
+  ballon.isBalloon = true; ballon.isAirCraft = true; ballon.onGround = true;
+  eq(B.weigerReden(ballon, 1), 'niet', 'de regel weigert de gast als bestuurder van een ballon');
+  eq(B.magBesturen(ballon, 1), false, 'magBesturen zegt nee');
+  const tafelE = tafel({ voertuig: ballon });
+  const { host, gw } = tafelE;
+  tafelE.stap(2);
+  const f0 = figuur(host);
+  ballon.x = f0.x + 1.4; ballon.y = f0.y; ballon.speed = 0;
+  ok(N.gastGebruik(gw), 'de E van de gast gaat naar de gastheer');
+  tafelE.stap(0.6);
+  eq(ballon.driver, null, 'niemand bestuurt de ballon via het voertuigpad');
+  ok(!ballon.coopBestuurder, 'en de stoel van de gast is vrij');
+  ok(!figuur(host).inVeh && !figuur(host).coopBestuurt, 'de gast zit niet in de ballon als voertuig');
+  ok(!regelVan(host), 'geen spookrijder in world.coopRijders');
+  ok(Math.hypot(figuur(host).x, figuur(host).y) > 1, 'de gast staat nog op zijn plek');
+  tickErna(tafelE, 'E de ballon');
+});
+
 // ------------------------------------------------------------------ geen echte opslag
 // De opslag onder Node is die van scripts/node3d.mjs: een Map in het geheugen, nooit de schijf. Wat het spel bij het
 // laden zelf doet (storagekeys.js zet eenmalig de migratie-vlag) is geen testschrijfactie; de sleutels die AGENTS.md

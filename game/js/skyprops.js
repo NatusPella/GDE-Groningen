@@ -64,7 +64,7 @@ export function helipadInfo(map) {
   return map._helipad;
 }
 
-function launchSites(map) {
+export function launchSites(map) {
   if (map._balloonSites) return map._balloonSites;
   const sites = [];
   const [ox, oy] = [-0.84, 0.33];

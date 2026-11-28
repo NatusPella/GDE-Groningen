@@ -136,6 +136,8 @@ export const RELATION_LIST = [
   e('wassink', 'dries', 'friends', "vaste klant", "chauffeur", "dertig jaar de laatste bus", "hartelijk plagend", "dat Dries op tijd vertrekt", "dat mevrouw Wassink net te laat is", "de laatste bus"),
   e('wassink', 'tammo', 'acquaintance', "vaste klant", "de invaller op de lijn", "H7", "nieuwsgierig", "dat Tammo en Tessa nog niet getrouwd zijn", "dat mevrouw Wassink elke rit hetzelfde vraagt", "de vraag van elke rit"),
   e('jochem', 'tammo', 'work', "stationschef", "invaller bij het spoor", "H7", "strak, vriendelijk", "dat Tammo op tijd moet zijn", "dat Jochem fluit voor alles", "de fluit"),
+  e('gerlof', 'tammo', 'acquaintance', "ballonvaarder", "twee handen voor de brander", "H9 (de weide bij Eelde)", "rustig, plagend", "dat Tammo meekijkt", "dat Gerlof niets stuurt maar alles weet van wind", "de windzak"),
+  e('gerlof', 'dijkstra', 'acquaintance', "ballonvaarder", "heli-piloot en traumaarts", "jarenlang, vanaf het vliegveld", "droog", "dat Dijkstra mensen stuurt", "dat Gerlof het luchtruim deelt", "het vliegveld van Eelde"),
   e('noor', 'wiebe', 'work', "gids-student", "schipper en baas", "jarenlang", "vlot", "dat Wiebe thuis zit", "dat Noor het verhaal vertelt", "de rondvaart"),
   e('noor', 'anita', 'colleagues', "gids-student", "verteller op de rondvaart", "H8", "vlot", "dat Tessa het meeste weet", "dat Noor de steiger kent", "het logboek"),
   e('dina', 'schipper_lammert', 'colleagues', "sluiswachter", "binnenvaartmentor", "jarenlang", "droog", "dat Lammert altijd wacht", "dat Dina het sluitsein geeft", "het wachten bij de sluis"),

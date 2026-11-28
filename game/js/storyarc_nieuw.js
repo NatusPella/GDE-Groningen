@@ -105,6 +105,8 @@ export const SPEAKERS = {
   student: 'Student', boer: 'Boer', kind: 'Kind in het publiek',
   // vervoer (28-11, #1375)
   dries: 'Dries', annemarie: 'Annemarie', wassink: 'Mevrouw Wassink', jochem: 'Jochem Luiken',
+  // lucht (28-11, #1377)
+  gerlof: 'Gerlof Hamminga',
   willemien: 'Willemien', buurvrouw: 'Buurvrouw',
   boer_hindrik: 'Oom Hindrik', tante_aaltje: 'Tante Aaltje', notaris: 'De notaris', // de laatste drie: hoeve Zeldenrust (#1373)
   // inspiratiepakket (21-11)
@@ -393,6 +395,11 @@ export const STEPS = [
   A('A2', 'staart', 'De kermisrit', { type: 'kermis' }, { built: true, loopbanen: ['kermis'],
     lead: ['A', "De kermis in Stad staat nog op de Grote Markt. Eén ritje in de botsauto's, dan rijden we door naar het zuiden."] }),
 
+  // Lucht (28-11, #1377): de ballon als eigen verhaalstuk na de heli (M12) en het vliegtuig (M15). Activiteiten zonder beloning met migratie voor oude saves.
+  A('L1', 'staart', 'De wind heeft een mening', { type: 'reis', to: 'de weide naast het vliegveld van Eelde', at: [53.1345, 6.59], r: 400, scene: 'L1' }, { built: true, added: true, scenes: ['L1'], unlocks: 'ballon',
+    lead: ['A', 'Dokter Dijkstra zegt dat bij het vliegveld van Eelde een ballonvaarder staat die uitlegt hoe je meevaart met de wind. Zondagochtend, windstil.'] }),
+  A('L2', 'staart', 'Boven de Dollard', { type: 'reis', to: 'de Dollarddijk bij Termunten', at: [53.301, 7.052], r: 400, scene: 'L2' }, { built: true, added: true, scenes: ['L2'],
+    lead: ['T', 'Er staat een tweede ballon bij de Dollard. Jelle hangt er ergens boven, heeft Dijkstra gezegd. Ik wil weten hoe hoog dat is.'] }),
   A('J3', 'staart', "Koffie bij Tessa's ouders", { type: 'reis', to: 'het erf bij Siddeburen', at: [53.2430, 6.8660], r: 500, scene: 'J3' }, { built: true, scenes: ['J3'], lead: ['T', "Tessa's moeder wil mij zien. Zondag, koffie, het erf bij Siddeburen. Tessa zegt dat het meevalt. Haar stem zegt iets anders."] }),
 
   // --- Akte 4: Zuidwaarts (Veenkoloniën en Westerwolde, zo 23 - wo 26 augustus) ----------

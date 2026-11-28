@@ -197,7 +197,7 @@ import { tryWeaponDropInteract, updateWeaponDrops3D } from './weapondrops.js';
 import { initFlitspaal, updateFlitspaal } from './flitspaal.js';
 import { initWildlife, updateWildlife } from './wildlife.js';
 import { tickSchaapontvoering } from './schaapontvoeringrt.js';
-import { initSkyProps, updateSkyProps } from './skyprops.js';
+import { initSkyProps, updateSkyProps, launchSites as balloonLaunchSites } from './skyprops.js';
 import { initSikkomFeed, updateSikkomFeed } from './sikkomfeed.js';
 import { initPhoneFeed, updatePhoneFeed } from './phonefeed.js';
 import { watchJumps, resetJumpWatch, startLoadScreen } from './loadscreen.js';
@@ -208,6 +208,8 @@ import { initPigeonSpots, updatePigeonSpots, tryPigeonSpotInteract } from './pig
 import { initSideJobs, updateSideJobs, trySideJobInteract } from './sidejobs.js';
 import { updateCashVan } from './cashvan.js';
 import { initHeliRun, updateHeliRun, tryHeliSpotInteract, updateHeliSpot } from './helirun.js';
+import { initBalloonRide, updateBalloonRide, updateBalloonCrafts, tryBalloonBoard } from './balloonride.js'; // de ballon als voertuig (#1377)
+import { updateBalloonRide3D } from './balloonride3d.js';
 import { initPadel, updatePadel, tryPadelInteract, updatePadelWorld, padelCamera } from './padel.js';
 import { initActivities, isActivityActive, updateActivityGame, tryActivityInteract, updateActivitiesWorld, tickActivitiesGast, activityCamera } from './activities.js';
 import { initRadio, updateRadio, updateRadioVehicle, setRadioFound, setRadioGroup } from './radio.js';
@@ -243,7 +245,7 @@ import { updateSnackVans } from './snackvans3d.js';
 import { updateChainTrucks } from './chaintrucks3d.js';
 import { setSnackFlagProvider } from './snackstory.js';
 import { setSnackWorkSend, setSnackRankSend, receiveWork as snackReceiveWork } from './snacklive.js';
-import { rankHook } from './loopbaanlive.js';
+import { rankHook, loopbaanVerdien } from './loopbaanlive.js';
 import { sendSnackWork, setSnackWorkHandler } from './bezitnet.js';
 import { updateHerds } from './herdview3d.js';
 import { setGateProgress } from './bezitgate.js';
@@ -960,6 +962,7 @@ async function boot() {
   initPigeonMode(world);
   initPigeonSpots(world);
   initHeliRun(world);
+  initBalloonRide(world, { parkSites: balloonLaunchSites, verdien: loopbaanVerdien });
   initPadel(world);
   initActivityKinds(world, 'main');
   setRadioFound(() => getSaveSet('geheimen'));
@@ -1318,6 +1321,7 @@ try { const slot = ensureLatestSlot(); const info = slot ? readSaveInfo() : null
     updateStreetEvents3D(world, getScene()); // de props van de actieve straatgebeurtenis (streetevents3d.js)
     probe.mark('cityprops');
     updatePigeonAfterglow(animDt);
+    updateBalloonRide3D(world, animDt);
     // cutscenes keep running (and end) while you're a pigeon; its camera wins
     if (world.pigeonMode) { updateCinematics(dt, world); updatePigeonCamera(dt, world); }
     // De helikoptermissie (Ballonjacht): de filmcamera loopt mee, zodat V ook in de
@@ -1441,6 +1445,7 @@ try { const slot = ensureLatestSlot(); const info = slot ? readSaveInfo() : null
 
     if (world.pigeonMode) updatePigeonMode(dt, world);
     else if (world.heliRun) updateHeliRun(dt, world);
+    else if (world.balloonRide) updateBalloonRide(dt, world); // de ballon: de speler hangt in de mand (balloonride.js)
     else if (world.padelGame) { updatePadel(dt, world); updateCompanion(dt, world); }
     else if (isActivityActive()) { updateActivityGame(dt, world); updateCompanion(dt, world); }
     else {
@@ -1456,6 +1461,7 @@ try { const slot = ensureLatestSlot(); const info = slot ? readSaveInfo() : null
       tryTrainInteract(world);
       interactActivityKinds(world, 'job');
       tryHeliSpotInteract(world);
+      tryBalloonBoard(world);
       updateCashVan(dt, world);
       tryGarageInteract(world);
       tryMachineInteract(world);
@@ -1517,7 +1523,7 @@ try { const slot = ensureLatestSlot(); const info = slot ? readSaveInfo() : null
       if (sw.voertuigen + sw.voetgangers + sw.snelheid) frameGuard.fail('niet-eindige-waarde', new Error(`${sw.voertuigen} voertuigen, ${sw.voetgangers} voetgangers opgeruimd, ${sw.snelheid} snelheden op nul`), true);
     }
 
-    if (!world.pigeonMode && !world.heliRun) politieMetDoelwit(dt, world, updatePolice); // met een gast die gezocht wordt jaagt de politie op hem (#434)
+    if (!world.pigeonMode && !world.heliRun && !world.balloonRide) politieMetDoelwit(dt, world, updatePolice); // met een gast die gezocht wordt jaagt de politie op hem (#434)
     frameGuard.run('updateTrafficLaw', updateTrafficLaw, dt, world);
     updateOffences(dt, world, { signalsNear: trafficSignalsNear, phaseFor: trafficLightPhaseFor });
     frameGuard.run('updateMotorPolice', updateMotorPolice, dt, world);
@@ -1550,7 +1556,7 @@ try { const slot = ensureLatestSlot(); const info = slot ? readSaveInfo() : null
     }
     frameGuard.run('updateHelis', updateHelis, dt, world);
     probe.mark('police+collide');
-    if (!world.pigeonMode && !world.heliRun) {
+    if (!world.pigeonMode && !world.heliRun && !world.balloonRide) {
       frameGuard.run('updateCombat', updateCombat, dt, world);
       frameGuard.run('updateBullets', updateBullets, dt, world);
     }
@@ -1565,11 +1571,12 @@ try { const slot = ensureLatestSlot(); const info = slot ? readSaveInfo() : null
     updateSkyProps(dt, world);
     updatePigeonSpots(dt, world);
     updateHeliSpot(dt);
+    updateBalloonCrafts(dt, world);
     updatePadelWorld(dt, world);
     tickActivityKinds(dt, world, 'world');
     updatePoleVaults(dt, world);
     probe.mark('wildlife');
-    if (!world.pigeonMode && !world.heliRun) {
+    if (!world.pigeonMode && !world.heliRun && !world.balloonRide) {
       frameGuard.run('updateMissions', updateMissions, dt, world);
       updateSikkomFeed(dt, world);
       updatePhoneFeed(dt, world);

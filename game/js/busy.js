@@ -27,6 +27,7 @@ const FLAGS = {
   padel: (w) => !!w.padelGame,
   activityGame: (w) => !!w.activityGame,
   heliRun: (w) => !!w.heliRun,
+  balloon: (w) => !!w.balloonRide,
   pigeon: (w) => !!w.pigeonMode,
   train: (w) => !!w.trainDriving,
   respawn: (w) => !!w.pendingRespawn,
