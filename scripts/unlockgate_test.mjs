@@ -77,6 +77,25 @@ resetGateRegistry();
 ok(!gateWorld('test-wereld'), 'de registratie is te resetten');
 ok(worldOpen('onbekend-id', nieuw), 'een onbekende wereld sluit de poort nooit');
 
+// per verhaalstap (doorlopend model): een wereld met atStep opent op die stap, niet aan het begin van zijn akte
+{
+  const kop = STEPS.filter((s) => s.part === 'kop');
+  const laat = kop[kop.length - 1].id;
+  ok(kop.length >= 2, 'akte 1 heeft meer dan een stap');
+  registerGateWorld({ id: 'stap-wereld', part: 'kop', by: 'Iemand', hint: 'Vraag het iemand.', atStep: laat });
+  ok(!worldOpen('stap-wereld', at(kop[0].id)) && worldOpen('stap-wereld', at(laat)), 'atStep: dicht op de eerste stap, open op de gekozen stap');
+  ok(worldOpen('stap-wereld', at(STEPS[STEPS.length - 1].id)), 'atStep: een latere stap houdt hem open');
+  ok(gateHint('stap-wereld', at(kop[0].id)) === 'Vraag het iemand.' && gateHint('stap-wereld', at(laat)) === null, 'atStep: hint alleen zolang hij dicht is');
+  ok(worldOpen('stap-wereld', progressFrom({ stepId: kop[0].id, gate: undefined })) && worldOpen('stap-wereld', progressFrom({ stepId: kop[0].id, gate: { v: 1, legacy: true, open: [] } })), 'atStep: een save zonder of met gemigreerde poort heeft alles open');
+  ok(worldOpen('stap-wereld', progressFrom({ stepId: kop[0].id, gate: newGate(), dev: true })), 'atStep: devJumpTo opent altijd');
+  const g = stampGate(newGate(), at(laat));
+  ok(worldOpen('stap-wereld', progressFrom({ stepId: kop[0].id, gate: g })), 'atStep: een eenmaal open wereld blijft open na een stap terug');
+  let t = false; try { registerGateWorld({ id: 'y', part: 'kop', atStep: 'NOPE' }); } catch (e) { t = true; }
+  ok(t, 'atStep: een onbekende stap wordt geweigerd');
+  resetGateRegistry();
+  ok(gateProblems().length === 0, 'na reset geen problemen');
+}
+
 // Samen spelen: de poort leest alleen de eigen voortgang die de aanroeper meegeeft (een gast in andermans wereld heeft zijn eigen akte)
 {
   const host = progressFrom({ stepId: 'M20', gate: newGate() });

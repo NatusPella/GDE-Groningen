@@ -16,6 +16,9 @@ import { STEPS, PARTS } from './storyarc.js';
 export const GATE_VERSION = 1;
 export const PART_ORDER = ['kop', 'romp', 'staart', 'zuid', 'ontzet', 'nazomer'];
 const partIdx = (p) => PART_ORDER.indexOf(p);
+// Per verhaalstap (doorlopend model, bijbel 28-11): een wereld mag `atStep` (een stap-id) hebben; dan opent hij op die stap
+// in plaats van aan het begin van zijn akte. Zonder `atStep` blijft de akte de maat (bestaande werelden veranderen niet).
+const stepIdx = (id) => STEPS.findIndex((s) => s.id === id);
 
 // Wat de loopbanen-data zegt (storyarc_nieuw.js `loopbanen`): de akte van de stap waar het vak voor het eerst opduikt.
 // `by`: het personage dat het inleidt; `hint`: de zin voor de gedimde startplek.
@@ -64,9 +67,10 @@ function seed() {
 seed();
 
 // Een andere epic meldt zijn wereld. Een bekend id wordt bijgewerkt (zodat Bezit zijn eigen tekst kan zetten).
-export function registerGateWorld({ id, part, by = '', hint = '', kind = 'wereld' }) {
+export function registerGateWorld({ id, part, by = '', hint = '', kind = 'wereld', atStep = null }) {
   if (!id || partIdx(part) < 0) throw new Error('registerGateWorld: id en een bekende akte nodig');
-  registry.set(id, { id, kind, part, by, hint, step: null });
+  if (atStep && stepIdx(atStep) < 0) throw new Error('registerGateWorld: onbekende stap ' + atStep);
+  registry.set(id, { id, kind, part, by, hint, step: null, ...(atStep ? { atStep } : {}) });
   return registry.get(id);
 }
 export const gateWorlds = () => [...registry.values()];
@@ -76,7 +80,7 @@ export function resetGateRegistry() { seed(); }
 // De stand die de poort nodig heeft. `partNow`: de akte van de huidige stap (of null), `ended`: het verhaal is uit.
 export function progressFrom({ stepId = null, ended = false, gate = undefined, begun = null, dev = false } = {}) {
   const st = stepId ? STEPS.find((s) => s.id === stepId) : null;
-  return { partNow: st ? st.part : null, ended, gate, begun, dev };
+  return { partNow: st ? st.part : null, stepNow: st ? st.id : null, ended, gate, begun, dev };
 }
 
 const isNewGate = (g) => !!g && typeof g === 'object' && g.v === GATE_VERSION && Array.isArray(g.open) && g.legacy !== true;
@@ -86,7 +90,7 @@ const isNewGate = (g) => !!g && typeof g === 'object' && g.v === GATE_VERSION &&
 //  - een save zonder (nieuwe) poort, of een gemigreerde: alles wat al open was blijft open: ALLES (migratieregel);
 //  - het verhaal is uit;
 //  - de speler is er al aan begonnen (voortgang) of de poort kent hem al;
-//  - het verhaal heeft de akte bereikt.
+//  - het verhaal heeft de stap (`atStep`) of anders de akte bereikt.
 export function worldOpen(id, progress = {}) {
   if (progress.dev) return true;
   const w = registry.get(id);
@@ -96,6 +100,7 @@ export function worldOpen(id, progress = {}) {
   if (progress.ended) return true;
   if (g.open.includes(id)) return true;
   if (typeof progress.begun === 'function' && progress.begun(id)) return true;
+  if (w.atStep) return !!progress.stepNow && stepIdx(progress.stepNow) >= stepIdx(w.atStep);
   return !!progress.partNow && partIdx(progress.partNow) >= partIdx(w.part);
 }
 
@@ -128,4 +133,7 @@ export function migrateGate(save) {
 }
 
 // Controle voor de tests: elke wereld wijst naar een bestaande akte.
-export const gateProblems = () => gateWorlds().filter((w) => !PARTS[w.part]).map((w) => `${w.id}: onbekende akte ${w.part}`);
+export const gateProblems = () => gateWorlds().flatMap((w) => [
+  ...(!PARTS[w.part] ? [`${w.id}: onbekende akte ${w.part}`] : []),
+  ...(w.atStep && stepIdx(w.atStep) < 0 ? [`${w.id}: onbekende stap ${w.atStep}`] : []),
+]);
