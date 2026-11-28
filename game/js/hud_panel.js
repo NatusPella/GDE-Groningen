@@ -1853,13 +1853,20 @@ function setRaceRow(k, text, cls = '') {
 function updateRaceHud(world) {
   const m = world.mission;
   const r = (m && m.phase === 'active' && !(world.sideJob && world.sideJob.active) ? m.raceHud : null) || world.challengeHud || null;
-  els.race.hidden = !r;
+  const hideRace = !r;
+  if (els.race.hidden !== hideRace) els.race.hidden = hideRace;
   if (!r) return;
-  els.racePos.hidden = !r.pos;
+  const hidePos = !r.pos;
+  if (els.racePos.hidden !== hidePos) els.racePos.hidden = hidePos;
   if (r.pos) {
-    els.racePos.querySelector('b').textContent = `${r.pos}e`;
-    els.racePos.querySelector('span').textContent = `van ${r.total}`;
-    els.racePos.dataset.lead = r.pos === 1 ? '1' : '';
+    const bEl = els.racePosB || (els.racePosB = els.racePos.querySelector('b'));
+    const spEl = els.racePosSpan || (els.racePosSpan = els.racePos.querySelector('span'));
+    const posText = `${r.pos}e`;
+    const totText = `van ${r.total}`;
+    const leadVal = r.pos === 1 ? '1' : '';
+    if (bEl && bEl.textContent !== posText) bEl.textContent = posText;
+    if (spEl && spEl.textContent !== totText) spEl.textContent = totText;
+    if (els.racePos.dataset.lead !== leadVal) els.racePos.dataset.lead = leadVal;
   }
   setRaceRow('time', fmtRaceTime(r.elapsed));
   setRaceRow('left', fmtRaceTime(Math.ceil(r.timeLeft), false), r.timeLeft < 10 ? 'low' : '');

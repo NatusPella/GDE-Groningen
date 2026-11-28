@@ -110,20 +110,27 @@ function updateStemKaart(world) {
 }
 
 // De beloningskaart na een gezamenlijke activiteit (samenbeloning.js): één kaart, Doorgaan (Enter) of Esc sluit hem. Alleen een weergave; de betaling is al gebeurd.
-let beloningEl = null;
+let beloningEl = null, beloningSluit = null, beloningTimer = null;
 export function toonBeloningKaart(gegevens) {
   if (typeof document === 'undefined' || !gegevens) return false;
-  if (beloningEl) beloningEl.remove();
-  beloningEl = document.createElement('div');
-  beloningEl.className = 'sb-scherm';
-  beloningEl.innerHTML = beloningHtml(gegevens);
-  const sluit = () => { if (beloningEl) { beloningEl.remove(); beloningEl = null; } document.removeEventListener('keydown', toets, true); };
+  if (beloningSluit) beloningSluit();
+  const el = document.createElement('div');
+  beloningEl = el;
+  el.className = 'sb-scherm';
+  el.innerHTML = beloningHtml(gegevens);
   const toets = (e) => { if (e.key === 'Enter' || e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); sluit(); } };
-  beloningEl.addEventListener('click', (e) => { if (e.target.closest && e.target.closest('[data-beloning-door]')) sluit(); });
+  const sluit = () => {
+    if (beloningEl !== el) return;
+    clearTimeout(beloningTimer); beloningTimer = null;
+    el.remove(); beloningEl = null; beloningSluit = null;
+    document.removeEventListener('keydown', toets, true);
+  };
+  el.addEventListener('click', (e) => { if (e.target.closest && e.target.closest('[data-beloning-door]')) sluit(); });
   document.addEventListener('keydown', toets, true);
-  document.body.appendChild(beloningEl);
-  const b = beloningEl.querySelector('[data-beloning-door]'); if (b && b.focus) b.focus({ preventScroll: true });
-  setTimeout(sluit, 20000);
+  document.body.appendChild(el);
+  const b = el.querySelector('[data-beloning-door]'); if (b && b.focus) b.focus({ preventScroll: true });
+  beloningSluit = sluit;
+  beloningTimer = setTimeout(sluit, 20000);
   return true;
 }
 
@@ -154,21 +161,28 @@ function updateWachtKaart(world) {
 }
 
 // Het hervatvenster (ontwerp 24-11): je bent weer verbonden. Hoe lang je weg was, dat je eigen spel niet veranderde, en de gele Verder spelen.
-let hervatEl = null;
+let hervatEl = null, hervatSluit = null, hervatTimer = null;
 export function toonHervatKaart({ seconden = 0, naam = 'de ander' } = {}) {
   if (typeof document === 'undefined') return false;
-  if (hervatEl) hervatEl.remove();
+  if (hervatSluit) hervatSluit();
   const min = Math.floor(seconden / 60), sec = Math.round(seconden % 60);
   const duur = min > 0 ? `${min} minuut en ${sec} seconden` : `${sec} seconden`;
-  hervatEl = document.createElement('div');
-  hervatEl.className = 'sb-scherm';
-  hervatEl.innerHTML = `<section class="sb-kaart" role="dialog" aria-modal="true" aria-label="Je bent weer verbonden"><div class="sb-kop">Je bent weer verbonden</div><div class="sb-kol" style="margin:0 var(--ds-s-5)"><h3 class="ds-z-tussenkop">Welkom terug in het spel van ${naam.replace(/[<>&"]/g, '')}</h3><p>Je was ${duur} weg. Je eigen spel is niet veranderd: je geld en je voortgang zijn bewaard. Wat de anderen deden, heb je gemist; waar je niet bij hoefde te zijn, kostte je niets.</p></div><div class="sb-acties"><button type="button" class="ds-z-knop" data-hervat-door>Verder spelen</button></div></section>`;
-  const sluit = () => { if (hervatEl) { hervatEl.remove(); hervatEl = null; } document.removeEventListener('keydown', toets, true); };
+  const el = document.createElement('div');
+  hervatEl = el;
+  el.className = 'sb-scherm';
+  el.innerHTML = `<section class="sb-kaart" role="dialog" aria-modal="true" aria-label="Je bent weer verbonden"><div class="sb-kop">Je bent weer verbonden</div><div class="sb-kol" style="margin:0 var(--ds-s-5)"><h3 class="ds-z-tussenkop">Welkom terug in het spel van ${naam.replace(/[<>&"]/g, '')}</h3><p>Je was ${duur} weg. Je eigen spel is niet veranderd: je geld en je voortgang zijn bewaard. Wat de anderen deden, heb je gemist; waar je niet bij hoefde te zijn, kostte je niets.</p></div><div class="sb-acties"><button type="button" class="ds-z-knop" data-hervat-door>Verder spelen</button></div></section>`;
   const toets = (e) => { if (e.key === 'Enter' || e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); sluit(); } };
-  hervatEl.addEventListener('click', (e) => { if (e.target.closest && e.target.closest('[data-hervat-door]')) sluit(); });
+  const sluit = () => {
+    if (hervatEl !== el) return;
+    clearTimeout(hervatTimer); hervatTimer = null;
+    el.remove(); hervatEl = null; hervatSluit = null;
+    document.removeEventListener('keydown', toets, true);
+  };
+  el.addEventListener('click', (e) => { if (e.target.closest && e.target.closest('[data-hervat-door]')) sluit(); });
   document.addEventListener('keydown', toets, true);
-  document.body.appendChild(hervatEl);
-  const b = hervatEl.querySelector('[data-hervat-door]'); if (b && b.focus) b.focus({ preventScroll: true });
-  setTimeout(sluit, 15000);
+  document.body.appendChild(el);
+  const b = el.querySelector('[data-hervat-door]'); if (b && b.focus) b.focus({ preventScroll: true });
+  hervatSluit = sluit;
+  hervatTimer = setTimeout(sluit, 15000);
   return true;
 }

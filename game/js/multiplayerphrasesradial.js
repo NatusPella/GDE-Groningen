@@ -6,11 +6,11 @@
 
 import { glyphHtml } from './keycap.js';
 import { icoon } from './icons.js';
-import { setSetting } from './settings.js';
+import { getSettings, setSetting } from './settings.js';
 import { makeRadial, radialFromKey, radialFromStick, nextPage, PAGE_TITLE, RADIAL_PAGES } from './multiplayerphrases.js';
 import { sayPhrase, phrasesEnabled, shareGoal, pingGoal } from './coopnet.js';
 import { getUserWaypoint, setUserWaypoint } from './routing.js';
-import { isSamenSessie } from './controls.js';
+import { buttonSlots, isSamenSessie, padFamily } from './controls.js';
 import { hoofdspeler } from './players.js';
 import { escapeHtml as esc } from './htmlescape.js';
 
@@ -66,7 +66,7 @@ function draw() {
   const h = html(); if (h !== lastHtml) { el.innerHTML = h; lastHtml = h; }
 }
 
-function close() { open = false; chosen = null; lastHtml = ''; draw(); }
+function close() { open = false; chosen = null; lastHtml = ''; padPrev = { a: false, b: false, lb: false, rb: false }; draw(); }
 
 // Een keuze uitvoeren: een zin of emote gaat naar de anderen, de twee doelacties werken op je eigen kaartpunt (je doel).
 export function choose(id) {
@@ -117,18 +117,23 @@ export function updatePhrasesRadial(world) {
   const dv = world.coopDoelVolg;
   if (dv) { world.coopDoelVolg = null; setUserWaypoint(dv.x, dv.y, dv.naam); if (world.addMessage) world.addMessage('Je volgt het gedeelde doel.', 3); }
   if (open && !canOpen(world)) { close(); return; }
-  if (!open && inp && inp.wasPressed && inp.wasPressed('t') && canOpen(world)) { open = true; pagina = 'zinnen'; inp.consume && inp.consume('t'); }
+  if (!open && inp && inp.wasPressed && inp.wasPressed('t') && canOpen(world)) { open = true; pagina = 'zinnen'; padPrev = { a: false, b: false, lb: false, rb: false }; inp.consume && inp.consume('t'); }
   if (open) {
     const gp = typeof navigator !== 'undefined' && navigator.getGamepads ? [...navigator.getGamepads()].find((g) => g && g.connected) : null;
     if (gp) {
       const sx = gp.axes[0] || 0, sy = gp.axes[1] || 0;
       const kiest = radialFromStick(pagina, sx, sy); const nu = kiest ? kiest.id : null;
       if (nu !== chosen) { chosen = nu; lastHtml = ''; }
-      const b = (i) => !!(gp.buttons[i] && gp.buttons[i].pressed);
-      if (b(0) && !padPrev.a && chosen && phrasesEnabled()) choose(chosen);
-      else if (b(1) && !padPrev.b) close();
-      else if ((b(4) && !padPrev.lb) || (b(5) && !padPrev.rb)) { pagina = nextPage(pagina); chosen = null; lastHtml = ''; }
-      padPrev = { a: b(0), b: b(1), lb: b(4), rb: b(5) };
+      const slots = buttonSlots(getSettings().padBinds || {}, padFamily(gp.id || ''));
+      const b = (slot) => { const idx = slots[slot]; return idx != null && !!(gp.buttons[idx] && gp.buttons[idx].pressed); };
+      const aDown = b('a'), bDown = b('b'), lbDown = b('lb'), rbDown = b('rb');
+      if (aDown && !padPrev.a) {
+        if (!phrasesEnabled()) { setSetting('samenZinnen', true); lastHtml = ''; }
+        else if (chosen) choose(chosen);
+      }
+      else if (bDown && !padPrev.b) close();
+      else if ((lbDown && !padPrev.lb) || (rbDown && !padPrev.rb)) { pagina = nextPage(pagina); chosen = null; lastHtml = ''; }
+      padPrev = { a: aDown, b: bDown, lb: lbDown, rb: rbDown };
     }
   }
   draw();

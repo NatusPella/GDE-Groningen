@@ -9,6 +9,7 @@ import { euro } from './geldtekst.js';
 import { icoon } from './icons.js';
 import { sectionCard, missReason, holdingButton } from './holdingcards.js';
 import { escapeHtml as esc } from './htmlescape.js';
+import { keepFocus } from './focusbehoud.js';
 
 export const sui = { msg: '', confirm: null };
 const STATUS_TEXT = { jij: 'van jou', usmem: 'van Us Mem Snacks', medespeler: 'van een medespeler', vrij: 'vrij' };
@@ -164,18 +165,26 @@ export function snackHtml(v) {
 }
 
 // ---- binden ----
-const bound = new WeakSet();
+const refs = new WeakMap();
 export function renderSnackPanel(el, world, rerender) {
   if (!el) return;
-  el.innerHTML = snackHtml(SL.snackView(world));
-  if (bound.has(el)) return;
-  bound.add(el);
+  const had = refs.has(el);
+  refs.set(el, { world, rerender });
+  const draw = () => {
+    const cur = refs.get(el) || { world, rerender };
+    const restore = keepFocus(el);
+    el.innerHTML = snackHtml(SL.snackView(cur.world));
+    restore();
+  };
+  draw();
+  if (had) return;
   el.addEventListener('click', (e) => {
     const b = e.target.closest('[data-sn]');
     if (!b) return;
-    act(world, b.dataset);
-    el.innerHTML = snackHtml(SL.snackView(world));
-    if (rerender) rerender();
+    const cur = refs.get(el) || { world, rerender };
+    act(cur.world, b.dataset);
+    if (cur.rerender) cur.rerender();
+    else draw();
   });
 }
 function act(world, d) {

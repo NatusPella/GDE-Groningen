@@ -7,7 +7,7 @@ import { devWarn } from './devwarn.js';
 
 let root = null;
 let raf = 0;
-let lastFocus = null;
+let prevFocus = null;
 
 // de standaardnamen van de 17 knoppen van de Gamepad API, op volgorde
 const SLOTS = ['a', 'b', 'x', 'y', 'lb', 'rb', 'lt', 'rt', 'view', 'start', 'ls', 'rs', 'up', 'down', 'left', 'right', 'home'];
@@ -30,12 +30,10 @@ export function closePadTest() {
   if (!root) return;
   cancelAnimationFrame(raf);
   window.removeEventListener('keydown', onKey, true);
+  const pf = prevFocus; prevFocus = null;
   root.remove();
   root = null;
-  if (lastFocus && typeof lastFocus.focus === 'function' && lastFocus.isConnected !== false) {
-    try { lastFocus.focus({ preventScroll: true }); } catch (e) { devWarn('padtest', e); }
-  }
-  lastFocus = null;
+  if (pf && pf.isConnected && pf.focus) pf.focus({ preventScroll: true });
 }
 
 // de indelingen waar de speler uit kiest als de letters op zijn knoppen anders zijn dan het spel denkt
@@ -43,12 +41,16 @@ const LAYOUT_CHOICES = [['auto', 'Automatisch'], ['xbox', 'Onderste knop bevesti
 
 function onKey(e) {
   if (e.key === 'Escape' || e.key === 'Backspace') { e.preventDefault(); e.stopPropagation(); closePadTest(); return; }
-  // de pijlen en Enter (A) bedienen de indelingsknoppen; ze sluiten het testscherm niet
+  // de pijlen, Tab en Enter (A) bedienen de indelingsknoppen; ze sluiten het testscherm niet
   e.preventDefault();
   e.stopPropagation();
   if (e.type !== 'keydown' || e.repeat) return;
   const btns = [...root.querySelectorAll('button')];
   const i = btns.indexOf(document.activeElement);
+  if (e.key === 'Tab' && btns.length) {
+    btns[i < 0 ? (e.shiftKey ? btns.length - 1 : 0) : (i + (e.shiftKey ? -1 : 1) + btns.length) % btns.length].focus();
+    return;
+  }
   if (e.key === 'Enter' && i >= 0) { btns[i].click(); return; }
   const step = { ArrowRight: 1, ArrowDown: 1, ArrowLeft: -1, ArrowUp: -1 }[e.key];
   if (step && btns.length) btns[((i < 0 ? (step > 0 ? -1 : 0) : i) + step + btns.length) % btns.length].focus();
@@ -56,7 +58,7 @@ function onKey(e) {
 
 export function openPadTest() {
   if (root) return;
-  lastFocus = document.activeElement;
+  prevFocus = typeof document !== 'undefined' ? document.activeElement : null;
   root = document.createElement('div');
   root.id = 'padtest';
   root.className = 'gm';
@@ -76,47 +78,57 @@ export function openPadTest() {
     <p style="margin:10px 0 0;opacity:.7;font-size:13px">Druk op knoppen en beweeg de sticks. Is er niets te zien, druk dan eerst op een knop. Escape of de rechterknop sluit dit scherm.</p></div>`;
   document.body.appendChild(root);
   const q = (c) => root.querySelector(c);
+  const idEl = q('.pt-id'), infoEl = q('.pt-info'), noteEl = q('.pt-note'), layEl = q('.pt-lay'), lastEl = q('.pt-last'), btnsEl = q('.pt-btns'), axesEl = q('.pt-axes');
   q('.pt-close').addEventListener('click', closePadTest);
-  q('.pt-lay').addEventListener('click', (e) => { const b = e.target.closest('button[data-lay]'); if (b) setSetting('padLayout', b.dataset.lay); });
+  layEl.addEventListener('click', (e) => { const b = e.target.closest('button[data-lay]'); if (b) setSetting('padLayout', b.dataset.lay); });
   q('.pt-close').focus();
   window.addEventListener('keydown', onKey, true);
-  let last = '';
-  let lastFamily = '';
+  let last = '', prevId = null, prevInfo = null, prevNote = null, prevPref = null, prevFamily = null, prevAxes = null;
+  let btnOn = [];
   const poll = () => {
     raf = requestAnimationFrame(poll);
     const pad = currentPad();
     const info = padInfo(pad && pad.id, pad && pad.mapping);
-    const pref = getSettings().padLayout;
-    const family = pref && pref !== 'auto' ? pref : info.family;
-    q('.pt-id').textContent = pad ? `Gevonden: ${pad.id}` : 'Geen controller gevonden.';
-    q('.pt-info').textContent = pad ? `Herkend als ${info.name} · indeling ${family} · mapping ${pad.mapping || 'geen'} · ${pad.buttons.length} knoppen, ${pad.axes.length} assen` : '';
-    q('.pt-note').textContent = info.note;
-    for (const b of q('.pt-lay').children) {
-      const on = b.dataset.lay === (pref || 'auto');
-      b.setAttribute('aria-pressed', on ? 'true' : 'false');
-      b.style.cssText = `padding:6px 12px;border:1px solid var(--ds-c-glas-3);background:${on ? '#f2c230' : 'transparent'};color:${on ? '#17201a' : 'inherit'}`;
+    const pref = getSettings().padLayout || 'auto';
+    const family = pref !== 'auto' ? pref : info.family;
+    const idText = pad ? `Gevonden: ${pad.id}` : 'Geen controller gevonden.';
+    const infoText = pad ? `Herkend als ${info.name} · indeling ${family} · mapping ${pad.mapping || 'geen'} · ${pad.buttons.length} knoppen, ${pad.axes.length} assen` : '';
+    if (idText !== prevId) { prevId = idText; idEl.textContent = idText; }
+    if (infoText !== prevInfo) { prevInfo = infoText; infoEl.textContent = infoText; }
+    if (info.note !== prevNote) { prevNote = info.note; noteEl.textContent = info.note; }
+    if (pref !== prevPref) {
+      prevPref = pref;
+      for (const b of layEl.children) {
+        const on = b.dataset.lay === pref;
+        b.setAttribute('aria-pressed', on ? 'true' : 'false');
+        b.style.cssText = `padding:6px 12px;border:1px solid var(--ds-c-glas-3);background:${on ? '#f2c230' : 'transparent'};color:${on ? '#17201a' : 'inherit'}`;
+      }
     }
-    const btns = q('.pt-btns');
     const n = pad ? pad.buttons.length : 0;
-    if (btns.childElementCount !== n || family !== lastFamily) {
-      lastFamily = family;
-      btns.innerHTML = '';
+    if (btnsEl.childElementCount !== n || family !== prevFamily) {
+      prevFamily = family;
+      btnOn = [];
+      btnsEl.innerHTML = '';
       for (let i = 0; i < n; i++) {
         const b = document.createElement('span');
         b.style.cssText = 'padding:4px 8px;border-radius:6px;border:1px solid var(--ds-c-glas-3);min-width:2.4em;text-align:center';
         b.textContent = padTestLabel(i, family);
         b.title = 'Knop ' + i;
-        btns.appendChild(b);
+        btnsEl.appendChild(b);
       }
     }
     for (let i = 0; i < n; i++) {
       const b = pad.buttons[i], on = !!(b && (b.pressed || b.value > 0.5));
-      const el = btns.children[i];
-      el.style.background = on ? '#f2c230' : 'transparent';
-      el.style.color = on ? '#17201a' : '';
-      if (on) { const t = `Ingedrukt: ${padTestLabel(i, family)} (knop ${i})`; if (t !== last) { last = t; q('.pt-last').textContent = t; } }
+      if (btnOn[i] !== on) {
+        btnOn[i] = on;
+        const el = btnsEl.children[i];
+        el.style.background = on ? '#f2c230' : 'transparent';
+        el.style.color = on ? '#17201a' : '';
+      }
+      if (on) { const t = `Ingedrukt: ${padTestLabel(i, family)} (knop ${i})`; if (t !== last) { last = t; lastEl.textContent = t; } }
     }
-    q('.pt-axes').textContent = pad ? 'Assen: ' + pad.axes.map((a, i) => `${i}: ${a.toFixed(2)}`).join('   ') : '';
+    const axesText = pad ? 'Assen: ' + pad.axes.map((a, i) => `${i}: ${a.toFixed(2)}`).join('   ') : '';
+    if (axesText !== prevAxes) { prevAxes = axesText; axesEl.textContent = axesText; }
   };
   poll();
 }

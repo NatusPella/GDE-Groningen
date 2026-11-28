@@ -754,14 +754,18 @@ function buildDialog() {
   });
   window.addEventListener('keydown', (e) => {
     if (el.hidden) return;
+    if (e.metaKey || e.ctrlKey || e.altKey) return;
     e.preventDefault();
-    e.stopPropagation();
+    e.stopImmediatePropagation();
     if (e.repeat) return;
     const btns = [...el.querySelectorAll('button')];
     const i = btns.indexOf(document.activeElement);
     if (e.key === 'Escape' || e.key === 'Backspace') closeDialog(false);
     else if (e.key === 'Enter' || e.key === ' ') closeDialog(i === 1);
-    else if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Tab'].includes(e.key)) btns[i === 0 ? 1 : 0].focus();
+    else if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Tab'].includes(e.key) && btns.length) {
+      const step = (e.key === 'Tab' && e.shiftKey) || e.key === 'ArrowUp' || e.key === 'ArrowLeft' ? -1 : 1;
+      btns[i < 0 ? (step < 0 ? btns.length - 1 : 0) : (i + step + btns.length) % btns.length].focus();
+    }
   }, true);
   return d;
 }
@@ -770,7 +774,7 @@ function closeDialog(go) {
   const d = dlg;
   d.el.hidden = true;
   if (d.world) {
-    d.world.uiPaused = false;
+    d.world.uiPaused = !!d.prevUiPaused;
     zachtePauze(d.world, 'afspeelvooruit', false);
     if (d.world.input) d.world.input.reset();
   }
@@ -790,6 +794,7 @@ function confirmPlayAhead(world, ahead, onGo) {
   dlg.onGo = onGo;
   dlg.world = world;
   dlg.prevFocus = document.activeElement;
+  dlg.prevUiPaused = !!world.uiPaused;
   world.uiPaused = true;
   zachtePauze(world, 'afspeelvooruit', true); // met meer spelers loopt de wereld door (#452)
   if (document.pointerLockElement) document.exitPointerLock();

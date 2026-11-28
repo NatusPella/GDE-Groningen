@@ -33,6 +33,7 @@ import { SLOTS, SLOT_IDS, LOOKS, setsFor, parsePiece, pieceLabel } from './cloth
 import { reducedMotion } from './motion.js';
 import { rasterMaat, kolommenUitTops, focusStep, TEGEL_MIN } from './spullenraster.js';
 import { createThumbs } from './spullenthumbs.js';
+import { hoofdspeler } from './players.js';
 import { moneySpec, wapenSpec, stukSpec, setSpec, tintVoor, etenSpec, meubelSpec, cardSpec, upgradeSpec, modelLabel } from './spullen3d.js';
 import { CATS, itemIcoon, catVan, LEEG, cycleSort, sortLabel, sorteer, badgeTekst, tegelNaam, kanWeggooien, weggooiStap, weggooi, naWeggooien, WEGGOOI_VRAAG } from './spullenmodel.js';
 
@@ -57,7 +58,6 @@ export const DELEN = CATS;
 // de tests dezelfde namen houden.
 import { eetVoorraad, eet, etenWerkwoord } from './eten.js';
 import { escapeHtml as esc } from './htmlescape.js';
-import { hoofdspeler } from './players.js';
 export { eetWaar, eetVoorraad, etenSave, applyEtenSave, voegEtenToe, eet } from './eten.js';
 
 // Wat er in een kaartje staat, als één lap tekst om in te zoeken. De beschrijving en

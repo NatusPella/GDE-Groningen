@@ -19,8 +19,7 @@ const keys = (s) => (s.match(/key\('([A-Z0-9+]+)'\)/g) || []).length;
 t('#622: het lesmenu groepeert per toestel en het rapport noemt de stempel zonder kleur', () => {
   const vs = lees('vliegschool.js');
   assert.match(vs, /cells: lessen\.map\(\(l, i\) => \(\{ t: `\$\{i \+ 1\} \$\{medaljeTekst/, 'korte cellen met nummer en stempel');
-  assert.match(vs, /Vliegtuig · lessen 1-5/, 'de vliegtuiglessen staan bij elkaar');
-  assert.match(vs, /Helikopter · lessen 6-10/, 'de helikopterlessen staan bij elkaar');
+  assert.match(vs, /Vliegtuig' : 'Helikopter'\} · lessen 1-\$\{lessen\.length\}/, 'de lessen zijn per toestel gegroepeerd met het juiste bereik');
   assert.match(vs, /Rapport: .*stempel/, 'het rapport noemt de stempel als woord');
   assert.match(vs, /\['', 'brons', 'zilver', 'goud'\]\[m\]/, 'de medaille is een woord, niet alleen een kleur');
   assert.match(vs, /fitCard\(R\.LIJNEN\[id\]\.uitleg\)/, 'de introkaart is ingekort tot het woordbudget');

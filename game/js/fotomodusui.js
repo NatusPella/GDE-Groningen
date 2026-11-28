@@ -19,6 +19,7 @@ import { hoofdspeler } from './players.js'; // de speler van dit apparaat (#500)
 import { calmState } from './dsmicro.js';
 import { escapeHtml as esc } from './htmlescape.js';
 import { setPhotoModeOpen, isCineHudHidden } from './pausestate.js';
+import { keepFocus } from './focusbehoud.js';
 
 let photo = null;
 let saved = null;
@@ -428,9 +429,11 @@ export function renderFotoPanel(el, { behoudWeg = false } = {}) {
   const voet = leeg ? '' : voetHtml();
   const ongedaan = laatsteWeg ? '<div class="ds-zeef ds-z-kaart foto-ongedaan" role="status"><span class="ds-z-kaart__tekst">Foto van ' + esc(laatsteWeg.shot.plaats || 'Groningen') + ' weggehaald.</span>' +
     '<button type="button" class="ds-z-knop ds-z-knop--secundair" data-foto-undo>Ongedaan maken</button></div>' : '';
+  const restore = keepFocus(el);
   el.innerHTML = heroHtml(list.length) + ongedaan + '<div class="foto-inhoud">' +
     (leeg ? leegStateHtml() : '<div class="foto-gal">' + list.map(kaartHtml).join('') + '</div>' + voet) +
     '</div>';
+  restore();
 }
 
 // true als de klik van de fotomodus was
@@ -447,6 +450,10 @@ export function fotoClick(e, world, el, api = {}) {
     F.saveGallery(st, r.lijst);
     laatsteWeg = r.weg;
     renderFotoPanel(el, { behoudWeg: true });
+    if (el && el.contains && !el.contains(document.activeElement)) {
+      const nxt = el.querySelector('[data-foto-undo], [data-foto-del], [data-foto-start], button');
+      if (nxt && nxt.focus) nxt.focus({ preventScroll: true });
+    }
     return true;
   }
   if (e.target.closest('[data-foto-undo]')) {
@@ -454,6 +461,10 @@ export function fotoClick(e, world, el, api = {}) {
     F.saveGallery(st, F.zetTerug(F.loadGallery(st), laatsteWeg));
     laatsteWeg = null;
     renderFotoPanel(el);
+    if (el && el.contains && !el.contains(document.activeElement)) {
+      const nxt = el.querySelector('[data-foto-del], [data-foto-start], button');
+      if (nxt && nxt.focus) nxt.focus({ preventScroll: true });
+    }
     return true;
   }
   return false;

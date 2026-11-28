@@ -517,8 +517,8 @@ function tekenMenu() {
   board.set({
     row: `<span><b>${les.titel}</b> · ${les.kort}</span>${r && r.best != null ? `<span>Beste <b>${Math.round(r.best)}</b> punten</span>` : ''}${m ? `<span>${R.MEDAL_NAMEN[m]}</span>` : ''}`,
     // #622: korte cellen (nummer + stempel) zodat tien lessen op 1280x720 leesbaar blijven; het rapport staat ernaast.
-    cells: lessen.map((l, i) => ({ t: `${i + 1} ${medaljeTekst(besteMedaille(l.id))}`.trim(), key: String(i + 1), cls: i === menu.cursor ? 'on' : besteMedaille(l.id) ? 'good' : '' })),
-    extra: '<span class="vs-groep">' + (menu.kist === 'vliegtuig' ? 'Vliegtuig · lessen 1-5' : 'Helikopter · lessen 6-10') + '</span><span class="vs-rapport">Rapport: ' + les.titel + ' · stempel: ' + (m ? ['', 'brons', 'zilver', 'goud'][m] : 'open') + '</span>',
+    cells: lessen.map((l, i) => ({ t: `${i + 1} ${medaljeTekst(besteMedaille(l.id))}`.trim(), key: i < 9 ? String(i + 1) : '', cls: i === menu.cursor ? 'on' : besteMedaille(l.id) ? 'good' : '' })),
+    extra: `<span class="vs-groep">${menu.kist === 'vliegtuig' ? 'Vliegtuig' : 'Helikopter'} · lessen 1-${lessen.length}</span><span class="vs-rapport">Rapport: ${les.titel} · stempel: ${m ? ['', 'brons', 'zilver', 'goud'][m] : 'open'}</span>`,
     flash: game.melding || '',
     bad: !!game.melding,
     help: `${key('1')}-${key(String(Math.min(9, lessen.length)))} of ${key('A')}${key('D')} en ${key('ENTER')} kiezen · ${key('BACKSPACE')} terug`,
@@ -538,7 +538,7 @@ function updateMenu(w, dt) {
     return;
   }
   const lessen = R.lessenVan(menu.kist);
-  for (let i = 0; i < lessen.length; i++) {
+  for (let i = 0; i < Math.min(9, lessen.length); i++) {
     if (pressed(String(i + 1))) { menu.cursor = i; return startMelding(w, lessen[i]); }
   }
   if (pressed('a') || pressed('arrowleft')) menu.cursor = (menu.cursor + lessen.length - 1) % lessen.length;

@@ -83,7 +83,7 @@ import { helpHtml } from './helpoverview.js';
 import { DEV, FLAGS } from './devflags.js';
 import { renderOverview, renderTodo, renderTodoStory, todoClick, todoFocus, todoEnter, todoSummary, selectTodo, setTodoFilter, foldNote } from './todoui.js';
 import { isPlayAheadOpen } from './todo.js';
-import { renderVerhaal, verhaalClick, verhaalSummary, disposeVerhaalViewer, selectVerhaalCharacter } from './verhaalui.js';
+import { renderVerhaal, refreshVerhaalPhone, verhaalClick, verhaalSummary, disposeVerhaalViewer, selectVerhaalCharacter } from './verhaalui.js';
 import { anyFresh } from './characters.js';
 import { maakRegel, zoekRegels, SOORTEN } from './pausesearch.js';
 import { renderSpullen, disposeSpullenViewer, turnSpullenViewer, spullenClick, spullenFocus, spullenEnter, spullenAnnuleer, spullenNavigeer, zetSpullenZoek, DELEN } from './spullen.js';
@@ -96,6 +96,7 @@ import { renderFotoPanel, fotoClick, isPhotoMode } from './fotomodusui.js';
 import { kopStatus, verliesSinds, verliesTekst, euro } from './spelstatus.js';
 import { toonBevestiging, isBevestigOpen } from './spelbevestig.js';
 import { toonRecapNu } from './recapcardrun.js';
+import { isTechInfoOpen } from './gpudiag.js';
 import { woordenVan, past } from './zoektekst.js';
 import { escapeHtml as esc } from './htmlescape.js';
 // Running inside the desktop app (desktop/preload.js): window mode + quit.
@@ -987,8 +988,8 @@ function spelHtml() {
         </div>
       </div>
       <!-- de oude herstartvraag blijft (verborgen) in de DOM: de Samen spelen-routes en Escape verwijzen ernaar; de zichtbare weg is nieuw-vraag en terugzetten-vraag -->
-      <div hidden>
-        <button type="button" data-action="restart" tabindex="-1">Opnieuw beginnen</button>
+      <div>
+        <button type="button" data-action="restart" hidden tabindex="-1">Opnieuw beginnen</button>
         <div class="pm-confirm" data-restart-confirm hidden><button type="button" data-action="load">Laatste spel laden</button><button type="button" data-action="new">Nieuw spel (nieuwe plek)</button><button type="button" data-action="cancel">Annuleren</button></div>
         <div data-stop-rij hidden></div>
       </div>
@@ -1403,7 +1404,7 @@ function consume(e) {
 function onKey(e) {
   if (e.metaKey || e.ctrlKey || e.altKey) return;
   // the play-ahead question (todo.js) has its own keys
-  if (isPlayAheadOpen() || isSaveSlotsOpen() || isHelpOfferOpen() || isRecapOpen() || isBevestigOpen() || isOnlineStartOpen() || isLaunchChoiceOpen() || isToestemmingOpen() || isPadTestOpen()) return;
+  if (isPlayAheadOpen() || isSaveSlotsOpen() || isHelpOfferOpen() || isRecapOpen() || isBevestigOpen() || isOnlineStartOpen() || isLaunchChoiceOpen() || isToestemmingOpen() || isPadTestOpen() || isTechInfoOpen()) return;
   const k = e.key;
   const lower = k.length === 1 ? k.toLowerCase() : k;
   if (!open) {
@@ -1501,6 +1502,7 @@ function onKey(e) {
       consume(e);
       t.checked = !t.checked;
       t.dispatchEvent(new Event('input', { bubbles: true }));
+      t.dispatchEvent(new Event('change', { bubbles: true }));
     } else if (t.dataset && t.dataset.garageSelect) {
       consume(e);
       selectGarageVehicle(garageEl(), t.dataset.garageSelect);
@@ -1659,8 +1661,15 @@ function goBack() {
     return;
   }
   const confirmEl = root.querySelector('[data-restart-confirm]');
-  // #492: de vraag "sessie beëindigen en een nieuw spel?" gaat eerst weg met Escape; de knop
-  // waar hij vandaan kwam (in het herstartvak) komt terug.
+  // #492: een lopende co-op vraag (laden of nieuw spel) gaat eerst weg met Escape.
+  const coopLoad = root.querySelector('[data-coop-load-confirm]');
+  if (coopLoad && !coopLoad.hidden) {
+    coopLoad.hidden = true;
+    confirmEl.hidden = false;
+    const b = confirmEl.querySelector('[data-action="load"]');
+    if (b) b.focus();
+    return;
+  }
   const coopNew = root.querySelector('[data-coop-new-confirm]');
   if (coopNew && !coopNew.hidden) {
     coopNew.hidden = true;
@@ -1671,7 +1680,8 @@ function goBack() {
   }
   if (!confirmEl.hidden) {
     confirmEl.hidden = true;
-    root.querySelector('[data-action="restart"]').focus();
+    const terugBtn = root.querySelector('[data-action="terugzetten-vraag"]') || root.querySelector('[data-action="restart"]');
+    if (terugBtn) terugBtn.focus();
     return;
   }
   const exitBox = root.querySelector('[data-exit-confirm]');
@@ -2223,7 +2233,8 @@ function runAction(a) {
     root.querySelector('[data-coop-load-confirm]').hidden = true;
     root.querySelector('[data-coop-new-confirm]').hidden = true;
     confirmEl.hidden = true;
-    root.querySelector('[data-action="restart"]').focus();
+    const b = root.querySelector('[data-action="terugzetten-vraag"]') || root.querySelector('[data-action="restart"]');
+    if (b) b.focus();
   } else if (a === 'exit') {
     // #915: eerst vragen, met de melding dat de voortgang bewaard wordt. De rail en Spel >
     // Opslaan & stoppen gebruiken dezelfde vraag; pas "Ja, opslaan en sluiten" sluit echt.
@@ -2813,7 +2824,7 @@ if (typeof document !== 'undefined') document.addEventListener('nieuwgezien', ()
 function renderPhone() {
   const block = root.querySelector('[data-vh-phone]');
   try {
-    if (block && tab === 'verhaal') renderVerhaal(activePanel(), 'personages', world);
+    if (block && tab === 'verhaal') refreshVerhaalPhone(activePanel(), world);
   } catch (err) { console.error('telefoon', err); }
   syncNavBadges();
 }

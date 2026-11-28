@@ -334,6 +334,8 @@ export function focusVolgende(knoppen, actief, terug) {
   return knoppen[(i + (terug ? knoppen.length - 1 : 1)) % knoppen.length];
 }
 
+export function isTechInfoOpen() { return !!(dlg && !dlg.hidden); }
+
 // Sluiten geeft de focus terug aan wat hem had (de dialoog was een onderbreking, geen nieuwe plek).
 function sluitTechInfo() {
   if (!dlg) return;
@@ -360,12 +362,17 @@ export async function showTechInfo(opts) {
     });
     window.addEventListener('keydown', (e) => {
       if (!dlg || dlg.hidden) return;
-      if (e.key === 'Escape') { sluitTechInfo(); e.preventDefault(); e.stopPropagation(); }
-      else if (e.key === 'Tab') { // focusval (aria-modal): Tab blijft binnen de dialoog
+      if (e.metaKey || e.ctrlKey || e.altKey) return;
+      e.stopImmediatePropagation();
+      if (e.key === 'Escape' || e.key === 'Backspace') { e.preventDefault(); if (!e.repeat) sluitTechInfo(); return; }
+      if (e.key === 'Tab') { // focusval (aria-modal): Tab blijft binnen de dialoog
+        e.preventDefault();
         const knoppen = [...dlg.querySelectorAll('button')];
         const volgende = focusVolgende(knoppen, document.activeElement, e.shiftKey);
-        if (volgende) { volgende.focus({ preventScroll: true }); e.preventDefault(); }
+        if (volgende) volgende.focus({ preventScroll: true });
+        return;
       }
+      if (e.key !== 'Enter' && e.key !== ' ') e.preventDefault();
     }, true);
     document.body.appendChild(dlg);
   }

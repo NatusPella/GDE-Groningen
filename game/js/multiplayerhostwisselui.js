@@ -82,7 +82,8 @@ function startWisselUi(world) {
   if (timer && huidige && huidige !== world) stopWisselUi();
   if (timer || typeof document === 'undefined') return;
   huidige = world;
-  timer = setInterval(() => teken(world), 200);
+  laatste = '';
+  timer = setInterval(() => teken(huidige), 200);
   ac = typeof AbortController !== 'undefined' ? new AbortController() : null;
   window.addEventListener('keydown', toets, ac ? { signal: ac.signal } : undefined);
 }
@@ -93,6 +94,7 @@ export function stopWisselUi() {
   if (ac) { ac.abort(); ac = null; }
   if (houder) { houder.close(); houder = null; }
   overlay = null; laatste = ''; eindTot = 0; huidige = null;
+
 }
 
 // #151: de vraag is met een controller te beantwoorden. gamepad.js kiest dan de coopvraag-indeling
@@ -109,6 +111,7 @@ function toets(e) {
 }
 
 function teken(world) {
+  if (!world) return;
   huidige = world;
   const u = world.coopWisselUi;
   const nu = Date.now();
@@ -122,9 +125,11 @@ function teken(world) {
     houder = mountOverlay({
       label: 'Spel overdragen', target: document.body,
       onAction: (a) => {
-        if (a === 'ja') antwoordVraag(world, true);
-        else if (a === 'nee') antwoordVraag(world, false);
-        else if (a === 'stop') annuleerOverdracht(world);
+        const w = huidige;
+        if (!w) return;
+        if (a === 'ja') antwoordVraag(w, true);
+        else if (a === 'nee') antwoordVraag(w, false);
+        else if (a === 'stop') annuleerOverdracht(w);
       },
     });
     overlay = houder && houder.el;

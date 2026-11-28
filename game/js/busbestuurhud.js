@@ -90,23 +90,42 @@ function updateBusBestuur(dt, w) {
   if (!r) return;
   const ride = b && b.ride && !b.ride.done && !b.ride.failed ? b.ride : null;
   const info = busCardState.info;
+  let etaText = '';
   if (info) {
     const pr = haltePrognose({ dist: info.dist, speed: bus.speed, ride });
     const vt = vertragingTekst(pr.vertraging);
-    r.eta.textContent = `${roundDist(info.dist)} · ${pr.eta} s${vt ? ' · ' + vt : ''}`;
-  } else r.eta.textContent = '';
-  r.stop.classList.toggle('on', !!(ride && ride.request));
-  r.deur.classList.toggle('on', !!(b && b.doorWant));
-  r.deur.querySelector('i').textContent = b && b.doorWant ? 'Deuren dicht' : 'Deuren open';
-  r.kneel.classList.toggle('on', !!(b && b.kneelWant));
-  r.kneel.querySelector('i').textContent = b && b.kneelWant ? 'Omhoog' : 'Knielt';
-  // de uitleg van de knop volgt de stand: knielen laat de bus zakken, omhoog brengt hem weer op rijhoogte (#502)
-  r.kneel.title = b && b.kneelWant ? 'Laat de bus weer omhoog komen' : 'Laat de bus zakken bij de halte';
+    etaText = `${roundDist(info.dist)} · ${pr.eta} s${vt ? ' · ' + vt : ''}`;
+  }
+  if (r._eta !== etaText) { r._eta = etaText; r.eta.textContent = etaText; }
+  const stopOn = !!(ride && ride.request);
+  if (r._stop !== stopOn) { r._stop = stopOn; r.stop.classList.toggle('on', stopOn); }
+  const doorOn = !!(b && b.doorWant);
+  if (r._door !== doorOn) {
+    r._door = doorOn;
+    r.deur.classList.toggle('on', doorOn);
+    const di = r.deurI || (r.deurI = r.deur.querySelector('i'));
+    if (di) di.textContent = doorOn ? 'Deuren dicht' : 'Deuren open';
+  }
+  const kneelOn = !!(b && b.kneelWant);
+  if (r._kneel !== kneelOn) {
+    r._kneel = kneelOn;
+    r.kneel.classList.toggle('on', kneelOn);
+    const ki = r.kneelI || (r.kneelI = r.kneel.querySelector('i'));
+    if (ki) ki.textContent = kneelOn ? 'Omhoog' : 'Knielt';
+    // de uitleg van de knop volgt de stand: knielen laat de bus zakken, omhoog brengt hem weer op rijhoogte (#502)
+    r.kneel.title = kneelOn ? 'Laat de bus weer omhoog komen' : 'Laat de bus zakken bij de halte';
+  }
+  const showTev = !!ride;
+  if (r._tevShow !== showTev) { r._tevShow = showTev; r.tev.style.display = showTev ? 'inline' : 'none'; }
   if (ride) {
     const sat = ride.tevreden.sat;
-    r.tev.style.display = 'inline';
-    r.tev.textContent = `${'★'.repeat(waardering(sat))}${'☆'.repeat(5 - waardering(sat))} ${tevredenWoord(sat)}`;
-  } else r.tev.style.display = 'none';
+    const wStars = waardering(sat);
+    const tevKey = `${wStars}|${tevredenWoord(sat)}`;
+    if (r._tevKey !== tevKey) {
+      r._tevKey = tevKey;
+      r.tev.textContent = `${'★'.repeat(wStars)}${'☆'.repeat(5 - wStars)} ${tevredenWoord(sat)}`;
+    }
+  }
 }
 
 export const busBestuurKind = { id: 'busbestuur', tickPhase: 'world', tick: updateBusBestuur };

@@ -66,15 +66,20 @@ export function hudModel(s) {
   };
 }
 
+let rawSig = '';
 // Elk beeld (boerderijwereld.js): toont of verbergt de strook en schrijft alleen bij een verschil.
 export function boerderijHudTik(dt, stand) {
   if (popT > 0) { popT -= dt; if (popT <= 0 && popEl) { popEl.classList.remove('bd-pop', 'bd-pop-stil'); popEl.textContent = ''; } }
   if (!stand) { if (el && !el.hidden) el.hidden = true; return; }
   bouw();
   if (!el) return;
+  if (el.hidden) el.hidden = false;
+  const band = stand.band;
+  const sig = `${stand.taak || ''}|${stand.veld || ''}|${Math.round((stand.voortgang || 0) * 100)}|${stand.bezig ? 1 : 0}|${Math.round((stand.diesel || 0) * 100)}|${(stand.diesel || 0) <= 0.15 ? 1 : 0}|${Math.round((stand.snelheid || 0) * 3.6)}|${band ? `${band.vMin}-${band.vMax}` : ''}|${stand.lading ? Math.round(stand.lading.kg) : -1}|${stand.bonus || ''}|${stand.nodig ? stand.nodig.join(',') : ''}`;
+  if (sig === rawSig) return;
+  rawSig = sig;
   const m = hudModel(stand);
   const sl = JSON.stringify(m);
-  if (el.hidden) el.hidden = false;
   if (sl === sleutel) return;
   sleutel = sl;
   const st = STATUS[TAAK_STATUS[m.taakId]] || STATUS.braak;

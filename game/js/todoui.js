@@ -693,7 +693,7 @@ export function renderTodo(panel, world) {
 function select(panel, world, key) {
   if (!byKey.has(key)) return;
   ui.sel = key;
-  for (const b of panel.querySelectorAll('[data-todo]')) b.toggleAttribute('aria-current', b.dataset.todo === key);
+  for (const b of panel.querySelectorAll('[data-todo]')) { if (b.dataset.todo === key) b.setAttribute('aria-current', 'true'); else b.removeAttribute('aria-current'); }
   panel.querySelector('.td-detail').innerHTML = detailHtml(world);
 }
 

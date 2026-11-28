@@ -17,6 +17,7 @@ import { dutchFor } from './subtitles.js';
 import { fillBars, pop } from './motion.js';
 import { renderCharacterPhone, phoneUnreadFor, unreadInbox, OVERIG } from './phone.js';
 import { escapeHtml as esc } from './htmlescape.js';
+import { keepFocus } from './focusbehoud.js';
 
 const PIC = 120;
 const bars = new Map();
@@ -257,6 +258,7 @@ export function renderVerhaal(panel, view, w = null) {
   ensureStyle();
   const el = panel.querySelector(`[data-of="verhaal"][data-sub="${view}"]`);
   if (!el) return;
+  const restore = keepFocus(el);
   disposeVerhaalViewer();
   for (const sub of panel.querySelectorAll('[data-of="verhaal"][data-sub]')) if (sub !== el && !sub.hasAttribute('data-keep')) sub.innerHTML = '';
   el.innerHTML = peopleHtml();
@@ -265,6 +267,34 @@ export function renderVerhaal(panel, view, w = null) {
   if (!CHARACTER_BY_ID.has(selected) && selected !== OVERIG) selected = 'tammo';
   selectCharacter(el, selected);
   for (const n of el.querySelectorAll('.vh-card[data-new]')) pop(n); // elk personage blijft nieuw tot je hem opent (#435)
+  restore();
+}
+
+// Ververst alleen het telefoonblok, de ongelezen-teller en de tegelstippen zonder de 3D-viewer of focus te slopen.
+export function refreshVerhaalPhone(panel, w = null) {
+  if (w) worldRef = w;
+  const el = panel && panel.querySelector(`[data-of="verhaal"][data-sub="personages"]`);
+  if (!el) return;
+  const phoneBox = el.querySelector('[data-vh-phone]');
+  const restore = keepFocus(phoneBox || el);
+  if (phoneBox && (selected === OVERIG || hasMet(selected))) {
+    renderCharacterPhone(phoneBox, worldRef, selected);
+    verbergLegeKlets(el);
+  }
+  for (const b of el.querySelectorAll('.vh-card[data-char]')) {
+    const id = b.dataset.char;
+    const nieuw = id === OVERIG
+      ? !!(worldRef && phoneUnreadFor(worldRef, OVERIG))
+      : isFresh(id) || !!(worldRef && phoneUnreadFor(worldRef, id));
+    if (nieuw) b.setAttribute('data-new', '');
+    else b.removeAttribute('data-new');
+  }
+  const party = el.querySelector('.vh-party');
+  if (party) {
+    const ongelezen = worldRef ? unreadInbox(worldRef).length : 0;
+    party.innerHTML = `<b>${metCount()}</b> van ${CHARACTERS.length} ontmoet${ongelezen ? ` · <b>${ongelezen}</b> ongelezen` : ''}`;
+  }
+  restore();
 }
 
 // Clicks inside the section; true when handled.

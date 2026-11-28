@@ -65,15 +65,18 @@ function buildDialog() {
   });
   window.addEventListener('keydown', (e) => {
     if (el.hidden) return;
+    if (e.metaKey || e.ctrlKey || e.altKey) return;
     e.preventDefault();
-    e.stopPropagation();
+    e.stopImmediatePropagation();
     if (e.repeat) return;
     const btns = [...el.querySelectorAll('button')];
-    const i = Math.max(0, btns.indexOf(document.activeElement));
+    if (!btns.length) return;
+    const idx = btns.indexOf(document.activeElement);
+    const i = Math.max(0, idx);
     if (e.key === 'Escape' || e.key === 'Backspace') closeOffer('nee');
     else if (e.key === 'Enter' || e.key === ' ') btns[i].click();
-    else if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') btns[(i + btns.length - 1) % btns.length].focus();
-    else if (e.key === 'ArrowDown' || e.key === 'ArrowRight' || e.key === 'Tab') btns[(i + 1) % btns.length].focus();
+    else if (e.key === 'ArrowUp' || e.key === 'ArrowLeft' || (e.key === 'Tab' && e.shiftKey)) btns[idx < 0 ? btns.length - 1 : (idx + btns.length - 1) % btns.length].focus();
+    else if (e.key === 'ArrowDown' || e.key === 'ArrowRight' || e.key === 'Tab') btns[idx < 0 ? 0 : (idx + 1) % btns.length].focus();
   }, true);
   return d;
 }

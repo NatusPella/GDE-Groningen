@@ -22,6 +22,7 @@ import { veldenView, teamView, veldenActie } from './bezitui.js';
 import { fpHtml, leegHtml, meerHtml } from './farmpicshtml.js';
 import { vulPlaatjes, showLive, ruimLive, ruimPlaatjes } from './farmpics.js';
 import { escapeHtml as esc } from './htmlescape.js';
+import { keepFocus } from './focusbehoud.js';
 
 const euro = (n) => `€${Math.round(n).toLocaleString('nl-NL')}`;
 const cent = (n) => `€${n.toFixed(2).replace('.', ',')}`;   // een prijs per kilo: twee decimalen met een komma
@@ -437,6 +438,7 @@ function dagKaart() {
 // Het menuonderdeel sluit of een ander onderdeel opent: plaatjes terug, live voorbeeld weg (geen GL-context, geen geheugen vast).
 export const ruimBoerderijPlaatjes = ruimPlaatjes;
 
+let actueelSluit = null;
 export function renderBoerderijPanel(el, world, sluit = null) {
   if (!el) return;
   zetCss();
@@ -444,6 +446,7 @@ export function renderBoerderijPanel(el, world, sluit = null) {
   gast = !!(world && world.coopRole === 'client');
   const geld = (world && world.money) || 0;
   wereld = world;
+  if (sluit) actueelSluit = sluit;
   if (!['velden', 'team', 'machines', 'erf', 'kas', 'perceel', 'percelen', 'gewas', 'bank'].includes(gekozen)) gekozen = 'velden';
   const actiefSeg = { perceel: 'velden', percelen: 'velden', gewas: 'velden', bank: 'kas' }[gekozen] || gekozen;
   const s = B.samenvatting(b);
@@ -453,6 +456,7 @@ export function renderBoerderijPanel(el, world, sluit = null) {
   const tabs = ONDERDELEN.map(([id, naam]) => `<button type="button" role="radio" class="${actiefSeg === id ? 'sel' : ''}" data-bd="${id}" aria-checked="${actiefSeg === id}">${esc(naam)}</button>`).join('');
   // De sfeernaam staat al in de band; hier alleen de chip en het geld.
   let kader = ''; try { kader = frameHtml(frameView(world)); } catch (e) { /* het kader is een extra; de boerderij werkt ook zonder */ }
+  const restore = keepFocus(el);
   el.innerHTML = kader + `<div class="bd-seg-rij"><nav class="ds-z-segment ds-z-segment--klein" role="radiogroup" aria-label="Boerderij">${tabs}</nav></div>` +
     (['velden', 'team', 'machines', 'erf', 'kas'].includes(gekozen) ? '' : dagKaart()) +
     `<div class="m-main bd-main"><aside class="m-pane pa-pane bd-pane" aria-live="polite">${detail(b, geld)}</aside></div>`;
@@ -460,10 +464,12 @@ export function renderBoerderijPanel(el, world, sluit = null) {
   vulPlaatjes(el);
   const liveVak = el.querySelector && el.querySelector('.bd-live');
   if (liveVak && liveVak.dataset) showLive(liveVak, liveVak.dataset.fpStart); else ruimLive();
+  restore();
   if (!el.dataset.bound) {
     el.dataset.bound = '1';
-    const opnieuw = () => renderBoerderijPanel(el, world, sluit);
+    const opnieuw = () => renderBoerderijPanel(el, wereld, actueelSluit);
     el.addEventListener('click', (e) => {
+      const cur = wereld, curSluit = actueelSluit;
       const o = e.target.closest('[data-bd]');
       const g = e.target.closest('[data-bd-gewas]');
       const k = e.target.closest('[data-bd-koop]');
@@ -473,24 +479,24 @@ export function renderBoerderijPanel(el, world, sluit = null) {
       const pc = e.target.closest('[data-pc]');
       const mc = e.target.closest('[data-mc]');
       const vd = e.target.closest('[data-vd]');
-      if (vd) { veldenActie(world, vd.dataset); opnieuw(); const nu = el.querySelector(`[data-vd="${vd.dataset.vd}"][data-id="${vd.dataset.id}"]`) || el.querySelector(`[data-vd="${vd.dataset.vd}"]`); if (nu && nu.focus) nu.focus({ preventScroll: true }); }
+      if (vd) { veldenActie(cur, vd.dataset); opnieuw(); const nu = el.querySelector(`[data-vd="${vd.dataset.vd}"][data-id="${vd.dataset.id}"]`) || el.querySelector(`[data-vd="${vd.dataset.vd}"]`); if (nu && nu.focus) nu.focus({ preventScroll: true }); }
       else if (mc && !tweedeDrukStap(mc.dataset)) {
         const mcSel = `[data-mc="${mc.dataset.mc}"]${mc.dataset.id ? `[data-id="${mc.dataset.id}"]` : mc.dataset.type ? `[data-type="${mc.dataset.type}"]` : ''}`;
         opnieuw();
         const nu = el.querySelector(mcSel) || el.querySelector(`[data-bd="${gekozen}"]`);
         if (nu && nu.focus) nu.focus({ preventScroll: true });
       }
-      else if (mc) { melding = machineActie(mc.dataset, world); opnieuw(); const nu = el.querySelector(`[data-mc="${mc.dataset.mc}"]:not([disabled])`) || el.querySelector(`[data-bd="${gekozen}"]`); if (nu) nu.focus({ preventScroll: true }); }
+      else if (mc) { melding = machineActie(mc.dataset, cur); opnieuw(); const nu = el.querySelector(`[data-mc="${mc.dataset.mc}"]:not([disabled])`) || el.querySelector(`[data-bd="${gekozen}"]`); if (nu) nu.focus({ preventScroll: true }); }
       else if (pc && !tweedeDrukStap(pc.dataset)) {
         const pcSel = `[data-pc="${pc.dataset.pc}"]${pc.dataset.id ? `[data-id="${pc.dataset.id}"]` : ''}`;
         opnieuw();
         const nu = el.querySelector(pcSel) || el.querySelector(`[data-bd="${gekozen}"]`);
         if (nu && nu.focus) nu.focus({ preventScroll: true });
       }
-      else if (pc) { melding = percelenActie(pc.dataset, world); opnieuw(); const nu = el.querySelector(`[data-pc="${pc.dataset.pc}"][data-id="${pc.dataset.id}"]:not([disabled])`) || el.querySelector(`[data-pc][data-id="${pc.dataset.id}"]:not([disabled])`) || el.querySelector(`[data-bd="${gekozen}"]`); if (nu) nu.focus({ preventScroll: true }); }
+      else if (pc) { melding = percelenActie(pc.dataset, cur); opnieuw(); const nu = el.querySelector(`[data-pc="${pc.dataset.pc}"][data-id="${pc.dataset.id}"]:not([disabled])`) || el.querySelector(`[data-pc][data-id="${pc.dataset.id}"]:not([disabled])`) || el.querySelector(`[data-bd="${gekozen}"]`); if (nu) nu.focus({ preventScroll: true }); }
       else if (uitleg) { zetUitlegGezien(); opnieuw(); }
-      else if (naar) { const q = veldPlek(naar.dataset.bdNaar); setUserWaypoint(q.x, q.y, PC.perceelDef(naar.dataset.bdNaar).naam); if (world && world.addMessage) world.addMessage(naar.dataset.bdSluit ? "Op weg naar je veld. Het doel staat op je kaart." : "Het veld staat op je kaart.", 3); if (naar.dataset.bdSluit && typeof sluit === "function") sluit(); }
-      else if (w) { const q = getBoerderij().perceel || (([x, y]) => ({ x, y }))(wgsToWorld(53.2336, 6.4977)); setUserWaypoint(q.x, q.y, 'Eigen akker'); if (world && world.addMessage) world.addMessage('De akker staat op je kaart.', 3); }
+      else if (naar) { const q = veldPlek(naar.dataset.bdNaar); setUserWaypoint(q.x, q.y, PC.perceelDef(naar.dataset.bdNaar).naam); if (cur && cur.addMessage) cur.addMessage(naar.dataset.bdSluit ? "Op weg naar je veld. Het doel staat op je kaart." : "Het veld staat op je kaart.", 3); if (naar.dataset.bdSluit && typeof curSluit === "function") curSluit(); }
+      else if (w) { const q = getBoerderij().perceel || (([x, y]) => ({ x, y }))(wgsToWorld(53.2336, 6.4977)); setUserWaypoint(q.x, q.y, 'Eigen akker'); if (cur && cur.addMessage) cur.addMessage('De akker staat op je kaart.', 3); }
       else if (o) { gekozen = o.dataset.bd; melding = ''; opnieuw(); const nu = el.querySelector(`[data-bd="${gekozen}"]`); if (nu) nu.focus({ preventScroll: true }); }
       else if (g) { kiesGewas(g.dataset.bdGewas); opnieuw(); const nu = el.querySelector(`[data-bd-gewas="${g.dataset.bdGewas}"]`); if (nu) nu.focus({ preventScroll: true }); }
       else if (k && !tweedeDrukStap(k.dataset)) {
@@ -500,7 +506,7 @@ export function renderBoerderijPanel(el, world, sluit = null) {
         if (nu && nu.focus) nu.focus({ preventScroll: true });
       } else if (k) {
         const kId = k.dataset.bdKoop;
-        const r = koopMachine(world, kId);
+        const r = koopMachine(cur, kId);
         melding = r.ok ? `${B.MACHINES[kId].naam} gekocht voor ${euro(r.prijs)}.` : r.reden;
         opnieuw();
         const nu = el.querySelector(`[data-bd-koop="${kId}"]:not([disabled])`) || el.querySelector(`[data-bd="${gekozen}"]`);
@@ -514,8 +520,11 @@ export function renderBoerderijPanel(el, world, sluit = null) {
       const o = e.target.closest && e.target.closest('[data-bd]');
       if (!o || o.dataset.bd === gekozen) return;
       gekozen = o.dataset.bd; melding = '';
-      for (const bt of el.querySelectorAll('[data-bd]')) { const aan = bt.dataset.bd === gekozen; bt.classList.toggle('sel', aan); bt.setAttribute('aria-selected', String(aan)); }
-      el.querySelector('.bd-pane').innerHTML = detail(getBoerderij(), (world && world.money) || 0);
+      for (const bt of el.querySelectorAll('[data-bd]')) { const aan = bt.dataset.bd === gekozen; bt.classList.toggle('sel', aan); bt.setAttribute('aria-checked', String(aan)); }
+      el.querySelector('.bd-pane').innerHTML = detail(getBoerderij(), (wereld && wereld.money) || 0);
+      vulPlaatjes(el);
+      const liveVak2 = el.querySelector && el.querySelector('.bd-live');
+      if (liveVak2 && liveVak2.dataset) showLive(liveVak2, liveVak2.dataset.fpStart); else ruimLive();
       queueMicrotask(() => fillBars(el, bars));
     });
   }

@@ -50,6 +50,7 @@ export function showBenchmarkChoice({ preset = null, presetLabel = '', initial =
   draw();
   choiceEl.hidden = false;
   document.body.classList.add('tr-result-open');
+  const prevFocus = typeof document !== 'undefined' ? document.activeElement : null;
   const buttons = () => [...choiceEl.querySelectorAll('button:not([disabled])')];
   const goButton = choiceEl.querySelector('[data-act="start"]');
   goButton.focus({ preventScroll: true });
@@ -59,6 +60,7 @@ export function showBenchmarkChoice({ preset = null, presetLabel = '', initial =
       document.body.classList.remove('tr-result-open');
       choiceEl.removeEventListener('click', onClick);
       window.removeEventListener('keydown', onKey, true);
+      if (prevFocus && prevFocus.isConnected && prevFocus.focus) prevFocus.focus({ preventScroll: true });
       resolve(v);
     };
     const pick = (btn) => {

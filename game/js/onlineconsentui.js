@@ -89,18 +89,20 @@ export function mountOnlineStart(root, { naam = '', onKies = () => {}, onTerug =
   root.addEventListener('keydown', (e) => {
     // Enter in het naamveld is dezelfde bewuste Doorgaan-actie; Escape is Terug (als dat er is, anders niets: de naam
     // en het akkoord zijn verplicht voor Samen spelen). Tab blijft op de kaart.
-    if (e && e.key === 'Escape' && onTerug) { e.preventDefault(); root.innerHTML = ''; onTerug(); return; }
+    if (e && e.key === 'Escape' && onTerug) { e.preventDefault(); if (e.stopPropagation) e.stopPropagation(); root.innerHTML = ''; onTerug(); return; }
     if (e && e.key === 'Enter' && e.target && e.target.classList && e.target.classList.contains('os-naam')) {
       e.preventDefault();
+      if (e.stopPropagation) e.stopPropagation();
       kies();
       return;
     }
     if (!e || e.key !== 'Tab' || !root.querySelectorAll) return;
-    const velden = [...root.querySelectorAll('.os-naam, .os-consent-vink, .os-info summary, [data-doorgaan], [data-terug]')];
+    const velden = [...root.querySelectorAll('.os-naam, .os-consent-vink, .os-info summary, button:not([disabled])')];
     if (!velden.length) return;
     const nu = velden.indexOf(e.target);
-    const volgende = velden[(nu + (e.shiftKey ? -1 : 1) + velden.length) % velden.length];
+    const volgende = nu < 0 ? (e.shiftKey ? velden[velden.length - 1] : velden[0]) : velden[(nu + (e.shiftKey ? -1 : 1) + velden.length) % velden.length];
     e.preventDefault();
+    if (e.stopPropagation) e.stopPropagation();
     if (volgende && typeof volgende.focus === 'function') volgende.focus();
   });
   return { kies, teken };
