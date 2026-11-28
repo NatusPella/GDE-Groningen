@@ -42,6 +42,22 @@ export const PERCELEN = [
 ];
 export const PERCEEL_IDS = PERCELEN.map((p) => p.id);
 
+// De schenking (bijbel 28-11 §2.2, #1373): hoeve Zeldenrust aan de Waddenkust tussen Warffum en Usquert. Oom Hindrik de Jong gaat naar Huize Waddenzicht
+// en schenkt de hoeve aan jou; Tante Aaltje zet de akte klaar. Dit is geen aanbod: er valt niets te kopen of te huren (aanbod 'schenking'), en de lijst
+// staat bewust los van PERCELEN en ERVEN, zodat het aanbod, de kaart en de tellers van de vaste twaalf percelen ongemoeid blijven en je Zeldenrust pas
+// ziet als het van jou is. De ligging ligt tussen Warffum (53,3911 N; 6,5588 E) en Usquert (53,4025 N; 6,6118 E) uit game/borderplaces.json, richting de dijk.
+const SCHENKING = { aanbod: 'schenking', koop: 0, huurDag: 0, eigenaar: 'Oom Hindrik de Jong', plaats: 'Warffum' };
+export const SCHENK_ERF = 'zeldenrust';
+export const SCHENK_PERCELEN = [
+  { id: 'zeldenrust-akker', naam: 'Akker Zeldenrust', soort: 'akker', lat: 53.4105, lon: 6.5995, ha: 5.0, bodem: 0.9, ...SCHENKING },
+  { id: 'zeldenrust-wei', naam: 'Weide Zeldenrust', soort: 'weiland', lat: 53.4165, lon: 6.5835, ha: 5.0, bodem: 0.85, ...SCHENKING },
+];
+export const SCHENK_PERCEEL_IDS = SCHENK_PERCELEN.map((p) => p.id);
+export const SCHENK_ERVEN = [
+  { id: SCHENK_ERF, naam: 'Hoeve Zeldenrust', plaats: 'Warffum', lat: 53.4135, lon: 6.5905, huis: true, schuur: true, silo: true, opslagKg: 9000, machinePlekken: 12, ...SCHENKING },
+];
+export const SCHENK_ERF_IDS = SCHENK_ERVEN.map((e) => e.id);
+
 // Extra percelen uit Bezit (epic #1095, #1101): een gekocht perceel uit de index werkt als veld zoals de vaste twaalf. parcelfarm.js
 // meldt zijn definitie hier aan (id 'p' + 12 hex), waarna perceelDef, normaliseerBedrijf en boerderij.js het id kennen. Een register
 // in het geheugen: niets hiervan komt in een savegame; wat het bedrijf bewaart blijft een gewone { status, sinds }-regel per id.
@@ -56,8 +72,9 @@ export function registreerExtraPerceel(d) {
 export const vergeetExtraPerceel = (id) => EXTRA_PERCELEN.delete(id);
 export const wisExtraPercelen = () => EXTRA_PERCELEN.clear();
 export const extraPerceelIds = () => [...EXTRA_PERCELEN.keys()];
-export const isPerceelId = (id) => PERCEEL_IDS.includes(id) || EXTRA_PERCELEN.has(id);
-export const perceelDef = (id) => PERCELEN.find((p) => p.id === id) || EXTRA_PERCELEN.get(id) || null;
+export const isPerceelId = (id) => PERCEEL_IDS.includes(id) || SCHENK_PERCEEL_IDS.includes(id) || EXTRA_PERCELEN.has(id);
+export const perceelDef = (id) => PERCELEN.find((p) => p.id === id) || SCHENK_PERCELEN.find((p) => p.id === id) || EXTRA_PERCELEN.get(id) || null;
+export const isSchenking = (soort, id) => { const d = soort === 'erf' ? SCHENK_ERVEN.find((e) => e.id === id) : SCHENK_PERCELEN.find((p) => p.id === id); return !!d; };
 
 // #1092: er is geen verzonnen rechthoek meer als perceelvlak (de schets-rechthoek, de klik erop en zijn schaal zijn weg): een perceelrand komt alleen uit
 // echte kaartdata (bezit-vormen.json, de omtrek van de echte percelen), nooit uit hectares en een hoek per id.
@@ -72,7 +89,7 @@ export const ERVEN = [
   E('weidehof', 'Weidehof', 'Sauwerd', 53.2898, 6.5589, 2500, 4, 5500, 'Schapenhouderij De Hoek', 'huur'),
 ];
 export const ERF_IDS = ERVEN.map((e) => e.id);
-export const erfDef = (id) => ERVEN.find((e) => e.id === id) || null;
+export const erfDef = (id) => ERVEN.find((e) => e.id === id) || SCHENK_ERVEN.find((e) => e.id === id) || null;
 
 // De catalogus van machines en werktuigen (stap 2): alleen gegevens. Verzonnen namen en vormen, geen echte merken.
 export const MACHINE_CATALOGUS = {
@@ -144,8 +161,8 @@ function normaliseerBezit(x, nu) {
 export function normaliseerBedrijf(raw) {
   const b = nieuwBedrijf();
   if (!raw || typeof raw !== 'object' || raw.v !== VERSIE) return b;
-  if (raw.percelen && typeof raw.percelen === 'object') for (const id of [...PERCEEL_IDS, ...EXTRA_PERCELEN.keys()]) { if (id === START_PERCEEL) continue; const r = normaliseerBezit(raw.percelen[id]); if (r) b.percelen[id] = r; }
-  if (raw.erven && typeof raw.erven === 'object') for (const id of ERF_IDS) { if (id === START_ERF) continue; const r = normaliseerBezit(raw.erven[id]); if (r) b.erven[id] = r; }
+  if (raw.percelen && typeof raw.percelen === 'object') for (const id of [...PERCEEL_IDS, ...SCHENK_PERCEEL_IDS, ...EXTRA_PERCELEN.keys()]) { if (id === START_PERCEEL) continue; const r = normaliseerBezit(raw.percelen[id]); if (r) b.percelen[id] = r; }
+  if (raw.erven && typeof raw.erven === 'object') for (const id of [...ERF_IDS, ...SCHENK_ERF_IDS]) { if (id === START_ERF) continue; const r = normaliseerBezit(raw.erven[id]); if (r) b.erven[id] = r; }
   if (b.erven[raw.thuis]) b.thuis = raw.thuis;
   if (b.percelen[raw.actief]) b.actief = raw.actief;
   for (const id of Object.keys(b.erven)) b.opslag[id] = {};
@@ -178,7 +195,7 @@ export function normaliseerBedrijf(raw) {
 
 // --- kopen, leasen, opzeggen -----------------------------------------------------
 
-const def = (soort, id) => (soort === 'erf' ? ERVEN.find((x) => x.id === id) || null : perceelDef(id));
+const def = (soort, id) => (soort === 'erf' ? erfDef(id) : perceelDef(id));
 const bezit = (bd, soort) => (soort === 'erf' ? bd.erven : bd.percelen);
 const naam = (d) => d.naam;
 export const perceelOfErf = (soort, id) => def(soort, id) || { naam: id };
@@ -199,6 +216,7 @@ export function koop(bd, soort, id, geld) {
   const s = stand(bd, soort, id);
   if (!s) return { ok: false, reden: 'Dat bestaat niet.' };
   if (s.van === 'jou') return { ok: false, reden: `${naam(s.def)} is al van jou${s.status === 'gehuurd' ? ' (gehuurd): zeg de huur eerst op' : ''}.` };
+  if (s.def.aanbod === 'schenking') return { ok: false, reden: `${naam(s.def)} is niet te koop: dat krijg je ten geschenke.` };
   if (!s.kunKopen) return { ok: false, reden: `${naam(s.def)} is alleen te huur.` };
   if (!(geld >= s.def.koop)) return { ok: false, reden: `Je hebt ${euro(s.def.koop)} nodig.` };
   bezit(bd, soort)[id] = { status: 'gekocht', sinds: 0 };
@@ -213,6 +231,7 @@ export function huur(bd, soort, id, betaling, nu, geld) {
   if (!s) return { ok: false, reden: 'Dat bestaat niet.' };
   if (betaling !== 'dag' && betaling !== 'week') return { ok: false, reden: 'Kies per dag of per week.' };
   if (s.van === 'jou') return { ok: false, reden: `${naam(s.def)} is al van jou.` };
+  if (s.def.aanbod === 'schenking') return { ok: false, reden: `${naam(s.def)} is niet te huur: dat krijg je ten geschenke.` };
   if (!s.kunHuren) return { ok: false, reden: `${naam(s.def)} is alleen te koop.` };
   const bedrag = huurBedrag(s.def, betaling);
   if (!(geld >= bedrag)) return { ok: false, reden: `Je hebt ${euro(bedrag)} nodig voor de eerste ${betaling === 'week' ? 'week' : 'dag'}.` };
@@ -254,6 +273,7 @@ function laatLos(bd, soort, id) {
 export function zegOp(bd, soort, id) {
   const x = bezit(bd, soort)[id];
   if (!x) return { ok: false, reden: 'Dat is niet van jou.' };
+  if (def(soort, id) && def(soort, id).aanbod === 'schenking') return { ok: false, reden: 'Een schenking houd je: die zeg je niet op.' };
   if (x.status !== 'gehuurd') return { ok: false, reden: 'Dat is gekocht: verkoop het in plaats van opzeggen.' };
   laatLos(bd, soort, id);
   return { ok: true };
@@ -265,6 +285,7 @@ export function verkoop(bd, soort, id) {
   const d = def(soort, id);
   if (!x || !d) return { ok: false, reden: 'Dat is niet van jou.' };
   if (id === START_ERF || id === START_PERCEEL) return { ok: false, reden: 'De Zonnehoek blijft van jou.' };
+  if (d.aanbod === 'schenking') return { ok: false, reden: `${naam(d)} is een schenking van Oom Hindrik: dat verkoop je niet.` };
   if (x.status !== 'gekocht') return { ok: false, reden: 'Dat is gehuurd: zeg het op.' };
   const opbrengst = Math.round(d.koop * VERKOOP_FACTOR);
   laatLos(bd, soort, id);
@@ -324,6 +345,19 @@ export function betaalSchuld(bd, soort, id, geld) {
   bd.totaal.huur += bedrag;
   return { ok: true, bedrag };
 }
+
+// --- de schenking van Zeldenrust (#1373) -----------------------------------------------------------------------
+
+// Het erf en de percelen van Zeldenrust erbij schrijven. Alleen bijschrijven: wat je al had (percelen, opslag, machines, thuis, actief perceel) blijft
+// onaangeroerd, en een tweede keer doet niets (feedbackles #1293, #1295: een schenking mag een bestaande boerderij nooit overschrijven). Je thuis blijft
+// De Zonnehoek tot je zelf een ander erf kiest. Geeft { ok, nieuw: [{ soort, id }] } of { ok: false, reden } als alles er al is.
+export function schenk(bd) {
+  const nieuw = [];
+  for (const e of SCHENK_ERVEN) if (!bd.erven[e.id]) { bd.erven[e.id] = { status: 'gekocht', sinds: 0 }; bd.opslag[e.id] = bd.opslag[e.id] || {}; nieuw.push({ soort: 'erf', id: e.id }); }
+  for (const p of SCHENK_PERCELEN) if (!bd.percelen[p.id]) { bd.percelen[p.id] = { status: 'gekocht', sinds: 0 }; nieuw.push({ soort: 'perceel', id: p.id }); }
+  return nieuw.length ? { ok: true, nieuw } : { ok: false, reden: 'Hoeve Zeldenrust is al van jou.' };
+}
+export const heeftHoeve = (bd) => !!(bd && bd.erven && bd.erven[SCHENK_ERF]);
 
 // --- thuis en actief perceel ---------------------------------------------------------
 
@@ -412,11 +446,13 @@ export function verplaats(bd, uid, erfId) {
 // --- aanbod en kaart ---------------------------------------------------------------------------
 
 // Alle percelen met hun stand voor deze speler, voor het scherm en de kaartlaag.
+// De vaste percelen plus de geschonken percelen die van jou zijn (zonder schenking is de lijst precies PERCELEN).
+export const perceelLijst = (bd) => (bd && bd.percelen ? PERCELEN.concat(SCHENK_PERCELEN.filter((p) => bd.percelen[p.id])) : PERCELEN);
 export function overzichtPercelen(bd) {
-  return PERCELEN.map((p) => ({ ...stand(bd, 'perceel', p.id), id: p.id }));
+  return perceelLijst(bd).map((p) => ({ ...stand(bd, 'perceel', p.id), id: p.id }));
 }
 export function overzichtErven(bd) {
-  return ERVEN.map((e) => ({ ...stand(bd, 'erf', e.id), id: e.id }));
+  return ERVEN.concat(SCHENK_ERVEN.filter((e) => bd.erven[e.id])).map((e) => ({ ...stand(bd, 'erf', e.id), id: e.id }));
 }
 
 // Een label voor de kaartlaag Percelen: 'perceel-eigen', 'perceel-koop' (te koop, of koop en huur) of 'perceel-huur' (alleen te huur).

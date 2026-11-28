@@ -1,7 +1,7 @@
 // De kaartlaag 'Percelen' (#415): akkers en weilanden te koop, te huur en van jou, elk met een doel (waypoint) bij het aanklikken.
 // Te koop is geel, te huur blauw, van jou groen; een blokje met akkerstrepen. De Zonnehoek ligt waar je eigen perceel gevonden is.
 import { getBoerderij } from './boerderijlive.js';
-import { PERCELEN, START_PERCEEL, stand, kaartSoort, kaartOnderschrift, perceelDef } from './percelen.js';
+import { perceelLijst, START_PERCEEL, stand, kaartSoort, kaartOnderschrift, perceelDef } from './percelen.js';
 import { wgsToWorld } from './rdnew.js';
 import { INK, inkA } from './mapstyle.js';
 import { veldStatus, KAART_STIJL, GROEI_STANDEN, watNu, machinePlekken, afnemerPlekken } from './farmstatus.js';
@@ -22,7 +22,7 @@ export function alleenOogstklaar(lijst, aan) {
 export function perceelMapSpots() {
   const b = getBoerderij();
   const out = [];
-  for (const p of PERCELEN) {
+  for (const p of perceelLijst(b.bedrijf)) {
     const s = stand(b.bedrijf, 'perceel', p.id);
     const [x, y] = p.id === START_PERCEEL && b.perceel ? [b.perceel.x, b.perceel.y] : wereld(p);
     // #985: een veld van jou toont zijn stand (letter, vorm en kleur) en wat nu te doen valt; aangeboden akkers blijven geel of blauw
@@ -86,7 +86,7 @@ export function tekenVeldBadge(ctx, x, y, r, v) {
 export function eigenPerceelVlakken() {
   const b = getBoerderij();
   const out = [];
-  for (const p of PERCELEN) {
+  for (const p of perceelLijst(b.bedrijf)) {
     const s = stand(b.bedrijf, 'perceel', p.id);
     if (s.van !== 'jou') continue;
     const [x, y] = p.id === START_PERCEEL && b.perceel ? [b.perceel.x, b.perceel.y] : wereld(p);

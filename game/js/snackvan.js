@@ -48,6 +48,13 @@ export const DEFAULT_OFFERINGS = ['friet', 'frikandel', 'kroket', 'bamischijf'];
 export const ITEMS_PER_CUSTOMER = 1.5;
 export const SAUCE_TICKET = 0.6;
 
+// Goederen van je eigen boerderij in de wagen (deliveries.js, #1379 X1): per goed kilo's in own.stock, naast de voorraad in dagen (stockDays). Alleen wat een product uit het menu
+// echt gebruikt wordt aangenomen (nu: aardappelen voor de friet). Elke speldag gaat het verbruik van de wagen die je zelf runt eerst van die voorraad af en scheelt inkoop
+// (FARM_CREDIT_PER_KG euro per kilo, nooit meer dan de inkoop van die dag). received onthoudt per levering-id wat er aankwam, zodat dezelfde levering nooit twee keer telt.
+export const FARM_INGREDIENT = { friet: 'aardappelen' };
+export const FARM_GOODS = Object.values(FARM_INGREDIENT);
+export const FARM_STOCK_MAX = 2000, FARM_CREDIT_PER_KG = 1.5, RECEIVED_MAX = 40;
+
 export const OWN_CAP_DAY = 1800;                 // plafond voor wat de wagen die je zelf runt per speldag opbrengt (zacht, compressOwn)
 export const compressOwn = (perDay) => (perDay > 0 ? Math.round(OWN_CAP_DAY * (1 - Math.exp(-perDay / OWN_CAP_DAY))) : perDay);
 export const STOCK_MAX = 5, RESTOCK_FEE = 40;    // voorraad voor hoogstens vijf dagen; een rit naar de groothandel kost 40 euro
@@ -63,8 +70,8 @@ export const staffWage = (skill, pct = 0) => Math.round(((90 + 0.6 * clamp(finit
 // ---- toestand ----
 export const newSnack = () => ({
   v: 1, permits: {}, up: [], rep: 50, lastDay: 0, offerPart: '',
-  own: { spot: null, tier: 'klein', from: 11, hours: 10, pr: 1, menu: [...DEFAULT_OFFERINGS], stockDays: 0 },
-  fleet: [], rival: RV.newRival(),
+  own: { spot: null, tier: 'klein', from: 11, hours: 10, pr: 1, menu: [...DEFAULT_OFFERINGS], stockDays: 0, stock: {} },
+  fleet: [], received: {}, rival: RV.newRival(),
   ev: { pending: null, mods: [], war: null, seq: 0 }, gw: GW.newGw(),
   stats: { days: 0, revenue: 0, net: 0, sold: 0, best: 0, takeovers: 0, refused: 0, answered: 0, had: {} },
 });
@@ -81,7 +88,8 @@ export function normalizeSnack(raw) {
   S.offerPart = BOSS_ACTS.includes(raw.offerPart) ? raw.offerPart : '';   // de akte waarvan Jelles offerte al kwam (jellebaas.js, #1139)
   const o = raw.own && typeof raw.own === 'object' ? raw.own : {};
   S.own = { spot: SP.isSpot(o.spot) ? o.spot : null, tier: TIERS[o.tier] ? o.tier : 'klein', from: Math.round(clamp(finite(o.from, 11), 0, 23)), hours: Math.round(clamp(finite(o.hours, 10), 4, 14)),
-    pr: Math.round(clamp(finite(o.pr, 1), 0.7, 1.4) * 20) / 20, menu: cleanOfferings(o.menu, S, o.tier), stockDays: Math.round(clamp(finite(o.stockDays, 0), 0, STOCK_MAX)) };
+    pr: Math.round(clamp(finite(o.pr, 1), 0.7, 1.4) * 20) / 20, menu: cleanOfferings(o.menu, S, o.tier), stockDays: Math.round(clamp(finite(o.stockDays, 0), 0, STOCK_MAX)), stock: cleanFarmStock(o.stock) };
+  S.received = cleanReceived(raw.received);
   S.fleet = (Array.isArray(raw.fleet) ? raw.fleet : []).slice(0, MAX_FLEET).filter((w) => w && FLEET_ID.test(String(w.id))).map((w) => ({
     id: w.id, spot: SP.isSpot(w.spot) ? w.spot : null, tier: TIERS[w.tier] ? w.tier : 'klein', mode: w.mode === 'aandeel' ? 'aandeel' : 'loon',
     staff: { id: String((w.staff && w.staff.id) || w.id).slice(0, 24), name: String((w.staff && w.staff.name) || 'Medewerker').slice(0, 24), skill: Math.round(clamp(finite(w.staff && w.staff.skill, 50), 0, 100)) },
@@ -100,6 +108,31 @@ export function normalizeSnack(raw) {
   for (const k of ['days', 'revenue', 'net', 'sold', 'best', 'takeovers', 'refused', 'answered']) S.stats[k] = Math.round(clamp(finite(s[k], 0), -1e12, 1e12));
   for (const id of Object.keys(s.had || {})) if (SP.isSpot(id)) S.stats.had[id] = true;
   return S;
+}
+
+// Tolerant: een oude save mist beide velden en krijgt ze leeg; onbekende goederen, negatieve of rare getallen gaan weg.
+function cleanFarmStock(raw) {
+  const out = {};
+  if (raw && typeof raw === 'object') for (const g of FARM_GOODS) { const kg = Math.round(clamp(finite(raw[g], 0), 0, FARM_STOCK_MAX)); if (kg > 0) out[g] = kg; }
+  return out;
+}
+function cleanReceived(raw) {
+  const out = {};
+  if (raw && typeof raw === 'object') for (const id of Object.keys(raw).slice(-RECEIVED_MAX)) if (/^\S{1,48}$/.test(id)) { const kg = Math.round(clamp(finite(raw[id], 0), 0, FARM_STOCK_MAX)); out[id] = kg; }
+  return out;
+}
+// Een levering van je boerderij aannemen (deliveries.js, io.give): { ok, amount, duplicate? } of { ok: false, reason }. Dezelfde id geeft nooit twee keer iets; wat niet past blijft bij de boer.
+export function receiveFarmGoods(S, d) {
+  if (!d || typeof d.id !== 'string' || !d.id) return { ok: false, reason: 'invalid' };
+  if (Object.prototype.hasOwnProperty.call(S.received, d.id)) return { ok: true, duplicate: true, amount: S.received[d.id] };
+  if (!FARM_GOODS.includes(d.good)) return { ok: false, reason: 'not-accepted' };
+  const room = FARM_STOCK_MAX - (S.own.stock[d.good] || 0);
+  const amount = Math.min(Math.floor(finite(d.amount, 0)), room);
+  if (!(amount > 0)) return { ok: false, reason: 'full' };
+  S.own.stock[d.good] = (S.own.stock[d.good] || 0) + amount;
+  S.received[d.id] = amount;
+  for (const old of Object.keys(S.received).slice(0, Math.max(0, Object.keys(S.received).length - RECEIVED_MAX))) delete S.received[old];
+  return { ok: true, amount };
 }
 
 // ---- menu ----
@@ -170,6 +203,16 @@ function wagonDay(S, w, ctx, opt) {
   out.factors = { vraag: Math.round(d0.demand), tevreden: GW.satFactor(S.gw.sat), vast: GW.loyalFactor(loyal), concurrentie: comp, naam: repFactor(rep), prijs: Math.round(priceDemand(war.pr) * 1000) / 1000, oorlog: war.demand, onderhoud: mf, storing: sm };
   out.usage = {};
   for (const id of w.menu) { const it = ITEMS[id]; if (it && it.chain) out.usage[it.chain] = (out.usage[it.chain] || 0) + (sold * ITEMS_PER_CUSTOMER * it.kg) / Math.max(1, w.menu.length); }
+  out.farmUsed = {}; out.farmCredit = 0;
+  if (opt.own) {      // wat van je eigen boerderij in de wagen ligt, wordt eerst gebruikt en scheelt inkoop (de voorraad zelf gaat af in settleDay)
+    for (const prod of Object.keys(out.usage)) {
+      const good = FARM_INGREDIENT[prod], have = good ? (S.own.stock[good] || 0) : 0;
+      if (have > 0) out.farmUsed[good] = Math.min(have, Math.round(out.usage[prod] * 100) / 100);
+    }
+    const credit = Object.values(out.farmUsed).reduce((a, kg) => a + kg * FARM_CREDIT_PER_KG, 0);
+    out.farmCredit = Math.round(Math.min(credit, out.cogs));
+    out.cogs -= out.farmCredit;
+  }
   const gross = out.revenue - out.cogs - out.opex;
   if (!opt.own) {
     const f = S.fleet.find((x) => x.id === w.id);
@@ -313,6 +356,7 @@ export function settleDay(S, ctx) {
     const r = wagonDay(S, { id: 'own', spot: S.own.spot, tier: S.own.tier, from: S.own.from, hours: S.own.hours, pr: S.own.pr, menu: S.own.menu }, ctx, { own: true, q: ctx.ownQ });
     rep.own = r; rep.ownNet = r.net; rep.ownQ = Math.max(0, Math.round((finite(ctx.ownQ, 100) - 0.5) * 100) / 100);
     if (!r.closed) { if (S.own.stockDays >= 1) S.own.stockDays--; else empty = true; served += r.sold; total += r.demand; }
+    for (const good of Object.keys(r.farmUsed || {})) { const left = Math.round(((S.own.stock[good] || 0) - r.farmUsed[good]) * 100) / 100; if (left >= 0.5) S.own.stock[good] = left; else delete S.own.stock[good]; }
     for (const k of Object.keys(r.usage || {})) rep.usage[k] = (rep.usage[k] || 0) + r.usage[k];
   }
   for (const f of S.fleet) {

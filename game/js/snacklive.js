@@ -14,6 +14,7 @@ import * as GW from './goodwill.js';
 import { snackShare } from './bezitcoop.js';
 import { branchOpen, branchHint } from './bezitgate.js';
 import * as SS from './snackstory.js';
+import { sendToVan, resumeFarmDeliveries, vanFarmStock } from './farmdelivery.js';
 import { recordHelp, reputationNow } from './reputationlive.js';
 
 export const snackOpen = () => branchOpen('snack');
@@ -175,3 +176,9 @@ export function receiveWork(msg) {
   return r;
 }
 
+
+// Goederen van je eigen boerderij naar de wagen (farmdelivery.js, #1379 X1): één pad over twee opslagen, per speler. Een gast gebruikt zijn eigen boerderij en wagen,
+// nooit de goederen van de host. Een onderbroken levering wordt elke speldag afgemaakt (de haak van bezitlive.dayTick).
+export const sendFarmGoods = (good, kg, estate) => sendToVan(good, kg, estate);
+export const farmGoodsInVan = () => vanFarmStock();
+L.setDagHaak(() => resumeFarmDeliveries());
