@@ -218,14 +218,15 @@ export function start3dRit(world, optie, plan, dest) {
   const q = (s) => hud.querySelector(s);
   document.body.appendChild(hud);
   const zwart = q('.rr3-zwart');
-  let skipKey = false;
+  let skipKey = false, spaceHeld = false;
   const zetCam = (k) => { staat.cam = k; q('.rr3-camnaam').textContent = P.RIT_CAMERA_NAMEN[k]; try { setSetting('ritCamera', k); } catch (e) { /* de keuze blijft voor deze rit */ } };
   zetCam(staat.cam);
   const down = (e) => {
-    if (e.key === ' ') { skipKey = true; e.preventDefault(); e.stopPropagation(); }
+    // #1341: alleen een verse druk slaat over; een vastgehouden toets (repeat, of herhaling zonder keyup) doet niets
+    if (e.key === ' ') { if (!e.repeat && !spaceHeld) tap(); spaceHeld = true; e.preventDefault(); e.stopPropagation(); }
     else if ((e.key === 'c' || e.key === 'C') && !e.repeat && !e.ctrlKey && !e.metaKey && !e.altKey) { zetCam(P.volgendeRitCamera(staat.cam)); e.preventDefault(); e.stopPropagation(); } // lokaal per speler; de eerstepersoonstoets C doet in de rit niets
   };
-  const up = (e) => { if (e.key === ' ') { skipKey = false; e.preventDefault(); e.stopPropagation(); } };
+  const up = (e) => { if (e.key === ' ') { skipKey = false; spaceHeld = false; e.preventDefault(); e.stopPropagation(); } };
   const tap = () => { skipKey = true; setTimeout(() => { skipKey = false; }, 120); };
   hud.addEventListener('pointerdown', tap);
   document.addEventListener('keydown', down, true);

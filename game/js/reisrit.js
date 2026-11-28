@@ -339,9 +339,10 @@ function oudeScene(world, optie, dest, plan) {
   world.uiPaused = true;
   setLoadHold(world, 'reisrit', true); // phone.js refreshPause keeps uiPaused on while this hold stands
   zachtePauze(world, 'reisrit', true); // met meer spelers loopt de wereld door; jij reist alleen zelf (#452)
-  let skipKey = false;
-  const down = (e) => { if (e.key === SKIP_KEY) { skipKey = true; e.preventDefault(); e.stopPropagation(); } };
-  const up = (e) => { if (e.key === SKIP_KEY) { skipKey = false; e.preventDefault(); e.stopPropagation(); } };
+  let skipKey = false, keyHeld = false;
+  // #1341: alleen een verse druk slaat over; een vastgehouden toets (repeat, of herhaling zonder keyup) doet niets
+  const down = (e) => { if (e.key === SKIP_KEY) { if (!e.repeat && !keyHeld) tap(); keyHeld = true; e.preventDefault(); e.stopPropagation(); } };
+  const up = (e) => { if (e.key === SKIP_KEY) { skipKey = false; keyHeld = false; e.preventDefault(); e.stopPropagation(); } };
   // touch and gamepad A skip too (a phone has no space bar)
   const tap = () => { skipKey = true; setTimeout(() => { skipKey = false; }, 120); };
   el.style.pointerEvents = 'auto';

@@ -26,8 +26,8 @@ export const MULTIPLAYER = { mode: 'local', identical: true, skipPerPlayer: true
 
 // Accessibility: no flashes in this film (a cut is a cut, never a white frame: the montage's flash() is not used between these shots), reduced
 // motion swaps the title card's zoom for a fade, subtitles are always on, skipping is a hold (cinematics.js: SPACE, 0.9 s).
-export const ACCESS = { flashes: false, reducedMotionCard: 'fade', subtitlesAlways: true, skip: { key: 'SPATIE', holdS: 0.9 } };
-export const skipHint = () => ({ key: ACCESS.skip.key, text: `Houd {${ACCESS.skip.key}} ingedrukt om over te slaan` });
+export const ACCESS = { flashes: false, reducedMotionCard: 'fade', subtitlesAlways: true, skip: { key: 'SPATIE' } }; // #1341: een verse druk, geen vasthouden
+export const skipHint = () => ({ key: ACCESS.skip.key, text: `{${ACCESS.skip.key}} om over te slaan` });
 
 // The grade (colour mood) and the clock per scene: the day has a rhythm, gold at dawn, soft light in the room, clear at noon.
 export const GRADES = {

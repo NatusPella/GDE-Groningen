@@ -65,7 +65,7 @@ for (const [k, naam] of [['started', 'gestart'], ['client', 'meespeler'], ['sess
 ok(['export function replayOpening(', 'openingReplayBlockers({', 'openingActEnd({', 'openingFinish(b)'].every((t) => story.includes(t)), 'story.js gebruikt de zuivere regels voor einde en herbekijken');
 const vui = fs.readFileSync(new URL('../game/js/verhaalui.js', import.meta.url), 'utf8');
 ok(vui.includes('data-replay-opening') && vui.includes('replayOpening(hooks.close)'), 'Verhaal > Personages heeft de knop Opening opnieuw bekijken');
-ok(/<span>Houd<\/span> ?<span class="hud-key">SPATIE<\/span> ?<span>ingedrukt om over te slaan<\/span>/.test(cine), 'de overslaan-hint noemt de toets (glyphs.js zet er de knop van de controller voor in)');
+ok(/<span class="hud-key">SPATIE<\/span> ?<span>om over te slaan<\/span>/.test(cine), 'de overslaan-hint noemt de toets (glyphs.js zet er de knop van de controller voor in)');
 
 // review 20-11 #5: het menu sluit pas als de opening kan starten
 {
