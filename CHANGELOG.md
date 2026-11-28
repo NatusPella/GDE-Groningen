@@ -9,6 +9,7 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ## [Unreleased]
 
+- Eerste minuten: tussen het laadscherm en de openingsfilm stond even de hele HUD (kaartje, geld, doelmarkering) boven een leeg beeld; die blijft nu weg tot de film begint. De toetsenregel bij het eerste doel (WASD lopen, Shift rennen, E gebruiken) telt zijn zes seconden nu pas zodra de HUD er is, ook na een film. De rode Slaan-kaart bij een voorbijganger naast je beginplek komt pas na je eerste missie (slaan zelf werkt altijd), en het aanbod Even oefenen is korter. Een bericht van Tessa kopte nog met haar codenaam Anita; het staat nu overal als Tessa. Samen spelen: alles lokaal per speler, een gast ziet zijn eigen HUD.
 - De game staat nu op de hoofdpagina van de webversie (GitHub Pages); de marketingpagina is weggehaald. De oude link /play/ stuurt door naar de hoofdpagina.
 
 ## [0.66.0] - 2026-11-24
