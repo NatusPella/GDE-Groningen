@@ -21,11 +21,14 @@ export function texturesOf(obj, out = new Set()) {
 
 export function createTextureWarm(env, { maxPerFrame = 6 } = {}) {
   const queue = new Set();
-  const stats = { uploaded: 0, steps: 0, ms: 0, maxMs: 0 };
+  const stats = { uploaded: 0, steps: 0, ms: 0, maxMs: 0, gaveUp: 0 };
+  // een texture die na MAX_TRIES pogingen nog niet op de GPU blijkt te staan (nul groot, kapot beeld) houdt niets meer tegen: nooit eeuwig wachten
+  const tries = new WeakMap(), MAX_TRIES = 3;
   // een texture zonder beeld (nog laden), zonder versie (nooit needsUpdate) of een render target heeft niets te uploaden
   const needs = (t) => {
     if (!t || !t.isTexture || t.isRenderTargetTexture || t.isVideoTexture || t.isCompressedTexture) return false;
     if (!(t.version > 0)) return false;
+    if ((tries.get(t) || 0) >= MAX_TRIES) return false;
     const img = t.image;
     if (!img || img.complete === false) return false;
     let p; try { p = env.props(t); } catch (e) { return false; }
@@ -45,6 +48,8 @@ export function createTextureWarm(env, { maxPerFrame = 6 } = {}) {
       for (const t of queue) {
         queue.delete(t);
         if (!needs(t)) continue;
+        tries.set(t, (tries.get(t) || 0) + 1);
+        if (tries.get(t) >= MAX_TRIES) stats.gaveUp++;
         try { env.upload(t); n++; stats.uploaded++; } catch (e) { /* een texture die niet kan: de eerste draw meldt het zelf */ }
         if (n >= maxPerFrame || env.now() - t0 >= budgetMs) break;
       }

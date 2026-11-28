@@ -43,6 +43,10 @@ ok(!tw3.ready(mesh(done)), 'een nieuwe versie (needsUpdate) moet opnieuw omhoog'
 const bad = tex(); const tw4 = createTextureWarm({ ...env, upload: () => { throw new Error('gl'); } });
 tw4.enqueue(mesh(bad));
 ok(tw4.step(5) === 0 && tw4.pending() === 0 || tw4.pending() === 0, 'een mislukte upload valt uit de wachtrij (de eerste draw meldt het zelf)');
+// een texture die na de upload nooit "klaar" blijkt (de nepgpu onthoudt hem niet): na drie pogingen houdt hij niets meer tegen
+const stuck = tex(); const tw5 = createTextureWarm({ ...env, upload: () => {} });
+let k = 0; while (!tw5.ready(mesh(stuck)) && k < 10) { tw5.step(5); k++; }
+ok(tw5.ready(mesh(stuck)) && k === 3 && tw5.stats.gaveUp === 1, 'een texture die niet op de GPU blijft: na drie pogingen geeft de wachtrij op', String(k));
 ok(texturesOf(null).size === 0 && texturesOf({}).size === 0, 'leeg of null: geen texturen');
 
 console.log(`${n - fails}/${n} controles in orde`);
