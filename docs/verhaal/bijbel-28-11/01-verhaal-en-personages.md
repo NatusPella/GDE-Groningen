@@ -19,7 +19,8 @@ Opbouw: 1 logline en toon, 2 personages, 3 begrijpelijkheid (regels), 4 de verha
 - **Triomfantelijk, warm slot.** Het eind wint niet door geweld en niet door geld, maar door mensen die terugkomen om te helpen, en door Jelles eigen regels.
 - **Vooral ontspannen.** Geen tijdsdruk die straft; de wereld wacht. Een mislukte missie probeer je gewoon opnieuw.
 - **Droog Gronings understatement** ("Kon minder."), **bureaucratische absurditeit** (formulier 14-B, een bezwaartermijn van zes weken die over drie dagen afloopt), **situatiekomedie tussen Tammo en Tessa**, **parodie op echte plekken met verzonnen namen**.
-- **Satire, geen leed** (constitution 6). Een overlijden (Oom Hindrik) gebeurt rustig, buiten beeld, en is een begin, geen drama.
+- **Nooit echt falen [canon].** Elke missie is te redden, of falen reageert komisch en het verhaal gaat door (de bestaande falen-regels, bijvoorbeeld bij Klaas: "Terug naar Klaas, nog een keer.", blijven de maat).
+- **Satire, geen leed** (constitution 6). De overlijdens (Oom Hindrik als begin van de boerenloopbaan, Beppe aan het eind) gebeuren rustig en zonder getoond leed.
 - **Altijd zomer** (constitution 3): dus geen Elfstedentocht-grappen over Friesland en geen natuurijs, ook niet in Jelles plagerijen.
 
 **Titel.** Slogan: *Een zomer in Grunn. Kon minder.* (23-11). De werktitel *Alles voor één eierbal* blijft tot de eigenaar iets anders kiest (open vraag 9).
@@ -76,22 +77,24 @@ Elk blad volgt de velden van de castingkaart (`characterdossiers_base.js`): leef
 | Model en stem | Modulair basismodel, lang zwart haar. Stem **Callirrhoe**, lacherig en ad rem. |
 | Afwijkt van de code | Dossier: *"de frietwagen is tot akte 5 een tekening op een bierviltje"*; bijbel: de wagen komt in H15 (§6, M00). Dossier noemt het ouderlijk erf "een dorp op de klei (bewust vaag)", J3 zet het bij Siddeburen: bijbel volgt J3. |
 
-#### Beppe, Hinke Wiersma (`beppe`) [canon: oma van Tammo; voorstel: ze leeft door]
+#### Beppe, Hinke Wiersma (`beppe`) [canon: oma van Tammo, warme plek, overlijdt na het slot]
 
 | Veld | Inhoud |
 |---|---|
 | Leeftijd | 88. |
 | Uiterlijk | Klein, wit haar in een knotje, zachte rimpels, een soeplepel in de hand. Weinig bewegingen, veel kijken. |
 | Vaste kleding | Schort met een bloemetje en wollen vest (gedempt groen of paars). Variaties: jas in de tuin, zondagse blouse op het feest (H16). |
-| Persoonlijkheid | Zacht, nuchter, gul. Ze ziet Tessa meteen en zegt dat Tammo en zij "vrienden" zijn, op een toon die het tegendeel zegt. Weinig woorden. |
+| Persoonlijkheid | Zacht, nuchter, gul. Ze ziet Tessa meteen en zegt dat Tammo en zij "vrienden" zijn, op een toon die het tegendeel zegt. Weinig woorden. **Haar huis is een warme plek waar Tammo en Tessa steeds langskomen** (soep, de tuin, de duiven, het bankje). **Zij hoopt dat Tammo en Tessa samen eindigen** en geeft Tammo steeds stiekeme hints, alleen aan hem, als Tessa het niet hoort. |
 | Spreekstijl | Fries-getint Nederlands (F2), kort en zacht, Nederlandse ondertitel. Tics: "Goed ite!" / "Jonge, hast al iten?" / "Dan meitsje ik sop." **Eigen stem [voorstel]:** ze praat in kleine, zachte zinnen, vraagt meer dan ze vertelt ("En jij, jonge, wat wil jíj?"), herhaalt wat de ander zei als troost ("Het was zwaar, ja."), en noemt Tessa heel even "dyn famke" (je meisje) tegen Tammo, om het meteen te laten zakken. Ze troost met eten, nooit met raad; haar grappen zijn dun en laat ("Ik ben achtentachtig, ik heb tijd."). Maximaal één Friese zin per scène, altijd ondertiteld. |
 | Wonen | Huis met tuin, vogelhuisje en duiven aan de westgrens van de provincie, **net binnen de grens** aan de westrand van het Westerkwartier (het dossier zegt "net over de grens bij Kollum"; bijbel: geen vaste scènes buiten de provincie, dus haar huis ligt aan deze kant); het laatste bankje van Grunn met haar koperen plaatje staat vlakbij. Moeder van Tammo's moeder Anke. |
 | Werk | Gepensioneerd; tuin, vogels, duiven, soep. |
 | Relaties | Tammo (Friese oma, moederskant); Tessa (ziet als eerste wat er is); Oma Trijntje (**Tessa's** oma: twee verschillende oma's met elk een eigen stem, keuken en wereld; ze ontmoeten elkaar in H16, F3); Tante Aaltje (haar dochter, **[voorstel]**); Mem (leeftijdgenote, kent haar van de markt in Ljouwert, **[voorstel]**). |
-| Motief | Dat Tammo eet en niet alleen is; dat hij zichzelf vindt zonder dat zij het zegt. |
-| Weet en wanneer | Alles wat in het gezin gebeurt. Eerst: H1 (de soeprit). |
+| Motief | Dat Tammo eet en niet alleen is, en dat hij en Tessa samen eindigen: haar stille wens, waarvoor ze Tammo van achter de soeppan een zetje geeft. Ze zegt het nooit hardop tegen Tessa. |
+| Hints (planten) | Alleen tegen Tammo, Tessa buiten gehoor (in de tuin, bij de auto, aan de telefoon): **H1** "Zij kijkt naar jou zoals jij naar de duiven kijkt." (Tammo: "Beppe."); **H4** "Je tante zet jullie op één bank. Ik heb het haar gevraagd."; **H5** "Zij past op een erf. Jij ook, als zij erbij is."; **H8** "Wie draagt wiens tas? Zo kan ik het ook."; **H10** "Eet ze goed? Jonge, zij eet goed." en de foto uit de eerste Kiezelweek op de plank; **H13** "Zeg het niet te laat, jonge. Ik heb tijd, maar niet eindeloos." (licht, geen drama); **H15** "Ik heb een jas gekocht. Voor een feest. Zeg het maar niet." Elke hint is een grap en een duwtje; Tammo ontkent steeds. Tessa hoort ze nooit, maar Beppe knipoogt naar haar bij het afscheid. |
+| Overlijden [canon] | Beppe overlijdt **na het slot**, rustig en warm, in de nacht na het Gronings Ontzet (waarop ze was, in haar zondagse blouse, en waar ze Oma Trijntje ontmoette): geen getoond leed, een bericht van Tante Aaltje en een briefje op haar tafel. Ze wordt begraven in **Oudwoude** (Fryslân), waar Tammo en Tessa elkaars hand vasthouden zodat zij kan zien dat ze samen zijn geëindigd zoals ze altijd wilde: de kernscène van de relatieboog (§5.3). |
+| Weet en wanneer | Alles wat in het gezin gebeurt; weet vóór de twee zelf dat het wederzijds is. Eerst: H1 (de soeprit); haar huis keert terug in H4, H7, H10, H13 en H15 (een vaste bezoekplek, soep eens per speeldag blijft). |
 | Model en stem | Modulair oud, klein, wit haar met knot. **Stem nieuw** (zacht, oud, Fries-getint). |
-| Afwijkt van de code | **Groot.** Code en `BEPPE-HUIS-21-11.md`: Beppe overlijdt na M06 en wordt een herinneringsplek (kaars, foto, lege stoel); ze heeft geen stem; J6 laat haar op bezoek komen nadat ze dood is (tegenstrijdig). Bijbel: ze leeft door tot en met het feest, krijgt een stem, en het overlijden gaat naar Oom Hindrik. De herinneringsfase blijft als bestand bestaan, maar opent niet in dit verhaal. Open vraag 2. |
+| Afwijkt van de code | **Middel.** Code en `BEPPE-HUIS-21-11.md`: Beppe overlijdt al na M06 (herinneringsplek met kaars, foto, lege stoel); ze heeft geen stem; J6 laat haar op bezoek komen nadat ze dood is (tegenstrijdig). Bijbel (besluit eigenaar 28-11): ze leeft door tot het slot en is een warme plek met hints; ze krijgt een stem; **het overlijden verhuist van na M06 naar na het Ontzet** (de bestaande herinneringsfase met kaars, foto en lege stoel, het bankje en de aftitelingskaarten blijven dus kloppen, alleen later); de begrafenis in Oudwoude is nieuw. Het overlijden van Oom Hindrik (§2.2) is de aanleiding van de erfenis en dus een aparte, korte gebeurtenis. |
 
 #### Jelle Terpstra (`jelle`) [canon: motief en toon; voorstel: werkwijze]
 
@@ -201,9 +204,10 @@ Het is een **spel**, geen vijandschap. Groningers plagen Friezen (*pompeblêd*),
 | Oma van | Tammo (moeders moeder) | Tessa (Pa's moeder); "Oma van de straat" voor iedereen in de Oosterparkwijk, ook voor Tammo |
 | Plek | Westgrens van de provincie, tuin, duiven, vogelhuisje | Benedenwoning Oosterparkwijk, keuken vol potten, later de Noorderhaven |
 | Taal | Fries-getint, zacht, vragend | Plat Gronings, stellig, een regel als een spreuk |
-| Gaaf voor het verhaal | Soep, zorg, ziet de relatie als eerste; het erf van de familie (Tante Aaltje, Oom Hindrik) | Het recept van 1953, de Snackprijs, de standplaats; het hart van de snackwagen |
+| Gaaf voor het verhaal | Soep, zorg, een warme plek om langs te komen, ziet de relatie als eerste en geeft Tammo hints; het erf van de familie (Tante Aaltje, Oom Hindrik) | Het recept van 1953, de Snackprijs, de standplaats; het hart van de snackwagen |
 | Relatie tot de ander | Ziet Tessa meteen; "Jullie zijn vrienden." | Kent Tammo van kind af uit de straat ("de jongen met de duif"); ontdekt in de flashback (H3) dat Tessa haar kleindochter is |
 | Eerste verschijning | **H1** (de soeprit) | **H3** (de avond bij Oma), eerder genoemd |
+| Einde | Overlijdt rustig na het Ontzet; begrafenis in Oudwoude | Leeft door; in de nazomer de standplaats met Mem |
 | Ontmoeten elkaar | pas in **H16** (F3 Soep en eierbal), waar de twee oma's elkaar een stoel geven | |
 
 **Namenregister: dubbelingen met deel 2 (`02-loopbanen.md`, branch `verhaalbijbel-2-28-11`) en met de bestaande cast, gelijkgetrokken.** Regel: de bestaande cast (dossiers) wint; deel 2 past aan. Deel 2 is geschreven zonder kennis van dit blad en noemt bij een paar rollen een andere naam of een andere functie; die staan hier gelijk. Ik heb dat bestand niet gewijzigd (andere branch); de coördinator voert dit register door bij de samenvoeging.
@@ -308,6 +312,10 @@ Per hoofdstuk staat in §4.3 de regel **Speler weet nu**. De toets: een scène i
 
 Na H16 volgt de **nazomer** (de bestaande M27 tot en met M30 en F6): vrije speeltijd, nog altijd met iets te doen.
 
+**Einde en nazomer [canon].** Na het slot lopen de wereld en alle loopbanen door. Het einde is duidelijk: de stille scène, Beppe's afscheid in Oudwoude, **de aftiteling** (met de in-herinnering-kaarten) en dan de vrije nazomer (de bestaande M27 tot en met M30 en F6 als optionele evenementen).
+
+**Vervoer.** Het verhaal is bij vervoer minimaal (H7, ongeveer één uur); de diepte (roosters, lijnen, eigen lijn) zit in de eindeloze modus.
+
 ### 4.2 Het eerste uur [canon: de vier eisen]
 
 Het eerste uur moet bevatten: een terloopse hint naar Jelle en de snackwagen, een eerste kleine overwinning, een eerste verkenning buiten de stad, een eerste bijbaan.
@@ -325,7 +333,7 @@ Het eerste uur moet bevatten: een terloopse hint naar Jelle en de snackwagen, ee
 
 Per hoofdstuk: de stappen met de **nieuwe bijfiguur** (één per stap), wat ontgrendelt, de relatie-beat, de Jelle-lijn en **Speler weet nu**. Stappen met een ID zijn bestaande stappen (§6); wat nieuw geschreven moet worden is zo genoemd.
 
-**H1 Verhuisdag (0 tot 2,5 u).** Opening M00 (Rikus hoorbaar); M01 (nieuw: Berend); N1 Een klus voor Sjabbe (nieuw: Sjabbe); N3 Soep bij Beppe (nieuw: Beppe); W1 Half drie (de friet in de nacht: Tessa's liefde voor snacks als zaadje). *Recept (zaadje 1):* in de keuken staat een pot mosterd die Tessa niet wil weggooien ("van Oma") en ze noemt terloops "Oma's eierballen". *Ontgrendelt:* klussen. *Relatie:* het kaartje van de eerste Kiezelweek hangt aan de koelkast (O1); Beppe: "Jullie zijn vrienden." *Jelle:* een radiospot en een klomp, anoniem. *Thuis:* de flat is kaal. *Speler weet nu:* wie Tammo en Tessa zijn, dat ze net afgestudeerd en werkloos zijn, dat de Escapade (de rode auto) hun enige bezit is, dat Beppe Tammo's Friese oma is, dat een Fries snackbedrijf ("Us Mem Snacks") rondgaat.
+**H1 Verhuisdag (0 tot 2,5 u).** Opening M00 (Rikus hoorbaar); M01 (nieuw: Berend); N1 Een klus voor Sjabbe (nieuw: Sjabbe); N3 Soep bij Beppe (nieuw: Beppe); W1 Half drie (de friet in de nacht: Tessa's liefde voor snacks als zaadje). *Recept (zaadje 1):* in de keuken staat een pot mosterd die Tessa niet wil weggooien ("van Oma") en ze noemt terloops "Oma's eierballen". *Ontgrendelt:* klussen. *Relatie:* het kaartje van de eerste Kiezelweek hangt aan de koelkast (O1); Beppe: "Jullie zijn vrienden." en, alleen tegen Tammo, hint 1 (§2.1). Beppe's keuken is vanaf nu een vaste plek om langs te komen. *Jelle:* een radiospot en een klomp, anoniem. *Thuis:* de flat is kaal. *Speler weet nu:* wie Tammo en Tessa zijn, dat ze net afgestudeerd en werkloos zijn, dat de Escapade (de rode auto) hun enige bezit is, dat Beppe Tammo's Friese oma is, dat een Fries snackbedrijf ("Us Mem Snacks") rondgaat.
 
 **H2 De straat (2,5 tot 5 u).** N2 Een duif op de gang (nieuw: Veldkamp); (nieuw) de scooters op de stoep (nieuw: Sander Poelman); J1 Post van de gemeente (de eerste brief: kenmerk en afzender *J. Terpstra, voorzitter van de Commissie Standplaatsen Noord*); M02 Even pinnen (nieuw: de loketbediende); N4 Een eerste ronde (taxi, formulier); M03 Het Loket herschreven (§6) tot het werkbewijs (formulier 14-B; bezwaartermijn zes weken: de eerste bureaucratische grap). *Ontgrendelt:* taxi (proefrit), kantoor. *Relatie:* Veldkamp: "Zijn jullie al…?" "Nee." *Jelle:* een naam op papier, geen gezicht. *Thuis:* de flat krijgt een verfje. *Speler weet nu:* de Commissie en Jelle als naam en bureaucraat, dat een standplaats iets is waar iemand om vecht, dat Sander een rivaal is.
 
@@ -337,7 +345,7 @@ Per hoofdstuk: de stappen met de **nieuwe bijfiguur** (één per stap), wat ontg
 
 **H6 Het veld (12,5 tot 15 u): voetbal.** *Aanleiding [canon]: invaller bij een dorpsclub.* Zondag bij VV De Hoek (verzonnen dorpsclub op het Hogeland): de linksbuiten ligt eruit (nieuw: Meester Eppo Rozema, de trainer; zijn linksbuiten ligt eruit); Tessa valt in, Tammo regelt schoenen en papieren (V1); V2 De eerste training in Veendam (nieuw: Marit Hoogland); V3 Het is jouw avond. *Ontgrendelt:* **voetbal**: een ladder langs de velden van de provincie (dorp, Veendam, streekclub) naar de Euroborg als hoogste niveau (rangen per niveau; teams, transfers, seizoenen). *Relatie:* Tammo houdt langs de lijn haar tas vast; haar handschoen blijft in zijn jaszak (voorwerp 1). *Jelle:* de omroeper leest een bord-weigering voor ("Geen bord langs de weg voor VV De Hoek"). *Speler weet nu:* wat de ladder is, dat Tessa kan voetballen, wie Marit is.
 
-**H7 De dienst (15 tot 17,5 u): vervoer.** *Aanleiding [canon]: een chauffeur valt weg.* Chauffeur Dries Oltmans (al sinds H2 de vaste chauffeur van de bus naar huis, met zijn eigen koffiekan) krijgt een zere rug (niet erg, genoeg); Dispatcher Annemarie belt over de portofoon ("Dries ligt op de bank"); Tammo neemt zijn diensten over; N7 De streekbus naar Winsum (nieuw: de buschauffeur); N11 Een bezorgrondje bij Bedum; de trein (nieuw: Jochem Luiken). *Ontgrendelt:* **vervoer** (taxi, bus, trein; mag de kortste loopbaan zijn; rangen: invaller, vaste chauffeur, dienstleider, eigen lijn). *Relatie:* Tessa maakt zijn rooster en zet haar nummer als noodnummer bovenaan ("Voor als de auto kapot gaat."). *Recept (zaadje 3):* bij een bezorgrit levert Tammo een vat vet en een zak mosterd af zonder te weten waarvoor. *Jelle:* een brief over een "tijdelijke wijziging" van de dienstregeling, bezwaar zes weken. *Speler weet nu:* hoe vervoer werkt; dat de Commissie ook de lijnen bepaalt.
+**H7 De dienst (15 tot 17,5 u): vervoer.** *Het verhaal blijft hier minimaal [canon]:* ongeveer één uur verhaal (Dries draagt over, de eerste dienst, de eerste lijn), de rest van het hoofdstuk is vrije ruimte (bijbanen, de Zomermarkt) en de diepte van vervoer zit in de eindeloze modus (roosters, lijnen, eigen lijn). *Aanleiding [canon]: een chauffeur valt weg.* Chauffeur Dries Oltmans (al sinds H2 de vaste chauffeur van de bus naar huis, met zijn eigen koffiekan) krijgt een zere rug (niet erg, genoeg); Dispatcher Annemarie belt over de portofoon ("Dries ligt op de bank"); Tammo neemt zijn diensten over; N7 De streekbus naar Winsum (nieuw: de buschauffeur); N11 Een bezorgrondje bij Bedum; de trein (nieuw: Jochem Luiken). *Ontgrendelt:* **vervoer** (taxi, bus, trein; mag de kortste loopbaan zijn; rangen: invaller, vaste chauffeur, dienstleider, eigen lijn). *Relatie:* Tessa maakt zijn rooster en zet haar nummer als noodnummer bovenaan ("Voor als de auto kapot gaat."). *Recept (zaadje 3):* bij een bezorgrit levert Tammo een vat vet en een zak mosterd af zonder te weten waarvoor. *Jelle:* een brief over een "tijdelijke wijziging" van de dienstregeling, bezwaar zes weken. *Speler weet nu:* hoe vervoer werkt; dat de Commissie ook de lijnen bepaalt.
 
 **H8 Het water (17,5 tot 20 u): rondvaart en binnenvaart.** *Aanleiding [canon]: een schipper valt weg.* Wiebe Hazenberg (hoorbaar in H3; nieuw als stap: Wiebe) struikelt over zijn megafoon en kan zijn heup niet meer gebruiken; zijn rondvaartboot en zijn vrachtschip *De Drie Zusters* hebben een schipper nodig; Lammert Veenstra (nieuw: Lammert Veenstra) leert hun de binnenvaart; K2 De kade in de ochtend; M11-opmaat: de rubberboot van Klaas. **Twee sporen:** de **rondvaart in de Stad** en de **binnenvaart door de provincie** (leveringen voor de hoeve en voor Geesje). *Relatie:* "Twee op één dek is een bemanning" (Wiebe); een rood-blauw touwtje om haar pols (voorwerp 2). *Jelle:* de Commissie weigert een aanlegplaats bij de Vismarkt. *Speler weet nu:* water is een eigen wereld, vracht en toerist.
 
@@ -355,7 +363,7 @@ Per hoofdstuk: de stappen met de **nieuwe bijfiguur** (één per stap), wat ontg
 
 **H15 De wagen (35 tot 37,5 u).** F1 Een wagen langs de weg (nieuw: Tinus en zijn schuur), M22 Een luik erin (Henk bouwt het luik; Tammo pandt zijn opa's horloge bij Sjabbe), F2 De eerste bak; de naam: **Tam & Tes** (Henk: "Tam. Tes. Ik zeg niks. Eén koekje." De grap wordt nooit uitgelegd). Alles uit de loopbanen komt terug. *Relatie:* Tessa koopt het horloge stiekem terug (voorwerp 4). *Jelle:* een brief aan "de heer en mevrouw Wierenga-Mulder" (hij denkt dat ze getrouwd zijn). *Speler weet nu:* de wagen is van hen; de standplaats nog niet.
 
-**H16 Het Ontzet (37,5 tot 40 u).** *Actie:* M23 De colonne (iedereen die ze hielpen komt terug met een voertuig of hulp: Tinus' trekker, Dries' bus, Wiebe's boot, Dijkstra's heli, Eppo's elftal), M24 Er hangt iets Fries aan d'Olle Grieze, M25 Het bod viel tegen, M26 Ontzet. *Feest:* het Gronings Ontzet in de Stad met alle bijfiguren; **Jelles bureaucratische ontknoping:** zijn eigen **Verordening Eerste Aanvraag** zegt dat de oudste aanvraag voorgaat. Die staat op naam van Oma Trijntje én Mem, beide in 1953 op dezelfde dag ingediend, en "bij gelijke aanvragen werken de aanvragers samen op één standplaats". Het blijkt dat het Receptenregister van de Commissie het recept op **beide** namen heeft staan, omdat Mem in 1953 de mosterd bijdroeg (haar tip, die Oma Trijntje nooit vergat te noemen): Jelle zat jarenlang achter een recept aan dat al half van zijn eigen oma was. Zo delen de oma's de standplaats en het recept van Tam & Tes, Jelle zet zijn eigen stempel eronder en zijn zonnebril gaat af (F3, F4). *Stille scène:* F5 Een avond voor twee aan de Noorderhaven: weinig woorden, haar hand in zijn zak met de handschoen (§5). *Epiloog:* E en de nazomer. *Speler weet nu:* alles; en dat er altijd nog iets te doen is.
+**H16 Het Ontzet (37,5 tot 40 u).** *Actie:* M23 De colonne (iedereen die ze hielpen komt terug met een voertuig of hulp: Tinus' trekker, Dries' bus, Wiebe's boot, Dijkstra's heli, Eppo's elftal), M24 Er hangt iets Fries aan d'Olle Grieze, M25 Het bod viel tegen, M26 Ontzet. *Feest:* het Gronings Ontzet in de Stad met alle bijfiguren; **Jelles bureaucratische ontknoping:** zijn eigen **Verordening Eerste Aanvraag** zegt dat de oudste aanvraag voorgaat. Die staat op naam van Oma Trijntje én Mem, beide in 1953 op dezelfde dag ingediend, en "bij gelijke aanvragen werken de aanvragers samen op één standplaats". Het blijkt dat het Receptenregister van de Commissie het recept op **beide** namen heeft staan, omdat Mem in 1953 de mosterd bijdroeg (haar tip, die Oma Trijntje nooit vergat te noemen): Jelle zat jarenlang achter een recept aan dat al half van zijn eigen oma was. Zo delen de oma's de standplaats en het recept van Tam & Tes, Jelle zet zijn eigen stempel eronder en zijn zonnebril gaat af (F3, F4). *Stille scène:* F5 Een avond voor twee aan de Noorderhaven: weinig woorden, haar hand in zijn zak met de handschoen (§5). *Beppe op het feest:* in haar zondagse blouse, naast Oma Trijntje (F3), ze zegt niets, ze knipoogt naar Tessa. *Epiloog (E):* in de nacht na het Ontzet overlijdt Beppe rustig (bericht van Tante Aaltje, briefje op haar tafel: "Houd elkaar vast. – B."); de begrafenis in Oudwoude (§5.3, kernscène); daarna de aftiteling met de in-herinnering-kaarten en de nazomer. *Speler weet nu:* alles; en dat er altijd nog iets te doen is.
 
 ### 4.4 Toets op begrijpelijkheid: gevonden problemen
 
@@ -366,7 +374,7 @@ Per hoofdstuk: de stappen met de **nieuwe bijfiguur** (één per stap), wat ontg
 | M06-kraak noemt de Gouden Eierbal en 1953 | Nooit uitgelegd | Oma legt 1953 en de Snackprijs uit in H3; de kraak pas in H12 |
 | M08 introduceert Oma Trijntje laat | Ze wordt al lang genoemd | Oma in beeld in H3 (N8) |
 | O6 "Jelle biedt op Oma's recept" | Recept onbekend | Recept in H3, bod in H11 |
-| J6 Beppe aan de deur (nadat ze overleed) | Tegenstrijdig | Beppe leeft; J6 blijft zonder tegenspraak |
+| J6 Beppe aan de deur (nadat ze volgens de code overleed) | Tegenstrijdig | Het overlijden komt pas na het slot; J6 klopt dan weer |
 | M21 "Alleen" na de ruzie | Zonder ruzie onbegrijpelijk | Tessa's solo is praktisch (§6); de stilte wordt getoond |
 | F2/F3 noemen "de wagen" voor hij gebouwd is | Zaadje zonder uitbetaling | De wagen valt in H1, H5, H8 en H11 als grapje, in H15 wordt hij gebouwd |
 | Radio-Rikus noemt "de duivenfluisteraar" | Wie is dat? | Veldkamp (H2) en Bert (H3) staan dan al in beeld |
@@ -385,6 +393,39 @@ De toon laat deze vier soorten scènes toe; ze zijn warm, zonder leed, met humor
 | Bijna missen | **Het perron:** in H14 reizen ze elk een andere kant op en missen elkaar op Station Veendam of Station Groningen op één minuut; hij ziet haar trein vertrekken, zij ziet hem de trap op rennen; geen woord, wel een raamgebaar. | H14 | de stilte-beat van de relatieboog (§5); zonder ruzie |
 | Trotse overwinning samen | **De eerste echte bak:** in H15 gaat het luik voor het eerst open en rijdt de eerste klant weg met een eierbal; en in H10 het stadsfeest, de eerste keer dat de stad hun naam roept. | H10, H15 | alle bijfiguren juichen; Sander bestelt |
 | Humor en ontroering tegelijk | **"Tam. Tes. Ik zeg niks. Eén koekje."** (Henk); **de bezwaartermijn** in Jelles ontknoping ("zes weken, helaas drie dagen") waarna hij zijn zonnebril afzet; **de koeienbel** in de stille scène. | H15, H16 | de grap draagt de ontroering, nooit uitleggen |
+
+### 4.6 Beppe-scènes (verplicht) [canon, eigenaar 28-11]
+
+De Beppe-scènes horen bij het hoofdverhaal: ze zijn de emotionele boog en geen bijbaan. Ze zijn onderdeel van de hoofdstappen (de stap opent met de scène of sluit ermee) en dus niet optioneel; alleen de losse soepbezoeken tussendoor (eens per speeldag) blijven vrije speeltijd.
+
+| Hoofdstuk | Scène | Wat |
+|---|---|---|
+| H1 | N3 Soep bij Beppe | Eerste bezoek: Tessa ontmoet haar; "Jullie zijn vrienden."; hint 1 |
+| H4 | Beppe belt (voor het bezoek aan de hoeve) | Hint 2; zij vraagt Tante Aaltje de stoelen te zetten |
+| H5 | De hoeve in de familie | Hint 3 aan de telefoon; ze stuurt een mand met soep voor de eerste avond op het erf |
+| H7 of H8 | Beppe in de keuken | Hint 4; Tessa in de tuin bij de duiven, Tammo binnen |
+| H10 | J6 Beppe aan de deur | Bezoek met soep en de foto uit de eerste Kiezelweek; hint 5 |
+| H13 | Beppe's bankje | Hint 6 ("Zeg het niet te laat, jonge."); licht, zonder drama |
+| H15 | Beppe's jas | Hint 7; zij koopt een jas voor een feest |
+| H16 | Het feest | Zondagse blouse, Oma Trijntje en Beppe in één keuken (F3), de knipoog |
+| E | Het afscheid | Het overlijden, het briefje, de begrafenis in Oudwoude; de handen (§5.3) |
+
+### 4.7 Perspectief en besturing: zoals het spel het nu regelt (niet veranderen)
+
+De bijbel verandert de besturing niet; ze beschrijft wat de code doet, zodat de scènes er rekening mee houden.
+- **Eén hoofdspeler tegelijk, Tammo of Tessa, per stap.** Elke verhaalstap kan een `player` hebben (`'anita'` voor Tessa, bijvoorbeeld V1 tot en met V3 en M21); `story.js` (`updateCharacter`) wisselt de hoofdspeler van personage zodra het rustig is (`SWAP_CALM`); wie boert of voetbalt speelt als Tessa (`karakterbonus.js`). De andere figuur is de **computermetgezel** en loopt mee.
+- **Samen spelen.** Wie het spel opende is Tammo, de gast is Tessa (`fixedChars`); de andere rol in een scène is de metgezel en elke rol wordt één keer getekend (`coopcut.js`). Zie `docs/COOP-GAST.md`.
+- **Gevolg voor de bijbel.** De loopbaan-sterktes in §2.1 zijn *neigingen* van de figuren en geen sloten: elke loopbaan blijft voor beide figuren speelbaar (eigenaar, 28-11). Nieuwe stappen krijgen een `player` waar de scène één van de twee centraal zet (Beppe's soepbezoek: Tammo; de hoeve: Tessa; de wagen: beiden), en de rest wisselt zoals nu.
+
+### 4.8 De aftiteling [canon, eigenaar 28-11]
+
+Emotioneel én grappig tegelijk, na de epiloog en Beppe's afscheid.
+- **Beelden:** een terugblik in de stad zelf, ontleend aan de echte spelassets: de Grote Markt in het avondlicht, de Noorderhaven, de hoeve Zeldenrust, de Euroborg, het perron, het luik; de personages en hun gags in kort: Berends "Goed.", Henks koekje, de duiven die naar Tammo vliegen, Jelles bezwaartermijn, Wiebe's megafoon, Veldkamp die het weer mist.
+- **Statistieken van de speler:** uren gespeeld, gereden kilometers, geoogst, doelpunten, vaarbeurten, uitgedeelde eierballen, aantal keer dat Tammo "Kon minder." zei; **alleen lokaal**, nooit verzonden (constitution 4).
+- **Een korte muzikale finale** (kort stuk, geen tekstzang nodig); de bestaande muziek- en opdrachtlijsten staan in `docs/verhaal/MUZIEKLIJST-21-11.md`.
+- **Een scène na de credits:** een brief van Jelle valt op de mat, gericht aan "de heer en mevrouw Wierenga-Mulder": "Onderwerp: Gefeliciteerd. Bezwaartermijn: zes weken. Helaas drie dagen." Onderaan, in een andere hand: "Kom koffie. – M." Tessa en Tammo kijken elkaar aan; de duif landt op het luik.
+- **Verhouding tot de code:** nu rollen de credits (`ending.js`, `credits.js`) pas als het verhaal klaar is *en* elke verhaalmissie en elke uitdaging na het verhaal is gehaald. In de bijbel rolt de aftiteling aan het einde van de epiloog (duidelijk einde) en blijft de wereld daarna open; het huidige "alles gehaald"-moment kan een tweede, kort slotbeeld zijn. Afwijking van de code, ter beslissing van de bouwronde.
+- **Samen spelen:** iedereen ziet de aftiteling lokaal, met zijn eigen statistieken.
 
 ---
 
@@ -415,7 +456,7 @@ De toon laat deze vier soorten scènes toe; ze zijn warm, zonder leed, met humor
 **Opmerkingen van bijfiguren** (elk een zin, nooit een uitleg):
 - Veldkamp (H2): "Zijn jullie al…?" "Nee." "Zo."
 - Tante Aaltje (H4, bij het zetten van de stoelen): "Jullie zien er goed uit." "We zijn collega's." "Natuurlijk."
-- Beppe (H1 en H10): "Jullie zijn vrienden." en later, tegen Tammo alleen: "Eet ze goed? Jonge, zij eet goed." (zij = Tessa).
+- **Beppe** (H1 tot en met H15, alleen tegen Tammo): zeven hints, zie het blad van Beppe in §2.1; één tegen Tessa erbij: "Jullie zijn vrienden." (de toon zegt het tegendeel).
 - Wiebe (H8): "Twee op één dek is een bemanning."
 - Mevrouw Wassink in de bus (H7): "De jongedame en de heer, zijn jullie al getrouwd?" Tessa: "We rijden alleen mee." Mevrouw Wassink: "Dat zeiden wij ook."
 - Femke (H10, de dubbele date): "Het is toch een dubbele date?" Rikus: "Het is een dubbele *friet*."
@@ -450,6 +491,7 @@ De toon laat deze vier soorten scènes toe; ze zijn warm, zonder leed, met humor
 1. **Actie (H16, M23 tot en met M26):** de colonne, de vlag, het bod, de race tegen de klok. Ze werken naadloos samen zonder te praten (alles uit de loopbanen helpt).
 2. **Feest in de Stad (het Gronings Ontzet):** de hele cast, de omroeper leest Jelles laatste besluit voor en gaat wél door tot de bezwaartermijn; Jelles **bureaucratische ontknoping** (zie §4, H16). Iemand roept "Kus!" en Tammo en Tessa lachen het weg ("Kon minder."). Triomfantelijk en warm.
 3. **Stille scène (F5):** later die avond aan de Noorderhaven, bij het luik. Nauwelijks tekst. Zij geeft hem zijn horloge terug, hij haar de handschoen. Hij zet zijn pet af. Hij zegt vijf woorden, zacht ("Ik wil bij jou blijven.") en zij antwoordt met zíjn zin: "Kon minder." (het hoogste compliment van de complimentenladder). De camera blijft op de koeienbel hangen. Geen woorden daarna.
+4. **Beppe's afscheid (E, kernscène).** In de nacht na het Ontzet overlijdt Beppe rustig; Tante Aaltje belt, het briefje op haar tafel zegt "Houd elkaar vast. – B." De begrafenis is in **Oudwoude**: geen getoond leed, wel stilte, het kerkje, een esdoorn, Oma Trijntje die komt, Mem die komt (zonder Jelle: hij blijft voor de kerk staan en zet zijn zonnebril af). Tammo en Tessa staan aan het graf en **houden elkaars hand vast**; Tammo zegt als enig Fries woord: "Dag, beppe." Zonder woorden (alleen Beppe's hints als herinnering in een montage) wordt duidelijk dat ze samen zijn geëindigd, zoals zij altijd wilde. Dit is de kernscène die elke eerdere hint laat landen. **Oudwoude** ligt in Fryslân en komt in de code niet voor (geen treffer op "Oudwoude" in `game/js`, `docs` of `scripts`; de wereld loopt tot het Kollum-bordje bij de noordwestgrens, zie `beppe_garden.js`). Voorstel in volgorde van voorkeur: (a) een kleine **Friese uitloper** van enkele honderden meters achter het bordje met alleen het kerkje en het kerkhof, als enige vaste scène buiten de provincie (de eigenaar vroeg nadrukkelijk om Oudwoude); (b) kan dat niet, een **verzonnen begraafplaats aan de westgrens** met een bordje "Oudwoude 4 km" en haar steen met de woorden "Hinke Wiersma, Oudwoude" (de scène speelt dan aan Groningse kant en blijft hetzelfde). De scène is zo geschreven dat beide werken. Open vraag 2.
 
 ---
 
@@ -518,7 +560,7 @@ Per bestaande stap een advies: **behouden** (zelfde inhoud, hooguit een kleine a
 | J3 | Koffie bij Tessa's ouders | Verplaatsen | H5 | Tessa's wortels, bij de hoeve |
 | J4 | Een dubbele date in Veendam | Verplaatsen | H10 | Femke en Rikus; "dubbele friet" |
 | J5 | Een wielklem in Stadskanaal | Behouden | H14 | De Escapade in de klem: Jelles papier |
-| J6 | Beppe aan de deur | Herschrijven | H10 | Beppe leeft; soep; zij ziet het stel |
+| J6 | Beppe aan de deur | Behouden, licht herschrijven | H10 | Beppe leeft nog (nu klopt het); soep, de foto uit de Kiezelweek, hint 5 |
 | V1 | Schoenen voor de ster | Herschrijven | H6 | Eerst de aanleiding (invaller bij VV De Hoek) |
 | V2 | De eerste training | Herschrijven | H6 | Eerste ladderstap: Veendam; Marit |
 | V3 | Het is jouw avond | Herschrijven | H6 | De eerste wedstrijd |
@@ -535,7 +577,7 @@ Per bestaande stap een advies: **behouden** (zelfde inhoud, hooguit een kleine a
 | F4 | Foar mem, achteraan de rij | Behouden | H16 | Jelle in de rij; zonnebril af |
 | F5 | Een avond voor twee | Herschrijven | H16 | Wordt de stille scène |
 | F6 | De kaart op het luik | Behouden | Nazomer | Endgame: de standplaatsenkaart |
-| E | Epiloog en slot | Behouden | H16 | Aftitelingsmoment; daarna de vrije nazomer |
+| E | Epiloog en slot | Herschrijven (aanvullen) | H16 | Beppe's overlijden, de begrafenis in Oudwoude (kernscène), de aftiteling; daarna de vrije nazomer |
 
 ### 6.3 Overgangsscènes en systemen
 
@@ -552,7 +594,7 @@ Per bestaande stap een advies: **behouden** (zelfde inhoud, hooguit een kleine a
 | O10 (Jelles rekening voor de colonne) | Verplaatsen | H16 |
 | O11 (Jelle bestelt een eierbal voor zijn oma) | Verplaatsen | H16 of nazomer |
 | O12 (de flat na M30) | Behouden | Nazomer |
-| Beppe-boog (`beppe_boog.js`, overlijden na M06, herinneringsfase) | Herschrijven | Beppe leeft door; het overlijden gaat naar Oom Hindrik; de herinneringsfase blijft als bestand, opent niet |
+| Beppe-boog (`beppe_boog.js`, `beppe_visit_rules.js`, `BEPPE-HUIS-21-11.md`) | Herschrijven (verplaatsen) | Het overlijden verhuist van na M06 naar na het Ontzet (E); de bezoeken (eerste bezoek, soep, hints) lopen H1 tot en met H15; de herinneringsfase (kaars, foto, lege stoel, briefjes "Wat Beppe zou zeggen") begint pas in de nazomer; Oom Hindrik is een aparte, korte gebeurtenis |
 | Carrière-tour, reputatie, thuis (`careertour.js`, `reputation.js`, `homebase.js`) | Behouden, aanpassen | Koppelen aan de nieuwe loopbaan-aanleidingen en de groei (§4) |
 | Wagen-flags `wagen:*` | Behouden | Het recept en de wagen zijn kleine grapjes in H1 tot H11 (`wagen:idee`), de naam in H15 (`wagen:naam`) |
 | Romantiek-flags `romantiek:*` | Behouden | Alleen toevoegen; de stille scène krijgt een eigen flag |
@@ -590,6 +632,7 @@ Het recept (vet, eieren, zout, meel, mosterd: vijf ingrediënten van vijf vriend
 | **De complimentenladder** (bestaand: Goidag, Goud, Valt mie nait of, Braid noar de zin, Kon minder, niks meer) | H1: Berend | Elke figuur geeft een tree | H16: Tessa zegt "Kon minder." als hoogste compliment |
 | **Tammo's horloge (opa)** | H1: hij kijkt erop | H15: gepand | H16: terug in zijn pet |
 | **De koeienbel** | H4: Oom Hindrik | Hij hangt aan de hoeve en dan aan het luik | H16: de stille scène |
+| **Beppe's hints en haar briefje "Houd elkaar vast. – B."** | H1 de eerste hint; H4 tot en met H15 zes meer, alleen tegen Tammo | Tessa hoort ze nooit; Beppe knipoogt | E: het briefje en de handen aan het graf in Oudwoude |
 | **Het kaartje van de Kiezelweek** (bestaand) | H1 | Hangt aan de koelkast, zit in zijn zak | H16: beide samen |
 | **De handschoen** | H6 | Zit in zijn jaszak | H16 |
 | **De lijst WIE KAN WAT met de lege regel SAMEN** (bestaand) | H10 | De regel blijft leeg | H16: iemand schrijft "Tam & Tes" erbij |
@@ -602,6 +645,7 @@ Het recept (vet, eieren, zout, meel, mosterd: vijf ingrediënten van vijf vriend
 - **De wereld is van wie het spel opende**; de hoofdlijn is **per speler** (eigen voortgang, #429): iedereen is lokaal de hoofdpersoon die de stap nodig heeft en ziet de ander als partner-NPC. Een gast speelt de hoofdlijn in de wereld van de host, **zonder gesprekken met bijfiguren** van een ander en zonder een stap van de ander.
 - **Loopbanen** zijn altijd beschikbaar zodra je meedoet, ook voor een gast (hij mag meteen in elke loopbaan beginnen); ze kunnen samen in dezelfde club of op dezelfde hoeve, elk een eigen loopbaan in dezelfde wereld, tegen elkaar (voetbal, races) en met handel tussen spelers.
 - **Beloning en voortgang** zijn per speler (§3.1 F). Valt iemand weg of sluit hij later aan: de recap ("Waar waren we?") en de naamkaarten volgen zijn eigen stand. Dekking: pure test voor de datalaag, testbankstap voor de scènes (bouwronde).
+- **Emotionele scènes (Beppe, het afscheid, de stille scène, de aftiteling)** zijn per speler lokaal: iedereen ziet ze met zijn eigen voortgang (de scène is data in de verhaalstap en speelt op elk scherm). Een gast die later aansluit en de bijbehorende scènes niet speelde, krijgt de context via de recap "Waar waren we?" en een korte terugblik, nooit een scène die hij zonder voorgeschiedenis niet begrijpt (§3).
 - **Evenementen** (het stadsfeest, de colonne, het Ontzet) zijn gezamenlijk: iedereen in de wereld doet mee en ziet ze; de beloning is per speler.
 
 ---
@@ -609,7 +653,7 @@ Het recept (vet, eieren, zout, meel, mosterd: vijf ingrediënten van vijf vriend
 ## 8. Open vragen voor de eigenaar (maximaal 10)
 
 1. **Kalender.** Het Gronings Ontzet is vr 28 augustus (dag 15); de hoofdlijn is 40 uur. Hoe lang duurt een speeldag, en blijft de hoofdlijn binnen 14 tot 28 augustus (veel uren per dag) of mag er na het Ontzet nog een tweede zomerdeel (tot 22 september) komen waarin H11 tot H16 vallen met een ander slotfeest dan het Ontzet? De bijbel gaat uit van het eerste en heeft het slotfeest op het Ontzet.
-2. **Beppe leeft door.** In de code overlijdt Beppe na M06 (herinnering, bankje, kaars). In de bijbel overlijdt Oom Hindrik en leeft Beppe tot het slot (met een stem, en de twee oma's ontmoeten elkaar in H16). Akkoord, en moet de herinneringsfase voorlopig als bestand blijven staan?
+2. **Beppe overlijdt na het slot, in Oudwoude.** In de code overlijdt Beppe na M06 en wordt ze een herinneringsplek; de bijbel verschuift dat naar na het Ontzet (ze leeft en geeft hints, krijgt een stem, ontmoet Oma Trijntje op het feest), met de begrafenis in Oudwoude als kernscène. Daarnaast overlijdt Oom Hindrik voor de erfenis (twee rustige overlijdens in één verhaal): akkoord, of moet de oom een andere afloop krijgen (bijvoorbeeld geen overlijden maar een verhuizing naar een verzorgingshuis, met de hoeve als schenking)? En Oudwoude: Friese uitloper (a) of verzonnen begraafplaats met bordje (b)?
 3. **Oma Trijntje is Tessa's oma.** Dossier, regel "krentjebrij" en opgenomen regels (M08.3 "Ik ben vierentwintig, oma.") zeggen dat zij Tammo's oma is. In de bijbel noemt Tammo haar "Oma" zoals de hele straat, en kent hij haar uit zijn kindertijd. Akkoord, of moeten de opgenomen regels opnieuw?
 4. **De bal-intrige.** De Gouden Eierbal en de kraak (H11 tot H14) blijven in de bijbel als slotmotor, maar achteraan. Of vervangen we de kraak door pure vergunning- en standplaatsstrijd (meer "bureaucratisch", minder "misdaad")?
 5. **Jelle in beeld.** Alleen via brieven en omroepen tot H13, dan kort in beeld op de kermis, en pas in H16 echt. Akkoord, of mag hij eerder een gezicht hebben?
