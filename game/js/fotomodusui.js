@@ -116,11 +116,13 @@ function stopPhotoMode(world) {
   const r = getRenderer();
   if (r) { r.domElement.style.filter = ''; r.domElement.style.transform = ''; }
   if (overlay) { overlay.remove(); overlay = null; }
+  barNote = '';
   photo = null; saved = null; shoot = false; keysDown.clear(); pointers.clear(); lookDx = lookDy = 0;
 }
 
 function buildOverlay() {
   barInfo = '';
+  barNote = '';
   overlay = document.createElement('div');
   overlay.id = 'foto-ui';
   overlay.innerHTML = '<div class="foto-look"></div><div class="foto-grid" hidden></div><div class="foto-dof" hidden></div><div class="foto-pad">' +
@@ -173,6 +175,7 @@ const BAR_HTML =
   '<div class="foto-acts"><button type="button" class="foto-btn foto-go" data-foto-shoot>Foto maken <span class="foto-kc" style="display:inline-flex;vertical-align:middle">' + keyLabelHtml('Enter') + '</span></button><button type="button" class="foto-btn" data-foto-stop>Terug <span class="foto-kc" style="display:inline-flex;vertical-align:middle">' + keyLabelHtml('Esc') + '</span></button></div>';
 
 let barInfo = '';
+let barNote = '';
 function renderBar() {
   const p = photo.p;
   const bar = overlay.querySelector('.foto-bar');
@@ -184,7 +187,8 @@ function renderBar() {
   dof.hidden = p.dof <= 0;
   if (p.dof > 0) dof.style.setProperty('--foto-dof', `${(p.dof * 7).toFixed(1)}px`);
   const n = overlay.querySelector('.foto-note');
-  n.textContent = noteT > 0 ? note : '';
+  const nextNote = noteT > 0 ? note : '';
+  if (nextNote !== barNote) { barNote = nextNote; n.textContent = nextNote; }
 }
 
 // kanteling: de kaart draait en wordt net genoeg vergroot dat de hoeken gevuld blijven

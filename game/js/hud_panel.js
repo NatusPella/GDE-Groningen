@@ -587,7 +587,7 @@ function watchRightStack(root, topRight, race, vehName, cards) {
     root.style.setProperty('--hud-c-right', `${Math.max(0, Math.round((window.innerWidth - trRect.left) / scale))}px`);
     // #638: de voertuignaam in dezelfde gemeten kolom: boven het racepaneel, niet op een vaste 300 px.
     const bottom = race.hidden ? null : vehnameBottom({ raceTop: race.getBoundingClientRect().top, viewH: window.innerHeight, gap: GAP });
-    if (bottom != null && cards && !cards.classList.contains('hc-held')) root.style.setProperty('--hud-vehname-bottom', `${bottom}px`);
+    if (bottom != null && cards && !cards.classList.contains('hc-held')) root.style.setProperty('--hud-vehname-bottom', `${Math.round(bottom / scale)}px`);
     else root.style.removeProperty('--hud-vehname-bottom');
     // #985: op een laag venster (1024x600) lag de toetshintstapel (.hud-ctx) over de naamkaart: de naamkaart hangt erboven
     const ctx = root.querySelector('.hud-ctx');
