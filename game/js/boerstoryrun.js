@@ -10,7 +10,7 @@ import { BRIDGE_CALM_S } from './storybridge.js';
 import { schenkHoeveCompleet } from './bezitlive.js';
 import { heeftHoeve } from './boerderijlive.js';
 import './farmrankscenes.js';   // meldt de rangmomenten van de boer aan (rankmoments.js)
-import { schenkingStand, schenkingBlockers, schenkingBesluit, SCHENKING_FLAG, SCHENKING_SCENE, SCHENKING_REGEL, SCHENKING_REGEL_STIL } from './boerstory.js';
+import { schenkingStand, schenkingBlockers, schenkingBesluit, SCHENKING_FLAG, BEZOEK_FLAG, SCHENKING_SCENE, SCHENKING_REGEL, SCHENKING_REGEL_STIL } from './boerstory.js';
 
 let calmS = 0;
 let playing = false;
@@ -38,7 +38,8 @@ function bindKeys(w, view) {
 // main.js: naast updateStoryBridge. `view`: story.js storyBridgeView() { done, flags, currentId }.
 export function updateBoerStory(dt, w, view, menuOpen) {
   if (!w || !view || typeof document === 'undefined' || playing) return;
-  const stand = schenkingStand({ done: view.done, flags: view.flags, hoeve: heeftHoeve() });
+  const stand = schenkingStand({ done: view.done, flags: view.flags, currentId: view.currentId, hoeve: heeftHoeve() });
+  if (stand !== 'nog-niet' && !view.flags.has(BEZOEK_FLAG)) view.flags.add(BEZOEK_FLAG);
   if (stand === 'nog-niet' || stand === 'klaar') { calmS = 0; return; }
   const { blockers, sessie } = schenkingBlockers(snapshot(w, view, menuOpen));
   calmS = stand === 'scene' && !blockers.length ? calmS + dt : 0;

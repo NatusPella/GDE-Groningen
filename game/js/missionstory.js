@@ -86,6 +86,10 @@ export const NPC = {
   // the new story (storyarc_nieuw.js): the new cast and the small roles
   loketbediende: { name: 'Loketbediende', shirt: 0x6a7280, skin: SKIN.woodLight, variant: 'female', seed: 6101, hairStyle: 'bob' },
   bewaarder: { name: 'Mevrouw Hoving', shirt: 0x5b3f6e, skin: SKIN.woodLight, variant: 'female', seed: 6102, hairStyle: 'bun' },
+  // hoeve Zeldenrust (28-11, #1373): Oom Hindrik (pet, ruitoverhemd), Tante Aaltje (violet vest) en de notaris (donker pak)
+  boer_hindrik: { name: 'Oom Hindrik', shirt: 0x7a5a3a, skin: SKIN.woodLight, variant: 'male', seed: 6401 },
+  tante_aaltje: { name: 'Tante Aaltje', shirt: 0x7a6a98, skin: SKIN.woodLight, variant: 'female', seed: 6402, hairStyle: 'bun' },
+  notaris: { name: 'De notaris', shirt: 0x2a2a34, skin: SKIN.woodMid, variant: 'male', seed: 6403 },
   geesje: { name: 'Geesje', shirt: 0x7a8a5a, skin: SKIN.woodLight, variant: 'female', seed: 6103, hairStyle: 'bun' },
   lammert: { name: 'Lammert', shirt: 0x2f4a66, skin: SKIN.woodMid, variant: 'male', seed: 6104 },
   roelfien: { name: 'Roelfien', shirt: 0xc2793a, skin: SKIN.woodLight, variant: 'female', seed: 6105, hairStyle: 'curly' },

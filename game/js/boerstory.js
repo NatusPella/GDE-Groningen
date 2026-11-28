@@ -2,26 +2,38 @@
 // waarna de hoeve van de speler is. Dit is het zuivere deel: wanneer is de schenking aan de beurt en wat houdt haar tegen. Geen DOM, geen wereld, geen THREE
 // (scripts/boerstory_test.mjs); het afspelen en het bijschrijven staan in boerstoryrun.js.
 //
-// Vlaggen (alleen toevoegen, nooit hernoemen; naar het voorbeeld van snackstory.js): boer:bezoek zet het verhaal zelf zodra N5 af is (storymilestones.js BOER_MILESTONES),
-// boer:schenking zet boerstoryrun.js nadat de hoeve is bijgeschreven. Een oude save die al voorbij N5 is, krijgt de akte op het eerstvolgende rustige moment.
+// Vlaggen (alleen toevoegen, nooit hernoemen; naar het voorbeeld van snackstory.js), beide gezet door boerstoryrun.js: boer:bezoek zodra het bezoek (N5) achter de rug is,
+// boer:schenking nadat de hoeve is bijgeschreven. Dit staat bewust niet in storymilestones.js (de wagenvlaggen blijven daar alleen van de wagen). Een oude save die al voorbij N5 is, krijgt de akte op het eerstvolgende rustige moment.
 //
 // Samen spelen: de schenking is per speler en lokaal (de boerderij is per speler, #429). Wie het verhaal speelt, krijgt de hoeve; de scène speelt niet tijdens een sessie
 // en niet voor een meespeler: dan schrijft boerstoryrun.js de hoeve stil bij en meldt het in een regel. Een gast zonder schenking boert gewoon op De Zonnehoek. De hoeve is
 // voor een gast niet zichtbaar in de wereld van de host. Wegvallen: niets te herstellen (de vlag staat pas na het bijschrijven). Later aansluiten: de eigen volgende rustige moment.
 import { bridgeBlockers } from './storybridge.js';
+import { STEPS } from './storyarc.js';
 
 export const BEZOEK_FLAG = 'boer:bezoek';
 export const SCHENKING_FLAG = 'boer:schenking';
 export const BEZOEK_STEP = 'N5';             // het bezoek aan de hoeve; de schenking komt erna
 export const SCHENKING_SCENE = 'N5.2';       // de akte bij de notaris in script.json (docs/verhaal/nieuw/09-script-akte2.md)
 
-// 'nog-niet' (het bezoek is nog niet af), 'klaar' (de vlag staat), 'markeer' (de hoeve is er al: alleen de vlag zetten, geen scène) of 'scene' (de akte is aan de beurt).
-export function schenkingStand({ done, flags, hoeve = false }) {
+const idx = (id) => STEPS.findIndex((s) => s.id === id);
+
+// Is het bezoek aan de hoeve achter de rug? N5 is af, of het verhaal staat al voorbij N5 (een stap overgeslagen, een save van voor N5, het einde: currentId is dan null).
+export function bezoekAf({ done, flags, currentId = null }) {
   const d = done instanceof Set ? done : new Set(done || []);
   const f = flags instanceof Set ? flags : new Set(flags || []);
+  if (d.has(BEZOEK_STEP) || f.has(BEZOEK_FLAG)) return true;
+  const k = idx(BEZOEK_STEP);
+  if (k < 0) return false;
+  if (currentId === null) return d.size > 0;                // het verhaal is uit: alleen als er al iets af was
+  return idx(currentId) > k;
+}
+
+// 'nog-niet' (het bezoek is nog niet af), 'klaar' (de vlag staat), 'markeer' (de hoeve is er al: alleen de vlag zetten, geen scène) of 'scene' (de akte is aan de beurt).
+export function schenkingStand({ done, flags, currentId = null, hoeve = false }) {
+  const f = flags instanceof Set ? flags : new Set(flags || []);
   if (f.has(SCHENKING_FLAG)) return 'klaar';
-  // boer:bezoek telt ook: een save die voorbij N5 is (stap overgeslagen of van voor N5) krijgt de milestonevlag mee van storymilestones.milestoneFlagsForDone
-  if (!d.has(BEZOEK_STEP) && !f.has(BEZOEK_FLAG)) return 'nog-niet';
+  if (!bezoekAf({ done, flags, currentId })) return 'nog-niet';
   return hoeve ? 'markeer' : 'scene';
 }
 

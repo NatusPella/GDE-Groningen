@@ -100,6 +100,8 @@ export const SPEAKERS = {
   buschauffeur: 'Buschauffeur', kustwachter: 'Kustwachter', kermisexploitant: 'Kermisexploitant', deurwaarder: 'Deurwaarder',
   student: 'Student', boer: 'Boer', kind: 'Kind in het publiek',
   willemien: 'Willemien', buurvrouw: 'Buurvrouw',
+  // hoeve Zeldenrust (28-11, #1373): N5 en de akte N5.2
+  boer_hindrik: 'Oom Hindrik', tante_aaltje: 'Tante Aaltje', notaris: 'De notaris',
   // inspiratiepakket (21-11)
   veldkamp: 'Meneer Veldkamp', anneke: 'Anneke', lieke: 'Lieke', daan: 'Daan', stien: 'Stien',
 };
@@ -309,7 +311,7 @@ export const STEPS = [
   M('M09', 'romp', 'Heel aankomen is ook een kunst', 'eieren', { built: true, reward: 700, loopbanen: ['horeca'],
     story: { intro: ['M09.1'], outro: ['M09.4'], replay: ['M09.5'] }, scenes: ['M09.1', 'M09.2', 'M09.3', 'M09.4', 'M09.5'],
     lead: ['A', 'Geesje in Warffum heeft de laatste eieren van het Hogeland. Eieren ken ik van thuis: jij rijdt, ik zeg hoe.'] }),
-  A('N5', 'romp', 'De boerderij in Warffum', { type: 'reis', to: 'het erf bij Warffum', at: [53.39508, 6.54032], r: 500, scene: 'N5' }, { built: true, scenes: ['N5'], lead: ['A', 'Ik wil je iets laten zien: het erf waar ik melken leerde, bij Warffum. Neem je hand mee, en geen angst.'] }),
+  A('N5', 'romp', 'De boerderij in Warffum', { type: 'reis', to: 'het erf bij Warffum', at: [53.39508, 6.54032], r: 500, scene: 'N5' }, { built: true, scenes: ['N5', 'N5.2'], lead: ['A', 'Ik wil je iets laten zien: het erf waar ik melken leerde, bij Warffum. Neem je hand mee, en geen angst.'] }),
   // WP-pakket-aanvulling (21-11, #1126 #1127): K1 tot en met K3, activiteiten zonder beloning met migratie voor oude saves (added: true, zie storyarc.js ADDED_STEPS)
   A('K1', 'romp', 'Het land achter de pastorie', { type: 'reis', to: 'de pastorie in Warffum', at: [53.39185, 6.56013], r: 300, scene: 'K1' }, { built: true, added: true, scenes: ['K1'], lead: ['A', 'Geesje belde: er ligt iets achter de pastorie dat ze mij wil laten zien. Het ruikt naar kippen. Naar Warffum, dus.'] }),
   M('M10', 'romp', 'Een trekker-limo op de wierde', 'wierde', { built: true, reward: 900, unlocks: 'jelle', loopbanen: ['landbouw'],

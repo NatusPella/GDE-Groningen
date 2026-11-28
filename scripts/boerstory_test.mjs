@@ -6,7 +6,6 @@ import './node3d.mjs';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import * as S from '../game/js/boerstory.js';
-import { milestoneFlagsFor, milestoneFlagsForDone, BOER_FLAGS } from '../game/js/storymilestones.js';
 import * as L from '../game/js/bezitlive.js';
 import * as BL from '../game/js/boerderijlive.js';
 import * as Z from '../game/js/bezit.js';
@@ -51,21 +50,23 @@ t('de namen worden eerst ingeleid: Hindrik door Tessa, Aaltje door Tammo, Ypie d
   assert.ok(eersteYpie >= 0 && akte[eersteYpie].startsWith('Tante Aaltje|'), 'Ypie wordt door Tante Aaltje ingeleid');
 });
 
-t('de vlag boer:bezoek hoort bij N5, ook voor een save die al verder is, en niet bij een eerdere stap', () => {
-  assert.ok(BOER_FLAGS.includes(S.BEZOEK_FLAG));
-  assert.deepEqual(milestoneFlagsFor('N5').filter((f) => f.startsWith('boer:')), ['boer:bezoek']);
-  assert.ok(!milestoneFlagsFor('M09').includes('boer:bezoek'));
-  assert.ok(milestoneFlagsForDone(['N5']).includes('boer:bezoek'));
-  assert.ok(milestoneFlagsForDone(['M10']).includes('boer:bezoek'), 'een save voorbij N5 (stap overgeslagen) krijgt de vlag');
-  assert.ok(!milestoneFlagsForDone(['M02']).includes('boer:bezoek'));
-  assert.ok(!milestoneFlagsForDone(['M10']).includes('boer:schenking'), 'de schenking komt pas na de akte');
+t('het bezoek is achter de rug als N5 af is of het verhaal er al voorbij is (ook voor een save van voor N5)', () => {
+  const af = (done, currentId = null, flags = []) => S.bezoekAf({ done: new Set(done), flags: new Set(flags), currentId });
+  assert.equal(af(['M09'], 'N5'), false, 'op N5 zelf nog niet');
+  assert.equal(af(['M09', 'N5'], 'K1'), true);
+  assert.equal(af(['M09', 'M10'], 'A1'), true, 'N5 overgeslagen maar het verhaal is verder');
+  assert.equal(af(['M01'], 'M02'), false);
+  assert.equal(af(['M30'], null), true, 'het verhaal is uit');
+  assert.equal(af([], null), false, 'nog niets gespeeld');
+  assert.equal(af([], 'M01', ['boer:bezoek']), true);
 });
 
 t('wanneer de akte aan de beurt is', () => {
-  const st = (done, flags = [], hoeve = false) => S.schenkingStand({ done: new Set(done), flags: new Set(flags), hoeve });
+  const st = (done, flags = [], hoeve = false) => S.schenkingStand({ done: new Set(done), flags: new Set(flags), currentId: 'N5', hoeve });
   assert.equal(st(['M09']), 'nog-niet');
   assert.equal(st(['N5']), 'scene');
   assert.equal(st([], ['boer:bezoek']), 'scene');
+  assert.equal(S.schenkingStand({ done: new Set(['M09', 'M10']), flags: new Set(), currentId: 'A1' }), 'scene', 'een save voorbij N5 krijgt de akte ook');
   assert.equal(st(['N5'], ['boer:schenking']), 'klaar');
   assert.equal(st(['N5'], [], true), 'markeer', 'is de hoeve er al (opslag zonder vlag), dan alleen de vlag');
 });
