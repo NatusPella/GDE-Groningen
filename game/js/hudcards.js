@@ -360,6 +360,7 @@ function dismissCard(c) {
 function leave(c) {
   if (c.leaving) return;
   c.leaving = true;
+  c.sticky = false;
   // #801: een les of tip telt pas als gezien als de kaart echt weg is
   if (c.spec && c.spec.onClose) {
     const cb = c.spec.onClose;
