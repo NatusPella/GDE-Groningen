@@ -1986,6 +1986,8 @@ function treadWheelGeometry(r, w, lugs, wall = false, diep = 0.1) {
 // vehicledoors.js (DEUR_DEFS.trekkerlimo): twee cabinedeuren en twee achterdeuren, met naden in de romp.
 // Maten: de trekker is 2,2 m van de neus, de rest is limousine (3,4 m bij len 5,6 / wid 2,0, zoals alle modelverwijzingen).
 export const LIMO_TRACTOR_L = 2.2;
+// #1201: the limo wheels (0.34) sat half under the body and looked like a floating car in low sun; 0.38 is the most that fits the 0.43 arch (the rear doors are cut through it).
+const LIMO_WHEEL_R = 0.38;
 const LIMO_BELT = 0.98, LIMO_ROOF = 1.47, LIMO_CAB_W = 0.43, LIMO_BODY_W = 0.425;
 export function trekkerLimoMaten(L, W) {
   const hl = L / 2, tx0 = hl - LIMO_TRACTOR_L;
@@ -2144,12 +2146,12 @@ function buildTrekkerLimoMesh(v) {
   group.userData.body = body;
   koppelDeurgaten(group, body, geo);
   const wheels = [], front = [];
-  const small = treadWheelGeometry(0.42, 0.3, 14), big = treadWheelGeometry(0.78, 0.5, 18), limo = treadWheelGeometry(0.34, 0.26, 0, true);
+  const small = treadWheelGeometry(0.42, 0.3, 14), big = treadWheelGeometry(0.78, 0.5, 18), limo = treadWheelGeometry(LIMO_WHEEL_R, 0.26, 0, true);
   const k = (r) => 0.42 / r; // dezelfde grondsnelheid: een groter wiel draait trager
   for (const s of [1, -1]) {
     front.push(addWheel(group, small, mats[0], M.smallX, 0.42, s * (hw - 0.25), wheels));
     const b = addWheel(group, big, mats[0], M.bigX, 0.78, s * (hw - 0.22), wheels); b.userData.spinK = k(0.78);
-    for (const x of M.limoAxles) { const l = addWheel(group, limo, mats[0], x, 0.34, s * (M.limoHw - 0.1), wheels); l.userData.spinK = k(0.34); }
+    for (const x of M.limoAxles) { const l = addWheel(group, limo, mats[0], x, LIMO_WHEEL_R, s * (M.limoHw - 0.1), wheels); l.userData.spinK = k(LIMO_WHEEL_R); }
   }
   group.userData.wheels = wheels;
   group.userData.frontWheels = front;
