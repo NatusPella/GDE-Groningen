@@ -1,6 +1,6 @@
 // Test voor game/js/hoofdmenu.js: de rijen, de focus, de toetsen, de uitkomst naar de startvraag en wat Nieuw spel en Laden met de saves doen.
 import assert from 'node:assert/strict';
-import { menuItems, startFocus, menuToets, uitkomstVan, nieuwSpelPlan, ladenPlan, heldRegels } from '../game/js/hoofdmenu.js';
+import { menuItems, startFocus, menuToets, uitkomstVan, nieuwSpelPlan, ladenPlan, heldRegels, samenKeuzePlan, samenGekozen } from '../game/js/hoofdmenu.js';
 let n = 0;
 const ok = (c, m) => { assert.ok(c, m); n++; };
 const eq = (a, b, m) => { assert.deepEqual(a, b, m); n++; };
@@ -49,6 +49,19 @@ const vol = nieuwSpelPlan({ heeftSave: true, vrijePlek: false });
 ok(vol.actie === 'vol' && /Alle plekken/.test(vol.tekst), 'zonder vrije plek gebeurt er niets en het menu zegt waarom (geen stille overschrijving)');
 eq(ladenPlan(3), { actie: 'stay', n: 3 }, 'laden pint de gekozen plek (markStay)');
 eq([ladenPlan(0).actie, ladenPlan(NaN).actie, ladenPlan('2').actie], ['geen', 'geen', 'geen'], 'een ongeldige plek wordt nooit gepind');
+
+// Samen spelen: eerst de opslagkeuze (28-11)
+eq(samenKeuzePlan({ aantal: 0 }), { actie: 'nieuw' }, 'zonder enig spel is Nieuw spel de keuze, ook voor een gast');
+eq(samenKeuzePlan({ aantal: 0, rol: 'gast' }).actie, 'nieuw', 'gast zonder plek: Nieuw als standaard');
+const sk = samenKeuzePlan({ aantal: 3, rol: 'host' });
+ok(sk.actie === 'kies' && sk.titel === 'Kies welke wereld je host', 'host: de wereld die je host');
+ok(samenKeuzePlan({ aantal: 3, rol: 'gast' }).titel === 'Kies je eigen spel' && samenKeuzePlan({ aantal: 2, rol: 'lijst' }).titel === 'Kies je eigen spel', 'gast: je eigen spel');
+ok(/niets overschreven/.test(sk.hint) && /eigen geld/.test(sk.hint), 'de hint zegt wat er gebeurt en dat er niets wordt overschreven');
+eq(samenGekozen(2), { soort: 'plek', actie: 'stay', n: 2 }, 'een gekozen plek blijft de plek van de boot');
+eq(samenGekozen('nieuw', { heeftSave: true, vrijePlek: true }), { soort: 'nieuw', actie: 'nieuwe-plek' }, 'Nieuw met saves: een verse plek, nooit een overschrijving');
+ok(samenGekozen('nieuw', { heeftSave: true, vrijePlek: false }).actie === 'vol', 'Nieuw zonder vrije plek: het menu zegt waarom');
+eq(samenGekozen('nieuw', { heeftSave: false }), { soort: 'nieuw', actie: 'direct' }, 'Nieuw zonder saves: de boot begint zelf');
+ok(samenGekozen(0).soort === 'geen' && samenGekozen(NaN).soort === 'geen' && samenGekozen(undefined).soort === 'geen', 'een ongeldige plek wordt nooit gepind');
 
 // de held
 const nu = 1_700_000_000_000;

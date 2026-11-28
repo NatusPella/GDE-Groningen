@@ -51,6 +51,30 @@ export function nieuwSpelPlan({ heeftSave = false, vrijePlek = true } = {}) {
   return vrijePlek ? { actie: 'nieuwe-plek' } : { actie: 'vol', tekst: 'Alle plekken zijn in gebruik. Verwijder eerst een opgeslagen spel om een nieuw spel te beginnen.' };
 }
 
+// Samen spelen (28-11, besluit eigenaar): eerst de opslagkeuze, daarna pas de rest van de stroom (naam, akkoord, Een spel openen of Meedoen).
+// Wie host kiest de wereld waarin de anderen meespelen; wie met een code meedoet kiest zijn eigen spel voor zijn eigen geld, voortgang en kleding
+// (per speler, #429). Zonder enig opgeslagen spel valt er niets te kiezen: Nieuw spel is dan de keuze (ook voor de gast). Een kapotte of te nieuwe
+// save blijft in de lijst zichtbaar maar is niet te kiezen (saveslotsui.js); er wordt nooit iets overschreven: Nieuw spel neemt een vrije plek.
+// rol: de laatst gebruikte rol (launchchoice.js rolVoorkeur): 'host' | 'gast' | 'lijst'.
+export function samenKeuzePlan({ aantal = 0, rol = 'host' } = {}) {
+  if (!(aantal > 0)) return { actie: 'nieuw' };
+  const gast = rol === 'gast' || rol === 'lijst';
+  return {
+    actie: 'kies',
+    eyebrow: 'Samen spelen',
+    titel: gast ? 'Kies je eigen spel' : 'Kies welke wereld je host',
+    loadLabel: 'Dit spel gebruiken',
+    hint: 'Host je? Dan spelen de anderen mee in de wereld die je hier kiest. Doe je mee met een code? Dan bewaart dit spel jouw eigen geld, voortgang en kleding. Er wordt niets overschreven: een nieuw spel krijgt een lege plek.',
+  };
+}
+
+// Wat de boot doet na de keuze: een gekozen plek blijft de plek (markStay), Nieuw spel volgt dezelfde regel als in het hoofdmenu.
+export function samenGekozen(keuze, { heeftSave = false, vrijePlek = true } = {}) {
+  if (keuze === 'nieuw') return { soort: 'nieuw', ...nieuwSpelPlan({ heeftSave, vrijePlek }) };
+  const p = ladenPlan(keuze);
+  return p.actie === 'stay' ? { soort: 'plek', ...p } : { soort: 'geen', actie: 'geen' };
+}
+
 // Laden: de gekozen plek wordt de plek waar de boot mee verder gaat (markStay), niet de laatst bewaarde.
 export const ladenPlan = (n) => (Number.isInteger(n) && n >= 1 ? { actie: 'stay', n } : { actie: 'geen' });
 

@@ -62,7 +62,7 @@ ok(() => {
   const maak = nieuw.indexOf('S.createSlot(null');
   assert.ok(blok >= 0 && maak > blok, 'de gast wordt geblokkeerd vóór er een plek wordt gemaakt');
   assert.match(nieuw, /S\.deleteSlot\(null, m\);\s*S\.setActive\(null, was\);\s*bindSlot\(\);/, 'mislukt opslaan, dan gaat de nieuwe plek weg en komt de eigen schrijfplek terug');
-  assert.match(ui, /let emptyShown = solo \|\| gastInSessie\(\);/, 'een gast ziet de lege kaart niet');
+  assert.match(ui, /let emptyShown = solo \|\| nieuwEerst \|\| gastInSessie\(\);/, 'een gast ziet de lege kaart niet');
 }, 'een gast op een lege kaart wordt tegengehouden (#565)');
 ok(() => {
   // De gast-save routeert in savegame.js naar saveGuestEarnings; die kan alleen samenvoegen in een

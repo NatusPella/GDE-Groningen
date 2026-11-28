@@ -164,6 +164,7 @@ import { wantsOpenSamen, takeOpenSamen, samenGate } from './samenpanel.js';
 import { benchmarkPending } from './trailerstate.js';
 import { launchPlan, launchKind, skipStartChoice, askLaunchChoice, applyLaunchMode, getLaunchMode, bewaarKeuze, bewaarRol } from './launchchoice.js'; // Alleen of Samen bij elke start (eigenaarsbesluit 21-11)
 import { openHoofdmenu, openToestemming } from './launchchoiceui.js';
+import { startMenuAchtergrond } from './menuachtergrond.js';
 import { openOnlineStart } from './onlineconsentui.js';
 import { openSamenKeuze } from './samenkeuze.js';
 import { requestOpenSamen } from './samenpanel.js';
@@ -381,7 +382,9 @@ const FILM_LICHT_MS = 6000; // hoogstens zo lang wachten tot de programma's van 
 const INTRO_TOUR_MS = 4500;
 const INTRO_TOUR_SPOT_MS = 700;
 
-function waitForStart(world, ready) {
+// de titel- en trailerlus (verplaatsen, tick, render): ook de achtergrond van het hoofdmenu (menuachtergrond.js) gebruikt hem, vóór waitForStart
+function startEnv(world) {
+  if (world.__startEnv) return world.__startEnv;
   const relocate = (x, y) => {
     world.player.x = x;
     world.player.y = y;
@@ -449,6 +452,11 @@ function waitForStart(world, ready) {
     updateGunFx3D(fxDt, world, getScene());
     update3D(dt, world);
   };
+  return (world.__startEnv = { relocate, tick, render });
+}
+
+function waitForStart(world, ready) {
+  const { relocate, tick, render } = startEnv(world);
   // The start-area warm-up (runBootScreen awaits it before the boot screen goes):
   // prewarm the buildings round the spawn (or the loaded save's position), let the
   // game's own frame work build and upload the roads and street dressing there,
@@ -1048,6 +1056,9 @@ try { const slot = ensureLatestSlot(); const info = slot ? readSaveInfo() : null
   const vraagOnline = !skipStartChoice(FLAGS, { benchmarkPending: benchStart });
   if (FLAGS.startkeuze === 'alleen' || benchStart) applyLaunchMode('alleen'); // de kaart overslaan, solo en zonder netwerk
   if (vraagOnline) beginOnlineStartQuestion();
+  // 28-11: het hoofdmenu krijgt de stad als levende achtergrond (luchtfoto tot de eerste tegels er zijn); lokaal, ruimt zichzelf op na de keuze
+  let stopMenuBg = () => {};
+  if (vraagOnline && !document.hidden) { try { stopMenuBg = startMenuAchtergrond(world, { ...startEnv(world), wacht: streamPending, licht: refreshDayNight }); } catch (e) { console.warn('hoofdmenu-achtergrond', e); } }
   // opdracht 21-11: on the warm route the bar stays open: the warm-up steps follow and the start screen finishes it
   if (!BOOT_WARM_ROUTE) await finishLoading();
   if (vraagOnline) {
@@ -1060,6 +1071,7 @@ try { const slot = ensureLatestSlot(); const info = slot ? readSaveInfo() : null
     setLoadingStatus('Kies hoe je speelt');
     const gekozen = await beginOnlineStartQuestion(); // geen time-out en geen Escape: de naam is verplicht, de keuze wacht op de speler
     onlineVraag = null;
+    try { stopMenuBg(); } catch (e) { console.warn('hoofdmenu-achtergrond stoppen', e); }
     setLoadingStatus(gekozen === 'samen' ? 'Samen spelen: de wereld wordt klaargezet' : 'De wereld wordt klaargezet');
   }
   markLoad('title');

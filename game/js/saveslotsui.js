@@ -10,6 +10,7 @@
 //   solo: Alleen spelen (the main menu): Doorgaan (the game played last) on top, Nieuw spel as the first card,
 //     a card loads that game; with every place in use Nieuw spel asks first, as it takes the place of the active game
 //   game:  the pause menu (a card loads that game; an empty card saves the current game there)
+//   nieuwEerst (met pick): Nieuw spel als eerste kaart, zoals bij solo
 //   eyebrow / titel / hint / loadLabel: optional texts (Samen spelen: 'Een spel openen')
 //   pick + onPick(n): choosing a card only makes it the active game and calls onPick(n), without loading
 //     (the host of Samen spelen picks the game to play with); an empty card calls onNew() as usual.
@@ -137,6 +138,8 @@ export function openSaveSlots(opts = {}) {
   };
 
   const solo = mode === 'start' && !!opts.solo && !opts.pick;
+  // 28-11: Samen spelen kiest eerst een spel (pick): Nieuw spel staat dan als eerste kaart, zonder Doorgaan-held (hoofdmenu.js samenKeuzePlan)
+  const nieuwEerst = mode === 'start' && !!opts.pick && !!opts.nieuwEerst;
   // #606: de boot opent dit scherm als de laatste save niet automatisch te laden viel; er is dan geen
   // titelscherm om naar terug te gaan, dus Terug valt weg.
   const noBack = !!opts.noBack;
@@ -267,8 +270,8 @@ export function openSaveSlots(opts = {}) {
     const tiles = [];
     // the games there are, then one empty card: the other empty places stay out of sight (calm)
     // #565: een gast ziet geen lege kaart: die kan hij niet vullen.
-    let emptyShown = solo || gastInSessie();
-    if (solo) tiles.push(newCard(S.freeSlot(null), slots.find((s) => s.active)));
+    let emptyShown = solo || nieuwEerst || gastInSessie();
+    if (solo || nieuwEerst) tiles.push(newCard(S.freeSlot(null), slots.find((s) => s.active)));
     for (let n = 1; n <= MAX_SLOTS; n++) {
       if (byN.has(n)) tiles.push(card(byN.get(n)));
       else if (!emptyShown) { tiles.push(emptyCard(n)); emptyShown = true; }

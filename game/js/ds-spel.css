@@ -200,9 +200,15 @@
 .sp-niveau { min-height: 190px; }
 
 /* Het hoofdmenu bij de start (launchchoiceui.js openHoofdmenu): over het opstartscherm, het paneel links, zonder donkere sluier. */
-#online-start.sp-hm { background: var(--ds-c-glas) url('../img/laad/luchtfoto.jpg') center / cover no-repeat; display: block; padding: 0; place-items: unset; }
-#online-start.sp-hm::before { content: ''; position: absolute; inset: 0; background: color-mix(in srgb, var(--ds-c-glas) 28%, transparent); }
-#online-start.sp-hm .sp-hm-wrap { position: fixed; inset: 0; }
+/* 28-11: eerst de luchtfoto (::after); zodra de levende stad erachter staat (menuachtergrond.js zet body.hm-3d-klaar) vervaagt de foto en
+   komt er een donkere verloop aan de kant van het menu voor de leesbaarheid. body.hm-3d verbergt het laadscherm eronder (het laadt gewoon door). */
+#online-start.sp-hm { background: transparent; display: block; padding: 0; place-items: unset; }
+#online-start.sp-hm::after { content: ''; position: absolute; inset: 0; z-index: 0; background: var(--ds-c-glas) url('../img/laad/luchtfoto.jpg') center / cover no-repeat; transition: opacity 1.4s ease; } /* ds3-dwell: de luchtfoto vervaagt rustig naar de levende stad */
+#online-start.sp-hm::before { content: ''; position: absolute; inset: 0; z-index: 1; background: color-mix(in srgb, var(--ds-c-glas) 28%, transparent); transition: background 1.4s ease; } /* ds3-dwell */
+body.hm-3d-klaar #online-start.sp-hm::after { opacity: 0; }
+body.hm-3d-klaar #online-start.sp-hm::before { background: color-mix(in srgb, var(--ds-c-ink-inkt) 62%, transparent); mask-image: linear-gradient(90deg, black 0, black 18%, transparent 70%); -webkit-mask-image: linear-gradient(90deg, black 0, black 18%, transparent 70%); } /* een zachte donkere rand aan de menukant voor de leesbaarheid over de 3D-stad: een alfamasker, geen verloop in de kleur (opdracht eigenaar 28-11) */
+#online-start.sp-hm .sp-hm-wrap { position: fixed; inset: 0; z-index: 2; background: transparent; } /* de zoomlaag (.gm-zeef) legt anders een donkere sluier over de stad */
+body.hm-3d #loading { visibility: hidden; }
 .sp-menu__hints .hints { display: flex; flex-wrap: wrap; gap: 8px 18px; align-items: center; font-size: max(15px, var(--menu-min, 15px)); }
 .sp-menu__hints .hints span { display: inline-flex; align-items: center; gap: 8px; }
 .sp-keuze__toets { display: inline-flex; align-items: center; opacity: 0.7; }
