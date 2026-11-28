@@ -55,4 +55,4 @@ Lokaal per speler. Elke speler doorloopt zijn eigen profiel: een gast die door e
 
 ## Gebruikers
 
-- Snackwagen en horeca (#1378): `game/js/snackmoments.js` meldt vijf momenten aan (rang 2 tot 6) onder het vak `horeca`; ze hangen aan de eigen rang van de snackwagen (`snackrang.js`, `voorwaarde`) en worden gevoed door `snacklive.checkRank` via `rankHook.omhoog` (main.js `setSnackRankSend`). Een niveau omhoog in de loopbaan Horeca speelt ze dus niet te vroeg.
+- Snackwagen en horeca (#1378): `game/js/snackrankmoments.js` meldt vijf momenten aan (rang 2 tot 6) onder het vak `horeca`; ze hangen aan de eigen rang van de snackwagen (`snackrang.js`, `voorwaarde`) en worden gevoed door `snacklive.checkRank` via `rankHook.omhoog` (main.js `setSnackRankSend`). Een niveau omhoog in de loopbaan Horeca speelt ze dus niet te vroeg.

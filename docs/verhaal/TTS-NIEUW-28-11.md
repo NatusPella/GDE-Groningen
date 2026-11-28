@@ -4,7 +4,7 @@ Alleen noteren, geen audio genereren (bouwbrief 28-11). Elke regel is `[NIEUW]` 
 
 ## Snackwagen en horeca (#1378)
 
-Bron: `docs/verhaal/nieuw/09-script-akte7.md`, gebouwd naar `game/storydata/script.json` (`node scripts/build_story_data.mjs`) en het filmscript. De gesprekken spelen bij een rang van de snackwagen (`game/js/snackmoments.js`, haak `rankmoments.js`) en staan vast als scène `S71` tot en met `S75`.
+Bron: `docs/verhaal/nieuw/09-script-akte7.md`, gebouwd naar `game/storydata/script.json` (`node scripts/build_story_data.mjs`) en het filmscript. De gesprekken spelen bij een rang van de snackwagen (`game/js/snackrankmoments.js`, haak `rankmoments.js`) en staan vast als scène `S71` tot en met `S75`.
 
 | Scène | Rang | Spreker | Regel | Stem |
 |---|---|---|---|---|

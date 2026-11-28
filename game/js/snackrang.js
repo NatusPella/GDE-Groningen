@@ -1,6 +1,6 @@
 // De rangen van de snackwagen (#1378, taak S1): een zuivere afleiding van de stand van het bedrijf (snackvan.js, bezit.x.snack) naar zes rangen, van een eerste standplaats tot het
 // Snackimperium. De rang is geen xp: hij volgt uit wat je opbouwde (vergunning, verkoop, het recept, een team, een klein imperium) en stijgt alleen (S.rang is een ratel).
-// Een rang omhoog speelt een verhaalmoment via de gedeelde haak (rankmoments.js, snackmoments.js); een oude save krijgt zijn rang afgeleid en stil (nooit nul, nooit een moment achteraf).
+// Een rang omhoog speelt een verhaalmoment via de gedeelde haak (rankmoments.js, snackrankmoments.js); een oude save krijgt zijn rang afgeleid en stil (nooit nul, nooit een moment achteraf).
 // Puur: geen DOM, geen wereld, geen opslag, geen import van snackvan.js (die importeert dit bestand). scripts/snackrang_test.mjs.
 
 export const MAX_RANG = 6;

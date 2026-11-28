@@ -17,7 +17,7 @@ import * as SS from './snackstory.js';
 import { recordHelp, reputationNow } from './reputationlive.js';
 import * as BL from './boerderijlive.js';
 import { rankView, raiseRank, rankTitle } from './snackrang.js';
-import './snackmoments.js';                       // meldt de rangmomenten aan bij de gedeelde haak (rankmoments.js)
+import './snackrankmoments.js';                       // meldt de rangmomenten aan bij de gedeelde haak (rankmoments.js)
 
 export const snackOpen = () => branchOpen('snack');
 export const snackHint = () => branchHint('snack');
