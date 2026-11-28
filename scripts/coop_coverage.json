@@ -392,7 +392,13 @@
     "gebiedtoestand",
     "prestige",
     "streekuitdaging*",
-    "careertimeline"
+    "careertimeline",
+    "vervoer",
+    "binnenvaartrules",
+    "balloonflight",
+    "rankmoments*",
+    "footballrank",
+    "footballstory"
    ],
    "eigenaar": "speler",
    "gast": "Eigen niveaus en titels op het eigen apparaat; wat je als gast verdient rekent met je eigen niveau.",
@@ -401,7 +407,8 @@
    "test": [
     "scripts/loopbaan_coop_test.mjs",
     "scripts/loopbaan_test.mjs",
-    "scripts/gebieden_test.mjs"
+    "scripts/gebieden_test.mjs",
+    "scripts/loopbaan_voortgang_samen_test.mjs"
    ],
    "regel": {
     "doc": "docs/COOP-OPSLAAN.md",
@@ -409,6 +416,35 @@
    },
    "status": "OK",
    "prio": "-"
+  },
+  {
+   "id": "loopbaansamen",
+   "naam": "Samen in een club of op een erf, en handel",
+   "groep": "Werk en vermaak",
+   "modules": [
+    "loopbaansamen*",
+    "loopbaanhandel"
+   ],
+   "eigenaar": "speler",
+   "gast": "De eigenaar van een club of erf is een speler en nodigt medespelers uit (Meedoen in mijn club of op mijn erf? J of N, geen antwoord is nee); een gast doet vanaf de volgende ronde mee. Bericht k crew over het bestaande gebeurtenissenkanaal.",
+   "beloning": "Teambonus als nieuw geld (15% per extra mens), clubkas 40%, de rest naar inzet op de cent; elke speler boekt zijn eigen kant, één keer per gebeurtenis; de eigenaar houdt zijn eigen opbrengst.",
+   "wegval": "Een lid houdt wat hij kreeg; valt de eigenaar weg, dan eindigt het gezelschap zonder saldo; later aansluiten kan bij de volgende ronde.",
+   "test": [
+    "scripts/loopbaansamen_test.mjs",
+    "scripts/loopbaanhandel_test.mjs",
+    "scripts/loopbaan_voortgang_samen_test.mjs"
+   ],
+   "regel": {
+    "doc": "docs/COOP-GAST.md",
+    "zoek": "## Loopbanen en Samen spelen"
+   },
+   "status": "deels",
+   "prio": "hoog",
+   "issue": "#1380",
+   "gat": "Samen in een club of op een erf draait over de echte netcode (pure test), maar is nog niet gekoppeld aan het clubhuis en het erf in de wereld (geen E-prompt, geen eigen HUD voor de vraag, de clubkas zit nog niet in de clubrekening) en is niet met twee echte instanties bekeken; handel is alleen pure logica.",
+   "venster": [
+    "alles/loopbaansamen"
+   ]
   },
   {
    "id": "boerderij",
