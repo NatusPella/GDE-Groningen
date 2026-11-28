@@ -18,8 +18,8 @@ function wheelCtx(v, seat, toWorld) {
   // altijd de omzetting naar de wereld (de zitting in de assen van het voertuig); het stuur alleen als er een is
   let w = null;
   if (wheelPoseOf && v && seat && seat.pose && seat.pose.arms === 'wheel') { try { w = wheelPoseOf(v, seat); } catch (e) { w = null; } }
-  // speed: de snelheid van het voertuig (m/s), voor de trappers van een fietser (modularpeople.js)
-  return { wheel: w && Number.isFinite(w.x) ? { c: [w.x, w.y, w.z], r: w.r || 0.19, tilt: w.tilt || 0 } : null, toWorld, speed: v && Number.isFinite(v.speed) ? Math.abs(v.speed) : 0, pedals: !!(v && v.isBike), steer: v && Number.isFinite(v.steer) ? v.steer : 0 };
+  // speed: de snelheid van het voertuig (m/s, met teken: achteruit rollen draait de trappers terug), voor de trappers van een fietser (modularpeople.js)
+  return { wheel: w && Number.isFinite(w.x) ? { c: [w.x, w.y, w.z], r: w.r || 0.19, tilt: w.tilt || 0 } : null, toWorld, speed: v && Number.isFinite(v.speed) ? v.speed : 0, pedals: !!(v && v.isBike), steer: v && Number.isFinite(v.steer) ? v.steer : 0 };
 }
 import { hash2 as hash } from './rng.js';
 import { deurVoorStoel, instapKant, doorsFor, stapAnimatieAan } from './vehicledoors.js';
@@ -324,6 +324,18 @@ function vehicleQuat(vehMesh, v, out) {
     return out.copy(vehMesh.quaternion);
   }
   return out.setFromAxisAngle(_up, -v.angle);
+}
+
+// De fietser van een fiets in het verkeer of op straat (#1337): een modulaire mens die op het zadel zit, met de handen aan het stuur en de
+// voeten op de trappers die met de snelheid meedraaien (seatModular), zoals de speler op zijn eigen fiets. Zonder dit stonden de benen stil.
+// Geeft true als de fietser is gezet. Een procedurele fietser (legL/legR) trapt via updateVehicleWheelSpin (riderLegs).
+export function syncBikeRiderPedals(mesh, v, t = 0) {
+  const ud = mesh.userData;
+  const rider = ud.riderFig || ud.riderMesh || (ud.npcRider === undefined ? (ud.npcRider = mesh.children.find((c) => c.userData && c.userData.qRig) || null) : ud.npcRider);
+  if (!rider || !rider.userData.qRig || !rider.visible || rider.parent !== mesh || !v || !v.isBike) return false;
+  ud.vehicleRef = v;
+  placeSeatedLocal(rider, vehicleSeat(v, true), t);
+  return true;
 }
 
 // Puts `person` on `seat` of v and poses it (t drives paddling/pedalling).

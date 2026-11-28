@@ -1345,7 +1345,7 @@ export function seatModular(mesh, seat, t, ctx = null) {
   p.seated = !drive && !(seat && seat.stand);
   ud.qParams = p;
   // trappers: een omwenteling per ~5,4 m (wiel 0,34 m, verzet 2,5), alleen voor een fietser
-  if (rider) ud.qPedal = ((ud.qPedal || 0) + ((ctx && ctx.speed) || 0) * dt * 1.17) % (Math.PI * 2);
+  if (rider) ud.qPedal = ((ud.qPedal || 0) - ((ctx && ctx.speed) || 0) * dt * 1.17) % (Math.PI * 2);   // de hoek neemt af bij vooruit rijden (+x): de voet onderaan gaat dan naar achteren, zoals updateVehicleWheelSpin
   ud.qInSeat = true;
   animateModular(mesh, 0, dt);
   ud.qInSeat = false;

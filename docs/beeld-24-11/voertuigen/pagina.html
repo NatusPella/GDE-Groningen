@@ -19,13 +19,13 @@
   if (location.hash.includes("zondersub")) globalThis.__GEEN_SUB = true;
   const THREE = await import('https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js');
   // #oud: de bouwer van voor deze ronde (een tijdelijke kopie game/js/_oud_voertuigen_tmp.js uit git, niet ingecheckt)
-  const { buildVehicleMesh } = await import(root + (location.hash.includes('oud') ? 'game/js/_oud_voertuigen_tmp.js' : 'game/js/models3d_vehicles.js'));
+  const { buildVehicleMesh } = await import(root + (location.hash.includes('oud') && !location.hash.includes('wiel') ? 'game/js/_oud_voertuigen_tmp.js' : 'game/js/models3d_vehicles.js'));
   const { BOAT_KINDS } = await import(root + 'game/js/boattypes.js');
   const { zetLodAfstand } = await import(root + 'game/js/vehiclelod3d.js');
   window.lod = (d) => zetLodAfstand(m, d); // vergelijking van niveau 0 en 1 (afstand in m)
   const { syncVehicleDoors } = await import(root + 'game/js/vehicledoors3d.js');
   const { HERO_CAR_MODEL } = await import(root + 'game/js/vehicle.js');
-  const naam = (location.hash || '#escapade').slice(1).replace('oud', '').replace('zondersub', '');
+  const naam = (location.hash || '#escapade').slice(1).replace('wieloud', '').replace('wielvoor', '').replace('oud', '').replace('zondersub', '');
   const car = (name, len, wid, color, extra = {}) => ({ model: { name, len, wid, color }, ...extra });
   const SPECS = {
     escapade: { model: { ...HERO_CAR_MODEL }, isHeroCar: true },
@@ -74,6 +74,16 @@
     // cabine (24-11): uit de cabine zelf, deuren open (de bus, ambulance, foodtruck en bakwagen hebben hun stoelen voorin)
     cabine: () => { const C = { van: [[0.9, 1.5, 0], [2.3, 1.1, 0]], ambulance: [[0.95, 1.5, 0], [2.4, 1.1, 0]], foodtruck: [[0.95, 1.5, 0], [2.4, 1.1, 0]], truck: [[1.0, 3.2, 3.6], [3.3, 1.5, 0]], wagon: [[-0.3, 1.15, 0], [1.8, 0.95, 0]] }[naam]; return C ? { p: C[0], t: C[1], fov: 74, doors: true } : VIEWS.binnen(); },
     binnen: () => ({ p: [-size.x * 0.2, Math.min(size.y * 0.78, 1.2), 0], t: [size.x * 0.35, Math.min(size.y * 0.5, 0.8), 0], fov: 72, doors: true }),
+  };
+  // #1340: de wielen zoals het spel ze tekent (wheelinstances3d.js: de losse wielen van het voertuig staan op een verborgen laag en één instantiemesh
+  // tekent ze). #wielvoor: het eerste voertuig dat zich meldt staat op 60 m (de oorzaak van de ontbrekende banden); #wieloud: de instancing van voor de fix.
+  window.wielen = async (d) => {
+    const mod = await import(root + (location.hash.includes('wieloud') ? 'game/js/_oud_wheelinstances_tmp.js' : 'game/js/wheelinstances3d.js'));
+    const far = buildVehicleMesh({ ...v, id: 701 });
+    far.position.set(60, 0, 0); scene.add(far);
+    zetLodAfstand(far, 60); zetLodAfstand(m, d);
+    mod.beginWheels(scene); mod.addVehicleWheels(far, null); mod.addVehicleWheels(m, null); mod.endWheels();
+    return true;
   };
   window.neem = (weergave) => {
     const w = VIEWS[weergave]();
