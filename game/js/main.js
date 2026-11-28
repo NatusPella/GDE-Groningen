@@ -1027,7 +1027,7 @@ window.__debug = { player, map, input, world, frameStats };
   setSnackFlagProvider(() => { const p = storyGateProgress(); return { flags: storyBridgeView().flags, gate: p.gate, ended: p.ended, dev: p.dev }; });
   // meewerken in de snackwagen van een medespeler (bezitnet.js: gast -> host -> eigenaar)
   setSnackWorkSend((m) => sendSnackWork(world, m));
-  setSnackRankSend((o) => rankHook.omhoog(world, o));       // een rang van de snackwagen speelt zijn verhaalmoment via de gedeelde haak (snackrankmoments.js, lokaal per speler)
+  setSnackRankSend((o) => rankHook.omhoog(world, o));       // een rang van de snackwagen speelt zijn verhaalmoment via de gedeelde haak (snackrankscenes.js, lokaal per speler)
   setSnackWorkHandler((m) => snackReceiveWork(m));
   initBoerderij();
   initSafety(world);

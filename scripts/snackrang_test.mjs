@@ -10,7 +10,7 @@ import * as L from '../game/js/bezitlive.js';
 import * as BL from '../game/js/boerderijlive.js';
 import * as GT from '../game/js/bezitgate.js';
 import * as SL from '../game/js/snacklive.js';
-import * as SM from '../game/js/snackrankmoments.js';
+import * as SM from '../game/js/snackrankscenes.js';
 import * as UI from '../game/js/snackui.js';
 import * as SS from '../game/js/snackstory.js';
 import { makeRankHook, rankMomentsOf, momentProblem } from '../game/js/rankmoments.js';
@@ -93,7 +93,7 @@ t('de teksten: korte regels, bekende sprekers, geen merken en geen winter', () =
     assert.ok(sprekers.has(wie), wie); assert.ok(tekst.split(/\s+/).length <= 25, tekst); assert.ok(!/winter|sneeuw|ijs\b/i.test(tekst), tekst);
   }
 });
-t('de bron en de code zijn gelijk: de gesprekken in snackrankmoments.js zijn de scènes S71 tot en met S75 van 09-script-akte7.md (script.json)', () => {
+t('de bron en de code zijn gelijk: de gesprekken in snackrankscenes.js zijn de scènes S71 tot en met S75 van 09-script-akte7.md (script.json)', () => {
   const script = JSON.parse(fs.readFileSync(new URL('../game/storydata/script.json', import.meta.url), 'utf8'));
   const WIE = { T: 'T', A: 'A', trijntje: 'Oma Trijntje', jelle: 'Jelle Terpstra' };
   SM.SNACK_MOMENTS.forEach((m, i) => {
