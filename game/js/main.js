@@ -288,7 +288,7 @@ import { makeDip, triggerDip, dipScale } from './gamefeel.js';
 import { effectsFor } from './a11ylogic.js';
 import { reducedMotion } from './motion.js';
 import { initCheats, updateCheats } from './cheats.js';
-import { installGpuDiag } from './gpudiag.js'; // 0.64.1: Technische info (Ctrl+Shift+G)
+import { installGpuDiag, isTechInfoOpen } from './gpudiag.js'; // 0.64.1: Technische info (Ctrl+Shift+G)
 import { initScrollAanwijzing } from './dsscroll.js'; // 22-11: DS3-scrollbalk, vervaging waar meer inhoud staat
 import { updateRegioLeven, setNieuwsBronnen } from './regiolevenrt.js';
 import { syncLedger, getLedger } from './finance.js';
@@ -977,7 +977,7 @@ async function boot() {
   await yieldToPaint();
   // mouse-look: clicking the game captures the mouse; Esc releases it (the
   // browser swallows that Esc keypress), which opens the pause menu instead
-  const menuOpen = () => isPauseMenuOpen() || isMapOpen() || isPhoneOpen() || isShopOpen() || !!world.devPanelOpen;
+  const menuOpen = () => isPauseMenuOpen() || isMapOpen() || isPhoneOpen() || isShopOpen() || isTechInfoOpen() || !!world.devPanelOpen;
   input.canLock = () => document.body.classList.contains('game-started') && !menuOpen() && !world.uiPaused;
   // tik in plaats van ingedrukt houden (holdlatch.js): een tikstand blijft alleen te voet en zonder menu of pauze staan
   input.latchOk = () => !menuOpen() && !world.uiPaused && !world.paused && !(hoofdspeler(world) && hoofdspeler(world).inVehicle);

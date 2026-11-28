@@ -95,6 +95,7 @@ import { renderFotoPanel, fotoClick, isPhotoMode } from './fotomodusui.js';
 import { kopStatus, verliesSinds, verliesTekst, euro } from './spelstatus.js';
 import { toonBevestiging, isBevestigOpen } from './spelbevestig.js';
 import { toonRecapNu } from './recapcardrun.js';
+import { isTechInfoOpen } from './gpudiag.js';
 import { woordenVan, past } from './zoektekst.js';
 // Running inside the desktop app (desktop/preload.js): window mode + quit.
 const DESKTOP = typeof window !== 'undefined' && window.gdeDesktop && window.gdeDesktop.isDesktop ? window.gdeDesktop : null;
@@ -1400,7 +1401,7 @@ function consume(e) {
 function onKey(e) {
   if (e.metaKey || e.ctrlKey || e.altKey) return;
   // the play-ahead question (todo.js) has its own keys
-  if (isPlayAheadOpen() || isSaveSlotsOpen() || isHelpOfferOpen() || isRecapOpen() || isBevestigOpen()) return;
+  if (isPlayAheadOpen() || isSaveSlotsOpen() || isHelpOfferOpen() || isRecapOpen() || isBevestigOpen() || isTechInfoOpen()) return;
   const k = e.key;
   const lower = k.length === 1 ? k.toLowerCase() : k;
   if (!open) {
