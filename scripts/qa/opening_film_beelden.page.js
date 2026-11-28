@@ -38,7 +38,7 @@ const info = window.__introFilm && window.__introFilm();
 if (!info) return JSON.stringify({ ok, fout: 'geen film' });
 out.starts = info.starts; out.ids = info.ids; out.durs = info.durs;
 // regelvast: de tijd van de film staat stil, per monster zetten we hem op de plek en wachten we tot de wereld erbij staat
-cine.setCinematicRate(0);
+cine.setCinematicRate(0.002); // bijna stil: de tick van een shot (zitposes) blijft lopen
 const want = CS.extra ? String(CS.extra).split(',') : null; // shot-id's; leeg = alle
 const fr = CS.fr || [0.2, 0.55, 0.9];
 for (let i = 0; i < info.ids.length; i++) {

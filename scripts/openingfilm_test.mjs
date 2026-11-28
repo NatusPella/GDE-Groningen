@@ -124,6 +124,18 @@ assert.ok(im.includes('return { filmId: id, minDur: e.minDur'), 'elke filmshot k
 // de engine-regels van een shot komen uit de reeks
 assert.deepEqual(engineLines('c2-bank').map((l) => l[0]), ['T', 'A']);
 assert.equal(engineLines('c3-geld').length, 4);
+// AAA30 regie (28-11), eis 1: tijdens een regel staat de camera op de spreker. Een reactie (de luisteraar, een insert) begint pas als de regel uit is
+// ("L1E" = het einde van regel 1), nooit midden in een regel; de kamershots hebben geen insert meer op een tekening of een band tijdens iemands regel.
+for (const verboden of ["'L1+2.5'", "'L0+1.4', camDrawing", "'L4', camDrawing", "'L2+5.6'", "'L2-0.5', camDrawing", "'L2+4.6'", "'L3+2.6'"]) assert.ok(!filmBlock.includes(verboden), 'reactie of insert midden in een regel: ' + verboden);
+assert.ok(filmBlock.includes("['L1E',") && filmBlock.includes("['L2E', camTammo(30)]") && filmBlock.includes("['L3E', camMoveTammo]"), 'reacties starten op het einde van de regel');
+assert.ok(im.includes('(m[2] ? l.dur : 0)'), 'de tijdnotatie L<n>E (einde van de regel) bestaat');
+// de veiligheidswacht (cinelimit.js) kapt een scène na 150 s af tenzij hij `long` is: de film duurt langer en moet tot de zweefvlucht doorlopen
+{
+  const { cinematicLimit, CINE_MAX_S } = await import('../game/js/cinelimit.js');
+  assert.ok(d + 20 > CINE_MAX_S, 'de film is langer dan de vaste grens van de wacht');
+  assert.ok(im.includes('long: true,'), 'de openingsfilm is een lange scène (cinelimit.js)');
+  assert.ok(cinematicLimit({ duration: d, long: true }) >= d, 'met long krijgt de film zijn eigen duur als grens');
+}
 // #1341: een vastgehouden toets slaat hooguit één film over. De herhaling van een keydown start geen nieuwe hold, en na het overslaan blijft
 // de spatie "ingeslikt" tot hij losgelaten is: de volgende film (de eerste missiescène) ziet de nog vastgehouden toets niet als nieuw overslaan.
 {
