@@ -101,6 +101,13 @@ const meet = async () => {
   R.info.autoReset = true; R.info.reset();
   return { calls: Math.round(calls), tris: Math.round(tris), ms: +ms.toFixed(1) };
 };
+// de laag zelf: de InstancedMeshes van de detailsoorten (lod:prop:furniture:<soort>:<niveau>) tijdelijk onzichtbaar maken geeft het
+// voor-beeld en de exacte kosten van de laag in hetzelfde beeld (alles wat verder verandert, zoals voetgangers, blijft gelijk)
+const DETAIL = new Set(SD.DETAIL_KINDS.filter((k) => k !== 'hedge' && k !== 'fence'));
+const laagMeshes = () => { const out = []; S3.getScene().traverse((o) => { if (o.isInstancedMesh && o.name.startsWith('lod:prop:furniture:') && DETAIL.has(o.name.split(':')[3])) out.push(o); }); return out; };
+let verberg = null;
+const laagUit = () => { const ms = laagMeshes(); verberg = setInterval(() => { for (const m of ms) m.visible = false; }, 30); for (const m of ms) m.visible = false; return ms.length; };
+const laagAan = () => { clearInterval(verberg); verberg = null; for (const m of laagMeshes()) m.visible = m.count > 0; };
 let nr = 0;
 for (const [naam, type, lat, lon] of PLEKKEN) {
   nr++;
@@ -110,17 +117,17 @@ for (const [naam, type, lat, lon] of PLEKKEN) {
     await jump(pl.x, pl.y, 3500);
     const z = gh(pl.x, pl.y), dx = Math.cos(pl.a), dy = Math.sin(pl.a);
     log({ nr, naam, type, x: Math.round(pl.x), y: Math.round(pl.y), a: +pl.a.toFixed(3), huizen30: pl.n });
-    cam(pl.x - dx * 10, pl.y - dy * 10, z + 1.7, pl.x + dx * 25, pl.y + dy * 25, z + 1.9, 70); await shot(naam + '-oog', 2500);
-    const m1 = await meet();
+    cam(pl.x - dx * 10, pl.y - dy * 10, z + 1.7, pl.x + dx * 25, pl.y + dy * 25, z + 1.9, 70); await shot(naam + '-oog', 3500);
+    const m1 = await meet(); const nm = laagUit(); await shot(naam + '-oog-voor', 600); const m1v = await meet(); laagAan();
     // de camera staat aan de kant van de weg met de minste gebouwen (anders hangt hij boven een dak)
     const zijde = map.buildingsNear(pl.x - dy * 14, pl.y + dx * 14, 10).length <= map.buildingsNear(pl.x + dy * 14, pl.y - dx * 14, 10).length ? 1 : -1;
     cam(pl.x - dx * 18 - dy * 14 * zijde, pl.y - dy * 18 + dx * 14 * zijde, z + 15, pl.x + dx * 4, pl.y + dy * 4, z, 62); await shot(naam + '-lucht', 2500);
-    const m2 = await meet();
+    const m2 = await meet(); laagUit(); await shot(naam + '-lucht-voor', 600); const m2v = await meet(); laagAan();
     // de kosten van de generator op echte kaartdata (zoals streetfurniture3d.js tileItems hem voedt) en wat hij neerzet
     const [ti, tj] = GDT.tileIndexOf(pl.x, pl.y), tx0 = GDT.GRID_X0 + ti * GDT.TILE_M, ty0 = GDT.GRID_Y0 + tj * GDT.TILE_M, wx = tx0 + GDT.TILE_M / 2, wy = ty0 + GDT.TILE_M / 2, wr = GDT.TILE_M * 0.71 + 60;
     const t0 = performance.now();
     const its = SD.detailForTile({ x0: tx0, y0: ty0, size: GDT.TILE_M, roads: map.roadsNear(wx, wy, GDT.TILE_M * 0.71 + 220), buildings: map.buildingsNear(wx, wy, wr), water: map.waterNear(wx, wy, wr).concat(map.flatWaterNear ? map.flatWaterNear(wx, wy, wr) : []), rails: map.railNear ? map.railNear(wx, wy, wr) : [] });
     const gen = performance.now() - t0; const per = {}; for (const it of its) per[it.k] = (per[it.k] || 0) + 1;
-    log({ nr, naam, oog: m1, lucht: m2, generatorMs: +gen.toFixed(1), items: its.length, per });
+    log({ nr, naam, oog: m1, oogVoor: m1v, lucht: m2, luchtVoor: m2v, laagMeshes: nm, generatorMs: +gen.toFixed(1), items: its.length, per });
   });
 }
