@@ -2,7 +2,7 @@ import { icoon } from './icons.js';
 import { dualHtml, dutchFor } from './subtitles.js';
 import { phoneCard, splitNewsCard, trimWords, WORD_BUDGET, newsFullText } from './hudtext.js';
 import { isStale } from './validity.js';
-import { paintSpeaker } from './speakers.js';
+import { paintSpeaker, displayName } from './speakers.js';
 import { noteSpoken } from './characters.js';
 import { getClockText } from './clocktext.js';
 import { readingSeconds } from './world.js';
@@ -168,7 +168,7 @@ function showNote(w, n) {
   const cap = p.app === 'sikkom' ? WORD_BUDGET.news : WORD_BUDGET.cardBody;
   const titel = trimWords(p.title, cap), lichaam = trimWords(p.body, cap);
   el.innerHTML =
-    `<div class="pf-head ds-z-kaart__kop"><span class="pf-app">${icon(p.app)}</span><span class="pf-from ds-z-kaart__titel">${naamGelijk(p) ? '' : `<small class="pf-appnaam">${esc(appNaam(p.app))}</small>`}${esc(p.from)}</span><span class="pf-more ds-z-chip" hidden></span><span class="pf-time">${esc(clockNow(w))}</span></div>` +
+    `<div class="pf-head ds-z-kaart__kop"><span class="pf-app">${icon(p.app)}</span><span class="pf-from ds-z-kaart__titel">${naamGelijk(p) ? '' : `<small class="pf-appnaam">${esc(appNaam(p.app))}</small>`}${esc(displayName(p.from))}</span><span class="pf-more ds-z-chip" hidden></span><span class="pf-time">${esc(clockNow(w))}</span></div>` +
     (titel ? `<div class="pf-title">${dualHtml(titel)}</div>` : '') +
     (lichaam ? `<div class="pf-body ds-z-kaart__tekst">${dualHtml(lichaam)}</div>` : '') +
     '<i class="ds-melding__tijd" aria-hidden="true"></i>';
@@ -275,8 +275,8 @@ function hangUp() {
 
 function callHtml(c) {
   const state = c.live ? '<span class="pf-live ds-z-chip ds-z-chip--probleem">Live</span>' : `<span class="pf-state ds-z-chip ds-z-chip--uit">${c.phase === 'ring' ? 'Belt je' : c.phase === 'end' ? 'Opgehangen' : '<i class="pf-dot"></i><b class="pf-clock">0:00</b>'}</span>`;
-  return `<div class="pf-call-head"><span class="pf-avatar">${esc(initials(c.from))}</span>` +
-    `<span class="pf-callwho"><small>${esc(appNaam(c.live ? 'live' : 'bel'))}</small><b>${esc(c.from)}</b></span>${state}</div>` +
+  return `<div class="pf-call-head"><span class="pf-avatar">${esc(initials(displayName(c.from)))}</span>` +
+    `<span class="pf-callwho"><small>${esc(appNaam(c.live ? 'live' : 'bel'))}</small><b>${esc(displayName(c.from))}</b></span>${state}</div>` +
     '<div class="pf-line"><span class="pf-speaker"></span><span class="pf-say"></span><span class="pf-sub"></span></div>';
 }
 
