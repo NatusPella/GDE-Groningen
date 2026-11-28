@@ -14,5 +14,5 @@ Bron: `docs/verhaal/nieuw/09-script-akte2.md`, scènes `N5` (herschreven) en `N5
 | DE NOTARIS | `notaris` | nieuw: plechtige oudere man | plechtig en precies, leest de akte voor | 2 in N5.2 |
 | TESSA, TAMMO | bestaand (Anita, Tammo) | bestaand | de nieuwe regels in N5 en N5.2; de regel "Je vroeg nooit naar mijn jeugd..." van Tessa staat al op de wachtlijst | N5: Tessa 8, Tammo 8; N5.2: Tammo 3, Tessa 2 |
 
-Rangmomenten (`game/js/boerrangmomenten.js`) zijn ondertitelpraat zonder opname (`voice: null`, `textOnly`); sprekers daar zonder eigen stem tot er een ronde komt:
+Rangmomenten (`game/js/farmrankmoments.js`) zijn ondertitelpraat zonder opname (`voice: null`, `textOnly`); sprekers daar zonder eigen stem tot er een ronde komt:
 Ypie Boekema (nuchtere boer, plat Gronings, "Dat wordt wat."), Lutje (vlotte melkrijder, zonder adem), mevrouw Hofstra (vriendelijke ambtenares, "Dit formulier is heel simpel."), Jorrit Tilma (ongeduldige jonge loonwerker).

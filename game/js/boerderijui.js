@@ -310,7 +310,7 @@ function percelen(b, geld) {
     '<p class="bd-melding" aria-live="polite">' + esc(melding) + '</p>';
 }
 
-// De hofwinkel van Hoeve Zeldenrust (hofwinkel.js, #1373): alleen als de hoeve van jou is; dicht met de reden, nooit een leeg blok.
+// De hofwinkel van Hoeve Zeldenrust (farmshop.js, #1373): alleen als de hoeve van jou is; dicht met de reden, nooit een leeg blok.
 function hofwinkelBlok() {
   if (!rangStand().hoeve) return '';
   const h = hofwinkelStand();
@@ -320,7 +320,7 @@ function hofwinkelBlok() {
     `<span class="bd-acties"><button type="button" class="m-bt" data-pc="hofwinkel" data-gewas="${r.gewas}" data-kg="${Math.min(50, r.max) || 50}"${r.max > 0 ? '' : ' disabled'}>Verkoop ${nl(Math.min(50, r.max) || 50)} kg</button></span></div>`).join('');
   return kop + `<p class="mut">Wat op het erf van de hoeve ligt, verkoop je hier tegen een betere prijs dan de markt. Bewaar je oogst op Zeldenrust: maak de hoeve thuis.</p>` + rijen;
 }
-// De kudde van de hoeve en haar verzorging (dierklus.js, #1373): een klus per soort per speldag, een kleine bonus en ervaring, nooit een plicht.
+// De kudde van de hoeve en haar verzorging (herdchores.js, #1373): een klus per soort per speldag, een kleine bonus en ervaring, nooit een plicht.
 function kuddeBlok() {
   const k = hoeveKudde();
   if (!k) return '';

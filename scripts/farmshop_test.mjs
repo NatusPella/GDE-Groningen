@@ -1,8 +1,8 @@
 // De hofwinkel van Hoeve Zeldenrust (#1373, audit B9): open vanaf Trekkerrijder en alleen met de hoeve, betere prijs dan de markt, een grens per speldag, het geld via de loopbaan,
-// de kilo's van het erf af, en een oude opslag zonder hofwinkel laadt leeg.   node scripts/hofwinkel_test.mjs
+// de kilo's van het erf af, en een oude opslag zonder hofwinkel laadt leeg.   node scripts/farmshop_test.mjs
 import './node3d.mjs';
 import assert from 'node:assert/strict';
-import * as HW from '../game/js/hofwinkel.js';
+import * as HW from '../game/js/farmshop.js';
 import * as B from '../game/js/boerderij.js';
 import * as PC from '../game/js/percelen.js';
 import * as BL from '../game/js/boerderijlive.js';
@@ -81,5 +81,5 @@ t('een oude opslag zonder hofwinkel laadt leeg, rommel wordt begrensd', () => {
   assert.deepEqual(B.normaliseer(rommel).hofwinkel, { dag: -1, kg: 150 });
 });
 
-console.log(`hofwinkel_test: ${n - fails}/${n}`);
+console.log(`farmshop_test: ${n - fails}/${n}`);
 process.exit(fails ? 1 : 0);

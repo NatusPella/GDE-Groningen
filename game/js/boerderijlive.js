@@ -15,7 +15,7 @@ import { euro } from './geldtekst.js';
 import { loopbaanVerdien, loopbaanTel, getProfiel as getLoopbaanProfiel } from './loopbaanlive.js';
 import { niveauVoorVak } from './loopbaan.js';
 import { rangSlot, rangTitel, volgendeRang } from './boerrang.js';
-import * as HW from './hofwinkel.js';
+import * as HW from './farmshop.js';
 import * as B from './boerderij.js';
 import * as PC from './percelen.js';
 import * as M from './machines.js';
@@ -349,7 +349,7 @@ export function schenkHoeve() {
 }
 export const heeftHoeve = () => PC.heeftHoeve(getBedrijf());
 
-// De hofwinkel van Zeldenrust (hofwinkel.js, #1373): het aanbod van vandaag en een verkoop; het geld gaat via loopbaanVerdien (loonfactor van het vak), de kilo's van het erf af.
+// De hofwinkel van Zeldenrust (farmshop.js, #1373): het aanbod van vandaag en een verkoop; het geld gaat via loopbaanVerdien (loonfactor van het vak), de kilo's van het erf af.
 export function hofwinkelStand() {
   const b = getBoerderij();
   return HW.winkelAanbod(b.bedrijf, b.hofwinkel, dagVan(b.uren), rangStand().niveau);

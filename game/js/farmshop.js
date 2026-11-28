@@ -1,5 +1,5 @@
 // De hofwinkel van Hoeve Zeldenrust (#1373, audit B9): wat op het erf van de hoeve ligt verkoop je in de eigen winkel, met een eigen merk, aan klanten van het dorp, tegen een
-// betere prijs dan de markt maar met een grens per speldag (een winkel is geen groothandel). Puur: geen DOM, geen wereld, geen klok (scripts/hofwinkel_test.mjs); het geld
+// betere prijs dan de markt maar met een grens per speldag (een winkel is geen groothandel). Puur: geen DOM, geen wereld, geen klok (scripts/farmshop_test.mjs); het geld
 // verrekent boerderijlive.verkoopHofwinkel via loopbaanVerdien, nooit met world.money +=.
 //
 // Open vanaf rang Trekkerrijder (Landbouw niveau 3) en alleen voor wie de hoeve kreeg. Het merk is verzonnen (Hoeve Zeldenrust, constitution 2). Samen spelen: de winkel is van de speler

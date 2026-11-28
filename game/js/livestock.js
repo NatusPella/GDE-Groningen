@@ -126,7 +126,7 @@ export function cure(herd, money = Infinity) {
 
 // ---- de speldag ----
 // ctx: { hay: { gras, hooi, graan } kg in de opslag, robot (melkrobot aanwezig), buy (voer bijkopen als er te weinig is; standaard ja), kind ('w'|'a'|'b' van het perceel), ha,
-//        klus: { voeren, melken } (de speler verzorgde de kudde zelf, dierklus.js): melken telt als de robot, voeren geeft 5% meer }
+//        klus: { voeren, melken } (de speler verzorgde de kudde zelf, herdchores.js): melken telt als de robot, voeren geeft 5% meer }
 // Geeft { products: { melk|wol|eieren: hoeveelheid }, value, hayUsed: { soort: kg }, feedCost, fed (0..1), sick }. Verandert de kudde (de ziektedagen lopen af), de opslag niet:
 // de aanroeper haalt hayUsed uit de opslag, stopt products erin of verkoopt ze (sellValue) en betaalt feedCost.
 export function herdDayTick(herd, ctx = {}) {

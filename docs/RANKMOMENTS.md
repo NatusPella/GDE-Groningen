@@ -51,7 +51,7 @@ Wees ervan bewust dat het register leeg is tot jouw module geladen is; importeer
 
 ## Wie het gebruikt
 
-- **Landbouw** (`game/js/boerrangmomenten.js`, #1373): vijf gesprekjes voor niveau 2 tot en met 6 (Ypie, Lutje, mevrouw Hofstra, Jorrit Tilma), alleen voor wie de hoeve kreeg (`voorwaarde`); wat elke rang opent staat in `boerrang.js`. De module wordt geladen via `boerstoryrun.js`. Test: `scripts/boerrang_test.mjs`.
+- **Landbouw** (`game/js/farmrankmoments.js`, #1373): vijf gesprekjes voor niveau 2 tot en met 6 (Ypie, Lutje, mevrouw Hofstra, Jorrit Tilma), alleen voor wie de hoeve kreeg (`voorwaarde`); wat elke rang opent staat in `boerrang.js`. De module wordt geladen via `boerstoryrun.js`. Test: `scripts/boerrang_test.mjs`.
 
 ## Samen spelen
 

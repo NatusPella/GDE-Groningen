@@ -1,9 +1,9 @@
 // De kudde van de hoeve en de dagelijkse verzorging (#1373, audit B8): twaalf koeien op vijf hectare, een klus per soort per speldag, melken telt als de melkrobot,
-// voeren scheelt bijgekocht voer, geen klus is geen straf, en de klus staat in de opslag van de speler.   node scripts/dierklus_test.mjs
+// voeren scheelt bijgekocht voer, geen klus is geen straf, en de klus staat in de opslag van de speler.   node scripts/herdchores_test.mjs
 // Schrijft nooit naar echte opslag: de opslag is een nepobject.
 import './node3d.mjs';
 import assert from 'node:assert/strict';
-import * as K from '../game/js/dierklus.js';
+import * as K from '../game/js/herdchores.js';
 import * as Z from '../game/js/bezit.js';
 import * as PC from '../game/js/percelen.js';
 import * as B from '../game/js/boerderij.js';
@@ -113,5 +113,5 @@ t('de opslag: de klus overleeft bewaren en laden, rommel wordt opgeruimd en een 
   assert.deepEqual(K.klusStand(oud, 'x', 3), { voeren: false, melken: false });
 });
 
-console.log(`dierklus_test: ${n - fails}/${n}`);
+console.log(`herdchores_test: ${n - fails}/${n}`);
 process.exit(fails ? 1 : 0);

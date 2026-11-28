@@ -4,7 +4,7 @@
 import './node3d.mjs';
 import assert from 'node:assert/strict';
 import * as R from '../game/js/boerrang.js';
-import * as M from '../game/js/boerrangmomenten.js';
+import * as M from '../game/js/farmrankmoments.js';
 import { momentsFor, rankMoments, makeRankHook, rankMomentsOf } from '../game/js/rankmoments.js';
 import * as BL from '../game/js/boerderijlive.js';
 import * as L from '../game/js/bezitlive.js';

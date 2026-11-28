@@ -15,7 +15,7 @@ import { PRIJS_KG, dagprijs, dagVan, markt } from './gewasmarkt.js';
 import * as CT from './boerderijcontracten.js';
 import { newJournal, normalizeJournal } from './deliveries.js';
 import { euro } from './geldtekst.js';
-import { nieuweHofwinkel, leesHofwinkel } from './hofwinkel.js';
+import { nieuweHofwinkel, leesHofwinkel } from './farmshop.js';
 import { areaPrice } from './bezithooks.js';
 
 export const VERSIE = 1;
@@ -91,7 +91,7 @@ export function nieuweBoerderij() {
     boek: nieuwBoek(),                                             // kosten en opbrengsten per veld en per boekjaar, en de lening
     bedrijf: nieuwBedrijf(),                 // percelen, erven, opslag en machinepark (percelen.js, #415 stap 1): oude opslag mist dit en krijgt het leeg
     deliveries: newJournal(),                // leveringen aan een andere opslag (deliveries.js, #1379 X1): wat onderweg is en wat afgerond is; een oude opslag mist dit en krijgt het leeg
-    hofwinkel: nieuweHofwinkel(),            // hoeveel de hofwinkel van Zeldenrust vandaag verkocht (hofwinkel.js, #1373); een oude opslag mist dit en krijgt het leeg
+    hofwinkel: nieuweHofwinkel(),            // hoeveel de hofwinkel van Zeldenrust vandaag verkocht (farmshop.js, #1373); een oude opslag mist dit en krijgt het leeg
     contracten: CT.leeg(),                   // het aanbod van vandaag, je actieve leveringscontracten en een begrensde historie (#492)
   };
 }

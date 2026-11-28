@@ -11,7 +11,7 @@ import * as L from '../game/js/bezitlive.js';
 import * as BL from '../game/js/boerderijlive.js';
 import * as Z from '../game/js/bezit.js';
 import * as PC from '../game/js/percelen.js';
-import * as K from '../game/js/dierklus.js';
+import * as K from '../game/js/herdchores.js';
 import { herdsOf } from '../game/js/livestock.js';
 import { KEYS } from '../game/js/storagekeys.js';
 

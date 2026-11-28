@@ -17,7 +17,7 @@ import { fieldPhase, workField, workUnits, unitScale } from './parcelfarm.js';
 import { staffOf, staffCapacity, staffDayTick, leaseDayTick, planStaffDay, mgmtFactor, managedCount, paidFor, sellLoad, SKILL_RATIO, MAX_CATCHUP_DAYS } from './farmstaff.js';
 import { herdsOf, livestockDayTick, visibleAnimals, PRODUCT_PRICE, SPECIES } from './livestock.js';
 import { areaPrice } from './bezithooks.js';
-import { klusVan } from './dierklus.js';
+import { klusVan } from './herdchores.js';
 
 // Wat een dag vee-opbrengst oplevert: de streekprijs van de streek van de grootste kudde van dit product (bezithooks.js, met verzadiging door wat je levert), zonder haak de vaste prijs.
 // Eieren gaan per stuk (PRODUCT_PRICE) maar de markt rekent per kilo (acht per kilo).
