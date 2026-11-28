@@ -20,6 +20,7 @@ export function isQuitConfirmOpen() { return !!open; }
 // onYes wordt aangeroepen bij Ja; onNo bij Annuleren, Escape of Backspace. Geeft false als er al een vraag staat of geen DOM is.
 export function askQuitConfirm({ onYes = () => {}, onNo = () => {} } = {}) {
   if (open || typeof document === 'undefined' || !document.body) return false;
+  const prevFocus = document.activeElement;
   const el = document.createElement('div');
   el.id = 'quit-confirm';
   el.className = 'os-overlay';
@@ -35,6 +36,7 @@ export function askQuitConfirm({ onYes = () => {}, onNo = () => {} } = {}) {
     window.removeEventListener('keydown', onKey, true);
     open = null;
     try { el.remove(); } catch (e) { /* al weg */ }
+    if (!ja) { try { if (prevFocus && prevFocus.focus) prevFocus.focus(); } catch (e) { /* weg */ } }
     (ja ? onYes : onNo)();
   };
   function onKey(e) {
@@ -44,6 +46,11 @@ export function askQuitConfirm({ onYes = () => {}, onNo = () => {} } = {}) {
     if (e.key === 'j' || e.key === 'J') { e.preventDefault(); e.stopPropagation(); if (!e.repeat) klaar(true); return; }
     const knoppen = [...el.querySelectorAll('[data-qc]')];
     const i = knoppen.indexOf(document.activeElement);
+    if (e.key === 'Tab') {
+      e.preventDefault(); e.stopPropagation();
+      if (knoppen.length) knoppen[i < 0 ? (e.shiftKey ? knoppen.length - 1 : 0) : (i + (e.shiftKey ? -1 : 1) + knoppen.length) % knoppen.length].focus();
+      return;
+    }
     if (e.key === 'ArrowLeft' || e.key === 'ArrowRight' || e.key === 'ArrowUp' || e.key === 'ArrowDown') {
       e.preventDefault(); e.stopPropagation();
       knoppen[(Math.max(i, 0) + 1) % knoppen.length].focus();
@@ -51,6 +58,8 @@ export function askQuitConfirm({ onYes = () => {}, onNo = () => {} } = {}) {
       e.preventDefault(); e.stopPropagation();
       // zonder focus (naast de kaart geklikt) kiest Enter de veilige knop, Annuleren, in plaats van niets te doen
       if (!e.repeat) klaar(i >= 0 && knoppen[i].dataset.qc === 'ja');
+    } else {
+      e.stopPropagation();
     }
   }
   window.addEventListener('keydown', onKey, true);

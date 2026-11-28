@@ -49,8 +49,13 @@ export function openSamenKeuze(opts = {}) {
     if (e.metaKey || e.ctrlKey || e.altKey) return;
     const k = e.key, all = items(), i = all.indexOf(document.activeElement);
     if (k === 'Escape' || k === 'Backspace') { e.preventDefault(); e.stopPropagation(); close(opts.onClose); return; }
+    if (k === 'Tab') {
+      e.preventDefault(); e.stopPropagation();
+      if (all.length) all[i < 0 ? (e.shiftKey ? all.length - 1 : 0) : (i + (e.shiftKey ? -1 : 1) + all.length) % all.length].focus();
+      return;
+    }
     if (k === 'ArrowDown' || k === 's' || k === 'S') { e.preventDefault(); e.stopPropagation(); all[(i + 1) % all.length].focus(); return; }
-    if (k === 'ArrowUp' || k === 'w' || k === 'W') { e.preventDefault(); e.stopPropagation(); all[(i + all.length - 1) % all.length].focus(); return; }
+    if (k === 'ArrowUp' || k === 'w' || k === 'W') { e.preventDefault(); e.stopPropagation(); all[i < 0 ? all.length - 1 : (i + all.length - 1) % all.length].focus(); return; }
     e.stopPropagation(); // Enter en spatie klikken de knop zelf; houd de toetsen weg van het menu eronder
   };
   window.addEventListener('keydown', onKey, true);

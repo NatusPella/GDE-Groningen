@@ -11,6 +11,7 @@ import { euro } from './geldtekst.js';
 import * as KIT from './footballkit.js';
 import { icoon } from './icons.js';
 import { crestSvg, hexOf } from './voetbalwapen.js';
+import { keepFocus } from './focusbehoud.js';
 
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 export const cui = { msg: '', confirm: null };
@@ -122,7 +123,7 @@ const bound = new WeakSet();
 export const clubView = (world, extra = {}) => ({ career: V.getCareer(), money: world && world.money, getClub: V.getClub, msg: cui.msg, confirm: cui.confirm, kit: KIT.kitView(V.getCareer(), V.getClub), ...extra });
 export function renderClubPanel(el, world) {
   if (!el) return;
-  const draw = () => { el.innerHTML = clubHtml(clubView(world)); kitPhotos(el); };
+  const draw = () => { const restore = keepFocus(el); el.innerHTML = clubHtml(clubView(world)); kitPhotos(el); restore(); };
   draw();
   if (bound.has(el)) return;
   bound.add(el);

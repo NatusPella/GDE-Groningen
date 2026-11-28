@@ -8,6 +8,7 @@ import { PERMIT_DAYS } from './pitch.js';
 import { euro } from './geldtekst.js';
 import { icoon } from './icons.js';
 import { sectionCard, missReason, holdingButton } from './holdingcards.js';
+import { keepFocus } from './focusbehoud.js';
 
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 export const sui = { msg: '', confirm: null };
@@ -167,14 +168,15 @@ export function snackHtml(v) {
 const bound = new WeakSet();
 export function renderSnackPanel(el, world, rerender) {
   if (!el) return;
-  el.innerHTML = snackHtml(SL.snackView(world));
+  const draw = () => { const restore = keepFocus(el); el.innerHTML = snackHtml(SL.snackView(world)); restore(); };
+  draw();
   if (bound.has(el)) return;
   bound.add(el);
   el.addEventListener('click', (e) => {
     const b = e.target.closest('[data-sn]');
     if (!b) return;
     act(world, b.dataset);
-    el.innerHTML = snackHtml(SL.snackView(world));
+    draw();
     if (rerender) rerender();
   });
 }
