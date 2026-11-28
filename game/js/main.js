@@ -148,7 +148,7 @@ import { updateSluizen, getSluizen } from './sluizen.js';
 import { updateBridgeHits, resetBridgeDamage, startBridgeCrashDemo, stepBridgeCrashDemo } from './bridgehitworld.js';
 import { geoWorkerActive } from './geojobs.js';
 import { preloadRoadWorker } from './roadsurface.js';
-import { modularPeopleLoaded, init3D, update3D, resize3D, getScene, getRenderer, toggleLightRig, disposeObject, setHoldMaterials, releaseHeldMaterials, setCinematicBatches, warmWaterIndex, setMenuCover, MENU_FRAME_S, refreshRenderScale, terrainReady, canvasFrameCount, prewarmStreamAt, prewarmPending, precompilePrograms, precompileKit, streamPending, queueWarmupObject, prewarmBusy, takeWarmupSamples, releaseWarmupSamples, getCamera, getFollowPose, setRouteLinks } from './scene3d.js';
+import { modularPeopleLoaded, init3D, update3D, resize3D, getScene, getRenderer, toggleLightRig, disposeObject, setHoldMaterials, releaseHeldMaterials, setCinematicBatches, warmWaterIndex, setMenuCover, MENU_FRAME_S, refreshRenderScale, terrainReady, canvasFrameCount, prewarmStreamAt, prewarmPending, readyCounts, precompilePrograms, precompileKit, streamPending, queueWarmupObject, prewarmBusy, takeWarmupSamples, releaseWarmupSamples, getCamera, getFollowPose, setRouteLinks } from './scene3d.js';
 import { programsPending, programsTotal } from './programwarm.js';
 import { planPrecompile, runPlanner, stepIdleCompile } from './launchcompile.js';
 import { programWatch } from './programwatch.js';
@@ -482,7 +482,8 @@ function waitForStart(world, ready) {
       slowRun = frameMs > START_WARM_MAX_FRAME_MS ? slowRun + 1 : 0;
       frames++;
       const sp = streamPending();
-      const open = sp.buildings + sp.roads + prewarmPending() + (readyDone ? 0 : 1);
+      let extraOpen = 0; try { const rc = readyCounts(world); extraOpen = rc.gpu + rc.lod + rc.population; } catch (e) { extraOpen = 0; } // #1354: ook shaders, texturen, het verre LOD en de bevolking
+      const open = sp.buildings + sp.roads + prewarmPending() + extraOpen + (readyDone ? 0 : 1);
       calm = open === 0 && slowRun === 0 ? calm + 1 : 0;
       // the real progress of the step: what is still to build against what there was, and the calm run at the end
       openStart = Math.max(openStart, open);
@@ -1081,7 +1082,7 @@ try { const slot = ensureLatestSlot(); const info = slot ? readSaveInfo() : null
   setNieuwsBronnen({ bridges: getMovableBridges });
   setAudioCamera(getCamera);
   setRouteLinks({ getActiveRoute, getRouteAhead, getUserWaypoint });
-  setCinematicLinks({ getFollowPose, prewarmStreamAt, getGrenzen, prewarmPending, streamPending });
+  setCinematicLinks({ getFollowPose, prewarmStreamAt, getGrenzen, prewarmPending, streamPending, readyCounts });
   // #1052: een lopende missie, bijbaan, wedstrijd of minigame heeft zijn plaatsingsvensters nu nodig (placementurgency.js)
   installActivityProbe(() => playerBusy(world, ['sideJob', 'challenge', 'race', 'padel', 'activityGame', 'heliRun', 'missionPhase', 'mission', 'activity', 'activeRace']).busy);
   // #1052: the placement windows (tiles all over the province) wait while a film or cutscene plays, like the stream's own low budget (frameBody)

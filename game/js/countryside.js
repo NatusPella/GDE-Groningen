@@ -1234,6 +1234,9 @@ export function updateCountryside(dt, world, scene, cam, viewDist) {
   S.maxMs = Math.max((S.maxMs || 0) * 0.995, ms);
 }
 
+// #1354: hoeveel plattelandstegels nog gegenereerd moeten worden (voor de definitie van tegel-klaar, tileready.js)
+export const countrysideQueued = () => (S ? S.queue.length : 0);
+
 export function countrysideStats() {
   if (!S) return null;
   const pools = {};

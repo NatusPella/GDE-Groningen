@@ -22,9 +22,10 @@ export function loadKind(distance, { save = false } = {}) {
 // first two, so after fast travel the destination stayed coarse for a while
 // once the screen was gone (#929). binnen: 1 as long as the home the game starts in (the flat upstairs, spawnbinnen.js) is not built
 // yet, so the screen leaves only when the room stands; the wait has its own time-out (BINNEN_MAX_S) and a fallback to outside.
-export function loadPending(st, tiles = 0, prewarm = 0, binnen = 0) {
+// #1354: extra = wat de strenge definitie van tegel-klaar (tileready.js) daarbovenop telt: shaders en texturen, het verre LOD, de bevolking.
+export function loadPending(st, tiles = 0, prewarm = 0, binnen = 0, extra = 0) {
   const n = (v) => (Number.isFinite(v) && v > 0 ? v : 0);
-  return n(st && st.buildings) + n(st && st.roads) + n(tiles) + n(prewarm) + n(binnen);
+  return n(st && st.buildings) + n(st && st.roads) + n(tiles) + n(prewarm) + n(binnen) + n(extra);
 }
 
 // The streaming status counts what is still to be built; the first frames

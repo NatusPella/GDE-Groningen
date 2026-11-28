@@ -20,6 +20,9 @@ import { mayInterrupt, noteMoment } from './attention.js';
 import { momentReason } from './cutgates.js';
 import { registerNarrative } from './narrative.js';
 import { lineVoiceFor, lineVoicesFailed } from './linevoice.js';
+import { ensureCutsceneReady } from './cutsceneready.js'; // #1354: de strenge poort voor het begin van een scène (tileready.js)
+import { sumCounts, emptyCounts } from './tileready.js';
+import { queueNear } from './benchsettle.js';
 import { plannedVoiceLines } from './voicetiming.js';
 // What cinematics.js asks of respawn.js and scene3d.js comes in through setCinematicLinks
 // (respawn.js and main.js call it), so it imports neither (#108).
@@ -400,6 +403,7 @@ function jumpEnv() {
       let keys = jumpKeys.get(j);
       if (!keys) { keys = m.store.keysAround(j.to.x, j.to.y, WARM.tileRadiusM); jumpKeys.set(j, keys); }
       const q = { tilesMissing: m.store.missing(keys).length, prewarmPending: links.prewarmPending ? links.prewarmPending() : 0 };
+      try { const rc = links.readyCounts ? links.readyCounts(world) : null; if (rc) { q.gpu = rc.gpu; q.lod = rc.lod; q.population = rc.population; } } catch (e) { /* de strenge meting is een extra, de oude poort blijft */ }
       if (deep) {
         q.tilesMissing += (m.tileQueue && m.tileQueue.items ? m.tileQueue.items.length : 0);
         const sp = links.streamPending ? links.streamPending() : null;
@@ -414,6 +418,50 @@ function jumpEnv() {
     flags: (f) => { if (world) { world.cineWarming = !!f.warming; world.cineJumpLoading = !!f.loading; } },
   };
 }
+// #1354: de poort aan het begin van een scène. Alle zes niveaus van tegel-klaar (tileready.js) rond het hele shotpad: de tegels en gebouwen van elk punt,
+// shaders en texturen, het verre LOD en de bevolking. Zonder camerastanden in de scènedata (spec.shotPoses of spec.prewarm) is er niets om op te wachten.
+const readyKeys = new Map();
+function readyEnv(secs) {
+  const map = () => (world && world.map && world.map.store ? world.map : null);
+  return {
+    now: () => performance.now(),
+    counts(regions) {
+      const base = links.readyCounts ? (links.readyCounts(world) || emptyCounts()) : emptyCounts();
+      const m = map();
+      if (!m) return base;
+      let data = 0, colliders = 0;
+      const seen = new Set();
+      for (const g of regions) {
+        const k = g.x.toFixed(0) + ',' + g.y.toFixed(0) + ',' + g.r.toFixed(0);
+        let keys = readyKeys.get(k);
+        if (!keys) { keys = m.store.keysAround(g.x, g.y, Math.min(400, g.r + 100)); readyKeys.set(k, keys); if (readyKeys.size > 200) readyKeys.clear(); }
+        for (const t of m.store.missing(keys)) if (!seen.has(t)) { seen.add(t); data++; }
+        if (m.tileQueue && m.tileQueue.items) colliders += queueNear(m.tileQueue.items, g, Math.min(400, g.r + 100));
+      }
+      return sumCounts([base, { data, colliders }]);
+    },
+    warm(g) {
+      const m = map();
+      try { links.prewarmStreamAt(g.x, g.y, secs, Math.min(g.r, 200)); } catch (e) { /* vooruitladen is een hulpmiddel */ }
+      try { if (m && m.warmPoint) m.warmPoint(g.x, g.y, { radius: Math.min(400, g.r + 250) }); } catch (e) { /* idem */ }
+    },
+    fade: (k, ms) => { try { links.respawnFade(k, ms); } catch (e) { /* geen DOM */ } },
+    flags: (f) => { if (world) world.cineJumpLoading = !!f.loading; },
+    schedule: (fn) => (typeof requestAnimationFrame === 'function' ? requestAnimationFrame(fn) : setTimeout(fn, 16)),
+    note: (e) => { try { const l = (window.__cineReady || (window.__cineReady = [])); l.push({ scene: active && active.id, at: Math.round(performance.now()), ...e }); if (l.length > 60) l.shift(); } catch (err) { /* geen window */ } },
+  };
+}
+function startReadyGate(spec) {
+  const poses = Array.isArray(spec.shotPoses) && spec.shotPoses.length ? spec.shotPoses : (spec.prewarm || []).filter(Boolean).map((p) => ({ position: p, lookAt: p }));
+  if (!poses.length || spec.noReadyGate || !map_ok()) return null;
+  const env = readyEnv(30);
+  // een gast (cutId) warmt wel maar wacht niet: zijn klok volgt de gastheer
+  const g = ensureCutsceneReady(poses, { env, black: spec.cutId == null });
+  if (spec.cutId != null) { g.cancel(); return null; }
+  g.promise.then((r) => env.note({ ev: 'ready', ready: r.ready, timedOut: r.timedOut, waitedMs: Math.round(r.waitedMs), black: r.black, regions: g.regions.length }));
+  return g;
+}
+const map_ok = () => !!(world && world.map && world.map.store);
 function endJumps(a) {
   if (!a || !a._jumps) return;
   try { a._jumps.dispose(); } catch (e) { /* niet erg */ }
@@ -435,10 +483,13 @@ function begin(spec) {
   resetSkip();
   const tiles = holdShotTiles(spec.prewarm);
   active._jumps = Array.isArray(spec.jumps) && spec.jumps.length ? createJumpRunner(spec.jumps, jumpEnv(), { skipGate: spec.cutId != null }) : null;
-  active._tilesDone = !tiles;
+  const readyGate = startReadyGate(spec);
+  active._readyGate = readyGate;
+  const wait = tiles && readyGate ? Promise.all([tiles, readyGate.promise]) : (tiles || (readyGate ? readyGate.promise : null));
+  active._tilesDone = !wait;
   voicePaused = false;
   const tilesScene = active; // de scène kan intussen vervangen of gestopt zijn
-  if (tiles) tiles.then(() => { if (active === tilesScene) active._tilesDone = true; }).catch(() => { if (active === tilesScene) active._tilesDone = true; });
+  if (wait) wait.then(() => { if (active === tilesScene) active._tilesDone = true; }).catch(() => { if (active === tilesScene) active._tilesDone = true; });
   take = null; // een scène neemt de camera over van een camerastand (#728)
   attachVoices(active);
   if (active.pause) pauseOn(); // (#729) de wereld en de speler staan stil zolang de scène duurt
@@ -481,6 +532,7 @@ function begin(spec) {
 function finish(skipped, replaced = false) {
   const a = active;
   active = null;
+  if (a && a._readyGate) { try { a._readyGate.cancel(); } catch (e) { /* niet erg */ } a._readyGate = null; } // #1354: het zwart van de poort weg
   endJumps(a);
   pauseOff(); // (#729) de wereld loopt weer door (de volgende scène zet hem zo nodig weer stil)
   releaseShotTiles();

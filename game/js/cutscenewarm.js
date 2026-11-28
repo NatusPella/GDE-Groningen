@@ -126,6 +126,10 @@ export function readiness(q, deep = false) {
   const n = (v) => (finite(v) && v > 0 ? v : 0);
   if (n(q.tilesMissing)) return { ready: false, reason: 'tegels' };
   if (n(q.prewarmPending)) return { ready: false, reason: 'gebouwen' };
+  // #1354: de strenge definitie (tileready.js): ook shaders en texturen, het verre LOD en de bevolking moeten er staan
+  if (n(q.gpu)) return { ready: false, reason: 'gpu' };
+  if (n(q.lod)) return { ready: false, reason: 'verre laag' };
+  if (n(q.population)) return { ready: false, reason: 'bevolking' };
   if (deep && (n(q.buildings) || n(q.roads))) return { ready: false, reason: n(q.buildings) ? 'detail' : 'wegen' };
   return { ready: true, reason: 'klaar' };
 }

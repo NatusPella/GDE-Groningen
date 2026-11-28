@@ -24,6 +24,7 @@ import { carModel } from './trafficfleet.js';
 import { propSource, TABLE_SIT, CARRY_LOW } from './cutscenemodels.js';
 import { DECOR_MAKERS, shadowDisc } from './storyprops.js';
 import { compileScene, fitAnchor, resolveTime, shotPoints, roadPathDef } from './cutscript.js';
+import { posesFromScene } from './cutsceneready.js'; // #1354: de camerastanden en acteursplekken voor de poort van tegel-klaar
 import { jumpsFromScene } from './cutscenewarm.js';
 import { sceneSamples, isRealSet } from './realsets.js';
 import { roofAt } from './camerapath.js';
@@ -613,7 +614,7 @@ export function playScript(w, def, { lines, duration, anchor, cine = {}, env: en
   const cutId = replay ? 0 : cutHostId();
   const ok = playCinematic({
     priority: 4, pause: true, letterbox: true, skippable: true, hideHud: true, hidePlayers: true, mumble: true,
-    prewarm, jumps,
+    prewarm, jumps, shotPoses: cine.shotPoses || posesFromScene(useScene, at, sceneDur), // #1354: de scène begint pas als de wereld rond het hele shotpad klaar is
     ...cine, id: cine.id || useDef.id, duration: sceneDur, lines: sceneLines,
     onStart() {
       if (cine.onStart) cine.onStart();

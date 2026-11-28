@@ -74,7 +74,7 @@ import { bindCullHost, cullOffscreenActors, restoreCulledActors, knownGroupSpher
 export { toggleLightRig } from './scene3d/prewarm3d.js';
 import { seaExtra } from './golven.js';
 import { sleepingParkedCars } from './parkedcars.js';
-import { syncParkedLayer, setParkedGlowNight } from './parked3d.js';
+import { syncParkedLayer, setParkedGlowNight, parkedPending } from './parked3d.js';
 import { tickVehicleLooks } from './vehiclelook3d.js';
 import { requestShore, updateShore } from './quaywalls.js';
 import { getWaterIndex, waterIndexAt } from './waterindex.js';
@@ -170,7 +170,11 @@ import { treeDims, treeColor, crownBump, crownShade, SPECIES, TREE_FLAG } from '
 import { buildCanopies, streamCanopies } from './canopies3d.js';
 import { buildPerrons3D } from './perrons3d.js';
 import { initGrass, updateGrass, grassFarColor, grassFarRank } from './grass.js';
-import { updateCountryside } from './countryside.js';
+import { updateCountryside, countrysideQueued } from './countryside.js';
+import { createTextureWarm } from './texturewarm.js'; // #1354: texturen vooraf naar de GPU, binnen een tijdbudget
+import { collectReady } from './readysensors.js'; // #1354: wat staat er per niveau van tegel-klaar nog open (tileready.js)
+import { programsPending } from './programwarm.js';
+import { queueNear } from './benchsettle.js';
 import { updateOmmelandLandmarks } from './ommelandlandmarks.js';
 import { setCountryNight, setCountryFacadeLevel } from './countrybuilding.js';
 import { edgeDistance, setCountryBounds } from './countryfield.js';
@@ -721,6 +725,7 @@ function hasAiDriver(v) {
 function ensureDriverFigure(mesh, v, dist, deadline) {
   if (!mesh.userData.needsDriver) return;
   if (dist >= DRIVER_FIGURE_DIST && (dist >= DRIVER_PREFETCH_DIST || performance.now() > deadline)) return;
+  if (modularWaiting()) return; // #1354: de chauffeur wacht op de rigs (geen procedureel model dat later niet wisselt)
   mesh.userData.needsDriver = false;
   const seed = (v.id || 0) * 5.3 + 11;
   const driver = buildPersonMesh(v.isPolice ? 0x1f3f8f : 0x5a6470, 0xd9aa82, v.isPolice ? { seed } : { seed, role: v.isAmbulance ? 'ambulance' : v.isBus || v.isTaxi ? 'chauffeur' : 'voetganger' });
@@ -744,6 +749,7 @@ function ensurePassengerFigure(mesh, v, dist, deadline) {
   const ud = mesh.userData;
   if (ud.passengerChecked || !ud.driverFigure) return;
   if (dist >= DRIVER_FIGURE_DIST && (dist >= DRIVER_PREFETCH_DIST || performance.now() > deadline)) return;
+  if (modularWaiting()) return;
   ud.passengerChecked = true;
   const front = seatedOf(v).passengers.find((p) => p.slot === 'front');
   if (!front) return;
@@ -863,12 +869,21 @@ function pinShaderPrograms(r) {
 // van de ballonjacht, de voerder van de duiven) meteen de nieuwe mens krijgt en niet voorgoed de oude.
 let modularLoad = null;
 export const modularPeopleLoaded = () => modularLoad || Promise.resolve();
+// #1354: zolang de rigs nog laden bouwt niemand een mens of chauffeur: die zou het procedurele terugvalmodel krijgen en dat voor zijn hele
+// leven houden (zichtbare wissel bij de eerstvolgende bouw). Na het laden (ook een mislukte) of na MODULAR_WAIT_MAX_MS geldt de terugval.
+const MODULAR_WAIT_MAX_MS = 30000;
+let modularSettled = false, modularT0 = 0;
+const modularWaiting = () => modularLoad !== null && !modularSettled && !modularReady() && !perfOff('mensenwacht') && performance.now() - modularT0 < MODULAR_WAIT_MAX_MS;
 
 export function init3D(map) {
   liftMap = map;
   preloadLandmarkModels();
   if (mensenFase(FLAGS.mensen) >= 3) setModularPlayerLooks(true);   // ook alle figuren die niet de speler zijn (models3d_people.js buildPersonMesh)
-  if (mensenFase(FLAGS.mensen) >= 1) modularLoad = loadModularPeople(); // fase 1 van ADR 0050: voorbijgangers als modulaire mensen (alleen met ?mensen=q)
+  if (mensenFase(FLAGS.mensen) >= 1) { // fase 1 van ADR 0050: voorbijgangers als modulaire mensen (alleen met ?mensen=q)
+    modularT0 = performance.now();
+    modularLoad = loadModularPeople();
+    modularLoad.then(() => { modularSettled = true; }, () => { modularSettled = true; });
+  }
   setBuildingMap(map);
   canvas3 = document.getElementById('game3d');
   // laptops with two GPUs: the fast one
@@ -1743,7 +1758,7 @@ const _bSeen = new Set(), _bMissing = []; function syncBuildingsPass(world, px, 
     // a mesh whose shaders are not linked yet waits (the far LOD covers it): drawn at once it blocks the frame
     // for the link, 0.3 to 1 s for a style that has not been seen before (#247)
     if (!mesh.userData.progReady && !perfOff('bouwklaar')) {
-      if (meshProgramsReady(mesh)) mesh.userData.progReady = true;
+      if (meshProgramsReady(mesh) && meshTexturesReady(mesh)) mesh.userData.progReady = true; // #1354: ook de texturen staan op de GPU
       else {
         const t = mesh.userData.heldAt || (mesh.userData.heldAt = performance.now());
         if (performance.now() - t < BUILDING_LINK_WAIT_MS) {
@@ -1824,6 +1839,7 @@ const _bSeen = new Set(), _bMissing = []; function syncBuildingsPass(world, px, 
     if (d <= DRAW_DIST || d > DRAW_DIST + BUILDING_PREFETCH) continue;
     const mesh = makeBuildingMesh(b);
     precompile(mesh);
+    meshTexturesReady(mesh); // #1354
     prefetchedBuildings.set(b, mesh);
   }
   plan.spend('building', performance.now() - pft0);
@@ -1857,7 +1873,7 @@ const batchCompile = (group) => {
 };
 const batchReady = (group) => {
   if (perfOff('bouwklaar')) return true;
-  if (!cineBatches) return meshProgramsReady(group);
+  if (!cineBatches) return meshProgramsReady(group) && meshTexturesReady(group); // #1354
   if (cinePend.has(group)) return false;
   if (cineKlaar.has(group)) return true;
   if (cineReveals > 0 && meshProgramsReady(group)) { cineReveals--; cineKlaar.add(group); return true; }
@@ -2013,6 +2029,7 @@ function stepPrewarm(world) {
       if (buildingMeshes.has(b) || prefetchedBuildings.has(b)) continue;
       const mesh = makeBuildingMesh(b);
       precompile(mesh);
+      meshTexturesReady(mesh); // #1354: zet de texturen in de uploadwachtrij
       prefetchedBuildings.set(b, mesh);
     }
     // keep the spot until it expires: nearPrewarm protects these prefetched
@@ -2686,6 +2703,7 @@ function syncPedestrianMeshes(world, player, animDt, fadeDt = animDt) {
   // fast travel (a car on the A7, the heli, a train): people beyond ~90 m go by in a second and their meshes (~3 ms
   // each to build) were a turnover of dozens a second; the range closes from 14 m/s on and opens again when it slows
   const pedRange = perfOff('persoonsbereik') ? DRAW_DIST : Math.max(Math.min(DRAW_DIST, PED_RANGE_FAST), DRAW_DIST - Math.max(0, focusSpeed - PED_RANGE_FROM) * PED_RANGE_SLOPE);
+  lastPedRange = pedRange;
   const seen = _pedSeen; seen.clear(); const pt0 = performance.now(), deadline = pt0 + plan.grant('actors', PED_BUILD_BUDGET_MS);
   let built = 0;
   if (!farCrowd && mensenFase(FLAGS.mensen) >= 1) farCrowd = createFarCrowd(scene);
@@ -2705,6 +2723,7 @@ function syncPedestrianMeshes(world, player, animDt, fadeDt = animDt) {
     if (pedMeshes.has(p)) continue;
     const over = built > 0 && performance.now() > deadline;
     if (over && (!instant || performance.now() > deadline + PED_INSTANT_EXTRA_MS)) continue;
+    if (modularWaiting()) continue; // #1354: wacht op de rigs, geen tijdelijk model dat voorgoed blijft
     const mesh = buildPedActor(p, world);
     mesh.userData.fade = (instant && !over) || p.noFade ? 1 : 0;
     scene.add(mesh);
@@ -2897,6 +2916,7 @@ function syncSpeechBubbles(world) {
 
 export function update3D(dt, world) {
   drainCompileQueue(); // perf-r3: de teller nieuwe programma's per beeld terug en een deel van de compilewachtrij
+  stepTextureWarm(); // #1354: texturen van nieuwe gebouwen en batches vooraf uploaden, binnen een budget
   resetModularGeoBudget(); // perf-r3: het bouwbudget voor LOD-wissels van modulaire mensen
   // animations freeze with gameplay (pause, cutscenes); the camera keeps using dt
   const animDt = world.paused ? 0 : dt;
@@ -3830,6 +3850,38 @@ function drainCompileQueue() {
   }
 }
 export const compileQueueSize = () => compileQueue.size;
+
+// #1354: texturen vooraf naar de GPU (texturewarm.js). Een gebouw of batch telt pas als klaar voor de speler als zijn texturen geüpload zijn
+// (three.js uploadt anders bij de eerste draw: een haperende frame precies als het ding in beeld komt). ?perfoff=texwarm is het oude gedrag.
+const texWarm = createTextureWarm({ props: (t) => renderer.properties.get(t), upload: (t) => renderer.initTexture(t), now: () => performance.now() });
+function meshTexturesReady(obj) { return perfOff('texwarm') || !renderer || texWarm.ready(obj); }
+// elk beeld een paar uploads binnen een klein budget van de gebouwklasse (er is altijd minstens één per beeld, anders komt een trage texture nooit aan de beurt)
+function stepTextureWarm() {
+  if (perfOff('texwarm') || !renderer || !texWarm.pending()) return;
+  const t0 = performance.now();
+  texWarm.step(Math.max(0.6, plan.grant('building', 1.2)));
+  plan.spend('building', performance.now() - t0);
+}
+
+// #1354: wat staat er per niveau van "tegel klaar" (tileready.js) nog open rond het streamfocus (de speler, of bij een cutscene het kijkpunt van
+// de camera)? Het laadscherm, de wachtpoort van een sprong, de benchmark en de cutscenepoort wachten hierop; de probe leest het ook.
+const READY_TILE_R = 400, READY_POP_R = 70;
+let lastPedRange = 0;
+export function readyCounts(world) {
+  const m = world && world.map, pl = hoofdspeler(world), f = (world && world.streamFocus) || pl;
+  const fx = f.x, fy = f.y;
+  return collectReady({
+    tilesMissing: () => (m && m.store && m.store.keysAround ? m.store.missing(m.store.keysAround(fx, fy, READY_TILE_R)).length : 0),
+    tileQueue: () => (m && m.tileQueue && m.tileQueue.items ? queueNear(m.tileQueue.items, { x: fx, y: fy }, READY_TILE_R) : 0),
+    buildings: () => streamStat.b, roads: () => streamStat.r, prewarm: prewarmPending, countryside: countrysideQueued,
+    programs: programsPending, compileQueue: () => compileQueue.size, linkPending: () => linkPending.size, textures: () => texWarm.pending(),
+    far: () => (farLod && farLod.stats ? farLod.stats.queued : 0),
+    rigsWaiting: () => (modularWaiting() ? 1 : 0),
+    peopleMissing: () => { let n = 0; if (lastPedRange > 0) for (const p of world.pedestrians) if (!pedMeshes.has(p) && !_pedFar.has(p) && Math.hypot(p.x - fx, p.y - fy) < Math.min(lastPedRange, READY_POP_R)) n++; return n; },
+    vehiclesMissing: () => { let n = 0; for (const v of world.vehicles) if (!vehicleMeshes.has(v.id) && Math.hypot(v.x - fx, v.y - fy) < Math.min(DRAW_DIST, READY_POP_R * 1.7)) n++; return n; },
+    parkedPending,
+  });
+}
 function precompile(obj) { compileDosed(obj); }
 function precompileNow(obj) {
   const prev = renderer.getRenderTarget();

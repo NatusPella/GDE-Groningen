@@ -8,7 +8,7 @@ import { hoofdspeler } from './players.js';
 // (img/laad/), chosen by where you are going.
 import { zachtePauze } from './coopgroep.js';
 import { hudDate } from './hudcalendar.js';
-import { streamPending, prewarmStreamAt, prewarmPending } from './scene3d.js';
+import { streamPending, prewarmStreamAt, prewarmPending, readyCounts } from './scene3d.js';
 import { placeLabel } from './hud_panel.js';
 import { loadScreenHtml, missionPicture } from './loadscene.js';
 import { createGate, gateTick, fadeMs, wachtOpGastheer } from './loadgate.js';
@@ -145,7 +145,10 @@ export function startLoadScreen(world, opts = {}) {
     const hl = world.homeLaad;
     let binnen = 0;
     try { binnen = hl ? hl.tick(Math.max(0, Math.min(0.25, (now - lastT) / 1000))) : 0; } catch (e) { binnen = 0; if (!tickGemeld) { tickGemeld = true; console.warn('loadscreen: homeLaad.tick gooide, het scherm wacht er niet op', e); } } // review 22-11: een gooiende tick houdt de laadpauze niet vast
-    prog = stepProgress(prog, loadPending(st, tiles, prewarmPending(), binnen), (now - t0) / 1000, kind);
+    // #1354: het scherm wacht ook op shaders en texturen, het verre LOD en de bevolking rond de plek (tileready.js), met de bestaande maximumtijd
+    let extra = 0;
+    try { const rc = readyCounts(world); extra = rc.gpu + rc.lod + rc.population; } catch (e) { extra = 0; }
+    prog = stepProgress(prog, loadPending(st, tiles, prewarmPending(), binnen, extra), (now - t0) / 1000, kind);
     // één doorlopende balk: zacht naar het doel, nooit terug, nooit voorbij 100 % voor het klaar is
     shownBar = prog.done ? 1 : easeBar(shownBar, prog.bar, now - lastT);
     lastT = now;
