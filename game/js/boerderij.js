@@ -63,6 +63,7 @@ export const CULT_BONUS = 0.08;          // cultiveren maakt de zaaibedgrond fij
 export const SPUIT_BONUS = 0.08;         // spuiten houdt onkruid weg: tot +8%
 export const HA_REF = 1.2;               // De Zonnehoek: opbrengst en loonwerk gaan naar de grootte van het perceel
 export const OPSLAG_VERLIES = 0.0;       // de schuur houdt alles vast; de kwaliteit verandert alleen op de weg
+export const ROTATIE_BONUS = 0.05;       // drie verschillende gewassen achter elkaar op één perceel: +5% opbrengst en de grond raakt maar half zo moe (#1373)
 export const UITPUTTING_MAX = 0.3;       // elke oogst put de grond uit; ploegen, mest en wisselen van gewas herstellen hem
 
 // Het boekjaar telt honderd speldagen (een speldag is 24 minuten); het kasboek bewaart de laatste jaren.
@@ -119,7 +120,7 @@ export function normaliseer(raw) {
   if (s && typeof s === 'object' && GEWASSEN[s.gewas] && s.kg > 0) b.schuur = { gewas: s.gewas, kg: Math.round(getal(s.kg, 0, 1e6)), kwaliteit: getal(s.kwaliteit, 0, 1, 1), veld: isPerceelId(s.veld) ? s.veld : null };
   if (d.machines && typeof d.machines === 'object') for (const m of MACHINE_IDS) if (d.machines[m] === 'eigen') b.machines[m] = 'eigen';
   if (d.totaal && typeof d.totaal === 'object') for (const k of Object.keys(b.totaal)) b.totaal[k] = Math.round(getal(d.totaal[k], 0, 1e9));
-  if (d.bodemlog && typeof d.bodemlog === 'object') for (const id of Object.keys(d.bodemlog)) { const l = d.bodemlog[id]; if (isPerceelId(id) && l && typeof l === 'object') b.bodemlog[id] = { u: Math.round(getal(l.u, 0, UITPUTTING_MAX) * 1000) / 1000, g: GEWASSEN[l.g] ? l.g : null }; }
+  if (d.bodemlog && typeof d.bodemlog === 'object') for (const id of Object.keys(d.bodemlog)) { const l = d.bodemlog[id]; if (isPerceelId(id) && l && typeof l === 'object') b.bodemlog[id] = { u: Math.round(getal(l.u, 0, UITPUTTING_MAX) * 1000) / 1000, g: GEWASSEN[l.g] ? l.g : null, h: Array.isArray(l.h) ? l.h.filter((x) => GEWASSEN[x]).slice(-2) : [] }; }
   if (d.posities && typeof d.posities === 'object') for (const id of Object.keys(d.posities)) { const q = d.posities[id]; if (isPerceelId(id) && id !== START_PERCEEL && q && Number.isFinite(q.x) && Number.isFinite(q.y)) b.posities[id] = { x: q.x, y: q.y, a: Number.isFinite(q.a) ? q.a : 0 }; }
   leesBoek(b, d.boek);
   b.deliveries = normalizeJournal(d.deliveries);   // tolerant: ontbreekt of is kapot geeft een leeg journaal, de versie blijft 1 (een bump wist de boerderij)
@@ -349,7 +350,7 @@ export function rondTaakAf(b, taak, fractie, { gewas = actiefGewas(b), vrij = fa
   const veldId = b.veldVan;
   boek(b, { kosten: k.huur, post: 'machines' });
   boek(b, { kosten: k.materiaal, post: taak === 'zaaien' ? 'zaaigoed' : 'mest', veld: veldId });
-  const log = b.bodemlog[veldId] || (b.bodemlog[veldId] = { u: 0, g: null });
+  const log = b.bodemlog[veldId] || (b.bodemlog[veldId] = { u: 0, g: null, h: [] });
   const herstel = (x) => { log.u = Math.max(0, Math.round((log.u - x) * 1000) / 1000); };
   if (taak === 'ploegen') { herstel(0.02); b.veld = { ...nieuwVeld(), fase: 'geploegd', bodem: f }; return { taak, fractie: f }; }
   if (taak === 'cultiveren') {
@@ -368,8 +369,10 @@ export function rondTaakAf(b, taak, fractie, { gewas = actiefGewas(b), vrij = fa
     const kg = opbrengstKg(b) * f * (Number.isFinite(opbrengst) && opbrengst > 0 ? opbrengst : 1);   // opbrengst: de karakterbonus (karakterbonus.js), 1 voor wie die niet heeft
     b.schuur = { gewas: v.gewas, kg: Math.round(kg), kwaliteit: 1, veld: veldId };
     // de grond wordt moe van dezelfde teelt achter elkaar: wisselen van gewas put hem minder uit
-    log.u = Math.min(UITPUTTING_MAX, Math.round((log.u + (log.g === v.gewas ? 0.08 : 0.04)) * 1000) / 1000);
+    const wissel = rotatieBonus(b, veldId, v.gewas) > 0;      // drie verschillende gewassen achter elkaar: de grond raakt maar half zo moe
+    log.u = Math.min(UITPUTTING_MAX, Math.round((log.u + (log.g === v.gewas ? 0.08 : wissel ? 0.02 : 0.04)) * 1000) / 1000);
     log.g = v.gewas;
+    log.h = [...(Array.isArray(log.h) ? log.h : []), v.gewas].slice(-2);   // de laatste twee oogsten: de rotatie telt over drie
     b.veld = { ...nieuwVeld(), stoppel: v.gewas };   // het stoppelveld blijft staan tot je ploegt (alleen het beeld: #985)
     b.totaal.oogsten++;
     return { taak, fractie: f, kg: b.schuur.kg, gewas: v.gewas };
@@ -380,6 +383,25 @@ export function rondTaakAf(b, taak, fractie, { gewas = actiefGewas(b), vrij = fa
 // De uitputting van de grond van een perceel (0..0,3) en wat dat de opbrengst kost (factor 0,7..1).
 export const uitputting = (b, id = b.veldVan) => (b.bodemlog[id] ? b.bodemlog[id].u : 0);
 
+// De rotatie (#1373): zijn de laatste twee oogsten van dit perceel en het gewas dat nu groeit alle drie verschillend, dan is er een bonus van ROTATIE_BONUS.
+export function rotatieBonus(b, id, gewas) {
+  const h = b.bodemlog && b.bodemlog[id] && Array.isArray(b.bodemlog[id].h) ? b.bodemlog[id].h : [];
+  return h.length >= 2 && gewas && new Set([...h.slice(-2), gewas]).size === 3 ? ROTATIE_BONUS : 0;
+}
+// Hoe vruchtbaar is de grond van dit perceel? 100 = nooit geoogst, de ondergrens is 70 (uitputting van 0,3).
+export const vruchtbaarheid = (b, id = b.veldVan) => Math.round((1 - uitputting(b, id)) * 100);
+// Een advies in één zin voor het perceel (leeg als er niets te zeggen valt): wat de grond nodig heeft en welk gewas de rotatie zou belonen.
+export function bodemAdvies(b, id = b.veldVan) {
+  const log = b.bodemlog && b.bodemlog[id];
+  if (!log) return '';
+  const h = Array.isArray(log.h) ? log.h : [];
+  const naam = (x) => (GEWASSEN[x] ? GEWASSEN[x].naam.toLowerCase() : x);
+  if (log.u >= 0.2) return 'De grond is moe: ploegen en bemesten herstellen hem, en een ander gewas put minder uit.';
+  if (h.length >= 2 && h[0] !== h[1]) return `Zaai nu niet ${naam(h[0])} of ${naam(h[1])}: drie verschillende gewassen achter elkaar geven ${Math.round(ROTATIE_BONUS * 100)}% meer.`;
+  if (h.length >= 1) return `Wissel van gewas: ${naam(h[h.length - 1])} twee keer achter elkaar put de grond twee keer zo hard uit.`;
+  return '';
+}
+
 // Wat het perceel nu zou opleveren als je het op dit moment oogstte (bij een perfecte oogst): afhankelijk van hoe goed er geploegd,
 // gecultiveerd, gezaaid, bemest en gespoten is, van hoe ver de groei is, van de grootte en de bodem van het perceel en van hoe moe de grond is.
 export function opbrengstKg(b) {
@@ -389,7 +411,7 @@ export function opbrengstKg(b) {
   const bodem = 0.6 + 0.4 * v.bodem, zaai = 0.5 + 0.5 * v.zaai, mest = 1 + MEST_BONUS * v.mest;
   const p = actiefPerceel(b.bedrijf);
   const ha = clamp(p.ha / HA_REF, 0.5, 4);
-  return g.kgBasis * bodem * zaai * mest * (1 + CULT_BONUS * (v.cult || 0)) * (1 + SPUIT_BONUS * (v.spuit || 0)) * groei(b) * bodemFactor(p.bodem) * ha * (1 - uitputting(b));
+  return g.kgBasis * bodem * zaai * mest * (1 + CULT_BONUS * (v.cult || 0)) * (1 + SPUIT_BONUS * (v.spuit || 0)) * groei(b) * bodemFactor(p.bodem) * ha * (1 - uitputting(b)) * (1 + rotatieBonus(b, b.veldVan, v.gewas));
 }
 
 // Het afleveren: de lading wordt verkocht tegen de prijs van het gewas, met de kwaliteit die de rit overleefde (0..1). Geeft het

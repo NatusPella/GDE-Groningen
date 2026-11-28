@@ -52,7 +52,8 @@ export function veldKaartHtml(k) {
     `<header class="ds-z-kaart__kop">${fp}<h3 class="ds-z-kaart__titel">${esc(k.naam)}</h3>${chip(k.statusId, k.standNaam)}</header>` +
     `<p class="ds-z-kaart__tekst">${gewas} · ${esc(String(k.ha).replace('.', ','))} ha${k.actief ? ' · werkt hier' : ''}</p>` +
     voortgang +
-    `<ul class="bd-veld__feiten"><li><span class="ds-t-hulp">Volgende stap</span><b>${esc(k.volgende)}</b></li>${verwacht}</ul>` +
+    `<ul class="bd-veld__feiten"><li><span class="ds-t-hulp">Volgende stap</span><b>${esc(k.volgende)}</b></li>${verwacht}<li><span class="ds-t-hulp">Grond</span><b>${esc(k.bodem || '')}, ${k.vruchtbaar}% vruchtbaar</b></li></ul>` +
+    (k.advies ? `<p class="ds-z-kaart__tekst ds-t-hulp bd-advies">${esc(k.advies)}</p>` : '') +
     `<footer class="ds-z-kaart__voet"><button type="button" class="ds-z-knop ds-z-knop--secundair" data-bd-naar="${esc(k.id)}" data-bd-sluit="1" aria-label="Naar veld ${esc(k.naam)}">Naar veld</button>` +
     `<button type="button" class="ds-z-knop ds-z-knop--secundair" data-bd-naar="${esc(k.id)}" data-goto="map" aria-label="Markeer ${esc(k.naam)} op kaart">Markeer op kaart</button></footer></article>`;
 }
