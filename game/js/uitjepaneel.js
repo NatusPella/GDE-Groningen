@@ -47,7 +47,8 @@ export function uitjeHtml(spec) {
 
 const CSS = `
 #uitje-paneel[hidden] { display: none; }
-#uitje-paneel { position: fixed; left: 50%; bottom: max(13vh, 88px); transform: translateX(-50%) translateY(10px); z-index: 6; max-width: min(560px, calc(100vw / var(--ui, 1) - 32px)); pointer-events: none; opacity: 0; transition: opacity 0.3s, transform 0.35s; zoom: var(--ui, 1); }
+#uitje-paneel { position: fixed; left: 50%; bottom: max(13vh, 88px); transform: translateX(-50%) translateY(10px); z-index: 6; max-width: min(560px, calc(100vw / var(--ui, 1) - 32px)); pointer-events: none; opacity: 0; transition: opacity 0.3s, transform 0.35s; }
+body > #uitje-paneel { zoom: var(--ui, 1); }
 #uitje-paneel.on { opacity: 1; transform: translateX(-50%) translateY(0); }
 #uitje-paneel .uitje-kaart { position: relative; overflow: hidden; display: flex; flex-direction: column; gap: 2px; padding: 9px 16px 10px 84px; color: var(--ds-c-creme); text-shadow: var(--hud-shadow); background: linear-gradient(90deg, color-mix(in srgb, var(--ds-c-glas) 94%, transparent), color-mix(in srgb, var(--ds-c-glas) 78%, transparent) 78%, color-mix(in srgb, var(--ds-c-glas) 50%, transparent)); border-left: 3px solid var(--uitje-acc); border-radius: 0 8px 8px 0; }
 #uitje-paneel .uitje-vorm { position: absolute; left: 0; top: 0; bottom: 0; width: 70px; opacity: 0.42; pointer-events: none; }

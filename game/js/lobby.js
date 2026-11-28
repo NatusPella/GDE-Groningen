@@ -311,7 +311,10 @@ export function reduce(s, ev) {
     }
     case 'wachtwoord': // het wachtwoord van deze sessie (#450): de gastheer zet of wijzigt het, de gast vult het in; leeg is open
       return { ...n, wachtwoord: schoonWachtwoord(ev.tekst) };
-    case 'gate': n.caps = { ...s.caps, startGate: !!ev.aan }; return n;
+    case 'gate':
+      n.caps = { ...s.caps, startGate: !!ev.aan };
+      if (!ev.aan) { n.startBezig = false; n.startS = 0; }
+      return n;
     case 'hold': n.holdSlot = ev.slot ?? null; n.holdNaam = ev.naam || ''; return n;
     case 'spelers': { // de lijst met spelers is veranderd (host: uit de hub; gast: van de host)
       n.spelers = Array.isArray(ev.lijst) ? ev.lijst : []; n.max = Math.min(ABS_MAX, Math.max(MIN_MAX, ev.max | 0 || DEFAULT_MAX));

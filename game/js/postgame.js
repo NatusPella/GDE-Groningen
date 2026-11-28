@@ -37,6 +37,7 @@ import { loopbaanVerdien } from './loopbaanlive.js';
 import { vakVanUitdaging } from './loopbaan.js';
 import { hoofdspeler } from './players.js';
 import { FAREWELL } from './beppe_texts.js';
+import { escapeHtml as esc } from './htmlescape.js';
 
 // The post-game: once the story's ending card has played (story.js, read
 // only), Jelle Terpstra challenges Tammo and Tessa to three replayable duels
@@ -525,9 +526,6 @@ function ensureUi() {
   return ui;
 }
 
-function esc(s) {
-  return String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
-}
 
 function showSub(speaker, text) {
   const el = ensureUi().sub;

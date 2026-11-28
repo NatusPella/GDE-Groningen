@@ -6,8 +6,8 @@
 import { GEWASSEN, STANDAARD_GEWAS } from './boerderij.js';
 import { bodemFactor } from './bezitprijs.js';
 import { euro } from './geldtekst.js';
+import { escapeHtml as esc } from './htmlescape.js';
 
-const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const ACCESS_TEXT = { weg: 'aan een autoweg', pad: 'aan een pad', wegNabij: 'bij een autoweg (tot 60 m)', padNabij: 'bij een pad (tot 60 m)', geen: 'zonder toegang' };
 export const accessText = (a) => ACCESS_TEXT[a] || ACCESS_TEXT.geen;
 const MODE_TEXT = { self: 'Zelf bewerkt', leased: 'Verpacht', staff: 'Door personeel' };

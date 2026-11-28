@@ -25,6 +25,7 @@ import { queueAnimalHit, WOLF_BITE } from './provinceanimals.js';
 import { vcMaterial, markShared } from './pixelart3d.js';
 import { propGeometry } from './propmodels3d.js';
 import { hoofdspeler } from './spelersregister.js';
+import { devWarn } from './devwarn.js';
 
 const EEND = ['drake', 'hen', 'swan', 'goose'];
 const hex = (s) => parseInt(String(s).replace('#', ''), 16);
@@ -42,7 +43,7 @@ function bouwPop(p, ui) {
   const opts = ui && ui.look ? { seed, look: ui.look } : { seed };
   const m = buildPersonMesh(ui ? hex(ui.kleding) : p.agent ? 0x1c3fae : SHIRT_TERUG, ui ? hex(ui.huid) : HUID_TERUG, opts);
   m.traverse((o) => { if (o.isMesh) o.castShadow = true; });
-  if (ui && ui.draagt) { try { attachCarry(m, ui.draagt); } catch (e) { /* zonder last */ } }
+  if (ui && ui.draagt) { try { attachCarry(m, ui.draagt); } catch (e) { devWarn('coopextra3d', e); } }
   return m;
 }
 const sigVan = (ui) => (ui ? `${ui.kleding}|${ui.huid}|${ui.zaad}|${ui.draagt || ''}|${ui.look ? JSON.stringify(ui.look) : ''}` : 'terug');
@@ -82,30 +83,30 @@ export function syncGastVoetgangers(world, lijst, dt) {
       if (e.lig == null) e.lig = e.eerste ? nu - 1 : nu;
       const val = Math.min(1, (nu - e.lig) / 0.3);
       m.position.set(p.x, 0.14 * val + grond(world, p.x, p.y), p.y); m.rotation.set(0, -p.angle, val * val * Math.PI / 2);
-      try { animatePersonWalk(m, 0, dt); } catch (er) { /* */ }
+      try { animatePersonWalk(m, 0, dt); } catch (er) { devWarn('coopextra3d', er); }
       e.eerste = false; ligt++;
       continue;
     }
     if (e.lig != null) { e.lig = null; m.rotation.set(0, -p.angle, 0); }
     e.eerste = false;
     m.position.set(p.x, grond(world, p.x, p.y), p.y); m.rotation.y = -p.angle;
-    try { animatePersonWalk(m, Math.min(e.v, 8), dt); } catch (er) { /* zonder loopanimatie */ }
+    try { animatePersonWalk(m, Math.min(e.v, 8), dt); } catch (er) { devWarn('coopextra3d', er); }
     const ui2 = ui || (stand && stand.uiterlijk.get(p.id));
-    if (ui2 && ui2.draagt) { try { carryPose(m, ui2.draagt); } catch (er) { /* */ } }
+    if (ui2 && ui2.draagt) { try { carryPose(m, ui2.draagt); } catch (er) { devWarn('coopextra3d', er); } }
     if (vs) { // een wapen in de hand en een vechtbeweging, een klap die aankomt
       const wp = pedX ? pedX.get(p.id) : null;
       const wapen = (vs.flags & V_WAPEN) && wp ? wp.wapen : '';
-      if (wapen !== (e.wapen || '')) { e.wapen = wapen; try { setHeldWeapon(m, wapen || null); } catch (er) { /* */ } }
+      if (wapen !== (e.wapen || '')) { e.wapen = wapen; try { setHeldWeapon(m, wapen || null); } catch (er) { devWarn('coopextra3d', er); } }
       const slaat = !!((vs.flags & V_AANVAL) && wp && wp.fx);
       if (slaat) { if (!e.fx || nu - e.fx.start > 0.8) e.fx = { type: wp.fx, swing: wp.swing || undefined, start: nu }; } else e.fx = null;
-      if (wapen || e.fx) { try { applyAttackPose(m, e.fx, nu, null); } catch (er) { /* */ } }
+      if (wapen || e.fx) { try { applyAttackPose(m, e.fx, nu, null); } catch (er) { devWarn('coopextra3d', er); } }
       if (wapen) wapens++; if (slaat) vecht++;
       if (vs.flags & V_GERAAKT) { if (!e.klap || nu - e.klap > 0.8) e.klap = nu; }
-      if (e.klap && nu - e.klap < 0.6) { try { applyHitReaction(m, { t: e.klap, dx: Math.cos(p.angle), dy: Math.sin(p.angle), k: 0.7 }, nu, p.angle); } catch (er) { /* */ } }
+      if (e.klap && nu - e.klap < 0.6) { try { applyHitReaction(m, { t: e.klap, dx: Math.cos(p.angle), dy: Math.sin(p.angle), k: 0.7 }, nu, p.angle); } catch (er) { devWarn('coopextra3d', er); } }
     }
     if (vs) {
-      if (vs.flags & V_GROET) { try { waveOverlay(m, nu + p.id * 0.37, 1); } catch (er) { /* */ } }
-      if (vs.flags & V_FEEST) { try { const h = juichHoek(nu + p.id * 0.37, 1); juichOverlay(m, nu, h.links, h.rechts, h.spring, 1); } catch (er) { /* */ } }
+      if (vs.flags & V_GROET) { try { waveOverlay(m, nu + p.id * 0.37, 1); } catch (er) { devWarn('coopextra3d', er); } }
+      if (vs.flags & V_FEEST) { try { const h = juichHoek(nu + p.id * 0.37, 1); juichOverlay(m, nu, h.links, h.rechts, h.spring, 1); } catch (er) { devWarn('coopextra3d', er); } }
     }
   }
   for (const [id, e] of pop) if (!gezien.has(id)) { verwijder(scene, e.mesh); pop.delete(id); }
@@ -192,7 +193,7 @@ export function syncGastDieren(world, dt) {
       if (a.state === 'aanval' && me && Math.hypot(me.x - a.x, me.y - a.y) < 1.7 && e.biteT <= 0) { e.biteT = 1.1; queueAnimalHit(world, WOLF_BITE); }
     }
     m.position.set(a.x, y, a.y); m.rotation.y = -a.angle;
-    try { animateWildlifeMesh3D(m, a, nu); } catch (er) { /* zonder animatie */ }
+    try { animateWildlifeMesh3D(m, a, nu); } catch (er) { devWarn('coopextra3d', er); }
   }
   for (const [id, e] of dieren) {
     if (!vers || !stand.dieren.has(id)) { verwijder(scene, e.mesh); dieren.delete(id); }
@@ -212,7 +213,7 @@ export function syncGastLichten(world, dt) {
     const verschil = lichtVerschil(c.t, l.t + (nu - l.at), c.cycle);
     if (Math.abs(verschil) > 0.4) { c.t = ((c.t + verschil) % c.cycle + c.cycle) % c.cycle; n++; }
   }
-  if (n) try { updateTrafficLights(0, world); } catch (e) { /* */ }
+  if (n) try { updateTrafficLights(0, world); } catch (e) { devWarn('coopextra3d', e); }
   return n;
 }
 
@@ -270,7 +271,7 @@ let kermisAan = false;
 export function syncGastKermis(world, dt) {
   const stand = world.coopExtra, m = stand && standVers(stand, world.time) ? stand.misc.get(MISC_KERMIS) : null;
   if (m) { kermisAan = true; setKermisOverride(m.data[0] === 1); } else if (kermisAan) { kermisAan = false; setKermisOverride(null); }
-  if (m) { try { KERMIS.tick(dt, world); } catch (e) { /* zonder kermis */ } }
+  if (m) { try { KERMIS.tick(dt, world); } catch (e) { devWarn('coopextra3d', e); } }
 }
 const stunt = { groep: null, meshes: [], sig: '' };
 export function syncGastStunt(world) {
@@ -416,7 +417,7 @@ function syncGastDuif(world, dt) {
   g.rotation.y = -p.hoek;
   // de vleugels: stil op de grond, klappend in de lucht
   duif.fase += dt * (p.soort === 'fly' ? 9 : 2.5);
-  try { posePigeonBird(g, { flapPhase: duif.fase, amp: p.soort === 'fly' ? 1 : 0.15, fold: p.soort === 'fly' ? 0 : 0.8, grounded: p.soort !== 'fly', walkPhase: duif.fase * 0.5, peck: 0 }); } catch (e) { /* zonder animatie */ }
+  try { posePigeonBird(g, { flapPhase: duif.fase, amp: p.soort === 'fly' ? 1 : 0.15, fold: p.soort === 'fly' ? 0 : 0.8, grounded: p.soort !== 'fly', walkPhase: duif.fase * 0.5, peck: 0 }); } catch (e) { devWarn('coopextra3d', e); }
   return 1;
 }
 // De duif is per gast opgebouwd, dus zijn geometrie mag weg; de materialen komen uit de cache van pigeonmode.js
@@ -455,7 +456,7 @@ export function syncExtra(world, dt) {
   syncGastSpraak(world, lijst);
   const nd = syncGastDieren(world, dt);
   syncGastLichten(world, dt);
-  try { gastOverwegen(dt, world); } catch (e) { /* zonder overwegen */ }
+  try { gastOverwegen(dt, world); } catch (e) { devWarn('coopextra3d', e); }
   syncGastKapot(world, dt);
   const nw = syncGastWereld(world, dt);
   syncGastKermis(world, dt);

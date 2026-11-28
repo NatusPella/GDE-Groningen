@@ -77,7 +77,8 @@ function newSwimmer(x, y, seed, bridge) {
 }
 
 function scan(world) {
-  const { map, player } = world;
+  const { map } = world;
+  const player = hoofdspeler(world);
   const view = world.pedView;
   for (const r of map.roadsNear(player.x, player.y, SCAN_R)) {
     if (!r.bridge || r.pts.length < 2 || swimmers.length >= MAX_SWIMMERS) continue;

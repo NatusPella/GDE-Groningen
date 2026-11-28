@@ -26,6 +26,7 @@ import { lichaamVan, bestuurInstappenIn, bestuurLos } from './coopbestuur.js';
 import { registreerWedstrijd, zetWedGastHaken, wedNodigUit, wedNuStarten, wedHostBaan, wedBaanStand, wedScoreStop } from './multiplayerwedstrijd.js';
 import { CP_TOTAAL, stapPoort, meters, klaar as baanKlaar, gridRij, medailleVoorPlek, prijsVoorPlek, xpVoorPlek } from './ringbaan.js';
 import { medailleBedrag, volgendePlek } from './medalrules.js';
+import { escapeHtml as esc } from './htmlescape.js';
 
 // De identiteitskleur staat in de ene accenttabel (#453, #618): geen eigen rood meer.
 const ACCENT = mgThema('ringrace').accent;
@@ -46,7 +47,6 @@ const bijStart = (w) => {
   return !!q && Math.hypot(q.x - START.x, q.y - START.y) <= START_REACH;
 };
 const fmt = (s) => fmtTime(Math.max(0, s));
-const esc = (s) => String(s == null ? '' : s).replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
 
 // --- solo: de race van H9 (racers.js) ----------------------------------------
 

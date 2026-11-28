@@ -253,14 +253,14 @@ html.reduce-motion .gm, html.reduce-motion .gm *, html.reduce-motion .gm *::befo
 .foto-gal img, .foto-leeg { width: 100%; aspect-ratio: 16 / 9; object-fit: cover; border-radius: 8px; background: color-mix(in srgb, var(--ds-c-creme-zacht) 20%, transparent); display: grid; place-items: center; }
 .foto-gal figcaption { font-size: .85em; margin-top: 4px; }
 
-#windwijzer { position: fixed; right: calc(20px * var(--ui, 1)); bottom: calc(150px * var(--ui, 1)); z-index: 40; display: grid; grid-template-columns: auto auto; gap: 4px 10px; align-items: center; padding: 8px 12px; border-radius: 14px; background: color-mix(in srgb, var(--ds-c-inkt) 72%, transparent); color: var(--ds-c-wit); font-size: calc(14px * var(--ui, 1)); pointer-events: none; }
+#windwijzer { position: fixed; right: calc(20px * var(--ui, 1)); bottom: calc(150px * var(--ui, 1)); z-index: 6; display: grid; grid-template-columns: auto auto; gap: 4px 10px; align-items: center; padding: 8px 12px; border-radius: 14px; background: color-mix(in srgb, var(--ds-c-inkt) 72%, transparent); color: var(--ds-c-wit); font-size: calc(14px * var(--ui, 1)); pointer-events: none; }
 #windwijzer[hidden] { display: none; }
 #windwijzer svg { width: calc(44px * var(--ui, 1)); height: calc(44px * var(--ui, 1)); grid-row: span 2; }
 #windwijzer .ww-ring { fill: none; stroke: color-mix(in srgb, var(--ds-c-wit) 50%, transparent); stroke-width: 1.5; }
 #windwijzer .ww-pijl { fill: var(--ds-c-wit); transform-origin: 0 0; }
 #windwijzer .ww-trim { height: 6px; border-radius: 3px; background: color-mix(in srgb, var(--ds-c-wit) 25%, transparent); overflow: hidden; }
 #windwijzer .ww-trim i { display: block; height: 100%; background: var(--ds-c-wit); }
-#windwijzer .ww-keys { grid-column: 1 / -1; font-size: .85em; opacity: .9; }
+#windwijzer .ww-keys { grid-column: 1 / -1; font-size: max(13px, 1em); opacity: .9; }
 #windwijzer .hud-key { border-radius: 5px; background: var(--ds-c-ink-papier); color: var(--ds-c-ink-inkt); font-weight: 700; text-align: center; }
 
 /* a phone held sideways (360-460 px tall, #227): the same layout, much tighter */

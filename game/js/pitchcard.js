@@ -3,8 +3,8 @@
 // mv-note), geen DOM (scripts/pitchmap_test.mjs). De acties zijn data-card-waarden die mapview.js afhandelt: sp-koop, sp-ok, sp-annuleer, sp-zet.
 
 import { euro } from './geldtekst.js';
+import { escapeHtml as esc } from './htmlescape.js';
 
-const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const STATUS_LABEL = { jij: 'Van jou', usmem: 'Van Us Mem Snacks', medespeler: 'Van een medespeler', vrij: 'Vrij' };
 // een spatie tussen label en prijs: zonder staat er "Vergunning€450" in de tekst en voor een schermlezer (#1234)
 const act = (card, label, small) => `<button type="button" class="mv-actie" data-card="${card}"><span class="mv-at"><span class="mv-al">${label}</span> <small>${small}</small></span></button>`;

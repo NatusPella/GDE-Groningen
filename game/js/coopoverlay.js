@@ -3,10 +3,10 @@
 // (.gm, .m-bp/.m-bg, tokens), één primaire knop en aria-modal; de aanroeper levert de
 // titel, de tekst en de knoppen. De HTML-functie is puur (testbaar zonder DOM).
 import { knopToets, shortcutName } from './dsbutton.js';
+import { escapeHtml as esc } from './htmlescape.js';
 
 // #1220: de actienaam is `action`; een knop met alleen `id` werd stil weggelaten (een vraag zonder knoppen). Nu geldt `id` als terugval.
 const actieVan = (b) => (b && (b.action || b.id)) || '';
-const esc = (s) => String(s == null ? '' : s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
 export function overlayHtml({ title = '', text = '', buttons = [], label = '' } = {}) {
   const knoppen = (Array.isArray(buttons) ? buttons : []).map((b) => {
@@ -49,10 +49,16 @@ export function mountOverlay({ title = '', text = '', buttons = [], label = '', 
       tmp.innerHTML = overlayHtml(o);
       const vers = tmp.firstElementChild;
       if (!vers) return;
+      const active = typeof document !== 'undefined' ? document.activeElement : null;
+      const prevAct = active && el.contains && el.contains(active) && active.getAttribute ? active.getAttribute('data-cp-action') : null;
       el.className = vers.className;
       for (const a of ['role', 'aria-modal', 'aria-label']) { const v = vers.getAttribute(a); if (v) el.setAttribute(a, v); }
       el.innerHTML = vers.innerHTML;
-      focus();
+      const terug = prevAct && el.querySelectorAll
+        ? [...el.querySelectorAll('[data-cp-action]')].find((b) => b.getAttribute('data-cp-action') === prevAct)
+        : null;
+      if (terug && terug.focus) terug.focus({ preventScroll: true });
+      else focus();
     },
     close() { try { el.removeEventListener('click', klik); el.remove(); } catch (e) { /* al weg */ } },
     focus,

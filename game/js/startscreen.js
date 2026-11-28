@@ -9,7 +9,8 @@ import { VERSION } from './version.js';
 import { pointInPolygon } from './util.js';
 import { openPauseMenu, menuIcon } from './pausemenu.js';
 import { requestOpenSamen } from './samenpanel.js';
-import { ensureSamenProfile } from './launchchoiceui.js';
+import { ensureSamenProfile, isLaunchChoiceOpen, isToestemmingOpen } from './launchchoiceui.js';
+import { isOnlineStartOpen } from './onlineconsentui.js';
 import { askNewGameDifficulty } from './difficultyui.js';
 import { difficultyPlan } from './difficultycard.js';
 import { openSamenKeuze, isSamenKeuzeOpen } from './samenkeuze.js';
@@ -31,6 +32,7 @@ import { stepDurations, bootPlan, bootProgress, bootPhaseAt, bootCreepCap, BOOT_
 import { padGlyphInner } from './glyphs.js';
 import { onDeviceChange, getDevice } from './inputdevice.js';
 import { MENU_PLEKKEN, stadPlek, leesVerleden, bewaarVerleden, kiesVolgende, noteer, maakBeeld } from './menuplekken.js';
+import { escapeHtml as esc } from './htmlescape.js';
 
 // the footer hints (static HTML in index.html) show the controller buttons when a controller was used last
 let footKb = null;
@@ -414,7 +416,6 @@ function makeShot(map, spot) {
   };
 }
 
-const esc = (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
 // After the attract intro: the logo appears big in the middle, then glides
 // and shrinks into its place before the menu fades in (CSS .ss-handoff).
@@ -881,7 +882,8 @@ function runMenuScreen(world, { render, relocate, tick, ready }, pending = null)
     };
     news.querySelector('.ss-news-close').addEventListener('click', closeNews);
     const onKey = (e) => {
-      if (isPauseMenuOpen() || isSaveSlotsOpen() || isSamenKeuzeOpen() || isQuitConfirmOpen() || done || trailerOn) return;
+      if (isPauseMenuOpen() || isSaveSlotsOpen() || isSamenKeuzeOpen() || isOnlineStartOpen() || isLaunchChoiceOpen() || isToestemmingOpen() || isQuitConfirmOpen() || done || trailerOn) return;
+      if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA')) return;
       if (e.target && e.target.closest && e.target.closest('#gfx-advice')) return;
       const k = e.key;
       if (!news.hidden) {

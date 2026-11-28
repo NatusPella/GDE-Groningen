@@ -25,6 +25,7 @@ import { playerBusy } from './busy.js';
 import { lessonsAllSeen, goalHandled } from './onboardinglogic.js';
 import { createCourse, trackCourse, courseNudged, pauseCourse, NUDGE, NUDGE_CARD } from './firststeps.js';
 import { hoofdspeler } from './players.js';
+import { escapeHtml as escHtml } from './htmlescape.js';
 
 const STORE_KEY = KEYS.onboarding;
 const FIRST_AFTER = 12;
@@ -38,7 +39,6 @@ const SKIP_NOTE = 'Uitleg uit: {ESC} › Instellingen.';
 // {E} in a card is a key glyph (prompts.js glyphHtml): the rebound key, or the
 // controller button when a controller was used last (glyphs.js).
 const KEY_TOKEN = /\{(\w+)\}/g;
-const escHtml = (s) => s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const plainKeys = (t) => t.replace(KEY_TOKEN, (m, k) => keyName(physicalKey(getSettings().keyBinds || {}, tokenKey(k))));
 const htmlKeys = (t) => t.split(KEY_TOKEN).map((part, i) => (i % 2 ? glyphHtml(part) : escHtml(part))).join('');
 const missionOn = (w) => !!(w.mission && w.mission.phase === 'active');

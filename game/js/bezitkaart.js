@@ -3,7 +3,7 @@
 // De standen en hun taal komen van farmstatus.js (braak, stoppel, geploegd, zaailing, groeiend, bijna, rijp). Samen spelen: alleen eigen percelen.
 // Alle kleuren staan in de CSS (ds-bezit.css, klassen bzk-*) en komen uit de ds-tokens; hier staat geen hex.
 
-const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+import { escapeHtml as esc } from './htmlescape.js';
 
 // stand -> vulling (een patroon of een inkt) en letter
 export const STAND_KAART = {

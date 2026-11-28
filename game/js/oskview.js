@@ -5,8 +5,8 @@
 import { buildGrid, status, displayText, GDE2_PREFIX } from './oskmodel.js';
 import { knopToets } from './dsbutton.js';
 import { glyphHtml } from './keycap.js';
+import { escapeHtml as esc } from './htmlescape.js';
 
-const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
 const KIND_NAME = { 'naam': 'naam', code: 'code', tekst: 'tekst', wachtwoord: 'wachtwoord', zoek: 'zoekterm', cijfers: 'cijfers' };
 

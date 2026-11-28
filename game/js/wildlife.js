@@ -254,7 +254,8 @@ function spawnCat(map, px, py, rng) {
 }
 
 function spawnDog(world, rng) {
-  const { player, pedestrians } = world;
+  const { pedestrians } = world;
+  const player = hoofdspeler(world);
   if (!pedestrians) return [];
   const taken = new Set(world.wildlife.filter((a) => a.kind === 'dog').map((a) => a.owner));
   const candidates = pedestrians.filter((p) => !taken.has(p) && !p.isCop && !p.pose && p.state === 'wander' && !p.scene
@@ -338,7 +339,8 @@ function maintain(world, focus = null, n = 1) {
 // --- behaviour ---------------------------------------------------------------
 
 function updateSeagull(a, dt, world) {
-  const { map, player } = world;
+  const { map } = world;
+  const player = hoofdspeler(world);
   const scared = dist(a.x, a.y, player.x, player.y) < 4 || (dist(a.x, a.y, player.x, player.y) < 9 && playerSpeed(player) > 4);
   a.stateTimer -= dt;
   const prevAngle = a.angle;
@@ -577,7 +579,8 @@ function updateDuck(a, dt) {
 }
 
 function updatePigeon(a, dt, world) {
-  const { player, map } = world;
+  const { map } = world;
+  const player = hoofdspeler(world);
   const f = a.flock;
   if (a.state === 'ground') {
     const pd = dist(a.x, a.y, player.x, player.y);
@@ -657,7 +660,8 @@ export function stepKatUitWater(a, dt, map, rng = Math.random) {
 }
 
 function updateCat(a, dt, world) {
-  const { player, map } = world;
+  const { map } = world;
+  const player = hoofdspeler(world);
   if (stepKatUitWater(a, dt, map)) return;
   a.stateTimer -= dt;
   const pd = dist(a.x, a.y, player.x, player.y);

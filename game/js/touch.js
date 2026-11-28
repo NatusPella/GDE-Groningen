@@ -305,6 +305,7 @@ export function initTouch(input, world, hooks = {}) {
     };
     el.addEventListener('pointerup', up);
     el.addEventListener('pointercancel', up);
+    el.addEventListener('lostpointercapture', up);
     btnHost.appendChild(el);
   }
 

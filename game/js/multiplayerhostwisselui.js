@@ -76,12 +76,23 @@ export function koppelWissel(world, opts = {}) {
 }
 
 // ---- het scherm -----------------------------------------------------------------------------------------------------------------
-let overlay = null, houder = null, timer = null, laatste = '', eindTot = 0, huidige = null;
+let overlay = null, houder = null, timer = null, ac = null, laatste = '', eindTot = 0, huidige = null;
 
 function startWisselUi(world) {
+  if (timer && huidige && huidige !== world) stopWisselUi();
   if (timer || typeof document === 'undefined') return;
+  huidige = world;
   timer = setInterval(() => teken(world), 200);
-  window.addEventListener('keydown', toets);
+  ac = typeof AbortController !== 'undefined' ? new AbortController() : null;
+  window.addEventListener('keydown', toets, ac ? { signal: ac.signal } : undefined);
+}
+
+// Opruimen als de sessie stopt: de toetsluisteraar en de timer horen niet in een volgende sessie door te lopen.
+export function stopWisselUi() {
+  if (timer) { clearInterval(timer); timer = null; }
+  if (ac) { ac.abort(); ac = null; }
+  if (houder) { houder.close(); houder = null; }
+  overlay = null; laatste = ''; eindTot = 0; huidige = null;
 }
 
 // #151: de vraag is met een controller te beantwoorden. gamepad.js kiest dan de coopvraag-indeling

@@ -2,8 +2,8 @@
 // farmcards.js en boerderijui.js maken hiermee HTML, farmpics.js (3D) vult de vakken later met een stilstaand plaatje. Sleutels:
 //   m:<machine-id>  trekker, maaidorser, laadmachine   w:<type>  werktuig   dier:<koe|schaap|kip>   gebouw:<schuur|silo|kas>   gewas:<gewas-id>
 import { icoon } from './icons.js';
+import { escapeHtml as esc } from './htmlescape.js';
 
-const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
 export const FP_MACHINES = { 'trekker-klein': 'tractor', 'trekker-groot': 'tractor', maaidorser: 'oogst', laadmachine: 'gereedschap' };
 export const FP_IMPLEMENTS = { ploeg: 'ploeg', cultivator: 'cultivator', zaaimachine: 'zaaimachine', mestverspreider: 'mestverspreider', spuit: 'veldspuit', maaier: 'maaibalk', aanhanger: 'aanhanger' };

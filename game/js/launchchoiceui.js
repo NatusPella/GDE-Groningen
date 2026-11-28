@@ -12,8 +12,8 @@ import { trapTabInCard, bewaarFocus } from './listnav.js';
 import { knopToets } from './dsbutton.js';
 import { menuItems, startFocus, menuToets, uitkomstVan, nieuwSpelPlan, ladenPlan, heldRegels, samenKeuzePlan, samenGekozen } from './hoofdmenu.js';
 import { isPauseMenuOpen } from './pausestate.js';
+import { escapeHtml as esc } from './htmlescape.js';
 
-const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
 // De keuzekaart. `index` is de knop die de voorselectie heeft (alleen voor data-voorkeur; de focus zet mountStartKeuze).
 export function launchChoiceHtml({ index = 0 } = {}) {
@@ -47,6 +47,8 @@ export function toestemmingHtml() {
 }
 
 let open = null; // één kaart tegelijk
+export const isLaunchChoiceOpen = () => !!open;
+export const isToestemmingOpen = () => !!(open && open.kind === 'toestemming');
 function backdrop() {
   const el = document.createElement('div');
   el.id = 'online-start';
@@ -93,7 +95,7 @@ export function openLaunchChoice({ index = 0 } = {}) {
     if (b) sluit(b.dataset.keuze);
   });
   knoppen.forEach((b, i) => b.addEventListener('mouseenter', () => zet(i))); // de muis volgt de focus: de knop onder de muis is de gekozen knop
-  open = { promise, el };
+  open = { promise, el, kind: 'keuze' };
   zet(nu);
   return promise;
 }
@@ -265,7 +267,7 @@ export function openToestemming({ zet = undefined } = {}) {
     if (!t) return;
     if (t.hasAttribute('data-terug')) sluit(false); else geef();
   });
-  open = { promise, el };
+  open = { promise, el, kind: 'toestemming' };
   vink.focus();
   return promise;
 }

@@ -6,6 +6,8 @@
 // Okabe-Ito pair that stays apart for every common colour blindness.
 // Pure data plus two tiny helpers: Node scripts may import it.
 
+import { escapeHtml as esc } from './htmlescape.js';
+
 const SPEAKER_COLORS = {
   Tammo: '#2a8ad4',
   Anita: '#d86b00',
@@ -74,7 +76,6 @@ export const displayName = (name) => {
 const SPEAKER_ID = Object.fromEntries(Object.entries(DISPLAY_NAME).map(([id, shown]) => [shown, id]));
 export const speakerColor = (name) => SPEAKER_COLORS[baseSpeaker(name)] || SPEAKER_COLORS[SPEAKER_ID[baseSpeaker(name)]] || NEUTRAL;
 
-const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
 // `<b class="spk">Tammo:</b> ` in Tammo's colour, or '' without a name.
 export function speakerHtml(name) {

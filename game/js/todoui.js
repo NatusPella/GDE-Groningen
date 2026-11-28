@@ -23,8 +23,8 @@ import { dsButtonKey } from './dsbutton.js';
 import { openerNaam } from './coopplayers.js';
 import { gameProgress } from './progresslive.js';
 import { progressPartText } from './progress.js';
+import { escapeHtml as esc } from './htmlescape.js';
 
-const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const PART_IDS = Object.keys(PARTS);
 
 // Soort en Dichtbij blijven bewaard (#QoL): wie "Minigames" koos, begon na het sluiten van het

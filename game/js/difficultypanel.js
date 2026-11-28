@@ -3,12 +3,12 @@
 // alles gaat via difficulty.js (de actieve stand, die savegame.js in de save schrijft).
 // Een optie is een kiezer (‹ waarde ›) zoals de andere instellingen en volgt dus dezelfde toetsen, muis en controller.
 import { icoon } from './icons.js';
+import { escapeHtml as esc } from './htmlescape.js';
 import {
   DIFFICULTY, DIFFICULTY_MODES, LEVEL_TEXT, OPTION_DEFS, OPTION_GROUPS, OPTIONS_NEXT_START,
   getDifficulty, setActiveOption, resetActiveOptions, optionDef,
 } from './difficulty.js';
 
-const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
 export const DIFFICULTY_TAB_TEXT = Object.freeze({
   intro: 'Hoe pittig het is in dit spel. Het niveau stelt alle opties in de lijst in; daarna kun je elke optie zelf anders zetten.',

@@ -4,8 +4,8 @@
 // verhaalui.js haalt de gegevens op (personage, feiten uit characterdossiers.js, verhaalstappen) en zet het portret in de kop.
 import { icoon } from './icons.js';
 import { dsButtonKey, KNOP_TOETSEN } from './dsbutton.js';
+import { escapeHtml as esc } from './htmlescape.js';
 
-const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
 // Tekstdieet: wat direct zichtbaar is, blijft kort; de rest staat achter "Meer".
 export const BIO_MAX = 170;      // tekens van de alinea onder de kop (op een zinsgrens)

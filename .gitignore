@@ -82,3 +82,11 @@ desktop/out*.txt
 
 # contactvellen van cutscenes (scripts/cutscene_contactvel.mjs): lokale uitvoer
 .contactvel/
+
+# lokale tijdelijke review-, scratch- en werkmappen
+.rv-tmp/
+.scr/
+.tmpw/
+.work/
+tmp_ht22/
+tmp_r7/

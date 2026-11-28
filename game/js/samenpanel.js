@@ -7,7 +7,7 @@ import { startHost, startClient, addGuest, stopCoopNet, handshakeInfo, canJoin, 
 import { isSoloHost } from './coopsolo.js';
 import { fadeFlash } from './coophud.js';
 import { openHold } from './coophold.js';
-import { koppelWissel } from './multiplayerhostwisselui.js';
+import { koppelWissel, stopWisselUi } from './multiplayerhostwisselui.js';
 import { biedOver } from './coophostwisselnet.js';
 import { readSession, writeSession, toSession } from './coopsave.js';
 import { readHostScene } from './coopscene.js';
@@ -77,12 +77,15 @@ const store = () => { try { return localStorage; } catch (e) { return null; } };
 
 // Staat het paneel open terwijl het spel wordt overgedragen, dan wisselt de sessie onder het paneel: het volgt dat zelf (twee keer per seconde kijken, goedkoop).
 let volger = null;
-function volgSessie(world, sluit) {
+let laatste = null; // { root, world, sluit } van de laatste render: een wisselende wereld of sluitfunctie wordt zo niet vastgehouden door de timer
+function volgSessie() {
   if (volger || typeof setInterval !== 'function') return;
   volger = setVisibleInterval(() => {
-    const r = mountedOn, n = world && world.coopNet;
-    if (!view || !r || r.isConnected === false || !n || n === gebonden) return;
-    renderSamenPanel(r, world, sluit);
+    const cur = laatste;
+    const r = mountedOn, w = cur && cur.world, n = w && w.coopNet;
+    if (!view || !r || r.isConnected === false) { clearInterval(volger); volger = null; return; }
+    if (!n || n === gebonden) return;
+    renderSamenPanel(r, w, cur.sluit);
   }, 500);
   if (volger && volger.unref) volger.unref();
 }
@@ -90,7 +93,8 @@ function volgSessie(world, sluit) {
 // root: .pm-inner van het onderdeel. Blijft staan als je even naar een ander onderdeel gaat.
 // sluit: het pauzemenu sluiten (pausemenu.js geeft het mee; samenpanel.js importeert het menu zelf niet, dat is een importcyclus)
 export function renderSamenPanel(root, world, sluit = () => {}) {
-  volgSessie(world, sluit);
+  laatste = { root, world, sluit };
+  volgSessie();
   const nu = samenNet(world);
   if (view && mountedOn === root && (!nu || nu === gebonden)) return;
   // Zonder sessie en zonder gekozen rol: eerst (de eerste keer) de kaart met naam en akkoord, daarna de wizard op stap 0.
@@ -137,11 +141,11 @@ export function renderSamenPanel(root, world, sluit = () => {}) {
     stopIedereen: () => {
       const n = world.coopNet;
       if (n && n.role === 'client') vraagStop(world);
-      else stopCoopNet(world);
+      else { stopCoopNet(world); stopWisselUi(); }
       sluit();
     },
     // 'Iedereen stoppen' (host) of 'Spel verlaten' (gast); bij 'terug' is er nog geen sessie
-    disconnect: (a) => { setGate(false); if (a === 'verbreek') stopCoopNet(world); }, // Stoppen of Terug: geen wachtkamer meer, je speelt weer je eigen spel
+    disconnect: (a) => { setGate(false); if (a === 'verbreek') { stopCoopNet(world); stopWisselUi(); } }, // Stoppen of Terug: geen wachtkamer meer, je speelt weer je eigen spel
   }, { wizard: true, keuze, startGate: gate, spelNaam, lijst, ...(loopt ? { adopt: { code: loopt.code, route: loopt.route }, rol: loopt.rol, hub: loopt.rol === 'host' ? loopt.net.hub : null, session: loopt.rol === 'gast' ? loopt.net.session : null } : {}) });
 }
 

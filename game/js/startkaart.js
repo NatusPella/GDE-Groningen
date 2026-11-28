@@ -12,8 +12,8 @@ import { cleanDifficulty, DIFFICULTY } from './difficulty.js';
 import { medailleTeksten } from './difficulty_medals.js'; // #800: medaille-eisen uit de geschaalde bron
 import { laagVan } from './activiteitlaag.js'; // #800: de intrinsieke tweede laag naast de medaille
 import { GROEPSBONUS_KORT } from './groepsbonus.js'; // (#811) dezelfde 1+1=3-regel als de wachtkamer
+import { escapeHtml as esc } from './htmlescape.js';
 
-const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
 // Toetsen als dezelfde toetsplaatjes als de HUD ([E] wordt een kbd.hud-key).
 const keysHtml = (s) => keyTextHtml(esc(s)); // [E], {E}, {MOUSE}: glyphs follow rebinding (keycap.js)

@@ -99,6 +99,8 @@ export function compactBoard(width, height) {
 // De sfeer van een activiteit (#595, #596): de gedeelde balk is de drager. Bordvorm, sfeernaam en tint
 // komen uit de ene sfeertabel; een bord zonder sfeer houdt de neutrale balk.
 import { sfeerVan } from './activiteitensfeer.js';
+import { escapeHtml as esc } from './htmlescape.js';
+export { esc };
 
 export const CSS = `
 #hud .mg-board[hidden] { display: none; }
@@ -406,7 +408,14 @@ export function createBoard(title, accent) {
   return {
     root,
     show() { root.hidden = false; document.body.classList.add('mg-on', 'mg-board'); last = ''; },
-    hide() { root.hidden = true; document.body.classList.remove('mg-on', 'mg-board'); cancelStopAsk(); },
+    hide() {
+      root.hidden = true;
+      document.body.classList.remove('mg-board');
+      if (typeof document !== 'undefined' && !document.querySelector('#hud .cw-panel:not([hidden])')) {
+        document.body.classList.remove('mg-on');
+      }
+      cancelStopAsk();
+    },
     // { row: html, cells: [{ t, cls }], extra: html (een blok onder de cellen, bv. een scorebord), meter: { v, mark, color, text }, flash, bad, help: html }
     set(s) {
       const sig = JSON.stringify([s.row, s.cells, s.extra, s.meter && [Math.round(s.meter.v * 100), s.meter.mark != null ? Math.round(s.meter.mark * 100) : -1, s.meter.color, s.meter.text], s.flash, !!s.bad, s.help]);
@@ -505,7 +514,6 @@ export function stopPressed(input) {
 // at most a quarter second, so the camera glides on instead of jumping; the
 // same elapsed time gives the same pose on a fast and a slow screen (#436).
 // Tekst veilig in innerHTML (een naam van een medespeler in het bord): de naam is al gefilterd door de host, maar de veiligheid hangt niet aan andere bestanden (review 21-11).
-export const esc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
 // Een tussenstand als tabel (#1000, Samen spelen): een rij per deelnemer, de eigen rij gemarkeerd. Wie wegvalt blijft staan met
 // het woord "weg" in de laatste cel (nooit alleen een kleur of een streep), zodat iedereen ziet dat hij er niet meer bij is.

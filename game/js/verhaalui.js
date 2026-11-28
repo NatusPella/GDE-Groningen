@@ -16,8 +16,8 @@ import { dossierHtml as dossierMarkup, unknownHtml, otherHtml, otherCardHtml, ac
 import { dutchFor } from './subtitles.js';
 import { fillBars, pop } from './motion.js';
 import { renderCharacterPhone, phoneUnreadFor, unreadInbox, OVERIG } from './phone.js';
+import { escapeHtml as esc } from './htmlescape.js';
 
-const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const PIC = 120;
 const bars = new Map();
 let selected = 'tammo';

@@ -48,11 +48,13 @@ export async function openHold(world, role, slot = 1, reden = '') {
   opent = true;
   world.coopHold = true; // een eigen vlag: world.uiPaused wordt door phone.js, het laadscherm en andere schermen steeds teruggezet
   if (await eindigScenes(world)) { try { world.addMessage('De scène stopt: er viel een speler weg.', 5); } catch (e) { /* geen HUD */ } }
+  if (!world.coopNet) { closeHold(world); return; }
   houder = mountOverlay({ label: 'Samen spelen', target: document.body });
   if (!houder) { opent = false; world.coopHold = false; return; }
   overlay = houder.el;
   const panel = houder.pane;
   const { mountLobby } = await import('./lobbyui.js');
+  if (!overlay || !world.coopNet) { closeHold(world); return; }
   const host = role === 'host';
   const naam = host ? ((world.coopRoster || []).find((r) => r.slot === slot) || {}).naam || '' : '';
   let ls = null; try { ls = localStorage; } catch (e) { /* geen opslag */ }

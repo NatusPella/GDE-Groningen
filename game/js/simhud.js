@@ -7,8 +7,8 @@ import { readList } from './opslaglezen.js';
 import { reducedMotion } from './motion.js';
 import { icoon } from './icons.js';
 import { uitlegModel, uitlegHtml, uitlegIconenAan, uitlegInstellingSleutel, zetUitlegGlyph, startUitleg } from './uitleg.js';
+import { escapeHtml as esc } from './htmlescape.js';
 
-const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 // Een pictogram is een betekenisnaam uit iconmap.js (Phosphor, ADR 0041); een ruw lijnpad (<path ...>) blijft werken voor de modellen van ronde 1.
 const svg = (pad, cls = 'ds-icoon') => (typeof pad === 'string' && pad && !pad.includes('<') ? icoon(pad, { cls }) : `<svg class="${cls}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${pad}</svg>`);
 

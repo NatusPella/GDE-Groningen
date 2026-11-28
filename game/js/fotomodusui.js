@@ -17,6 +17,8 @@ import { zachtePauze, meerSpelers } from './coopgroep.js';
 import { registerMusicProbe } from './scenariomusic.js';
 import { hoofdspeler } from './players.js'; // de speler van dit apparaat (#500)
 import { calmState } from './dsmicro.js';
+import { escapeHtml as esc } from './htmlescape.js';
+import { setPhotoModeOpen, isCineHudHidden } from './pausestate.js';
 
 let photo = null;
 let saved = null;
@@ -30,7 +32,6 @@ const pointers = new Map();
 let pinch = 0;
 const keysDown = new Set();
 
-const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const store = () => { try { return window.localStorage; } catch (e) { return null; } };
 export const isPhotoMode = () => !!photo;
 registerMusicProbe('foto', () => !!photo); // de eigen muziek van de fotomodus (thuis_loop)
@@ -91,6 +92,7 @@ function startPhotoMode(world) {
   photo = { p, world, sessie: meerSpelers(world) }; // met meer spelers loopt de wereld door: tijd en weer zijn van iedereen en blijven staan (#452)
   saved = { clock: world.clock, weather: world.weather ? { ...world.weather } : null, uiPaused: !!world.uiPaused };
   world.uiPaused = true;
+  setPhotoModeOpen(true);
   zachtePauze(world, 'fotomodus', true);
   document.body.classList.add('cine-hide-hud', 'foto-actief');
   buildOverlay();
@@ -105,18 +107,22 @@ function stopPhotoMode(world) {
   for (const t of ['keydown', 'keyup']) window.removeEventListener(t, onKey, true);
   w.cameraOverride = null;
   w.uiPaused = saved.uiPaused;
+  setPhotoModeOpen(false);
   zachtePauze(w, 'fotomodus', false);
   if (!photo.sessie && typeof saved.clock === 'number') w.clock = saved.clock;
   if (!photo.sessie && w.weather && saved.weather) Object.assign(w.weather, saved.weather);
-  document.body.classList.remove('cine-hide-hud', 'foto-actief');
+  document.body.classList.remove('foto-actief');
+  if (!isCineHudHidden()) document.body.classList.remove('cine-hide-hud');
   const r = getRenderer();
   if (r) { r.domElement.style.filter = ''; r.domElement.style.transform = ''; }
   if (overlay) { overlay.remove(); overlay = null; }
+  barNote = '';
   photo = null; saved = null; shoot = false; keysDown.clear(); pointers.clear(); lookDx = lookDy = 0;
 }
 
 function buildOverlay() {
   barInfo = '';
+  barNote = '';
   overlay = document.createElement('div');
   overlay.id = 'foto-ui';
   overlay.innerHTML = '<div class="foto-look"></div><div class="foto-grid" hidden></div><div class="foto-dof" hidden></div><div class="foto-pad">' +
@@ -169,6 +175,7 @@ const BAR_HTML =
   '<div class="foto-acts"><button type="button" class="foto-btn foto-go" data-foto-shoot>Foto maken <span class="foto-kc" style="display:inline-flex;vertical-align:middle">' + keyLabelHtml('Enter') + '</span></button><button type="button" class="foto-btn" data-foto-stop>Terug <span class="foto-kc" style="display:inline-flex;vertical-align:middle">' + keyLabelHtml('Esc') + '</span></button></div>';
 
 let barInfo = '';
+let barNote = '';
 function renderBar() {
   const p = photo.p;
   const bar = overlay.querySelector('.foto-bar');
@@ -180,7 +187,8 @@ function renderBar() {
   dof.hidden = p.dof <= 0;
   if (p.dof > 0) dof.style.setProperty('--foto-dof', `${(p.dof * 7).toFixed(1)}px`);
   const n = overlay.querySelector('.foto-note');
-  n.textContent = noteT > 0 ? note : '';
+  const nextNote = noteT > 0 ? note : '';
+  if (nextNote !== barNote) { barNote = nextNote; n.textContent = nextNote; }
 }
 
 // kanteling: de kaart draait en wordt net genoeg vergroot dat de hoeken gevuld blijven

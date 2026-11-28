@@ -242,7 +242,7 @@ Nieuw geluid koppel je via de centrale tabel `game/js/sfx/sfxmap.js` (gebeurteni
 
 **Regels.** Prestaties staan in `gde-prestaties-v1` (`storagekeys.js:27`); tellers lopen via
 `recordStat` (`game/js/achievements.js:516`) en de gate (`:384`) zet ze stil bij een streek. Vier
-presets: laag, middel, vlot en hoog (`game/js/gfxprofile.js:10`). Automatische kwaliteit beoordeelt
+presets: laag, middel, vlot en hoog (`game/js/gfxprofile.js:11`). Automatische kwaliteit beoordeelt
 elke seconde op de mediaan, traag boven 27 ms (`:282`), schaalt de resolutie tot 50% (`:281`) en kent
 cpuniveau 0 tot 3 (`:284`); `simload.js` volgt dat niveau voor verkeer en voetgangers. Het bewuste
 wachten van de zuinige modus telt daarbij niet mee (`capIdleMs` in `game/js/framecap.js`, #561), zodat

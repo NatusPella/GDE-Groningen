@@ -52,6 +52,7 @@ import { makePromptClock, blockedInChase } from './prompttick.js';
 import { labelDy, anchorCovered } from './promptclear.js';
 import { setBubbleObstacles } from './hudrules.js';
 import { readCounters } from './opslaglezen.js';
+import { escapeHtml as esc } from './htmlescape.js';
 
 const USES_KEY = KEYS.hintUses;
 const LEARN_USES = 3;
@@ -119,9 +120,6 @@ export function resetHintUses() {
 const learning = (id) => count(id) < LEARN_USES;
 const mastered = (id) => count(id) >= MASTER_USES;
 
-function esc(s) {
-  return String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
-}
 
 export { glyphHtml };
 

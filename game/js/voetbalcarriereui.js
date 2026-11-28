@@ -23,9 +23,9 @@ import { drillFor } from './voetbaltraining.js';
 import { voetbalOpen, voetbalHint } from './voetbalpoort.js';
 import { crestOf, clubBodyHtml, clubAct, clubKeys, kitPhotos, cui } from './clubui.js';
 import { trackTabLine } from './dsmicro.js';
+import { escapeHtml as esc } from './htmlescape.js';
 
 export const TABS = [['overzicht', 'Overzicht'], ['selectie', 'Selectie'], ['tactiek', 'Tactiek'], ['stand', 'Stand'], ['kalender', 'Kalender'], ['training', 'Training'], ['club', 'Club']];
-const esc = (s) => String(s == null ? '' : s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const euro = (n) => `€${Math.round(n).toLocaleString('nl-NL')}`;
 const rij = (i) => `style="--ds-m-i:${Math.min(8, i)}"`;
 const chip = (tekst, soort = '') => `<span class="ds-z-chip${soort ? ` ds-z-chip--${soort}` : ''}">${esc(tekst)}</span>`;

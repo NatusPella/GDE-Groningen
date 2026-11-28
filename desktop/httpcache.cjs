@@ -10,15 +10,28 @@ const crypto = require('node:crypto');
 
 const CACHE_CONTROL = 'no-cache';
 
-function cacheHeaders(stat, req = {}, content = null) {
-  const etag = content == null
-    ? '"' + stat.size + '-' + Math.floor(stat.mtimeMs || stat.mtime.getTime()) + '"'
-    : '"' + crypto.createHash('sha256').update(content).digest('hex') + '"';
-  const lastModified = (stat.mtime instanceof Date ? stat.mtime : new Date(stat.mtimeMs || 0)).toUTCString();
+function isFresh(req, etag, lastModified) {
   const inm = req['if-none-match'];
   const ims = req['if-modified-since'];
-  const fresh = !!((inm && inm === etag) || (!inm && ims && ims === lastModified));
-  return { etag, lastModified, fresh, cacheControl: CACHE_CONTROL };
+  return !!((inm && inm === etag) || (!inm && ims && ims === lastModified));
+}
+
+function cacheHeaders(stat, req = {}, content = null, opts = null) {
+  const immutableKey = content == null && opts && opts.immutableKey ? String(opts.immutableKey) : null;
+  const cache = immutableKey && opts && opts.cache instanceof Map ? opts.cache : null;
+  if (cache && cache.has(immutableKey)) {
+    const cached = cache.get(immutableKey);
+    return { etag: cached.etag, lastModified: cached.lastModified, fresh: isFresh(req, cached.etag, cached.lastModified), cacheControl: CACHE_CONTROL };
+  }
+  const mtimeMs = Math.floor(stat.mtimeMs || (stat.mtime ? stat.mtime.getTime() : 0));
+  const etag = content != null
+    ? '"' + crypto.createHash('sha256').update(content).digest('hex') + '"'
+    : immutableKey
+      ? '"' + crypto.createHash('sha256').update(`${immutableKey}\0${stat.size}\0${mtimeMs}`).digest('hex') + '"'
+      : '"' + stat.size + '-' + mtimeMs + '"';
+  const lastModified = (stat.mtime instanceof Date ? stat.mtime : new Date(stat.mtimeMs || 0)).toUTCString();
+  if (cache) cache.set(immutableKey, { etag, lastModified });
+  return { etag, lastModified, fresh: isFresh(req, etag, lastModified), cacheControl: CACHE_CONTROL };
 }
 
 module.exports = { cacheHeaders, CACHE_CONTROL };

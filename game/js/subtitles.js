@@ -10,6 +10,7 @@
 // fails on any spoken line that reads as Frisian (looksFrisian) without one.
 import { MODS, grunnify } from './cheatmods.js';
 import { spokenKeyTokens } from './keycap.js';
+import { escapeHtml as escHtml } from './htmlescape.js';
 
 export const FY = {
   // the definitive script (docs/verhaal/nieuw/09-script-akte*.md)
@@ -447,7 +448,6 @@ export function dutchFor(text) {
 }
 
 
-const escHtml = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
 // A long line that differs from its translation in a word or two only gets
 // those words glossed inline ("twijduustern (de schemer)") instead of the

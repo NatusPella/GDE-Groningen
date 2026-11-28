@@ -2833,33 +2833,20 @@ function syncPedestrianMeshes(world, player, animDt, fadeDt = animDt) {
 // screen space every frame from the same THREE.Camera the world renders
 // through - the standard cheap "billboard" trick for a handful of labels.
 const _projVec = new THREE.Vector3();
+const _scr = { x: 0, y: 0 };
 // vw/vh: the viewport in HUD px, read once per frame by the caller (clientWidth after a style write forces a layout)
 function projectToScreen(x, y, z, vw, vh) {
   _projVec.set(x, y, z).project(cam);
   if (_projVec.z > 1) return null; // behind the camera
-  return {
-    x: (_projVec.x * 0.5 + 0.5) * vw,
-    y: (1 - (_projVec.y * 0.5 + 0.5)) * vh,
-  };
+  _scr.x = (_projVec.x * 0.5 + 0.5) * vw;
+  _scr.y = (1 - (_projVec.y * 0.5 + 0.5)) * vh;
+  return _scr; // gedeeld object: de aanroeper gebruikt het binnen dezelfde lus en bewaart het niet
 }
 
 function speechBubbleEl() {
   const el = document.createElement('div');
-  el.style.position = 'absolute';
-  el.style.left = '0';
-  el.style.top = '0';
+  el.className = 'hud-speech-bubble';
   el.style.transform = bubbleTransform(0, 0);
-  el.style.background = 'color-mix(in srgb, var(--ds-c-creme) 92%, transparent)';
-  el.style.border = '1px solid color-mix(in srgb, var(--ds-c-glas) 60%, transparent)';
-  el.style.borderRadius = '8px';
-  el.style.padding = '3px 9px';
-  el.style.color = 'var(--ds-c-inkt)';
-  el.style.font = 'bold 13px "Arial Narrow", Arial, sans-serif';
-  // #868/#870: de bel hangt in de gezoomde HUD; op een telefoon werd 13 px daar
-  // 8,7 px. Dezelfde 12px-vloer als de rest van de HUD-tekst.
-  el.style.fontSize = 'max(13px, calc(13px / var(--ui, 1)))';
-  el.style.whiteSpace = 'nowrap';
-  el.style.pointerEvents = 'none';
   billboardRoot.appendChild(el);
   return el;
 }

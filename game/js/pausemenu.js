@@ -18,7 +18,8 @@ import { setPauseMenuOpen, setPauseMenuTabState, setPauseMenuControls } from './
 import { uitlegBlok, zetUitlegGlyph, startUitleg, resetUitlegNietMeer } from './uitleg.js';
 import { PRESET_ORDER, presetLabel, PRESET_HINTS, describePreset, describeChanges, currentPreset, applyPreset, getBenchResult, dismissBenchBanner, GEAR_SVG, measureAutoPreset, autoGfxNote, autoGfxLabel } from './gfxprofile.js';
 import { mountMapView, kaartUitlegSluiten, kaartReisPopupSluiten, kaartPlekkaartSluiten, kaartToets, setMapActive, setMapCloseHandler, setMapView, getDiscoveredRatio, setMapTeleport } from './mapview.js';
-import { mountOnlineInstelling } from './onlineconsentui.js';
+import { mountOnlineInstelling, isOnlineStartOpen } from './onlineconsentui.js';
+import { isLaunchChoiceOpen, isToestemmingOpen } from './launchchoiceui.js';
 import { renderSamenPanel, requestOpenSamen, samenHubTerug, startWachtkamer } from './samenpanel.js';
 import { renderUitnodigen, renderSessie } from './samenkamerui.js';
 import { isSoloHost, stopSoloHost } from './coopsolo.js';
@@ -69,7 +70,7 @@ import { padGlyphInner } from './glyphs.js';
 import { icoon } from './icons.js';
 import { oskKnop } from './oskview.js';
 import { touchPlan, touchMore, defaultControlsSubtab } from './touchlogic.js';
-import { openPadTest } from './padtest.js';
+import { openPadTest, isPadTestOpen } from './padtest.js';
 import { isHelpOfferOpen } from './assistlive.js';
 import { isRecapOpen } from './recapstate.js';
 import { resetOnboarding } from './onboarding.js';
@@ -96,6 +97,7 @@ import { kopStatus, verliesSinds, verliesTekst, euro } from './spelstatus.js';
 import { toonBevestiging, isBevestigOpen } from './spelbevestig.js';
 import { toonRecapNu } from './recapcardrun.js';
 import { woordenVan, past } from './zoektekst.js';
+import { escapeHtml as esc } from './htmlescape.js';
 // Running inside the desktop app (desktop/preload.js): window mode + quit.
 const DESKTOP = typeof window !== 'undefined' && window.gdeDesktop && window.gdeDesktop.isDesktop ? window.gdeDesktop : null;
 
@@ -552,7 +554,6 @@ export function pauseMenuCover() {
 }
 
 const started = () => document.body.classList.contains('game-started');
-const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 // De rail zelf heeft geen knop Spelers (#377): het aantal spelers staat bij Spel, de lijst onder Samen spelen (#434).
 // Cheats staat alleen in het menu in dev, zolang er een cheat aan staat (settingsrules.js) of nadat het verhaal ze heeft vrijgespeeld (Berts valsspeelbon na missie 4; cheats.js cheatsOpen)
 export const cheatsInMenu = () => cheatsVisible({ dev: DEV || !!FLAGS.dev, actief: anyCheatOn() }) || cheatsOpen();
@@ -1304,7 +1305,9 @@ export function initPauseMenu(w) {
   window.addEventListener('keydown', onKey, true);
   // ?stil marks an automated test session, whose tab is often hidden
   if (!FLAGS.stil) {
-    document.addEventListener('visibilitychange', () => { if (document.hidden && started()) setOpen(true, HOME); });
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden && started() && !isShopOpen() && !isSaveSlotsOpen() && !isPhotoMode() && !document.getElementById('load-screen')) setOpen(true, HOME);
+    });
   }
 }
 
@@ -1400,7 +1403,7 @@ function consume(e) {
 function onKey(e) {
   if (e.metaKey || e.ctrlKey || e.altKey) return;
   // the play-ahead question (todo.js) has its own keys
-  if (isPlayAheadOpen() || isSaveSlotsOpen() || isHelpOfferOpen() || isRecapOpen() || isBevestigOpen()) return;
+  if (isPlayAheadOpen() || isSaveSlotsOpen() || isHelpOfferOpen() || isRecapOpen() || isBevestigOpen() || isOnlineStartOpen() || isLaunchChoiceOpen() || isToestemmingOpen() || isPadTestOpen()) return;
   const k = e.key;
   const lower = k.length === 1 ? k.toLowerCase() : k;
   if (!open) {

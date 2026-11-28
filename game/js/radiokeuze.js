@@ -5,8 +5,8 @@
 import { glyphHtml } from './keycap.js';
 import { shortcutName } from './dsbutton.js';
 import { icoon } from './icons.js';
+import { escapeHtml as esc } from './htmlescape.js';
 
-const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
 // row: radio.js channelList(): { id, name, sub, dj, tracks, status: 'open' | 'soon', active }
 const ARIA_SHIFT = 'Shift'; // naam van de wijzigertoets in aria-keyshortcuts (geen spelertekst)

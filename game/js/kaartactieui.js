@@ -9,8 +9,8 @@ import { icoon } from './icons.js';
 import { dsButtonKey, knopToets, KNOP_TOETSEN } from './dsbutton.js';
 import { KAART_UITLEG, GAST_UITLEG, HIER_TITEL, HIER_HINT, legendaRegels, REIS_MODI } from './kaartactie.js';
 import { uitlegBlok as iconenBlok } from './uitleg.js';
+import { escapeHtml as esc } from './htmlescape.js';
 
-const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const svg = (naam) => icoon(naam, { maat: 'l' });
 
 // #1215: een rij zonder icoonnaam of met een kaal getal als kosten wordt niet een vraagteken of "Trein12": het icoon volgt de vervoerswijze, een getal wordt een bedrag.

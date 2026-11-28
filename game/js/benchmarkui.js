@@ -4,8 +4,8 @@
 // short and switched off by reduced motion. Nothing here talks to the network: "Bewaar als bestand" writes a local text file.
 import { keyTextHtml } from './keycap.js';
 import { choiceModel, normaliseChoice, pickChoice, choiceKey, cardSummary, exportText, exportName } from './benchmarkmodel.js';
+import { escapeHtml as esc } from './htmlescape.js';
 
-const esc = (t) => String(t).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const comma = (n, d = 1) => (Math.round(n * 10 ** d) / 10 ** d).toFixed(d).replace('.', ',');
 
 // --- choice screen -----------------------------------------------------------------------------------------------

@@ -12,6 +12,7 @@ import { icoon } from './icons.js';
 import { KEYS } from './storagekeys.js';
 import { betaal } from './economy.js';
 import { euro } from './geldtekst.js';
+import { escapeHtml as escHtml } from './htmlescape.js';
 
 export const BELEID = [
   { id: 'flits', naam: 'Soepel flitsbeleid', prijs: 250, tekst: 'Verkeersboetes zijn 25% lager.', effect: 'boete' },
@@ -70,7 +71,6 @@ export function beleidOffers(geld = 0) {
   const saldo = Number(geld) || 0;
   return BELEID.map((b) => ({ ...b, gekocht: heeftBeleid(st, b.id), betaalbaar: saldo >= b.prijs }));
 }
-const escHtml = (s) => String(s == null ? '' : s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const heel = (n) => Math.max(0, Math.floor(Number(n) || 0));
 
 // Designsysteem (ADR 0040, #999): elke maatregel is een zeefdrukkaart op papier, met het gevolg

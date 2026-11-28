@@ -6,6 +6,7 @@ import { DRAW_DISTANCE_LABELS } from './viewdist.js';
 import { KEYS } from './storagekeys.js';
 import { FLAGS } from './devflags.js';
 import { frameWorkMs } from './framecap.js';
+import { escapeHtml } from './htmlescape.js';
 
 export const GFX_PRESETS = {
   laag: { quality: 'laag', shadows: false, drawDistance: 'kort', resolution: 0.75, autoResolution: true },
@@ -312,8 +313,8 @@ function showAdvice(pick) {
   card.setAttribute('role', 'dialog');
   card.setAttribute('aria-labelledby', 'gfx-adv-title');
   card.innerHTML = `<h3 id="gfx-adv-title">${GEAR_SVG}Soepeler spelen?</h3>
-    <p>Je computer heeft het zwaar met deze stand. Met ${presetLabel(pick)} loopt Grunn een stuk vloeiender. Je kunt het altijd terugzetten bij Instellingen › Beeld.</p>
-    <p class="gfx-what">${presetLabel(pick)}: ${describePreset(pick)}</p>
+    <p>Je computer heeft het zwaar met deze stand. Met ${escapeHtml(presetLabel(pick))} loopt Grunn een stuk vloeiender. Je kunt het altijd terugzetten bij Instellingen › Beeld.</p>
+    <p class="gfx-what">${escapeHtml(presetLabel(pick))}: ${escapeHtml(describePreset(pick))}</p>
     <div class="gfx-row"><button type="button" class="primary" data-act="apply">Toepassen</button><button type="button" data-act="no">Nee, bedankt</button></div>`;
   card.addEventListener('click', (e) => {
     const b = e.target.closest('button[data-act]');
@@ -321,7 +322,7 @@ function showAdvice(pick) {
     if (b.dataset.act === 'apply') {
       applyPreset(pick);
       writeAdvice('toegepast:' + pick);
-      card.innerHTML = `<h3>${GEAR_SVG}Toegepast</h3><p>Beeld staat nu op ${presetLabel(pick)}. Terugzetten kan altijd bij Instellingen › Beeld.</p>`;
+      card.innerHTML = `<h3>${GEAR_SVG}Toegepast</h3><p>Beeld staat nu op ${escapeHtml(presetLabel(pick))}. Terugzetten kan altijd bij Instellingen › Beeld.</p>`;
       setTimeout(hideAdvice, 4000);
     } else {
       writeAdvice('nee');

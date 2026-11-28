@@ -50,6 +50,7 @@ import { isOwnVehicle } from './ownedvehicles.js';
 import { WEAPON_STOCK } from './shops.js';
 import { addStaticCollider } from './breakables.js';
 import { buildBeppeRoom, visitPrompt, visitInteract, visitTick, dropInside, resetVisit, visitDebug, visitStatus } from './beppe_binnen.js'; // #1063: the inside
+import { escapeHtml as esc } from './htmlescape.js';
 
 const BUILD_R = 340, DROP_R = 520, ANIM_R = 160;
 const TILES_R = 320; // the tiles this far round the border must be in before the site is final
@@ -70,7 +71,6 @@ const sessionMarks = {};
 // What beppe_binnen.js needs of this place: the site and the two groups (the house outside, the room inside).
 const visitCtx = { site: () => site, get room() { return built && built.room; }, get house() { return built && built.house; } };
 
-const esc = (s) => String(s == null ? '' : s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
 function groundAt(map, x, y) {
   try { return map && map.groundHeightAt ? map.groundHeightAt(x, y, 60) : 0; } catch (e) { return 0; }

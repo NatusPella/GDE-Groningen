@@ -26,6 +26,7 @@ import { calmState, tikGetal } from './dsmicro.js';
 import { runNoticeTimer } from './melding.js'; // het gedeelde aflopende balkje van alle meldingen
 import { toClass } from './noticetiming.js';
 import { cleanDifficulty, DIFFICULTY_MODES } from './difficulty.js'; // #800: missierecords per stand
+import { escapeHtml as escHtml } from './htmlescape.js';
 
 const KEY = KEYS.achievements;
 const WRITE_DELAY_MS = 2500;
@@ -818,7 +819,6 @@ function ensureToast() {
   return toastEl;
 }
 
-const escHtml = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
 // De hele reeks prestaties van dit moment is een melding in de wachtrij (notifyqueue.js): de toasts volgen elkaar zelf op
 // (queueStep, samenvatting), de wachtrij geeft ze het slot zolang de reeks loopt en houdt andere meldingen dan tegen.

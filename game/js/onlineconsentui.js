@@ -10,8 +10,8 @@ import { EERSTE_START, SCHAKELAAR, ONLINE_INSTELLING, WIE_ZIET_WAT, WIE_ZIET_WAT
 import { magOnline } from './settings.js';
 import { bewaarFocus } from './listnav.js';
 import { keyTextHtml } from './keycap.js';
+import { escapeHtml as esc } from './htmlescape.js';
 
-const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
 // De kaart "Je naam voor Samen spelen": een verplichte naam en het akkoord (vinkje met de IP-melding), één knop "Doorgaan".
 // Hij komt alleen als de speler iets met Samen spelen doet (launchchoice.js); `terug` voegt Terug toe (naar de keuze).
@@ -107,6 +107,7 @@ export function mountOnlineStart(root, { naam = '', onKies = () => {}, onTerug =
 }
 
 let bezig = null;
+export const isOnlineStartOpen = () => !!bezig;
 // De overlay boven het laadscherm; resolvet met de uitkomst van een geldige naam plus akkoord, of met null als de speler Terug koos
 // (alleen met `terug`). Er is geen time-out die hem zonder antwoord sluit.
 export function openOnlineStart({ naam = getSettings().onlineNaam, terug = false } = {}) {

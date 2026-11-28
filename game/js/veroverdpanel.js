@@ -12,6 +12,7 @@ import { fillBars } from './motion.js';
 import { setUserWaypoint, formatDistance } from './routing.js';
 import { hoofdspeler } from './players.js';
 import { beleidPaneelHtml, koopBeleid, getBeleid } from './beleidswinkel.js';
+import { escapeHtml as esc } from './htmlescape.js';
 
 const bars = new Map();
 let cssAan = false;
@@ -81,7 +82,6 @@ let beleidMelding = '';
 let beleidWereld = null;
 const beleidHtml = () => beleidPaneelHtml(beleidWereld ? beleidWereld.money || 0 : 0, beleidMelding);
 
-const esc = (s) => String(s == null ? '' : s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
 // #906: één taak als kaart: het gebied en de soort boven, de taaknaam, de afstand vanaf hier en
 // één knop die het als doel op de kaart zet. Alleen wat volgendeTaken() al geeft, geen nieuwe data.

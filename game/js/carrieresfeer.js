@@ -7,6 +7,7 @@
 // opslag, zodat scripts/carrieresfeer_test.mjs de sferen kan natrekken.
 
 import { dsKleur } from './kaartkleuren.js'; // sfeerKleurVast: de tokens als vaste kleur voor canvas en 3D (node-safe, met terugval)
+import { escapeHtml as esc } from './htmlescape.js';
 
 const CREAM = 'color-mix(in srgb, var(--ds-c-creme) 92%, transparent)';
 const CREAM_SOFT = 'color-mix(in srgb, var(--ds-c-creme) 38%, transparent)';
@@ -210,7 +211,6 @@ export const VORM_IDS = Object.keys(VORMEN);
 // erboven (13 px, geen ontwerptaal). Eén bron voor Loopbanen, Visboek en Boerderij, zodat
 // een nieuw scherm dezelfde band krijgt en niemand een tweede kleur of patroon verzint.
 // `icoon` is de HTML van het icoon van het scherm, `klein` een korte mededeling (mag leeg).
-const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 export function sfeerBandHtml(id, { icoon = '', klein = '' } = {}) {
   const s = SFEER[id];
   if (!s || !VORMEN[s.vorm]) return '';

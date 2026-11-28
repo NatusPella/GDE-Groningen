@@ -213,7 +213,8 @@ export function pigeonSpotPrompt(w) {
   const s = nearestSpot(w);
   if (!s) return null;
   const why = blockReason(w);
-  if (w.player.character === 'anita') {
+  const hp = hoofdspeler(w);
+  if (hp && hp.character === 'anita') {
     if (tammoNearby(w)) return { id: 'duif-' + s.id, x: s.x, y: s.y, h: 2.75, key: 'E', label: 'Laat Tammo fluiten', sub: why || 'De duiven luisteren alleen naar hem', ring: true, dim: !!why };
     return { id: 'duif-' + s.id, x: s.x, y: s.y, h: 2.75, key: 'E', label: 'Duiven', sub: 'Die luisteren alleen naar Tammo', ring: true, dim: true };
   }

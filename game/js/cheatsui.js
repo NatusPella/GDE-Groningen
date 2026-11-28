@@ -13,6 +13,7 @@ import {
 import { isFolded } from './todoui.js';
 import { cheatsUit, CHEATS_UIT_TEKST } from './coopgroep.js';
 import { impact, summaryLine, pressToggle, onSelect } from './cheatsuilogic.js';
+import { escapeHtml as esc } from './htmlescape.js';
 
 const KIND = { car: 'Auto', bike: 'Fiets', scooter: 'E-step', boat: 'Boot', heli: 'Heli' };
 
@@ -36,7 +37,6 @@ function zetCss() {
   el.textContent = CSS;
   document.head.appendChild(el);
 }
-const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const LOCK = icoon('slot'); // F6: Phosphor via icons.js
 const CHEV = icoon('volgende'); // F6: Phosphor via icons.js
 

@@ -21,8 +21,8 @@ import { frameView, frameHtml } from './bezitframe.js';
 import { veldenView, teamView, veldenActie } from './bezitui.js';
 import { fpHtml, leegHtml, meerHtml } from './farmpicshtml.js';
 import { vulPlaatjes, showLive, ruimLive, ruimPlaatjes } from './farmpics.js';
+import { escapeHtml as esc } from './htmlescape.js';
 
-const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const euro = (n) => `€${Math.round(n).toLocaleString('nl-NL')}`;
 const cent = (n) => `€${n.toFixed(2).replace('.', ',')}`;   // een prijs per kilo: twee decimalen met een komma
 const nl = (n) => Math.round(n).toLocaleString('nl-NL');
@@ -474,20 +474,37 @@ export function renderBoerderijPanel(el, world, sluit = null) {
       const mc = e.target.closest('[data-mc]');
       const vd = e.target.closest('[data-vd]');
       if (vd) { veldenActie(world, vd.dataset); opnieuw(); const nu = el.querySelector(`[data-vd="${vd.dataset.vd}"][data-id="${vd.dataset.id}"]`) || el.querySelector(`[data-vd="${vd.dataset.vd}"]`); if (nu && nu.focus) nu.focus({ preventScroll: true }); }
-      else if (mc && !tweedeDrukStap(mc.dataset)) opnieuw();
+      else if (mc && !tweedeDrukStap(mc.dataset)) {
+        const mcSel = `[data-mc="${mc.dataset.mc}"]${mc.dataset.id ? `[data-id="${mc.dataset.id}"]` : mc.dataset.type ? `[data-type="${mc.dataset.type}"]` : ''}`;
+        opnieuw();
+        const nu = el.querySelector(mcSel) || el.querySelector(`[data-bd="${gekozen}"]`);
+        if (nu && nu.focus) nu.focus({ preventScroll: true });
+      }
       else if (mc) { melding = machineActie(mc.dataset, world); opnieuw(); const nu = el.querySelector(`[data-mc="${mc.dataset.mc}"]:not([disabled])`) || el.querySelector(`[data-bd="${gekozen}"]`); if (nu) nu.focus({ preventScroll: true }); }
-      else if (pc && !tweedeDrukStap(pc.dataset)) opnieuw();
+      else if (pc && !tweedeDrukStap(pc.dataset)) {
+        const pcSel = `[data-pc="${pc.dataset.pc}"]${pc.dataset.id ? `[data-id="${pc.dataset.id}"]` : ''}`;
+        opnieuw();
+        const nu = el.querySelector(pcSel) || el.querySelector(`[data-bd="${gekozen}"]`);
+        if (nu && nu.focus) nu.focus({ preventScroll: true });
+      }
       else if (pc) { melding = percelenActie(pc.dataset, world); opnieuw(); const nu = el.querySelector(`[data-pc="${pc.dataset.pc}"][data-id="${pc.dataset.id}"]:not([disabled])`) || el.querySelector(`[data-pc][data-id="${pc.dataset.id}"]:not([disabled])`) || el.querySelector(`[data-bd="${gekozen}"]`); if (nu) nu.focus({ preventScroll: true }); }
       else if (uitleg) { zetUitlegGezien(); opnieuw(); }
       else if (naar) { const q = veldPlek(naar.dataset.bdNaar); setUserWaypoint(q.x, q.y, PC.perceelDef(naar.dataset.bdNaar).naam); if (world && world.addMessage) world.addMessage(naar.dataset.bdSluit ? "Op weg naar je veld. Het doel staat op je kaart." : "Het veld staat op je kaart.", 3); if (naar.dataset.bdSluit && typeof sluit === "function") sluit(); }
       else if (w) { const q = getBoerderij().perceel || (([x, y]) => ({ x, y }))(wgsToWorld(53.2336, 6.4977)); setUserWaypoint(q.x, q.y, 'Eigen akker'); if (world && world.addMessage) world.addMessage('De akker staat op je kaart.', 3); }
       else if (o) { gekozen = o.dataset.bd; melding = ''; opnieuw(); const nu = el.querySelector(`[data-bd="${gekozen}"]`); if (nu) nu.focus({ preventScroll: true }); }
       else if (g) { kiesGewas(g.dataset.bdGewas); opnieuw(); const nu = el.querySelector(`[data-bd-gewas="${g.dataset.bdGewas}"]`); if (nu) nu.focus({ preventScroll: true }); }
-      else if (k && !tweedeDrukStap(k.dataset)) opnieuw();
-      else if (k) {
-        const r = koopMachine(world, k.dataset.bdKoop);
-        melding = r.ok ? `${B.MACHINES[k.dataset.bdKoop].naam} gekocht voor ${euro(r.prijs)}.` : r.reden;
+      else if (k && !tweedeDrukStap(k.dataset)) {
+        const kId = k.dataset.bdKoop;
         opnieuw();
+        const nu = el.querySelector(`[data-bd-koop="${kId}"]`) || el.querySelector(`[data-bd="${gekozen}"]`);
+        if (nu && nu.focus) nu.focus({ preventScroll: true });
+      } else if (k) {
+        const kId = k.dataset.bdKoop;
+        const r = koopMachine(world, kId);
+        melding = r.ok ? `${B.MACHINES[kId].naam} gekocht voor ${euro(r.prijs)}.` : r.reden;
+        opnieuw();
+        const nu = el.querySelector(`[data-bd-koop="${kId}"]:not([disabled])`) || el.querySelector(`[data-bd="${gekozen}"]`);
+        if (nu && nu.focus) nu.focus({ preventScroll: true });
       }
     });
     el.addEventListener('focusin', (e) => {

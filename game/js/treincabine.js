@@ -3,6 +3,7 @@
 // Het eerste deel is puur (geen DOM, geen THREE: scripts/treincabine_test.mjs); het bord onderaan tekent met DOM.
 // traindrive.js leest de toetsen in een cab-stand, machinist.js voedt het bord met de dienst.
 import { key } from './minigamekit.js';
+import { escapeHtml } from './htmlescape.js';
 
 // --- de hendel -----------------------------------------------------------------------------------
 export const LEVER_MIN = -3;   // Rem 3: volle bedrijfsrem
@@ -215,7 +216,7 @@ export function createCabHud() {
       const lever = notches.map((n) => `<i class="${n > 0 ? 'pw' : n < 0 ? 'br' : 'zero'}${n === v.lever ? ' on' : ''}">${leverLabel(n)}</i>`).join('');
       const nx = v.next;
       const nextHtml = nx
-        ? `<small>VOLGEND STATION ${nx.index}/${nx.count}</small><b>${nx.name}</b><span><em>${distText(nx.toStop)}</em> &middot; ${nx.depIn != null ? `vertrek over ${mmss(nx.depIn)}` : `aankomst ${nx.dueIn >= 0 ? `over ${mmss(nx.dueIn)}` : `${mmss(-nx.dueIn)} te laat`}`}</span><span class="${nx.tooFast || nx.late > 10 ? 'bad' : ''}">${nx.late > 10 ? `${mmss(nx.late)} te laat` : nx.late < -10 ? `${mmss(nx.late)} voor op schema` : 'op tijd'}${nx.tooFast ? ' &middot; te hard' : ''}</span>`
+        ? `<small>VOLGEND STATION ${nx.index}/${nx.count}</small><b>${escapeHtml(nx.name)}</b><span><em>${distText(nx.toStop)}</em> &middot; ${nx.depIn != null ? `vertrek over ${mmss(nx.depIn)}` : `aankomst ${nx.dueIn >= 0 ? `over ${mmss(nx.dueIn)}` : `${mmss(-nx.dueIn)} te laat`}`}</span><span class="${nx.tooFast || nx.late > 10 ? 'bad' : ''}">${nx.late > 10 ? `${mmss(nx.late)} te laat` : nx.late < -10 ? `${mmss(nx.late)} voor op schema` : 'op tijd'}${nx.tooFast ? ' &middot; te hard' : ''}</span>`
         : `<small>GEEN DIENST</small><b>Vrij rijden</b><span>${key('G')} dienst rijden vanaf de halte</span>`;
       root.innerHTML = `<div class="tc-sign${v.limitKmh == null ? ' none' : ''}" title="snelheidsbord">${v.limitKmh == null ? 'vrij' : v.limitKmh}</div>`
         + `<div class="tc-speed"><b class="${over ? 'over' : ''}">${v.kmh}</b><small>KM/U${v.maxKmh ? ` (MAX ${v.maxKmh})` : ''}</small></div>`
@@ -223,7 +224,7 @@ export function createCabHud() {
         + `<div class="tc-alert" ${v.dm != null || v.emergency ? '' : 'hidden'}>${v.emergency ? 'WAAKZAAMHEIDSREM: de trein remt vanzelf' : `WAAKZAAM? Druk ${key('K')} binnen ${v.dm} s`}</div>`
         + `<div class="tc-row"><span>Hendel: <b>${v.leverText}</b></span>`
         + `<span class="tc-door${v.doors ? ' open' : ''}">Deuren ${v.doors ? 'open' : 'dicht'}</span>`
-        + `${v.storing ? `<span class="tc-storing">${v.storing}</span>` : ''}`
+        + `${v.storing ? `<span class="tc-storing">${escapeHtml(v.storing)}</span>` : ''}`
         + `<span>${helpHtml || ''}</span></div>`;
     },
     // De uitleg bij het instappen: een paar seconden, alleen als de speler nog niets heeft aangeraakt.

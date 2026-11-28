@@ -5,12 +5,12 @@
 // CSS van de plek. Een inline style zet fill/stroke vast, zodat de oude lijnregels per scherm niets breken. Eén gewicht: regular, bold bij 16 px en kleiner.
 import { ICON_MAP, ICON_SIZES, ICON_BOLD_BELOW } from './iconmap.js';
 import { PHOSPHOR } from './phosphordata.js';
+import { escapeHtml as esc } from './htmlescape.js';
 
 // Veilige terugval bij een onbekende naam: een vierkantje met een vraagteken (Phosphor 'question').
 const FALLBACK = 'vraag';
 
 const resolve = (naam) => (ICON_MAP[naam] ? naam : FALLBACK);
-const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
 export const iconBekend = (naam) => !!ICON_MAP[naam];
 export const iconNamen = () => Object.keys(ICON_MAP);

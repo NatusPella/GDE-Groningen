@@ -6,8 +6,8 @@
 // en onderaan een vaste voetzone (.sw-voet) met de knoppen: secundair links, de hoofdactie (geel, met Enter) rechts.
 // Geen alinea's: één korte regel; de rest staat achter "Meer info".
 import { WSTEP, WSTEPS, WIZ_TEKST, SHORT_PER_SCREEN, CONTENT_SCREENS, SCROLL_SCREENS, wizStep, indicator, isStatusCard, splitHint, footerOrder, progressLine, SESSION_NAME_MAX, HINT_MAX } from './multiplayerwizard.js';
+import { escapeHtml as esc } from './htmlescape.js';
 
-const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
 // De acties waar de voet er hoogstens twee secundaire van toont; de rest zit achter "Meer acties" (zo blijft de voet één rij).
 const VOET_SECUNDAIR_MAX = 2;

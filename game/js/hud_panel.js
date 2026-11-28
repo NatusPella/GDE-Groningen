@@ -587,7 +587,7 @@ function watchRightStack(root, topRight, race, vehName, cards) {
     root.style.setProperty('--hud-c-right', `${Math.max(0, Math.round((window.innerWidth - trRect.left) / scale))}px`);
     // #638: de voertuignaam in dezelfde gemeten kolom: boven het racepaneel, niet op een vaste 300 px.
     const bottom = race.hidden ? null : vehnameBottom({ raceTop: race.getBoundingClientRect().top, viewH: window.innerHeight, gap: GAP });
-    if (bottom != null && cards && !cards.classList.contains('hc-held')) root.style.setProperty('--hud-vehname-bottom', `${bottom}px`);
+    if (bottom != null && cards && !cards.classList.contains('hc-held')) root.style.setProperty('--hud-vehname-bottom', `${Math.round(bottom / scale)}px`);
     else root.style.removeProperty('--hud-vehname-bottom');
     // #985: op een laag venster (1024x600) lag de toetshintstapel (.hud-ctx) over de naamkaart: de naamkaart hangt erboven
     const ctx = root.querySelector('.hud-ctx');
@@ -1940,9 +1940,6 @@ function updateChannelChip(dt, world) {
   if (channelLit > 0 && !world.paused && (channelLit -= dt) <= 0) els.channelChip.classList.remove('lit');
 }
 
-function escapeHtml(s) {
-  return String(s).replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
-}
 
 const C = {
   green: INK.green,
@@ -2791,6 +2788,7 @@ export function declutter(items, cellM) {
 import { forEachCashTarget } from './cashvan.js';
 import { gameBusy } from './busy.js';
 import { playerBusy } from './busy.js';
+import { escapeHtml } from './htmlescape.js';
 
 export function getHeroCar(world) {
   return world.vehicles.find((v) => v.isHeroCar && !v.wrecked) || null;

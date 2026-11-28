@@ -57,6 +57,7 @@ import { KEYS, SESSION_KEYS } from './storagekeys.js';
 import { PLAN, PLAN_CUTS, SLICES } from './trailerplan.js';
 import { holdBackground } from './tilestream.js';
 import { ensureSubtitleCss } from './subtitleui.js';
+import { devWarn } from './devwarn.js';
 
 // Trailer mode: "GDE Groningen - Een zomer in Grunn" (shot list in
 // docs/verhaal/E-trailer.md), one list of staged shots through Grunn, played
@@ -295,7 +296,7 @@ function setSub(line) {
 const SILENT = Q.stil;
 const voices = new Set();
 function audible() {
-  try { if (localStorage.getItem(KEYS.muted) === '1') return 0; } catch (e) { /* ignore */ }
+  try { if (localStorage.getItem(KEYS.muted) === '1') return 0; } catch (e) { devWarn('trailer', e); }
   const st = getSettings();
   return Math.min(1, (st.masterVolume ?? 1) * (st.voiceVolume ?? 1));
 }
@@ -348,7 +349,7 @@ function playSfx(kind) {
     }
     node.connect(g); g.connect(c.destination);
     src.start();
-  } catch (e) { /* no audio */ }
+  } catch (e) { devWarn('trailer', e); }
 }
 
 // --- shots ---------------------------------------------------------------------------
@@ -1666,7 +1667,7 @@ function buildShots(w) {
       hudPlayer(r, s.car);
       if (t > 0.7 && !s.open) { s.open = true; try { trailerPhone('ubbo'); } catch (e) { console.warn('trailer phone', e); } }
     },
-    exit() { try { trailerPhone(null); } catch (e) { /* ignore */ } },
+    exit() { try { trailerPhone(null); } catch (e) { devWarn('trailer', e); } },
     cam(u, t, s) { return followCam(s.car, lerp(7.2, 6.2, smooth(u)), 2.5, 58); },
   };
 
@@ -1788,7 +1789,7 @@ function kermisTick(w, dt, away = false) {
   try {
     if (away) KERMIS.tick(1, { ...w, clock: 12, paused: true, player: { x: 1e6, y: 1e6 } });
     else KERMIS.tick(dt, w);
-  } catch (e) { /* the kermis is decoration here */ }
+  } catch (e) { devWarn('trailer', e); }
 }
 
 // --- temporary actors ------------------------------------------------------------------
@@ -1860,12 +1861,12 @@ function clearShot(r) {
 // gedeelde personengeometrie van makeActor teruggeeft), instanced meshes via hun eigen dispose.
 function disposeTrailerProp(o) {
   if (!o) return;
-  try { o.removeFromParent(); } catch (e) { /* al weg */ }
-  if (o.isInstancedMesh) { try { o.dispose(); } catch (e) { /* al weg */ } return; }
+  try { o.removeFromParent(); } catch (e) { devWarn('trailer', e); }
+  if (o.isInstancedMesh) { try { o.dispose(); } catch (e) { devWarn('trailer', e); } return; }
   disposeObject(o);
 }
 function disposeTrailerProps() {
-  for (const o of trailerProps.values()) { try { disposeTrailerProp(o); } catch (e) { /* al weg */ } }
+  for (const o of trailerProps.values()) { try { disposeTrailerProp(o); } catch (e) { devWarn('trailer', e); } }
   trailerProps.clear();
 }
 
@@ -1943,7 +1944,7 @@ function endHudShot(r) {
   const kit = heliTrailerKit();
   if (kit.hud) kit.hud.root.hidden = true;
   document.body.classList.remove('trailer-heli');
-  try { trailerPhone(null); } catch (e) { /* ignore */ }
+  try { trailerPhone(null); } catch (e) { devWarn('trailer', e); }
 }
 
 // CSS animations and transitions in the HUD run on the trailer clock in a
@@ -1978,7 +1979,7 @@ function enterShot(r, i) {
   if (BENCH_RUNS && prev) logShot(r, r.idx);
   if (BENCH_RUNS) {
     let pend = null;
-    try { pend = streamPending(); } catch (e) { /* geen meting */ }
+    try { pend = streamPending(); } catch (e) { devWarn('trailer', e); }
     console.log(`[trailer] enter ${i + 1} at ${(performance.now() / 1000).toFixed(2)} pending ${pend ? `gebouwen ${pend.buildings} wegen ${pend.roads}` : '-'}`);
   }
   if (prev && prev.exit) { try { prev.exit(r, r.state); } catch (e) { console.warn('trailer exit', e); } }
@@ -2063,13 +2064,13 @@ function frame(r, dt, realMs) {
   ui.black.style.opacity = blackAt(r).toFixed(3);
   if (s.fadeOut && !r.state.streamed && st > s.dur - s.fadeOut + 0.45) { r.state.streamed = true; streamNext(r, i); }
   if (r.state.streamed) {
-    try { r.env.render(dt, 0); } catch (e) { /* ignore */ }
+    try { r.env.render(dt, 0); } catch (e) { devWarn('trailer', e); }
     return;
   }
   if (s.clockTo != null) setClock(w, lerp(s.clock, s.clockTo, u));
   if (!s.black && sdt > 0) {
     try { r.env.tick(sdt); } catch (e) { console.warn('trailer tick', e); }
-    try { updateSkyProps(sdt, w); } catch (e) { /* ignore */ }
+    try { updateSkyProps(sdt, w); } catch (e) { devWarn('trailer', e); }
   }
   if (s.tick && !frozen) { try { s.tick(r, r.state, st, sdt * k); } catch (e) { if (!r.warned) { r.warned = true; console.error('trailer shot', s.label, e && e.stack); } } }
 
@@ -2310,7 +2311,7 @@ export function runTrailer(world, { mode = 'opname', cut = 'vol', shot = null, f
       stopVoices();
       hidePigeonSpots(false);
       const last = r.shots[r.idx];
-      if (last && last.exit) { try { last.exit(r, r.state); } catch (e) { /* ignore */ } }
+      if (last && last.exit) { try { last.exit(r, r.state); } catch (e) { devWarn('trailer', e); } }
       clearShot(r);
       group.removeFromParent();
       r.light.removeFromParent();
@@ -2399,11 +2400,11 @@ export function runTrailer(world, { mode = 'opname', cut = 'vol', shot = null, f
     const placeQuery = (f) => () => {
       const m = r.w.map;
       const q = { tilesMissing: 0, prewarmPending: 0, buildings: 0, roads: 0, queue: 0 };
-      try { if (m && m.store && m.store.keysAround) q.tilesMissing = m.store.missing(m.store.keysAround(f.x, f.y, WARM.tileRadiusM)).length; } catch (e) { /* geen tegelmeting */ }
-      try { if (m && m.tileQueue && m.tileQueue.items) q.queue = queueNear(m.tileQueue.items, f, WARM.tileRadiusM); } catch (e) { /* idem */ }
-      try { q.prewarmPending = prewarmPending(); } catch (e) { /* idem */ }
-      try { const sp = streamPending(); q.buildings = sp.buildings; q.roads = sp.roads; } catch (e) { /* idem */ }
-      try { const rc = readyCounts(r.w); q.gpu = rc.gpu; q.lod = rc.lod; q.population = rc.population; } catch (e) { /* #1354: ook shaders, het verre LOD en de bevolking */ }
+      try { if (m && m.store && m.store.keysAround) q.tilesMissing = m.store.missing(m.store.keysAround(f.x, f.y, WARM.tileRadiusM)).length; } catch (e) { devWarn('trailer', e); }
+      try { if (m && m.tileQueue && m.tileQueue.items) q.queue = queueNear(m.tileQueue.items, f, WARM.tileRadiusM); } catch (e) { devWarn('trailer', e); }
+      try { q.prewarmPending = prewarmPending(); } catch (e) { devWarn('trailer', e); }
+      try { const sp = streamPending(); q.buildings = sp.buildings; q.roads = sp.roads; } catch (e) { devWarn('trailer', e); }
+      try { const rc = readyCounts(r.w); q.gpu = rc.gpu; q.lod = rc.lod; q.population = rc.population; } catch (e) { devWarn('trailer', e); }
       return q;
     };
     // 24-11 (pop-in in de benchmark): een shot op een nieuwe plek begint pas als de wereld daar staat. De klok van de route houdt vlak voor de cut
@@ -2414,7 +2415,7 @@ export function runTrailer(world, { mode = 'opname', cut = 'vol', shot = null, f
       if (r.gate) {
         // de trailer tekent via env.render (main.js render), niet via de spellus: daar loopt map.follow niet en bleef de tegelrij staan
         // (68 tot 186 wachtende rijen in de census-run). Onder het zwart werkt de poort de rij zelf af, rond de plek van het volgende shot.
-        try { if (r.w.map && r.w.map.follow) r.w.map.follow(r.gate.f.x, r.gate.f.y, {}, 8); } catch (e) { /* geen tegelwereld */ }
+        try { if (r.w.map && r.w.map.follow) r.w.map.follow(r.gate.f.x, r.gate.f.y, {}, 8); } catch (e) { devWarn('trailer', e); }
         const q = placeQuery(r.gate.f)();
         const st = settleTick(r.gate.settle, q, now);
         if (!st.settled) return true;
@@ -2452,14 +2453,14 @@ export function runTrailer(world, { mode = 'opname', cut = 'vol', shot = null, f
       let n = 0;
       const step = () => {
         if (r.done) { res(); return; }
-        try { frame(r, 0, 16); } catch (e) { /* ignore */ }
+        try { frame(r, 0, 16); } catch (e) { devWarn('trailer', e); }
         ui.black.style.opacity = '1';
         if (settle) {
-          try { if (r.w.map && r.w.map.follow) r.w.map.follow(f.x, f.y, {}, 8); } catch (e) { /* idem als in benchGate */ }
+          try { if (r.w.map && r.w.map.follow) r.w.map.follow(f.x, f.y, {}, 8); } catch (e) { devWarn('trailer', e); }
           const st = settleTick(settle, query(), performance.now());
           if (!st.settled) { requestAnimationFrame(step); return; }
           r.warmup = { ms: Math.round(st.waitedMs), timedOut: st.timedOut, reason: st.reason };
-          try { window.__benchWarmup = r.warmup; } catch (e) { /* geen window */ }
+          try { window.__benchWarmup = r.warmup; } catch (e) { devWarn('trailer', e); }
           r.w.cineJumpLoading = false;
           if (BENCH_RUNS) console.log('[trailer] settled', JSON.stringify(r.warmup));
           res();

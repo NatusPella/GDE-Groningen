@@ -23,8 +23,8 @@ import { getServiceMapState } from './machinist.js';
 import { sfeerBandHtml, SFEER_BAND_CSS } from './carrieresfeer.js';
 import { sectionVisible } from './featurereveal.js'; // 22-11: een dicht vak, het visboek, de boerderij en voetbal staan er pas na het verhaal
 import { overzicht as modelOverzicht, hoofdActie, eisEnVerdiensten } from './careermodel.js';
+import { escapeHtml as esc } from './htmlescape.js';
 
-const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const nl = (n) => Math.round(n).toLocaleString('nl-NL');
 const CHECK = icoon('vinkje'); // F6: Phosphor via icons.js
 

@@ -31,8 +31,8 @@ import { kaartSvg } from './bezitkaart.js';
 import { veldenHtml, teamHtml } from './bezitvelden.js';
 import { koopItems, koopHtml, SOORTEN, SORTEN, HOUD_MS } from './bezitkoop.js';
 import { bedrijvenHtml } from './bezitbedrijven.js';
+import { escapeHtml as esc } from './htmlescape.js';
 
-const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const ha = (n) => String(Math.round(n * 10) / 10).replace('.', ',');
 export const SORT_NAME = { ripe: 'Rijp eerst', name: 'Naam', ha: 'Grootte', income: 'Opbrengst', region: 'Streek' };
 const MAX_ROWS = 40;

@@ -56,6 +56,8 @@ export const DELEN = CATS;
 // importeren (dit bestand gebruikt eetVoorraad en eet zelf) als doorgeven, zodat het menu en
 // de tests dezelfde namen houden.
 import { eetVoorraad, eet, etenWerkwoord } from './eten.js';
+import { escapeHtml as esc } from './htmlescape.js';
+import { hoofdspeler } from './players.js';
 export { eetWaar, eetVoorraad, etenSave, applyEtenSave, voegEtenToe, eet } from './eten.js';
 
 // Wat er in een kaartje staat, als één lap tekst om in te zoeken. De beschrijving en
@@ -87,7 +89,6 @@ let laatsteVolgorde = [];
 // De melding van de laatste actie (#502): die hoort in het detailpaneel, want de HUD zit
 // achter het pauzemenu en w.addMessage zou je nooit zien.
 let note = '';
-const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const euro = (v) => '€' + Math.round(v).toLocaleString('nl-NL');
 // Phosphor-pictogram van een ding (spullenmodel.itemIcoon: per soort of groep, nooit het vraagteken van de terugval)
 const svg = (it) => icoon(itemIcoon(it), { cls: 'pm-ic' });
@@ -216,7 +217,8 @@ function collect(w) {
   const out = [];
   const counts = {};
   const shop = inventoryShopState();
-  const ch = w.player.character === 'anita' ? 'anita' : 'tammo';
+  const hp = hoofdspeler(w);
+  const ch = hp && hp.character === 'anita' ? 'anita' : 'tammo';
 
   out.push({ key: 'geld', cat: 'geld', icon: 'geld', title: euro(Math.max(0, Math.floor(w.money))), sub: 'Contant',
     desc: 'Wat je op zak hebt om uit te geven. Waar het vandaan kwam en waar het heen ging, staat eronder in het kasboek.',

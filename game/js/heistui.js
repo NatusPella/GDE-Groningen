@@ -144,9 +144,9 @@ export function crackPanel(C) {
 
 const CW = 960, CH = 640;
 import { markerColors } from './a11y.js';
+import { escapeHtml as esc } from './htmlescape.js';
 // #629: het goud komt uit de mission-token (per kleurenblindmodus), niet uit een eigen hex.
 const INK = '#3fc97a', INK_SOFT = 'rgba(63, 201, 122, 0.35)', PAPER = '#f0ede4', GOLD = () => markerColors().mission, RED = '#d93f3f';
-const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
 export function showPlan(data) {
   ensureRoot();

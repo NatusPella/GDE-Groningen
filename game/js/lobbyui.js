@@ -38,6 +38,8 @@ import { VERSION } from './version.js';
 import { EXTRA_CHARS } from './coopplayers.js';
 import { createWizard, reduceWizard, wizTerug, wizStep, WSTEP, kanVerder } from './multiplayerwizard.js';
 import { wizardHtml } from './multiplayerwizardui.js';
+import { devWarn } from './devwarn.js';
+import { escapeHtml as esc } from './htmlescape.js';
 
 // #1011: de kaart "Wie ben jij" komt één keer per sessie van de pagina; daarna begint de wizard bij stap 2.
 let wieBevestigd = false;
@@ -46,15 +48,14 @@ const newLijstSignaler = (interval = LIJST.interval) => new LijstSignaler(CONFIG
 // Gemelde sessies (#438) blijven op dit apparaat verborgen: alleen id's, hoogstens 50, en nooit stuk als de opslag ontbreekt
 const VERBORGEN_SLEUTEL = 'gde-serverlijst-verborgen';
 const leesVerborgen = () => { try { const a = JSON.parse(localStorage.getItem(VERBORGEN_SLEUTEL) || '[]'); return Array.isArray(a) ? a.filter((x) => typeof x === 'string').slice(-50) : []; } catch (e) { return []; } };
-const schrijfVerborgen = (ids) => { try { localStorage.setItem(VERBORGEN_SLEUTEL, JSON.stringify(ids.slice(-50))); } catch (e) { /* geen opslag: dan alleen in dit scherm */ } };
+const schrijfVerborgen = (ids) => { try { localStorage.setItem(VERBORGEN_SLEUTEL, JSON.stringify(ids.slice(-50))); } catch (e) { devWarn('lobbyui', e); } };
 // Favorieten (#464): lokaal, per speler, alleen de id's van sessies die je zelf een ster gaf. Geen naam, geen IP-adres,
 // hoogstens 100; een id dat niet op een aankondiging lijkt wordt bij het lezen weggegooid. De sleutel staat in storagekeys.js.
 const FAVORIETEN_SLEUTEL = 'gde-serverlijst-favorieten';
 const ID_RE = /^[a-z0-9]{8,16}$/;
 const leesFavorieten = () => { try { const a = JSON.parse(localStorage.getItem(FAVORIETEN_SLEUTEL) || '[]'); return Array.isArray(a) ? a.filter((x) => typeof x === 'string' && ID_RE.test(x)).slice(-100) : []; } catch (e) { return []; } };
-const schrijfFavorieten = (ids) => { try { localStorage.setItem(FAVORIETEN_SLEUTEL, JSON.stringify(ids.filter((x) => typeof x === 'string' && ID_RE.test(x)).slice(-100))); } catch (e) { /* geen opslag: dan alleen in dit scherm */ } };
+const schrijfFavorieten = (ids) => { try { localStorage.setItem(FAVORIETEN_SLEUTEL, JSON.stringify(ids.filter((x) => typeof x === 'string' && ID_RE.test(x)).slice(-100))); } catch (e) { devWarn('lobbyui', e); } };
 
-const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 // #634: de identiteitskleur als CSS-klasse (de tabel staat in coopidentiteit.js) in plaats van een inline style
 const kleurKlasse = (hex) => {
   const i = PROFIEL_KLEUREN.findIndex((c) => c.hex === String(hex || '').toLowerCase());
@@ -128,9 +129,13 @@ export function mountLobby(root, hooks, opts = {}) {
       if (state.step !== 'verbonden') planAuto(AUTO_TUSSEN);
     }, ms);
   }
+  let closed = false, startTik = null;
+  const restores = [];
+  const stopStartTik = () => { if (startTik) { clearInterval(startTik); startTik = null; } };
   let verbindTimer = null, verbindN = 0; // #985: zolang het scherm Verbinden… toont, telt hij mee zodat de tekst kan zeggen dat er nog niets terugkwam
   const stopVerbindTik = () => { if (verbindTimer) { clearInterval(verbindTimer); verbindTimer = null; } };
   const set = (ev) => {
+    if (closed) return;
     const was = state.step;
     state = reduce(state, ev);
     if (state.step === 'verbinden' && !verbindTimer) { verbindN = 0; state = { ...state, wachtTik: 0 }; verbindTimer = setInterval(() => set({ t: 'verbind-tik', n: ++verbindN }), VERBIND_TIK_MS); }
@@ -160,6 +165,7 @@ export function mountLobby(root, hooks, opts = {}) {
   const rapportTekst = () => foutrapport({ beoordeling: lastDiag, log: verbindingslog, versie: VERSION, platform: typeof navigator !== 'undefined' ? navigator.platform : '', stand: `${state.rol || '-'} / ${state.route || '-'} / ${state.step}` });
 
   function draw() {
+    if (closed) return;
     // #1169: het niveau van de wereld: de eigen stand als je het spel opende, anders wat het welkom van de host meegaf (een oude host geeft niets)
     state.wereld = state.rol === ROLES.HOST ? getDifficultyLevel() : (session && session.welcome && session.welcome.niveau) || '';
     const v = view(state);
@@ -275,7 +281,7 @@ export function mountLobby(root, hooks, opts = {}) {
       if (sleutel !== swSleutel) {
         swSleutel = sleutel;
         const hoofd = root.querySelector && (root.querySelector('.coop-btn[data-primary="1"]:not([disabled])') || root.querySelector('.sw-kaart'));
-        if (hoofd && hoofd.focus && !veldStand) { try { hoofd.focus(); } catch (e) { /* geen focus in een nep-DOM */ } }
+        if (hoofd && hoofd.focus && !veldStand) { try { hoofd.focus(); } catch (e) { devWarn('lobbyui', e); } }
       }
     }
     if (veldStand && root.querySelector) {
@@ -285,7 +291,7 @@ export function mountLobby(root, hooks, opts = {}) {
         if (veldStand.waarde != null && 'value' in veld && veld.value !== veldStand.waarde) veld.value = veldStand.waarde;
         veld.focus();
         if (veldStand.start != null && veld.setSelectionRange) {
-          try { veld.setSelectionRange(veldStand.start, veldStand.eind != null ? veldStand.eind : veldStand.start); } catch (e) { /* niet elk veld */ }
+          try { veld.setSelectionRange(veldStand.start, veldStand.eind != null ? veldStand.eind : veldStand.start); } catch (e) { devWarn('lobbyui', e); }
         }
       }
     }
@@ -371,7 +377,7 @@ export function mountLobby(root, hooks, opts = {}) {
       if (gen === roomGen) { wacht = false; set({ t: 'fout', msg: e.message }); }
       return;
     }
-    if (gen !== roomGen) { try { if (volgende && volgende.cancel) volgende.cancel(); } catch (e) { /* al weg */ } return; }
+    if (gen !== roomGen) { try { if (volgende && volgende.cancel) volgende.cancel(); } catch (e) { devWarn('lobbyui', e); } return; }
     handle = volgende;
     hooks.addGuest(handle.transport);
     set({ t: 'code', code: formatRoom(room) });
@@ -418,7 +424,7 @@ export function mountLobby(root, hooks, opts = {}) {
     sig.kondig(topic, maak);
     openGate(p.id); // een gast die op de rij klikt, vraagt hier een eenmalige kamer aan
   }
-  function stopAankondiging() { const s = aankondiger; aankondiger = null; if (s) { try { s.close(); } catch (e) { /* weg */ } } stopGate(); }
+  function stopAankondiging() { const s = aankondiger; aankondiger = null; if (s) { try { s.close(); } catch (e) { devWarn('lobbyui', e); } } stopGate(); }
 
   // ----- deelnemen via de lijst zonder de kamercode te publiceren (#583)
   // De host antwoordt op een verzoek met een eenmalige kamer, versleuteld voor die gast (net/joingate.js).
@@ -481,14 +487,14 @@ export function mountLobby(root, hooks, opts = {}) {
     // Geen antwoord publiceren met een kamer die al is afgegaan of niet meer bij deze gate hoort: de gast
     // zou een code krijgen waar niemand op wacht. Door te gooien slaat net/joingate.js het antwoord over.
     if (settled) throw new Error('Het aanbod ging al af voordat de kamer klaar was.');
-    if (gate !== eigen) { try { h.cancel(); } catch (e) { /* al weg */ } throw new Error('De sessie is niet meer openbaar.'); }
+    if (gate !== eigen) { try { h.cancel(); } catch (e) { devWarn('lobbyui', e); } throw new Error('De sessie is niet meer openbaar.'); }
     gateHandles.push(h);
     hooks.addGuest(h.transport);
   }
   function stopGate() {
     const g = gate; gate = null;
-    if (g) { try { g.stop(); } catch (e) { /* al weg */ } }
-    for (const h of gateHandles.splice(0)) { try { h.cancel(); } catch (e) { /* al weg */ } }
+    if (g) { try { g.stop(); } catch (e) { devWarn('lobbyui', e); } }
+    for (const h of gateHandles.splice(0)) { try { h.cancel(); } catch (e) { devWarn('lobbyui', e); } }
   }
   // Weer privé: de oude kamercode is openbaar geweest en werkt niet meer; wie nog kan aansluiten krijgt een nieuwe
   async function nieuweKamer() {
@@ -548,7 +554,7 @@ export function mountLobby(root, hooks, opts = {}) {
     l.timer = setInterval(tik, opts.lijstMs || 2000);
     setTimeout(tik, 400);
   }
-  function stopLuisteren() { const l = luis; luis = null; if (l) { clearInterval(l.timer); try { l.sig.close(); } catch (e) { /* weg */ } } }
+  function stopLuisteren() { const l = luis; luis = null; if (l) { clearInterval(l.timer); try { l.sig.close(); } catch (e) { devWarn('lobbyui', e); } } }
 
   // ----- gast
   const nameOf = (char) => (charInfo(char) || {}).naam || '?';
@@ -573,13 +579,15 @@ export function mountLobby(root, hooks, opts = {}) {
   function watch(sess, expected = null) {
     session = sess;
     let rejectedIdentity = false; // na een identiteitsfout de rest negeren, zodat de waarschuwing blijft staan
-    sess.onstatus = (st) => {
+    const prevStatus = sess.onstatus;
+    const onStatus = (st) => {
+      if (closed) { if (prevStatus) prevStatus(st); return; }
       if (rejectedIdentity) return;
       const check = st === 'ok' && expected ? hostIdentityCheck(expected, sess.sessie) : null;
       if (check && check.hard) {
         rejectedIdentity = true;
         // Meteen loslaten: niet in het spel van iemand anders belanden (constitutie 10).
-        try { if (hooks.disconnect) hooks.disconnect('verbreek', ROLES.GAST, opts.holdSlot); } catch (e) { /* al weg */ }
+        try { if (hooks.disconnect) hooks.disconnect('verbreek', ROLES.GAST, opts.holdSlot); } catch (e) { devWarn('lobbyui', e); }
         cleanup();
         set({ t: 'kies', rol: ROLES.GAST });
         set({ t: 'fout', msg: check.msg });
@@ -593,15 +601,22 @@ export function mountLobby(root, hooks, opts = {}) {
         if (opts.start && hooks.resumed) hooks.resumed();
         if (check) set({ t: 'fout', msg: check.msg }); // zelfde sessie-id, andere naam: alleen een waarschuwing
       }
+      if (prevStatus) prevStatus(st);
     };
+    sess.onstatus = onStatus;
+    restores.push(() => { if (sess.onstatus === onStatus) sess.onstatus = prevStatus; });
     const prev = sess.onevent;
-    sess.onevent = (b) => {
+    const onEvent = (b) => {
+      if (closed) { if (prev) prev(b); return; }
       if (rejectedIdentity) return; // #1293: berichten van de kamer van een ander (spelerslijst, hek) overschrijven de waarschuwing niet
       if (b && b.k === 'hek') { // wie het spel opende start het spel (of er was geen wachtkamer): de wachtkamer van de gast sluit
         const was = state.caps.startGate; set({ t: 'gate', aan: !!b.aan });
         if (was && !b.aan && hooks.startSpel) hooks.startSpel();
       }
-      if (b && b.k === 'spelers' && Array.isArray(b.lijst)) sess.lijstGezien = true; if (b && b.k === 'spelers' && Array.isArray(b.lijst)) set({ t: 'spelers', lijst: b.lijst.map((x) => ({ ...x, naam: naamVan(x) })), max: b.max }); if (prev) prev(b); };
+      if (b && b.k === 'spelers' && Array.isArray(b.lijst)) sess.lijstGezien = true; if (b && b.k === 'spelers' && Array.isArray(b.lijst)) set({ t: 'spelers', lijst: b.lijst.map((x) => ({ ...x, naam: naamVan(x) })), max: b.max }); if (prev) prev(b);
+    };
+    sess.onevent = onEvent;
+    restores.push(() => { if (sess.onevent === onEvent) sess.onevent = prev; });
   }
 
   async function guestStart() {
@@ -691,14 +706,14 @@ export function mountLobby(root, hooks, opts = {}) {
       });
       handle = h;
       const tr = await h.opened;
-      if (geannuleerd()) { try { if (h.cancel) h.cancel(); } catch (e) { /* al weg */ } return false; }
+      if (geannuleerd()) { try { if (h.cancel) h.cancel(); } catch (e) { devWarn('lobbyui', e); } return false; }
       sess.sessie = null; // het nieuwe welkom moet het sessie-id zelf noemen: een oud id telt niet als bewijs
       sess.rebind(tr);
       watch(sess, { id: bron.id, ...(bron.naam != null ? { naam: bron.naam } : {}) });
       verbindingslog.add('herstel', 'opnieuw verbonden via de lijst');
       return true;
     } catch (e) {
-      try { if (h && h.cancel) h.cancel(); } catch (e2) { /* al weg */ }
+      try { if (h && h.cancel) h.cancel(); } catch (e2) { devWarn('lobbyui', e2); }
       verbindingslog.add('herstel', 'hervatten via de lijst mislukt');
       return mislukt(e && e.message ? e.message : 'Opnieuw verbinden lukte niet.');
     }
@@ -708,6 +723,8 @@ export function mountLobby(root, hooks, opts = {}) {
     hervatGen++;
     if (autoTimer) { clearTimeout(autoTimer); autoTimer = null; }
     stopVerbindTik();
+    stopStartTik();
+    while (restores.length) restores.pop()();
     autoTries = AUTO_MAX; // na sluiten geen pogingen meer
     annuleerWachtend(); // #983: het paneel wordt opnieuw getekend terwijl de sessie doorloopt; een verbonden speler (bij een volle sessie is de laatste handle er een) blijft verbonden
     handle = null; wacht = false;
@@ -746,9 +763,16 @@ export function mountLobby(root, hooks, opts = {}) {
           const sk = startKnop({ rol: 'host', spelers: state.spelers || [], bezig: !!state.startBezig });
           if (!magStarten(sk, !!state.startBezig)) return;
           set({ t: 'start-bezig' });
-          const t0 = Date.now(); const tik = setInterval(() => { if (!state.startBezig) { clearInterval(tik); return; } set({ t: 'start-tik', s: Math.floor((Date.now() - t0) / 1000) }); }, 1000);
+          stopStartTik();
+          const t0 = Date.now();
+          startTik = setInterval(() => {
+            if (closed || !state.startBezig) { stopStartTik(); return; }
+            set({ t: 'start-tik', s: Math.floor((Date.now() - t0) / 1000) });
+          }, 1000);
           await new Promise((res) => setTimeout(res, 80)); // één beeld met de voortgang
           if (hooks.startSpel) hooks.startSpel();
+          stopStartTik();
+          set({ t: 'start-klaar' });
           set({ t: 'gate', aan: false });
         }
       }
@@ -799,7 +823,7 @@ export function mountLobby(root, hooks, opts = {}) {
       else if (a === 'diag-terug') set({ t: 'diag-terug' });
       else if (a === 'rapport') { // eerlijk melden of het kopiëren lukte: zonder klembord of toestemming stond er eerst toch "gekopieerd"
         let gelukt = false;
-        try { if (navigator.clipboard) { await navigator.clipboard.writeText(rapportTekst()); gelukt = true; } } catch (e) { /* geen toegang tot het klembord */ }
+        try { if (navigator.clipboard) { await navigator.clipboard.writeText(rapportTekst()); gelukt = true; } } catch (e) { devWarn('lobbyui', e); }
         verbindingslog.add('rapport', gelukt ? 'gekopieerd' : 'kopiëren mislukt'); set({ t: 'fout', msg: gelukt ? KOPIEER.rapportKlaar : KOPIEER.rapportMislukt });
       }
       else if (a === 'logbestand') { const d = window.gdeDesktop; if (d && d.saveTextFile) await d.saveTextFile('GDE-verbindingsrapport.txt', rapportTekst()); }
@@ -820,7 +844,7 @@ export function mountLobby(root, hooks, opts = {}) {
         else if (state.step === 'verbinden') await guestStart();
       } else if (a === 'kopieer') {
         let gelukt = false;
-        try { if (state.code && navigator.clipboard) { await navigator.clipboard.writeText(state.code); gelukt = true; } } catch (e) { /* geen toegang tot het klembord */ }
+        try { if (state.code && navigator.clipboard) { await navigator.clipboard.writeText(state.code); gelukt = true; } } catch (e) { devWarn('lobbyui', e); }
         const kb = root.querySelector && root.querySelector('[data-act="kopieer"] .ss-label');
         if (kb) { kb.textContent = gelukt ? KOPIEER.klaar : KOPIEER.mislukt; setTimeout(() => { if (kb.isConnected) kb.textContent = KOPIEER.knop; }, 2500); }
       } else if (a.startsWith('kick-')) {
@@ -858,14 +882,21 @@ export function mountLobby(root, hooks, opts = {}) {
     }
   }
 
-  if (hub && (opts.start || opts.adopt)) { const prev = hub.onchange; hub.onchange = (r) => { if (prev) prev(r); onRoster(r); }; }
+  if (hub && (opts.start || opts.adopt)) {
+    const prev = hub.onchange;
+    const onHub = (r) => { if (prev) prev(r); if (!closed) onRoster(r); };
+    hub.onchange = onHub;
+    restores.push(() => { if (hub.onchange === onHub) hub.onchange = prev; });
+  }
   if (session && (opts.start || opts.adopt)) watch(session); // wachtscherm van een gast: zodra de verbinding van zelf terugkomt (zelfde token), sluit het scherm
+  const ac = typeof AbortController !== 'undefined' ? new AbortController() : { signal: undefined, abort() {} };
+  const listenOpts = ac.signal ? { signal: ac.signal } : undefined;
   root.addEventListener('click', (e) => {
     const b = e.target.closest && e.target.closest('[data-act]');
     if (b && root.contains(b)) act(b.dataset.act);
     const k = e.target.closest && e.target.closest('[data-kleur]');
     if (k && k.dataset && k.dataset.kleur && root.contains(k)) { set({ t: 'profiel', kleur: k.dataset.kleur }); bewaarProfiel(); } // een kleur meteen bewaren
-  });
+  }, listenOpts);
   root.addEventListener('input', (e) => { // tijdens het typen geen nieuwe tekening: anders raakt het veld zijn focus kwijt
     if (e.target && e.target.classList && e.target.classList.contains('coop-profiel-naam')) {
       state = reduce(state, { t: 'profiel', naam: e.target.value });
@@ -887,12 +918,12 @@ export function mountLobby(root, hooks, opts = {}) {
     }
     // de lijst (#464): de waarde staat in de state, draw() zet de focus en de cursor terug
     else if (e.target && e.target.classList && e.target.classList.contains('coop-lijst-zoek')) { state = reduce(state, { t: 'lijst-zoek', tekst: e.target.value }); draw(); }
-  });
+  }, listenOpts);
   root.addEventListener('keydown', (e) => { // Enter drukt de gele hoofdknop als de focus niet op een knop of veld staat (de toetshint op de knop)
     if (e && e.key === 'Enter' && e.target && e.target.closest && !e.target.closest('button, input, textarea, select, summary, a')) {
       const b = root.querySelector('.coop-btn[data-primary="1"]:not([disabled])'); if (b) { e.preventDefault(); b.click(); }
     }
-  });
+  }, listenOpts);
   root.addEventListener('keydown', (e) => { // Escape wist het zoekveld; pijltjes gaan langs de sessies
     if (!e || !e.target) return;
     if (e.key === 'Escape' && e.target.classList && e.target.classList.contains('coop-lijst-zoek') && state.lijstZoek) { // B: eerst de tekst weg, daarna gaat B terug (22-11)
@@ -907,7 +938,7 @@ export function mountLobby(root, hooks, opts = {}) {
       const volgende = knoppen[i + (e.key === 'ArrowDown' ? 1 : -1)];
       if (volgende && volgende.focus) volgende.focus();
     }
-  });
+  }, listenOpts);
   root.addEventListener('change', (e) => {
     if (e.target && e.target.classList && e.target.classList.contains('coop-profiel-naam')) bewaarProfiel();
     // het wachtwoord (#450): na het typen de regel eronder bijwerken (open of op slot)
@@ -916,7 +947,7 @@ export function mountLobby(root, hooks, opts = {}) {
     else if (wizard && e.target && e.target.classList && e.target.classList.contains('sw-figuur-kies')) act('wens-' + String(e.target.value || '')); // de figuur als keuzelijst (stap 1)
     else if (wizard && e.target && e.target.classList && e.target.classList.contains('coop-openbaar-vink')) { wz = reduceWizard(wz, { t: 'bevestig', aan: !!e.target.checked }); draw(); }
     else if (e.target && e.target.classList && e.target.classList.contains('coop-consent-vink')) { state = reduce(state, { t: 'consent-vink', aan: !!e.target.checked }); draw(); }
-  });
+  }, listenOpts);
   if (hub) koppelAankondiging();
   if (hub) koppelKamerRotatie(); // #779: ook een lopende of overgedragen sessie laat de kamercode na een kick rouleren
   draw();
@@ -934,6 +965,6 @@ export function mountLobby(root, hooks, opts = {}) {
       return true;
     },
     wizard: () => ({ ...wz, stap: wizStep(state, wz) }),
-    close() { cleanup(); root.innerHTML = ''; },
+    close() { closed = true; ac.abort(); cleanup(); root.innerHTML = ''; }, // alleen hier de luisteraars afbreken: cleanup() draait ook bij Terug en Verbreken, waar het scherm blijft
   };
 }

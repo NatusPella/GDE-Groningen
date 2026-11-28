@@ -11,6 +11,7 @@ import { padGlyphInner } from './glyphs.js';
 import { shopIconSvg } from './shopicons.js';
 import { deviceText } from './touchui.js';
 import { bonRegels, probleemVan, risicoVan } from './shopbon.js';
+import { escapeHtml as esc } from './htmlescape.js';
 import {
   itemIcon, itemStatus, refusalMessage, needsConfirm as needsConfirmFor, buyLabel as buyLabelFor, shopTabs, tabSections, stepTab, keepTab,
   flatItems, keepItem, shortPerk, toonStatus, bevestigRegel, escActie, bevestigGeldig,
@@ -43,7 +44,6 @@ const chipHtml = (st, extra = '') => `<span class="ds-z-chip ${CHIP_KLASSE[st.to
 const rijChip = (it, st) => (it.plain || !toonStatus(st) ? '' : chipHtml(st));
 const euroHeel = (n) => euro(Math.max(0, Math.floor(Number(n) || 0)));
 
-const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
 export function isShopOpen() {
   return open;

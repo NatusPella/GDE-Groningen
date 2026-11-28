@@ -4,8 +4,8 @@
 // de knop van het apparaat dat de speler nu gebruikt (toetsenbord, Xbox, PlayStation, Steam Deck, Switch) en verbergt hem op aanraking of
 // als de controller de toets niet heeft. De maat komt uit ds-keycap.css (geen eigen px-maat hier). Puur: tekenreeksen, geen DOM.
 import { glyphHtml } from './keycap.js';
+import { escapeHtml as esc } from './htmlescape.js';
 
-const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
 // De standaardtoetsen van het menupatroon (controls.js PAD_MAPS.menu: A is Enter, B is Esc); rijkeuze 1 tot 9 is een cijfertoets.
 export const KNOP_TOETSEN = Object.freeze({ bevestig: 'ENTER', terug: 'ESC' });

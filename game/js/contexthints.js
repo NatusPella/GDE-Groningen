@@ -15,9 +15,9 @@ import { pickHint, pickSamenHint, situation, parseSeen, serializeSeen, widgetNod
 import { openerNaam } from './coopplayers.js';
 import { uitlegBlok, zetUitlegGlyph, startUitleg } from './uitleg.js';
 import { HINT_UITLEG, uitlegDef } from './uitlegdata.js';
+import { escapeHtml as escHtml } from './htmlescape.js';
 
 const KEY_TOKEN = /\{(\w+)\}/g;
-const escHtml = (s) => s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const plainKeys = (t) => t.replace(KEY_TOKEN, (m, k) => keyName(physicalKey(getSettings().keyBinds || {}, tokenKey(k))));
 const htmlKeys = (t) => t.split(KEY_TOKEN).map((part, i) => (i % 2 ? glyphHtml(part) : escHtml(part))).join('');
 

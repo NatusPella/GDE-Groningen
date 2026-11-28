@@ -4,8 +4,8 @@
 // betaling blijft per gebeurtenis in coopbeloning.js; dit toont wat er al is uitbetaald (de bedragen komen van de aanroeper).
 import { groepsbonus, GROEPSBONUS_PER_SPELER } from './groepsbonus.js';
 import { VORM_TEKEN, veiligeKleur } from './coopspelers.js';
+import { escapeHtml as esc } from './htmlescape.js';
 
-const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const eur = (n) => '€ ' + Math.round(n).toLocaleString('nl-NL');
 
 // invoer: { titel, uitslag: [{ slot, naam, kleur, vorm, plek?, tijd? }], kijkers: [naam], mijnSlot, basis (jouw beloning vóór de groepsbonus), aantal (deelnemers), punten (loopbaan), verhaal: 'ongewijzigd'|'stap' }

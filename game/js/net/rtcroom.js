@@ -8,6 +8,7 @@
 
 import { encryptBlob, decryptBlob, topicFor } from './sigcrypto.js';
 import { ICE_SERVERS, TIMEOUTS } from './netconfig.js';
+import { devWarn } from '../devwarn.js';
 
 export const rtcSupported = () => typeof RTCPeerConnection !== 'undefined';
 const MAX_SDP = 20000;
@@ -37,7 +38,7 @@ function wrapChannel(ch, pc) {
     onmessage: null, onstate: null, dispose() {},
     isOpen: () => ch.readyState === 'open',
     send(bytes) { if (ch.readyState !== 'open') return false; try { ch.send(bytes); return true; } catch (e) { return false; } },
-    close() { try { ch.close(); pc.close(); } catch (e) { /* al dicht */ } },
+    close() { try { ch.close(); pc.close(); } catch (e) { devWarn('rtcroom', e); } },
   };
   ch.onmessage = (e) => {
     const d = e.data;
@@ -65,9 +66,9 @@ export async function hostRoom(room, env) {
   const transport = wrapChannel(ch, pc);
   let ended = false, timer = null;
   const fail = (txt) => { if (!ended) { ended = true; onstate('fout', txt); cancel(); } };
-  const cancel = () => { ended = true; clearTimeout(timer); try { signaler.close(); } catch (e) { /* weg */ } try { pc.close(); } catch (e) { /* weg */ } }; // #589: ook een open kanaal hoort bij het opruimen dicht
+  const cancel = () => { ended = true; clearTimeout(timer); try { signaler.close(); } catch (e) { devWarn('rtcroom', e); } try { pc.close(); } catch (e) { devWarn('rtcroom', e); } }; // #589: ook een open kanaal hoort bij het opruimen dicht
   const opened = transport.onstate;
-  transport.onstate = (s) => { if (s === 'open') { ended = true; clearTimeout(timer); try { signaler.close(); } catch (e) { /* weg */ } onstate('open'); } if (opened) opened(s); };
+  transport.onstate = (s) => { if (s === 'open') { ended = true; clearTimeout(timer); try { signaler.close(); } catch (e) { devWarn('rtcroom', e); } onstate('open'); } if (opened) opened(s); };
   // Eerst wachten tot een medespeler de code gebruikt (lang: tijd om de code door te geven), daarna pas de tijd om echt te verbinden.
   // Eén timer voor allebei liet de uitnodiging na 30 s verlopen, ook als de vriend de code nog moest overnemen.
   const MELDING = 'Er kwam geen verbinding tot stand. Controleer de code en probeer het opnieuw.';
@@ -99,24 +100,24 @@ export async function joinRoom(room, env) {
   const pc = maakPc(pcFactory, iceServers);
   let ended = false, transport = null;
   const fail = (txt) => { if (!ended) { ended = true; onstate('fout', txt); cancel(); } };
-  const cancel = () => { ended = true; clearTimeout(timer); try { signaler.close(); } catch (e) { /* weg */ } try { pc.close(); } catch (e) { /* weg */ } }; // #589: ook een open kanaal hoort bij het opruimen dicht
+  const cancel = () => { ended = true; clearTimeout(timer); try { signaler.close(); } catch (e) { devWarn('rtcroom', e); } try { pc.close(); } catch (e) { devWarn('rtcroom', e); } }; // #589: ook een open kanaal hoort bij het opruimen dicht
   const timer = setTimeout(() => fail('Er kwam geen verbinding tot stand. Controleer de code en of het spel open staat.'), timeouts.connect);
   let failedNu = null; const failed = new Promise((resolve) => { failedNu = resolve; }); // #1059: ook een ICE-fout of een verhuisde kamer meldt zich meteen, niet pas na de hele verbindtijd
   const opened = new Promise((resolve) => {
     pc.ondatachannel = (e) => {
       transport = wrapChannel(e.channel, pc);
       const prev = transport.onstate;
-      transport.onstate = (s) => { if (s === 'open') { ended = true; clearTimeout(timer); try { signaler.close(); } catch (er) { /* weg */ } onstate('open'); } if (prev) prev(s); };
+      transport.onstate = (s) => { if (s === 'open') { ended = true; clearTimeout(timer); try { signaler.close(); } catch (er) { devWarn('rtcroom', er); } onstate('open'); } if (prev) prev(s); };
       resolve(transport);
     };
   });
   onstate('wacht');
-  try { pc.addEventListener('connectionstatechange', () => { if (pc.connectionState === 'failed' && !ended) { ended = true; clearTimeout(timer); onstate('fout', 'De verbinding lukte niet.'); failedNu({ tekst: 'De verbinding lukte niet.' }); try { signaler.close(); } catch (e) { /* weg */ } try { pc.close(); } catch (e) { /* weg */ } } }); } catch (e) { /* een nep-pc zonder events */ }
+  try { pc.addEventListener('connectionstatechange', () => { if (pc.connectionState === 'failed' && !ended) { ended = true; clearTimeout(timer); onstate('fout', 'De verbinding lukte niet.'); failedNu({ tekst: 'De verbinding lukte niet.' }); try { signaler.close(); } catch (e) { devWarn('rtcroom', e); } try { pc.close(); } catch (e) { devWarn('rtcroom', e); } } }); } catch (e) { devWarn('rtcroom', e); }
   signaler.join(await topicFor(room), async (blob, reply) => {
     if (ended) return;
     let txt = null; try { txt = await decryptBlob(room, blob); } catch (e) { txt = null; }
     const verh = txt && leesVerhuisd(txt); // #1059: de opvolger woont in een andere kamer (verhuisd-naar)
-    if (verh) { ended = true; clearTimeout(timer); try { signaler.close(); } catch (e) { /* weg */ } try { pc.close(); } catch (e) { /* weg */ } failedNu({ tekst: 'verhuisd', verhuisd: verh }); return; }
+    if (verh) { ended = true; clearTimeout(timer); try { signaler.close(); } catch (e) { devWarn('rtcroom', e); } try { pc.close(); } catch (e) { devWarn('rtcroom', e); } failedNu({ tekst: 'verhuisd', verhuisd: verh }); return; }
     const off = txt && readSdp(txt, 'offer');
     if (!off) { fail('De kamercode klopt niet, of het bericht is beschadigd.'); return; }
     try {
@@ -143,5 +144,5 @@ export async function verwijsKamer(oud, nieuw, env) {
   const blob = await encryptBlob(oud, JSON.stringify({ type: 'moved', kamer: nieuw }));
   const topic = await topicFor(oud);
   signaler.host(topic, blob, () => {});
-  return { stop() { try { signaler.close(); } catch (e) { /* weg */ } } };
+  return { stop() { try { signaler.close(); } catch (e) { devWarn('rtcroom', e); } } };
 }

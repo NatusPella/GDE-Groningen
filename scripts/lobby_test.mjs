@@ -445,7 +445,7 @@ t('#779: een kick of nieuwe kamer ongeldigt een aanbod dat nog onderweg is', () 
   assert.match(src, /let roomGen = 0;/, 'de lobby kent een generatienummer');
   assert.match(src, /const gen = \+\+roomGen;/, 'elk aanbod krijgt een eigen generatie');
   assert.match(src, /if \(gen !== roomGen\) return; \/\/ een ouder aanbod/, 'een ouder aanbod doet niets meer met het scherm of de hub');
-  assert.match(src, /if \(gen !== roomGen\) \{ try \{ if \(volgende && volgende\.cancel\) volgende\.cancel\(\); \} catch \(e\) \{ \/\* al weg \*\/ \} return; \}/, 'een laat antwoord wordt geannuleerd en niet toegevoegd');
+  assert.match(src, /if \(gen !== roomGen\) \{ try \{ if \(volgende && volgende\.cancel\) volgende\.cancel\(\); \} catch \(e\) \{ (?:\/\* al weg \*\/|devWarn\([^)]+\);) \} return; \}/, 'een laat antwoord wordt geannuleerd en niet toegevoegd');
   assert.equal((src.match(/roomGen\+\+; \/\/ #779: een aanbod dat nog onderweg is/g) || []).length, 2, 'zowel een nieuwe kamer als de kamerrotatie na een kick ongeldigt het oude aanbod');
 });
 

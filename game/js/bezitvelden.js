@@ -12,10 +12,10 @@ import { kaartSvg, legendaHtml } from './bezitkaart.js';
 import { SPECIES, herdOffers, herdSellValue, vetCost } from './livestock.js';
 import { staffOf, staffCapacity, wageOf, SKILL_NAME } from './farmstaff.js';
 import { missReason } from './holdingcards.js';
+import { escapeHtml as esc } from './htmlescape.js';
 
 // De kadastrale code tussen haakjes (K1244) is een sleutel, geen naam: de speler leest hem niet.
 export const schoneNaam = (n) => String(n || '').replace(/\s*\([A-Za-z]?\d+\)\s*$/, '');
-const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const IC = (n, cls = 'bz-ic') => icoon(n, { cls });
 const ha = (n) => String(Math.round(n * 10) / 10).replace('.', ',');
 const LEVEL_NAAM = { self: 'Zelf', staff: 'Personeel', leased: 'Verpacht' };

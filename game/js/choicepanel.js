@@ -5,6 +5,7 @@
 // `world.minigameUntil` (set by the job while it is up) keeps the number keys
 // and Space from switching weapons.
 import { icoon } from './icons.js';
+import { escapeHtml as esc } from './htmlescape.js';
 const CSS = `
 #hud .cw-panel[hidden] { display: none; }
 #hud .cw-panel { position: absolute; top: 14px; left: 50%; transform: translateX(-50%); box-sizing: border-box; width: min(640px, calc(100vw / var(--ui, 1) - 2 * max(var(--hud-edge, 46px) + 370px, var(--hud-c-right, 0px) + 12px)), calc(100vw - 32px)); min-width: min(400px, calc(100vw - 32px)); padding: 10px 18px 12px 14px; color: var(--ds-c-creme); text-shadow: var(--hud-shadow); pointer-events: none; z-index: 4;
@@ -61,7 +62,6 @@ html.touch-device #hud .cw-panel .cw-opt { min-height: 44px; box-sizing: border-
 `;
 
 let cssDone = false;
-const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
 export const keycap = (t) => `<span class="hud-key">${esc(t)}</span>`;
 
 export function createChoicePanel(accent = 'var(--mk-mission, #e8c93a)') {
@@ -84,7 +84,12 @@ export function createChoicePanel(accent = 'var(--mk-mission, #e8c93a)') {
     root,
     get open() { return !root.hidden; },
     show() { root.hidden = false; document.body.classList.add('mg-on'); last = ''; },
-    hide() { root.hidden = true; document.body.classList.remove('mg-on'); },
+    hide() {
+      root.hidden = true;
+      if (typeof document !== 'undefined' && !document.body.classList.contains('mg-board') && !document.querySelector('#hud .cw-panel:not([hidden])')) {
+        document.body.classList.remove('mg-on');
+      }
+    },
     // { kicker, text, rule, options: [{ key, label, cls }], meter: { v, from, to }, flash, bad, help, nr }
     set(s) {
       const sig = JSON.stringify([s.kicker, s.text, s.rule, s.options, s.meter && [Math.round(s.meter.v * 100), s.meter.from, s.meter.to], s.flash, !!s.bad, s.help, s.nr]);
@@ -97,7 +102,7 @@ export function createChoicePanel(accent = 'var(--mk-mission, #e8c93a)') {
       el.text.textContent = s.text || '';
       el.rule.hidden = !s.rule;
       el.rule.textContent = s.rule || '';
-      el.opts.innerHTML = (s.options || []).map((o) => `<div class="cw-opt ${o.cls || ''}" data-key="${esc(o.key)}">${o.icon ? `<span class="cw-ic">${icoon(o.icon, { maat: 'm' })}</span>` : keycap(o.key)}${o.note ? `<span class="cw-body"><span>${esc(o.label)}</span><span class="cw-note">${esc(o.note)}</span></span>` : `<span>${esc(o.label)}</span>`}${o.badge ? `<span class="cw-badge">${esc(o.badge)}</span>` : ''}</div>`).join('');
+      el.opts.innerHTML = (s.options || []).map((o) => `<div class="cw-opt ${o.cls || ''}" data-key="${esc(o.key)}">${o.icon ? `<span class="cw-ic">${icoon(o.icon, { maat: 'm' })}</span>` : keycap(o.key)}${o.note ? `<span class="cw-body"><span class="cw-label">${esc(o.label)}</span><span class="cw-note">${esc(o.note)}</span></span>` : `<span class="cw-label">${esc(o.label)}</span>`}${o.badge ? `<span class="cw-badge">${esc(o.badge)}</span>` : ''}</div>`).join('');
       if (s.meter) {
         el.meter.hidden = false;
         el.mark.style.left = `${Math.round(Math.max(0, Math.min(1, s.meter.v)) * 100)}%`;
