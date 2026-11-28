@@ -1,7 +1,8 @@
 // Voetbalparken uit de kaart en de lokale clubs (#1117, epic #1106, docs/VOETBAL-CARRIERE-21-11.md hoofdstuk 3b): puur, geen DOM en geen THREE (scripts/voetbalparken_test.mjs).
 // De data is game/js/voetbalparkendata.js (scripts/world/build_voetbalparken.mjs: 281 parken bij 139 plaatsen, ongeveer 27 kB). Elke plaats met een park heeft één verzonnen club; het grootste park binnen 3 km
-// is het thuispark, de rest zijn trainingsvelden. De acht dichtstbijzijnde plaatsen bij het huis vormen de Talentenklasse. Geen echte clubnamen: acht sjablonen met een knipoog, nooit VV, SV, FC, SC of RKSV.
+// is het thuispark, de rest zijn trainingsvelden (de club van de verhaalplaats heet vast De Hoekers: voetbalverhaal.js). De acht dichtstbijzijnde plaatsen bij het huis vormen de Talentenklasse. Geen echte clubnamen: acht sjablonen met een knipoog, nooit VV, SV, FC, SC of RKSV.
 import { hashSeed } from './voetbalplayers.js';
+import { STORY_PLACE_ID, STORY_VILLAGE_CLUB } from './voetbalverhaal.js';
 
 export const HOME_WGS = Object.freeze({ lat: 53.2405, lon: 6.5335 });   // het huis in Paddepoel (Pleiadenlaan)
 export const LOCAL_DIVISION_SIZE = 8;
@@ -26,7 +27,7 @@ export function adjective(place) {
   if (/er$/i.test(p)) return p;
   return /e$/i.test(p) ? `${p}r` : `${p}er`;
 }
-export const localClubName = (placeId, placeName) => { const h = hashSeed('club', placeId); return TEMPLATES[h % TEMPLATES.length](clean(placeName), h >>> 3); };
+export const localClubName = (placeId, placeName) => { if (placeId === STORY_PLACE_ID) return STORY_VILLAGE_CLUB; const h = hashSeed('club', placeId); return TEMPLATES[h % TEMPLATES.length](clean(placeName), h >>> 3); };
 
 const hsl = (h, s, l) => { const k = (n) => (n + h / 30) % 12, a = s * Math.min(l, 1 - l), f = (n) => l - a * Math.max(-1, Math.min(k(n) - 3, Math.min(9 - k(n), 1))); return (Math.round(f(0) * 255) << 16) | (Math.round(f(8) * 255) << 8) | Math.round(f(4) * 255); };
 const PATRONEN = ['effen', 'brede-streep', 'helften', 'smalle-streep'];
