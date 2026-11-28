@@ -190,7 +190,7 @@ export function gastKijkHoek(camYaw, dx, gevoeligheid = 1) {
 export const UITSTAP_MAX_SNELHEID = 2;
 export const kanUitstappen = (v) => {
   if (!v || Math.abs(v.speed || 0) > UITSTAP_MAX_SNELHEID) return false;
-  if (v.isHeli || v.isPlane) return v.onGround === true;
+  if (v.isHeli || v.isPlane || v.isBalloon) return v.onGround === true;
   return true;
 };
 

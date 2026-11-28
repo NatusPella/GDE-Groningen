@@ -23,6 +23,7 @@ export const BESTUUR_TEKST = {
   uit: 'Stap uit als het voertuig bijna stilstaat.',
   slot: 'Dat slot zit dicht.',
   vlieg: 'Een helikopter of vliegtuig besturen kan alleen in je eigen spel.',
+  ballon: 'In een ballon zit je als gast mee; de brander bedient wie het spel opende.',
   gedeeld: 'Deze is van een ander en wordt niet gedeeld.',
   kapot: 'Je voertuig is kapot. Je staat weer buiten.',
   zinkt: 'Je voertuig zinkt. Je staat weer bij de groep.',
@@ -89,6 +90,7 @@ export function weigerReden(v, slot = null) {
   // Samen spelen (#492): het voertuig van je eigen bijbaan bestuur je zelf, ook al is het een
   // opdrachtauto. Een ander komt er niet mee weg: dat is diefstal van de dienst van een medespeler.
   if (Number.isInteger(v.jobOwner)) return v.jobOwner === slot ? null : 'niet';
+  if (v.isBalloon) return 'niet'; // de brander draait bij de host: een gast zit mee als passagier (vehicle_balloon.js)
   if (coopRegelVoor(v).bestuur === 'nee') return 'niet'; // de regel van het model, ook zonder de oude vlaggen
   if (v.driver || v.passenger || v.wrecked || v.sinking || v.disabled) return 'bezet';
   if (v.road || v.countryDrive) return 'verkeer';
@@ -160,6 +162,8 @@ export function bestuurInstappen(world, slot) {
   if (!v) {
     const vlieg = haken.vind(l.x, l.y, alle.filter((q) => (q.isHeli || q.isPlane) && !q.driver));
     if (vlieg) { stoot(world, slot, BESTUUR_TEKST.vlieg); return { gedaan: true }; }
+    const ballon = haken.vind(l.x, l.y, alle.filter((q) => q.isBalloon));
+    if (ballon) { stoot(world, slot, BESTUUR_TEKST.ballon); return { gedaan: true }; }
     // een eigen voertuig van een andere speler dat niet gedeeld is (#449)
     const gedeeld = haken.vind(l.x, l.y, alle.filter((q) => q.coopBezit && !magGebruiken(q.coopBezit.recht, slot, q.coopBezit.slot)));
     if (gedeeld) { stoot(world, slot, BESTUUR_TEKST.gedeeld); return { gedaan: true }; }
@@ -293,7 +297,7 @@ export function bestuurTick(world, dt) {
   for (const slot of Object.keys(lijst)) {
     const r = lijst[slot], v = r.v, l = lichaamVan(world, +slot);
     if (!l || !bestuurt(l) || !v) { bestuurLos(world, +slot); continue; }
-    if (v.wrecked || v.sinking || v.isHeli || v.isPlane) { // kapot, aan het zinken: de gast staat weer buiten (op de grond bij de groep als er geen droge plek is)
+    if (v.wrecked || v.sinking || v.isHeli || v.isPlane || v.isBalloon) { // kapot, aan het zinken: de gast staat weer buiten (op de grond bij de groep als er geen droge plek is)
       haken.exit && r.proxy.inVehicle === v && haken.exit(r.proxy, world.map, world);
       klaar(world, +slot, r, l);
       if (haken.bijGroep && v.sinking) haken.bijGroep(world, l, (+slot * 1.7) % (Math.PI * 2));
