@@ -19,6 +19,7 @@ import { logoHtml, GAME_NAME, SUBTITLE } from './logo.js';
 import { mayInterrupt, noteMoment } from './attention.js';
 import { momentReason } from './cutgates.js';
 import { registerNarrative } from './narrative.js';
+import { beginCutMusic, clockCutMusic, endCutMusic } from './sfx/cutmusic.js';
 import { lineVoiceFor, lineVoicesFailed } from './linevoice.js';
 import { plannedVoiceLines } from './voicetiming.js';
 // What cinematics.js asks of respawn.js and scene3d.js comes in through setCinematicLinks
@@ -464,6 +465,8 @@ function begin(spec) {
   // lines with a recording ({ voice }) are spoken as their subtitle comes up
   active.voiced = !!(active.lines && active.lines.some((l) => l.voice)) || !!active.mumble;
   if (active.voiced) setStoryScene(true, 'cine');
+  // de muziek onder de scène (sfx/cutmix.js): onder een stem omlaag, in een dialoogscène uit, stand uit spec.music of de tabel van de regie
+  if (active.voiced && active.lines && active.lines.length) beginCutMusic({ id: active.sceneId, music: active.music, lines: active.lines, duration: active.duration });
   // a pausing cutscene brings the player's vehicle to a stop, so resuming
   // doesn't launch you onward at full speed - except the ones that ask to
   // keep the motion (the conquest tour only plays at low speed anyway)
@@ -494,7 +497,7 @@ function finish(skipped, replaced = false) {
   document.body.classList.remove('cine-hide-hud');
   if (world) world.cameraOverride = null;
   clearVehicleHiding(shotVehicles); // #964: het verkeer mag weer gezien worden
-  if (a && a.voiced) setStoryScene(false, 'cine');
+  if (a && a.voiced) { setStoryScene(false, 'cine'); endCutMusic(); }
   // a story or mission scene counts against the attention budget too: no
   // wijk card straight after an outro or the opening montage
   if (a && (a.pause || a.hideHud) && !OWN_MOMENTS.has(a.id)) noteMoment('scene');
@@ -555,6 +558,7 @@ function updateSkipHold() {
 
 function updateSubtitles() {
   const lines = active.lines;
+  clockCutMusic(active.t);
   if (active.cardFor != null && active.t > active.cardFor) els.root.classList.remove('has-card');
   if (!lines || !lines.length) return;
   const idx = subtitleIndex(lines, active.t, active.duration, els.lineIndex);

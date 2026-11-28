@@ -9,6 +9,7 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ## [Unreleased]
 
+- Muziek onder spraak in cutscenes: zodra iemand praat zakt de muziek 16 dB (in 0,15 s) en blijft laag tot er 1,2 s stilte is, dus geen gepomp tussen twee regels. In scènes waarin vooral gepraat wordt is de muziek helemaal uit en komt na de scène zacht terug. De clue-tik van een aanwijzing valt niet meer midden in een zin maar in de stilte erna. De regie kan per scène `music: 'vol' | 'laag' | 'uit'` zetten. Samen spelen: een gast rekent dezelfde mix uit zijn eigen scène, lokaal.
 - De game staat nu op de hoofdpagina van de webversie (GitHub Pages); de marketingpagina is weggehaald. De oude link /play/ stuurt door naar de hoofdpagina.
 
 ## [0.66.0] - 2026-11-24

@@ -126,7 +126,7 @@ ok(musicDuckGain(NaN) === 1 && musicDuckGain(7) === MUSIC_DUCK_KEEP, 'duck: NaN 
   ok(Number.isFinite(musicDuckStep(NaN, NaN, NaN)), 'duck: NaN-vrij');
   ok(musicDuckStep(0.3, 1, 5) < 1, 'duck: een lange dt springt niet');
 }
-ok(/musicDuckStep\(scenarioDuck, speech\.musicDuck\(\), dt\)/.test(scen) && /musicDuckGain\(scenarioDuck\)/.test(scen), 'scenariomuziek dempt onder een gesprek');
+ok(/musicDuckStep\(scenarioDuck, cutMusicActive\(\) \? 0 : speech\.musicDuck\(\), dt\)/.test(scen) && /musicDuckGain\(scenarioDuck\)/.test(scen), 'scenariomuziek dempt onder een gesprek');
 
 // 9. tabwissel
 ok(/function softResume/.test(aud) && /softResume\(\);/.test(aud) && /ctx\.currentTime > softUntil/.test(aud), 'audio.js: zachte start na een tabwissel, wachter wacht even');

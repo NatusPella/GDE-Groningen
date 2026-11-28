@@ -86,6 +86,8 @@ function loadScenarioMusic() {
     'const speech = { musicDuck: () => 0 };',
     'const musicDuckStep = (l) => l;',
     'const musicDuckGain = () => 1;',
+    'const cutMusicActive = () => false;',
+    'const cutMusicGain = () => 1;',
     'const SCENARIO_VOLUME = 0.6;',
     'const stingDuck = { level: 0 };',
     'const getSettings = () => ({});',

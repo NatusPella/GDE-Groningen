@@ -13,6 +13,7 @@ import { MIN_TRACK_S, normalizeTrack, pickTrack, pushHistory, pickJingle, STATIO
 import { channelById, channelTracks, recentIds, pushLog } from '../radiochannels.js';
 import { createMusicWatch } from '../musicwatch.js';
 import * as speech from '../speech.js';
+import { tickCutMusic, cutMusicActive, cutMusicGain } from '../sfx/cutmusic.js';
 import { GMUSIC_VOLUME, musicBusGain } from '../sfx/volume.js';
 import { createGmusicPreloadWindow } from './gmusicpreload.js';
 
@@ -455,18 +456,19 @@ export function updateGMusic(dt, world) {
     pendingTrackAnnounce = null;
   }
 
+  tickCutMusic(dt); // de cutscenemix (sfx/cutmix.js): onder een stem 16 dB omlaag, in een dialoogscène 'uit'
   const scene = updateScenarioMusic(dt, world) || radioHolds();
 
   // Only spoken lines (the speech.js channel) dip the music, gently;
   // vehicles, sirens and stings never touch it. A scenario track fades
   // G-Music out and pauses it; it resumes where it was afterwards.
-  const duck = speech.musicDuck();
+  const duck = cutMusicActive() ? 0 : speech.musicDuck(); // in een cutscene stuurt de cutscenemix, niet de gespreksdemping erbij
   const ducked = duck > 0;
   const targetGain = scene ? 0 : GMUSIC_VOLUME + (GMUSIC_DUCK_VOLUME - GMUSIC_VOLUME) * duck;
   const lerpRate = scene ? dt * 1.8 : gmusicFadingIn || gmusicHeld ? dt * 0.8 : dt * (ducked ? 1.5 : 0.8);
   musicState.gain += (targetGain - musicState.gain) * Math.min(1, lerpRate);
   if (!Number.isFinite(musicState.gain)) musicState.gain = targetGain;
-  musicBus.gain.value = musicBusGain(getSettings(), musicState.gain) * stingDuckMul(dt);
+  musicBus.gain.value = musicBusGain(getSettings(), musicState.gain) * stingDuckMul(dt) * cutMusicGain();
   if (gmusicFadingIn && Math.abs(targetGain - musicState.gain) < 0.02) gmusicFadingIn = false;
   if (scene && !gmusicHeld && musicState.gain < 0.02) {
     gmusicHeld = true;
