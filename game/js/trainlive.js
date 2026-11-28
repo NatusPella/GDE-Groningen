@@ -52,10 +52,9 @@ export function createLiveTrains({ fetchFn, nu = () => Date.now(), opts = {} } =
     st.bezig = true; st.opgevraagd++;
     st.volgendeOp = t + cfg.interval;
     return fetchLiveTrains({ fetchFn, codes, url: cfg.url, timeout: cfg.timeout, maxBytes: cfg.maxBytes, maxMeldingen: cfg.maxMeldingen }).then((res) => {
-      if (st.aan) handleResult(res, nu());
-      st.bezig = false;
+      try { if (st.aan) handleResult(res, nu()); } catch (e) { st.fouten = (st.fouten || 0) + 1; } finally { st.bezig = false; }
       return res;
-    });
+    }, () => { st.fouten = (st.fouten || 0) + 1; st.bezig = false; return null; });
   }
 
   // De vertragingen nu: de kaart, of null als de stand te oud is of de bron uit staat (dan toont het bord het rooster).

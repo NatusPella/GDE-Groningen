@@ -9,26 +9,40 @@ import { stopCoopNet } from './coopnet.js';
 import { toonBevestiging } from './spelbevestig.js';
 import { isSoloHost } from './coopsolo.js';
 import { setVisibleInterval } from './visibletimer.js';
+import { keepFocus } from './focusbehoud.js';
 
 const echt = (world) => !!(world && world.coopNet && !isSoloHost(world));
 const opener = (world) => ((world.coopSpelers || []).find((r) => r.slot === 0) || {}).naam || 'de ander';
 function code() { try { return readSession(localStorage).laatsteCode || ''; } catch (e) { return ''; } }
 
 const timers = new WeakMap();
+const worlds = new WeakMap();
 function monteer(root, world, soort) {
+  worlds.set(root, world);
   const teken = () => {
     if (!root.isConnected || root.closest('[hidden]')) { const t = timers.get(root); if (t) { clearInterval(t); timers.delete(root); } return; }
-    if (!echt(world)) { root.innerHTML = '<p class="ss-hulp">Je speelt nu alleen. Open je spel of doe mee bij Samen spelen.</p>'; return; }
-    const n = world.coopNet, host = n.role === 'host', hub = host ? n.hub : null;
-    const rijen = world.coopSpelers || [];
+    const w = worlds.get(root);
+    if (!echt(w)) {
+      const h = '<p class="ss-hulp">Je speelt nu alleen. Open je spel of doe mee bij Samen spelen.</p>';
+      if (root.dataset.sig !== h) { root.dataset.sig = h; root.innerHTML = h; }
+      return;
+    }
+    const n = w.coopNet, host = n.role === 'host', hub = host ? n.hub : null;
+    const rijen = w.coopSpelers || [];
     const html = soort === 'uitnodigen'
-      ? uitnodigenHtml({ code: code(), openbaar: !!(hub && hub.openbaar), openbaarNaam: hub && hub.openbaar ? hub.openbaar.naam : '', rol: host ? 'host' : 'gast', openerNaam: opener(world), spelers: rijen, max: (hub && hub.roster && hub.roster.max) || 8 })
-      : sessieHtml({ naam: hub && hub.openbaar ? hub.openbaar.naam : (world.coopSessieNaam || ''), openbaar: !!(hub && hub.openbaar), max: (hub && hub.roster && hub.roster.max) || 8, wachtwoord: !!(hub && hub.wachtwoord), rol: host ? 'host' : 'gast', openerNaam: opener(world), logboek: world.coopLogboek || [] });
-    if (root.dataset.sig !== html) { root.dataset.sig = html; root.innerHTML = html; }
+      ? uitnodigenHtml({ code: code(), openbaar: !!(hub && hub.openbaar), openbaarNaam: hub && hub.openbaar ? hub.openbaar.naam : '', rol: host ? 'host' : 'gast', openerNaam: opener(w), spelers: rijen, max: (hub && hub.roster && hub.roster.max) || 8 })
+      : sessieHtml({ naam: hub && hub.openbaar ? hub.openbaar.naam : (w.coopSessieNaam || ''), openbaar: !!(hub && hub.openbaar), max: (hub && hub.roster && hub.roster.max) || 8, wachtwoord: !!(hub && hub.wachtwoord), rol: host ? 'host' : 'gast', openerNaam: opener(w), logboek: w.coopLogboek || [] });
+    if (root.dataset.sig !== html) {
+      root.dataset.sig = html;
+      const restore = keepFocus(root);
+      root.innerHTML = html;
+      restore();
+    }
   };
   if (!root.dataset.gebonden) {
     root.dataset.gebonden = '1';
     root.addEventListener('click', (e) => {
+      const w = worlds.get(root);
       const k = e.target.closest && e.target.closest('[data-kopieer]');
       if (k) {
         const c = k.getAttribute('data-kopieer');
@@ -37,16 +51,16 @@ function monteer(root, world, soort) {
         return;
       }
       if (e.target.closest('[data-privaat]')) {
-        const hub = world.coopNet && world.coopNet.hub;
+        const hub = w && w.coopNet && w.coopNet.hub;
         toonBevestiging({
           titel: 'Weer privé maken?', tekst: 'Je sessie verdwijnt uit de lijst met openbare sessies.',
           verlies: [{ soort: 'weg', label: 'Je verliest', tekst: 'de plek in de lijst: nieuwe spelers vinden je sessie niet meer' }, { soort: 'blijft', label: 'Blijft', tekst: 'iedereen die al in de sessie zit, en wie de kamercode al heeft' }],
           acties: [{ label: 'Nee, laat openbaar', soort: 'veilig' }, { label: 'Houd vast om privé te maken', soort: 'gevaar', vasthouden: true }],
-        }).then((i) => { if (i === 1 && hub && hub.zetOpenbaar) { hub.zetOpenbaar(false); if (world.addMessage) world.addMessage('Je sessie is weer privé.', 4); } root.dataset.sig = ''; teken(); });
+        }).then((i) => { if (i === 1 && hub && hub.zetOpenbaar) { hub.zetOpenbaar(false); if (w && w.addMessage) w.addMessage('Je sessie is weer privé.', 4); } root.dataset.sig = ''; teken(); });
         return;
       }
-      if (e.target.closest('[data-stop-voorstel]')) { groepAkkoord(world, 'stoppen', null, () => stopCoopNet(world)); return; } // iedereen kan het voorstellen; de groep stemt
-      if (e.target.closest('[data-verlaat]')) stopCoopNet(world); // een gast verlaat alleen zelf de sessie: je speelt weer je eigen spel
+      if (e.target.closest('[data-stop-voorstel]') && w) { groepAkkoord(w, 'stoppen', null, () => stopCoopNet(w)); return; } // iedereen kan het voorstellen; de groep stemt
+      if (e.target.closest('[data-verlaat]') && w) stopCoopNet(w); // een gast verlaat alleen zelf de sessie: je speelt weer je eigen spel
     });
   }
   root.dataset.sig = ''; teken();
