@@ -410,3 +410,107 @@ Stap `W1`, Stad, Paddepoel, elfde verdieping. Bestaande scène, regels aangepast
 ## Friese regels
 
 Twee regels van Beppe en de radio zijn Fries en hebben een Nederlandse ondertitel in `game/js/subtitles.js` (FY) en, voor Beppe, een uitspraakmarkering (`FY_UITSPRAAK`): "Jim binne freonen." en "Foar mem." De spelling en de uitspraakmarkering zijn nog niet door een Friese moedertaalspreker gecontroleerd (zie de open punten van `docs/verhaal/PERFECT-STAND-22-11-akte2.md`).
+## Water (#1376)
+
+Nieuwe stemmen (voorstel, keuze bij de TTS-ronde): Noor (vlotte jonge vrouw, gids-student, standaard Nederlands), Schipper Lammert (oude, droge Groningse schipper, vertellend; de dossierstem Iapetus was voor het vorige Ommeland-cameo), Dina (rustige sluiswachter, Gronings niveau 1, traag), de loods (kalme man over een marifoon, standaard Nederlands). Wiebe Hazenberg heeft al de stem Alnilam (boze schipper met megafoon uit de rondvaartachtervolging); hij praat hier zachter. Tjalling (droge, bedachtzame havenmeester, Gronings niveau 1) komt alleen in een rangmoment. De dossiers staan in `game/js/characterdossiers_bible.js` en `characterdossiers_minor.js`.
+
+### Verhaalscènes (docs/verhaal/nieuw/09-script-akte2.md)
+
+#### Z1 Wiebe valt uit
+
+| Spreker | Kanaal | Tekst |
+|---|---|---|
+| Wiebe Hazenberg | stem | Dames en heren, links ziet u niks, rechts ziet u ook niks. Dat is Grunn. |
+| Tammo | stem | Je hoeft niet te schreeuwen, we staan vlak voor je. |
+| Wiebe Hazenberg | stem | Dit is geen schreeuwen. Dit is dienstverlening. Wiebe Hazenberg, schipper van deze boot. Veertig jaar al. |
+| Tessa | stem | Wat is er met je been? |
+| Wiebe Hazenberg | stem | Ik ben over mijn eigen megafoon gestruikeld. Mijn heup zegt drie weken niks doen. Ik zeg dat een schipper nooit niks doet. |
+| Noor | stem | Hij heeft geen keus, hij moet stilzitten. Hoi, Noor hier, de gids-student. Er komen veertig toeristen en geen schipper. |
+| Tammo | stem | Veertig? |
+| Wiebe Hazenberg | stem | Dan vaart er iemand. |
+| Tammo | stem | Ik kan een boot sturen. Een keer, in een rubberboot. |
+| Wiebe Hazenberg | stem | Twee op één dek is een bemanning. Jij stuurt, zij vertelt. |
+| Tessa | stem | Ik vertel de stad? |
+| Noor | stem | Jij weet de verhalen. Ik doe de stroopwafels. |
+| Tammo | stem | Wie zijn dat? |
+| Wiebe Hazenberg | stem | Mijn vrouw en ik, onze eerste zomer. Zij had het roer, ik de megafoon. |
+| Wiebe Hazenberg | stem | Een goed team is een team dat elkaar durft aan te kijken. Dat staat op een tegeltje. Ik heb het zelf gemaakt. |
+| Tessa | stem | Wij kijken wel. |
+| Tammo | stem | Ik kijk naar de kade. |
+| Noor | stem | De pet blijft hangen. Wie de boot vaart, laat hem hangen. |
+| Wiebe Hazenberg | stem | De pet hangt en de megafoon ligt hier. Jullie krijgen mijn vertrouwen. Dat is zwaarder. |
+
+#### Z2 De Drie Zusters
+
+| Spreker | Kanaal | Tekst |
+|---|---|---|
+| Schipper Lammert | stem | Moi. Lammert Veenstra, schipper. Ik ben de vriend van Wiebe, van de rondvaart. |
+| Schipper Lammert | stem | Hij zegt dat jullie zijn boot goed varen. Ik geloof het pas als ik het zie. |
+| Tessa | stem | Is dit jouw boot? |
+| Schipper Lammert | stem | Dit is De Drie Zusters, achtendertig meter spits. Mijn moeder had er drie, en elk had een mening over de kade. |
+| Schipper Lammert | stem | Mijn nicht trouwt volgende week in Veendam. Ik ga, en dan is er een week geen schipper. |
+| Schipper Lammert | stem | Ik vraag het één keer. Nemen jullie haar een week? |
+| Tammo | stem | Een week. En daarna? |
+| Schipper Lammert | stem | Een week, zei ik. Daarna blijft ze liggen of niet. Dat bepaalt het kanaal. |
+| Schipper Lammert | stem | Kisten voor Geesje van de pastorie in Warffum, en zakken zaad voor een boerderij in de buurt. |
+| Tessa | stem | Geesje van de kippenren? |
+| Schipper Lammert | stem | Zij. Ze betaalt in eieren. Bij Noorderspoor Water noemen we dat een tarief. |
+| Schipper Lammert | stem | Noorderspoor Water doet de papieren, ik doe het varen. Laden, naar de Oostkade, rustig aanleggen: bij de kade niet harder dan een eend. |
+| Tammo | stem | Een spits van achtendertig meter. Ik kan een rubberboot. |
+| Schipper Lammert | stem | Dan zijn we al verder dan Wiebe dacht. |
+
+#### Z3 Wachten bij de sluis
+
+| Spreker | Kanaal | Tekst |
+|---|---|---|
+| Dina | stem | Moi. Dina, sluiswachter. Lammert zei dat jullie kwamen. Hij zei ook dat jullie haast hebben. |
+| Tammo | stem | We hebben geen haast. |
+| Dina | stem | Dat is een goed begin. Bij een sluis wacht je, tot het sein groen is en daarna nog even. Dat is het hele spel. |
+| De loods | radio | Sluis Zoutkamp, hier de loods van Lauwersoog. Een zeeschip meldt zich bij de Waddenzee. Is het kanaal vrij? |
+| Dina | radio | Loods, hier Dina. Kleine schepen eerst, grote schepen later. Zo is het altijd geweest. |
+| De loods | radio | Begrepen, ik wacht. Groet de nieuwe schippers. |
+| Tessa | stem | Hoe weet hij dat wij nieuw zijn? |
+| Dina | stem | Iedereen weet het. Het water praat. |
+| Jelle Terpstra | radio | Mededeling van Jelle Terpstra, voorzitter van de Commissie Standplaatsen Noord. Bij deze sluis geldt een verplicht rustpunt van tien minuten. |
+| Dina | stem | Dat hangt er sinds vorige week. Niemand weet wie het ophing. |
+| Tammo | stem | Ik weet het wel. |
+| Dina | stem | Dan weet je meer dan ik. Thee? |
+| Tessa | stem | Graag. Voor twee. |
+
+### Terugblik (voor wie de aanleiding niet speelde; boatcareer.js)
+
+| Spoor | Spreker | Tekst |
+|---|---|---|
+| stad | Noor | Noor, de gids-student. Wiebe Hazenberg, de schipper van de rondvaartboot, struikelde over zijn eigen megafoon en ligt drie weken thuis. |
+| stad | Noor | Nu vaart Tammo en vertelt Tessa. De pet blijft aan de haak in het stuurhuis, en wie de boot vaart laat hem hangen. |
+| provincie | Schipper Lammert | Lammert Veenstra, schipper van De Drie Zusters. Wiebe viel uit en Noorderspoor Water zocht schippers voor het kanaal. |
+| provincie | Schipper Lammert | Dus vaar jij haar, een week zei ik, en de lading ligt klaar aan de kade bij het Rustpunt. |
+
+### Rangmomenten (boatcareer.js, rang-haak)
+
+Rang 4 heeft twee vormen: wie Z2 speelde krijgt alleen de regels hieronder; wie hem niet speelde hoort eerst de twee regels van het provinciespoor hierboven.
+
+| Rang | Spreker | Tekst |
+|---|---|---|
+| 2 | Noor | Wiebe belde vanaf de bank. Hij hoorde van de steiger dat jullie de bocht bij de Herebrug niet meer raken. |
+| 2 | Tammo | Wij raken alles niet meer. Dat is vooruitgang. |
+| 2 | Noor | Hij zegt: roeien is varen met meer armen. Het staat op een tegeltje. |
+| 3 | Wiebe | Schipper. Ik zeg het één keer, zonder megafoon: jullie hielden de boot warm. |
+| 3 | Anita (Tessa) | Dank je, Wiebe. |
+| 3 | Wiebe | Hier, de megafoon. Niet gebruiken om te schelden. |
+| 3 | Tammo | Wij schelden niet. Wij zeggen moi met volume. |
+| 4 | Schipper Lammert | Kapitein. Ik zei een week, het is een maand. De Drie Zusters houdt van jullie, en zij houdt van niemand. |
+| 4 | Tammo | Zij is een schip. |
+| 4 | Schipper Lammert | Dan hoef je nergens bang voor te zijn. Eén aan het roer, één op het dek, en geef de stuurboordkant aan de ander. |
+| 4 | Anita (Tessa) | Dat is vertrouwen. |
+| 4 | Schipper Lammert | Dat staat nergens op een tegeltje. Jammer. |
+| 5 | Tjalling | Tjalling, havenmeester van Zoutkamp. Lammert zei: neem ze serieus. Ik neem alles serieus, behalve de wind. |
+| 5 | Tammo | Moi, Tjalling. |
+| 5 | Tjalling | Er hangt een brief van Jelle Terpstra: een standplaats op het water is geen standplaats, artikel twaalf, lid vier. |
+| 5 | Anita (Tessa) | Dat is Jelle. |
+| 5 | Tjalling | Dat is Jelle. Ik heb hem onder de koffie gelegd. |
+| 6 | De loods | Loods Lauwersoog aan alle schepen: de zeebaas van de Waddenzee vaart door. Maak ruimte. |
+| 6 | Dina | Sluis open. Ik wacht altijd, nu even uit respect. |
+| 6 | Wiebe | Ik sta aan de wal en ik schreeuw niet. Dit is een uitzondering. |
+| 6 | Tammo | Dat was bijna een gedicht. |
+| 6 | Wiebe | Zeg dat tegen niemand. |

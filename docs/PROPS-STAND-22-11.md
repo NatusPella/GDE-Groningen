@@ -2,7 +2,7 @@
 
 Gegenereerd door `node scripts/verhaal_props_audit.mjs --write` (#1121). De audit haalt uit alle scène- en missiedata (cutscene-specs, aankleding, wachtstappen, sets, cast) de gebruikte soorten en controleert dat elk bestaat in de modelbouwers, binnen zijn polygoonbudget valt (2 tot 6 materialen, geen NaN, op de grond, niet dubbel), dat de verwijzingen kloppen en dat geen figuur aan het begin in een voertuig of groot voorwerp staat. Alle modellen zijn procedureel laag-poly (`game/js/storyprops.js`); voertuigen en dieren komen uit de wereld. Niets is in beeld gezien: dat blijft "nog niet bekeken" tot de Electron-sweep van de coördinator.
 
-Telling: 102 scènes, 163 props, 51 soorten in gebruik, 27 aankledingsplannen, 54 figuren in de NPC-tabel. Fouten: 0, waarschuwingen: 0.
+Telling: 102 scènes, 163 props, 51 soorten in gebruik, 27 aankledingsplannen, 68 figuren in de NPC-tabel. Fouten: 4, waarschuwingen: 3.
 
 ## Decor (storyprops.js)
 

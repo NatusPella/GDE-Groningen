@@ -464,6 +464,24 @@ De hoofdstukken H1 tot en met H3 zijn het nieuwe begin (bijbel 28-11); de aktes 
 - **K2** BUITEN – HOGELAND, ZOUTKAMP, DE HAVEN – OCHTEND · De kade in de ochtend · cutscene of gespeeld in de missie
   - vrijdag, bij zonsopgang. Mist boven het water van de haven van Zoutkamp. Tammo zit op een bolder met twee bekers koffie uit de bus, al sinds half zes. Tessa komt aanlopen in haar jas, haar haren nog nat.
   - praat: Tessa, Tammo
+
+**Sequentie Z1: Wiebe valt uit** (activiteit; speler-protagonist Tammo)
+
+- **Z1** BINNEN – STAD, DE RONDVAARTSTEIGER BIJ DE DIEPENRING – OCHTEND · Wiebe valt uit · cutscene of gespeeld in de missie
+  - een zonnige ochtend aan het water van de Diepenring. In het stuurhuis van de rondvaartboot hangt een rode pet aan een haak, naast het roer ligt een logboek met een koordje. Wiebe zit op een bolder, zijn been op een krat,
+  - praat: Wiebe Hazenberg, Tammo, Tessa, Noor
+
+**Sequentie Z2: De Drie Zusters** (activiteit; speler-protagonist Tammo)
+
+- **Z2** BUITEN – WESTERKWARTIER, DE KADE BIJ HET RUSTPUNT – OCHTEND · De Drie Zusters · cutscene of gespeeld in de missie
+  - een paar dagen later, ochtend. Aan de kade bij het Rustpunt, aan het Van Starkenborghkanaal, ligt een zwarte spits met een rode rand en drie potten geraniums op de boeg. Op de kade staan kratten met labels. Op een klapst
+  - praat: Schipper Lammert, Tessa, Tammo
+
+**Sequentie Z3: Wachten bij de sluis** (activiteit; speler-protagonist Tammo)
+
+- **Z3** BINNEN – WADDENKUST, ZOUTKAMP, DE SLUIS – AVOND · Wachten bij de sluis · cutscene of gespeeld in de missie
+  - avond, het licht gaat zacht naar goud. Bij de sluis van Zoutkamp staat een houten huisje met een thermoskan op de vensterbank en een marifoon ernaast. Een vrouw in een regenjas zit op een stoel, haar pet naar achteren. N
+  - praat: Dina, Tammo, De loods, Tessa, Jelle Terpstra
 - **R3.0** BUITEN – STAD – DAG · Nachtstreek, vrijdagochtend · radio
   - praat: Rikus, Jelle Terpstra
 
@@ -1097,9 +1115,9 @@ De hoofdstukken H1 tot en met H3 zijn het nieuwe begin (bijbel 28-11); de aktes 
 
 | Personage | Akte 1 | Akte 2 | Akte 3 | Akte 4 | Akte 5 | Deel 4 |
 |---|---|---|---|---|---|---|
-| Tessa | 49 | 41 | 34 | 33 | 39 | 21 |
-| Tammo | 49 | 39 | 34 | 31 | 33 | 23 |
-| Jelle Terpstra | 5 | 10 | 12 | 8 | 12 | 4 |
+| Tessa | 49 | 44 | 34 | 33 | 39 | 21 |
+| Tammo | 49 | 42 | 34 | 31 | 33 | 23 |
+| Jelle Terpstra | 5 | 11 | 12 | 8 | 12 | 4 |
 | Rikus | 10 | 4 | 4 | 7 | 11 | 4 |
 | Berend Bos | 4 |  |  | 14 | 10 | 8 |
 | Douwe | 1 | 2 | 6 | 5 | 5 | 2 |
@@ -1149,6 +1167,11 @@ De hoofdstukken H1 tot en met H3 zijn het nieuwe begin (bijbel 28-11); de aktes 
 | Annemarie |  | 1 |  |  |  |  |
 | Jochem Luiken |  | 1 |  |  |  |  |
 | Kustwachter |  | 1 |  |  |  |  |
+| Wiebe Hazenberg |  | 1 |  |  |  |  |
+| Noor |  | 1 |  |  |  |  |
+| Schipper Lammert |  | 1 |  |  |  |  |
+| Dina |  | 1 |  |  |  |  |
+| De loods |  | 1 |  |  |  |  |
 | Rotor Roelf |  |  | 1 |  |  |  |
 | Daan |  |  | 1 |  |  |  |
 | Student |  |  | 1 |  |  |  |

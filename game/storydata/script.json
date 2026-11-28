@@ -149,6 +149,26 @@
    "name": "Gerlof Hamminga",
    "voice": "Gerlof Hamminga"
   },
+  "wiebe": {
+   "name": "Wiebe Hazenberg",
+   "voice": "Wiebe Hazenberg"
+  },
+  "noor": {
+   "name": "Noor",
+   "voice": "Noor"
+  },
+  "schipperlammert": {
+   "name": "Schipper Lammert",
+   "voice": "Schipper Lammert"
+  },
+  "dina": {
+   "name": "Dina",
+   "voice": "Dina"
+  },
+  "loods": {
+   "name": "De loods",
+   "voice": "De loods"
+  },
   "kustwachter": {
    "name": "Kustwachter",
    "voice": "Kustwachter"
@@ -10966,16 +10986,442 @@
    ]
   },
   {
+   "id": "Z1",
+   "title": "Wiebe valt uit",
+   "act": 2,
+   "region": "Stad, de rondvaartsteiger bij de Diepenring",
+   "vehicle": "rondvaartboot",
+   "step": "Z1",
+   "kind": "key",
+   "gameplay": "de eerste rondvaart: vaar de boot langs de steigers, Noor vertelt en Tessa verbetert.",
+   "regie": [
+    "een zonnige ochtend aan het water van de Diepenring. In het stuurhuis van de rondvaartboot hangt een rode pet aan een haak, naast het roer ligt een logboek met een koordje. Wiebe zit op een bolder, zijn been op een krat, zijn megafoon op schoot. Naamkaart: WIEBE HAZENBERG, SCHIPPER, bij zijn eerste regel. Noor komt aanlopen met een krat stroopwafels. Naamkaart: NOOR, GIDS-STUDENT, bij haar eerste regel. Gameplay: de eerste rondvaart: vaar de boot langs de steigers, Noor vertelt en Tessa verbetert.",
+    "Wiebe kijkt naar Tammo en dan naar Tessa. Tammo kijkt naar de lucht.",
+    "Wiebe hangt de pet recht aan de haak in het stuurhuis. Tessa pakt het logboek en slaat het open. Tussen de bladzijden zit een oude foto van twee jonge schippers op een steiger. De vrouw op de foto lijkt op Tessa. Tessa kijkt er even te lang naar. Tammo ziet het."
+   ],
+   "lines": [
+    {
+     "speaker": "Wiebe Hazenberg",
+     "key": "wiebe",
+     "text": "Dames en heren, links ziet u niks, rechts ziet u ook niks. Dat is Grunn.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tammo",
+     "key": "T",
+     "text": "Je hoeft niet te schreeuwen, we staan vlak voor je.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Wiebe Hazenberg",
+     "key": "wiebe",
+     "text": "Dit is geen schreeuwen. Dit is dienstverlening. Wiebe Hazenberg, schipper van deze boot. Veertig jaar al.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tessa",
+     "key": "A",
+     "text": "Wat is er met je been?",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true,
+     "voice": "Anita"
+    },
+    {
+     "speaker": "Wiebe Hazenberg",
+     "key": "wiebe",
+     "text": "Ik ben over mijn eigen megafoon gestruikeld. Mijn heup zegt drie weken niks doen. Ik zeg dat een schipper nooit niks doet.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Noor",
+     "key": "noor",
+     "text": "Hij heeft geen keus, hij moet stilzitten. Hoi, Noor hier, de gids-student. Er komen veertig toeristen en geen schipper.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tammo",
+     "key": "T",
+     "text": "Veertig?",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Wiebe Hazenberg",
+     "key": "wiebe",
+     "text": "Dan vaart er iemand.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tammo",
+     "key": "T",
+     "text": "Ik kan een boot sturen. Een keer, in een rubberboot.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Wiebe Hazenberg",
+     "key": "wiebe",
+     "text": "Twee op één dek is een bemanning. Jij stuurt, zij vertelt.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tessa",
+     "key": "A",
+     "text": "Ik vertel de stad?",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true,
+     "voice": "Anita"
+    },
+    {
+     "speaker": "Noor",
+     "key": "noor",
+     "text": "Jij weet de verhalen. Ik doe de stroopwafels.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tammo",
+     "key": "T",
+     "text": "Wie zijn dat?",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Wiebe Hazenberg",
+     "key": "wiebe",
+     "text": "Mijn vrouw en ik, onze eerste zomer. Zij had het roer, ik de megafoon.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Wiebe Hazenberg",
+     "key": "wiebe",
+     "text": "Een goed team is een team dat elkaar durft aan te kijken. Dat staat op een tegeltje. Ik heb het zelf gemaakt.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tessa",
+     "key": "A",
+     "text": "Wij kijken wel.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true,
+     "voice": "Anita"
+    },
+    {
+     "speaker": "Tammo",
+     "key": "T",
+     "text": "Ik kijk naar de kade.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Noor",
+     "key": "noor",
+     "text": "De pet blijft hangen. Wie de boot vaart, laat hem hangen.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Wiebe Hazenberg",
+     "key": "wiebe",
+     "text": "De pet hangt en de megafoon ligt hier. Jullie krijgen mijn vertrouwen. Dat is zwaarder.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    }
+   ]
+  },
+  {
+   "id": "Z2",
+   "title": "De Drie Zusters",
+   "act": 2,
+   "region": "Westerkwartier, de kade bij het Rustpunt",
+   "vehicle": "binnenvaartschip",
+   "step": "Z2",
+   "kind": "key",
+   "gameplay": "de eerste overtocht: laad aan de kade, vaar naar de Oostkade en leg rustig aan.",
+   "regie": [
+    "een paar dagen later, ochtend. Aan de kade bij het Rustpunt, aan het Van Starkenborghkanaal, ligt een zwarte spits met een rode rand en drie potten geraniums op de boeg. Op de kade staan kratten met labels. Op een klapstoeltje zit een oude schipper met een muts en een radio op zijn knie. Naamkaart: SCHIPPER LAMMERT VEENSTRA, bij zijn eerste regel. Gameplay: de eerste overtocht: laad aan de kade, vaar naar de Oostkade en leg rustig aan.",
+    "Lammert wijst met zijn muts naar de kratten."
+   ],
+   "lines": [
+    {
+     "speaker": "Schipper Lammert",
+     "key": "schipperlammert",
+     "text": "Moi. Lammert Veenstra, schipper. Ik ben de vriend van Wiebe, van de rondvaart.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Schipper Lammert",
+     "key": "schipperlammert",
+     "text": "Hij zegt dat jullie zijn boot goed varen. Ik geloof het pas als ik het zie.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tessa",
+     "key": "A",
+     "text": "Is dit jouw boot?",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true,
+     "voice": "Anita"
+    },
+    {
+     "speaker": "Schipper Lammert",
+     "key": "schipperlammert",
+     "text": "Dit is De Drie Zusters, achtendertig meter spits. Mijn moeder had er drie, en elk had een mening over de kade.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Schipper Lammert",
+     "key": "schipperlammert",
+     "text": "Mijn nicht trouwt volgende week in Veendam. Ik ga, en dan is er een week geen schipper.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Schipper Lammert",
+     "key": "schipperlammert",
+     "text": "Ik vraag het één keer. Nemen jullie haar een week?",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tammo",
+     "key": "T",
+     "text": "Een week. En daarna?",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Schipper Lammert",
+     "key": "schipperlammert",
+     "text": "Een week, zei ik. Daarna blijft ze liggen of niet. Dat bepaalt het kanaal.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Schipper Lammert",
+     "key": "schipperlammert",
+     "text": "Kisten voor Geesje van de pastorie in Warffum, en zakken zaad voor een boerderij in de buurt.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tessa",
+     "key": "A",
+     "text": "Geesje van de kippenren?",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true,
+     "voice": "Anita"
+    },
+    {
+     "speaker": "Schipper Lammert",
+     "key": "schipperlammert",
+     "text": "Zij. Ze betaalt in eieren. Bij Noorderspoor Water noemen we dat een tarief.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Schipper Lammert",
+     "key": "schipperlammert",
+     "text": "Noorderspoor Water doet de papieren, ik doe het varen. Laden, naar de Oostkade, rustig aanleggen: bij de kade niet harder dan een eend.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tammo",
+     "key": "T",
+     "text": "Een spits van achtendertig meter. Ik kan een rubberboot.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Schipper Lammert",
+     "key": "schipperlammert",
+     "text": "Dan zijn we al verder dan Wiebe dacht.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    }
+   ]
+  },
+  {
+   "id": "Z3",
+   "title": "Wachten bij de sluis",
+   "act": 2,
+   "region": "Waddenkust, Zoutkamp, de sluis",
+   "vehicle": "sluiswachtershuisje",
+   "step": "Z3",
+   "kind": "key",
+   "gameplay": "de sluisregel in de binnenvaart: wacht tot het sein groen is en vaar dan pas in.",
+   "regie": [
+    "avond, het licht gaat zacht naar goud. Bij de sluis van Zoutkamp staat een houten huisje met een thermoskan op de vensterbank en een marifoon ernaast. Een vrouw in een regenjas zit op een stoel, haar pet naar achteren. Naamkaart: DINA, SLUISWACHTER, bij haar eerste regel. Naamkaart: DE LOODS, LOODS VAN LAUWERSOOG, bij zijn eerste regel (alleen een stem op de marifoon). Gameplay: de sluisregel in de binnenvaart: wacht tot het sein groen is en vaar dan pas in.",
+    "de marifoon kraakt.",
+    "een omroepspeaker boven het huisje kraakt.",
+    "Dina schenkt twee bekers in. Tammo en Tessa zitten op de rand van de sluisdeur. De thee is te heet. Geen van beiden zegt dat."
+   ],
+   "lines": [
+    {
+     "speaker": "Dina",
+     "key": "dina",
+     "text": "Moi. Dina, sluiswachter. Lammert zei dat jullie kwamen. Hij zei ook dat jullie haast hebben.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tammo",
+     "key": "T",
+     "text": "We hebben geen haast.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Dina",
+     "key": "dina",
+     "text": "Dat is een goed begin. Bij een sluis wacht je, tot het sein groen is en daarna nog even. Dat is het hele spel.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "De loods",
+     "key": "loods",
+     "text": "Sluis Zoutkamp, hier de loods van Lauwersoog. Een zeeschip meldt zich bij de Waddenzee. Is het kanaal vrij?",
+     "tag": "NIEUW",
+     "channel": "radio",
+     "textOnly": true
+    },
+    {
+     "speaker": "Dina",
+     "key": "dina",
+     "text": "Loods, hier Dina. Kleine schepen eerst, grote schepen later. Zo is het altijd geweest.",
+     "tag": "NIEUW",
+     "channel": "radio",
+     "textOnly": true
+    },
+    {
+     "speaker": "De loods",
+     "key": "loods",
+     "text": "Begrepen, ik wacht. Groet de nieuwe schippers.",
+     "tag": "NIEUW",
+     "channel": "radio",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tessa",
+     "key": "A",
+     "text": "Hoe weet hij dat wij nieuw zijn?",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true,
+     "voice": "Anita"
+    },
+    {
+     "speaker": "Dina",
+     "key": "dina",
+     "text": "Iedereen weet het. Het water praat.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Jelle Terpstra",
+     "key": "jelle",
+     "text": "Mededeling van Jelle Terpstra, voorzitter van de Commissie Standplaatsen Noord. Bij deze sluis geldt een verplicht rustpunt van tien minuten.",
+     "tag": "NIEUW",
+     "channel": "radio",
+     "textOnly": true
+    },
+    {
+     "speaker": "Dina",
+     "key": "dina",
+     "text": "Dat hangt er sinds vorige week. Niemand weet wie het ophing.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tammo",
+     "key": "T",
+     "text": "Ik weet het wel.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Dina",
+     "key": "dina",
+     "text": "Dan weet je meer dan ik. Thee?",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tessa",
+     "key": "A",
+     "text": "Graag. Voor twee.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true,
+     "voice": "Anita"
+    }
+   ]
+  },
+  {
    "id": "R3.0",
    "title": "Nachtstreek, vrijdagochtend",
    "act": 3,
    "region": "Stad",
    "vehicle": "radio",
-   "step": "K2",
+   "step": "Z3",
    "kind": "radio",
    "anchor": {
     "at": "after",
-    "step": "K2"
+    "step": "Z3"
    },
    "regie": [],
    "lines": [

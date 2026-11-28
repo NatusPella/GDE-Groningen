@@ -582,3 +582,64 @@ TAMMO: Dat je je koffie met melk drinkt. [NIEUW]
 TESSA: Dat is geen antwoord. [NIEUW]
 TAMMO: Het is een begin. [NIEUW]
 TESSA: Hij is lauw. [NIEUW]
+
+## [Z1] Wiebe valt uit – Stad, de rondvaartsteiger bij de Diepenring – rondvaartboot
+(regie: een zonnige ochtend aan het water van de Diepenring. In het stuurhuis van de rondvaartboot hangt een rode pet aan een haak, naast het roer ligt een logboek met een koordje. Wiebe zit op een bolder, zijn been op een krat, zijn megafoon op schoot. Naamkaart: WIEBE HAZENBERG, SCHIPPER, bij zijn eerste regel. Noor komt aanlopen met een krat stroopwafels. Naamkaart: NOOR, GIDS-STUDENT, bij haar eerste regel. Gameplay: de eerste rondvaart: vaar de boot langs de steigers, Noor vertelt en Tessa verbetert.)
+WIEBE: Dames en heren, links ziet u niks, rechts ziet u ook niks. Dat is Grunn. [NIEUW]
+TAMMO: Je hoeft niet te schreeuwen, we staan vlak voor je. [NIEUW]
+WIEBE: Dit is geen schreeuwen. Dit is dienstverlening. Wiebe Hazenberg, schipper van deze boot. Veertig jaar al. [NIEUW]
+TESSA: Wat is er met je been? [NIEUW]
+WIEBE: Ik ben over mijn eigen megafoon gestruikeld. Mijn heup zegt drie weken niks doen. Ik zeg dat een schipper nooit niks doet. [NIEUW]
+NOOR: Hij heeft geen keus, hij moet stilzitten. Hoi, Noor hier, de gids-student. Er komen veertig toeristen en geen schipper. [NIEUW]
+TAMMO: Veertig? [NIEUW]
+(regie: Wiebe kijkt naar Tammo en dan naar Tessa. Tammo kijkt naar de lucht.)
+WIEBE: Dan vaart er iemand. [NIEUW]
+TAMMO: Ik kan een boot sturen. Een keer, in een rubberboot. [NIEUW]
+WIEBE: Twee op één dek is een bemanning. Jij stuurt, zij vertelt. [NIEUW]
+TESSA: Ik vertel de stad? [NIEUW]
+NOOR: Jij weet de verhalen. Ik doe de stroopwafels. [NIEUW]
+(regie: Wiebe hangt de pet recht aan de haak in het stuurhuis. Tessa pakt het logboek en slaat het open. Tussen de bladzijden zit een oude foto van twee jonge schippers op een steiger. De vrouw op de foto lijkt op Tessa. Tessa kijkt er even te lang naar. Tammo ziet het.)
+TAMMO: Wie zijn dat? [NIEUW]
+WIEBE: Mijn vrouw en ik, onze eerste zomer. Zij had het roer, ik de megafoon. [NIEUW]
+WIEBE: Een goed team is een team dat elkaar durft aan te kijken. Dat staat op een tegeltje. Ik heb het zelf gemaakt. [NIEUW]
+TESSA: Wij kijken wel. [NIEUW]
+TAMMO: Ik kijk naar de kade. [NIEUW]
+NOOR: De pet blijft hangen. Wie de boot vaart, laat hem hangen. [NIEUW]
+WIEBE: De pet hangt en de megafoon ligt hier. Jullie krijgen mijn vertrouwen. Dat is zwaarder. [NIEUW]
+
+## [Z2] De Drie Zusters – Westerkwartier, de kade bij het Rustpunt – binnenvaartschip
+(regie: een paar dagen later, ochtend. Aan de kade bij het Rustpunt, aan het Van Starkenborghkanaal, ligt een zwarte spits met een rode rand en drie potten geraniums op de boeg. Op de kade staan kratten met labels. Op een klapstoeltje zit een oude schipper met een muts en een radio op zijn knie. Naamkaart: SCHIPPER LAMMERT VEENSTRA, bij zijn eerste regel. Gameplay: de eerste overtocht: laad aan de kade, vaar naar de Oostkade en leg rustig aan.)
+SCHIPPER LAMMERT: Moi. Lammert Veenstra, schipper. Ik ben de vriend van Wiebe, van de rondvaart. [NIEUW]
+SCHIPPER LAMMERT: Hij zegt dat jullie zijn boot goed varen. Ik geloof het pas als ik het zie. [NIEUW]
+TESSA: Is dit jouw boot? [NIEUW]
+SCHIPPER LAMMERT: Dit is De Drie Zusters, achtendertig meter spits. Mijn moeder had er drie, en elk had een mening over de kade. [NIEUW]
+SCHIPPER LAMMERT: Mijn nicht trouwt volgende week in Veendam. Ik ga, en dan is er een week geen schipper. [NIEUW]
+SCHIPPER LAMMERT: Ik vraag het één keer. Nemen jullie haar een week? [NIEUW]
+TAMMO: Een week. En daarna? [NIEUW]
+SCHIPPER LAMMERT: Een week, zei ik. Daarna blijft ze liggen of niet. Dat bepaalt het kanaal. [NIEUW]
+(regie: Lammert wijst met zijn muts naar de kratten.)
+SCHIPPER LAMMERT: Kisten voor Geesje van de pastorie in Warffum, en zakken zaad voor een boerderij in de buurt. [NIEUW]
+TESSA: Geesje van de kippenren? [NIEUW]
+SCHIPPER LAMMERT: Zij. Ze betaalt in eieren. Bij Noorderspoor Water noemen we dat een tarief. [NIEUW]
+SCHIPPER LAMMERT: Noorderspoor Water doet de papieren, ik doe het varen. Laden, naar de Oostkade, rustig aanleggen: bij de kade niet harder dan een eend. [NIEUW]
+TAMMO: Een spits van achtendertig meter. Ik kan een rubberboot. [NIEUW]
+SCHIPPER LAMMERT: Dan zijn we al verder dan Wiebe dacht. [NIEUW]
+
+## [Z3] Wachten bij de sluis – Waddenkust, Zoutkamp, de sluis – sluiswachtershuisje
+(regie: avond, het licht gaat zacht naar goud. Bij de sluis van Zoutkamp staat een houten huisje met een thermoskan op de vensterbank en een marifoon ernaast. Een vrouw in een regenjas zit op een stoel, haar pet naar achteren. Naamkaart: DINA, SLUISWACHTER, bij haar eerste regel. Naamkaart: DE LOODS, LOODS VAN LAUWERSOOG, bij zijn eerste regel (alleen een stem op de marifoon). Gameplay: de sluisregel in de binnenvaart: wacht tot het sein groen is en vaar dan pas in.)
+DINA: Moi. Dina, sluiswachter. Lammert zei dat jullie kwamen. Hij zei ook dat jullie haast hebben. [NIEUW]
+TAMMO: We hebben geen haast. [NIEUW]
+DINA: Dat is een goed begin. Bij een sluis wacht je, tot het sein groen is en daarna nog even. Dat is het hele spel. [NIEUW]
+(regie: de marifoon kraakt.)
+LOODS (radio): Sluis Zoutkamp, hier de loods van Lauwersoog. Een zeeschip meldt zich bij de Waddenzee. Is het kanaal vrij? [NIEUW]
+DINA (radio): Loods, hier Dina. Kleine schepen eerst, grote schepen later. Zo is het altijd geweest. [NIEUW]
+LOODS (radio): Begrepen, ik wacht. Groet de nieuwe schippers. [NIEUW]
+TESSA: Hoe weet hij dat wij nieuw zijn? [NIEUW]
+DINA: Iedereen weet het. Het water praat. [NIEUW]
+(regie: een omroepspeaker boven het huisje kraakt.)
+JELLE (radio): Mededeling van Jelle Terpstra, voorzitter van de Commissie Standplaatsen Noord. Bij deze sluis geldt een verplicht rustpunt van tien minuten. [NIEUW]
+DINA: Dat hangt er sinds vorige week. Niemand weet wie het ophing. [NIEUW]
+TAMMO: Ik weet het wel. [NIEUW]
+DINA: Dan weet je meer dan ik. Thee? [NIEUW]
+TESSA: Graag. Voor twee. [NIEUW]
+(regie: Dina schenkt twee bekers in. Tammo en Tessa zitten op de rand van de sluisdeur. De thee is te heet. Geen van beiden zegt dat.)

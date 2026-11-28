@@ -107,6 +107,8 @@ export const SPEAKERS = {
   dries: 'Dries', annemarie: 'Annemarie', wassink: 'Mevrouw Wassink', jochem: 'Jochem Luiken',
   // lucht (28-11, #1377)
   gerlof: 'Gerlof Hamminga',
+  // water (28-11, #1376): de schipper die wegvalt, de gids-student, de binnenvaartmentor, de sluiswachter en de loods (alleen een stem)
+  wiebe: 'Wiebe Hazenberg', noor: 'Noor', schipperlammert: 'Schipper Lammert', dina: 'Dina', loods: 'De loods',
   willemien: 'Willemien', buurvrouw: 'Buurvrouw',
   boer_hindrik: 'Oom Hindrik', tante_aaltje: 'Tante Aaltje', notaris: 'De notaris', // de laatste drie: hoeve Zeldenrust (#1373)
   // inspiratiepakket (21-11)
@@ -367,6 +369,15 @@ export const STEPS = [
     scenes: ['M11.1', 'M11.2', 'M11.3', 'M11.4', 'M11.5', 'M11.6', 'M11.7', 'M11.8'],
     lead: ['A', 'Jelles skûtsje vaart naar Lauwersoog, met een gouden bal in de kist. Klaas leent je een snelle boot, tot de sluizen.'] }),
   A('K2', 'romp', 'De kade in de ochtend', { type: 'reis', to: 'de haven van Zoutkamp', at: [53.3377, 6.2986], r: 300, scene: 'K2' }, { built: true, added: true, scenes: ['K2'], lead: ['T', 'Ik zit op de kade in Zoutkamp. Ik heb koffie. Twee. Kom maar als je wakker bent.'] }),
+  // Water (28-11, #1376): een schipper valt weg. Twee sporen van één loopbaan: de rondvaart in de stad (Z1) en de binnenvaart door de provincie (Z2, Z3).
+  // Activiteiten zonder beloning met migratie voor oude saves (added: true, zie storyarc.js ADDED_STEPS); Z1 zet de vlag 'water' en Z2 de vlag 'binnenvaart':
+  // wie ze niet heeft (een oude save, een gast) krijgt de terugblik van boatcareer.js. De eerste klus is de bestaande rondvaart; vanaf Kapitein vaart De Drie Zusters.
+  A('Z1', 'romp', 'Wiebe valt uit', { type: 'reis', to: 'de rondvaartsteiger bij de Diepenring', at: [53.2126, 6.5671], r: 300, scene: 'Z1' }, { built: true, added: true, scenes: ['Z1'], unlocks: 'water',
+    lead: ['A', 'Wiebe Hazenberg vaart de rondvaart op de Diepenring, maar vandaag zit hij op de steiger. Noor zegt dat er veertig toeristen komen. Kom je?'] }),
+  A('Z2', 'romp', 'De Drie Zusters', { type: 'reis', to: 'de kade bij het Rustpunt', at: [53.2397, 6.5664], r: 300, scene: 'Z2' }, { built: true, added: true, scenes: ['Z2'], unlocks: 'binnenvaart',
+    lead: ['T', 'Wiebes vriend Lammert heeft een binnenvaartschip aan het Van Starkenborghkanaal. Hij zoekt een week een schipper. Ik zei: misschien.'] }),
+  A('Z3', 'romp', 'Wachten bij de sluis', { type: 'reis', to: 'de sluis bij Zoutkamp', at: [53.3340, 6.2940], r: 300, scene: 'Z3' }, { built: true, added: true, scenes: ['Z3'],
+    lead: ['A', 'Lammert zegt dat je een sluis niet zonder Dina door komt. Ze zit in het sluiswachtershuisje bij Zoutkamp en wacht. Dat doet ze goed.'] }),
 
   // --- Akte 3: Aan de Eems (Eemsdelta en Oldambt, vr 21 - zo 23 augustus) ----------------
   M('M12', 'staart', 'Het staat niet in het rooster', 'traumaduif', { built: true, reward: 1200, loopbanen: ['lucht'],

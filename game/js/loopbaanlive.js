@@ -10,6 +10,7 @@
 import { careerTalk } from './careerbeats.js';
 import { terugblikTalk, VERVOER_VLAG } from './vervoer.js'; // ook: meldt de rangmomenten van bus, taxi en trein aan (rankmoments.js)
 import { luchtTerugblikTalk, BALLON_VLAG } from './airstory.js'; // ook: meldt de rangmomenten van Lucht aan (rankmoments.js)
+import { terugblikTalk as waterTerugblik, WATER_VLAG } from './boatcareer.js'; // idem voor het vak Water (rondvaart en binnenvaart)
 import { storyWorldOpen, storyGateHint, storyFlag } from './storyquery.js';
 import { KEYS } from './storagekeys.js';
 import { LATER_IN_VERHAAL } from './sidejobgate.js';
@@ -217,7 +218,7 @@ export function startLoopbaan(w, vak) {
     w.addMessage(`Loopbaan begonnen: ${info.naam}. Eerste klus: ${r.start.klus}`, 4.5, { kind: 'prestatie', kicker: 'Loopbaan', key: 'loopbaan-start-' + vak });
   }
   // de terugblik van vervoer (vervoer.js, bijbel 02 §0b): wie de aanleiding niet zelf speelde hoort in twee regels wie Dries is en wat er gebeurde
-  const terug = [...terugblikTalk(vak, { gezien: storyFlag(VERVOER_VLAG) }), ...luchtTerugblikTalk(vak, { gezien: storyFlag(BALLON_VLAG) })]; // lucht idem: Gerlof en de ballon (airstory.js)
+  const terug = [...terugblikTalk(vak, { gezien: storyFlag(VERVOER_VLAG) }), ...luchtTerugblikTalk(vak, { gezien: storyFlag(BALLON_VLAG) }), ...waterTerugblik(vak, { gezien: storyFlag(WATER_VLAG) })]; // lucht en water idem: Gerlof en de ballon (airstory.js)
   if (terug.length) import('./storytalk.js').then((m) => m.playTalk(terug, { id: 'loopbaan-terugblik:' + vak, delay: 2 })).catch(() => {});
   // de vraag van de dag (careerbeats.js): Tammo en Tessa over het vak, als korte ondertitelpraat; nooit een eis
   import('./storytalk.js').then((m) => m.playTalk(careerTalk(vak, 'vraag'), { id: 'loopbaan-vraag:' + vak, delay: 4 })).catch(() => {});

@@ -383,7 +383,7 @@ De boer levert bieten en graan als vracht; de snackwagen heeft een havenvergunni
 
 ### (e) Samen spelen
 
-Gebouwd: samen op een boot (`coopboot.js`). *Nieuw*: een bemanning met rollen (stuurman, dekhulp, gids), een gezamenlijke lading, elk een eigen schip in dezelfde wereld, een roeiwedstrijd (de acht en de skiff bestaan in `boattypes.js`) en handel van vracht tussen spelers (de boer levert, de schipper vaart). Per speler loon en punten. Een gast die bij Geert op de spits stapt is deelnemer van de dienst; valt hij weg, dan ligt het schip stil aan het anker (nooit kapot); wie later komt stapt aan boord bij de volgende kade. Altijd beschikbaar: elke speler kan een boot nemen.
+Gebouwd: samen op een boot (`coopboot.js`). *Nieuw*: een bemanning met rollen (stuurman, dekhulp, gids), een gezamenlijke lading, elk een eigen schip in dezelfde wereld, een roeiwedstrijd (de acht en de skiff bestaan in `boattypes.js`) en handel van vracht tussen spelers (de boer levert, de schipper vaart). Per speler loon en punten. Een gast die bij Lammert Veenstra op de spits stapt is deelnemer van de dienst; valt hij weg, dan ligt het schip stil aan het anker (nooit kapot); wie later komt stapt aan boord bij de volgende kade. Altijd beschikbaar: elke speler kan een boot nemen.
 
 ### (f) Omvang
 

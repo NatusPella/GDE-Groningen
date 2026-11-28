@@ -8,6 +8,7 @@ import { icoon } from './icons.js';
 import * as L from './loopbaan.js';
 import { vervoerGids } from './vervoer.js';
 import { luchtGids } from './airstory.js';
+import { waterGids } from './boatcareer.js';
 import { getProfiel, startLoopbaan } from './loopbaanlive.js';
 import { SIDE_JOBS } from './sidejobs.js';
 import { fillBars } from './motion.js';
@@ -341,9 +342,9 @@ function landbouwGidsHtml(id) {
     `<p class="lb-kan">${esc(g.verschil)}</p></div>`;
 }
 
-// De Dienstkaart van vervoer (vervoer.js): de kernlus en wat je rang nu is en straks wordt. Alleen bij bus, taxi en trein.
+// De Dienstkaart van vervoer (vervoer.js) en de Vaarkaart van water (boatcareer.js): de kernlus en wat je rang nu is en straks wordt. Alleen bij bus, taxi, trein en water.
 function vervoerGidsHtml(id, niveau) {
-  const g = vervoerGids(id, niveau) || luchtGids(id, niveau); // ook de Dienstkaart van Lucht (airstory.js)
+  const g = vervoerGids(id, niveau) || luchtGids(id, niveau) || waterGids(id, niveau); // ook de Dienstkaart van Lucht (airstory.js)
   if (!g) return '';
   return `<div class="lb-blok lb-gids"><h3 class="m-eb">${esc(g.titel)}</h3>` +
     `<ol class="lb-gids-lijst">${g.stappen.map((x) => `<li>${esc(x)}</li>`).join('')}</ol>` +

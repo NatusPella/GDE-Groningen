@@ -61,6 +61,14 @@ const SPEAKER_COLORS = {
   'Jochem Luiken': '#7a9a62',
   // lucht (28-11, #1377)
   'Gerlof Hamminga': '#d49a4a',
+  // water (28-11, #1376)
+  'Wiebe Hazenberg': '#d0603a',
+  Wiebe: '#d0603a',
+  Noor: '#58a8c8',
+  'Schipper Lammert': '#4f7f9a',
+  Dina: '#6a9a8a',
+  Tjalling: '#8a7fb0',
+  'De loods': '#6f8fa8',
 };
 // generic NPCs, bijbaan bosses, radio and navigation voices
 const NEUTRAL = '#8a8a8a';
