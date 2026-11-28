@@ -39,6 +39,7 @@ naslag: de bron, de scripts, de opnames en de verslagen. Bij verschil wint de sp
 ## Personages en stem
 
 - [STEMKEUZE-VOORSTEL.md](STEMKEUZE-VOORSTEL.md): welke stem bij welk personage (voorstel).
+- [STEMKAARTEN-28-11.md](STEMKAARTEN-28-11.md): stemkaarten en proefzinnen per personageblad van de verhaalbijbel (data, afleiding, test).
 - [TESSA-NEDERLANDS.md](TESSA-NEDERLANDS.md): hoe Tessa praat (naslag).
 - [DIALECT-NALEZING.md](DIALECT-NALEZING.md) en het gegenereerde
   [DIALECT-CONCEPT.md](DIALECT-CONCEPT.md): de Groningse regels; de aantallen komen uit de
