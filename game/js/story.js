@@ -297,7 +297,7 @@ const GOALS = {
 function enter(step) {
   rt.cur = step;
   rt.enteredAt = world.time;
-  document.body.classList.remove('opening-wacht');
+  document.body.classList.toggle('opening-wacht', !!step && step.id === 'M00'); // de HUD blijft weg tot de openingsfilm begint (hieronder in GOALS.opening)
   rt.reminded = false;
   rt.remindN = 0;
   rt.base = {};
