@@ -118,3 +118,9 @@ Dagelijks leven (epic #1181, `worldlife.js`, docs/WERELD-LEVEN-21-11.md): markt,
 Opgelost op 29-10: #470 (twee safehouse-systemen naast elkaar). Het verhaal noemt
 de plekken, `safehuizen.js` is de mechanic; de afspraak staat in ADR 0021 en de
 verhaalplekken zijn verhaalfeiten in `docs/PROVINCIE-VERHAAL.md` §6.2.
+
+## Tegel klaar voor de speler (#1354)
+
+Een tegel geldt pas als klaar als zes niveaus in een keten kloppen: data, colliders, geometry, gpu (shaders gelinkt en texturen geüpload), lod en
+population (`game/js/tileready.js`). In de nabije ring en in elk cutsceneshot gelden alle zes; verder weg minder. Laadscherm, opstart-warm,
+benchmarkpoort en cutscenepoort wachten op die definitie, met een maximumtijd en een nette melding. Uitleg: `docs/wereld/TEGEL-KLAAR-28-11.md`.

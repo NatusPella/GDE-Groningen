@@ -35,7 +35,8 @@ const SETm = await imp('settings');
 const GFX = await imp('gfxprofile');
 SETm.withTempSettings({ autoResolution: false, quality: 'hoog', drawDistance: CFG.view || 'kort' });
 GFX.resetDynamic();
-const skipper = setInterval(() => { if (cine.isCinematicActive()) cine.skipCinematic(); }, 100);
+let skipOn = true; // de cutscene-routes (CFG.cuts) zetten het overslaan uit
+const skipper = setInterval(() => { if (skipOn && cine.isCinematicActive()) cine.skipCinematic(); }, 100);
 w.devInvuln = true;
 D.input.canLock = () => false;
 if (document.pointerLockElement) document.exitPointerLock();
@@ -105,7 +106,9 @@ function makeProbe() {
   void unsub;
   let walkMs = 0, walks = 0;
   const gls = { frames: 0, upFrames: 0, up: 0, upMs: 0, link: 0, linkMs: 0, worstUpMs: 0, hitch2: 0, progNew: 0 };
-  let lastProgs = sc.renderer.info.programs.length, km = 0, lastCam = null, claim = [0, -1];
+  let lastProgs = sc.renderer.info.programs.length, km = 0, lastCam = null, claim = [0, -1], frameBlack = false, blackFrames = 0;
+  const cinT = () => { try { const st = cine.cinematicState && cine.cinematicState(); return st && Number.isFinite(st.t) ? +st.t.toFixed(2) : -1; } catch (e) { return -1; } };
+  const fadeEl = () => document.getElementById('respawn-fade');
   const claimFrames = [0, 0, 0]; // frames: totaal, oude definitie klaar, nieuwe definitie klaar
   // 28-11 (#1354): de LOD-dekking. Elke 12e frame: per afstandsband hoeveel gebouwen de versie hebben die bij hun afstand hoort (detail binnen de
   // ring, de verre kopie erbuiten, beide in de overgangsband van 20 m), hoeveel gaten (geen van beide) en hoeveel wissels van niveau.
@@ -137,9 +140,9 @@ function makeProbe() {
     let c = cats.get(cat);
     if (!c) { c = { n: 0, vis: 0, near: 0, add: 0, b: new Array(EDGES.length - 1).fill(0), kinds: {} }; cats.set(cat, c); }
     c.n++; c.kinds[kind] = (c.kinds[kind] || 0) + 1;
-    const visible = inView && px >= 2 && fog < 0.9;
+    const visible = inView && px >= 2 && fog < 0.9 && !frameBlack; // onder het zwart van een poort ziet de speler niets
     if (visible) { c.vis++; c.b[bucket(d)]++; if (d < 60 && fog < 0.5) c.near++; }
-    if (armed && ev.length < 6000) ev.push([frame, +(performance.now() - t0).toFixed(0), cat, kind, +d.toFixed(1), +rad.toFixed(1), +px.toFixed(1), +fog.toFixed(2), inView ? 1 : 0, visible ? 1 : 0, extra || 0, claim[0], claim[1], pos ? GDT.tileKey(GDT.tileIndexX(pos[0]), GDT.tileIndexY(pos[1])) : '']);
+    if (armed && ev.length < 6000) ev.push([frame, +(performance.now() - t0).toFixed(0), cat, kind, +d.toFixed(1), +rad.toFixed(1), +px.toFixed(1), +fog.toFixed(2), inView ? 1 : 0, visible ? 1 : 0, extra || 0, claim[0], claim[1], pos ? GDT.tileKey(GDT.tileIndexX(pos[0]), GDT.tileIndexY(pos[1])) : '', cinT()]);
   };
   const visit = (o) => {
     if (!o.visible) return;
@@ -199,6 +202,7 @@ function makeProbe() {
       if (lastCam) km += Math.hypot(cam.position.x - lastCam[0], cam.position.z - lastCam[1]) / 1000;
       lastCam = [cam.position.x, cam.position.z];
       if (frame % 12 === 0) { try { lodSample(); } catch (e) { /* de audit mag niets breken */ } }
+      { const el = fadeEl(); frameBlack = !!el && +getComputedStyle(el).opacity > 0.85; if (frameBlack) blackFrames++; }
       claim = readyNow(); claimFrames[0]++; if (claim[0]) claimFrames[1]++; if (claim[1] === 1) claimFrames[2]++;
     }
     GLC.up = GLC.upMs = GLC.link = GLC.linkMs = 0;
@@ -210,7 +214,7 @@ function makeProbe() {
   };
   requestAnimationFrame(tick);
   return {
-    arm() { armed = true; Object.assign(gls, { frames: 0, upFrames: 0, up: 0, upMs: 0, link: 0, linkMs: 0, worstUpMs: 0, hitch2: 0, progNew: 0 }); km = 0; lastCam = null; claimFrames.fill(0); lodAud.samples = lodAud.holes = lodAud.lateDetail = lodAud.swaps = lodAud.swapsToNone = 0; for (const b of lodAud.bands) b.n = b.ok = 0; GLC.up = GLC.upMs = GLC.link = GLC.linkMs = 0; lastProgs = sc.renderer.info.programs.length; Object.assign(ring, { n: 0, sum: 0, min: 1, b90: 0, b50: 0, minR: 1e9 }); t0 = performance.now(); frame = 0; ev.length = 0; cats.clear(); tiles.length = 0; walkMs = 0; walks = 0; },
+    arm() { armed = true; Object.assign(gls, { frames: 0, upFrames: 0, up: 0, upMs: 0, link: 0, linkMs: 0, worstUpMs: 0, hitch2: 0, progNew: 0 }); km = 0; lastCam = null; blackFrames = 0; claimFrames.fill(0); lodAud.samples = lodAud.holes = lodAud.lateDetail = lodAud.swaps = lodAud.swapsToNone = 0; for (const b of lodAud.bands) b.n = b.ok = 0; GLC.up = GLC.upMs = GLC.link = GLC.linkMs = 0; lastProgs = sc.renderer.info.programs.length; Object.assign(ring, { n: 0, sum: 0, min: 1, b90: 0, b50: 0, minR: 1e9 }); t0 = performance.now(); frame = 0; ev.length = 0; cats.clear(); tiles.length = 0; walkMs = 0; walks = 0; },
     stop() {
       on = false;
       const dur = (performance.now() - t0) / 1000;
@@ -220,9 +224,11 @@ function makeProbe() {
       out.ring = { frames: ring.n, avgShare: +(ring.sum / Math.max(1, ring.n)).toFixed(3), minShare: +ring.min.toFixed(3), below90: +(ring.b90 / Math.max(1, ring.n)).toFixed(3), below50: +(ring.b50 / Math.max(1, ring.n)).toFixed(3), minR: Math.round(ring.minR), facadeDetailDist: ring.facade, draw: ring.draw, cpuLevel: window.__gfxDyn ? window.__gfxDyn.cpuLevel : null, scale: window.__gfxDyn ? window.__gfxDyn.scale : null };
       out.sample = ev.filter((e) => e[9] && e[4] < 90).slice(0, 120);
       out.visTotal = ev.filter((e) => e[9]).length;
+      out.events = ev.filter((e) => e[9]).map((e) => [e[1], e[2], e[4], e[9], 0, 0, 0, 0, 0, e[9], 0, 0, 0, 0, e[14]]); // alleen voor de cutscene-routes
       out.visNear60 = ev.filter((e) => e[9] && e[4] < 60 && e[7] < 0.5).length;
       out.visPerS = +(out.visTotal / dur).toFixed(2);
       out.km = +km.toFixed(3);
+      out.blackFrames = blackFrames;
       out.visPerKm = km > 0.005 ? +(out.visTotal / km).toFixed(1) : null;
       out.near60PerKm = km > 0.005 ? +(out.visNear60 / km).toFixed(1) : null;
       // na 'klaar': zichtbare gebeurtenissen in frames waarin het spel zichzelf 'settled' noemde (oude definitie), en in die van de nieuwe
@@ -290,6 +296,7 @@ async function run(name, setup, move, teardown, dur = DUR) {
   }
   fin = true;
   const res = probe.stop();
+  delete res.events;
   mover = null;
   fpsT.sort((a, b) => a - b);
   const pct = (q) => +(fpsT[Math.min(fpsT.length - 1, Math.floor(fpsT.length * q))] || 0).toFixed(1);
@@ -350,6 +357,56 @@ const carRoute = (name, pts, speed, dur) => run(name, async () => {
 }, async (c) => { if (p.inVehicle) p.exitVehicle(map, w); const i = w.vehicles.indexOf(c.v); if (i >= 0) w.vehicles.splice(i, 1); }, dur);
 results.routes.cdrive = await carRoute('cdrive', FOOT, 12, Math.min(30000, Math.floor(pathLen(FOOT) / 12) * 1000));
 results.routes.dorp = await carRoute('dorp', [A7[2], A7[1]], 14, 30000);
+
+// 28-11 (#1354): cutscenes uit de eerste 30 minuten, gespeeld door de echte host (playScript, dus met de poort van tegel-klaar) op een koude plek
+// (de speler springt erheen en de scène begint twee seconden later). Per scène en per shot: zichtbare gebeurtenissen na het begin van de scène.
+if (CFG.cuts) {
+  skipOn = false;
+  const CH = await imp('cutscenehost');
+  const PV = await imp('cutpreview');
+  const script = await (await fetch('/storydata/script.json')).json();
+  const msrc = await (await fetch('/js/missionstory.js')).text();
+  const cat = PV.buildCatalog({ script, npcSource: msrc });
+  const spots = PL([[167, 283], [121, 193], [105, 161], [100, 77], [124, 7]]).map((q) => [q[0], q[1]]).concat([A7[1], A7[2]]);
+  results.cuts = {};
+  let si = 0;
+  for (const id of String(CFG.cuts).split(',')) {
+    const e = cat.find((x) => x.id === id);
+    if (!e || !e.def) { results.cuts[id] = { fout: 'niet in de catalogus' }; continue; }
+    if (cine.isCinematicActive()) { cine.skipCinematic(); await sleep(400); }
+    fixWorld();
+    const spot = spots[si++ % spots.length];
+    teleport(spot[0], spot[1]);
+    w.devInvuln = true;
+    await sleep(2000);
+    const probe = makeProbe();
+    probe.arm();
+    const t0 = performance.now();
+    const ok = CH.playScript(w, e.def, { lines: e.lines, duration: e.duration, anchor: { x: spot[0], y: spot[1], facing: 0.3, z: p.gz || 0 }, cine: { id: 'cutpop-' + id } });
+    const lim = Math.min(CFG.cutMaxMs || 45000, (e.duration + 12) * 1000);
+    let startAt = null;
+    while (performance.now() - t0 < lim) {
+      const st = cine.cinematicState && cine.cinematicState();
+      if (startAt === null && st && st.t > 0.05) startAt = performance.now() - t0;
+      if (!cine.isCinematicActive() && performance.now() - t0 > 1500) break;
+      if (st && st.t >= Math.min(e.duration - 0.5, (CFG.cutMaxS || 40))) break;
+      await sleep(100);
+    }
+    const r = probe.stop();
+    if (cine.isCinematicActive()) cine.skipCinematic();
+    r.scene = { ok, duration: e.duration, startWaitMs: startAt === null ? null : Math.round(startAt), shots: (e.scene.shots || []).map((s) => +s.t.toFixed(2)), ready: (window.__cineReady || []).filter((q) => q.scene === 'cutpop-' + id).slice(-2) };
+    // per shot: zichtbare gebeurtenissen (de rest staat in r.sampleShot); een gebeurtenis kent de scènetijd (index 14)
+    const evs = r.events || [];
+    const shotOf = (t) => { let k = 0; for (let i = 0; i < r.scene.shots.length; i++) if (t >= r.scene.shots[i]) k = i; return k; };
+    const per = r.scene.shots.map(() => 0);
+    let before = 0;
+    for (const q of evs) { if (!q[9]) continue; if (q[14] < 0.1) { before++; continue; } per[shotOf(q[14])]++; }
+    r.perShot = per; r.visBeforeStart = before;
+    delete r.events; results.cuts[id] = r;
+    await sleep(500);
+    await new Promise((res) => setTimeout(res, 300));
+  }
+}
 
 const HELI = PL([[2494, 3130], [3700, 3150], [4892, 3155]]);
 results.routes.heli = await run('heli', async () => {

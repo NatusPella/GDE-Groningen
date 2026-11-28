@@ -9,6 +9,9 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ## [Unreleased]
 
+- Minder pop-in: een stuk wereld geldt pas als klaar voor je als ook de afbeeldingen en schaduwen, de verre gebouwen en de mensen en auto's er staan, niet alleen de gebouwen en wegen. Het laadscherm wacht daar nu op (met een maximumtijd en een nette melding). Mensen en chauffeurs verschijnen pas als hun modellen geladen zijn, dus nooit meer een tijdelijk model dat blijft. Afbeeldingen van nieuwe gebouwen gaan vooraf naar de videokaart, en bij hogere snelheid (auto, trein, helikopter) bouwt het spel verder vooruit.
+- Cutscenes beginnen pas als de wereld rond alle camerastanden en acteurs klaar is. Duurt dat even, dan duikt het beeld kort naar zwart in plaats van dat je dingen ziet verschijnen. Bij Samen spelen laadt elke speler zijn eigen wereld; een gast wacht niet op de poort maar volgt de klok van de gastheer.
+
 - De game staat nu op de hoofdpagina van de webversie (GitHub Pages); de marketingpagina is weggehaald. De oude link /play/ stuurt door naar de hoofdpagina.
 
 ## [0.66.0] - 2026-11-24

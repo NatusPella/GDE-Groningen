@@ -3,6 +3,7 @@
 // wordt (plus texture-uploads, shaderlinks, wissels en de tijdlijn per tegel), en een reeks stills (1280x720) van dezelfde route gaat naar
 // <out>/shots-<tag>-<route>-<n>.png.
 //   node scripts/qa/popin.mjs --tag=voor|na [--out=<map>] [--only=foot,cdrive,a7,dorp,heli] [--dur=30000] [--shots=6] [--view=kort|normaal|ver]
+//                             [--cuts=M01.intro,M02.intro,...] (cutscenes via de echte host op een koude plek; gebruik --only=geen voor alleen die) [--cutmax=40]
 //                             [--flags=perfoff=texwarm+mensenwacht] (devflags.js, komma-gescheiden: de A/B-stand "voor" op dezelfde build)
 //                             [--quiet] (wacht op een stille machine) [--slot] (neemt een Electron-slot)
 // GDE_GAME_DIR=<gestagede game-map> (met backslashes), ELECTRON_EXE=<pad>; uitvoer: <out>/popin-<tag>.json, run-<tag>.log.
@@ -23,7 +24,7 @@ const TAG = arg('tag', 'voor');
 fs.mkdirSync(OUT, { recursive: true });
 const profile = path.join(OUT, `profiel-${TAG}-${process.pid}`); // absoluut: %TEMP% is soms niet schrijfbaar
 const script = path.join(OUT, `_page-${TAG}.js`);
-const cfg = { only: arg('only', ''), dur: Number(arg('dur', 0)) || undefined, shots: arg('shots', '') === '' ? undefined : Number(arg('shots', 6)), tag: TAG, view: arg('view', 'kort') };
+const cfg = { only: arg('only', ''), dur: Number(arg('dur', 0)) || undefined, shots: arg('shots', '') === '' ? undefined : Number(arg('shots', 6)), tag: TAG, view: arg('view', 'kort'), cuts: arg('cuts', ''), cutMaxS: Number(arg('cutmax', 40)) };
 fs.writeFileSync(script, `window.__popin = ${JSON.stringify(cfg)};\n` + fs.readFileSync(path.join(HERE, 'popin.page.js'), 'utf8'));
 const electron = process.env.ELECTRON_EXE || path.join(ROOT, 'desktop', 'node_modules', 'electron', 'dist', process.platform === 'win32' ? 'electron.exe' : 'Electron');
 fs.mkdirSync(profile, { recursive: true });
