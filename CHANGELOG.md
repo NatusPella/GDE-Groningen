@@ -9,6 +9,7 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ## [Unreleased]
 
+- De limousine achter de trekker van Jelle heeft grotere wielen (38 cm in plaats van 34 cm) die onder de wielkast uitkomen, zodat de zwarte auto in de cinematic niet meer lijkt te zweven; ook de wielen van auto's van dichtbij blijven zichtbaar (wielinstancing erfde het verbergen op afstand, #1340). Samen spelen: alleen beeld, elke speler ziet het in zijn eigen scherm; geen voortgang of snapshot geraakt (#1201, #1340).
 - De game staat nu op de hoofdpagina van de webversie (GitHub Pages); de marketingpagina is weggehaald. De oude link /play/ stuurt door naar de hoofdpagina.
 
 ## [0.66.0] - 2026-11-24
