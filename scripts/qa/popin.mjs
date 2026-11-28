@@ -42,7 +42,13 @@ try {
   });
 } catch (e) { console.error('Electron starten mislukt:', e.message); }
 runner.removeProfile ? runner.removeProfile(profile) : fs.rmSync(profile, { recursive: true, force: true });
-const l = res && res.perfScript;
+// de regel komt in stukken binnen (stdout-chunks): lees hem heel uit electron.log
+let l = res && res.perfScript;
+try {
+  const log = fs.readFileSync(path.join(OUT, 'electron.log'), 'utf8').split(/?
+/).filter((x) => x.startsWith('[perf-script] '));
+  if (log.length) l = log[log.length - 1].slice(14);
+} catch (e) { /* geen log */ }
 if (l) fs.writeFileSync(path.join(OUT, `popin-${TAG}.json`), l);
 console.log(l ? `resultaat ${l.length} tekens` : 'geen [perf-script]-resultaat', `\nexit ${res && res.code}; uitvoer: ${OUT}`);
 process.exit(l ? 0 : 1);
