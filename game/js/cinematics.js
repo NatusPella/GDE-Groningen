@@ -23,6 +23,7 @@ import { lineVoiceFor, lineVoicesFailed } from './linevoice.js';
 import { ensureCutsceneReady } from './cutsceneready.js'; // #1354: de strenge poort voor het begin van een scène (tileready.js)
 import { sumCounts, emptyCounts } from './tileready.js';
 import { queueNear } from './benchsettle.js';
+import { perfOff } from './devflags.js';
 import { plannedVoiceLines } from './voicetiming.js';
 // What cinematics.js asks of respawn.js and scene3d.js comes in through setCinematicLinks
 // (respawn.js and main.js call it), so it imports neither (#108).
@@ -453,7 +454,7 @@ function readyEnv(secs) {
 }
 function startReadyGate(spec) {
   const poses = Array.isArray(spec.shotPoses) && spec.shotPoses.length ? spec.shotPoses : (spec.prewarm || []).filter(Boolean).map((p) => ({ position: p, lookAt: p }));
-  if (!poses.length || spec.noReadyGate || !map_ok()) return null;
+  if (!poses.length || spec.noReadyGate || !map_ok() || perfOff('cutpoort')) return null; // ?perfoff=cutpoort: de oude start zonder poort (A/B)
   const env = readyEnv(30);
   // een gast (cutId) warmt wel maar wacht niet: zijn klok volgt de gastheer
   const g = ensureCutsceneReady(poses, { env, black: spec.cutId == null });
