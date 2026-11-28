@@ -9,6 +9,7 @@ elke versie is één `## [x.y.z]`-blok met Nederlandse regels.
 
 ## [Unreleased]
 
+- Wijken en dorpen zijn minder kaal: voortuinen met hagen en lattenhekjes met een tuinpad naar de deur, kliko's in drie kleuren, fietsen bij de deur en in rijen tegen flats, plantenbakken vol zomerbloemen, kabelkasten, zone-30- en voorrangsborden, boomspiegels, afvalzuilen, hekwerk bij bedrijven, bermpalen langs landwegen, riet langs sloten en hooibalen bij erven. Alles staat per gebouw vast (bij Samen spelen zien host en gast hetzelfde) en niets staat op een weg, in een huis of in het water.
 - De game staat nu op de hoofdpagina van de webversie (GitHub Pages); de marketingpagina is weggehaald. De oude link /play/ stuurt door naar de hoofdpagina.
 
 ## [0.66.0] - 2026-11-24
