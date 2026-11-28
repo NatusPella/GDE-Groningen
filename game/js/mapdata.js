@@ -8,6 +8,8 @@ import { deriveBuildings, liftNestedRoofs, isRingRoad } from './derive.js';
 import { monumentRampartProfile } from './heritagearea.js';
 import { deckTerrainAt, isDeckRoad, roadTerrainAt, deckTerrainOnSeg, roadTerrainOnSeg } from './deckterrain.js';
 import { clearTreesFromRoads } from './treeclear.js';
+import { fillRailValleys, kaartHindernis } from './railvalley.js';
+import { onGroundRoad, inBuildingAt } from './propfilter.js';
 import { buildElevation, addPerrons, groundHeightAt, surfaceAt, ribbonAt, ribbonZAt, roadZAt, ceilingAt, coveredAt, surfaceHalfWidth, offLevelAt, resolveElevWalls, elevWallContact } from './elevation.js';
 
 const CELL = 80; // meters per grid cell
@@ -258,6 +260,7 @@ export class GameMap {
     markDryCrossings(this);
     // (?terrain: the terrain goes in before the elevation model, which builds its walls in the frame of the terrain)
     if (data.terrain) { this.terrain = data.terrain; this.terrainOn = !!data.terrainOn; }
+    fillRailValleys(gridItems(this.railGrid), kaartHindernis(this, { onGroundRoad, inBuildingAt }));   // doorlopend viaduct (#1339): het spoor zakt niet tussen twee dekken
     this.elev = addPerrons(this, buildElevation(this));
     // (a mapped tree on the kerb or the carriageway is set beside the road, or goes: treeclear.js, #324)
     this.treeClearStats = { moved: 0, removed: 0 };
@@ -340,6 +343,7 @@ export class GameMap {
     m._roadsSourceOwn = sparse.has('roads');
     // (?terrain: the elevation model builds its walls in the frame of the terrain, so the terrain is in before it)
     if (p.terrain) { m.terrain = p.terrain; m.terrainOn = !!p.terrainOn; }
+    fillRailValleys(gridItems(m.railGrid), kaartHindernis(m, { onGroundRoad, inBuildingAt }));   // doorlopend viaduct (#1339)
     m.elev = addPerrons(m, buildElevation(m));
     // (a mapped tree on the kerb or the carriageway is set beside the road, or goes: treeclear.js, #324)
     m.treeClearStats = { moved: 0, removed: 0 };

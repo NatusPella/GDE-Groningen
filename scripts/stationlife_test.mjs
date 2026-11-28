@@ -85,5 +85,22 @@ check('andere stations andere plekken', S.reizigerPlekken(st[0], 1)[0].x !== sp[
   check('een lijn minder ook', bouw > na && S.allStations().length <= st.length);
 }
 
+// #1345: het bord vervaagt als de speler beweegt
+{
+  const z = S.bordZichtToestand(); let r;
+  for (let i = 0; i < 10; i++) r = S.bordZichtStap(z, 0.1, 5, 5);
+  check('stilstaan na BORD_STIL toont het bord', r.zicht && !r.verborgen);
+  r = S.bordZichtStap(z, 0.1, 5.5, 5);
+  check('lopen (5 m/s) vervaagt meteen', !r.zicht && !r.verborgen);
+  for (let i = 0; i < 5; i++) r = S.bordZichtStap(z, 0.1, 6 + i, 5);
+  check('blijft lopen: het bord is weg', !r.zicht && r.verborgen);
+  for (let i = 0; i < 5; i++) r = S.bordZichtStap(z, 0.1, 10, 5);
+  check('kort stilstaan toont nog niets', !r.zicht);
+  for (let i = 0; i < 5; i++) r = S.bordZichtStap(z, 0.1, 10, 5);
+  check('weer stilstaan brengt het terug', r.zicht);
+  r = S.bordZichtStap(z, 0.016, 500, 5);
+  check('een sprong telt als bewegen', !r.zicht);
+}
+
 console.log(bad ? `${bad} van ${n} mislukt` : `stationlife_test: ${n} controles ok`);
 process.exit(bad ? 1 : 0);

@@ -181,7 +181,7 @@ function hostTreinen() {
   const routes = getRoutes(), uit = [];
   for (const t of getTrains()) {
     const i = routes.indexOf(t.route);
-    if (i < 0 || t.state === 'mission') continue;
+    if (i < 0 || t.state === 'mission' || t.ambient) continue;   // een ambient trein rekent elke speler zelf uit de gezamenlijke klok
     const p = routePoint(t.route, t.c);
     // bit 32 in het id: een trein van het rooster die een speler overgenomen heeft (de gast rekent de andere uit de gezamenlijke klok, #1085)
     uit.push({ id: i + (t.pool && t.stolen && i < 32 ? 32 : 0), x: p[0], y: p[1], v: t.v * (t.dir || 1), halfLen: t.halfLen });

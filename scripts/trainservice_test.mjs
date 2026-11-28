@@ -116,8 +116,9 @@ ok(rijenGetest > 150, 'genoeg bordrijen getoetst', rijenGetest);
   const t = legTimes(leg, null);
   const len = routesPlain[leg.routeIdx].len;
   const a = leg.halten[0], b = leg.halten[1];
-  const midden = legState(leg, (t.weg[0] + t.aan[1]) / 2, len, t);
-  ok(midden && midden.staat === 'run' && midden.v > 0 && (midden.s - a.s) * leg.dir > 0 && (b.s - midden.s) * leg.dir > 0, 'tussen twee haltes rijdt de trein er tussenin', JSON.stringify(midden));
+  const midden = legState(leg, t.weg[0] + Math.min(DIENST.venster, (t.aan[1] - t.weg[0]) * 0.4) / 2, len, t); // kort na het vertrek; in het midden van de rit is hij niet in beeld (#1339)
+  ok(midden && midden.staat === 'run' && midden.v > 0 && (midden.s - a.s) * leg.dir > 0 && (b.s - midden.s) * leg.dir > 0, 'kort na het vertrek rijdt de trein tussen twee haltes', JSON.stringify(midden));
+  ok(legState(leg, (t.weg[0] + t.aan[1]) / 2, len, t) === null, 'midden in een rit is hij niet in beeld (geen snelheid van 1000 m/s)');
   ok(midden.doel === b.idx, 'het doel is de volgende halte van de lijn');
   const aankomst = legState(leg, t.aan[1], len, t), vertrek = legState(leg, t.weg[1], len, t);
   ok(aankomst && aankomst.s === b.s && vertrek && vertrek.s === b.s, 'in de halte staat hij op de halteplek');
@@ -143,6 +144,29 @@ ok(rijenGetest > 150, 'genoeg bordrijen getoetst', rijenGetest);
   ok(createServiceSource({ rooster: () => null, routes: () => routesPlain, dagsoort: () => 'werk', klok: () => 0 })({}) === null, 'zonder rooster geen bron');
 }
 
+// --- 3b. nooit sneller dan een echte trein (#1339): de spelklok loopt 60 keer sneller dan de wereld ------------------
+// Stap in echte tijd (1/60 s = 1 spelseconde, en een haperend beeld van 0,25 s = 15 spelseconden) en meet de verplaatsing per echte seconde.
+{
+  const SC = DIENST.klokSchaal;
+  ok(SC === 60, 'de klokschaal is 86400 / 1440 s');
+  let maxV = 0, maxGeo = 0, gemeten = 0;
+  for (const leg of dienst.legs.filter((l, i) => i % 7 === 0)) {
+    const t = legTimes(leg, null), len = routesPlain[leg.routeIdx].len;
+    for (const stap of [1, 15]) {                       // spelseconden per beeld (60 fps en een haperend beeld)
+      let vorig = null;
+      for (let nu = t.aan[0] - 1500; nu <= t.weg[leg.halten.length - 1] + 1500; nu += stap) {
+        const st = legState(leg, nu, len, t);
+        if (st) maxV = Math.max(maxV, st.v);
+        if (st && vorig) { const geo = Math.abs(st.s - vorig.s) / (stap / SC); if (geo > maxGeo) maxGeo = geo; gemeten++; }
+        vorig = st;
+      }
+    }
+  }
+  ok(gemeten > 1000, 'genoeg stappen gemeten', gemeten);
+  ok(maxV <= DIENST.vReis + 1e-9, `de gemelde snelheid blijft onder ${DIENST.vReis} m/s`, maxV.toFixed(1));
+  ok(maxGeo <= DIENST.vReis * 1.02, `de verplaatsing per echte seconde blijft onder ${DIENST.vReis} m/s (was ~1000 m/s)`, maxGeo.toFixed(1));
+}
+
 // --- 4. de wereld (railway.js): treinen komen uit het rooster ---------------------------------------------------------
 const newMap = () => ({ railRoutes: railRoutes.map((r) => ({ ...r, stops: r.stops.map((s) => ({ ...s })) })), railLifts: [], levelCrossings: [], meta: { bounds: [[-100, -200], [100000, 200]] }, roadsNear: () => [] });
 const newWorld = (map) => ({
@@ -160,7 +184,7 @@ const maak = (R) => createServiceSource({ rooster: () => rooster, routes: R.getR
 Hst.setTreinDienst(maak(Hst)); Gst.setTreinDienst(maak(Gst));
 hw.clock = 8 + 17 / 60;
 Hst.updateRailway(0.1, hw);
-const treinen = Hst.getTrains();
+const treinen = Hst.getTrains().filter((t) => !t.ambient);
 const metRooster = treinen.filter((t) => t.route.pool);
 ok(metRooster.length > 6 && metRooster.every((t) => t.rit && t.rit.leg), 'op lijnen met rooster rijdt alleen een rit van het bord, geen willekeurige trein', metRooster.length);
 ok(Hst.getRoutes().filter((r) => r.pool).every((r) => !treinen.some((t) => t.route === r && !t.rit)), 'de pendeltreinen zijn weg op lijnen met rooster');
@@ -200,8 +224,8 @@ ok(treinen.every((t) => (t.state === 'dwell' || t.state === 'run') && Number.isF
   hw.clock = (eerste.plan - 1) / 3600;
   Hst.updateRailway(0.1, hw);
   const tw = Hst.getTrains().find((q) => q.rit && q.rit.leg.id === eerste.rit);
-  const stop = tw.route.stops.find((s) => s.name === naam);
-  ok(!(tw.state === 'dwell' && Math.abs(tw.c - stop.s) < 1e-6), 'op de geplande tijd staat de vertraagde trein er nog niet: hij is te laat');
+  const legV = dienst.leg(eerste.rit), stop = Hst.getRoutes()[legV.routeIdx].stops.find((s) => s.name === naam);
+  ok(!tw || !(tw.state === 'dwell' && Math.abs(tw.c - stop.s) < 1e-6), 'op de geplande tijd staat de vertraagde trein er nog niet: hij is te laat (of nog buiten beeld)');
   hw.clock = (rijV.tijd - 0.5) / 3600;
   Hst.updateRailway(0.1, hw);
   const tl = Hst.getTrains().find((q) => q.rit && q.rit.leg.id === eerste.rit);
@@ -223,10 +247,10 @@ ok(treinen.every((t) => (t.state === 'dwell' || t.state === 'run') && Number.isF
   // de snapshot van de host met een gewone rooster-trein verandert niets bij de gast
   const t0 = Hst.getTrains().find((t) => t.rit);
   const p = Hst.routePoint(t0.route, t0.c);
-  const voor = Gst.getTrains().map((t) => t.c).join();
+  const voor = Gst.getTrains().filter((t) => !t.ambient).map((t) => t.c).join();
   Gst.zetTreinenVanHost([{ route: Hst.getRoutes().indexOf(t0.route), x: p[0], y: p[1], v: t0.v, overgenomen: false }]);
   Gst.gastOverwegen(0.1, gw);
-  ok(Gst.getTrains().map((t) => t.c).join() === voor, 'een trein van het rooster in de snapshot: de gast houdt zijn eigen (klok)plek');
+  ok(Gst.getTrains().filter((t) => !t.ambient).map((t) => t.c).join() === voor, 'een trein van het rooster in de snapshot: de gast houdt zijn eigen (klok)plek');
   // een overgenomen trein (een speler rijdt hem): de gast volgt de host
   const route = Hst.getRoutes().indexOf(t0.route);
   Gst.zetTreinenVanHost([{ route, x: p[0] + 700, y: p[1], v: 5, overgenomen: true }]);

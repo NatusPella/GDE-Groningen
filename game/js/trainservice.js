@@ -9,9 +9,13 @@
 // (zoals het spel de lijnen kent: elke lijn begint op het Hoofdstation). Een leg heeft minstens twee haltes die op de lijn staan;
 // een rit met minder haltes in de wereld heeft geen trein en staat dus ook niet op het bord.
 // Tijden: halte j: aan (aankomst) en weg (vertrek) in seconden na middernacht; met live vertraging per halte erbij (legTimes).
-// Beweging: tussen twee haltes een zachte S-curve in de tijd (staat stil in de haltes, rijdt in de tussentijd). Komt de rit van
-// buiten de kaart (eerste halte van de wereld is niet de eerste van de rit), dan rijdt hij uit de richting waar hij vandaan komt
-// binnen; rijdt hij na zijn laatste halte door, dan rijdt hij weg; een eindstation in de wereld laat hem daar tot NABLIJF s staan.
+// Beweging (#1339): de spelklok loopt 60 keer sneller dan de wereld (een speldag is 24 echte minuten), het rooster rekent in spelseconden.
+// Een stop van 3 min op het rooster is dus 3 echte seconden: de stationsafstand (4 km) zou met 1000 m/s afgelegd worden, hoe zacht de
+// curve ook is. De trein staat daarom nog precies op de halteplek tussen aankomst en vertrek (bord = wereldtrein), maar rijdt met een echte
+// trapezoïde (VERSNELLING, V_REIS) alleen in het VENSTER na zijn vertrek en voor zijn aankomst (hooguit 40% van de tijd tussen twee
+// haltes), en is daartussen niet in de wereld: nooit sneller dan V_REIS. Komt de rit van buiten de kaart (eerste halte van de wereld is niet
+// de eerste van de rit), dan rijdt hij uit de richting waar hij vandaan komt binnen; rijdt hij na zijn laatste halte door, dan rijdt hij weg;
+// een eindstation in de wereld laat hem daar tot NABLIJF s staan.
 // Beginstation: de trein staat VOORAF s vóór het vertrek klaar op het perron (de plek van de halte op de lijn).
 // Het perron is de halte van de lijn (stop.s); de echte sporen (sp. 3 enz.) zijn tekst op het bord: de wereld heeft per lijn
 // één spoor per richting, dus de sporennummers zijn geen aparte geometrie.
@@ -21,8 +25,10 @@ import { vertragingVan } from './trainschedule.js';
 export const DIENST = {
   vooraf: 120,      // s dat een beginnende trein klaarstaat voor zijn vertrek
   nablijf: 60,      // s dat een trein op zijn eindstation blijft staan
-  naderT: 90,       // s aanloop van buiten de kaart (afremmen) en optrekken naar buiten
-  naderV: 18,       // m/s bij de rand van de aanloop
+  klokSchaal: 60,   // spelseconden per echte seconde (86400 / DAY_LENGTH_S, daynight.js): de spelklok loopt 60 keer sneller dan de beweging in de wereld
+  vReis: 22,        // m/s kruissnelheid van een trein in de wereld (80 km/u, zoals railway.js TRAIN_TYPES vmax)
+  versnelling: 0.8, // m/s2 optrekken en remmen
+  venster: 1200,    // spelseconden (20 echte s) dat een trein na zijn vertrek of voor zijn aankomst in beeld is (#1339)
   minStop: 20,      // s minimaal tussen aankomst en vertrek na een vertraging
   knoop: 'Groningen Hoofdstation',
   gat: 9000,        // s tussen twee vertrekken waarna hetzelfde treinnummer een andere rit is
@@ -109,8 +115,8 @@ function buildLeg(nummer, deel, routes, stopMap, { splitsing = false, deelIdx = 
     eind: halten[halten.length - 1].soort === 1 || (splitsing && deelIdx === 0),
     bestemming: halten[halten.length - 1].dest,
     // ruim venster waarbinnen de leg ooit in de wereld kan zijn (met vertraging): daarbuiten rekenen we hem niet door
-    van: Math.min(halten[0].aan, halten[0].weg) - DIENST.vooraf - DIENST.naderT - 1800,
-    tot: halten[halten.length - 1].weg + DIENST.nablijf + DIENST.naderT + 3600,
+    van: Math.min(halten[0].aan, halten[0].weg) - DIENST.vooraf - DIENST.venster - 1800,
+    tot: halten[halten.length - 1].weg + DIENST.nablijf + DIENST.venster + 3600,
   };
 }
 
@@ -160,31 +166,35 @@ export function legTimes(leg, stand, cfg = DIENST) {
   return { aan: arrivals, weg, vertraging, vervallen };
 }
 
-const glad = (u) => u * u * (3 - 2 * u);
-const dglad = (u) => 6 * u * (1 - u);
+// Echte beweging vanuit stilstand: afstand en snelheid na `tau` echte seconden optrekken (versnelling, dan kruissnelheid). Remmen is het spiegelbeeld.
+const optrekAfstand = (tau, cfg) => {
+  const tc = cfg.vReis / cfg.versnelling;
+  return tau <= tc ? 0.5 * cfg.versnelling * tau * tau : 0.5 * cfg.vReis * tc + cfg.vReis * (tau - tc);
+};
+const optrekSnelheid = (tau, cfg) => Math.min(cfg.vReis, cfg.versnelling * tau);
 
-// Waar de trein van een leg is op tijd `nu` (s na middernacht). null = niet in de wereld (nog niet of niet meer, of vervallen).
-// Geeft { s, v (m/s, >= 0), dir, staat ('dwell' | 'run'), halte (index in leg.halten van de halte waar hij staat of heen rijdt),
+// Waar de trein van een leg is op tijd `nu` (s na middernacht). null = niet in de wereld (nog niet of niet meer, onderweg buiten het venster, of vervallen).
+// Geeft { s, v (m/s, >= 0, nooit boven cfg.vReis), dir, staat ('dwell' | 'run'), halte (index in leg.halten van de halte waar hij staat of heen rijdt),
 // doel (route-stopindex om naartoe), rest (s dat hij nog blijft staan), vertraging (s) }. routeLen: lengte van de spoorlijn (s).
 export function legState(leg, nu, routeLen, tijden, cfg = DIENST) {
   if (tijden.vervallen) return null;
   const { aan, weg } = tijden;
   const n = leg.halten.length, dir = leg.dir;
   const eerste = leg.halten[0], laatste = leg.halten[n - 1];
-  const gereden = (tau) => (cfg.naderV / (2 * cfg.naderT)) * tau * tau;            // afstand van/naar stilstand in tau seconden
-  const t0 = leg.begin ? weg[0] - cfg.vooraf : aan[0] - cfg.naderT;
-  const t1 = leg.eind ? aan[n - 1] + cfg.nablijf : weg[n - 1] + cfg.naderT + (routeLen / cfg.naderV);
-  if (nu < t0 || nu > t1) return null;
-  const klaar = (s, v, staat, halte, rest, d) => {
+  const klaar = (s, v, staat, halte, rest) => {
     if (!(s >= 0 && s <= routeLen)) return null;
     return { s, v, dir, staat, halte, doel: leg.halten[Math.min(n - 1, halte)].idx, rest, vertraging: tijden.vertraging[Math.min(n - 1, halte)] };
   };
+  const SC = cfg.klokSchaal;
+  // het stuk dat de trein na vertrek (u s) of voor aankomst (w s) aflegt, hooguit het venster en 40% van de rit tussen twee haltes (de twee stukken raken elkaar nooit)
+  const venster = (gat) => Math.min(cfg.venster, Math.max(0, gat) * 0.4);
   // vóór de eerste halte
   if (nu < aan[0] || (leg.begin && nu < weg[0])) {
-    if (leg.begin) return klaar(eerste.s, 0, 'dwell', 0, Math.max(0, weg[0] - nu));
-    const tau = aan[0] - nu;
-    const s = tau >= cfg.naderT ? eerste.s - dir * (gereden(cfg.naderT) + cfg.naderV * (tau - cfg.naderT)) : eerste.s - dir * gereden(tau);
-    return klaar(s, Math.min(cfg.naderV, (cfg.naderV / cfg.naderT) * tau), 'run', 0, 0);
+    if (leg.begin) return nu >= weg[0] - cfg.vooraf ? klaar(eerste.s, 0, 'dwell', 0, Math.max(0, weg[0] - nu)) : null;
+    const w = aan[0] - nu;   // nog zo lang tot hij op de halte staat: hij komt van buiten de kaart
+    if (w > cfg.venster) return null;
+    const tau = w / SC;
+    return klaar(eerste.s - dir * optrekAfstand(tau, cfg), optrekSnelheid(tau, cfg), 'run', 0, 0);
   }
   for (let j = 0; j < n; j++) {
     const h = leg.halten[j];
@@ -192,18 +202,19 @@ export function legState(leg, nu, routeLen, tijden, cfg = DIENST) {
       return klaar(h.s, 0, 'dwell', j, Math.max(0, weg[j] - nu));
     }
     if (j < n - 1 && nu > weg[j] && nu < aan[j + 1]) {
-      const u = (nu - weg[j]) / Math.max(1, aan[j + 1] - weg[j]);
       const b = leg.halten[j + 1];
-      const s = h.s + (b.s - h.s) * glad(u);
-      const v = Math.abs(b.s - h.s) * dglad(u) / Math.max(1, aan[j + 1] - weg[j]);
-      return klaar(s, v, 'run', j + 1, 0);
+      const W = venster(aan[j + 1] - weg[j]), afstand = Math.abs(b.s - h.s);
+      const u = nu - weg[j], w = aan[j + 1] - nu;
+      if (u <= W) return klaar(h.s + dir * Math.min(afstand / 2, optrekAfstand(u / SC, cfg)), optrekSnelheid(u / SC, cfg), 'run', j + 1, 0);
+      if (w <= W) return klaar(b.s - dir * Math.min(afstand / 2, optrekAfstand(w / SC, cfg)), optrekSnelheid(w / SC, cfg), 'run', j + 1, 0);
+      return null;   // onderweg: buiten beeld (zie de kop)
     }
   }
   // na de laatste halte
-  if (leg.eind) return klaar(laatste.s, 0, 'dwell', n - 1, 0);
-  const tau = nu - weg[n - 1];
-  const s = tau <= cfg.naderT ? laatste.s + dir * gereden(tau) : laatste.s + dir * (gereden(cfg.naderT) + cfg.naderV * (tau - cfg.naderT));
-  return klaar(s, Math.min(cfg.naderV, (cfg.naderV / cfg.naderT) * tau), 'run', n - 1, 0);
+  if (leg.eind) return nu <= aan[n - 1] + cfg.nablijf ? klaar(laatste.s, 0, 'dwell', n - 1, 0) : null;
+  const u = nu - weg[n - 1];
+  if (u > cfg.venster) return null;
+  return klaar(laatste.s + dir * optrekAfstand(u / SC, cfg), optrekSnelheid(u / SC, cfg), 'run', n - 1, 0);
 }
 
 // De legs die op tijd `nu` een trein in de wereld hebben, per spoorlijn (naam). stand: live vertragingen (Map) of null.

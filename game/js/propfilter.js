@@ -74,12 +74,53 @@ export function waterDistance(map, x, y, reach = 60) {
   return best;
 }
 
+// Het perronkit is een plaat van 0,9 m hoog op maaiveld, tot 220 m lang (streekplekken.js). (1) Waar de kaart een echt perron heeft (de
+// stationsperrons van de stad, de landhaltes van stationtravel.js) is het kit een dubbel: bij Groningen Noord lag de plaat onder het hoge
+// perron over de Kastanjelaan als een drempel van 0,9 m (#1346). (2) Een lange plaat die over een weg op maaiveld loopt, valt weg: alleen
+// het midden controleren liet hem over de rijbaan liggen.
+const afstandTotLijn = (P, x, y) => {
+  let best = Infinity;
+  for (let i = 0; i + 1 < P.length; i++) best = Math.min(best, Math.sqrt(closestPointOnSegment(x, y, P[i][0], P[i][1], P[i + 1][0], P[i + 1][1]).dist2));
+  return best;
+};
+export function opEchtPerron(map, q) {
+  const rows = map && map.perrons;
+  if (!rows || !rows.length) return false;
+  // de punten langs de as van het deel (een plaat van 160 m raakt het echte perron ook als zijn midden ernaast ligt)
+  const n = Math.max(0, Math.min(40, Math.round((q.w || 0) / 4)));
+  const dx = Math.cos(q.ry || 0), dz = -Math.sin(q.ry || 0);
+  for (const row of rows) {
+    const P = row.p;
+    if (!P || P.length < 2) continue;
+    const hs = Math.max(...P.map((o) => o[2]));
+    for (let k = -n; k <= n; k++) {
+      const t = n ? (k / n) * (q.w / 2) : 0;
+      if (afstandTotLijn(P, q.x + dx * t, q.z + dz * t) < hs + 4) return true;
+    }
+  }
+  return false;
+}
+// Ligt het perronkit op een echt perron (zijn plaat of een deel ervan)? Dan staat er niets van het kit: ook de lantaarns, het bordje en
+// het eindstuk zouden anders los op de grond blijven staan, onder het echte perron.
+export const perronKitDubbel = (map, parts) => parts.some((q) => q.w >= 8 && q.h < 2 && opEchtPerron(map, q));
+export function plaatOverWeg(map, q) {
+  if (!(q.w >= 8) || q.h >= 2) return false;
+  const n = Math.min(60, Math.ceil(q.w / 3));
+  const dx = Math.cos(q.ry || 0), dz = -Math.sin(q.ry || 0);
+  for (let k = 0; k <= n; k++) {
+    const t = (k / n - 0.5) * q.w;
+    if (onGroundRoad(map, q.x + dx * t, q.z + dz * t, 0.3)) return true;
+  }
+  return false;
+}
+
 // Een streekplek zonder de onderdelen die op een weg of in een huis staan. Een perron staat naast het spoor en
 // een heg knipt dropOnRoad (streekplekken.js); hier zijn het de losse masten, zuilen en schoorstenen: een
 // onderdeel vervalt als zijn midden op de weg of in een gebouw valt. perron: alleen de weg telt.
 export function dropStreekParts(parts, map, plekType) {
   if (!map) return parts;
   return parts.filter((q) => {
+    if (plekType === 'perron' && (opEchtPerron(map, q) || plaatOverWeg(map, q))) return false;   // ook de gele strook: die zweefde op 0,9 m
     if (q.h < 0.1) return true; // vlakke delen (paden, vijver) laten we staan
     if (onGroundRoad(map, q.x, q.z, 0.3)) return false;
     if (nearRailAt(map, q.x, q.z, 2.1)) return false;
