@@ -139,7 +139,7 @@ export function renderVisboekPanel(el) {
     const kies = (id) => {
       if (!id || id === gekozen) return;
       gekozen = id;
-      for (const b of el.querySelectorAll('[data-vt]')) { const aan = b.dataset.vt === gekozen; b.classList.toggle('sel', aan); b.toggleAttribute('aria-current', aan); }
+      for (const b of el.querySelectorAll('[data-vt]')) { const aan = b.dataset.vt === gekozen; b.classList.toggle('sel', aan); if (aan) b.setAttribute('aria-current', 'true'); else b.removeAttribute('aria-current'); }
       el.querySelector('.vb-pane').innerHTML = detailHtml(getBoek(), gekozen);
     };
     el.addEventListener('click', (e) => { const b = e.target.closest('[data-vt]'); if (b) kies(b.dataset.vt); });

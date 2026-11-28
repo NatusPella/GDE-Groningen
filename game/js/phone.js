@@ -261,7 +261,7 @@ function renderDetail(focusActs = false) {
   aside.innerHTML = call ? callHtml() : note ? `<p class="pt-hulp">${esc(note)}</p>` : '';
   for (const b of panel.querySelectorAll('[data-ph-contact]')) {
     const on = !!call && Number(b.dataset.phContact) === callIdx;
-    b.toggleAttribute('aria-current', on);
+    if (on) b.setAttribute('aria-current', 'true'); else b.removeAttribute('aria-current');
   }
   if (focusActs && call && call.phase === 'talk') {
     const active = document.activeElement;
@@ -332,7 +332,7 @@ export function phoneClick(e, w, panel, a) {
     call = { contact: c, phase: 'ringing', t: 0, line: '', actions: [] };
     sfxEvent(w, 'phone_ringtone');   // SFX ronde 5: het rinkelen (UI-bus, alleen op je eigen scherm)
     renderDetail();
-    for (const b of panel.querySelectorAll('[data-ph-contact]')) b.toggleAttribute('aria-current', b === ct);
+    for (const b of panel.querySelectorAll('[data-ph-contact]')) { if (b === ct) b.setAttribute('aria-current', 'true'); else b.removeAttribute('aria-current'); }
     return true;
   }
   const act = t.closest('[data-ph-act]');

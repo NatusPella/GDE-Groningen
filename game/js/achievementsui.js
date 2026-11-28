@@ -371,7 +371,7 @@ export function renderAchievementsPanel(el, { keepFresh = false, animeer } = {})
         renderAchievementsPanel(el, { keepFresh: true });
         keepFocus(`[data-ach="${id}"]`);
       }
-      else if (a) { sel = a.dataset.ach; for (const b of el.querySelectorAll('[data-ach]')) { const on = b.dataset.ach === sel; b.classList.toggle('sel', on); b.toggleAttribute('aria-current', on); } const it = all2(el, sel); el.querySelector('.pa-pane').innerHTML = it; }
+      else if (a) { sel = a.dataset.ach; for (const b of el.querySelectorAll('[data-ach]')) { const on = b.dataset.ach === sel; b.classList.toggle('sel', on); if (on) b.setAttribute('aria-current', 'true'); else b.removeAttribute('aria-current'); } const it = all2(el, sel); el.querySelector('.pa-pane').innerHTML = it; }
     });
     // zoeken: de lijst tekent opnieuw, het veld houdt zijn focus en zijn cursor (Esc wist eerst de opdracht, sluit pas daarna het menu)
     el.addEventListener('input', (e) => {
@@ -394,7 +394,7 @@ export function renderAchievementsPanel(el, { keepFresh = false, animeer } = {})
       const a = e.target.closest && e.target.closest('[data-ach]');
       if (!a || a.dataset.ach === sel) return;
       sel = a.dataset.ach;
-      for (const b of el.querySelectorAll('[data-ach]')) { const on = b.dataset.ach === sel; b.classList.toggle('sel', on); b.toggleAttribute('aria-current', on); }
+      for (const b of el.querySelectorAll('[data-ach]')) { const on = b.dataset.ach === sel; b.classList.toggle('sel', on); if (on) b.setAttribute('aria-current', 'true'); else b.removeAttribute('aria-current'); }
       el.querySelector('.pa-pane').innerHTML = all2(el, sel);
     });
   }
