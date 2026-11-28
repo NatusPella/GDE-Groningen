@@ -33,13 +33,26 @@ function ensureRiders(w) {
   return riders;
 }
 
+// Dezelfde papieren kaart als de heli-HUD (helirun.js): de kleuren en maten komen uit de ds-tokens, geen eigen kleuren.
+const CSS = `
+#balloon-hud[hidden] { display: none; }
+#balloon-hud { position: fixed; left: 50%; bottom: 92px; transform: translateX(-50%); z-index: 5; pointer-events: none; text-align: center; max-width: 90vw; padding: 8px 18px 10px; background: var(--ds-c-ink-papier); color: var(--ds-c-ink-inkt); border: var(--ds-lijn-zeef) solid var(--ds-c-ink-inkt); border-radius: var(--ds-r); box-shadow: var(--ds-schaduw-hard); font-family: var(--ds-font-zeef-kop); font-weight: 600; }
+#balloon-hud .bh-regel { font-size: 20px; letter-spacing: 1px; }
+#balloon-hud .bh-waarschuwing { font-size: 16px; color: var(--ds-c-rood-tx); }
+#balloon-hud .bh-waarschuwing:empty { display: none; }
+#balloon-hud .bh-toetsen { font: 14px var(--ds-font-zeef-tekst); color: var(--ds-c-inkt-zacht); }
+`;
+
 function ensureHud() {
   if (hudEl || typeof document === 'undefined') return hudEl;
+  const st = document.createElement('style');
+  st.textContent = CSS;
+  document.head.appendChild(st);
   hudEl = document.createElement('div');
   hudEl.id = 'balloon-hud';
+  hudEl.hidden = true;
   hudEl.setAttribute('role', 'status');
-  hudEl.style.cssText = 'position:fixed;left:50%;bottom:92px;transform:translateX(-50%);z-index:40;padding:8px 16px;border-radius:10px;background:rgba(20,24,30,.74);color:#f4f1e8;font:600 15px/1.4 system-ui,sans-serif;text-align:center;pointer-events:none;display:none;max-width:90vw';
-  hudEl.innerHTML = '<div class="bh-regel"></div><div class="bh-waarschuwing" style="color:#ffcf6a"></div><div class="bh-toetsen" style="font-weight:500;opacity:.8;font-size:13px"></div>';
+  hudEl.innerHTML = '<div class="bh-regel"></div><div class="bh-waarschuwing"></div><div class="bh-toetsen"></div>';
   document.body.appendChild(hudEl);
   return hudEl;
 }
@@ -49,7 +62,7 @@ export function updateBalloonRide3D(w, dt) {
   const ride = w && w.balloonRide;
   if (!ride) {
     if (group) group.visible = false;
-    if (hudEl) hudEl.style.display = 'none';
+    if (hudEl) hudEl.hidden = true;
     return;
   }
   const r = ensureRiders(w);
@@ -69,7 +82,7 @@ export function updateBalloonRide3D(w, dt) {
   const el = ensureHud();
   const h = rideHud(w);
   if (el && h) {
-    el.style.display = 'block';
+    el.hidden = false;
     el.querySelector('.bh-regel').textContent = h.regel;
     el.querySelector('.bh-waarschuwing').textContent = h.waarschuwing || '';
     el.querySelector('.bh-toetsen').textContent = h.toetsen;
