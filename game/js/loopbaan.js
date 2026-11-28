@@ -110,7 +110,7 @@ const BAAN_VAK = {
   vracht: 'vracht', melkrit: 'vracht', suikerbieten: 'vracht',
   bietenoogst: 'landbouw', balenrit: 'landbouw', boerderij: 'landbouw', marktkraam: 'landbouw',
   rondvaart: 'water', rondvaarttour: 'water', veerdienst: 'water', strandpost: 'water',
-  zeeschipwad: 'water', zeeschipeems: 'water',
+  zeeschipwad: 'water', zeeschipeems: 'water', binnenvaart: 'water',
   boa: 'handhaving', rechtbank: 'handhaving', fietsdepot: 'handhaving', berging: 'handhaving', brugdienst: 'handhaving', herstelploeg: 'handhaving',
   loket: 'kantoor', studiestaat: 'kantoor', wolkenhal: 'kantoor', vandermeden: 'kantoor',
   cabaret: 'podium', promotie: 'podium', oogtv: 'podium', telefoonrave: 'podium', schouwburg: 'podium', toeristengids: 'podium',
@@ -184,6 +184,10 @@ export const VAARDIGHEDEN = {
   trein: [
     { niveau: 2, titel: 'Vaste reiziger', wat: 'Korting op je treinkaartje: hoe hoger je niveau in het spoor, hoe goedkoper je reist.' },
     { niveau: 3, titel: 'Kaartjesknipper', wat: 'Op het perron van elk station: loop naar een reiziger en druk E. Een paar reizigers achter elkaar is een ronde die uitbetaalt en punten geeft; per station hooguit één ronde per kwartier.' },
+  ],
+  water: [
+    { niveau: 4, titel: 'Kapitein', wat: 'Het provinciespoor: aan de Kade bij het Rustpunt ligt De Drie Zusters van Noorderspoor Water. Laad, vaar naar een andere kade en leg rustig aan; elke overtocht is een contract met lading en tarief per km.' },
+    { niveau: 6, titel: 'Zeebaas van de Waddenzee', wat: 'Loods zeeschepen bij Lauwersoog en de Eemshaven.' },
   ],
 };
 // De hoogste vaardigheid die dit niveau al gaf, of null als er bij dit vak niets bij komt.

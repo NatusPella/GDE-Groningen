@@ -43,6 +43,7 @@ import lijn from './sidejob_lijn.js';
 import { BIJBAAN_JOBS } from './sidejob_bijbaan.js';
 import { veerdienst } from './sidejob_veer.js';
 import { zeeschipLauwersoog, zeeschipEemshaven } from './sidejob_zeeschip.js';
+import { binnenvaart } from './sidejob_binnenvaart.js';
 import { PANEEL_JOBS } from './sidejob_paneel.js';
 import tjalke from './sidejob_tjalke.js';
 import { loket, studiestaat, vigilantia, promotie, kamerkoning, wolkenhal, helix, niemeyer, bernard, energielabel } from './sidejob_keuze.js';
@@ -72,7 +73,7 @@ import { bewaakGastWereld, spelerBeeld } from './sidejobwereld.js';
 import { tempoBonus, tempoTekst, reeksNaTegenslag, aanrijdingReeksTekst } from './sidejobfeel.js'; // game feel 22-11: tempo bonus and a streak that survives bad luck
 import { hoofdspeler } from './spelersregister.js'; // de speler achter dit scherm doet de dienst (#446); een gast heeft zijn eigen wereldstaat (contexts, #492) en ziet die via coopbijbaan.js
 
-export const SIDE_JOBS = [bezorger, krantenwijk, taxi, bus, rondvaart, fietsdepot, verhuizing, rondvaarttour, boa, rechtbank, cabaret, vracht, loket, studiestaat, vigilantia, promotie, kamerkoning, wolkenhal, helix, niemeyer, bernard, energielabel, tjalke, lijn, ...BIJBAAN_JOBS, veerdienst, zeeschipLauwersoog, zeeschipEemshaven, ...PANEEL_JOBS, ...STAD_JOBS, ...PACK_SIDE_JOBS, bietenoogst, boerderij, snackoverlast];
+export const SIDE_JOBS = [bezorger, krantenwijk, taxi, bus, rondvaart, fietsdepot, verhuizing, rondvaarttour, boa, rechtbank, cabaret, vracht, loket, studiestaat, vigilantia, promotie, kamerkoning, wolkenhal, helix, niemeyer, bernard, energielabel, tjalke, lijn, ...BIJBAAN_JOBS, veerdienst, zeeschipLauwersoog, zeeschipEemshaven, binnenvaart, ...PANEEL_JOBS, ...STAD_JOBS, ...PACK_SIDE_JOBS, bietenoogst, boerderij, snackoverlast];
 const BY_ID = new Map(SIDE_JOBS.map((j) => [j.id, j]));
 // The unlock gate per start spot (#1131): only for the player behind this screen (owner 0); a guest on the host is never closed.
 const STORY_GATE = { open: storyWorldOpen, begun: isLoopbaanGestart, hint: storyGateHint };
@@ -180,7 +181,7 @@ export function getSideJobList() {
 }
 
 // Rough pay per round for the phone's job app until the player has own figures.
-const PAY_GUESS = { lijn: [60, 120], bezorger: [27, 55], krantenwijk: [24, 46], taxi: [25, 60], bus: [90, 140], rondvaart: [55, 105], rondvaarttour: [40, 80], fietsdepot: [45, 90], verhuizing: [80, 180], boa: [38, 60], rechtbank: [60, 105], cabaret: [25, 85], vracht: [70, 130], loket: [52, 90], studiestaat: [62, 110], vigilantia: [56, 98], promotie: [58, 100], kamerkoning: [52, 92], wolkenhal: [58, 100], helix: [54, 92], niemeyer: [54, 94], bernard: [48, 84], energielabel: [54, 94], tjalke: [300, 400], museumbus: [48, 86], suikerbieten: [50, 90], bietenoogst: [70, 110], boerderij: [40, 250], herstelploeg: [66, 96], oogtv: [69, 93], telefoonrave: [40, 85], vandermeden: [56, 90], schouwburg: [56, 92], bernardrit: [52, 84], snackoverlast: [44, 78], vismarktkoerier: [36, 66], studentenfeest: [52, 96], marktkraam: [46, 90], toeristengids: [50, 90] };
+const PAY_GUESS = { lijn: [60, 120], bezorger: [27, 55], krantenwijk: [24, 46], taxi: [25, 60], bus: [90, 140], rondvaart: [55, 105], rondvaarttour: [40, 80], fietsdepot: [45, 90], verhuizing: [80, 180], boa: [38, 60], rechtbank: [60, 105], cabaret: [25, 85], vracht: [70, 130], loket: [52, 90], studiestaat: [62, 110], vigilantia: [56, 98], promotie: [58, 100], kamerkoning: [52, 92], wolkenhal: [58, 100], helix: [54, 92], niemeyer: [54, 94], bernard: [48, 84], energielabel: [54, 94], tjalke: [300, 400], binnenvaart: [90, 200], museumbus: [48, 86], suikerbieten: [50, 90], bietenoogst: [70, 110], boerderij: [40, 250], herstelploeg: [66, 96], oogtv: [69, 93], telefoonrave: [40, 85], vandermeden: [56, 90], schouwburg: [56, 92], bernardrit: [52, 84], snackoverlast: [44, 78], vismarktkoerier: [36, 66], studentenfeest: [52, 96], marktkraam: [46, 90], toeristengids: [50, 90] };
 
 // Phone job app: every job with pay, distance and why it can't start now.
 export function getSideJobOffers(w) {

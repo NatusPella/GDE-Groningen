@@ -75,6 +75,7 @@ const BIJBAAN = {
   // het bijbanenpakket van 22-11: drie banen te voet met een E-hulp; de vismarktkoerier (fiets) doet ieder in het eigen spel
   studentenfeest: WERKT, marktkraam: WERKT, toeristengids: WERKT, vismarktkoerier: NEE,
   boerderij: NEE, // de trekker
+  binnenvaart: WERKT, // #1376: De Drie Zusters; een gast is bemanning (dekhulp aan de kade, gids onder het varen)
   rondvaarttour: WERKT, // #819: de ontspannen tour is een passagiersrol; de fooi wordt gedeeld
   boa: NEE, fietsdepot: NEE, lijn: NEE, verhuizing: NEE,
 };
@@ -161,7 +162,7 @@ const SAMEN_KAN = [
   ['bijbaan', 'taxi', 'taxi'], ['bijbaan', 'bezorger', 'bezorgen'], ['bijbaan', 'krantenwijk', 'de krantenwijk'],
   ['bijbaan', 'vracht', 'vracht'], ['bijbaan', 'bus', 'de bus'],
   // #683: de drie banen met een passagiers- of juryrol, en de vijf met een eigen E-hulp
-  ['bijbaan', 'rondvaart', 'de rondvaart'], ['bijbaan', 'rondvaarttour', 'de ontspannen rondvaart'], ['bijbaan', 'veerdienst', 'de veerdienst'], ['bijbaan', 'rechtbank', 'de rechtbank'],
+  ['bijbaan', 'rondvaart', 'de rondvaart'], ['bijbaan', 'rondvaarttour', 'de ontspannen rondvaart'], ['bijbaan', 'veerdienst', 'de veerdienst'], ['bijbaan', 'binnenvaart', 'het binnenvaartschip'], ['bijbaan', 'rechtbank', 'de rechtbank'],
   ['bijbaan', 'cabaret', 'het cabaret'], ['bijbaan', 'loket', 'het loket'], ['bijbaan', 'snackoverlast', 'de snackoverlast'],
   ['bijbaan', 'tjalke', 'de tjalke'], ['bijbaan', 'bietenoogst', 'de bietenoogst'],
   ['bijbaan', 'studentenfeest', 'het studentenfeest'], ['bijbaan', 'marktkraam', 'de boerenmarktkraam'], ['bijbaan', 'toeristengids', 'de toeristengids'],

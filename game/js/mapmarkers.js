@@ -14,7 +14,7 @@ const MARKER_ICOON = {
 // De bijbanen en activiteiten die mapglyphs.js nog geen Phosphor-naam gaf (22-11): de kaart tekende ze met een eigen getekend glyph.
 const PH_JOB_EXTRA = {
   krantenwijk: 'krant', rondvaarttour: 'boot', lijn: 'bus', fietssoep: 'kookpot', taxinacht: 'taxi', balenrit: 'tractor', berging: 'auto', schoolrit: 'bus',
-  melkrit: 'koe', veerdienst: 'boot', zeeschipwad: 'boot', zeeschipeems: 'boot', strandpost: 'tent', kermisdraai: 'reuzenrad', brugdienst: 'anker',
+  melkrit: 'koe', veerdienst: 'boot', zeeschipwad: 'boot', zeeschipeems: 'boot', binnenvaart: 'boot', strandpost: 'tent', kermisdraai: 'reuzenrad', brugdienst: 'anker',
   vismarktkoerier: 'vis', studentenfeest: 'bier', marktkraam: 'mand', toeristengids: 'kaart', bietenoogst: 'gewas', boerderij: 'boerderij', snackoverlast: 'burger',
 };
 const PH_ACT_EXTRA = {

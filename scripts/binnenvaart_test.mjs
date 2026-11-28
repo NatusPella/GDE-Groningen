@@ -93,11 +93,11 @@ ok(R.kiesOvertocht(1, 0, 'west').van === 'west', 'vanaf een andere kade begint d
   const c = { level: 1, streak: 2, data: {}, vehicle: { x: kade.x, y: kade.y, vx: 0, vy: 0, speed: 0, angle: 0 }, msg: (m) => log.msgs.push(m), complete: (r) => { log.done = r; }, fail: (w) => { log.failed = w; } };
   binnenvaart.round(c);
   ok(c.data.overtocht && c.timeLeft === c.data.overtocht.budget && /Noorderspoor/.test(log.msgs[0]), 'ronde start met de rederij');
-  for (let t = 0; t < 8; t++) binnenvaart.update(1, c);
+  for (let t = 0; t < 30 && c.data.overtocht.fase === 'laden'; t++) binnenvaart.update(1, c); // de laadtijd komt uit het contract (vaarvracht.js)
   ok(c.data.overtocht.fase === 'varen' && log.msgs.some((m) => /Geladen/.test(m)), 'laden meldt');
   const naar = R.kadeById('oost').water;
   c.vehicle.x = naar.x; c.vehicle.y = naar.y;
-  for (let t = 0; t < 8; t++) binnenvaart.update(1, c);
+  for (let t = 0; t < 30 && !log.done; t++) binnenvaart.update(1, c);
   ok(log.done && log.done.base > 0 && !log.failed && c.data.vanKade === 'oost', 'klaar: loon en de volgende begint bij de eindkade');
   ok(binnenvaart.view(c).marker && /kade/i.test(binnenvaart.view(c).goal.label), 'view geeft marker en doel');
   binnenvaart.round(c);

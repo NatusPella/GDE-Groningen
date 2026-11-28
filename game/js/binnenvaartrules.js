@@ -53,6 +53,7 @@ export const OVERTOCHT = {
   perNiveau: 0.06,  // zoveel van het budget gaat er per niveau af (hoogstens 5 niveaus)
 };
 
+const wachtTijd = (v, standaard) => (Number.isFinite(v) && v >= 0 ? Math.min(120, v) : standaard);
 const clampNiveau = (l) => Math.max(1, Math.min(5, Math.round(Number.isFinite(l) ? l : 1)));
 const afstand = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
 
@@ -106,15 +107,16 @@ export function kiesOvertocht(level = 1, beurt = 0, vanKade = THUIS) {
   return o;
 }
 
-// Een schone overtocht; null bij een onbekende.
-export function maakOvertocht(id, level = 1) {
+// Een schone overtocht; null bij een onbekende. `opties.ladenS` en `opties.lossenS` komen uit het contract (vaarvracht.js); zonder is het de standaardtijd.
+export function maakOvertocht(id, level = 1, opties = {}) {
   const o = overtochtById(id);
   if (!o) return null;
   const budget = (o.lengte * OVERTOCHT.perM + OVERTOCHT.vast) * (1 - (clampNiveau(level) - 1) * OVERTOCHT.perNiveau);
   const van = kadeById(o.van), naar = kadeById(o.naar);
   return {
     id: o.id, van: o.van, naar: o.naar, lengte: o.lengte, fase: 'laden', t: 0, budget: Math.round(budget),
-    wacht: 0, tehard: 0, stoten: 0, klaar: false, mislukt: false,
+    wacht: 0, tehard: 0, stoten: 0, klaar: false, mislukt: false, anker: false, verteld: false,
+    ladenS: wachtTijd(opties.ladenS, OVERTOCHT.ladenS), lossenS: wachtTijd(opties.lossenS, OVERTOCHT.lossenS),
     koers: Math.atan2(naar.water.y - van.water.y, naar.water.x - van.water.x),
   };
 }
@@ -137,6 +139,7 @@ export const faseTekst = (s) => (!s ? '' : s.fase === 'laden' ? 'Laden aan de ka
 export function stapOvertocht(s, { x, y, speed = 0, bump = 0 } = {}, dt = 0) {
   const ev = [];
   if (!s || s.klaar || s.mislukt || !(dt > 0)) return ev;
+  if (s.anker) return ev;       // voor anker: er verstrijkt niets, de kadewachter wacht (W6: de stuurman is even weg)
   s.t += dt;
   if (bump > 0) s.stoten += bump;
   if (bijKade(s, x, y) && speed > OVERTOCHT.kadeLimiet) {
@@ -151,14 +154,14 @@ export function stapOvertocht(s, { x, y, speed = 0, bump = 0 } = {}, dt = 0) {
     // je ligt aan de startkade: stilliggen tot de lading aan boord is, daarna vaar je
     if (dist <= OVERTOCHT.aanlegR && stil) {
       s.wacht += dt;
-      if (s.wacht >= OVERTOCHT.ladenS) { s.fase = 'varen'; s.wacht = 0; ev.push({ type: 'geladen' }); }
+      if (s.wacht >= s.ladenS) { s.fase = 'varen'; s.wacht = 0; ev.push({ type: 'geladen' }); }
     } else s.wacht = 0;
   } else if (s.fase === 'varen') {
     if (dist <= OVERTOCHT.aanlegR && stil) { s.fase = 'lossen'; s.wacht = 0; ev.push({ type: 'aangelegd' }); }
   } else if (s.fase === 'lossen') {
     if (dist <= OVERTOCHT.aanlegR * 1.4 && stil) {
       s.wacht += dt;
-      if (s.wacht >= OVERTOCHT.lossenS) { s.klaar = true; ev.push({ type: 'klaar' }); }
+      if (s.wacht >= s.lossenS) { s.klaar = true; ev.push({ type: 'klaar' }); }
     } else s.wacht = 0;
   }
   return ev;
@@ -172,11 +175,54 @@ export function uitslagVan(s) {
   const km = s.lengte / 1000;
   return {
     base: Math.round(Math.max(0, 100 + km * 30 + opTijd * 60 - s.tehard * 4)),
-    tip: schoon ? 35 : 0,
+    tip: (schoon ? 35 : 0) + (s.verteld ? GIDS_FOOI : 0),
     flawless: schoon,
     text: schoon ? 'Netjes aangelegd: de kadewachter steekt zijn duim op.' : 'De lading staat aan wal, de kadewachter keek even.',
     failed: false,
   };
+}
+
+// --- Samen spelen (W6): de bemanning ---------------------------------------------------------------------------------------------------------
+// De baan is van wie het spel opende: die is de stuurman en vaart. Een meespelende gast is dekhulp (helpt met E bij het laden en lossen), de volgende
+// gast is gids (vertelt tijdens het varen met E; dat levert elke deelnemer een extra fooi op), wie daarna komt vaart mee als bemanning.
+// Valt de stuurman even weg van het roer, dan ligt het schip voor anker: de overtocht staat stil en niets mislukt.
+export const ROLLEN = Object.freeze(['stuurman', 'dekhulp', 'gids']);
+export const GIDS_FOOI = 20;
+export const ROL_TEKST = Object.freeze({
+  stuurman: 'Je staat aan het roer: je vaart.',
+  dekhulp: 'Je bent dekhulp: druk bij de kade op E om te helpen bij het laden en lossen.',
+  gids: 'Je bent gids: druk tijdens het varen op E om iets te vertellen; dat levert een extra fooi op.',
+  bemanning: 'Je vaart mee als bemanning.',
+});
+// plek (slot) -> rol. `deelnemers` zijn de plekken die meedoen, in de volgorde waarin ze zich meldden (de stuurman mag erbij staan of niet): de eerste is
+// dekhulp, de tweede gids, de rest bemanning.
+export function bemanningVan(deelnemers, stuurman = 0) {
+  const uit = { [stuurman]: 'stuurman' };
+  const rest = [...new Set((Array.isArray(deelnemers) ? deelnemers : []).filter((n) => Number.isInteger(n) && n !== stuurman))];
+  rest.forEach((slot, i) => { uit[slot] = i < ROLLEN.length - 1 ? ROLLEN[i + 1] : 'bemanning'; });
+  return uit;
+}
+// Voor anker leggen of weer losgooien. Alleen een lopende overtocht kan voor anker.
+export function zetAnker(s, aan) {
+  if (!s || s.klaar || s.mislukt) return false;
+  s.anker = !!aan;
+  return true;
+}
+// De gids vertelt iets: alleen tijdens het varen, hoogstens één keer per overtocht. Geeft true als het meetelt.
+export function vertelAanBoord(s) {
+  if (!s || s.fase !== 'varen' || s.verteld || s.anker || s.klaar || s.mislukt) return false;
+  s.verteld = true;
+  return true;
+}
+// De dekhulp helpt: alleen bij laden of lossen aan de kade, vlak bij het schip. Geeft de nieuwe resterende wachttijd of null als hij niet kan helpen.
+export function helpAanKade(s, stap = 1.5) {
+  if (!s || s.klaar || s.mislukt || s.anker) return null;
+  if (s.fase !== 'laden' && s.fase !== 'lossen') return null;
+  const totaal = s.fase === 'laden' ? s.ladenS : s.lossenS;
+  const rest = Math.max(0, totaal - s.wacht);
+  if (!(rest > 0)) return null;
+  s.wacht = Math.min(totaal, s.wacht + Math.max(0, stap));
+  return Math.max(0, totaal - s.wacht);
 }
 
 export const voortgangTekst = (s) => {

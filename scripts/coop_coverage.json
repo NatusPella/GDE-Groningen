@@ -279,6 +279,8 @@
     "sidejob*",
     "coopbijbaan",
     "bijbaan*",
+    "binnenvaartrules",
+    "vaarvracht",
     "deliveryteam",
     "krantenrules",
     "krantenstatus"
@@ -291,6 +293,7 @@
     "scripts/coop/bijbaan_test.mjs",
     "scripts/coop/bijbaanrollen_test.mjs",
     "scripts/coop/bijbaanparallel_test.mjs",
+    "scripts/coop/binnenvaartcrew_test.mjs",
     "scripts/sidejobpack_test.mjs",
     "scripts/sidejobfeel_test.mjs",
     "scripts/coop/deliveryteam_test.mjs",
@@ -398,7 +401,8 @@
     "balloonflight",
     "rankmoments*",
     "footballrank",
-    "footballstory"
+    "footballstory",
+    "boatcareer"
    ],
    "eigenaar": "speler",
    "gast": "Eigen niveaus en titels op het eigen apparaat; wat je als gast verdient rekent met je eigen niveau.",

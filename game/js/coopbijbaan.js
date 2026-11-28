@@ -37,6 +37,9 @@ export const BIJBAAN_REGELS = {
   rondvaart: { rol: 'passagier', hulp: 'Stap met {E} aan boord van de rondvaartboot en vaar mee; je hoort het verhaal en deelt de fooi.', positie: false, actie: false },
   // #819: de ontspannen tour (zonder tijdsdruk) is een rustige passagiersrol; de fooi wordt gedeeld.
   rondvaarttour: { rol: 'passagier', hulp: 'Stap met {E} aan boord van de ontspannen rondvaart en vaar mee; de fooi wordt gedeeld.', positie: false, actie: false },
+  // W6 (#1376): De Drie Zusters. De stuurman is wie het spel opende; een gast is bemanning: aan de kade helpt E bij het laden en lossen (dekhulp),
+  // onder het varen vertelt E iets (gids, extra fooi voor iedereen). Valt de stuurman weg van het roer, dan ligt het schip voor anker.
+  binnenvaart: { rol: 'bemanning', hulp: 'Stap met {E} aan boord van De Drie Zusters: aan de kade help je met {E} bij het laden en lossen, onder het varen vertel je met {E} iets over het kanaal. De schipper aan het roer vaart.', positie: false, actie: true },
   veerdienst: { rol: 'passagier', hulp: 'Stap met {E} aan boord van de veerboot en vaar mee; elke overtocht levert jou ook het volle loon op.', positie: false, actie: false },
   rechtbank: { rol: 'tweede jurylid', hulp: 'Zit in de jury: je ziet de zaak mee, deelt de vergoeding en één fout antwoord wordt door de jury vergeven.', positie: false, actie: false },
   // #683: de vijf banen uit het groeipad, elk met een eigen E-hulp (vanaf de grond of vanuit het voertuig).
